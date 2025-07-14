@@ -55,10 +55,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the NGINX Deployment exists.
 
-* `logging_storage_account` - A `logging_storage_account` block as defined below.
-
-* `managed_resource_group` - Auto-generated managed resource group for the NGINX Deployment.
-
 * `network_interface` - A `network_interface` block as defined below.
 
 * `nginx_version` - NGINX version of the Deployment.
@@ -66,6 +62,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `sku` - The NGINX Deployment SKU.
 
 * `automatic_upgrade_channel` - The automatic upgrade channel for this NGINX deployment.
+
+* `web_application_firewall` - A `web_application_firewall` block as defined below.
+
+* `dataplane_api_endpoint` - The dataplane API endpoint of the NGINX Deployment.
 
 * `tags` - A mapping of tags assigned to the NGINX Deployment.
 
@@ -95,14 +95,6 @@ A `identity` block exports the following:
 
 ---
 
-A `logging_storage_account` block exports the following:
-
-* `container_name` - The container name of Storage Account for logging.
-
-* `name` - The account name of the StorageAccount for logging.
-
----
-
 A `network_interface` block exports the following:
 
 * `subnet_id` - The subnet resource ID of the NGINX Deployment.
@@ -117,8 +109,34 @@ An `auto_scale_profile` block exports the following:
 
 * `max_capacity` - The maximum number of NGINX capacity units for this NGINX Deployment.
 
+---
+
+A `web_application_firewall` block exports the following:
+
+* `activation_state_enabled` - Whether WAF is enabled/disabled for this NGINX Deployment.
+* `status` - A `status` block as defined below.
+
+---
+
+A `web_application_firewall.status` block exports the following:
+
+* `attack_signatures_package` - Indicates the version of the attack signatures package used by NGINX App Protect.
+
+* `bot_signatures_package` - Indicates the version of the bot signatures package used by NGINX App Protect.
+
+* `threat_campaigns_package` - Indicates the version of the threat campaigns package used by NGINX App Protect.
+
+* `component_versions` - Indicates the version of the WAF Engine and Nginx WAF Module used by NGINX App Protect.
+
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the NGINX Deployment.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Nginx.NginxPlus`: 2024-11-01-preview

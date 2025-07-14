@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2021-10-01/exports"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/exports"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -50,6 +50,16 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validation.IsRFC3339Time,
+		},
+
+		"file_format": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(exports.FormatTypeCsv),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(exports.FormatTypeCsv),
+				// TODO add support for Parquet once added to the SDK
+			}, false),
 		},
 
 		"export_data_storage_location": {
@@ -195,6 +205,7 @@ func (br costManagementExportBaseResource) readFunc(scopeFieldName string) sdk.R
 					if err := metadata.ResourceData.Set("export_data_options", flattenExportDefinition(&props.Definition)); err != nil {
 						return fmt.Errorf("setting `export_data_options`: %+v", err)
 					}
+					metadata.ResourceData.Set("file_format", string(pointer.From(props.Format)))
 				}
 			}
 
@@ -267,7 +278,8 @@ func createOrUpdateCostManagementExport(ctx context.Context, client *exports.Exp
 		return fmt.Errorf("expanding `export_data_storage_location`: %+v", err)
 	}
 
-	format := exports.FormatTypeCsv
+	format := exports.FormatType(metadata.ResourceData.Get("file_format").(string))
+
 	recurrenceType := exports.RecurrenceType(metadata.ResourceData.Get("recurrence_type").(string))
 	props := exports.Export{
 		ETag: etag,

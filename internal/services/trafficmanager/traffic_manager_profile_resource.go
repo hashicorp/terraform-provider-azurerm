@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -81,7 +82,7 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 						"ttl": {
 							Type:         pluginsdk.TypeInt,
 							Required:     true,
-							ValidateFunc: validation.IntBetween(0, 2147483647),
+							ValidateFunc: validation.IntBetween(0, math.MaxInt32),
 						},
 					},
 				},

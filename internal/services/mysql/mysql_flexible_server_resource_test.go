@@ -10,12 +10,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
+	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MySqlFlexibleServerResource struct{}
@@ -31,7 +35,6 @@ func TestAccMySqlFlexibleServer_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 				check.That(data.ResourceName).Key("version").Exists(),
 				check.That(data.ResourceName).Key("storage.#").Exists(),
@@ -66,7 +69,6 @@ func TestAccMySqlFlexibleServer_complete(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -83,7 +85,6 @@ func TestAccMySqlFlexibleServer_completeUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -93,7 +94,6 @@ func TestAccMySqlFlexibleServer_completeUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -111,7 +111,6 @@ func TestAccMySqlFlexibleServer_updateMaintenanceWindow(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -122,7 +121,6 @@ func TestAccMySqlFlexibleServer_updateMaintenanceWindow(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -133,7 +131,6 @@ func TestAccMySqlFlexibleServer_updateMaintenanceWindow(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -144,7 +141,6 @@ func TestAccMySqlFlexibleServer_updateMaintenanceWindow(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -162,7 +158,6 @@ func TestAccMySqlFlexibleServer_updateSku(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -173,7 +168,6 @@ func TestAccMySqlFlexibleServer_updateSku(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -184,7 +178,6 @@ func TestAccMySqlFlexibleServer_updateSku(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -202,7 +195,6 @@ func TestAccMySqlFlexibleServer_updateHA(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -214,7 +206,6 @@ func TestAccMySqlFlexibleServer_updateHA(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -225,7 +216,6 @@ func TestAccMySqlFlexibleServer_updateHA(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -236,7 +226,6 @@ func TestAccMySqlFlexibleServer_updateHA(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -255,7 +244,6 @@ func TestAccMySqlFlexibleServer_pitr(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -267,7 +255,6 @@ func TestAccMySqlFlexibleServer_pitr(t *testing.T) {
 				check.That("azurerm_mysql_flexible_server.pitr").ExistsInAzure(r),
 				check.That("azurerm_mysql_flexible_server.pitr").Key("zone").Exists(),
 				check.That("azurerm_mysql_flexible_server.pitr").Key("fqdn").Exists(),
-				check.That("azurerm_mysql_flexible_server.pitr").Key("public_network_access_enabled").Exists(),
 				check.That("azurerm_mysql_flexible_server.pitr").Key("replica_capacity").Exists(),
 				check.That("azurerm_mysql_flexible_server.pitr").Key("administrator_login").Exists(),
 				check.That("azurerm_mysql_flexible_server.pitr").Key("sku_name").Exists(),
@@ -290,7 +277,6 @@ func TestAccMySqlFlexibleServer_replica(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -302,7 +288,6 @@ func TestAccMySqlFlexibleServer_replica(t *testing.T) {
 				check.That("azurerm_mysql_flexible_server.replica").ExistsInAzure(r),
 				check.That("azurerm_mysql_flexible_server.replica").Key("zone").Exists(),
 				check.That("azurerm_mysql_flexible_server.replica").Key("fqdn").Exists(),
-				check.That("azurerm_mysql_flexible_server.replica").Key("public_network_access_enabled").Exists(),
 				check.That("azurerm_mysql_flexible_server.replica").Key("replica_capacity").Exists(),
 				check.That("azurerm_mysql_flexible_server.replica").Key("replication_role").HasValue("Replica"),
 				check.That("azurerm_mysql_flexible_server.replica").Key("administrator_login").Exists(),
@@ -331,7 +316,6 @@ func TestAccMySqlFlexibleServer_geoRestore(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zone").Exists(),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
-				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
 				check.That(data.ResourceName).Key("replica_capacity").Exists(),
 			),
 		},
@@ -343,7 +327,6 @@ func TestAccMySqlFlexibleServer_geoRestore(t *testing.T) {
 				check.That("azurerm_mysql_flexible_server.geo_restore").ExistsInAzure(r),
 				check.That("azurerm_mysql_flexible_server.geo_restore").Key("zone").Exists(),
 				check.That("azurerm_mysql_flexible_server.geo_restore").Key("fqdn").Exists(),
-				check.That("azurerm_mysql_flexible_server.geo_restore").Key("public_network_access_enabled").Exists(),
 				check.That("azurerm_mysql_flexible_server.geo_restore").Key("replica_capacity").Exists(),
 				check.That("azurerm_mysql_flexible_server.geo_restore").Key("administrator_login").Exists(),
 				check.That("azurerm_mysql_flexible_server.geo_restore").Key("sku_name").Exists(),
@@ -420,14 +403,14 @@ func TestAccMySqlFlexibleServer_failover(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.failover(data, "1", "2"),
+			Config: r.failover(data, "2", "3"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_password"),
 		{
-			Config: r.failover(data, "2", "1"),
+			Config: r.failover(data, "3", "2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -473,7 +456,7 @@ func TestAccMySqlFlexibleServer_updateToCustomerManagedKey(t *testing.T) {
 	})
 }
 
-// this test can fail with a uninformative error, tracked here https://github.com/Azure/azure-rest-api-specs/issues/22980
+// this test can fail with an uninformative error, tracked here https://github.com/Azure/azure-rest-api-specs/issues/22980
 func TestAccMySqlFlexibleServer_enableGeoRedundantBackup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
 	r := MySqlFlexibleServerResource{}
@@ -511,6 +494,102 @@ func TestAccMySqlFlexibleServer_identity(t *testing.T) {
 	})
 }
 
+func TestAccMySqlFlexibleServer_writeOnlyPassword(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	r := MySqlFlexibleServerResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.writeOnlyPassword(data, "a-secret-from-kv", 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_password_wo_version"),
+			{
+				Config: r.writeOnlyPassword(data, "a-secret-from-kv-updated", 2),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_password_wo_version"),
+		},
+	})
+}
+
+func TestAccMySqlFlexibleServer_updateToWriteOnlyPassword(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	r := MySqlFlexibleServerResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.basic(data),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_password"),
+			{
+				Config: r.writeOnlyPassword(data, "a-secret-from-kv", 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_password", "administrator_password_wo_version"),
+			{
+				Config: r.basic(data),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_password"),
+		},
+	})
+}
+
+func TestAccMySqlFlexibleServer_upgradeVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	r := MySqlFlexibleServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.upgradeVersion(data, "5.7"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password"),
+		{
+			Config: r.upgradeVersion(data, "8.0.21"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password"),
+	})
+}
+
+func TestAccMySqlFlexibleServer_publicNetworkAccess(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	r := MySqlFlexibleServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.publicNetworkAccess(data, servers.EnableStatusEnumDisabled),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password"),
+		{
+			Config: r.publicNetworkAccess(data, servers.EnableStatusEnumEnabled),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func (MySqlFlexibleServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := servers.ParseFlexibleServerID(state.ID)
 	if err != nil {
@@ -522,7 +601,7 @@ func (MySqlFlexibleServerResource) Exists(ctx context.Context, clients *clients.
 		return nil, fmt.Errorf("retrieving %s: %+v", id.ID(), err)
 	}
 
-	return utils.Bool(resp.Model != nil && resp.Model.Properties != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Properties != nil), nil
 }
 
 func (MySqlFlexibleServerResource) template(data acceptance.TestData) string {
@@ -548,8 +627,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
-  sku_name               = "B_Standard_B1s"
-  zone                   = "1"
+  sku_name               = "B_Standard_B1ms"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -621,19 +699,20 @@ resource "azurerm_mysql_flexible_server" "test" {
   location                     = azurerm_resource_group.test.location
   administrator_login          = "adminTerraform"
   administrator_password       = "QAZwsx123"
-  zone                         = "1"
+  zone                         = "3"
   version                      = "8.0.21"
   backup_retention_days        = 7
   geo_redundant_backup_enabled = false
 
   storage {
-    size_gb = 20
-    iops    = 360
+    size_gb             = 20
+    iops                = 360
+    log_on_disk_enabled = true
   }
 
   delegated_subnet_id = azurerm_subnet.test.id
   private_dns_zone_id = azurerm_private_dns_zone.test.id
-  sku_name            = "GP_Standard_D2ds_v4"
+  sku_name            = "MO_Standard_E2ds_v4"
 
   high_availability {
     mode                      = "ZoneRedundant"
@@ -706,21 +785,22 @@ resource "azurerm_mysql_flexible_server" "test" {
   location                     = azurerm_resource_group.test.location
   administrator_login          = "adminTerraform"
   administrator_password       = "123wsxQAZ"
-  zone                         = "1"
+  zone                         = "3"
   version                      = "8.0.21"
   backup_retention_days        = 10
   geo_redundant_backup_enabled = false
 
   storage {
-    size_gb            = 32
-    iops               = 400
-    auto_grow_enabled  = false
-    io_scaling_enabled = false
+    size_gb             = 32
+    iops                = 400
+    auto_grow_enabled   = false
+    io_scaling_enabled  = false
+    log_on_disk_enabled = false
   }
 
   delegated_subnet_id = azurerm_subnet.test.id
   private_dns_zone_id = azurerm_private_dns_zone.test.id
-  sku_name            = "GP_Standard_D4ds_v4"
+  sku_name            = "MO_Standard_E4ds_v4"
 
   maintenance_window {
     day_of_week  = 0
@@ -745,10 +825,9 @@ resource "azurerm_mysql_flexible_server" "test" {
   name                   = "acctest-fs-%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
-  administrator_login    = "adminTerraform"
+  administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
-  sku_name               = "B_Standard_B1s"
-  zone                   = "1"
+  sku_name               = "GP_Standard_D2ds_v4"
 
   maintenance_window {
     day_of_week  = 0
@@ -767,10 +846,9 @@ resource "azurerm_mysql_flexible_server" "test" {
   name                   = "acctest-fs-%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
-  administrator_login    = "adminTerraform"
+  administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
-  sku_name               = "B_Standard_B1s"
-  zone                   = "1"
+  sku_name               = "GP_Standard_D2ds_v4"
 
   maintenance_window {
     day_of_week  = 3
@@ -792,7 +870,6 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
   sku_name               = "MO_Standard_E2ds_v4"
-  zone                   = "1"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -808,7 +885,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   sku_name               = "GP_Standard_D2ds_v4"
-  zone                   = "1"
+  zone                   = "2"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -829,7 +906,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   }
 
   sku_name = "GP_Standard_D2ds_v4"
-  zone     = "1"
+  zone     = "2"
 
   lifecycle {
     ignore_changes = [
@@ -858,7 +935,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   }
 
   sku_name = "GP_Standard_D2ds_v4"
-  zone     = "1"
+  zone     = "3"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -881,7 +958,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   }
 
   sku_name = "GP_Standard_D2ds_v4"
-  zone     = "1"
+  zone     = "2"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -897,7 +974,11 @@ resource "azurerm_mysql_flexible_server" "pitr" {
   create_mode                       = "PointInTimeRestore"
   source_server_id                  = azurerm_mysql_flexible_server.test.id
   point_in_time_restore_time_in_utc = "%s"
-  zone                              = "1"
+  zone                              = "2"
+
+  lifecycle {
+    ignore_changes = [source_server_id]
+  }
 }
 `, r.basic(data), data.RandomInteger, time.Now().Add(time.Duration(15)*time.Minute).UTC().Format(time.RFC3339))
 }
@@ -914,7 +995,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   sku_name               = "GP_Standard_D4ds_v4"
   version                = "8.0.21"
-  zone                   = "1"
+  zone                   = "2"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -930,7 +1011,7 @@ resource "azurerm_mysql_flexible_server" "replica" {
   create_mode         = "Replica"
   source_server_id    = azurerm_mysql_flexible_server.test.id
   version             = "8.0.21"
-  zone                = "1"
+  zone                = "2"
 }
 `, r.source(data), data.RandomInteger)
 }
@@ -947,7 +1028,11 @@ resource "azurerm_mysql_flexible_server" "replica" {
   source_server_id    = azurerm_mysql_flexible_server.test.id
   replication_role    = "None"
   version             = "8.0.21"
-  zone                = "1"
+  zone                = "2"
+
+  lifecycle {
+    ignore_changes = [source_server_id]
+  }
 }
 `, r.source(data), data.RandomInteger)
 }
@@ -963,7 +1048,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login          = "adminTerraform"
   administrator_password       = "QAZwsx123"
   geo_redundant_backup_enabled = true
-  sku_name                     = "B_Standard_B1s"
+  sku_name                     = "B_Standard_B1ms"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -995,7 +1080,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   sku_name                     = "GP_Standard_D4ds_v4"
   geo_redundant_backup_enabled = true
   version                      = "8.0.21"
-  zone                         = "1"
+  zone                         = "2"
 
   storage {
     size_gb            = %d
@@ -1020,7 +1105,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   sku_name                     = "GP_Standard_D4ds_v4"
   geo_redundant_backup_enabled = true
   version                      = "8.0.21"
-  zone                         = "1"
+  zone                         = "2"
 
   storage {
     size_gb            = %d
@@ -1127,8 +1212,8 @@ resource "azurerm_mysql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
-  sku_name               = "B_Standard_B1s"
-  zone                   = "1"
+  sku_name               = "B_Standard_B1ms"
+  zone                   = "2"
 }
 `, r.cmkTemplate(data), data.RandomInteger)
 }
@@ -1143,8 +1228,8 @@ resource "azurerm_mysql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
-  sku_name               = "B_Standard_B1s"
-  zone                   = "1"
+  sku_name               = "B_Standard_B1ms"
+  zone                   = "2"
 
   identity {
     type         = "UserAssigned"
@@ -1218,7 +1303,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   location                     = azurerm_resource_group.test.location
   administrator_login          = "_admin_Terraform_892123456789312"
   administrator_password       = "QAZwsx123"
-  sku_name                     = "B_Standard_B1s"
+  sku_name                     = "B_Standard_B1ms"
   zone                         = "2"
   geo_redundant_backup_enabled = true
 
@@ -1253,8 +1338,8 @@ resource "azurerm_mysql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
-  sku_name               = "B_Standard_B1s"
-  zone                   = "1"
+  sku_name               = "B_Standard_B1ms"
+  zone                   = "2"
 
   identity {
     type         = "UserAssigned"
@@ -1280,8 +1365,66 @@ resource "azurerm_mysql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
-  sku_name               = "B_Standard_B1s"
-  zone                   = "1"
+  sku_name               = "B_Standard_B1ms"
+  zone                   = "2"
 }
 `, r.template(data), data.RandomString, data.RandomInteger)
+}
+
+func (r MySqlFlexibleServerResource) writeOnlyPassword(data acceptance.TestData, secret string, version int) string {
+	return fmt.Sprintf(`
+%s
+
+%s
+
+resource "azurerm_mysql_flexible_server" "test" {
+  name                              = "acctest-fs-%[3]d"
+  resource_group_name               = azurerm_resource_group.test.name
+  location                          = azurerm_resource_group.test.location
+  administrator_login               = "_admin_Terraform_892123456789312"
+  administrator_password_wo         = ephemeral.azurerm_key_vault_secret.test.value
+  administrator_password_wo_version = %[4]d
+  sku_name                          = "B_Standard_B1ms"
+}
+`, r.template(data), acceptance.WriteOnlyKeyVaultSecretTemplate(data, secret), data.RandomInteger, version)
+}
+
+func (r MySqlFlexibleServerResource) publicNetworkAccess(data acceptance.TestData, pna servers.EnableStatusEnum) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mysql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "_admin_Terraform_892123456789312"
+  administrator_password = "QAZwsx123"
+  sku_name               = "B_Standard_B1ms"
+  public_network_access  = "%s"
+}
+`, r.template(data), data.RandomInteger, pna)
+}
+
+func (r MySqlFlexibleServerResource) upgradeVersion(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mysql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "_admin_Terraform_892123456789312"
+  administrator_password = "QAZwsx123"
+  sku_name               = "GP_Standard_D2ds_v4"
+  version                = "%s"
+  zone                   = "2"
+}
+
+resource "azurerm_mysql_flexible_server_configuration" "test" {
+  name                = "sql_mode"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_flexible_server.test.name
+  value               = "ERROR_FOR_DIVISION_BY_ZERO,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_AUTO_VALUE_ON_ZERO"
+}
+`, r.template(data), data.RandomInteger, version)
 }

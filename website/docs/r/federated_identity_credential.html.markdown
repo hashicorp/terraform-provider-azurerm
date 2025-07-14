@@ -62,10 +62,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this Federated Identity Credential.
-* `delete` - (Defaults to 30 minutes) Used when deleting this Federated Identity Credential.
-* `read` - (Defaults to 5 minutes) Used when retrieving this Federated Identity Credential.
-* `update` - (Defaults to 30 minutes) Used when updating this Federated Identity Credential.
+* `create` - (Defaults to 30 minutes) Used when creating the Federated Identity Credential.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Federated Identity Credential.
+* `update` - (Defaults to 30 minutes) Used when updating the Federated Identity Credential.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Federated Identity Credential.
 
 ## Import
 
@@ -74,3 +74,9 @@ An existing Federated Identity Credential can be imported into Terraform using t
 ```shell
 terraform import azurerm_federated_identity_credential.example /subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ManagedIdentity/userAssignedIdentities/{parentIdentityName}/federatedIdentityCredentials/{resourceName}
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ManagedIdentity`: 2023-01-31

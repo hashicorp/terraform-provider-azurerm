@@ -5,14 +5,16 @@ package privatedns
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/recordsets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/recordsets"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -23,16 +25,19 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name private_dns_zone -service-package-name privatedns -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourcePrivateDnsZone() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePrivateDnsZoneCreateUpdate,
-		Read:   resourcePrivateDnsZoneRead,
-		Update: resourcePrivateDnsZoneCreateUpdate,
-		Delete: resourcePrivateDnsZoneDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := privatezones.ParsePrivateDnsZoneID(id)
-			return err
-		}),
+		Create:   resourcePrivateDnsZoneCreateUpdate,
+		Read:     resourcePrivateDnsZoneRead,
+		Update:   resourcePrivateDnsZoneCreateUpdate,
+		Delete:   resourcePrivateDnsZoneDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&privatezones.PrivateDnsZoneId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&privatezones.PrivateDnsZoneId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -117,7 +122,7 @@ func resourcePrivateDnsZone() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
 							Default:      3600,
-							ValidateFunc: validation.IntBetween(0, 2147483647),
+							ValidateFunc: validation.IntBetween(0, math.MaxInt32),
 						},
 
 						"tags": commonschema.Tags(),
@@ -264,7 +269,7 @@ func resourcePrivateDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("setting `soa_record`: %+v", err)
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourcePrivateDnsZoneDelete(d *pluginsdk.ResourceData, meta interface{}) error {

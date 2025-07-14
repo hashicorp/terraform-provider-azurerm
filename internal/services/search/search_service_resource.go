@@ -187,6 +187,16 @@ func resourceSearchService() *pluginsdk.Resource {
 				},
 			},
 
+			"network_rule_bypass_option": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(services.SearchBypassAzureServices),
+					string(services.SearchBypassNone),
+				}, false),
+				Default: string(services.SearchBypassNone),
+			},
+
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"tags": commonschema.Tags(),
@@ -223,6 +233,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	cmkEnforcementEnabled := d.Get("customer_managed_key_enforcement_enabled").(bool)
 	localAuthenticationEnabled := d.Get("local_authentication_enabled").(bool)
 	authenticationFailureMode := d.Get("authentication_failure_mode").(string)
+	networkRuleBypassOptions := services.SearchBypass(d.Get("network_rule_bypass_option").(string))
 
 	semanticSearchSku := services.SearchSemanticSearchDisabled
 	if v := d.Get("semantic_search_sku").(string); v != "" {
@@ -239,11 +250,17 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		return fmt.Errorf("'hosting_mode' can only be defined if the 'sku' field is set to the %q SKU, got %q", string(services.SkuNameStandardThree), skuName)
 	}
 
-	// NOTE: 'partition_count' values greater than 1 are not valid for 'free' or 'basic' SKUs...
+	// NOTE: 'partition_count' values greater than 1 are not valid for 'free' SKU...
 	partitionCount := int64(d.Get("partition_count").(int))
 
-	if (skuName == services.SkuNameFree || skuName == services.SkuNameBasic) && partitionCount > 1 {
+	if (skuName == services.SkuNameFree) && partitionCount > 1 {
 		return fmt.Errorf("'partition_count' values greater than 1 cannot be set for the %q SKU, got %d)", string(skuName), partitionCount)
+	}
+
+	// NOTE: 'partition_count' values greater than 3 are not valid for 'basic' SKU...
+
+	if (skuName == services.SkuNameBasic) && partitionCount > 3 {
+		return fmt.Errorf("'partition_count' values greater than 3 cannot be set for the %q SKU, got %d)", string(skuName), partitionCount)
 	}
 
 	// NOTE: 'standard3' services with 'hostingMode' set to 'highDensity' the
@@ -296,6 +313,7 @@ func resourceSearchServiceCreate(d *pluginsdk.ResourceData, meta interface{}) er
 			PublicNetworkAccess: pointer.To(publicNetworkAccess),
 			NetworkRuleSet: pointer.To(services.NetworkRuleSet{
 				IPRules: expandSearchServiceIPRules(ipRulesRaw),
+				Bypass:  pointer.To(networkRuleBypassOptions),
 			}),
 			EncryptionWithCmk: pointer.To(services.EncryptionWithCmk{
 				Enforcement: pointer.To(cmkEnforcement),
@@ -452,9 +470,13 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if d.HasChange("partition_count") {
 		partitionCount := int64(d.Get("partition_count").(int))
-		// NOTE: 'partition_count' values greater than 1 are not valid for 'free' or 'basic' SKUs...
-		if (pointer.From(model.Sku.Name) == services.SkuNameFree || pointer.From(model.Sku.Name) == services.SkuNameBasic) && partitionCount > 1 {
+		// NOTE: 'partition_count' values greater than 1 are not valid for 'free' SKUs...
+		if (pointer.From(model.Sku.Name) == services.SkuNameFree) && partitionCount > 1 {
 			return fmt.Errorf("'partition_count' values greater than 1 cannot be set for the %q SKU, got %d)", pointer.From(model.Sku.Name), partitionCount)
+		}
+		// NOTE: 'partition_count' values greater than 3 are not valid for 'basic' SKUs...
+		if (pointer.From(model.Sku.Name) == services.SkuNameBasic) && partitionCount > 3 {
+			return fmt.Errorf("'partition_count' values greater than 3 cannot be set for the %q SKU, got %d)", pointer.From(model.Sku.Name), partitionCount)
 		}
 
 		// NOTE: If SKU is 'standard3' and the 'hosting_mode' is set to 'highDensity' the maximum number of partitions allowed is 3
@@ -469,9 +491,18 @@ func resourceSearchServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	if d.HasChange("allowed_ips") {
 		ipRulesRaw := d.Get("allowed_ips").(*pluginsdk.Set).List()
 
-		model.Properties.NetworkRuleSet = &services.NetworkRuleSet{
-			IPRules: expandSearchServiceIPRules(ipRulesRaw),
+		if model.Properties.NetworkRuleSet == nil {
+			model.Properties.NetworkRuleSet = &services.NetworkRuleSet{}
 		}
+		model.Properties.NetworkRuleSet.IPRules = expandSearchServiceIPRules(ipRulesRaw)
+	}
+
+	if d.HasChange("network_rule_bypass_option") {
+		networkBypassOptions := services.SearchBypass(d.Get("network_rule_bypass_option").(string))
+		if model.Properties.NetworkRuleSet == nil {
+			model.Properties.NetworkRuleSet = &services.NetworkRuleSet{}
+		}
+		model.Properties.NetworkRuleSet.Bypass = pointer.To(networkBypassOptions)
 	}
 
 	if d.HasChange("semantic_search_sku") {
@@ -594,6 +625,10 @@ func resourceSearchServiceRead(d *pluginsdk.ResourceData, meta interface{}) erro
 			d.Set("customer_managed_key_enforcement_enabled", cmkEnforcement)
 			d.Set("allowed_ips", flattenSearchServiceIPRules(props.NetworkRuleSet))
 			d.Set("semantic_search_sku", semanticSearchSku)
+
+			if props.NetworkRuleSet != nil {
+				d.Set("network_rule_bypass_option", string(pointer.From(props.NetworkRuleSet.Bypass)))
+			}
 		}
 
 		flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)

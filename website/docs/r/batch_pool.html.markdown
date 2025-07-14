@@ -54,7 +54,7 @@ resource "azurerm_batch_pool" "example" {
   resource_group_name = azurerm_resource_group.example.name
   account_name        = azurerm_batch_account.example.name
   display_name        = "Test Acc Pool Auto"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
   node_agent_sku_id   = "batch.node.ubuntu 20.04"
 
   auto_scale {
@@ -165,6 +165,8 @@ The following arguments are supported:
 
 * `os_disk_placement` - (Optional) Specifies the ephemeral disk placement for operating system disk for all VMs in the pool. This property can be used by user in the request to choose which location the operating system should be in. e.g., cache disk space for Ephemeral OS disk provisioning. For more information on Ephemeral OS disk size requirements, please refer to Ephemeral OS disk size requirements for Windows VMs at <https://docs.microsoft.com/en-us/azure/virtual-machines/windows/ephemeral-os-disks#size-requirements> and Linux VMs at <https://docs.microsoft.com/en-us/azure/virtual-machines/linux/ephemeral-os-disks#size-requirements>. The only possible value is `CacheDisk`.
 
+* `security_profile` - (Optional) A `security_profile` block that describes the security settings for the Batch pool as defined below. Changing this forces a new resource to be created.
+
 * `target_node_communication_mode` - (Optional) The desired node communication mode for the pool. Possible values are `Classic`, `Default` and `Simplified`.
 
 * `task_scheduling_policy` - (Optional) A `task_scheduling_policy` block that describes how tasks are distributed across compute nodes in a pool as defined below. If not specified, the default is spread as defined below.
@@ -173,9 +175,9 @@ The following arguments are supported:
 
 * `windows` - (Optional) A `windows` block that describes the Windows configuration in the pool as defined below.
 
--> **NOTE:** For Windows compute nodes, the Batch service installs the certificates to the specified certificate store and location. For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a `certs` directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
+-> **Note:** For Windows compute nodes, the Batch service installs the certificates to the specified certificate store and location. For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a `certs` directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
 
-~> **Please Note:** `fixed_scale` and `auto_scale` blocks cannot be used both at the same time.
+~> **Note:** `fixed_scale` and `auto_scale` blocks cannot be used both at the same time.
 
 ---
 
@@ -224,7 +226,7 @@ If specified, the extensions mentioned in this configuration will be installed o
 
 * `automatic_upgrade_enabled` - (Optional) Indicates whether the extension should be automatically upgraded by the platform if there is a newer version available. Supported values are `true` and `false`.
 
-~> **NOTE:** When `automatic_upgrade_enabled` is set to `true`, the `type_handler_version` is automatically updated by the Azure platform when a new version is available and any change in `type_handler_version` should be manually ignored by user.
+~> **Note:** When `automatic_upgrade_enabled` is set to `true`, the `type_handler_version` is automatically updated by the Azure platform when a new version is available and any change in `type_handler_version` should be manually ignored by user.
 
 * `settings_json` - (Optional) JSON formatted public settings for the extension, the value should be encoded with [`jsonencode`](https://developer.hashicorp.com/terraform/language/functions/jsonencode) function.
 
@@ -318,7 +320,7 @@ A `user_identity` block supports the following:
 
 * `auto_user` - (Optional) A `auto_user` block that describes the user identity under which the start task runs as defined below.
 
-~> **Please Note:** `user_name` and `auto_user` blocks cannot be used both at the same time, but you need to define one or the other.
+~> **Note:** `user_name` and `auto_user` blocks cannot be used both at the same time, but you need to define one or the other.
 
 ---
 
@@ -336,7 +338,7 @@ A `certificate` block supports the following:
 
 * `store_location` - (Required) The location of the certificate store on the compute node into which to install the certificate. Possible values are `CurrentUser` or `LocalMachine`.
 
- -> **NOTE:** This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a 'certs' directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
+-> **Note:** This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). For Linux compute nodes, the certificates are stored in a directory inside the task working directory and an environment variable `AZ_BATCH_CERTIFICATES_DIR` is supplied to the task to query for this location. For certificates with visibility of `remoteUser`, a 'certs' directory is created in the user's home directory (e.g., `/home/{user-name}/certs`) and certificates are placed in that directory.
 
 * `store_name` - (Optional) The name of the certificate store on the compute node into which to install the certificate. This property is applicable only for pools configured with Windows nodes (that is, created with cloudServiceConfiguration, or with virtualMachineConfiguration using a Windows image reference). Common store names include: `My`, `Root`, `CA`, `Trust`, `Disallowed`, `TrustedPeople`, `TrustedPublisher`, `AuthRoot`, `AddressBook`, but any custom store name can also be used.
 
@@ -370,7 +372,7 @@ A `resource_file` block supports the following:
 
 * `user_assigned_identity_id` - (Optional) An identity reference from pool's user assigned managed identity list.
 
-~> **Please Note:** Exactly one of `auto_storage_container_name`, `storage_container_url` and `auto_user` must be specified.
+~> **Note:** Exactly one of `auto_storage_container_name`, `storage_container_url` and `auto_user` must be specified.
 
 ---
 
@@ -503,6 +505,21 @@ A `task_scheduling_policy` block supports the following:
 * `node_fill_type` - (Optional) Supported values are "Pack" and "Spread". "Pack" means as many tasks as possible (taskSlotsPerNode) should be assigned to each node in the pool before any tasks are assigned to the next node in the pool. "Spread" means that tasks should be assigned evenly across all nodes in the pool.
 
 ---
+A `security_profile` block supports the following:
+
+* `host_encryption_enabled` - (Optional) Whether to enable host encryption for the Virtual Machine or Virtual Machine Scale Set. This will enable the encryption for all the disks including Resource/Temp disk at host itself. Possible values are `true` and `false`. Changing this forces a new resource to be created.
+
+* `security_type` - (Optional) The security type of the Virtual Machine. Possible values are `confidentialVM` and `trustedLaunch`. Changing this forces a new resource to be created.
+
+* `secure_boot_enabled` - (Optional) Whether to enable secure boot for the Virtual Machine or Virtual Machine Scale Set. Possible values are `true` and `false`. Changing this forces a new resource to be created.
+
+* `vtpm_enabled` - (Optional) Whether to enable virtual trusted platform module (vTPM) for the Virtual Machine or Virtual Machine Scale Set. Possible values are `true` and `false`. Changing this forces a new resource to be created.
+
+~> **Note:** `security_profile` block can only be specified during creation and does not support updates.
+
+~> **Note:** `security_type` must be specified to set UEFI related properties including `secure_boot_enabled` and `vtpm_enabled`.
+
+---
 
 A `user_accounts` block supports the following:
 
@@ -553,8 +570,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Batch Pool.
-* `update` - (Defaults to 30 minutes) Used when updating the Batch Pool.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Batch Pool.
+* `update` - (Defaults to 30 minutes) Used when updating the Batch Pool.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Batch Pool.
 
 ## Import
@@ -564,3 +581,9 @@ Batch Pools can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_batch_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.Batch/batchAccounts/myBatchAccount1/pools/myBatchPool1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Batch`: 2024-07-01

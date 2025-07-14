@@ -77,3 +77,9 @@ Azure Container Registry Agent Pool can be imported using the `resource id`, e.g
 ```shell
 terraform import azurerm_container_registry_agent_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.ContainerRegistry/registries/registry1/agentPools/agentpool1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ContainerRegistry`: 2019-06-01-preview

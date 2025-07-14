@@ -47,6 +47,10 @@ type StaticWebAppResourceModel struct {
 
 	ApiKey          string `tfschema:"api_key"`
 	DefaultHostName string `tfschema:"default_host_name"`
+
+	RepositoryUrl    string `tfschema:"repository_url"`
+	RepositoryToken  string `tfschema:"repository_token"`
+	RepositoryBranch string `tfschema:"repository_branch"`
 }
 
 func (r StaticWebAppResource) Arguments() map[string]*pluginsdk.Schema {
@@ -111,6 +115,28 @@ func (r StaticWebAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"basic_auth": helpers.BasicAuthSchema(),
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+		"repository_url": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
+			RequiredWith: []string{"repository_token", "repository_branch"},
+		},
+
+		"repository_token": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Sensitive:    true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"repository_url", "repository_branch"},
+		},
+
+		"repository_branch": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			RequiredWith: []string{"repository_url", "repository_token"},
+		},
 
 		"tags": tags.Schema(),
 	}
@@ -196,6 +222,13 @@ func (r StaticWebAppResource) Create() sdk.ResourceFunc {
 				props.StagingEnvironmentPolicy = pointer.To(staticsites.StagingEnvironmentPolicyDisabled)
 			}
 
+			// Check if repository URL, branch, or token are set
+			if model.RepositoryUrl != "" || model.RepositoryBranch != "" || model.RepositoryToken != "" {
+				props.Branch = pointer.To(model.RepositoryBranch)
+				props.RepositoryURL = pointer.To(model.RepositoryUrl)
+				props.RepositoryToken = pointer.To(model.RepositoryToken)
+			}
+
 			if !model.PublicNetworkAccess {
 				props.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
 			}
@@ -279,6 +312,15 @@ func (r StaticWebAppResource) Read() sdk.ResourceFunc {
 					state.ConfigFileChanges = pointer.From(props.AllowConfigFileUpdates)
 					state.DefaultHostName = pointer.From(props.DefaultHostname)
 					state.PreviewEnvironments = pointer.From(props.StagingEnvironmentPolicy) == staticsites.StagingEnvironmentPolicyEnabled
+
+					state.RepositoryUrl = pointer.From(props.RepositoryURL)
+					state.RepositoryBranch = pointer.From(props.Branch)
+
+					// Token isn't returned in the response, so we need to grab it from the config
+					if repositoryToken, ok := metadata.ResourceData.GetOk("repository_token"); ok {
+						state.RepositoryToken = repositoryToken.(string)
+					}
+
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 				}
 
@@ -452,6 +494,12 @@ func (r StaticWebAppResource) Update() sdk.ResourceFunc {
 				if _, err := sdkHackClient.CreateOrUpdateBasicAuth(ctx, *id, authProps); err != nil {
 					return fmt.Errorf("setting basic auth on %s: %+v", *id, err)
 				}
+			}
+
+			if metadata.ResourceData.HasChanges("repository_url", "repository_branch", "repository_token") {
+				model.Properties.RepositoryURL = pointer.To(config.RepositoryUrl)
+				model.Properties.Branch = pointer.To(config.RepositoryBranch)
+				model.Properties.RepositoryToken = pointer.To(config.RepositoryToken)
 			}
 
 			return nil

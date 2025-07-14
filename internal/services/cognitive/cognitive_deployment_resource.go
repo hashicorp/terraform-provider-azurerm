@@ -20,12 +20,13 @@ import (
 )
 
 type cognitiveDeploymentModel struct {
-	Name                 string                 `tfschema:"name"`
-	CognitiveAccountId   string                 `tfschema:"cognitive_account_id"`
-	Model                []DeploymentModelModel `tfschema:"model"`
-	RaiPolicyName        string                 `tfschema:"rai_policy_name"`
-	Sku                  []DeploymentSkuModel   `tfschema:"sku"`
-	VersionUpgradeOption string                 `tfschema:"version_upgrade_option"`
+	Name                     string                 `tfschema:"name"`
+	CognitiveAccountId       string                 `tfschema:"cognitive_account_id"`
+	DynamicThrottlingEnabled bool                   `tfschema:"dynamic_throttling_enabled"`
+	Model                    []DeploymentModelModel `tfschema:"model"`
+	RaiPolicyName            string                 `tfschema:"rai_policy_name"`
+	Sku                      []DeploymentSkuModel   `tfschema:"sku"`
+	VersionUpgradeOption     string                 `tfschema:"version_upgrade_option"`
 }
 
 type DeploymentModelModel struct {
@@ -74,6 +75,11 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: cognitiveservicesaccounts.ValidateAccountID,
 		},
 
+		"dynamic_throttling_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+		},
+
 		"model": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
@@ -87,6 +93,7 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 						ForceNew: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"OpenAI",
+							"Cohere",
 						}, false),
 					},
 
@@ -117,8 +124,11 @@ func (r CognitiveDeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 						ForceNew: true,
 						ValidateFunc: validation.StringInSlice([]string{
 							"Standard",
+							"DataZoneBatch",
+							"DataZoneProvisionedManaged",
 							"DataZoneStandard",
 							"GlobalBatch",
+							"GlobalProvisionedManaged",
 							"GlobalStandard",
 							"ProvisionedManaged",
 						}, false),
@@ -220,6 +230,10 @@ func (r CognitiveDeploymentResource) Create() sdk.ResourceFunc {
 				properties.Properties.RaiPolicyName = &model.RaiPolicyName
 			}
 
+			if model.DynamicThrottlingEnabled {
+				properties.Properties.DynamicThrottlingEnabled = &model.DynamicThrottlingEnabled
+			}
+
 			if model.VersionUpgradeOption != "" {
 				option := deployments.DeploymentModelVersionUpgradeOption(model.VersionUpgradeOption)
 				properties.Properties.VersionUpgradeOption = &option
@@ -265,6 +279,10 @@ func (r CognitiveDeploymentResource) Update() sdk.ResourceFunc {
 			}
 
 			properties := resp.Model
+
+			if metadata.ResourceData.HasChange("dynamic_throttling_enabled") {
+				properties.Properties.DynamicThrottlingEnabled = pointer.To(model.DynamicThrottlingEnabled)
+			}
 
 			if metadata.ResourceData.HasChange("sku.0.capacity") {
 				properties.Sku.Capacity = pointer.To(model.Sku[0].Capacity)
@@ -323,12 +341,9 @@ func (r CognitiveDeploymentResource) Read() sdk.ResourceFunc {
 			if properties := model.Properties; properties != nil {
 				state.Model = flattenDeploymentModelModel(properties.Model)
 
-				if v := properties.RaiPolicyName; v != nil {
-					state.RaiPolicyName = *v
-				}
-				if v := properties.VersionUpgradeOption; v != nil {
-					state.VersionUpgradeOption = string(*v)
-				}
+				state.DynamicThrottlingEnabled = pointer.From(properties.DynamicThrottlingEnabled)
+				state.RaiPolicyName = pointer.From(properties.RaiPolicyName)
+				state.VersionUpgradeOption = string(pointer.From(properties.VersionUpgradeOption))
 			}
 			if sku := flattenDeploymentSkuModel(model.Sku); sku != nil {
 				state.Sku = sku

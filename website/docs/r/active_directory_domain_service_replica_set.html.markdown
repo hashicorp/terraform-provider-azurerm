@@ -304,7 +304,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 3 hours) Used when creating the Domain Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Domain Service.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Domain Service.
+* `delete` - (Defaults to 1 hour) Used when deleting the Domain Service.
 
 ## Import
 
@@ -313,3 +313,9 @@ Domain Service Replica Sets can be imported using the resource ID of the parent 
 ```shell
 terraform import azurerm_active_directory_domain_service_replica_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.AAD/domainServices/instance1/replicaSets/00000000-0000-0000-0000-000000000000
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AAD`: 2021-05-01

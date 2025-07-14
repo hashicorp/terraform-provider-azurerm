@@ -982,6 +982,120 @@ func (r WindowsVirtualMachineScaleSetResource) extensionsAutomaticUpgradeWithSer
 	return fmt.Sprintf(`
 %s
 
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                   = "acc%d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  tenant_id              = data.azurerm_client_config.current.tenant_id
+  sku_name               = "premium"
+  enabled_for_deployment = true
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    certificate_permissions = [
+      "Create",
+      "Delete",
+      "DeleteIssuers",
+      "Get",
+      "GetIssuers",
+      "Import",
+      "List",
+      "ListIssuers",
+      "ManageContacts",
+      "ManageIssuers",
+      "SetIssuers",
+      "Update",
+      "Purge",
+    ]
+
+    key_permissions = [
+      "Backup",
+      "Create",
+      "Decrypt",
+      "Delete",
+      "Encrypt",
+      "Get",
+      "Import",
+      "List",
+      "Purge",
+      "Recover",
+      "Restore",
+      "Sign",
+      "UnwrapKey",
+      "Update",
+      "Verify",
+      "WrapKey",
+    ]
+
+    secret_permissions = [
+      "Backup",
+      "Delete",
+      "Get",
+      "List",
+      "Purge",
+      "Recover",
+      "Restore",
+      "Set",
+    ]
+  }
+}
+
+resource "azurerm_key_vault_certificate" "test" {
+  name         = "generated-cert"
+  key_vault_id = azurerm_key_vault.test.id
+
+  certificate_policy {
+    issuer_parameters {
+      name = "Self"
+    }
+
+    key_properties {
+      exportable = true
+      key_size   = 2048
+      key_type   = "RSA"
+      reuse_key  = true
+    }
+
+    lifetime_action {
+      action {
+        action_type = "AutoRenew"
+      }
+
+      trigger {
+        days_before_expiry = 30
+      }
+    }
+
+    secret_properties {
+      content_type = "application/x-pkcs12"
+    }
+
+    x509_certificate_properties {
+      extended_key_usage = ["1.3.6.1.5.5.7.3.1"]
+
+      key_usage = [
+        "cRLSign",
+        "dataEncipherment",
+        "digitalSignature",
+        "keyAgreement",
+        "keyCertSign",
+        "keyEncipherment",
+      ]
+
+      subject_alternative_names {
+        dns_names = ["example.com"]
+      }
+
+      subject            = "CN=example.com"
+      validity_in_months = 12
+    }
+  }
+}
+
 resource "azurerm_service_fabric_cluster" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
@@ -989,7 +1103,12 @@ resource "azurerm_service_fabric_cluster" "test" {
   reliability_level   = "Bronze"
   upgrade_mode        = "Automatic"
   vm_image            = "Windows"
-  management_endpoint = "http://example:80"
+  management_endpoint = "https://example:80"
+
+  certificate {
+    thumbprint      = azurerm_key_vault_certificate.test.thumbprint
+    x509_store_name = "My"
+  }
 
   node_type {
     name                 = "backend"
@@ -1047,6 +1166,14 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 
+  secret {
+    key_vault_id = azurerm_key_vault.test.id
+    certificate {
+      store = "My"
+      url   = azurerm_key_vault_certificate.test.secret_id
+    }
+  }
+
   extension {
     name                       = "ServiceFabric"
     publisher                  = "Microsoft.Azure.ServiceFabric"
@@ -1060,10 +1187,16 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
       dataPath           = "C:\\SvcFab"
       durabilityLevel    = "Bronze"
       enableParallelJobs = true
+      certificate = {
+        commonNames = [
+          "example.com",
+        ]
+        x509StoreName = "My"
+      }
     })
   }
 }
-`, r.template(data))
+`, r.template(data), data.RandomInteger)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) extensionAutomaticUpgradeEnabled(data acceptance.TestData) string {

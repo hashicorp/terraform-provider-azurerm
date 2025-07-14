@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
 	mlworkspace "github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/subnets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -32,14 +33,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDatabricksWorkspace() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
-		Create: resourceDatabricksWorkspaceCreateUpdate,
+		Create: resourceDatabricksWorkspaceCreate,
 		Read:   resourceDatabricksWorkspaceRead,
-		Update: resourceDatabricksWorkspaceCreateUpdate,
+		Update: resourceDatabricksWorkspaceUpdate,
 		Delete: resourceDatabricksWorkspaceDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -457,27 +457,26 @@ func resourceDatabricksWorkspace() *pluginsdk.Resource {
 	return resource
 }
 
-func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceDatabricksWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataBricks.WorkspacesClient
 	acClient := meta.(*clients.Client).DataBricks.AccessConnectorClient
 	lbClient := meta.(*clients.Client).LoadBalancers.LoadBalancersClient
+	subnetsClient := meta.(*clients.Client).Network.Subnets
 	keyVaultsClient := meta.(*clients.Client).KeyVault
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := workspaces.NewWorkspaceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_databricks_workspace", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_databricks_workspace", id.ID())
 	}
 
 	var backendPoolName, loadBalancerId string
@@ -485,7 +484,6 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	managedResourceGroupName := d.Get("managed_resource_group_name").(string)
 	location := location.Normalize(d.Get("location").(string))
 	backendPool := d.Get("load_balancer_backend_address_pool_id").(string)
-	expandedTags := tags.Expand(d.Get("tags").(map[string]interface{}))
 
 	if backendPool != "" {
 		backendPoolId, err := loadbalancers.ParseLoadBalancerBackendAddressPoolID(backendPool)
@@ -530,9 +528,9 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if defaultStorageFirewallEnabledRaw {
 		defaultStorageFirewallEnabled = workspaces.DefaultStorageFirewallEnabled
 	}
-	publicNetowrkAccessRaw := d.Get("public_network_access_enabled").(bool)
+	publicNetworkAccessRaw := d.Get("public_network_access_enabled").(bool)
 	publicNetworkAccess := workspaces.PublicNetworkAccessDisabled
-	if publicNetowrkAccessRaw {
+	if publicNetworkAccessRaw {
 		publicNetworkAccess = workspaces.PublicNetworkAccessEnabled
 	}
 	requireNsgRules := d.Get("network_security_group_rules_required").(string)
@@ -543,6 +541,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		config := customParamsRaw[0].(map[string]interface{})
 		pubSub := config["public_subnet_name"].(string)
 		priSub := config["private_subnet_name"].(string)
+		vnetID := config["virtual_network_id"].(string)
 
 		if config["virtual_network_id"].(string) == "" && (pubSub != "" || priSub != "") {
 			return fmt.Errorf("`public_subnet_name` and/or `private_subnet_name` cannot be defined if `virtual_network_id` is not set")
@@ -555,6 +554,10 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 		if priSub != "" && priSubAssoc == nil {
 			return fmt.Errorf("you must define a value for `private_subnet_network_security_group_association_id` if `private_subnet_name` is set")
+		}
+
+		if subnetDelegationErr := checkSubnetDelegations(ctx, subnetsClient, vnetID, pubSub, priSub); subnetDelegationErr != nil {
+			return subnetDelegationErr
 		}
 	}
 
@@ -657,7 +660,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if rotationEnabled := d.Get("managed_disk_cmk_rotation_to_latest_version_enabled").(bool); rotationEnabled {
-		encrypt.Entities.ManagedDisk.RotationToLatestKeyVersionEnabled = utils.Bool(rotationEnabled)
+		encrypt.Entities.ManagedDisk.RotationToLatestKeyVersionEnabled = pointer.To(rotationEnabled)
 	}
 
 	// Including the Tags in the workspace parameters will update the tags on
@@ -725,22 +728,7 @@ func resourceDatabricksWorkspaceCreateUpdate(d *pluginsdk.ResourceData, meta int
 	workspace.Properties.EnhancedSecurityCompliance = expandWorkspaceEnhancedSecurity(enhancedSecurityCompliance.([]interface{}))
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, workspace); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	// Only call Update(e.g. PATCH) if it is not a new resource and the Tags have changed
-	// this will cause the updated tags to be propagated to all of the connected
-	// workspace resources.
-	// TODO: can be removed once https://github.com/Azure/azure-sdk-for-go/issues/14571 is fixed
-	if !d.IsNewResource() && d.HasChange("tags") {
-		workspaceUpdate := workspaces.WorkspaceUpdate{
-			Tags: expandedTags,
-		}
-
-		err := client.UpdateThenPoll(ctx, id, workspaceUpdate)
-		if err != nil {
-			return fmt.Errorf("updating %s Tags: %+v", id, err)
-		}
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -936,11 +924,348 @@ func resourceDatabricksWorkspaceDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	if err = client.DeleteThenPoll(ctx, *id, workspaces.DeleteOperationOptions{}); err != nil {
+	deleteOperationOptions := workspaces.DefaultDeleteOperationOptions()
+	if meta.(*clients.Client).Features.DatabricksWorkspace.ForceDelete {
+		deleteOperationOptions.ForceDeletion = pointer.To(true)
+	}
+
+	if err = client.DeleteThenPoll(ctx, *id, deleteOperationOptions); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
+}
+
+func resourceDatabricksWorkspaceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).DataBricks.WorkspacesClient
+	acClient := meta.(*clients.Client).DataBricks.AccessConnectorClient
+	keyVaultsClient := meta.(*clients.Client).KeyVault
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := workspaces.ParseWorkspaceID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: model is nil", id)
+	}
+
+	model := *existing.Model
+
+	props := model.Properties
+
+	if d.HasChange("sku") {
+		if model.Sku == nil {
+			model.Sku = &workspaces.Sku{}
+		}
+		model.Sku.Name = d.Get("sku").(string)
+	}
+
+	if d.HasChange("tags") {
+		model.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if d.HasChange("customer_managed_key_enabled") {
+		if props.Parameters == nil {
+			props.Parameters = &workspaces.WorkspaceCustomParameters{}
+		}
+		props.Parameters.PrepareEncryption = &workspaces.WorkspaceCustomBooleanParameter{
+			Value: d.Get("customer_managed_key_enabled").(bool),
+		}
+	}
+
+	if d.HasChange("infrastructure_encryption_enabled") {
+		if props.Parameters == nil {
+			props.Parameters = &workspaces.WorkspaceCustomParameters{}
+		}
+		props.Parameters.RequireInfrastructureEncryption = &workspaces.WorkspaceCustomBooleanParameter{
+			Value: d.Get("infrastructure_encryption_enabled").(bool),
+		}
+	}
+
+	if d.HasChange("default_storage_firewall_enabled") {
+		defaultStorageFirewallEnabled := workspaces.DefaultStorageFirewallDisabled
+		defaultStorageFirewallEnabledRaw := d.Get("default_storage_firewall_enabled").(bool)
+
+		if defaultStorageFirewallEnabledRaw {
+			defaultStorageFirewallEnabled = workspaces.DefaultStorageFirewallEnabled
+
+			accessConnectorProperties := workspaces.WorkspacePropertiesAccessConnector{}
+			accessConnectorIdRaw := d.Get("access_connector_id").(string)
+			accessConnectorId, err := accessconnector.ParseAccessConnectorID(accessConnectorIdRaw)
+			if err != nil {
+				return err
+			}
+
+			accessConnector, err := acClient.Get(ctx, *accessConnectorId)
+			if err != nil {
+				return fmt.Errorf("retrieving Access Connector %s: %+v", accessConnectorId.AccessConnectorName, err)
+			}
+
+			if accessConnector.Model.Identity != nil {
+				accIdentityId := ""
+				for raw := range accessConnector.Model.Identity.IdentityIds {
+					identityId, err := commonids.ParseUserAssignedIdentityIDInsensitively(raw)
+					if err != nil {
+						return err
+					}
+					accIdentityId = identityId.ID()
+					break
+				}
+
+				accessConnectorProperties.Id = *accessConnector.Model.Id
+				accessConnectorProperties.IdentityType = workspaces.IdentityType(accessConnector.Model.Identity.Type)
+				accessConnectorProperties.UserAssignedIdentityId = &accIdentityId
+			}
+
+			props.AccessConnector = &accessConnectorProperties
+		}
+
+		props.DefaultStorageFirewall = &defaultStorageFirewallEnabled
+	}
+
+	if d.HasChange("public_network_access_enabled") {
+		publicNetworkAccessRaw := d.Get("public_network_access_enabled").(bool)
+		publicNetworkAccess := workspaces.PublicNetworkAccessDisabled
+		if publicNetworkAccessRaw {
+			publicNetworkAccess = workspaces.PublicNetworkAccessEnabled
+		}
+		props.PublicNetworkAccess = &publicNetworkAccess
+	}
+
+	if d.HasChange("network_security_group_rules_required") {
+		props.RequiredNsgRules = pointer.To(workspaces.RequiredNsgRules(d.Get("network_security_group_rules_required").(string)))
+	}
+
+	if d.HasChange("custom_parameters") {
+		if props.Parameters == nil {
+			props.Parameters = &workspaces.WorkspaceCustomParameters{}
+		}
+
+		if customParams := d.Get("custom_parameters").([]interface{}); len(customParams) > 0 && customParams[0] != nil {
+			config := customParams[0].(map[string]interface{})
+			var pubSubnetAssoc, priSubnetAssoc *string
+
+			pubSub := config["public_subnet_name"].(string)
+			priSub := config["private_subnet_name"].(string)
+
+			if v, ok := config["public_subnet_network_security_group_association_id"].(string); ok {
+				pubSubnetAssoc = &v
+			}
+
+			if v, ok := config["private_subnet_network_security_group_association_id"].(string); ok {
+				priSubnetAssoc = &v
+			}
+
+			if config["virtual_network_id"].(string) == "" && (pubSub != "" || priSub != "") {
+				return fmt.Errorf("`public_subnet_name` and/or `private_subnet_name` cannot be defined if `virtual_network_id` is not set")
+			}
+			if config["virtual_network_id"].(string) != "" && (pubSub == "" || priSub == "") {
+				return fmt.Errorf("`public_subnet_name` and `private_subnet_name` must both have values if `virtual_network_id` is set")
+			}
+			if pubSub != "" && pubSubnetAssoc == nil {
+				return fmt.Errorf("you must define a value for `public_subnet_network_security_group_association_id` if `public_subnet_name` is set")
+			}
+			if priSub != "" && priSubnetAssoc == nil {
+				return fmt.Errorf("you must define a value for `private_subnet_network_security_group_association_id` if `private_subnet_name` is set")
+			}
+
+			if v, ok := config["nat_gateway_name"].(string); ok && v != "" {
+				props.Parameters.NatGatewayName = &workspaces.WorkspaceCustomStringParameter{
+					Value: v,
+				}
+			}
+
+			if v, ok := config["public_ip_name"].(string); ok && v != "" {
+				props.Parameters.PublicIPName = &workspaces.WorkspaceCustomStringParameter{
+					Value: v,
+				}
+			}
+
+			if v, ok := config["storage_account_name"].(string); ok && v != "" {
+				props.Parameters.StorageAccountName = &workspaces.WorkspaceCustomStringParameter{
+					Value: v,
+				}
+			}
+
+			if v, ok := config["storage_account_sku_name"].(string); ok && v != "" {
+				props.Parameters.StorageAccountSkuName = &workspaces.WorkspaceCustomStringParameter{
+					Value: v,
+				}
+			}
+
+			if v, ok := config["vnet_address_prefix"].(string); ok && v != "" {
+				props.Parameters.VnetAddressPrefix = &workspaces.WorkspaceCustomStringParameter{
+					Value: v,
+				}
+			}
+
+			if v, ok := config["machine_learning_workspace_id"].(string); ok && v != "" {
+				props.Parameters.AmlWorkspaceId = &workspaces.WorkspaceCustomStringParameter{
+					Value: v,
+				}
+			}
+
+			if v, ok := config["no_public_ip"].(bool); ok {
+				props.Parameters.EnableNoPublicIP = &workspaces.WorkspaceNoPublicIPBooleanParameter{
+					Value: v,
+				}
+			}
+
+			if v, ok := config["public_subnet_name"].(string); ok && v != "" {
+				props.Parameters.CustomPublicSubnetName = &workspaces.WorkspaceCustomStringParameter{
+					Value: v,
+				}
+			}
+
+			if v, ok := config["private_subnet_name"].(string); ok && v != "" {
+				props.Parameters.CustomPrivateSubnetName = &workspaces.WorkspaceCustomStringParameter{
+					Value: v,
+				}
+			}
+
+			if v, ok := config["virtual_network_id"].(string); ok && v != "" {
+				props.Parameters.CustomVirtualNetworkId = &workspaces.WorkspaceCustomStringParameter{
+					Value: v,
+				}
+			}
+		}
+	}
+
+	// Set up customer-managed keys for managed services encryption (e.g. notebook)
+	setEncrypt := false
+	encrypt := &workspaces.WorkspacePropertiesEncryption{}
+	encrypt.Entities = workspaces.EncryptionEntitiesDefinition{}
+
+	var servicesKeyId string
+	var servicesKeyVaultId string
+	var diskKeyId string
+	var diskKeyVaultId string
+
+	if v, ok := d.GetOk("managed_services_cmk_key_vault_key_id"); ok {
+		servicesKeyId = v.(string)
+	}
+
+	if v, ok := d.GetOk("managed_services_cmk_key_vault_id"); ok {
+		servicesKeyVaultId = v.(string)
+	}
+
+	if v, ok := d.GetOk("managed_disk_cmk_key_vault_key_id"); ok {
+		diskKeyId = v.(string)
+	}
+
+	if v, ok := d.GetOk("managed_disk_cmk_key_vault_id"); ok {
+		diskKeyVaultId = v.(string)
+	}
+
+	// set default subscription as current subscription for key vault look-up...
+	servicesResourceSubscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
+	diskResourceSubscriptionId := commonids.NewSubscriptionID(id.SubscriptionId)
+
+	if servicesKeyVaultId != "" {
+		// If they passed the 'managed_cmk_key_vault_id' parse the Key Vault ID
+		// to extract the correct key vault subscription for the exists call...
+		v, err := commonids.ParseKeyVaultID(servicesKeyVaultId)
+		if err != nil {
+			return err
+		}
+
+		servicesResourceSubscriptionId = commonids.NewSubscriptionID(v.SubscriptionId)
+	}
+
+	if servicesKeyId != "" {
+		setEncrypt = true
+		key, err := keyVaultParse.ParseNestedItemID(servicesKeyId)
+		if err != nil {
+			return err
+		}
+
+		// make sure the key vault exists
+		_, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, servicesResourceSubscriptionId, key.KeyVaultBaseUrl)
+		if err != nil {
+			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed services Key Vault in subscription %q at URL %q: %+v", servicesResourceSubscriptionId, key.KeyVaultBaseUrl, err)
+		}
+
+		encrypt.Entities.ManagedServices = &workspaces.EncryptionV2{
+			KeySource: workspaces.EncryptionKeySourceMicrosoftPointKeyvault,
+			KeyVaultProperties: &workspaces.EncryptionV2KeyVaultProperties{
+				KeyName:     key.Name,
+				KeyVersion:  key.Version,
+				KeyVaultUri: key.KeyVaultBaseUrl,
+			},
+		}
+	}
+
+	if diskKeyVaultId != "" {
+		// If they passed the 'managed_disk_cmk_key_vault_id' parse the Key Vault ID
+		// to extract the correct key vault subscription for the exists call...
+		v, err := commonids.ParseKeyVaultID(diskKeyVaultId)
+		if err != nil {
+			return err
+		}
+
+		diskResourceSubscriptionId = commonids.NewSubscriptionID(v.SubscriptionId)
+	}
+
+	if diskKeyId != "" {
+		setEncrypt = true
+		key, err := keyVaultParse.ParseNestedItemID(diskKeyId)
+		if err != nil {
+			return err
+		}
+
+		// make sure the key vault exists
+		_, err = keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, diskResourceSubscriptionId, key.KeyVaultBaseUrl)
+		if err != nil {
+			return fmt.Errorf("retrieving the Resource ID for the customer-managed keys for managed disk Key Vault in subscription %q at URL %q: %+v", diskResourceSubscriptionId, key.KeyVaultBaseUrl, err)
+		}
+
+		encrypt.Entities.ManagedDisk = &workspaces.ManagedDiskEncryption{
+			KeySource: workspaces.EncryptionKeySourceMicrosoftPointKeyvault,
+			KeyVaultProperties: workspaces.ManagedDiskEncryptionKeyVaultProperties{
+				KeyName:     key.Name,
+				KeyVersion:  key.Version,
+				KeyVaultUri: key.KeyVaultBaseUrl,
+			},
+		}
+	}
+
+	if rotationEnabled := d.Get("managed_disk_cmk_rotation_to_latest_version_enabled").(bool); rotationEnabled {
+		encrypt.Entities.ManagedDisk.RotationToLatestKeyVersionEnabled = pointer.To(rotationEnabled)
+	}
+
+	if setEncrypt {
+		props.Encryption = encrypt
+	}
+
+	enhancedSecurityCompliance := d.Get("enhanced_security_compliance")
+	props.EnhancedSecurityCompliance = expandWorkspaceEnhancedSecurity(enhancedSecurityCompliance.([]interface{}))
+
+	model.Properties = props
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	if d.HasChange("tags") {
+		workspaceUpdate := workspaces.WorkspaceUpdate{
+			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		}
+
+		err := client.UpdateThenPoll(ctx, *id, workspaceUpdate)
+		if err != nil {
+			return fmt.Errorf("updating %s Tags: %+v", id, err)
+		}
+	}
+
+	return resourceDatabricksWorkspaceRead(d, meta)
 }
 
 func flattenWorkspaceManagedIdentity(input *workspaces.ManagedIdentityConfiguration) []interface{} {
@@ -1243,4 +1568,76 @@ func expandWorkspaceEnhancedSecurity(input []interface{}) *workspaces.EnhancedSe
 			ComplianceStandards: &complianceStandards,
 		},
 	}
+}
+
+func checkSubnetDelegations(ctx context.Context, client *subnets.SubnetsClient, vnetID, publicSubnetName, privateSubnetName string) error {
+	requiredDelegationService := "Microsoft.Databricks/workspaces"
+
+	if vnetID == "" || (publicSubnetName == "" && privateSubnetName == "") {
+		return nil
+	}
+
+	id, err := commonids.ParseVirtualNetworkID(vnetID)
+	if err != nil {
+		return err
+	}
+
+	if publicSubnetName != "" {
+		subnetID := commonids.NewSubnetID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName, publicSubnetName)
+		resp, err := client.Get(ctx, subnetID, subnets.DefaultGetOperationOptions())
+		if err != nil || resp.Model == nil || resp.Model.Properties == nil {
+			return fmt.Errorf("failed to check public subnet delegation for %s: %s", publicSubnetName, err)
+		}
+		if resp.Model.Properties.Delegations == nil {
+			return fmt.Errorf("required public subnet delegation to %s on %s not found", requiredDelegationService, publicSubnetName)
+		}
+
+		if delegations := resp.Model.Properties.Delegations; delegations == nil {
+			return fmt.Errorf("required public subnet delegation to %s on %s not found", requiredDelegationService, publicSubnetName)
+		} else {
+			found := false
+			for _, v := range *delegations {
+				if v.Properties == nil {
+					continue
+				}
+				if pointer.From(v.Properties.ServiceName) == requiredDelegationService {
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				return fmt.Errorf("required public subnet delegation to %s on %s not found", requiredDelegationService, publicSubnetName)
+			}
+		}
+	}
+
+	if privateSubnetName != "" {
+		subnetID := commonids.NewSubnetID(id.SubscriptionId, id.ResourceGroupName, id.VirtualNetworkName, privateSubnetName)
+		resp, err := client.Get(ctx, subnetID, subnets.DefaultGetOperationOptions())
+		if err != nil || resp.Model == nil || resp.Model.Properties == nil {
+			return fmt.Errorf("failed to check private subnet delegation for %s: %s", privateSubnetName, err)
+		}
+
+		if delegations := resp.Model.Properties.Delegations; delegations == nil {
+			return fmt.Errorf("required private subnet delegation to %s on %s not found", requiredDelegationService, privateSubnetName)
+		} else {
+			found := false
+			for _, v := range *delegations {
+				if v.Properties == nil {
+					continue
+				}
+				if pointer.From(v.Properties.ServiceName) == requiredDelegationService {
+					found = true
+					break
+				}
+			}
+
+			if !found {
+				return fmt.Errorf("required private subnet delegation to %s on %s not found", requiredDelegationService, privateSubnetName)
+			}
+		}
+	}
+
+	return nil
 }

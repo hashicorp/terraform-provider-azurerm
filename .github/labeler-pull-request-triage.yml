@@ -52,6 +52,11 @@ service/application-insights:
   - any-glob-to-any-file:
     - internal/services/applicationinsights/**/*
 
+service/arc-kubernetes:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/arckubernetes/**/*
+
 service/arc-resource-bridge:
 - changed-files:
   - any-glob-to-any-file:
@@ -243,6 +248,11 @@ service/extended-location:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/extendedlocation/**/*
+
+service/fabric:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/fabric/**/*
 
 service/firewall:
 - changed-files:
@@ -458,6 +468,11 @@ service/purview:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/purview/**/*
+
+service/qumulo:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/qumulo/**/*
 
 service/recovery-services:
 - changed-files:

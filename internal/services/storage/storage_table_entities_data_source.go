@@ -15,8 +15,8 @@ import (
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/entities"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/tables"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/table/entities"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/table/tables"
 )
 
 type storageTableEntitiesDataSource struct{}
@@ -24,12 +24,10 @@ type storageTableEntitiesDataSource struct{}
 var _ sdk.DataSource = storageTableEntitiesDataSource{}
 
 type TableEntitiesDataSourceModel struct {
-	StorageTableId     string                       `tfschema:"storage_table_id"`
-	TableName          string                       `tfschema:"table_name,removedInNextMajorVersion"`
-	StorageAccountName string                       `tfschema:"storage_account_name,removedInNextMajorVersion"`
-	Filter             string                       `tfschema:"filter"`
-	Select             []string                     `tfschema:"select"`
-	Items              []TableEntityDataSourceModel `tfschema:"items"`
+	StorageTableId string                       `tfschema:"storage_table_id"`
+	Filter         string                       `tfschema:"filter"`
+	Select         []string                     `tfschema:"select"`
+	Items          []TableEntityDataSourceModel `tfschema:"items"`
 }
 
 type TableEntityDataSourceModel struct {

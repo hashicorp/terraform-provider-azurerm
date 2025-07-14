@@ -61,7 +61,7 @@ The following supported arguments are specific to Data Lake Storage Gen2 Linked 
 
 * `url` - (Required) The endpoint for the Azure Data Lake Storage Gen2 service.
 
-~> **NOTE** Users should specify only one of the following three authentication strategies: storage account key, managed identity, service principal.
+~> **Note:** Users should specify only one of the following three authentication strategies: storage account key, managed identity, service principal.
 
 * `storage_account_key` - (Optional) The Storage Account Key with which to authenticate against the Azure Data Lake Storage Gen2 account. Incompatible with `service_principal_id`, `service_principal_key`, `tenant` and `use_managed_identity`.
 
@@ -73,7 +73,7 @@ The following supported arguments are specific to Data Lake Storage Gen2 Linked 
 
 * `tenant` - (Optional) The tenant id or name in which the service principal exists to authenticate against the Azure Data Lake Storage Gen2 account.
 
-~> **NOTE** If `service_principal_id` is used, `service_principal_key` and `tenant` are also required.
+~> **Note:** If `service_principal_id` is used, `service_principal_key` and `tenant` are also required.
 
 ## Attributes Reference
 
@@ -86,8 +86,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory Data Lake Storage Gen2 Linked Service.
-* `update` - (Defaults to 30 minutes) Used when updating the Data Factory Data Lake Storage Gen2 Linked Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Data Lake Storage Gen2 Linked Service.
+* `update` - (Defaults to 30 minutes) Used when updating the Data Factory Data Lake Storage Gen2 Linked Service.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory Data Lake Storage Gen2 Linked Service.
 
 ## Import

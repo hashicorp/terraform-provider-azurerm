@@ -11,13 +11,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -192,7 +191,7 @@ func OrchestratedVirtualMachineScaleSetLinuxConfigurationSchema() *pluginsdk.Sch
 }
 
 func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
-	schema := &pluginsdk.Schema{
+	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
 		Computed: true,
@@ -268,15 +267,6 @@ func OrchestratedVirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 			},
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		schema.Elem.(*pluginsdk.Resource).Schema["failure_suppression_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-		}
-	}
-
-	return schema
 }
 
 func OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
@@ -1114,7 +1104,7 @@ func expandOrchestratedVirtualMachineScaleSetIPConfiguration(raw map[string]inte
 	}
 
 	publicIPConfigsRaw := raw["public_ip_address"].([]interface{})
-	if len(publicIPConfigsRaw) > 0 {
+	if len(publicIPConfigsRaw) > 0 && publicIPConfigsRaw[0] != nil {
 		publicIPConfigRaw := publicIPConfigsRaw[0].(map[string]interface{})
 		publicIPAddressConfig := expandOrchestratedVirtualMachineScaleSetPublicIPAddress(publicIPConfigRaw)
 		ipConfiguration.Properties.PublicIPAddressConfiguration = publicIPAddressConfig
@@ -1251,7 +1241,7 @@ func expandOrchestratedVirtualMachineScaleSetIPConfigurationUpdate(raw map[strin
 	}
 
 	publicIPConfigsRaw := raw["public_ip_address"].([]interface{})
-	if len(publicIPConfigsRaw) > 0 {
+	if len(publicIPConfigsRaw) > 0 && publicIPConfigsRaw[0] != nil {
 		publicIPConfigRaw := publicIPConfigsRaw[0].(map[string]interface{})
 		publicIPAddressConfig := expandOrchestratedVirtualMachineScaleSetPublicIPAddressUpdate(publicIPConfigRaw)
 		ipConfiguration.Properties.PublicIPAddressConfiguration = publicIPAddressConfig
@@ -1368,7 +1358,7 @@ func ExpandOrchestratedVirtualMachineScaleSetOSDisk(input []interface{}, osType 
 		disk.DiskSizeGB = pointer.To(int64(osDiskSize))
 	}
 
-	if diffDiskSettingsRaw := raw["diff_disk_settings"].([]interface{}); len(diffDiskSettingsRaw) > 0 {
+	if diffDiskSettingsRaw := raw["diff_disk_settings"].([]interface{}); len(diffDiskSettingsRaw) > 0 && diffDiskSettingsRaw[0] != nil {
 		diffDiskRaw := diffDiskSettingsRaw[0].(map[string]interface{})
 		disk.DiffDiskSettings = &virtualmachinescalesets.DiffDiskSettings{
 			Option:    pointer.To(virtualmachinescalesets.DiffDiskOptions(diffDiskRaw["option"].(string))),
@@ -1436,11 +1426,10 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 		autoUpgradeMinorVersion, _ := extensionRaw["auto_upgrade_minor_version_enabled"].(bool)
 
 		extensionProps := virtualmachinescalesets.VirtualMachineScaleSetExtensionProperties{
-			Publisher:                pointer.To(extensionRaw["publisher"].(string)),
-			Type:                     &extensionType,
-			TypeHandlerVersion:       pointer.To(extensionRaw["type_handler_version"].(string)),
-			AutoUpgradeMinorVersion:  pointer.To(autoUpgradeMinorVersion),
-			ProvisionAfterExtensions: utils.ExpandStringSlice(extensionRaw["extensions_to_provision_after_vm_creation"].([]interface{})),
+			Publisher:               pointer.To(extensionRaw["publisher"].(string)),
+			Type:                    &extensionType,
+			TypeHandlerVersion:      pointer.To(extensionRaw["type_handler_version"].(string)),
+			AutoUpgradeMinorVersion: pointer.To(autoUpgradeMinorVersion),
 		}
 
 		if extensionType == "ApplicationHealthLinux" || extensionType == "ApplicationHealthWindows" {
@@ -1462,6 +1451,10 @@ func expandOrchestratedVirtualMachineScaleSetExtensions(input []interface{}) (ex
 				return nil, false, fmt.Errorf("unmarshaling `settings`: %+v", err)
 			}
 			extensionProps.Settings = pointer.To(result)
+		}
+
+		if val, ok := extensionRaw["extensions_to_provision_after_vm_creation"]; ok && val != nil {
+			extensionProps.ProvisionAfterExtensions = utils.ExpandStringSlice(val.([]interface{}))
 		}
 
 		protectedSettingsFromKeyVault := expandProtectedSettingsFromKeyVaultVMSS(extensionRaw["protected_settings_from_key_vault"].([]interface{}))
@@ -1714,7 +1707,7 @@ func flattenOrchestratedVirtualMachineScaleSetWindowsConfiguration(input *virtua
 
 	if v := d.Get("os_profile").([]interface{}); len(v) > 0 {
 		osProfile := v[0].(map[string]interface{})
-		if winConfigRaw := osProfile["windows_configuration"].([]interface{}); len(winConfigRaw) > 0 {
+		if winConfigRaw := osProfile["windows_configuration"].([]interface{}); len(winConfigRaw) > 0 && winConfigRaw[0] != nil {
 			winCfg := winConfigRaw[0].(map[string]interface{})
 			output["admin_password"] = winCfg["admin_password"].(string)
 		}
@@ -1778,7 +1771,7 @@ func flattenOrchestratedVirtualMachineScaleSetLinuxConfiguration(input *virtualm
 
 	if v := d.Get("os_profile").([]interface{}); len(v) > 0 {
 		osProfile := v[0].(map[string]interface{})
-		if linConfigRaw := osProfile["linux_configuration"].([]interface{}); len(linConfigRaw) > 0 {
+		if linConfigRaw := osProfile["linux_configuration"].([]interface{}); len(linConfigRaw) > 0 && linConfigRaw[0] != nil {
 			linCfg := linConfigRaw[0].(map[string]interface{})
 			output["admin_password"] = linCfg["admin_password"].(string)
 		}

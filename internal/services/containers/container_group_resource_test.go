@@ -265,6 +265,26 @@ func TestAccContainerGroup_logTypeUnset(t *testing.T) {
 	})
 }
 
+func TestAccContainerGroup_AssignedIdentityUpdateWithLogWorkspace(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
+	r := ContainerGroupResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.SystemAssignedIdentityWithLogWorkspace(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.UserAssignedIdentityWithLogWorkspace(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func TestAccContainerGroup_linuxBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 	r := ContainerGroupResource{}
@@ -325,20 +345,13 @@ func TestAccContainerGroup_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccContainerGroup_linuxBasicUpdate(t *testing.T) {
+func TestAccContainerGroup_linuxBasicMultipleContainers(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_group", "test")
 	r := ContainerGroupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.linuxBasic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("container.#").HasValue("1"),
-			),
-		},
-		{
-			Config: r.linuxBasicUpdated(data),
+			Config: r.linuxBasicMultipleContainers(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("container.#").HasValue("2"),
@@ -734,7 +747,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -774,7 +787,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -825,7 +838,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
     liveness_probe {
@@ -868,7 +881,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
   }
@@ -904,7 +917,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
   }
@@ -949,7 +962,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1019,7 +1032,7 @@ resource "azurerm_container_group" "test" {
   os_type             = "Linux"
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1069,7 +1082,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1112,7 +1125,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1153,7 +1166,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1193,7 +1206,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1223,7 +1236,7 @@ resource "azurerm_container_group" "import" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1259,7 +1272,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1282,7 +1295,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "sidecar"
-    image  = "mcr.microsoft.com/azuredocs/aci-tutorial-sidecar"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
   }
@@ -1314,7 +1327,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
 
@@ -1331,7 +1344,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "sidecar"
-    image  = "mcr.microsoft.com/azuredocs/aci-tutorial-sidecar"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
   }
@@ -1370,7 +1383,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1392,7 +1405,7 @@ resource "azurerm_container_group" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (ContainerGroupResource) linuxBasicUpdated(data acceptance.TestData) string {
+func (ContainerGroupResource) linuxBasicMultipleContainers(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1412,7 +1425,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
 
@@ -1428,7 +1441,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "sidecar"
-    image  = "mcr.microsoft.com/azuredocs/aci-tutorial-sidecar"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
   }
@@ -1483,7 +1496,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1551,7 +1564,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1605,7 +1618,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -1853,7 +1866,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hf"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "1"
     memory = "1.5"
 
@@ -2104,7 +2117,7 @@ resource "azurerm_container_group" "test" {
 
   init_container {
     name     = "init"
-    image    = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image    = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     commands = ["touch", "/sharedempty/file.txt"]
 
     volume {
@@ -2117,7 +2130,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "reader"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "1"
     memory = "1.5"
 
@@ -2155,7 +2168,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name     = "writer"
-    image    = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image    = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu      = "1"
     memory   = "1.5"
     commands = ["touch", "/sharedempty/file.txt"]
@@ -2170,7 +2183,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "reader"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "1"
     memory = "1.5"
 
@@ -2208,7 +2221,7 @@ resource "azurerm_container_group" "test" {
 
   init_container {
     name     = "init"
-    image    = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image    = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     commands = ["echo", "hello from init"]
     secure_environment_variables = {
       PASSWORD = "something_very_secure_for_init"
@@ -2217,7 +2230,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "1"
     memory = "1.5"
 
@@ -2250,7 +2263,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -2315,7 +2328,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hello-world"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "1.5"
 
@@ -2424,7 +2437,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -2525,7 +2538,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -2565,7 +2578,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -2600,7 +2613,7 @@ resource "azurerm_container_group" "test" {
 
   container {
     name   = "hw"
-    image  = "mcr.microsoft.com/quantum/linux-selfcontained:latest"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
     cpu    = "0.5"
     memory = "0.5"
     ports {
@@ -2717,4 +2730,120 @@ resource "azurerm_container_group" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (ContainerGroupResource) SystemAssignedIdentityWithLogWorkspace(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "Public"
+  os_type             = "Linux"
+
+  container {
+    name   = "hw"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "0.5"
+    ports {
+      port     = 80
+      protocol = "TCP"
+    }
+  }
+
+  diagnostics {
+    log_analytics {
+      workspace_id  = azurerm_log_analytics_workspace.test.workspace_id
+      workspace_key = azurerm_log_analytics_workspace.test.primary_shared_key
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    environment = "Testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (ContainerGroupResource) UserAssignedIdentityWithLogWorkspace(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  name = "acctest%s"
+}
+
+resource "azurerm_container_group" "test" {
+  name                = "acctestcontainergroup-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_address_type     = "Public"
+  os_type             = "Linux"
+
+  container {
+    name   = "hw"
+    image  = "mcr.microsoft.com/azuredocs/aci-helloworld:latest"
+    cpu    = "0.5"
+    memory = "0.5"
+    ports {
+      port     = 80
+      protocol = "TCP"
+    }
+  }
+
+  diagnostics {
+    log_analytics {
+      workspace_id  = azurerm_log_analytics_workspace.test.workspace_id
+      workspace_key = azurerm_log_analytics_workspace.test.primary_shared_key
+    }
+  }
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  tags = {
+    environment = "Testing"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger)
 }

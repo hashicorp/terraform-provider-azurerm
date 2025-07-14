@@ -10,6 +10,8 @@ description: |-
 
 Manages an Azure Maps Creator.
 
+~> **Note:** The `azurerm_maps_creator` resource has been deprecated because the service is retiring from 2024-09-23 and will be removed in v5.0 of the AzureRM Provider.
+
 ## Example Usage
 
 ```hcl
@@ -76,3 +78,9 @@ An Azure Maps Creators can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_maps_creator.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Maps/accounts/account1/creators/creator1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Maps`: 2023-06-01

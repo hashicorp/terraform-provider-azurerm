@@ -125,3 +125,9 @@ Dynamic Maintenance Assignments can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_maintenance_assignment_dynamic_scope.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Maintenance/configurationAssignments/assignmentName
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Maintenance`: 2023-04-01

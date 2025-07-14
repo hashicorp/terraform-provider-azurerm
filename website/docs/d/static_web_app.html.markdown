@@ -51,6 +51,10 @@ The following arguments are supported:
 
 * `identity` - An `identity` block as defined below.
 
+* `repository_branch` - Repository branch of the Static Web App.
+
+* `repository_url` - Repository URL of the Static Web App.
+
 * `tags` - The mapping of tags assigned to the resource.
 
 --- 
@@ -72,3 +76,9 @@ A `basic_auth` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Static Web App
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Web`: 2023-01-01

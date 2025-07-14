@@ -20,10 +20,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/blobservice"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/fileservice"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/blobservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/fileservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -42,9 +43,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/queue/queues"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/queue/queues"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_account -service-package-name storage -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 var (
 	storageAccountResourceName  = "azurerm_storage_account"
@@ -79,10 +82,11 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			3: migration.AccountV3ToV4{},
 		}),
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseStorageAccountID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.StorageAccountId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.StorageAccountId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -298,10 +302,12 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			},
 
 			"min_tls_version": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Default:      string(storageaccounts.MinimumTlsVersionTLSOneTwo),
-				ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForMinimumTlsVersion(), false),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(storageaccounts.MinimumTlsVersionTLSOneTwo),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(storageaccounts.MinimumTlsVersionTLSOneTwo),
+				}, false),
 			},
 
 			"is_hns_enabled": {
@@ -1117,12 +1123,36 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					}
 				}
 
-				if !features.FivePointOhBeta() && !v.(*clients.Client).Features.Storage.DataPlaneAvailable {
+				if !features.FivePointOh() && !v.(*clients.Client).Features.Storage.DataPlaneAvailable {
 					if _, ok := d.GetOk("queue_properties"); ok {
 						return errors.New("cannot configure 'queue_properties' when the Provider Feature 'data_plane_available' is set to 'false'")
 					}
 					if _, ok := d.GetOk("static_website"); ok {
 						return errors.New("cannot configure 'static_website' when the Provider Feature 'data_plane_available' is set to 'false'")
+					}
+				}
+
+				if d.HasChange("immutability_policy.0.state") {
+					old, new := d.GetChange("immutability_policy.0.state")
+
+					// The initial value can be either "Disabled" or "Unlocked".
+					// API error: InvalidStorageAccountImmutabilityPolicy: Storage account immutability policy state can be set to "Unlocked, Disabled".
+					//            Note that the immutability state can either be Disabled or Unlocked during account creation
+					if old == "" && (new.(string) != string(storageaccounts.AccountImmutabilityPolicyStateDisabled) && new.(string) != string(storageaccounts.AccountImmutabilityPolicyStateUnlocked)) {
+						return fmt.Errorf("initial value of `immutability_policy.0.state` can be either Disabled or Unlocked, got=%s", new)
+					}
+
+					// Only "Unlocked" state can be updated to "Locked"
+					// API error: InvalidStorageAccountImmutabilityPolicy: Storage account immutability policy state can be set to "Unlocked, Disabled".
+					//            Note that the immutability state can either be Disabled or Unlocked during account creation
+					if new.(string) == string(storageaccounts.AccountImmutabilityPolicyStateLocked) && old.(string) != string(storageaccounts.AccountImmutabilityPolicyStateUnlocked) {
+						return fmt.Errorf("`immutability_policy.0.state` can only be set to Locked from Unlocked, got=%s", old)
+					}
+
+					// Once "Locked", can't be changed.
+					// API error: InvalidStorageAccountImmutabilityPolicy: The immutability policy state cannot be changed once Locked.
+					if old.(string) == string(storageaccounts.AccountImmutabilityPolicyStateLocked) {
+						d.ForceNew("immutability_policy.0.state")
 					}
 				}
 
@@ -1146,7 +1176,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 		),
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		// lintignore:XS003
 		resource.Schema["static_website"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
@@ -1271,6 +1301,15 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			},
 		},
 		Deprecated: "this block has been deprecated and superseded by the `azurerm_storage_account_queue_properties` resource and will be removed in v5.0 of the AzureRM provider",
+	}
+
+	if !features.FivePointOh() {
+		resource.Schema["min_tls_version"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(storageaccounts.MinimumTlsVersionTLSOneTwo),
+			ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForMinimumTlsVersion(), false),
+		}
 	}
 
 	return resource
@@ -1479,9 +1518,9 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	supportLevel := availableFunctionalityForAccount(accountKind, accountTier, replicationType)
 	// Start of Data Plane access - this entire block can be removed for 5.0, as the data_plane_available flag becomes redundant at that time.
-	if !features.FivePointOhBeta() && dataPlaneAvailable {
+	if !features.FivePointOh() && dataPlaneAvailable {
 		dataPlaneClient := meta.(*clients.Client).Storage
-		dataPlaneAccount, err := storageUtils.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+		dataPlaneAccount, err := storageUtils.GetAccount(ctx, id)
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
@@ -1797,6 +1836,9 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	if d.HasChange("sftp_enabled") {
 		props.IsSftpEnabled = pointer.To(d.Get("sftp_enabled").(bool))
 	}
+	if d.HasChange("immutability_policy") {
+		props.ImmutableStorageWithVersioning = expandAccountImmutabilityPolicy(d.Get("immutability_policy").([]interface{}))
+	}
 
 	payload := storageaccounts.StorageAccountCreateParameters{
 		ExtendedLocation: existing.Model.ExtendedLocation,
@@ -1907,14 +1949,14 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		dataPlaneClient := meta.(*clients.Client).Storage
 		if d.HasChange("queue_properties") {
 			if !supportLevel.supportQueue {
 				return fmt.Errorf("`queue_properties` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
 			}
 
-			account, err := dataPlaneClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+			account, err := dataPlaneClient.GetAccount(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -1942,7 +1984,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 				return fmt.Errorf("`static_website` aren't supported for account kind %q in sku tier %q", accountKind, accountTier)
 			}
 
-			account, err := dataPlaneClient.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+			account, err := dataPlaneClient.GetAccount(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -2019,7 +2061,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	// we then need to find the storage account
-	account, err := storageUtils.FindAccount(ctx, id.SubscriptionId, id.StorageAccountName)
+	account, err := storageUtils.GetAccount(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
@@ -2233,7 +2275,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("setting `share_properties` for %s: %+v", *id, err)
 	}
 
-	if !features.FivePointOhBeta() && dataPlaneAvailable {
+	if !features.FivePointOh() && dataPlaneAvailable {
 		dataPlaneClient := meta.(*clients.Client).Storage
 		queueProperties := make([]interface{}, 0)
 		if supportLevel.supportQueue {
@@ -2279,7 +2321,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {

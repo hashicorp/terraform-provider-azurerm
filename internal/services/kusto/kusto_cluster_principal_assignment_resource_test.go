@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/clusterprincipalassignments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/clusterprincipalassignments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -85,5 +85,16 @@ resource "azurerm_kusto_cluster_principal_assignment" "test" {
   principal_type = "App"
   role           = "AllDatabasesViewer"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
+
+resource "azurerm_kusto_cluster_principal_assignment" "test_monitor" {
+  name                = "acctestkdpamon%d"
+  resource_group_name = azurerm_resource_group.rg.name
+  cluster_name        = azurerm_kusto_cluster.test.name
+
+  tenant_id      = data.azurerm_client_config.current.tenant_id
+  principal_id   = data.azurerm_client_config.current.client_id
+  principal_type = "App"
+  role           = "AllDatabasesMonitor"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger)
 }

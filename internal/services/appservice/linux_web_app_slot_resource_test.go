@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -205,6 +205,28 @@ func TestAccLinuxWebAppSlot_backup(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withBackup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxWebAppSlot_withBackupVnetIntegration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withBackupVnetIntegration(data, "true"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.withBackupVnetIntegration(data, "false"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -998,6 +1020,21 @@ func TestAccLinuxWebAppSlot_withPython312(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebAppSlot_withPython313(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.python(data, "3.13"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccLinuxWebAppSlot_withRuby26(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
 	r := LinuxWebAppSlotResource{}
@@ -1095,6 +1132,21 @@ func TestAccLinuxWebAppSlot_withNode20LTS(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.node(data, "20-lts"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxWebAppSlot_withNode22LTS(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
+	r := LinuxWebAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.node(data, "22-lts"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1208,95 +1260,6 @@ func TestAccLinuxWebAppSlot_withJava8JBOSSEAP73(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("JBOSSEAP|7.3-java8"),
-			),
-		},
-		data.ImportStep("site_credential.0.password"),
-	})
-}
-
-func TestAccLinuxWebAppSlot_withDocker(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skipf("Skippped as deprecated property removed in 4.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.docker(data, "mcr.microsoft.com/appsvc/staticsite", "latest"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|mcr.microsoft.com/appsvc/staticsite:latest"),
-			),
-		},
-		data.ImportStep("app_settings.%",
-			"app_settings.DOCKER_REGISTRY_SERVER_PASSWORD",
-			"app_settings.DOCKER_REGISTRY_SERVER_URL",
-			"app_settings.DOCKER_REGISTRY_SERVER_USERNAME",
-			"site_config.0.application_stack.0.docker_image",
-			"site_config.0.application_stack.0.docker_image_name",
-			"site_config.0.application_stack.0.docker_image_tag",
-			"site_config.0.application_stack.0.docker_registry_url",
-			"site_credential.0.password"),
-	})
-}
-
-func TestAccLinuxWebAppSlot_withDockerHub(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skipf("Skippped as deprecated property removed in 4.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.dockerHub(data, "nginx", "latest"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|nginx:latest"),
-			),
-		},
-		data.ImportStep("app_settings.%",
-			"app_settings.DOCKER_REGISTRY_SERVER_PASSWORD",
-			"app_settings.DOCKER_REGISTRY_SERVER_URL",
-			"app_settings.DOCKER_REGISTRY_SERVER_USERNAME",
-			"site_config.0.application_stack.0.docker_image",
-			"site_config.0.application_stack.0.docker_image_name",
-			"site_config.0.application_stack.0.docker_image_tag",
-			"site_config.0.application_stack.0.docker_registry_url",
-			"site_credential.0.password"),
-	})
-}
-
-func TestAccLinuxWebAppSlot_withDockerDeprecatedUpgrade(t *testing.T) {
-	if features.FourPointOhBeta() {
-		t.Skipf("Skippped as deprecated property removed in 4.0")
-	}
-	data := acceptance.BuildTestData(t, "azurerm_linux_web_app_slot", "test")
-	r := LinuxWebAppSlotResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.dockerHub(data, "nginx", "latest"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|nginx:latest"),
-			),
-		},
-		data.ImportStep("app_settings.%",
-			"app_settings.DOCKER_REGISTRY_SERVER_PASSWORD",
-			"app_settings.DOCKER_REGISTRY_SERVER_URL",
-			"app_settings.DOCKER_REGISTRY_SERVER_USERNAME",
-			"site_config.0.application_stack.0.docker_image",
-			"site_config.0.application_stack.0.docker_image_name",
-			"site_config.0.application_stack.0.docker_image_tag",
-			"site_config.0.application_stack.0.docker_registry_url",
-			"site_credential.0.password"),
-		{
-			Config: r.dockerImageName(data, "https://index.docker.io", "nginx:latest"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|index.docker.io/nginx:latest"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -1870,6 +1833,7 @@ resource "azurerm_linux_web_app_slot" "test" {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
+  vnet_image_pull_enabled = true
 
   site_config {
     always_on        = true
@@ -2116,6 +2080,35 @@ resource "azurerm_linux_web_app_slot" "test" {
   }
 }
 `, r.templateWithStorageAccount(data), data.RandomInteger)
+}
+
+func (r LinuxWebAppSlotResource) withBackupVnetIntegration(data acceptance.TestData, enabled string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_web_app_slot" "test" {
+  name           = "acctestWAS-%d"
+  app_service_id = azurerm_linux_web_app.test.id
+
+  site_config {}
+
+  virtual_network_subnet_id              = azurerm_subnet.test.id
+  virtual_network_backup_restore_enabled = %s
+
+  backup {
+    name                = "acctest"
+    storage_account_url = "https://${azurerm_storage_account.test.name}.blob.core.windows.net/${azurerm_storage_container.test.name}${data.azurerm_storage_account_sas.test.sas}&sr=b"
+    schedule {
+      frequency_interval = 7
+      frequency_unit     = "Day"
+    }
+  }
+}
+`, r.templateStorageWithVnetIntegration(data), data.RandomInteger, enabled)
 }
 
 func (r LinuxWebAppSlotResource) withConnectionStrings(data acceptance.TestData) string {
@@ -2625,67 +2618,6 @@ resource "azurerm_linux_web_app_slot" "test" {
 `, r.premiumV3PlanTemplate(data), data.RandomInteger, javaVersion, javaServer, javaServerVersion)
 }
 
-func (r LinuxWebAppSlotResource) docker(data acceptance.TestData, containerImage, containerTag string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_linux_web_app_slot" "test" {
-  name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
-
-  app_settings = {
-    "DOCKER_REGISTRY_SERVER_URL"          = "https://mcr.microsoft.com"
-    "DOCKER_REGISTRY_SERVER_USERNAME"     = ""
-    "DOCKER_REGISTRY_SERVER_PASSWORD"     = ""
-    "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
-
-  }
-
-  site_config {
-    application_stack {
-      docker_image     = "%s"
-      docker_image_tag = "%s"
-    }
-  }
-}
-
-`, r.baseTemplate(data), data.RandomInteger, containerImage, containerTag)
-}
-
-func (r LinuxWebAppSlotResource) dockerHub(data acceptance.TestData, containerImage, containerTag string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_linux_web_app_slot" "test" {
-  name           = "acctestWAS-%d"
-  app_service_id = azurerm_linux_web_app.test.id
-
-  app_settings = {
-    "DOCKER_REGISTRY_SERVER_URL"          = "https://index.docker.io"
-    "DOCKER_REGISTRY_SERVER_USERNAME"     = ""
-    "DOCKER_REGISTRY_SERVER_PASSWORD"     = ""
-    "WEBSITES_ENABLE_APP_SERVICE_STORAGE" = "false"
-  }
-
-  site_config {
-    application_stack {
-      docker_image     = "%s"
-      docker_image_tag = "%s"
-    }
-  }
-}
-
-`, r.baseTemplate(data), data.RandomInteger, containerImage, containerTag)
-}
-
 func (r LinuxWebAppSlotResource) dockerImageName(data acceptance.TestData, registryUrl, containerImage string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3014,6 +2946,7 @@ resource "azurerm_linux_web_app" "test" {
 func (r LinuxWebAppSlotResource) templateWithStorageAccount(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 %s
 
 resource "azurerm_user_assigned_identity" "test" {
@@ -3032,14 +2965,14 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "test"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 1
+  name               = "test"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
 }
 
 data "azurerm_storage_account_sas" "test" {
@@ -3076,6 +3009,95 @@ data "azurerm_storage_account_sas" "test" {
   }
 }
 `, r.baseTemplate(data), data.RandomInteger, data.RandomString)
+}
+
+func (r LinuxWebAppSlotResource) templateStorageWithVnetIntegration(data acceptance.TestData) string {
+	timeFormat := "2006-01-02"
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet-%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "subnet-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+
+  service_endpoints = [
+    "Microsoft.Storage"
+  ]
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account_network_rules" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+
+  default_action             = "Deny"
+  virtual_network_subnet_ids = [azurerm_subnet.test.id]
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+data "azurerm_storage_account_sas" "test" {
+  connection_string = azurerm_storage_account.test.primary_connection_string
+  https_only        = true
+
+  resource_types {
+    service   = false
+    container = false
+    object    = true
+  }
+
+  services {
+    blob  = true
+    queue = false
+    table = false
+    file  = false
+  }
+
+  start  = "%[4]s"
+  expiry = "%[5]s"
+
+  permissions {
+    read    = false
+    write   = true
+    delete  = false
+    list    = false
+    add     = false
+    create  = false
+    update  = false
+    process = false
+    tag     = false
+    filter  = false
+  }
+}
+`, r.baseTemplate(data), data.RandomInteger, data.RandomString, time.Now().Format(timeFormat), time.Now().AddDate(0, 0, 1).Format(timeFormat))
 }
 
 func (LinuxWebAppSlotResource) premiumV3PlanTemplate(data acceptance.TestData) string {

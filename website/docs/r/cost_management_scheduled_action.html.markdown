@@ -86,3 +86,9 @@ Azure Cost Management Scheduled Actions can be imported using the `resource id`,
 ```shell
 terraform import azurerm_cost_management_scheduled_action.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.CostManagement/scheduledActions/scheduledaction1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.CostManagement`: 2023-08-01

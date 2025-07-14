@@ -12,7 +12,7 @@ Manages an Azure VMware Solution Private Cloud Netapp File Attachment.
 
 ## Example Usage
 
-~> **NOTE :** For Azure Azure VMware Solution Private Cloud, normal `terraform apply` could ignore this note. Please disable correlation request id for continuous operations in one build (like acctest). The continuous operations like `update` or `delete` could not be triggered when it shares the same `correlation-id` with its previous operation.
+~> **Note:** For Azure VMware Solution Private Cloud, normal `terraform apply` could ignore this note. Please disable correlation request id for continuous operations in one build (like acctest). The continuous operations like `update` or `delete` could not be triggered when it shares the same `correlation-id` with its previous operation.
 
 ```hcl
 provider "azurerm" {
@@ -37,14 +37,14 @@ resource "azurerm_virtual_network" "test" {
   name                = "example-VirtualNetwork"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["10.6.0.0/16"]
+  address_space       = ["10.88.0.0/16"]
 }
 
 resource "azurerm_subnet" "netappSubnet" {
   name                 = "example-Subnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.6.2.0/24"]
+  address_prefixes     = ["10.88.2.0/24"]
 
   delegation {
     name = "testdelegation"
@@ -60,7 +60,7 @@ resource "azurerm_subnet" "gatewaySubnet" {
   name                 = "GatewaySubnet"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.6.1.0/24"]
+  address_prefixes     = ["10.88.1.0/24"]
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -170,7 +170,7 @@ The following arguments are supported:
 
 * `vmware_cluster_id` - (Required) The vmware cluster for this Azure VMware Solution Private Cloud Netapp File Volume Attachment to associated to. Changing this forces a new Azure VMware Solution Private Cloud Netapp File Volume Attachment to be created.
 
-~> **NOTE :** please follow the prerequisites mentioned in this [article](https://learn.microsoft.com/en-us/azure/azure-vmware/attach-azure-netapp-files-to-azure-vmware-solution-hosts?tabs=azure-portal#prerequisites) before associating the netapp file volume to the Azure VMware Solution hosts.
+~> **Note:** please follow the prerequisites mentioned in this [article](https://learn.microsoft.com/en-us/azure/azure-vmware/attach-azure-netapp-files-to-azure-vmware-solution-hosts?tabs=azure-portal#prerequisites) before associating the netapp file volume to the Azure VMware Solution hosts.
 
 ## Timeouts
 
@@ -178,7 +178,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the Azure VMware Solution Private Cloud Netapp File Volume Attachment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure VMware Solution Private Cloud Netapp File Volume Attachment.
-* `update` - (Defaults to 10 hours) Used when updating the Azure VMware Solution Private Cloud Netapp File Volume Attachment.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Azure VMware Solution Private Cloud Netapp File Volume Attachment.
 
 ## Import
@@ -188,3 +187,9 @@ Azure VMware Solution Private Cloud Netapp File Volume Attachments can be import
 ```shell
 terraform import azurerm_vmware_netapp_volume_attachment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AVS/privateClouds/privateCloud1/clusters/Cluster1/dataStores/datastore1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AVS`: 2022-05-01

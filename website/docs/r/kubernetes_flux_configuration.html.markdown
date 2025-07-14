@@ -54,6 +54,16 @@ resource "azurerm_kubernetes_flux_configuration" "example" {
 
   kustomizations {
     name = "kustomization-1"
+
+    post_build {
+      substitute = {
+        example_var = "substitute_with_this"
+      }
+      substitute_from {
+        kind = "ConfigMap"
+        name = "example-configmap"
+      }
+    }
   }
 
   depends_on = [
@@ -103,6 +113,10 @@ A `kustomizations` block supports the following:
 * `garbage_collection_enabled` - (Optional) Whether garbage collections of Kubernetes objects created by this kustomization is enabled. Defaults to `false`.
 
 * `depends_on` - (Optional) Specifies other kustomizations that this kustomization depends on. This kustomization will not reconcile until all dependencies have completed their reconciliation.
+
+* `post_build` - (Optional) A `post_build` block as defined below.
+
+* `wait` - (Optional) Whether to enable health check for all Kubernetes objects created by this Kustomization. Defaults to `true`.
 
 ---
 
@@ -192,6 +206,24 @@ A `git_repository` block supports the following:
 
 * `timeout_in_seconds` - (Optional) Specifies the maximum time to attempt to reconcile the cluster git repository source with the remote. Defaults to `600`.
 
+---
+
+A `post_build` block supports the following:
+
+* `substitute` - (Optional) Specifies the key/value pairs holding the variables to be substituted in this Kustomization.
+
+* `substitute_from` - (Optional) A `substitute_from` block as defined below.
+
+---
+
+A `substitute_from` block supports the following:
+
+* `kind` - (Required) Specifies the source kind to hold the variables to be used in substitution. Possible values are `ConfigMap` and `Secret`.
+
+* `name` - (Required) Specifies the name of the ConfigMap/Secret that holds the variables to be used in substitution.
+
+* `optional` - (Optional) Whether to proceed without ConfigMap/Secret if it is not present. Defaults to `false`.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -214,3 +246,9 @@ Kubernetes Flux Configuration can be imported using the `resource id` for differ
 ```shell
 terraform import azurerm_kubernetes_flux_configuration.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.ContainerService/managedClusters/cluster1/providers/Microsoft.KubernetesConfiguration/fluxConfigurations/fluxConfiguration1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.KubernetesConfiguration`: 2024-11-01

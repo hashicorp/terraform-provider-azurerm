@@ -22,7 +22,7 @@ resource "azurerm_dashboard_grafana" "example" {
   name                              = "example-dg"
   resource_group_name               = azurerm_resource_group.example.name
   location                          = "West Europe"
-  grafana_major_version             = 10
+  grafana_major_version             = 11
   api_key_enabled                   = true
   deterministic_outbound_ip_enabled = true
   public_network_access_enabled     = false
@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Dashboard Grafana should exist. Changing this forces a new Dashboard Grafana to be created.
 
-* `grafana_major_version` - (Required) Which major version of Grafana to deploy. Possible values are `9`, `10`. Changing this forces a new resource to be created.
+* `grafana_major_version` - (Required) Which major version of Grafana to deploy. Possible values are `10`, `11`. Changing this forces a new resource to be created.
 
 * `api_key_enabled` - (Optional) Whether to enable the api key setting of the Grafana instance. Defaults to `false`.
 
@@ -141,3 +141,9 @@ Dashboard Grafana can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_dashboard_grafana.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Dashboard/grafana/workspace1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Dashboard`: 2023-09-01

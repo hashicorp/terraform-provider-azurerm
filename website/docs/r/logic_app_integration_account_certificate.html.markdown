@@ -81,3 +81,9 @@ Logic App Integration Account Certificates can be imported using the `resource i
 ```shell
 terraform import azurerm_logic_app_integration_account_certificate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Logic/integrationAccounts/account1/certificates/certificate1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Logic`: 2019-05-01

@@ -90,7 +90,7 @@ A `identity` block supports the following:
 
 * `identity_ids` - (Optional) A list of User Managed Identity IDs which should be assigned to the Policy Definition.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned`.
 
 ---
 
@@ -165,3 +165,9 @@ Management Group Policy Assignments can be imported using the `resource id`, e.g
 ```shell
 terraform import azurerm_management_group_policy_assignment.example /providers/Microsoft.Management/managementGroups/group1/providers/Microsoft.Authorization/policyAssignments/assignment1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Authorization`: 2022-06-01

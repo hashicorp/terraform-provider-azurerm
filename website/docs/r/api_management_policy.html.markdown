@@ -10,7 +10,7 @@ description: |-
 
 Manages a API Management service Policy.
 
-~> **NOTE:** This resource will, upon creation, **overwrite any existing policy in the API Management service**, as there is no feasible way to test whether the policy has been modified from the default. Similarly, when this resource is destroyed, the API Management service will revert to its default policy.
+~> **Note:** This resource will, upon creation, **overwrite any existing policy in the API Management service**, as there is no feasible way to test whether the policy has been modified from the default. Similarly, when this resource is destroyed, the API Management service will revert to its default policy.
 
 ## Example Usage
 
@@ -52,7 +52,7 @@ The following arguments are supported:
 
 ---
 
-* `xml_content` - (Optional) The XML Content for this Policy as a string. An XML file can be used here with Terraform's [file function](https://www.terraform.io/docs/configuration/functions/file.html) that is similar to Microsoft's `PolicyFilePath` option.
+* `xml_content` - (Optional) The XML Content for this Policy as a string. An XML file can be used here with Terraform's [file function](https://www.terraform.io/docs/configuration/functions/file.html) that is similar to Microsoft's `PolicyFilePath` option. To integrate frontend and backend services in Azure API Management, utilize the [`set-backend-service`](https://learn.microsoft.com/azure/api-management/set-backend-service-policy) policy, specifying the `base-url` value. Typically, this value corresponds to the `url` property defined in the [`azurerm_api_management_backend`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/api_management_backend) configuration.
 
 * `xml_link` - (Optional) A link to a Policy XML Document, which must be publicly available.
 
@@ -78,3 +78,9 @@ API Management service Policys can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_api_management_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ApiManagement/service/service1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ApiManagement`: 2024-05-01, 2022-08-01

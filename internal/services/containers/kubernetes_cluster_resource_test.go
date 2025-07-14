@@ -9,23 +9,23 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-05-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type KubernetesClusterResource struct{}
 
 var (
-	olderKubernetesVersion        = "1.28.5"
-	currentKubernetesVersion      = "1.29.2"
-	olderKubernetesVersionAlias   = "1.28"
-	currentKubernetesVersionAlias = "1.29"
+	olderKubernetesVersion        = "1.31.8"
+	currentKubernetesVersion      = "1.32.4"
+	olderKubernetesVersionAlias   = "1.31"
+	currentKubernetesVersionAlias = "1.32"
 )
 
 func TestAccKubernetesCluster_hostEncryption(t *testing.T) {
@@ -230,6 +230,35 @@ func TestAccKubernetesCluster_updateNetworkProfileOutboundType(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_upgradeOverrideSetting(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.upgradeOverrideSetting(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeOverrideSetting(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeOverrideSetting(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t KubernetesClusterResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseKubernetesClusterID(state.ID)
 	if err != nil {
@@ -241,7 +270,7 @@ func (t KubernetesClusterResource) Exists(ctx context.Context, clients *clients.
 		return nil, fmt.Errorf("reading Kubernetes Cluster (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil && resp.Model.Id != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
 func (KubernetesClusterResource) updateDefaultNodePoolAgentCount(nodeCount int) acceptance.ClientCheckFunc {
@@ -270,9 +299,9 @@ func (KubernetesClusterResource) updateDefaultNodePoolAgentCount(nodeCount int) 
 			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q): `properties` was nil", nodePoolName, clusterName, resourceGroup)
 		}
 
-		nodePool.Model.Properties.Count = utils.Int64(int64(nodeCount))
+		nodePool.Model.Properties.Count = pointer.To(int64(nodeCount))
 
-		err = clients.Containers.AgentPoolsClient.CreateOrUpdateThenPoll(ctx, agentPoolId, *nodePool.Model)
+		err = clients.Containers.AgentPoolsClient.CreateOrUpdateThenPoll(ctx, agentPoolId, *nodePool.Model, agentpools.DefaultCreateOrUpdateOperationOptions())
 		if err != nil {
 			return fmt.Errorf("Bad: updating node pool %q: %+v", nodePoolName, err)
 		}
@@ -922,4 +951,42 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, controlPlaneVersion)
+}
+
+func (KubernetesClusterResource) upgradeOverrideSetting(data acceptance.TestData, isUpgradeOverrideSettingEnabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]s"
+  location = "%[2]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]s"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  upgrade_override {
+    effective_until       = "%[3]s"
+    force_upgrade_enabled = %[4]t
+  }
+}
+  `, data.RandomString, data.Locations.Primary, time.Now().UTC().Add(8*time.Minute).Format(time.RFC3339), isUpgradeOverrideSettingEnabled)
 }

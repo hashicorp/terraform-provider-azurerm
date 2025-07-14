@@ -6,7 +6,7 @@ package shim
 import (
 	"context"
 
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/queue/queues"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/queue/queues"
 )
 
 type StorageQueuesWrapper interface {

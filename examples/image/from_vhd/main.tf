@@ -89,9 +89,10 @@ resource "azurerm_image" "example" {
   resource_group_name = azurerm_resource_group.example.name
 
   os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = azurerm_virtual_machine.example.storage_os_disk[0].vhd_uri
-    size_gb  = 30
+    os_type      = "Linux"
+    os_state     = "Generalized"
+    blob_uri     = azurerm_virtual_machine.example.storage_os_disk[0].vhd_uri
+    size_gb      = 30
+    storage_type = "Standard_LRS"
   }
 }

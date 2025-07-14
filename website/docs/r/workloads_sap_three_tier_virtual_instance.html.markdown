@@ -329,6 +329,8 @@ The following arguments are supported:
 
 * `managed_resource_group_name` - (Optional) The name of the managed Resource Group for the SAP Three Tier Virtual Instance. Changing this forces a new resource to be created.
 
+* `managed_resources_network_access_type` - (Optional) The network access type for managed resources. Possible values are `Private` and `Public`. Defaults to `Public`.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the SAP Three Tier Virtual Instance.
 
 ---
@@ -547,10 +549,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the SAP Three Tier Virtual Instance with new SAP System.
+* `create` - (Defaults to 1 hour) Used when creating the SAP Three Tier Virtual Instance with new SAP System.
 * `read` - (Defaults to 5 minutes) Used when retrieving the SAP Three Tier Virtual Instance with new SAP System.
-* `update` - (Defaults to 60 minutes) Used when updating the SAP Three Tier Virtual Instance with new SAP System.
-* `delete` - (Defaults to 60 minutes) Used when deleting the SAP Three Tier Virtual Instance with new SAP System.
+* `update` - (Defaults to 1 hour) Used when updating the SAP Three Tier Virtual Instance with new SAP System.
+* `delete` - (Defaults to 1 hour) Used when deleting the SAP Three Tier Virtual Instance with new SAP System.
 
 ## Import
 
@@ -559,3 +561,9 @@ SAP Three Tier Virtual Instances with new SAP Systems can be imported using the 
 ```shell
 terraform import azurerm_workloads_sap_three_tier_virtual_instance.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Workloads/sapVirtualInstances/vis1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Workloads`: 2024-09-01

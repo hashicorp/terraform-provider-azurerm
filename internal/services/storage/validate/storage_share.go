@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/client"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/shares"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/file/shares"
 )
 
 func StorageShareDataPlaneID(input interface{}, key string) (warnings []string, errors []error) {

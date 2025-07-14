@@ -15,10 +15,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/eventsubscriptions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/dataconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/dataconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
@@ -29,7 +30,7 @@ import (
 )
 
 func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceKustoEventGridDataConnectionCreateUpdate,
 		Update: resourceKustoEventGridDataConnectionCreateUpdate,
 		Read:   resourceKustoEventGridDataConnectionRead,
@@ -138,15 +139,13 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice(dataconnections.PossibleValuesForDatabaseRouting(), false),
 			},
 
-			// TODO: rename this to `eventgrid_event_subscription_id` in 4.0
-			"eventgrid_resource_id": {
+			"eventgrid_event_subscription_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: eventsubscriptions.ValidateScopedEventSubscriptionID,
 			},
 
-			// TODO: rename this to `managed_identity_id` in 4.0
-			"managed_identity_resource_id": {
+			"managed_identity_id": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ValidateFunc: validation.Any(
@@ -156,6 +155,35 @@ func resourceKustoEventGridDataConnection() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["eventgrid_resource_id"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ValidateFunc:  eventsubscriptions.ValidateScopedEventSubscriptionID,
+			Deprecated:    "`eventgrid_resource_id` has been deprecated in favour of the `eventgrid_event_subscription_id` property and will be removed in v5.0 of the AzureRM Provider.",
+			ConflictsWith: []string{"eventgrid_event_subscription_id"},
+		}
+		resource.Schema["eventgrid_event_subscription_id"].ConflictsWith = []string{"eventgrid_resource_id"}
+		resource.Schema["eventgrid_event_subscription_id"].Computed = true
+
+		resource.Schema["managed_identity_resource_id"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.Any(
+				commonids.ValidateKustoClusterID,
+				commonids.ValidateUserAssignedIdentityID,
+			),
+			Deprecated:    "`managed_identity_resource_id` has been deprecated in favour of the `managed_identity_id` property and will be removed in v5.0 of the AzureRM Provider.",
+			ConflictsWith: []string{"managed_identity_id"},
+		}
+		resource.Schema["managed_identity_id"].ConflictsWith = []string{"managed_identity_resource_id"}
+		resource.Schema["managed_identity_id"].Computed = true
+	}
+
+	return resource
 }
 
 func resourceKustoEventGridDataConnectionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -211,11 +239,19 @@ func resourceKustoEventGridDataConnectionCreateUpdate(d *pluginsdk.ResourceData,
 		dataConnection.Properties.DatabaseRouting = &databaseRoutingType
 	}
 
-	if eventGridRID, ok := d.GetOk("eventgrid_resource_id"); ok {
+	if eventGridRID, ok := d.GetOk("eventgrid_event_subscription_id"); ok {
 		dataConnection.Properties.EventGridResourceId = utils.String(eventGridRID.(string))
 	}
 
-	if managedIdentityRID, ok := d.GetOk("managed_identity_resource_id"); ok {
+	if eventGridRID, ok := d.GetOk("eventgrid_resource_id"); !features.FivePointOh() && ok {
+		dataConnection.Properties.EventGridResourceId = utils.String(eventGridRID.(string))
+	}
+
+	if managedIdentityRID, ok := d.GetOk("managed_identity_id"); ok {
+		dataConnection.Properties.ManagedIdentityResourceId = utils.String(managedIdentityRID.(string))
+	}
+
+	if managedIdentityRID, ok := d.GetOk("managed_identity_resource_id"); !features.FivePointOh() && ok {
 		dataConnection.Properties.ManagedIdentityResourceId = utils.String(managedIdentityRID.(string))
 	}
 
@@ -266,7 +302,11 @@ func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta in
 				d.Set("mapping_rule_name", props.MappingRuleName)
 				d.Set("data_format", string(pointer.From(props.DataFormat)))
 				d.Set("database_routing_type", string(pointer.From(props.DatabaseRouting)))
-				d.Set("eventgrid_resource_id", props.EventGridResourceId)
+				d.Set("eventgrid_event_subscription_id", props.EventGridResourceId)
+
+				if !features.FivePointOh() {
+					d.Set("eventgrid_resource_id", props.EventGridResourceId)
+				}
 
 				managedIdentityResourceId := ""
 				if props.ManagedIdentityResourceId != nil && *props.ManagedIdentityResourceId != "" {
@@ -279,11 +319,16 @@ func resourceKustoEventGridDataConnectionRead(d *pluginsdk.ResourceData, meta in
 						if userAssignedIdentityIdErr == nil {
 							managedIdentityResourceId = userAssignedIdentityId.ID()
 						} else {
-							return fmt.Errorf("parsing `managed_identity_resource_id`: %+v; %+v", clusterIdErr, userAssignedIdentityIdErr)
+							return fmt.Errorf("parsing `managed_identity_id`: %+v; %+v", clusterIdErr, userAssignedIdentityIdErr)
 						}
 					}
 				}
-				d.Set("managed_identity_resource_id", managedIdentityResourceId)
+
+				d.Set("managed_identity_id", managedIdentityResourceId)
+
+				if !features.FivePointOh() {
+					d.Set("managed_identity_resource_id", managedIdentityResourceId)
+				}
 			}
 		}
 	}

@@ -12,6 +12,8 @@ Manages a Microsoft SQL Azure Managed Instance.
 
 ~> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
 
+~> **Note:** SQL Managed Instance needs permission to read Azure Active Directory when configuring the AAD administrator. [Read more about provisioning AAD administrators](https://learn.microsoft.com/en-us/azure/azure-sql/database/authentication-aad-configure?view=azuresql#provision-azure-ad-admin-sql-managed-instance).
+
 ## Example Usage
 
 ```hcl
@@ -171,7 +173,7 @@ resource "azurerm_route_table" "example" {
   name                          = "routetable-mi"
   location                      = azurerm_resource_group.example.location
   resource_group_name           = azurerm_resource_group.example.name
-  disable_bgp_route_propagation = false
+  bgp_route_propagation_enabled = true
   depends_on = [
     azurerm_subnet.example,
   ]
@@ -207,10 +209,6 @@ resource "azurerm_mssql_managed_instance" "example" {
 
 The following arguments are supported:
 
-* `administrator_login` - (Required) The administrator login name for the new SQL Managed Instance. Changing this forces a new resource to be created.
-
-* `administrator_login_password` - (Required) The password associated with the `administrator_login` user. Needs to comply with Azure's [Password Policy](https://msdn.microsoft.com/library/ms161959.aspx)
-
 * `license_type` - (Required) What type of license the Managed Instance will use. Possible values are `LicenseIncluded` and `BasePrice`.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
@@ -223,19 +221,33 @@ The following arguments are supported:
 
 * `storage_size_in_gb` - (Required) Maximum storage space for the SQL Managed instance. This should be a multiple of 32 (GB).
 
-* `subnet_id` - (Required) The subnet resource id that the SQL Managed Instance will be associated with. Changing this forces a new resource to be created.
+* `subnet_id` - (Required) The subnet resource id that the SQL Managed Instance will be associated with.
 
 * `vcores` - (Required) Number of cores that should be assigned to the SQL Managed Instance. Values can be `8`, `16`, or `24` for Gen4 SKUs, or `4`, `6`, `8`, `10`, `12`, `16`, `20`, `24`, `32`, `40`, `48`, `56`, `64`, `80`, `96` or `128` for Gen5 SKUs.
 
+* `administrator_login` - (Optional) The administrator login name for the new SQL Managed Instance. Changing this forces a new resource to be created.
+
+* `administrator_login_password` - (Optional) The password associated with the `administrator_login` user. Needs to comply with Azure's [Password Policy](https://msdn.microsoft.com/library/ms161959.aspx)
+
+* `azure_active_directory_administrator` - (Optional) An `azure_active_directory_administrator` block as defined below.
+
 * `collation` - (Optional) Specifies how the SQL Managed Instance will be collated. Default value is `SQL_Latin1_General_CP1_CI_AS`. Changing this forces a new resource to be created.
 
+* `database_format` - (Optional) Specifies the internal format of the SQL Managed Instance databases specific to the SQL engine version. Possible values are `AlwaysUpToDate` and `SQLServer2022`. Defaults to `SQLServer2022`.
+
+~> **Note:** Changing `database_format` from `AlwaysUpToDate` to `SQLServer2022` forces a new SQL Managed Instance to be created.
+
 * `dns_zone_partner_id` - (Optional) The ID of the SQL Managed Instance which will share the DNS zone. This is a prerequisite for creating an `azurerm_sql_managed_instance_failover_group`. Setting this after creation forces a new resource to be created.
+
+* `hybrid_secondary_usage` - (Optional) Specifies the hybrid secondary usage for disaster recovery of the SQL Managed Instance. Possible values are `Active` and `Passive`. Defaults to `Active`.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `maintenance_configuration_name` - (Optional) The name of the Public Maintenance Configuration window to apply to the SQL Managed Instance. Valid values include `SQL_Default` or an Azure Location in the format `SQL_{Location}_MI_{Size}`(for example `SQL_EastUS_MI_1`). Defaults to `SQL_Default`.
 
 * `minimum_tls_version` - (Optional) The Minimum TLS Version. Default value is `1.2` Valid values include `1.0`, `1.1`, `1.2`.
+
+~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
 
 * `proxy_override` - (Optional) Specifies how the SQL Managed Instance will be accessed. Default value is `Default`. Valid values include `Default`, `Proxy`, and `Redirect`.
 
@@ -253,13 +265,27 @@ The following arguments are supported:
 
 ---
 
+An `azure_active_directory_administrator` block supports the following:
+
+* `login_username` - (Required) The login username of the Azure AD Administrator of this SQL Managed Instance.
+
+* `object_id` - (Required) The object id of the Azure AD Administrator of this SQL Managed Instance.
+
+* `principal_type` - (Required) The principal type of the Azure AD Administrator of this SQL Managed Instance. Possible values are `Application`, `Group`, `User`.
+
+* `azuread_authentication_only_enabled` - (Optional) Specifies whether only Azure AD authentication can be used to log in to this SQL Managed Instance. When `true`, the `administrator_login` and `administrator_login_password` properties can be omitted. Defaults to `false`.
+
+* `tenant_id` - (Optional) The tenant id of the Azure AD Administrator of this SQL Managed Instance. Should be specified if the Azure AD Administrator is homed in a different tenant to the SQL Managed Instance.
+
+---
+
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this SQL Managed Instance. Possible values are `SystemAssigned`, `UserAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this SQL Managed Instance. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned`.
 
-* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this SQL Managed Instance. Required when `type` is set to `UserAssigned`.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this SQL Managed Instance. Required when `type` includes `UserAssigned`.
 
-~> The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and SQL Managed Instance has been created.
+~> **Note:** The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and SQL Managed Instance has been created.
 
 ## Attributes Reference
 
@@ -279,15 +305,15 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this SQL Managed Instance.
 
--> You can access the Principal ID via `azurerm_mssql_managed_instance.example.identity[0].principal_id` and the Tenant ID via `azurerm_mssql_managed_instance.example.identity[0].tenant_id`
+-> **Note:** You can access the Principal ID via `azurerm_mssql_managed_instance.example.identity[0].principal_id` and the Tenant ID via `azurerm_mssql_managed_instance.example.identity[0].tenant_id`
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 24 hours) Used when creating the Microsoft SQL Managed Instance.
-* `update` - (Defaults to 24 hours) Used when updating the Microsoft SQL Managed Instance.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Microsoft SQL Managed Instance.
+* `update` - (Defaults to 24 hours) Used when updating the Microsoft SQL Managed Instance.
 * `delete` - (Defaults to 24 hours) Used when deleting the Microsoft SQL Managed Instance.
 
 ## Import
@@ -297,3 +323,9 @@ Microsoft SQL Managed Instances can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_mssql_managed_instance.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/managedInstances/myserver
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Sql`: 2023-08-01-preview

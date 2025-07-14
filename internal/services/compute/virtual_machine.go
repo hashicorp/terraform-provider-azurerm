@@ -6,6 +6,7 @@ package compute
 import (
 	"context"
 	"fmt"
+	"math"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
@@ -175,6 +176,7 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 								ValidateFunc: validation.StringInSlice([]string{
 									string(virtualmachines.DiffDiskPlacementCacheDisk),
 									string(virtualmachines.DiffDiskPlacementResourceDisk),
+									string(virtualmachines.DiffDiskPlacementNVMeDisk),
 								}, false),
 							},
 						},
@@ -226,6 +228,11 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 					Default:  false,
+				},
+
+				"id": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
 				},
 			},
 		},
@@ -327,12 +334,13 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 	storageAccountType := ""
 	secureVMDiskEncryptionSetId := ""
 	securityEncryptionType := ""
+	osDiskId := ""
 
 	if input.ManagedDisk != nil {
 		storageAccountType = string(pointer.From(input.ManagedDisk.StorageAccountType))
 
 		if input.ManagedDisk.Id != nil {
-			id, err := commonids.ParseManagedDiskID(*input.ManagedDisk.Id)
+			id, err := commonids.ParseManagedDiskIDInsensitively(*input.ManagedDisk.Id)
 			if err != nil {
 				return nil, err
 			}
@@ -365,6 +373,8 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 					diskEncryptionSetId = *disk.Model.Properties.Encryption.DiskEncryptionSetId
 				}
 			}
+
+			osDiskId = id.ID()
 		}
 
 		if securityProfile := input.ManagedDisk.SecurityProfile; securityProfile != nil {
@@ -382,9 +392,10 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 	return []interface{}{
 		map[string]interface{}{
 			"caching":                          string(pointer.From(input.Caching)),
-			"disk_size_gb":                     diskSizeGb,
 			"diff_disk_settings":               diffDiskSettings,
 			"disk_encryption_set_id":           diskEncryptionSetId,
+			"disk_size_gb":                     diskSizeGb,
+			"id":                               osDiskId,
 			"name":                             name,
 			"storage_account_type":             storageAccountType,
 			"secure_vm_disk_encryption_set_id": secureVMDiskEncryptionSetId,
@@ -539,7 +550,7 @@ func VirtualMachineGalleryApplicationSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      0,
-					ValidateFunc: validation.IntBetween(0, 2147483647),
+					ValidateFunc: validation.IntBetween(0, math.MaxInt32),
 				},
 
 				// NOTE: Per the service team, "this is a pass through value that we just add to the model but don't depend on. It can be any string."

@@ -132,8 +132,7 @@ func TestParseStructTags_WithValue(t *testing.T) {
 
 		if actual == nil {
 			t.Fatalf("expected actual to have a value but got nil")
-		}
-		if !reflect.DeepEqual(*data.expected, *actual) {
+		} else if !reflect.DeepEqual(*data.expected, *actual) {
 			t.Fatalf("expected [%+v] and actual [%+v] didn't match", *data.expected, *actual)
 		}
 	}

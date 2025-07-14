@@ -6,6 +6,7 @@ package logic
 import (
 	"fmt"
 	"log"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -108,6 +109,12 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"ftp_publish_basic_authentication_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"https_only": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -115,6 +122,12 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+			"scm_publish_basic_authentication_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 
 			"site_config": schemaLogicAppStandardSiteConfig(),
 
@@ -192,6 +205,11 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				Default:  "~4",
 			},
 
+			"vnet_content_share_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
 			"virtual_network_subnet_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -246,7 +264,7 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		// Due to the way the `site_config.public_network_access_enabled` property and the `public_network_access` property
 		// influence each other, the default needs to be handled in the Create for now until `site_config.public_network_access_enabled`
 		// is removed in v5.0
@@ -331,19 +349,20 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 		Location: location.Normalize(d.Get("location").(string)),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: &webapps.SiteProperties{
-			ServerFarmId:          pointer.To(d.Get("app_service_plan_id").(string)),
-			Enabled:               pointer.To(d.Get("enabled").(bool)),
-			ClientAffinityEnabled: pointer.To(d.Get("client_affinity_enabled").(bool)),
-			ClientCertEnabled:     pointer.To(clientCertEnabled),
-			HTTPSOnly:             pointer.To(d.Get("https_only").(bool)),
-			SiteConfig:            &siteConfig,
+			ServerFarmId:            pointer.To(d.Get("app_service_plan_id").(string)),
+			Enabled:                 pointer.To(d.Get("enabled").(bool)),
+			ClientAffinityEnabled:   pointer.To(d.Get("client_affinity_enabled").(bool)),
+			ClientCertEnabled:       pointer.To(clientCertEnabled),
+			HTTPSOnly:               pointer.To(d.Get("https_only").(bool)),
+			SiteConfig:              &siteConfig,
+			VnetContentShareEnabled: pointer.To(d.Get("vnet_content_share_enabled").(bool)),
 		},
 	}
 
 	publicNetworkAccess := d.Get("public_network_access").(string)
-	if !features.FivePointOhBeta() && publicNetworkAccess == "" {
+	if !features.FivePointOh() {
 		// if a user is still using `site_config.public_network_access_enabled` we should be setting `public_network_access` for them
-		publicNetworkAccess = helpers.PublicNetworkAccessEnabled
+		publicNetworkAccess = reconcilePNA(d)
 		if v := siteEnvelope.Properties.SiteConfig.PublicNetworkAccess; v != nil && *v == helpers.PublicNetworkAccessDisabled {
 			publicNetworkAccess = helpers.PublicNetworkAccessDisabled
 		}
@@ -379,6 +398,33 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	d.SetId(id.ID())
+
+	// This setting is enabled by default on creation of a logic app, we only need to update if config sets this as `false`
+	if ftpAuth := d.Get("ftp_publish_basic_authentication_enabled").(bool); !ftpAuth {
+		policy := webapps.CsmPublishingCredentialsPoliciesEntity{
+			Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+				Allow: ftpAuth,
+			},
+		}
+
+		if _, err := client.UpdateFtpAllowed(ctx, id, policy); err != nil {
+			return fmt.Errorf("updating FTP publish basic authentication policy for %s: %+v", id, err)
+		}
+	}
+
+	// This setting is enabled by default on creation of a logic app, we only need to update if config sets this as `false`
+	if scmAuth := d.Get("scm_publish_basic_authentication_enabled").(bool); !scmAuth {
+		policy := webapps.CsmPublishingCredentialsPoliciesEntity{
+			Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+				Allow: scmAuth,
+			},
+		}
+
+		if _, err := client.UpdateScmAllowed(ctx, id, policy); err != nil {
+			return fmt.Errorf("updating SCM publish basic authentication policy for %s: %+v", id, err)
+		}
+	}
+
 	return resourceLogicAppStandardUpdate(d, meta)
 }
 
@@ -455,6 +501,14 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
+	if d.HasChange("vnet_content_share_enabled") {
+		siteEnvelope.Properties.VnetContentShareEnabled = pointer.To(d.Get("vnet_content_share_enabled").(bool))
+	}
+
+	if !features.FivePointOh() { // Until 5.0 the site_config value of this must be reflected back into the top-level property if not set there
+		siteConfig.PublicNetworkAccess = pointer.To(reconcilePNA(d))
+	}
+
 	if clientCertEnabled {
 		siteEnvelope.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(clientCertMode))
 	}
@@ -484,7 +538,7 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
-	if d.HasChange("site_config") { // update siteConfig before appSettings in case the appSettings get covered by basicAppSettings
+	if d.HasChange("site_config") || (d.HasChange("public_network_access") && !features.FivePointOh()) { // update siteConfig before appSettings in case the appSettings get covered by basicAppSettings
 		siteConfigResource := webapps.SiteConfigResource{
 			Properties: &siteConfig,
 		}
@@ -510,6 +564,34 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 		if _, err := client.UpdateConnectionStrings(ctx, *id, properties); err != nil {
 			return fmt.Errorf("updating Connection Strings for %s: %+v", *id, err)
+		}
+	}
+
+	// HasChange will return `true` when config specifies this argument as `true` during initial creation.
+	// To avoid unnecessary updates, check if the resource is new.
+	if d.HasChange("ftp_publish_basic_authentication_enabled") && !d.IsNewResource() {
+		policy := webapps.CsmPublishingCredentialsPoliciesEntity{
+			Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+				Allow: d.Get("ftp_publish_basic_authentication_enabled").(bool),
+			},
+		}
+
+		if _, err := client.UpdateFtpAllowed(ctx, *id, policy); err != nil {
+			return fmt.Errorf("updating FTP publish basic authentication policy for %s: %+v", id, err)
+		}
+	}
+
+	// HasChange will return `true` when config specifies this argument as `true` during initial creation.
+	// To avoid unnecessary updates, check if the resource is new.
+	if d.HasChange("scm_publish_basic_authentication_enabled") && !d.IsNewResource() {
+		policy := webapps.CsmPublishingCredentialsPoliciesEntity{
+			Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+				Allow: d.Get("scm_publish_basic_authentication_enabled").(bool),
+			},
+		}
+
+		if _, err := client.UpdateScmAllowed(ctx, *id, policy); err != nil {
+			return fmt.Errorf("updating SCM publish basic authentication policy for %s: %+v", id, err)
 		}
 	}
 
@@ -569,6 +651,7 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("client_affinity_enabled", pointer.From(props.ClientAffinityEnabled))
 			d.Set("custom_domain_verification_id", pointer.From(props.CustomDomainVerificationId))
 			d.Set("virtual_network_subnet_id", pointer.From(props.VirtualNetworkSubnetId))
+			d.Set("vnet_content_share_enabled", pointer.From(props.VnetContentShareEnabled))
 			d.Set("public_network_access", pointer.From(props.PublicNetworkAccess))
 
 			clientCertMode := ""
@@ -645,6 +728,24 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 		if err = d.Set("connection_string", flattenLogicAppStandardConnectionStrings(model.Properties)); err != nil {
 			return err
 		}
+	}
+
+	ftpBasicAuth, err := client.GetFtpAllowed(ctx, *id)
+	if err != nil || ftpBasicAuth.Model == nil {
+		return fmt.Errorf("retrieving FTP publish basic authentication policy for %s: %+v", id, err)
+	}
+
+	if props := ftpBasicAuth.Model.Properties; props != nil {
+		d.Set("ftp_publish_basic_authentication_enabled", props.Allow)
+	}
+
+	scmBasicAuth, err := client.GetScmAllowed(ctx, *id)
+	if err != nil || scmBasicAuth.Model == nil {
+		return fmt.Errorf("retrieving SCM publish basic authentication policy for %s: %+v", id, err)
+	}
+
+	if props := scmBasicAuth.Model.Properties; props != nil {
+		d.Set("scm_publish_basic_authentication_enabled", props.Allow)
 	}
 
 	siteCredentials, err := helpers.ListPublishingCredentials(ctx, client, *id)
@@ -793,8 +894,6 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.SupportedTlsVersionsOnePointZero),
-						string(webapps.SupportedTlsVersionsOnePointOne),
 						string(webapps.SupportedTlsVersionsOnePointTwo),
 					}, false),
 				},
@@ -819,8 +918,6 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(webapps.SupportedTlsVersionsOnePointZero),
-						string(webapps.SupportedTlsVersionsOnePointOne),
 						string(webapps.SupportedTlsVersionsOnePointTwo),
 					}, false),
 				},
@@ -910,12 +1007,32 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 		},
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		schema.Elem.(*pluginsdk.Resource).Schema["public_network_access_enabled"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeBool,
 			Optional:   true,
 			Computed:   true,
 			Deprecated: "the `site_config.public_network_access_enabled` property has been superseded by the `public_network_access` property and will be removed in v5.0 of the AzureRM Provider.",
+		}
+		schema.Elem.(*pluginsdk.Resource).Schema["scm_min_tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(webapps.SupportedTlsVersionsOnePointZero),
+				string(webapps.SupportedTlsVersionsOnePointOne),
+				string(webapps.SupportedTlsVersionsOnePointTwo),
+			}, false),
+		}
+		schema.Elem.(*pluginsdk.Resource).Schema["min_tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(webapps.SupportedTlsVersionsOnePointZero),
+				string(webapps.SupportedTlsVersionsOnePointOne),
+				string(webapps.SupportedTlsVersionsOnePointTwo),
+			}, false),
 		}
 	}
 
@@ -982,7 +1099,7 @@ func schemaLogicAppStandardIpRestriction() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      65000,
-					ValidateFunc: validation.IntBetween(1, 2147483647),
+					ValidateFunc: validation.IntBetween(1, math.MaxInt32),
 				},
 
 				"action": {
@@ -1123,7 +1240,7 @@ func flattenLogicAppStandardSiteConfig(input *webapps.SiteConfig) []interface{} 
 		publicNetworkAccessEnabled = !strings.EqualFold(pointer.From(input.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 	}
 
-	if !features.FivePointOhBeta() {
+	if !features.FivePointOh() {
 		result["public_network_access_enabled"] = publicNetworkAccessEnabled
 	}
 
@@ -1350,14 +1467,8 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (webapps.SiteCo
 		siteConfig.VnetRouteAllEnabled = pointer.To(v.(bool))
 	}
 
-	if !features.FivePointOhBeta() {
-		if v, ok := config["public_network_access_enabled"]; ok {
-			pna := helpers.PublicNetworkAccessEnabled
-			if !v.(bool) {
-				pna = helpers.PublicNetworkAccessDisabled
-			}
-			siteConfig.PublicNetworkAccess = pointer.To(pna)
-		}
+	if !features.FivePointOh() {
+		siteConfig.PublicNetworkAccess = pointer.To(reconcilePNA(d))
 	}
 
 	return siteConfig, nil
@@ -1538,4 +1649,27 @@ func expandHeaders(input interface{}) map[string][]string {
 	}
 
 	return output
+}
+
+func reconcilePNA(d *pluginsdk.ResourceData) string {
+	pna := ""
+	scPNASet := true
+	if !d.GetRawConfig().AsValueMap()["public_network_access"].IsNull() { // is top level set, takes precedence
+		pna = d.Get("public_network_access").(string)
+	}
+	if sc := d.GetRawConfig().AsValueMap()["site_config"]; !sc.IsNull() {
+		if len(sc.AsValueSlice()) > 0 && !sc.AsValueSlice()[0].AsValueMap()["public_network_access_enabled"].IsNull() {
+			scPNASet = true
+		}
+	}
+	if pna == "" && scPNASet { // if not, or it's empty, is site_config value set
+		pnaBool := d.Get("site_config.0.public_network_access_enabled").(bool)
+		if pnaBool {
+			pna = helpers.PublicNetworkAccessEnabled
+		} else {
+			pna = helpers.PublicNetworkAccessDisabled
+		}
+	}
+
+	return pna
 }

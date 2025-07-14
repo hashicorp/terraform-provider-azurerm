@@ -144,3 +144,9 @@ Kubernetes Fleet Update Runs can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_kubernetes_fleet_update_run.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resourceGroup1/providers/Microsoft.ContainerService/fleets/fleet1/updateRuns/updateRun1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ContainerService`: 2024-04-01
