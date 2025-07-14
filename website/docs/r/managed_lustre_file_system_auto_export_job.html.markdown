@@ -181,6 +181,12 @@ The following arguments are supported:
 
 * `admin_status` - (Optional) The administrative status of the Auto Export Job. Possible values are `Enable` and `Disable`. Defaults to `Enable`.
 
+## Attributes Reference
+
+In addition to the arguments above, the following attributes are exported:
+
+* `id` - The Azure Managed Lustre File System Auto Export Job ID.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
