@@ -158,7 +158,6 @@ resource "azurerm_compute_fleet" "test" {
         vm_agent_platform_updates_enabled = true
 
         patch_mode                            = "AutomaticByPlatform"
-        patch_assessment_mode                 = "ImageDefault"
         hot_patching_enabled                  = true
         bypass_platform_safety_checks_enabled = false
         patch_rebooting                       = "Always"
@@ -292,7 +291,6 @@ resource "azurerm_compute_fleet" "test" {
         provision_vm_agent_enabled            = true
         vm_agent_platform_updates_enabled     = true
         patch_mode                            = "AutomaticByPlatform"
-        patch_assessment_mode                 = "ImageDefault"
         bypass_platform_safety_checks_enabled = true
         patch_rebooting                       = "Always"
         secret {

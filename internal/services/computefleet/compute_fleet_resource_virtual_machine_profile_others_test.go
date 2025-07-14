@@ -236,6 +236,7 @@ resource "azurerm_capacity_reservation_group" "test" {
 resource "azurerm_capacity_reservation" "test" {
   name                          = "acctest-ccr-%[2]d"
   capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
+  zone                          = "2"
   sku {
     name     = "Standard_F2"
     capacity = 2
@@ -820,7 +821,7 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1_v2"
+    name = "Standard_D2as_v5"
   }
 
   compute_api_version = "2024-03-01"
