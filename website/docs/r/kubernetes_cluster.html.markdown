@@ -572,7 +572,7 @@ A `maintenance_window` block supports the following:
 
 A `maintenance_window_auto_upgrade` block supports the following:
 
-* `frequency` - (Required) Frequency of maintenance. Possible options are `Weekly`, `AbsoluteMonthly` and `RelativeMonthly`.
+* `frequency` - (Required) Frequency of maintenance. Possible options are `Daily`, `Weekly`, `AbsoluteMonthly` and `RelativeMonthly`.
 
 * `interval` - (Required) The interval for maintenance runs. Depending on the frequency this interval is week or month based.
 

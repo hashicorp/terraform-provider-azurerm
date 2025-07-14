@@ -35,6 +35,50 @@ func TestAccContainerAppEnvironment_basic(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppEnvironment_withUserIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
+	r := ContainerAppEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withUserIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppEnvironment_updateIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
+	r := ContainerAppEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withUserIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withSystemIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccContainerAppEnvironment_consumptionWorkloadProfile(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
 	r := ContainerAppEnvironmentResource{}
@@ -274,6 +318,53 @@ resource "azurerm_container_app_environment" "test" {
   name                = "acctest-CAEnv%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppEnvironmentResource) withUserIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_container_app_environment" "test" {
+  name                = "acctest-CAEnv%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppEnvironmentResource) withSystemIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_environment" "test" {
+  name                = "acctest-CAEnv%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }

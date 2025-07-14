@@ -756,6 +756,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
+								"Daily",
 								"Weekly",
 								"RelativeMonthly",
 								"AbsoluteMonthly",

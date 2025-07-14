@@ -276,6 +276,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
 
+### `azurerm_netapp_volume`
+
+* The deprecated `export_policy_rule.protocols_enabled` property has been removed in favour of the `export_policy_rule.protocol` property.
+
 ### `azurerm_network_watcher_flow_log`
 
 * The deprecated `network_security_group_id` property has been removed in favour of the `target_resource_id` property.
