@@ -105,6 +105,8 @@ The following arguments are supported:
 
 * `job_credential_id` - (Optional) The ID of the Elastic Job Credential to use when executing this Elastic Job Step. Omit this argument to run the step under the Job Agent's managed identity (user-assigned).
 
+!> **Note**: Once set, `job_credential_id` cannot be removed. Removing the credential will force a new resource to be created.
+
 * `maximum_retry_interval_seconds` - (Optional) The maximum retry interval in seconds. Defaults to `120`.
 
 ~> **Note:** `maximum_retry_interval_seconds` must be greater than `initial_retry_interval_seconds`.

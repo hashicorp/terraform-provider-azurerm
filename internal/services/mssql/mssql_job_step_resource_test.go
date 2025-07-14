@@ -10,6 +10,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobsteps"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -67,13 +69,6 @@ func TestAccMsSqlJobStep_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -92,11 +87,13 @@ func TestAccMsSqlJobStep_complete(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlJobStep_updateFromCredentialToManagedIdentity(t *testing.T) {
+func TestAccMsSqlJobStep_removeCredentialExpectReplace(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_job_step", "test")
 	r := MsSqlJobStepTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	// Ignoring recreation of the resource as we're purposely testing that the `CustomizeDiff`
+	// forces a new resource to be created when removing the `job_credential_id` property.
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -104,8 +101,14 @@ func TestAccMsSqlJobStep_updateFromCredentialToManagedIdentity(t *testing.T) {
 				check.That(data.ResourceName).Key("job_credential_id").IsSet(),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.basic(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("job_credential_id").HasValue(""),

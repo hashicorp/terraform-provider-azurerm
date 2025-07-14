@@ -163,6 +163,14 @@ func (r MsSqlJobStepResource) CustomizeDiff() sdk.ResourceFunc {
 				return fmt.Errorf("`maximum_retry_interval_seconds` must be greater than `initial_retry_interval_seconds`")
 			}
 
+			// Once set, `job_credential_id` cannot be removed
+			// https://github.com/Azure/azure-rest-api-specs/issues/35881
+			if o, n := metadata.ResourceDiff.GetChange("job_credential_id"); o.(string) != "" && n.(string) == "" {
+				if err := metadata.ResourceDiff.ForceNew("job_credential_id"); err != nil {
+					return err
+				}
+			}
+
 			return nil
 		},
 	}
