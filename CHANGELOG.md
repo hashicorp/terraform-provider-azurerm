@@ -1,6 +1,7 @@
 ## 4.37.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_mssql_job_step` - the `job_credential_id` and `output_target.job_credential_id` properties are now optional [GH-30031]
 * `azurerm_container_app_environment` - add support for the `identity` block [GH-29409]
 * `azurerm_eventhub` - add  support for the `retention_description` block [GH-29427]
 * `azurerm_kubernetes_cluster` - add support for the `Daily` value in the `maintenance_window_auto_upgrade.frequency` property [GH-30133]
