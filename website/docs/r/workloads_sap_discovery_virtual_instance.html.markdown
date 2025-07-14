@@ -87,10 +87,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the SAP Discovery Virtual Instance.
+* `create` - (Defaults to 1 hour) Used when creating the SAP Discovery Virtual Instance.
 * `read` - (Defaults to 5 minutes) Used when retrieving the SAP Discovery Virtual Instance.
-* `update` - (Defaults to 60 minutes) Used when updating the SAP Discovery Virtual Instance.
-* `delete` - (Defaults to 60 minutes) Used when deleting the SAP Discovery Virtual Instance.
+* `update` - (Defaults to 1 hour) Used when updating the SAP Discovery Virtual Instance.
+* `delete` - (Defaults to 1 hour) Used when deleting the SAP Discovery Virtual Instance.
 
 ## Import
 
@@ -99,3 +99,9 @@ SAP Discovery Virtual Instances can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_workloads_sap_discovery_virtual_instance.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Workloads/sapVirtualInstances/vis1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Workloads`: 2024-09-01

@@ -35,7 +35,7 @@ The following arguments are supported:
 
 * `display_name` - (Optional) The display name of this Sentinel Alert Rule Template. Either `display_name` or `name` have to be specified.
 
-~> **NOTE** As `display_name` is not unique, errors may occur when there are multiple Sentinel Alert Rule Template with same `display_name`.
+~> **Note:** As `display_name` is not unique, errors may occur when there are multiple Sentinel Alert Rule Template with same `display_name`.
 
 ## Attributes Reference
 

@@ -90,7 +90,7 @@ The following arguments are supported:
 
 * `service_resource_id` - (Required) Specifies the Service Resource ID to connect. Changing this forces a new resource to be created.
 
-~> **Note** Supported service resources: **Key Vault**, **Storage Account**, **Machine Learning Workspace**, **Redis**.
+~> **Note:** Supported service resources: **Key Vault**, **Storage Account**, **Machine Learning Workspace**, **Redis**.
 
 * `sub_resource_target` - (Required) Specifies the Sub Resource of the service resource to connect to. Possible values are `vault`,`amlworkspace`,`blob`,`table`,`queue`,`file`,`web`,`dfs`, `redisCache`. Changing this forces a new resource to be created.
   
@@ -125,3 +125,9 @@ Machine Learning Workspace Network Outbound Rule Private Endpoint can be importe
 ```shell
 terraform import azurerm_machine_learning_workspace_network_outbound_rule_private_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.MachineLearningServices/workspaces/workspace1/outboundRules/rule1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.MachineLearningServices`: 2024-04-01

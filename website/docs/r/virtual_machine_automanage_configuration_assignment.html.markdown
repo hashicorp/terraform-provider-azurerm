@@ -116,3 +116,9 @@ Virtual Machine Automanage Configuration Profile Assignment can be imported usin
 ```shell
 terraform import azurerm_virtual_machine_automanage_configuration_assignment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/virtualMachines/vm1/providers/Microsoft.AutoManage/configurationProfileAssignments/default
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Compute`: 2022-05-04

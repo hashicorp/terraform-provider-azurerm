@@ -39,6 +39,8 @@ output "azurerm_vpn_gateway_id" {
 
 * `bgp_settings` - A `bgp_settings` block as defined below.
 
+* `ip_configuration` - An `ip_configuration` block as defined below.
+
 * `scale_unit` -  The Scale Unit of this VPN Gateway.
 
 * `tags` - A mapping of tags assigned to the VPN Gateway.
@@ -83,8 +85,24 @@ A `instance_bgp_peering_address` block exports the following:
 
 * `tunnel_ips` - The list of tunnel public IP addresses which belong to the pre-defined VPN Gateway IP configuration.
 
+---
+
+An `ip_configuration` block exports the following:
+
+* `id` - The identifier of the IP configuration for the VPN Gateway.
+
+* `private_ip_address` - The private IP address of this IP configuration.
+
+* `public_ip_address` - The public IP address of this IP configuration.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the VPN Gateway.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Network`: 2024-05-01

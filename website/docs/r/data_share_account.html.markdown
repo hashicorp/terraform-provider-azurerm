@@ -59,7 +59,7 @@ An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Data Share Account. The only possible value is `SystemAssigned`. Changing this forces a new resource to be created.
 
-~> **NOTE:** The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and the Data Share Account has been created. More details are available below.
+~> **Note:** The assigned `principal_id` and `tenant_id` can be retrieved after the identity `type` has been set to `SystemAssigned` and the Data Share Account has been created. More details are available below.
 
 ## Attributes Reference
 
@@ -75,7 +75,7 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Data Share Account.
 
--> You can access the Principal ID via `${azurerm_data_share_account.example.identity[0].principal_id}` and the Tenant ID via `${azurerm_data_share_account.example.identity[0].tenant_id}`
+-> **Note:** You can access the Principal ID via `${azurerm_data_share_account.example.identity[0].principal_id}` and the Tenant ID via `${azurerm_data_share_account.example.identity[0].tenant_id}`
 
 ## Timeouts
 
@@ -93,3 +93,9 @@ Data Share Accounts can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_data_share_account.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DataShare/accounts/account1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DataShare`: 2019-11-01

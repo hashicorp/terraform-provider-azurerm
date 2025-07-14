@@ -80,7 +80,7 @@ A `plan` block supports the following:
 
 * `version` - (Optional) Specifies the version of the plan from the marketplace. Changing this forces a new Kubernetes Cluster Extension to be created.
 
-~> **NOTE:** When `plan` is specified, legal terms must be accepted for this item on this subscription before creating the Kubernetes Cluster Extension. The `azurerm_marketplace_agreement` resource or AZ CLI tool can be used to do this.
+~> **Note:** When `plan` is specified, legal terms must be accepted for this item on this subscription before creating the Kubernetes Cluster Extension. The `azurerm_marketplace_agreement` resource or AZ CLI tool can be used to do this.
 
 ## Attributes Reference
 
@@ -118,3 +118,9 @@ Kubernetes Cluster Extension can be imported using the `resource id` for differe
 ```shell
 terraform import azurerm_kubernetes_cluster_extension.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.ContainerService/managedClusters/cluster1/providers/Microsoft.KubernetesConfiguration/extensions/extension1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.KubernetesConfiguration`: 2024-11-01

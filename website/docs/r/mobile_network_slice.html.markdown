@@ -80,10 +80,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 180 minutes) Used when creating the Mobile Network Slice.
+* `create` - (Defaults to 3 hours) Used when creating the Mobile Network Slice.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Mobile Network Slice.
-* `update` - (Defaults to 180 minutes) Used when updating the Mobile Network Slice.
-* `delete` - (Defaults to 180 minutes) Used when deleting the Mobile Network Slice.
+* `update` - (Defaults to 3 hours) Used when updating the Mobile Network Slice.
+* `delete` - (Defaults to 3 hours) Used when deleting the Mobile Network Slice.
 
 ## Import
 
@@ -92,3 +92,9 @@ Mobile Network Slice can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_mobile_network_slice.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.MobileNetwork/mobileNetworks/mobileNetwork1/slices/slice1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.MobileNetwork`: 2022-11-01

@@ -61,8 +61,6 @@ A `retention_rule` block supports the following:
 
 * `name` - (Required) The name which should be used for this retention rule. Changing this forces a new Backup Policy Blob Storage to be created.
 
-* `duration` - (Required) Duration after which the backup is deleted. It should follow `ISO 8601` duration format. Changing this forces a new Backup Policy Blob Storage to be created.
-
 * `criteria` - (Required) A `criteria` block as defined below. Changing this forces a new Backup Policy Blob Storage to be created.
 
 * `life_cycle` - (Required) A `life_cycle` block as defined below. Changing this forces a new Backup Policy Blob Storage to be created.
@@ -112,3 +110,9 @@ Backup Policy Blob Storages can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_data_protection_backup_policy_blob_storage.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DataProtection/backupVaults/vault1/backupPolicies/backupPolicy1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DataProtection`: 2024-04-01

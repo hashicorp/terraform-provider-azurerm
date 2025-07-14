@@ -143,3 +143,9 @@ Application Insights Standard WebTests can be imported using the `resource id`, 
 ```shell
 terraform import azurerm_application_insights_standard_web_test.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Insights/webTests/appinsightswebtest
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Insights`: 2022-06-15

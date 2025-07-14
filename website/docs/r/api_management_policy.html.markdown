@@ -10,7 +10,7 @@ description: |-
 
 Manages a API Management service Policy.
 
-~> **NOTE:** This resource will, upon creation, **overwrite any existing policy in the API Management service**, as there is no feasible way to test whether the policy has been modified from the default. Similarly, when this resource is destroyed, the API Management service will revert to its default policy.
+~> **Note:** This resource will, upon creation, **overwrite any existing policy in the API Management service**, as there is no feasible way to test whether the policy has been modified from the default. Similarly, when this resource is destroyed, the API Management service will revert to its default policy.
 
 ## Example Usage
 
@@ -78,3 +78,9 @@ API Management service Policys can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_api_management_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ApiManagement/service/service1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ApiManagement`: 2024-05-01, 2022-08-01

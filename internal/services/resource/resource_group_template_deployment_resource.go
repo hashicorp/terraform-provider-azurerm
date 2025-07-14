@@ -137,7 +137,7 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 }
 
 func resourceGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Resource.DeploymentsClient
+	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -206,7 +206,7 @@ func resourceGroupTemplateDeploymentResourceCreate(d *pluginsdk.ResourceData, me
 }
 
 func resourceGroupTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Resource.DeploymentsClient
+	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -299,7 +299,7 @@ func resourceGroupTemplateDeploymentResourceUpdate(d *pluginsdk.ResourceData, me
 }
 
 func resourceGroupTemplateDeploymentResourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Resource.DeploymentsClient
+	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -363,7 +363,7 @@ func resourceGroupTemplateDeploymentResourceRead(d *pluginsdk.ResourceData, meta
 }
 
 func resourceGroupTemplateDeploymentResourceDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Resource.DeploymentsClient
+	client := meta.(*clients.Client).Resource.LegacyDeploymentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

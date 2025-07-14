@@ -104,6 +104,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatedns"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/privatednsresolver"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/purview"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/qumulo"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redhatopenshift"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis"
@@ -206,6 +207,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		policy.Registration{},
 		postgres.Registration{},
 		privatednsresolver.Registration{},
+		qumulo.Registration{},
 		recoveryservices.Registration{},
 		redhatopenshift.Registration{},
 		redis.Registration{},

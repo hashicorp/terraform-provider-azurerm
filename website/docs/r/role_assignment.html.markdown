@@ -241,3 +241,9 @@ terraform import azurerm_role_assignment.example /subscriptions/00000000-0000-00
 ```text
 /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleAssignments/00000000-0000-0000-0000-000000000000|00000000-0000-0000-0000-000000000000
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Authorization`: 2022-05-01-preview, 2022-04-01

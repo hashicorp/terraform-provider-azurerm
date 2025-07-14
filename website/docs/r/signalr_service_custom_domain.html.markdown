@@ -109,7 +109,7 @@ The following arguments are supported:
 
 * `domain_name` - (Required) Specifies the custom domain name of the SignalR Custom Domain. Changing this forces a new resource to be created.
 
--> **NOTE:** Please ensure the custom domain name is included in the Subject Alternative Names of the selected SignalR Custom Certificate.
+-> **Note:** Please ensure the custom domain name is included in the Subject Alternative Names of the selected SignalR Custom Certificate.
 
 * `signalr_service_id` - (Required) Specifies the SignalR ID of the SignalR Custom Domain. Changing this forces a new resource to be created.
 
@@ -136,3 +136,9 @@ Custom Domain for a SignalR service can be imported using the `resource id`, e.g
 ```shell
 terraform import azurerm_signalr_service_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/signalR/signalr1/customDomains/customDomain1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.SignalRService`: 2024-03-01

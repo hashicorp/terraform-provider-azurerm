@@ -196,3 +196,13 @@ type ResourceWithValidateConfig interface {
 	// ValidateConfig performs the validation.
 	ValidateConfig(context.Context, ValidateConfigRequest, *ValidateConfigResponse)
 }
+
+// ResourceWithIdentity is an interface type that extends Resource to implement managed resource identity.
+//
+// TODO:ResourceIdentity: Add more documentation here to describe what identity is used for.
+type ResourceWithIdentity interface {
+	Resource
+
+	// IdentitySchema should return the identity schema for this resource.
+	IdentitySchema(context.Context, IdentitySchemaRequest, *IdentitySchemaResponse)
+}

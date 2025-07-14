@@ -1,0 +1,46 @@
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
+openapi: 3.0.0
+info:
+  title: api1
+  description: api
+  version: 1.0.0
+servers:
+  - url: "https://terraform.com/test/v1/api1"
+    description: test
+paths:
+  /default:
+    post:
+      operationId: default
+      summary: Default
+      description: Default operation
+      parameters:
+        - description: status
+          in: query
+          name: status
+          schema:
+            type: string
+            default: PRODUCTIVEInvalid
+            enum:
+              - PRODUCTIVE
+              - ARCHIVED
+      responses:
+        "200":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/response"
+components:
+  schemas:
+    response:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic

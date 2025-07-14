@@ -10,7 +10,7 @@ description: |-
 
 Links an Automation Runbook and Schedule.
 
-~> **NOTE** AzureRM provides this stand-alone [azurerm_automation_job_schedule](automation_job_schedule.html.markdown) and an inlined `job_schedule` property in [azurerm_runbook](automation_runbook.html.markdown) to manage the job schedules. You can only make use of one of these methods to manage a job schedule.
+~> **Note:** AzureRM provides this stand-alone [azurerm_automation_job_schedule](automation_job_schedule.html.markdown) and an inlined `job_schedule` property in [azurerm_runbook](automation_runbook.html.markdown) to manage the job schedules. You can only make use of one of these methods to manage a job schedule.
 
 ## Example Usage
 
@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `parameters` - (Optional) A map of key/value pairs corresponding to the arguments that can be passed to the Runbook. Changing this forces a new resource to be created.
 
--> **NOTE:** The parameter keys/names must strictly be in lowercase, even if this is not the case in the runbook. This is due to a limitation in Azure Automation where the parameter names are normalized. The values specified don't have this limitation.
+-> **Note:** The parameter keys/names must strictly be in lowercase, even if this is not the case in the runbook. This is due to a limitation in Azure Automation where the parameter names are normalized. The values specified don't have this limitation.
 
 * `run_on` - (Optional) Name of a Hybrid Worker Group the Runbook will be executed on. Changing this forces a new resource to be created.
 
@@ -73,3 +73,9 @@ Automation Job Schedules can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_automation_job_schedule.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/schedules/schedule1|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/runbooks/runbook1"
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Automation`: 2023-11-01

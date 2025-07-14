@@ -154,7 +154,7 @@ The following arguments are supported:
 
 * `regenerate_key_automatically` - (Optional) Should Storage Account access key be regenerated periodically?
 
-~> **NOTE:** Azure Key Vault application needs to have access to Storage Account for auto regeneration to work. Example can be found above.
+~> **Note:** Azure Key Vault application needs to have access to Storage Account for auto regeneration to work. Example can be found above.
 
 * `regeneration_period` - (Optional) How often Storage Account access key should be regenerated. Value needs to be in [ISO 8601 duration format](https://en.wikipedia.org/wiki/ISO_8601#Durations).
 

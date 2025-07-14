@@ -102,3 +102,9 @@ Static Web Apps can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_static_web_app.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Web/staticSites/my-static-site1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Web`: 2023-01-01

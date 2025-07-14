@@ -16,7 +16,8 @@ Gets a list of the shapes that can be used to launch a new DB system. The shape 
 
 ```hcl
 data "azurerm_oracle_db_system_shapes" "example" {
-  location = "West Europe"
+  location = "eastus"
+  zone     = "2"
 }
 
 output "example" {
@@ -40,6 +41,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `db_system_shapes` block exports the following:
 
+* `are_server_types_supported` - Indicates if the shape supports database and storage server types.
+
 * `available_core_count` - The maximum number of CPU cores that can be enabled on the DB system for this shape.
 
 * `available_core_count_per_node` - The maximum number of CPU cores per database node that can be enabled for this shape. Only applicable to the flex Exadata shape, ExaCC Elastic shapes and VM Flex shapes.
@@ -56,7 +59,11 @@ A `db_system_shapes` block exports the following:
 
 * `available_memory_per_node_in_gbs` - The maximum memory available per database node for this shape. Only applicable to ExaCC Elastic shapes.
 
+* `compute_model` - The compute model of the Exadata Infrastructure.
+
 * `core_count_increment` - The discrete number by which the CPU core count for this shape can be increased or decreased.
+
+* `display_name` - The display name of the shape used for the DB system.
 
 * `maximum_storage_count` - The maximum number of Exadata storage servers available for the Exadata infrastructure.
 
@@ -85,3 +92,9 @@ A `db_system_shapes` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the System Shapes.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Oracle.Database`: 2025-03-01

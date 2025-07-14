@@ -596,6 +596,49 @@ func (ResourceGroupExampleResource) IDValidationFunc() pluginsdk.SchemaValidateF
 
 At this point in time this Resource is now code-complete.
 
+Things worth noting here:
+
+- In addition to the `sdk.Resource` interface, we also have other interfaces, such as the `sdk.ResourceWithUpdate` interface, which includes an `update` method. Since these interfaces inherit from `sdk.Resource`, you do not need to redefine the `sdk.Resource` interface when defining them.
+
+For example, in this case:
+
+:white_check_mark: **DO**
+
+```
+var _ sdk.ResourceWithUpdate = ResourceGroupExampleResource{}
+```
+
+:no_entry: **DO NOT**
+
+```
+var (
+	_ sdk.Resource           = ResourceGroupExampleResource{}
+	_ sdk.ResourceWithUpdate = ResourceGroupExampleResource{}
+)
+```
+
+- Sometimes, for complex data types like `pluginsdk.TypeList`, we need to define `expand` and `flatten` methods. When defining such methods, please make sure to define them as global methods.
+
+For example, in this case:
+
+:white_check_mark: **DO**
+
+```
+func expandComplexResource(input []ComplexResource) *resource.ComplexResource {
+	...
+}
+```
+
+:no_entry: **DO NOT**
+
+```
+func (ResourceGroupExampleResource) expandComplexResource(input []ComplexResource) *resource.ComplexResource {
+	...
+}
+```
+
+- Historically, we used `pluginsdk.StateChangeConf` to address certain issues related to LRO APIs. This method has now been deprecated and replaced by custom pollers. Please refer to this [example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/maps/custompollers/maps_account_poller.go).
+
 ### Step 4: Register the new Resource
 
 Resources are registered within the `registration.go` within each Service Package - and should look something like this:

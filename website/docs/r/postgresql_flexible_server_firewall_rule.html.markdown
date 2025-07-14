@@ -77,3 +77,9 @@ PostgreSQL Flexible Server Firewall Rules can be imported using the `resource id
 ```shell
 terraform import azurerm_postgresql_flexible_server_firewall_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DBforPostgreSQL/flexibleServers/flexibleServer1/firewallRules/firewallRule1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DBforPostgreSQL`: 2024-08-01

@@ -34,10 +34,10 @@ resource "azurerm_log_analytics_workspace" "example" {
 }
 
 resource "azurerm_log_analytics_linked_storage_account" "example" {
-  data_source_type      = "CustomLogs"
-  resource_group_name   = azurerm_resource_group.example.name
-  workspace_resource_id = azurerm_log_analytics_workspace.example.id
-  storage_account_ids   = [azurerm_storage_account.example.id]
+  data_source_type    = "CustomLogs"
+  resource_group_name = azurerm_resource_group.example.name
+  workspace_id        = azurerm_log_analytics_workspace.example.id
+  storage_account_ids = [azurerm_storage_account.example.id]
 }
 ```
 
@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Log Analytics Linked Storage Account should exist. Changing this forces a new Log Analytics Linked Storage Account to be created.
 
-* `workspace_resource_id` - (Required) The resource ID of the Log Analytics Workspace. Changing this forces a new Log Analytics Linked Storage Account to be created.
+* `workspace_id` - (Required) The resource ID of the Log Analytics Workspace. Changing this forces a new Log Analytics Linked Storage Account to be created.
 
 * `storage_account_ids` - (Required) The storage account resource ids to be linked.
 
@@ -75,3 +75,9 @@ Log Analytics Linked Storage Accounts can be imported using the `resource id`, e
 ```shell
 terraform import azurerm_log_analytics_linked_storage_account.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/linkedStorageAccounts/{dataSourceType}
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.OperationalInsights`: 2020-08-01

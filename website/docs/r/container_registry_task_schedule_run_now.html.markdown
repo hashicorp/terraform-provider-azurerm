@@ -64,3 +64,9 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 * `create` - (Defaults to 30 minutes) Used when creating the Container Registry Task Schedule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container Registry Task Schedule.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Container Registry Task Schedule.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ContainerRegistry`: 2019-06-01-preview
