@@ -74,6 +74,7 @@ func TestAccManagedLustreFileSystemExportJob_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -135,12 +136,13 @@ func (r ManagedLustreFileSystemAutoExportJobResource) requiresImport(data accept
 %s
 
 resource "azurerm_managed_lustre_file_system_auto_export_job" "import" {
-	name                 = azurerm_managed_lustre_file_system_auto_export_job.test.name
-	resource_group_name  = azurerm_managed_lustre_file_system_auto_export_job.test.resource_group_name
-	aml_file_system_name = azurerm_managed_lustre_file_system_auto_export_job.test.aml_file_system_name
-	location             = azurerm_managed_lustre_file_system_auto_export_job.test.location
-	
-	auto_export_prefixes = azurerm_managed_lustre_file_system_auto_export_job.test.auto_export_prefixes
-	admin_status         = azurerm_managed_lustre_file_system_auto_export_job.test.admin_status
+  name                 = azurerm_managed_lustre_file_system_auto_export_job.test.name
+  resource_group_name  = azurerm_managed_lustre_file_system_auto_export_job.test.resource_group_name
+  aml_file_system_name = azurerm_managed_lustre_file_system_auto_export_job.test.aml_file_system_name
+  location             = azurerm_managed_lustre_file_system_auto_export_job.test.location
+
+  auto_export_prefixes = azurerm_managed_lustre_file_system_auto_export_job.test.auto_export_prefixes
+  admin_status         = azurerm_managed_lustre_file_system_auto_export_job.test.admin_status
+}
 `, r.basic(data))
 }
