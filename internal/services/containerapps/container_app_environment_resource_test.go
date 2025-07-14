@@ -50,13 +50,27 @@ func TestAccContainerAppEnvironment_withUserIdentity(t *testing.T) {
 	})
 }
 
-func TestAccContainerAppEnvionment_withSystemIdentity(t *testing.T) {
+func TestAccContainerAppEnvironment_updateIdentity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
 	r := ContainerAppEnvironmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.withUserIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.withSystemIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

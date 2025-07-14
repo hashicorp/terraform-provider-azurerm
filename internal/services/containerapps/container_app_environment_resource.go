@@ -308,11 +308,11 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				managedEnvironment.Properties.VnetConfiguration.Internal = pointer.To(containerAppEnvironment.InternalLoadBalancerEnabled)
 			}
 
-			ident, err := identity.ExpandSystemAndUserAssignedMapFromModel(containerAppEnvironment.Identity)
+			ident, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(containerAppEnvironment.Identity)
 			if err != nil {
 				return fmt.Errorf("expanding identity: %+v", err)
 			}
-			managedEnvironment.Identity = pointer.To(identity.LegacySystemAndUserAssignedMap(*ident))
+			managedEnvironment.Identity = ident
 
 			managedEnvironment.Properties.WorkloadProfiles = helpers.ExpandWorkloadProfiles(containerAppEnvironment.WorkloadProfiles)
 
@@ -354,11 +354,11 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = tags.Flatten(model.Tags)
 				if model.Identity != nil {
-					ident, err := identity.FlattenSystemAndUserAssignedMapToModel(pointer.To(identity.SystemAndUserAssignedMap(*model.Identity)))
+					ident, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(model.Identity)
 					if err != nil {
-						return err
+						return fmt.Errorf("flattening identity: %+v", err)
 					}
-					state.Identity = pointer.From(ident)
+					state.Identity = ident
 				}
 
 				if props := model.Properties; props != nil {
@@ -454,11 +454,11 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
-				ident, err := identity.ExpandSystemAndUserAssignedMapFromModel(state.Identity)
+				ident, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(state.Identity)
 				if err != nil {
-					return err
+					return fmt.Errorf("expanding identity: %+v", err)
 				}
-				existing.Model.Identity = pointer.To(identity.LegacySystemAndUserAssignedMap(*ident))
+				existing.Model.Identity = ident
 			}
 
 			if metadata.ResourceData.HasChange("workload_profile") {
