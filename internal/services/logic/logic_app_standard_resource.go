@@ -170,7 +170,7 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 			},
 
 			"storage_account": {
-				Type:     pluginsdk.TypeList,
+				Type:     pluginsdk.TypeSet,
 				Optional: true,
 				MaxItems: 5,
 				Elem: &pluginsdk.Resource{
@@ -827,9 +827,12 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 	if err != nil {
 		return fmt.Errorf("listing Azure Storage Accounts for %s: %+v", *id, err)
 	}
+
 	if model := storageAccountsResp.Model; model != nil {
 		storageAccounts := flattenLogicAppStandardStorageConfig(storageAccountsResp.Model)
-		d.Set("storage_account", storageAccounts)
+		if err = d.Set("storage_account", storageAccounts); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -1636,7 +1639,7 @@ func expandLogicAppStandardCorsSettings(input interface{}) webapps.CorsSettings 
 }
 
 func expandLogicAppStandardStorageConfig(d *pluginsdk.ResourceData) *webapps.AzureStoragePropertyDictionaryResource {
-	storageConfigs := d.Get("storage_account").([]interface{})
+	storageConfigs := d.Get("storage_account").(*pluginsdk.Set).List()
 	storageAccounts := make(map[string]webapps.AzureStorageInfoValue)
 	result := &webapps.AzureStoragePropertyDictionaryResource{}
 
@@ -1650,8 +1653,8 @@ func expandLogicAppStandardStorageConfig(d *pluginsdk.ResourceData) *webapps.Azu
 			MountPath:   pointer.To(config["mount_path"].(string)),
 		}
 	}
-
 	result.Properties = &storageAccounts
+
 	return result
 }
 
