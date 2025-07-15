@@ -47,7 +47,6 @@ provider "azurerm" {
 
 data "azurerm_oracle_db_system_shapes" "test" {
   location = "eastus"
-  zone     = "2"
 }
 `
 }

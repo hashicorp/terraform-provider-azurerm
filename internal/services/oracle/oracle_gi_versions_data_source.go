@@ -5,6 +5,7 @@ package oracle
 import (
 	"context"
 	"fmt"
+	"google.golang.org/appengine/log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -29,14 +30,10 @@ func (d GiVersionsDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
 		"shape": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(giversions.SystemShapesExaDbXS),
-				string(giversions.SystemShapesExadataPointXNineM),
-				string(giversions.SystemShapesExadataPointXOneOneM),
-			}, false),
-			Description: "Filter the versions by system shape. Possible values are 'ExaDbXS', 'Exadata.X9M', and 'Exadata.X11M'.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringInSlice(giversions.PossibleValuesForSystemShapes(), false),
+			Description:  "Filter the versions by system shape. Possible values are 'ExaDbXS', 'Exadata.X9M', and 'Exadata.X11M'.",
 		},
 		"zone": {
 			Type:        pluginsdk.TypeString,
@@ -91,6 +88,10 @@ func (d GiVersionsDataSource) Read() sdk.ResourceFunc {
 			}
 			if state.Zone != "" {
 				options.Zone = &state.Zone
+			}
+
+			if state.Shape == "" || state.Zone == "" {
+				fmt.Printf("[WARN] GI Versions data source: Shape or Zone parameter is empty. This may result in unfiltered results from the API. Consider specifying both Shape and Zone for more precise version filtering.")
 			}
 
 			resp, err := client.ListByLocation(ctx, id, options)

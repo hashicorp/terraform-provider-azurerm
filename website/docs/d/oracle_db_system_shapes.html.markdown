@@ -31,6 +31,8 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region to query for the system shapes in.
 
+* `zone` - (Optional) The Cloud Exadata Infrastructure Azure zone.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
