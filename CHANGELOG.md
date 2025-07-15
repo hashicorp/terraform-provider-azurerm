@@ -1,6 +1,7 @@
 ## 4.37.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_vpn_gateway_connection` - add support for the `dpd_timeout_seconds` property [GH-29434]
 * `azurerm_orchestrated_virtual_machine_scale_set` - add support for `auxiliary_mode` and `auxiliary_sku`  [GH-30102]
 * `azurerm_mssql_job_step` - the `job_credential_id` and `output_target.job_credential_id` properties are now optional [GH-30031]
 * `azurerm_container_app_environment` - add support for the `identity` block [GH-29409]
