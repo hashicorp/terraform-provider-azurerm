@@ -722,6 +722,8 @@ resource "azurerm_route_map" "test" {
       route_prefix    = ["10.0.0.0/8"]
     }
   }
+
+  depends_on = [azurerm_vpn_site.test]
 }
 
 resource "azurerm_route_map" "test2" {
@@ -745,6 +747,8 @@ resource "azurerm_route_map" "test2" {
       route_prefix    = ["10.0.0.0/8"]
     }
   }
+
+  depends_on = [azurerm_route_map.test]
 }
 
 resource "azurerm_vpn_gateway_connection" "test" {
@@ -843,6 +847,8 @@ resource "azurerm_vpn_site" "test" {
     name       = "link2"
     ip_address = "10.0.1.2"
   }
+
+  depends_on = [azurerm_vpn_gateway.test]
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

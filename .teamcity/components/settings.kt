@@ -55,7 +55,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "blueprints" to testConfiguration(parallelism = 1),
 
         // CDN is only available in certain locations
-        "cdn" to testConfiguration(locationOverride = LocationConfiguration("centralus", "eastus2", "westeurope", true)),
+        "cdn" to testConfiguration(locationOverride = LocationConfiguration("centralus", "eastus2", "westeurope", true), disableTriggers = true),
 
         // Chaosstudio is only available in certain locations
         "chaosstudio" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus", "westus", false)),
