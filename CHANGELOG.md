@@ -12,6 +12,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+* `azurerm_mongo_cluster` - the `create_mode` property no longer causes ForceNews on import [GH-29375]
  * `azurerm_container_app_environment` - fix import for `workload_profile` [GH-30139]
 * `azurerm_virtual_network` - suppress a perpetual diff on `address_space` when using `ip_address_pool` [GH-30073]
 * `azurerm_vpn_gateway_connection` - the `shared_key` is now Optional + Computed [GH-30152]
