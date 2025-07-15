@@ -40,7 +40,7 @@ func TestAccComputeFleet_virtualMachineProfileExtensions_complete(t *testing.T) 
 		},
 		data.ImportStep(
 			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password",
-			"virtual_machine_profile.0.extension.2.protected_settings_json"),
+			"virtual_machine_profile.0.extension.0.protected_settings_json"),
 	})
 }
 
@@ -139,7 +139,7 @@ resource "azurerm_compute_fleet" "test" {
   name                        = "acctest-fleet-%[2]d"
   resource_group_name         = azurerm_resource_group.test.name
   location                    = "%[3]s"
-  platform_fault_domain_count = 2
+  platform_fault_domain_count = 1
 
   spot_priority_profile {
     min_capacity     = 0
@@ -200,6 +200,15 @@ resource "azurerm_compute_fleet" "test" {
       auto_upgrade_minor_version_enabled = true
       automatic_upgrade_enabled          = true
       failure_suppression_enabled        = true
+
+      settings_json = jsonencode({
+        "commandToExecute" = "echo $HOSTNAME",
+        "fileUris"         = []
+      })
+      protected_settings_json = jsonencode({
+        "commandToExecute" = "echo 'Hello World!'",
+        "fileUris"         = []
+      })
     }
 
     extension {
@@ -218,14 +227,6 @@ resource "azurerm_compute_fleet" "test" {
       auto_upgrade_minor_version_enabled        = true
       extensions_to_provision_after_vm_creation = ["CustomScript"]
       force_extension_execution_on_change       = "test"
-
-      settings_json = jsonencode({
-        "commandToExecute" = "echo $HOSTNAME"
-      })
-
-      protected_settings_json = jsonencode({
-        "managedIdentity" = {}
-      })
     }
     extensions_time_budget_duration = "PT30M"
   }

@@ -38,8 +38,7 @@ func TestAccComputeFleet_virtualMachineProfileNetwork_completeForBaseVirtualMach
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
+		data.ImportStep("virtual_machine_profile.0.os_profile.0.linux_configuration.0.admin_password"),
 	})
 }
 
@@ -115,8 +114,6 @@ resource "azurerm_compute_fleet" "test" {
   location                    = "%[4]s"
   platform_fault_domain_count = 1
 
-  zones = ["1", "2"]
-
   spot_priority_profile {
     min_capacity     = 0
     maintain_enabled = false
@@ -165,10 +162,6 @@ resource "azurerm_compute_fleet" "test" {
           idle_timeout_in_minutes = 4
           sku_name                = "Standard_Regional"
           version                 = "IPv4"
-          ip_tag {
-            type = "RoutingPreference"
-            tag  = "Internet"
-          }
         }
         version = "IPv4"
       }

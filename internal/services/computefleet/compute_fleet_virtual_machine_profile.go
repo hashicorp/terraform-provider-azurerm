@@ -526,28 +526,6 @@ func publicIPAddressSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.IntBetween(4, 32),
 				},
 
-				"ip_tag": {
-					Type:     pluginsdk.TypeList,
-					Optional: true,
-					ForceNew: true,
-					Elem: &pluginsdk.Resource{
-						Schema: map[string]*pluginsdk.Schema{
-							"tag": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ForceNew:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-							"type": {
-								Type:         pluginsdk.TypeString,
-								Required:     true,
-								ForceNew:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
-							},
-						},
-					},
-				},
-
 				"public_ip_prefix_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
@@ -960,6 +938,7 @@ func storageProfileOsDiskSchema() *pluginsdk.Schema {
 		Optional: true,
 		ForceNew: true,
 		MaxItems: 1,
+		Computed: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"caching": {
@@ -1395,7 +1374,6 @@ func expandPublicIPAddressModel(inputList []PublicIPAddressModel) *fleets.Virtua
 	output := fleets.VirtualMachineScaleSetPublicIPAddressConfiguration{
 		Name: input.Name,
 		Properties: &fleets.VirtualMachineScaleSetPublicIPAddressConfigurationProperties{
-			IPTags:         expandIPTagModel(input.IPTag),
 			PublicIPPrefix: expandSubResource(input.PublicIPPrefix),
 		},
 	}
@@ -1432,23 +1410,6 @@ func expandPublicIPAddressModel(inputList []PublicIPAddressModel) *fleets.Virtua
 	}
 
 	return &output
-}
-
-func expandIPTagModel(inputList []IPTagModel) *[]fleets.VirtualMachineScaleSetIPTag {
-	outputList := make([]fleets.VirtualMachineScaleSetIPTag, 0)
-	for _, input := range inputList {
-		output := fleets.VirtualMachineScaleSetIPTag{}
-
-		if input.Type != "" {
-			output.IPTagType = pointer.To(input.Type)
-		}
-
-		if input.Tag != "" {
-			output.Tag = pointer.To(input.Tag)
-		}
-		outputList = append(outputList, output)
-	}
-	return &outputList
 }
 
 func expandOSProfileModel(inputList []VirtualMachineProfileModel) *fleets.VirtualMachineScaleSetOSProfile {
@@ -2544,10 +2505,6 @@ func flattenPublicIPAddressModel(input *fleets.VirtualMachineScaleSetPublicIPAdd
 		}
 		output.IdleTimeoutInMinutes = pointer.From(props.IdleTimeoutInMinutes)
 		output.Version = string(pointer.From(props.PublicIPAddressVersion))
-
-		if v := props.IPTags; v != nil {
-			output.IPTag = flattenIPTagModel(v)
-		}
 	}
 	return append(outputList, output)
 }
@@ -2559,22 +2516,6 @@ func flattenSubResourceId(inputList []fleets.SubResource) []string {
 	}
 	for _, input := range inputList {
 		outputList = append(outputList, pointer.From(input.Id))
-	}
-	return outputList
-}
-
-func flattenIPTagModel(inputList *[]fleets.VirtualMachineScaleSetIPTag) []IPTagModel {
-	outputList := make([]IPTagModel, 0)
-	if inputList == nil {
-		return outputList
-	}
-
-	for _, input := range *inputList {
-		output := IPTagModel{
-			Type: pointer.From(input.IPTagType),
-			Tag:  pointer.From(input.Tag),
-		}
-		outputList = append(outputList, output)
 	}
 	return outputList
 }

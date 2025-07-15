@@ -238,11 +238,12 @@ resource "azurerm_compute_fleet" "test" {
   name                = "acctest-fleet-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
+  zones               = ["2"]
 
-  spot_priority_profile {
-    min_capacity     = 1
-    maintain_enabled = false
-    capacity         = 1
+  regular_priority_profile {
+    allocation_strategy = "LowestPrice"
+    capacity            = 1
+    min_capacity        = 0
   }
 
   vm_sizes_profile {
