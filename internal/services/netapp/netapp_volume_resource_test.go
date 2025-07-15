@@ -508,7 +508,7 @@ func TestAccNetAppVolume_exportPolicyRuleChownMode(t *testing.T) {
 			Config: r.exportPolicyRuleChownModeEmpty(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("export_policy_rule.0.chown_mode").HasValue("Restricted"),
+				check.That(data.ResourceName).Key("export_policy_rule.0.chown_mode").HasValue("Unrestricted"),
 			),
 		},
 		data.ImportStep(),
