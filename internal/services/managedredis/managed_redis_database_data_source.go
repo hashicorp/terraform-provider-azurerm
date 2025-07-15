@@ -6,6 +6,7 @@ package managedredis
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -101,11 +102,6 @@ func (r ManagedRedisDatabaseDataSource) Read() sdk.ResourceFunc {
 
 			id := databases.NewDatabaseID(subscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, model.Name)
 
-			keysResp, err := client.ListKeys(ctx, id)
-			if err != nil {
-				return fmt.Errorf("listing keys for %s: %+v", id, err)
-			}
-
 			resp, err := client.Get(ctx, id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
@@ -120,19 +116,26 @@ func (r ManagedRedisDatabaseDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				if props := model.Properties; props != nil && props.GeoReplication != nil {
-					if props.GeoReplication.GroupNickname != nil {
-						state.LinkedDatabaseGroupNickname = *props.GeoReplication.GroupNickname
+				if props := model.Properties; props != nil {
+					if props.GeoReplication != nil {
+						if props.GeoReplication.GroupNickname != nil {
+							state.LinkedDatabaseGroupNickname = *props.GeoReplication.GroupNickname
+						}
+						if props.GeoReplication.LinkedDatabases != nil {
+							state.LinkedDatabaseId = flattenArmGeoLinkedDatabase(props.GeoReplication.LinkedDatabases)
+						}
 					}
-					if props.GeoReplication.LinkedDatabases != nil {
-						state.LinkedDatabaseId = flattenArmGeoLinkedDatabase(props.GeoReplication.LinkedDatabases)
+					if strings.EqualFold(string(pointer.From(props.AccessKeysAuthentication)), string(databases.AccessKeysAuthenticationEnabled)) {
+						keysResp, err := client.ListKeys(ctx, id)
+						if err != nil {
+							return fmt.Errorf("listing keys for %s: %+v", id, err)
+						}
+						if keysModel := keysResp.Model; keysModel != nil {
+							state.PrimaryAccessKey = pointer.From(keysModel.PrimaryKey)
+							state.SecondaryAccessKey = pointer.From(keysModel.SecondaryKey)
+						}
 					}
 				}
-			}
-
-			if model := keysResp.Model; model != nil {
-				state.PrimaryAccessKey = pointer.From(model.PrimaryKey)
-				state.SecondaryAccessKey = pointer.From(model.SecondaryKey)
 			}
 
 			metadata.SetID(id)

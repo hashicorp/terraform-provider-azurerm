@@ -296,11 +296,6 @@ func (r ManagedRedisDatabaseResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			keysResp, err := client.ListKeys(ctx, *id)
-			if err != nil {
-				return fmt.Errorf("listing keys for %s: %+v", *id, err)
-			}
-
 			state := ManagedRedisDatabaseResourceModel{
 				Name: id.DatabaseName,
 			}
@@ -324,12 +319,18 @@ func (r ManagedRedisDatabaseResource) Read() sdk.ResourceFunc {
 					}
 
 					state.Module = flattenArmDatabaseModuleArray(props.Modules)
-				}
-			}
 
-			if model := keysResp.Model; model != nil {
-				state.PrimaryAccessKey = pointer.From(model.PrimaryKey)
-				state.SecondaryAccessKey = pointer.From(model.SecondaryKey)
+					if state.AccessKeysAuthenticationEnabled {
+						keysResp, err := client.ListKeys(ctx, *id)
+						if err != nil {
+							return fmt.Errorf("listing keys for %s: %+v", *id, err)
+						}
+						if keysModel := keysResp.Model; keysModel != nil {
+							state.PrimaryAccessKey = pointer.From(keysResp.Model.PrimaryKey)
+							state.SecondaryAccessKey = pointer.From(keysResp.Model.SecondaryKey)
+						}
+					}
+				}
 			}
 
 			return metadata.Encode(&state)
