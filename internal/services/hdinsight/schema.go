@@ -1177,14 +1177,7 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 
 		storageAccountKey := v["storage_account_key"].(string)
 		storageContainerId := v["storage_container_id"].(string)
-		storageAccountId := v["storage_account_id"].(string)
 		isDefault := v["is_default"].(bool)
-
-		if !features.FivePointOh() {
-			if v["storage_resource_id"].(string) != "" {
-				storageAccountId = v["storage_resource_id"].(string)
-			}
-		}
 
 		uri, err := url.Parse(storageContainerId)
 		if err != nil {
@@ -1192,19 +1185,11 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 		}
 
 		result := clusters.StorageAccount{
-			Name:       utils.String(uri.Host),
-			ResourceId: utils.String(storageAccountId),
-			Container:  utils.String(strings.TrimPrefix(uri.Path, "/")),
-			Key:        utils.String(storageAccountKey),
-			IsDefault:  utils.Bool(isDefault),
+			Name:      pointer.To(uri.Host),
+			Container: pointer.To(strings.TrimPrefix(uri.Path, "/")),
+			Key:       pointer.To(storageAccountKey),
+			IsDefault: pointer.To(isDefault),
 		}
-
-		if !features.FivePointOh() {
-			if v["storage_resource_id"].(string) != "" {
-				storageAccountId = v["storage_resource_id"].(string)
-			}
-		}
-
 		results = append(results, result)
 	}
 
@@ -1243,11 +1228,11 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 		}
 
 		result := clusters.StorageAccount{
-			Name:          utils.String(uri.Host), // https://storageaccountname.dfs.core.windows.net/filesystemname -> storageaccountname.dfs.core.windows.net
-			ResourceId:    utils.String(storageAccountId),
-			FileSystem:    utils.String(uri.Path[1:]), // https://storageaccountname.dfs.core.windows.net/filesystemname -> filesystemname
-			MsiResourceId: utils.String(userAssignedIdentityId),
-			IsDefault:     utils.Bool(isDefault),
+			Name:          pointer.To(uri.Host), // https://storageaccountname.dfs.core.windows.net/filesystemname -> storageaccountname.dfs.core.windows.net
+			ResourceId:    pointer.To(storageAccountId),
+			FileSystem:    pointer.To(uri.Path[1:]), // https://storageaccountname.dfs.core.windows.net/filesystemname -> filesystemname
+			MsiResourceId: pointer.To(userAssignedIdentityId),
+			IsDefault:     pointer.To(isDefault),
 		}
 		results = append(results, result)
 	}
@@ -1652,9 +1637,9 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 	scriptActions := v["script_actions"].([]interface{})
 
 	role := clusters.Role{
-		Name: utils.String(name),
+		Name: pointer.To(name),
 		HardwareProfile: &clusters.HardwareProfile{
-			VMSize: utils.String(vmSize),
+			VMSize: pointer.To(vmSize),
 		},
 		OsProfile: &clusters.OsProfile{
 			LinuxOperatingSystemProfile: &clusters.LinuxOperatingSystemProfile{},
@@ -1663,32 +1648,32 @@ func ExpandHDInsightNodeDefinition(name string, input []interface{}, definition 
 	}
 
 	if name != "kafkamanagementnode" {
-		role.OsProfile.LinuxOperatingSystemProfile.Username = utils.String(username)
+		role.OsProfile.LinuxOperatingSystemProfile.Username = pointer.To(username)
 	} else {
 		// kafkamanagementnode generates a username and discards the value sent, however, the API has `Username` marked
 		// as required non-empty, so we'll send a dummy one avoiding the Portal's default value, which is reserved/invalid.
-		role.OsProfile.LinuxOperatingSystemProfile.Username = utils.String("sshadmin")
+		role.OsProfile.LinuxOperatingSystemProfile.Username = pointer.To("sshadmin")
 	}
 
 	virtualNetworkSpecified := virtualNetworkId != ""
 	subnetSpecified := subnetId != ""
 	if virtualNetworkSpecified && subnetSpecified {
 		role.VirtualNetworkProfile = &clusters.VirtualNetworkProfile{
-			Id:     utils.String(virtualNetworkId),
-			Subnet: utils.String(subnetId),
+			Id:     pointer.To(virtualNetworkId),
+			Subnet: pointer.To(subnetId),
 		}
 	} else if (virtualNetworkSpecified && !subnetSpecified) || (subnetSpecified && !virtualNetworkSpecified) {
 		return nil, fmt.Errorf("`virtual_network_id` and `subnet_id` must both either be set or empty")
 	}
 
 	if password != "" {
-		role.OsProfile.LinuxOperatingSystemProfile.Password = utils.String(password)
+		role.OsProfile.LinuxOperatingSystemProfile.Password = pointer.To(password)
 	} else {
 		sshKeysRaw := v["ssh_keys"].(*pluginsdk.Set).List()
 		sshKeys := make([]clusters.SshPublicKey, 0)
 		for _, v := range sshKeysRaw {
 			sshKeys = append(sshKeys, clusters.SshPublicKey{
-				CertificateData: utils.String(v.(string)),
+				CertificateData: pointer.To(v.(string)),
 			})
 		}
 
@@ -1796,7 +1781,7 @@ func ExpandHDInsightAutoscaleRecurrenceDefinition(input []interface{}) *clusters
 		schedules = append(schedules, clusters.AutoscaleSchedule{
 			Days: &expandedWeekDays,
 			TimeAndCapacity: &clusters.AutoscaleTimeAndCapacity{
-				Time: utils.String(val["time"].(string)),
+				Time: pointer.To(val["time"].(string)),
 				// SDK supports min and max, but server side always overrides max to be equal to min
 				MinInstanceCount: pointer.To(int64(val["target_instance_count"].(int))),
 				MaxInstanceCount: pointer.To(int64(val["target_instance_count"].(int))),
@@ -1805,7 +1790,7 @@ func ExpandHDInsightAutoscaleRecurrenceDefinition(input []interface{}) *clusters
 	}
 
 	result := &clusters.AutoscaleRecurrence{
-		TimeZone: utils.String(vs["timezone"].(string)),
+		TimeZone: pointer.To(vs["timezone"].(string)),
 		Schedule: &schedules,
 	}
 
@@ -1821,12 +1806,12 @@ func ExpandHDInsightSecurityProfile(input []interface{}) *clusters.SecurityProfi
 
 	result := clusters.SecurityProfile{
 		DirectoryType:      pointer.To(clusters.DirectoryTypeActiveDirectory),
-		Domain:             utils.String(v["domain_name"].(string)),
+		Domain:             pointer.To(v["domain_name"].(string)),
 		LdapsURLs:          utils.ExpandStringSlice(v["ldaps_urls"].(*pluginsdk.Set).List()),
-		DomainUsername:     utils.String(v["domain_username"].(string)),
-		DomainUserPassword: utils.String(v["domain_user_password"].(string)),
-		AaddsResourceId:    utils.String(v["aadds_resource_id"].(string)),
-		MsiResourceId:      utils.String(v["msi_resource_id"].(string)),
+		DomainUsername:     pointer.To(v["domain_username"].(string)),
+		DomainUserPassword: pointer.To(v["domain_user_password"].(string)),
+		AaddsResourceId:    pointer.To(v["aadds_resource_id"].(string)),
+		MsiResourceId:      pointer.To(v["msi_resource_id"].(string)),
 	}
 
 	if clusterUsersGroupDNS := v["cluster_users_group_dns"].(*pluginsdk.Set).List(); len(clusterUsersGroupDNS) != 0 {
