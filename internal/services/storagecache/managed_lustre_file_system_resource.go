@@ -564,8 +564,8 @@ func expandRootSquashSettings(input []RootSquashSetting) *amlfilesystems.AmlFile
 
 func flattenRootSquashSettings(input *amlfilesystems.AmlFilesystemRootSquashSettings) []RootSquashSetting {
 	result := make([]RootSquashSetting, 0)
-	if input == nil {
-		return result
+	if input == nil || input.Mode == pointer.To(amlfilesystems.AmlFilesystemSquashModeNone) {
+		return nil
 	}
 
 	rootSquashSetting := RootSquashSetting{}
