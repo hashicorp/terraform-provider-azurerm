@@ -610,8 +610,6 @@ resource "azurerm_compute_fleet" "test" {
     World = "Example"
   }
   zones = ["1", "2", "3"]
-
-  depends_on = [azurerm_marketplace_agreement.barracuda]
 }
 	`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -726,8 +724,6 @@ resource "azurerm_compute_fleet" "test" {
     World = "ExampleUpdate"
   }
   zones = ["1", "2", "3"]
-
-  depends_on = [azurerm_marketplace_agreement.barracuda]
 }
 		`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
