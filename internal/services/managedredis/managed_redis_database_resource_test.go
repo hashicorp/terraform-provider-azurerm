@@ -172,19 +172,19 @@ resource "azurerm_managed_redis_cluster" "test" {
   name                = "acctest-rec1-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku_name            = "Enterprise_E20-4"
+  sku_name            = "Balanced_B3"
 }
 resource "azurerm_managed_redis_cluster" "test1" {
   name                = "acctest-rec2-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku_name            = "Enterprise_E20-4"
+  sku_name            = "Balanced_B3"
 }
 resource "azurerm_managed_redis_cluster" "test2" {
   name                = "acctest-rec3-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku_name            = "Enterprise_E20-4"
+  sku_name            = "Balanced_B3"
 }
 `, data.RandomInteger, "eastus")
 }
