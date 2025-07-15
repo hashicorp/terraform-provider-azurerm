@@ -128,7 +128,7 @@ resource "azurerm_compute_fleet" "test" {
     }
   }
 }
-`, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ComputeFleetTestResource) extensionsComplete(data acceptance.TestData) string {
@@ -230,7 +230,7 @@ resource "azurerm_compute_fleet" "test" {
     extensions_time_budget_duration = "PT30M"
   }
 }
-`, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ComputeFleetTestResource) extensionsProtectedSettingsFromKeyVault(data acceptance.TestData) string {
@@ -250,7 +250,7 @@ provider "azurerm" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_key_vault" "test" {
-  name                   = "acctestkv1%[5]s"
+  name                   = "acctestkv1%[4]s"
   location               = azurerm_resource_group.test.location
   resource_group_name    = azurerm_resource_group.test.name
   tenant_id              = data.azurerm_client_config.current.tenant_id
@@ -273,32 +273,6 @@ resource "azurerm_key_vault_secret" "test" {
   name         = "secret"
   value        = "{\"commandToExecute\":\"echo $HOSTNAME\"}"
   key_vault_id = azurerm_key_vault.test.id
-}
-
-resource "azurerm_key_vault" "linux_test" {
-  name                   = "acctestkv2%[5]s"
-  location               = azurerm_resource_group.linux_test.location
-  resource_group_name    = azurerm_resource_group.linux_test.name
-  tenant_id              = data.azurerm_client_config.current.tenant_id
-  sku_name               = "standard"
-  enabled_for_deployment = true
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    secret_permissions = [
-      "Delete",
-      "Get",
-      "Set",
-    ]
-  }
-}
-
-resource "azurerm_key_vault_secret" "linux_test" {
-  name         = "secret"
-  value        = "{\"commandToExecute\":\"echo $HOSTNAME\"}"
-  key_vault_id = azurerm_key_vault.linux_test.id
 }
 
 resource "azurerm_compute_fleet" "test" {
@@ -370,5 +344,5 @@ resource "azurerm_compute_fleet" "test" {
     }
   }
 }
-`, r.baseAndAdditionalLocationLinuxTemplateWithOutProvider(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary, data.RandomString)
+`, r.templateWithOutProvider(data), data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

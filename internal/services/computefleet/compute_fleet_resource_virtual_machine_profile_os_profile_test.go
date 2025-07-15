@@ -107,7 +107,7 @@ resource "azurerm_compute_fleet" "test" {
   %[4]s
 
 }
-`, r.baseAndAdditionalLocationWindowsTemplateWithOutProvider(data), data.RandomInteger, data.Locations.Primary, r.basicBaseWindowsVirtualMachineProfile(), data.Locations.Secondary)
+`, r.templateWithOutProvider(data), data.RandomInteger, data.Locations.Primary, r.basicBaseWindowsVirtualMachineProfile())
 }
 
 func (r ComputeFleetTestResource) osProfileWindowsComplete(data acceptance.TestData) string {
@@ -209,7 +209,7 @@ resource "azurerm_compute_fleet" "test" {
     }
   }
 }
-`, r.baseAndAdditionalLocationWindowsTemplateWithOutProvider(data), r.secretWindowsResourceDependencies(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, r.templateWithOutProvider(data), r.secretWindowsResourceDependencies(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ComputeFleetTestResource) osProfileLinuxBasic(data acceptance.TestData) string {
@@ -242,7 +242,7 @@ resource "azurerm_compute_fleet" "test" {
 
   %[4]s
 }
-`, r.baseAndAdditionalLocationLinuxTemplateWithOutProvider(data), data.RandomInteger, data.Locations.Primary, r.basicBaseLinuxVirtualMachineProfile(), data.Locations.Secondary)
+`, r.templateWithOutProvider(data), data.RandomInteger, data.Locations.Primary, r.basicBaseLinuxVirtualMachineProfile())
 }
 
 func (r ComputeFleetTestResource) osProfileLinuxComplete(data acceptance.TestData) string {
@@ -329,7 +329,7 @@ resource "azurerm_compute_fleet" "test" {
     }
   }
 }
-`, r.baseAndAdditionalLocationLinuxTemplateWithOutProvider(data), r.secretLinuxResourceDependencies(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, r.templateWithOutProvider(data), r.secretLinuxResourceDependencies(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ComputeFleetTestResource) secretLinuxResourceDependencies(data acceptance.TestData) string {
@@ -427,131 +427,6 @@ resource "azurerm_key_vault_certificate" "first" {
 resource "azurerm_key_vault_certificate" "second" {
   name         = "second"
   key_vault_id = azurerm_key_vault.test.id
-
-  certificate_policy {
-    issuer_parameters {
-      name = "Self"
-    }
-
-    key_properties {
-      exportable = true
-      key_size   = 2048
-      key_type   = "RSA"
-      reuse_key  = true
-    }
-
-    lifetime_action {
-      action {
-        action_type = "AutoRenew"
-      }
-
-      trigger {
-        days_before_expiry = 30
-      }
-    }
-
-    secret_properties {
-      content_type = "application/x-pkcs12"
-    }
-
-    x509_certificate_properties {
-      key_usage = [
-        "cRLSign",
-        "dataEncipherment",
-        "digitalSignature",
-        "keyAgreement",
-        "keyCertSign",
-        "keyEncipherment",
-      ]
-
-      subject            = "CN=hello-world-second"
-      validity_in_months = 12
-    }
-  }
-}
-
-resource "azurerm_key_vault" "linux_test" {
-  name                = "acctestkvlinux%[1]s"
-  location            = azurerm_resource_group.linux_test.location
-  resource_group_name = azurerm_resource_group.linux_test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name                        = "standard"
-  enabled_for_template_deployment = true
-  enabled_for_deployment          = true
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    certificate_permissions = [
-      "Create",
-      "Delete",
-      "Get",
-      "Update",
-    ]
-
-    key_permissions = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"]
-
-    secret_permissions = [
-      "Set",
-    ]
-
-    storage_permissions = [
-      "Set",
-    ]
-  }
-}
-
-resource "azurerm_key_vault_certificate" "linux_test_first" {
-  name         = "first"
-  key_vault_id = azurerm_key_vault.linux_test.id
-
-  certificate_policy {
-    issuer_parameters {
-      name = "Self"
-    }
-
-    key_properties {
-      exportable = true
-      key_size   = 2048
-      key_type   = "RSA"
-      reuse_key  = true
-    }
-
-    lifetime_action {
-      action {
-        action_type = "AutoRenew"
-      }
-
-      trigger {
-        days_before_expiry = 30
-      }
-    }
-
-    secret_properties {
-      content_type = "application/x-pkcs12"
-    }
-
-    x509_certificate_properties {
-      key_usage = [
-        "cRLSign",
-        "dataEncipherment",
-        "digitalSignature",
-        "keyAgreement",
-        "keyCertSign",
-        "keyEncipherment",
-      ]
-
-      subject            = "CN=hello-world-first"
-      validity_in_months = 12
-    }
-  }
-}
-
-resource "azurerm_key_vault_certificate" "linux_test_second" {
-  name         = "second"
-  key_vault_id = azurerm_key_vault.linux_test.id
 
   certificate_policy {
     issuer_parameters {
@@ -730,131 +605,6 @@ resource "azurerm_key_vault_certificate" "second" {
       ]
 
       subject            = "CN=hello-world-second"
-      validity_in_months = 12
-    }
-  }
-}
-
-resource "azurerm_key_vault" "windows_test" {
-  name                = "acctestkvwin%[1]s"
-  location            = azurerm_resource_group.windows_test.location
-  resource_group_name = azurerm_resource_group.windows_test.name
-  tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  sku_name                        = "standard"
-  enabled_for_template_deployment = true
-  enabled_for_deployment          = true
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-
-    certificate_permissions = [
-      "Create",
-      "Delete",
-      "Get",
-      "Update",
-    ]
-
-    key_permissions = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"]
-
-    secret_permissions = [
-      "Set",
-    ]
-
-    storage_permissions = [
-      "Set",
-    ]
-  }
-}
-
-resource "azurerm_key_vault_certificate" "windows_test_first" {
-  name         = "firstwin"
-  key_vault_id = azurerm_key_vault.windows_test.id
-
-  certificate_policy {
-    issuer_parameters {
-      name = "Self"
-    }
-
-    key_properties {
-      exportable = true
-      key_size   = 2048
-      key_type   = "RSA"
-      reuse_key  = true
-    }
-
-    lifetime_action {
-      action {
-        action_type = "AutoRenew"
-      }
-
-      trigger {
-        days_before_expiry = 30
-      }
-    }
-
-    secret_properties {
-      content_type = "application/x-pkcs12"
-    }
-
-    x509_certificate_properties {
-      key_usage = [
-        "cRLSign",
-        "dataEncipherment",
-        "digitalSignature",
-        "keyAgreement",
-        "keyCertSign",
-        "keyEncipherment",
-      ]
-
-      subject            = "CN=hello-world-firstwin"
-      validity_in_months = 12
-    }
-  }
-}
-
-resource "azurerm_key_vault_certificate" "windows_test_second" {
-  name         = "secondwin"
-  key_vault_id = azurerm_key_vault.windows_test.id
-
-  certificate_policy {
-    issuer_parameters {
-      name = "Self"
-    }
-
-    key_properties {
-      exportable = true
-      key_size   = 2048
-      key_type   = "RSA"
-      reuse_key  = true
-    }
-
-    lifetime_action {
-      action {
-        action_type = "AutoRenew"
-      }
-
-      trigger {
-        days_before_expiry = 30
-      }
-    }
-
-    secret_properties {
-      content_type = "application/x-pkcs12"
-    }
-
-    x509_certificate_properties {
-      key_usage = [
-        "cRLSign",
-        "dataEncipherment",
-        "digitalSignature",
-        "keyAgreement",
-        "keyCertSign",
-        "keyEncipherment",
-      ]
-
-      subject            = "CN=hello-world-secondwin"
       validity_in_months = 12
     }
   }

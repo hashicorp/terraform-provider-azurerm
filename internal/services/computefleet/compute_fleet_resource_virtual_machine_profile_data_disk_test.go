@@ -109,7 +109,7 @@ resource "azurerm_compute_fleet" "test" {
     }
   }
 }
-`, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ComputeFleetTestResource) dataDiskComplete(data acceptance.TestData) string {
@@ -183,7 +183,7 @@ resource "azurerm_compute_fleet" "test" {
     }
   }
 }
-`, r.diskEncryptionSetResourceDependencies(data), r.baseAndAdditionalLocationLinuxTemplateWithOutProvider(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, r.diskEncryptionSetResourceDependencies(data), r.templateWithOutProvider(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ComputeFleetTestResource) diskEncryptionSetResourceDependencies(data acceptance.TestData) string {
@@ -279,89 +279,6 @@ resource "azurerm_role_assignment" "disk-encryption-read-keyvault" {
   scope                = azurerm_key_vault.test.id
   role_definition_name = "Reader"
   principal_id         = azurerm_disk_encryption_set.test.identity.0.principal_id
-}
-
-
-resource "azurerm_key_vault" "linux_test" {
-  name                        = "acctestkvlinux%[1]s"
-  location                    = azurerm_resource_group.linux_test.location
-  resource_group_name         = azurerm_resource_group.linux_test.name
-  tenant_id                   = data.azurerm_client_config.current.tenant_id
-  sku_name                    = "standard"
-  purge_protection_enabled    = true
-  enabled_for_disk_encryption = true
-}
-
-resource "azurerm_key_vault_access_policy" "linux-test-service-principal" {
-  key_vault_id = azurerm_key_vault.linux_test.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azurerm_client_config.current.object_id
-
-  key_permissions = [
-    "Create",
-    "Delete",
-    "Recover",
-    "Get",
-    "Purge",
-    "Update",
-    "GetRotationPolicy",
-  ]
-
-  secret_permissions = [
-    "Get",
-    "Delete",
-    "Set",
-  ]
-}
-
-resource "azurerm_key_vault_key" "linux_test" {
-  name         = "examplekey"
-  key_vault_id = azurerm_key_vault.linux_test.id
-  key_type     = "RSA"
-  key_size     = 2048
-
-  key_opts = [
-    "decrypt",
-    "encrypt",
-    "sign",
-    "unwrapKey",
-    "verify",
-    "wrapKey",
-  ]
-
-  depends_on = ["azurerm_key_vault_access_policy.linux-test-service-principal"]
-}
-
-resource "azurerm_disk_encryption_set" "linux_test" {
-  name                = "acctestdes-%[2]d"
-  resource_group_name = azurerm_resource_group.linux_test.name
-  location            = azurerm_resource_group.linux_test.location
-  key_vault_key_id    = azurerm_key_vault_key.linux_test.id
-
-  identity {
-    type = "SystemAssigned"
-  }
-}
-
-resource "azurerm_key_vault_access_policy" "linux-test-disk-encryption" {
-  key_vault_id = azurerm_key_vault.linux_test.id
-
-  key_permissions = [
-    "Get",
-    "WrapKey",
-    "UnwrapKey",
-    "GetRotationPolicy",
-  ]
-
-  tenant_id = azurerm_disk_encryption_set.linux_test.identity.0.tenant_id
-  object_id = azurerm_disk_encryption_set.linux_test.identity.0.principal_id
-}
-
-
-resource "azurerm_role_assignment" "linux-test-disk-encryption-read-keyvault" {
-  scope                = azurerm_key_vault.linux_test.id
-  role_definition_name = "Reader"
-  principal_id         = azurerm_disk_encryption_set.linux_test.identity.0.principal_id
 }
 `, data.RandomString, data.RandomInteger)
 }

@@ -142,7 +142,7 @@ resource "azurerm_compute_fleet" "test" {
     }
   }
 }
-`, r.baseAndAdditionalLocationWindowsTemplate(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ComputeFleetTestResource) authSSHKey(data acceptance.TestData) string {
@@ -198,7 +198,7 @@ resource "azurerm_compute_fleet" "test" {
     }
   }
 }
-`, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ComputeFleetTestResource) authMultipleSSHPublicKeys(data acceptance.TestData) string {
@@ -253,7 +253,7 @@ resource "azurerm_compute_fleet" "test" {
     }
   }
 }
-`, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ComputeFleetTestResource) authSSHKeyAndPassword(data acceptance.TestData) string {
@@ -310,7 +310,7 @@ resource "azurerm_compute_fleet" "test" {
     }
   }
 }
-`, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ComputeFleetTestResource) authEd25519SSHPublicKeys(data acceptance.TestData) string {
@@ -367,5 +367,5 @@ resource "azurerm_compute_fleet" "test" {
     }
   }
 }
-`, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
