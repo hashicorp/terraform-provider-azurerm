@@ -210,16 +210,7 @@ resource "azurerm_storage_account" "test" {
   account_replication_type        = "LRS"
   allow_nested_items_to_be_public = false
 }
-
-resource "azurerm_storage_account" "linux_test" {
-  name                            = "accteststrlinux%[5]s"
-  resource_group_name             = azurerm_resource_group.linux_test.name
-  location                        = azurerm_resource_group.linux_test.location
-  account_tier                    = "Standard"
-  account_replication_type        = "LRS"
-  allow_nested_items_to_be_public = false
-}
-`, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, enabled, data.RandomString, data.Locations.Secondary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary, enabled, data.RandomString)
 }
 
 func (r ComputeFleetTestResource) capacityReservationGroup(data acceptance.TestData) string {
@@ -236,23 +227,6 @@ resource "azurerm_capacity_reservation_group" "test" {
 resource "azurerm_capacity_reservation" "test" {
   name                          = "acctest-ccr-%[2]d"
   capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
-  zone                          = "2"
-  sku {
-    name     = "Standard_F2"
-    capacity = 2
-  }
-}
-
-resource "azurerm_capacity_reservation_group" "linux_test" {
-  name                = "acctest-ccrg-%[2]d"
-  resource_group_name = azurerm_resource_group.linux_test.name
-  location            = azurerm_resource_group.linux_test.location
-  zones               = ["1", "2", "3"]
-}
-
-resource "azurerm_capacity_reservation" "linux_test" {
-  name                          = "acctest-ccr-%[2]d"
-  capacity_reservation_group_id = azurerm_capacity_reservation_group.linux_test.id
   zone                          = "2"
   sku {
     name     = "Standard_F2"
@@ -317,9 +291,9 @@ resource "azurerm_compute_fleet" "test" {
     }
   }
 
-  depends_on = [azurerm_capacity_reservation.test, azurerm_capacity_reservation.linux_test]
+  depends_on = [azurerm_capacity_reservation.test]
 }
-`, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ComputeFleetTestResource) galleryApplication(data acceptance.TestData, tag string) string {
@@ -391,72 +365,6 @@ resource "azurerm_gallery_application_version" "test" {
   }
 }
 
-
-resource "azurerm_storage_account" "linux_test" {
-  name                     = "accteststrlinux%[4]s"
-  resource_group_name      = azurerm_resource_group.linux_test.name
-  location                 = azurerm_resource_group.linux_test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_container" "linux_test" {
-  name                  = "testlinux"
-  storage_account_name  = azurerm_storage_account.linux_test.name
-  container_access_type = "blob"
-}
-
-resource "azurerm_storage_blob" "linux_test" {
-  name                   = "scriptlinux"
-  storage_account_name   = azurerm_storage_account.linux_test.name
-  storage_container_name = azurerm_storage_container.linux_test.name
-  type                   = "Page"
-  size                   = 512
-}
-
-resource "azurerm_storage_blob" "linux_test2" {
-  name                   = "script2linux"
-  storage_account_name   = azurerm_storage_account.linux_test.name
-  storage_container_name = azurerm_storage_container.linux_test.name
-  type                   = "Page"
-  size                   = 512
-}
-
-resource "azurerm_shared_image_gallery" "linux_test" {
-  name                = "acctestsiglinux%[2]d"
-  resource_group_name = azurerm_resource_group.linux_test.name
-  location            = azurerm_resource_group.linux_test.location
-}
-
-resource "azurerm_gallery_application" "linux_test" {
-  name              = "acctest-applinux-%[2]d"
-  gallery_id        = azurerm_shared_image_gallery.linux_test.id
-  location          = azurerm_shared_image_gallery.linux_test.location
-  supported_os_type = "Linux"
-}
-
-resource "azurerm_gallery_application_version" "linux_test" {
-  name                   = "0.0.1"
-  gallery_application_id = azurerm_gallery_application.linux_test.id
-  location               = azurerm_gallery_application.linux_test.location
-
-  source {
-    media_link                 = azurerm_storage_blob.linux_test.id
-    default_configuration_link = azurerm_storage_blob.linux_test.id
-  }
-
-  manage_action {
-    install = "[install command]"
-    remove  = "[remove command]"
-  }
-
-  target_region {
-    name                   = azurerm_gallery_application.linux_test.location
-    regional_replica_count = 1
-    storage_account_type   = "Premium_LRS"
-  }
-}
-
 resource "azurerm_compute_fleet" "test" {
   name                = "acctest-fleet-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -521,7 +429,7 @@ resource "azurerm_compute_fleet" "test" {
     }
   }
 }
-`, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, data.RandomString, tag, data.Locations.Secondary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary, data.RandomString, tag)
 }
 
 func (r ComputeFleetTestResource) licenseType(data acceptance.TestData, lType string) string {
@@ -590,7 +498,7 @@ resource "azurerm_compute_fleet" "test" {
     license_type = "%[4]s"
   }
 }
-`, r.baseAndAdditionalLocationWindowsTemplate(data), data.RandomInteger, data.Locations.Primary, lType, data.Locations.Secondary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary, lType)
 }
 
 func (r ComputeFleetTestResource) scheduledEvent(data acceptance.TestData) string {
@@ -656,7 +564,7 @@ resource "azurerm_compute_fleet" "test" {
     scheduled_event_os_image_timeout_duration    = "PT15M"
   }
 }
-`, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ComputeFleetTestResource) userData(data acceptance.TestData, userDta string) string {
@@ -719,7 +627,7 @@ resource "azurerm_compute_fleet" "test" {
     user_data_base64 = base64encode("%[4]s")
   }
 }
-`, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, userDta, data.Locations.Secondary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary, userDta)
 }
 
 func (r ComputeFleetTestResource) additionalCapabilitiesUltraSSD(data acceptance.TestData) string {
@@ -799,7 +707,7 @@ resource "azurerm_compute_fleet" "test" {
     }
   }
 }
-`, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ComputeFleetTestResource) additionalCapabilitiesHibernation(data acceptance.TestData) string {
@@ -878,5 +786,5 @@ resource "azurerm_compute_fleet" "test" {
     }
   }
 }
-`, r.baseAndAdditionalLocationLinuxTemplate(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }

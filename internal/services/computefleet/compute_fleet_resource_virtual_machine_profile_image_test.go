@@ -234,60 +234,7 @@ resource "azurerm_linux_virtual_machine" "source" {
     version   = "latest"
   }
 }
-
-resource "azurerm_public_ip" "linux-test-public" {
-  name                = "acctpip-%[2]d"
-  location            = azurerm_resource_group.linux_test.location
-  resource_group_name = azurerm_resource_group.linux_test.name
-  allocation_method   = "Static"
-  domain_name_label   = "acctestsourcevm-%[2]d"
-  sku                 = "Basic"
-}
-
-resource "azurerm_network_interface" "linux-test-public" {
-  name                = "acctestnic-%[2]d"
-  location            = azurerm_resource_group.linux_test.location
-  resource_group_name = azurerm_resource_group.linux_test.name
-
-  ip_configuration {
-    name                          = "testconfigurationsource"
-    subnet_id                     = azurerm_subnet.linux_test.id
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.linux-test-public.id
-  }
-}
-
-resource "azurerm_linux_virtual_machine" "linux-test-source" {
-  name                            = "acctestsourceVM-%[2]d"
-  resource_group_name             = azurerm_resource_group.linux_test.name
-  location                        = azurerm_resource_group.linux_test.location
-  size                            = "Standard_DS1_v2"
-  admin_username                  = local.admin_username
-  disable_password_authentication = false
-  admin_password                  = local.admin_password
-
-  network_interface_ids = [
-    azurerm_network_interface.linux-test-public.id,
-  ]
-
-  admin_ssh_key {
-    username   = local.admin_username
-    public_key = local.first_public_key
-  }
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-}
-`, r.baseAndAdditionalLocationLinuxTemplateWithOutProvider(data), data.RandomInteger)
+`, r.templateWithOutProvider(data), data.RandomInteger)
 }
 
 func (r ComputeFleetTestResource) imageFromSourceImageReference(data acceptance.TestData) string {
@@ -348,7 +295,7 @@ resource "azurerm_compute_fleet" "test" {
     }
   }
 }
-`, r.imageFromExistingMachinePrep(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, r.imageFromExistingMachinePrep(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ComputeFleetTestResource) imageFromImageId(data acceptance.TestData) string {
@@ -360,13 +307,6 @@ resource "azurerm_image" "test" {
   location                  = azurerm_resource_group.test.location
   resource_group_name       = azurerm_resource_group.test.name
   source_virtual_machine_id = azurerm_linux_virtual_machine.source.id
-}
-
-resource "azurerm_image" "linux_test" {
-  name                      = "testlinux"
-  location                  = azurerm_resource_group.linux_test.location
-  resource_group_name       = azurerm_resource_group.linux_test.name
-  source_virtual_machine_id = azurerm_linux_virtual_machine.linux-test-source.id
 }
 
 resource "azurerm_compute_fleet" "image_id" {
@@ -417,7 +357,7 @@ resource "azurerm_compute_fleet" "image_id" {
     }
   }
 }
-`, r.imageFromSourceImageReference(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, r.imageFromSourceImageReference(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ComputeFleetTestResource) imageFromSharedImageGallery(data acceptance.TestData) string {
@@ -461,48 +401,6 @@ resource "azurerm_shared_image_version" "test" {
 
   target_region {
     name                   = azurerm_shared_image.test.location
-    regional_replica_count = "5"
-    storage_account_type   = "Standard_LRS"
-  }
-}
-
-resource "azurerm_image" "linux_test" {
-  name                      = "test"
-  location                  = azurerm_resource_group.linux_test.location
-  resource_group_name       = azurerm_resource_group.linux_test.name
-  source_virtual_machine_id = azurerm_linux_virtual_machine.linux-test-source.id
-}
-
-resource "azurerm_shared_image_gallery" "linux_test" {
-  name                = "acctestsiglinux%[2]d"
-  resource_group_name = "${azurerm_resource_group.linux_test.name}"
-  location            = "${azurerm_resource_group.linux_test.location}"
-}
-
-resource "azurerm_shared_image" "linux_test" {
-  name                = "acctest-gallery-image"
-  gallery_name        = azurerm_shared_image_gallery.linux_test.name
-  resource_group_name = azurerm_resource_group.linux_test.name
-  location            = azurerm_resource_group.linux_test.location
-  os_type             = "Linux"
-
-  identifier {
-    publisher = "AcceptanceTest-Publisher"
-    offer     = "AcceptanceTest-Offer"
-    sku       = "AcceptanceTest-Sku"
-  }
-}
-
-resource "azurerm_shared_image_version" "linux_test" {
-  name                = "1.0.1"
-  gallery_name        = azurerm_shared_image.linux_test.gallery_name
-  image_name          = azurerm_shared_image.linux_test.name
-  resource_group_name = azurerm_shared_image.linux_test.resource_group_name
-  location            = azurerm_shared_image.linux_test.location
-  managed_image_id    = azurerm_image.linux_test.id
-
-  target_region {
-    name                   = azurerm_shared_image.linux_test.location
     regional_replica_count = "5"
     storage_account_type   = "Standard_LRS"
   }
@@ -553,9 +451,9 @@ resource "azurerm_compute_fleet" "image_id" {
       }
     }
   }
-  depends_on = [azurerm_shared_image_version.test, azurerm_shared_image_version.linux_test]
+  depends_on = [azurerm_shared_image_version.test]
 }
-`, r.imageFromSourceImageReference(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, r.imageFromSourceImageReference(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ComputeFleetTestResource) imageFromSharedImageGalleryVersion(data acceptance.TestData) string {
@@ -600,48 +498,6 @@ resource "azurerm_shared_image_version" "test" {
 
   target_region {
     name                   = azurerm_shared_image.test.location
-    regional_replica_count = "5"
-    storage_account_type   = "Standard_LRS"
-  }
-}
-
-resource "azurerm_image" "linux_test" {
-  name                      = "test"
-  location                  = azurerm_resource_group.linux_test.location
-  resource_group_name       = azurerm_resource_group.linux_test.name
-  source_virtual_machine_id = azurerm_linux_virtual_machine.linux-test-source.id
-}
-
-resource "azurerm_shared_image_gallery" "linux_test" {
-  name                = "acctestsiglinux%[2]d"
-  resource_group_name = "${azurerm_resource_group.linux_test.name}"
-  location            = "${azurerm_resource_group.linux_test.location}"
-}
-
-resource "azurerm_shared_image" "linux_test" {
-  name                = "acctest-gallery-image"
-  gallery_name        = azurerm_shared_image_gallery.linux_test.name
-  resource_group_name = azurerm_resource_group.linux_test.name
-  location            = azurerm_resource_group.linux_test.location
-  os_type             = "Linux"
-
-  identifier {
-    publisher = "AcceptanceTest-Publisher"
-    offer     = "AcceptanceTest-Offer"
-    sku       = "AcceptanceTest-Sku"
-  }
-}
-
-resource "azurerm_shared_image_version" "linux_test" {
-  name                = "0.0.1"
-  gallery_name        = azurerm_shared_image.linux_test.gallery_name
-  image_name          = azurerm_shared_image.linux_test.name
-  resource_group_name = azurerm_shared_image.linux_test.resource_group_name
-  location            = azurerm_shared_image.linux_test.location
-  managed_image_id    = azurerm_image.linux_test.id
-
-  target_region {
-    name                   = azurerm_shared_image.linux_test.location
     regional_replica_count = "5"
     storage_account_type   = "Standard_LRS"
   }
@@ -694,7 +550,7 @@ resource "azurerm_compute_fleet" "image_id" {
     }
   }
 }
-`, r.imageFromSourceImageReference(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, r.imageFromSourceImageReference(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ComputeFleetTestResource) imageFromCommunitySharedImageGallery(data acceptance.TestData) string {
@@ -753,58 +609,6 @@ resource "azurerm_shared_image_version" "test" {
   }
 }
 
-resource "azurerm_image" "linux_test" {
-  name                      = "test"
-  location                  = azurerm_resource_group.linux_test.location
-  resource_group_name       = azurerm_resource_group.linux_test.name
-  source_virtual_machine_id = azurerm_linux_virtual_machine.linux-test-source.id
-}
-
-resource "azurerm_shared_image_gallery" "linux_test" {
-  name                = "acctestsiglinux%[2]d"
-  resource_group_name = "${azurerm_resource_group.linux_test.name}"
-  location            = "${azurerm_resource_group.linux_test.location}"
-
-  sharing {
-    permission = "Community"
-    community_gallery {
-      eula            = "https://eula.net"
-      prefix          = "prefix"
-      publisher_email = "publisher@test.net"
-      publisher_uri   = "https://publisher.net"
-    }
-  }
-}
-
-resource "azurerm_shared_image" "linux_test" {
-  name                = "acctest-gallery-image"
-  gallery_name        = azurerm_shared_image_gallery.linux_test.name
-  resource_group_name = azurerm_resource_group.linux_test.name
-  location            = azurerm_resource_group.linux_test.location
-  os_type             = "Linux"
-
-  identifier {
-    publisher = "AcceptanceTest-Publisher"
-    offer     = "AcceptanceTest-Offer"
-    sku       = "AcceptanceTest-Sku"
-  }
-}
-
-resource "azurerm_shared_image_version" "linux_test" {
-  name                = "0.0.1"
-  gallery_name        = azurerm_shared_image.linux_test.gallery_name
-  image_name          = azurerm_shared_image.linux_test.name
-  resource_group_name = azurerm_shared_image.linux_test.resource_group_name
-  location            = azurerm_shared_image.linux_test.location
-  managed_image_id    = azurerm_image.linux_test.id
-
-  target_region {
-    name                   = azurerm_shared_image.linux_test.location
-    regional_replica_count = "5"
-    storage_account_type   = "Standard_LRS"
-  }
-}
-
 resource "azurerm_compute_fleet" "image_id" {
   name                = "acctest-fleet-id-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -852,7 +656,7 @@ resource "azurerm_compute_fleet" "image_id" {
     }
   }
 }
-`, r.imageFromSourceImageReference(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, r.imageFromSourceImageReference(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ComputeFleetTestResource) imageFromCommunitySharedImageGalleryVersion(data acceptance.TestData) string {
@@ -911,59 +715,6 @@ resource "azurerm_shared_image_version" "test" {
   }
 }
 
-
-resource "azurerm_image" "linux_test" {
-  name                      = "test"
-  location                  = azurerm_resource_group.linux_test.location
-  resource_group_name       = azurerm_resource_group.linux_test.name
-  source_virtual_machine_id = azurerm_linux_virtual_machine.linux-test-source.id
-}
-
-resource "azurerm_shared_image_gallery" "linux_test" {
-  name                = "acctestsiglinux%[2]d"
-  resource_group_name = "${azurerm_resource_group.linux_test.name}"
-  location            = "${azurerm_resource_group.linux_test.location}"
-
-  sharing {
-    permission = "Community"
-    community_gallery {
-      eula            = "https://eula.net"
-      prefix          = "prefix"
-      publisher_email = "publisher@test.net"
-      publisher_uri   = "https://publisher.net"
-    }
-  }
-}
-
-resource "azurerm_shared_image" "linux_test" {
-  name                = "acctest-gallery-image"
-  gallery_name        = azurerm_shared_image_gallery.linux_test.name
-  resource_group_name = azurerm_resource_group.linux_test.name
-  location            = azurerm_resource_group.linux_test.location
-  os_type             = "Linux"
-
-  identifier {
-    publisher = "AcceptanceTest-Publisher"
-    offer     = "AcceptanceTest-Offer"
-    sku       = "AcceptanceTest-Sku"
-  }
-}
-
-resource "azurerm_shared_image_version" "linux_test" {
-  name                = "0.0.1"
-  gallery_name        = azurerm_shared_image.linux_test.gallery_name
-  image_name          = azurerm_shared_image.linux_test.name
-  resource_group_name = azurerm_shared_image.linux_test.resource_group_name
-  location            = azurerm_shared_image.linux_test.location
-  managed_image_id    = azurerm_image.linux_test.id
-
-  target_region {
-    name                   = azurerm_shared_image.linux_test.location
-    regional_replica_count = "5"
-    storage_account_type   = "Standard_LRS"
-  }
-}
-
 resource "azurerm_compute_fleet" "image_id" {
   name                = "acctest-fleet-id-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -1011,7 +762,7 @@ resource "azurerm_compute_fleet" "image_id" {
     }
   }
 }
-`, r.imageFromSourceImageReference(data), data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
+`, r.imageFromSourceImageReference(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (ComputeFleetTestResource) generalizeVirtualMachine() func(context.Context, *clients.Client, *pluginsdk.InstanceState) error {
