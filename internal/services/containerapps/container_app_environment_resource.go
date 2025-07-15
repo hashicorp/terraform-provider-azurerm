@@ -347,8 +347,6 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 
 			var state ContainerAppEnvironmentModel
 
-			consumptionDefined := consumptionIsExplicitlyDefined(metadata)
-
 			if model := existing.Model; model != nil {
 				state.Name = id.ManagedEnvironmentName
 				state.ResourceGroup = id.ResourceGroupName
@@ -391,7 +389,7 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 					state.ZoneRedundant = pointer.From(props.ZoneRedundant)
 					state.StaticIP = pointer.From(props.StaticIP)
 					state.DefaultDomain = pointer.From(props.DefaultDomain)
-					state.WorkloadProfiles = helpers.FlattenWorkloadProfiles(props.WorkloadProfiles, consumptionDefined)
+					state.WorkloadProfiles = helpers.FlattenWorkloadProfiles(props.WorkloadProfiles)
 					state.InfrastructureResourceGroup = pointer.From(props.InfrastructureResourceGroup)
 					state.Mtls = pointer.From(props.PeerAuthentication.Mtls.Enabled)
 				}
@@ -534,20 +532,6 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func consumptionIsExplicitlyDefined(metadata sdk.ResourceMetaData) bool {
-	config := ContainerAppEnvironmentModel{}
-	if err := metadata.Decode(&config); err != nil {
-		return false
-	}
-	for _, v := range config.WorkloadProfiles {
-		if v.Name == string(helpers.WorkloadProfileSkuConsumption) {
-			return true
-		}
-	}
-
-	return false
-}
-
 func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5,
@@ -557,17 +541,18 @@ func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceDiff.HasChange("workload_profile") {
-				oldProfiles, newProfiles := metadata.ResourceDiff.GetChange("workload_profile")
+				o, n := metadata.ResourceDiff.GetChange("workload_profile")
 
-				oldProfileCount := oldProfiles.(*pluginsdk.Set).Len()
-				newProfileCount := newProfiles.(*pluginsdk.Set).Len()
-				if oldProfileCount > 0 && newProfileCount == 0 {
+				oldProfiles := o.(*pluginsdk.Set)
+				newProfiles := n.(*pluginsdk.Set)
+
+				if oldProfiles.Len() > 0 && newProfiles.Len() == 0 && !helpers.OneAdditionalConsumptionProfileReturnedByAPI(oldProfiles, newProfiles) {
 					if err := metadata.ResourceDiff.ForceNew("workload_profile"); err != nil {
 						return err
 					}
 				}
 
-				if newProfileCount > 0 && oldProfileCount == 0 {
+				if newProfiles.Len() > 0 && oldProfiles.Len() == 0 {
 					if err := metadata.ResourceDiff.ForceNew("workload_profile"); err != nil {
 						return err
 					}
