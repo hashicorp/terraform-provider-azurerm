@@ -253,6 +253,7 @@ resource "azurerm_capacity_reservation_group" "linux_test" {
 resource "azurerm_capacity_reservation" "linux_test" {
   name                          = "acctest-ccr-%[2]d"
   capacity_reservation_group_id = azurerm_capacity_reservation_group.linux_test.id
+  zone                          = "2"
   sku {
     name     = "Standard_F2"
     capacity = 2
