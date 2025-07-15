@@ -5,7 +5,6 @@ package oracle
 import (
 	"context"
 	"fmt"
-	"google.golang.org/appengine/log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
