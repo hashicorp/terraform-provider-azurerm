@@ -197,8 +197,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_automatic_updates": {
+			"automatic_updates_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true, // updating this is not allowed "Changing property 'windowsConfiguration.enableAutomaticUpdates' is not allowed." Target="windowsConfiguration.enableAutomaticUpdates"
@@ -442,6 +441,21 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			Computed:   true,
 			Deprecated: "this property has been deprecated due to a breaking change introduced by the Service team, which redefined it as a read-only field within the API",
 		}
+
+		resource.Schema["enable_automatic_updates"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			ForceNew:   true, // updating this is not allowed "Changing property 'windowsConfiguration.enableAutomaticUpdates' is not allowed." Target="windowsConfiguration.enableAutomaticUpdates"
+			Deprecated: "`enable_automatic_updates` has been deprecated in favour of `automatic_updates_enabled` and will be removed in v5.0 of the AzureRM Provider",
+		}
+
+		resource.Schema["automatic_updates_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+			ForceNew: true, // updating this is not allowed "Changing property 'windowsConfiguration.enableAutomaticUpdates' is not allowed." Target="windowsConfiguration.enableAutomaticUpdates"
+		}
 	}
 
 	return resource
@@ -492,7 +506,13 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 		computerName = id.VirtualMachineName
 	}
-	enableAutomaticUpdates := d.Get("enable_automatic_updates").(bool)
+
+	enableAutomaticUpdates := d.Get("automatic_updates_enabled").(bool)
+	if !features.FivePointOh() {
+		if v, ok := d.GetOk("enable_automatic_updates"); ok {
+			enableAutomaticUpdates = v.(bool)
+		}
+	}
 
 	identityExpanded, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
@@ -960,7 +980,10 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 						return fmt.Errorf("setting `additional_unattend_content`: %+v", err)
 					}
 
-					d.Set("enable_automatic_updates", config.EnableAutomaticUpdates)
+					d.Set("automatic_updates_enabled", config.EnableAutomaticUpdates)
+					if !features.FivePointOh() {
+						d.Set("enable_automatic_updates", config.EnableAutomaticUpdates)
+					}
 					d.Set("provision_vm_agent", config.ProvisionVMAgent)
 					d.Set("vm_agent_platform_updates_enabled", config.EnableVMAgentPlatformUpdates)
 
