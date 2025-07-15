@@ -1,6 +1,7 @@
 ## 4.37.0 (Unreleased)
 
 ENHANCEMENTS:
+* Data Source: `azurerm_virtual_machine_scale_set` - add support for the `auxiliary_mode` and `auxiliary_sku` properties [GH-30159]
 * `azurerm_vpn_gateway_connection` - add support for the `dpd_timeout_seconds` property [GH-29434]
 * `azurerm_orchestrated_virtual_machine_scale_set` - add support for `auxiliary_mode` and `auxiliary_sku`  [GH-30102]
 * `azurerm_mssql_job_step` - the `job_credential_id` and `output_target.job_credential_id` properties are now optional [GH-30031]
@@ -12,8 +13,9 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+* Data Source: `azurerm_virtual_machine_scale_set` - fix a panic caused by missing properties [GH-30159]
 * `azurerm_mongo_cluster` - the `create_mode` property no longer causes ForceNews on import [GH-29375]
- * `azurerm_container_app_environment` - fix import for `workload_profile` [GH-30139]
+* `azurerm_container_app_environment` - fix import for `workload_profile` [GH-30139]
 * `azurerm_virtual_network` - suppress a perpetual diff on `address_space` when using `ip_address_pool` [GH-30073]
 * `azurerm_vpn_gateway_connection` - the `shared_key` is now Optional + Computed [GH-30152]
 
