@@ -31,7 +31,6 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromImageSourceReferenc
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.source"),
-				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.linux-test-source"),
 			),
 		},
 		data.ImportStep(
@@ -49,7 +48,6 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromImageId(t *testing.
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.source"),
-				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.linux-test-source"),
 			),
 		},
 		data.ImportStep(
@@ -75,7 +73,6 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromCommunitySharedImag
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.source"),
-				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.linux-test-source"),
 			),
 		},
 		data.ImportStep(
@@ -101,7 +98,6 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromCommunitySharedImag
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.source"),
-				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.linux-test-source"),
 			),
 		},
 		data.ImportStep(
@@ -127,7 +123,6 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromSharedImageGallery(
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.source"),
-				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.linux-test-source"),
 			),
 		},
 		data.ImportStep(
@@ -153,7 +148,6 @@ func TestAccComputeFleet_virtualMachineProfileImage_imageFromSharedImageGalleryV
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.source"),
-				data.CheckWithClientForResource(r.generalizeVirtualMachine(), "azurerm_linux_virtual_machine.linux-test-source"),
 			),
 		},
 		data.ImportStep(

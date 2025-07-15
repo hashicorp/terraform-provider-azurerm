@@ -225,11 +225,6 @@ resource "azurerm_compute_fleet" "test" {
       }
     }
   }
-  # ignore_changes os_disk as os_disk block is not specified the API return default values for caching, delete_option, disk_size_in_gib and storage_account_type
-  # ignore_changes compute_api_version as the default value returned by API will be the latest supported computeApiVersion if it is not specified
-  lifecycle {
-    ignore_changes = [compute_api_version, virtual_machine_profile.0.os_disk]
-  }
 }
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -285,11 +280,6 @@ resource "azurerm_compute_fleet" "import" {
         }
       }
     }
-  }
-  # ignore_changes os_disk as os_disk block is not specified the API return default values for caching, delete_option, disk_size_in_gib and storage_account_type
-  # ignore_changes compute_api_version as the default value returned by API will be the latest supported computeApiVersion if it is not specified
-  lifecycle {
-    ignore_changes = [compute_api_version, virtual_machine_profile.0.os_disk]
   }
 }
 `, r.basic(data))
@@ -352,7 +342,7 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1"
+    name = "Standard_D2_v3"
   }
 
   virtual_machine_profile {
@@ -436,7 +426,7 @@ resource "azurerm_compute_fleet" "test" {
   resource_group_name         = azurerm_resource_group.test.name
   location                    = "%[3]s"
   platform_fault_domain_count = 1
-  compute_api_version         = "2023-09-01"
+  compute_api_version         = "2024-03-01"
 
   identity {
     type         = "UserAssigned"
@@ -466,7 +456,7 @@ resource "azurerm_compute_fleet" "test" {
   }
 
   vm_sizes_profile {
-    name = "Standard_DS1"
+    name = "Standard_D2_v3"
   }
 
   virtual_machine_profile {
@@ -544,23 +534,19 @@ virtual_machine_profile {
 	}
 
 	network_interface {
-		name                            = "networkProTest"
-   	primary_network_interface_enabled 												= true
+		name                               = "networkProTest"
+   	    primary_network_interface_enabled  = true
 		ip_configuration {
-			name      = "TestIPConfiguration"
-        subnet_id = azurerm_subnet.test.id
+		name                               = "TestIPConfiguration"
+        subnet_id                          = azurerm_subnet.test.id
         primary_ip_configuration_enabled   = true
         public_ip_address {
-          name                    = "TestPublicIPConfiguration"
-          domain_name_label       = "test-domain-label"
-          idle_timeout_in_minutes = 4
-        }
+            name                    = "TestPublicIPConfiguration"
+            domain_name_label       = "test-domain-label"
+            idle_timeout_in_minutes = 4
+          }
 		}
 	}
-}
-# ignore_changes as when os_disk block is not specified the API return default values for caching, delete_option, disk_size_in_gib and storage_account_type
-lifecycle {
-	ignore_changes = [virtual_machine_profile.0.os_disk]
 }
 `
 }
@@ -570,38 +556,34 @@ func (r ComputeFleetTestResource) basicBaseWindowsVirtualMachineProfile() string
 virtual_machine_profile {
 	network_api_version = "2020-11-01"
 	source_image_reference {
-		publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2016-Datacenter-Server-Core"
-    version   = "latest"
+	  publisher = "MicrosoftWindowsServer"
+      offer     = "WindowsServer"
+      sku       = "2016-Datacenter-Server-Core"
+      version   = "latest"
 	}
 
 	os_profile {
 		windows_configuration {
-			computer_name_prefix = "testvm"
-      admin_username       = local.admin_username
-      admin_password       = local.admin_password
-		}
+		computer_name_prefix = "testvm"
+        admin_username       = local.admin_username
+        admin_password       = local.admin_password
+      }
 	}
 
 	network_interface {
 		name                            = "networkProTest"
-   	primary_network_interface_enabled 												= true
+   	    primary_network_interface_enabled 	 = true
 		ip_configuration {
-			name      = "TestIPConfiguration"
-      primary_ip_configuration_enabled   = true
-      subnet_id = azurerm_subnet.test.id
-      public_ip_address {
-        name                    = "TestPublicIPConfiguration"
-        domain_name_label       = "test-domain-label"
-        idle_timeout_in_minutes = 4
-      }
+          name                               = "TestIPConfiguration"
+          primary_ip_configuration_enabled   = true
+          subnet_id                          = azurerm_subnet.test.id
+          public_ip_address {
+            name                    = "TestPublicIPConfiguration"
+            domain_name_label       = "test-domain-label"
+            idle_timeout_in_minutes = 4
+          }
 		}
 	}
-}
-# ignore_changes as when os_disk block is not specified the API return default values for caching, delete_option, disk_size_in_gib and storage_account_type
-lifecycle {
-	ignore_changes = [virtual_machine_profile.0.os_disk]
 }
 `
 }

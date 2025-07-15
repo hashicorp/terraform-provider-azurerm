@@ -229,7 +229,7 @@ resource "azurerm_capacity_reservation" "test" {
   capacity_reservation_group_id = azurerm_capacity_reservation_group.test.id
   zone                          = "2"
   sku {
-    name     = "Standard_F2"
+    name     = "Standard_DC1s_v2"
     capacity = 2
   }
 }
@@ -238,15 +238,16 @@ resource "azurerm_compute_fleet" "test" {
   name                = "acctest-fleet-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = "%[3]s"
+  zones               = ["2"]
 
-  spot_priority_profile {
-    min_capacity     = 1
-    maintain_enabled = false
-    capacity         = 1
+  regular_priority_profile {
+    allocation_strategy = "LowestPrice"
+    capacity            = 1
+    min_capacity        = 0
   }
 
   vm_sizes_profile {
-    name = "Standard_F2"
+    name = "Standard_DC1s_v2"
   }
 
   compute_api_version = "2024-03-01"
@@ -257,7 +258,7 @@ resource "azurerm_compute_fleet" "test" {
     source_image_reference {
       publisher = "Canonical"
       offer     = "0001-com-ubuntu-server-jammy"
-      sku       = "22_04-lts"
+      sku       = "22_04-lts-gen2"
       version   = "latest"
     }
 

@@ -118,20 +118,14 @@ type IPConfigurationModel struct {
 }
 
 type PublicIPAddressModel struct {
-	Name                 string       `tfschema:"name"`
-	DeleteOption         string       `tfschema:"delete_option"`
-	DomainNameLabel      string       `tfschema:"domain_name_label"`
-	DomainNameLabelScope string       `tfschema:"domain_name_label_scope"`
-	IdleTimeoutInMinutes int64        `tfschema:"idle_timeout_in_minutes"`
-	IPTag                []IPTagModel `tfschema:"ip_tag"`
-	Version              string       `tfschema:"version"`
-	PublicIPPrefix       string       `tfschema:"public_ip_prefix_id"`
-	SkuName              string       `tfschema:"sku_name"`
-}
-
-type IPTagModel struct {
-	Type string `tfschema:"type"`
-	Tag  string `tfschema:"tag"`
+	Name                 string `tfschema:"name"`
+	DeleteOption         string `tfschema:"delete_option"`
+	DomainNameLabel      string `tfschema:"domain_name_label"`
+	DomainNameLabelScope string `tfschema:"domain_name_label_scope"`
+	IdleTimeoutInMinutes int64  `tfschema:"idle_timeout_in_minutes"`
+	Version              string `tfschema:"version"`
+	PublicIPPrefix       string `tfschema:"public_ip_prefix_id"`
+	SkuName              string `tfschema:"sku_name"`
 }
 
 type OSProfileModel struct {
@@ -363,6 +357,7 @@ func (r ComputeFleetResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
+			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
