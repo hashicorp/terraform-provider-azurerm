@@ -296,8 +296,9 @@ resource "azurerm_vpn_gateway_connection" "test" {
   vpn_gateway_id     = azurerm_vpn_gateway.test.id
   remote_vpn_site_id = azurerm_vpn_site.test.id
   vpn_link {
-    name             = "link1"
-    vpn_site_link_id = azurerm_vpn_site.test.link[0].id
+    name                = "link1"
+    dpd_timeout_seconds = 30
+    vpn_site_link_id    = azurerm_vpn_site.test.link[0].id
   }
   vpn_link {
     name             = "link2"

@@ -146,6 +146,12 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 							ValidateFunc: virtualwans.ValidateVpnSiteLinkID,
 						},
 
+						"dpd_timeout_seconds": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(9, 3600),
+						},
+
 						"egress_nat_rule_ids": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
@@ -540,6 +546,10 @@ func expandVpnGatewayConnectionVpnSiteLinkConnections(input []interface{}) *[]vi
 			},
 		}
 
+		if dpdTimeoutSeconds := item["dpd_timeout_seconds"].(int); dpdTimeoutSeconds != 0 {
+			v.Properties.DpdTimeoutSeconds = pointer.To(int64(dpdTimeoutSeconds))
+		}
+
 		if egressNatRuleIds := item["egress_nat_rule_ids"].(*pluginsdk.Set).List(); len(egressNatRuleIds) != 0 {
 			v.Properties.EgressNatRules = expandVpnGatewayConnectionNatRuleIds(egressNatRuleIds)
 		}
@@ -588,6 +598,7 @@ func flattenVpnGatewayConnectionVpnSiteLinkConnections(input *[]virtualwans.VpnS
 
 		output = append(output, map[string]interface{}{
 			"name":                                  pointer.From(item.Name),
+			"dpd_timeout_seconds":                   int(pointer.From(props.DpdTimeoutSeconds)),
 			"egress_nat_rule_ids":                   flattenVpnGatewayConnectionNatRuleIds(props.EgressNatRules),
 			"ingress_nat_rule_ids":                  flattenVpnGatewayConnectionNatRuleIds(props.IngressNatRules),
 			"vpn_site_link_id":                      vpnSiteLinkId,
