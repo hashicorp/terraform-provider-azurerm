@@ -157,7 +157,6 @@ func (r ManagedRedisDatabaseResource) Exists(ctx context.Context, client *client
 }
 
 func (r ManagedRedisDatabaseResource) template(data acceptance.TestData) string {
-	// The location is hardcoded because some features are not currently available in all regions
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -165,7 +164,26 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-managedRedis-%[1]d"
-  location = "%[2]s"
+  location = "eastus" # Hardcoded because feature not available in all regions
+}
+
+resource "azurerm_managed_redis_cluster" "test" {
+  name                = "acctest-rec1-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "Balanced_B3"
+}`, data.RandomInteger)
+}
+
+func (r ManagedRedisDatabaseResource) templateThreeClusters(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-managedRedis-%[1]d"
+  location = "eastus" # Hardcoded because feature not available in all regions
 }
 
 resource "azurerm_managed_redis_cluster" "test" {
@@ -186,7 +204,7 @@ resource "azurerm_managed_redis_cluster" "test2" {
   location            = azurerm_resource_group.test.location
   sku_name            = "Balanced_B3"
 }
-`, data.RandomInteger, "eastus")
+`, data.RandomInteger)
 }
 
 func (r ManagedRedisDatabaseResource) basic(data acceptance.TestData) string {
@@ -267,7 +285,7 @@ resource "azurerm_managed_redis_database" "test" {
 
   linked_database_group_nickname = "tftestGeoGroup"
 }
-`, r.template(data))
+`, r.templateThreeClusters(data))
 }
 
 func (r ManagedRedisDatabaseResource) geoDatabaseOtherEvictionPolicy(data acceptance.TestData) string {
@@ -288,7 +306,7 @@ resource "azurerm_managed_redis_database" "test" {
 
   linked_database_group_nickname = "tftestGeoGroup"
 }
-`, r.template(data))
+`, r.templateThreeClusters(data))
 }
 
 func (r ManagedRedisDatabaseResource) unlinkDatabase(data acceptance.TestData) string {
@@ -308,7 +326,7 @@ resource "azurerm_managed_redis_database" "test" {
 
   linked_database_group_nickname = "tftestGeoGroup"
 }
-`, r.template(data))
+`, r.templateThreeClusters(data))
 }
 
 func (r ManagedRedisDatabaseResource) geoDatabasewithModuleEnabled(data acceptance.TestData) string {
@@ -332,7 +350,7 @@ resource "azurerm_managed_redis_database" "test" {
 
   linked_database_group_nickname = "tftestGeoGroup"
 }
-`, r.template(data))
+`, r.templateThreeClusters(data))
 }
 
 func (r ManagedRedisDatabaseResource) geoDatabasewithRedisJsonModuleEnabled(data acceptance.TestData) string {
@@ -356,5 +374,5 @@ resource "azurerm_managed_redis_database" "test" {
 
   linked_database_group_nickname = "tftestGeoGroup"
 }
-`, r.template(data))
+`, r.templateThreeClusters(data))
 }
