@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -21,9 +20,6 @@ import (
 type RedisEnterpriseDatabaseResource struct{}
 
 func TestAccRedisEnterpriseDatabase_basic(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skipf("Skipping since `azurerm_redis_enterprise_database` is deprecated and will be removed in 5.0")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
 	r := RedisEnterpriseDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -38,9 +34,6 @@ func TestAccRedisEnterpriseDatabase_basic(t *testing.T) {
 }
 
 func TestAccRedisEnterpriseDatabase_requiresImport(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skipf("Skipping since `azurerm_redis_enterprise_database` is deprecated and will be removed in 5.0")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
 	r := RedisEnterpriseDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -55,9 +48,6 @@ func TestAccRedisEnterpriseDatabase_requiresImport(t *testing.T) {
 }
 
 func TestAccRedisEnterpriseDatabase_complete(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skipf("Skipping since `azurerm_redis_enterprise_database` is deprecated and will be removed in 5.0")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
 	r := RedisEnterpriseDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -72,9 +62,6 @@ func TestAccRedisEnterpriseDatabase_complete(t *testing.T) {
 }
 
 func TestAccRedisEnterpriseDatabase_geoDatabase(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skipf("Skipping since `azurerm_redis_enterprise_database` is deprecated and will be removed in 5.0")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
 	r := RedisEnterpriseDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -89,9 +76,6 @@ func TestAccRedisEnterpriseDatabase_geoDatabase(t *testing.T) {
 }
 
 func TestAccRedisEnterpriseDatabase_geoDatabaseOtherEvictionPolicy(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skipf("Skipping since `azurerm_redis_enterprise_database` is deprecated and will be removed in 5.0")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
 	r := RedisEnterpriseDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -106,9 +90,6 @@ func TestAccRedisEnterpriseDatabase_geoDatabaseOtherEvictionPolicy(t *testing.T)
 }
 
 func TestAccRedisEnterpriseDatabase_geoDatabaseModule(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skipf("Skipping since `azurerm_redis_enterprise_database` is deprecated and will be removed in 5.0")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
 	r := RedisEnterpriseDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -123,9 +104,6 @@ func TestAccRedisEnterpriseDatabase_geoDatabaseModule(t *testing.T) {
 }
 
 func TestAccRedisEnterpriseDatabase_geoDatabaseWithRedisJsonModule(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skipf("Skipping since `azurerm_redis_enterprise_database` is deprecated and will be removed in 5.0")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
 	r := RedisEnterpriseDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -140,9 +118,6 @@ func TestAccRedisEnterpriseDatabase_geoDatabaseWithRedisJsonModule(t *testing.T)
 }
 
 func TestAccRedisEnterpriseDatabase_unlinkDatabase(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skipf("Skipping since `azurerm_redis_enterprise_database` is deprecated and will be removed in 5.0")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_database", "test")
 	r := RedisEnterpriseDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{

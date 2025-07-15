@@ -11,7 +11,7 @@ description: |-
 
 Use this data source to access information about an existing Redis Enterprise Database
 
-~> **Note:** This data source has been deprecated in favor of [azurerm_managed_redis_database](managed_redis_database.html) and will be removed in 5.0. The new data source is designed to be backward compatible. Existing configuration can be migrated by changing data source type to `azurerm_managed_redis_database`.
+~> **Note:** This data source has been deprecated in favor of [azurerm_managed_redis_database](managed_redis_database.html). The new data source is designed to be backward compatible. Existing configuration can be migrated by changing data source type to `azurerm_managed_redis_database`.
 
 ## Example Usage
 

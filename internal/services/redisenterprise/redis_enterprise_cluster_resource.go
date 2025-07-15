@@ -30,7 +30,7 @@ import (
 
 func resourceRedisEnterpriseCluster() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
-		DeprecationMessage: "The `azurerm_redis_enterprise_cluster` resource has been deprecated in favor of `azurerm_managed_redis_cluster` and will be removed in v5.0 of the AzureRM Provider",
+		DeprecationMessage: "The `azurerm_redis_enterprise_cluster` resource has been deprecated in favor of `azurerm_managed_redis_cluster`",
 
 		Create: resourceRedisEnterpriseClusterCreate,
 		Read:   resourceRedisEnterpriseClusterRead,

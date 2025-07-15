@@ -13,7 +13,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -21,9 +20,6 @@ import (
 type RedisEnterpriseClusterResource struct{}
 
 func TestAccRedisEnterpriseCluster_basic(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skipf("Skipping since `azurerm_redis_enterprise_cluster` is deprecated and will be removed in 5.0")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_cluster", "test")
 	r := RedisEnterpriseClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -38,9 +34,6 @@ func TestAccRedisEnterpriseCluster_basic(t *testing.T) {
 }
 
 func TestAccRedisEnterpriseCluster_requiresImport(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skipf("Skipping since `azurerm_redis_enterprise_cluster` is deprecated and will be removed in 5.0")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_cluster", "test")
 	r := RedisEnterpriseClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -55,9 +48,6 @@ func TestAccRedisEnterpriseCluster_requiresImport(t *testing.T) {
 }
 
 func TestAccRedisEnterpriseCluster_complete(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skipf("Skipping since `azurerm_redis_enterprise_cluster` is deprecated and will be removed in 5.0")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_cluster", "test")
 	r := RedisEnterpriseClusterResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -73,9 +63,6 @@ func TestAccRedisEnterpriseCluster_complete(t *testing.T) {
 }
 
 func TestAccRedisEnterpriseCluster_update(t *testing.T) {
-	if features.FivePointOh() {
-		t.Skipf("Skipping since `azurerm_redis_enterprise_cluster` is deprecated and will be removed in 5.0")
-	}
 	data := acceptance.BuildTestData(t, "azurerm_redis_enterprise_cluster", "test")
 	r := RedisEnterpriseClusterResource{}
 
