@@ -101,7 +101,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the MongoDB Cluster.
 
-* `version` - (Optional) The version for the MongoDB Cluster. Possibles values are `5.0`, `6.0` and `7.0`.
+* `version` - (Optional) The version for the MongoDB Cluster. Possibles values are `5.0`, `6.0`, `7.0` and `8.0`.
 
 ## Attributes Reference
 
