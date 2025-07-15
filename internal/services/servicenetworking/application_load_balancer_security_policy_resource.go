@@ -29,10 +29,13 @@ type SecurityPoliciesModel struct {
 func (f SecurityPoliciesResource) Arguments() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,62}[a-zA-Z0-9])?$`), "`name` must begin with a letter or number, end with a letter and number, and must be between 1 and 64 characters long and can only contain letters, numbers, underscores(_), periods(.), and hyphens(-)."),
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,62}[a-zA-Z0-9])?$`),
+				"`name` must begin with a letter or number, end with a letter and number, and must be between 1 and 64 characters long and can only contain letters, numbers, underscores(_), periods(.), and hyphens(-).",
+			),
 		},
 
 		"application_load_balancer_id": commonschema.ResourceIDReferenceRequiredForceNew(&securitypoliciesinterface.TrafficControllerId{}),
@@ -130,7 +133,12 @@ func (f SecurityPoliciesResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				if prop := model.Properties; prop != nil {
 					if wafPolicy := prop.WafPolicy; wafPolicy != nil {
-						state.WebApplicationFirewallPolicyId = wafPolicy.Id
+						webApplicationFirewallPolicyId, err := webapplicationfirewallpolicies.ParseApplicationGatewayWebApplicationFirewallPolicyIDInsensitively(wafPolicy.Id)
+						if err != nil {
+							return err
+						}
+
+						state.WebApplicationFirewallPolicyId = webApplicationFirewallPolicyId.ID()
 					}
 				}
 			}

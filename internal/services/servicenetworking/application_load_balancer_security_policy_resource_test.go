@@ -53,7 +53,7 @@ func (r ApplicationLoadBalancerSecurityPoliciesResource) Exists(ctx context.Cont
 
 	resp, err := clients.ServiceNetworking.SecurityPoliciesInterface.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %q: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 	return pointer.To(resp.Model != nil), nil
 }
