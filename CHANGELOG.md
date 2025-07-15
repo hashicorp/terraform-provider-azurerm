@@ -12,6 +12,7 @@ FEATURES:
 
 BUG FIXES:
 * `azurerm_virtual_network` - suppress a perpetual diff on `address_space` when using `ip_address_pool` [GH-30073]
+* `azurerm_vpn_gateway_connection` - the `shared_key` is now Optional + Computed [GH-30152]
 
 ## 4.36.0 (July 10, 2025)
 
