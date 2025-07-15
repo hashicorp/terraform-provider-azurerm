@@ -193,8 +193,10 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 						},
 
 						"shared_key": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							// NOTE: O+C the API generates a key for the user if not supplied
+							Computed:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
