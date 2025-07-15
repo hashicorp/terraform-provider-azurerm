@@ -82,7 +82,7 @@ func TestAccPostgresqlFlexibleServerVirtualEndpoint_crossRegion(t *testing.T) {
 }
 
 func TestAccPostgresqlFlexibleServerVirtualEndpoint_crossSubscription(t *testing.T) {
-	t.Skip("Skipping: cross subscription replication is non-standard operation and need to add the subscriptions to a service whitelist")
+	t.Skip("Skipping: cross subscription replication is non-standard operation and need to add the subscriptions to a service allow list")
 	altSubscription := getAltSubscription()
 
 	if altSubscription == nil {
@@ -523,14 +523,14 @@ data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"
-  location = "westus2" // force region due to service whitelisting
+  location = "westus2" // force region due to service allow list
 }
 
 resource "azurerm_resource_group" "alt" {
   provider = azurerm-alt
 
   name     = "acctestRG-alt-%[1]d"
-  location = "eastus2" // force region due to service whitelisting
+  location = "eastus2" // force region due to service allow list
 }
 
 resource "azurerm_postgresql_flexible_server" "test" {
