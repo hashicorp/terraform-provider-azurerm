@@ -357,14 +357,6 @@ A `ip_configuration` block supports the following:
 
 ---
 
-A `ip_tag` block supports the following:
-
-* `tag` - (Required) The IP tag associated with the public IP. Changing this forces a new resource to be created.
-
-* `type` - (Required) The type of IP tag. Changing this forces a new resource to be created.
-
----
-
 A `linux_configuration` block supports the following:
 
 * `admin_username` - (Required) Specifies the name of the administrator account. Changing this forces a new resource to be created.
@@ -446,8 +438,6 @@ A `public_ip_address` block supports the following:
 * `domain_name_label_scope` - (Optional) The domain name label scope. Possible values are `NoReuse`, `ResourceGroupReuse`, `SubscriptionReuse` and `TenantReuse`. Changing this forces a new resource to be created.
 
 * `idle_timeout_in_minutes` - (Optional) The idle timeout in minutes for the public IP address. Possible values are in the range `4` to `32`. Changing this forces a new resource to be created.
-
-* `ip_tag` - (Optional) One or more `ip_tag` blocks as defined above. Changing this forces a new resource to be created.
 
 * `public_ip_prefix_id` - (Optional) The ID of the public IP address prefix from where public IP addresses should be allocated. Changing this forces a new resource to be created.
 
