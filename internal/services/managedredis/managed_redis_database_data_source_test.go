@@ -109,7 +109,7 @@ resource "azurerm_managed_redis_cluster" "test" {
 resource "azurerm_managed_redis_database" "test" {
   name                               = "default"
   cluster_id                         = azurerm_managed_redis_cluster.test.id
-	access_keys_authentication_enabled = true
+  access_keys_authentication_enabled = true
 }
 
 data "azurerm_managed_redis_database" "test" {
