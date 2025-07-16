@@ -1059,7 +1059,7 @@ resource "azurerm_private_endpoint" "acr_private_endpoint" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   subnet_id           = azurerm_subnet.vnet-nodepool.id
-  
+
   private_service_connection {
     name                           = "acctest-sc-acr"
     private_connection_resource_id = azurerm_container_registry.registry.id
@@ -1073,7 +1073,7 @@ resource "azurerm_private_endpoint" "acr_private_endpoint" {
     name = "acctest-dns-group-acr"
     private_dns_zone_ids = [
       azurerm_private_dns_zone.acr_private_dns_zone.id
-    ]  
+    ]
   }
 }
 
@@ -1142,7 +1142,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   identity {
-    type = "UserAssigned"
+    type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.aks.id]
   }
 
