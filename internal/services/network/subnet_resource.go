@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/serviceendpointpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/ipampools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/subnets"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -141,6 +142,17 @@ func resourceSubnet() *pluginsdk.Resource {
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				DiffSuppressFunc: func(_, old, new string, d *schema.ResourceData) bool {
+					// If `ip_address_pool` is used instead of `address_space` there is a perpetual diff
+					// due to the API returning a CIDR range provisioned by the IP Address Management Pool.
+					// Note: using `GetRawConfig` to avoid suppressing a diff if a user updates from `ip_address_pool` to `address_space`.
+					rawIpAddressPool := d.GetRawConfig().AsValueMap()["ip_address_pool"]
+					if !rawIpAddressPool.IsNull() && len(rawIpAddressPool.AsValueSlice()) > 0 {
+						return true
+					}
+
+					return false
 				},
 			},
 

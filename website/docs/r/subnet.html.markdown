@@ -63,7 +63,7 @@ The following arguments are supported:
 
 -> **Note:** Currently only a single address prefix can be set as the [Multiple Subnet Address Prefixes Feature](https://github.com/Azure/azure-cli/issues/18194#issuecomment-880484269) is not yet in public preview or general availability.
 
--> **Note:** Exactly one of `address_prefixes` or `ip_address_pool` must be specified. If `address_prefixes` is not specified but you encounter a diff, this might indicate the `address_prefixes` is allocated from the IP Address Pool. If this is the case, you may need to add this to [ignore_changes](https://developer.hashicorp.com/terraform/language/meta-arguments/lifecycle#ignore_changes).
+-> **Note:** Exactly one of `address_prefixes` or `ip_address_pool` must be specified.
 
 * `delegation` - (Optional) One or more `delegation` blocks as defined below.
 

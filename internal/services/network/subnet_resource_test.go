@@ -835,10 +835,6 @@ resource "azurerm_virtual_network" "test" {
     id                     = azurerm_network_manager_ipam_pool.test.id
     number_of_ip_addresses = "65535"
   }
-
-  lifecycle {
-    ignore_changes = [address_space]
-  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -848,10 +844,6 @@ resource "azurerm_subnet" "test" {
   ip_address_pool {
     id                     = azurerm_network_manager_ipam_pool.test.id
     number_of_ip_addresses = "10"
-  }
-
-  lifecycle {
-    ignore_changes = [address_prefixes]
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -898,10 +890,6 @@ resource "azurerm_virtual_network" "test" {
     id                     = azurerm_network_manager_ipam_pool.test.id
     number_of_ip_addresses = "65535"
   }
-
-  lifecycle {
-    ignore_changes = [address_space]
-  }
 }
 
 resource "azurerm_subnet" "test" {
@@ -911,10 +899,6 @@ resource "azurerm_subnet" "test" {
   ip_address_pool {
     id                     = azurerm_network_manager_ipam_pool.test.id
     number_of_ip_addresses = "50"
-  }
-
-  lifecycle {
-    ignore_changes = [address_prefixes]
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
@@ -960,10 +944,6 @@ resource "azurerm_virtual_network" "test" {
   ip_address_pool {
     id                     = azurerm_network_manager_ipam_pool.test.id
     number_of_ip_addresses = "65535"
-  }
-
-  lifecycle {
-    ignore_changes = [address_space]
   }
 }
 
@@ -1018,11 +998,8 @@ resource "azurerm_virtual_network" "test" {
     id                     = azurerm_network_manager_ipam_pool.test.id
     number_of_ip_addresses = "5192296858534827628530496329220096"
   }
-
-  lifecycle {
-    ignore_changes = [address_space]
-  }
 }
+
 resource "azurerm_subnet" "test" {
   name                 = "acctestsubnet%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
@@ -1030,10 +1007,6 @@ resource "azurerm_subnet" "test" {
   ip_address_pool {
     id                     = azurerm_network_manager_ipam_pool.test.id
     number_of_ip_addresses = "18446744073709551616"
-  }
-
-  lifecycle {
-    ignore_changes = [address_prefixes]
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
