@@ -327,7 +327,7 @@ resource "azurerm_kubernetes_cluster_extension" "test" {
 func (r KubernetesFluxConfigurationResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-				%s
+%s
 
 resource "azurerm_kubernetes_flux_configuration" "test" {
   name       = "acctest-fc-%d"
@@ -381,7 +381,7 @@ resource "azurerm_kubernetes_flux_configuration" "import" {
 func (r KubernetesFluxConfigurationResource) privateGitRepositoryWithHttpKey(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-				%s
+%s
 
 resource "azurerm_kubernetes_flux_configuration" "test" {
   name       = "acctest-fc-%d"
@@ -460,7 +460,7 @@ func (r KubernetesFluxConfigurationResource) privateRepositoryWithSshKey(data ac
 		knownHostsContent = fmt.Sprintf(`ssh_known_hosts_base64 = "%s"`, knownHosts)
 	}
 	return fmt.Sprintf(`
-				%s
+%s
 
 resource "azurerm_kubernetes_flux_configuration" "test" {
   name       = "acctest-fc-%d"
@@ -811,7 +811,7 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
 func (r KubernetesFluxConfigurationResource) kustomizationNameDuplicated(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-				%s
+%s
 
 resource "azurerm_kubernetes_flux_configuration" "test" {
   name       = "acctest-fc-%d"
@@ -843,7 +843,7 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
 func (r KubernetesFluxConfigurationResource) kustomizationPostBuild(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-				%s
+%s
 
 resource "azurerm_kubernetes_flux_configuration" "test" {
   name       = "acctest-fc-%d"
@@ -883,7 +883,7 @@ resource "azurerm_kubernetes_flux_configuration" "test" {
 func (r KubernetesFluxConfigurationResource) kustomizationUpdated(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-				%s
+%s
 
 resource "azurerm_kubernetes_flux_configuration" "test" {
   name       = "acctest-fc-%d"
