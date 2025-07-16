@@ -711,7 +711,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -1009,7 +1009,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -1264,7 +1264,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -1314,7 +1314,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -1382,7 +1382,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -1438,8 +1438,15 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctest"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
+}
+
+# This data source is the only way to get the data plane IDs of the containers without using the deprecated
+# storage_account_name argument in azurerm_storage_container
+data "azurerm_storage_containers" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+  depends_on         = [azurerm_storage_container.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -1721,7 +1728,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -1774,7 +1781,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -1826,7 +1833,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -1908,7 +1915,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
     password = "TerrAform123!"
   }
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -1991,7 +1998,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
     password = "TerrAform123!"
   }
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -2053,7 +2060,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -2115,7 +2122,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -2166,7 +2173,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
     password = "TerrAform123!"
   }
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -2215,7 +2222,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
     password = "TerrAform123!"
   }
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -2277,7 +2284,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -2351,7 +2358,7 @@ resource "azurerm_hdinsight_spark_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
