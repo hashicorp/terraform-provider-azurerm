@@ -102,7 +102,7 @@ func (r ManagerIpamPoolDataSource) Read() sdk.ResourceFunc {
 			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
-					return fmt.Errorf("%s does not exist", id)
+					return fmt.Errorf("%s was not found", id)
 				}
 
 				return fmt.Errorf("retrieving %s: %+v", id, err)
