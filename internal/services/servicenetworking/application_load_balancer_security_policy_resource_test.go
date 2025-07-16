@@ -30,6 +30,57 @@ func TestAccApplicationLoadBalancerSecurityPolicies_basic(t *testing.T) {
 	})
 }
 
+func TestAccApplicationLoadBalancerSecurityPolicies_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer_security_policy", "test")
+
+	r := ApplicationLoadBalancerSecurityPoliciesResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApplicationLoadBalancerSecurityPolicies_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer_security_policy", "test")
+
+	r := ApplicationLoadBalancerSecurityPoliciesResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccApplicationLoadBalancerSecurityPolicies_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_application_load_balancer_security_policy", "test")
 
@@ -102,7 +153,49 @@ provider "azurerm" {
 resource "azurerm_application_load_balancer_security_policy" "test" {
   name                               = "acct-albsp-%d"
   application_load_balancer_id       = azurerm_application_load_balancer.test.id
+  location                           = azurerm_resource_group.test.location
   web_application_firewall_policy_id = azurerm_web_application_firewall_policy.test.id
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ApplicationLoadBalancerSecurityPoliciesResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_application_load_balancer_security_policy" "test" {
+  name                               = "acct-albsp-%d"
+  application_load_balancer_id       = azurerm_application_load_balancer.test.id
+  location                           = azurerm_resource_group.test.location
+  web_application_firewall_policy_id = azurerm_web_application_firewall_policy.test.id
+  tags = {
+    test = "update"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ApplicationLoadBalancerSecurityPoliciesResource) complete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_application_load_balancer_security_policy" "test" {
+  name                               = "acct-albsp-%d"
+  application_load_balancer_id       = azurerm_application_load_balancer.test.id
+  location                           = azurerm_resource_group.test.location
+  web_application_firewall_policy_id = azurerm_web_application_firewall_policy.test.id
+  tags = {
+    foo  = "bar"
+    test = "complete"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -114,6 +207,7 @@ func (r ApplicationLoadBalancerSecurityPoliciesResource) requiresImport(data acc
 resource "azurerm_application_load_balancer_security_policy" "import" {
   name                               = azurerm_application_load_balancer_security_policy.test.name
   application_load_balancer_id       = azurerm_application_load_balancer_security_policy.test.application_load_balancer_id
+  location                           = azurerm_application_load_balancer_security_policy.test.location
   web_application_firewall_policy_id = azurerm_application_load_balancer_security_policy.test.web_application_firewall_policy_id
 }
 `, r.basic(data))

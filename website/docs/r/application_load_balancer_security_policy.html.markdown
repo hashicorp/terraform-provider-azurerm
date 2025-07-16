@@ -42,6 +42,7 @@ resource "azurerm_web_application_firewall_policy" "example" {
 resource "azurerm_application_load_balancer_security_policy" "example" {
   name                               = "example-albsp"
   application_load_balancer_id       = azurerm_application_load_balancer.example.id
+  location                           = azurerm_resource_group.example.location
   web_application_firewall_policy_id = azurerm_web_application_firewall_policy.example.id
 }
 ```
@@ -55,6 +56,12 @@ The following arguments are supported:
 * `application_load_balancer_id` - (Required) The ID of the Application Gateway for Containers. Changing this forces a new Application Gateway for Containers Security Policy to be created.
 
 * `web_application_firewall_policy_id` - (Required) The ID of the Web Application Firewall Policy. Changing this forces a new Application Gateway for Containers Security Policy to be created.
+
+* `location` - (Required) The Azure Region where the Application Gateway for Containers Security Policy should exist. Changing this forces a new resource to be created.
+
+---
+
+* `tags` - (Optional) A mapping of tags which should be assigned to the Application Gateway for Containers Security Policy.
 
 ## Attributes Reference
 
