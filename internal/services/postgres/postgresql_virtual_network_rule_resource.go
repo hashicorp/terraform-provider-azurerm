@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/virtualnetworkrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -41,7 +40,7 @@ func resourcePostgreSQLVirtualNetworkRule() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		DeprecationMessage: features.DeprecatedInFivePointOh("Azure Database for PostgreSQL Single Server and its sub resources are scheduled for retirement by 2025-03-28 and will migrate to using Azure Database for PostgreSQL Flexible Server: https://techcommunity.microsoft.com/blog/adforpostgresql/retiring-azure-database-for-postgresql-single-server-in-2025/3783783. The `azurerm_postgresql_virtual_network_rule` resource is deprecated and will be removed in v5.0 of the AzureRM Provider"),
+		DeprecationMessage: "The `azurerm_postgresql_virtual_network_rule` resource is deprecated and will be removed in v5.0 of the AzureRM Provider. Azure Database for PostgreSQL Single Server and its sub resources have been retired as of 2025-03-28. For more information, see https://techcommunity.microsoft.com/blog/adforpostgresql/retiring-azure-database-for-postgresql-single-server-in-2025/3783783.",
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
