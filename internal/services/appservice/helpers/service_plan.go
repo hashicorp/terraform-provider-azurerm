@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const (
@@ -20,6 +20,8 @@ const (
 	ServicePlanTypeElastic         = "elastic"
 	ServicePlanTypeIsolated        = "isolated"
 	ServicePlanTypeAppPlan         = "app"
+	ServicePlanTypePremium         = "premium"
+	ServicePlanTypeWorkflow        = "workflow"
 )
 
 var appServicePlanSkus = []string{
@@ -160,9 +162,34 @@ func PlanIsAppPlan(input *string) bool {
 	return false
 }
 
+func PlanIsWorkflow(input *string) bool {
+	if input == nil {
+		return false
+	}
+	for _, v := range workflowSkus {
+		if strings.EqualFold(*input, v) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func PlanTypeFromSku(input string) string {
+	if PlanIsPremium(input) {
+		return ServicePlanTypePremium
+	}
+
+	if PlanIsWorkflow(&input) {
+		return ServicePlanTypeWorkflow
+	}
+
 	if PlanIsConsumption(&input) {
 		return ServicePlanTypeConsumption
+	}
+
+	if PlanIsFlexConsumption(&input) {
+		return ServicePlanTypeFlexConsumption
 	}
 
 	if PlanIsElastic(&input) {
@@ -178,6 +205,14 @@ func PlanTypeFromSku(input string) string {
 	}
 
 	return "unknown"
+}
+
+func PlanSupportsZoneBalancing(input string) bool {
+	switch PlanTypeFromSku(input) {
+	case ServicePlanTypePremium, ServicePlanTypeElastic, ServicePlanTypeWorkflow, ServicePlanTypeConsumption, ServicePlanTypeFlexConsumption, ServicePlanTypeIsolated:
+		return true
+	}
+	return false
 }
 
 // ServicePlanInfoForApp returns the OS type and Service Plan SKU for a given App Service Resource
@@ -203,12 +238,12 @@ func ServicePlanInfoForApp(ctx context.Context, metadata sdk.ResourceMetaData, i
 		return nil, nil, fmt.Errorf("reading Service Plan for %s: %+v", id, err)
 	}
 
-	osType = utils.String("windows")
+	osType = pointer.To("windows")
 	if strings.Contains(strings.ToLower(*sp.Model.Kind), "linux") {
-		osType = utils.String("linux")
+		osType = pointer.To("linux")
 	}
 
-	planSku = utils.String("")
+	planSku = pointer.To("")
 	if sku := sp.Model.Sku; sku != nil {
 		planSku = sku.Name
 	}
@@ -239,12 +274,12 @@ func ServicePlanInfoForAppSlot(ctx context.Context, metadata sdk.ResourceMetaDat
 		return nil, nil, fmt.Errorf("reading Service Plan for %s: %+v", id, err)
 	}
 
-	osType = utils.String("windows")
+	osType = pointer.To("windows")
 	if strings.Contains(strings.ToLower(*sp.Model.Kind), "linux") {
-		osType = utils.String("linux")
+		osType = pointer.To("linux")
 	}
 
-	planSku = utils.String("")
+	planSku = pointer.To("")
 	if sku := sp.Model.Sku; sku != nil {
 		planSku = sku.Name
 	}

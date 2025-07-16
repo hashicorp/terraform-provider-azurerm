@@ -23,16 +23,15 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ServicePlanResource struct{}
 
-var _ sdk.ResourceWithUpdate = ServicePlanResource{}
-
-var _ sdk.ResourceWithStateMigration = ServicePlanResource{}
-
-var _ sdk.ResourceWithCustomizeDiff = ServicePlanResource{}
+var (
+	_ sdk.ResourceWithUpdate         = ServicePlanResource{}
+	_ sdk.ResourceWithStateMigration = ServicePlanResource{}
+	_ sdk.ResourceWithCustomizeDiff  = ServicePlanResource{}
+)
 
 type OSType string
 
@@ -170,7 +169,7 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("retreiving %s: %v", id, err)
+				return fmt.Errorf("retrieving %s: %v", id, err)
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
@@ -196,7 +195,7 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("App Service Environment based Service Plans can only be used with Isolated SKUs")
 				}
 				appServicePlan.Properties.HostingEnvironmentProfile = &appserviceplans.HostingEnvironmentProfile{
-					Id: utils.String(servicePlan.AppServiceEnvironmentId),
+					Id: pointer.To(servicePlan.AppServiceEnvironmentId),
 				}
 			}
 
@@ -239,7 +238,7 @@ func (r ServicePlanResource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(servicePlan.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
-				return fmt.Errorf("reading %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			state := ServicePlanModel{
@@ -335,7 +334,7 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
-				return fmt.Errorf("reading %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
 			model := *existing.Model
@@ -345,7 +344,7 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("sku_name") {
-				model.Sku.Name = utils.String(state.Sku)
+				model.Sku.Name = pointer.To(state.Sku)
 			}
 
 			if metadata.ResourceData.HasChange("tags") {
@@ -414,19 +413,21 @@ func (r ServicePlanResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
-			// Specifying the `zone_balancing_enabled` as `true`, SKU tier requires Premium.
+			// Only specific SKUs support zone balancing/redundancy
 			zoneBalancing := rd.Get("zone_balancing_enabled").(bool)
 			if zoneBalancing {
-				if !strings.HasPrefix(servicePlanSku, "P") {
-					return fmt.Errorf("`zone_balancing_enabled` cannot be set to `true` when sku tier is not Premium")
+				if !helpers.PlanSupportsZoneBalancing(servicePlanSku) {
+					return fmt.Errorf("`zone_balancing_enabled` cannot be set to `true` when sku tier is `%s`", servicePlanSku)
 				}
 			}
 
-			old, new := rd.GetChange("zone_balancing_enabled")
-			if old.(bool) != new.(bool) {
-				// `zone_balancing_enabled` can be disabled and enabling it requires the capacity of sku to be greater than `1`.
-				if !old.(bool) && new.(bool) && rd.Get("worker_count").(int) < 2 {
-					metadata.ResourceDiff.ForceNew("zone_balancing_enabled")
+			o, n := rd.GetChange("zone_balancing_enabled")
+			if o.(bool) != n.(bool) {
+				// Changing `zone_balancing_enabled` from `false` to `true` requires the capacity of the sku to be greater than `1`.
+				if !o.(bool) && n.(bool) && rd.Get("worker_count").(int) < 2 {
+					if err := metadata.ResourceDiff.ForceNew("zone_balancing_enabled"); err != nil {
+						return err
+					}
 				}
 			}
 
