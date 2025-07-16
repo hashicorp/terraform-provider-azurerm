@@ -675,8 +675,6 @@ resource "azuread_service_principal" "test" {
 }
 
 resource "azuread_service_principal_password" "test" {
-  service_principal_id = azuread_service_principal.test.id
-}
   service_principal_id = azuread_service_principal.test.object_id
 }
 
