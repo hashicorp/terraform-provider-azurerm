@@ -11,6 +11,7 @@ ENHANCEMENTS:
 * `azurerm_storage_account` - add support for the `provisioned_billing_model_version` property [GH-29043]
 
 FEATURES:
+* **New Data Source**: `azurerm_network_manager_ipam_pool` [GH-30145]
 
 BUG FIXES:
 * Data Source: `azurerm_virtual_machine_scale_set` - fix a panic caused by missing properties [GH-30159]
