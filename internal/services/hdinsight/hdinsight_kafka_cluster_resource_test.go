@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type HDInsightKafkaClusterResource struct{}
@@ -618,7 +618,7 @@ func (r HDInsightKafkaClusterResource) Exists(ctx context.Context, clients *clie
 		return nil, fmt.Errorf("reading Kafka %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r HDInsightKafkaClusterResource) basic(data acceptance.TestData) string {
@@ -695,7 +695,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   storage_account_gen2 {
-    storage_resource_id          = azurerm_storage_account.gen2test.id
+    storage_account_id           = azurerm_storage_account.gen2test.id
     filesystem_id                = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
     managed_identity_resource_id = azurerm_user_assigned_identity.test.id
     is_default                   = true
@@ -803,7 +803,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   storage_account_gen2 {
-    storage_resource_id          = azurerm_storage_account.gen2test.id
+    storage_account_id           = azurerm_storage_account.gen2test.id
     filesystem_id                = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
     managed_identity_resource_id = azurerm_user_assigned_identity.test.id
     is_default                   = true
@@ -1140,7 +1140,7 @@ resource "azurerm_hdinsight_kafka_cluster" "test" {
   }
 
   storage_account {
-    storage_resource_id  = azurerm_storage_account.test.id
+    storage_account_id   = azurerm_storage_account.test.id
     storage_container_id = azurerm_storage_container.test.id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true

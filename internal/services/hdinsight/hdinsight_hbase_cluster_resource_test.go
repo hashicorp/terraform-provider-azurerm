@@ -721,7 +721,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
   }
 
   storage_account_gen2 {
-    storage_resource_id          = azurerm_storage_account.gen2test.id
+    storage_account_id           = azurerm_storage_account.gen2test.id
     filesystem_id                = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
     managed_identity_resource_id = azurerm_user_assigned_identity.test.id
     is_default                   = true
@@ -1271,7 +1271,7 @@ resource "azurerm_hdinsight_hbase_cluster" "test" {
 
   storage_account {
     storage_container_id = azurerm_storage_container.test.id
-    storage_resource_id  = azurerm_storage_account.test.id
+    storage_account_id   = azurerm_storage_account.test.id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -1335,8 +1335,9 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_container" "test" {
-  name                  = "acctest"
-  storage_account_id    = azurerm_storage_account.test.id
+  name = "acctest"
+  # TODO intentionally using the deprecated argument
+  storage_account_name  = azurerm_storage_account.test.name
   container_access_type = "private"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)

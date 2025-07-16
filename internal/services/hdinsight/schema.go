@@ -871,7 +871,7 @@ func SchemaHDInsightsStorageAccounts() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					ValidateFunc: validation.IsURLWithPath,
 				},
 				"storage_account_id": {
 					Type:         pluginsdk.TypeString,
@@ -1176,19 +1176,26 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 		v := vs.(map[string]interface{})
 
 		storageAccountKey := v["storage_account_key"].(string)
-		storageContainerId := v["storage_container_id"].(string)
+		storageContainerID := v["storage_container_id"].(string)
+		storageAccountId := v["storage_account_id"].(string) // Optional property, Azure API accepts an empty string
 		isDefault := v["is_default"].(bool)
 
-		uri, err := url.Parse(storageContainerId)
+		if !features.FivePointOh() {
+			if v["storage_resource_id"].(string) != "" {
+				storageAccountId = v["storage_resource_id"].(string)
+			}
+		}
+		uri, err := url.Parse(storageContainerID)
 		if err != nil {
-			return nil, nil, fmt.Errorf("parsing %q: %s", storageContainerId, err)
+			return nil, nil, fmt.Errorf("parsing %q: %s", storageContainerID, err)
 		}
 
 		result := clusters.StorageAccount{
-			Name:      pointer.To(uri.Host),
-			Container: pointer.To(strings.TrimPrefix(uri.Path, "/")),
-			Key:       pointer.To(storageAccountKey),
-			IsDefault: pointer.To(isDefault),
+			Name:       pointer.To(uri.Host),
+			ResourceId: pointer.To(storageAccountId),
+			Container:  pointer.To(strings.TrimPrefix(uri.Path, "/")),
+			Key:        pointer.To(storageAccountKey),
+			IsDefault:  pointer.To(isDefault),
 		}
 		results = append(results, result)
 	}
@@ -1196,24 +1203,24 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 	for _, vs := range gen2storageAccounts {
 		v := vs.(map[string]interface{})
 
-		filesystemId := v["filesystem_id"].(string)
-		storageAccountId := v["storage_account_id"].(string)
-		userAssignedIdentityId := v["user_assigned_identity_id"].(string)
+		filesystemID := v["filesystem_id"].(string)
+		storageAccountID := v["storage_account_id"].(string) // Optional property, Azure API accepts an empty string
+		userAssignedIdentityID := v["user_assigned_identity_id"].(string)
 
 		if !features.FivePointOh() {
 			if v["storage_resource_id"].(string) != "" {
-				storageAccountId = v["storage_resource_id"].(string)
+				storageAccountID = v["storage_resource_id"].(string)
 			}
 			if v["managed_identity_resource_id"].(string) != "" {
-				userAssignedIdentityId = v["managed_identity_resource_id"].(string)
+				userAssignedIdentityID = v["managed_identity_resource_id"].(string)
 			}
 		}
 
 		isDefault := v["is_default"].(bool)
 
-		uri, err := url.Parse(filesystemId)
+		uri, err := url.Parse(filesystemID)
 		if err != nil {
-			return nil, nil, fmt.Errorf("parsing %q: %s", filesystemId, err)
+			return nil, nil, fmt.Errorf("parsing %q: %s", filesystemID, err)
 		}
 
 		if clusterIdentity == nil {
@@ -1223,15 +1230,15 @@ func ExpandHDInsightsStorageAccounts(storageAccounts []interface{}, gen2storageA
 			}
 		}
 
-		clusterIdentity.IdentityIds[userAssignedIdentityId] = identity.UserAssignedIdentityDetails{
+		clusterIdentity.IdentityIds[userAssignedIdentityID] = identity.UserAssignedIdentityDetails{
 			// intentionally empty
 		}
 
 		result := clusters.StorageAccount{
 			Name:          pointer.To(uri.Host), // https://storageaccountname.dfs.core.windows.net/filesystemname -> storageaccountname.dfs.core.windows.net
-			ResourceId:    pointer.To(storageAccountId),
+			ResourceId:    pointer.To(storageAccountID),
 			FileSystem:    pointer.To(uri.Path[1:]), // https://storageaccountname.dfs.core.windows.net/filesystemname -> filesystemname
-			MsiResourceId: pointer.To(userAssignedIdentityId),
+			MsiResourceId: pointer.To(userAssignedIdentityID),
 			IsDefault:     pointer.To(isDefault),
 		}
 		results = append(results, result)
