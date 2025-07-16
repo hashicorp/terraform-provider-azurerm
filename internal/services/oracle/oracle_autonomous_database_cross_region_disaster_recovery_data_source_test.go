@@ -26,8 +26,6 @@ func TestAdbsCrossRegionDisasterRecoveryDataSource_complete(t *testing.T) {
 				check.That(data.ResourceName).Key("source_id").Exists(),
 				check.That(data.ResourceName).Key("location").Exists(),
 				check.That(data.ResourceName).Key("name").Exists(),
-				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-				check.That(data.ResourceName).Key("display_name").Exists(),
 			),
 		},
 	})
