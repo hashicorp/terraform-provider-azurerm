@@ -1035,7 +1035,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_resource_group" "law" {
-  porivder = azurerm-alt
+  provider = azurerm-alt
 
   name     = "acctestRG-CAE-%[2]d"
   location = "%[3]s"
