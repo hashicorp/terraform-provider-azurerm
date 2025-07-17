@@ -9,7 +9,7 @@ All pull requests must be merged using the "Squash and merge" option. This ensur
 ##  Commit Message Format
 When merging a PR, the **commit message** should clearly describe the change being introduced. If the PR is correctly named (as described in [this guide](guide-opening-a-pr.md)), then the title can be used as-is. Otherwise, update the title to reflect the purpose of the PR in a way that will be meaningful in the Git history and use that as the message.
 
-The **commit description** can contain an optional changelog entry that ff included, will be automatically picked up by the changelog automation system and added to the current draft changelog PR. The format for the commit message can be found in the [Automated Changelog Guide](#automated-changelog-guide) section below.
+The **commit description** can contain an optional changelog entry that if included, will be automatically picked up by the changelog automation system and added to the current draft changelog PR. The format for the commit message can be found in the [Automated Changelog Guide](#automated-changelog-guide) section below.
 
 ### Changelog Entry Format
 
