@@ -310,7 +310,7 @@ func TestAccContainerAppEnvironment_infraResourceGroupWithoutName(t *testing.T) 
 	})
 }
 
-func TestAccContainerAppEnvironment_crossTenantLogAnalyticsWorkspace(t *testing.T) {
+func TestAccContainerAppEnvironment_crossSubscriptionLogAnalyticsWorkspace(t *testing.T) {
 	altSubscription := altSubscriptionCheck()
 
 	if altSubscription == nil {
@@ -327,7 +327,7 @@ func TestAccContainerAppEnvironment_crossTenantLogAnalyticsWorkspace(t *testing.
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("log_analytics_workspace_id"),
 	})
 }
 
@@ -1056,6 +1056,7 @@ resource "azurerm_container_app_environment" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
+  logs_destination           = "log-analytics"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 }
 `, r.template(data), data.RandomInteger, data.Locations.Primary, alt.tenant_id, alt.subscription_id)
