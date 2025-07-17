@@ -1025,7 +1025,7 @@ provider "azurerm" {
 provider "azurerm-alt" {
   features {}
 
-  tenant_id       = "%[3]s"
+  tenant_id       = "%[4]s"
   subscription_id = "%[5]s"
 }
 
