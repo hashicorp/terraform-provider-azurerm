@@ -622,8 +622,6 @@ func findWorkspaceResourceIDFromCustomerID(ctx context.Context, meta sdk.Resourc
 
 	subscriptionId := commonids.NewSubscriptionID(meta.Client.Account.SubscriptionId)
 
-	result := &workspaces.WorkspaceId{}
-
 	list, err := client.List(ctx, subscriptionId)
 	if err != nil {
 		return nil, err
@@ -640,7 +638,7 @@ func findWorkspaceResourceIDFromCustomerID(ctx context.Context, meta sdk.Resourc
 
 	for _, v := range *list.Model.Value {
 		if v.Properties != nil && v.Properties.CustomerId != nil && strings.EqualFold(*v.Properties.CustomerId, customerID) {
-			result, err = workspaces.ParseWorkspaceIDInsensitively(pointer.From(v.Id))
+			result, err := workspaces.ParseWorkspaceIDInsensitively(pointer.From(v.Id))
 			if err != nil {
 				return nil, err
 			}
