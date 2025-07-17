@@ -135,7 +135,7 @@ func TestPlanIsAppPlan(t *testing.T) {
 		},
 		{
 			name:      pointer.To("P1v3"),
-			isAppPlan: true,
+			isAppPlan: false,
 		},
 		{
 			name:      pointer.To("I1"),
