@@ -1,25 +1,28 @@
-## 4.37.0 (Unreleased)
-
-ENHANCEMENTS:
-* Data Source: `azurerm_virtual_machine_scale_set` - add support for the `auxiliary_mode` and `auxiliary_sku` properties [GH-30159]
-* `azurerm_vpn_gateway_connection` - add support for the `dpd_timeout_seconds` property [GH-29434]
-* `azurerm_orchestrated_virtual_machine_scale_set` - add support for `auxiliary_mode` and `auxiliary_sku`  [GH-30102]
-* `azurerm_mssql_job_step` - the `job_credential_id` and `output_target.job_credential_id` properties are now optional [GH-30031]
-* `azurerm_container_app_environment` - add support for the `identity` block [GH-29409]
-* `azurerm_eventhub` - add  support for the `retention_description` block [GH-29427]
-* `azurerm_kubernetes_cluster` - add support for the `Daily` value in the `maintenance_window_auto_upgrade.frequency` property [GH-30133]
-* `azurerm_kubernetes_flux_configuration` - add support for the `git_repository.provider` property [GH-30082]
-* `azurerm_storage_account` - add support for the `provisioned_billing_model_version` property [GH-29043]
+## 4.37.0 (July 17, 2025)
 
 FEATURES:
-* **New Data Source**: `azurerm_network_manager_ipam_pool` [GH-30145]
+
+* **New Data Source**: `azurerm_network_manager_ipam_pool` ([#30145](https://github.com/hashicorp/terraform-provider-azurerm/issues/30145))
+
+ENHANCEMENTS:
+
+* Data Source: `azurerm_virtual_machine_scale_set` - add support for the `auxiliary_mode` and `auxiliary_sku` properties ([#30159](https://github.com/hashicorp/terraform-provider-azurerm/issues/30159))
+* `azurerm_container_app_environment` - add support for the `identity` block ([#29409](https://github.com/hashicorp/terraform-provider-azurerm/issues/29409))
+* `azurerm_eventhub` - add  support for the `retention_description` block ([#29427](https://github.com/hashicorp/terraform-provider-azurerm/issues/29427))
+* `azurerm_kubernetes_cluster` - add support for the `Daily` value in the `maintenance_window_auto_upgrade.frequency` property ([#30133](https://github.com/hashicorp/terraform-provider-azurerm/issues/30133))
+* `azurerm_kubernetes_flux_configuration` - add support for the `git_repository.provider` property ([#30082](https://github.com/hashicorp/terraform-provider-azurerm/issues/30082))
+* `azurerm_mssql_job_step` - the `job_credential_id` and `output_target.job_credential_id` properties are now optional ([#30031](https://github.com/hashicorp/terraform-provider-azurerm/issues/30031))
+* `azurerm_orchestrated_virtual_machine_scale_set` - add support for `auxiliary_mode` and `auxiliary_sku`  ([#30102](https://github.com/hashicorp/terraform-provider-azurerm/issues/30102))
+* `azurerm_storage_account` - add support for the `provisioned_billing_model_version` property ([#29043](https://github.com/hashicorp/terraform-provider-azurerm/issues/29043))
+* `azurerm_vpn_gateway_connection` - add support for the `dpd_timeout_seconds` property ([#29434](https://github.com/hashicorp/terraform-provider-azurerm/issues/29434))
 
 BUG FIXES:
-* Data Source: `azurerm_virtual_machine_scale_set` - fix a panic caused by missing properties [GH-30159]
-* `azurerm_mongo_cluster` - the `create_mode` property no longer causes ForceNews on import [GH-29375]
-* `azurerm_container_app_environment` - fix import for `workload_profile` [GH-30139]
-* `azurerm_virtual_network` - suppress a perpetual diff on `address_space` when using `ip_address_pool` [GH-30073]
-* `azurerm_vpn_gateway_connection` - the `shared_key` is now Optional + Computed [GH-30152]
+
+* Data Source: `azurerm_virtual_machine_scale_set` - fix a panic caused by missing properties ([#30159](https://github.com/hashicorp/terraform-provider-azurerm/issues/30159))
+* `azurerm_container_app_environment` - fix import for `workload_profile` ([#30139](https://github.com/hashicorp/terraform-provider-azurerm/issues/30139))
+* `azurerm_mongo_cluster` - the `create_mode` property no longer causes ForceNews on import ([#29375](https://github.com/hashicorp/terraform-provider-azurerm/issues/29375))
+* `azurerm_virtual_network` - suppress a perpetual diff on `address_space` when using `ip_address_pool` ([#30073](https://github.com/hashicorp/terraform-provider-azurerm/issues/30073))
+* `azurerm_vpn_gateway_connection` - the `shared_key` is now Optional + Computed ([#30152](https://github.com/hashicorp/terraform-provider-azurerm/issues/30152))
 
 ## 4.36.0 (July 10, 2025)
 
