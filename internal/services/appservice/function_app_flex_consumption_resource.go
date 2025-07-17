@@ -42,10 +42,10 @@ type FunctionAppFlexConsumptionModel struct {
 	Location      string `tfschema:"location"`
 	ServicePlanId string `tfschema:"service_plan_id"`
 
-	FunctionAppStorageAccountName      string `tfschema:"function_app_storage_account_name"`
-	FunctionAppStorageAccountAccessKey string `tfschema:"function_app_storage_account_access_key"`
-	FunctionAppStorageUsesMSI          bool   `tfschema:"function_app_storage_uses_managed_identity"`
-	FunctionAppStorageKeyVaultSecretID string `tfschema:"function_app_storage_key_vault_secret_id"`
+	StorageAccountName      string `tfschema:"storage_account_name"`
+	StorageAccountAccessKey string `tfschema:"storage_account_access_key"`
+	StorageUsesMSI          bool   `tfschema:"storage_uses_managed_identity"`
+	StorageKeyVaultSecretID string `tfschema:"storage_key_vault_secret_id"`
 
 	Enabled                          bool                       `tfschema:"enabled"`
 	AppSettings                      map[string]string          `tfschema:"app_settings"`
@@ -130,47 +130,50 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			Description:  "The ID of the App Service Plan within which to create this Function App",
 		},
 
-		"function_app_storage_account_name": {
+		"storage_account_name": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: storageValidate.StorageAccountName,
 			Description:  "The backend storage account name which will be used by this Function App.",
 			ExactlyOneOf: []string{
-				"function_app_storage_account_name",
-				"function_app_storage_key_vault_secret_id",
+				"storage_account_name",
+				"storage_key_vault_secret_id",
 			},
 		},
 
-		"function_app_storage_account_access_key": {
+		"storage_account_access_key": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.NoZeroValues,
 			ConflictsWith: []string{
-				"function_app_storage_uses_managed_identity",
-				"function_app_storage_key_vault_secret_id",
+				"storage_uses_managed_identity",
+				"storage_key_vault_secret_id",
 			},
 			Description: "The access key which will be used to access the storage account for the Function App.",
 		},
 
-		"function_app_storage_uses_managed_identity": {
+		"storage_uses_managed_identity": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
 			ConflictsWith: []string{
-				"function_app_storage_account_access_key",
-				"function_app_storage_key_vault_secret_id",
+				"storage_account_access_key",
+				"storage_key_vault_secret_id",
 			},
 			Description: "Should the Function App use its Managed Identity to access storage?",
 		},
 
-		"function_app_storage_key_vault_secret_id": {
+		"storage_key_vault_secret_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: kvValidate.NestedItemIdWithOptionalVersion,
 			ExactlyOneOf: []string{
-				"function_app_storage_account_name",
-				"function_app_storage_key_vault_secret_id",
+				"storage_account_name",
+				"storage_key_vault_secret_id",
+			},
+			RequiredWith: []string{
+				"key_vault_reference_identity_id",
 			},
 			Description: "The Key Vault Secret ID, including version, that contains the Connection String to connect to the storage account for this Function App.",
 		},
@@ -178,9 +181,11 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 		"key_vault_reference_identity_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 			Description:  "The User Assigned Identity to use for Key Vault access.",
+			RequiredWith: []string{
+				"storage_key_vault_secret_id",
+			},
 		},
 
 		"storage_container_type": {
@@ -483,12 +488,12 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("the Site Name %q failed the availability check: %+v", id.SiteName, *model.Message)
 			}
 
-			functionAppStorageAccountString := functionAppFlexConsumption.FunctionAppStorageAccountName
-			if !functionAppFlexConsumption.FunctionAppStorageUsesMSI {
-				if functionAppFlexConsumption.FunctionAppStorageKeyVaultSecretID != "" {
-					functionAppStorageAccountString = fmt.Sprintf(helpers.StorageStringFmtKV, functionAppFlexConsumption.FunctionAppStorageKeyVaultSecretID)
+			functionAppStorageAccountString := functionAppFlexConsumption.StorageAccountName
+			if !functionAppFlexConsumption.StorageUsesMSI {
+				if functionAppFlexConsumption.StorageKeyVaultSecretID != "" {
+					functionAppStorageAccountString = fmt.Sprintf(helpers.StorageStringFmtKV, functionAppFlexConsumption.StorageKeyVaultSecretID)
 				} else {
-					functionAppStorageAccountString = fmt.Sprintf(helpers.StorageStringFmt, functionAppFlexConsumption.FunctionAppStorageAccountName, functionAppFlexConsumption.FunctionAppStorageAccountAccessKey, *storageDomainSuffix)
+					functionAppStorageAccountString = fmt.Sprintf(helpers.StorageStringFmt, functionAppFlexConsumption.StorageAccountName, functionAppFlexConsumption.StorageAccountAccessKey, *storageDomainSuffix)
 				}
 			}
 
@@ -552,7 +557,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 				ScaleAndConcurrency: &scaleAndConcurrencyConfig,
 			}
 
-			siteConfig, err := helpers.ExpandSiteConfigFunctionFlexConsumptionApp(functionAppFlexConsumption.SiteConfig, nil, metadata, functionAppFlexConsumption.FunctionAppStorageUsesMSI, functionAppStorageAccountString, storageConnStringForFCApp, functionAppDeploymentStorageString)
+			siteConfig, err := helpers.ExpandSiteConfigFunctionFlexConsumptionApp(functionAppFlexConsumption.SiteConfig, nil, metadata, functionAppFlexConsumption.StorageUsesMSI, functionAppStorageAccountString, storageConnStringForFCApp, functionAppDeploymentStorageString)
 			if err != nil {
 				return fmt.Errorf("expanding `site_config` for %s: %+v", id, err)
 			}
@@ -882,12 +887,12 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 
 			model := *existing.Model
 
-			functionAppStorageString := state.FunctionAppStorageAccountName
-			if !state.FunctionAppStorageUsesMSI {
-				if state.FunctionAppStorageKeyVaultSecretID != "" {
-					functionAppStorageString = fmt.Sprintf(helpers.StorageStringFmtKV, state.FunctionAppStorageKeyVaultSecretID)
+			functionAppStorageString := state.StorageAccountName
+			if !state.StorageUsesMSI {
+				if state.StorageKeyVaultSecretID != "" {
+					functionAppStorageString = fmt.Sprintf(helpers.StorageStringFmtKV, state.StorageKeyVaultSecretID)
 				} else {
-					functionAppStorageString = fmt.Sprintf(helpers.StorageStringFmt, state.FunctionAppStorageAccountName, state.FunctionAppStorageAccountAccessKey, *storageDomainSuffix)
+					functionAppStorageString = fmt.Sprintf(helpers.StorageStringFmt, state.StorageAccountName, state.StorageAccountAccessKey, *storageDomainSuffix)
 				}
 			}
 
@@ -981,7 +986,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 			}
 
 			// Note: We process this regardless to give us a "clean" view of service-side app_settings, so we can reconcile the user-defined entries later
-			siteConfig, err := helpers.ExpandSiteConfigFunctionFlexConsumptionApp(state.SiteConfig, model.Properties.SiteConfig, metadata, state.FunctionAppStorageUsesMSI, functionAppStorageString, storageConnStringForFCApp, storageConnStringForFcAppValue)
+			siteConfig, err := helpers.ExpandSiteConfigFunctionFlexConsumptionApp(state.SiteConfig, model.Properties.SiteConfig, metadata, state.StorageUsesMSI, functionAppStorageString, storageConnStringForFCApp, storageConnStringForFcAppValue)
 			if err != nil {
 				return fmt.Errorf("expanding Site Config for %s: %+v", id, err)
 			}
@@ -1145,13 +1150,13 @@ func (m *FunctionAppFlexConsumptionModel) unpackFunctionAppFlexConsumptionSettin
 		case "AzureWebJobsStorage":
 			if strings.HasPrefix(v, "@Microsoft.KeyVault") {
 				trimmed := strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(SecretUri=")
-				m.FunctionAppStorageKeyVaultSecretID = trimmed
+				m.StorageKeyVaultSecretID = trimmed
 			} else {
-				m.FunctionAppStorageAccountName, m.FunctionAppStorageAccountAccessKey = helpers.ParseWebJobsStorageString(v)
+				m.StorageAccountName, m.StorageAccountAccessKey = helpers.ParseWebJobsStorageString(v)
 			}
 		case "AzureWebJobsStorage__accountName":
-			m.FunctionAppStorageUsesMSI = true
-			m.FunctionAppStorageAccountName = v
+			m.StorageUsesMSI = true
+			m.StorageAccountName = v
 
 		case "WEBSITE_HEALTHCHECK_MAXPINGFAILURES":
 			i, _ := strconv.Atoi(v)

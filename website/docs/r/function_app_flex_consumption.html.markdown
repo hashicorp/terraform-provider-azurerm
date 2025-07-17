@@ -30,6 +30,14 @@ resource "azurerm_storage_account" "example" {
   account_replication_type = "LRS"
 }
 
+resource "azurerm_storage_account" "example-deployment" {
+  name                     = "exampleappdeploysa"
+  resource_group_name      = azurerm_resource_group.example.name
+  location                 = azurerm_resource_group.example.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
 resource "azurerm_storage_container" "example" {
   name                  = "example-flexcontainer"
   storage_account_id    = azurerm_storage_account.example.id
@@ -45,10 +53,12 @@ resource "azurerm_service_plan" "example" {
 }
 
 resource "azurerm_function_app_flex_consumption" "example" {
-  name                = "example-linux-function-app"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  service_plan_id     = azurerm_service_plan.example.id
+  name                       = "example-linux-function-app"
+  resource_group_name        = azurerm_resource_group.example.name
+  location                   = azurerm_resource_group.example.location
+  service_plan_id            = azurerm_service_plan.example.id
+  storage_account_name       = azurerm_storage_account.example-deployment.name
+  storage_account_access_key = azurerm_storage_account.example-deployment.primary_access_key
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.example.primary_blob_endpoint}${azurerm_storage_container.example.name}"
@@ -75,27 +85,39 @@ The following arguments are supported:
 
 * `service_plan_id` - (Required) The ID of the App Service Plan within which to create this Function App. Changing this forces a new Linux Function App to be created.
 
-* `function_app_storage_account_name` - (Optional) The backend storage account name which will be used by this Function App.
+* `storage_account_name` - (Optional) The name of the storage account, which used by Function App backend runtime.
 
-* `function_app_storage_account_access_key` - (Optional) The access key which will be used to access the backend storage account for the Function App. Conflicts with `function_app_storage_uses_managed_identity`.
+* `storage_account_access_key` - (Optional) The access key used to access the storage account, which used by Function App backend runtime. Conflicts with `storage_uses_managed_identity`.
 
-* `function_app_storage_uses_managed_identity` - (Optional) Should the Function App use Managed Identity to access the storage account. Conflicts with `function_app_storage_account_access_key`.
+* `storage_uses_managed_identity` - (Optional) Should the Function App use Managed Identity to access the backend storage account. Conflicts with `storage_account_access_key`.
 
-~> **NOTE:** One of `function_app_storage_account_access_key` or `function_app_storage_uses_managed_identity` must be specified when using `function_app_storage_account_name`.
+~> **NOTE:** One of `storage_account_access_key` or `storage_uses_managed_identity` must be specified when using `storage_account_name`.
 
-* `function_app_storage_key_vault_secret_id` - (Optional) The Key Vault Secret ID, optionally including version, that contains the Connection String to connect to the storage account for this Function App.
+* `storage_key_vault_secret_id` - (Optional) The Key Vault Secret ID, optionally including version, that contains the Connection String to connect to the storage account, which used by Function App backend runtime.
 
-~> **NOTE:** `function_app_storage_key_vault_secret_id` cannot be used with `function_app_storage_account_name`.
+~> **NOTE:** `storage_key_vault_secret_id` cannot be used with `storage_account_name`.
 
-~> **NOTE:** `function_app_storage_key_vault_secret_id` used without a version will use the latest version of the secret, however, the service can take up to 24h to pick up a rotation of the latest version. See the [official docs](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#rotation) for more information.
+~> **NOTE:** `storage_key_vault_secret_id` used without a version will use the latest version of the secret, however, the service can take up to 24h to pick up a rotation of the latest version. See the [official docs](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#rotation) for more information.
 
 * `site_config` - (Required) A `site_config` block as defined below.
 
-* `storage_container_type` - (Required) The storage container type used for the Function App. The current supported type is `blobContainer`.
+* `storage_container_type` - (Required) The type of the storage container, which contains the application code package used by the Function App during deployment. The current supported type is `blobContainer`.
 
-* `storage_container_endpoint` - (Required) The backend storage container endpoint which will be used by this Function App.
+* `storage_container_endpoint` - (Required) The endpoint of the storage container, which contains the application code package used by the Function App during deployment.
 
-* `storage_authentication_type` - (Required) The authentication type which will be used to access the backend storage account for the Function App. Possible values are `StorageAccountConnectionString`, `SystemAssignedIdentity`, and `UserAssignedIdentity`.
+* `storage_authentication_type` - (Required) The authentication type used to access the storage account, which contains the application code package used by the Function App during deployment. Possible values are `StorageAccountConnectionString`, `SystemAssignedIdentity`, and `UserAssignedIdentity`.
+
+~> **Note:** The storage account used for flex Function App deployment package could be the same as the storage account configured by `storage_account_name` which is used for Function App to work.
+
+* `storage_access_key` - (Optional) The connection string used to access the storage account, which contains the application code package used by the Function App during deployment.
+
+~> **Note:** The `storage_access_key` must be specified when `storage_authentication_type` is set to `StorageAccountConnectionString`.
+
+~> **Note:** The`storage_access_key` could be accessed by the app environment variable `DEPLOYMENT_STORAGE_CONNECTION_STRING`.
+
+* `storage_user_assigned_identity_id` - (Optional) The user assigned Managed Identity used to access the storage account, which contains the application code package used by the Function App during deployment. Conflicts with `storage_access_key`.
+
+~> **Note:** The `storage_user_assigned_identity_id` must be specified when `storage_authentication_type` is set to `UserAssignedIdentity`.
 
 * `runtime_name` - (Required) The Runtime of the Linux Function App. Possible values are `node`, `dotnet-isolated`, `powershell`, `python`, `java` and `custom`.
 
@@ -111,13 +133,13 @@ The following arguments are supported:
 
 ~> **Note:** For health check related settings, please use `health_check_eviction_time_in_min`, terraform will assign the value to the key `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` in app setting.
 
-~> **Note:** For those app settings that are deprecated or replaced by another properties for flex consumption function app, please check https://learn.microsoft.com/en-us/azure/azure-functions/functions-app-settings.
+~> **Note:** For those app settings that are deprecated or replaced by another properties for flex consumption Function App, please check https://learn.microsoft.com/en-us/azure/azure-functions/functions-app-settings.
 
 * `auth_settings` - (Optional) A `auth_settings` block as defined below.
 
 * `auth_settings_v2` - (Optional) An `auth_settings_v2` block as defined below.
 
-* `client_certificate_enabled` - (Optional) Should the function app use Client Certificates.
+* `client_certificate_enabled` - (Optional) Should the Function App use Client Certificates.
 
 * `client_certificate_mode` - (Optional) The mode of the Function App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`. Defaults to `Optional`.
 
@@ -129,33 +151,15 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Should public network access be enabled for the Function App. Defaults to `true`.
 
-* `https_only` - (Optional) Is Https Connection enforced to the function app. Defaults to `false`
+* `https_only` - (Optional) Is Https Connection enforced to the Function App. Defaults to `false`
 
 * `identity` - (Optional) A `identity` block as defined below.
 
 * `sticky_settings` - (Optional) A `sticky_settings` block as defined below.
 
-* `storage_container_type` - (Required) The storage container type used for the Function App deployment package. The current supported type is `blobContainer`.
-
-* `storage_container_endpoint` - (Required) The storage container endpoint which will be used by this Function App deployment package.
-
-~> **Note:** The storage account used for flex function app deployment package could be the same as the storage account configured by `function_app_storage_account_name` which is used for function app to work.
-
-* `storage_authentication_type` - (Required) The authentication type which will be used to access the storage account for the Function App deployment package. Possible values are `StorageAccountConnectionString`, `SystemAssignedIdentity`, and `UserAssignedIdentity`.
-
-* `storage_access_key` - (Optional) The access key which will be used to access the storage account for the Function App deployment package.
-
-~> **Note:** The `storage_access_key` must be specified when `storage_authentication_type` is set to `StorageAccountConnectionString`.
-
-~> **Note:** The`storage_access_key` could be accessed by the app environment variable `DEPLOYMENT_STORAGE_CONNECTION_STRING`.
-
-* `storage_user_assigned_identity_id` - (Optional) The user assigned Managed Identity to access the storage account. Conflicts with `storage_access_key`.
-
-~> **Note:** The `storage_user_assigned_identity_id` must be specified when `storage_authentication_type` is set to `UserAssignedIdentity`.
-
 * `always_ready` - (Optional) One or more `always_ready` blocks as defined below.
 
-* `maximum_instance_count` - (Optional) The number of workers this function app can scale out to.
+* `maximum_instance_count` - (Optional) The number of workers this Function App can scale out to.
 
 * `instance_memory_in_mb` - (Optional) The memory size of the instances on which your app runs. The [currently supported values](https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan#instance-memory) are `2048` or `4096`.
 
