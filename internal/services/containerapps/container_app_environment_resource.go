@@ -341,6 +341,11 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
+			var existingState ContainerAppEnvironmentModel
+			if err := metadata.Decode(&existingState); err != nil {
+				return err
+			}
+
 			existing, err := client.Get(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(existing.HttpResponse) {
@@ -380,7 +385,11 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 							// During refreshing stage, `GetRawConfig()` may return null value.
 
 							if err == nil {
-								state.LogAnalyticsWorkspaceId = workspaceId.ID()
+								if workspaceId != nil {
+									state.LogAnalyticsWorkspaceId = workspaceId.ID()
+								} else {
+									state.LogAnalyticsWorkspaceId = existingState.LogAnalyticsWorkspaceId
+								}
 							}
 						}
 					}
@@ -635,10 +644,11 @@ func findWorkspaceResourceIDFromCustomerID(ctx context.Context, meta sdk.Resourc
 			if err != nil {
 				return nil, err
 			}
+			return result, nil
 		}
 	}
 
-	return result, nil
+	return nil, nil
 }
 
 func getSharedKeyForWorkspace(ctx context.Context, meta sdk.ResourceMetaData, workspaceID string) (*string, *string, error) {

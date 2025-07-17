@@ -1059,5 +1059,20 @@ resource "azurerm_container_app_environment" "test" {
   logs_destination           = "log-analytics"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 }
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name                       = "diagnostics"
+  target_resource_id         = azurerm_container_app_environment.test.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+
+  enabled_log {
+    category_group = "allLogs"
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled  = true
+  }
+}
 `, r.template(data), data.RandomInteger, data.Locations.Primary, alt.tenant_id, alt.subscription_id)
 }
