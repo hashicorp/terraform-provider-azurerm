@@ -11,7 +11,7 @@ import (
 	"golang.org/x/text/language"
 )
 
-func Render(data *data.ResourceData, text string) ([]string, error) {
+func Render(data *data.TerraformNodeData, text string) ([]string, error) {
 	var err error
 	var b bytes.Buffer
 

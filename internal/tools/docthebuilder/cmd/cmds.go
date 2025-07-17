@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/data"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/rule"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/util"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/validator"
 	log "github.com/sirupsen/logrus"
@@ -31,11 +30,11 @@ var (
 			validateProviderDirectoryAccess(fs)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			resources := data.GetData(fs, flags.ProviderDirectory, flags.Service, flags.Resource)
+			resources := data.GetAllTerraformNodeData(fs, flags.ProviderDirectory, flags.Service, flags.Resource)
 
 			v := validator.Validator{}
 			for _, r := range resources {
-				v.Run(getRules(), r, false)
+				v.Run(flags.Linter.Rules, r, false)
 			}
 
 			// separate from loop above to prevent debug messages from mixing in
@@ -74,12 +73,12 @@ var (
 			validateProviderDirectoryAccess(fs)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			resources := data.GetData(fs, flags.ProviderDirectory, flags.Service, flags.Resource)
+			resources := data.GetAllTerraformNodeData(fs, flags.ProviderDirectory, flags.Service, flags.Resource)
 
 			v := validator.Validator{}
 			errCount, resourceWithErrCount := 0, 0
 			for _, r := range resources {
-				v.Run(getRules(), r, true)
+				v.Run(flags.Linter.Rules, r, true)
 
 				if r.Document.HasChange {
 					resourceWithErrCount++
@@ -149,16 +148,7 @@ func validateProviderDirectoryAccess(fs afero.Fs) {
 	}
 }
 
-func getRules() []string {
-	rules := util.MapKeys2Slice(rule.Registration)
-	if f := flags.Linter.Rules; f != "" {
-		rules = strings.Split(f, ",")
-	}
-
-	return rules
-}
-
-func printErrors(rd *data.ResourceData) {
+func printErrors(rd *data.TerraformNodeData) {
 	l := len(rd.Errors)
 	sep := "---\n\n"
 

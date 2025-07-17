@@ -19,14 +19,14 @@ func (r S001) ID() string {
 }
 
 func (r S001) Name() string {
-	return fmt.Sprintf("%s - API Section", r.ID())
+	return "API Section"
 }
 
 func (r S001) Description() string {
-	return fmt.Sprintf("%s - validates the `API Versions` section", r.Name())
+	return "validates the `API Versions` section"
 }
 
-func (r S001) Run(d *data.ResourceData, fix bool) []error {
+func (r S001) Run(d *data.TerraformNodeData, fix bool) []error {
 	if !d.Document.Exists {
 		return nil
 	}
@@ -35,7 +35,7 @@ func (r S001) Run(d *data.ResourceData, fix bool) []error {
 	errs := make([]error, 0)
 
 	logWithFields := log.WithFields(log.Fields{
-		"rule": r.Name(),
+		"rule": IdAndName(r),
 		"type": d.Type,
 		"name": d.Name,
 	})
@@ -63,7 +63,7 @@ func (r S001) Run(d *data.ResourceData, fix bool) []error {
 	}
 
 	if !exists {
-		errs = append(errs, fmt.Errorf("%s: missing API section", r.Name()))
+		errs = append(errs, fmt.Errorf("%s: missing API section", IdAndName(r)))
 
 		if !fix {
 			return errs
@@ -77,7 +77,7 @@ func (r S001) Run(d *data.ResourceData, fix bool) []error {
 		currentStr := strings.Join(section.GetContent(), "\n")
 
 		if currentStr != expectedStr {
-			errs = append(errs, fmt.Errorf("%s: current section content did not match expected content", r.Name()))
+			errs = append(errs, fmt.Errorf("%s: current section content did not match expected content", IdAndName(r)))
 
 			if fix {
 				section.SetContent(expected)

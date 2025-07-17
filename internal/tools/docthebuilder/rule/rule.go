@@ -1,6 +1,8 @@
 package rule
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/data"
 )
 
@@ -12,7 +14,7 @@ type Rule interface {
 	// Description returns an explanation of what this rule is validating.
 	Description() string
 	// Run implements the validation logic, the boolean parameter is true when cmd is "fix"
-	Run(*data.ResourceData, bool) []error
+	Run(*data.TerraformNodeData, bool) []error
 }
 
 func GetRule(name string) Rule {
@@ -23,15 +25,19 @@ func GetRule(name string) Rule {
 	return nil
 }
 
+func IdAndName(r Rule) string {
+	return fmt.Sprintf("%s - %s", r.ID(), r.Name())
+}
+
 // Registration for rules
 // G<number> -- global/section agnostic rules, e.g. note formatting
 // S<number> -- section specific rules, e.g. API section validation
 var Registration = map[string]Rule{
 	// global
-	G001{}.ID(): G001{},
-	G002{}.ID(): G002{},
+	G001{}.ID(): G001{}, // Files Exist
+	G002{}.ID(): G002{}, // Note Formatting
 
 	// section
-	S001{}.ID(): S001{},
-	S002{}.ID(): S002{},
+	S001{}.ID(): S001{}, // API Section
+	S002{}.ID(): S002{}, // Timeouts Section
 }

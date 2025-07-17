@@ -31,14 +31,14 @@ func (r G002) ID() string {
 }
 
 func (r G002) Name() string {
-	return fmt.Sprintf("%s - Notes", r.ID())
+	return "Notes"
 }
 
 func (r G002) Description() string {
-	return fmt.Sprintf("%s - validates notes in documentation are following the expected format", r.Name())
+	return "validates notes in documentation are following the expected format"
 }
 
-func (r G002) Run(data *data.ResourceData, fix bool) []error {
+func (r G002) Run(data *data.TerraformNodeData, fix bool) []error {
 	errs := make([]error, 0)
 
 	for _, section := range data.Document.Sections {
@@ -48,7 +48,7 @@ func (r G002) Run(data *data.ResourceData, fix bool) []error {
 				n := parseNote(line)
 
 				if n == nil {
-					errs = append(errs, fmt.Errorf("%s: Unable to parse note: `%s`", r.Name(), line))
+					errs = append(errs, fmt.Errorf("%s: Unable to parse note: `%s`", IdAndName(r), line))
 					continue
 				}
 
@@ -65,15 +65,18 @@ func (r G002) Run(data *data.ResourceData, fix bool) []error {
 				}.string()
 
 				if current != expected {
-					errs = append(errs, differror.New(fmt.Sprintf("%s: Note not in expected format", r.Name()), current, expected))
+					errs = append(errs, differror.New(fmt.Sprintf("%s: Note not in expected format", IdAndName(r)), current, expected))
 
 					if fix {
 						data.Document.HasChange = true
 						content[idx] = expected
-						section.SetContent(content)
 					}
 				}
 			}
+		}
+
+		if fix && data.Document.HasChange {
+			section.SetContent(content)
 		}
 	}
 

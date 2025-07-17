@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/cmd/values"
-	"github.com/spf13/pflag"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/rule"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/util"
+	"github.com/spf13/cobra"
 )
 
 type Flags struct {
@@ -16,7 +17,7 @@ type Flags struct {
 }
 
 type FlagsLinter struct {
-	Rules string
+	Rules []string
 }
 
 // FlagsScaffold should contain the flags required by `website-scaffold` once that functionality
@@ -31,14 +32,7 @@ func configureFlags() {
 	rootCmd.PersistentFlags().StringVarP(&flags.Service, "service", "s", "", "service to filter the operation to")
 	rootCmd.PersistentFlags().StringVarP(&flags.Resource, "resource", "r", "", "resource to filter the operation to")
 
-	rulesValue := values.NewStringValue("", &flags.Linter.Rules)
-	rulesFlag := pflag.Flag{
-		Name:     "rules",
-		Usage:    "A comma separated list of rule IDs, if not specified, all rules will be run",
-		Value:    rulesValue,
-		DefValue: rulesValue.String(),
+	for _, cmd := range []*cobra.Command{validateCmd, fixCmd} {
+		cmd.PersistentFlags().StringSliceVar(&flags.Linter.Rules, "rules", util.MapKeys2Slice(rule.Registration), "A comma separated list of rule IDs, if not specified, all rules will be run")
 	}
-
-	validateCmd.Flags().AddFlag(&rulesFlag)
-	fixCmd.Flags().AddFlag(&rulesFlag)
 }

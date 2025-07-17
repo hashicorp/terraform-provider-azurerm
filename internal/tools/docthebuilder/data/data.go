@@ -13,8 +13,9 @@ import (
 	"github.com/spf13/afero"
 )
 
-// ResourceData contains all data for a resource that may be required for validation/scaffolding
-type ResourceData struct {
+// TerraformNodeData contains all data for a resource that may be required for validation/scaffolding
+// TODO: Provider type (struct) containing map of Service type, which should each contain a slice of `TerraformNodeData` structs
+type TerraformNodeData struct {
 	Name         string // resource name
 	ShortName    string // resource name minus provider prefix
 	ProviderName string // provider name
@@ -32,10 +33,10 @@ type ResourceData struct {
 	Errors []error // errors found in this resource
 }
 
-func newDataObject(fs afero.Fs, providerDir string, service Service, name string, resourceType ResourceType, source any) (*ResourceData, error) {
+func newTerraformNodeData(fs afero.Fs, providerDir string, service Service, name string, resourceType ResourceType, source any) (*TerraformNodeData, error) {
 	providerName, _, _ := strings.Cut(name, "_")
 
-	result := ResourceData{
+	result := TerraformNodeData{
 		Name:         name,
 		ShortName:    strings.TrimPrefix(name, fmt.Sprintf("%s_", providerName)),
 		ProviderName: providerName,
@@ -75,8 +76,8 @@ func newDataObject(fs afero.Fs, providerDir string, service Service, name string
 	return &result, nil
 }
 
-func GetData(fs afero.Fs, providerDir string, serviceName string, resourceName string) []*ResourceData {
-	result := make([]*ResourceData, 0)
+func GetAllTerraformNodeData(fs afero.Fs, providerDir string, serviceName string, resourceName string) []*TerraformNodeData {
+	result := make([]*TerraformNodeData, 0)
 
 	pkgData := loadPackages(providerDir)
 
@@ -86,7 +87,7 @@ func GetData(fs afero.Fs, providerDir string, serviceName string, resourceName s
 			log.WithFields(log.Fields{
 				"service": s.Name(),
 				"error":   err,
-			}).Warn("Skipping Service")
+			}).Warn("Skipping service...")
 			continue
 		}
 
@@ -109,15 +110,13 @@ func GetData(fs afero.Fs, providerDir string, serviceName string, resourceName s
 				}
 			}
 
-			rd, err := newDataObject(fs, providerDir, *service, name, ResourceTypeData, r)
+			rd, err := newTerraformNodeData(fs, providerDir, *service, name, ResourceTypeData, r)
 			if err != nil {
 				log.Error(err)
 				continue
 			}
 
-			rd.populateAPIData()
-			rd.populateTimeouts()
-			rd.populateDocumentData(fs)
+			rd.populateAdditionalFields(fs)
 
 			result = append(result, rd)
 		}
@@ -132,15 +131,13 @@ func GetData(fs afero.Fs, providerDir string, serviceName string, resourceName s
 				}
 			}
 
-			rd, err := newDataObject(fs, providerDir, *service, name, ResourceTypeResource, r)
+			rd, err := newTerraformNodeData(fs, providerDir, *service, name, ResourceTypeResource, r)
 			if err != nil {
 				log.Error(err)
 				continue
 			}
 
-			rd.populateAPIData()
-			rd.populateTimeouts()
-			rd.populateDocumentData(fs)
+			rd.populateAdditionalFields(fs)
 
 			result = append(result, rd)
 		}
@@ -165,7 +162,7 @@ func GetData(fs afero.Fs, providerDir string, serviceName string, resourceName s
 		service.APIsByResource = findAPIsForUntypedResources(*pkgData, service)
 
 		for name, r := range s.SupportedDataSources() {
-			rd, err := newDataObject(fs, providerDir, *service, name, ResourceTypeData, r)
+			rd, err := newTerraformNodeData(fs, providerDir, *service, name, ResourceTypeData, r)
 			if err != nil {
 				log.Error(err)
 				continue
@@ -178,15 +175,13 @@ func GetData(fs afero.Fs, providerDir string, serviceName string, resourceName s
 				}
 			}
 
-			rd.populateAPIData()
-			rd.populateTimeouts()
-			rd.populateDocumentData(fs)
+			rd.populateAdditionalFields(fs)
 
 			result = append(result, rd)
 		}
 
 		for name, r := range s.SupportedResources() {
-			rd, err := newDataObject(fs, providerDir, *service, name, ResourceTypeResource, r)
+			rd, err := newTerraformNodeData(fs, providerDir, *service, name, ResourceTypeResource, r)
 			if err != nil {
 				log.Error(err)
 				continue
@@ -199,9 +194,7 @@ func GetData(fs afero.Fs, providerDir string, serviceName string, resourceName s
 				}
 			}
 
-			rd.populateAPIData()
-			rd.populateTimeouts()
-			rd.populateDocumentData(fs)
+			rd.populateAdditionalFields(fs)
 
 			result = append(result, rd)
 		}
@@ -215,13 +208,19 @@ func GetData(fs afero.Fs, providerDir string, serviceName string, resourceName s
 	return result
 }
 
-func (rd *ResourceData) populateAPIData() {
+func (rd *TerraformNodeData) populateAdditionalFields(fs afero.Fs) {
+	rd.populateAPIData()
+	rd.populateTimeouts()
+	rd.populateDocumentData(fs)
+}
+
+func (rd *TerraformNodeData) populateAPIData() {
 	if v, ok := rd.Service.APIsByResource[rd.Path]; ok {
 		rd.APIs = v
 	}
 }
 
-func (rd *ResourceData) populateDocumentData(fs afero.Fs) {
+func (rd *TerraformNodeData) populateDocumentData(fs afero.Fs) {
 	rd.Document.Exists = util.FileExists(fs, rd.Document.Path)
 
 	if rd.Document.Exists {
@@ -231,7 +230,7 @@ func (rd *ResourceData) populateDocumentData(fs afero.Fs) {
 	}
 }
 
-func (rd *ResourceData) populateTimeouts() {
+func (rd *TerraformNodeData) populateTimeouts() {
 	if t := rd.Resource.Timeouts; t != nil {
 		if t.Create != nil {
 			rd.Timeouts = append(rd.Timeouts, Timeout{

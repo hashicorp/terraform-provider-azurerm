@@ -31,14 +31,14 @@ func (r S002) ID() string {
 }
 
 func (r S002) Name() string {
-	return fmt.Sprintf("%s - Timeouts Section", r.ID())
+	return "Timeouts Section"
 }
 
 func (r S002) Description() string {
-	return fmt.Sprintf("%s - validates the `Timeouts` section exists, contains correct timeout values, and timeouts are in `CRUD` order", r.Name())
+	return "validates the `Timeouts` section exists, contains correct timeout values, and timeouts are in `CRUD` order"
 }
 
-func (r S002) Run(rd *data.ResourceData, fix bool) []error {
+func (r S002) Run(rd *data.TerraformNodeData, fix bool) []error {
 	if SkipRule(rd.Type, rd.Name, r.ID()) {
 		return nil
 	}
@@ -64,7 +64,7 @@ func (r S002) Run(rd *data.ResourceData, fix bool) []error {
 	}
 
 	if section == nil {
-		errs = append(errs, fmt.Errorf("%s: Missing Timeouts section", r.Name()))
+		errs = append(errs, fmt.Errorf("%s: Missing Timeouts section", IdAndName(r)))
 
 		if !fix {
 			return errs
@@ -76,7 +76,7 @@ func (r S002) Run(rd *data.ResourceData, fix bool) []error {
 			log.WithFields(log.Fields{
 				"name": rd.Name,
 				"type": rd.Type,
-			}).Error(fmt.Errorf("%s: Failed to render template: %+v", r.Name(), err))
+			}).Error(fmt.Errorf("%s: Failed to render template: %+v", IdAndName(r), err))
 		}
 
 		rd.Document.HasChange = true
@@ -86,7 +86,7 @@ func (r S002) Run(rd *data.ResourceData, fix bool) []error {
 			log.WithFields(log.Fields{
 				"name": rd.Name,
 				"type": rd.Type,
-			}).Error(fmt.Errorf("%s: Failed to insert new templated section: %+v", r.Name(), err))
+			}).Error(fmt.Errorf("%s: Failed to insert new templated section: %+v", IdAndName(r), err))
 		}
 		rd.Document.Sections = sections
 	} else {
@@ -106,13 +106,13 @@ func (r S002) Run(rd *data.ResourceData, fix bool) []error {
 
 				t := parseTimeout(line)
 				if t == nil {
-					errs = append(errs, fmt.Errorf("%s: Unable to parse timeout line (`%s`), this will require a manual fix", r.Name(), line))
+					errs = append(errs, fmt.Errorf("%s: Unable to parse timeout line (`%s`), this will require a manual fix", IdAndName(r), line))
 					continue
 				}
 				timeoutBrandName = t.Name
 
 				if _, ok := foundTimeouts[t.Type]; ok {
-					errs = append(errs, fmt.Errorf("%s: Documentation contains a duplicate timeout", r.Name()))
+					errs = append(errs, fmt.Errorf("%s: Documentation contains a duplicate timeout", IdAndName(r)))
 
 					if fix {
 						rd.Document.HasChange = true
@@ -124,7 +124,7 @@ func (r S002) Run(rd *data.ResourceData, fix bool) []error {
 				foundTimeouts[t.Type] = idx
 
 				if _, ok := resourceTimeouts[t.Type]; !ok {
-					errs = append(errs, fmt.Errorf("%s: Documentation contains a timeout (%s) that is not present in the %s", r.Name(), t.Type, rd.Type))
+					errs = append(errs, fmt.Errorf("%s: Documentation contains a timeout (%s) that is not present in the %s", IdAndName(r), t.Type, rd.Type))
 
 					if fix {
 						rd.Document.HasChange = true
@@ -142,7 +142,7 @@ func (r S002) Run(rd *data.ResourceData, fix bool) []error {
 				expected := expectedTimeout.String()
 
 				if line != expected {
-					errs = append(errs, differror.New(fmt.Sprintf("%s: Timeout line for `%s` not in expected format", r.Name(), t.Type), line, expected))
+					errs = append(errs, differror.New(fmt.Sprintf("%s: Timeout line for `%s` not in expected format", IdAndName(r), t.Type), line, expected))
 
 					if fix {
 						rd.Document.HasChange = true
@@ -155,7 +155,7 @@ func (r S002) Run(rd *data.ResourceData, fix bool) []error {
 
 		for _, t := range rd.Timeouts {
 			if _, ok := foundTimeouts[t.Type]; !ok {
-				errs = append(errs, fmt.Errorf("%s: Timeout line for `%s` missing in the documentation", r.Name(), t.Type))
+				errs = append(errs, fmt.Errorf("%s: Timeout line for `%s` missing in the documentation", IdAndName(r), t.Type))
 
 				if fix {
 					if timeoutBrandName != "" {
@@ -172,7 +172,7 @@ func (r S002) Run(rd *data.ResourceData, fix bool) []error {
 		var orderChanged bool
 		content, orderChanged = reorderTimeouts(content, foundTimeouts)
 		if orderChanged {
-			errs = append(errs, fmt.Errorf("%s: Timeouts are not ordered as expected (CRUD)", r.Name()))
+			errs = append(errs, fmt.Errorf("%s: Timeouts are not ordered as expected (CRUD)", IdAndName(r)))
 
 			if fix {
 				rd.Document.HasChange = true

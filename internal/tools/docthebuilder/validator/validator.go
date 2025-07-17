@@ -10,7 +10,7 @@ import (
 
 type Validator struct{}
 
-func (v Validator) Run(rules []string, data *data.ResourceData, fix bool) {
+func (v Validator) Run(rules []string, data *data.TerraformNodeData, fix bool) {
 	for _, id := range rules {
 		if r := rule.GetRule(id); r != nil {
 			errs := r.Run(data, fix)
