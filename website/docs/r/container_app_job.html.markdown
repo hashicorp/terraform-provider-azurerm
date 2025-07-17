@@ -296,6 +296,8 @@ A `volume_mounts` block supports the following:
 
 * `path` - (Required) The path within the container at which the volume should be mounted. Must not contain `:`.
 
+* `sub_path` - (Optional) The sub path of the volume to be mounted in the container.
+
 ---
 
 A `volume` block supports the following:

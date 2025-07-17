@@ -153,6 +153,24 @@ resource "azurerm_data_protection_backup_policy_disk" "test" {
       absolute_criteria = "FirstOfWeek"
     }
   }
+
+  retention_rule {
+    name     = "Monthly"
+    duration = "P6M"
+    priority = 15
+    criteria {
+      absolute_criteria = "FirstOfMonth"
+    }
+  }
+
+  retention_rule {
+    name     = "Yearly"
+    duration = "P1Y"
+    priority = 10
+    criteria {
+      absolute_criteria = "FirstOfYear"
+    }
+  }
 }
 `, template, data.RandomInteger)
 }

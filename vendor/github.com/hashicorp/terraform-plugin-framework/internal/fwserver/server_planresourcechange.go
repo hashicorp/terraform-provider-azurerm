@@ -30,9 +30,11 @@ type PlanResourceChangeRequest struct {
 	Config             *tfsdk.Config
 	PriorPrivate       *privatestate.Data
 	PriorState         *tfsdk.State
+	PriorIdentity      *tfsdk.ResourceIdentity
 	ProposedNewState   *tfsdk.Plan
 	ProviderMeta       *tfsdk.Config
 	ResourceSchema     fwschema.Schema
+	IdentitySchema     fwschema.Schema
 	Resource           resource.Resource
 	ResourceBehavior   resource.ResourceBehavior
 }
@@ -44,6 +46,7 @@ type PlanResourceChangeResponse struct {
 	Diagnostics     diag.Diagnostics
 	PlannedPrivate  *privatestate.Data
 	PlannedState    *tfsdk.State
+	PlannedIdentity *tfsdk.ResourceIdentity
 	RequiresReplace path.Paths
 }
 
@@ -115,6 +118,26 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		}
 	}
 
+	// If the resource supports identity and there is no prior identity data, pre-populate with a null value.
+	// TODO:ResourceIdentity: Is there any reason a provider WOULD NOT want to populate an identity when it supports one?
+	// TODO:ResourceIdentity: Should this be set to all unknowns?
+	if req.PriorIdentity == nil && req.IdentitySchema != nil {
+		nullIdentityTfValue := tftypes.NewValue(req.IdentitySchema.Type().TerraformType(ctx), nil)
+
+		req.PriorIdentity = &tfsdk.ResourceIdentity{
+			Schema: req.IdentitySchema,
+			Raw:    nullIdentityTfValue.Copy(),
+		}
+	}
+
+	// Set the planned identity to the prior identity by default (can be modified later).
+	if req.PriorIdentity != nil {
+		resp.PlannedIdentity = &tfsdk.ResourceIdentity{
+			Schema: req.PriorIdentity.Schema,
+			Raw:    req.PriorIdentity.Raw.Copy(),
+		}
+	}
+
 	// Ensure that resp.PlannedPrivate is never nil.
 	resp.PlannedPrivate = privatestate.EmptyData(ctx)
 
@@ -154,6 +177,18 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 
 		resp.PlannedState.Raw = data.TerraformValue
 	}
+
+	// Set any write-only attributes in the plan to null
+	modifiedPlan, err := tftypes.Transform(resp.PlannedState.Raw, NullifyWriteOnlyAttributes(ctx, resp.PlannedState.Schema))
+	if err != nil {
+		resp.Diagnostics.AddError(
+			"Error Modifying Planned State",
+			"There was an unexpected error modifying the PlannedState. This is always a problem with the provider. Please report the following to the provider developer:\n\n"+err.Error(),
+		)
+		return
+	}
+
+	resp.PlannedState.Raw = modifiedPlan
 
 	// After ensuring there are proposed changes, mark any computed attributes
 	// that are null in the config as unknown in the plan, so providers have
@@ -292,9 +327,17 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 			modifyPlanReq.ProviderMeta = *req.ProviderMeta
 		}
 
+		if resp.PlannedIdentity != nil {
+			modifyPlanReq.Identity = &tfsdk.ResourceIdentity{
+				Schema: resp.PlannedIdentity.Schema,
+				Raw:    resp.PlannedIdentity.Raw.Copy(),
+			}
+		}
+
 		modifyPlanResp := resource.ModifyPlanResponse{
 			Diagnostics:     resp.Diagnostics,
 			Plan:            modifyPlanReq.Plan,
+			Identity:        modifyPlanReq.Identity,
 			RequiresReplace: path.Paths{},
 			Private:         modifyPlanReq.Private,
 		}
@@ -305,6 +348,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 
 		resp.Diagnostics = modifyPlanResp.Diagnostics
 		resp.PlannedState = planToState(modifyPlanResp.Plan)
+		resp.PlannedIdentity = modifyPlanResp.Identity
 		resp.RequiresReplace = append(resp.RequiresReplace, modifyPlanResp.RequiresReplace...)
 		resp.PlannedPrivate.Provider = modifyPlanResp.Private
 		resp.Deferred = modifyPlanResp.Deferred
@@ -326,6 +370,16 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		}
 	}
 
+	if resp.PlannedIdentity != nil && req.IdentitySchema == nil {
+		resp.Diagnostics.AddError(
+			"Unexpected Plan Response",
+			"An unexpected error was encountered when creating the plan response. New identity data was returned by the provider planning operation, but the resource does not indicate identity support.\n\n"+
+				"This is always a problem with the provider and should be reported to the provider developer.",
+		)
+
+		return
+	}
+
 	// Ensure deterministic RequiresReplace by sorting and deduplicating
 	resp.RequiresReplace = NormaliseRequiresReplace(ctx, resp.RequiresReplace)
 
@@ -337,6 +391,7 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 				"This is always an issue in the Terraform Provider and should be reported to the provider developers.\n\n"+
 				"Ensure all resource plan modifiers do not attempt to change resource plan data from being a null value if the request plan is a null value.",
 		)
+		return
 	}
 }
 

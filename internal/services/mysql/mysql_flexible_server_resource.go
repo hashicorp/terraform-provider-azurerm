@@ -313,7 +313,6 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servers.ServerVersionFivePointSeven),
 					string(servers.ServerVersionEightPointZeroPointTwoOne),
@@ -805,6 +804,18 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 
 		if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
 			return fmt.Errorf("disabling `auto_grow_enabled` for %s: %+v", *id, err)
+		}
+	}
+
+	if d.HasChange("version") {
+		parameters := servers.ServerForUpdate{
+			Properties: &servers.ServerPropertiesForUpdate{
+				Version: pointer.To(servers.ServerVersion(d.Get("version").(string))),
+			},
+		}
+
+		if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
+			return fmt.Errorf("updating `version` for %s: %+v", *id, err)
 		}
 	}
 

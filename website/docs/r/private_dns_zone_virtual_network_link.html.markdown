@@ -52,6 +52,8 @@ The following arguments are supported:
 
 * `registration_enabled` - (Optional) Is auto-registration of virtual machine records in the virtual network in the Private DNS zone enabled? Defaults to `false`.
 
+* `resolution_policy` - (Optional) Specifies the resolution policy of the Private DNS Zone Virtual Network Link. Possible values are `Default` and `NxDomainRedirect`. 
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
