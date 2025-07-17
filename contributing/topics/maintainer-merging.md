@@ -4,8 +4,7 @@
 
 ##  Commit Type
 
-All pull requests must be merged using the "Squash and merge" option. This ensures a clean commit history and simplifies either reverting changes or cherry-picking commits in the future. 
-
+All pull requests must be merged using the "Squash and merge" option. This ensures a clean commit history and simplifies either reverting changes or cherry-picking commits in the future.
 
 ##  Commit Message Format
 When merging a PR, the **commit message** should clearly describe the change being introduced. If the PR is correctly named (as described in [this guide](guide-opening-a-pr.md)), then the title can be used as-is. Otherwise, update the title to reflect the purpose of the PR in a way that will be meaningful in the Git history and use that as the message.
