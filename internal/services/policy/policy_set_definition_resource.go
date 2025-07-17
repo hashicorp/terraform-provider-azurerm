@@ -900,6 +900,7 @@ type PolicySetDefinitionResourceModel struct {
 var (
 	_ sdk.ResourceWithUpdate         = PolicySetDefinitionResource{}
 	_ sdk.ResourceWithStateMigration = PolicySetDefinitionResource{}
+	_ sdk.ResourceWithCustomizeDiff  = PolicySetDefinitionResource{}
 )
 
 func (r PolicySetDefinitionResource) StateUpgraders() sdk.StateUpgradeData {
@@ -1221,4 +1222,37 @@ func getPolicySetDefinition(ctx context.Context, client *policysetdefinitions.Po
 	}
 
 	return resp.HttpResponse, resp.Model, err
+}
+
+func (r PolicySetDefinitionResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 10 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceDiff.HasChange("parameters") {
+				oldParametersRaw, newParametersRaw := metadata.ResourceDiff.GetChange("parameters")
+				if oldParametersString := oldParametersRaw.(string); oldParametersString != "" {
+					newParametersString := newParametersRaw.(string)
+					if newParametersString == "" {
+						return metadata.ResourceDiff.ForceNew("parameters")
+					}
+
+					oldParameters, err := expandParameterDefinitionsValue(oldParametersString)
+					if err != nil {
+						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
+					}
+
+					newParameters, err := expandParameterDefinitionsValue(newParametersString)
+					if err != nil {
+						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
+					}
+
+					if len(*newParameters) < len(*oldParameters) {
+						return metadata.ResourceDiff.ForceNew("parameters")
+					}
+				}
+			}
+
+			return nil
+		},
+	}
 }
