@@ -4178,7 +4178,7 @@ func expandApplicationGatewaySslProfiles(d *pluginsdk.ResourceData, gatewayID st
 	vs := d.Get("ssl_profile").([]interface{})
 	results := make([]applicationgateways.ApplicationGatewaySslProfile, 0)
 
-	for _, raw := range vs {
+	for i, raw := range vs {
 		v := raw.(map[string]interface{})
 
 		name := v["name"].(string)
@@ -4191,16 +4191,15 @@ func expandApplicationGatewaySslProfiles(d *pluginsdk.ResourceData, gatewayID st
 			Name: pointer.To(name),
 			Properties: &applicationgateways.ApplicationGatewaySslProfilePropertiesFormat{
 				ClientAuthConfiguration: &applicationgateways.ApplicationGatewayClientAuthConfiguration{
-					VerifyClientRevocation: pointer.To(verifyClientCertificateRevocation),
+					VerifyClientRevocation:   pointer.To(verifyClientCertificateRevocation),
+					VerifyClientCertIssuerDN: pointer.To(v["verify_client_certificate_issuer_dn"].(bool)),
 				},
 			},
 		}
-		if verify, ok := v["verify_client_certificate_issuer_dn"]; ok {
-			output.Properties.ClientAuthConfiguration.VerifyClientCertIssuerDN = pointer.To(verify.(bool))
-		}
+
 		if !features.FivePointOh() {
-			if verify, ok := v["verify_client_cert_issuer_dn"]; ok {
-				output.Properties.ClientAuthConfiguration.VerifyClientCertIssuerDN = pointer.To(verify.(bool))
+			if v, ok := d.GetOk(fmt.Sprintf("ssl_profile.%d.verify_client_cert_issuer_dn", i)); ok {
+				output.Properties.ClientAuthConfiguration.VerifyClientCertIssuerDN = pointer.To(v.(bool))
 			}
 		}
 		if v["trusted_client_certificate_names"] != nil {
