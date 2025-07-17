@@ -45,6 +45,8 @@ The following arguments are supported:
 
 * `address_prefix` - (Optional) The Address Prefix which should be used for this Virtual Hub. Changing this forces a new resource to be created. [The address prefix subnet cannot be smaller than a `/24`. Azure recommends using a `/23`](https://docs.microsoft.com/azure/virtual-wan/virtual-wan-faq#what-is-the-recommended-hub-address-space-during-hub-creation).
 
+* `branch_to_branch_traffic_enabled` - (Optional) Boolean flag to specify whether branch to branch traffic is allowed. Defaults to `false`.
+
 * `virtual_router_auto_scale_min_capacity` - (Optional) Minimum instance capacity for the scaling configuration of the Virtual Hub Router. Defaults to `2`.
 
 ---
