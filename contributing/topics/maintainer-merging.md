@@ -1,6 +1,6 @@
 # Maintainer Specific: Merging Pull Requests
 
-> **Note:** All pull requests must be reviewed and approved before they are merged. This is enforced by repository settings and does not require manual checks.
+> **Note:** All pull requests must be reviewed and approved before they are merged. 
 
 ##  Commit Type
 
