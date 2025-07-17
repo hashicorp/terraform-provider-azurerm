@@ -200,11 +200,6 @@ func (r ServicePlanResource) Create() sdk.ResourceFunc {
 			}
 
 			if servicePlan.MaximumElasticWorkerCount > 0 {
-				if !isServicePlanSupportScaleOut(servicePlan.Sku) {
-					if helpers.PlanIsPremium(servicePlan.Sku) && !servicePlan.PremiumPlanAutoScaleEnabled {
-						return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus or Premium Skus that has `premium_plan_auto_scale_enabled` set to `true`")
-					}
-				}
 				appServicePlan.Properties.MaximumElasticWorkerCount = pointer.To(servicePlan.MaximumElasticWorkerCount)
 			}
 
@@ -274,7 +269,7 @@ func (r ServicePlanResource) Read() sdk.ResourceFunc {
 						state.AppServiceEnvironmentId = *ase.Id
 					}
 
-					if props.ElasticScaleEnabled != nil && *props.ElasticScaleEnabled && state.Sku != "" && helpers.PlanIsPremium(state.Sku) {
+					if pointer.From(props.ElasticScaleEnabled) && state.Sku != "" && helpers.PlanIsPremium(state.Sku) {
 						state.PremiumPlanAutoScaleEnabled = pointer.From(props.ElasticScaleEnabled)
 					}
 
@@ -376,14 +371,6 @@ func (r ServicePlanResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func isServicePlanSupportScaleOut(plan string) bool {
-	support := false
-	support = support || strings.HasPrefix(plan, "EP")
-	support = support || strings.HasPrefix(plan, "PC")
-	support = support || strings.HasPrefix(plan, "WS")
-	return support
-}
-
 func (r ServicePlanResource) StateUpgraders() sdk.StateUpgradeData {
 	return sdk.StateUpgradeData{
 		SchemaVersion: 1,
@@ -403,19 +390,18 @@ func (r ServicePlanResource) CustomizeDiff() sdk.ResourceFunc {
 			_, newEcValue := rd.GetChange("maximum_elastic_worker_count")
 			if rd.HasChange("premium_plan_auto_scale_enabled") {
 				if !helpers.PlanIsPremium(servicePlanSku) && newAutoScaleEnabled.(bool) {
-					return fmt.Errorf("`premium_plan_auto_scale_enabled` can only be set for premium app service plan")
+					return fmt.Errorf("`premium_plan_auto_scale_enabled` can only be set for premium app service plans")
 				}
 			}
 
 			if rd.HasChange("maximum_elastic_worker_count") && newEcValue.(int) > 1 {
-				if !isServicePlanSupportScaleOut(servicePlanSku) && helpers.PlanIsPremium(servicePlanSku) && !newAutoScaleEnabled.(bool) {
-					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus or with Premium Skus that has `premium_plan_auto_scale_enabled` set to `true`")
+				if !helpers.PlanSupportsScaleOut(servicePlanSku) && helpers.PlanIsPremium(servicePlanSku) && !newAutoScaleEnabled.(bool) {
+					return fmt.Errorf("`maximum_elastic_worker_count` can only be specified with Elastic Premium Skus or with Premium Skus when `premium_plan_auto_scale_enabled` is set to `true`")
 				}
 			}
 
 			// Only specific SKUs support zone balancing/redundancy
-			zoneBalancing := rd.Get("zone_balancing_enabled").(bool)
-			if zoneBalancing {
+			if rd.Get("zone_balancing_enabled").(bool) {
 				if !helpers.PlanSupportsZoneBalancing(servicePlanSku) {
 					return fmt.Errorf("`zone_balancing_enabled` cannot be set to `true` when sku tier is `%s`", servicePlanSku)
 				}
