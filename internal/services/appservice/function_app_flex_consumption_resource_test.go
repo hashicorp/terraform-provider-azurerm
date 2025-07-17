@@ -575,6 +575,22 @@ func TestAccFunctionAppFlexConsumption_httpsOnlyUpdate(t *testing.T) {
 	})
 }
 
+func TestAccFunctionAppFlexConsumption_backendStorageUsingKeyValutString(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
+	r := FunctionAppFlexConsumptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.backendStorageUseKeyVault(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func (r FunctionAppFlexConsumptionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseFunctionAppID(state.ID)
 	if err != nil {
