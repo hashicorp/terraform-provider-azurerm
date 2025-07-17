@@ -8,6 +8,7 @@ ENHANCEMENTS:
 * `azurerm_container_app_environment` - add support for the `identity` block [GH-29409]
 * `azurerm_eventhub` - add  support for the `retention_description` block [GH-29427]
 * `azurerm_kubernetes_cluster` - add support for the `Daily` value in the `maintenance_window_auto_upgrade.frequency` property [GH-30133]
+* `azurerm_kubernetes_flux_configuration` - add support for the `git_repository.provider` property [GH-30082]
 * `azurerm_storage_account` - add support for the `provisioned_billing_model_version` property [GH-29043]
 
 FEATURES:
