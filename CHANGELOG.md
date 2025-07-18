@@ -1,6 +1,7 @@
 ## 4.38.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_managed_lustre_file_system` - add support for the `root_squash` block [GH-29876]
 * `azurerm_batch_pool` - fix `start_task.0.task_retry_maximum` validation [GH-30182]
 
 * `azurerm_policy_set_definition` - now forces a new resource to be created when the number of `parameters` is decreased [GH-29866]
