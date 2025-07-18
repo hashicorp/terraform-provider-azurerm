@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 )
 
 // ImportStateClientCapabilities allows Terraform to publish information
@@ -95,9 +96,9 @@ type ImportStateResponse struct {
 // identifier to a given state attribute path. The attribute must accept a
 // string value.
 //
-// This method will also automatically pass through the Identity field if imported by
-// the identity attribute of a import config block (Terraform 1.12+ and later). In this
-// scenario where identity is provided instead of the string ID, the state field defined
+// For resources that support identity, this method will also automatically pass through the
+// Identity field if imported by the identity attribute of a import config block (Terraform 1.12+ and later).
+// In this scenario where identity is provided instead of the string ID, the state field defined
 // at `attrPath` will be set to null.
 func ImportStatePassthroughID(ctx context.Context, attrPath path.Path, req ImportStateRequest, resp *ImportStateResponse) {
 	if attrPath.Equal(path.Empty()) {
@@ -106,6 +107,7 @@ func ImportStatePassthroughID(ctx context.Context, attrPath path.Path, req Impor
 			"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
 				"Resource ImportState method call to ImportStatePassthroughID path must be set to a valid attribute path that can accept a string value.",
 		)
+		return
 	}
 
 	// If the import is using the ID string identifier, (either via the "terraform import" CLI command, or a config block with the "id" attribute set)
@@ -113,4 +115,51 @@ func ImportStatePassthroughID(ctx context.Context, attrPath path.Path, req Impor
 	if req.ID != "" {
 		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, attrPath, req.ID)...)
 	}
+}
+
+// ImportStatePassthroughWithIdentity is a helper function to retrieve either the import identifier
+// or a given identity attribute that is then used to set to given attribute path in state, based on the method used
+// by the practitioner to import. The identity and state attributes provided must be of type string.
+//
+// The helper method should only be used on resources that support identity via the resource.ResourceWithIdentity interface.
+//
+// This method will also automatically pass through the Identity field if imported by
+// the identity attribute of a import config block (Terraform 1.12+ and later).
+func ImportStatePassthroughWithIdentity(ctx context.Context, stateAttrPath, identityAttrPath path.Path, req ImportStateRequest, resp *ImportStateResponse) {
+	if stateAttrPath.Equal(path.Empty()) {
+		resp.Diagnostics.AddError(
+			"Resource Import Passthrough Missing State Attribute Path",
+			"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+				"Resource ImportState method call to ImportStatePassthroughWithIdentity path must be set to a valid state attribute path that can accept a string value.",
+		)
+	}
+
+	if identityAttrPath.Equal(path.Empty()) {
+		resp.Diagnostics.AddError(
+			"Resource Import Passthrough Missing Identity Attribute Path",
+			"This is always an error in the provider. Please report the following to the provider developer:\n\n"+
+				"Resource ImportState method call to ImportStatePassthroughWithIdentity path must be set to a valid identity attribute path that is a string value.",
+		)
+	}
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	// If the import is using the import identifier, (either via the "terraform import" CLI command, or a config block with the "id" attribute set)
+	// pass through the ID to the designated state attribute.
+	if req.ID != "" {
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, stateAttrPath, req.ID)...)
+		return
+	}
+
+	// The import isn't using the import identifier, so it must be using identity. Grab the designated
+	// identity attribute string and set it to state.
+	var identityAttrVal types.String
+	resp.Diagnostics.Append(req.Identity.GetAttribute(ctx, identityAttrPath, &identityAttrVal)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, stateAttrPath, identityAttrVal)...)
 }

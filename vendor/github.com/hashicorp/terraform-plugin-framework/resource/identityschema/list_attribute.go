@@ -5,6 +5,7 @@ package identityschema
 
 import (
 	"context"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwtype"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
@@ -160,10 +161,13 @@ func (a ListAttribute) IsOptionalForImport() bool {
 // provider-defined implementation of the attribute to prevent unexpected
 // errors or panics. This logic runs during the GetResourceIdentitySchemas RPC and
 // should never include false positives.
-func (a ListAttribute) ValidateImplementation(ctx context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
+func (a ListAttribute) ValidateImplementation(_ context.Context, req fwschema.ValidateImplementationRequest, resp *fwschema.ValidateImplementationResponse) {
 	if a.CustomType == nil && a.ElementType == nil {
 		resp.Diagnostics.Append(fwschema.AttributeMissingElementTypeDiag(req.Path))
+		return
 	}
 
-	// TODO:ResourceIdentity: Write validation + tests that ensure the element type only contains primitive elements (bool, string, number)
+	if a.CustomType == nil && !fwtype.IsAllowedPrimitiveType(a.ElementType) {
+		resp.Diagnostics.Append(fwschema.AttributeInvalidElementTypeDiag(req.Path, a.ElementType))
+	}
 }
