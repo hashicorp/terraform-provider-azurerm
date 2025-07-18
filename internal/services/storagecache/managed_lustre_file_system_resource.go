@@ -564,20 +564,16 @@ func expandRootSquashSettings(input []RootSquashSetting) *amlfilesystems.AmlFile
 
 func flattenRootSquashSettings(input *amlfilesystems.AmlFilesystemRootSquashSettings) []RootSquashSetting {
 	result := make([]RootSquashSetting, 0)
-	if input == nil || input.Mode == pointer.To(amlfilesystems.AmlFilesystemSquashModeNone) {
+	if input == nil || pointer.From(input.Mode) == amlfilesystems.AmlFilesystemSquashModeNone {
 		return nil
 	}
 
-	rootSquashSetting := RootSquashSetting{}
-
-	if v := input.Mode; v != nil {
-		rootSquashSetting.Mode = string(pointer.From(v))
+	rootSquashSetting := RootSquashSetting{
+		Mode:            pointer.FromEnum(input.Mode),
+		NoSquashNidList: pointer.From(input.NoSquashNidLists),
+		SquashGID:       pointer.From(input.SquashGID),
+		SquashUID:       pointer.From(input.SquashUID),
 	}
-
-	rootSquashSetting.NoSquashNidList = pointer.From(input.NoSquashNidLists)
-	rootSquashSetting.SquashGID = pointer.From(input.SquashGID)
-	rootSquashSetting.SquashUID = pointer.From(input.SquashUID)
-
 	return append(result, rootSquashSetting)
 }
 
