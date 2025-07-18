@@ -1,4 +1,4 @@
-﻿---
+---
 applyTo: "internal/**/*.go"
 description: This document outlines the coding standards for Go files in the Terraform AzureRM provider repository. It includes naming conventions, file organization, error handling patterns, resource implementation guidelines, and Azure SDK usage standards.
 ---
@@ -1241,6 +1241,20 @@ if model.ShutdownOnIdle == string(azureapi.ShutdownOnIdleModeNone) {
 ### State Management Standards
 
 For detailed state management patterns including when to use `d.GetRawConfig()` vs `d.Get()` in untyped Plugin SDK resources, see the State Management section in [`coding-patterns.instructions.md`](./coding-patterns.instructions.md).
+
+### Console Output Interpretation
+
+**CONSOLE LINE WRAPPING WARNING**: When reviewing git diff output in terminal/console, be aware that long lines may wrap and appear malformed. Always verify actual file content for syntax validation, especially for JSON, YAML, or structured data files. Console wrapping can make valid syntax appear broken.
+
+**VERIFICATION PROTOCOL FOR SUSPECTED ISSUES**:
+- **Before flagging malformed content**: Use `Get-Content filename` (PowerShell) or `cat filename` (bash) to verify file contents
+- **JSON Validation**: For JSON files specifically, consider using `Get-Content file.json | ConvertFrom-Json` (PowerShell) or `jq "." file.json` (bash) to validate syntax
+- **Console Wrapping Indicators**: 
+  - Text breaks mid-sentence or mid-word
+  - Missing closing quotes/brackets that don't make logical sense
+  - Fragmented lines that appear to continue elsewhere
+  - Content looks syntactically invalid but conceptually correct
+- **Verification Rule**: If actual file content is valid, acknowledge console wrapping and do not flag as an issue
 
 ### Security Considerations
 

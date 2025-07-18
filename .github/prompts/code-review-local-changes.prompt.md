@@ -63,14 +63,27 @@ Note: This review should comply with the HashiCorp Terraform Provider developmen
 
 ## Constraints
 
+* **CONSOLE LINE WRAPPING WARNING**: When reviewing git diff output in terminal/console, be aware that long lines may wrap and appear malformed. Always verify actual file content for syntax validation, especially for JSON, YAML, or structured data files. Console wrapping can make valid syntax appear broken.
+
+* **VERIFICATION PROTOCOL FOR SUSPECTED ISSUES**:
+  - **Before flagging malformed content**: Use `Get-Content filename` (PowerShell) or `cat filename` (bash) to verify file contents
+  - **JSON Validation**: For JSON files specifically, consider using `Get-Content file.json | ConvertFrom-Json` (PowerShell) or `jq "." file.json` (bash) to validate syntax
+  - **Console Wrapping Indicators**: 
+    - Text breaks mid-sentence or mid-word
+    - Missing closing quotes/brackets that don't make logical sense
+    - Fragmented lines that appear to continue elsewhere
+    - Content looks syntactically invalid but conceptually correct
+  - **Verification Rule**: If actual file content is valid, acknowledge console wrapping and do not flag as an issue
+
 * **IMPORTANT**: Use the following git commands to get the diff for code review (try in order):
-  1. `git --no-pager diff --no-prefix --unified=3` - for unstaged local changes (works on Unix-like systems and Windows PowerShell/Command Prompt if Git is installed)  
-     - Windows PowerShell example: `git --no-pager diff --no-prefix --unified=3`  
-  2. `git --no-pager diff --no-prefix --unified=3 --staged` - for staged changes if no unstaged changes found  
-     - Windows PowerShell example: `git --no-pager diff --no-prefix --unified=3 --staged`
+  1. git --no-pager diff --no-prefix --unified=3 - for unstaged local changes (works on Unix-like systems and Windows PowerShell/Command Prompt if Git is installed)  
+     - Windows PowerShell example: git --no-pager diff --no-prefix --unified=3  
+  2. git --no-pager diff --no-prefix --unified=3 --staged - for staged changes if no unstaged changes found  
+     - Windows PowerShell example: git --no-pager diff --no-prefix --unified=3 --staged
   3. **If neither command shows any changes, abandon the code review** - this prompt is specifically for reviewing local changes only. When abandoning, display: "☠️ **Argh! There be no changes here!** ☠️"
   4. **Usage Note**: Use the unstaged command during active development to review your current work, and the staged command before committing to review what will be included in your commit
-* In the provided git diff, if the line start with `+` or `-`, it means that the line is added or removed. If the line starts with a space, it means that the line is unchanged. If the line starts with `@@`, it means that the line is a hunk header.
+
+* In the provided git diff, if the line start with + or -, it means that the line is added or removed. If the line starts with a space, it means that the line is unchanged. If the line starts with @@, it means that the line is a hunk header.
 * Avoid overwhelming the developer with too many suggestions at once.
 * Use clear and concise language to ensure understanding.
 * Focus on Terraform provider-specific concerns and Go best practices.
@@ -78,8 +91,9 @@ Note: This review should comply with the HashiCorp Terraform Provider developmen
 * Consider the impact on existing Terraform configurations and state management.
 * If there are any TODO comments, make sure to address them in the review.
 
-* Use markdown for each suggestion, like
-    ```
+* Use markdown for each suggestion:
+
+  ```markdown
     # Code Review for ${feature_description}
 
     Overview of the code changes, including the purpose of the Azure resource implementation, any relevant context about the Azure service, and the files involved.
@@ -99,44 +113,46 @@ Note: This review should comply with the HashiCorp Terraform Provider developmen
     ...
 
     # Summary
-    ```
+  ```
+
 * Use the following emojis to indicate the priority of the suggestions:
     * 🔥 Critical
     * 🔴 High
     * 🟡 Medium
     * 🟢 Low
+
 * Each suggestion should be prefixed with an emoji to indicate the type of suggestion:
     * 🔧 Change request
     * ❓ Question
     * ⛏️ Nitpick
     * ♻️ Refactor suggestion
     * 💭 Thought process or concern
-    * 👍 Positive feedback
+    * 🚀 Positive feedback
     * 📝 Explanatory note or fun fact
-    * 🌱 Observation for future consideration
+    * 📌 Observation for future consideration
+
 * Always use file paths
 
 ### Use Code Review Emojis
 
-Use code review emojis. Give the reviewee added context and clarity to follow up on code review. For example, knowing whether something really requires action (🔧), highlighting nit-picky comments (⛏), flagging out of scope items for follow-up (📌) and clarifying items that don’t necessarily require action but are worth saying ( 👍, 📝, 🤔 )
+Use code review emojis. Give the reviewee added context and clarity to follow up on code review. For example, knowing whether something really requires action (🔧), highlighting nit-picky comments (⛏️), flagging out of scope items for follow-up (📌)
 
 #### Emoji Legend
 
-|       |      `:code:`       | Meaning                                                                                                                                                                                                                            |
-| :---: | :-----------------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|   🔧   |     `:wrench:`      | Use when this needs to be changed. This is a concern or suggested change/refactor that I feel is worth addressing.                                                                                                                 |
-|   ❓   |    `:question:`     | Use when you have a question. This should be a fully formed question with sufficient information and context that requires a response.                                                                                             |
-|   ⛏   |      `:pick:`       | This is a nitpick. This does not require any changes and is often better left unsaid. This may include stylistic, formatting, or organization suggestions and should likely be prevented/enforced by linting if they really matter |
-|   ♻️   |     `:recycle:`     | Suggestion for refactoring. Should include enough context to be actionable and not be considered a nitpick.                                                                                                                        |
-|   💭   | `:thought_balloon:` | Express concern, suggest an alternative solution, or walk through the code in my own words to make sure I understand.                                                                                                              |
-|   👍   |       `:+1:`        | Let the author know that you really liked something! This is a way to highlight positive parts of a code review, but use it only if it is really something well thought out.                                                       |
-|   📝   |      `:memo:`       | This is an explanatory note, fun fact, or relevant commentary that does not require any action.                                                                                                                                    |
-|   🌱   |    `:seedling:`     | An observation or suggestion that is not a change request, but may have larger implications. Generally something to keep in mind for the future.
+| `Emoji` |      `:code:`       | `Meaning`                                                                                               |
+| :-----: | :-----------------: | ------------------------------------------------------------------------------------------------------- |
+|   🔧   |     `:wrench:`      | Use when this needs to be changed. This is a concern or suggested change/refactor that I feel is worth addressing. |
+|   ❓   |    `:question:`     | Use when you have a question. This should be a fully formed question with sufficient information and context that requires aresponse. |
+|   ⛏️   |      `:pick:`       | This is a nitpick. This does not require any changes and is often better left unsaid. |
+|   ♻️   |     `:recycle:`     | Suggestion for refactoring. Should include enough context to be actionable and not be considered a  |
+|   💭   | `:thought_balloon:` | Express concern, suggest an alternative solution, or walk through the code in my own words to make sure I understand. |
+|   🚀   |     `:rocket:`      | Let the author know that you really liked something! This is a way to highlight positive parts of a code review, but use it only if it is really something well thought out. |
+|   📝   |      `:memo:`       | This is an explanatory note, fun fact, or relevant commentary that does not require any action. |
+|   📌   |     `:pushpin:`     | An observation or suggestion that is not a change request, but may have larger implications. Generally something to keep in mind for the future. |
 
 ### Terraform Provider Specific Review Points
 
 When reviewing Terraform AzureRM provider code, pay special attention to:
-
 
 #### CustomizeDiff Import Requirements
 - **Dual Import Pattern**: When reviewing CustomizeDiff functions, verify both packages are imported:
