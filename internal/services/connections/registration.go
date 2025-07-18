@@ -28,11 +28,17 @@ func (r Registration) WebsiteCategories() []string {
 	}
 }
 
+// DataSources returns the typed Data Sources supported by this Service
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{
+		ApiConnectionDataSource{},
+	}
+}
+
 // SupportedDataSources returns the supported Data Sources supported by this Service
 func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 	return map[string]*pluginsdk.Resource{
-		"azurerm_api_connection": dataSourceApiConnection(),
-		"azurerm_managed_api":    dataSourceManagedApi(),
+		"azurerm_managed_api": dataSourceManagedApi(),
 	}
 }
 

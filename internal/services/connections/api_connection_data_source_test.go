@@ -33,6 +33,7 @@ func TestAccApiConnectionDataSource_basic(t *testing.T) {
 	})
 }
 
+// Note: Data sources don't need Exists functions, so helper functions can be placed directly after test functions
 func (ApiConnectionDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
