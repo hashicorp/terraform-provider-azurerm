@@ -26,6 +26,7 @@ func (r ResourceGroupAssignmentResource) Arguments() map[string]*pluginsdk.Schem
 			ValidateFunc: validation.All(
 				validation.StringIsNotWhiteSpace,
 				validation.StringDoesNotContainAny("/"),
+				validation.StringLenBetween(1, 64),
 			),
 		},
 		"resource_group_id": {
