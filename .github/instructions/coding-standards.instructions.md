@@ -691,7 +691,83 @@ CustomizeDiff: pluginsdk.All(
 - **Major Feature Additions**: Consider migration opportunity when adding significant functionality
 - **Bug Fixes**: Maintain existing untyped implementation for simple fixes
 
+**Service Registration During Migration:**
+When migrating resources from untyped to typed implementations, services often need to be registered in both lists temporarily:
 
+```go
+// In internal/provider/services.go
+
+func SupportedTypedServices() []sdk.TypedServiceRegistration {
+    services := []sdk.TypedServiceRegistration{
+        // Add service here when it has any typed resources
+        cdn.Registration{},
+        // ...other services
+    }
+    return services
+}
+
+func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
+    return func() []sdk.UntypedServiceRegistration {
+        out := []sdk.UntypedServiceRegistration{
+            // Keep service here until all resources are migrated
+            cdn.Registration{},
+            // ...other services
+        }
+        return out
+    }()
+}
+```
+
+**Registration Rules:**
+- **Dual Registration**: Services appear in both lists during migration period
+- **Service Registration Interface**: The same service registration struct implements both `TypedServiceRegistration` and `UntypedServiceRegistration` interfaces
+- **Resource Distribution**: Individual resources within the service can be either typed or untyped
+- **Final Migration**: Remove from `SupportedUntypedServices()` only when all resources in the service are migrated
+
+**Registration Implementation Requirements:**
+- **Both Functions Required**: When a service implements both `TypedServiceRegistration` and `UntypedServiceRegistration` interfaces, you **MUST** implement both sets of functions even if no resources exist in one category
+- **Empty Returns Allowed**: Return empty slices/maps for resource types that don't exist yet
+- **Consistent Interface**: This ensures the registration struct satisfies both interfaces correctly
+
+```go
+var (
+	_ sdk.TypedServiceRegistration                   = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+)
+
+func (r Registration) AssociatedGitHubLabel() string {
+	return "service/connections"
+}
+
+// REQUIRED: Always implement both typed and untyped functions
+func (r Registration) DataSources() []sdk.DataSource {
+    return []sdk.DataSource{
+        // Typed data sources here, or empty slice if none exist
+        ApiConnectionDataSource{},
+    }
+}
+
+func (r Registration) Resources() []sdk.Resource {
+    return []sdk.Resource{
+        // Typed resources here, or empty slice if none exist
+        // Add typed resources here when implemented
+    }
+}
+
+func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
+    return map[string]*pluginsdk.Resource{
+        // Untyped data sources here, or empty map if none exist
+        "azurerm_managed_api": dataSourceManagedApi(),
+    }
+}
+
+func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
+    return map[string]*pluginsdk.Resource{
+        // Untyped resources here, or empty map if none exist
+        "azurerm_api_connection": resourceApiConnection(),
+    }
+}
+```
 **Migration Decision Matrix:**
 
 | Scenario | Action | Approach |
@@ -1049,7 +1125,7 @@ func (r ServiceResource) Create() sdk.ResourceFunc {
     return sdk.ResourceFunc{
         Timeout: 30 * time.Minute, // Complex Azure resources may take time to provision
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            var model ServiceModel
+            var model ServiceNameModel
             if err := metadata.Decode(&model); err != nil {
                 return fmt.Errorf("decoding: %+v", err)
             }
@@ -2080,7 +2156,6 @@ if err != nil {
     return fmt.Errorf("parsing Service ID %q: %+v", metadata.ResourceData.Id(), err)
 }
 ```
-
 **Specific validation context**
 ```go
 package servicename
