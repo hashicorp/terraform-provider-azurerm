@@ -48,6 +48,7 @@ type AutonomousDatabaseRegularResourceModel struct {
 	SubnetId                     string                          `tfschema:"subnet_id"`
 	VnetId                       string                          `tfschema:"virtual_network_id"`
 	AllowedIps                   []string                        `tfschema:"allowed_ips"`
+	Ocid                         string                          `tfschema:"ocid"`
 
 	// Optional
 	CustomerContacts []string `tfschema:"customer_contacts"`
@@ -233,7 +234,12 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 }
 
 func (AutonomousDatabaseRegularResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"ocid": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }
 
 func (AutonomousDatabaseRegularResource) ModelObject() interface{} {
@@ -450,6 +456,7 @@ func (AutonomousDatabaseRegularResource) Read() sdk.ResourceFunc {
 				state.VnetId = pointer.From(props.VnetId)
 				state.LongTermBackUpSchedule = FlattenLongTermBackUpScheduleDetails(props.LongTermBackupSchedule)
 				state.AllowedIps = pointer.From(props.WhitelistedIPs)
+				state.Ocid = pointer.From(props.Ocid)
 			}
 			return metadata.Encode(&state)
 		},
