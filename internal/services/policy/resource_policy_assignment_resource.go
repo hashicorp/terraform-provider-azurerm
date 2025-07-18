@@ -25,6 +25,7 @@ func (r ResourceAssignmentResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.All(
 				validation.StringIsNotWhiteSpace,
 				validation.StringDoesNotContainAny("/"),
+				validation.StringLenBetween(1, 64),
 			),
 		},
 		"resource_id": {

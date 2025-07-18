@@ -32,6 +32,7 @@ func (r ManagementGroupAssignmentResource) Arguments() map[string]*pluginsdk.Sch
 			ValidateFunc: validation.All(
 				validation.StringIsNotWhiteSpace,
 				validation.StringDoesNotContainAny("/"),
+				validation.StringLenBetween(3, 24),
 			),
 		},
 	}
