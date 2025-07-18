@@ -12,10 +12,29 @@ Use this data source to access information about an existing Front Door (standar
 
 ## Example Usage
 
+### Basic Lookup
+
 ```hcl
 data "azurerm_cdn_frontdoor_profile" "example" {
   name                = "existing-cdn-profile"
   resource_group_name = "existing-resources"
+}
+```
+
+### Using Data Source Output
+
+```hcl
+data "azurerm_cdn_frontdoor_profile" "example" {
+  name                = "existing-cdn-profile"
+  resource_group_name = "existing-resources"
+}
+
+output "front_door_id" {
+  value = data.azurerm_cdn_frontdoor_profile.example.id
+}
+
+output "log_scrubbing_match_variable" {
+  value = data.azurerm_cdn_frontdoor_profile.example.log_scrubbing.0.scrubbing_rule.0.match_variable
 }
 ```
 
@@ -39,9 +58,19 @@ An `identity` block exports the following:
 
 ---
 
+A `log_scrubbing` block exports the following:
+
+* `scrubbing_rule` - One or more `scrubbing_rule` blocks as defined below.
+
+---
+
+A `scrubbing_rule` block exports the following:
+
+* `match_variable` - The variable that is scrubbed from the logs.
+
 ## Attributes Reference
 
-The following attributes are exported:
+In addition to the Arguments listed above - the following attributes are exported:
 
 * `id` - The ID of this Front Door Profile.
 
