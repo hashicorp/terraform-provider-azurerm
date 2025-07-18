@@ -150,6 +150,30 @@ resource "azurerm_oracle_cloud_vm_cluster" "test" {
   }
   time_zone          = "UTC"
   virtual_network_id = azurerm_virtual_network.virtual_network.id
+  file_system_configuration {
+    mount_point = "/"
+    size_gb     = 20
+  }
+  file_system_configuration {
+    mount_point = "/var"
+    size_gb     = 15
+  }
+  file_system_configuration {
+    mount_point = "/home"
+    size_gb     = 10
+  }
+  file_system_configuration {
+    mount_point = "/tmp"
+    size_gb     = 20
+  }
+  file_system_configuration {
+    mount_point = "/u01"
+    size_gb     = 270
+  }
+  file_system_configuration {
+    mount_point = "/var/log"
+    size_gb     = 50
+  }
 }`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
