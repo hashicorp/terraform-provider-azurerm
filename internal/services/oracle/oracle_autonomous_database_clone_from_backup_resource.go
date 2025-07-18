@@ -5,7 +5,6 @@ package oracle
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -20,11 +19,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = AutonomousDatabaseCloneResource{}
+var _ sdk.Resource = AutonomousDatabaseCloneFromBackupResource{}
 
-type AutonomousDatabaseCloneResource struct{}
+type AutonomousDatabaseCloneFromBackupResource struct{}
 
-type AutonomousDatabaseCloneResourceModel struct {
+type AutonomousDatabaseCloneFromBackupResourceModel struct {
 	Location          string            `tfschema:"location"`
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
@@ -43,7 +42,7 @@ type AutonomousDatabaseCloneResourceModel struct {
 	CharacterSet                 string   `tfschema:"character_set"`
 	ComputeCount                 float64  `tfschema:"compute_count"`
 	ComputeModel                 string   `tfschema:"compute_model"`
-	DataStorageSizeInTb          int64    `tfschema:"data_storage_size_in_tb"`
+	DataStorageSizeInTbs         int64    `tfschema:"data_storage_size_in_tbs"`
 	DbVersion                    string   `tfschema:"db_version"`
 	DbWorkload                   string   `tfschema:"db_workload"`
 	DisplayName                  string   `tfschema:"display_name"`
@@ -56,14 +55,14 @@ type AutonomousDatabaseCloneResourceModel struct {
 	VnetId                       string   `tfschema:"virtual_network_id"`
 	AllowedIps                   []string `tfschema:"allowed_ips"`
 
-	// Optional for Clone
+	// Optional
 
-	CustomerContacts   []string `tfschema:"customer_contacts"`
-	RefreshableModel   string   `tfschema:"refreshable_model"`
-	TimeUntilReconnect string   `tfschema:"time_until_reconnect"`
+	CustomerContacts                  []string `tfschema:"customer_contacts"`
+	BackupTimestamp                   string   `tfschema:"backup_timestamp"`
+	UseLatestAvailableBackupTimeStamp bool     `tfschema:"use_latest_available_backup_time_stamp"`
 }
 
-func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema {
+func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
 
@@ -83,7 +82,7 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(autonomousdatabases.SourceTypeCloneToRefreshable),
+				string(autonomousdatabases.SourceTypeBackupFromTimestamp),
 			}, false),
 			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 				// Source is create-only and not returned by Azure API
@@ -105,17 +104,15 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 		},
 		// optional
 
-		"refreshable_model": {
+		"use_latest_available_backup_time_stamp": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
+		"backup_timestamp": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForRefreshableModelType(), false),
-		},
-
-		"time_until_reconnect": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
 			ValidateFunc: validation.IsRFC3339Time,
 		},
 
@@ -155,7 +152,7 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 			ValidateFunc: validate.AdbsComputeModel,
 		},
 
-		"data_storage_size_in_tb": {
+		"data_storage_size_in_tbs": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntBetween(1, 384),
@@ -199,10 +196,13 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 		},
 
 		"license_model": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForLicenseModel(), false),
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(autonomousdatabases.LicenseModelLicenseIncluded),
+				string(autonomousdatabases.LicenseModelBringYourOwnLicense),
+			}, false),
 		},
 
 		"national_character_set": {
@@ -248,34 +248,31 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 	}
 }
 
-func (AutonomousDatabaseCloneResource) Attributes() map[string]*pluginsdk.Schema {
+func (AutonomousDatabaseCloneFromBackupResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (AutonomousDatabaseCloneResource) ModelObject() interface{} {
-	return &AutonomousDatabaseCloneResourceModel{}
+func (AutonomousDatabaseCloneFromBackupResource) ModelObject() interface{} {
+	return &AutonomousDatabaseCloneFromBackupResourceModel{}
 }
 
-func (AutonomousDatabaseCloneResource) ResourceType() string {
-	return "azurerm_oracle_autonomous_database_clone"
+func (AutonomousDatabaseCloneFromBackupResource) ResourceType() string {
+	return "azurerm_oracle_autonomous_database_clone_from_backup"
 }
 
-func (r AutonomousDatabaseCloneResource) Create() sdk.ResourceFunc {
+func (r AutonomousDatabaseCloneFromBackupResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model AutonomousDatabaseCloneResourceModel
+			var model AutonomousDatabaseCloneFromBackupResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
 
-			id := autonomousdatabases.NewAutonomousDatabaseID(
-				subscriptionId,
-				model.ResourceGroupName,
-				model.Name)
+			id := autonomousdatabases.NewAutonomousDatabaseID(subscriptionId, model.ResourceGroupName, model.Name)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -291,12 +288,14 @@ func (r AutonomousDatabaseCloneResource) Create() sdk.ResourceFunc {
 				Tags:     pointer.To(model.Tags),
 			}
 
-			param.Properties = &autonomousdatabases.AutonomousDatabaseCloneProperties{
-				CloneType:                      autonomousdatabases.CloneType(model.CloneType),
-				SourceId:                       model.SourceAutonomousDatabaseId,
-				Source:                         pointer.To(autonomousdatabases.SourceType(model.Source)),
-				DataBaseType:                   autonomousdatabases.DataBaseTypeClone,
-				TimeUntilReconnectCloneEnabled: pointer.To(model.TimeUntilReconnect),
+			param.Properties = &autonomousdatabases.AutonomousDatabaseFromBackupTimestampProperties{
+
+				CloneType:    autonomousdatabases.CloneType(model.CloneType),
+				SourceId:     model.SourceAutonomousDatabaseId,
+				Source:       autonomousdatabases.Source(autonomousdatabases.SourceTypeBackupFromTimestamp),
+				DataBaseType: autonomousdatabases.DataBaseTypeCloneFromBackupTimestamp,
+
+				UseLatestAvailableBackupTimeStamp: pointer.To(model.UseLatestAvailableBackupTimeStamp),
 
 				// Base properties
 				AdminPassword:                  pointer.To(model.AdminPassword),
@@ -305,7 +304,7 @@ func (r AutonomousDatabaseCloneResource) Create() sdk.ResourceFunc {
 				ComputeCount:                   pointer.To(model.ComputeCount),
 				ComputeModel:                   pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
 				CustomerContacts:               expandCloneCustomerContactsPtr(model.CustomerContacts),
-				DataStorageSizeInTbs:           pointer.To(model.DataStorageSizeInTb),
+				DataStorageSizeInTbs:           pointer.To(model.DataStorageSizeInTbs),
 				DbWorkload:                     pointer.To(autonomousdatabases.WorkloadType(model.DbWorkload)),
 				DbVersion:                      pointer.To(model.DbVersion),
 				DisplayName:                    pointer.To(model.DisplayName),
@@ -316,12 +315,10 @@ func (r AutonomousDatabaseCloneResource) Create() sdk.ResourceFunc {
 				NcharacterSet:                  pointer.To(model.NationalCharacterSet),
 				WhitelistedIPs:                 pointer.To(model.AllowedIps),
 			}
-
-			properties := param.Properties.(*autonomousdatabases.AutonomousDatabaseCloneProperties)
-			if model.RefreshableModel != "" {
-				properties.RefreshableModel = pointer.To(autonomousdatabases.RefreshableModelType(model.RefreshableModel))
+			properties := param.Properties.(*autonomousdatabases.AutonomousDatabaseFromBackupTimestampProperties)
+			if model.BackupTimestamp != "" {
+				properties.Timestamp = pointer.To(model.BackupTimestamp)
 			}
-
 			if model.SubnetId != "" {
 				properties.SubnetId = pointer.To(model.SubnetId)
 			}
@@ -340,7 +337,7 @@ func (r AutonomousDatabaseCloneResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r AutonomousDatabaseCloneResource) Read() sdk.ResourceFunc {
+func (r AutonomousDatabaseCloneFromBackupResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -358,38 +355,37 @@ func (r AutonomousDatabaseCloneResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			var state AutonomousDatabaseCloneResourceModel
+			var state AutonomousDatabaseCloneFromBackupResourceModel
 
 			if val, ok := metadata.ResourceData.GetOk("source"); ok {
 				state.Source = val.(string)
 			}
-
-			if v, ok := metadata.ResourceData.GetOk("refreshable_model"); ok {
-				state.RefreshableModel = v.(string)
+			if v, ok := metadata.ResourceData.GetOk("use_latest_available_backup_time_stamp"); ok {
+				state.UseLatestAvailableBackupTimeStamp = v.(bool)
+			}
+			if v, ok := metadata.ResourceData.GetOk("timestamp"); ok {
+				state.BackupTimestamp = v.(string)
 			}
 
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
-
-				props, ok := model.Properties.(autonomousdatabases.AutonomousDatabaseCloneProperties)
+				props, ok := model.Properties.(autonomousdatabases.AutonomousDatabaseFromBackupTimestampProperties)
 				if !ok {
-					return fmt.Errorf("%s was not of type `Clone`", id)
+					return fmt.Errorf("%s was not of type `Regular`", id)
 				}
 				state.CloneType = string(props.CloneType)
 				state.SourceAutonomousDatabaseId = props.SourceId
-				state.TimeUntilReconnect = pointer.From(props.TimeUntilReconnectCloneEnabled)
 
-				// Base properties
 				state.AdminPassword = metadata.ResourceData.Get("admin_password").(string)
 				state.BackupRetentionPeriodInDays = pointer.From(props.BackupRetentionPeriodInDays)
 				state.CharacterSet = pointer.From(props.CharacterSet)
 				state.ComputeCount = pointer.From(props.ComputeCount)
 				state.ComputeModel = pointer.FromEnum(props.ComputeModel)
-				state.CustomerContacts = flattenCloneCustomerContacts(*props.CustomerContacts)
-				state.DataStorageSizeInTb = pointer.From(props.DataStorageSizeInTbs)
+				state.CustomerContacts = flattenCloneCustomerContacts(pointer.From(props.CustomerContacts))
+				state.DataStorageSizeInTbs = pointer.From(props.DataStorageSizeInTbs)
 				state.DbVersion = pointer.From(props.DbVersion)
-				state.DbVersion = pointer.From(props.DbVersion)
+				state.DbWorkload = string(pointer.From(props.DbWorkload))
 				state.DisplayName = pointer.From(props.DisplayName)
 				state.AutoScalingEnabled = pointer.From(props.IsAutoScalingEnabled)
 				state.AutoScalingForStorageEnabled = pointer.From(props.IsAutoScalingForStorageEnabled)
@@ -399,6 +395,7 @@ func (r AutonomousDatabaseCloneResource) Read() sdk.ResourceFunc {
 				state.SubnetId = pointer.From(props.SubnetId)
 				state.VnetId = pointer.From(props.VnetId)
 				state.AllowedIps = pointer.From(props.WhitelistedIPs)
+
 			}
 
 			return metadata.Encode(&state)
@@ -406,7 +403,7 @@ func (r AutonomousDatabaseCloneResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r AutonomousDatabaseCloneResource) Delete() sdk.ResourceFunc {
+func (r AutonomousDatabaseCloneFromBackupResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -426,60 +423,20 @@ func (r AutonomousDatabaseCloneResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r AutonomousDatabaseCloneResource) Update() sdk.ResourceFunc {
+func (r AutonomousDatabaseCloneFromBackupResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			// nothing to update
 			return nil
 		},
 	}
 }
 
-func (r AutonomousDatabaseCloneResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r AutonomousDatabaseCloneFromBackupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return autonomousdatabases.ValidateAutonomousDatabaseID
 }
 
-func expandCloneCustomerContacts(input []string) []autonomousdatabases.CustomerContact {
-	if len(input) == 0 {
-		return nil
-	}
-
-	contacts := make([]autonomousdatabases.CustomerContact, 0, len(input))
-	for _, email := range input {
-		if strings.TrimSpace(email) != "" {
-			contacts = append(contacts, autonomousdatabases.CustomerContact{
-				Email: email,
-			})
-		}
-	}
-	return contacts
-}
-
-func expandCloneCustomerContactsPtr(input []string) *[]autonomousdatabases.CustomerContact {
-	if len(input) == 0 {
-		return nil
-	}
-
-	contacts := expandCloneCustomerContacts(input)
-	return &contacts
-}
-
-func flattenCloneCustomerContacts(input []autonomousdatabases.CustomerContact) []string {
-	if len(input) == 0 {
-		return nil
-	}
-
-	emails := make([]string, 0, len(input))
-	for _, contact := range input {
-		if contact.Email != "" {
-			emails = append(emails, contact.Email)
-		}
-	}
-	return emails
-}
-
-func (AutonomousDatabaseCloneResource) CustomizeDiff() sdk.ResourceFunc {
+func (AutonomousDatabaseCloneFromBackupResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Second,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -498,12 +455,12 @@ func (AutonomousDatabaseCloneResource) CustomizeDiff() sdk.ResourceFunc {
 				return nil
 			}
 
-			sourceWorkload, err := getSourceWorkloadforClone(ctx, sourceId, metadata)
+			sourceWorkload, err := getSourceWorkload(ctx, sourceId, metadata)
 			if err != nil {
 				return err
 			}
 
-			targets, exists := workloadMatrixForClone[sourceWorkload]
+			targets, exists := workloadMatrix[sourceWorkload]
 			if !exists {
 				return fmt.Errorf("unsupported source workload: %s", sourceWorkload)
 			}
@@ -519,14 +476,14 @@ func (AutonomousDatabaseCloneResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-var workloadMatrixForClone = map[string][]string{
+var workloadMatrix = map[string][]string{
 	"DW":   {"OLTP", "DW"},
 	"OLTP": {"DW", "OLTP"},
 	"AJD":  {"OLTP", "DW", "APEX"},
 	"APEX": {"AJD", "OLTP", "DW"},
 }
 
-func getSourceWorkloadforClone(ctx context.Context, sourceId string, metadata sdk.ResourceMetaData) (string, error) {
+func getSourceWorkload(ctx context.Context, sourceId string, metadata sdk.ResourceMetaData) (string, error) {
 	id, err := autonomousdatabases.ParseAutonomousDatabaseID(sourceId)
 	if err != nil {
 		return "", fmt.Errorf("invalid source_id format: %v", err)
@@ -548,10 +505,6 @@ func getSourceWorkloadforClone(ctx context.Context, sourceId string, metadata sd
 
 	switch props := resp.Model.Properties.(type) {
 	case autonomousdatabases.AutonomousDatabaseProperties:
-		if props.DbWorkload != nil {
-			return string(*props.DbWorkload), nil
-		}
-	case autonomousdatabases.AutonomousDatabaseCloneProperties:
 		if props.DbWorkload != nil {
 			return string(*props.DbWorkload), nil
 		}

@@ -16,24 +16,17 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.DataSource = AutonomousDatabaseCloneDataSource{}
+var _ sdk.DataSource = AutonomousDatabaseCloneFromBackupDataSource{}
 
-type AutonomousDatabaseCloneDataSource struct{}
+type AutonomousDatabaseCloneFromBackupDataSource struct{}
 
-type AutonomousDatabaseCloneDataSourceModel struct {
+type AutonomousDatabaseCloneFomBackupDataSourceModel struct {
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Location          string            `tfschema:"location"`
 	Tags              map[string]string `tfschema:"tags"`
 
-	// Clone-specific properties
-	SourceId                string `tfschema:"source_id"`
-	CloneType               string `tfschema:"clone_type"`
-	ReconnectCloneEnabled   bool   `tfschema:"reconnect_clone_enabled"`
-	RefreshableClone        bool   `tfschema:"refreshable_clone"`
-	RefreshableModel        string `tfschema:"refreshable_model"`
-	RefreshableStatus       string `tfschema:"refreshable_status"`
-	TimeUntilReconnectClone string `tfschema:"time_until_reconnect_clone"`
+	SourceId string `tfschema:"source_id"`
 
 	// Base properties (computed)
 	AutonomousDatabaseId         string   `tfschema:"autonomous_database_id"`
@@ -45,8 +38,8 @@ type AutonomousDatabaseCloneDataSourceModel struct {
 	CustomerContacts             []string `tfschema:"customer_contacts"`
 	DataStorageSizeInGbs         int64    `tfschema:"data_storage_size_in_gbs"`
 	DataStorageSizeInTbs         int64    `tfschema:"data_storage_size_in_tbs"`
-	DatabaseVersion              string   `tfschema:"database_version"`
-	DatabaseWorkload             string   `tfschema:"database_workload"`
+	DbVersion                    string   `tfschema:"db_version"`
+	DbWorkload                   string   `tfschema:"db_workload"`
 	DisplayName                  string   `tfschema:"display_name"`
 	LicenseModel                 string   `tfschema:"license_model"`
 	AutoScalingEnabled           bool     `tfschema:"auto_scaling_enabled"`
@@ -64,7 +57,7 @@ type AutonomousDatabaseCloneDataSourceModel struct {
 	OciUrl                       string   `tfschema:"oci_url"`
 }
 
-func (AutonomousDatabaseCloneDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (AutonomousDatabaseCloneFromBackupDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -76,53 +69,21 @@ func (AutonomousDatabaseCloneDataSource) Arguments() map[string]*pluginsdk.Schem
 	}
 }
 
-func (AutonomousDatabaseCloneDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (AutonomousDatabaseCloneFromBackupDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
 		"tags": commonschema.TagsDataSource(),
 
-		// Clone-specific properties
 		"source_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-
-		"clone_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"reconnect_clone_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-
-		"refreshable_clone": {
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
-		},
-
-		"refreshable_model": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"refreshable_status": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"time_until_reconnect_clone": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		// Base properties
 		"autonomous_database_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
 		"allowed_ips": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -169,12 +130,12 @@ func (AutonomousDatabaseCloneDataSource) Attributes() map[string]*pluginsdk.Sche
 			Computed: true,
 		},
 
-		"database_version": {
+		"db_version": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"database_workload": {
+		"db_workload": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -256,22 +217,22 @@ func (AutonomousDatabaseCloneDataSource) Attributes() map[string]*pluginsdk.Sche
 	}
 }
 
-func (AutonomousDatabaseCloneDataSource) ModelObject() interface{} {
-	return &AutonomousDatabaseCloneDataSourceModel{}
+func (AutonomousDatabaseCloneFromBackupDataSource) ModelObject() interface{} {
+	return &AutonomousDatabaseCloneFomBackupDataSourceModel{}
 }
 
-func (AutonomousDatabaseCloneDataSource) ResourceType() string {
+func (AutonomousDatabaseCloneFromBackupDataSource) ResourceType() string {
 	return "azurerm_oracle_autonomous_database_clone"
 }
 
-func (AutonomousDatabaseCloneDataSource) Read() sdk.ResourceFunc {
+func (AutonomousDatabaseCloneFromBackupDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
 
-			var state AutonomousDatabaseCloneDataSourceModel
+			var state AutonomousDatabaseCloneFomBackupDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -287,17 +248,13 @@ func (AutonomousDatabaseCloneDataSource) Read() sdk.ResourceFunc {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
 
-				props, ok := model.Properties.(autonomousdatabases.AutonomousDatabaseCloneProperties)
+				props, ok := model.Properties.(autonomousdatabases.AutonomousDatabaseFromBackupTimestampProperties)
 				if !ok {
 					return fmt.Errorf("%s is not a clone type autonomous database", id)
 				}
-				state.CloneType = string(props.CloneType)
 				state.SourceId = props.SourceId
-				state.ReconnectCloneEnabled = pointer.From(props.IsReconnectCloneEnabled)
-				state.RefreshableClone = pointer.From(props.IsRefreshableClone)
-				state.TimeUntilReconnectClone = pointer.From(props.TimeUntilReconnectCloneEnabled)
-				state.RefreshableModel = pointer.FromEnum(props.RefreshableModel)
-				state.RefreshableStatus = pointer.FromEnum(props.RefreshableStatus)
+
+				// Base properties
 				state.AutonomousDatabaseId = pointer.From(props.AutonomousDatabaseId)
 				state.AllowedIps = pointer.From(props.WhitelistedIPs)
 				state.BackupRetentionPeriodInDays = pointer.From(props.BackupRetentionPeriodInDays)
@@ -307,11 +264,11 @@ func (AutonomousDatabaseCloneDataSource) Read() sdk.ResourceFunc {
 				state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
 				state.DataStorageSizeInGbs = pointer.From(props.DataStorageSizeInGbs)
 				state.DataStorageSizeInTbs = pointer.From(props.DataStorageSizeInTbs)
-				state.DatabaseVersion = pointer.From(props.DbVersion)
-				state.DatabaseWorkload = string(pointer.From(props.DbWorkload))
+				state.DbVersion = pointer.From(props.DbVersion)
+				state.DbWorkload = string(pointer.From(props.DbWorkload))
 				state.DisplayName = pointer.From(props.DisplayName)
 				state.LicenseModel = string(pointer.From(props.LicenseModel))
-				state.LifecycleState = pointer.From(props.LifecycleDetails)
+				state.LifecycleState = string(pointer.From(props.LifecycleState))
 				state.AutoScalingEnabled = pointer.From(props.IsAutoScalingEnabled)
 				state.AutoScalingForStorageEnabled = pointer.From(props.IsAutoScalingForStorageEnabled)
 				state.MtlsConnectionRequired = pointer.From(props.IsMtlsConnectionRequired)
