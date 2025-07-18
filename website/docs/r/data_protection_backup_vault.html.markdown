@@ -67,7 +67,7 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Backup Vault. The only possible value is `SystemAssigned`.
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Backup Vault. Possible values are `SystemAssigned` and `UserAssigned`.
 
 ## Attributes Reference
 
