@@ -2454,9 +2454,9 @@ resource "azurerm_windows_function_app" "test" {
   }
 
   site_config {
-    always_on                                  = true
-    app_command_line                           = "whoami"
-    api_definition_url                         = "https://example.com/azure_function_app_def.json"
+    always_on          = true
+    app_command_line   = "whoami"
+    api_definition_url = "https://example.com/azure_function_app_def.json"
     // api_management_api_id                   = "" // TODO
     application_insights_key                   = azurerm_application_insights.test.instrumentation_key
     application_insights_connection_string     = azurerm_application_insights.test.connection_string
