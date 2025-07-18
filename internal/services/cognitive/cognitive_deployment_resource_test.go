@@ -34,6 +34,21 @@ func TestAccCognitiveDeployment_basic(t *testing.T) {
 	})
 }
 
+func TestAccCognitiveDeployment_deepSeek(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_deployment", "test")
+	r := CognitiveDeploymentTestResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.deepSeek(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCognitiveDeployment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_deployment", "test")
 
@@ -281,4 +296,33 @@ resource "azurerm_cognitive_deployment" "test" {
   }
 }
 `, template, data.RandomInteger, versionUpgradeOption)
+}
+
+func (r CognitiveDeploymentTestResource) deepSeek(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_ai_services" "test" {
+  name                = "acctest-cd-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "S0"
+
+  custom_subdomain_name = "acctest-cd-%d"
+}
+
+resource "azurerm_cognitive_deployment" "test" {
+  name                 = "acctest-cd-%d"
+  cognitive_account_id = azurerm_ai_services.test.id
+  model {
+    name    = "DeepSeek-R1"
+    version = "1"
+    format  = "DeepSeek"
+  }
+  sku {
+    name = "GlobalStandard"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
