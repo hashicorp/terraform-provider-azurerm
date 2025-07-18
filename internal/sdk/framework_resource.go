@@ -214,6 +214,8 @@ type FrameworkWrappedResource interface {
 	Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse, metadata ResourceMetadata, plan interface{}, state interface{})
 
 	ImportState(ctx context.Context, request resource.ImportStateRequest, response *resource.ImportStateResponse, metadata ResourceMetadata)
+
+	Identity() (id resourceids.ResourceId, idType []ResourceTypeForIdentity)
 }
 
 // FrameworkWrappedResourceWithUpdate provides an interface for resources that need custom configuration beyond the standard wrapped Configure()

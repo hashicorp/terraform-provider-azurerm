@@ -2,11 +2,15 @@ package sdk
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/framework/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 type FrameworkResourceWrapper struct {
@@ -18,6 +22,8 @@ type FrameworkResourceWrapper struct {
 }
 
 var _ resource.ResourceWithModifyPlan = &FrameworkResourceWrapper{}
+
+var _ resource.ResourceWithIdentity = &FrameworkResourceWrapper{}
 
 type EmbeddedFrameworkResourceModel interface{}
 
@@ -71,6 +77,14 @@ func (r *FrameworkResourceWrapper) Read(ctx context.Context, request resource.Re
 	}
 
 	r.FrameworkWrappedResource.Read(ctx, request, response, r.ResourceMetadata, state)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	r.SetIdentity(ctx, response)
+	if response.Diagnostics.HasError() {
+		return
+	}
 
 	r.ResourceMetadata.EncodeRead(ctx, response, state)
 }
@@ -134,5 +148,46 @@ func (r *FrameworkResourceWrapper) ConfigValidators(ctx context.Context) []resou
 func (r *FrameworkResourceWrapper) ModifyPlan(ctx context.Context, request resource.ModifyPlanRequest, response *resource.ModifyPlanResponse) {
 	if _, ok := r.FrameworkWrappedResource.(FrameworkWrappedResourceWithPlanModifier); ok {
 		r.FrameworkWrappedResource.(FrameworkWrappedResourceWithPlanModifier).ModifyPlan(ctx, request, response, r.ResourceMetadata)
+	}
+}
+
+func (r *FrameworkResourceWrapper) IdentitySchema(_ context.Context, _ resource.IdentitySchemaRequest, response *resource.IdentitySchemaResponse) {
+	response.IdentitySchema = GenerateIdentitySchema(r.FrameworkWrappedResource.Identity())
+}
+
+func (r *FrameworkResourceWrapper) SetIdentity(ctx context.Context, response *resource.ReadResponse) {
+	if id, idType := r.FrameworkWrappedResource.Identity(); id != nil {
+		parser := resourceids.NewParserFromResourceIdType(id)
+		parsed, err := parser.Parse(id.ID(), true)
+		if err != nil {
+			response.Diagnostics.AddError("parsing resource ID: %s", err.Error())
+		}
+
+		var t ResourceTypeForIdentity
+
+		switch len(idType) {
+		case 0:
+			t = ResourceTypeForIdentityDefault
+		case 1:
+			t = idType[0]
+		default:
+			panic(fmt.Sprintf("expected a maximum of one value for the `idType` argument, got %d", len(idType)))
+		}
+
+		segments := id.Segments()
+		numSegments := len(segments)
+		for idx, segment := range segments {
+			if segmentTypeSupported(segment.Type) {
+				name := segmentName(segment, t, numSegments, idx)
+
+				field, ok := parsed.Parsed[segment.Name]
+				if !ok {
+					response.Diagnostics.AddError("setting resource identity", fmt.Sprintf("field `%s` was not found in the parsed resource ID %s", name, id))
+					return
+				}
+
+				response.Identity.SetAttribute(ctx, path.Root(name), basetypes.NewStringValue(field))
+			}
+		}
 	}
 }
