@@ -8,9 +8,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-var _ sdk.UntypedServiceRegistration = Registration{}
-
 type Registration struct{}
+
+var (
+	_ sdk.TypedServiceRegistration                   = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/connections"
@@ -32,6 +35,13 @@ func (r Registration) WebsiteCategories() []string {
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
 		ApiConnectionDataSource{},
+	}
+}
+
+// Resources returns the typed Resources supported by this Service
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		// Add typed resources here when implemented
 	}
 }
 
