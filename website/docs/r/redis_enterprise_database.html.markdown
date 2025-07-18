@@ -10,6 +10,8 @@ description: |-
 
 Manages a Redis Enterprise Database.
 
+~> **Note:** This resource has been deprecated in favor of [azurerm_managed_redis_database](managed_redis_database.html). The new resource is designed to be backward compatible. Existing configuration can be migrated by changing resource type to `azurerm_managed_redis_database`, [removing the old state](https://developer.hashicorp.com/terraform/cli/commands/state/rm) and performing [an import](https://developer.hashicorp.com/terraform/language/import).
+
 ## Example Usage
 
 ```hcl
@@ -72,7 +74,7 @@ The following arguments are supported:
 
 * `linked_database_id` - (Optional) A list of database resources to link with this database with a maximum of 5.
 
--> **Note:** Only the newly created databases can be added to an existing geo-replication group. Existing regular databases or recreated databases cannot be added to the existing geo-replication group. Any linked database be removed from the list will be forcefully unlinked.The only recommended operation is to delete after force-unlink and the recommended scenario of force-unlink is region outrage. The database cannot be linked again after force-unlink.
+-> **Note:** Only the newly created databases can be added to an existing geo-replication group. Existing regular databases or recreated databases cannot be added to the existing geo-replication group. Any linked database removed from the list will be forcefully unlinked. The only recommended operation is to delete after force-unlink and the recommended scenario of force-unlink is region outage. The database cannot be linked again after force-unlink.
 
 * `linked_database_group_nickname` - (Optional) Nickname of the group of linked databases. Changing this force a new Redis Enterprise Geo Database to be created.
 
