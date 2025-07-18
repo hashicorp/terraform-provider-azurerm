@@ -1,3 +1,18 @@
+## 4.38.0 (Unreleased)
+
+ENHANCEMENTS:
+* `azurerm_managed_lustre_file_system` - add support for the `root_squash` block [GH-29876]
+* `azurerm_batch_pool` - fix `start_task.0.task_retry_maximum` validation [GH-30182]
+
+* `azurerm_policy_set_definition` - now forces a new resource to be created when the number of `parameters` is decreased [GH-29866]
+* `azurerm_management_group_policy_set_definition` - now forces a new resource to be created when the number of `parameters` is decreased [GH-29866]
+
+FEATURES:
+
+BUG FIXES:
+* `azurerm_service_plan` - fix an issue that prevented supported SKUs from specifying `zone_balancing_enabled` as `true` [GH-30165]
+* `azurerm_monitor_alert_prometheus_rule_group` - prevent an error caused by the request containing an empty string for the `rule.for` property when not set [GH-30180]
+
 ## 4.37.0 (July 17, 2025)
 
 FEATURES:
