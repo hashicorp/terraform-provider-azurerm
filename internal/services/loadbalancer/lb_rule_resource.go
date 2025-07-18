@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -149,8 +150,12 @@ func resourceArmLoadBalancerRuleRead(d *pluginsdk.ResourceData, meta interface{}
 
 		if props := config.Properties; props != nil {
 			d.Set("disable_outbound_snat", pointer.From(props.DisableOutboundSnat))
-			d.Set("enable_floating_ip", pointer.From(props.EnableFloatingIP))
-			d.Set("enable_tcp_reset", pointer.From(props.EnableTcpReset))
+			d.Set("floating_ip_enabled", pointer.From(props.EnableFloatingIP))
+			d.Set("tcp_reset_enabled", pointer.From(props.EnableTcpReset))
+			if !features.FivePointOh() {
+				d.Set("enable_floating_ip", pointer.From(props.EnableFloatingIP))
+				d.Set("enable_tcp_reset", pointer.From(props.EnableTcpReset))
+			}
 			d.Set("protocol", string(props.Protocol))
 			d.Set("backend_port", int(pointer.From(props.BackendPort)))
 
@@ -263,9 +268,20 @@ func expandAzureRmLoadBalancerRule(d *pluginsdk.ResourceData, lb *loadbalancers.
 		Protocol:            loadbalancers.TransportProtocol(d.Get("protocol").(string)),
 		FrontendPort:        int64(d.Get("frontend_port").(int)),
 		BackendPort:         pointer.To(int64(d.Get("backend_port").(int))),
-		EnableFloatingIP:    pointer.To(d.Get("enable_floating_ip").(bool)),
-		EnableTcpReset:      pointer.To(d.Get("enable_tcp_reset").(bool)),
+		EnableFloatingIP:    pointer.To(d.Get("floating_ip_enabled").(bool)),
 		DisableOutboundSnat: pointer.To(d.Get("disable_outbound_snat").(bool)),
+	}
+	if v, ok := d.GetOk("tcp_reset_enabled"); ok {
+		properties.EnableTcpReset = pointer.To(v.(bool))
+	}
+
+	if !features.FivePointOh() {
+		if v, ok := d.GetOk("enable_floating_ip"); ok {
+			properties.EnableFloatingIP = pointer.To(v.(bool))
+		}
+		if v, ok := d.GetOk("enable_tcp_reset"); ok {
+			properties.EnableTcpReset = pointer.To(v.(bool))
+		}
 	}
 
 	if v, ok := d.GetOk("idle_timeout_in_minutes"); ok {
@@ -326,7 +342,7 @@ func expandAzureRmLoadBalancerRule(d *pluginsdk.ResourceData, lb *loadbalancers.
 }
 
 func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
-	resource := map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -391,17 +407,16 @@ func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
-		"enable_floating_ip": {
+		"floating_ip_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
-		"enable_tcp_reset": {
+		"tcp_reset_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
+			Default:  false,
 		},
 
 		"disable_outbound_snat": {
@@ -424,5 +439,33 @@ func resourceArmLoadBalancerRuleSchema() map[string]*pluginsdk.Schema {
 		},
 	}
 
-	return resource
+	if !features.FivePointOh() {
+		schema["enable_floating_ip"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"floating_ip_enabled"},
+			Deprecated:    "This field is deprecated in favour of `floating_ip_enabled` and will be removed in version 5.0 of the provider.",
+		}
+		schema["floating_ip_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		}
+
+		schema["enable_tcp_reset"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"tcp_reset_enabled"},
+			Deprecated:    "This field is deprecated in favour of `tcp_reset_enabled` and will be removed in version 5.0 of the provider.",
+		}
+		schema["tcp_reset_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		}
+	}
+
+	return schema
 }
