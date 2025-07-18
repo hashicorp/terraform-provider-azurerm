@@ -17,15 +17,16 @@ import (
 // ApplyResourceChangeRequest is the framework server request for the
 // ApplyResourceChange RPC.
 type ApplyResourceChangeRequest struct {
-	Config          *tfsdk.Config
-	PlannedPrivate  *privatestate.Data
-	PlannedState    *tfsdk.Plan
-	PlannedIdentity *tfsdk.ResourceIdentity
-	PriorState      *tfsdk.State
-	ProviderMeta    *tfsdk.Config
-	ResourceSchema  fwschema.Schema
-	IdentitySchema  fwschema.Schema
-	Resource        resource.Resource
+	Config           *tfsdk.Config
+	PlannedPrivate   *privatestate.Data
+	PlannedState     *tfsdk.Plan
+	PlannedIdentity  *tfsdk.ResourceIdentity
+	PriorState       *tfsdk.State
+	ProviderMeta     *tfsdk.Config
+	ResourceSchema   fwschema.Schema
+	IdentitySchema   fwschema.Schema
+	Resource         resource.Resource
+	ResourceBehavior resource.ResourceBehavior
 }
 
 // ApplyResourceChangeResponse is the framework server response for the
@@ -76,6 +77,10 @@ func (s *Server) ApplyResourceChange(ctx context.Context, req *ApplyResourceChan
 		deleteReq := &DeleteResourceRequest{
 			PlannedPrivate: req.PlannedPrivate,
 			PriorState:     req.PriorState,
+			// MAINTAINER NOTE: There isn't a separate data field for prior identity, like there is with prior_state and planned_state.
+			// Here the planned_identity field will contain what would be considered the prior identity (since the final identity value
+			// after deleting will be null).
+			PriorIdentity:  req.PlannedIdentity,
 			ProviderMeta:   req.ProviderMeta,
 			ResourceSchema: req.ResourceSchema,
 			IdentitySchema: req.IdentitySchema,
@@ -97,15 +102,16 @@ func (s *Server) ApplyResourceChange(ctx context.Context, req *ApplyResourceChan
 	logging.FrameworkTrace(ctx, "ApplyResourceChange running UpdateResource")
 
 	updateReq := &UpdateResourceRequest{
-		Config:          req.Config,
-		PlannedPrivate:  req.PlannedPrivate,
-		PlannedState:    req.PlannedState,
-		PlannedIdentity: req.PlannedIdentity,
-		PriorState:      req.PriorState,
-		ProviderMeta:    req.ProviderMeta,
-		ResourceSchema:  req.ResourceSchema,
-		IdentitySchema:  req.IdentitySchema,
-		Resource:        req.Resource,
+		Config:           req.Config,
+		PlannedPrivate:   req.PlannedPrivate,
+		PlannedState:     req.PlannedState,
+		PlannedIdentity:  req.PlannedIdentity,
+		PriorState:       req.PriorState,
+		ProviderMeta:     req.ProviderMeta,
+		ResourceSchema:   req.ResourceSchema,
+		IdentitySchema:   req.IdentitySchema,
+		Resource:         req.Resource,
+		ResourceBehavior: req.ResourceBehavior,
 	}
 	updateResp := &UpdateResourceResponse{}
 

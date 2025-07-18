@@ -115,10 +115,11 @@ func (p *provisioningStatePoller) Poll(ctx context.Context) (*pollers.PollResult
 	}
 
 	status := ""
-	if string(result.Status) != "" {
+	if statusIsTerminal(result.Status) {
 		status = string(result.Status)
 	}
-	if string(result.Properties.ProvisioningState) != "" {
+	// if the result has a provisioningState field, we should prioritise that
+	if statusIsTerminal(result.Properties.ProvisioningState) {
 		status = string(result.Properties.ProvisioningState)
 	}
 	if status == "" {

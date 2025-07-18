@@ -5,7 +5,6 @@ package fromproto6
 
 import (
 	"context"
-
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
@@ -16,7 +15,7 @@ import (
 
 // MoveResourceStateRequest returns the *fwserver.MoveResourceStateRequest
 // equivalent of a *tfprotov6.MoveResourceStateRequest.
-func MoveResourceStateRequest(ctx context.Context, proto6 *tfprotov6.MoveResourceStateRequest, resource resource.Resource, resourceSchema fwschema.Schema) (*fwserver.MoveResourceStateRequest, diag.Diagnostics) {
+func MoveResourceStateRequest(ctx context.Context, proto6 *tfprotov6.MoveResourceStateRequest, resource resource.Resource, resourceSchema fwschema.Schema, identitySchema fwschema.Schema) (*fwserver.MoveResourceStateRequest, diag.Diagnostics) {
 	if proto6 == nil {
 		return nil, nil
 	}
@@ -37,13 +36,16 @@ func MoveResourceStateRequest(ctx context.Context, proto6 *tfprotov6.MoveResourc
 	}
 
 	fw := &fwserver.MoveResourceStateRequest{
-		SourceProviderAddress: proto6.SourceProviderAddress,
-		SourceRawState:        proto6.SourceState,
-		SourceSchemaVersion:   proto6.SourceSchemaVersion,
-		SourceTypeName:        proto6.SourceTypeName,
-		TargetResource:        resource,
-		TargetResourceSchema:  resourceSchema,
-		TargetTypeName:        proto6.TargetTypeName,
+		SourceProviderAddress:       proto6.SourceProviderAddress,
+		SourceRawState:              proto6.SourceState,
+		SourceSchemaVersion:         proto6.SourceSchemaVersion,
+		SourceTypeName:              proto6.SourceTypeName,
+		TargetResource:              resource,
+		TargetResourceSchema:        resourceSchema,
+		TargetTypeName:              proto6.TargetTypeName,
+		SourceIdentity:              proto6.SourceIdentity,
+		SourceIdentitySchemaVersion: proto6.SourceIdentitySchemaVersion,
+		IdentitySchema:              identitySchema,
 	}
 
 	sourcePrivate, sourcePrivateDiags := privatestate.NewData(ctx, proto6.SourcePrivate)

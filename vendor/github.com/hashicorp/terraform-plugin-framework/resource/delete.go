@@ -17,6 +17,10 @@ type DeleteRequest struct {
 	// operation.
 	State tfsdk.State
 
+	// Identity is the current identity of the resource prior to the Delete
+	// operation. If the resource does not support identity, this value will not be set.
+	Identity *tfsdk.ResourceIdentity
+
 	// ProviderMeta is metadata from the provider_meta block of the module.
 	ProviderMeta tfsdk.Config
 
