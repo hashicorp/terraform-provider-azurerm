@@ -120,6 +120,12 @@ func TestAccNetworkManager(t *testing.T) {
 			"update":         testAccNetworkManagerRoutingConfiguration_update,
 			"requiresImport": testAccNetworkManagerRoutingConfiguration_requiresImport,
 		},
+		"RoutingRuleCollection": {
+			"basic":          testAccNetworkManagerRoutingRuleCollection_basic,
+			"complete":       testAccNetworkManagerRoutingRuleCollection_complete,
+			"update":         testAccNetworkManagerRoutingRuleCollection_update,
+			"requiresImport": testAccNetworkManagerRoutingRuleCollection_requiresImport,
+		},
 	}
 
 	for group, m := range testCases {
