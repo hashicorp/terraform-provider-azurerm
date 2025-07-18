@@ -1,6 +1,7 @@
 ## 4.38.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_batch_pool` - fix `start_task.0.task_retry_maximum` validation [GH-30182]
 
 * `azurerm_policy_set_definition` - now forces a new resource to be created when the number of `parameters` is decreased [GH-29866]
 * `azurerm_management_group_policy_set_definition` - now forces a new resource to be created when the number of `parameters` is decreased [GH-29866]
