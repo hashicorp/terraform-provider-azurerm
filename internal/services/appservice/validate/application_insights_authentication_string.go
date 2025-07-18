@@ -24,7 +24,9 @@ func ApplicationInsightsAuthenticationString(input interface{}, key string) (war
 	if !strings.HasPrefix(v, autorizationAAD) {
 		errors = append(errors, fmt.Errorf("%q must always begin with %q, got: %q", key, autorizationAAD, v))
 		return warnings, errors
-	} else if v == autorizationAAD {
+	}
+
+	if v == autorizationAAD {
 		matched = true
 	} else {
 		parts := strings.Split(v, ";")
