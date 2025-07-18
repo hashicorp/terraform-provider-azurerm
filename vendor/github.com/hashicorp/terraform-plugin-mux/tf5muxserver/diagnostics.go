@@ -47,6 +47,27 @@ func ephemeralResourceMissingError(typeName string) *tfprotov5.Diagnostic {
 	}
 }
 
+func listResourceDuplicateError(typeName string) *tfprotov5.Diagnostic {
+	return &tfprotov5.Diagnostic{
+		Severity: tfprotov5.DiagnosticSeverityError,
+		Summary:  "Invalid Provider Server Combination",
+		Detail: "The combined provider has multiple implementations of the same list resource type across underlying providers. " +
+			"List resource types must be implemented by only one underlying provider. " +
+			"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+			"Duplicate list resource type: " + typeName,
+	}
+}
+
+func listResourceMissingError(typeName string) *tfprotov5.Diagnostic {
+	return &tfprotov5.Diagnostic{
+		Severity: tfprotov5.DiagnosticSeverityError,
+		Summary:  "List Resource Not Implemented",
+		Detail: "The combined provider does not implement the requested list resource type. " +
+			"This is always an issue in the provider implementation and should be reported to the provider developers.\n\n" +
+			"Missing list resource type: " + typeName,
+	}
+}
+
 func diagnosticsHasError(diagnostics []*tfprotov5.Diagnostic) bool {
 	for _, diagnostic := range diagnostics {
 		if diagnostic == nil {

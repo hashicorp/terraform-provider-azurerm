@@ -17,6 +17,8 @@ import (
 	"time"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/hashicorp/terraform-plugin-go/internal/logging"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -49,7 +51,7 @@ const (
 	//
 	// In the future, it may be possible to include this information directly
 	// in the protocol buffers rather than recreating a constant here.
-	protocolVersionMinor uint = 9
+	protocolVersionMinor uint = 10
 )
 
 // protocolVersion represents the combined major and minor version numbers of
@@ -572,31 +574,7 @@ func (s *server) GetResourceIdentitySchemas(ctx context.Context, protoReq *tfplu
 
 	ctx = tf6serverlogging.DownstreamRequest(ctx)
 
-	// TODO: Remove this check and error in preference of
-	// s.downstream.GetResourceIdentitySchemas below once ProviderServer interface
-	// implements this RPC method.
-	// nolint:staticcheck
-	resourceIdentityProviderServer, ok := s.downstream.(tfprotov6.ProviderServerWithResourceIdentity)
-	if !ok {
-		logging.ProtocolError(ctx, "ProviderServer does not implement GetResourceIdentitySchemas")
-
-		protoResp := &tfplugin6.GetResourceIdentitySchemas_Response{
-			Diagnostics: []*tfplugin6.Diagnostic{
-				{
-					Severity: tfplugin6.Diagnostic_ERROR,
-					Summary:  "Provider GetResourceIdentitySchemas Not Implemented",
-					Detail: "A GetResourceIdentitySchemas call was received by the provider, however the provider does not implement the call. " +
-						"Either upgrade the provider to a version that implements resource identity support or this is a bug in Terraform that should be reported to the Terraform maintainers.",
-				},
-			},
-		}
-
-		return protoResp, nil
-	}
-
-	// TODO: Update this to call downstream once optional interface is removed
-	// resp, err := s.downstream.GetResourceIdentitySchemas(ctx, req)
-	resp, err := resourceIdentityProviderServer.GetResourceIdentitySchemas(ctx, req)
+	resp, err := s.downstream.GetResourceIdentitySchemas(ctx, req)
 
 	if err != nil {
 		logging.ProtocolError(ctx, "Error from downstream", map[string]interface{}{logging.KeyError: err})
@@ -846,31 +824,7 @@ func (s *server) UpgradeResourceIdentity(ctx context.Context, protoReq *tfplugin
 
 	ctx = tf6serverlogging.DownstreamRequest(ctx)
 
-	// TODO: Remove this check and error in preference of
-	// s.downstream.UpgradeResourceIdentity below once ProviderServer interface
-	// implements this RPC method.
-	// nolint:staticcheck
-	resourceIdentityProviderServer, ok := s.downstream.(tfprotov6.ProviderServerWithResourceIdentity)
-	if !ok {
-		logging.ProtocolError(ctx, "ProviderServer does not implement UpgradeResourceIdentity")
-
-		protoResp := &tfplugin6.UpgradeResourceIdentity_Response{
-			Diagnostics: []*tfplugin6.Diagnostic{
-				{
-					Severity: tfplugin6.Diagnostic_ERROR,
-					Summary:  "Provider UpgradeResourceIdentity Not Implemented",
-					Detail: "A UpgradeResourceIdentity call was received by the provider, however the provider does not implement the call. " +
-						"Either upgrade the provider to a version that implements resource identity support or this is a bug in Terraform that should be reported to the Terraform maintainers.",
-				},
-			},
-		}
-
-		return protoResp, nil
-	}
-
-	// TODO: Update this to call downstream once optional interface is removed
-	// resp, err := s.downstream.UpgradeResourceIdentity(ctx, req)
-	resp, err := resourceIdentityProviderServer.UpgradeResourceIdentity(ctx, req)
+	resp, err := s.downstream.UpgradeResourceIdentity(ctx, req)
 
 	if err != nil {
 		logging.ProtocolError(ctx, "Error from downstream", map[string]interface{}{logging.KeyError: err})
@@ -1240,6 +1194,108 @@ func (s *server) CloseEphemeralResource(ctx context.Context, protoReq *tfplugin6
 	protoResp := toproto.CloseEphemeralResource_Response(resp)
 
 	return protoResp, nil
+}
+
+func (s *server) ValidateListResourceConfig(ctx context.Context, protoReq *tfplugin6.ValidateListResourceConfig_Request) (*tfplugin6.ValidateListResourceConfig_Response, error) {
+	rpc := "ValidateListResourceConfig"
+	ctx = s.loggingContext(ctx)
+	ctx = logging.RpcContext(ctx, rpc)
+	ctx = logging.ResourceContext(ctx, protoReq.TypeName)
+	ctx = s.stoppableContext(ctx)
+	logging.ProtocolTrace(ctx, "Received request")
+	defer logging.ProtocolTrace(ctx, "Served request")
+
+	req := fromproto.ValidateListResourceConfigRequest(protoReq)
+
+	logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", "Config", req.Config)
+
+	ctx = tf6serverlogging.DownstreamRequest(ctx)
+
+	// TODO: Remove this check and error in preference of
+	// s.downstream.ValidateListResourceConfig below once ProviderServer interface
+	// implements this RPC method.
+	// nolint:staticcheck
+	listResourceServer, ok := s.downstream.(tfprotov6.ProviderServerWithListResource)
+	if !ok {
+		logging.ProtocolError(ctx, "ProviderServer does not implement ValidateListResourceConfig")
+
+		protoResp := &tfplugin6.ValidateListResourceConfig_Response{
+			Diagnostics: []*tfplugin6.Diagnostic{
+				{
+					Severity: tfplugin6.Diagnostic_ERROR,
+					Summary:  "Provider ValidateListResourceConfig Not Implemented",
+					Detail: "A ValidateListResourceConfig call was received by the provider, however the provider does not implement the call. " +
+						"Either upgrade the provider to a version that implements list support or this is a bug in Terraform that should be reported to the Terraform maintainers.",
+				},
+			},
+		}
+
+		return protoResp, nil
+	}
+
+	// TODO: Update this to call downstream once optional interface is removed
+	// resp, err := s.downstream.ValidateListResourceConfig(ctx, req)
+	resp, err := listResourceServer.ValidateListResourceConfig(ctx, req)
+
+	if err != nil {
+		logging.ProtocolError(ctx, "Error from downstream", map[string]interface{}{logging.KeyError: err})
+		return nil, err
+	}
+
+	tf6serverlogging.DownstreamResponse(ctx, resp.Diagnostics)
+
+	protoResp := toproto.ValidateListResourceConfig_Response(resp)
+
+	return protoResp, nil
+}
+
+func (s *server) ListResource(protoReq *tfplugin6.ListResource_Request, protoStream grpc.ServerStreamingServer[tfplugin6.ListResource_Event]) error {
+	rpc := "ListResource"
+	ctx := protoStream.Context()
+	ctx = s.loggingContext(ctx)
+	ctx = logging.RpcContext(ctx, rpc)
+	ctx = logging.ListResourceContext(ctx, protoReq.TypeName)
+	ctx = s.stoppableContext(ctx)
+	logging.ProtocolTrace(ctx, "Received request")
+	defer logging.ProtocolTrace(ctx, "Served request")
+
+	req := fromproto.ListResourceRequest(protoReq)
+	logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", "Config", req.Config)
+
+	ctx = tf6serverlogging.DownstreamRequest(ctx)
+
+	// TODO: Remove this check and error once ProviderServer interface
+	// implements this RPC method.
+	// nolint:staticcheck
+	downstream, ok := s.downstream.(tfprotov6.ProviderServerWithListResource)
+	if !ok {
+		err := status.Error(codes.Unimplemented, "ProviderServer does not implement ListResource")
+		logging.ProtocolError(ctx, err.Error())
+		return err
+	}
+
+	resp, err := downstream.ListResource(ctx, req)
+	if err != nil {
+		logging.ProtocolError(ctx, "Error from downstream", map[string]interface{}{logging.KeyError: err})
+		return err
+	}
+
+	for ev := range resp.Results {
+		select {
+		case <-ctx.Done():
+			logging.ProtocolTrace(ctx, "Context done")
+			return nil
+
+		default:
+			protoEv := toproto.ListResource_ListResourceEvent(&ev)
+			if err := protoStream.Send(protoEv); err != nil {
+				logging.ProtocolError(ctx, "Error sending event", map[string]any{logging.KeyError: err})
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func invalidDeferredResponseDiag(reason tfprotov6.DeferredReason) *tfprotov6.Diagnostic {

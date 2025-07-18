@@ -14,7 +14,7 @@ import (
 
 // GetProviderSchema merges the schemas returned by the
 // tfprotov5.ProviderServers associated with muxServer into a single schema.
-// Resources, data sources, ephemeral resources, and functions must be returned
+// Resources, data sources, ephemeral resources, list resources, and functions must be returned
 // from only one server. Provider and ProviderMeta schemas must be identical between all servers.
 func (s *muxServer) GetProviderSchema(ctx context.Context, req *tfprotov5.GetProviderSchemaRequest) (*tfprotov5.GetProviderSchemaResponse, error) {
 	rpc := "GetProviderSchema"
@@ -27,6 +27,7 @@ func (s *muxServer) GetProviderSchema(ctx context.Context, req *tfprotov5.GetPro
 	resp := &tfprotov5.GetProviderSchemaResponse{
 		DataSourceSchemas:        make(map[string]*tfprotov5.Schema),
 		EphemeralResourceSchemas: make(map[string]*tfprotov5.Schema),
+		ListResourceSchemas:      make(map[string]*tfprotov5.Schema),
 		Functions:                make(map[string]*tfprotov5.Function),
 		ResourceSchemas:          make(map[string]*tfprotov5.Schema),
 		ServerCapabilities:       serverCapabilities,
@@ -117,6 +118,17 @@ func (s *muxServer) GetProviderSchema(ctx context.Context, req *tfprotov5.GetPro
 
 			s.ephemeralResources[ephemeralResourceType] = server
 			resp.EphemeralResourceSchemas[ephemeralResourceType] = schema
+		}
+
+		for listResourceType, schema := range serverResp.ListResourceSchemas {
+			if _, ok := resp.ListResourceSchemas[listResourceType]; ok {
+				resp.Diagnostics = append(resp.Diagnostics, listResourceDuplicateError(listResourceType))
+
+				continue
+			}
+
+			s.listResources[listResourceType] = server
+			resp.ListResourceSchemas[listResourceType] = schema
 		}
 	}
 
