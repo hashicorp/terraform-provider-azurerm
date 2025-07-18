@@ -198,12 +198,13 @@ resource "azurerm_consumption_budget_subscription" "test" {
 
   // Remove filter
 
-  // Changed threshold and operator
+  // Changed threshold and operator and locale
   notification {
     enabled        = true
     threshold      = 95.0
     threshold_type = "Forecasted"
     operator       = "GreaterThan"
+    locale         = "en-us"
 
     contact_emails = [
       "foo@example.com",
