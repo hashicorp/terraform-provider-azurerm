@@ -23,6 +23,7 @@ type DeleteResourceRequest struct {
 	PriorState     *tfsdk.State
 	ProviderMeta   *tfsdk.Config
 	ResourceSchema fwschema.Schema
+	IdentitySchema fwschema.Schema
 	Resource       resource.Resource
 }
 
@@ -31,6 +32,7 @@ type DeleteResourceRequest struct {
 type DeleteResourceResponse struct {
 	Diagnostics diag.Diagnostics
 	NewState    *tfsdk.State
+	NewIdentity *tfsdk.ResourceIdentity
 	Private     *privatestate.Data
 }
 
@@ -96,6 +98,17 @@ func (s *Server) DeleteResource(ctx context.Context, req *DeleteResourceRequest,
 		resp.Private = req.PlannedPrivate
 	}
 
+	// If the resource supports identity pre-populate a null value.
+	// TODO:ResourceIdentity: This should probably be prior identity, but we don't currently have that in the protocol.
+	if req.IdentitySchema != nil {
+		nullIdentityTfValue := tftypes.NewValue(req.IdentitySchema.Type().TerraformType(ctx), nil)
+
+		deleteResp.Identity = &tfsdk.ResourceIdentity{
+			Schema: req.IdentitySchema,
+			Raw:    nullIdentityTfValue.Copy(),
+		}
+	}
+
 	logging.FrameworkTrace(ctx, "Calling provider defined Resource Delete")
 	req.Resource.Delete(ctx, deleteReq, &deleteResp)
 	logging.FrameworkTrace(ctx, "Called provider defined Resource Delete")
@@ -108,10 +121,21 @@ func (s *Server) DeleteResource(ctx context.Context, req *DeleteResourceRequest,
 		// Reference: https://github.com/hashicorp/terraform-plugin-framework/issues/863
 		deleteResp.Private = nil
 		resp.Private = nil
+
+		// If the resource supports identity send a null value.
+		if req.IdentitySchema != nil {
+			nullIdentityTfValue := tftypes.NewValue(req.IdentitySchema.Type().TerraformType(ctx), nil)
+
+			deleteResp.Identity = &tfsdk.ResourceIdentity{
+				Schema: req.IdentitySchema,
+				Raw:    nullIdentityTfValue.Copy(),
+			}
+		}
 	}
 
 	resp.Diagnostics = deleteResp.Diagnostics
 	resp.NewState = &deleteResp.State
+	resp.NewIdentity = deleteResp.Identity
 
 	if deleteResp.Private != nil {
 		if resp.Private == nil {
@@ -119,5 +143,15 @@ func (s *Server) DeleteResource(ctx context.Context, req *DeleteResourceRequest,
 		}
 
 		resp.Private.Provider = deleteResp.Private
+	}
+
+	if resp.NewIdentity != nil && req.IdentitySchema == nil {
+		resp.Diagnostics.AddError(
+			"Unexpected Delete Response",
+			"An unexpected error was encountered when creating the apply response. New identity data was returned by the provider delete operation, but the resource does not indicate identity support.\n\n"+
+				"This is always a problem with the provider and should be reported to the provider developer.",
+		)
+
+		return
 	}
 }

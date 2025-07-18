@@ -31,10 +31,12 @@ func (r Registration) DataSources() []sdk.DataSource {
 		DevCenterCatalogDataSource{},
 		DevCenterDataSource{},
 		DevCenterDevBoxDefinitionDataSource{},
+		DevCenterEnvironmentTypeDataSource{},
 		DevCenterGalleryDataSource{},
 		DevCenterNetworkConnectionDataSource{},
 		DevCenterProjectDataSource{},
 		DevCenterProjectEnvironmentTypeDataSource{},
+		DevCenterProjectPoolDataSource{},
 	}
 }
 

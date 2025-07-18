@@ -19,14 +19,16 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_oracle_exadata_infrastructure" "example" {
-  name                = "example-exadata-infra"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  zones               = ["1"]
-  display_name        = "example-exadata-infra"
-  storage_count       = 3
-  compute_count       = 2
-  shape               = "Exadata.X9M"
+  name                 = "example-exadata-infra"
+  resource_group_name  = azurerm_resource_group.example.name
+  location             = azurerm_resource_group.example.location
+  zones                = ["1"]
+  display_name         = "example-exadata-infra"
+  storage_count        = 3
+  compute_count        = 2
+  shape                = "Exadata.X11M"
+  database_server_type = "X11M"
+  storage_server_type  = "X11M-HC"
 }
 ```
 
@@ -49,6 +51,10 @@ The following arguments are supported:
 * `storage_count` - (Required) The number of storage servers for the Cloud Exadata Infrastructure. Changing this forces a new Cloud Exadata Infrastructure to be created.
 
 * `zones` - (Required) Cloud Exadata Infrastructure zones. Changing this forces a new Cloud Exadata Infrastructure to be created.
+
+* `database_server_type` - (Optional) The database server model type of the cloud Exadata infrastructure resource. Changing this forces a new Cloud Exadata Infrastructure to be created.
+
+* `storage_server_type` - (Optional) The storage server model type of the cloud Exadata infrastructure resource. Changing this forces a new Cloud Exadata Infrastructure to be created.
 
 ---
 
@@ -103,4 +109,4 @@ terraform import azurerm_oracle_exadata_infrastructure.example /subscriptions/00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Oracle.Database`: 2024-06-01
+* `Oracle.Database`: 2025-03-01

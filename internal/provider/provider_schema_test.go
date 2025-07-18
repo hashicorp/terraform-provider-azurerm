@@ -145,7 +145,7 @@ func TestDataSourcesHaveEnabledFieldsMarkedAsBooleans(t *testing.T) {
 }
 
 func TestResourcesHaveEnabledFieldsMarkedAsBooleans(t *testing.T) {
-	// This test validates that Resources do not contain a field suffixed with `_enabled` that isn't a Boolean.
+	// This test validates that Resources with fields suffixed with `_enabled` have the type 'Boolean'.
 	//
 	// If this test is failing due to a new Resource/new field within an existing Resource, it'd be worth validating
 	// the schema, since fields matching `{some_name}_enabled` should be Booleans. Should a Tri-State Boolean exist,
@@ -163,28 +163,26 @@ func TestResourcesHaveEnabledFieldsMarkedAsBooleans(t *testing.T) {
 	// TODO: 4.0 - work through this list
 	resourceFieldsWhichNeedToBeAddressed := map[string]map[string]struct{}{
 		// 1: Fields which require renaming etc
-		"azurerm_datadog_monitor_sso_configuration": {
-			// should be fixed in 4.0, presumably ditching `_enabled` and adding Enum validation
-			"single_sign_on_enabled": {},
-		},
-		"azurerm_netapp_volume": {
-			// should be fixed in 4.0, presumably ditching `_enabled` and making this `protocols_to_use` or something?
-			"protocols_enabled": {},
-		},
-		"azurerm_kubernetes_cluster": {
-			// this either wants `enabled` removing, or to be marked as a false-positive
-			"transparent_huge_page_enabled": {},
-		},
-		"azurerm_kubernetes_cluster_node_pool": {
-			// this either wants `enabled` removing, or to be marked as a false-positive
-			"transparent_huge_page_enabled": {},
-		},
-
-		// 2: False Positives
 		"azurerm_iot_security_solution": {
 			// this is a list of recommendations
 			"recommendations_enabled": {},
 		},
+	}
+
+	if !features.FivePointOh() {
+		// These have been addressed but while in 4.x we need to ignore them so the test can pass.
+		resourceFieldsWhichNeedToBeAddressed["azurerm_datadog_monitor_sso_configuration"] = map[string]struct{}{
+			"single_sign_on_enabled": {},
+		}
+		resourceFieldsWhichNeedToBeAddressed["azurerm_kubernetes_cluster"] = map[string]struct{}{
+			"transparent_huge_page_enabled": {},
+		}
+		resourceFieldsWhichNeedToBeAddressed["azurerm_kubernetes_cluster_node_pool"] = map[string]struct{}{
+			"transparent_huge_page_enabled": {},
+		}
+		resourceFieldsWhichNeedToBeAddressed["azurerm_netapp_volume"] = map[string]struct{}{
+			"protocols_enabled": {},
+		}
 	}
 
 	for _, resourceName := range resourceNames {
@@ -558,7 +556,6 @@ func TestResourcesDoNotContainLocalAuthenticationDisabled(t *testing.T) {
 		"azurerm_application_insights":    {},
 		"azurerm_cosmosdb_account":        {},
 		"azurerm_log_analytics_workspace": {},
-		"azurerm_search_service":          {},
 	}
 
 	for _, resourceName := range resourceNames {
