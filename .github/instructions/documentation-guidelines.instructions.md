@@ -303,14 +303,23 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 ### Front Matter Requirements
 ```yaml
 ---
-subcategory: "Service Name"        # Azure service category (e.g., "CDN", "Compute", "Network")
-layout: "azurerm"                  # Always "azurerm"
+subcategory: "Service Name"                                  # Azure service category (e.g., "CDN", "Compute", "Network")
+layout: "azurerm"                                            # Always "azurerm"
 page_title: "Azure Resource Manager: azurerm_resource_name"  # Page title for browser/search
-description: |-                   # Brief description (single line, no period)
-  Manages a Service Resource.      # For resources
-  Gets information about an existing Service Resource.  # For data sources
+description: |-                                              # Brief description (single line, with a period)
+  Manages a Service Resource.                                # For resources
+  Gets information about an existing Service Resource.       # For data sources
 ---
 ```
+
+**Note:** The `subcategory` value should match the service name from the registration file:
+* Navigate to `./internal/services/[service-name]/registration.go`
+* Use the value returned by the `Name()` function
+* **Example:** For CDN resources, check `./internal/services/cdn/registration.go` → `Name()` returns `"CDN"`
+* **Example:** For Compute resources, check `./internal/services/compute/registration.go` → `Name()` returns `"Compute"`
+* **Example:** For Network resources, check `./internal/services/network/registration.go` → `Name()` returns `"Network"`
+
+The `subcategory` groups related resources in the Terraform Registry and provider documentation.
 
 ### Resource-Specific Front Matter
 ```yaml
