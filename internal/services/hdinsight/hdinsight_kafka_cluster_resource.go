@@ -300,17 +300,31 @@ func resourceHDInsightKafkaClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		if err != nil {
 			return err
 		}
+		if payload.Properties.DiskEncryptionProperties.MsiResourceId != nil {
+			if payload.Identity == nil {
+				payload.Identity = &identity.SystemAndUserAssignedMap{
+					Type:        identity.TypeUserAssigned,
+					IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+				}
+			}
+
+			payload.Identity.IdentityIds[*payload.Properties.DiskEncryptionProperties.MsiResourceId] = identity.UserAssignedIdentityDetails{
+				// intentionally empty
+			}
+		}
 	}
 
 	if v, ok := d.GetOk("security_profile"); ok {
 		payload.Properties.SecurityProfile = ExpandHDInsightSecurityProfile(v.([]interface{}))
 
 		// @tombuildsstuff: this behaviour is likely wrong and wants reevaluating - users should need to explicitly define this in the config?
-		payload.Identity = &identity.SystemAndUserAssignedMap{
-			Type:        identity.TypeUserAssigned,
-			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
-		}
 		if payload.Properties.SecurityProfile != nil && payload.Properties.SecurityProfile.MsiResourceId != nil {
+			if payload.Identity == nil {
+				payload.Identity = &identity.SystemAndUserAssignedMap{
+					Type:        identity.TypeUserAssigned,
+					IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+				}
+			}
 			payload.Identity.IdentityIds[*payload.Properties.SecurityProfile.MsiResourceId] = identity.UserAssignedIdentityDetails{
 				// intentionally empty
 			}
