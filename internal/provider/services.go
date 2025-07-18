@@ -45,6 +45,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dataprotection"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/desktopvirtualization"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/deviceregistry"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/devtestlabs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/digitaltwins"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/dns"
@@ -168,6 +169,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		datafactory.Registration{},
 		dataprotection.Registration{},
 		desktopvirtualization.Registration{},
+		deviceregistry.Registration{},
 		digitaltwins.Registration{},
 		dns.Registration{},
 		domainservices.Registration{},
