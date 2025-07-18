@@ -153,51 +153,59 @@ func TestAccServiceName_customizeDiffValidation(t *testing.T) {
 }
 ```
 
-**Testing Azure-Specific CustomizeDiff Validation (CDN Front Door Log Scrubbing):**
+**Testing Azure-Specific CustomizeDiff Validation (CDN Front Door Firewall Policy Log Scrubbing):**
 ```go
-func TestAccCdnFrontDoorProfile_logScrubbingValidation(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
-    r := CdnFrontDoorProfileResource{}
+func TestAccCdnFrontDoorFirewallPolicy_logScrubbingValidation(t *testing.T) {
+    data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+    r := CdnFrontDoorFirewallPolicyResource{}
 
     data.ResourceTest(t, r, []acceptance.TestStep{
         {
-            // Test that selector cannot be set for RequestIPAddress
-            Config:      r.logScrubbingInvalidRequestIPAddress(data),
-            ExpectError: regexp.MustCompile(`log_scrubbing\.0\.scrubbing_rule\.0: ` + "`selector`" + ` cannot be set when ` + "`match_variable`" + ` is ` + "`RequestIPAddress`"),
+            // Test that selector cannot be set when using EqualsAny operator
+            Config:      r.logScrubbingInvalidSelectorWithEqualsAny(data),
+            ExpectError: regexp.MustCompile(`the 'selector' field cannot be set when the "EqualsAny" 'operator' is used`),
         },
         {
-            // Test that selector cannot be set for RequestUri  
-            Config:      r.logScrubbingInvalidRequestUri(data),
-            ExpectError: regexp.MustCompile(`log_scrubbing\.0\.scrubbing_rule\.0: ` + "`selector`" + ` cannot be set when ` + "`match_variable`" + ` is ` + "`RequestUri`"),
+            // Test that selector is required when using Equals operator
+            Config:      r.logScrubbingInvalidMissingSelectorWithEquals(data),
+            ExpectError: regexp.MustCompile(`the 'selector' field must be set when the "Equals" 'operator' is used`),
         },
         {
-            // Test valid configuration with QueryStringArgNames and selector
-            Config: r.logScrubbingValidQueryStringWithSelector(data),
+            // Test that RequestIPAddress must use EqualsAny operator
+            Config:      r.logScrubbingInvalidRequestIPAddressWithEquals(data),
+            ExpectError: regexp.MustCompile(`the "RequestIPAddress" 'match_variable' must use the "EqualsAny" 'operator'`),
+        },
+        {
+            // Test that RequestUri must use EqualsAny operator
+            Config:      r.logScrubbingInvalidRequestUriWithEquals(data),
+            ExpectError: regexp.MustCompile(`the "RequestUri" 'match_variable' must use the "EqualsAny" 'operator'`),
+        },
+        {
+            // Test valid configuration with QueryStringArgNames and Equals operator with selector
+            Config: r.logScrubbingValidQueryStringWithEquals(data),
             Check: acceptance.ComposeTestCheckFunc(
                 check.That(data.ResourceName).ExistsInAzure(r),
-                check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rules.0.match_variable").HasValue("QueryStringArgNames"),
-                check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rules.0.selector").HasValue("custom_param"),
+                check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.0.match_variable").HasValue("QueryStringArgNames"),
+                check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.0.operator").HasValue("Equals"),
+                check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.0.selector").HasValue("custom_param"),
             ),
         },
         {
-            // Test invalid configuration with QueryStringArgNames without selector
-            Config:      r.logScrubbingInvalidQueryStringWithoutSelector(data),
-            ExpectError: regexp.MustCompile(`log_scrubbing\.0\.scrubbing_rules\.0: ` + "`selector`" + ` is required when ` + "`match_variable`" + ` is ` + "`QueryStringArgNames`"),
-        },
-        {
-            // Test valid configuration with RequestIPAddress without selector
+            // Test valid configuration with RequestIPAddress and EqualsAny operator
             Config: r.logScrubbingValidRequestIPAddress(data),
             Check: acceptance.ComposeTestCheckFunc(
                 check.That(data.ResourceName).ExistsInAzure(r),
-                check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rules.0.match_variable").HasValue("RequestIPAddress"),
+                check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.0.match_variable").HasValue("RequestIPAddress"),
+                check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.0.operator").HasValue("EqualsAny"),
             ),
         },
         {
-            // Test valid configuration with RequestUri without selector
+            // Test valid configuration with RequestUri and EqualsAny operator
             Config: r.logScrubbingValidRequestUri(data),
             Check: acceptance.ComposeTestCheckFunc(
                 check.That(data.ResourceName).ExistsInAzure(r),
-                check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rules.0.match_variable").HasValue("RequestUri"),
+                check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.0.match_variable").HasValue("RequestUri"),
+                check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.0.operator").HasValue("EqualsAny"),
             ),
         },
     })
@@ -233,179 +241,173 @@ func TestAccServiceName_forceNewOnPropertyChange(t *testing.T) {
 
 **CustomizeDiff Test Configuration Helper Functions:**
 ```go
-// Test configurations for CDN Front Door log scrubbing validation
-func (r CdnFrontDoorProfileResource) logScrubbingInvalidRequestIPAddress(data acceptance.TestData) string {
+// Test configurations for CDN Front Door Firewall Policy log scrubbing validation
+func (r CdnFrontDoorFirewallPolicyResource) logScrubbingInvalidSelectorWithEqualsAny(data acceptance.TestData) string {
     return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+%s
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctestcdnfd-%d"
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                = "accTestWAF%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Premium_AzureFrontDoor"
+  sku_name           = azurerm_cdn_frontdoor_profile.test.sku_name
+  mode               = "Prevention"
 
   log_scrubbing {
     enabled = true
+
     scrubbing_rule {
-      match_variable = "RequestIPAddress"
+      enabled        = true
+      match_variable = "RequestBodyJsonArgNames"
       operator       = "EqualsAny"
       selector       = "invalid_selector"  # This should trigger validation error
-      enabled        = true
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (r CdnFrontDoorProfileResource) logScrubbingInvalidRequestUri(data acceptance.TestData) string {
+func (r CdnFrontDoorFirewallPolicyResource) logScrubbingInvalidMissingSelectorWithEquals(data acceptance.TestData) string {
     return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+%s
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctestcdnfd-%d"
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                = "accTestWAF%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Premium_AzureFrontDoor"
+  sku_name           = azurerm_cdn_frontdoor_profile.test.sku_name
+  mode               = "Prevention"
 
   log_scrubbing {
     enabled = true
+
     scrubbing_rule {
-      match_variable = "RequestUri"
-      operator       = "EqualsAny"
-      selector       = "invalid_selector"  # This should trigger validation error
       enabled        = true
-    }
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (r CdnFrontDoorProfileResource) logScrubbingValidQueryStringWithSelector(data acceptance.TestData) string {
-    return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctestcdnfd-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Premium_AzureFrontDoor"
-
-  log_scrubbing {
-    enabled = true
-    scrubbing_rule {
       match_variable = "QueryStringArgNames"
-      operator       = "EqualsAny"
-      selector       = "custom_param"  # This is valid for QueryStringArgNames
-      enabled        = true
-    }
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (r CdnFrontDoorProfileResource) logScrubbingInvalidQueryStringWithoutSelector(data acceptance.TestData) string {
-    return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctestcdnfd-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Premium_AzureFrontDoor"
-
-  log_scrubbing {
-    enabled = true
-    scrubbing_rule {
-      match_variable = "QueryStringArgNames"
-      operator       = "EqualsAny"
-      enabled        = true
+      operator       = "Equals"
       # No selector specified - this should trigger validation error
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (r CdnFrontDoorProfileResource) logScrubbingValidRequestIPAddress(data acceptance.TestData) string {
+func (r CdnFrontDoorFirewallPolicyResource) logScrubbingInvalidRequestIPAddressWithEquals(data acceptance.TestData) string {
     return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+%s
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctestcdnfd-%d"
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                = "accTestWAF%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Premium_AzureFrontDoor"
+  sku_name           = azurerm_cdn_frontdoor_profile.test.sku_name
+  mode               = "Prevention"
 
   log_scrubbing {
     enabled = true
+
     scrubbing_rule {
+      enabled        = true
       match_variable = "RequestIPAddress"
-      operator       = "EqualsAny"
-      enabled        = true
-      # No selector specified - this is required for RequestIPAddress
+      operator       = "Equals"  # This should trigger validation error - must be EqualsAny
+      selector       = "invalid_selector"
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (r CdnFrontDoorProfileResource) logScrubbingValidRequestUri(data acceptance.TestData) string {
+func (r CdnFrontDoorFirewallPolicyResource) logScrubbingInvalidRequestUriWithEquals(data acceptance.TestData) string {
     return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+%s
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctestcdnfd-%d"
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                = "accTestWAF%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Premium_AzureFrontDoor"
+  sku_name           = azurerm_cdn_frontdoor_profile.test.sku_name
+  mode               = "Prevention"
 
   log_scrubbing {
     enabled = true
+
     scrubbing_rule {
-      match_variable = "RequestUri"
-      operator       = "EqualsAny"
       enabled        = true
-      # No selector specified - this is required for RequestUri
+      match_variable = "RequestUri"
+      operator       = "Equals"  # This should trigger validation error - must be EqualsAny
+      selector       = "invalid_selector"
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) logScrubbingValidQueryStringWithEquals(data acceptance.TestData) string {
+    return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                = "accTestWAF%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name           = azurerm_cdn_frontdoor_profile.test.sku_name
+  mode               = "Prevention"
+
+  log_scrubbing {
+    enabled = true
+
+    scrubbing_rule {
+      enabled        = true
+      match_variable = "QueryStringArgNames"
+      operator       = "Equals"
+      selector       = "custom_param"  # This is valid for QueryStringArgNames with Equals
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) logScrubbingValidRequestIPAddress(data acceptance.TestData) string {
+    return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                = "accTestWAF%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name           = azurerm_cdn_frontdoor_profile.test.sku_name
+  mode               = "Prevention"
+
+  log_scrubbing {
+    enabled = true
+
+    scrubbing_rule {
+      enabled        = true
+      match_variable = "RequestIPAddress"
+      operator       = "EqualsAny"  # This is required for RequestIPAddress
+      # No selector - this is required for EqualsAny operator
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) logScrubbingValidRequestUri(data acceptance.TestData) string {
+    return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                = "accTestWAF%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name           = azurerm_cdn_frontdoor_profile.test.sku_name
+  mode               = "Prevention"
+
+  log_scrubbing {
+    enabled = true
+
+    scrubbing_rule {
+      enabled        = true
+      match_variable = "RequestUri"
+      operator       = "EqualsAny"  # This is required for RequestUri
+      # No selector - this is required for EqualsAny operator
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 ```
 
@@ -471,7 +473,7 @@ func TestAccCdnFrontDoorProfile_basic(t *testing.T) {
             Config: r.basic(data),
             Check: acceptance.ComposeTestCheckFunc(
                 check.That(data.ResourceName).ExistsInAzure(r),
-                check.That(data.ResourceName).Key("resource_group_name").HasValue(fmt.Sprintf("acctestRG-%d", data.RandomInteger)),
+                check.That(data.ResourceName).Key("resource_group_name").HasValue(fmt.Sprintf("acctestRG-cdn-%d", data.RandomInteger)),
                 check.That(data.ResourceName).Key("sku_name").HasValue("Standard_AzureFrontDoor"),
             ),
         },
@@ -611,7 +613,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-servicename-%d"
   location = "%s"
 }
 
@@ -638,7 +640,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-cdn-%d"
   location = "%s"
 }
 
@@ -661,7 +663,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-cdn-%d"
   location = "%s"
 }
 
@@ -687,7 +689,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-cdn-%d"
   location = "%s"
 }
 
@@ -814,7 +816,7 @@ func TestAccServiceName_customizeDiff(t *testing.T) {
 // GOOD: Validate specific error messages with field paths
 {
     Config:      r.invalidLogScrubbing(data),
-    ExpectError: regexp.MustCompile(`log_scrubbing\.0\.scrubbing_rule\.0: ` + "`selector`" + ` cannot be set when ` + "`match_variable`" + ` is ` + "`RequestIPAddress`"),
+    ExpectError: regexp.MustCompile("log_scrubbing\.0\.scrubbing_rule\.0: `selector` cannot be set when `match_variable` is `RequestIPAddress`"),
 }
 ```
 
@@ -920,7 +922,6 @@ func TestValidateFrontDoorProfileSku(t *testing.T) {
 - **Naming Constraints**: Profile names must be globally unique across Azure
 - **Propagation Time**: Changes may take time to propagate globally
 - **Response Timeout**: Valid range is 16-240 seconds
-
 
 ### CustomizeDiff Testing Patterns
 
