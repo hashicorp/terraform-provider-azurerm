@@ -6,6 +6,7 @@ package postgres_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -77,6 +78,28 @@ func TestAccPostgresqlFlexibleServerVirtualEndpoint_crossRegion(t *testing.T) {
 			Config:       r.crossRegion,
 			TestResource: r,
 		}),
+	})
+}
+
+func TestAccPostgresqlFlexibleServerVirtualEndpoint_crossSubscription(t *testing.T) {
+	t.Skip("Skipping: cross subscription replication is non-standard operation and need to add the subscriptions to a service allow list")
+	altSubscription := getAltSubscription()
+
+	if altSubscription == nil {
+		t.Skip("Skipping: Test requires `ARM_SUBSCRIPTION_ID_ALT` and `ARM_TENANT_ID` environment variables to be specified")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_virtual_endpoint", "test")
+	r := PostgresqlFlexibleServerVirtualEndpointResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.crossSubscription(data, altSubscription),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("replica_server_id"),
 	})
 }
 
@@ -461,6 +484,91 @@ resource "azurerm_postgresql_flexible_server" "west" {
   }
 }
 `, data.RandomInteger)
+}
+
+type alternateSubscription struct {
+	tenant_id       string
+	subscription_id string
+}
+
+func getAltSubscription() *alternateSubscription {
+	altSubscriptonID := os.Getenv("ARM_SUBSCRIPTION_ID_ALT")
+	altTenantID := os.Getenv("ARM_TENANT_ID")
+
+	if altSubscriptonID == "" || altTenantID == "" {
+		return nil
+	}
+
+	return &alternateSubscription{
+		tenant_id:       altTenantID,
+		subscription_id: altSubscriptonID,
+	}
+}
+
+func (PostgresqlFlexibleServerVirtualEndpointResource) crossSubscription(data acceptance.TestData, altSub *alternateSubscription) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+  }
+}
+
+provider "azurerm-alt" {
+  features {}
+
+  tenant_id       = "%[2]s"
+  subscription_id = "%[3]s"
+}
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "westus2" // force region due to service allow list
+}
+
+resource "azurerm_resource_group" "alt" {
+  provider = azurerm-alt
+
+  name     = "acctestRG-alt-%[1]d"
+  location = "eastus2" // force region due to service allow list
+}
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                          = "acctest-ve-primary-%[1]d"
+  resource_group_name           = azurerm_resource_group.test.name
+  location                      = azurerm_resource_group.test.location
+  version                       = "16"
+  public_network_access_enabled = false
+  administrator_login           = "psqladmin"
+  administrator_password        = "H@Sh1CoR3!"
+  zone                          = "1"
+  storage_mb                    = 32768
+  storage_tier                  = "P30"
+  sku_name                      = "GP_Standard_D2s_v3"
+}
+
+resource "azurerm_postgresql_flexible_server" "test_replica" {
+  provider = azurerm-alt
+
+  name                          = "acctest-ve-replica-%[1]d"
+  resource_group_name           = azurerm_resource_group.alt.name
+  location                      = azurerm_resource_group.alt.location
+  create_mode                   = "Replica"
+  source_server_id              = azurerm_postgresql_flexible_server.test.id
+  version                       = azurerm_postgresql_flexible_server.test.version
+  public_network_access_enabled = azurerm_postgresql_flexible_server.test.public_network_access_enabled
+  storage_mb                    = azurerm_postgresql_flexible_server.test.storage_mb
+  storage_tier                  = azurerm_postgresql_flexible_server.test.storage_tier
+  zone                          = "1"
+}
+
+resource "azurerm_postgresql_flexible_server_virtual_endpoint" "test" {
+  name              = "acctest-ve-%[1]d"
+  source_server_id  = azurerm_postgresql_flexible_server.test.id
+  replica_server_id = azurerm_postgresql_flexible_server.test_replica.id
+  type              = "ReadWrite"
+}
+`, data.RandomInteger, altSub.tenant_id, altSub.subscription_id)
 }
 
 func (PostgresqlFlexibleServerVirtualEndpointResource) identicalSourceAndReplica(data acceptance.TestData) string {
