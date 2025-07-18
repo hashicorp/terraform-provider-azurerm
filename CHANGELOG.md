@@ -2,6 +2,9 @@
 
 ENHANCEMENTS:
 
+* `azurerm_policy_set_definition` - now forces a new resource to be created when the number of `parameters` is decreased [GH-29866]
+* `azurerm_management_group_policy_set_definition` - now forces a new resource to be created when the number of `parameters` is decreased [GH-29866]
+
 FEATURES:
 
 BUG FIXES:
