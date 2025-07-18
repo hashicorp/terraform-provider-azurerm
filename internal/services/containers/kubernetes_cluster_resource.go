@@ -1115,6 +1115,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								string(managedclusters.OutboundTypeUserDefinedRouting),
 								string(managedclusters.OutboundTypeManagedNATGateway),
 								string(managedclusters.OutboundTypeUserAssignedNATGateway),
+								string(managedclusters.OutboundTypeNone),
 							}, false),
 						},
 
@@ -3362,7 +3363,6 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*managedcluster
 	if v, ok := config["service_cidrs"]; ok {
 		networkProfile.ServiceCidrs = utils.ExpandStringSlice(v.([]interface{}))
 	}
-
 	return &networkProfile, nil
 }
 

@@ -227,6 +227,10 @@ func TestAccKubernetesCluster_updateNetworkProfileOutboundType(t *testing.T) {
 			Config: r.networkProfileWithOutboundType(data, "loadBalancer"),
 		},
 		data.ImportStep(),
+		{
+			Config: r.networkProfileWithOutboundType(data, "none"),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -490,6 +494,15 @@ resource "azurerm_subnet_route_table_association" "node_subnet" {
 }
 
 func (r KubernetesClusterResource) networkProfileWithOutboundType(data acceptance.TestData, outboundType string) string {
+
+	bootstrapBlock := ""
+	if outboundType == "none" {
+		bootstrapBlock = `
+  bootstrap_profile {
+    artifact_source = "Cache"
+  }`
+	}
+
 	return fmt.Sprintf(`
 %s
 
@@ -498,7 +511,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   dns_prefix          = "acctestaks%d"
-  kubernetes_version  = "1.29"
+  kubernetes_version  = "1.31"
 
   default_node_pool {
     name       = "default"
