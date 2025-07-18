@@ -175,7 +175,6 @@ resource "azurerm_nginx_deployment" "test" {
   resource_group_name       = azurerm_resource_group.test.name
   sku                       = "standardv2_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
 
   frontend_public {
@@ -208,7 +207,6 @@ resource "azurerm_nginx_deployment" "test" {
   resource_group_name       = azurerm_resource_group.test.name
   sku                       = "standardv2_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
 
   frontend_private {
@@ -243,7 +241,6 @@ resource "azurerm_nginx_deployment" "test" {
   resource_group_name       = azurerm_resource_group.test.name
   sku                       = "standardv2_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
 
   frontend_public {
@@ -286,7 +283,6 @@ resource "azurerm_nginx_deployment" "test" {
   resource_group_name       = azurerm_resource_group.test.name
   sku                       = "standardv2_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
 
   frontend_public {
@@ -322,14 +318,15 @@ func (a DeploymentResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 
+
+
 %s
 
 resource "azurerm_nginx_deployment" "test" {
-  name                     = "acctest-%[2]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  sku                      = "standardv2_Monthly"
-  location                 = azurerm_resource_group.test.location
-  diagnose_support_enabled = false
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "standardv2_Monthly"
+  location            = azurerm_resource_group.test.location
 
   frontend_public {
     ip_address = [azurerm_public_ip.test.id]
@@ -361,7 +358,6 @@ resource "azurerm_nginx_deployment" "test" {
   resource_group_name       = azurerm_resource_group.test.name
   sku                       = "standardv2_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
 
   frontend_private {
@@ -396,7 +392,6 @@ resource "azurerm_nginx_deployment" "test" {
   resource_group_name       = azurerm_resource_group.test.name
   sku                       = "standardv2_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
 
   frontend_private {
@@ -431,7 +426,6 @@ resource "azurerm_nginx_deployment" "test" {
   resource_group_name       = azurerm_resource_group.test.name
   sku                       = "standardv2_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
 
   frontend_public {
@@ -530,7 +524,6 @@ resource "azurerm_nginx_deployment" "test" {
   resource_group_name       = azurerm_resource_group.test.name
   sku                       = "standardv2_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
 
   frontend_public {

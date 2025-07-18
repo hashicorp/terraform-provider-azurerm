@@ -77,7 +77,7 @@ type DeploymentModel struct {
 	Location               string                                     `tfschema:"location"`
 	Capacity               int64                                      `tfschema:"capacity"`
 	AutoScaleProfile       []AutoScaleProfile                         `tfschema:"auto_scale_profile"`
-	DiagnoseSupportEnabled bool                                       `tfschema:"diagnose_support_enabled"`
+	DiagnoseSupportEnabled bool                                       `tfschema:"diagnose_support_enabled, removedInNextMajorVersion"`
 	Email                  string                                     `tfschema:"email"`
 	IpAddress              string                                     `tfschema:"ip_address"`
 	LoggingStorageAccount  []LoggingStorageAccount                    `tfschema:"logging_storage_account,removedInNextMajorVersion"`
@@ -186,12 +186,6 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
-		},
-
-		"diagnose_support_enabled": {
-			Type:         pluginsdk.TypeBool,
-			Optional:     true,
-			ValidateFunc: nil,
 		},
 
 		"email": {
@@ -324,6 +318,13 @@ func (m DeploymentResource) Arguments() map[string]*pluginsdk.Schema {
 				},
 			},
 		}
+
+		resource["diagnose_support_enabled"] = &pluginsdk.Schema{
+			Deprecated:   "The `diagnose_support_enabled` field isn't supported by the API anymore and has been deprecated and will be removed in v5.0 of the AzureRM Provider.",
+			Type:         pluginsdk.TypeBool,
+			Optional:     true,
+			ValidateFunc: nil,
+		}
 	}
 	return resource
 }
@@ -397,9 +398,9 @@ func (m DeploymentResource) Create() sdk.ResourceFunc {
 						},
 					}
 				}
+				prop.EnableDiagnosticsSupport = pointer.FromBool(model.DiagnoseSupportEnabled)
 			}
 
-			prop.EnableDiagnosticsSupport = pointer.FromBool(model.DiagnoseSupportEnabled)
 			prop.NetworkProfile = expandNetworkProfile(model.FrontendPublic, model.FrontendPrivate, model.NetworkInterface)
 
 			isBasicSKU := strings.HasPrefix(model.Sku, "basic")
@@ -512,7 +513,6 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 					output.IpAddress = pointer.ToString(props.IPAddress)
 					output.NginxVersion = pointer.ToString(props.NginxVersion)
 					output.DataplaneAPIEndpoint = pointer.ToString(props.DataplaneApiEndpoint)
-					output.DiagnoseSupportEnabled = pointer.ToBool(props.EnableDiagnosticsSupport)
 
 					if !features.FivePointOh() {
 						if props.Logging != nil && props.Logging.StorageAccount != nil {
@@ -523,6 +523,7 @@ func (m DeploymentResource) Read() sdk.ResourceFunc {
 								},
 							}
 						}
+						output.DiagnoseSupportEnabled = pointer.ToBool(props.EnableDiagnosticsSupport)
 					}
 
 					if profile := props.NetworkProfile; profile != nil {
@@ -683,10 +684,9 @@ func (m DeploymentResource) Update() sdk.ResourceFunc {
 						},
 					}
 				}
-			}
-
-			if meta.ResourceData.HasChange("diagnose_support_enabled") {
-				req.Properties.EnableDiagnosticsSupport = pointer.FromBool(model.DiagnoseSupportEnabled)
+				if meta.ResourceData.HasChange("diagnose_support_enabled") {
+					req.Properties.EnableDiagnosticsSupport = pointer.FromBool(model.DiagnoseSupportEnabled)
+				}
 			}
 
 			if meta.ResourceData.HasChange("capacity") && model.Capacity > 0 {
