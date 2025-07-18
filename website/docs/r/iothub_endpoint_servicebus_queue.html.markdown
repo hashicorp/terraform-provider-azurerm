@@ -89,6 +89,10 @@ The following arguments are supported:
 
 * `iothub_id` - (Required) The IoTHub ID for the endpoint. Changing this forces a new resource to be created.
 
+* `subscription_id` - (Optional) The subscription ID for the endpoint.
+
+~> **NOTE:** When `subscription_id` isn't specified it will be set to the subscription ID used in the provider block.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:

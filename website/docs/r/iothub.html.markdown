@@ -219,6 +219,10 @@ An `endpoint` block supports the following:
 
 * `resource_group_name` - (Optional) The resource group in which the endpoint will be created.
 
+* `subscription_id` - (Optional) The subscription ID for the endpoint.
+
+~> **NOTE:** When `subscription_id` isn't specified it will be set to the subscription ID used in the provider block.
+
 ---
 
 An `identity` block supports the following:
