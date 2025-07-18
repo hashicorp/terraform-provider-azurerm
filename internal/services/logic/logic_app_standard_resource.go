@@ -3,7 +3,7 @@
 
 package logic
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name azurerm_logic_app_standard -properties "name,resource_group_name" -service-package-name logic -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name logic_app_standard -properties "name,resource_group_name" -service-package-name logic -known-values "subscription_id:data.Subscriptions.Primary"
 
 import (
 	"fmt"
