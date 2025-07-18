@@ -38,6 +38,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name fw_logic_app_standard -properties "name,resource_group_name" -service-package-name logic -known-values "subscription_id:data.Subscriptions.Primary"
+
 type FwLogicAppStandardResource struct{}
 
 var _ sdk.FrameworkWrappedResourceWithUpdate = &FwLogicAppStandardResource{}
