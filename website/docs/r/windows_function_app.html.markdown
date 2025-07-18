@@ -73,7 +73,7 @@ The following arguments are supported:
 
 ~> **Note:** For storage related settings, please use related properties that are available such as `storage_account_access_key`, terraform will assign the value to keys such as `WEBSITE_CONTENTAZUREFILECONNECTIONSTRING`, `AzureWebJobsStorage` in app_setting.
 
-~> **Note:** For application insight related settings, please use `application_insights_connection_string` and `application_insights_key`, terraform will assign the value to the key `APPINSIGHTS_INSTRUMENTATIONKEY` and `APPLICATIONINSIGHTS_CONNECTION_STRING` in app setting.
+~> **Note:** For application insight related settings, please use `application_insights_connection_string`, `application_insights_key` and `application_insights_authentication_string`, terraform will assign the value to the key `APPINSIGHTS_INSTRUMENTATIONKEY`,  `APPLICATIONINSIGHTS_CONNECTION_STRING` and `APPLICATIONINSIGHTS_AUTHENTICATION_STRING` in app setting.
 
 ~> **Note:** For health check related settings, please use `health_check_eviction_time_in_min`, terraform will assign the value to the key `WEBSITE_HEALTHCHECK_MAXPINGFAILURES` in app setting.
 
@@ -644,6 +644,10 @@ A `site_config` block supports the following:
 * `application_insights_connection_string` - (Optional) The Connection String for linking the Windows Function App to Application Insights.
 
 * `application_insights_key` - (Optional) The Instrumentation Key for connecting the Windows Function App to Application Insights.
+
+* `application_insights_authentication_string` - (Optional) The Instrumentation Key for connecting the Windows Function App to Application Insights using either the system-assigned or a user-assigned identity.
+
+~> **Note:** For system-assigned identity this must be set to `Authorization=AAD` and for user-assigned `Authorization=AAD;ClientId=<USER_ASSIGNED_CLIENT_ID>`. For additional steps and information on using identity-based authentication see [APPLICATIONINSIGHTS_AUTHENTICATION_STRING](https://learn.microsoft.com/en-us/azure/azure-functions/functions-app-settings#applicationinsights_authentication_string)
 
 * `application_stack` - (Optional) An `application_stack` block as defined above.
 
