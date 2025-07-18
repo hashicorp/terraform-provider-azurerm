@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type HDInsightHadoopClusterResource struct{}
@@ -806,7 +806,7 @@ func (r HDInsightHadoopClusterResource) Exists(ctx context.Context, clients *cli
 		return nil, fmt.Errorf("retrieving Hadoop %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r HDInsightHadoopClusterResource) basic(data acceptance.TestData) string {
@@ -830,7 +830,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -880,7 +880,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -1022,7 +1022,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -1072,7 +1072,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -1199,7 +1199,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -1328,8 +1328,8 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
-    storage_resource_id  = azurerm_storage_account.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
+    storage_account_id   = azurerm_storage_account.test.id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -1393,7 +1393,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -1450,7 +1450,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     password = "TerrAform123!"
   }
   storage_account_gen2 {
-    storage_resource_id          = azurerm_storage_account.gen2test.id
+    storage_account_id           = azurerm_storage_account.gen2test.id
     filesystem_id                = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
     managed_identity_resource_id = azurerm_user_assigned_identity.test.id
     is_default                   = true
@@ -1482,24 +1482,31 @@ func (r HDInsightHadoopClusterResource) gen2AndBlobStorage(data acceptance.TestD
 %s
 resource "azurerm_storage_account" "test" {
   name                     = "acctestsa%s"
-  resource_group_name      = "${azurerm_resource_group.test.name}"
-  location                 = "${azurerm_resource_group.test.location}"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctest"
-  storage_account_name  = "${azurerm_storage_account.test.name}"
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
+}
+
+# This data source is the only way to get the data plane IDs of the containers without using the deprecated
+# storage_account_name argument in azurerm_storage_container
+data "azurerm_storage_containers" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+  depends_on         = [azurerm_storage_container.test]
 }
 
 resource "azurerm_hdinsight_hadoop_cluster" "test" {
   depends_on = [azurerm_role_assignment.test]
 
   name                = "acctesthdi-%d"
-  resource_group_name = "${azurerm_resource_group.test.name}"
-  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   cluster_version     = "4.0"
   tier                = "Standard"
   component_version {
@@ -1510,14 +1517,14 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     password = "TerrAform123!"
   }
   storage_account_gen2 {
-    storage_resource_id          = azurerm_storage_account.gen2test.id
+    storage_account_id           = azurerm_storage_account.gen2test.id
     filesystem_id                = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
     managed_identity_resource_id = azurerm_user_assigned_identity.test.id
     is_default                   = true
   }
   storage_account {
-    storage_container_id = "${azurerm_storage_container.test.id}"
-    storage_account_key  = "${azurerm_storage_account.test.primary_access_key}"
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
+    storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = false
   }
   roles {
@@ -1619,7 +1626,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   storage_account_gen2 {
-    storage_resource_id          = azurerm_storage_account.gen2test.id
+    storage_account_id           = azurerm_storage_account.gen2test.id
     filesystem_id                = azurerm_storage_data_lake_gen2_filesystem.gen2test.id
     managed_identity_resource_id = azurerm_user_assigned_identity.test.id
     is_default                   = true
@@ -1904,8 +1911,15 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctest"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
+}
+
+# This data source is the only way to get the data plane IDs of the containers without using the deprecated
+# storage_account_name argument in azurerm_storage_container
+data "azurerm_storage_containers" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+  depends_on         = [azurerm_storage_container.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
@@ -1972,7 +1986,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     password = "TerrAform123!"
   }
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -2019,7 +2033,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     encryption_at_host_enabled = true
   }
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -2042,6 +2056,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     }
   }
 }
+
 
 `, r.template(data), data.RandomInteger)
 }
@@ -2095,7 +2110,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     password = "TerrAform123!"
   }
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -2178,7 +2193,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     password = "TerrAform123!"
   }
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -2240,7 +2255,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -2302,7 +2317,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -2353,7 +2368,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     password = "TerrAformne3!"
   }
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -2396,7 +2411,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     password = "TerrAform123!"
   }
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -2445,7 +2460,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
     password = "TerrAform123!"
   }
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -2507,7 +2522,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
@@ -2581,7 +2596,7 @@ resource "azurerm_hdinsight_hadoop_cluster" "test" {
   }
 
   storage_account {
-    storage_container_id = azurerm_storage_container.test.id
+    storage_container_id = data.azurerm_storage_containers.test.containers[index(data.azurerm_storage_containers.test.containers.*.name, azurerm_storage_container.test.name)].data_plane_id
     storage_account_key  = azurerm_storage_account.test.primary_access_key
     is_default           = true
   }
