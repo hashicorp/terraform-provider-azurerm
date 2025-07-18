@@ -137,7 +137,7 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomIntOfLength(10))
+`, data.RandomInteger, data.Locations.Ternary, data.RandomString, data.RandomIntOfLength(10))
 }
 
 func (r WorkspaceNetworkOutboundRuleServiceTagResource) basic(data acceptance.TestData) string {

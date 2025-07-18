@@ -555,7 +555,7 @@ resource "azurerm_machine_learning_workspace" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary,
+`, data.RandomInteger, data.Locations.Secondary,
 		data.RandomInteger, data.RandomIntOfLength(15), data.RandomIntOfLength(16),
 		data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -685,5 +685,5 @@ resource "azurerm_subnet_network_security_group_association" "test" {
   subnet_id                 = azurerm_subnet.test.id
   network_security_group_id = azurerm_network_security_group.test.id
 }
-`, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Secondary)
 }
