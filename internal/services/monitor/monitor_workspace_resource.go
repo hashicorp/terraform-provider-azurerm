@@ -19,14 +19,21 @@ import (
 )
 
 type WorkspaceResourceModel struct {
-	Name                            string            `tfschema:"name"`
-	ResourceGroupName               string            `tfschema:"resource_group_name"`
-	QueryEndpoint                   string            `tfschema:"query_endpoint"`
-	DefaultDataCollectionEndpointId string            `tfschema:"default_data_collection_endpoint_id"`
-	DefaultDataCollectionRuleId     string            `tfschema:"default_data_collection_rule_id"`
-	PublicNetworkAccessEnabled      bool              `tfschema:"public_network_access_enabled"`
-	Location                        string            `tfschema:"location"`
-	Tags                            map[string]string `tfschema:"tags"`
+	Name                            string                           `tfschema:"name"`
+	ResourceGroupName               string                           `tfschema:"resource_group_name"`
+	QueryEndpoint                   string                           `tfschema:"query_endpoint"`
+	DefaultDataCollectionEndpointId string                           `tfschema:"default_data_collection_endpoint_id"`
+	DefaultDataCollectionRuleId     string                           `tfschema:"default_data_collection_rule_id"`
+	PublicNetworkAccessEnabled      bool                             `tfschema:"public_network_access_enabled"`
+	PrivateEndpointConnections      []PrivateEndpointConnectionModel `tfschema:"private_endpoint_connections"`
+	Location                        string                           `tfschema:"location"`
+	Tags                            map[string]string                `tfschema:"tags"`
+}
+
+type PrivateEndpointConnectionModel struct {
+	Id       string   `tfschema:"id"`
+	Name     string   `tfschema:"name"`
+	GroupIds []string `tfschema:"group_ids"`
 }
 
 type WorkspaceResource struct{}
@@ -81,6 +88,29 @@ func (r WorkspaceResource) Attributes() map[string]*pluginsdk.Schema {
 		"default_data_collection_rule_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
+		},
+		"private_endpoint_connections": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"group_ids": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem:     pluginsdk.TypeString,
+					},
+				},
+			},
 		},
 	}
 }
@@ -229,6 +259,10 @@ func (r WorkspaceResource) Read() sdk.ResourceFunc {
 							state.DefaultDataCollectionRuleId = *properties.DefaultIngestionSettings.DataCollectionRuleResourceId
 						}
 					}
+
+					if properties.PrivateEndpointConnections != nil {
+						state.PrivateEndpointConnections = flattenPrivateEndpointConnections(properties.PrivateEndpointConnections)
+					}
 				}
 			}
 
@@ -255,4 +289,25 @@ func (r WorkspaceResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func flattenPrivateEndpointConnections(input *[]azuremonitorworkspaces.PrivateEndpointConnection) []PrivateEndpointConnectionModel {
+	if input == nil || len(*input) == 0 {
+		return []PrivateEndpointConnectionModel{}
+	}
+
+	result := make([]PrivateEndpointConnectionModel, 0)
+
+	conns := *input
+
+	for _, v := range conns {
+		conn := PrivateEndpointConnectionModel{
+			Id:       pointer.From(v.Id),
+			Name:     pointer.From(v.Name),
+			GroupIds: pointer.From(v.Properties.GroupIds),
+		}
+		result = append(result, conn)
+	}
+
+	return result
 }
