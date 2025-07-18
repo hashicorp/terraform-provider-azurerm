@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/domains"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/domains"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -60,6 +60,16 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 			"location": commonschema.Location(),
 
 			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"data_residency_boundary": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(domains.DataResidencyBoundaryWithinGeopair),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(domains.DataResidencyBoundaryWithinGeopair),
+					string(domains.DataResidencyBoundaryWithinRegion),
+				}, false),
+			},
 
 			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
@@ -138,6 +148,15 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 						},
 					},
 				},
+			},
+
+			"minimum_tls_version": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(domains.TlsVersionOnePointTwo),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(domains.TlsVersionOnePointTwo),
+				}, false),
 			},
 
 			"public_network_access_enabled": {
@@ -239,10 +258,12 @@ func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Properties: &domains.DomainProperties{
 			AutoCreateTopicWithFirstSubscription: utils.Bool(d.Get("auto_create_topic_with_first_subscription").(bool)),
 			AutoDeleteTopicWithLastSubscription:  utils.Bool(d.Get("auto_delete_topic_with_last_subscription").(bool)),
+			DataResidencyBoundary:                pointer.To(domains.DataResidencyBoundary(d.Get("data_residency_boundary").(string))),
 			DisableLocalAuth:                     utils.Bool(!d.Get("local_auth_enabled").(bool)),
 			InboundIPRules:                       inboundIPRules,
 			InputSchema:                          pointer.To(domains.InputSchema(d.Get("input_schema").(string))),
 			InputSchemaMapping:                   expandDomainInputMapping(d),
+			MinimumTlsVersionAllowed:             pointer.To(domains.TlsVersion(d.Get("minimum_tls_version").(string))),
 			PublicNetworkAccess:                  pointer.To(publicNetworkAccess),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -282,6 +303,14 @@ func resourceEventGridDomainUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
 		payload.Identity = expandedIdentity
+	}
+
+	if d.HasChange("data_residency_boundary") {
+		payload.Properties.DataResidencyBoundary = pointer.To(domains.DataResidencyBoundary(d.Get("data_residency_boundary").(string)))
+	}
+
+	if d.HasChange("minimum_tls_version") {
+		payload.Properties.MinimumTlsVersionAllowed = pointer.To(domains.TlsVersion(d.Get("minimum_tls_version").(string)))
 	}
 
 	if d.HasChange("public_network_access_enabled") {
@@ -369,6 +398,8 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 		if props := model.Properties; props != nil {
 			d.Set("endpoint", props.Endpoint)
 
+			d.Set("data_residency_boundary", pointer.From(props.DataResidencyBoundary))
+
 			inputSchema := ""
 			if props.InputSchema != nil {
 				inputSchema = string(*props.InputSchema)
@@ -384,6 +415,8 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 			if err := d.Set("input_mapping_default_values", inputMappingDefaultValues); err != nil {
 				return fmt.Errorf("setting `input_schema_mapping_fields`: %+v", err)
 			}
+
+			d.Set("minimum_tls_version", pointer.From(props.MinimumTlsVersionAllowed))
 
 			publicNetworkAccessEnabled := true
 			if props.PublicNetworkAccess != nil && *props.PublicNetworkAccess == domains.PublicNetworkAccessDisabled {
