@@ -109,6 +109,21 @@ func TestAccContainerAppEnvironment_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppEnvironment_requiresImportWithConsumptionProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
+	r := ContainerAppEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.consumptionWorkloadProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
 func TestAccContainerAppEnvironment_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
 	r := ContainerAppEnvironmentResource{}

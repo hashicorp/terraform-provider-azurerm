@@ -9,31 +9,26 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2019-01-01-preview/automations"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-)
-
-// TODO: 4.0 - remove these and use the SDK constants instead
-const (
-	typeLogicApp     = "logicapp"
-	typeEventHub     = "eventhub"
-	typeLogAnalytics = "loganalytics"
 )
 
 func resourceSecurityCenterAutomation() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceSecurityCenterAutomationCreateUpdate,
 		Read:   resourceSecurityCenterAutomationRead,
 		Update: resourceSecurityCenterAutomationCreateUpdate,
@@ -97,14 +92,9 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"type": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								// TODO: 4.0 - remove these and use the SDK constants instead
-								typeLogicApp,
-								typeLogAnalytics,
-								typeEventHub,
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(automations.PossibleValuesForActionType(), false),
 						},
 
 						"resource_id": {
@@ -210,6 +200,20 @@ func resourceSecurityCenterAutomation() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		r.Schema["action"].Elem.(*pluginsdk.Resource).Schema["type"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+				return strings.EqualFold(oldValue, newValue) || (oldValue == "loganalytics" && newValue == "Workspace") || (oldValue == "Workspace" && newValue == "loganalytics")
+			},
+			ValidateFunc: validation.StringInSlice(append(automations.PossibleValuesForActionType(), "loganalytics", "logicapp", "eventhub"), false),
+		}
+	}
+
+	return r
 }
 
 func resourceSecurityCenterAutomationCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -240,7 +244,7 @@ func resourceSecurityCenterAutomationCreateUpdate(d *pluginsdk.ResourceData, met
 	automation := automations.Automation{
 		Location: &location,
 		Properties: &automations.AutomationProperties{
-			Description: utils.String(d.Get("description").(string)),
+			Description: pointer.To(d.Get("description").(string)),
 			IsEnabled:   &enabled,
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -435,17 +439,27 @@ func expandSecurityCenterAutomationActions(actionsRaw []interface{}) (*[]automat
 
 		var autoAction automations.AutomationAction
 		var resourceID string
-		var actionType string
 		var ok bool
 
 		// No checking, as fields are enforced by resource schema
 		resourceID = actionMap["resource_id"].(string)
-		actionType = actionMap["type"].(string)
+		actionType := automations.ActionType(actionMap["type"].(string))
 
-		// Ignore case on type field
-		switch strings.ToLower(actionType) {
+		if !features.FivePointOh() {
+			// Action types may either be Title Case or lowercase at this point
+			switch actionMap["type"].(string) {
+			case "logicapp":
+				actionType = automations.ActionTypeLogicApp
+			case "loganalytics":
+				actionType = automations.ActionTypeWorkspace
+			case "eventhub":
+				actionType = automations.ActionTypeEventHub
+			}
+		}
+
+		switch actionType {
 		// Handle LogicApp action type
-		case typeLogicApp:
+		case automations.ActionTypeLogicApp:
 			var triggerURL string
 			if triggerURL, ok = actionMap["trigger_url"].(string); !ok || triggerURL == "" {
 				return nil, fmt.Errorf("Security Center automation, trigger_url is required for LogicApp action")
@@ -456,13 +470,13 @@ func expandSecurityCenterAutomationActions(actionsRaw []interface{}) (*[]automat
 			}
 
 			// Handle LogAnalytics action type
-		case typeLogAnalytics:
+		case automations.ActionTypeWorkspace:
 			autoAction = automations.AutomationActionWorkspace{
 				WorkspaceResourceId: &resourceID,
 			}
 
 			// Handle EventHub action type
-		case typeEventHub:
+		case automations.ActionTypeEventHub:
 			var connString string
 			if connString, ok = actionMap["connection_string"].(string); !ok || connString == "" {
 				return nil, fmt.Errorf("Security Center automation, connection_string is required for EventHub action")
@@ -561,7 +575,7 @@ func flattenSecurityCenterAutomationActions(actions *[]automations.AutomationAct
 			}
 			actionMap := map[string]string{
 				"resource_id": *actionLogicApp.LogicAppResourceId,
-				"type":        string(typeLogicApp),
+				"type":        string(automations.ActionTypeLogicApp),
 				"trigger_url": "",
 			}
 
@@ -581,7 +595,7 @@ func flattenSecurityCenterAutomationActions(actions *[]automations.AutomationAct
 			}
 			actionMap := map[string]string{
 				"resource_id":       *actionEventHub.EventHubResourceId,
-				"type":              string(typeEventHub),
+				"type":              string(automations.ActionTypeEventHub),
 				"connection_string": "",
 			}
 
@@ -597,11 +611,11 @@ func flattenSecurityCenterAutomationActions(actions *[]automations.AutomationAct
 		actionLogAnalytics, isLogAnalytics := action.(automations.AutomationActionWorkspace)
 		if isLogAnalytics {
 			if actionLogAnalytics.WorkspaceResourceId == nil {
-				return nil, fmt.Errorf("Security Center automation, API returned an action with empty workspaceResourceId")
+				return nil, fmt.Errorf("security center automation, API returned an action with empty workspaceResourceId")
 			}
 			actionMap := map[string]string{
 				"resource_id": *actionLogAnalytics.WorkspaceResourceId,
-				"type":        string(typeLogAnalytics),
+				"type":        string(automations.ActionTypeWorkspace),
 			}
 
 			resultSlice = append(resultSlice, actionMap)

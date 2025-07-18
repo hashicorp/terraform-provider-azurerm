@@ -6,7 +6,7 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
     val environment = environment
     val vcsRootId = vcsRootId
 
-    fun buildConfiguration(providerName : String, nightlyTestsEnabled: Boolean, startHour: Int, parallelism: Int, daysOfWeek: String, daysOfMonth: String, timeout: Int) : BuildType {
+    fun buildConfiguration(providerName : String, nightlyTestsEnabled: Boolean, startHour: Int, parallelism: Int, daysOfWeek: String, daysOfMonth: String, timeout: Int, disableTriggers: Boolean) : BuildType {
         return BuildType {
             // TC needs a consistent ID for dynamically generated packages
             id(uniqueID(providerName))
@@ -43,7 +43,7 @@ class serviceDetails(name: String, displayName: String, environment: String, vcs
             }
 
             triggers {
-                RunNightly(nightlyTestsEnabled, startHour, daysOfWeek, daysOfMonth)
+                RunNightly(nightlyTestsEnabled, startHour, daysOfWeek, daysOfMonth, disableTriggers)
             }
         }
     }

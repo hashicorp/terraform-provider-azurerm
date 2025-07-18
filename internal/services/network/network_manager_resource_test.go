@@ -101,6 +101,7 @@ func TestAccNetworkManager(t *testing.T) {
 			"complete":       testAccNetworkManagerIpamPool_complete,
 			"update":         testAccNetworkManagerIpamPool_update,
 			"requiresImport": testAccNetworkManagerIpamPool_requiresImport,
+			"dataSource":     testAccNetworkManagerIpamPoolDataSource_complete,
 		},
 		"VerifierWorkspace": {
 			"basic":          testAccNetworkManagerVerifierWorkspace_basic,
