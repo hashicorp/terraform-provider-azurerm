@@ -14,6 +14,12 @@ func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{}
 }
 
+func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {
+	return []sdk.FrameworkWrappedResource{
+		FwLogicAppStandardResource{},
+	}
+}
+
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		LogicAppResource{},

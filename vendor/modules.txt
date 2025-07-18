@@ -141,7 +141,10 @@ github.com/hashicorp/errwrap
 ## explicit; go 1.24.1
 github.com/hashicorp/go-azure-helpers/eventhub
 github.com/hashicorp/go-azure-helpers/framework/commonschema
+github.com/hashicorp/go-azure-helpers/framework/convert
 github.com/hashicorp/go-azure-helpers/framework/fwdiag
+github.com/hashicorp/go-azure-helpers/framework/identity
+github.com/hashicorp/go-azure-helpers/framework/location
 github.com/hashicorp/go-azure-helpers/framework/typehelpers
 github.com/hashicorp/go-azure-helpers/lang/dates
 github.com/hashicorp/go-azure-helpers/lang/pointer
@@ -1347,9 +1350,13 @@ github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts
 ## explicit; go 1.23.0
 github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatordiag
 github.com/hashicorp/terraform-plugin-framework-validators/helpers/validatorfuncerr
+github.com/hashicorp/terraform-plugin-framework-validators/int64validator
+github.com/hashicorp/terraform-plugin-framework-validators/internal/configvalidator
 github.com/hashicorp/terraform-plugin-framework-validators/internal/schemavalidator
 github.com/hashicorp/terraform-plugin-framework-validators/listvalidator
 github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator
+github.com/hashicorp/terraform-plugin-framework-validators/resourcevalidator
+github.com/hashicorp/terraform-plugin-framework-validators/setvalidator
 github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator
 # github.com/hashicorp/terraform-plugin-go v0.28.0
 ## explicit; go 1.23.0
