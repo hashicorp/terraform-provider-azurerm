@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -53,10 +54,11 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				// NOTE: Name validation requirements documented here: https://learn.microsoft.com/azure/templates/microsoft.insights/activitylogalerts?pivots=deployment-language-terraform
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[-\w\._\(\)]+$`), "name must contain only alphanumeric characters, hyphens, underscores, periods, and parentheses"),
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -409,31 +411,21 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
-				// Validate 'Security' 'recommendation_category' location constraints
-				if criteriaRaw, ok := diff.GetOk("criteria"); ok {
-					criteriaList := criteriaRaw.([]interface{})
-					if len(criteriaList) > 0 && criteriaList[0] != nil {
-						criteria := criteriaList[0].(map[string]interface{})
-						if recommendationCategory, exists := criteria["recommendation_category"]; exists && recommendationCategory != nil {
-							if recommendationCategory.(string) == "Security" {
-								location := diff.Get("location").(string)
-								normalizedLocation := azure.NormalizeLocation(location)
+				// Validate location constraints for Activity Log Alert resources
+				location := diff.Get("location").(string)
+				normalizedLocation := azure.NormalizeLocation(location)
 
-								supportedLocations := []string{"global", "westeurope", "northeurope", "eastus2euap"}
-								supported := false
-								for _, supportedLocation := range supportedLocations {
-									if normalizedLocation == strings.ToLower(supportedLocation) {
-										supported = true
-										break
-									}
-								}
-
-								if !supported {
-									return fmt.Errorf("`recommendation_category` `Security` is only supported in the following regions: [%s], got `%s`", strings.Join(supportedLocations, ", "), location)
-								}
-							}
-						}
+				supportedLocations := []string{"global", "westeurope", "northeurope", "eastus2euap"}
+				supported := false
+				for _, supportedLocation := range supportedLocations {
+					if normalizedLocation == strings.ToLower(supportedLocation) {
+						supported = true
+						break
 					}
+				}
+
+				if !supported {
+					return fmt.Errorf("`azurerm_monitor_activity_log_alert` resources are only supported in the following regions: [%s], got `%s`", strings.Join(supportedLocations, ", "), location)
 				}
 
 				return nil

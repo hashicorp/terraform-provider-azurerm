@@ -391,12 +391,16 @@ func TestAccMonitorActivityLogAlert_recommendationCategory_invalid(t *testing.T)
 	r := MonitorActivityLogAlertResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.recommendationCategoryInvalid(data),
-			ExpectError: regexp.MustCompile("expected criteria.0.recommendation_category to be one of"),
+			Config:      r.nameInvalid(data),
+			ExpectError: regexp.MustCompile("invalid value for name"),
 		},
 		{
-			Config:      r.recommendationCategorySecurityRegionInvalid(data),
-			ExpectError: regexp.MustCompile("`recommendation_category` `Security` is only supported in the following regions:"),
+			Config:      r.regionInvalid(data),
+			ExpectError: regexp.MustCompile("`azurerm_monitor_activity_log_alert` resources are only supported in the following regions:"),
+		},
+		{
+			Config:      r.recommendationCategoryInvalid(data),
+			ExpectError: regexp.MustCompile("expected criteria.0.recommendation_category to be one of"),
 		},
 	})
 }
@@ -1114,7 +1118,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
 `, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (MonitorActivityLogAlertResource) recommendationCategorySecurityRegionInvalid(data acceptance.TestData) string {
+func (MonitorActivityLogAlertResource) nameInvalid(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1122,31 +1126,44 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-monitor-%d"
-  location = "westus2" # Hardcoding location to force CustomizeDiff error condition, resource type is only available in 'global, westeurope, northeurope and eastus2euap'
+  location = "%s"
 }
 
-resource "azurerm_monitor_action_group" "test" {
-  name                = "acctestActionGroup-%d"
+resource "azurerm_monitor_activity_log_alert" "test" {
+  name                = "acctest@ActivityLogAlert-%d"
   resource_group_name = azurerm_resource_group.test.name
-  short_name          = "acctestag"
+  scopes              = [azurerm_resource_group.test.id]
+  location            = "global"
+
+  criteria {
+    category = "Recommendation"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (MonitorActivityLogAlertResource) regionInvalid(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-monitor-%d"
+  location = "%s"
 }
 
 resource "azurerm_monitor_activity_log_alert" "test" {
   name                = "acctestActivityLogAlert-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
   scopes              = [azurerm_resource_group.test.id]
+  location            = "westus2" # Hardcoding location to force CustomizeDiff error condition, resource type is only available in the 'global', 'westeurope', 'northeurope' and 'eastus2euap' regions
 
   criteria {
-    category                = "Recommendation"
-    recommendation_category = "Security"
-  }
-
-  action {
-    action_group_id = azurerm_monitor_action_group.test.id
+    category = "Recommendation"
   }
 }
-`, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
 func (MonitorActivityLogAlertResource) recommendationCategoryInvalid(data acceptance.TestData) string {

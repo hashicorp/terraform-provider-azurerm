@@ -60,50 +60,13 @@ resource "azurerm_monitor_activity_log_alert" "main" {
 }
 ```
 
-### Example Usage with `recommendation_category` set to  `Security`
-
-```hcl
-resource "azurerm_resource_group" "security_example" {
-  name     = "example-security-resources"
-  location = "West Europe" # Security recommendations only supported in: global, westeurope, northeurope, eastus2euap
-}
-
-resource "azurerm_monitor_action_group" "security" {
-  name                = "security-actiongroup"
-  resource_group_name = azurerm_resource_group.security_example.name
-  short_name          = "security"
-
-  email_receiver {
-    name          = "security-team"
-    email_address = "security@example.com"
-  }
-}
-
-resource "azurerm_monitor_activity_log_alert" "security_recommendations" {
-  name                = "security-recommendations-alert"
-  resource_group_name = azurerm_resource_group.security_example.name
-  location            = azurerm_resource_group.security_example.location
-  scopes              = [azurerm_resource_group.security_example.id]
-  description         = "Alert for security recommendations"
-
-  criteria {
-    category                = "Recommendation"
-    recommendation_category = "Security"
-  }
-
-  action {
-    action_group_id = azurerm_monitor_action_group.security.id
-  }
-}
-```
-
 ## Argument Reference
 
 The following arguments are supported:
 
-* `name` - (Required) The name of the activity log alert. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the activity log alert. The `Name` field can only contain `alphanumeric characters`, `hyphens`, `underscores`, `periods`, and `parentheses`. Changing this forces a new resource to be created.
 * `resource_group_name` - (Required) The name of the resource group in which to create the activity log alert instance. Changing this forces a new resource to be created.
-* `location` - (Required) The Azure Region where the activity log alert rule should exist. Changing this forces a new resource to be created.
+* `location` - (Required) The Azure Region where the activity log alert rule should exist. Supported values are `global`, `westeurope`, `northeurope`, and `eastus2euap`. Changing this forces a new resource to be created.
 * `scopes` - (Required) The Scope at which the Activity Log should be applied. A list of strings which could be a resource group , or a subscription, or a resource ID (such as a Storage Account).
 * `criteria` - (Required) A `criteria` block as defined below.
 * `action` - (Optional) One or more `action` blocks as defined below.
@@ -160,12 +123,12 @@ A `criteria` block supports the following:
 
 ~> **Note:** `sub_status` and `sub_statuses` are mutually exclusive.
  
-* `recommendation_type` - (Optional) The recommendation type of the event. It is only allowed when `category` is `Recommendation`.
-* `recommendation_category` - (Optional) The recommendation category of the event. Possible values are `Cost`, `Reliability`, `OperationalExcellence`, `HighAvailability`, `Performance` and `Security`. It is only allowed when `category` is `Recommendation`. 
+* `recommendation_type` - (Optional) The recommendation type of the event.
+* `recommendation_category` - (Optional) The recommendation category of the event. Possible values are `Cost`, `Reliability`, `OperationalExcellence`, `HighAvailability`, `Performance` and `Security`.
+* `recommendation_impact` - (Optional) The recommendation impact of the event. Possible values are `High`, `Medium` and `Low`.
 
-~> **Note:** The `Security` `recommendation_category` is only supported in the following regions: `global`, `westeurope`, `northeurope`, and `eastus2euap`.
+~> **Note:** The `recommendation_type`, `recommendation_category`, and `recommendation_impact` fields can only be defined if the `category` field has been set to `Recommendation`.
 
-* `recommendation_impact` - (Optional) The recommendation impact of the event. Possible values are `High`, `Medium` and `Low`. It is only allowed when `category` is `Recommendation`.
 * `resource_health` - (Optional) A block to define fine grain resource health settings.
 * `service_health` - (Optional) A block to define fine grain service health settings.
 
