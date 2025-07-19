@@ -22,6 +22,10 @@ data "azurerm_marketplace_agreement" "barracuda" {
 output "azurerm_marketplace_agreement_id" {
   value = data.azurerm_marketplace_agreement.id
 }
+
+output "azurerm_marketplace_agreement_accepted" {
+  value = data.azurerm_marketplace_agreement.accepted
+}
 ```
 
 ## Argument Reference
@@ -39,6 +43,8 @@ The following arguments are supported:
 The following attributes are exported:
 
 * `id` - The ID of the Marketplace Agreement.
+
+* `accepted` - Whether the Marketplace Agreement has been accepted.
 
 ## Timeouts
 

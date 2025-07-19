@@ -74,6 +74,34 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
 
+### `azurerm_postgresql_server`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_postgresql_active_directory_administrator`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_postgresql_configuration`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_postgresql_database`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_postgresql_firewall_rule`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_postgresql_server_key`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
+### `azurerm_postgresql_virtual_network_rule`
+
+* This deprecated resource has been retired and has been removed from the Azure Provider.
+
 ### `azurerm_security_center_auto_provisioning`
 
 * This deprecated resource has been removed from the Azure Provider. Please see the [documentation for more details](https://learn.microsoft.com/en-us/azure/defender-for-cloud/prepare-deprecation-log-analytics-mma-agent#log-analytics-agent-autoprovisioning-experience---deprecation-plan).
@@ -96,6 +124,10 @@ This deprecated data source has been superseded/retired and has been removed fro
 ### `azurerm_logic_app_standard`
 
 * The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
+
+### `azurerm_postgresql_server`
+
+* This deprecated data source has been retired and has been removed from the Azure Provider.
 
 ### `azurerm_spatial_anchors_account`
 
@@ -200,6 +232,14 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `private_link_fast_path_enabled` property has been removed as it is no longer supported by the resource.
 
+### `azurerm_kubernetes_cluster`
+
+* The deprecated `default_node_pool.linux_os_config.transparent_huge_page_enabled` property has been removed in favour of the `default_node_pool.linux_os_config.transparent_huge_page` property.
+
+### `azurerm_kubernetes_cluster_node_pool`
+
+* The deprecated `linux_os_config.transparent_huge_page_enabled` property has been removed in favour of the `linux_os_config.transparent_huge_page` property.
+
 ### `azurerm_kusto_eventgrid_data_connection`
 
 * The deprecated `eventgrid_resource_id` property has been removed in favour of the `eventgrid_event_subscription_id` property.
@@ -268,6 +308,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
 
+### `azurerm_netapp_volume`
+
+* The deprecated `export_policy_rule.protocols_enabled` property has been removed in favour of the `export_policy_rule.protocol` property.
+
 ### `azurerm_network_watcher_flow_log`
 
 * The deprecated `network_security_group_id` property has been removed in favour of the `target_resource_id` property.
@@ -304,6 +348,10 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_redis_enterprise_cluster`
 
 * The property `minimum_tls_version` property no longer accepts `1.0` or `1.1` as a value.
+
+### `azurerm_security_center_automation`
+
+* Valid values for `action.type` have changed from `logicapp`, `eventhub`, and `loganalytics` to `LogicApp`, `EventHub`,  and `Workspace`.
 
 ### `azurerm_sentinel_alert_rule_fusion`
 

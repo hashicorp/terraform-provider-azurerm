@@ -248,6 +248,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `admin_password` - The Password associated with the Container Registry Admin account - if the admin account is enabled.
 
+* `data_endpoint_host_names` - A set of data endpoint hostnames associated with the container registry if data endpoints are enabled. 
+
 * `identity` - An `identity` block as defined below.
 
 ---
