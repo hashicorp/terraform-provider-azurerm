@@ -53,6 +53,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tenantaccess"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/user"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -104,6 +105,7 @@ type Client struct {
 	TagClient                          *tag.TagClient
 	TenantAccessClient                 *tenantaccess.TenantAccessClient
 	UsersClient                        *user.UserClient
+	WorkspaceClient                    *workspace.WorkspaceClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -389,6 +391,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(usersClient.Client, o.Authorizers.ResourceManager)
 
+	workspaceClient, err := workspace.NewWorkspaceClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building workspace client: %+v", err)
+	}
+	o.Configure(workspaceClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
 		ApiClient:                          apiClient,
 		ApiDiagnosticClient:                apiDiagnosticClient,
@@ -437,5 +445,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		TagClient:                          tagClient,
 		TenantAccessClient:                 tenantAccessClient,
 		UsersClient:                        usersClient,
+		WorkspaceClient:                    workspaceClient,
 	}, nil
 }

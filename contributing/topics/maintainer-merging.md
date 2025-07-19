@@ -1,4 +1,17 @@
-# Maintainer Specific: Updating the Changelog
+# Maintainer Specific: Merging Pull Requests
+
+> **Note:** All pull requests must be reviewed and approved before they are merged. 
+
+##  Commit Type
+
+All pull requests must be merged using the "Squash and merge" option. This ensures a clean commit history and simplifies either reverting changes or cherry-picking commits in the future.
+
+##  Commit Message Format
+When merging a PR, the **commit message** should clearly describe the change being introduced. If the PR is correctly named (as described in [this guide](guide-opening-a-pr.md)), then the title can be used as-is. Otherwise, update the title to reflect the purpose of the PR in a way that will be meaningful in the Git history and use that as the message.
+
+The **commit description** can contain an optional changelog entry that if included, will be automatically picked up by the changelog automation system and added to the current draft changelog PR. The format for the commit message can be found in the [Automated Changelog Guide](#automated-changelog-guide) section below.
+
+### Changelog Entry Format
 
 > **Note:** When sending a Pull Request you should not include a changelog entry as a part of the Pull Request - this is to avoid conflicts. Contributors should not be concerned with updating the changelog as that is something only maintainers will do during merge.
 
@@ -73,7 +86,7 @@ The options for the automation are:
 > **Note:** Breaking changes need to be added manually to the open changelog PR by editing the branch the changelog PR is open on. 
 
 
-After pressing “Confirm squash and merge”, the automation will kick off. 
+After pressing `Confirm squash and merge`, the automation will kick off. 
 
 1. It will pull the merge commit message and append the PR number `[GH-{number}]` 
 
