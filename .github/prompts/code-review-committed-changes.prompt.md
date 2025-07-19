@@ -75,9 +75,12 @@ Note: This review should comply with the HashiCorp Terraform Provider developmen
     - Content looks syntactically invalid but conceptually correct
   - **Verification Rule**: If actual file content is valid, acknowledge console wrapping and do not flag as an issue
 
-* **IMPORTANT**: Use the following git command to get the diff for the code branch committed changes code review (try in order):
-  1. `git --no-pager diff --stat --no-prefix origin/main...HEAD` to get the diff for the code review.
-  2. **If the command does not show any changes, abandon the code review** - this prompt is specifically for reviewing committed changes. When abandoning, display: "☠️ **Argh! There be no changes here! Ye must push some code!** ☠️"
+* **IMPORTANT**: Use the following git commands to get the diff for the code branch committed changes for code review (try in order):
+  1. `git --no-pager diff --stat --no-prefix origin/main...HEAD` - Show a summary of changes (files and line counts) vs. `origin/main`
+  2. `git --no-pager diff --no-prefix origin/main...HEAD` - Show the full unified diff (code-level changes) vs. `origin/main`
+  3. `git log --oneline origin/main..HEAD` - Show commit messages in this branch not in `origin/main`
+  4. `git status` - Show the working directory status (staged, modified, untracked files)
+  5. **If the commands do not show any changes, abandon the code review** - this prompt is specifically for reviewing committed changes. When abandoning, display: "☠️ **Argh! Shiver me source files! This branch be cleaner than a swabbed deck! Push some code, Ye Lily-livered scallywag!** ☠️"
 * In the provided git diff, if the line start with `+` or `-`, it means that the line is added or removed. If the line starts with a space, it means that the line is unchanged. If the line starts with `@@`, it means that the line is a hunk header.
 
 * Avoid overwhelming the developer with too many suggestions at once.
