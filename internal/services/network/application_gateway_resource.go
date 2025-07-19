@@ -546,7 +546,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: applicationGatewayHttpListnerHash,
+				Set: applicationGatewayHttpListenerHash,
 			},
 
 			"fips_enabled": {
@@ -1678,9 +1678,9 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
-	if len(zones) > 0 {
-		gateway.Zones = &zones
+	gatewayZones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
+	if len(gatewayZones) > 0 {
+		gateway.Zones = &gatewayZones
 	}
 
 	if v, ok := d.GetOk("fips_enabled"); ok {
@@ -1923,9 +1923,9 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("zones") {
-		zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
-		if len(zones) > 0 {
-			payload.Zones = &zones
+		payloadZones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
+		if len(payloadZones) > 0 {
+			payload.Zones = &payloadZones
 		}
 	}
 
@@ -2048,11 +2048,11 @@ func resourceApplicationGatewayRead(d *pluginsdk.ResourceData, meta interface{})
 		d.Set("location", location.NormalizeNilable(model.Location))
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
-		identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		systemAndUserAssignedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
 		if err != nil {
 			return err
 		}
-		if err = d.Set("identity", identity); err != nil {
+		if err = d.Set("identity", systemAndUserAssignedIdentity); err != nil {
 			return err
 		}
 
@@ -2351,7 +2351,7 @@ func flattenApplicationGatewayTrustedRootCertificates(certs *[]applicationgatewa
 		if v := cert.Name; v != nil {
 			output["name"] = *v
 
-			// if theres no key vauld ID and we have a name, so try and look up the old data to pass it along
+			// if no key vault ID, but we have a name, look up the old data to pass it along
 			if data, ok := nameToDataMap[*v]; ok && data != "" {
 				output["data"] = data
 			}
@@ -4797,7 +4797,7 @@ func checkBasicSkuFeatures(d *pluginsdk.ResourceDiff) error {
 	return nil
 }
 
-func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+func applicationGatewayCustomizeDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
 	_, hasAutoscaleConfig := d.GetOk("autoscale_configuration.0")
 	capacity, hasCapacity := d.GetOk("sku.0.capacity")
 	tier := d.Get("sku.0.tier").(string)
@@ -4817,37 +4817,34 @@ func applicationGatewayCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceD
 	}
 
 	sslProfiles := d.Get("ssl_profile").([]interface{})
-	// Validate the structure of sslProfiles before calling d.Set
-	for _, profile := range sslProfiles {
-		if profile == nil {
-			return fmt.Errorf("nil profile found in sslProfiles")
-		}
-		v, ok := profile.(map[string]interface{})
-		if !ok {
-			return fmt.Errorf("invalid profile structure in sslProfiles")
-		}
-		if _, exists := v["name"]; !exists {
-			return fmt.Errorf("missing 'name' in sslProfiles")
-		}
-		if _, exists := v["verify_client_certificate_issuer_dn"]; !exists {
-			return fmt.Errorf("missing 'verify_client_certificate_issuer_dn' in sslProfiles")
+	if len(sslProfiles) > 0 {
+		for _, profile := range sslProfiles {
+			if profile == nil {
+				continue
+			}
+			v := profile.(map[string]interface{})
+			if policy, ok := v["ssl_policy"]; ok && policy != nil {
+				if err := checkSslPolicy(policy.([]interface{})); err != nil {
+					return err
+				}
+			}
 		}
 	}
 
 	if hasCapacity {
 		if (strings.EqualFold(tier, string(applicationgateways.ApplicationGatewayTierStandard)) || strings.EqualFold(tier, string(applicationgateways.ApplicationGatewayTierWAF))) && (capacity.(int) < 1 || capacity.(int) > 32) {
-			return fmt.Errorf("The value '%d' exceeds the maximum capacity allowed for a %q V1 SKU, the %q SKU must have a capacity value between 1 and 32", capacity, tier, tier)
+			return fmt.Errorf("value '%d' exceeds the maximum capacity allowed for a %q V1 SKU, the %q SKU must have a capacity value between 1 and 32", capacity, tier, tier)
 		}
 
 		if (strings.EqualFold(tier, string(applicationgateways.ApplicationGatewayTierStandardVTwo)) || strings.EqualFold(tier, string(applicationgateways.ApplicationGatewayTierWAFVTwo))) && (capacity.(int) < 1 || capacity.(int) > 125) {
-			return fmt.Errorf("The value '%d' exceeds the maximum capacity allowed for a %q V2 SKU, the %q SKU must have a capacity value between 1 and 125", capacity, tier, tier)
+			return fmt.Errorf("value '%d' exceeds the maximum capacity allowed for a %q V2 SKU, the %q SKU must have a capacity value between 1 and 125", capacity, tier, tier)
 		}
 	}
 
 	return nil
 }
 
-func applicationGatewayHttpListnerHash(v interface{}) int {
+func applicationGatewayHttpListenerHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
