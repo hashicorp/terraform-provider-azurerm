@@ -1084,7 +1084,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-monitor-%d"
-  location = "%s"
+  location = "westeurope" # Hardcoding location because resource type is only available in 'global, westeurope, northeurope and eastus2euap'
 }
 
 resource "azurerm_monitor_action_group" "test" {
@@ -1108,7 +1108,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
     action_group_id = azurerm_monitor_action_group.test.id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
 func (MonitorActivityLogAlertResource) recommendationCategoryInvalid(data acceptance.TestData) string {
