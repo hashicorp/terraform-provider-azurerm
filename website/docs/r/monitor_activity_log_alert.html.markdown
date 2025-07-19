@@ -60,6 +60,43 @@ resource "azurerm_monitor_activity_log_alert" "main" {
 }
 ```
 
+### Example Usage with `recommendation_category` set to  `Security`
+
+```hcl
+resource "azurerm_resource_group" "security_example" {
+  name     = "example-security-resources"
+  location = "West Europe" # Security recommendations only supported in: global, westeurope, northeurope, eastus2euap
+}
+
+resource "azurerm_monitor_action_group" "security" {
+  name                = "security-actiongroup"
+  resource_group_name = azurerm_resource_group.security_example.name
+  short_name          = "security"
+
+  email_receiver {
+    name          = "security-team"
+    email_address = "security@example.com"
+  }
+}
+
+resource "azurerm_monitor_activity_log_alert" "security_recommendations" {
+  name                = "security-recommendations-alert"
+  resource_group_name = azurerm_resource_group.security_example.name
+  location            = azurerm_resource_group.security_example.location
+  scopes              = [azurerm_resource_group.security_example.id]
+  description         = "Alert for security recommendations"
+
+  criteria {
+    category                = "Recommendation"
+    recommendation_category = "Security"
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.security.id
+  }
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -124,7 +161,10 @@ A `criteria` block supports the following:
 ~> **Note:** `sub_status` and `sub_statuses` are mutually exclusive.
  
 * `recommendation_type` - (Optional) The recommendation type of the event. It is only allowed when `category` is `Recommendation`.
-* `recommendation_category` - (Optional) The recommendation category of the event. Possible values are `Cost`, `Reliability`, `OperationalExcellence`, `HighAvailability`, `Performance` and `Security`. It is only allowed when `category` is `Recommendation`.
+* `recommendation_category` - (Optional) The recommendation category of the event. Possible values are `Cost`, `Reliability`, `OperationalExcellence`, `HighAvailability`, `Performance` and `Security`. It is only allowed when `category` is `Recommendation`. 
+
+~> **Note:** The `Security` `recommendation_category` is only supported in the following regions: `global`, `westeurope`, `northeurope`, and `eastus2euap`.
+
 * `recommendation_impact` - (Optional) The recommendation impact of the event. Possible values are `High`, `Medium` and `Low`. It is only allowed when `category` is `Recommendation`.
 * `resource_health` - (Optional) A block to define fine grain resource health settings.
 * `service_health` - (Optional) A block to define fine grain service health settings.
