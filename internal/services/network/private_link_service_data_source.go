@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/privatelinkservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -20,7 +21,7 @@ import (
 )
 
 func dataSourcePrivateLinkService() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Read: dataSourcePrivateLinkServiceRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -44,8 +45,7 @@ func dataSourcePrivateLinkService() *pluginsdk.Resource {
 				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_proxy_protocol": {
+			"proxy_protocol_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -99,6 +99,15 @@ func dataSourcePrivateLinkService() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["enable_proxy_protocol"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		}
+	}
+
+	return resource
 }
 
 func dataSourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -125,7 +134,10 @@ func dataSourcePrivateLinkServiceRead(d *pluginsdk.ResourceData, meta interface{
 
 		if props := model.Properties; props != nil {
 			d.Set("alias", props.Alias)
-			d.Set("enable_proxy_protocol", props.EnableProxyProtocol)
+			d.Set("proxy_protocol_enabled", props.EnableProxyProtocol)
+			if !features.FivePointOh() {
+				d.Set("enable_proxy_protocol", props.EnableProxyProtocol)
+			}
 
 			if autoApproval := props.AutoApproval; autoApproval != nil {
 				if err := d.Set("auto_approval_subscription_ids", utils.FlattenStringSlice(autoApproval.Subscriptions)); err != nil {
