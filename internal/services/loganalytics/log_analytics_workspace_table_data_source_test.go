@@ -49,8 +49,8 @@ resource "azurerm_log_analytics_workspace" "this" {
 }
 
 data "azurerm_log_analytics_workspace_table" "this" {
-	name = "InsightsMetrics"
-  workspace_id = azurerm_log_analytics_workspace.this.id
+	name                = "InsightsMetrics"
+  workspace_id        = azurerm_log_analytics_workspace.this.id
   resource_group_name = "test-resource-group"
 }
 `, data.Locations.Primary, data.Locations.Primary)

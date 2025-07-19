@@ -43,7 +43,6 @@ func (LogAnalyticsWorkspaceTableDataSource) Attributes() map[string]*pluginsdk.S
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
-
 		"total_retention_in_days": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
