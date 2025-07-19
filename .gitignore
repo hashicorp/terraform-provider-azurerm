@@ -30,7 +30,18 @@ website/node_modules
 
 website/vendor
 
-.vscode/
+# VS Code: ignore personal settings but keep shared workspace configuration (GitHub Copilot instructions)
+.vscode/*
+!.vscode/settings.json
+
+# Include GitHub Copilot configuration, instructions and prompts
+!.github/copilot-instructions.md
+# Future: Additional development instructions
+!.github/instructions/
+!.github/instructions/**
+# AI prompts for code generation and review
+!.github/prompts/
+!.github/prompts/**
 
 # mkdocs output
 site/
@@ -56,7 +67,3 @@ tf.zip
 
 # do not upload .local folder
 .local
-
-# do not upload GitHub Copilot specific folders and copilot instructions file
-.github/prompts
-.github/copilot-instructions.md
