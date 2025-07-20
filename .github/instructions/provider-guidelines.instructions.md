@@ -93,25 +93,37 @@ func resourceAzureServiceName() *pluginsdk.Resource {
         Update: resourceAzureServiceNameUpdate,
         Delete: resourceAzureServiceNameDelete,
 
-        CustomizeDiff: pluginsdk.All(
-            // Azure-specific validation
-            func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+        Timeouts: &pluginsdk.ResourceTimeout{
+            Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+            Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+            Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+            Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+        },
+
+        Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+            _, err := parse.ServiceNameID(id)
+            return err
+        }),
+
+        Schema: map[string]*pluginsdk.Schema{
+            // Azure resource schema
+        },
+
+        CustomizeDiff: pluginsdk.CustomDiffWithAll(
+            // Azure-specific validation with CustomizeDiffShim wrapper
+            pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
                 // Validate Azure resource dependencies
                 if diff.Get("sku_name").(string) == "Premium" && 
                    diff.Get("zone_redundant").(bool) == false {
                     return fmt.Errorf("`zone_redundant` must be true for Premium SKU")
                 }
                 return nil
-            },
+            }),
             // Force recreation for Azure resource properties that require it
             pluginsdk.ForceNewIfChange("location", func(ctx context.Context, old, new, meta interface{}) bool {
                 return old.(string) != new.(string)
             }),
         ),
-
-        Schema: map[string]*pluginsdk.Schema{
-            // Azure resource schema
-        },
     }
 }
 ```

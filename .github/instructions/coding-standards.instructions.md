@@ -3,6 +3,29 @@ applyTo: "internal/**/*.go"
 description: This document outlines the coding standards for Go files in the Terraform AzureRM provider repository. It includes naming conventions, file organization, error handling patterns, resource implementation guidelines, and Azure SDK usage standards.
 ---
 
+# Console Output Interpretation
+
+**🚨 CRITICAL: Console Line Wrapping Detection Protocol 🚨**
+
+**CONSOLE LINE WRAPPING WARNING**: When reviewing git diff output in terminal/console, be aware that long lines may wrap and appear malformed. Always verify actual file content for syntax validation, especially for JSON, YAML, or structured data files. Console wrapping can make valid syntax appear broken.
+
+**VERIFICATION PROTOCOL FOR SUSPECTED ISSUES**:
+## 🔍 **MANDATORY VERIFICATION STEPS:**
+1. **STOP** - If text appears broken/fragmented, this is likely console wrapping
+2. **VERIFY** - Use `Get-Content filename` (PowerShell) or `cat filename` (bash) to check actual file content  
+3. **VALIDATE** - For JSON/structured files: `Get-Content file.json | ConvertFrom-Json` or `jq "." file.json`
+
+### 🚨 **Console Wrapping Red Flags:**
+- ❌ Text breaks mid-sentence or mid-word without logical reason
+- ❌ Missing closing quotes/brackets that don't make sense contextually  
+- ❌ Fragmented lines that appear to continue elsewhere in the diff
+- ❌ Content looks syntactically invalid but conceptually correct
+- ❌ Long lines in git diff output that suddenly break
+
+#### ✅ **GOLDEN RULE**: If actual file content is valid → acknowledge console wrapping → do NOT flag as corruption
+
+**Verification Rule**: If actual file content is valid, acknowledge console wrapping and do not flag as an issue
+
 ## Coding Standards
 Given below are the coding standards for the Terraform AzureRM provider which **MUST** be followed.
 
@@ -317,6 +340,10 @@ func resourceServiceName() *pluginsdk.Resource {
                 ForceNew:     true,
                 ValidateFunc: validation.StringIsNotEmpty,
             },
+
+            "location": commonschema.Location(),
+
+            "resource_group_name": commonschema.ResourceGroupName(),
             // ... more schema definitions
         },
     }
@@ -325,7 +352,7 @@ func resourceServiceName() *pluginsdk.Resource {
 
 #### ValidateFunc Patterns
 
-If the Azure SDK package offers a `PossibleValuesForFieldName` function, use that in the `validation.StringInSlice` function instead of hardcoding the possible values manually.
+If the Azure SDK package offers a `PossibleValuesForFieldName` function, use that in the `validation.StringInSlice` function instead of hardcoding the possible values manually. However, if the Azure SDK package does not offer a `PossibleValuesForFieldName` hardcoding the possible values is acceptable.
 
 ##### Example
 ```go
@@ -417,12 +444,12 @@ import (
 
 // Use consistent error formatting with context
 if err != nil {
-    return fmt.Errorf("creating Resource %q: %+v", name, err)
+    return fmt.Errorf("creating Resource `%s`: %+v", name, err)
 }
 
 // Include resource information in error messages
 if response.WasNotFound(resp.HttpResponse) {
-    log.Printf("[DEBUG] Resource %q was not found - removing from state", id.ResourceName)
+    log.Printf("[DEBUG] Resource `%s` was not found - removing from state", id.ResourceName)
     d.SetId("")
     return nil
 }
@@ -470,93 +497,38 @@ func resourceServiceName() *pluginsdk.Resource {
         Update: resourceServiceNameUpdate,
         Delete: resourceServiceNameDelete,
 
-        CustomizeDiff: pluginsdk.All(
+        Timeouts: &pluginsdk.ResourceTimeout{
+            Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+            Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+            Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+            Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+        },
+
+        Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+            _, err := parse.ServiceNameID(id)
+            return err
+        }),
+
+        Schema: map[string]*pluginsdk.Schema{
+            // Schema definitions use pluginsdk types
+        },
+
+        CustomizeDiff: pluginsdk.CustomDiffWithAll(
             // Must use *schema.ResourceDiff from external package
             pluginsdk.ForceNewIfChange("property_name", func(ctx context.Context, old, new, meta interface{}) bool {
                 return old.(string) != new.(string)
             }),
-            func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+            pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
                 // Custom validation logic
                 if diff.Get("enabled").(bool) && diff.Get("configuration") == nil {
                     return fmt.Errorf("configuration is required when enabled is true")
                 }
                 return nil
-            },
+            }),
         ),
-
-        Schema: map[string]*pluginsdk.Schema{
-            // Schema definitions use pluginsdk types
-        },
     }
 }
 ```
-
-**Why This Pattern is Required:**
-- The internal pluginsdk package provides aliases for most Plugin SDK types
-- However, CustomizeDiff function signatures are **not** aliased and must use *schema.ResourceDiff
-- The pluginsdk.All(), pluginsdk.ForceNewIfChange() helpers are available in the internal package
-- Resource and schema definitions use pluginsdk types for consistency
-
-#### Common CustomizeDiff Import Issues and Troubleshooting
-
-**Compilation Error: `pluginsdk.ResourceDiff` is not defined**
-```go
-package servicename
-
-import (
-    "context"
-
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-)
-
-//  INCORRECT - Will cause compilation error
-func(ctx context.Context, diff *pluginsdk.ResourceDiff, meta interface{}) error {
-    // pluginsdk.ResourceDiff does not exist - this will fail to compile
-}
-
-//  CORRECT - Must use external schema package
-func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
-    // Custom validation logic using the correct type
-}
-```
-
-**Missing Import Error**
-If you see errors like `undefined: schema.ResourceDiff`, ensure you have both imports:
-```go
-package servicename
-
-import (
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"    // Required for *schema.ResourceDiff
-    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"  // Required for helpers
-)
-```
-
-**Helper Function Usage**
-```go
-package servicename
-
-import (
-    "context"
-
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-)
-
-// Use pluginsdk helpers for common patterns
-CustomizeDiff: pluginsdk.All(
-    pluginsdk.ForceNewIfChange("location", func(ctx context.Context, old, new, meta interface{}) bool {
-        return old.(string) != new.(string)
-    }),
-    // Custom validation functions use *schema.ResourceDiff
-    func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
-        // Validation logic
-        return nil
-    },
-),
-```
-
-#### Azure-Specific CustomizeDiff Examples
 
 **Azure Storage Account SKU and Kind Validation:**
 ```go
@@ -570,20 +542,73 @@ import (
     "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-CustomizeDiff: pluginsdk.All(
-    func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
-        accountTier := diff.Get("account_tier").(string)
-        accountKind := diff.Get("account_kind").(string)
-        
-        if accountTier == "Premium" && accountKind != "BlockBlobStorage" && accountKind != "FileStorage" {
-            return fmt.Errorf("`account_kind` must be `BlockBlobStorage` or `FileStorage` when `account_tier` is `Premium`")
-        }
-        return nil
-    },
-    pluginsdk.ForceNewIfChange("location", func(ctx context.Context, old, new, meta interface{}) bool {
-        return old.(string) != new.(string)
-    }),
-),
+func resourceAzureStorageAccount() *pluginsdk.Resource {
+    return &pluginsdk.Resource{
+        Create: resourceAzureStorageAccountCreate,
+        Read:   resourceAzureStorageAccountRead,
+        Update: resourceAzureStorageAccountUpdate,
+        Delete: resourceAzureStorageAccountDelete,
+
+        Timeouts: &pluginsdk.ResourceTimeout{
+            Create: pluginsdk.DefaultTimeout(60 * time.Minute),
+            Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+            Update: pluginsdk.DefaultTimeout(60 * time.Minute),
+            Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
+        },
+
+        Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+            _, err := parse.StorageAccountID(id)
+            return err
+        }),
+
+        Schema: map[string]*pluginsdk.Schema{
+            "name": {
+                Type:         pluginsdk.TypeString,
+                Required:     true,
+                ForceNew:     true,
+                ValidateFunc: validation.StringIsNotEmpty,
+            },
+            "account_tier": {
+                Type:     pluginsdk.TypeString,
+                Required: true,
+                ValidateFunc: validation.StringInSlice([]string{
+                    "Standard",
+                    "Premium",
+                }, false),
+            },
+            "account_kind": {
+                Type:     pluginsdk.TypeString,
+                Optional: true,
+                Default:  "StorageV2",
+                ValidateFunc: validation.StringInSlice([]string{
+                    "BlobStorage",
+                    "BlockBlobStorage",
+                    "FileStorage",
+                    "Storage",
+                    "StorageV2",
+                }, false),
+            },
+            // ... other schema fields
+        },
+
+        CustomizeDiff: pluginsdk.CustomDiffWithAll(
+            // Azure SKU and Kind validation
+            pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+                accountTier := diff.Get("account_tier").(string)
+                accountKind := diff.Get("account_kind").(string)
+                
+                if accountTier == "Premium" && accountKind != "BlockBlobStorage" && accountKind != "FileStorage" {
+                    return fmt.Errorf("`account_kind` must be `BlockBlobStorage` or `FileStorage` when `account_tier` is `Premium`")
+                }
+                return nil
+            }),
+            // Force recreation for Azure location changes
+            pluginsdk.ForceNewIfChange("location", func(ctx context.Context, old, new, meta interface{}) bool {
+                return old.(string) != new.(string)
+            }),
+        ),
+    }
+}
 ```
 
 **Azure Virtual Machine SKU and Zone Validation:**
@@ -598,22 +623,32 @@ import (
     "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-CustomizeDiff: pluginsdk.All(
-    func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
-        size := diff.Get("size").(string)
-        zones := diff.Get("zones").([]interface{})
-        
-        // Check if VM size supports availability zones
-        if len(zones) > 0 && !supportsAvailabilityZones(size) {
-            return fmt.Errorf("VM size `%s` does not support availability zones", size)
-        }
-        return nil
-    },
-    pluginsdk.ForceNewIfChange("size", func(ctx context.Context, old, new, meta interface{}) bool {
-        // Force recreation when changing VM size
-        return old.(string) != new.(string)
-    }),
-),
+func resourceAzureVirtualMachine() *pluginsdk.Resource {
+    return &pluginsdk.Resource{
+        // ...existing CRUD functions and other configurations...
+
+        Schema: map[string]*pluginsdk.Schema{
+            // Schema definition
+        },
+
+        CustomizeDiff: pluginsdk.CustomDiffWithAll(
+            pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+                size := diff.Get("size").(string)
+                zones := diff.Get("zones").([]interface{})
+                
+                // Check if VM size supports availability zones
+                if len(zones) > 0 && !supportsAvailabilityZones(size) {
+                    return fmt.Errorf("VM size `%s` does not support availability zones", size)
+                }
+                return nil
+            }),
+            pluginsdk.ForceNewIfChange("size", func(ctx context.Context, old, new, meta interface{}) bool {
+                // Force recreation when changing VM size
+                return old.(string) != new.(string)
+            }),
+        ),
+    }
+}
 ```
 
 **Azure Premium SKU with Zone Redundancy:**
@@ -628,17 +663,27 @@ import (
     "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-CustomizeDiff: pluginsdk.All(
-    func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
-        skuName := diff.Get("sku_name").(string)
-        zoneRedundant := diff.Get("zone_redundant").(bool)
-        
-        if skuName == "Premium" && !zoneRedundant {
-            return fmt.Errorf("`zone_redundant` must be true for Premium SKU")
-        }
-        return nil
-    },
-),
+func resourceAzurePremiumService() *pluginsdk.Resource {
+    return &pluginsdk.Resource{
+        // ...existing CRUD functions and other configurations...
+
+        Schema: map[string]*pluginsdk.Schema{
+            // Schema definition
+        },
+
+        CustomizeDiff: pluginsdk.CustomDiffWithAll(
+            pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+                skuName := diff.Get("sku_name").(string)
+                zoneRedundant := diff.Get("zone_redundant").(bool)
+                
+                if skuName == "Premium" && !zoneRedundant {
+                    return fmt.Errorf("`zone_redundant` must be true for Premium SKU")
+                }
+                return nil
+            }),
+        ),
+    }
+}
 ```
 
 **Azure CDN Front Door Log Scrubbing Validation:**
@@ -653,33 +698,43 @@ import (
     "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-CustomizeDiff: pluginsdk.All(
-    func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
-        // Validate log scrubbing configuration
-        if scrubbingRulesRaw, ok := diff.GetOk("log_scrubbing.0.scrubbing_rules"); ok {
-            scrubbingRules := scrubbingRulesRaw.([]interface{})
-            
-            for i, ruleRaw := range scrubbingRules {
-                rule := ruleRaw.(map[string]interface{})
-                matchVariable := rule["match_variable"].(string)
-                selector := rule["selector"].(string)
-                
-                // Azure API constraint: selector is required for QueryStringArgNames
-                if matchVariable == "QueryStringArgNames" {
-                    if selector == "" {
-                        return fmt.Errorf("log_scrubbing.0.scrubbing_rules.%d: `selector` is required when `match_variable` is `%s`", i, matchVariable)
-                    }
-                } else if matchVariable == "RequestIPAddress" || matchVariable == "RequestUri" {
-                    // Azure API constraint: selector cannot be set for RequestIPAddress and RequestUri
-                    if selector != "" {
-                        return fmt.Errorf("log_scrubbing.0.scrubbing_rules.%d: `selector` cannot be set when `match_variable` is `%s`", i, matchVariable)
+func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
+    return &pluginsdk.Resource{
+        // ...existing CRUD functions and other configurations...
+
+        Schema: map[string]*pluginsdk.Schema{
+            // Schema definition
+        },
+
+        CustomizeDiff: pluginsdk.CustomDiffWithAll(
+            pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+                // Validate log scrubbing configuration
+                if scrubbingRulesRaw, ok := diff.GetOk("log_scrubbing.0.scrubbing_rules"); ok {
+                    scrubbingRules := scrubbingRulesRaw.([]interface{})
+                    
+                    for i, ruleRaw := range scrubbingRules {
+                        rule := ruleRaw.(map[string]interface{})
+                        matchVariable := rule["match_variable"].(string)
+                        selector := rule["selector"].(string)
+                        
+                        // Azure API constraint: selector is required for QueryStringArgNames
+                        if matchVariable == "QueryStringArgNames" {
+                            if selector == "" {
+                                return fmt.Errorf("log_scrubbing.0.scrubbing_rules.%d: `selector` is required when `match_variable` is `%s`", i, matchVariable)
+                            }
+                        } else if matchVariable == "RequestIPAddress" || matchVariable == "RequestUri" {
+                            // Azure API constraint: selector cannot be set for RequestIPAddress and RequestUri
+                            if selector != "" {
+                                return fmt.Errorf("log_scrubbing.0.scrubbing_rules.%d: `selector` cannot be set when `match_variable` is `%s`", i, matchVariable)
+                            }
+                        }
                     }
                 }
-            }
-        }
-        return nil
-    },
-),
+                return nil
+            }),
+        ),
+    }
+}
 ```
 
 ### Migration Guidelines
@@ -1012,7 +1067,7 @@ id := parse.NewResourceID(subscriptionId, resourceGroupName, resourceName)
 
 // Long-running operations
 if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-    return fmt.Errorf("creating Resource %q: %+v", id.ResourceName, err)
+    return fmt.Errorf("creating Resource `%s`: %+v", id.ResourceName, err)
 }
 ```
 
@@ -1030,7 +1085,7 @@ import (
 // Parse resource IDs consistently
 id, err := parse.ResourceID(d.Id())
 if err != nil {
-    return fmt.Errorf("parsing Resource ID %q: %+v", d.Id(), err)
+    return fmt.Errorf("parsing Resource ID `%s`: %+v", d.Id(), err)
 }
 
 // Set resource ID after creation
@@ -1241,20 +1296,6 @@ if model.ShutdownOnIdle == string(azureapi.ShutdownOnIdleModeNone) {
 ### State Management Standards
 
 For detailed state management patterns including when to use `d.GetRawConfig()` vs `d.Get()` in untyped Plugin SDK resources, see the State Management section in [`coding-patterns.instructions.md`](./coding-patterns.instructions.md).
-
-### Console Output Interpretation
-
-**CONSOLE LINE WRAPPING WARNING**: When reviewing git diff output in terminal/console, be aware that long lines may wrap and appear malformed. Always verify actual file content for syntax validation, especially for JSON, YAML, or structured data files. Console wrapping can make valid syntax appear broken.
-
-**VERIFICATION PROTOCOL FOR SUSPECTED ISSUES**:
-- **Before flagging malformed content**: Use `Get-Content filename` (PowerShell) or `cat filename` (bash) to verify file contents
-- **JSON Validation**: For JSON files specifically, consider using `Get-Content file.json | ConvertFrom-Json` (PowerShell) or `jq "." file.json` (bash) to validate syntax
-- **Console Wrapping Indicators**: 
-  - Text breaks mid-sentence or mid-word
-  - Missing closing quotes/brackets that don't make logical sense
-  - Fragmented lines that appear to continue elsewhere
-  - Content looks syntactically invalid but conceptually correct
-- **Verification Rule**: If actual file content is valid, acknowledge console wrapping and do not flag as an issue
 
 ### Security Considerations
 
@@ -2041,7 +2082,7 @@ import (
 )
 
 // GOOD - Field names and values properly formatted with backticks
-return fmt.Errorf("creating Storage Account %q with SKU `%s` in location `%s`: %+v", name, skuName, location, err)
+return fmt.Errorf("creating Storage Account `%s` with SKU `%s` in location `%s`: %+v", name, skuName, location, err)
 return fmt.Errorf("property `account_tier` must be `Standard` or `Premium`, got `%s`", accountTier)
 return fmt.Errorf("field `zones` cannot be set when `availability_set_id` is specified")
 
@@ -2060,8 +2101,8 @@ import (
 )
 
 // GOOD - Lowercase, no punctuation, descriptive error messages
-return fmt.Errorf("creating resource group %q in location %q: %+v", name, location, err)
-return fmt.Errorf("updating virtual network %q: %+v", id, err)
+return fmt.Errorf("creating resource group `%s` in location `%s`: %+v", name, location, err)
+return fmt.Errorf("updating virtual network `%s`: %+v", id, err)
 
 // BAD - Incorrect casing, punctuation, or vague messages
 return fmt.Errorf("Creating Resource Group %q in Location %q: %v", name, location, err)
@@ -2077,12 +2118,12 @@ import (
 )
 
 // GOOD - Verbose error formatting provides full context
-return fmt.Errorf("creating CDN Front Door Profile %q: %+v", name, err)
+return fmt.Errorf("creating CDN Front Door Profile `%s`: %+v", name, err)
 return fmt.Errorf("updating Network Security Group rules: %+v", err)
 return fmt.Errorf("polling for completion of operation: %+v", err)
 
 // BAD - Simple formatting loses error context
-return fmt.Errorf("creating CDN Front Door Profile %q: %v", name, err)
+return fmt.Errorf("creating CDN Front Door Profile `%s`: %v", name, err)
 return fmt.Errorf("updating Network Security Group rules: %s", err.Error())
 return fmt.Errorf("polling for completion of operation: %w", err)
 ```
@@ -2103,7 +2144,7 @@ import (
 )
 
 // GOOD - Clear context and actionable information
-return fmt.Errorf("creating Storage Account %q: name must be globally unique, try a different name: %+v", name, err)
+return fmt.Errorf("creating Storage Account `%s`: name must be globally unique, try a different name: %+v", name, err)
 return fmt.Errorf("VM size `%s` is not available in location `%s`, choose a different size or location", size, location)
 return fmt.Errorf("property `disk_size_gb` must be between 1 and 32767, got %d", diskSize)
 
@@ -2130,7 +2171,7 @@ import (
 
 // GOOD - Clear resource not found messaging
 if response.WasNotFound(resp.HttpResponse) {
-    return fmt.Errorf("CDN Front Door Profile %q was not found in Resource Group %q", profileName, resourceGroupName)
+    return fmt.Errorf("CDN Front Door Profile `%s` was not found in Resource Group `%s`", profileName, resourceGroupName)
 }
 
 // Typed resource approach
@@ -2140,7 +2181,7 @@ if response.WasNotFound(resp.HttpResponse) {
 
 // Untyped resource approach
 if response.WasNotFound(resp.HttpResponse) {
-    log.Printf("[DEBUG] Storage Account %q was not found - removing from state", id.StorageAccountName)
+    log.Printf("[DEBUG] Storage Account `%s` was not found - removing from state", id.StorageAccountName)
     d.SetId("")
     return nil
 }
@@ -2161,57 +2202,70 @@ import (
 // GOOD - Clear parsing error context
 id, err := parse.VirtualMachineID(d.Id())
 if err != nil {
-    return fmt.Errorf("parsing Virtual Machine ID %q: %+v", d.Id(), err)
+    return fmt.Errorf("parsing Virtual Machine ID `%s`: %+v", d.Id(), err)
 }
 
 // Typed resource approach
 id, err := parse.ServiceNameID(metadata.ResourceData.Id())
 if err != nil {
-    return fmt.Errorf("parsing Service ID %q: %+v", metadata.ResourceData.Id(), err)
+    return fmt.Errorf("parsing Service ID `%s`: %+v", metadata.ResourceData.Id(), err)
 }
 ```
-**Specific validation context**
+
+**Clear resource not found messaging**
 ```go
 package servicename
 
 import (
     "fmt"
-    "regexp"
-    "strings"
+    "log"
+
+    "github.com/hashicorp/go-azure-helpers/lang/pointer"
+
+    "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+    "github.com/hashicorp/terraform-provider-azurerm/utils/response"
 )
 
-// GOOD - Specific validation context
-func ValidateStorageAccountName(v interface{}, k string) (warnings []string, errors []error) {
-    value := v.(string)
-    
-    if len(value) < 3 || len(value) > 24 {
-        errors = append(errors, fmt.Errorf("property `%s` must be between 3 and 24 characters, got %d characters", k, len(value)))
-    }
-    
-    if !regexp.MustCompile(`^[a-z0-9]+$`).MatchString(value) {
-        errors = append(errors, fmt.Errorf("property `%s` can only contain lowercase letters and numbers, got `%s`", k, value))
-    }
-    
-    // Prevent reserved names that conflict with Azure system accounts
-    reservedNames := []string{"admin", "root", "system", "default"}
-    for _, reserved := range reservedNames {
-        if strings.EqualFold(value, reserved) {
-            errors = append(errors, fmt.Errorf("property `%s` cannot use reserved name `%s`", k, reserved))
-            return warnings, errors
-        }
-    }
-    
-    return warnings, errors
+// GOOD - Clear resource not found messaging
+if response.WasNotFound(resp.HttpResponse) {
+    return fmt.Errorf("CDN Front Door Profile `%s` was not found in Resource Group `%s`", profileName, resourceGroupName)
 }
 
-// BAD - Generic validation without context
-func ValidateName(v interface{}, k string) (warnings []string, errors []error) {
-    value := v.(string)
-    
-    if len(value) < 3 {
-        errors = append(errors, fmt.Errorf("property `%s` is too short", k))
-    }
-    
-    return warnings, errors
+// Typed resource approach
+if response.WasNotFound(resp.HttpResponse) {
+    return metadata.MarkAsGone(id)
+}
+
+// Untyped resource approach
+if response.WasNotFound(resp.HttpResponse) {
+    log.Printf("[DEBUG] Storage Account `%s` was not found - removing from state", id.StorageAccountName)
+    d.SetId("")
+    return nil
+}
+```
+
+**Clear parsing error context**
+```go
+package servicename
+
+import (
+    "fmt"
+
+    "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicename/parse"
+)
+
+// GOOD - Clear parsing error context
+id, err := parse.VirtualMachineID(d.Id())
+if err != nil {
+    return fmt.Errorf("parsing Virtual Machine ID `%s`: %+v", d.Id(), err)
+}
+
+// Typed resource approach
+id, err := parse.ServiceNameID(metadata.ResourceData.Id())
+if err != nil {
+    return fmt.Errorf("parsing Service ID `%s`: %+v", metadata.ResourceData.Id(), err)
 }
 ```

@@ -126,9 +126,10 @@ func TestAccServiceName_customizeDiffValidation(t *testing.T) {
 When testing resources that use CustomizeDiff, remember the dual import requirement:
 
 ```go
+// When testing resources with CustomizeDiff, remember the dual import requirement:
 import (
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"            // For *schema.ResourceDiff
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk" // For helpers
 )
 ```
 
@@ -723,6 +724,16 @@ export ARM_TEST_LOCATION_ALT=EastUS2
 export ARM_TEST_LOCATION_ALT2=WestUS2
 ```
 
+```powershell
+$env:ARM_SUBSCRIPTION_ID="your-azure-subscription-id"
+$env:ARM_CLIENT_ID="your-service-principal-client-id"
+$env:ARM_CLIENT_SECRET="your-service-principal-client-secret"
+$env:ARM_TENANT_ID="your-azure-tenant-id"
+$env:ARM_TEST_LOCATION="WestEurope"
+$env:ARM_TEST_LOCATION_ALT="EastUS2"
+$env:ARM_TEST_LOCATION_ALT2="WestUS2"
+```
+
 #### Running Tests
 ```bash
 # Run unit tests
@@ -764,36 +775,36 @@ make testacc TEST=./internal/services/cdn TESTARGS='-run=TestAccCdnFrontDoorProf
 - Use appropriate timeouts for long-running operations
 - Clean up test resources properly to avoid quota issues
 
-### CustomizeDiff Testing Anti-Patterns and Best Practices
+### CDN Front Door-Specific Testing Guidelines
 
-#### Common Testing Mistakes to Avoid
+#### CDN Front Door Testing Considerations
+- **Global Resource**: CDN Front Door profiles are global resources, not tied to specific Azure regions
+- **SKU Limitations**: Different features are available in Standard vs Premium SKUs
+- **Naming Constraints**: Profile names must be globally unique across Azure
+- **Propagation Time**: Changes may take time to propagate globally
+- **Response Timeout**: Valid range is 16-240 seconds
 
-**Insufficient Error Testing:**
+### CustomizeDiff Testing Patterns
+
+When testing resources that use CustomizeDiff, remember the dual import requirement:
+
 ```go
-// AVOID: Only testing valid configurations
-func TestAccServiceName_customizeDiff(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_service_name", "test")
-    r := ServiceNameResource{}
+import (
+    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+```
 
-    data.ResourceTest(t, r, []acceptance.TestStep{
-        {
-            Config: r.validConfiguration(data), // Only testing success case
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r),
-            ),
-        },
-    })
-}
-
-// GOOD: Testing both valid and invalid configurations
-func TestAccServiceName_customizeDiff(t *testing.T) {
+**Testing CustomizeDiff Validation:**
+```go
+func TestAccServiceName_customizeDiffValidation(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_service_name", "test")
     r := ServiceNameResource{}
 
     data.ResourceTest(t, r, []acceptance.TestStep{
         {
             Config:      r.invalidConfiguration(data),
-            ExpectError: regexp.MustCompile("specific validation error"),
+            ExpectError: regexp.MustCompile("`configuration` is required when `enabled` is true"),
         },
         {
             Config: r.validConfiguration(data),
@@ -805,87 +816,81 @@ func TestAccServiceName_customizeDiff(t *testing.T) {
 }
 ```
 
-**Vague Error Message Testing:**
-```go
-// AVOID: Not validating specific error messages
-{
-    Config:      r.invalidConfiguration(data),
-    ExpectError: regexp.MustCompile("error"), // Too vague
-}
+### Environment Setup
 
-// GOOD: Validate specific error messages with field paths
-{
-    Config:      r.invalidLogScrubbing(data),
-    ExpectError: regexp.MustCompile("log_scrubbing\.0\.scrubbing_rule\.0: `selector` cannot be set when `match_variable` is `RequestIPAddress`"),
-}
+#### Required Environment Variables
+```bash
+export ARM_SUBSCRIPTION_ID="your-azure-subscription-id"
+export ARM_CLIENT_ID="your-service-principal-client-id"
+export ARM_CLIENT_SECRET="your-service-principal-client-secret"
+export ARM_TENANT_ID="your-azure-tenant-id"
+export ARM_TEST_LOCATION=WestEurope
+export ARM_TEST_LOCATION_ALT=EastUS2
+export ARM_TEST_LOCATION_ALT2=WestUS2
 ```
 
-**Missing Edge Case Testing:**
-```go
-// AVOID: Only testing obvious invalid cases
-func TestAccServiceName_validation(t *testing.T) {
-    // Only test one invalid scenario
-    data.ResourceTest(t, r, []acceptance.TestStep{
-        {
-            Config:      r.obviouslyInvalid(data),
-            ExpectError: regexp.MustCompile("validation error"),
-        },
-    })
-}
-
-// GOOD: Test all boundary conditions and edge cases
-func TestAccServiceName_validation(t *testing.T) {
-    data.ResourceTest(t, r, []acceptance.TestStep{
-        // Test each invalid field combination
-        {
-            Config:      r.invalidCase1(data),
-            ExpectError: regexp.MustCompile("specific error 1"),
-        },
-        {
-            Config:      r.invalidCase2(data),
-            ExpectError: regexp.MustCompile("specific error 2"),
-        },
-        {
-            Config:      r.edgeCase(data),
-            ExpectError: regexp.MustCompile("edge case error"),
-        },
-        // Test valid configurations
-        {
-            Config: r.validCase1(data),
-            Check:  acceptance.ComposeTestCheckFunc(...),
-        },
-        {
-            Config: r.validCase2(data),
-            Check:  acceptance.ComposeTestCheckFunc(...),
-        },
-    })
-}
+```powershell
+$env:ARM_SUBSCRIPTION_ID="your-azure-subscription-id"
+$env:ARM_CLIENT_ID="your-service-principal-client-id"
+$env:ARM_CLIENT_SECRET="your-service-principal-client-secret"
+$env:ARM_TENANT_ID="your-azure-tenant-id"
+$env:ARM_TEST_LOCATION="WestEurope"
+$env:ARM_TEST_LOCATION_ALT="EastUS2"
+$env:ARM_TEST_LOCATION_ALT2="WestUS2"
 ```
 
-#### CustomizeDiff Testing Best Practices
+#### Running Tests
+```bash
+# Run unit tests
+go test ./internal/services/cdn/...
 
-**Comprehensive Scenario Coverage:**
-- Test all possible field combinations that trigger validation
-- Test boundary values and edge cases
-- Test Azure service-specific constraints
-- Verify error messages include field paths and clear guidance
-- Test both creation and update scenarios with CustomizeDiff
+# Run specific unit test
+go test -run TestParseFrontDoorProfileID ./internal/services/cdn/
 
-**Azure API Alignment:**
-- Ensure test values match Azure SDK constants
-- Test configurations that would be rejected by Azure API
-- Validate that CustomizeDiff catches errors before Azure API calls
-- Test combinations that are Azure service version-specific
+# Run acceptance tests for a service
+make testacc TEST=./internal/services/cdn TESTARGS='-run=TestAccCdnFrontDoorProfile'
 
-**Error Message Quality:**
-- Verify error messages include specific field names in backticks
-- Check that error messages explain the constraint clearly
-- Ensure field paths are accurate (e.g., `log_scrubbing.0.scrubbing_rule.0`)
-- Test that error messages provide actionable guidance
+# Run specific acceptance test
+make testacc TEST=./internal/services/cdn TESTARGS='-run=TestAccCdnFrontDoorProfile_basic'
+```
+
+### Best Practices
+
+#### Test Organization
+- Group related tests using subtests with `t.Run()`
+- Use `data.ResourceTest()` for acceptance tests to ensure proper cleanup
+- Always include import tests for resources (`data.ImportStep()`)
+- Test both successful operations and error conditions
+
+#### Azure Resource Management
+- Use `acceptance.BuildTestData()` for consistent test data generation
+- Include dependency resources (resource groups, networks) in test configurations
+- Use unique naming with random integers to avoid resource conflicts
+- Test in multiple Azure regions when relevant
+
+#### Error Handling
+- Test validation functions with both valid and invalid inputs
+- Verify specific error messages and error types
+- Test Azure API error scenarios (resource not found, throttling, etc.)
+- Ensure proper error wrapping and context information
+
+#### Performance Considerations
+- Use parallel test execution where possible (`t.Parallel()`)
+- Minimize Azure API calls in unit tests
+- Use appropriate timeouts for long-running operations
+- Clean up test resources properly to avoid quota issues
 
 ### CDN Front Door-Specific Testing Guidelines
 
-#### SKU Validation Testing
+#### CDN Front Door Testing Considerations
+- **Global Resource**: CDN Front Door profiles are global resources, not tied to specific Azure regions
+- **SKU Limitations**: Different features are available in Standard vs Premium SKUs
+- **Naming Constraints**: Profile names must be globally unique across Azure
+- **Propagation Time**: Changes may take time to propagate globally
+- **Response Timeout**: Valid range is 16-240 seconds
+
+### SKU Validation Testing
+
 ```go
 func TestValidateFrontDoorProfileSku(t *testing.T) {
     validSkus := []string{

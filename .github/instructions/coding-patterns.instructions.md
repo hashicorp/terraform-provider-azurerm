@@ -890,17 +890,29 @@ func resourceServiceName() *pluginsdk.Resource {
         Update: resourceServiceNameUpdate,
         Delete: resourceServiceNameDelete,
 
-        CustomizeDiff: pluginsdk.All(
-            // CustomizeDiff functions must use *schema.ResourceDiff
-            func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
-                // Validation logic here
-                return nil
-            },
-        ),
+        Timeouts: &pluginsdk.ResourceTimeout{
+            Create: pluginsdk.DefaultTimeout(30 * time.Minute),
+            Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
+            Update: pluginsdk.DefaultTimeout(30 * time.Minute),
+            Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+        },
+
+        Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
+            _, err := parse.ServiceNameID(id)
+            return err
+        }),
 
         Schema: map[string]*pluginsdk.Schema{
             // Schema definition using pluginsdk types
         },
+
+        CustomizeDiff: pluginsdk.CustomDiffWithAll(
+            // CustomizeDiff functions must use *schema.ResourceDiff with CustomizeDiffShim wrapper
+            pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+                // Validation logic here
+                return nil
+            }),
+        ),
     }
 }
 ```

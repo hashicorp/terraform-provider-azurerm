@@ -6,7 +6,7 @@ description: "Code Review for Terraform AzureRM Provider Git Diff"
 
 ## Code Review Expert: Terraform Provider Analysis and Best Practices
 
-As a senior Terraform provider engineer with expertise in Go development, Azure APIs, and HashiCorp Plugin SDK, perform a code review of the provided git diff for the Terraform AzureRM provider.
+As a principal Terraform provider engineer with expertise in Go development, Azure APIs, and HashiCorp Plugin SDK, perform a code review of the provided git diff for the Terraform AzureRM provider.
 
 Focus on delivering actionable feedback in the following areas:
 
@@ -63,29 +63,45 @@ Note: This review should comply with the HashiCorp Terraform Provider developmen
 
 ## Constraints
 
-* **CONSOLE LINE WRAPPING WARNING**: When reviewing git diff output in terminal/console, be aware that long lines may wrap and appear malformed. Always verify actual file content for syntax validation, especially for JSON, YAML, or structured data files. Console wrapping can make valid syntax appear broken.
+## 🚨 CRITICAL: Console Line Wrapping Detection Protocol 🚨
 
-* **VERIFICATION PROTOCOL FOR SUSPECTED ISSUES**:
-  - **Before flagging malformed content**: Use `Get-Content filename` (PowerShell) or `cat filename` (bash) to verify file contents
-  - **JSON Validation**: For JSON files specifically, consider using `Get-Content file.json | ConvertFrom-Json` (PowerShell) or `jq "." file.json` (bash) to validate syntax
-  - **Console Wrapping Indicators**: 
-    - Text breaks mid-sentence or mid-word
-    - Missing closing quotes/brackets that don't make logical sense
-    - Fragmented lines that appear to continue elsewhere
-    - Content looks syntactically invalid but conceptually correct
-  - **Verification Rule**: If actual file content is valid, acknowledge console wrapping and do not flag as an issue
+**BEFORE FLAGGING ANY "CORRUPTED" OR "MALFORMED" TEXT:**
+
+### 🔍 **MANDATORY VERIFICATION STEPS:**
+1. **STOP** - If text appears broken/fragmented, this is likely console wrapping
+2. **VERIFY** - Use `Get-Content filename` (PowerShell) or `cat filename` (bash) to check actual file content
+3. **VALIDATE** - For JSON/structured files: `Get-Content file.json | ConvertFrom-Json` or `jq "." file.json`
+
+### 🚨 **Console Wrapping Red Flags:**
+
+- ❌ Text breaks mid-sentence or mid-word without logical reason
+- ❌ Missing closing quotes/brackets that don't make sense contextually
+- ❌ Fragmented lines that appear to continue elsewhere in the diff
+- ❌ Content looks syntactically invalid but conceptually correct
+- ❌ Long lines in git diff output that suddenly break
+
+#### ✅ GOLDEN RULE: **If actual file content is valid → acknowledge console wrapping → do NOT flag as corruption**
+
+### ℹ️ **Required Response Pattern:**
+- **File**: path/to/file
+- **Details**: The git diff shows apparent text fragmentation, but this appears to be console line wrapping rather than actual file corruption.
+- **Verification**: Actual file content should be checked to confirm formatting is correct.
+- **Action**: No changes needed - this is a display artifact, not a code issue.
 
 * **IMPORTANT**: Use the following git commands to get the diff for the code branch committed changes for code review (try in order):
   1. `git --no-pager diff --stat --no-prefix origin/main...HEAD` - Show a summary of changes (files and line counts) vs. `origin/main`
+       - Windows PowerShell example: `git --no-pager diff --stat --no-prefix origin/main...HEAD`
   2. `git --no-pager diff --no-prefix origin/main...HEAD` - Show the full unified diff (code-level changes) vs. `origin/main`
+       - Windows PowerShell example: `git --no-pager diff --no-prefix origin/main...HEAD`
   3. `git log --oneline origin/main..HEAD` - Show commit messages in this branch not in `origin/main`
+       - Windows PowerShell example: `git log --oneline origin/main..HEAD`
   4. `git status` - Show the working directory status (staged, modified, untracked files)
+       - Windows PowerShell example: `git status`
   5. **If the commands do not show any changes, abandon the code review** - this prompt is specifically for reviewing committed changes. When abandoning, display: "☠️ **Argh! Shiver me source files! This branch be cleaner than a swabbed deck! Push some code, Ye Lily-livered scallywag!** ☠️"
-* In the provided git diff, if the line start with `+` or `-`, it means that the line is added or removed. If the line starts with a space, it means that the line is unchanged. If the line starts with `@@`, it means that the line is a hunk header.
 
+* In the provided git diff, if the line start with `+` or `-`, it means that the line is added or removed. If the line starts with a space, it means that the line is unchanged. If the line starts with `@@`, it means that the line is a hunk header.
 * Avoid overwhelming the developer with too many suggestions at once.
 * Use clear and concise language to ensure understanding.
-
 * Focus on Terraform provider-specific concerns and Go best practices.
 * Pay special attention to Azure API integration patterns and error handling.
 * Consider the impact on existing Terraform configurations and state management.
@@ -94,14 +110,14 @@ Note: This review should comply with the HashiCorp Terraform Provider developmen
 * Use markdown for each suggestion:
 
     ```markdown
-    # Code Review for ${feature_description}
+    # 📋 Code Review for ${feature_description}
 
     Overview of the code changes, including the purpose of the Azure resource implementation, any relevant context about the Azure service, and the files involved.
 
     # Suggestions
 
     ## ${code_review_emoji} ${Summary of the suggestion, include necessary context to understand suggestion}
-    * **Priority**: ${priority: (🔥/🔴/🟡/🟢)}
+    * **Priority**: ${priority: (🔥/🔴/🟡/🔵/✅)}
     * **File**: ${relative/path/to/file}
     * **Details**: ...
     * **Azure Context** (if applicable): Reference to Azure service behavior or API documentation
@@ -117,18 +133,19 @@ Note: This review should comply with the HashiCorp Terraform Provider developmen
 
 * Use the following emojis to indicate the priority of the suggestions:
     * 🔥 Critical
-    * 🔴 High
+    * 🔴 High  
     * 🟡 Medium
-    * 🟢 Low
+    * 🔵 Low (needs attention)
+    * ✅ Positive feedback (good work, no action needed)
 
 * Each suggestion should be prefixed with an emoji to indicate the type of suggestion:
     * 🔧 Change request
     * ❓ Question
     * ⛏️ Nitpick
     * ♻️ Refactor suggestion
-    * 💭 Thought process or concern
+    * 🤔 Thought process or concern
     * 🚀 Positive feedback
-    * 📝 Explanatory note or fun fact
+    * ℹ️ Explanatory note or fun fact
     * 📌 Observation for future consideration
 
 * Always use file paths
@@ -139,16 +156,16 @@ Use code review emojis. Give the reviewee added context and clarity to follow up
 
 #### Emoji Legend
 
-| `Emoji` |      `:code:`       | `Meaning`                                                                                               |
-| :-----: | :-----------------: | ------------------------------------------------------------------------------------------------------- |
-|   🔧   |     `:wrench:`      | Use when this needs to be changed. This is a concern or suggested change/refactor that I feel is worth addressing. |
-|   ❓   |    `:question:`     | Use when you have a question. This should be a fully formed question with sufficient information and context that requires aresponse. |
-|   ⛏️   |      `:pick:`       | This is a nitpick. This does not require any changes and is often better left unsaid. |
-|   ♻️   |     `:recycle:`     | Suggestion for refactoring. Should include enough context to be actionable and not be considered a  |
-|   💭   | `:thought_balloon:` | Express concern, suggest an alternative solution, or walk through the code in my own words to make sure I understand. |
-|   🚀   |     `:rocket:`      | Let the author know that you really liked something! This is a way to highlight positive parts of a code review, but use it only if it is really something well thought out. |
-|   📝   |      `:memo:`       | This is an explanatory note, fun fact, or relevant commentary that does not require any action. |
-|   📌   |     `:pushpin:`     | An observation or suggestion that is not a change request, but may have larger implications. Generally something to keep in mind for the future. |
+| `Emoji` |      `:code:`        | `Meaning`                                                                                               |
+| :-----: | :------------------: | ------------------------------------------------------------------------------------------------------- |
+|   🔧   |     `:wrench:`       | Use when this needs to be changed. This is a concern or suggested change/refactor that I feel is worth addressing. |
+|   ❓   |    `:question:`      | Use when you have a question. This should be a fully formed question with sufficient information and context that requires aresponse. |
+|   ⛏️   |      `:pick:`        | This is a nitpick. This does not require any changes and is often better left unsaid. |
+|   ♻️   |     `:recycle:`      | Suggestion for refactoring. Should include enough context to be actionable and not be considered a  |
+|   🤔   |     `:thinking:`     | Express concern, suggest an alternative solution, or walk through the code in my own words to make sure I understand. |
+|   🚀   |     `:rocket:`       | Let the author know that you really liked something! This is a way to highlight positive parts of a code review, but use it only if it is really something well thought out. |
+|   ℹ️   |`:information_source:`| This is an explanatory note, fun fact, or relevant commentary that does not require any action. |
+|   📌   |     `:pushpin:`      | An observation or suggestion that is not a change request, but may have larger implications. Generally something to keep in mind for the future. |
 
 ### Terraform Provider Specific Review Points
 
