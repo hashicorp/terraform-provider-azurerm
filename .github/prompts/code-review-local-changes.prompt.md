@@ -126,6 +126,63 @@ When suspicious content is found, use this template:
 - **Assessment**: [console wrapping **OR** actual issue]
 - **Action**: [no action needed **OR** specific fix required]
 
+### 🔍 **VERIFICATION SCENARIO EXAMPLES**
+
+**Scenario 1: Emoji Display Issues**
+```text
+Git diff shows: 🔍 COMMITTED CHANGES CODE REVIEW 🔍
+Reality: Emojis display as ?? in some terminals but are actually valid
+Action: Use read_file to verify actual content exists
+Result: Console display issue, not file corruption
+```
+
+**Scenario 2: JSON/YAML Line Breaking**
+```json
+Git diff shows: 
+{
+    "github.copilot.chat.commitMessage.generation.instructions": "Follow terraform coding standards and best 
+practices when reviewing code changes"
+}
+
+Reality: JSON appears broken due to terminal line wrapping
+Action: Use read_file to verify JSON is valid on single line
+Result: Console wrapping, not malformed JSON
+```
+
+**Scenario 3: Text Fragmentation**
+```text
+Git diff shows: 
+make valid syntax appear broken.*: When reviewing git diff output in terminal
+console, be aware that long lines may wrap
+
+Reality: Text appears fragmented mid-sentence
+Action: Use read_file to see the actual continuous text without wrapping
+Result: Console display artifact, not broken text
+```
+
+**Scenario 4: Missing Quotes/Brackets**
+```yaml
+Git diff shows: 
+"description": "Code Review for Terraform AzureRM Provider Git Diff
+---
+
+Reality: Closing quote appears missing due to line wrap
+Action: Use read_file to verify the closing quote is actually present
+Result: Console wrapping, not syntax error
+```
+
+**Scenario 5: Code Block Fragmentation**
+```markdown
+Git diff shows:
+# Header
+some text that breaks
+off mid-sentence and continues
+
+Reality: Markdown appears malformed due to terminal wrapping
+Action: Use read_file to verify markdown structure is correct
+Result: Console display issue, not markdown corruption
+```
+
 ## Console Output Interpretation
 
 **🚨 CRITICAL: CONSOLE LINE WRAPPING DETECTION PROTOCOL 🚨**

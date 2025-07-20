@@ -126,6 +126,59 @@ When suspicious content is found, use this template:
 - **Assessment**: [console wrapping **OR** actual issue]
 - **Action**: [no action needed **OR** specific fix required]
 
+### 🔍 **VERIFICATION SCENARIO EXAMPLES**
+
+**Scenario 1: Emoji Display Issues**
+```text
+Git diff shows: 🔍 COMMITTED CHANGES CODE REVIEW 🔍
+Reality: Emojis display as ?? in some terminals but are actually valid
+Action: Use read_file to verify actual content exists
+Result: Console display issue, not file corruption
+```
+
+**Scenario 2: JSON/YAML Line Breaking**
+```json
+Git diff shows: 
+{
+    "prop": (appears incomplete)
+}
+
+Reality: File contains valid JSON with complete property
+Action: Use read_file to verify JSON structure
+Result: Console wrapping, not malformed JSON
+```
+
+**Scenario 3: Text Mid-Word Fragmentation**
+```text
+Git diff shows:
+configur
+ation (word split across lines)
+
+Reality: File contains "configuration" as complete word
+Action: Use read_file to verify word integrity
+Result: Console wrapping, not text corruption
+```
+
+**Scenario 4: Missing Quotes/Brackets**
+```yaml
+Git diff shows:
+name: example (appears missing quotes)
+
+Reality: File contains proper YAML syntax with quotes
+Action: Use read_file to verify closing quote is present
+Result: Console wrapping, not syntax error
+```
+
+**Scenario 5: Code Block Fragmentation**
+```go
+Git diff shows:
+func Create (appears incomplete function)
+
+Reality: File contains complete Go function definition
+Action: Use read_file to verify complete code block
+Result: Console display issue, not code corruption
+```
+
 ## Console Output Interpretation
 
 **🚨 CRITICAL: CONSOLE LINE WRAPPING DETECTION PROTOCOL 🚨**
