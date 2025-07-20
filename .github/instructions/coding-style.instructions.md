@@ -40,25 +40,14 @@ The following external contributing topics provide detailed best practices and g
 - **Line Length**: Aim for 120 characters max, break longer lines sensibly
 
 ### Import Organization
-```go
-package main
 
-import (
-    // Standard library imports first
-    "context"
-    "fmt"
-    "log"
-    
-    // Third-party imports second
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-    
-    // Local imports last
-    "github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-    "github.com/hashicorp/terraform-provider-azurerm/utils"
-)
-```
+For comprehensive import organization patterns including Azure-specific CustomizeDiff requirements, see:
+- **Detailed Patterns**: [coding-patterns.instructions.md](./coding-patterns.instructions.md) - Import Management Pattern section
+
+**Quick Reference**: Follow three-group import structure:
+1. **Standard library imports** (context, fmt, log, etc.)
+2. **Third-party imports** (terraform-plugin-sdk, etc.)
+3. **Local imports** (internal/clients, internal/services, etc.)
 
 ### Basic Go Naming Conventions
 

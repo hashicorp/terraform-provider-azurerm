@@ -46,34 +46,12 @@ Given below are the Azure-specific guidelines for this Terraform Provider projec
 
 ### Azure Client Management Patterns
 
-#### typed resource Client Usage
-```go
-// Use metadata.Client for accessing Azure clients
-client := metadata.Client.ServiceName.ResourceClient
-subscriptionId := metadata.Client.Account.SubscriptionId
+For comprehensive Azure client management patterns including typed and untyped resource client usage, see:
+- **Detailed Patterns**: [coding-patterns.instructions.md](./coding-patterns.instructions.md) - Client Management Pattern section with Azure-specific usage examples
 
-// Use structured logging with metadata.Logger
-metadata.Logger.Infof("Creating %s", id)
-
-// Proper Azure API error handling with typed resource
-if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
-    return fmt.Errorf("creating %s: %+v", id, err)
-}
-```
-
-#### untyped Client Usage
-```go
-// Standard Azure client initialization
-client := meta.(*clients.Client).ServiceName.ResourceClient
-
-// Use Azure resource ID parsing for type safety
-id := parse.NewResourceID(subscriptionId, resourceGroupName, resourceName)
-
-// Azure long-running operations with untyped pattern
-if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
-    return fmt.Errorf("creating Azure Resource %q: %+v", id.ResourceName, err)
-}
-```
+**Quick Reference**: Use appropriate client access patterns:
+- **Typed Resources**: metadata.Client.ServiceName.ResourceClient with structured logging
+- **UnTyped Resources**: meta.(*clients.Client).ServiceName.ResourceClient with standard error handling
 
 ### CustomizeDiff Implementation for Azure Resources
 
