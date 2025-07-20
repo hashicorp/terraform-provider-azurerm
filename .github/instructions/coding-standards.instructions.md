@@ -12,12 +12,12 @@ description: This document outlines the coding standards for Go files in the Ter
 **VERIFICATION PROTOCOL FOR SUSPECTED ISSUES**:
 ## 🔍 **MANDATORY VERIFICATION STEPS:**
 1. **STOP** - If text appears broken/fragmented, this is likely console wrapping
-2. **VERIFY** - Use `Get-Content filename` (PowerShell) or `cat filename` (bash) to check actual file content  
+2. **VERIFY** - Use `Get-Content filename` (PowerShell) or `cat filename` (bash) to check actual file content
 3. **VALIDATE** - For JSON/structured files: `Get-Content file.json | ConvertFrom-Json` or `jq "." file.json`
 
 ### 🚨 **Console Wrapping Red Flags:**
 - ❌ Text breaks mid-sentence or mid-word without logical reason
-- ❌ Missing closing quotes/brackets that don't make sense contextually  
+- ❌ Missing closing quotes/brackets that don't make sense contextually
 - ❌ Fragmented lines that appear to continue elsewhere in the diff
 - ❌ Content looks syntactically invalid but conceptually correct
 - ❌ Long lines in git diff output that suddenly break
@@ -123,7 +123,7 @@ type ServiceNameModel struct {
     Sku               string            `tfschema:"sku_name"`
     Enabled           bool              `tfschema:"enabled"`
     Tags              map[string]string `tfschema:"tags"`
-    
+
     // Computed attributes
     Endpoint          string            `tfschema:"endpoint"`
     Status            string            `tfschema:"status"`
@@ -220,7 +220,7 @@ func (r ServiceNameResource) Create() sdk.ResourceFunc {
             }
 
             metadata.Logger.Infof("Creating %s", id)
-            
+
             properties := servicenametype.Resource{
                 Location: model.Location,
                 Properties: &servicenametype.ResourceProperties{
@@ -301,7 +301,7 @@ func resourceServiceNameCreate(ctx context.Context, d *pluginsdk.ResourceData, m
 }
 func resourceServiceNameRead(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
     // Implementation here
-}  
+}
 func resourceServiceNameUpdate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
     // Implementation here
 }
@@ -328,19 +328,19 @@ func resourceServiceName() *pluginsdk.Resource {
         Read:   resourceServiceNameRead,
         Update: resourceServiceNameUpdate,
         Delete: resourceServiceNameDelete,
-        
+
         Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
             _, err := parse.ServiceNameID(id)
             return err
         }),
-        
+
         Timeouts: &pluginsdk.ResourceTimeout{
             Create: pluginsdk.DefaultTimeout(30 * time.Minute),
             Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
             Update: pluginsdk.DefaultTimeout(30 * time.Minute),
             Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
         },
-        
+
         Schema: map[string]*pluginsdk.Schema{
             "name": {
                 Type:         pluginsdk.TypeString,
@@ -599,10 +599,10 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
        ResourceGroup string            `tfschema:"resource_group_name"`
        // Map all existing schema fields
     }
-   
+
    // Step 2: Implement typed resource interface
    type ExistingResource struct{}
-   
+
    var _ sdk.Resource = ExistingResource{}
    ```
 
@@ -642,13 +642,13 @@ func (r ExistingResource) Read() sdk.ResourceFunc {
         Timeout: 5 * time.Minute,
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
             client := metadata.Client.ServiceName.ResourceClient
-            
+
             // Handle both old and new state formats if necessary
             id, err := parse.ExistingResourceID(metadata.ResourceData.Id())
             if err != nil {
                 return err
             }
-                        
+
             resp, err := client.Get(ctx, *id)
             if err != nil {
                 if response.WasNotFound(resp.HttpResponse) {
@@ -656,38 +656,562 @@ func (r ExistingResource) Read() sdk.ResourceFunc {
                 }
                 return fmt.Errorf("retrieving %s: %+v", id, err)
             }
-            
+
             // Map response to model and encode state
             model := ExistingResourceModel{
                 Name:          id.ResourceName,
                 ResourceGroup: id.ResourceGroupName,
                 // Map other fields from response
             }
-            
+
             return metadata.Encode(&model)
         },
     }
 }
 ```
 
+### Implementation Migration Guide
+
+#### Comprehensive Step-by-Step Migration from Untyped to Typed Resources
+
+This section provides detailed guidance for migrating existing untyped Plugin SDK resources to the modern typed resource implementation approach.
+
+#### Pre-Migration Assessment
+
+**1. Resource Complexity Analysis**
+```go
+// Assess current resource complexity
+// Simple resource (recommended for first migration)
+- Single-level schema (no complex nested blocks)
+- Basic CRUD operations
+- Minimal CustomizeDiff requirements
+- Standard Azure resource patterns
+
+// Complex resource (migrate after gaining experience)
+- Multi-level nested schemas
+- Complex business logic in CRUD operations
+- Extensive CustomizeDiff validation
+- Non-standard Azure API patterns
+```
+
+**2. Dependencies and Impact Assessment**
+- **Breaking Changes**: Identify any potential breaking changes to user configurations
+- **State Compatibility**: Ensure Terraform state remains compatible
+- **Test Coverage**: Verify comprehensive test coverage exists
+- **Documentation**: Check if documentation needs updates
+
+#### Migration Process Phases
+
+**Phase 1: Preparation and Planning**
+
+```go
+// 1. Create backup branch
+git checkout -b migration/resource-name-to-typed
+
+// 2. Analyze existing untyped implementation
+// Study these files:
+// - internal/services/servicename/resource_name_resource.go
+// - internal/services/servicename/resource_name_resource_test.go
+// - website/docs/r/service_name_resource.html.markdown
+
+// 3. Document current behavior
+// - All schema fields and their types
+// - CRUD operation behaviors
+// - Error handling patterns
+// - CustomizeDiff validations
+// - Import functionality
+```
+
+**Phase 2: Model Structure Creation**
+
+```go
+// Create the typed model structure
+type ServiceNameResourceModel struct {
+    // Required fields first (alphabetical within category)
+    Name              string            `tfschema:"name"`
+    ResourceGroup     string            `tfschema:"resource_group_name"`
+    Location          string            `tfschema:"location"`
+
+    // Optional fields (alphabetical)
+    Enabled           bool              `tfschema:"enabled"`
+    Settings          map[string]string `tfschema:"settings"`
+    Tags              map[string]string `tfschema:"tags"`
+
+    // Complex nested structures
+    Configuration     []ConfigModel     `tfschema:"configuration"`
+
+    // Computed attributes last
+    Id                string            `tfschema:"id"`
+    Endpoint          string            `tfschema:"endpoint"`
+}
+
+// Nested model structures
+type ConfigModel struct {
+    Setting1 string `tfschema:"setting1"`
+    Setting2 string `tfschema:"setting2"`
+}
+```
+
+**Phase 3: Resource Structure Implementation**
+
+```go
+// Implement the resource structure
+type ServiceNameResource struct{}
+
+// Required interface implementations
+var (
+    _ sdk.Resource           = ServiceNameResource{}
+    _ sdk.ResourceWithUpdate = ServiceNameResource{} // Only if resource supports updates
+)
+
+func (r ServiceNameResource) ResourceType() string {
+    return "azurerm_service_name_resource"
+}
+
+func (r ServiceNameResource) ModelObject() interface{} {
+    return &ServiceNameResourceModel{}
+}
+
+func (r ServiceNameResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+    // Reuse existing ID validation function
+    return parse.ValidateServiceNameResourceID
+}
+```
+
+**Phase 4: Schema Migration**
+
+```go
+// Migrate Arguments (user-configurable fields)
+func (r ServiceNameResource) Arguments() map[string]*pluginsdk.Schema {
+    return map[string]*pluginsdk.Schema{
+        // Copy existing schema definitions from untyped resource
+        // Ensure validation functions and defaults are preserved
+        "name": {
+            Type:         pluginsdk.TypeString,
+            Required:     true,
+            ForceNew:     true,
+            ValidateFunc: validation.StringIsNotEmpty,
+        },
+
+        "resource_group_name": commonschema.ResourceGroupName(),
+        "location": commonschema.Location(),
+        "tags": tags.Schema(),
+
+        // Migrate complex nested schemas
+        "configuration": {
+            Type:     pluginsdk.TypeList,
+            Optional: true,
+            MaxItems: 1,
+            Elem: &pluginsdk.Resource{
+                Schema: map[string]*pluginsdk.Schema{
+                    // Copy nested schema from untyped implementation
+                },
+            },
+        },
+    }
+}
+
+// Migrate Attributes (computed fields)
+func (r ServiceNameResource) Attributes() map[string]*pluginsdk.Schema {
+    return map[string]*pluginsdk.Schema{
+        "id": {
+            Type:     pluginsdk.TypeString,
+            Computed: true,
+        },
+
+        "endpoint": {
+            Type:     pluginsdk.TypeString,
+            Computed: true,
+        },
+    }
+}
+```
+
+**Phase 5: CRUD Operation Migration**
+
+```go
+// Migrate Create operation
+func (r ServiceNameResource) Create() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Timeout: 30 * time.Minute, // Copy timeout from untyped resource
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            // 1. Client access (new pattern)
+            client := metadata.Client.ServiceName.ResourceClient
+            subscriptionId := metadata.Client.Account.SubscriptionId
+
+            // 2. Model decoding (new pattern)
+            var model ServiceNameResourceModel
+            if err := metadata.Decode(&model); err != nil {
+                return fmt.Errorf("decoding: %+v", err)
+            }
+
+            // 3. Resource ID creation (same as untyped)
+            id := parse.NewServiceNameResourceID(subscriptionId, model.ResourceGroup, model.Name)
+
+            // 4. Import check (new pattern)
+            metadata.Logger.Infof("Import check for %s", id)
+            existing, err := client.Get(ctx, id)
+            if err != nil && !response.WasNotFound(existing.HttpResponse) {
+                return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+            }
+
+            if !response.WasNotFound(existing.HttpResponse) {
+                return metadata.ResourceRequiresImport(r.ResourceType(), id)
+            }
+
+            // 5. API call (similar to untyped but with model data)
+            metadata.Logger.Infof("Creating %s", id)
+
+            properties := servicenametype.Resource{
+                Location: model.Location,
+                Properties: &servicenametype.ResourceProperties{
+                    Enabled: pointer.To(model.Enabled),
+                    // Map other model fields to API structure
+                },
+                Tags: &model.Tags,
+            }
+
+            if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
+                return fmt.Errorf("creating %s: %+v", id, err)
+            }
+
+            // 6. ID setting (new pattern)
+            metadata.SetID(id)
+            return nil
+        },
+    }
+}
+
+// Migrate Read operation
+func (r ServiceNameResource) Read() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Timeout: 5 * time.Minute,
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := metadata.Client.ServiceName.ResourceClient
+
+            id, err := parse.ServiceNameResourceID(metadata.ResourceData.Id())
+            if err != nil {
+                return err
+            }
+
+            metadata.Logger.Infof("Reading %s", id)
+            resp, err := client.Get(ctx, *id)
+            if err != nil {
+                if response.WasNotFound(resp.HttpResponse) {
+                    // New pattern for marking resource as gone
+                    return metadata.MarkAsGone(id)
+                }
+                return fmt.Errorf("retrieving %s: %+v", id, err)
+            }
+
+            model := resp.Model
+            if model == nil {
+                return fmt.Errorf("retrieving %s: model was nil", id)
+            }
+
+            // Map API response to typed model
+            state := ServiceNameResourceModel{
+                Name:          id.ResourceName,
+                ResourceGroup: id.ResourceGroupName,
+                Location:      model.Location,
+                Tags:          model.Tags,
+            }
+
+            if props := model.Properties; props != nil {
+                state.Enabled = pointer.FromBool(props.Enabled, false)
+                state.Endpoint = pointer.FromString(props.Endpoint, "")
+                // Map other properties from API response
+            }
+
+            // New pattern for encoding state
+            return metadata.Encode(&state)
+        },
+    }
+}
+```
+
+**Phase 6: Testing Migration**
+
+```go
+// Update test patterns
+func TestAccServiceNameResource_basic(t *testing.T) {
+    data := acceptance.BuildTestData(t, "azurerm_service_name_resource", "test")
+    r := ServiceNameResource{} // New pattern: use struct instead of function
+
+    data.ResourceTest(t, r, []acceptance.TestStep{
+        {
+            Config: r.basic(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+                check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctest-%d", data.RandomInteger)),
+                check.That(data.ResourceName).Key("resource_group_name").HasValue(fmt.Sprintf("acctestRG-%d", data.RandomInteger)),
+            ),
+        },
+        data.ImportStep(), // Keep existing import tests
+    })
+}
+
+// Update Exists function for typed resource
+func (r ServiceNameResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+    id, err := parse.ServiceNameResourceID(state.ID)
+    if err != nil {
+        return nil, err
+    }
+
+    resp, err := clients.ServiceName.ResourceClient.Get(ctx, *id)
+    if err != nil {
+        return nil, fmt.Errorf("reading %s: %+v", *id, err)
+    }
+
+    return utils.Bool(resp.Model != nil), nil
+}
+```
+
+**Phase 7: Service Registration Update**
+
+```go
+// Update service registration to include typed resource
+func (r Registration) Resources() []sdk.Resource {
+    return []sdk.Resource{
+        ServiceNameResource{}, // Add migrated typed resource
+        // Keep other typed resources
+    }
+}
+
+func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
+    return map[string]*pluginsdk.Resource{
+        // Remove migrated resource from here
+        // "azurerm_service_name_resource": resourceServiceNameResource(), // REMOVE
+
+        // Keep other untyped resources
+        "azurerm_other_resource": resourceOtherResource(),
+    }
+}
+```
+
+#### Migration Validation Checklist
+
+**Functionality Verification:**
+- [ ] All CRUD operations work correctly
+- [ ] Resource import functionality preserved
+- [ ] CustomizeDiff validations migrated correctly
+- [ ] Error handling maintains same user experience
+- [ ] Timeout configurations preserved
+- [ ] All schema fields and validation rules maintained
+
+**Testing Verification:**
+- [ ] All existing acceptance tests pass
+- [ ] Import tests continue to work
+- [ ] Error scenario tests function correctly
+- [ ] Test configurations require no changes
+- [ ] Performance characteristics remain similar
+
+**State Compatibility Verification:**
+- [ ] Existing Terraform state works without manual intervention
+- [ ] Resource attributes remain accessible
+- [ ] Computed values continue to be populated correctly
+- [ ] No unexpected ForceNew behaviors introduced
+
+**Documentation Verification:**
+- [ ] Resource documentation requires no changes
+- [ ] Import syntax remains the same
+- [ ] Examples continue to work
+- [ ] Attribute descriptions remain accurate
+
+#### Common Migration Pitfalls and Solutions
+
+**1. Schema Mismatch Issues**
+```go
+// Problem: tfschema tag doesn't match schema key
+type BadModel struct {
+    Name string `tfschema:"resource_name"` // Wrong: should be "name"
+}
+
+// Solution: Ensure tfschema tags exactly match schema keys
+type GoodModel struct {
+    Name string `tfschema:"name"` // Correct: matches schema key
+}
+```
+
+**2. Nested Structure Complexity**
+```go
+// Problem: Complex nested structures not properly modeled
+// Solution: Break down into separate model structs
+type ConfigurationModel struct {
+    Setting1 string            `tfschema:"setting1"`
+    Setting2 string            `tfschema:"setting2"`
+    Nested   []NestedModel     `tfschema:"nested"`
+}
+
+type NestedModel struct {
+    Value string `tfschema:"value"`
+}
+```
+
+**3. Import Conflict Detection**
+```go
+// Problem: Using old import conflict pattern
+if existing.StatusCode != http.StatusNotFound {
+    return tf.ImportAsExistsError("azurerm_resource", id.ID())
+}
+
+// Solution: Use metadata pattern
+if !response.WasNotFound(existing.HttpResponse) {
+    return metadata.ResourceRequiresImport(r.ResourceType(), id)
+}
+```
+
+**4. State Management**
+```go
+// Problem: Trying to use d.Set() in typed resource
+d.Set("name", model.Name) // Wrong pattern
+
+// Solution: Use metadata.Encode()
+return metadata.Encode(&state) // Correct pattern
+```
+
+#### Post-Migration Best Practices
+
+**1. Gradual Migration Strategy**
+- Start with simpler resources to gain experience
+- Migrate related resources together when possible
+- Monitor for any user-reported issues
+- Document lessons learned for future migrations
+
+**2. Backward Compatibility Monitoring**
+- Test with existing Terraform configurations
+- Verify state file compatibility
+- Check for any performance regressions
+- Monitor for unexpected breaking changes
+
+**3. Code Quality Maintenance**
+- Follow typed resource best practices
+- Maintain consistent error message formatting
+- Use structured logging patterns
+- Keep comprehensive test coverage
+
+This comprehensive migration guide provides the foundation for systematically converting untyped resources to the modern typed implementation approach while maintaining backward compatibility and code quality standards.
+
+#### Version Compatibility Matrix
+
+Understanding version compatibility is crucial for planning migrations and ensuring the migration techniques are available in your target provider version.
+
+**Terraform Plugin SDK Compatibility:**
+
+| Feature | Plugin SDK v2.0+ | Plugin SDK v2.10+ | Plugin SDK v2.20+ | Notes |
+|---------|------------------|-------------------|-------------------|--------|
+| Basic Typed Resources | ❌ | ✅ | ✅ | Minimum version for typed resource framework |
+| `metadata.Decode()` | ❌ | ✅ | ✅ | State decoding for typed resources |
+| `metadata.Encode()` | ❌ | ✅ | ✅ | State encoding for typed resources |
+| `metadata.ResourceRequiresImport()` | ❌ | ✅ | ✅ | Import conflict detection |
+| `metadata.MarkAsGone()` | ❌ | ✅ | ✅ | Resource deletion handling |
+| `metadata.Logger` | ❌ | ✅ | ✅ | Structured logging |
+| `sdk.ResourceWithUpdate` | ❌ | ✅ | ✅ | Update operation interface |
+| Enhanced `CustomizeDiff` | ✅ | ✅ | ✅ | Available in all v2.x versions |
+
+**AzureRM Provider Framework Evolution:**
+
+| AzureRM Version | Typed Resources | Migration Support | Dual Registration | Recommendation |
+|-----------------|----------------|-------------------|-------------------|----------------|
+| v3.0 - v3.50 | ❌ | ❌ | ❌ | Use untyped resources only |
+| v3.51 - v3.80 | ⚠️ | ⚠️ | ❌ | Early typed resource support (experimental) |
+| v3.81+ | ✅ | ✅ | ✅ | Full typed resource support with migration capabilities |
+| v4.0+ (planned) | ✅ | ✅ | ✅ | Preferred typed resource implementation |
+
+**Azure SDK for Go Compatibility:**
+
+| Azure SDK Version | Pointer Helpers | Response Helpers | Polling Support | Migration Impact |
+|-------------------|----------------|------------------|-----------------|------------------|
+| HashiCorp Go Azure SDK v0.20+ | ✅ | ✅ | ✅ | Full migration support |
+| Azure SDK for Go v68+ | ⚠️ | ✅ | ✅ | Limited pointer helper support |
+| Legacy Azure SDK | ❌ | ⚠️ | ⚠️ | Migration not recommended |
+
+**Migration Timeline Recommendations:**
+
+```go
+// Version-specific migration approach
+func planMigration(providerVersion string) MigrationStrategy {
+    switch {
+    case providerVersion >= "v3.81":
+        return MigrationStrategy{
+            TypedResources:    true,
+            DualRegistration: true,
+            Recommendation:   "Full migration support available",
+        }
+    case providerVersion >= "v3.51":
+        return MigrationStrategy{
+            TypedResources:    true,
+            DualRegistration: false,
+            Recommendation:   "Experimental - wait for v3.81+ for production use",
+        }
+    default:
+        return MigrationStrategy{
+            TypedResources:    false,
+            DualRegistration: false,
+            Recommendation:   "Upgrade provider version before migration",
+        }
+    }
+}
+```
+
+**Feature Compatibility Checks:**
+
+Before starting migration, verify your environment supports the required features:
+
+```go
+// Version compatibility validation
+func validateMigrationCompatibility() error {
+    // Check Plugin SDK version
+    if !hasPluginSDKVersion("v2.10.0") {
+        return fmt.Errorf("migration requires Terraform Plugin SDK v2.10.0 or later")
+    }
+
+    // Check AzureRM provider framework
+    if !hasTypedResourceSupport() {
+        return fmt.Errorf("migration requires AzureRM provider v3.81 or later")
+    }
+
+    // Check Azure SDK compatibility
+    if !hasPointerHelpers() {
+        return fmt.Errorf("migration requires HashiCorp Go Azure SDK v0.20 or later")
+    }
+
+    return nil
+}
+```
+
+**Breaking Changes by Version:**
+
+| Version | Breaking Changes | Migration Impact | Mitigation |
+|---------|-----------------|------------------|------------|
+| v3.81 | Introduction of typed resources | None (backward compatible) | Gradual migration approach |
+| v4.0 (planned) | Deprecation warnings for untyped patterns | Development warnings only | Plan migration timeline |
+| v5.0 (planned) | Removal of legacy untyped support | Full migration required | Complete migration before upgrade |
+
+**Best Practices by Version:**
+
+- **v3.81 - v3.99**: Start with simple resources, maintain dual registration
+- **v4.0+**: Migrate actively developed resources first, plan legacy resource migration
+- **v5.0+**: Complete all migrations before upgrading
+
 ### Azure SDK Integration
 
 #### Pointer Package Usage
 
-**Use the `pointer` package instead of the `utils` package for pointer operations where applicable:**  
+**Use the `pointer` package instead of the `utils` package for pointer operations where applicable:**
 
-##### Migration Criteria  
-- **New Code**: Always use the `pointer` package for new implementations.  
-- **Existing Code**: Migrate from `utils` to `pointer` if:  
-  - The code is being actively modified or refactored.  
-  - The migration does not introduce significant risk or require extensive changes.  
-- **Legacy Compatibility**: Retain `utils` usage if:  
-  - The code is stable and not undergoing changes.  
-  - The migration would disrupt backward compatibility or require substantial effort.  
+##### Migration Criteria
+- **New Code**: Always use the `pointer` package for new implementations.
+- **Existing Code**: Migrate from `utils` to `pointer` if:
+  - The code is being actively modified or refactored.
+  - The migration does not introduce significant risk or require extensive changes.
+- **Legacy Compatibility**: Retain `utils` usage if:
+  - The code is stable and not undergoing changes.
+  - The migration would disrupt backward compatibility or require substantial effort.
 
-Examples:  
-- **Migrate**: Updating a resource implementation to use the `pointer` package for optional Azure API parameters.  
-- **Do Not Migrate**: Stable legacy code that uses `utils` for pointer operations and is not being actively maintained. 
+Examples:
+- **Migrate**: Updating a resource implementation to use the `pointer` package for optional Azure API parameters.
+- **Do Not Migrate**: Stable legacy code that uses `utils` for pointer operations and is not being actively maintained.
 
 ```go
 package servicename
@@ -956,7 +1480,7 @@ func (r ServiceResource) Read() sdk.ResourceFunc {
             // ...retrieve resource from Azure
 
             model := ServiceModel{}
-            
+
             // Only set value in state if it is not "None"
             shutdownOnIdle := ""
             if props.ShutdownOnIdle != nil && *props.ShutdownOnIdle != string(azureapi.ShutdownOnIdleModeNone) {
@@ -1082,11 +1606,11 @@ import (
 func validateTestCredentials() error {
     requiredVars := []string{
         "ARM_SUBSCRIPTION_ID",
-        "ARM_CLIENT_ID", 
+        "ARM_CLIENT_ID",
         "ARM_CLIENT_SECRET",
         "ARM_TENANT_ID",
     }
-    
+
     for _, envVar := range requiredVars {
         if value := os.Getenv(envVar); value == "" {
             return fmt.Errorf("required environment variable %s is not set", envVar)
@@ -1110,7 +1634,7 @@ import (
     "context"
     "fmt"
     "strings"
-    
+
     "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
@@ -1169,20 +1693,20 @@ import (
 // GOOD - Proper input validation
 func ValidateAzureResourceName(v interface{}, k string) (warnings []string, errors []error) {
     value := v.(string)
-    
+
     // Validate length
     if len(value) < 1 || len(value) > 64 {
         errors = append(errors, fmt.Errorf("property %s must be between 1 and 64 characters, got %d", k, len(value)))
         return warnings, errors
     }
-    
+
     // Validate allowed characters only (prevent injection)
     allowedPattern := regexp.MustCompile(`^[a-zA-Z0-9-_]+$`)
     if !allowedPattern.MatchString(value) {
         errors = append(errors, fmt.Errorf("property %s can only contain alphanumeric characters, hyphens, and underscores", k))
         return warnings, errors
     }
-    
+
     // Azure Storage Account specific reserved names
     reservedNames := []string{"admin", "root", "system", "default"}
     for _, reserved := range reservedNames {
@@ -1192,7 +1716,7 @@ func ValidateAzureResourceName(v interface{}, k string) (warnings []string, erro
             return warnings, errors
         }
     }
-    
+
     return warnings, errors
 }
 
@@ -1216,13 +1740,13 @@ import (
 // GOOD - Sanitize resource names that might be used in SQL contexts
 func ValidateSQLResourceName(v interface{}, k string) (warnings []string, errors []error) {
     value := v.(string)
-    
+
     // Check for SQL injection patterns
     sqlInjectionPatterns := []string{
         "'", "\"", ";", "--", "/*", "*/", "xp_", "sp_", "exec", "execute",
         "select", "insert", "update", "delete", "drop", "create", "alter",
     }
-    
+
     lowerValue := strings.ToLower(value)
     for _, pattern := range sqlInjectionPatterns {
         if strings.Contains(lowerValue, pattern) {
@@ -1230,7 +1754,7 @@ func ValidateSQLResourceName(v interface{}, k string) (warnings []string, errors
             return warnings, errors
         }
     }
-    
+
     return warnings, errors
 }
 ```
@@ -1246,7 +1770,7 @@ import (
     "crypto/tls"
     "fmt"
     "net/http"
-    
+
     "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
@@ -1289,7 +1813,7 @@ import (
     "context"
     "fmt"
     "time"
-    
+
     "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
@@ -1299,16 +1823,16 @@ func (r ServiceResource) Create() sdk.ResourceFunc {
         Timeout: 30 * time.Minute, // Complex Azure resources may take time to provision
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
             client := metadata.Client.ServiceName.ResourceClient
-            
+
             // Verify client authentication before proceeding
             if err := verifyClientAuthentication(ctx, client); err != nil {
                 return fmt.Errorf("authentication verification failed: %+v", err)
             }
-            
+
             // Use context with timeout for all operations
             ctx, cancel := context.WithTimeout(ctx, 30*time.Minute)
             defer cancel()
-            
+
             // Proceed with authenticated operations
             return nil
         },
@@ -1335,13 +1859,13 @@ import (
 // GOOD - Proper token lifecycle management
 func handleTokenRefresh(ctx context.Context, operation func() error) error {
     const maxRetries = 3
-    
+
     for attempt := 1; attempt <= maxRetries; attempt++ {
         err := operation()
         if err == nil {
             return nil
         }
-        
+
         // Check if error is due to token expiration
         if isTokenExpiredError(err) && attempt < maxRetries {
             // Wait before retry (exponential backoff)
@@ -1349,10 +1873,10 @@ func handleTokenRefresh(ctx context.Context, operation func() error) error {
             time.Sleep(backoffDuration)
             continue
         }
-        
+
         return fmt.Errorf("operation failed after %d attempts: %+v", attempt, err)
     }
-    
+
     return fmt.Errorf("operation failed after %d attempts", maxRetries)
 }
 
@@ -1375,7 +1899,7 @@ import (
     "fmt"
     "math"
     "time"
-    
+
     "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
     "github.com/hashicorp/terraform-provider-azurerm/utils/response"
 )
@@ -1386,7 +1910,7 @@ func (r ServiceResource) Create() sdk.ResourceFunc {
         Timeout: 30 * time.Minute, // Complex Azure resources may take time to provision
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
             client := metadata.Client.ServiceName.ResourceClient
-            
+
             operation := func() error {
                 resp, err := client.CreateOrUpdate(ctx, id, properties)
                 if err != nil {
@@ -1397,7 +1921,7 @@ func (r ServiceResource) Create() sdk.ResourceFunc {
                 }
                 return nil
             }
-            
+
             return retryWithExponentialBackoff(ctx, operation, metadata.Logger)
         },
     }
@@ -1415,32 +1939,32 @@ func retryWithExponentialBackoff(ctx context.Context, operation func() error, lo
     const maxRetries = 5
     const baseDelay = 1 * time.Second
     const maxDelay = 32 * time.Second
-    
+
     for attempt := 0; attempt < maxRetries; attempt++ {
         err := operation()
         if err == nil {
             return nil
         }
-        
+
         // Check if it's a throttling error
         if throttleErr, ok := err.(*ThrottledError); ok {
             if attempt == maxRetries-1 {
                 return fmt.Errorf("request throttled after %d attempts: %+v", maxRetries, throttleErr.Err)
             }
-            
+
             // Calculate exponential backoff delay
             delay := time.Duration(math.Pow(2, float64(attempt))) * baseDelay
             if delay > maxDelay {
                 delay = maxDelay
             }
-            
+
             // Log throttling and wait
             if logger != nil {
                 // Note: Use appropriate logger based on implementation type
                 // metadata.Logger.Infof() for typed resource
                 // log.Printf() for untyped
             }
-            
+
             select {
             case <-ctx.Done():
                 return ctx.Err()
@@ -1448,11 +1972,11 @@ func retryWithExponentialBackoff(ctx context.Context, operation func() error, lo
                 continue
             }
         }
-        
+
         // For non-throttling errors, return immediately
         return err
     }
-    
+
     return fmt.Errorf("operation failed after %d attempts", maxRetries)
 }
 ```
@@ -1466,7 +1990,7 @@ package servicename
 import (
     "context"
     "fmt"
-    
+
     "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
@@ -1476,12 +2000,12 @@ func (r ServiceResource) Read() sdk.ResourceFunc {
         Timeout: 5 * time.Minute,
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
             client := metadata.Client.ServiceName.ResourceClient
-            
+
             // If Azure API supports batch operations, use them
             if batchClient, ok := client.(BatchOperationClient); ok {
                 return r.readWithBatch(ctx, metadata, batchClient)
             }
-            
+
             // Fall back to individual operations
             return r.readIndividual(ctx, metadata, client)
         },
@@ -1510,7 +2034,7 @@ package servicename
 import (
     "context"
     "fmt"
-    
+
     "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
@@ -1518,11 +2042,11 @@ import (
 func listResourcesEfficiently(ctx context.Context, client interface{}) ([]Resource, error) {
     var allResources []Resource
     nextLink := ""
-    
+
     for {
         // Use appropriate page size (usually 100-1000 depending on Azure service)
         pageSize := 100
-        
+
         resp, err := client.List(ctx, ListOptions{
             PageSize: pageSize,
             NextLink: nextLink,
@@ -1530,21 +2054,21 @@ func listResourcesEfficiently(ctx context.Context, client interface{}) ([]Resour
         if err != nil {
             return nil, fmt.Errorf("listing resources: %+v", err)
         }
-        
+
         allResources = append(allResources, resp.Resources...)
-        
+
         // Check if there are more pages
         if resp.NextLink == "" {
             break
         }
         nextLink = resp.NextLink
-        
+
         // Prevent infinite loops
         if len(allResources) > 10000 { // Reasonable upper limit
             return nil, fmt.Errorf("too many resources returned, possible infinite pagination")
         }
     }
-    
+
     return allResources, nil
 }
 ```
@@ -1585,18 +2109,18 @@ func (c *ResourceCache) Get(ctx context.Context, key string, fetchFunc func(ctx 
     c.mutex.RLock()
     cached, exists := c.cache[key]
     c.mutex.RUnlock()
-    
+
     // Check if cache hit and not expired
     if exists && time.Since(cached.Timestamp) < c.ttl {
         return cached.Resource, nil
     }
-    
+
     // Cache miss or expired, fetch new data
     resource, err := fetchFunc(ctx)
     if err != nil {
         return nil, err
     }
-    
+
     // Update cache
     c.mutex.Lock()
     c.cache[key] = CachedResource{
@@ -1604,7 +2128,7 @@ func (c *ResourceCache) Get(ctx context.Context, key string, fetchFunc func(ctx 
         Timestamp: time.Now(),
     }
     c.mutex.Unlock()
-    
+
     return resource, nil
 }
 
@@ -1622,20 +2146,20 @@ package servicename
 import (
     "context"
     "fmt"
-    
+
     "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
 // GOOD - Process large datasets efficiently
 func (r ServiceResource) processLargeDataset(ctx context.Context, metadata sdk.ResourceMetaData) error {
     client := metadata.Client.ServiceName.ResourceClient
-    
+
     // Use streaming/paging instead of loading all data at once
     processFunc := func(resource Resource) error {
         // Process individual resource
         return nil
     }
-    
+
     return client.StreamResources(ctx, processFunc)
 }
 
@@ -1651,10 +2175,10 @@ func (r ServiceResource) Create() sdk.ResourceFunc {
                     tempData.Cleanup()
                 }
             }()
-            
+
             // Limit slice capacity for large datasets
             items := make([]Item, 0, 1000) // Set reasonable initial capacity
-            
+
             // Process data
             return nil
         },
@@ -1670,7 +2194,7 @@ package servicename
 
 import (
     "time"
-    
+
     "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -1680,12 +2204,12 @@ func resourceServiceName() *pluginsdk.Resource {
         Timeouts: &pluginsdk.ResourceTimeout{
             // Short operations (metadata only)
             Read: pluginsdk.DefaultTimeout(5 * time.Minute),
-            
+
             // Medium operations (simple resources)
             Create: pluginsdk.DefaultTimeout(30 * time.Minute),
             Update: pluginsdk.DefaultTimeout(30 * time.Minute),
             Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
-            
+
             // Long operations (complex resources like clusters)
             // Create: pluginsdk.DefaultTimeout(60 * time.Minute),
         },
@@ -1715,7 +2239,7 @@ import (
     "context"
     "fmt"
     "time"
-    
+
     "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
@@ -1725,16 +2249,16 @@ func (r ServiceResource) Create() sdk.ResourceFunc {
         Timeout: 30 * time.Minute, // Complex Azure resources may take time to provision
         Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
             client := metadata.Client.ServiceName.ResourceClient
-            
+
             // Create child context with shorter timeout for individual operations
             operationCtx, cancel := context.WithTimeout(ctx, 10*time.Minute)
             defer cancel()
-            
+
             // Pass context to all Azure API calls
             if err := client.CreateOrUpdateThenPoll(operationCtx, id, properties); err != nil {
                 return fmt.Errorf("creating %s: %+v", id, err)
             }
-            
+
             // Check context cancellation between operations
             select {
             case <-ctx.Done():
@@ -1742,7 +2266,7 @@ func (r ServiceResource) Create() sdk.ResourceFunc {
             default:
                 // Continue processing
             }
-            
+
             return nil
         },
     }
@@ -1759,7 +2283,7 @@ import (
     "context"
     "fmt"
     "time"
-    
+
     "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
