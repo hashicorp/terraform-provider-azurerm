@@ -20,27 +20,19 @@ description: This document outlines the standards and guidelines for writing doc
 - **Data Sources**: Exports all available information from existing resources
 
 ## Implementation Approach Considerations
+## Implementation Approach Considerations
 
-### Typed vs Untyped Implementation Documentation
+### Documentation Consistency Across Implementation Approaches
 
-While the underlying Go implementation (typed resource vs untyped Plugin SDK) is transparent to end users, documentation should maintain consistency regardless of implementation approach:
+While the underlying Go implementation (typed resource vs untyped Plugin SDK) is transparent to end users, documentation should maintain consistency regardless of implementation approach.
 
-#### Documentation Standards (Both Approaches)
-- **User Experience**: Documentation should be identical regardless of whether the resource uses typed resource-based or Untyped Resource Implementation
-- **Feature Parity**: Both approaches should document the same Azure resource capabilities and behaviors
-- **Example Consistency**: HCL configuration examples should follow the same patterns and naming conventions
-- **Argument Documentation**: Schema definitions should be documented identically regardless of implementation approach
+**For detailed implementation approach information, see the main copilot instructions file.**
 
-#### Implementation-Aware Considerations
-- **Feature Availability**: Some newer features may only be available in typed resource implementations - document actual capabilities
-- **Error Messages**: typed implementations may provide more structured error handling - reflect actual user experience
-- **Validation**: typed implementations may have improved validation - document current behavior accurately
-- **Import Patterns**: Resource ID formats should be consistent but verify actual import functionality
-
-#### Migration Transparency
-- **Seamless Experience**: When resources migrate from untyped to typed implementation, documentation changes should be minimal
-- **Behavioral Consistency**: Document the resource behavior as users experience it, not the implementation details
-- **Version Notes**: Avoid mentioning implementation approaches in user-facing documentation unless absolutely necessary
+#### Key Documentation Standards
+- **User Experience**: Documentation should be identical regardless of implementation approach
+- **Feature Parity**: Both approaches should document the same Azure resource capabilities
+- **Example Consistency**: HCL configuration examples should follow the same patterns
+- **Behavioral Accuracy**: Document the resource behavior as users experience it
 
 ## Documentation Structure
 

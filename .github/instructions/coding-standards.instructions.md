@@ -29,13 +29,21 @@ description: This document outlines the coding standards for Go files in the Ter
 ## Coding Standards
 Given below are the coding standards for the Terraform AzureRM provider which **MUST** be followed.
 
-### Typed vs Untyped Resource Implementation Standards
+### Implementation Approach Overview
 
-#### Typed Resource Implementation (Preferred)
-The Typed Resource implementation uses the `internal/sdk` framework and should be used for new resources and data sources.
+This provider supports two implementation approaches for new and existing resources:
 
-#### UnTyped Resource Implementation
-The Untyped Resource Implementation uses traditional Plugin SDK patterns and should be maintained for existing resources but not used for new implementations.
+**For detailed implementation approach documentation, see the main copilot instructions file.**
+
+#### Key Standards for Both Approaches
+- Follow consistent naming conventions regardless of implementation pattern
+- Maintain identical user-facing behavior and documentation
+- Use appropriate error handling patterns for each approach
+- Ensure comprehensive testing coverage
+
+- Maintain identical user-facing behavior and documentation
+- Use appropriate error handling patterns for each approach
+- Ensure comprehensive testing coverage
 
 ### Naming Conventions
 
@@ -461,280 +469,18 @@ if response.WasThrottled(resp.HttpResponse) {
 ```
 
 
-#### CustomizeDiff Implementation Pattern
+#### CustomizeDiff Implementation
 
-**Dual Import Requirement:**
-When implementing CustomizeDiff functions, both packages must be imported:
+For detailed CustomizeDiff implementation patterns, import requirements, and examples, see:
+- **Implementation Details**: [`coding-patterns.instructions.md`](./coding-patterns.instructions.md) - Dual import requirements and standard patterns
+- **Azure-Specific Examples**: [`provider-guidelines.instructions.md`](./provider-guidelines.instructions.md) - Azure resource validation examples
 
+**Quick Reference**: CustomizeDiff functions require dual imports:
 ```go
-package servicename
-
 import (
-    "context"
-    "fmt"
-
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"            // For *schema.ResourceDiff
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk" // For helpers
 )
-```
-
-**Standard CustomizeDiff Resource Pattern:**
-```go
-package servicename
-
-import (
-    "context"
-    "fmt"
-
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-)
-
-func resourceServiceName() *pluginsdk.Resource {
-    return &pluginsdk.Resource{
-        Create: resourceServiceNameCreate,
-        Read:   resourceServiceNameRead,
-        Update: resourceServiceNameUpdate,
-        Delete: resourceServiceNameDelete,
-
-        Timeouts: &pluginsdk.ResourceTimeout{
-            Create: pluginsdk.DefaultTimeout(30 * time.Minute),
-            Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-            Update: pluginsdk.DefaultTimeout(30 * time.Minute),
-            Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
-        },
-
-        Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-            _, err := parse.ServiceNameID(id)
-            return err
-        }),
-
-        Schema: map[string]*pluginsdk.Schema{
-            // Schema definitions use pluginsdk types
-        },
-
-        CustomizeDiff: pluginsdk.CustomDiffWithAll(
-            // Must use *schema.ResourceDiff from external package
-            pluginsdk.ForceNewIfChange("property_name", func(ctx context.Context, old, new, meta interface{}) bool {
-                return old.(string) != new.(string)
-            }),
-            pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
-                // Custom validation logic
-                if diff.Get("enabled").(bool) && diff.Get("configuration") == nil {
-                    return fmt.Errorf("configuration is required when enabled is true")
-                }
-                return nil
-            }),
-        ),
-    }
-}
-```
-
-**Azure Storage Account SKU and Kind Validation:**
-```go
-package storage
-
-import (
-    "context"
-    "fmt"
-
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-)
-
-func resourceAzureStorageAccount() *pluginsdk.Resource {
-    return &pluginsdk.Resource{
-        Create: resourceAzureStorageAccountCreate,
-        Read:   resourceAzureStorageAccountRead,
-        Update: resourceAzureStorageAccountUpdate,
-        Delete: resourceAzureStorageAccountDelete,
-
-        Timeouts: &pluginsdk.ResourceTimeout{
-            Create: pluginsdk.DefaultTimeout(60 * time.Minute),
-            Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
-            Update: pluginsdk.DefaultTimeout(60 * time.Minute),
-            Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
-        },
-
-        Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-            _, err := parse.StorageAccountID(id)
-            return err
-        }),
-
-        Schema: map[string]*pluginsdk.Schema{
-            "name": {
-                Type:         pluginsdk.TypeString,
-                Required:     true,
-                ForceNew:     true,
-                ValidateFunc: validation.StringIsNotEmpty,
-            },
-            "account_tier": {
-                Type:     pluginsdk.TypeString,
-                Required: true,
-                ValidateFunc: validation.StringInSlice([]string{
-                    "Standard",
-                    "Premium",
-                }, false),
-            },
-            "account_kind": {
-                Type:     pluginsdk.TypeString,
-                Optional: true,
-                Default:  "StorageV2",
-                ValidateFunc: validation.StringInSlice([]string{
-                    "BlobStorage",
-                    "BlockBlobStorage",
-                    "FileStorage",
-                    "Storage",
-                    "StorageV2",
-                }, false),
-            },
-            // ... other schema fields
-        },
-
-        CustomizeDiff: pluginsdk.CustomDiffWithAll(
-            // Azure SKU and Kind validation
-            pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
-                accountTier := diff.Get("account_tier").(string)
-                accountKind := diff.Get("account_kind").(string)
-                
-                if accountTier == "Premium" && accountKind != "BlockBlobStorage" && accountKind != "FileStorage" {
-                    return fmt.Errorf("`account_kind` must be `BlockBlobStorage` or `FileStorage` when `account_tier` is `Premium`")
-                }
-                return nil
-            }),
-            // Force recreation for Azure location changes
-            pluginsdk.ForceNewIfChange("location", func(ctx context.Context, old, new, meta interface{}) bool {
-                return old.(string) != new.(string)
-            }),
-        ),
-    }
-}
-```
-
-**Azure Virtual Machine SKU and Zone Validation:**
-```go
-package compute
-
-import (
-    "context"
-    "fmt"
-
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-)
-
-func resourceAzureVirtualMachine() *pluginsdk.Resource {
-    return &pluginsdk.Resource{
-        // ...existing CRUD functions and other configurations...
-
-        Schema: map[string]*pluginsdk.Schema{
-            // Schema definition
-        },
-
-        CustomizeDiff: pluginsdk.CustomDiffWithAll(
-            pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
-                size := diff.Get("size").(string)
-                zones := diff.Get("zones").([]interface{})
-                
-                // Check if VM size supports availability zones
-                if len(zones) > 0 && !supportsAvailabilityZones(size) {
-                    return fmt.Errorf("VM size `%s` does not support availability zones", size)
-                }
-                return nil
-            }),
-            pluginsdk.ForceNewIfChange("size", func(ctx context.Context, old, new, meta interface{}) bool {
-                // Force recreation when changing VM size
-                return old.(string) != new.(string)
-            }),
-        ),
-    }
-}
-```
-
-**Azure Premium SKU with Zone Redundancy:**
-```go
-package servicename
-
-import (
-    "context"
-    "fmt"
-
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-)
-
-func resourceAzurePremiumService() *pluginsdk.Resource {
-    return &pluginsdk.Resource{
-        // ...existing CRUD functions and other configurations...
-
-        Schema: map[string]*pluginsdk.Schema{
-            // Schema definition
-        },
-
-        CustomizeDiff: pluginsdk.CustomDiffWithAll(
-            pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
-                skuName := diff.Get("sku_name").(string)
-                zoneRedundant := diff.Get("zone_redundant").(bool)
-                
-                if skuName == "Premium" && !zoneRedundant {
-                    return fmt.Errorf("`zone_redundant` must be true for Premium SKU")
-                }
-                return nil
-            }),
-        ),
-    }
-}
-```
-
-**Azure CDN Front Door Log Scrubbing Validation:**
-```go
-package cdn
-
-import (
-    "context"
-    "fmt"
-
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-)
-
-func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
-    return &pluginsdk.Resource{
-        // ...existing CRUD functions and other configurations...
-
-        Schema: map[string]*pluginsdk.Schema{
-            // Schema definition
-        },
-
-        CustomizeDiff: pluginsdk.CustomDiffWithAll(
-            pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
-                // Validate log scrubbing configuration
-                if scrubbingRulesRaw, ok := diff.GetOk("log_scrubbing.0.scrubbing_rules"); ok {
-                    scrubbingRules := scrubbingRulesRaw.([]interface{})
-                    
-                    for i, ruleRaw := range scrubbingRules {
-                        rule := ruleRaw.(map[string]interface{})
-                        matchVariable := rule["match_variable"].(string)
-                        selector := rule["selector"].(string)
-                        
-                        // Azure API constraint: selector is required for QueryStringArgNames
-                        if matchVariable == "QueryStringArgNames" {
-                            if selector == "" {
-                                return fmt.Errorf("log_scrubbing.0.scrubbing_rules.%d: `selector` is required when `match_variable` is `%s`", i, matchVariable)
-                            }
-                        } else if matchVariable == "RequestIPAddress" || matchVariable == "RequestUri" {
-                            // Azure API constraint: selector cannot be set for RequestIPAddress and RequestUri
-                            if selector != "" {
-                                return fmt.Errorf("log_scrubbing.0.scrubbing_rules.%d: `selector` cannot be set when `match_variable` is `%s`", i, matchVariable)
-                            }
-                        }
-                    }
-                }
-                return nil
-            }),
-        ),
-    }
-}
 ```
 
 ### Migration Guidelines

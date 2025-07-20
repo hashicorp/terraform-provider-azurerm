@@ -1,4 +1,4 @@
-﻿---
+---
 applyTo: "internal/**/*.go"
 description: This document outlines the testing guidelines for Go files in the Terraform AzureRM provider repository. It includes unit test organization, acceptance test patterns, naming conventions, and best practices for Azure API integration testing.
 ---
@@ -8,23 +8,11 @@ Given below are the testing guidelines for the Terraform AzureRM provider which 
 
 ### Implementation Approach Testing Considerations
 
-#### Typed vs UnTyped Resource Testing
+#### Testing Approach Consistency
 
-While the core testing principles remain the same, there are some differences in testing patterns between Typed Resource and UnTyped Resource (Plugin SDK) resource implementations:
+While the core testing principles remain the same, there are some differences in testing patterns between Typed Resource and UnTyped Resource implementations:
 
-**Typed Resource Testing:**
-- Resources use the `internal/sdk` framework with type-safe models
-- Testing patterns leverage `sdk.ResourceFunc` return types with `metadata` access
-- Resource existence checks access clients through `metadata.Client`
-- Error handling and logging use structured `metadata` patterns
-- State management uses `metadata.Decode()` and `metadata.Encode()`
-
-**UnTyped Resource Testing:**
-- Resources use traditional Plugin SDK patterns with function-based CRUD
-- Testing patterns use direct `*pluginsdk.ResourceData` and `clients.Client` access
-- Resource existence checks use traditional client initialization patterns
-- Error handling uses traditional error patterns and direct state manipulation
-- State management uses `d.Set()` and `d.Get()` patterns
+**For detailed implementation approach information, see the main copilot instructions file.**
 
 **Testing Consistency Requirements:**
 - **User Experience**: Acceptance tests should be identical regardless of implementation approach

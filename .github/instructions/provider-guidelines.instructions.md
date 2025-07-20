@@ -17,10 +17,11 @@ Given below are the Azure-specific guidelines for this Terraform Provider projec
 
 ### Implementation Approach Guidelines
 
-#### Typed Resource Implementation (Preferred)
-For new resources and data sources, use the typed resource `internal/sdk` framework. For detailed patterns, see [`coding-patterns.instructions.md`](./coding-patterns.instructions.md) and [`coding-standards.instructions.md`](./coding-standards.instructions.md).
+**For detailed implementation approach documentation, see [`coding-patterns.instructions.md`](./coding-patterns.instructions.md) and [`coding-standards.instructions.md`](./coding-standards.instructions.md).**
 
-Azure-specific typed implementation requirements:
+#### Azure-Specific Implementation Requirements
+
+**Typed Resource Implementation (Preferred):**
 - Use type-safe model structures with `tfschema` tags for Azure resource properties
 - Leverage `metadata.Client` for Azure SDK client access and structured logging
 - Implement proper resource ID validation with Azure-specific parsing utilities
@@ -28,17 +29,14 @@ Azure-specific typed implementation requirements:
 - Handle Azure resource lifecycle with proper import conflict detection
 - Implement Azure resource existence checks using `metadata.MarkAsGone()`
 
-#### Untyped Resource Implementation (Maintenance Only)
-For existing resources that haven't been migrated, maintain the traditional Plugin SDK approach. For detailed patterns, see [`coding-patterns.instructions.md`](./coding-patterns.instructions.md).
-
-Azure-specific untyped implementation requirements:
+**UnTyped Resource Implementation (Maintenance Only):**
 - Use direct schema manipulation with proper Azure resource validation
 - Implement Azure API client initialization through `clients.Client`
 - Handle Azure resource state using `d.Set()` and `d.Get()` patterns
 - Use `tf.ImportAsExistsError()` for Azure resource import conflicts
 - Implement Azure resource cleanup with proper error handling
 
-#### Common Azure Requirements (Both Approaches)
+**Common Azure Requirements (Both Approaches):**
 - Follow the standard CRUD lifecycle: Create, Read, Update, Delete
 - Implement proper state management and drift detection for Azure resources
 - Use `ForceNew` for Azure properties that require resource recreation
