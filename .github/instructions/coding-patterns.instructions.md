@@ -951,6 +951,102 @@ func NewClient(o *common.ClientOptions) *Client {
 }
 ```
 
+#### Azure Client Usage Patterns
+
+**Typed Resource Client Usage:**
+```go
+package servicename
+
+import (
+    "context"
+    "fmt"
+
+    "github.com/hashicorp/go-azure-helpers/lang/pointer"
+
+    "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+)
+
+// Use metadata.Client for accessing clients
+client := metadata.Client.ServiceName.ResourceClient
+subscriptionId := metadata.Client.Account.SubscriptionId
+
+// Use pointer package for pointer operations
+// Common scenarios: optional Azure API parameters, nullable fields
+enabled := pointer.To(true)
+name := pointer.To("example-resource")
+
+// Use structured logging with metadata.Logger
+metadata.Logger.Infof("Creating %s", id)
+
+// Use proper error context with typed resource
+if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
+    return fmt.Errorf("creating %s: %+v", id, err)
+}
+
+// Use metadata for resource ID management
+metadata.SetID(id)
+
+// Use metadata for state encoding/decoding
+var model ServiceNameModel
+if err := metadata.Decode(&model); err != nil {
+    return fmt.Errorf("decoding: %+v", err)
+}
+return metadata.Encode(&model)
+```
+
+**untyped Client Usage:**
+```go
+package servicename
+
+import (
+    "context"
+    "fmt"
+
+    "github.com/hashicorp/go-azure-helpers/lang/pointer"
+
+    "github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicename/parse"
+)
+
+// Standard client initialization
+client := meta.(*clients.Client).ServiceName.ResourceClient
+
+// Use pointer package for pointer operations
+// Common scenarios: optional Azure API parameters, nullable fields
+enabled := pointer.To(d.Get("enabled").(bool))
+timeout := pointer.To(d.Get("timeout_seconds").(int))
+
+// Use resource ID parsing for type safety
+id := parse.NewResourceID(subscriptionId, resourceGroupName, resourceName)
+
+// Long-running operations
+if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+    return fmt.Errorf("creating Resource `%s`: %+v", id.ResourceName, err)
+}
+```
+
+#### Resource ID Management
+```go
+package servicename
+
+import (
+    "fmt"
+
+    "github.com/hashicorp/terraform-provider-azurerm/internal/services/servicename/parse"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
+// Parse resource IDs consistently
+id, err := parse.ResourceID(d.Id())
+if err != nil {
+    return fmt.Errorf("parsing Resource ID `%s`: %+v", d.Id(), err)
+}
+
+// Set resource ID after creation
+d.SetId(id.ID())
+```
+
 ### untyped Data Source Pattern
 
 #### Standard Data Source Structure
