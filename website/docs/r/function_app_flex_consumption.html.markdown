@@ -133,7 +133,7 @@ The following arguments are supported:
 
 * `maximum_instance_count` - (Optional) The number of workers this function app can scale out to.
 
-* `instance_memory_in_mb` - (Optional) The memory size of the instances on which your app runs. The [currently supported values](https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan#instance-memory) are `2048` or `4096`.
+* `instance_memory_in_mb` - (Optional) The memory size of the instances on which your app runs. The [currently supported values](https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan#instance-memory) are `512`,`2048` and `4096`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
 
