@@ -84,6 +84,7 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(autonomousdatabases.SourceTypeCloneToRefreshable),
+				string(autonomousdatabases.SourceTypeDatabase),
 			}, false),
 			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 				// Source is create-only and not returned by Azure API
