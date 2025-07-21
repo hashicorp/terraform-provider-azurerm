@@ -5,6 +5,7 @@ package oracle
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -90,7 +91,7 @@ func (d GiVersionsDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if state.Shape == "" || state.Zone == "" {
-				fmt.Printf("[WARN] GI Versions data source: Shape or Zone parameter is empty. This may result in unfiltered results from the API. Consider specifying both Shape and Zone for more precise version filtering.")
+				log.Printf("[WARN] GI Versions data source: Shape or Zone parameter is empty. This may result in unfiltered results from the API. Consider specifying both Shape and Zone for more precise version filtering.")
 			}
 
 			resp, err := client.ListByLocation(ctx, id, options)
