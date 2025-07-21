@@ -19,7 +19,7 @@ func TestGiVersionsDataSource_basic(t *testing.T) {
 		{
 			Config: r.basic(),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("versions.#").HasValue("4"),
+				check.That(data.ResourceName).Key("versions.#").HasValue("10"),
 			),
 		},
 	})
