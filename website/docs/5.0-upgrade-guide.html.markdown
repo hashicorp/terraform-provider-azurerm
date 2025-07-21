@@ -349,6 +349,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The property `minimum_tls_version` property no longer accepts `1.0` or `1.1` as a value.
 
+### `azurerm_security_center_automation`
+
+* Valid values for `action.type` have changed from `logicapp`, `eventhub`, and `loganalytics` to `LogicApp`, `EventHub`,  and `Workspace`.
+
 ### `azurerm_sentinel_alert_rule_fusion`
 
 * The deprecated `name` property has been removed.
