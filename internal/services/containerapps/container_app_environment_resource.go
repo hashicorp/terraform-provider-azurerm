@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -36,19 +37,20 @@ const (
 type ContainerAppEnvironmentResource struct{}
 
 type ContainerAppEnvironmentModel struct {
-	Name                                    string                         `tfschema:"name"`
-	ResourceGroup                           string                         `tfschema:"resource_group_name"`
-	Location                                string                         `tfschema:"location"`
-	DaprApplicationInsightsConnectionString string                         `tfschema:"dapr_application_insights_connection_string"`
-	LogAnalyticsWorkspaceId                 string                         `tfschema:"log_analytics_workspace_id"`
-	LogsDestination                         string                         `tfschema:"logs_destination"`
-	InfrastructureSubnetId                  string                         `tfschema:"infrastructure_subnet_id"`
-	InternalLoadBalancerEnabled             bool                           `tfschema:"internal_load_balancer_enabled"`
-	ZoneRedundant                           bool                           `tfschema:"zone_redundancy_enabled"`
-	Tags                                    map[string]interface{}         `tfschema:"tags"`
-	WorkloadProfiles                        []helpers.WorkloadProfileModel `tfschema:"workload_profile"`
-	InfrastructureResourceGroup             string                         `tfschema:"infrastructure_resource_group_name"`
-	Mtls                                    bool                           `tfschema:"mutual_tls_enabled"`
+	Name                                    string                                     `tfschema:"name"`
+	ResourceGroup                           string                                     `tfschema:"resource_group_name"`
+	Location                                string                                     `tfschema:"location"`
+	DaprApplicationInsightsConnectionString string                                     `tfschema:"dapr_application_insights_connection_string"`
+	LogAnalyticsWorkspaceId                 string                                     `tfschema:"log_analytics_workspace_id"`
+	LogsDestination                         string                                     `tfschema:"logs_destination"`
+	InfrastructureSubnetId                  string                                     `tfschema:"infrastructure_subnet_id"`
+	InternalLoadBalancerEnabled             bool                                       `tfschema:"internal_load_balancer_enabled"`
+	Identity                                []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	ZoneRedundant                           bool                                       `tfschema:"zone_redundancy_enabled"`
+	Tags                                    map[string]interface{}                     `tfschema:"tags"`
+	WorkloadProfiles                        []helpers.WorkloadProfileModel             `tfschema:"workload_profile"`
+	InfrastructureResourceGroup             string                                     `tfschema:"infrastructure_resource_group_name"`
+	Mtls                                    bool                                       `tfschema:"mutual_tls_enabled"`
 
 	CustomDomainVerificationId string `tfschema:"custom_domain_verification_id"`
 
@@ -169,6 +171,8 @@ func (r ContainerAppEnvironmentResource) Arguments() map[string]*pluginsdk.Schem
 			Optional:    true,
 			Default:     false,
 		},
+
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"tags": commonschema.Tags(),
 	}
@@ -305,6 +309,12 @@ func (r ContainerAppEnvironmentResource) Create() sdk.ResourceFunc {
 				managedEnvironment.Properties.VnetConfiguration.Internal = pointer.To(containerAppEnvironment.InternalLoadBalancerEnabled)
 			}
 
+			ident, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(containerAppEnvironment.Identity)
+			if err != nil {
+				return fmt.Errorf("expanding identity: %+v", err)
+			}
+			managedEnvironment.Identity = ident
+
 			managedEnvironment.Properties.WorkloadProfiles = helpers.ExpandWorkloadProfiles(containerAppEnvironment.WorkloadProfiles)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, managedEnvironment); err != nil {
@@ -337,13 +347,18 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 
 			var state ContainerAppEnvironmentModel
 
-			consumptionDefined := consumptionIsExplicitlyDefined(metadata)
-
 			if model := existing.Model; model != nil {
 				state.Name = id.ManagedEnvironmentName
 				state.ResourceGroup = id.ResourceGroupName
 				state.Location = location.Normalize(model.Location)
 				state.Tags = tags.Flatten(model.Tags)
+				if model.Identity != nil {
+					ident, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(model.Identity)
+					if err != nil {
+						return fmt.Errorf("flattening identity: %+v", err)
+					}
+					state.Identity = ident
+				}
 
 				if props := model.Properties; props != nil {
 					if vnet := props.VnetConfiguration; vnet != nil {
@@ -374,7 +389,7 @@ func (r ContainerAppEnvironmentResource) Read() sdk.ResourceFunc {
 					state.ZoneRedundant = pointer.From(props.ZoneRedundant)
 					state.StaticIP = pointer.From(props.StaticIP)
 					state.DefaultDomain = pointer.From(props.DefaultDomain)
-					state.WorkloadProfiles = helpers.FlattenWorkloadProfiles(props.WorkloadProfiles, consumptionDefined)
+					state.WorkloadProfiles = helpers.FlattenWorkloadProfiles(props.WorkloadProfiles)
 					state.InfrastructureResourceGroup = pointer.From(props.InfrastructureResourceGroup)
 					state.Mtls = pointer.From(props.PeerAuthentication.Mtls.Enabled)
 				}
@@ -448,6 +463,14 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 				payload.Tags = tags.Expand(state.Tags)
 			}
 
+			if metadata.ResourceData.HasChange("identity") {
+				ident, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(state.Identity)
+				if err != nil {
+					return fmt.Errorf("expanding identity: %+v", err)
+				}
+				existing.Model.Identity = ident
+			}
+
 			if metadata.ResourceData.HasChange("workload_profile") {
 				payload.Properties.WorkloadProfiles = helpers.ExpandWorkloadProfiles(state.WorkloadProfiles)
 			}
@@ -509,20 +532,6 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func consumptionIsExplicitlyDefined(metadata sdk.ResourceMetaData) bool {
-	config := ContainerAppEnvironmentModel{}
-	if err := metadata.Decode(&config); err != nil {
-		return false
-	}
-	for _, v := range config.WorkloadProfiles {
-		if v.Name == string(helpers.WorkloadProfileSkuConsumption) {
-			return true
-		}
-	}
-
-	return false
-}
-
 func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5,
@@ -532,17 +541,18 @@ func (r ContainerAppEnvironmentResource) CustomizeDiff() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceDiff.HasChange("workload_profile") {
-				oldProfiles, newProfiles := metadata.ResourceDiff.GetChange("workload_profile")
+				o, n := metadata.ResourceDiff.GetChange("workload_profile")
 
-				oldProfileCount := oldProfiles.(*pluginsdk.Set).Len()
-				newProfileCount := newProfiles.(*pluginsdk.Set).Len()
-				if oldProfileCount > 0 && newProfileCount == 0 {
+				oldProfiles := o.(*pluginsdk.Set)
+				newProfiles := n.(*pluginsdk.Set)
+
+				if oldProfiles.Len() > 0 && newProfiles.Len() == 0 && !helpers.OneAdditionalConsumptionProfileReturnedByAPI(oldProfiles, newProfiles) {
 					if err := metadata.ResourceDiff.ForceNew("workload_profile"); err != nil {
 						return err
 					}
 				}
 
-				if newProfileCount > 0 && oldProfileCount == 0 {
+				if newProfiles.Len() > 0 && oldProfiles.Len() == 0 {
 					if err := metadata.ResourceDiff.ForceNew("workload_profile"); err != nil {
 						return err
 					}

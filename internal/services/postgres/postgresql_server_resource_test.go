@@ -25,6 +25,10 @@ import (
 type PostgreSQLServerResource struct{}
 
 func TestAccPostgreSQLServer_basicNinePointFive(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_server` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -39,6 +43,10 @@ func TestAccPostgreSQLServer_basicNinePointFive(t *testing.T) {
 }
 
 func TestAccPostgreSQLServer_basicNinePointSix(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_server` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -53,6 +61,10 @@ func TestAccPostgreSQLServer_basicNinePointSix(t *testing.T) {
 }
 
 func TestAccPostgreSQLServer_basicTenPointZero(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_server` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -67,6 +79,10 @@ func TestAccPostgreSQLServer_basicTenPointZero(t *testing.T) {
 }
 
 func TestAccPostgreSQLServer_gpTenPointZero(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_server` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -81,6 +97,10 @@ func TestAccPostgreSQLServer_gpTenPointZero(t *testing.T) {
 }
 
 func TestAccPostgreSQLServer_moTenPointZero(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_server` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -95,6 +115,10 @@ func TestAccPostgreSQLServer_moTenPointZero(t *testing.T) {
 }
 
 func TestAccPostgreSQLServer_basicEleven(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_server` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -109,6 +133,10 @@ func TestAccPostgreSQLServer_basicEleven(t *testing.T) {
 }
 
 func TestAccPostgreSQLServer_basicWithIdentity(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_server` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -123,6 +151,10 @@ func TestAccPostgreSQLServer_basicWithIdentity(t *testing.T) {
 }
 
 func TestAccPostgreSQLServer_autogrowOnly(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_server` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 
@@ -145,6 +177,10 @@ func TestAccPostgreSQLServer_autogrowOnly(t *testing.T) {
 }
 
 func TestAccPostgreSQLServer_requiresImport(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_server` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 
@@ -160,6 +196,10 @@ func TestAccPostgreSQLServer_requiresImport(t *testing.T) {
 }
 
 func TestAccPostgreSQLServer_complete(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_server` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -174,6 +214,10 @@ func TestAccPostgreSQLServer_complete(t *testing.T) {
 }
 
 func TestAccPostgreSQLServer_updated(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_server` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -202,6 +246,10 @@ func TestAccPostgreSQLServer_updated(t *testing.T) {
 }
 
 func TestAccPostgreSQLServer_updateSKU(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_server` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -223,6 +271,10 @@ func TestAccPostgreSQLServer_updateSKU(t *testing.T) {
 }
 
 func TestAccPostgreSQLServer_createReplica(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_server` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -244,6 +296,10 @@ func TestAccPostgreSQLServer_createReplica(t *testing.T) {
 }
 
 func TestAccPostgreSQLServer_updateReplicaToDefault(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_server` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "replica")
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -266,6 +322,10 @@ func TestAccPostgreSQLServer_updateReplicaToDefault(t *testing.T) {
 
 // Update Admin Password in a separate call when Replication is stopped: https://github.com/Azure/azure-rest-api-specs/issues/16898
 func TestAccPostgreSQLServer_updateReplicaToDefaultAndSetPassword(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_server` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "replica")
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -287,6 +347,10 @@ func TestAccPostgreSQLServer_updateReplicaToDefaultAndSetPassword(t *testing.T) 
 }
 
 func TestAccPostgreSQLServer_scaleReplicas(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_server` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -330,6 +394,10 @@ func TestAccPostgreSQLServer_scaleReplicas(t *testing.T) {
 }
 
 func TestAccPostgreSQLServer_createPointInTimeRestore(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_server` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 	restoreTime := time.Now().Add(1 * time.Hour)
@@ -354,6 +422,10 @@ func TestAccPostgreSQLServer_createPointInTimeRestore(t *testing.T) {
 }
 
 func TestAccPostgreSQLServer_threatDetectionEmptyAttrs(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_server` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -369,8 +441,9 @@ func TestAccPostgreSQLServer_threatDetectionEmptyAttrs(t *testing.T) {
 
 func TestAccPostgreSQLServer_minTlsVersionOnServerUpdate(t *testing.T) {
 	if features.FivePointOh() {
-		t.Skipf("Skip this test since there is only one possible value `TLS1_2` for `ssl_minimal_tls_version_enforced`.")
+		t.Skipf("Skipping since `azurerm_postgresql_server` is deprecated and will be removed in 5.0")
 	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -390,6 +463,10 @@ func TestAccPostgreSQLServer_minTlsVersionOnServerUpdate(t *testing.T) {
 }
 
 func TestAccPostgreSQLServer_writeOnlyPassword(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_server` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 
@@ -414,6 +491,10 @@ func TestAccPostgreSQLServer_writeOnlyPassword(t *testing.T) {
 }
 
 func TestAccPostgreSQLServer_updateToWriteOnlyPassword(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_server` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_server", "test")
 	r := PostgreSQLServerResource{}
 
