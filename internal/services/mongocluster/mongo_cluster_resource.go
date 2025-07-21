@@ -91,7 +91,6 @@ func (r MongoClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"create_mode": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
 			Default:  string(mongoclusters.CreateModeDefault),
 			// Confirmed with service team the 'Default' and `GeoReplica` are the only accepted value currently, other values will be supported later.
 			ValidateFunc: validation.StringInSlice([]string{
@@ -577,6 +576,12 @@ func (r MongoClusterResource) CustomizeDiff() sdk.ResourceFunc {
 				}
 			}
 
+			// Since the API doesn't return the value of create_mode, when importing `azurerm_mongo_cluster`, it will cause replacement.
+			if oldVal, newVal := metadata.ResourceDiff.GetChange("create_mode"); oldVal.(string) != "" && oldVal.(string) != newVal.(string) {
+				if err := metadata.ResourceDiff.ForceNew("create_mode"); err != nil {
+					return err
+				}
+			}
 			return nil
 		},
 	}
