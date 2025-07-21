@@ -397,7 +397,7 @@ func resourceEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				return err
 			}
 
-			// API returns a bogus MessageRetentionInDays when TombstoneRetentionTimeInHours is set. Tracking issue: https://github.com/Azure/azure-rest-api-specs/issues/36018
+			// TODO - the `props.RetentionDescription.TombstoneRetentionTimeInHours == nil` check can be removed when https://github.com/Azure/azure-rest-api-specs/issues/36018 is fixed
 			if props.RetentionDescription == nil || props.RetentionDescription.TombstoneRetentionTimeInHours == nil {
 				d.Set("message_retention", props.MessageRetentionInDays)
 			}
