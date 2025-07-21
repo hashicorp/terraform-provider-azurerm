@@ -79,7 +79,7 @@ type CloudVmClusterDataModel struct {
 
 type FileSystemConfigurationModel struct {
 	MountPoint string `tfschema:"mount_point"`
-	SizeGb     int64  `tfschema:"size_gb"`
+	SizeInGb   int64  `tfschema:"size_in_gb"`
 }
 
 type DataCollectionOptionsModel struct {
@@ -227,7 +227,7 @@ func (d CloudVmClusterDataSource) Attributes() map[string]*pluginsdk.Schema {
 						Computed: true,
 					},
 
-					"size_gb": {
+					"size_in_gb": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},

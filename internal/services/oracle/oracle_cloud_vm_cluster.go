@@ -11,7 +11,7 @@ func FlattenFileSystemConfigurationDetails(input *[]cloudvmclusters.FileSystemCo
 		for _, item := range *input {
 			output = append(output, FileSystemConfigurationModel{
 				MountPoint: pointer.From(item.MountPoint),
-				SizeGb:     pointer.From(item.FileSystemSizeGb),
+				SizeInGb:   pointer.From(item.FileSystemSizeGb),
 			})
 		}
 	}
@@ -21,10 +21,13 @@ func FlattenFileSystemConfigurationDetails(input *[]cloudvmclusters.FileSystemCo
 func ExpandFileSystemConfiguration(fileSystemConfigurations []FileSystemConfigurationModel) *[]cloudvmclusters.FileSystemConfigurationDetails {
 	properties := make([]cloudvmclusters.FileSystemConfigurationDetails, 0)
 	for _, item := range fileSystemConfigurations {
-		properties = append(properties, cloudvmclusters.FileSystemConfigurationDetails{
-			MountPoint:       pointer.To(item.MountPoint),
-			FileSystemSizeGb: pointer.To(item.SizeGb),
-		})
+		// We need to skip mount points not allowed to resize
+		if item.MountPoint != "reserved" && item.MountPoint != "swap" && item.MountPoint != "/var/log/audit" {
+			properties = append(properties, cloudvmclusters.FileSystemConfigurationDetails{
+				MountPoint:       pointer.To(item.MountPoint),
+				FileSystemSizeGb: pointer.To(item.SizeInGb),
+			})
+		}
 	}
 	return &properties
 }

@@ -291,16 +291,15 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 
 		"file_system_configuration": {
-			Type:             pluginsdk.TypeList,
-			Optional:         true,
-			DiffSuppressFunc: SuppressFileSystemConfigurationDiff,
+			Type:     pluginsdk.TypeList,
+			Optional: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"mount_point": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 					},
-					"size_gb": {
+					"size_in_gb": {
 						Type:     pluginsdk.TypeInt,
 						Optional: true,
 					},
@@ -308,12 +307,6 @@ func (CloudVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
-}
-
-func SuppressFileSystemConfigurationDiff(_, old, new string, _ *schema.ResourceData) bool {
-	// We do not need to validate items changes for File System Configuration.
-	// This work will be done on the Oracle API side.
-	return true
 }
 
 func (CloudVmClusterResource) Attributes() map[string]*pluginsdk.Schema {
@@ -461,23 +454,18 @@ func (r CloudVmClusterResource) Update() sdk.ResourceFunc {
 			}
 
 			update := cloudvmclusters.CloudVMClusterUpdate{}
-			hasChanges := false
 			if metadata.ResourceData.HasChange("tags") {
-				hasChanges = true
 				update.Tags = pointer.To(model.Tags)
 			}
 
 			if metadata.ResourceData.HasChange("file_system_configuration") {
-				hasChanges = true
 				update.Properties = &cloudvmclusters.CloudVMClusterUpdateProperties{
 					FileSystemConfigurationDetails: ExpandFileSystemConfiguration(model.FileSystemConfiguration),
 				}
 			}
 
-			if hasChanges {
-				if err := client.UpdateThenPoll(ctx, *id, update); err != nil {
-					return fmt.Errorf("updating %s: %+v", *id, err)
-				}
+			if err := client.UpdateThenPoll(ctx, *id, update); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
 			return nil

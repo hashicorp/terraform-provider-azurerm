@@ -75,9 +75,9 @@ resource "azurerm_oracle_cloud_vm_cluster" "example" {
   hostname                        = "hostname"
   subnet_id                       = azurerm_subnet.example.id
   system_version                  = "23.1.19.0.0.241015"
-  file_system_configuration_details {
-    mount_point         = "/var"
-    file_system_size_gb = 32
+  file_system_configuration {
+    mount_point = "/var"
+    size_in_gb  = 32
   }
 }
 ```
@@ -112,7 +112,7 @@ The following arguments are supported:
 
 * `virtual_network_id` - (Required) The ID of the Virtual Network associated with the Cloud VM Cluster. Changing this forces a new Cloud VM Cluster to be created.
 
-* `file_system_configuration_details` - (Optional) A `file_system_configuration_details` block as defined below.
+* `file_system_configuration` - (Optional) A `file_system_configuration` block as defined below.
 
 ---
 
@@ -160,11 +160,11 @@ A `data_collection_options` block supports the following:
 
 ---
 
-A `file_system_configuration_details` block supports the following:
+A `file_system_configuration` block supports the following:
 
 * `mount_point` - (Optional) The mount path of the file system.
 
-* `file_system_size_gb` - (Optional) The size of the virtual machine's file system.
+* `size_in_gb` - (Optional) The size of the virtual machine's file system.
 
 ## Attributes Reference
 
