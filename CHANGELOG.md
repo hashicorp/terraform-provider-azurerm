@@ -1,6 +1,10 @@
 ## 4.38.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_management_group_policy_assignment` - improve validation for the `name` property [GH-30179]
+* `azurerm_resource_group_policy_assignment` - improve validation for the `name` property [GH-30179]
+* `azurerm_resource_policy_assignment` - improve validation for the `name` property [GH-30179]
+* `azurerm_subscription_policy_assignment` - improve validation for the `name` property [GH-30179]
 * `azurerm_managed_lustre_file_system` - add support for the `root_squash` block [GH-29876]
 * `azurerm_batch_pool` - fix `start_task.0.task_retry_maximum` validation [GH-30182]
 
