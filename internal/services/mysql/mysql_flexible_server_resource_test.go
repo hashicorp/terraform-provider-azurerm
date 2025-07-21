@@ -472,6 +472,29 @@ func TestAccMySqlFlexibleServer_enableGeoRedundantBackup(t *testing.T) {
 	})
 }
 
+func TestAccMySqlFlexibleServer_backupIntervalHours(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	r := MySqlFlexibleServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.backupIntervalHours(data, 24),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup_interval_hours").HasValue("24"),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup_interval_hours").HasValue("24"),
+			),
+		},
+		data.ImportStep("administrator_password"),
+	})
+}
+
 func TestAccMySqlFlexibleServer_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
 	r := MySqlFlexibleServerResource{}
@@ -1427,4 +1450,20 @@ resource "azurerm_mysql_flexible_server_configuration" "test" {
   value               = "ERROR_FOR_DIVISION_BY_ZERO,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_AUTO_VALUE_ON_ZERO"
 }
 `, r.template(data), data.RandomInteger, version)
+}
+
+func (r MySqlFlexibleServerResource) backupIntervalHours(data acceptance.TestData, backupIntervalHours int) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mysql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "_admin_Terraform_892123456789312"
+  administrator_password = "QAZwsx123"
+  sku_name               = "B_Standard_B1ms"
+  backup_interval_hours  = %d
+}
+`, r.template(data), data.RandomInteger, backupIntervalHours)
 }
