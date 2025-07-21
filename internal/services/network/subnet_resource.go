@@ -147,9 +147,9 @@ func resourceSubnet() *pluginsdk.Resource {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				DiffSuppressFunc: func(_, old, new string, d *schema.ResourceData) bool {
-					// If `ip_address_pool` is used instead of `address_space` there is a perpetual diff
+					// If `ip_address_pool` is used instead of `address_prefixes` there is a perpetual diff
 					// due to the API returning a CIDR range provisioned by the IP Address Management Pool.
-					// Note: using `GetRawConfig` to avoid suppressing a diff if a user updates from `ip_address_pool` to `address_space`.
+					// Note: using `GetRawConfig` to avoid suppressing a diff if a user updates from `ip_address_pool` to `address_prefixes`.
 					rawIpAddressPool := d.GetRawConfig().AsValueMap()["ip_address_pool"]
 					if !rawIpAddressPool.IsNull() && len(rawIpAddressPool.AsValueSlice()) > 0 {
 						return true
@@ -447,6 +447,10 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			}
 
 			props.IPamPoolPrefixAllocations = expandedIPAddressPool
+
+			// Set nil for AddressPrefixes when changing from `AddressPrefixes` to `IPAddressPool` but the change for `AddressPrefix` is not detected due to the diffSuppressFunc.
+			props.AddressPrefix = nil
+			props.AddressPrefixes = nil
 		} else {
 			props.IPamPoolPrefixAllocations = nil
 		}
