@@ -223,7 +223,7 @@ resource "azurerm_mssql_managed_instance_start_stop_schedule" "example" {
 
 The following arguments are supported:
 
-* `managed_instance_id` - (Required) Specifies the ID of the Sql Start Stop Managed Instance Schedule. Changing this forces a new Sql Start Stop Managed Instance Schedule to be created.
+* `managed_instance_id` - (Required) Specifies the ID of the Managed Instance. Changing this forces a new Sql Start Stop Managed Instance Schedule to be created.
 
 * `schedule` - (Required) A `schedule` block as defined below.
 
