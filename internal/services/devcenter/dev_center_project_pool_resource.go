@@ -147,8 +147,10 @@ func (r DevCenterProjectPoolResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(model.Tags),
 			}
 
-			if model.ManagedVirtualNetworkRegions != nil {
+			if len(model.ManagedVirtualNetworkRegions) != 0 {
 				parameters.Properties.VirtualNetworkType = pointer.To(pools.VirtualNetworkTypeManaged)
+			} else {
+				parameters.Properties.VirtualNetworkType = pointer.To(pools.VirtualNetworkTypeUnmanaged)
 			}
 
 			if model.LocalAdministratorEnabled {
@@ -243,12 +245,13 @@ func (r DevCenterProjectPoolResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("dev_center_attached_network_name") {
 				parameters.Properties.NetworkConnectionName = pointer.To(model.DevCenterAttachedNetworkName)
+				parameters.Properties.VirtualNetworkType = pointer.To(pools.VirtualNetworkTypeUnmanaged)
 			}
 
 			if metadata.ResourceData.HasChange("managed_virtual_network_regions") {
 				parameters.Properties.ManagedVirtualNetworkRegions = expandDevCenterProjectManagedVirtualNetworkRegions(model.ManagedVirtualNetworkRegions)
 
-				if model.ManagedVirtualNetworkRegions != nil {
+				if len(model.ManagedVirtualNetworkRegions) != 0 {
 					parameters.Properties.VirtualNetworkType = pointer.To(pools.VirtualNetworkTypeManaged)
 				}
 			}
