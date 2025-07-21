@@ -21,6 +21,9 @@ type mockRedisEnterpriseClient struct {
 }
 
 func (m *mockRedisEnterpriseClient) Get(ctx context.Context, id redisenterprise.RedisEnterpriseId) (redisenterprise.GetOperationResponse, error) {
+	if m.getError != nil && m.getResponse != nil {
+		return *m.getResponse, m.getError
+	}
 	if m.getError != nil {
 		return redisenterprise.GetOperationResponse{}, m.getError
 	}

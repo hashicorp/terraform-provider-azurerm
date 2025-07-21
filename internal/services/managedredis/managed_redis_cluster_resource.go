@@ -161,7 +161,7 @@ func (r ManagedRedisClusterResource) Create() sdk.ResourceFunc {
 
 			sku, err := parse.ManagedRedisCacheSkuName(model.SkuName)
 			if err != nil {
-				return fmt.Errorf("parsing `sku_name`: %+v", err)
+				return err
 			}
 
 			highAvailability := redisenterprise.HighAvailabilityEnabled
@@ -237,8 +237,10 @@ func (r ManagedRedisClusterResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 
-				if skuName := flattenManagedRedisClusterSku(model.Sku); skuName != nil {
-					state.SkuName = *skuName
+				if model.Sku.Capacity != nil {
+					state.SkuName = fmt.Sprintf("%s-%d", string(model.Sku.Name), *model.Sku.Capacity)
+				} else {
+					state.SkuName = string(model.Sku.Name)
 				}
 
 				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
@@ -295,10 +297,6 @@ func (r ManagedRedisClusterResource) Update() sdk.ResourceFunc {
 				parameters.Identity = expandedIdentity
 			}
 
-			if metadata.ResourceData.HasChange("minimum_tls_version") {
-				parameters.Properties.MinimumTlsVersion = pointer.To(redisenterprise.TlsVersion(state.MinimumTlsVersion))
-			}
-
 			if metadata.ResourceData.HasChange("tags") {
 				parameters.Tags = pointer.To(state.Tags)
 			}
@@ -338,19 +336,6 @@ func (r ManagedRedisClusterResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func flattenManagedRedisClusterSku(input redisenterprise.Sku) *string {
-	var skuName string
-
-	if input.Capacity != nil {
-		capacity := *input.Capacity
-		skuName = fmt.Sprintf("%s-%d", string(input.Name), capacity)
-	} else {
-		skuName = string(input.Name)
-	}
-
-	return pointer.To(skuName)
-}
-
 func expandManagedRedisClusterCustomerManagedKey(input []CustomerManagedKey) *redisenterprise.ClusterPropertiesEncryption {
 	if len(input) == 0 {
 		return &redisenterprise.ClusterPropertiesEncryption{}
@@ -375,11 +360,15 @@ func flattenManagedRedisClusterCustomerManagedKey(input *redisenterprise.Cluster
 	}
 
 	cmkEncryption := input.CustomerManagedKeyEncryption
+	uaiResourceId := ""
+	if cmkEncryption.KeyEncryptionKeyIdentity != nil {
+		uaiResourceId = pointer.From(cmkEncryption.KeyEncryptionKeyIdentity.UserAssignedIdentityResourceId)
+	}
 
 	return []CustomerManagedKey{
 		{
 			EncryptionKeyUrl:       pointer.From(cmkEncryption.KeyEncryptionKeyURL),
-			UserAssignedIdentityId: pointer.From(cmkEncryption.KeyEncryptionKeyIdentity.UserAssignedIdentityResourceId),
+			UserAssignedIdentityId: uaiResourceId,
 		},
 	}
 }

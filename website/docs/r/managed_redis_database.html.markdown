@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `clustering_policy` - (Optional) Clustering policy Specified at create time. Possible values are `EnterpriseCluster` and `OSSCluster`. Defaults to `OSSCluster`. Changing this forces a new Managed Redis Database to be created.
 
-* `eviction_policy` - (Optional) Redis eviction policy possible values are `AllKeysLFU`, `AllKeysLRU`, `AllKeysRandom`, `VolatileLRU`, `VolatileLFU`, `VolatileTTL`, `VolatileRandom` and `NoEviction`. Changing this forces a new Managed Redis Database to be created. Defaults to `VolatileLRU`.
+* `eviction_policy` - (Optional) Specifies the Redis eviction policy. Possible values are `AllKeysLFU`, `AllKeysLRU`, `AllKeysRandom`, `VolatileLRU`, `VolatileLFU`, `VolatileTTL`, `VolatileRandom` and `NoEviction`. Changing this forces a new Managed Redis Database to be created. Defaults to `VolatileLRU`.
 
 * `module` - (Optional) A `module` block as defined below. Changing this forces a new resource to be created.
 
@@ -76,7 +76,7 @@ The following arguments are supported:
 
 -> **Note:** Only the newly created databases can be added to an existing geo-replication group. Existing regular databases or recreated databases cannot be added to the existing geo-replication group. Any linked database removed from the list will be forcefully unlinked. The only recommended operation is to delete after force-unlink and the recommended scenario of force-unlink is region outage. The database cannot be linked again after force-unlink.
 
-* `linked_database_group_nickname` - (Optional) Nickname of the group of linked databases. Changing this force a new Managed Redis Database to be created.
+* `linked_database_group_nickname` - (Optional) Nickname of the group of linked databases. Changing this forces a new Managed Redis Database to be created.
 
 * `port` - (Optional) TCP port of the database endpoint. Specified at create time. Defaults to an available port. Changing this forces a new Managed Redis Database to be created. Defaults to `10000`.
 

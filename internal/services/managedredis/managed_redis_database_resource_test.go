@@ -8,13 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2025-04-01/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagedRedisDatabaseResource struct{}
@@ -138,6 +137,27 @@ func TestAccManagedRedisDatabase_unlinkDatabase(t *testing.T) {
 	})
 }
 
+func TestAccManagedRedisDatabase_enableAccessKeyAuth(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis_database", "test")
+	r := ManagedRedisDatabaseResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.accessKeyAuthEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ManagedRedisDatabaseResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := databases.ParseDatabaseID(state.ID)
 	if err != nil {
@@ -146,22 +166,14 @@ func (r ManagedRedisDatabaseResource) Exists(ctx context.Context, client *client
 
 	resp, err := client.ManagedRedis.DatabaseClient.Get(ctx, *id)
 	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
-		}
-
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ManagedRedisDatabaseResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-managedRedis-%[1]d"
   location = "eastus" # Hardcoded because feature not available in all regions
@@ -177,10 +189,6 @@ resource "azurerm_managed_redis_cluster" "test" {
 
 func (r ManagedRedisDatabaseResource) templateThreeClusters(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-managedRedis-%[1]d"
   location = "eastus" # Hardcoded because feature not available in all regions
@@ -209,6 +217,10 @@ resource "azurerm_managed_redis_cluster" "test2" {
 
 func (r ManagedRedisDatabaseResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_managed_redis_database" "test" {
@@ -220,6 +232,10 @@ resource "azurerm_managed_redis_database" "test" {
 
 func (r ManagedRedisDatabaseResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_managed_redis_database" "import" {
@@ -231,6 +247,10 @@ resource "azurerm_managed_redis_database" "import" {
 
 func (r ManagedRedisDatabaseResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_managed_redis_database" "test" {
@@ -269,7 +289,12 @@ resource "azurerm_managed_redis_database" "test" {
 
 func (r ManagedRedisDatabaseResource) geoDatabase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
+
 resource "azurerm_managed_redis_database" "test" {
   cluster_id = azurerm_managed_redis_cluster.test.id
 
@@ -290,7 +315,12 @@ resource "azurerm_managed_redis_database" "test" {
 
 func (r ManagedRedisDatabaseResource) geoDatabaseOtherEvictionPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
+
 resource "azurerm_managed_redis_database" "test" {
   cluster_id = azurerm_managed_redis_cluster.test.id
 
@@ -311,7 +341,12 @@ resource "azurerm_managed_redis_database" "test" {
 
 func (r ManagedRedisDatabaseResource) unlinkDatabase(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
+
 resource "azurerm_managed_redis_database" "test" {
   cluster_id = azurerm_managed_redis_cluster.test.id
 
@@ -331,7 +366,12 @@ resource "azurerm_managed_redis_database" "test" {
 
 func (r ManagedRedisDatabaseResource) geoDatabasewithModuleEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
+
 resource "azurerm_managed_redis_database" "test" {
   cluster_id = azurerm_managed_redis_cluster.test.id
 
@@ -355,7 +395,12 @@ resource "azurerm_managed_redis_database" "test" {
 
 func (r ManagedRedisDatabaseResource) geoDatabasewithRedisJsonModuleEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
+
 resource "azurerm_managed_redis_database" "test" {
   cluster_id = azurerm_managed_redis_cluster.test.id
 
@@ -375,4 +420,21 @@ resource "azurerm_managed_redis_database" "test" {
   linked_database_group_nickname = "tftestGeoGroup"
 }
 `, r.templateThreeClusters(data))
+}
+
+func (r ManagedRedisDatabaseResource) accessKeyAuthEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_managed_redis_database" "test" {
+  name       = "default"
+  cluster_id = azurerm_managed_redis_cluster.test.id
+
+  access_keys_authentication_enabled = true
+}
+`, r.template(data))
 }
