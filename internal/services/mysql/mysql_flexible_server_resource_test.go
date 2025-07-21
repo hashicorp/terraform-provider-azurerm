@@ -478,7 +478,14 @@ func TestAccMySqlFlexibleServer_backupIntervalHours(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.backupIntervalHours(data, 24),
+			Config: r.backupIntervalHours(data, 6),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("backup_interval_hours").HasValue("24"),
+			),
+		},
+		{
+			Config: r.backupIntervalHours(data, 12),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("backup_interval_hours").HasValue("24"),
