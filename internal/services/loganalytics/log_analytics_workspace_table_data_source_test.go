@@ -16,7 +16,7 @@ func TestLogAnalyticsWorkspaceTableDataSource_basic(t *testing.T) {
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basicWithDataSource(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("retention_in_days").HasValue("30"),
 				check.That(data.ResourceName).Key("total_retention_in_days").HasValue("30"),
@@ -26,7 +26,7 @@ func TestLogAnalyticsWorkspaceTableDataSource_basic(t *testing.T) {
 	})
 }
 
-func (LogAnalyticsWorkspaceTableDataSource) basic(data acceptance.TestData) string {
+func (d LogAnalyticsWorkspaceTableDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
 		features {}
@@ -48,11 +48,18 @@ resource "azurerm_log_analytics_workspace" "this" {
   	env = "test"
  	}
 }
+`, data.Locations.Primary, data.Locations.Primary)
+}
+
+func (d LogAnalyticsWorkspaceTableDataSource) basicWithDataSource(data acceptance.TestData) string {
+	config := d.basic(data)
+	return fmt.Sprintf(`
+%s
 
 data "azurerm_log_analytics_workspace_table" "this" {
 	name                = "InsightsMetrics"
 	workspace_id        = azurerm_log_analytics_workspace.this.id
 	resource_group_name = "test-resource-group"
 }
-`, data.Locations.Primary, data.Locations.Primary)
+`, config)
 }
