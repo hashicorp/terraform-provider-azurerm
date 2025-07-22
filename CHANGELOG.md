@@ -1,6 +1,14 @@
 ## 4.38.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `go-azure-sdk` update to v0.20250716.1144812 [GH-30171]
+* dependencies: `golang.org/x/crypto` update to `v0.40.0` [GH-30171]
+* dependencies: `golang.org/x/mod` update to `v0.26.0` [GH-30171]
+* dependencies: `golang.org/x/net` update to `v0.42.0` [GH-30171]
+* dependencies: `golang.org/x/sync` update to `v0.16.0` [GH-30171]
+* dependencies: `golang.org/x/sys` update to `v0.34.0` [GH-30171]
+* dependencies: `golang.org/x/text` update to `v0.27.0` [GH-30171]
+* dependencies: `golang.org/x/tools` update to `v0.35.0` [GH-30171]
 * `azurerm_management_group_policy_assignment` - improve validation for the `name` property [GH-30179]
 * `azurerm_resource_group_policy_assignment` - improve validation for the `name` property [GH-30179]
 * `azurerm_resource_policy_assignment` - improve validation for the `name` property [GH-30179]
