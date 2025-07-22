@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
@@ -19,6 +20,7 @@ type LogAnalyticsWorkspaceTableDataSourceModel struct {
 	ResourceGroupName    string `tfschema:"resource_group_name"`
 	Name                 string `tfschema:"name"`
 	WorkspaceId          string `tfschema:"workspace_id"`
+	Plan                 string `tfschema:"plan"`
 	RetentionInDays      int64  `tfschema:"retention_in_days"`
 	TotalRetentionInDays int64  `tfschema:"total_retention_in_days"`
 }
@@ -33,7 +35,7 @@ func (LogAnalyticsWorkspaceTableDataSource) Arguments() map[string]*pluginsdk.Sc
 			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
-		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+		"resource_group_name": commonschema.ResourceGroupName(),
 	}
 }
 
@@ -45,6 +47,10 @@ func (LogAnalyticsWorkspaceTableDataSource) Attributes() map[string]*pluginsdk.S
 		},
 		"total_retention_in_days": {
 			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+		"plan": {
+			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 	}
@@ -91,8 +97,9 @@ func (LogAnalyticsWorkspaceTableDataSource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				props := model.Properties
 				if props != nil {
-					state.RetentionInDays = *props.RetentionInDays
-					state.TotalRetentionInDays = *props.TotalRetentionInDays
+					state.RetentionInDays = pointer.From(props.RetentionInDays)
+					state.TotalRetentionInDays = pointer.From(props.TotalRetentionInDays)
+					state.Plan = string(pointer.From(props.Plan))
 				}
 			}
 			return metadata.Encode(&state)

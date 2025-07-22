@@ -1,7 +1,7 @@
 ---
 subcategory: "Log Analytics"
 layout: "azurerm"
-page_title: "Azure Resource Manager: Data Source: azurerm_log_analytics_workspace_table"
+page_title: "Azure Resource Manager: azurerm_log_analytics_workspace_table"
 description: |-
   Gets information about an existing log_analytics_workspace.
 ---
@@ -15,8 +15,8 @@ Use this data source to access information about an existing log_analytics_works
 ```hcl
 
 data "azurerm_log_analytics_workspace_table" "this" {
-	name = "InsightsMetrics"
-  workspace_id = azurerm_log_analytics_workspace.this.id
+  name                = "InsightsMetrics"
+  workspace_id        = azurerm_log_analytics_workspace.this.id
   resource_group_name = "test-resource-group"
 }
 
@@ -39,12 +39,12 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `retention_in_days` - table retention.
+* `retention_in_days` - The table's data retention in days.
 
-* `total_retention_in_days` - total table retention.
+* `total_retention_in_days` - The table's total data retention in days.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the log_analytics_workspace.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Log Analytics Workspae Table.
