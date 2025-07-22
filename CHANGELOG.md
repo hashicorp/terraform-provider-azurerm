@@ -24,6 +24,7 @@ FEATURES:
 * **New Resource**: - `azurerm_mssql_managed_instance_start_stop_schedule` [GH-26702]
 
 BUG FIXES:
+* `azurerm_postgresql_flexible_server_virtual_endpoint` - no longer causes an error when `replica_server_id` is from another subscription [GH-29270]
 * `azurerm_container_app_environment` - no longer panics when `log_analytics_workspace_id` is from another subscription [GH-29829]
 * `azurerm_eventhub` - fix perpetual diff with `message_retention` [GH-30169]
 * `azurerm_service_plan` - fix an issue that prevented supported SKUs from specifying `zone_balancing_enabled` as `true` [GH-30165]
