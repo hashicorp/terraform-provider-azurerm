@@ -81,7 +81,8 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 				return false
 			}),
 
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			// Validate network interface auxiliary mode and sku requirements
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
 				networkInterfaces := diff.Get("network_interface").([]interface{})
 				for _, v := range networkInterfaces {
 					raw := v.(map[string]interface{})
@@ -94,6 +95,47 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 
 					if auxiliarySku != "" && auxiliaryMode == "" {
 						return fmt.Errorf("when `auxiliary_sku` is set, `auxiliary_mode` must also be set")
+					}
+				}
+
+				return nil
+			}),
+
+			// Validate resiliency policy zone requirements
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
+				resiliencyRaw := diff.Get("resiliency").([]interface{})
+				if len(resiliencyRaw) == 0 || resiliencyRaw[0] == nil {
+					return nil
+				}
+
+				resiliency := resiliencyRaw[0].(map[string]interface{})
+				automaticZoneRebalancingRaw := resiliency["automatic_zone_rebalancing"].([]interface{})
+
+				if len(automaticZoneRebalancingRaw) > 0 && automaticZoneRebalancingRaw[0] != nil {
+					zones := diff.Get("zones").(*schema.Set)
+					if zones.Len() < 2 {
+						return fmt.Errorf("`automatic_zone_rebalancing` can only be configured when the Virtual Machine Scale Set is deployed across multiple `zones`")
+					}
+				}
+
+				return nil
+			}),
+
+			// Validate resiliency policy health probe requirements for zone rebalancing
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
+				resiliencyRaw := diff.Get("resiliency").([]interface{})
+				if len(resiliencyRaw) == 0 || resiliencyRaw[0] == nil {
+					return nil
+				}
+
+				resiliency := resiliencyRaw[0].(map[string]interface{})
+				automaticZoneRebalancingRaw := resiliency["automatic_zone_rebalancing"].([]interface{})
+
+				if len(automaticZoneRebalancingRaw) > 0 && automaticZoneRebalancingRaw[0] != nil {
+					// Check if health_probe_id is configured using GetRawConfig to detect if field was set
+					healthProbeIdIsNull := diff.GetRawConfig().AsValueMap()["health_probe_id"].IsNull()
+					if healthProbeIdIsNull {
+						return fmt.Errorf("`automatic_zone_rebalancing` requires a `health_probe_id` to be configured. Azure requires health probes to be applied to all instances when automatic zone rebalancing is `enabled`")
 					}
 				}
 
@@ -447,6 +489,11 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		props.Properties.SpotRestorePolicy = spotRestorePolicy
 	}
 
+	resiliencyRaw := d.Get("resiliency").([]interface{})
+	resilientVMCreationEnabled := d.Get("resilient_vm_creation_enabled").(bool)
+	resilientVMDeletionEnabled := d.Get("resilient_vm_deletion_enabled").(bool)
+	props.Properties.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(resiliencyRaw, resilientVMCreationEnabled, resilientVMDeletionEnabled)
+
 	if len(zones) > 0 {
 		props.Zones = &zones
 	}
@@ -721,6 +768,12 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		}
 	}
 
+	if d.HasChange("resiliency") || d.HasChange("resilient_vm_creation_enabled") || d.HasChange("resilient_vm_deletion_enabled") {
+		resilientVMCreationEnabled := d.Get("resilient_vm_creation_enabled").(bool)
+		resilientVMDeletionEnabled := d.Get("resilient_vm_deletion_enabled").(bool)
+		updateProps.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(d.Get("resiliency").([]interface{}), resilientVMCreationEnabled, resilientVMDeletionEnabled)
+	}
+
 	if d.HasChange("termination_notification") {
 		notificationRaw := d.Get("termination_notification").([]interface{})
 		updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
@@ -932,6 +985,11 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 			if props.SpotRestorePolicy != nil {
 				d.Set("spot_restore", FlattenVirtualMachineScaleSetSpotRestorePolicy(props.SpotRestorePolicy))
 			}
+
+			resiliencyConfig, resilientVMCreationEnabled, resilientVMDeletionEnabled := FlattenVirtualMachineScaleSetResiliency(props.ResiliencyPolicy)
+			d.Set("resiliency", resiliencyConfig)
+			d.Set("resilient_vm_creation_enabled", resilientVMCreationEnabled)
+			d.Set("resilient_vm_deletion_enabled", resilientVMDeletionEnabled)
 
 			var upgradeMode virtualmachinescalesets.UpgradeMode
 			if policy := props.UpgradePolicy; policy != nil && policy.Mode != nil {
@@ -1463,6 +1521,20 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"scale_in": VirtualMachineScaleSetScaleInPolicySchema(),
 
 		"spot_restore": VirtualMachineScaleSetSpotRestorePolicySchema(),
+
+		"resiliency": VirtualMachineScaleSetResiliencySchema(),
+
+		"resilient_vm_creation_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"resilient_vm_deletion_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
 
 		"termination_notification": VirtualMachineScaleSetTerminationNotificationSchema(),
 

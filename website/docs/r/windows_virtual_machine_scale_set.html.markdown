@@ -83,6 +83,148 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 }
 ```
 
+## Example Usage - With Resiliency
+
+The following example shows how to configure resiliency policies for a Windows Virtual Machine Scale Set:
+
+```hcl
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_virtual_network" "example" {
+  name                = "example-network"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "internal" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_windows_virtual_machine_scale_set" "example" {
+  name                 = "example-vmss"
+  resource_group_name  = azurerm_resource_group.example.name
+  location             = azurerm_resource_group.example.location
+  sku                  = "Standard_F2"
+  instances            = 1
+  admin_password       = "P@55w0rd1234!"
+  admin_username       = "adminuser"
+  computer_name_prefix = "vm-"
+
+  zones = ["1", "2", "3"]
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2022-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.internal.id
+    }
+  }
+
+  resiliency {
+    automatic_zone_rebalancing {
+      rebalance_behavior = "CreateBeforeDelete"
+      rebalance_strategy = "Recreate"
+    }
+  }
+
+  resilient_vm_creation_enabled = true
+  resilient_vm_deletion_enabled = true
+}
+```
+
+## Example Usage - VM Resilient Policies Only
+
+The following example shows how to configure only VM resilient policies without automatic zone rebalancing:
+
+```hcl
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_virtual_network" "example" {
+  name                = "example-network"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_subnet" "internal" {
+  name                 = "internal"
+  resource_group_name  = azurerm_resource_group.example.name
+  virtual_network_name = azurerm_virtual_network.example.name
+  address_prefixes     = ["10.0.2.0/24"]
+}
+
+resource "azurerm_windows_virtual_machine_scale_set" "example" {
+  name                 = "example-vmss"
+  resource_group_name  = azurerm_resource_group.example.name
+  location             = azurerm_resource_group.example.location
+  sku                  = "Standard_F2"
+  instances            = 1
+  admin_password       = "P@55w0rd1234!"
+  admin_username       = "adminuser"
+  computer_name_prefix = "vm-"
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2022-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.internal.id
+    }
+  }
+
+  # Note: resiliency block omitted since we only want VM policies without automatic zone rebalancing
+  resilient_vm_creation_enabled = true
+  resilient_vm_deletion_enabled = true
+}
+```
+
 ## Argument Reference
 
 * `name` - (Required) The name of the Windows Virtual Machine Scale Set. Changing this forces a new resource to be created.
@@ -182,6 +324,12 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 * `provision_vm_agent` - (Optional) Should the Azure VM Agent be provisioned on each Virtual Machine in the Scale Set? Defaults to `true`. Changing this value forces a new resource to be created.
 
 * `proximity_placement_group_id` - (Optional) The ID of the Proximity Placement Group in which the Virtual Machine Scale Set should be assigned to. Changing this forces a new resource to be created.
+
+* `resilient_vm_creation_enabled` - (Optional) Should resilient VM creation be enabled? When enabled, the service will attempt to create VMs in alternative fault domains or zones if the primary location fails during creation. Defaults to `false`.
+
+* `resilient_vm_deletion_enabled` - (Optional) Should resilient VM deletion be enabled? When enabled, the service will use a more resilient deletion process that attempts to gracefully handle failures during VM termination. Defaults to `false`.
+
+* `resiliency` - (Optional) A `resiliency` block as defined below.
 
 * `rolling_upgrade_policy` - (Optional) A `rolling_upgrade_policy` block as defined below. This is Required and can only be specified when `upgrade_mode` is set to `Automatic` or `Rolling`. Changing this forces a new resource to be created.
 
@@ -337,7 +485,7 @@ An `extension` block supports the following:
 
 * `auto_upgrade_minor_version` - (Optional) Should the latest version of the Extension be used at Deployment Time, if one is available? This won't auto-update the extension on existing installation. Defaults to `true`.
 
-* `automatic_upgrade_enabled` - (Optional) Should the Extension be automatically updated whenever the Publisher releases a new version of this VM Extension? 
+* `automatic_upgrade_enabled` - (Optional) Should the Extension be automatically updated whenever the Publisher releases a new version of this VM Extension?
 
 * `force_update_tag` - (Optional) A value which, when different to the previous value can be used to force-run the Extension even if the Extension Configuration hasn't changed.
 
@@ -529,6 +677,24 @@ A `public_ip_address` block supports the following:
 
 ---
 
+A `resiliency` block supports the following:
+
+* `automatic_zone_rebalancing` - (Optional) An `automatic_zone_rebalancing` block as defined below. When specified, automatic zone rebalancing is `enabled`. When omitted, automatic zone rebalancing is `disabled`.
+
+~> **Note:** The `automatic_zone_rebalancing` block can only be configured when the Virtual Machine Scale Set is deployed across multiple `zones` (at least `2` zones must be specified).
+
+~> **Note:** Automatic Zone Rebalancing requires a `health_probe_id` to be configured on the Virtual Machine Scale Set. Azure requires health probes to be applied to all instances when automatic zone rebalancing is `enabled`. Without proper health probe configuration, Azure will return errors such as `BadRequest: Automatic Zone Rebalancing not supported for this Virtual Machine Scale Set because a health probe or health extension was not provided` or `BadRequest: Automatic Zone Rebalancing not supported for this Virtual Machine Scale Set because a health probe is not applied to all instances`.
+
+---
+
+An `automatic_zone_rebalancing` block supports the following:
+
+* `rebalance_behavior` - (Optional) The rebalance behavior when automatic zone rebalancing is triggered. Possible values are `CreateBeforeDelete`. Defaults to `CreateBeforeDelete`.
+
+* `rebalance_strategy` - (Optional) The rebalance strategy when automatic zone rebalancing is triggered. Possible values are `Recreate`. Defaults to `Recreate`.
+
+---
+
 A `rolling_upgrade_policy` block supports the following:
 
 * `cross_zone_upgrades_enabled` - (Optional) Should the Virtual Machine Scale Set ignore the Azure Zone boundaries when constructing upgrade batches? Possible values are `true` or `false`.
@@ -559,7 +725,7 @@ A `secret` block supports the following:
 
 A `termination_notification` block supports the following:
 
-* `enabled` - (Required) Should the termination notification be enabled on this Virtual Machine Scale Set? 
+* `enabled` - (Required) Should the termination notification be enabled on this Virtual Machine Scale Set?
 
 * `timeout` - (Optional) Length of time (in minutes, between 5 and 15) a notification to be sent to the VM on the instance metadata server till the VM gets deleted. The time duration should be specified in ISO 8601 format. Defaults to `PT5M`.
 
