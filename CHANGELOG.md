@@ -1,6 +1,7 @@
 ## 4.38.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_subnet` - add support for the `ip_address_pool` block [GH-29840]
 * dependencies: `go-azure-sdk` update to v0.20250716.1144812 [GH-30171]
 * dependencies: `golang.org/x/crypto` update to `v0.40.0` [GH-30171]
 * dependencies: `golang.org/x/mod` update to `v0.26.0` [GH-30171]
