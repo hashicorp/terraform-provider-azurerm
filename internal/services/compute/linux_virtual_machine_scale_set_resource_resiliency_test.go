@@ -341,20 +341,7 @@ func TestAccLinuxVirtualMachineScaleSet_resiliency_CustomizeDiffValidation(t *te
 // Test configurations
 
 // loadBalancerInfrastructureTemplate generates the common load balancer infrastructure
-func (LinuxVirtualMachineScaleSetResource) loadBalancerInfrastructureTemplate(data acceptance.TestData, probeProtocol string, probePort int, probeName string, requestPath string) string {
-	probeConfig := fmt.Sprintf(`
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "%s"
-  port                = %d
-  protocol            = "%s"
-  interval_in_seconds = 15
-  number_of_probes    = 2`, probeName, probePort, probeProtocol)
-
-	// Add request_path for HTTP probes
-	if probeProtocol == "Http" && requestPath != "" {
-		probeConfig += fmt.Sprintf(`  request_path        = "%s"`, requestPath)
-	}
-
+func (LinuxVirtualMachineScaleSetResource) loadBalancerInfrastructureTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_public_ip" "test" {
   name                = "acctestpip-%d"
@@ -382,19 +369,24 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-%s
+  loadbalancer_id     = azurerm_lb.test.id
+  name                = "ssh-running-probe"
+  port                = 22
+  protocol            = "Tcp"
+  interval_in_seconds = 15
+  number_of_probes    = 2
 }
 
 resource "azurerm_lb_rule" "test" {
   loadbalancer_id                = azurerm_lb.test.id
-  name                           = "LBRule"
+  name                           = "AccTestLBRule"
   protocol                       = "Tcp"
-  frontend_port                  = %d
-  backend_port                   = %d
+  frontend_port                  = 22
+  backend_port                   = 22
   frontend_ip_configuration_name = "PublicIPAddress"
   probe_id                       = azurerm_lb_probe.test.id
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
-}`, data.RandomInteger, data.RandomInteger, probeConfig, probePort, probePort)
+}`, data.RandomInteger, data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) resiliencyBasic(data acceptance.TestData) string {
@@ -508,7 +500,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   resilient_vm_creation_enabled = true
   resilient_vm_deletion_enabled = true
 }
-`, r.template(data), r.loadBalancerInfrastructureTemplate(data, "Tcp", 22, "ssh-running-probe", ""), data.RandomInteger)
+`, r.template(data), r.loadBalancerInfrastructureTemplate(data), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) resiliencyZoneRebalancingOnlyWithHealthProbe(data acceptance.TestData) string {
@@ -767,7 +759,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   resilient_vm_creation_enabled = true
   resilient_vm_deletion_enabled = true
 }
-`, r.template(data), r.loadBalancerInfrastructureTemplate(data, "Tcp", 22, "ssh-running-probe", ""), data.RandomInteger)
+`, r.template(data), r.loadBalancerInfrastructureTemplate(data), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) resiliencyVMPoliciesOnlyMultipleZones(data acceptance.TestData) string {
@@ -828,7 +820,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   resilient_vm_creation_enabled = true
   resilient_vm_deletion_enabled = true
 }
-`, r.template(data), r.loadBalancerInfrastructureTemplate(data, "Tcp", 22, "ssh-running-probe", ""), data.RandomInteger)
+`, r.template(data), r.loadBalancerInfrastructureTemplate(data), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) resiliencyInvalidRebalanceBehavior(data acceptance.TestData) string {
@@ -1344,7 +1336,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   resilient_vm_creation_enabled = true
   resilient_vm_deletion_enabled = true
 }
-`, r.template(data), r.loadBalancerInfrastructureTemplate(data, "Tcp", 22, "ssh-running-probe", ""), data.RandomInteger)
+`, r.template(data), r.loadBalancerInfrastructureTemplate(data), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) resiliencyMinimalWithHealthProbeConsistent(data acceptance.TestData) string {
@@ -1406,7 +1398,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   resilient_vm_creation_enabled = false
   resilient_vm_deletion_enabled = false
 }
-`, r.template(data), r.loadBalancerInfrastructureTemplate(data, "Tcp", 22, "ssh-running-probe", ""), data.RandomInteger)
+`, r.template(data), r.loadBalancerInfrastructureTemplate(data), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) resiliencyMinimalWithHealthProbeConsistentScaledDown(data acceptance.TestData) string {
@@ -1468,5 +1460,5 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   resilient_vm_creation_enabled = false
   resilient_vm_deletion_enabled = false
 }
-`, r.templateWithForceDelete(data), r.loadBalancerInfrastructureTemplate(data, "Tcp", 22, "ssh-running-probe", ""), data.RandomInteger)
+`, r.templateWithForceDelete(data), r.loadBalancerInfrastructureTemplate(data), data.RandomInteger)
 }

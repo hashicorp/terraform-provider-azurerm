@@ -321,15 +321,7 @@ func TestAccWindowsVirtualMachineScaleSet_resiliency_CustomizeDiffValidation(t *
 // Test configurations
 
 // loadBalancerInfrastructureTemplate generates the common load balancer infrastructure
-func (WindowsVirtualMachineScaleSetResource) loadBalancerInfrastructureTemplate(data acceptance.TestData, probeProtocol string, probePort int, probeName string, requestPath string) string {
-	probeConfig := fmt.Sprintf(`
-  loadbalancer_id     = azurerm_lb.test.id
-  name                = "%s"
-  port                = %d
-  protocol            = "%s"
-  interval_in_seconds = 15
-  number_of_probes    = 2`, probeName, probePort, probeProtocol)
-
+func (WindowsVirtualMachineScaleSetResource) loadBalancerInfrastructureTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_public_ip" "test" {
   name                = "acctestpip-%d"
@@ -357,21 +349,26 @@ resource "azurerm_lb_backend_address_pool" "test" {
 }
 
 resource "azurerm_lb_probe" "test" {
-%s
+  loadbalancer_id     = azurerm_lb.test.id
+  name                = "rdp-running-probe"
+  port                = 3389
+  protocol            = "Tcp"
+  interval_in_seconds = 15
+  number_of_probes    = 2
 }
 
 resource "azurerm_lb_rule" "test" {
   loadbalancer_id                = azurerm_lb.test.id
   name                           = "AccTestLBRule"
   protocol                       = "Tcp"
-  frontend_port                  = %d
-  backend_port                   = %d
+  frontend_port                  = 3389
+  backend_port                   = 3389
   frontend_ip_configuration_name = "PublicIPAddress"
   probe_id                       = azurerm_lb_probe.test.id
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.test.id]
   enable_tcp_reset               = false
   enable_floating_ip             = false
-}`, data.RandomInteger, data.RandomInteger, probeConfig, probePort, probePort)
+}`, data.RandomInteger, data.RandomInteger)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) resiliencyBasic(data acceptance.TestData) string {
@@ -483,7 +480,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   resilient_vm_creation_enabled = true
   resilient_vm_deletion_enabled = true
 }
-`, r.template(data), r.loadBalancerInfrastructureTemplate(data, "Tcp", 3389, "rdp-running-probe", ""), data.RandomInteger)
+`, r.template(data), r.loadBalancerInfrastructureTemplate(data), data.RandomInteger)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) resiliencyZoneRebalancingOnlyWithHealthProbe(data acceptance.TestData) string {
@@ -739,7 +736,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   resilient_vm_creation_enabled = true
   resilient_vm_deletion_enabled = true
 }
-`, r.template(data), r.loadBalancerInfrastructureTemplate(data, "Tcp", 3389, "rdp-running-probe", ""), data.RandomInteger)
+`, r.template(data), r.loadBalancerInfrastructureTemplate(data), data.RandomInteger)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) resiliencyVMPoliciesOnlyMultipleZones(data acceptance.TestData) string {
@@ -800,7 +797,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   resilient_vm_creation_enabled = true
   resilient_vm_deletion_enabled = true
 }
-`, r.template(data), r.loadBalancerInfrastructureTemplate(data, "Tcp", 3389, "rdp-running-probe", ""), data.RandomInteger)
+`, r.template(data), r.loadBalancerInfrastructureTemplate(data), data.RandomInteger)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) resiliencyInvalidRebalanceBehavior(data acceptance.TestData) string {
@@ -1174,7 +1171,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   resilient_vm_creation_enabled = true
   resilient_vm_deletion_enabled = false
 }
-`, r.template(data), r.loadBalancerInfrastructureTemplate(data, "Tcp", 3389, "rdp-running-probe", ""), data.RandomInteger)
+`, r.template(data), r.loadBalancerInfrastructureTemplate(data), data.RandomInteger)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) resiliencyZoneRebalancingWithoutHealthProbe(data acceptance.TestData) string {
