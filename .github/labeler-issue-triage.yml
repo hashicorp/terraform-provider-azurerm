@@ -119,6 +119,9 @@ service/datadog:
 service/dev-center:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_dev_center((.|\n)*)###'
 
+service/deviceregistry:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_device_registry_asset((.|\n)*)###'
+
 service/devtestlabs:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_dev_test_((.|\n)*)###'
 

@@ -198,6 +198,11 @@ service/dev-center:
   - any-glob-to-any-file:
     - internal/services/devcenter/**/*
 
+service/deviceregistry:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/deviceregistry/**/*
+
 service/devtestlabs:
 - changed-files:
   - any-glob-to-any-file:

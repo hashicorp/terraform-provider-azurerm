@@ -1,0 +1,102 @@
+#!/bin/bash
+
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+export SUBSCRIPTION_ID=${subscription_id}
+export RESOURCE_GROUP=${resource_group_name}
+export CLUSTER_NAME=${cluster_name}
+export LOCATION=${location}
+export AIO_CLUSTER_NAME=${aio_cluster_resource_name}
+export AIO_CLUSTER_CUSTOM_LOCATION_NAME=${custom_location}
+export STORAGE_ACCOUNT_NAME=${storage_account}
+export SCHEMA_REGISTRY_NAME=${schema_registry}
+export SCHEMA_REGISTRY_NAMESPACE=${schema_registry_namespace}
+export TENANT_ID=${tenant_id}
+export USER_ASSIGNED_MI_NAME=${managed_identity_name}
+export KEYVAULT_NAME=${keyvault_name}
+export OBJECT_ID=${object_id}
+export AZURE_CLIENT_ID=${client_id} # managed identity or service principal client id
+export AZURE_CLIENT_SECRET=${client_secret} # service principal client secret
+
+printf "Subscription ID: $SUBSCRIPTION_ID\n"
+printf "Resource Group: $RESOURCE_GROUP\n"
+printf "Cluster Name: $CLUSTER_NAME\n"
+printf "Location: $LOCATION\n"
+printf "AIO Cluster Name: $AIO_CLUSTER_NAME\n"
+printf "AIO Cluster Custom Location Name: $AIO_CLUSTER_CUSTOM_LOCATION_NAME\n"
+printf "Storage Account Name: $STORAGE_ACCOUNT_NAME\n"
+printf "Schema Registry Name: $SCHEMA_REGISTRY_NAME\n"
+printf "Schema Registry Namespace: $SCHEMA_REGISTRY_NAMESPACE\n"
+printf "Tenant ID: $TENANT_ID\n"
+printf "Managed Identity Name: $USER_ASSIGNED_MI_NAME\n"
+printf "Key Vault Name: $KEYVAULT_NAME\n"
+printf "Azure Client ID: $AZURE_CLIENT_ID\n"
+printf "Entra App Object ID for Custom Location RP: $OBJECT_ID\n"
+
+echo "Installing k3s..."
+curl -sfL https://get.k3s.io | sh -
+
+echo "Installing Helm..."
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+echo "Installing Azure CLI..."
+curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+echo "Configuring k3s..."
+sudo chmod 777 /etc/rancher/k3s/k3s.yaml
+
+echo "Logging in to Azure CLI..."
+az login --username $AZURE_CLIENT_ID --password $AZURE_CLIENT_SECRET --service-principal --tenant $TENANT_ID # Service Principal login
+
+echo "Setting Azure subscription..."
+az account set --subscription "$SUBSCRIPTION_ID"
+
+echo "Installing Azure CLI extensions..."
+az extension add --name connectedk8s
+az extension add --name azure-iot-ops
+
+echo "Connecting K3s Cluster to Azure resources..."
+az connectedk8s connect --name $CLUSTER_NAME -l $LOCATION --resource-group $RESOURCE_GROUP --enable-oidc-issuer --enable-workload-identity
+
+echo "Configuring k3s to use Azure AD for service account tokens..."
+SERVICE_ACCOUNT_ISSUER=$(az connectedk8s show --resource-group $RESOURCE_GROUP --name $CLUSTER_NAME --query oidcIssuerProfile.issuerUrl --output tsv)
+sudo tee /etc/rancher/k3s/config.yaml > /dev/null <<EOF
+kube-apiserver-arg:
+- service-account-issuer=$SERVICE_ACCOUNT_ISSUER
+- service-account-max-token-expiration=24h
+EOF
+
+echo "Restarting daemon..."
+systemctl daemon-reload
+
+echo "Restarting k3s..."
+systemctl restart k3s
+
+echo "Enabling Azure Arc connectedk8s features and custom location..."
+az connectedk8s enable-features -n $CLUSTER_NAME -g $RESOURCE_GROUP --custom-locations-oid $OBJECT_ID --features cluster-connect custom-locations
+
+echo "Creating Azure storage account..."
+az storage account create --name $STORAGE_ACCOUNT_NAME --resource-group $RESOURCE_GROUP --enable-hierarchical-namespace --verbose
+
+echo "Creating Azure IoT Ops schema registry..."
+az iot ops schema registry create --name $SCHEMA_REGISTRY_NAME --resource-group $RESOURCE_GROUP --registry-namespace $SCHEMA_REGISTRY_NAMESPACE --sa-resource-id $(az storage account show --name $STORAGE_ACCOUNT_NAME --resource-group $RESOURCE_GROUP -o tsv --query id) --verbose
+
+echo "Initializing Azure IoT Ops cluster..."
+az iot ops init  --subscription $SUBSCRIPTION_ID -g $RESOURCE_GROUP --cluster $CLUSTER_NAME --debug --no-progress
+
+echo "Creating Azure IoT Ops cluster..."
+az iot ops create  --subscription $SUBSCRIPTION_ID  -g $RESOURCE_GROUP  --cluster $CLUSTER_NAME --custom-location $AIO_CLUSTER_CUSTOM_LOCATION_NAME  -n $AIO_CLUSTER_NAME  --sr-resource-id $(az iot ops schema registry list -g $RESOURCE_GROUP --query "[?name=='$SCHEMA_REGISTRY_NAME'].id" -o tsv)  --add-insecure-listener --enable-rsync --debug --yes --no-progress
+
+echo "Creating Azure Managed Identity..."
+az identity create --name $USER_ASSIGNED_MI_NAME --resource-group $RESOURCE_GROUP --location $LOCATION --subscription $SUBSCRIPTION_ID
+
+echo "Creating Azure Key Vault..."
+az keyvault create --resource-group $RESOURCE_GROUP --location $LOCATION --name $KEYVAULT_NAME --enable-rbac-authorization
+
+echo "Assigning Key Vault Secrets Officer role to the signed-in user..."
+az role assignment create --role "Key Vault Secrets Officer" --assignee $(az ad signed-in-user show --query id -o tsv) --scope /subscriptions/$SUBSCRIPTION_ID/resourcegroups/$RESOURCE_GROUP/providers/Microsoft.KeyVault/vaults/$KEYVAULT_NAME
+
+echo "Enabling Azure IoT Ops SecretSync..."
+az iot ops secretsync enable  -g $RESOURCE_GROUP  -n $AIO_CLUSTER_NAME  --kv-resource-id $(az keyvault list -g $RESOURCE_GROUP  --query "[?name=='$KEYVAULT_NAME'].id" -o tsv) --mi-user-assigned $(az identity list -g $RESOURCE_GROUP --query  "[?name=='$USER_ASSIGNED_MI_NAME'].id" -o tsv)
+
+echo "Assigning Azure Managed Identity to Azure IoT Ops cluster..."
+az iot ops identity assign  -g $RESOURCE_GROUP  -n $AIO_CLUSTER_NAME  --mi-user-assigned $(az identity list -g $RESOURCE_GROUP --query  "[?name=='$USER_ASSIGNED_MI_NAME'].id" -o tsv)
