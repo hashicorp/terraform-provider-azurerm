@@ -99,6 +99,8 @@ The following arguments are supported:
 
 ~> **NOTE:** `storage_key_vault_secret_id` used without a version will use the latest version of the secret, however, the service can take up to 24h to pick up a rotation of the latest version. See the [official docs](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#rotation) for more information.
 
+* `key_vault_reference_identity_id` - (Optional) The User Assigned Identity ID used for accessing KeyVault secrets. The identity must be assigned to the application in the `identity` block. [For more information see - Access vaults with a user-assigned identity](https://docs.microsoft.com/azure/app-service/app-service-key-vault-references#access-vaults-with-a-user-assigned-identity). Defaults to `SystemAssigned`.
+
 * `site_config` - (Required) A `site_config` block as defined below.
 
 * `storage_container_type` - (Required) The type of the storage container, which contains the application code package used by the Function App during deployment. The current supported type is `blobContainer`.

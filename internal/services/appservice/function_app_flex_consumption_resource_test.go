@@ -575,7 +575,7 @@ func TestAccFunctionAppFlexConsumption_httpsOnlyUpdate(t *testing.T) {
 	})
 }
 
-func TestAccFunctionAppFlexConsumption_backendStorageUsingKeyValutString(t *testing.T) {
+func TestAccFunctionAppFlexConsumption_backendStorageUsingKeyVaultString(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
 

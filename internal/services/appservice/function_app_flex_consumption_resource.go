@@ -172,20 +172,15 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 				"storage_account_name",
 				"storage_key_vault_secret_id",
 			},
-			RequiredWith: []string{
-				"key_vault_reference_identity_id",
-			},
 			Description: "The Key Vault Secret ID, including version, that contains the Connection String to connect to the storage account for this Function App.",
 		},
 
 		"key_vault_reference_identity_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			Default:      web.ManagedServiceIdentityTypeSystemAssigned,
 			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 			Description:  "The User Assigned Identity to use for Key Vault access.",
-			RequiredWith: []string{
-				"storage_key_vault_secret_id",
-			},
 		},
 
 		"storage_container_type": {
