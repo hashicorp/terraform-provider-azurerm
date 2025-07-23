@@ -80,7 +80,7 @@ func TestAccCdnFrontDoorProfileDataSource_basicWithLogScrubbing(t *testing.T) {
 		{
 			Config: r.basicWithLogScrubbing(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.0.match_variable").HasValue("QueryStringArgNames"),
+				check.That(data.ResourceName).Key("scrubbing_rule.0.match_variable").HasValue("QueryStringArgNames"),
 			),
 		},
 	})

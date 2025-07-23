@@ -56,18 +56,16 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
     identity_ids = [azurerm_user_assigned_identity.example.id]
   }
 
-  log_scrubbing {
-    scrubbing_rule {
-      match_variable = "RequestIPAddress"
-    }
+  scrubbing_rule {
+    match_variable = "RequestIPAddress"
+  }
 
-    scrubbing_rule {
-      match_variable = "RequestUri"
-    }
+  scrubbing_rule {
+    match_variable = "RequestUri"
+  }
 
-    scrubbing_rule {
-      match_variable = "QueryStringArgNames"
-    }
+  scrubbing_rule {
+    match_variable = "QueryStringArgNames"
   }
 
   tags = {
@@ -90,7 +88,9 @@ The following arguments are supported:
 
 * `response_timeout_seconds` - (Optional) Specifies the maximum response timeout in seconds. Possible values are between `16` and `240` seconds (inclusive). Defaults to `120` seconds.
 
-* `log_scrubbing` - (Optional) A `log_scrubbing` block as defined below.
+* `scrubbing_rule` - (Optional) One or more `scrubbing_rule` blocks as defined below.
+
+~> **Note:** When no `scrubbing_rule` blocks are defined, log scrubbing will be automatically `disabled`. When one or more `scrubbing_rule` blocks are present, log scrubbing will be `enabled`.
 
 * `tags` - (Optional) Specifies a mapping of tags to assign to the resource.
 
@@ -102,14 +102,6 @@ An `identity` block supports the following:
 * `type` - (Required) The type of managed identity to assign. Possible values are `SystemAssigned`, `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 * `identity_ids` - (Optional) - A list of one or more Resource IDs for User Assigned Managed identities to assign. Required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
-
----
-
-A `log_scrubbing` block supports the following:
-
-* `scrubbing_rule` - (Optional) One or more `scrubbing_rule` blocks as defined below.
-
-~> **Note:** When the `log_scrubbing` block is present, log scrubbing will be `enabled`. When the `log_scrubbing` block is omitted, log scrubbing will be `disabled`.
 
 ---
 
