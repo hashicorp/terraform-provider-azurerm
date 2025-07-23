@@ -542,27 +542,21 @@ func forceUnlinkDatabase(ctx context.Context, meta *sdk.ResourceMetaData, oldIte
 	return nil
 }
 
-func forceLinkItems(oldItemList []interface{}, newItemList []interface{}) (bool, []string) {
+func forceLinkNeeded(oldItemList []interface{}, newItemList []interface{}) bool {
 	oldItems := make(map[string]bool)
-	forceLinkList := make([]string, 0)
 	for _, oldItem := range oldItemList {
 		oldItems[oldItem.(string)] = true
 	}
-
 	for _, newItem := range newItemList {
 		if !oldItems[newItem.(string)] {
-			forceLinkList = append(forceLinkList, newItem.(string))
+			return true
 		}
 	}
-	if len(forceLinkList) > 0 {
-		return true, forceLinkList
-	}
-	return false, nil
+	return false
 }
 
 func forceLinkDatabase(ctx context.Context, meta *sdk.ResourceMetaData, oldItems, newItems interface{}) error {
-	isForceLinkNeeded, data := forceLinkItems(oldItems.(*pluginsdk.Set).List(), newItems.(*pluginsdk.Set).List())
-	if isForceLinkNeeded {
+	if forceLinkNeeded(oldItems.(*pluginsdk.Set).List(), newItems.(*pluginsdk.Set).List()) {
 		client := meta.Client.ManagedRedis.DatabaseClient
 		log.Printf("[INFO] Preparing to link to a replication group")
 
@@ -577,7 +571,7 @@ func forceLinkDatabase(ctx context.Context, meta *sdk.ResourceMetaData, oldItems
 		}
 
 		linkedDatabases := make([]databases.LinkedDatabase, 0)
-		for _, item := range data {
+		for _, item := range model.LinkedDatabaseId {
 			linkedDatabases = append(linkedDatabases, databases.LinkedDatabase{
 				Id: pointer.To(item),
 			})
