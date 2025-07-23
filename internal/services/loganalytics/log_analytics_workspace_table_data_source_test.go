@@ -29,7 +29,7 @@ func TestLogAnalyticsWorkspaceTableDataSource_basic(t *testing.T) {
 func (d LogAnalyticsWorkspaceTableDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-		features {}
+  features {}
 }
 
 resource "azurerm_resource_group" "this" {
@@ -38,14 +38,14 @@ resource "azurerm_resource_group" "this" {
 }
 
 resource "azurerm_log_analytics_workspace" "this" {
-	name                = "test"
+  name                = "test"
   resource_group_name = "test-resource-group"
   location            = "%s"
   sku                 = "PerGB2018"
   retention_in_days   = 30
 
   tags = {
-  	env = "test"
+    env = "test"
  	}
 }
 `, data.Locations.Primary, data.Locations.Primary)
@@ -57,9 +57,9 @@ func (d LogAnalyticsWorkspaceTableDataSource) basicWithDataSource(data acceptanc
 %s
 
 data "azurerm_log_analytics_workspace_table" "this" {
-	name                = "InsightsMetrics"
-	workspace_id        = azurerm_log_analytics_workspace.this.id
-	resource_group_name = "test-resource-group"
+  name                = "InsightsMetrics"
+  workspace_id        = azurerm_log_analytics_workspace.this.id
+  resource_group_name = "test-resource-group"
 }
 `, config)
 }

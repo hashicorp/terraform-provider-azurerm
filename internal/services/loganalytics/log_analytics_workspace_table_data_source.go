@@ -35,7 +35,6 @@ func (LogAnalyticsWorkspaceTableDataSource) Arguments() map[string]*pluginsdk.Sc
 			Type:     pluginsdk.TypeString,
 			Required: true,
 		},
-		"resource_group_name": commonschema.ResourceGroupName(),
 	}
 }
 
@@ -66,9 +65,7 @@ func (LogAnalyticsWorkspaceTableDataSource) ResourceType() string {
 
 func (LogAnalyticsWorkspaceTableDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-
 		Timeout: 5 * time.Minute,
-
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.LogAnalytics.TablesClient
 
