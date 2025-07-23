@@ -54,7 +54,7 @@ The following arguments are supported:
 
 * `queue_id` - (Required) Specifies the ID of the ServiceBus Queue. Changing this forces a new resource to be created.
 
-~> **NOTE** At least one of the 3 permissions below needs to be set.
+~> **Note:** At least one of the 3 permissions below needs to be set.
 
 * `listen` - (Optional) Does this Authorization Rule have Listen permissions to the ServiceBus Queue? Defaults to `false`.
 
@@ -85,8 +85,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the ServiceBus Queue Authorization Rule.
-* `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Queue Authorization Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Queue Authorization Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Queue Authorization Rule.
 * `delete` - (Defaults to 30 minutes) Used when deleting the ServiceBus Queue Authorization Rule.
 
 ## Import

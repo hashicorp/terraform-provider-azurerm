@@ -92,8 +92,8 @@ The following arguments are supported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Application Insights Web Test.
-* `update` - (Defaults to 30 minutes) Used when updating the Application Insights Web Test.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Application Insights Web Test.
+* `update` - (Defaults to 30 minutes) Used when updating the Application Insights Web Test.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Application Insights Web Test.
 
 ## Import
@@ -103,3 +103,9 @@ Application Insights Web Tests can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_application_insights_web_test.my_test /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Insights/webTests/my_test
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Insights`: 2022-06-15

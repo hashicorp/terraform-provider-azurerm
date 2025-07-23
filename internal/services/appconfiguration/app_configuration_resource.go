@@ -53,10 +53,10 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 		}),
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
-			// sku cannot be downgraded
+			// sku cannot be downgraded from a production tier (`premium` or `standard`) to a non-production tier (`developer` or `free`), or downgraded from `developer` to `free`
 			// https://learn.microsoft.com/azure/azure-app-configuration/faq#can-i-upgrade-or-downgrade-an-app-configuration-store
 			pluginsdk.ForceNewIfChange("sku", func(ctx context.Context, old, new, meta interface{}) bool {
-				return old == "premium" || new == "free"
+				return ((old == "premium" || old == "standard") && new == "developer") || new == "free"
 			}),
 
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
@@ -169,6 +169,7 @@ func resourceAppConfiguration() *pluginsdk.Resource {
 				Default:  "free",
 				ValidateFunc: validation.StringInSlice([]string{
 					"free",
+					"developer",
 					"standard",
 					"premium",
 				}, false),

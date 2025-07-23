@@ -45,7 +45,7 @@ The following arguments are supported:
 
 * `gateway_fqdn` - (Optional) The gateway FQDN to connect with.
 
--> **NOTE:** Either `gateway_address` or `gateway_fqdn` should be specified.
+-> **Note:** Either `gateway_address` or `gateway_fqdn` should be specified.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -70,8 +70,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Local Network Gateway.
-* `update` - (Defaults to 30 minutes) Used when updating the Local Network Gateway.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Local Network Gateway.
+* `update` - (Defaults to 30 minutes) Used when updating the Local Network Gateway.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Local Network Gateway.
 
 ## Import

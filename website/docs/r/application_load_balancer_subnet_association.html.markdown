@@ -92,3 +92,9 @@ Application Gateway for Containers Associations can be imported using the `resou
 ```shell
 terraform import azurerm_application_load_balancer_subnet_association.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.ServiceNetworking/trafficControllers/alb1/associations/association1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ServiceNetworking`: 2023-11-01

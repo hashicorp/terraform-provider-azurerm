@@ -174,6 +174,7 @@ resource "azurerm_dynatrace_tag_rules" "test" {
       value  = "Prod"
       action = "Include"
     }
+    sending_metrics_enabled = true
   }
 }
 `, MonitorsResource{}.basic(data))

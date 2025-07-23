@@ -34,6 +34,21 @@ func TestAccContainerAppEnvironmentStorage_basic(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppEnvironmentStorage_nfsBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment_storage", "test")
+	r := ContainerAppEnvironmentStorageResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nfsBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccContainerAppEnvironmentStorage_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_environment_storage", "test")
 	r := ContainerAppEnvironmentStorageResource{}
@@ -106,6 +121,24 @@ resource "azurerm_container_app_environment_storage" "test" {
   access_key                   = azurerm_storage_account.test.primary_access_key
   share_name                   = azurerm_storage_share.test.name
   access_mode                  = "ReadWrite"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppEnvironmentStorageResource) nfsBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_container_app_environment_storage" "test" {
+  name                         = "testacc-caes-%[2]d"
+  container_app_environment_id = azurerm_container_app_environment.test.id
+  share_name                   = "/${azurerm_storage_account.test.name}/${azurerm_storage_share.test.name}"
+  access_mode                  = "ReadWrite"
+  nfs_server_url               = "${azurerm_storage_account.test.name}.file.core.windows.net"
 }
 `, r.template(data), data.RandomInteger)
 }

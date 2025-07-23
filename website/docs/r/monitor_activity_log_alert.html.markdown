@@ -91,37 +91,37 @@ A `criteria` block supports the following:
 * `resource_provider` - (Optional) The name of the resource provider monitored by the activity log alert.
 * `resource_providers` - (Optional) A list of names of resource providers monitored by the activity log alert.
 
-~> **NOTE:** `resource_provider` and `resource_providers` are mutually exclusive.
+~> **Note:** `resource_provider` and `resource_providers` are mutually exclusive.
 
 * `resource_type` - (Optional) The resource type monitored by the activity log alert.
 * `resource_types` - (Optional) A list of resource types monitored by the activity log alert.
 
-~> **NOTE:** `resource_type` and `resource_types` are mutually exclusive.
+~> **Note:** `resource_type` and `resource_types` are mutually exclusive.
 
 * `resource_group` - (Optional) The name of resource group monitored by the activity log alert.
 * `resource_groups` - (Optional) A list of names of resource groups monitored by the activity log alert.
 
-~> **NOTE:** `resource_group` and `resource_groups` are mutually exclusive.
+~> **Note:** `resource_group` and `resource_groups` are mutually exclusive.
 
 * `resource_id` - (Optional) The specific resource monitored by the activity log alert. It should be within one of the `scopes`.
 * `resource_ids` - (Optional) A list of specific resources monitored by the activity log alert. It should be within one of the `scopes`.
 
-~> **NOTE:** `resource_id` and `resource_ids` are mutually exclusive.
+~> **Note:** `resource_id` and `resource_ids` are mutually exclusive.
 
 * `level` - (Optional) The severity level of the event. Possible values are `Verbose`, `Informational`, `Warning`, `Error`, and `Critical`.
 * `levels` - (Optional) A list of severity level of the event. Possible values are `Verbose`, `Informational`, `Warning`, `Error`, and `Critical`.
 
-~> **NOTE:** `level` and `levels` are mutually exclusive.
+~> **Note:** `level` and `levels` are mutually exclusive.
 
 * `status` - (Optional) The status of the event. For example, `Started`, `Failed`, or `Succeeded`.
 * `statuses` - (Optional) A list of status of the event. For example, `Started`, `Failed`, or `Succeeded`.
 
-~> **NOTE:** `status` and `statuses` are mutually exclusive.
+~> **Note:** `status` and `statuses` are mutually exclusive.
 
 * `sub_status` - (Optional) The sub status of the event.
 * `sub_statuses` - (Optional) A list of sub status of the event.
 
-~> **NOTE:** `sub_status` and `sub_statuses` are mutually exclusive.
+~> **Note:** `sub_status` and `sub_statuses` are mutually exclusive.
  
 * `recommendation_type` - (Optional) The recommendation type of the event. It is only allowed when `category` is `Recommendation`.
 * `recommendation_category` - (Optional) The recommendation category of the event. Possible values are `Cost`, `Reliability`, `OperationalExcellence`, `HighAvailability` and `Performance`. It is only allowed when `category` is `Recommendation`.
@@ -156,8 +156,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Activity Log Alert.
-* `update` - (Defaults to 30 minutes) Used when updating the Activity Log Alert.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Activity Log Alert.
+* `update` - (Defaults to 30 minutes) Used when updating the Activity Log Alert.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Activity Log Alert.
 
 ## Import

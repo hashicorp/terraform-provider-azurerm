@@ -101,3 +101,9 @@ Container Registry Token Passwords can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_container_registry_token_password.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.ContainerRegistry/registries/registry1/tokens/token1/passwords/password
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ContainerRegistry`: 2023-11-01-preview

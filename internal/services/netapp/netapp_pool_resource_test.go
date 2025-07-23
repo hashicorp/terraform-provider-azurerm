@@ -127,6 +127,28 @@ func TestAccNetAppPool_doubleEncryption(t *testing.T) {
 	})
 }
 
+func TestAccNetAppPool_coolAccess(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_pool", "test")
+	r := NetAppPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.coolAccess(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t NetAppPoolResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := capacitypools.ParseCapacityPoolID(state.ID)
 	if err != nil {
@@ -307,6 +329,43 @@ resource "azurerm_netapp_pool" "test" {
   service_level       = "Standard"
   size_in_tb          = 2
   encryption_type     = "Double"
+
+  tags = {
+    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (NetAppPoolResource) coolAccess(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-netapp-%d"
+  location = "%s"
+
+  tags = {
+    "SkipNRMSNSG" = "true"
+  }
+}
+
+resource "azurerm_netapp_account" "test" {
+  name                = "acctest-NetAppAccount-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_netapp_pool" "test" {
+  name                = "acctest-NetAppPool-%d"
+  account_name        = azurerm_netapp_account.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_level       = "Standard"
+  size_in_tb          = 2
+  cool_access_enabled = true
 
   tags = {
     "CreatedOnDate" = "2022-07-08T23:50:21Z",

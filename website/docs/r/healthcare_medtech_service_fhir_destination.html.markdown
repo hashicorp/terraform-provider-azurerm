@@ -10,6 +10,8 @@ description: |-
 
 Manages a Healthcare Med Tech Service Fhir Destination.
 
+## Example Usage
+
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-rg"
@@ -137,10 +139,9 @@ The following arguments are supported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the Healthcare Med Tech Service Fhir Destination.
-* `update` - (Defaults to 30 minut es) Used when updating the Healthcare Med Tech Service Fhir Destination.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare Med Tech Service Fhir Destination.
+* `update` - (Defaults to 90 minutes) Used when updating the Healthcare Med Tech Service Fhir Destination.
 * `delete` - (Defaults to 90 minutes) Used when deleting the Healthcare Med Tech Service Fhir Destination.
-* `update` - (Defaults to 90 minutes) Used when updating the Healthcare Medtech Service Fhir Destination.
 
 ## Import
 
@@ -149,3 +150,9 @@ Healthcare Med Tech Service Fhir Destination can be imported using the resource`
 ```shell
 terraform import azurerm_healthcare_medtech_service_fhir_destination.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1/iotConnectors/iotconnector1/fhirDestinations/destination1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.HealthcareApis`: 2022-12-01

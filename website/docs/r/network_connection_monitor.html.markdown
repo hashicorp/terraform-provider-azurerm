@@ -10,7 +10,7 @@ description: |-
 
 Manages a Network Connection Monitor.
 
-~> **NOTE:** Any Network Connection Monitor resource created with API versions 2019-06-01 or earlier (v1) are now incompatible with Terraform, which now only supports v2.
+~> **Note:** Any Network Connection Monitor resource created with API versions 2019-06-01 or earlier (v1) are now incompatible with Terraform, which now only supports v2.
 
 ## Example Usage
 

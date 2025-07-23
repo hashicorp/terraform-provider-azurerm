@@ -99,7 +99,7 @@ output "action_group_id" {
 * `event_hub_namespace` - The namespace name of the Event Hub.
 * `subscription_id` - The ID for the subscription containing this Event Hub. Default to the subscription ID of the Action Group.
 
-~> **NOTE:** `event_hub_id` is deprecated in version 3.0 and will be removed in version 4.0 of the AzureRM Provider. Please use `event_hub_name`, `event_hub_name`,and `subscription_id` instead.
+~> **Note:** `event_hub_id` is deprecated in version 3.0 and will be removed in version 4.0 of the AzureRM Provider. Please use `event_hub_name`, `event_hub_name`,and `subscription_id` instead.
 
 * `tenant_id` - The Tenant ID for the subscription containing this Event Hub.
 * `use_common_alert_schema` - Indicates whether to use common alert schema.

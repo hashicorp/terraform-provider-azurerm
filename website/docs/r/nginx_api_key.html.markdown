@@ -94,7 +94,7 @@ The following arguments are supported:
 
 - `secret_text` - (Required) The value used as the Dataplane API Key. The API key requirements can be found in the [NGINXaaS Documentation](https://docs.nginx.com/nginxaas/azure/quickstart/loadbalancer-kubernetes/#create-an-nginxaas-data-plane-api-key).
 
-  -> **NOTE:** The `secret_text` contains a Dataplane API Key that can be used to modify NGINX upstream servers. The following sources are useful in learning to manage sensitive data.
+-> **Note:** The `secret_text` contains a Dataplane API Key that can be used to modify NGINX upstream servers. The following sources are useful in learning to manage sensitive data.
 
   - [Sensitive Data in State](https://developer.hashicorp.com/terraform/language/state/sensitive-data)
   - [Protect sensitive input variables](https://developer.hashicorp.com/terraform/tutorials/configuration-language/sensitive-variables)
@@ -109,10 +109,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-- `create` - (Defaults to 5 minutes) Used when creating the NGINX Dataplane API Key.
-- `update` - (Defaults to 5 minutes) Used when updating the NGINX Dataplane API Key.
-- `read` - (Defaults to 5 minutes) Used when retrieving the NGINX Dataplane API Key.
-- `delete` - (Defaults to 5 minutes) Used when deleting the NGINX Dataplane API Key.
+* `create` - (Defaults to 5 minutes) Used when creating the NGINX Dataplane API Key.
+* `read` - (Defaults to 5 minutes) Used when retrieving the NGINX Dataplane API Key.
+* `update` - (Defaults to 5 minutes) Used when updating the NGINX Dataplane API Key.
+* `delete` - (Defaults to 5 minutes) Used when deleting the NGINX Dataplane API Key.
 
 ## Import
 
@@ -121,3 +121,9 @@ An NGINX Dataplane API Key can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_nginx_api_key.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Nginx.NginxPlus/nginxDeployments/deploy1/apiKeys/key1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Nginx.NginxPlus`: 2024-11-01-preview

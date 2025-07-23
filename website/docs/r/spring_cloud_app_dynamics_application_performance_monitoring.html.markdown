@@ -8,11 +8,11 @@ description: |-
 
 # azurerm_spring_cloud_app_dynamics_application_performance_monitoring
 
--> **NOTE:** This resource is only applicable for Spring Cloud Service enterprise tier
+-> **Note:** This resource is only applicable for Spring Cloud Service enterprise tier
 
 Manages a Spring Cloud Application Performance Monitoring resource for App Dynamics.
 
-!> Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_app_dynamics_application_performance_monitoring` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.
+!> **Note:** Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_app_dynamics_application_performance_monitoring` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.
 
 ## Example Usage
 
@@ -101,3 +101,9 @@ Spring Cloud Application Performance Monitoring resource for App Dynamics can be
 ```shell
 terraform import azurerm_spring_cloud_app_dynamics_application_performance_monitoring.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.AppPlatform/spring/service1/apms/apm1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AppPlatform`: 2024-01-01-preview

@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `access_policy` - (Optional) [A list](/docs/configuration/attr-as-blocks.html) of `access_policy` objects (up to 1024) describing access policies, as described below.
 
--> **NOTE** Since `access_policy` can be configured both inline and via the separate `azurerm_key_vault_access_policy` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
+-> **Note:** Since `access_policy` can be configured both inline and via the separate `azurerm_key_vault_access_policy` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
 
 * `enabled_for_deployment` - (Optional) Boolean flag to specify whether Azure Virtual Machines are permitted to retrieve certificates stored as secrets from the key vault.
 
@@ -161,8 +161,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Key Vault.
-* `update` - (Defaults to 30 minutes) Used when updating the Key Vault.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault.
+* `update` - (Defaults to 30 minutes) Used when updating the Key Vault.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault.
 
 ## Import

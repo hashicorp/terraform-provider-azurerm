@@ -59,9 +59,9 @@ The following arguments are supported:
 
 * `blob_uri` - (Optional) URI of the Azure Storage Blob used to create the Image Version. Changing this forces a new resource to be created.
 
--> **NOTE:** You must specify exact one of `blob_uri`, `managed_image_id` and `os_disk_snapshot_id`.
+-> **Note:** You must specify exact one of `blob_uri`, `managed_image_id` and `os_disk_snapshot_id`.
 
--> **NOTE:** `blob_uri` and `storage_account_id` must be specified together
+-> **Note:** `blob_uri` and `storage_account_id` must be specified together
 
 * `end_of_life_date` - (Optional) The end of life date in RFC3339 format of the Image Version.
 
@@ -69,13 +69,13 @@ The following arguments are supported:
 
 * `managed_image_id` - (Optional) The ID of the Managed Image or Virtual Machine ID which should be used for this Shared Image Version. Changing this forces a new resource to be created.
 
--> **NOTE:** The ID can be sourced from the `azurerm_image` [Data Source](https://www.terraform.io/docs/providers/azurerm/d/image.html) or [Resource](https://www.terraform.io/docs/providers/azurerm/r/image.html).
+-> **Note:** The ID can be sourced from the `azurerm_image` [Data Source](https://www.terraform.io/docs/providers/azurerm/d/image.html) or [Resource](https://www.terraform.io/docs/providers/azurerm/r/image.html).
 
--> **NOTE:** You must specify exact one of `blob_uri`, `managed_image_id` and `os_disk_snapshot_id`.
+-> **Note:** You must specify exact one of `blob_uri`, `managed_image_id` and `os_disk_snapshot_id`.
 
 * `os_disk_snapshot_id` - (Optional) The ID of the OS disk snapshot which should be used for this Shared Image Version. Changing this forces a new resource to be created.
 
--> **NOTE:** You must specify exact one of `blob_uri`, `managed_image_id` and `os_disk_snapshot_id`.
+-> **Note:** You must specify exact one of `blob_uri`, `managed_image_id` and `os_disk_snapshot_id`.
 
 * `deletion_of_replicated_locations_enabled` - (Optional) Specifies whether this Shared Image Version can be deleted from the Azure Regions this is replicated to. Defaults to `false`. Changing this forces a new resource to be created.
 
@@ -83,7 +83,7 @@ The following arguments are supported:
 
 * `storage_account_id` - (Optional) The ID of the Storage Account where the Blob exists. Changing this forces a new resource to be created.
 
--> **NOTE:** `blob_uri` and `storage_account_id` must be specified together
+-> **Note:** `blob_uri` and `storage_account_id` must be specified together
 
 * `tags` - (Optional) A collection of tags which should be applied to this resource.
 
@@ -112,8 +112,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Shared Image Version.
-* `update` - (Defaults to 30 minutes) Used when updating the Shared Image Version.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Shared Image Version.
+* `update` - (Defaults to 30 minutes) Used when updating the Shared Image Version.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Shared Image Version.
 
 ## Import

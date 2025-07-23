@@ -75,7 +75,7 @@ The following arguments are supported:
 
 * `client_scoped_subscription_enabled` - (Optional) whether the subscription is scoped to a client id. Defaults to `false`.
 
-~> **NOTE:** Client Scoped Subscription can only be used for JMS subscription (Java Message Service).
+~> **Note:** Client Scoped Subscription can only be used for JMS subscription (Java Message Service).
 
 * `client_scoped_subscription` - (Optional) A `client_scoped_subscription` block as defined below.
 
@@ -85,7 +85,7 @@ A `client_scoped_subscription` block supports the following:
 
 * `client_id` - (Optional) Specifies the Client ID of the application that created the client-scoped subscription. Changing this forces a new resource to be created.
 
-~> **NOTE:** Client ID can be null or empty, but it must match the client ID set on the JMS client application. From the Azure Service Bus perspective, a null client ID and an empty client id have the same behavior. If the client ID is set to null or empty, it is only accessible to client applications whose client ID is also set to null or empty.
+~> **Note:** Client ID can be null or empty, but it must match the client ID set on the JMS client application. From the Azure Service Bus perspective, a null client ID and an empty client id have the same behavior. If the client ID is set to null or empty, it is only accessible to client applications whose client ID is also set to null or empty.
 
 * `is_client_scoped_subscription_shareable` - (Optional) Whether the client scoped subscription is shareable. Defaults to `true` Changing this forces a new resource to be created.
 
@@ -102,8 +102,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the ServiceBus Subscription.
-* `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Subscription.
 * `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Subscription.
+* `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Subscription.
 * `delete` - (Defaults to 30 minutes) Used when deleting the ServiceBus Subscription.
 
 ## Import

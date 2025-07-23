@@ -10,7 +10,7 @@ description: |-
 
 Manages a Virtual Hub IP. This resource is also known as a Route Server.
 
-~> **NOTE** Virtual Hub IP only supports Standard Virtual Hub without Virtual Wan.
+~> **Note:** Virtual Hub IP only supports Standard Virtual Hub without Virtual Wan.
 
 ## Example Usage
 
@@ -85,10 +85,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Virtual Hub IP.
+* `create` - (Defaults to 1 hour) Used when creating the Virtual Hub IP.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Hub IP.
-* `update` - (Defaults to 60 minutes) Used when updating the Virtual Hub IP.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Hub IP.
+* `update` - (Defaults to 1 hour) Used when updating the Virtual Hub IP.
+* `delete` - (Defaults to 1 hour) Used when deleting the Virtual Hub IP.
 
 ## Import
 

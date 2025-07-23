@@ -65,14 +65,14 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `AutonomousDatabaseBackupsClient.ListByAutonomousDatabase`
+### Example Usage: `AutonomousDatabaseBackupsClient.ListByParent`
 
 ```go
 ctx := context.TODO()
 id := autonomousdatabasebackups.NewAutonomousDatabaseID("12345678-1234-9876-4563-123456789012", "example-resource-group", "autonomousDatabaseName")
 
-// alternatively `client.ListByAutonomousDatabase(ctx, id)` can be used to do batched pagination
-items, err := client.ListByAutonomousDatabaseComplete(ctx, id)
+// alternatively `client.ListByParent(ctx, id)` can be used to do batched pagination
+items, err := client.ListByParentComplete(ctx, id)
 if err != nil {
 	// handle the error
 }

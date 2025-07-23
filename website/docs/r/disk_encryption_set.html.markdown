@@ -222,20 +222,20 @@ The following arguments are supported:
 
 * `key_vault_key_id` - (Optional) Specifies the URL to a Key Vault Key (either from a Key Vault Key, or the Key URL for the Key Vault Secret). Exactly one of `managed_hsm_key_id`, `key_vault_key_id` must be specified.
 
--> **NOTE** Access to the KeyVault must be granted for this Disk Encryption Set, if you want to further use this Disk Encryption Set in a Managed Disk or Virtual Machine, or Virtual Machine Scale Set. For instructions, please refer to the doc of [Server side encryption of Azure managed disks](https://docs.microsoft.com/azure/virtual-machines/linux/disk-encryption).
+-> **Note:** Access to the KeyVault must be granted for this Disk Encryption Set, if you want to further use this Disk Encryption Set in a Managed Disk or Virtual Machine, or Virtual Machine Scale Set. For instructions, please refer to the doc of [Server side encryption of Azure managed disks](https://docs.microsoft.com/azure/virtual-machines/linux/disk-encryption).
 
--> **NOTE** A KeyVault or Managed HSM using [enable_rbac_authorization](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault#enable_rbac_authorization) requires to use `azurerm_role_assignment` to assign the role `Key Vault Crypto Service Encryption User` to this Disk Encryption Set.
+-> **Note:** A KeyVault or Managed HSM using [enable_rbac_authorization](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault#enable_rbac_authorization) requires to use `azurerm_role_assignment` to assign the role `Key Vault Crypto Service Encryption User` to this Disk Encryption Set.
 In this case, `azurerm_key_vault_access_policy` is not needed.
 
 * `managed_hsm_key_id` - (Optional) Key ID of a key in a managed HSM.  Exactly one of `managed_hsm_key_id`, `key_vault_key_id` must be specified.
 
 * `auto_key_rotation_enabled` - (Optional) Boolean flag to specify whether Azure Disk Encryption Set automatically rotates the encryption Key to latest version or not. Possible values are `true` or `false`. Defaults to `false`.
 
--> **NOTE** When `auto_key_rotation_enabled` is set to `true` the `key_vault_key_id` or `managed_hsm_key_id` must use the `versionless_id`.
+-> **Note:** When `auto_key_rotation_enabled` is set to `true` the `key_vault_key_id` or `managed_hsm_key_id` must use the `versionless_id`.
 
--> **NOTE** To validate which Key Vault Key version is currently being used by the service it is recommended that you use the `azurerm_disk_encryption_set` data source or run a `terraform refresh` command and check the value of the exported `key_vault_key_url` or `managed_hsm_key_id` field.
+-> **Note:** To validate which Key Vault Key version is currently being used by the service it is recommended that you use the `azurerm_disk_encryption_set` data source or run a `terraform refresh` command and check the value of the exported `key_vault_key_url` or `managed_hsm_key_id` field.
 
--> **NOTE** It may take between 10 to 20 minutes for the service to update the Key Vault Key URL once the keys have been rotated.
+-> **Note:** It may take between 10 to 20 minutes for the service to update the Key Vault Key URL once the keys have been rotated.
 
 * `encryption_type` - (Optional) The type of key used to encrypt the data of the disk. Possible values are `EncryptionAtRestWithCustomerKey`, `EncryptionAtRestWithPlatformAndCustomerKeys` and `ConfidentialVmEncryptedWithCustomerKey`. Defaults to `EncryptionAtRestWithCustomerKey`. Changing this forces a new resource to be created.
 
@@ -251,7 +251,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Disk Encryption Set.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ## Attributes Reference
 
@@ -273,10 +273,10 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Disk Encryption Set.
-* `update` - (Defaults to 60 minutes) Used when updating the Disk Encryption Set.
+* `create` - (Defaults to 1 hour) Used when creating the Disk Encryption Set.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Disk Encryption Set.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Disk Encryption Set.
+* `update` - (Defaults to 1 hour) Used when updating the Disk Encryption Set.
+* `delete` - (Defaults to 1 hour) Used when deleting the Disk Encryption Set.
 
 ## Import
 

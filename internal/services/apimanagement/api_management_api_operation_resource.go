@@ -4,8 +4,10 @@
 package apimanagement
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -111,6 +113,41 @@ func resourceApiManagementApiOperation() *pluginsdk.Resource {
 
 			"template_parameter": schemaz.SchemaApiManagementOperationParameterContract(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			// Get the parameters used in url_template
+			urlTemplate := diff.Get("url_template").(string)
+			re := regexp.MustCompile(`\{([^}]+)\}`)
+			matches := re.FindAllStringSubmatch(urlTemplate, -1)
+			urlTemplateParamSet := make(map[string]struct{})
+			for _, match := range matches {
+				if len(match) > 1 {
+					urlTemplateParamSet[match[1]] = struct{}{}
+				}
+			}
+
+			// Get the parameters defined in template_parameter
+			templateParametersRaw := diff.Get("template_parameter").([]interface{})
+			templateParameterSet := make(map[string]struct{})
+			for _, p := range templateParametersRaw {
+				paramValue := p.(map[string]interface{})
+				templateParameterSet[paramValue["name"].(string)] = struct{}{}
+			}
+
+			for key := range urlTemplateParamSet {
+				if _, found := templateParameterSet[key]; !found {
+					return fmt.Errorf("template parameter `%s` used in `url_template` is not defined in `template_parameter`", key)
+				}
+			}
+
+			for key := range templateParameterSet {
+				if _, found := urlTemplateParamSet[key]; !found {
+					return fmt.Errorf("template parameter `%s` defined in `template_parameter` is not used in `url_template`", key)
+				}
+			}
+
+			return nil
+		}),
 	}
 }
 

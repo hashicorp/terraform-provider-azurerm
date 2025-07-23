@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `credential_name` - (Optional) The name of a Data Factory Credential that the SSIS integration will use to access data sources. For example, [`azurerm_data_factory_credential_user_managed_identity`](data_factory_credential_user_assigned_managed_identity.html.html)
 
-~> **NOTE** If `credential_name` is omitted, the integration runtime will use the Data Factory assigned identity.
+~> **Note:** If `credential_name` is omitted, the integration runtime will use the Data Factory assigned identity.
 
 * `max_parallel_executions_per_node` - (Optional) Defines the maximum parallel executions per node. Defaults to `1`. Max is `1`.
 
@@ -121,7 +121,7 @@ An `express_custom_setup` block supports the following:
 
 * `powershell_version` - (Optional) The version of Azure Powershell installed for the Azure-SSIS Integration Runtime.
 
-~> **NOTE** At least one of `env`, `powershell_version`, `component` and `command_key` should be specified.
+~> **Note:** At least one of `env`, `powershell_version`, `component` and `command_key` should be specified.
 
 ---
 
@@ -201,7 +201,7 @@ A `vnet_integration` block supports the following:
 
 * `subnet_id` - (Optional) id of the subnet to which the nodes of the Azure-SSIS Integration Runtime will be added.
 
--> **NOTE** Only one of `subnet_id` and `subnet_name` can be specified. If `subnet_name` is specified, `vnet_id` must be provided.
+-> **Note:** Only one of `subnet_id` and `subnet_name` can be specified. If `subnet_name` is specified, `vnet_id` must be provided.
 
 * `public_ips` - (Optional) Static public IP addresses for the Azure-SSIS Integration Runtime. The size must be 2.
 
@@ -216,8 +216,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory Azure-SSIS Integration Runtime.
-* `update` - (Defaults to 30 minutes) Used when updating the Data Factory Azure-SSIS Integration Runtime.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Azure-SSIS Integration Runtime.
+* `update` - (Defaults to 30 minutes) Used when updating the Data Factory Azure-SSIS Integration Runtime.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory Azure-SSIS Integration Runtime.
 
 ## Import

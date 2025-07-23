@@ -98,10 +98,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 180 minutes) Used when creating the Mobile Network Packet Core Data Plane.
+* `create` - (Defaults to 3 hours) Used when creating the Mobile Network Packet Core Data Plane.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Mobile Network Packet Core Data Plane.
-* `update` - (Defaults to 180 minutes) Used when updating the Mobile Network Packet Core Data Plane.
-* `delete` - (Defaults to 180 minutes) Used when deleting the Mobile Network Packet Core Data Plane.
+* `update` - (Defaults to 3 hours) Used when updating the Mobile Network Packet Core Data Plane.
+* `delete` - (Defaults to 3 hours) Used when deleting the Mobile Network Packet Core Data Plane.
 
 ## Import
 
@@ -110,3 +110,9 @@ Mobile Network Packet Core Data Plane can be imported using the `resource id`, e
 ```shell
 terraform import azurerm_mobile_network_packet_core_data_plane.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.MobileNetwork/packetCoreControlPlanes/packetCoreControlPlane1/packetCoreDataPlanes/packetCoreDataPlane1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.MobileNetwork`: 2022-11-01

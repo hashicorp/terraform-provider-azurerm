@@ -122,8 +122,8 @@ A `instance_bgp_peering_address` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the VPN Gateway.
-* `update` - (Defaults to 90 minutes) Used when updating the VPN Gateway.
 * `read` - (Defaults to 5 minutes) Used when retrieving the VPN Gateway.
+* `update` - (Defaults to 90 minutes) Used when updating the VPN Gateway.
 * `delete` - (Defaults to 90 minutes) Used when deleting the VPN Gateway.
 
 ## Import

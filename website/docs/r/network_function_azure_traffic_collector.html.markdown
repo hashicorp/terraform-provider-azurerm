@@ -67,3 +67,9 @@ Network Function Azure Traffic Collector can be imported using the `resource id`
 ```shell
 terraform import azurerm_network_function_azure_traffic_collector.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.NetworkFunction/azureTrafficCollectors/azureTrafficCollector1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.NetworkFunction`: 2022-11-01

@@ -47,7 +47,7 @@ The following arguments are supported:
 
 * `zones` - (Optional) A list of Availability Zones in which this NAT Gateway should be located. Changing this forces a new NAT Gateway to be created.
 
--> **NOTE:** Only one Availability Zone can be defined. For more information, please check out the [Azure documentation](https://learn.microsoft.com/en-us/azure/nat-gateway/nat-overview#availability-zones)
+-> **Note:** Only one Availability Zone can be defined. For more information, please check out the [Azure documentation](https://learn.microsoft.com/en-us/azure/nat-gateway/nat-overview#availability-zones)
 
 ## Attributes Reference
 
@@ -61,10 +61,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the NAT Gateway.
-* `update` - (Defaults to 60 minutes) Used when updating the NAT Gateway.
+* `create` - (Defaults to 1 hour) Used when creating the NAT Gateway.
 * `read` - (Defaults to 5 minutes) Used when retrieving the NAT Gateway.
-* `delete` - (Defaults to 60 minutes) Used when deleting the NAT Gateway.
+* `update` - (Defaults to 1 hour) Used when updating the NAT Gateway.
+* `delete` - (Defaults to 1 hour) Used when deleting the NAT Gateway.
 
 ## Import
 

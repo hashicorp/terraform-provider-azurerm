@@ -79,3 +79,10 @@ SingleSignOn on the Datadog Monitor can be imported using the `signle sign on re
 
 ```shell
 terraform import azurerm_datadog_monitor_sso_configuration.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Datadog/monitors/monitor1/singleSignOnConfigurations/default
+```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Datadog`: 2021-03-01

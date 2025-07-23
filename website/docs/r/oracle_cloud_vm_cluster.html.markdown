@@ -178,3 +178,9 @@ Cloud VM Clusters can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_oracle_cloud_vm_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup/providers/Oracle.Database/cloudVmClusters/cloudVmClusters1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Oracle.Database`: 2024-06-01

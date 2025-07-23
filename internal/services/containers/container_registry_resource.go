@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
@@ -34,7 +35,7 @@ import (
 )
 
 func resourceContainerRegistry() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceContainerRegistryCreate,
 		Read:   resourceContainerRegistryRead,
 		Update: resourceContainerRegistryUpdate,
@@ -58,7 +59,202 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: resourceContainerRegistrySchema(),
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: containerValidate.ContainerRegistryName,
+			},
+
+			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"location": commonschema.Location(),
+
+			"sku": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(registries.SkuNameBasic),
+					string(registries.SkuNameStandard),
+					string(registries.SkuNamePremium),
+				}, false),
+			},
+
+			"admin_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"georeplications": {
+				// Don't make this a TypeSet since TypeSet has bugs when there is a nested property using `StateFunc`.
+				// See: https://github.com/hashicorp/terraform-plugin-sdk/issues/160
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				ConfigMode: pluginsdk.SchemaConfigModeAuto,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"location": commonschema.LocationWithoutForceNew(),
+
+						"zone_redundancy_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"regional_endpoint_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+
+						"tags": commonschema.Tags(),
+					},
+				},
+			},
+
+			"public_network_access_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"login_server": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"admin_username": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
+			},
+
+			"admin_password": {
+				Type:      pluginsdk.TypeString,
+				Computed:  true,
+				Sensitive: true,
+			},
+
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+			"encryption": {
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				MaxItems:   1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"identity_client_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.IsUUID,
+						},
+						"key_vault_key_id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+						},
+					},
+				},
+			},
+
+			"network_rule_set": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				// ConfigModeAttr ensures we can set this to an empty array for Premium -> Basic
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				MaxItems:   1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"default_action": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							Default:  registries.DefaultActionAllow,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(registries.DefaultActionAllow),
+								string(registries.DefaultActionDeny),
+							}, false),
+						},
+
+						"ip_rule": {
+							Type:       pluginsdk.TypeSet,
+							Optional:   true,
+							Computed:   true,
+							ConfigMode: pluginsdk.SchemaConfigModeAttr,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"action": {
+										Type:     pluginsdk.TypeString,
+										Required: true,
+										ValidateFunc: validation.StringInSlice([]string{
+											string(registries.ActionAllow),
+										}, false),
+									},
+									"ip_range": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validate.CIDR,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+
+			"quarantine_policy_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"retention_policy_in_days": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(0, 365),
+			},
+
+			"trust_policy_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"export_policy_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"zone_redundancy_enabled": {
+				Type:     pluginsdk.TypeBool,
+				ForceNew: true,
+				Optional: true,
+				Default:  false,
+			},
+
+			"anonymous_pull_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"data_endpoint_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"network_rule_bypass_option": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(registries.NetworkRuleBypassOptionsAzureServices),
+					string(registries.NetworkRuleBypassOptionsNone),
+				}, false),
+				Default: string(registries.NetworkRuleBypassOptionsAzureServices),
+			},
+
+			"tags": commonschema.Tags(),
+		},
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 			sku := d.Get("sku").(string)
@@ -138,6 +334,12 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 			return nil
 		}),
 	}
+
+	if !features.FivePointOh() {
+		r.Schema["encryption"].Computed = true
+	}
+
+	return r
 }
 
 func resourceContainerRegistryCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -881,204 +1083,4 @@ func flattenExportPolicy(p *registries.Policies) bool {
 	}
 
 	return *p.ExportPolicy.Status == registries.ExportPolicyStatusEnabled
-}
-
-func resourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: containerValidate.ContainerRegistryName,
-		},
-
-		"resource_group_name": commonschema.ResourceGroupName(),
-
-		"location": commonschema.Location(),
-
-		"sku": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(registries.SkuNameBasic),
-				string(registries.SkuNameStandard),
-				string(registries.SkuNamePremium),
-			}, false),
-		},
-
-		"admin_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"georeplications": {
-			// Don't make this a TypeSet since TypeSet has bugs when there is a nested property using `StateFunc`.
-			// See: https://github.com/hashicorp/terraform-plugin-sdk/issues/160
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			ConfigMode: pluginsdk.SchemaConfigModeAuto,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"location": commonschema.LocationWithoutForceNew(),
-
-					"zone_redundancy_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-
-					"regional_endpoint_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-					},
-
-					"tags": commonschema.Tags(),
-				},
-			},
-		},
-
-		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		},
-
-		"login_server": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"admin_username": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
-		"admin_password": {
-			Type:      pluginsdk.TypeString,
-			Computed:  true,
-			Sensitive: true,
-		},
-
-		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
-
-		"encryption": {
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true,
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			MaxItems:   1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"identity_client_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.IsUUID,
-					},
-					"key_vault_key_id": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
-					},
-				},
-			},
-		},
-
-		"network_rule_set": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true,
-			// ConfigModeAttr ensures we can set this to an empty array for Premium -> Basic
-			ConfigMode: pluginsdk.SchemaConfigModeAttr,
-			MaxItems:   1,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"default_action": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  registries.DefaultActionAllow,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(registries.DefaultActionAllow),
-							string(registries.DefaultActionDeny),
-						}, false),
-					},
-
-					"ip_rule": {
-						Type:       pluginsdk.TypeSet,
-						Optional:   true,
-						Computed:   true,
-						ConfigMode: pluginsdk.SchemaConfigModeAttr,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"action": {
-									Type:     pluginsdk.TypeString,
-									Required: true,
-									ValidateFunc: validation.StringInSlice([]string{
-										string(registries.ActionAllow),
-									}, false),
-								},
-								"ip_range": {
-									Type:         pluginsdk.TypeString,
-									Required:     true,
-									ValidateFunc: validate.CIDR,
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-
-		"quarantine_policy_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-		},
-
-		"retention_policy_in_days": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
-			ValidateFunc: validation.IntBetween(0, 365),
-		},
-
-		"trust_policy_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"export_policy_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		},
-
-		"zone_redundancy_enabled": {
-			Type:     pluginsdk.TypeBool,
-			ForceNew: true,
-			Optional: true,
-			Default:  false,
-		},
-
-		"anonymous_pull_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-		},
-
-		"data_endpoint_enabled": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-		},
-
-		"network_rule_bypass_option": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(registries.NetworkRuleBypassOptionsAzureServices),
-				string(registries.NetworkRuleBypassOptionsNone),
-			}, false),
-			Default: string(registries.NetworkRuleBypassOptionsAzureServices),
-		},
-
-		"tags": commonschema.Tags(),
-	}
 }

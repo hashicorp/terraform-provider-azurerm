@@ -53,14 +53,14 @@ if model := read.Model; model != nil {
 ```
 
 
-### Example Usage: `DbNodesClient.ListByCloudVMCluster`
+### Example Usage: `DbNodesClient.ListByParent`
 
 ```go
 ctx := context.TODO()
 id := dbnodes.NewCloudVMClusterID("12345678-1234-9876-4563-123456789012", "example-resource-group", "cloudVmClusterName")
 
-// alternatively `client.ListByCloudVMCluster(ctx, id)` can be used to do batched pagination
-items, err := client.ListByCloudVMClusterComplete(ctx, id)
+// alternatively `client.ListByParent(ctx, id)` can be used to do batched pagination
+items, err := client.ListByParentComplete(ctx, id)
 if err != nil {
 	// handle the error
 }

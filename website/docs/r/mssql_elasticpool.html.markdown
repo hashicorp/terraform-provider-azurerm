@@ -71,15 +71,15 @@ The following arguments are supported:
 
 * `max_size_bytes` - (Optional) The max data size of the elastic pool in bytes. Conflicts with `max_size_gb`.
 
--> **NOTE:** One of either `max_size_gb` or `max_size_bytes` must be specified.
+-> **Note:** One of either `max_size_gb` or `max_size_bytes` must be specified.
 
 * `enclave_type` - (Optional) Specifies the type of enclave to be used by the elastic pool. When `enclave_type` is not specified (e.g., the default) enclaves are not enabled on the elastic pool. Once enabled (e.g., by specifying `Default` or `VBS`) removing the `enclave_type` field from the configuration file will force the creation of a new resource. Possible values are `Default` or `VBS`.
 
--> **NOTE:** All databases that are added to the elastic pool must have the same `enclave_type` as the elastic pool.
+-> **Note:** All databases that are added to the elastic pool must have the same `enclave_type` as the elastic pool.
 
--> **NOTE:** `enclave_type` is not supported for DC-series SKUs.
+-> **Note:** `enclave_type` is not supported for DC-series SKUs.
 
-~> **NOTE:** The default value for `enclave_type` field is unset not `Default`.
+~> **Note:** The default value for `enclave_type` field is unset not `Default`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -120,8 +120,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the MS SQL Elastic Pool.
-* `update` - (Defaults to 30 minutes) Used when updating the MS SQL Elastic Pool.
 * `read` - (Defaults to 5 minutes) Used when retrieving the MS SQL Elastic Pool.
+* `update` - (Defaults to 30 minutes) Used when updating the MS SQL Elastic Pool.
 * `delete` - (Defaults to 30 minutes) Used when deleting the MS SQL Elastic Pool.
 
 ## Import
@@ -131,3 +131,9 @@ SQL Elastic Pool can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_mssql_elasticpool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Sql/servers/myserver/elasticPools/myelasticpoolname
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Sql`: 2023-08-01-preview

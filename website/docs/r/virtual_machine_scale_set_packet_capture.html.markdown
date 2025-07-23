@@ -104,7 +104,7 @@ resource "azurerm_virtual_machine_scale_set_packet_capture" "example" {
 }
 ```
 
-~> **NOTE:** This Resource requires that [the Network Watcher Extension](https://docs.microsoft.com/azure/network-watcher/network-watcher-packet-capture-manage-portal#before-you-begin) is installed on the Virtual Machine Scale Set before capturing can be enabled which can be installed via [the `azurerm_virtual_machine_scale_set_extension` resource](virtual_machine_scale_set_extension.html).
+~> **Note:** This Resource requires that [the Network Watcher Extension](https://docs.microsoft.com/azure/network-watcher/network-watcher-packet-capture-manage-portal#before-you-begin) is installed on the Virtual Machine Scale Set before capturing can be enabled which can be installed via [the `azurerm_virtual_machine_scale_set_extension` resource](virtual_machine_scale_set_extension.html).
 
 ## Argument Reference
 
@@ -136,7 +136,7 @@ A `storage_location` block contains:
 
 * `storage_account_id` - (Optional) The ID of the storage account to save the packet capture session
 
-~> **NOTE:** At least one of `file_path` or `storage_account_id` must be specified.
+~> **Note:** At least one of `file_path` or `storage_account_id` must be specified.
 
 ---
 

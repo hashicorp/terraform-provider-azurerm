@@ -50,7 +50,7 @@ resource "azurerm_cosmosdb_gremlin_graph" "example" {
 }
 ```
 
--> **NOTE:** The CosmosDB Account needs to have the `EnableGremlin` capability enabled to use this resource - which can be done by adding this to the `capabilities` list within the `azurerm_cosmosdb_account` resource.
+-> **Note:** The CosmosDB Account needs to have the `EnableGremlin` capability enabled to use this resource - which can be done by adding this to the `capabilities` list within the `azurerm_cosmosdb_account` resource.
 
 ## Argument Reference
 
@@ -155,8 +155,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the CosmosDB Gremlin Graph.
-* `update` - (Defaults to 30 minutes) Used when updating the CosmosDB Gremlin Graph.
 * `read` - (Defaults to 5 minutes) Used when retrieving the CosmosDB Gremlin Graph.
+* `update` - (Defaults to 30 minutes) Used when updating the CosmosDB Gremlin Graph.
 * `delete` - (Defaults to 30 minutes) Used when deleting the CosmosDB Gremlin Graph.
 
 ## Import

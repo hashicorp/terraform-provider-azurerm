@@ -30,7 +30,7 @@ resource "azurerm_databricks_workspace" "example" {
 }
 ```
 
--> You can use [the Databricks Terraform Provider](https://registry.terraform.io/providers/databrickslabs/databricks/latest/docs) to manage resources within the Databricks Workspace.
+-> **Note:** You can use [the Databricks Terraform Provider](https://registry.terraform.io/providers/databrickslabs/databricks/latest/docs) to manage resources within the Databricks Workspace.
 
 ## Argument Reference
 
@@ -198,8 +198,8 @@ A `storage_account_identity` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Databricks Workspace.
-* `update` - (Defaults to 30 minutes) Used when updating the Databricks Workspace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Databricks Workspace.
+* `update` - (Defaults to 30 minutes) Used when updating the Databricks Workspace.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Databricks Workspace.
 
 ## Import

@@ -86,10 +86,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 120 minutes) Used when creating the Cloud Exadata Infrastructure.
+* `create` - (Defaults to 2 hours) Used when creating the Cloud Exadata Infrastructure.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cloud Exadata Infrastructure.
 * `update` - (Defaults to 30 minutes) Used when updating the Cloud Exadata Infrastructure.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Cloud Exadata Infrastructure.
+* `delete` - (Defaults to 1 hour) Used when deleting the Cloud Exadata Infrastructure.
 
 ## Import
 
@@ -98,3 +98,9 @@ Cloud Exadata Infrastructures can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_oracle_exadata_infrastructure.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup/providers/Oracle.Database/cloudExadataInfrastructures/cloudExadataInfrastructures1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Oracle.Database`: 2024-06-01

@@ -115,3 +115,9 @@ Billing Account Cost Management Exports can be imported using the `resource id`,
 ```shell
 terraform import azurerm_billing_account_cost_management_export.example /providers/Microsoft.Billing/billingAccounts/12345678/providers/Microsoft.CostManagement/exports/export1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.CostManagement`: 2023-08-01

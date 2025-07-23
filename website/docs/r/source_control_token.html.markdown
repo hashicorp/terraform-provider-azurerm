@@ -10,7 +10,7 @@ description: |-
 
 Manages an App Service Source Control Token.
 
-~> **NOTE:** This resource can only manage the token for the user currently running Terraform. Managing tokens for another user is not supported by the service.
+~> **Note:** This resource can only manage the token for the user currently running Terraform. Managing tokens for another user is not supported by the service.
 
 ## Example Usage
 
@@ -31,7 +31,7 @@ The following arguments are supported:
 
 * `token_secret` - (Optional) The Access Token Secret.
 
-~> **NOTE:** The token used for deploying App Service needs the following permissions: `repo` and `workflow`.
+~> **Note:** The token used for deploying App Service needs the following permissions: `repo` and `workflow`.
 
 ## Attributes Reference
 
@@ -55,3 +55,9 @@ App Service Source GitHub Tokens can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_source_control_token.example /providers/Microsoft.Web/sourceControls/GitHub
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Web`: 2023-01-01

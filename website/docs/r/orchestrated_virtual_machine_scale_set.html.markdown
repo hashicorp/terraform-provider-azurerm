@@ -297,13 +297,13 @@ An `automatic_instance_repair` block supports the following:
 
 * `grace_period` - (Optional) Amount of time for which automatic repairs will be delayed. The grace period starts right after the VM is found unhealthy. Possible values are between `10` and `90` minutes. The time duration should be specified in `ISO 8601` format (e.g. `PT10M` to `PT90M`).
 
--> **Note:**  Once the `grace_period` field has been set it will always return the last value it was assigned if it is removed from the configuration file.
+-> **Note:** Once the `grace_period` field has been set it will always return the last value it was assigned if it is removed from the configuration file.
 
 * `action` - (Optional) The repair action that will be used for repairing unhealthy virtual machines in the scale set. Possible values include `Replace`, `Restart`, `Reimage`.
 
--> **Note:**  Once the `action` field has been set it will always return the last value it was assigned if it is removed from the configuration file.
+-> **Note:** Once the `action` field has been set it will always return the last value it was assigned if it is removed from the configuration file.
 
--> **Note:**  If you wish to update the repair `action` of an existing `automatic_instance_repair` policy, you must first `disable` the `automatic_instance_repair` policy before you can re-enable the `automatic_instance_repair` policy with the new repair `action` defined.
+-> **Note:** If you wish to update the repair `action` of an existing `automatic_instance_repair` policy, you must first `disable` the `automatic_instance_repair` policy before you can re-enable the `automatic_instance_repair` policy with the new repair `action` defined.
 
 ---
 
@@ -541,10 +541,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Virtual Machine Scale Set.
-* `update` - (Defaults to 60 minutes) Used when updating the Virtual Machine Scale Set.
+* `create` - (Defaults to 1 hour) Used when creating the Virtual Machine Scale Set.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Scale Set.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Machine Scale Set.
+* `update` - (Defaults to 1 hour) Used when updating the Virtual Machine Scale Set.
+* `delete` - (Defaults to 1 hour) Used when deleting the Virtual Machine Scale Set.
 
 ## Import
 

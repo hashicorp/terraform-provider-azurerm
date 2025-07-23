@@ -185,8 +185,8 @@ In addition to the arguments above, the following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the VPN Server Configuration.
-* `update` - (Defaults to 90 minutes) Used when updating the VPN Server Configuration.
 * `read` - (Defaults to 5 minutes) Used when retrieving the VPN Server Configuration.
+* `update` - (Defaults to 90 minutes) Used when updating the VPN Server Configuration.
 * `delete` - (Defaults to 90 minutes) Used when deleting the VPN Server Configuration.
 
 ## Import
