@@ -922,7 +922,7 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
   sku_name            = "Premium_AzureFrontDoor"
 
   scrubbing_rule {
-    match_variable = "querystringargnames"  # lowercase - should fail
+    match_variable = "querystringargnames" # lowercase - should fail
   }
 
   tags = {
