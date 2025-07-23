@@ -111,12 +111,10 @@ func (r ApiConnectionDataSource) Read() sdk.ResourceFunc {
 				state.Location = location.NormalizeNilable(model.Location)
 
 				if props := model.Properties; props != nil {
-					if props.DisplayName != nil {
-						state.DisplayName = *props.DisplayName
-					}
+					state.DisplayName = pointer.From(props.DisplayName)
 
-					if props.Api != nil && props.Api.Id != nil {
-						state.ManagedApiId = *props.Api.Id
+					if props.Api != nil {
+						state.ManagedApiId = pointer.From(props.Api.Id)
 					}
 
 					// In version 2016-06-01 the API doesn't return `ParameterValues`.
@@ -124,9 +122,7 @@ func (r ApiConnectionDataSource) Read() sdk.ResourceFunc {
 					state.ParameterValues = flattenParameterValues(pointer.From(props.NonSecretParameterValues))
 				}
 
-				if model.Tags != nil {
-					state.Tags = *model.Tags
-				}
+				state.Tags = pointer.From(model.Tags)
 			}
 
 			metadata.SetID(id)
