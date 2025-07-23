@@ -365,13 +365,6 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 
 		if err := result.Poller.PollUntilDone(ctx); err != nil {
-			if strings.Contains(err.Error(), "PrivateLinkServiceId Invalid private link service id") {
-				return &pluginsdk.RetryError{
-					Err:       fmt.Errorf("waiting the creation of %s: %+v", id, err),
-					Retryable: true,
-				}
-			}
-
 			var lroFailError pollers.PollingFailedError
 			if errors.As(err, &lroFailError) {
 				type lroErrorType struct {
@@ -397,7 +390,6 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 					}
 				}
 			}
-
 			return &pluginsdk.RetryError{
 				Err:       fmt.Errorf("waiting the creation of %s: %+v", id, err),
 				Retryable: false,
