@@ -68,7 +68,7 @@ The following arguments are supported:
 
 ~> **Note:** The type of Default Node Pool for the Kubernetes Cluster must be `VirtualMachineScaleSets` to attach multiple node pools.
 
-* `vm_size` - (Required) The SKU which should be used for the Virtual Machines used in this Node Pool. Changing this property requires specifying `temporary_name_for_rotation`.
+* `vm_size` - (Optional) The SKU which should be used for the Virtual Machines used in this Node Pool. Changing this property requires specifying `temporary_name_for_rotation`.
 
 ---
 
@@ -212,7 +212,7 @@ A `linux_os_config` block supports the following:
 
 * `transparent_huge_page_defrag` - (Optional) specifies the defrag configuration for Transparent Huge Page. Possible values are `always`, `defer`, `defer+madvise`, `madvise` and `never`. 
 
-* `transparent_huge_page_enabled` - (Optional) Specifies the Transparent Huge Page enabled configuration. Possible values are `always`, `madvise` and `never`.
+* `transparent_huge_page` - (Optional) Specifies the Transparent Huge Page configuration. Possible values are `always`, `madvise` and `never`.
 
 ---
 
@@ -345,4 +345,4 @@ terraform import azurerm_kubernetes_cluster_node_pool.pool1 /subscriptions/00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerService`: 2024-09-01
+* `Microsoft.ContainerService`: 2025-02-01

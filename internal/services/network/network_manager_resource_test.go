@@ -101,6 +101,7 @@ func TestAccNetworkManager(t *testing.T) {
 			"complete":       testAccNetworkManagerIpamPool_complete,
 			"update":         testAccNetworkManagerIpamPool_update,
 			"requiresImport": testAccNetworkManagerIpamPool_requiresImport,
+			"dataSource":     testAccNetworkManagerIpamPoolDataSource_complete,
 		},
 		"IPAMPoolStaticCIDR": {
 			"basic":                 testAccNetworkManagerIpamPoolStaticCidr_basic,
@@ -111,10 +112,15 @@ func TestAccNetworkManager(t *testing.T) {
 			"updateIpAddressNumber": testAccNetworkManagerIpamPoolStaticCidr_ipAddressNumberUpdated,
 		},
 		"VerifierWorkspace": {
-			"basic":          testAccNetorkManagerVerifierWorkspace_basic,
-			"complete":       testAccNetorkManagerVerifierWorkspace_complete,
-			"update":         testAccNetorkManagerVerifierWorkspace_update,
-			"requiresImport": testAccNetorkManagerVerifierWorkspace_requiresImport,
+			"basic":          testAccNetworkManagerVerifierWorkspace_basic,
+			"complete":       testAccNetworkManagerVerifierWorkspace_complete,
+			"update":         testAccNetworkManagerVerifierWorkspace_update,
+			"requiresImport": testAccNetworkManagerVerifierWorkspace_requiresImport,
+		},
+		"VerifierWorkspaceReachabilityAnalysisIntent": {
+			"basic":          testAccNetworkManagerVerifierWorkspaceReachabilityAnalysisIntent_basic,
+			"complete":       testAccNetworkManagerVerifierWorkspaceReachabilityAnalysisIntent_complete,
+			"requiresImport": testAccNetworkManagerVerifierWorkspaceReachabilityAnalysisIntent_requiresImport,
 		},
 		"RoutingConfiguration": {
 			"basic":          testAccNetworkManagerRoutingConfiguration_basic,

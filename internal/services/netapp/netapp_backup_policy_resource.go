@@ -68,17 +68,19 @@ func (r NetAppBackupPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"weekly_backups_to_keep": {
-			Type:         pluginsdk.TypeInt,
+			Type: pluginsdk.TypeInt,
+			// Default in API is 0 but initially set to 1 so keeping to avoid breaking changes
 			Default:      1,
 			Optional:     true,
-			ValidateFunc: validation.IntBetween(1, 1019),
+			ValidateFunc: validation.IntBetween(0, 1019),
 		},
 
 		"monthly_backups_to_keep": {
-			Type:         pluginsdk.TypeInt,
+			Type: pluginsdk.TypeInt,
+			// Default in API is 0 but initially set to 1 so keeping to avoid breaking changes
 			Default:      1,
 			Optional:     true,
-			ValidateFunc: validation.IntBetween(1, 1019),
+			ValidateFunc: validation.IntBetween(0, 1019),
 		},
 
 		"enabled": {

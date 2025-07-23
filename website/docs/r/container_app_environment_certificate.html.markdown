@@ -36,7 +36,7 @@ resource "azurerm_container_app_environment" "example" {
 resource "azurerm_container_app_environment_certificate" "example" {
   name                         = "myfriendlyname"
   container_app_environment_id = azurerm_container_app_environment.example.id
-  certificate_blob             = filebase64("path/to/certificate_file.pfx")
+  certificate_blob_base64      = filebase64("path/to/certificate_file.pfx")
   certificate_password         = "$3cretSqu1rreL"
 }
 ```

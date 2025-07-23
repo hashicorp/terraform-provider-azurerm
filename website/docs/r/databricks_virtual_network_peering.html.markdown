@@ -105,3 +105,9 @@ Databrick Virtual Network Peerings can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_databricks_virtual_network_peering.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Databricks/workspaces/workspace1/virtualNetworkPeerings/peering1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Databricks`: 2024-05-01

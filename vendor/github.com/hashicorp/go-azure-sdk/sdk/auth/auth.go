@@ -133,9 +133,10 @@ func NewAuthorizerFromCredentials(ctx context.Context, c Credentials, api enviro
 
 	if c.EnableAuthenticatingUsingManagedIdentity {
 		opts := ManagedIdentityAuthorizerOptions{
-			Api:                           api,
-			ClientId:                      c.ClientID,
-			CustomManagedIdentityEndpoint: c.CustomManagedIdentityEndpoint,
+			Api:                             api,
+			ClientId:                        c.ClientID,
+			CustomManagedIdentityEndpoint:   c.CustomManagedIdentityEndpoint,
+			CustomManagedIdentityAPIVersion: c.CustomManagedIdentityAPIVersion,
 		}
 		a, err := NewManagedIdentityAuthorizer(ctx, opts)
 		if err != nil {

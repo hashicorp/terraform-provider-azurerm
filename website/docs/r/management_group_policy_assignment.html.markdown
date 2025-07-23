@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `management_group_id` - (Required) The ID of the Management Group. Changing this forces a new Policy Assignment to be created.
 
-* `name` - (Required) The name which should be used for this Policy Assignment. Possible values must be between 3 and 24 characters in length. Changing this forces a new Policy Assignment to be created.
+* `name` - (Required) The name which should be used for this Policy Assignment. Cannot exceed 24 characters in length. Changing this forces a new Policy Assignment to be created.
 
 * `policy_definition_id` - (Required) The ID of the Policy Definition or Policy Definition Set. Changing this forces a new Policy Assignment to be created.
 
