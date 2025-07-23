@@ -424,14 +424,10 @@ func (r ManagedRedisDatabaseResource) CustomizeDiff() sdk.ResourceFunc {
 
 			if isGeoEnabled {
 				var currentDatabaseId string
-				if metadata.ResourceData.Id() != "" {
+				if metadata.ResourceData != nil && metadata.ResourceData.Id() != "" {
 					currentDatabaseId = metadata.ResourceData.Id()
 				} else {
-					name := model.Name
-					if name == "" {
-						name = "default"
-					}
-					currentDatabaseId = model.ClusterId + "/databases/" + name
+					currentDatabaseId = model.ClusterId + "/databases/" + model.Name
 				}
 
 				isCurrentDbIncluded := false
