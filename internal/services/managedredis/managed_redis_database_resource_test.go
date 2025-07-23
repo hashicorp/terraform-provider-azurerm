@@ -137,27 +137,6 @@ func TestAccManagedRedisDatabase_unlinkDatabase(t *testing.T) {
 	})
 }
 
-func TestAccManagedRedisDatabase_enableAccessKeyAuth(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_managed_redis_database", "test")
-	r := ManagedRedisDatabaseResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.accessKeyAuthEnabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (r ManagedRedisDatabaseResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := databases.ParseDatabaseID(state.ID)
 	if err != nil {
@@ -420,21 +399,4 @@ resource "azurerm_managed_redis_database" "test" {
   linked_database_group_nickname = "tftestGeoGroup"
 }
 `, r.templateThreeClusters(data))
-}
-
-func (r ManagedRedisDatabaseResource) accessKeyAuthEnabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_managed_redis_database" "test" {
-  name       = "default"
-  cluster_id = azurerm_managed_redis_cluster.test.id
-
-  access_keys_authentication_enabled = true
-}
-`, r.template(data))
 }

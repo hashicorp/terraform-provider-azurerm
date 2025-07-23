@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `cluster_id` - (Required) The resource id of the Managed Redis Cluster to deploy this Managed Redis Database. Changing this forces a new Managed Redis Database to be created.
 
-* `access_keys_authentication_enabled` - (Optional) Whether access key authentication is enabled for the database. Defaults to `false`.
+* `access_keys_authentication_enabled` - (Optional) Whether access key authentication is enabled for the database. Defaults to `false`. Changing this forces a new Managed Redis Database to be created.
 
 * `client_protocol` - (Optional) Specifies whether redis clients can connect using TLS-encrypted or plaintext redis protocols. Possible values are `Encrypted` and `Plaintext`. Defaults to `Encrypted`. Changing this forces a new Managed Redis Database to be created.
 

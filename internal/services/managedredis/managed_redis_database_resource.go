@@ -71,6 +71,7 @@ func (r ManagedRedisDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 		"access_keys_authentication_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
+			ForceNew: true,
 			Default:  false,
 		},
 
@@ -341,14 +342,6 @@ func (r ManagedRedisDatabaseResource) Update() sdk.ResourceFunc {
 
 			parameters := databases.DatabaseUpdate{
 				Properties: &databases.DatabaseProperties{},
-			}
-
-			if metadata.ResourceData.HasChange("access_keys_authentication_enabled") {
-				accessKeysAuth := databases.AccessKeysAuthenticationDisabled
-				if model.AccessKeysAuthenticationEnabled {
-					accessKeysAuth = databases.AccessKeysAuthenticationEnabled
-				}
-				parameters.Properties.AccessKeysAuthentication = &accessKeysAuth
 			}
 
 			if metadata.ResourceData.HasChange("linked_database_id") {
