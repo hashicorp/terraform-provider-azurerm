@@ -211,10 +211,6 @@ resource "azurerm_managed_redis_database" "test" {
 
 func (r ManagedRedisDatabaseResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 %s
 
 resource "azurerm_managed_redis_database" "import" {
