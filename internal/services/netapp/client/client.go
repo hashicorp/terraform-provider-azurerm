@@ -6,23 +6,25 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/backuppolicy"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/backups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/backupvaults"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/capacitypools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/netappaccounts"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/snapshotpolicy"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumequotarules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumesreplication"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/backuppolicy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/backups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/backupvaults"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/netappaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/poolchange"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/snapshotpolicy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumequotarules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
 	AccountClient           *netappaccounts.NetAppAccountsClient
 	PoolClient              *capacitypools.CapacityPoolsClient
+	PoolChangeClient        *poolchange.PoolChangeClient
 	VolumeClient            *volumes.VolumesClient
 	VolumeGroupClient       *volumegroups.VolumeGroupsClient
 	VolumeReplicationClient *volumesreplication.VolumesReplicationClient
@@ -101,9 +103,16 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, fmt.Errorf("building BackupClient client: %+v", err)
 	}
 
+	poolChangeClient, err := poolchange.NewPoolChangeClientWithBaseURI(o.Environment.ResourceManager)
+	o.Configure(poolChangeClient.Client, o.Authorizers.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building PoolChangeClient client: %+v", err)
+	}
+
 	return &Client{
 		AccountClient:           accountClient,
 		PoolClient:              poolClient,
+		PoolChangeClient:        poolChangeClient,
 		VolumeClient:            volumeClient,
 		VolumeGroupClient:       volumeGroupClient,
 		VolumeReplicationClient: volumeReplicationClient,

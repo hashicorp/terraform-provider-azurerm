@@ -14,10 +14,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/expressrouteports"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/expressrouteports"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -102,7 +101,7 @@ var expressRoutePortSchema = &pluginsdk.Schema{
 }
 
 func resourceArmExpressRoutePort() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceArmExpressRoutePortCreate,
 		Read:   resourceArmExpressRoutePortRead,
 		Update: resourceArmExpressRoutePortUpdate,
@@ -190,20 +189,6 @@ func resourceArmExpressRoutePort() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["billing_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(expressrouteports.ExpressRoutePortsBillingTypeMeteredData),
-				string(expressrouteports.ExpressRoutePortsBillingTypeUnlimitedData),
-			}, false),
-		}
-	}
-
-	return resource
 }
 
 func resourceArmExpressRoutePortCreate(d *pluginsdk.ResourceData, meta interface{}) error {

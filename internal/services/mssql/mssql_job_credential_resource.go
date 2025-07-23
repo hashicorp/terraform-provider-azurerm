@@ -8,22 +8,23 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobcredentials"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMsSqlJobCredential() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMsSqlJobCredentialCreateUpdate,
+		Create: resourceMsSqlJobCredentialCreate,
 		Read:   resourceMsSqlJobCredentialRead,
-		Update: resourceMsSqlJobCredentialCreateUpdate,
+		Update: resourceMsSqlJobCredentialUpdate,
 		Delete: resourceMsSqlJobCredentialDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -58,17 +59,32 @@ func resourceMsSqlJobCredential() *pluginsdk.Resource {
 			},
 
 			"password": {
-				Type:      pluginsdk.TypeString,
-				Required:  true,
-				Sensitive: true,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				ConflictsWith: []string{"password_wo"},
+				ExactlyOneOf:  []string{"password", "password_wo"},
+			},
+			"password_wo": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				WriteOnly:     true,
+				RequiredWith:  []string{"password_wo_version"},
+				ConflictsWith: []string{"password"},
+				ExactlyOneOf:  []string{"password_wo", "password"},
+			},
+			"password_wo_version": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				RequiredWith: []string{"password_wo"},
 			},
 		},
 	}
 }
 
-func resourceMsSqlJobCredentialCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlJobCredentialCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.JobCredentialsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Job Credential creation.")
@@ -79,35 +95,91 @@ func resourceMsSqlJobCredentialCreateUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 	jobCredentialId := jobcredentials.NewCredentialID(jaId.SubscriptionId, jaId.ResourceGroupName, jaId.ServerName, jaId.JobAgentName, d.Get("name").(string))
 
-	username := d.Get("username").(string)
+	existing, err := client.Get(ctx, jobCredentialId)
+	if err != nil && !response.WasNotFound(existing.HttpResponse) {
+		return fmt.Errorf("checking for presence of existing %s: %+v", jobCredentialId, err)
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_mssql_job_credential", jobCredentialId.ID())
+	}
+
+	woPassword, err := pluginsdk.GetWriteOnly(d, "password_wo", cty.String)
+	if err != nil {
+		return err
+	}
+
 	password := d.Get("password").(string)
-
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, jobCredentialId)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing MsSql %s: %+v", jobCredentialId, err)
-			}
-		}
-
-		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_mssql_job_credential", jobCredentialId.ID())
-		}
+	if !woPassword.IsNull() {
+		password = woPassword.AsString()
 	}
 
 	jobCredential := jobcredentials.JobCredential{
-		Name: utils.String(jobCredentialId.CredentialName),
+		Name: pointer.To(jobCredentialId.CredentialName),
 		Properties: &jobcredentials.JobCredentialProperties{
-			Username: username,
+			Username: d.Get("username").(string),
 			Password: password,
 		},
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, jobCredentialId, jobCredential); err != nil {
-		return fmt.Errorf("creating MsSql %s: %+v", jobCredentialId, err)
+		return fmt.Errorf("creating %s: %+v", jobCredentialId, err)
 	}
 
 	d.SetId(jobCredentialId.ID())
+
+	return resourceMsSqlJobCredentialRead(d, meta)
+}
+
+func resourceMsSqlJobCredentialUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MSSQL.JobCredentialsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] preparing arguments for Job Credential update.")
+
+	jaId, err := jobcredentials.ParseJobAgentID(d.Get("job_agent_id").(string))
+	if err != nil {
+		return err
+	}
+	jobCredentialId := jobcredentials.NewCredentialID(jaId.SubscriptionId, jaId.ResourceGroupName, jaId.ServerName, jaId.JobAgentName, d.Get("name").(string))
+
+	existing, err := client.Get(ctx, jobCredentialId)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", jobCredentialId, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", jobCredentialId)
+	}
+
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `model.Properties` was nil", jobCredentialId)
+	}
+	payload := existing.Model
+
+	if d.HasChange("username") {
+		payload.Properties.Username = d.Get("username").(string)
+	}
+
+	if d.HasChange("password") {
+		payload.Properties.Password = d.Get("password").(string)
+	}
+
+	if d.HasChange("password_wo_version") {
+		woPassword, err := pluginsdk.GetWriteOnly(d, "password_wo", cty.String)
+		if err != nil {
+			return err
+		}
+
+		if !woPassword.IsNull() {
+			payload.Properties.Password = woPassword.AsString()
+		}
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, jobCredentialId, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", jobCredentialId, err)
+	}
 
 	return resourceMsSqlJobCredentialRead(d, meta)
 }
@@ -140,6 +212,9 @@ func resourceMsSqlJobCredentialRead(d *pluginsdk.ResourceData, meta interface{})
 			d.Set("username", props.Username)
 		}
 	}
+
+	d.Set("password_wo_version", d.Get("password_wo_version").(int))
+
 	return nil
 }
 

@@ -45,6 +45,10 @@ func (ske *SymmetricKeyEncrypted) parse(r io.Reader) error {
 		return errors.UnsupportedError("unknown SymmetricKeyEncrypted version")
 	}
 
+	if V5Disabled && ske.Version == 5 {
+		return errors.UnsupportedError("support for parsing v5 entities is disabled; build with `-tags v5` if needed")
+	}
+
 	if ske.Version > 5 {
 		// Scalar octet count
 		if _, err := readFull(r, buf[:]); err != nil {
@@ -191,9 +195,21 @@ func SerializeSymmetricKeyEncrypted(w io.Writer, passphrase []byte, config *Conf
 // the given passphrase. The returned session key must be passed to
 // SerializeSymmetricallyEncrypted.
 // If config is nil, sensible defaults will be used.
+// Deprecated: Use SerializeSymmetricKeyEncryptedAEADReuseKey instead.
 func SerializeSymmetricKeyEncryptedReuseKey(w io.Writer, sessionKey []byte, passphrase []byte, config *Config) (err error) {
+	return SerializeSymmetricKeyEncryptedAEADReuseKey(w, sessionKey, passphrase, config.AEAD() != nil, config)
+}
+
+// SerializeSymmetricKeyEncryptedAEADReuseKey serializes a symmetric key packet to w.
+// The packet contains the given session key, encrypted by a key derived from
+// the given passphrase. The returned session key must be passed to
+// SerializeSymmetricallyEncrypted.
+// If aeadSupported is set, SKESK v6 is used, otherwise v4.
+// Note: aeadSupported MUST match the value passed to SerializeSymmetricallyEncrypted.
+// If config is nil, sensible defaults will be used.
+func SerializeSymmetricKeyEncryptedAEADReuseKey(w io.Writer, sessionKey []byte, passphrase []byte, aeadSupported bool, config *Config) (err error) {
 	var version int
-	if config.AEAD() != nil {
+	if aeadSupported {
 		version = 6
 	} else {
 		version = 4

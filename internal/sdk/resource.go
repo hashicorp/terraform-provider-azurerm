@@ -108,6 +108,20 @@ type ResourceWithCustomImporter interface {
 	CustomImporter() ResourceRunFunc
 }
 
+type ResourceWithIdentity interface {
+	Resource
+
+	// Identity returns the resource's identity type
+	Identity() resourceids.ResourceId
+}
+
+type ResourceWithIdentityTypeOverride interface {
+	ResourceWithIdentity
+
+	// IdentityType returns the type of resource ID, this is used to influence schema generation behaviours
+	IdentityType() pluginsdk.ResourceTypeForIdentity
+}
+
 // ResourceWithUpdate is an optional interface
 //
 // Notably the Arguments for Resources implementing this interface
@@ -154,6 +168,15 @@ type ResourceWithCustomizeDiff interface {
 
 	// CustomizeDiff returns a ResourceFunc that runs the Custom Diff logic
 	CustomizeDiff() ResourceFunc
+}
+
+// ResourceWithConfigValidation is an optional interface
+// Resources implementing this interface will have a write-only attribute that requires
+// this specific validation
+type ResourceWithConfigValidation interface {
+	Resource
+
+	ValidateRawResourceConfig() []schema.ValidateRawResourceConfigFunc
 }
 
 // ResourceRunFunc is the function which can be run

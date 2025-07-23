@@ -181,7 +181,9 @@ func (RoleManagementPolicyResource) Exists(ctx context.Context, clients *clients
 
 func (RoleManagementPolicyResource) managementGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {}
+provider "azurerm" {
+  features {}
+}
 
 provider "azuread" {}
 
@@ -245,7 +247,9 @@ resource "azurerm_role_management_policy" "test" {
 
 func (RoleManagementPolicyResource) resourceGroupTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {}
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]s"
@@ -345,7 +349,9 @@ resource "azurerm_role_management_policy" "test" {
 
 func (RoleManagementPolicyResource) subscriptionTemplate(data acceptance.TestData) string {
 	return `
-provider "azurerm" {}
+provider "azurerm" {
+  features {}
+}
 
 data "azurerm_subscription" "test" {}
 
@@ -484,7 +490,9 @@ resource "azurerm_role_management_policy" "test" {
 
 func (RoleManagementPolicyResource) resourceTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {}
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]s"

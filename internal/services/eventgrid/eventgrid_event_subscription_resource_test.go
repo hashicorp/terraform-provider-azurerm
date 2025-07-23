@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/eventsubscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type EventGridEventSubscriptionResource struct{}
@@ -435,7 +435,7 @@ func (EventGridEventSubscriptionResource) Exists(ctx context.Context, clients *c
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (EventGridEventSubscriptionResource) basic(data acceptance.TestData) string {
@@ -563,7 +563,7 @@ resource "azurerm_storage_blob" "test" {
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name  = "acctest-eg-%[1]d"
+  name  = "acctesteg-%[1]d"
   scope = azurerm_resource_group.test.id
 
   storage_queue_endpoint {

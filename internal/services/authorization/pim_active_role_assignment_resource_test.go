@@ -174,6 +174,10 @@ resource "azuread_group" "test" {
 
 func (r PimActiveRoleAssignmentResource) noExpiration(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "primary" {}
 
 data "azurerm_client_config" "test" {}
@@ -201,6 +205,10 @@ resource "azurerm_pim_active_role_assignment" "test" {
 
 func (PimActiveRoleAssignmentResource) expirationByDurationHours(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "primary" {}
 
 data "azurerm_client_config" "test" {}
@@ -240,6 +248,10 @@ resource "azurerm_pim_active_role_assignment" "test" {
 
 func (PimActiveRoleAssignmentResource) expirationByDurationDays(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "primary" {}
 
 data "azurerm_client_config" "test" {}
@@ -285,6 +297,10 @@ resource "azurerm_pim_active_role_assignment" "test" {
 
 func (PimActiveRoleAssignmentResource) importSetup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "primary" {}
 
 data "azurerm_client_config" "test" {}
@@ -339,6 +355,10 @@ resource "azurerm_pim_active_role_assignment" "import" {
 
 func (PimActiveRoleAssignmentResource) expirationByDate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "primary" {}
 
 data "azurerm_client_config" "test" {}
@@ -384,6 +404,10 @@ resource "azurerm_pim_active_role_assignment" "test" {
 
 func (PimActiveRoleAssignmentResource) pending(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_subscription" "primary" {}
 
 data "azurerm_client_config" "test" {}

@@ -67,3 +67,9 @@ Active Directory Domain Service Trusts can be imported using the `resource id`, 
 ```shell
 terraform import azurerm_active_directory_domain_service_trust.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.AAD/domainServices/DomainService1/trusts/trust1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AAD`: 2021-05-01

@@ -72,6 +72,10 @@ func TestAccMonitorScheduledQueryRules_LogToMetricActionComplete(t *testing.T) {
 
 func (MonitorScheduledQueryRulesLogResource) LogToMetricActionConfigBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-monitor-%d"
   location = "%s"
@@ -106,6 +110,10 @@ resource "azurerm_monitor_scheduled_query_rules_log" "test" {
 
 func (MonitorScheduledQueryRulesLogResource) LogToMetricActionConfigUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-monitor-%d"
   location = "%s"
@@ -142,6 +150,10 @@ resource "azurerm_monitor_scheduled_query_rules_log" "test" {
 
 func (MonitorScheduledQueryRulesLogResource) LogToMetricActionConfigComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-monitor-%[1]d"
   location = "%[2]s"

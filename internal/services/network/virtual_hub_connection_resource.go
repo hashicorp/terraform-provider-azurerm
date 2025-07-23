@@ -12,7 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -22,6 +23,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_hub_connection -service-package-name network -properties "name" -compare-values "subscription_id:virtual_hub_id,resource_group_name:virtual_hub_id,virtual_hub_name:virtual_hub_id"
 
 func resourceVirtualHubConnection() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -37,10 +40,11 @@ func resourceVirtualHubConnection() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := virtualwans.ParseHubVirtualNetworkConnectionID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&virtualwans.HubVirtualNetworkConnectionId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&virtualwans.HubVirtualNetworkConnectionId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -139,6 +143,12 @@ func resourceVirtualHubConnection() *pluginsdk.Resource {
 								string(virtualwans.VnetLocalRouteOverrideCriteriaContains),
 								string(virtualwans.VnetLocalRouteOverrideCriteriaEqual),
 							}, false),
+						},
+
+						"static_vnet_propagate_static_routes_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  true,
 						},
 
 						// lintignore:XS003
@@ -287,7 +297,7 @@ func resourceVirtualHubConnectionRead(d *pluginsdk.ResourceData, meta interface{
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceVirtualHubConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -321,6 +331,7 @@ func expandVirtualHubConnectionRouting(input []interface{}) *virtualwans.Routing
 		VnetRoutes: &virtualwans.VnetRoute{
 			StaticRoutes: expandVirtualHubConnectionVnetStaticRoute(v["static_vnet_route"].([]interface{})),
 			StaticRoutesConfig: &virtualwans.StaticRoutesConfig{
+				PropagateStaticRoutes:          pointer.To(v["static_vnet_propagate_static_routes_enabled"].(bool)),
 				VnetLocalRouteOverrideCriteria: pointer.To(virtualwans.VnetLocalRouteOverrideCriteria(v["static_vnet_local_route_override_criteria"].(string))),
 			},
 		},
@@ -442,14 +453,20 @@ func flattenVirtualHubConnectionRouting(input *virtualwans.RoutingConfiguration)
 		staticVnetLocalRouteOverrideCriteria = string(*input.VnetRoutes.StaticRoutesConfig.VnetLocalRouteOverrideCriteria)
 	}
 
+	staticVnetPropagateStaticRoutes := true
+	if input.VnetRoutes != nil && input.VnetRoutes.StaticRoutesConfig != nil {
+		staticVnetPropagateStaticRoutes = pointer.From(input.VnetRoutes.StaticRoutesConfig.PropagateStaticRoutes)
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"associated_route_table_id":                 associatedRouteTableId,
-			"inbound_route_map_id":                      inboundRouteMapId,
-			"outbound_route_map_id":                     outboundRouteMapId,
-			"propagated_route_table":                    flattenVirtualHubConnectionPropagatedRouteTable(input.PropagatedRouteTables),
-			"static_vnet_route":                         flattenVirtualHubConnectionVnetStaticRoute(input.VnetRoutes),
-			"static_vnet_local_route_override_criteria": staticVnetLocalRouteOverrideCriteria,
+			"associated_route_table_id":                   associatedRouteTableId,
+			"inbound_route_map_id":                        inboundRouteMapId,
+			"outbound_route_map_id":                       outboundRouteMapId,
+			"propagated_route_table":                      flattenVirtualHubConnectionPropagatedRouteTable(input.PropagatedRouteTables),
+			"static_vnet_route":                           flattenVirtualHubConnectionVnetStaticRoute(input.VnetRoutes),
+			"static_vnet_local_route_override_criteria":   staticVnetLocalRouteOverrideCriteria,
+			"static_vnet_propagate_static_routes_enabled": staticVnetPropagateStaticRoutes,
 		},
 	}
 }

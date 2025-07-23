@@ -6,10 +6,11 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/publicipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/publicipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -17,9 +18,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type PublicIPPrefixResource struct{}
+type PublicIpPrefixResource struct{}
 
-func (t PublicIPPrefixResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PublicIpPrefixResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := publicipprefixes.ParsePublicIPPrefixID(state.ID)
 	if err != nil {
 		return nil, err
@@ -33,7 +34,7 @@ func (t PublicIPPrefixResource) Exists(ctx context.Context, clients *clients.Cli
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (PublicIPPrefixResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (PublicIpPrefixResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := publicipprefixes.ParsePublicIPPrefixID(state.ID)
 	if err != nil {
 		return nil, err
@@ -48,7 +49,7 @@ func (PublicIPPrefixResource) Destroy(ctx context.Context, client *clients.Clien
 
 func TestAccPublicIpPrefix_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
-	r := PublicIPPrefixResource{}
+	r := PublicIpPrefixResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,7 +66,7 @@ func TestAccPublicIpPrefix_basic(t *testing.T) {
 
 func TestAccPublicIpPrefix_globalTier(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
-	r := PublicIPPrefixResource{}
+	r := PublicIpPrefixResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -79,9 +80,28 @@ func TestAccPublicIpPrefix_globalTier(t *testing.T) {
 	})
 }
 
+func TestAccPublicIpPrefix_customIpPrefix(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
+	r := PublicIpPrefixResource{}
+
+	if os.Getenv("ARM_TEST_CUSTOM_IP_PREFIX_ID") == "" {
+		t.Skip("ARM_TEST_CUSTOM_IP_PREFIX_ID env var not set")
+	}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.customIpPrefix(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccPublicIpPrefix_regionalTier(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
-	r := PublicIPPrefixResource{}
+	r := PublicIpPrefixResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -97,7 +117,7 @@ func TestAccPublicIpPrefix_regionalTier(t *testing.T) {
 
 func TestAccPublicIpPrefix_ipv6(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
-	r := PublicIPPrefixResource{}
+	r := PublicIpPrefixResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -114,7 +134,7 @@ func TestAccPublicIpPrefix_ipv6(t *testing.T) {
 
 func TestAccPublicIpPrefix_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
-	r := PublicIPPrefixResource{}
+	r := PublicIpPrefixResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -129,7 +149,7 @@ func TestAccPublicIpPrefix_requiresImport(t *testing.T) {
 
 func TestAccPublicIpPrefix_prefixLength31(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
-	r := PublicIPPrefixResource{}
+	r := PublicIpPrefixResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -150,7 +170,7 @@ func TestAccPublicIpPrefix_prefixLength24(t *testing.T) {
 	// more detail about [public ip limits](https://learn.microsoft.com/en-us/azure/virtual-network/ip-services/public-ip-addresses#limits)
 	// you can submit a support request to increase the limit in [Azure Portal](https://learn.microsoft.com/en-us/azure/networking/check-usage-against-limits#azure-portal)
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
-	r := PublicIPPrefixResource{}
+	r := PublicIpPrefixResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -167,7 +187,7 @@ func TestAccPublicIpPrefix_prefixLength24(t *testing.T) {
 
 func TestAccPublicIpPrefix_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
-	r := PublicIPPrefixResource{}
+	r := PublicIpPrefixResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -192,7 +212,7 @@ func TestAccPublicIpPrefix_update(t *testing.T) {
 
 func TestAccPublicIpPrefix_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
-	r := PublicIPPrefixResource{}
+	r := PublicIpPrefixResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
@@ -204,7 +224,7 @@ func TestAccPublicIpPrefix_disappears(t *testing.T) {
 
 func TestAccPublicIpPrefix_zonesSingle(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
-	r := PublicIPPrefixResource{}
+	r := PublicIpPrefixResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -219,7 +239,7 @@ func TestAccPublicIpPrefix_zonesSingle(t *testing.T) {
 
 func TestAccPublicIpPrefix_zonesMultiple(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip_prefix", "test")
-	r := PublicIPPrefixResource{}
+	r := PublicIpPrefixResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -232,7 +252,7 @@ func TestAccPublicIpPrefix_zonesMultiple(t *testing.T) {
 	})
 }
 
-func (PublicIPPrefixResource) basic(data acceptance.TestData) string {
+func (PublicIpPrefixResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -251,7 +271,7 @@ resource "azurerm_public_ip_prefix" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (PublicIPPrefixResource) ipv6(data acceptance.TestData) string {
+func (PublicIpPrefixResource) ipv6(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -273,7 +293,7 @@ resource "azurerm_public_ip_prefix" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (r PublicIPPrefixResource) requiresImport(data acceptance.TestData) string {
+func (r PublicIpPrefixResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -285,7 +305,7 @@ resource "azurerm_public_ip_prefix" "import" {
 `, r.basic(data))
 }
 
-func (PublicIPPrefixResource) withTags(data acceptance.TestData) string {
+func (PublicIpPrefixResource) withTags(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -309,7 +329,7 @@ resource "azurerm_public_ip_prefix" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (PublicIPPrefixResource) withTagsUpdate(data acceptance.TestData) string {
+func (PublicIpPrefixResource) withTagsUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -332,7 +352,7 @@ resource "azurerm_public_ip_prefix" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (PublicIPPrefixResource) prefixLength31(data acceptance.TestData) string {
+func (PublicIpPrefixResource) prefixLength31(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -353,7 +373,7 @@ resource "azurerm_public_ip_prefix" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (PublicIPPrefixResource) prefixLength24(data acceptance.TestData) string {
+func (PublicIpPrefixResource) prefixLength24(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -374,7 +394,7 @@ resource "azurerm_public_ip_prefix" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (PublicIPPrefixResource) sku_tier(data acceptance.TestData, tier string) string {
+func (PublicIpPrefixResource) sku_tier(data acceptance.TestData, tier string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -394,7 +414,7 @@ resource "azurerm_public_ip_prefix" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, tier)
 }
 
-func (PublicIPPrefixResource) zonesSingle(data acceptance.TestData) string {
+func (PublicIpPrefixResource) zonesSingle(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -414,7 +434,7 @@ resource "azurerm_public_ip_prefix" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (PublicIPPrefixResource) zonesMultiple(data acceptance.TestData) string {
+func (PublicIpPrefixResource) zonesMultiple(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -432,4 +452,27 @@ resource "azurerm_public_ip_prefix" "test" {
   zones               = ["1", "2", "3"]
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (PublicIpPrefixResource) customIpPrefix(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_public_ip_prefix" "test" {
+  name                = "acctestpublicipprefix-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  ip_version          = "IPv6"
+  custom_ip_prefix_id = "%[3]s"
+  prefix_length       = 127
+  zones               = ["1"]
+}
+`, data.RandomInteger, data.Locations.Primary, os.Getenv("ARM_TEST_CUSTOM_IP_PREFIX_ID"))
 }

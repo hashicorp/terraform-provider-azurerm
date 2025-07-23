@@ -10,6 +10,8 @@ description: |-
 
 Manages an Azure Spring Cloud Service.
 
+!> **Note:** Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_service` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.
+
 ## Example Usage
 
 ```hcl
@@ -228,9 +230,9 @@ The `required_network_traffic_rules` block supports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Spring Cloud Service.
-* `update` - (Defaults to 30 minutes) Used when updating the Spring Cloud Service.
+* `create` - (Defaults to 1 hour) Used when creating the Spring Cloud Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spring Cloud Service.
+* `update` - (Defaults to 30 minutes) Used when updating the Spring Cloud Service.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Spring Cloud Service.
 
 ## Import

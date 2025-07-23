@@ -6,12 +6,13 @@ package network
 import (
 	"fmt"
 	"log"
+	"math"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -145,6 +146,12 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 							ValidateFunc: virtualwans.ValidateVpnSiteLinkID,
 						},
 
+						"dpd_timeout_seconds": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ValidateFunc: validation.IntBetween(9, 3600),
+						},
+
 						"egress_nat_rule_ids": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
@@ -192,8 +199,10 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 						},
 
 						"shared_key": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							// NOTE: O+C the API generates a key for the user if not supplied
+							Computed:     true,
 							ValidateFunc: validation.StringIsNotEmpty,
 						},
 
@@ -218,7 +227,7 @@ func resourceVPNGatewayConnection() *pluginsdk.Resource {
 									"sa_data_size_kb": {
 										Type:         pluginsdk.TypeInt,
 										Required:     true,
-										ValidateFunc: validation.IntBetween(0, 2147483647),
+										ValidateFunc: validation.IntBetween(0, math.MaxInt32),
 									},
 									"encryption_algorithm": {
 										Type:         pluginsdk.TypeString,
@@ -537,6 +546,10 @@ func expandVpnGatewayConnectionVpnSiteLinkConnections(input []interface{}) *[]vi
 			},
 		}
 
+		if dpdTimeoutSeconds := item["dpd_timeout_seconds"].(int); dpdTimeoutSeconds != 0 {
+			v.Properties.DpdTimeoutSeconds = pointer.To(int64(dpdTimeoutSeconds))
+		}
+
 		if egressNatRuleIds := item["egress_nat_rule_ids"].(*pluginsdk.Set).List(); len(egressNatRuleIds) != 0 {
 			v.Properties.EgressNatRules = expandVpnGatewayConnectionNatRuleIds(egressNatRuleIds)
 		}
@@ -585,6 +598,7 @@ func flattenVpnGatewayConnectionVpnSiteLinkConnections(input *[]virtualwans.VpnS
 
 		output = append(output, map[string]interface{}{
 			"name":                                  pointer.From(item.Name),
+			"dpd_timeout_seconds":                   int(pointer.From(props.DpdTimeoutSeconds)),
 			"egress_nat_rule_ids":                   flattenVpnGatewayConnectionNatRuleIds(props.EgressNatRules),
 			"ingress_nat_rule_ids":                  flattenVpnGatewayConnectionNatRuleIds(props.IngressNatRules),
 			"vpn_site_link_id":                      vpnSiteLinkId,

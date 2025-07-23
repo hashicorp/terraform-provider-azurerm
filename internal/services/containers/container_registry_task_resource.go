@@ -574,16 +574,19 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*schema.Schema{
 					"cpu": {
-						Type:     pluginsdk.TypeInt,
-						Required: true,
+						Type:         pluginsdk.TypeInt,
+						Required:     true,
+						ValidateFunc: validation.IntInSlice([]int{2}),
 					},
 				},
 			},
+			ConflictsWith: []string{"agent_pool_name"},
 		},
 		"agent_pool_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ValidateFunc:  validation.StringIsNotEmpty,
+			ConflictsWith: []string{"agent_setting"},
 		},
 		"enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -905,8 +908,8 @@ func (r ContainerRegistryTaskResource) Update() sdk.ResourceFunc {
 			}
 
 			if existing.Model.Properties.Trigger != nil {
-				if !metadata.ResourceData.HasChange("source_triggers") && existing.Model.Properties.Trigger.SourceTriggers != nil {
-					// For update that is not affecting source_triggers, we need to patch the source_triggers to include the properties missing in the response of GET.
+				if !metadata.ResourceData.HasChange("source_trigger") && existing.Model.Properties.Trigger.SourceTriggers != nil {
+					// For update that is not affecting source_trigger, we need to patch the source_trigger to include the properties missing in the response of GET.
 					existing.Model.Properties.Trigger.SourceTriggers = patchRegistryTaskTriggerSourceTrigger(*existing.Model.Properties.Trigger.SourceTriggers, model)
 				}
 			}
@@ -1159,7 +1162,7 @@ func expandRegistryTaskDockerStep(step DockerStep) tasks.DockerBuildStep {
 	out := tasks.DockerBuildStep{
 		DockerFilePath: step.DockerfilePath,
 		IsPushEnabled:  &step.IsPushEnabled,
-		NoCache:        utils.Bool(!step.IsCacheEnabled),
+		NoCache:        pointer.To(!step.IsCacheEnabled),
 		Arguments:      expandRegistryTaskArguments(step.Arguments, step.SecretArguments),
 	}
 	if step.ContextPath != "" {
@@ -1284,7 +1287,7 @@ func expandRegistryTaskEncodedTaskStep(step EncodedTaskStep) tasks.EncodedTaskSt
 		out.ContextAccessToken = &step.ContextAccessToken
 	}
 	if step.ValueContent != "" {
-		out.EncodedValuesContent = utils.String(utils.Base64EncodeIfNot(step.ValueContent))
+		out.EncodedValuesContent = pointer.To(utils.Base64EncodeIfNot(step.ValueContent))
 	}
 	return out
 }
@@ -1335,14 +1338,14 @@ func expandRegistryTaskArguments(arguments map[string]string, secretArguments ma
 		out = append(out, tasks.Argument{
 			Name:     k,
 			Value:    v,
-			IsSecret: utils.Bool(false),
+			IsSecret: pointer.To(false),
 		})
 	}
 	for k, v := range secretArguments {
 		out = append(out, tasks.Argument{
 			Name:     k,
 			Value:    v,
-			IsSecret: utils.Bool(true),
+			IsSecret: pointer.To(true),
 		})
 	}
 	return &out
@@ -1387,14 +1390,14 @@ func expandRegistryTaskValues(values map[string]string, secretValues map[string]
 		out = append(out, tasks.SetValue{
 			Name:     k,
 			Value:    v,
-			IsSecret: utils.Bool(false),
+			IsSecret: pointer.To(false),
 		})
 	}
 	for k, v := range secretValues {
 		out = append(out, tasks.SetValue{
 			Name:     k,
 			Value:    v,
-			IsSecret: utils.Bool(true),
+			IsSecret: pointer.To(true),
 		})
 	}
 	return &out
@@ -1529,7 +1532,7 @@ func expandCustomRegistryCredential(input []CustomRegistryCredential) map[string
 				usernameType = tasks.SecretObjectTypeVaultsecret
 			}
 			cred.UserName = &tasks.SecretObject{
-				Value: utils.String(credential.UserName),
+				Value: pointer.To(credential.UserName),
 				Type:  &usernameType,
 			}
 		}
@@ -1539,12 +1542,12 @@ func expandCustomRegistryCredential(input []CustomRegistryCredential) map[string
 				passwordType = tasks.SecretObjectTypeVaultsecret
 			}
 			cred.Password = &tasks.SecretObject{
-				Value: utils.String(credential.Password),
+				Value: pointer.To(credential.Password),
 				Type:  &passwordType,
 			}
 		}
 		if credential.Identity != "" {
-			cred.Identity = utils.String(credential.Identity)
+			cred.Identity = pointer.To(credential.Identity)
 		}
 		out[credential.LoginServer] = cred
 	}
@@ -1557,7 +1560,7 @@ func expandRegistryTaskAgentProperties(input []AgentConfig) *tasks.AgentProperti
 	}
 
 	agentConfig := input[0]
-	return &tasks.AgentProperties{Cpu: utils.Int64(agentConfig.CPU)}
+	return &tasks.AgentProperties{Cpu: pointer.To(agentConfig.CPU)}
 }
 
 func flattenRegistryTaskAgentProperties(input *tasks.AgentProperties) []AgentConfig {

@@ -3,7 +3,10 @@
 
 package orbital
 
-import "github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+import (
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+)
 
 type Registration struct{}
 
@@ -26,11 +29,15 @@ func (r Registration) DataSources() []sdk.DataSource {
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	return []sdk.Resource{
-		SpacecraftResource{},
-		ContactProfileResource{},
-		ContactResource{},
+	if !features.FivePointOh() {
+		return []sdk.Resource{
+			SpacecraftResource{},
+			ContactProfileResource{},
+			ContactResource{},
+		}
 	}
+
+	return nil
 }
 
 var _ sdk.TypedServiceRegistration = Registration{}

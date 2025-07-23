@@ -54,3 +54,9 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 * `create` - (Defaults to 30 minutes) Used when creating the Palo Alto Networks Rulestack Outbound Untrust Certificate Association.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Palo Alto Networks Rulestack Outbound Untrust Certificate Association.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Palo Alto Networks Rulestack Outbound Untrust Certificate Association.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `PaloAltoNetworks.Cloudngfw`: 2022-08-29

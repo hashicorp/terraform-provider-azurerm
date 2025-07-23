@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
 	keyvaultClient "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
@@ -74,9 +75,7 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(cdn.MinimumTLSVersionTLS10),
 							string(cdn.MinimumTLSVersionTLS12),
-							string(cdn.MinimumTLSVersionNone),
 						}, false),
 						Default: string(cdn.MinimumTLSVersionTLS12),
 					},
@@ -96,9 +95,7 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
 						ValidateFunc: validation.StringInSlice([]string{
-							string(cdn.MinimumTLSVersionTLS10),
 							string(cdn.MinimumTLSVersionTLS12),
-							string(cdn.MinimumTLSVersionNone),
 						}, false),
 						Default: string(cdn.MinimumTLSVersionTLS12),
 					},
@@ -112,6 +109,29 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 		Type:         pluginsdk.TypeString,
 		Required:     true,
 		ValidateFunc: keyvaultValidate.NestedItemIdWithOptionalVersion,
+	}
+
+	if !features.FivePointOh() {
+		schema["cdn_managed_https"].Elem.(*pluginsdk.Resource).Schema["tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(cdn.MinimumTLSVersionNone),
+				string(cdn.MinimumTLSVersionTLS10),
+				string(cdn.MinimumTLSVersionTLS12),
+			}, false),
+			Default: string(cdn.MinimumTLSVersionTLS12),
+		}
+		schema["user_managed_https"].Elem.(*pluginsdk.Resource).Schema["tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(cdn.MinimumTLSVersionNone),
+				string(cdn.MinimumTLSVersionTLS10),
+				string(cdn.MinimumTLSVersionTLS12),
+			}, false),
+			Default: string(cdn.MinimumTLSVersionTLS12),
+		}
 	}
 
 	return &pluginsdk.Resource{
@@ -133,6 +153,18 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 		},
 
 		Schema: schema,
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			if IsCdnFullyRetired() {
+				return fmt.Errorf("%s", FullyRetiredMessage)
+			}
+
+			if IsCdnDeprecatedForCreation() && d.HasChanges("name", "cdn_endpoint_id", "host_name") {
+				return fmt.Errorf("%s", CreateDeprecationMessage)
+			}
+
+			return nil
+		}),
 	}
 }
 

@@ -60,6 +60,10 @@ func TestAccDataSourcePublicMaintenanceConfigurations_recurEvery(t *testing.T) {
 
 func (PublicMaintenanceConfigurationsDataSource) allFilters() string {
 	return `
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_public_maintenance_configurations" "test" {
   location    = "West Europe"
   scope       = "SQLManagedInstance"
@@ -70,6 +74,10 @@ data "azurerm_public_maintenance_configurations" "test" {
 
 func (PublicMaintenanceConfigurationsDataSource) noFilters() string {
 	return `
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_public_maintenance_configurations" "test" {
 
 }
@@ -78,6 +86,10 @@ data "azurerm_public_maintenance_configurations" "test" {
 
 func (PublicMaintenanceConfigurationsDataSource) recurEvery() string {
 	return `
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_public_maintenance_configurations" "test" {
   scope       = "SQLManagedInstance"
   recur_every = "Friday-Sunday"

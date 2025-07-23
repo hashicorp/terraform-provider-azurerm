@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	managedvirtualnetwork "github.com/tombuildsstuff/kermit/sdk/synapse/2019-06-01-preview/synapse"
+	managedvirtualnetwork "github.com/jackofallops/kermit/sdk/synapse/2019-06-01-preview/synapse"
 )
 
 func resourceSynapseManagedPrivateEndpoint() *pluginsdk.Resource {

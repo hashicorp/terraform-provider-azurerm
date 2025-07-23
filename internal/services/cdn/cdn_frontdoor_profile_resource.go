@@ -4,21 +4,23 @@
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-02-01/profiles"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
@@ -36,7 +38,7 @@ func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.FrontDoorProfileID(id)
+			_, err := profiles.ParseProfileID(id)
 			return err
 		}),
 
@@ -50,6 +52,8 @@ func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
 			"response_timeout_seconds": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
@@ -62,8 +66,8 @@ func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(cdn.SkuNamePremiumAzureFrontDoor),
-					string(cdn.SkuNameStandardAzureFrontDoor),
+					string(profiles.SkuNamePremiumAzureFrontDoor),
+					string(profiles.SkuNameStandardAzureFrontDoor),
 				}, false),
 			},
 
@@ -74,45 +78,66 @@ func resourceCdnFrontDoorProfile() *pluginsdk.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			// Verify that they are not downgrading the service from Premium SKU -> Standard SKU...
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				oSku, nSku := diff.GetChange("sku_name")
+
+				if oSku != "" {
+					if oSku.(string) == string(profiles.SkuNamePremiumAzureFrontDoor) && nSku.(string) == string(profiles.SkuNameStandardAzureFrontDoor) {
+						return fmt.Errorf("downgrading from the %q sku to the %q sku is not supported, got %q", profiles.SkuNamePremiumAzureFrontDoor, profiles.SkuNameStandardAzureFrontDoor, nSku.(string))
+					}
+				}
+
+				return nil
+			}),
+		),
 	}
 }
 
 func resourceCdnFrontDoorProfileCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorProfileClient
+	client := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewFrontDoorProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName)
+	id := profiles.NewProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+
+	existing, err := client.Get(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
 	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_cdn_frontdoor_profile", id.ID())
 	}
 
-	props := cdn.Profile{
-		Location: utils.String(location.Normalize("global")),
-		ProfileProperties: &cdn.ProfileProperties{
-			OriginResponseTimeoutSeconds: utils.Int32(int32(d.Get("response_timeout_seconds").(int))),
+	props := profiles.Profile{
+		Location: location.Normalize("global"),
+		Properties: &profiles.ProfileProperties{
+			OriginResponseTimeoutSeconds: pointer.To(int64(d.Get("response_timeout_seconds").(int))),
 		},
-		Sku: &cdn.Sku{
-			Name: cdn.SkuName(d.Get("sku_name").(string)),
+		Sku: profiles.Sku{
+			Name: pointer.To(profiles.SkuName(d.Get("sku_name").(string))),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, props)
-	if err != nil {
-		return fmt.Errorf("creating %s: %+v", id, err)
+	if v, ok := d.GetOk("identity"); ok {
+		i, err := identity.ExpandSystemAndUserAssignedMap(v.([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+
+		props.Identity = i
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
+	err = client.CreateThenPoll(ctx, id, props)
+	if err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -120,18 +145,18 @@ func resourceCdnFrontDoorProfileCreate(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorProfileClient
+	client := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorProfileID(d.Id())
+	id, err := profiles.ParseProfileID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ProfileName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -139,73 +164,87 @@ func resourceCdnFrontDoorProfileRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	d.Set("name", id.ProfileName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.ProfileProperties; props != nil {
-		d.Set("response_timeout_seconds", props.OriginResponseTimeoutSeconds)
+	if model := resp.Model; model != nil {
+		if skuName := model.Sku.Name; skuName != nil {
+			d.Set("sku_name", string(pointer.From(skuName)))
+		}
 
-		// whilst this is returned in the API as FrontDoorID other resources refer to
-		// this as the Resource GUID, so we will for consistency
-		d.Set("resource_guid", props.FrontDoorID)
+		identity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+
+		if err := d.Set("identity", identity); err != nil {
+			return fmt.Errorf("setting `identity`: %+v", err)
+		}
+
+		if props := model.Properties; props != nil {
+			d.Set("response_timeout_seconds", int(pointer.From(props.OriginResponseTimeoutSeconds)))
+
+			// whilst this is returned in the API as FrontDoorID other resources refer to
+			// this as the Resource GUID, so we will for consistency
+			d.Set("resource_guid", pointer.From(props.FrontDoorId))
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
-	skuName := ""
-	if resp.Sku != nil {
-		skuName = string(resp.Sku.Name)
-	}
-	d.Set("sku_name", skuName)
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceCdnFrontDoorProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorProfileClient
+	client := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorProfileID(d.Id())
+	id, err := profiles.ParseProfileID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	props := cdn.ProfileUpdateParameters{
-		Tags:                              tags.Expand(d.Get("tags").(map[string]interface{})),
-		ProfilePropertiesUpdateParameters: &cdn.ProfilePropertiesUpdateParameters{},
+	props := profiles.ProfileUpdateParameters{
+		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
+		Properties: &profiles.ProfilePropertiesUpdateParameters{},
 	}
 
 	if d.HasChange("response_timeout_seconds") {
-		props.OriginResponseTimeoutSeconds = utils.Int32(int32(d.Get("response_timeout_seconds").(int)))
+		props.Properties.OriginResponseTimeoutSeconds = pointer.To(int64(d.Get("response_timeout_seconds").(int)))
 	}
 
-	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, props)
+	if d.HasChange("identity") {
+		i, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+
+		props.Identity = i
+	}
+
+	err = client.UpdateThenPoll(ctx, pointer.From(id), props)
 	if err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the update of %s: %+v", *id, err)
 	}
 
 	return resourceCdnFrontDoorProfileRead(d, meta)
 }
 
 func resourceCdnFrontDoorProfileDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Cdn.FrontDoorProfileClient
+	client := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.FrontDoorProfileID(d.Id())
+	id, err := profiles.ParseProfileID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ProfileName)
+	err = client.DeleteThenPoll(ctx, pointer.From(id))
 	if err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 	}
 
 	return nil

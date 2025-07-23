@@ -37,7 +37,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `sku_name` - (Required) Sets the PowerBI Embedded's pricing level's SKU. Possible values include: `A1`, `A2`, `A3`, `A4`, `A5`, `A6`.
+* `sku_name` - (Required) Sets the PowerBI Embedded's pricing level's SKU. Possible values include: `A1`, `A2`, `A3`, `A4`, `A5`, `A6`, `A7` and `A8`.
 
 * `administrators` - (Required) A set of administrator user identities, which manages the Power BI Embedded and must be a member user or a service principal in your AAD tenant.
 
@@ -56,8 +56,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the PowerBI Embedded instance.
-* `update` - (Defaults to 30 minutes) Used when updating the PowerBI Embedded instance.
 * `read` - (Defaults to 5 minutes) Used when retrieving the PowerBI Embedded instance.
+* `update` - (Defaults to 30 minutes) Used when updating the PowerBI Embedded instance.
 * `delete` - (Defaults to 30 minutes) Used when deleting the PowerBI Embedded instance.
 
 ## Import
@@ -67,3 +67,9 @@ PowerBI Embedded can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_powerbi_embedded.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.PowerBIDedicated/capacities/capacity1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.PowerBIDedicated`: 2021-01-01

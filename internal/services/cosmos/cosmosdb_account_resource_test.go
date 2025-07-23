@@ -247,7 +247,7 @@ func TestAccCosmosDBAccount_updateTagsWithUserAssignedDefaultIdentity(t *testing
 }
 
 func TestAccCosmosDBAccount_minimalTlsVersion(t *testing.T) {
-	if features.FivePointOhBeta() {
+	if features.FivePointOh() {
 		t.Skipf("There is no more available values for `minimal_tls_version` to test.")
 	}
 	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_account", "test")
@@ -731,6 +731,10 @@ func TestAccCosmosDBAccount_capabilities_EnableNoSQLVectorSearch(t *testing.T) {
 	testAccCosmosDBAccount_capabilitiesWith(t, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableNoSQLVectorSearch"})
 }
 
+func TestAccCosmosDBAccount_capabilities_EnableNoSQLFullTextSearch(t *testing.T) {
+	testAccCosmosDBAccount_capabilitiesWith(t, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableNoSQLFullTextSearch"})
+}
+
 func TestAccCosmosDBAccount_capabilities_EnableMongo(t *testing.T) {
 	testAccCosmosDBAccount_capabilitiesWith(t, cosmosdb.DatabaseAccountKindMongoDB, []string{"EnableMongo"})
 }
@@ -790,7 +794,7 @@ func TestAccCosmosDBAccount_capabilitiesAdd(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.capabilities(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableCassandra", "EnableAggregationPipeline"}),
+			Config: r.capabilities(data, cosmosdb.DatabaseAccountKindGlobalDocumentDB, []string{"EnableCassandra", "EnableAggregationPipeline", "DeleteAllItemsByPartitionKey"}),
 			Check: acceptance.ComposeAggregateTestCheckFunc(
 				checkAccCosmosDBAccount_basic(data, cosmosdb.DefaultConsistencyLevelStrong, 1),
 			),

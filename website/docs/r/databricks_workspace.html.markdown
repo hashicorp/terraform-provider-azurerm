@@ -30,7 +30,7 @@ resource "azurerm_databricks_workspace" "example" {
 }
 ```
 
--> You can use [the Databricks Terraform Provider](https://registry.terraform.io/providers/databrickslabs/databricks/latest/docs) to manage resources within the Databricks Workspace.
+-> **Note:** You can use [the Databricks Terraform Provider](https://registry.terraform.io/providers/databrickslabs/databricks/latest/docs) to manage resources within the Databricks Workspace.
 
 ## Argument Reference
 
@@ -86,6 +86,8 @@ The following arguments are supported:
 
 * `custom_parameters` - (Optional) A `custom_parameters` block as documented below.
 
+* `enhanced_security_compliance` - (Optional) An `enhanced_security_compliance` block as documented below. This feature is only valid if `sku` is set to `premium`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -121,6 +123,26 @@ A `custom_parameters` block supports the following:
 * `vnet_address_prefix` - (Optional) Address prefix for Managed virtual network. Defaults to `10.139`. Changing this forces a new resource to be created.
 
 ~> **Note:** Databricks requires that a network security group is associated with the `public` and `private` subnets when a `virtual_network_id` has been defined. Both `public` and `private` subnets must be delegated to `Microsoft.Databricks/workspaces`. For more information about subnet delegation see the [product documentation](https://docs.microsoft.com/azure/virtual-network/subnet-delegation-overview).
+
+---
+
+An `enhanced_security_compliance` block supports the following:
+
+* `automatic_cluster_update_enabled` - (Optional) Enables automatic cluster updates for this workspace. Defaults to `false`.
+
+* `compliance_security_profile_enabled` - (Optional) Enables compliance security profile for this workspace. Defaults to `false`.
+
+~> **Note:** Changing the value of `compliance_security_profile_enabled` from `true` to `false` forces a replacement of the Databricks workspace.
+
+~> **Note:** The attributes `automatic_cluster_update_enabled` and `enhanced_security_monitoring_enabled` must be set to `true` in order to set `compliance_security_profile_enabled` to `true`.
+
+* `compliance_security_profile_standards` - (Optional) A list of standards to enforce on this workspace. Possible values include `HIPAA` and `PCI_DSS`.
+
+~> **Note:** `compliance_security_profile_enabled` must be set to `true` in order to use `compliance_security_profile_standards`.
+
+~> **Note:** Removing a standard from the `compliance_security_profile_standards` list forces a replacement of the Databricks workspace.
+
+* `enhanced_security_monitoring_enabled` - (Optional) Enables enhanced security monitoring for this workspace. Defaults to `false`.
 
 ## Example HCL Configurations
 
@@ -176,8 +198,8 @@ A `storage_account_identity` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Databricks Workspace.
-* `update` - (Defaults to 30 minutes) Used when updating the Databricks Workspace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Databricks Workspace.
+* `update` - (Defaults to 30 minutes) Used when updating the Databricks Workspace.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Databricks Workspace.
 
 ## Import
@@ -187,3 +209,11 @@ Databrick Workspaces can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_databricks_workspace.workspace1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Databricks/workspaces/workspace1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Databricks`: 2024-05-01, 2022-10-01-preview
+
+* `Microsoft.Network`: 2024-05-01, 2023-09-01

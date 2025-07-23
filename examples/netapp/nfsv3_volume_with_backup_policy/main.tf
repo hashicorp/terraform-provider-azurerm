@@ -4,7 +4,7 @@
 provider "azurerm" {
   features {
     netapp {
-      prevent_volume_destruction = false
+      prevent_volume_destruction             = false
       delete_backups_on_backup_vault_destroy = true
     }
   }
@@ -59,7 +59,7 @@ resource "azurerm_netapp_backup_policy" "example" {
   daily_backups_to_keep   = 2
   weekly_backups_to_keep  = 2
   monthly_backups_to_keep = 2
-  enabled = true
+  enabled                 = true
 }
 
 resource "azurerm_netapp_pool" "example" {
@@ -95,9 +95,9 @@ resource "azurerm_netapp_volume" "example" {
   }
 
   export_policy_rule {
-    rule_index = 1
-    allowed_clients = ["0.0.0.0/0"]
+    rule_index        = 1
+    allowed_clients   = ["0.0.0.0/0"]
     protocols_enabled = ["NFSv3"]
-    unix_read_write = true
+    unix_read_write   = true
   }
 }

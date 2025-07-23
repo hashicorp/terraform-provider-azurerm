@@ -6,23 +6,26 @@ package logic
 import (
 	"fmt"
 	"log"
+	"math"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -30,13 +33,13 @@ import (
 )
 
 func resourceLogicAppStandard() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceLogicAppStandardCreate,
 		Read:   resourceLogicAppStandardRead,
 		Update: resourceLogicAppStandardUpdate,
 		Delete: resourceLogicAppStandardDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.LogicAppStandardID(id)
+			_, err := commonids.ParseLogicAppId(id)
 			return err
 		}),
 
@@ -106,6 +109,12 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				Default:  true,
 			},
 
+			"ftp_publish_basic_authentication_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			"https_only": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -113,6 +122,12 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 			},
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+
+			"scm_publish_basic_authentication_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
 
 			"site_config": schemaLogicAppStandardSiteConfig(),
 
@@ -131,17 +146,17 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeString,
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
-								string(web.ConnectionStringTypeAPIHub),
-								string(web.ConnectionStringTypeCustom),
-								string(web.ConnectionStringTypeDocDb),
-								string(web.ConnectionStringTypeEventHub),
-								string(web.ConnectionStringTypeMySQL),
-								string(web.ConnectionStringTypeNotificationHub),
-								string(web.ConnectionStringTypePostgreSQL),
-								string(web.ConnectionStringTypeRedisCache),
-								string(web.ConnectionStringTypeServiceBus),
-								string(web.ConnectionStringTypeSQLAzure),
-								string(web.ConnectionStringTypeSQLServer),
+								string(webapps.ConnectionStringTypeApiHub),
+								string(webapps.ConnectionStringTypeCustom),
+								string(webapps.ConnectionStringTypeDocDb),
+								string(webapps.ConnectionStringTypeEventHub),
+								string(webapps.ConnectionStringTypeMySql),
+								string(webapps.ConnectionStringTypeNotificationHub),
+								string(webapps.ConnectionStringTypePostgreSQL),
+								string(webapps.ConnectionStringTypeRedisCache),
+								string(webapps.ConnectionStringTypeServiceBus),
+								string(webapps.ConnectionStringTypeSQLAzure),
+								string(webapps.ConnectionStringTypeSQLServer),
 							}, false),
 						},
 
@@ -168,6 +183,16 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				ValidateFunc: validation.NoZeroValues,
 			},
 
+			"public_network_access": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  helpers.PublicNetworkAccessEnabled,
+				ValidateFunc: validation.StringInSlice([]string{
+					helpers.PublicNetworkAccessEnabled,
+					helpers.PublicNetworkAccessDisabled,
+				}, false),
+			},
+
 			"storage_account_share_name": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -180,7 +205,18 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				Default:  "~4",
 			},
 
-			"tags": tags.Schema(),
+			"vnet_content_share_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+			},
+
+			"virtual_network_subnet_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: commonids.ValidateSubnetID,
+			},
+
+			"tags": commonschema.Tags(),
 
 			// Computed Only
 			"custom_domain_verification_id": {
@@ -225,21 +261,26 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 					},
 				},
 			},
-
-			"virtual_network_subnet_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: commonids.ValidateSubnetID,
-			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		// Due to the way the `site_config.public_network_access_enabled` property and the `public_network_access` property
+		// influence each other, the default needs to be handled in the Create for now until `site_config.public_network_access_enabled`
+		// is removed in v5.0
+		resource.Schema["public_network_access"].Default = nil
+		resource.Schema["public_network_access"].Computed = true
+	}
+	return resource
 }
 
 func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).AppService.WebAppsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
+	resourcesClient := meta.(*clients.Client).AppService.ResourceProvidersClient
 
 	env := meta.(*clients.Client).Account.Environment
 	storageAccountDomainSuffix, ok := env.Storage.DomainSuffix()
@@ -249,48 +290,38 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	log.Printf("[INFO] preparing arguments for AzureRM Logic App Standard creation.")
 
-	id := parse.NewLogicAppStandardID(
-		subscriptionId,
-		d.Get("resource_group_name").(string),
-		d.Get("name").(string),
-	)
-	existing, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+	id := commonids.NewAppServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	existing, err := client.Get(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_logic_app_standard", id.ID())
 	}
 
-	availabilityRequest := web.ResourceNameAvailabilityRequest{
-		Name: utils.String(id.SiteName),
-		Type: web.CheckNameResourceTypesMicrosoftWebsites,
+	availabilityRequest := resourceproviders.ResourceNameAvailabilityRequest{
+		Name: id.SiteName,
+		Type: resourceproviders.CheckNameResourceTypesMicrosoftPointWebSites,
 	}
-	available, err := client.CheckNameAvailability(ctx, availabilityRequest)
+
+	available, err := resourcesClient.CheckNameAvailability(ctx, commonids.NewSubscriptionID(subscriptionId), availabilityRequest)
 	if err != nil {
-		return fmt.Errorf("checking if the name %q was available: %+v", id.SiteName, err)
+		return fmt.Errorf("checking if name %q was available: %+v", id.SiteName, err)
 	}
 
-	if !*available.NameAvailable {
-		return fmt.Errorf(
-			"the name %q used for the Logic App Standard needs to be globally unique and isn't available: %+v",
-			id.SiteName,
-			*available.Message,
-		)
+	if available.Model == nil || available.Model.NameAvailable == nil {
+		return fmt.Errorf("checking if name %q was available: `model` was nil", id.SiteName)
 	}
 
-	appServicePlanID := d.Get("app_service_plan_id").(string)
-	enabled := d.Get("enabled").(bool)
-	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
+	if !*available.Model.NameAvailable {
+		return fmt.Errorf("the name %q used for the Logic App Standard needs to be globally unique and isn't available: %+v", id.SiteName, pointer.From(available.Model.Message))
+	}
+
 	clientCertMode := d.Get("client_certificate_mode").(string)
 	clientCertEnabled := clientCertMode != ""
-	httpsOnly := d.Get("https_only").(bool)
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	VirtualNetworkSubnetID := d.Get("virtual_network_subnet_id").(string)
-	t := d.Get("tags").(map[string]interface{})
 
 	basicAppSettings, err := getBasicLogicAppSettings(d, *storageAccountDomainSuffix)
 	if err != nil {
@@ -313,52 +344,92 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	siteConfig.AppSettings = &appSettings
 
-	siteEnvelope := web.Site{
+	siteEnvelope := webapps.Site{
 		Kind:     &kind,
-		Location: &location,
-		Tags:     tags.Expand(t),
-		SiteProperties: &web.SiteProperties{
-			ServerFarmID:          utils.String(appServicePlanID),
-			Enabled:               utils.Bool(enabled),
-			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
-			ClientCertEnabled:     utils.Bool(clientCertEnabled),
-			HTTPSOnly:             utils.Bool(httpsOnly),
-			SiteConfig:            &siteConfig,
+		Location: location.Normalize(d.Get("location").(string)),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Properties: &webapps.SiteProperties{
+			ServerFarmId:            pointer.To(d.Get("app_service_plan_id").(string)),
+			Enabled:                 pointer.To(d.Get("enabled").(bool)),
+			ClientAffinityEnabled:   pointer.To(d.Get("client_affinity_enabled").(bool)),
+			ClientCertEnabled:       pointer.To(clientCertEnabled),
+			HTTPSOnly:               pointer.To(d.Get("https_only").(bool)),
+			SiteConfig:              &siteConfig,
+			VnetContentShareEnabled: pointer.To(d.Get("vnet_content_share_enabled").(bool)),
 		},
 	}
 
-	if clientCertMode != "" {
-		siteEnvelope.SiteProperties.ClientCertMode = web.ClientCertMode(clientCertMode)
+	publicNetworkAccess := d.Get("public_network_access").(string)
+	if !features.FivePointOh() {
+		// if a user is still using `site_config.public_network_access_enabled` we should be setting `public_network_access` for them
+		publicNetworkAccess = reconcilePNA(d)
+		if v := siteEnvelope.Properties.SiteConfig.PublicNetworkAccess; v != nil && *v == helpers.PublicNetworkAccessDisabled {
+			publicNetworkAccess = helpers.PublicNetworkAccessDisabled
+		}
 	}
 
-	if VirtualNetworkSubnetID != "" {
-		siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(VirtualNetworkSubnetID)
+	// conversely if `public_network_access` has been set it should take precedence, and we should be propagating the value for that to `site_config.public_network_access_enabled`
+	if publicNetworkAccess == helpers.PublicNetworkAccessDisabled {
+		siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
+	} else if publicNetworkAccess == helpers.PublicNetworkAccessEnabled {
+		siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessEnabled)
+	}
+
+	siteEnvelope.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
+
+	if clientCertEnabled {
+		siteEnvelope.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(clientCertMode))
+	}
+
+	if v := d.Get("virtual_network_subnet_id").(string); v != "" {
+		siteEnvelope.Properties.VirtualNetworkSubnetId = pointer.To(v)
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		appServiceIdentity, err := expandLogicAppStandardIdentity(d.Get("identity").([]interface{}))
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
-		siteEnvelope.Identity = appServiceIdentity
+		siteEnvelope.Identity = expandedIdentity
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, siteEnvelope); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	err = future.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
-		return fmt.Errorf("waiting for the creation of %s: %+v", id, err)
+	d.SetId(id.ID())
+
+	// This setting is enabled by default on creation of a logic app, we only need to update if config sets this as `false`
+	if ftpAuth := d.Get("ftp_publish_basic_authentication_enabled").(bool); !ftpAuth {
+		policy := webapps.CsmPublishingCredentialsPoliciesEntity{
+			Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+				Allow: ftpAuth,
+			},
+		}
+
+		if _, err := client.UpdateFtpAllowed(ctx, id, policy); err != nil {
+			return fmt.Errorf("updating FTP publish basic authentication policy for %s: %+v", id, err)
+		}
 	}
 
-	d.SetId(id.ID())
+	// This setting is enabled by default on creation of a logic app, we only need to update if config sets this as `false`
+	if scmAuth := d.Get("scm_publish_basic_authentication_enabled").(bool); !scmAuth {
+		policy := webapps.CsmPublishingCredentialsPoliciesEntity{
+			Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+				Allow: scmAuth,
+			},
+		}
+
+		if _, err := client.UpdateScmAllowed(ctx, id, policy); err != nil {
+			return fmt.Errorf("updating SCM publish basic authentication policy for %s: %+v", id, err)
+		}
+	}
+
 	return resourceLogicAppStandardUpdate(d, meta)
 }
 
 func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).AppService.WebAppsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -368,19 +439,13 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("could not determine the domain suffix for storage accounts in environment %q: %+v", env.Name, env.Storage)
 	}
 
-	id, err := parse.LogicAppStandardID(d.Id())
+	id, err := commonids.ParseLogicAppId(d.Id())
 	if err != nil {
 		return err
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	appServicePlanID := d.Get("app_service_plan_id").(string)
-	enabled := d.Get("enabled").(bool)
-	clientAffinityEnabled := d.Get("client_affinity_enabled").(bool)
 	clientCertMode := d.Get("client_certificate_mode").(string)
 	clientCertEnabled := clientCertMode != ""
-	httpsOnly := d.Get("https_only").(bool)
-	t := d.Get("tags").(map[string]interface{})
 
 	basicAppSettings, err := getBasicLogicAppSettings(d, *storageAccountDomainSuffix)
 	if err != nil {
@@ -406,85 +471,127 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 	if vnetRouteAll, ok := appSettings["WEBSITE_VNET_ROUTE_ALL"]; ok {
 		if !d.HasChange("site_config.0.vnet_route_all_enabled") {
-			vnetRouteAllEnabled, _ := strconv.ParseBool(*vnetRouteAll)
+			vnetRouteAllEnabled, _ := strconv.ParseBool(vnetRouteAll)
 			siteConfig.VnetRouteAllEnabled = &vnetRouteAllEnabled
 		}
 	}
 
-	siteEnvelope := web.Site{
+	siteEnvelope := webapps.Site{
 		Kind:     &kind,
-		Location: &location,
-		Tags:     tags.Expand(t),
-		SiteProperties: &web.SiteProperties{
-			ServerFarmID:          utils.String(appServicePlanID),
-			Enabled:               utils.Bool(enabled),
-			ClientAffinityEnabled: utils.Bool(clientAffinityEnabled),
-			ClientCertEnabled:     utils.Bool(clientCertEnabled),
-			HTTPSOnly:             utils.Bool(httpsOnly),
+		Location: location.Normalize(d.Get("location").(string)),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Properties: &webapps.SiteProperties{
+			ServerFarmId:          pointer.To(d.Get("app_service_plan_id").(string)),
+			Enabled:               pointer.To(d.Get("enabled").(bool)),
+			ClientAffinityEnabled: pointer.To(d.Get("client_affinity_enabled").(bool)),
+			ClientCertEnabled:     pointer.To(clientCertEnabled),
+			HTTPSOnly:             pointer.To(d.Get("https_only").(bool)),
+			PublicNetworkAccess:   pointer.To(d.Get("public_network_access").(string)),
 			SiteConfig:            &siteConfig,
 		},
 	}
 
-	if clientCertMode != "" {
-		siteEnvelope.SiteProperties.ClientCertMode = web.ClientCertMode(clientCertMode)
+	if d.HasChange("public_network_access") {
+		publicNetworkAccess := d.Get("public_network_access").(string)
+		siteEnvelope.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
+		if publicNetworkAccess == helpers.PublicNetworkAccessEnabled {
+			siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessEnabled)
+		} else {
+			siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessDisabled)
+		}
+	}
+
+	if d.HasChange("vnet_content_share_enabled") {
+		siteEnvelope.Properties.VnetContentShareEnabled = pointer.To(d.Get("vnet_content_share_enabled").(bool))
+	}
+
+	if !features.FivePointOh() { // Until 5.0 the site_config value of this must be reflected back into the top-level property if not set there
+		siteConfig.PublicNetworkAccess = pointer.To(reconcilePNA(d))
+	}
+
+	if clientCertEnabled {
+		siteEnvelope.Properties.ClientCertMode = pointer.To(webapps.ClientCertMode(clientCertMode))
 	}
 
 	if d.HasChange("virtual_network_subnet_id") {
 		subnetId := d.Get("virtual_network_subnet_id").(string)
 		if subnetId == "" {
-			if _, err := client.DeleteSwiftVirtualNetwork(ctx, id.ResourceGroup, id.SiteName); err != nil {
+			if _, err := client.DeleteSwiftVirtualNetwork(ctx, *id); err != nil {
 				return fmt.Errorf("removing `virtual_network_subnet_id` association for %s: %+v", *id, err)
 			}
 			var empty *string
-			siteEnvelope.SiteProperties.VirtualNetworkSubnetID = empty
+			siteEnvelope.Properties.VirtualNetworkSubnetId = empty
 		} else {
-			siteEnvelope.SiteProperties.VirtualNetworkSubnetID = utils.String(subnetId)
+			siteEnvelope.Properties.VirtualNetworkSubnetId = pointer.To(subnetId)
 		}
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
-		appServiceIdentity, err := expandLogicAppStandardIdentity(d.Get("identity").([]interface{}))
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
-		siteEnvelope.Identity = appServiceIdentity
+		siteEnvelope.Identity = expandedIdentity
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.SiteName, siteEnvelope)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, siteEnvelope); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the update of %s: %+v", id, err)
-	}
-
-	if d.HasChange("site_config") { // update siteConfig before appSettings in case the appSettings get covered by basicAppSettings
-		siteConfigResource := web.SiteConfigResource{
-			SiteConfig: &siteConfig,
+	if d.HasChange("site_config") || (d.HasChange("public_network_access") && !features.FivePointOh()) { // update siteConfig before appSettings in case the appSettings get covered by basicAppSettings
+		siteConfigResource := webapps.SiteConfigResource{
+			Properties: &siteConfig,
 		}
 
-		if _, err := client.CreateOrUpdateConfiguration(ctx, id.ResourceGroup, id.SiteName, siteConfigResource); err != nil {
+		if _, err := client.CreateOrUpdateConfiguration(ctx, *id, siteConfigResource); err != nil {
 			return fmt.Errorf("updating Configuration for %s: %+v", *id, err)
 		}
 	}
 
-	settings := web.StringDictionary{
-		Properties: appSettings,
+	settings := webapps.StringDictionary{
+		Properties: pointer.To(appSettings),
 	}
 
-	if _, err = client.UpdateApplicationSettings(ctx, id.ResourceGroup, id.SiteName, settings); err != nil {
+	if _, err = client.UpdateApplicationSettings(ctx, *id, settings); err != nil {
 		return fmt.Errorf("updating Application Settings for %s: %+v", *id, err)
 	}
 
 	if d.HasChange("connection_string") {
 		connectionStrings := expandLogicAppStandardConnectionStrings(d)
-		properties := web.ConnectionStringDictionary{
-			Properties: connectionStrings,
+		properties := webapps.ConnectionStringDictionary{
+			Properties: pointer.To(connectionStrings),
 		}
 
-		if _, err := client.UpdateConnectionStrings(ctx, id.ResourceGroup, id.SiteName, properties); err != nil {
+		if _, err := client.UpdateConnectionStrings(ctx, *id, properties); err != nil {
 			return fmt.Errorf("updating Connection Strings for %s: %+v", *id, err)
+		}
+	}
+
+	// HasChange will return `true` when config specifies this argument as `true` during initial creation.
+	// To avoid unnecessary updates, check if the resource is new.
+	if d.HasChange("ftp_publish_basic_authentication_enabled") && !d.IsNewResource() {
+		policy := webapps.CsmPublishingCredentialsPoliciesEntity{
+			Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+				Allow: d.Get("ftp_publish_basic_authentication_enabled").(bool),
+			},
+		}
+
+		if _, err := client.UpdateFtpAllowed(ctx, *id, policy); err != nil {
+			return fmt.Errorf("updating FTP publish basic authentication policy for %s: %+v", id, err)
+		}
+	}
+
+	// HasChange will return `true` when config specifies this argument as `true` during initial creation.
+	// To avoid unnecessary updates, check if the resource is new.
+	if d.HasChange("scm_publish_basic_authentication_enabled") && !d.IsNewResource() {
+		policy := webapps.CsmPublishingCredentialsPoliciesEntity{
+			Properties: &webapps.CsmPublishingCredentialsPoliciesEntityProperties{
+				Allow: d.Get("scm_publish_basic_authentication_enabled").(bool),
+			},
+		}
+
+		if _, err := client.UpdateScmAllowed(ctx, *id, policy); err != nil {
+			return fmt.Errorf("updating SCM publish basic authentication policy for %s: %+v", id, err)
 		}
 	}
 
@@ -492,18 +599,18 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).AppService.WebAppsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LogicAppStandardID(d.Id())
+	id, err := commonids.ParseLogicAppId(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.SiteName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
@@ -511,161 +618,182 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	appSettingsResp, err := client.ListApplicationSettings(ctx, id.ResourceGroup, id.SiteName)
+	d.Set("name", id.SiteName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if model := resp.Model; model != nil {
+		d.Set("kind", pointer.From(model.Kind))
+		d.Set("location", location.Normalize(model.Location))
+
+		flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		if err := d.Set("identity", flattenedIdentity); err != nil {
+			return fmt.Errorf("setting `identity`: %s", err)
+		}
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("setting `tags`: %+v", err)
+		}
+
+		if props := model.Properties; props != nil {
+			servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmId)
+			if err != nil {
+				return err
+			}
+			d.Set("app_service_plan_id", servicePlanId.ID())
+			d.Set("enabled", pointer.From(props.Enabled))
+			d.Set("default_hostname", pointer.From(props.DefaultHostName))
+			d.Set("https_only", pointer.From(props.HTTPSOnly))
+			d.Set("outbound_ip_addresses", pointer.From(props.OutboundIPAddresses))
+			d.Set("possible_outbound_ip_addresses", pointer.From(props.PossibleOutboundIPAddresses))
+			d.Set("client_affinity_enabled", pointer.From(props.ClientAffinityEnabled))
+			d.Set("custom_domain_verification_id", pointer.From(props.CustomDomainVerificationId))
+			d.Set("virtual_network_subnet_id", pointer.From(props.VirtualNetworkSubnetId))
+			d.Set("vnet_content_share_enabled", pointer.From(props.VnetContentShareEnabled))
+			d.Set("public_network_access", pointer.From(props.PublicNetworkAccess))
+
+			clientCertMode := ""
+			if props.ClientCertEnabled != nil && *props.ClientCertEnabled {
+				clientCertMode = string(pointer.From(props.ClientCertMode))
+			}
+			d.Set("client_certificate_mode", clientCertMode)
+		}
+	}
+
+	appSettingsResp, err := client.ListApplicationSettings(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("listing application settings for %s: %+v", *id, err)
 	}
 
-	connectionStringsResp, err := client.ListConnectionStrings(ctx, id.ResourceGroup, id.SiteName)
+	if model := appSettingsResp.Model; model != nil {
+		appSettings := pointer.From(model.Properties)
+
+		connectionString := appSettings["AzureWebJobsStorage"]
+
+		// This teases out the necessary attributes from the storage connection string
+		connectionStringParts := strings.Split(connectionString, ";")
+		for _, part := range connectionStringParts {
+			if strings.HasPrefix(part, "AccountName") {
+				accountNameParts := strings.Split(part, "AccountName=")
+				if len(accountNameParts) > 1 {
+					d.Set("storage_account_name", accountNameParts[1])
+				}
+			}
+			if strings.HasPrefix(part, "AccountKey") {
+				accountKeyParts := strings.Split(part, "AccountKey=")
+				if len(accountKeyParts) > 1 {
+					d.Set("storage_account_access_key", accountKeyParts[1])
+				}
+			}
+		}
+
+		d.Set("version", appSettings["FUNCTIONS_EXTENSION_VERSION"])
+
+		if _, ok := appSettings["AzureFunctionsJobHost__extensionBundle__id"]; ok {
+			d.Set("use_extension_bundle", true)
+			if val, ok := appSettings["AzureFunctionsJobHost__extensionBundle__version"]; ok {
+				d.Set("bundle_version", val)
+			}
+		} else {
+			d.Set("use_extension_bundle", false)
+			d.Set("bundle_version", "[1.*, 2.0.0)")
+		}
+
+		d.Set("storage_account_share_name", appSettings["WEBSITE_CONTENTSHARE"])
+
+		// Remove all the settings that are created by this resource so we don't to have to specify in app_settings
+		// block whenever we use azurerm_logic_app_standard.
+		delete(appSettings, "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")
+		delete(appSettings, "APP_KIND")
+		delete(appSettings, "AzureFunctionsJobHost__extensionBundle__id")
+		delete(appSettings, "AzureFunctionsJobHost__extensionBundle__version")
+		delete(appSettings, "AzureWebJobsDashboard")
+		delete(appSettings, "AzureWebJobsStorage")
+		delete(appSettings, "FUNCTIONS_EXTENSION_VERSION")
+		delete(appSettings, "WEBSITE_CONTENTSHARE")
+
+		if err = d.Set("app_settings", appSettings); err != nil {
+			return err
+		}
+	}
+
+	connectionStringsResp, err := client.ListConnectionStrings(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("listing connection strings for %s: %+v", *id, err)
 	}
 
-	siteCredFuture, err := client.ListPublishingCredentials(ctx, id.ResourceGroup, id.SiteName)
+	if model := connectionStringsResp.Model; model != nil {
+		if err = d.Set("connection_string", flattenLogicAppStandardConnectionStrings(model.Properties)); err != nil {
+			return err
+		}
+	}
+
+	ftpBasicAuth, err := client.GetFtpAllowed(ctx, *id)
+	if err != nil || ftpBasicAuth.Model == nil {
+		return fmt.Errorf("retrieving FTP publish basic authentication policy for %s: %+v", id, err)
+	}
+
+	if props := ftpBasicAuth.Model.Properties; props != nil {
+		d.Set("ftp_publish_basic_authentication_enabled", props.Allow)
+	}
+
+	scmBasicAuth, err := client.GetScmAllowed(ctx, *id)
+	if err != nil || scmBasicAuth.Model == nil {
+		return fmt.Errorf("retrieving SCM publish basic authentication policy for %s: %+v", id, err)
+	}
+
+	if props := scmBasicAuth.Model.Properties; props != nil {
+		d.Set("scm_publish_basic_authentication_enabled", props.Allow)
+	}
+
+	siteCredentials, err := helpers.ListPublishingCredentials(ctx, client, *id)
 	if err != nil {
 		return fmt.Errorf("listing publishing credentials for %s: %+v", *id, err)
 	}
-	if err = siteCredFuture.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting to list the publishing credentials for %s: %+v", *id, err)
-	}
-	siteCredResp, err := siteCredFuture.Result(*client)
-	if err != nil {
-		return fmt.Errorf("retrieving the publishing credentials for %s: %+v", *id, err)
-	}
 
-	d.Set("name", id.SiteName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("kind", resp.Kind)
-
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-
-	if props := resp.SiteProperties; props != nil {
-		servicePlanId, err := commonids.ParseAppServicePlanIDInsensitively(*props.ServerFarmID)
-		if err != nil {
-			return err
-		}
-		d.Set("app_service_plan_id", servicePlanId.ID())
-		d.Set("enabled", props.Enabled)
-		d.Set("default_hostname", props.DefaultHostName)
-		d.Set("https_only", props.HTTPSOnly)
-		d.Set("outbound_ip_addresses", props.OutboundIPAddresses)
-		d.Set("possible_outbound_ip_addresses", props.PossibleOutboundIPAddresses)
-		d.Set("client_affinity_enabled", props.ClientAffinityEnabled)
-		d.Set("custom_domain_verification_id", props.CustomDomainVerificationID)
-		d.Set("virtual_network_subnet_id", props.VirtualNetworkSubnetID)
-
-		clientCertMode := ""
-		if props.ClientCertEnabled != nil && *props.ClientCertEnabled {
-			clientCertMode = string(props.ClientCertMode)
-		}
-		d.Set("client_certificate_mode", clientCertMode)
-	}
-
-	appSettings := flattenLogicAppStandardAppSettings(appSettingsResp.Properties)
-
-	if err = d.Set("connection_string", flattenLogicAppStandardConnectionStrings(connectionStringsResp.Properties)); err != nil {
+	if err = d.Set("site_credential", flattenLogicAppStandardSiteCredential(siteCredentials)); err != nil {
 		return err
 	}
 
-	connectionString := appSettings["AzureWebJobsStorage"]
-
-	// This teases out the necessary attributes from the storage connection string
-	connectionStringParts := strings.Split(connectionString, ";")
-	for _, part := range connectionStringParts {
-		if strings.HasPrefix(part, "AccountName") {
-			accountNameParts := strings.Split(part, "AccountName=")
-			if len(accountNameParts) > 1 {
-				d.Set("storage_account_name", accountNameParts[1])
-			}
-		}
-		if strings.HasPrefix(part, "AccountKey") {
-			accountKeyParts := strings.Split(part, "AccountKey=")
-			if len(accountKeyParts) > 1 {
-				d.Set("storage_account_access_key", accountKeyParts[1])
-			}
-		}
-	}
-
-	d.Set("version", appSettings["FUNCTIONS_EXTENSION_VERSION"])
-
-	if _, ok := appSettings["AzureFunctionsJobHost__extensionBundle__id"]; ok {
-		d.Set("use_extension_bundle", true)
-		if val, ok := appSettings["AzureFunctionsJobHost__extensionBundle__version"]; ok {
-			d.Set("bundle_version", val)
-		}
-	} else {
-		d.Set("use_extension_bundle", false)
-		d.Set("bundle_version", "[1.*, 2.0.0)")
-	}
-
-	d.Set("storage_account_share_name", appSettings["WEBSITE_CONTENTSHARE"])
-
-	// Remove all the settings that are created by this resource so we don't to have to specify in app_settings
-	// block whenever we use azurerm_logic_app_standard.
-	delete(appSettings, "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")
-	delete(appSettings, "APP_KIND")
-	delete(appSettings, "AzureFunctionsJobHost__extensionBundle__id")
-	delete(appSettings, "AzureFunctionsJobHost__extensionBundle__version")
-	delete(appSettings, "AzureWebJobsDashboard")
-	delete(appSettings, "AzureWebJobsStorage")
-	delete(appSettings, "FUNCTIONS_EXTENSION_VERSION")
-	delete(appSettings, "WEBSITE_CONTENTSHARE")
-
-	if err = d.Set("app_settings", appSettings); err != nil {
-		return err
-	}
-
-	identity, err := flattenLogicAppStandardIdentity(resp.Identity)
-	if err != nil {
-		return fmt.Errorf("flattening `identity`: %+v", err)
-	}
-	if err := d.Set("identity", identity); err != nil {
-		return fmt.Errorf("setting `identity`: %s", err)
-	}
-
-	configResp, err := client.GetConfiguration(ctx, id.ResourceGroup, id.SiteName)
+	configResp, err := client.GetConfiguration(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("retrieving the configuration for %s: %+v", *id, err)
 	}
 
-	siteConfig := flattenLogicAppStandardSiteConfig(configResp.SiteConfig)
-	if err = d.Set("site_config", siteConfig); err != nil {
-		return err
+	if model := configResp.Model; model != nil {
+		siteConfig := flattenLogicAppStandardSiteConfig(model.Properties)
+		if err = d.Set("site_config", siteConfig); err != nil {
+			return err
+		}
 	}
 
-	siteCred := flattenLogicAppStandardSiteCredential(siteCredResp.UserProperties)
-	if err = d.Set("site_credential", siteCred); err != nil {
-		return err
-	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceLogicAppStandardDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Web.AppServicesClient
+	client := meta.(*clients.Client).AppService.WebAppsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.LogicAppStandardID(d.Id())
+	id, err := commonids.ParseLogicAppId(d.Id())
 	if err != nil {
 		return err
 	}
 
-	deleteMetrics := true
-	deleteEmptyServerFarm := false
-	if _, err := client.Delete(ctx, id.ResourceGroup, id.SiteName, &deleteMetrics, &deleteEmptyServerFarm); err != nil {
+	opts := webapps.DefaultDeleteOperationOptions()
+	opts.DeleteMetrics = pointer.To(true)
+	opts.DeleteEmptyServerFarm = pointer.To(false)
+
+	if _, err := client.Delete(ctx, *id, opts); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
 	return nil
 }
 
-func getBasicLogicAppSettings(
-	d *pluginsdk.ResourceData,
-	endpointSuffix string,
-) ([]web.NameValuePair, error) {
+func getBasicLogicAppSettings(d *pluginsdk.ResourceData, endpointSuffix string) ([]webapps.NameValuePair, error) {
 	storagePropName := "AzureWebJobsStorage"
 	functionVersionPropName := "FUNCTIONS_EXTENSION_VERSION"
 	contentSharePropName := "WEBSITE_CONTENTSHARE"
@@ -688,7 +816,7 @@ func getBasicLogicAppSettings(
 		contentShare = d.Get("storage_account_share_name").(string)
 	}
 
-	basicSettings := []web.NameValuePair{
+	basicSettings := []webapps.NameValuePair{
 		{Name: &storagePropName, Value: &storageConnection},
 		{Name: &functionVersionPropName, Value: &functionVersion},
 		{Name: &appKindPropName, Value: &appKindPropValue},
@@ -709,7 +837,7 @@ func getBasicLogicAppSettings(
 			)
 		}
 
-		bundleSettings := []web.NameValuePair{
+		bundleSettings := []webapps.NameValuePair{
 			{Name: &extensionBundlePropName, Value: &extensionBundleName},
 			{Name: &extensionBundleVersionPropName, Value: &extensionBundleVersion},
 		}
@@ -721,7 +849,7 @@ func getBasicLogicAppSettings(
 }
 
 func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	schema := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Computed: true,
@@ -741,9 +869,9 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.FtpsStateAllAllowed),
-						string(web.FtpsStateDisabled),
-						string(web.FtpsStateFtpsOnly),
+						string(webapps.FtpsStateAllAllowed),
+						string(webapps.FtpsStateDisabled),
+						string(webapps.FtpsStateFtpsOnly),
 					}, false),
 				},
 
@@ -766,9 +894,7 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.SupportedTLSVersionsOneFullStopZero),
-						string(web.SupportedTLSVersionsOneFullStopOne),
-						string(web.SupportedTLSVersionsOneFullStopTwo),
+						string(webapps.SupportedTlsVersionsOnePointTwo),
 					}, false),
 				},
 
@@ -792,9 +918,7 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.SupportedTLSVersionsOneFullStopZero),
-						string(web.SupportedTLSVersionsOneFullStopOne),
-						string(web.SupportedTLSVersionsOneFullStopTwo),
+						string(webapps.SupportedTlsVersionsOnePointTwo),
 					}, false),
 				},
 
@@ -803,20 +927,20 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						string(web.ScmTypeBitbucketGit),
-						string(web.ScmTypeBitbucketHg),
-						string(web.ScmTypeCodePlexGit),
-						string(web.ScmTypeCodePlexHg),
-						string(web.ScmTypeDropbox),
-						string(web.ScmTypeExternalGit),
-						string(web.ScmTypeExternalHg),
-						string(web.ScmTypeGitHub),
-						string(web.ScmTypeLocalGit),
-						string(web.ScmTypeNone),
-						string(web.ScmTypeOneDrive),
-						string(web.ScmTypeTfs),
-						string(web.ScmTypeVSO),
-						string(web.ScmTypeVSTSRM),
+						string(webapps.ScmTypeBitbucketGit),
+						string(webapps.ScmTypeBitbucketHg),
+						string(webapps.ScmTypeCodePlexGit),
+						string(webapps.ScmTypeCodePlexHg),
+						string(webapps.ScmTypeDropbox),
+						string(webapps.ScmTypeExternalGit),
+						string(webapps.ScmTypeExternalHg),
+						string(webapps.ScmTypeGitHub),
+						string(webapps.ScmTypeLocalGit),
+						string(webapps.ScmTypeNone),
+						string(webapps.ScmTypeOneDrive),
+						string(webapps.ScmTypeTfs),
+						string(webapps.ScmTypeVSO),
+						string(webapps.ScmTypeVSTSRM),
 					}, false),
 				},
 
@@ -875,12 +999,6 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 					Computed: true,
 				},
 
-				"public_network_access_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					Default:  true,
-				},
-
 				"auto_swap_slot_name": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
@@ -888,6 +1006,37 @@ func schemaLogicAppStandardSiteConfig() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		schema.Elem.(*pluginsdk.Resource).Schema["public_network_access_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "the `site_config.public_network_access_enabled` property has been superseded by the `public_network_access` property and will be removed in v5.0 of the AzureRM Provider.",
+		}
+		schema.Elem.(*pluginsdk.Resource).Schema["scm_min_tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(webapps.SupportedTlsVersionsOnePointZero),
+				string(webapps.SupportedTlsVersionsOnePointOne),
+				string(webapps.SupportedTlsVersionsOnePointTwo),
+			}, false),
+		}
+		schema.Elem.(*pluginsdk.Resource).Schema["min_tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(webapps.SupportedTlsVersionsOnePointZero),
+				string(webapps.SupportedTlsVersionsOnePointOne),
+				string(webapps.SupportedTlsVersionsOnePointTwo),
+			}, false),
+		}
+	}
+
+	return schema
 }
 
 func schemaLogicAppCorsSettings() *pluginsdk.Schema {
@@ -950,7 +1099,7 @@ func schemaLogicAppStandardIpRestriction() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      65000,
-					ValidateFunc: validation.IntBetween(1, 2147483647),
+					ValidateFunc: validation.IntBetween(1, math.MaxInt32),
 				},
 
 				"action": {
@@ -1024,32 +1173,25 @@ func schemaLogicAppStandardIpRestriction() *pluginsdk.Schema {
 	}
 }
 
-func flattenLogicAppStandardAppSettings(input map[string]*string) map[string]string {
-	output := make(map[string]string)
-	for k, v := range input {
-		output[k] = *v
-	}
-
-	return output
-}
-
-func flattenLogicAppStandardConnectionStrings(
-	input map[string]*web.ConnStringValueTypePair,
-) interface{} {
+func flattenLogicAppStandardConnectionStrings(input *map[string]webapps.ConnStringValueTypePair) interface{} {
 	results := make([]interface{}, 0)
 
-	for k, v := range input {
+	if input == nil || len(*input) == 0 {
+		return results
+	}
+
+	for k, v := range *input {
 		result := make(map[string]interface{})
 		result["name"] = k
 		result["type"] = string(v.Type)
-		result["value"] = *v.Value
+		result["value"] = v.Value
 		results = append(results, result)
 	}
 
 	return results
 }
 
-func flattenLogicAppStandardSiteConfig(input *web.SiteConfig) []interface{} {
+func flattenLogicAppStandardSiteConfig(input *webapps.SiteConfig) []interface{} {
 	results := make([]interface{}, 0)
 	result := make(map[string]interface{})
 
@@ -1058,107 +1200,71 @@ func flattenLogicAppStandardSiteConfig(input *web.SiteConfig) []interface{} {
 		return results
 	}
 
-	if input.AlwaysOn != nil {
-		result["always_on"] = *input.AlwaysOn
-	}
-
-	if input.Use32BitWorkerProcess != nil {
-		result["use_32_bit_worker_process"] = *input.Use32BitWorkerProcess
-	}
-
-	if input.WebSocketsEnabled != nil {
-		result["websockets_enabled"] = *input.WebSocketsEnabled
-	}
-
-	if input.LinuxFxVersion != nil {
-		result["linux_fx_version"] = *input.LinuxFxVersion
-	}
-
-	if input.HTTP20Enabled != nil {
-		result["http2_enabled"] = *input.HTTP20Enabled
-	}
-
-	if input.PreWarmedInstanceCount != nil {
-		result["pre_warmed_instance_count"] = *input.PreWarmedInstanceCount
-	}
+	result["always_on"] = pointer.From(input.AlwaysOn)
+	result["use_32_bit_worker_process"] = pointer.From(input.Use32BitWorkerProcess)
+	result["websockets_enabled"] = pointer.From(input.WebSocketsEnabled)
+	result["linux_fx_version"] = pointer.From(input.LinuxFxVersion)
+	result["http2_enabled"] = pointer.From(input.HTTP20Enabled)
+	result["pre_warmed_instance_count"] = pointer.From(input.PreWarmedInstanceCount)
 
 	result["ip_restriction"] = flattenLogicAppStandardIpRestriction(input.IPSecurityRestrictions)
 
 	result["scm_ip_restriction"] = flattenLogicAppStandardIpRestriction(input.ScmIPSecurityRestrictions)
 
-	if input.ScmIPSecurityRestrictionsUseMain != nil {
-		result["scm_use_main_ip_restriction"] = *input.ScmIPSecurityRestrictionsUseMain
-	}
+	result["scm_use_main_ip_restriction"] = pointer.From(input.ScmIPSecurityRestrictionsUseMain)
 
-	result["scm_type"] = string(input.ScmType)
-	result["scm_min_tls_version"] = string(input.ScmMinTLSVersion)
+	result["scm_type"] = string(pointer.From(input.ScmType))
+	result["scm_min_tls_version"] = string(pointer.From(input.ScmMinTlsVersion))
 
-	result["min_tls_version"] = string(input.MinTLSVersion)
-	result["ftps_state"] = string(input.FtpsState)
+	result["min_tls_version"] = string(pointer.From(input.MinTlsVersion))
+	result["ftps_state"] = string(pointer.From(input.FtpsState))
 
 	result["cors"] = flattenLogicAppStandardCorsSettings(input.Cors)
 
-	if input.AutoSwapSlotName != nil {
-		result["auto_swap_slot_name"] = *input.AutoSwapSlotName
-	}
+	result["auto_swap_slot_name"] = pointer.From(input.AutoSwapSlotName)
 
-	if input.HealthCheckPath != nil {
-		result["health_check_path"] = *input.HealthCheckPath
-	}
+	result["health_check_path"] = pointer.From(input.HealthCheckPath)
 
-	if input.MinimumElasticInstanceCount != nil {
-		result["elastic_instance_minimum"] = *input.MinimumElasticInstanceCount
-	}
+	result["elastic_instance_minimum"] = pointer.From(input.MinimumElasticInstanceCount)
 
-	if input.FunctionAppScaleLimit != nil {
-		result["app_scale_limit"] = *input.FunctionAppScaleLimit
-	}
+	result["app_scale_limit"] = pointer.From(input.FunctionAppScaleLimit)
 
-	if input.FunctionsRuntimeScaleMonitoringEnabled != nil {
-		result["runtime_scale_monitoring_enabled"] = *input.FunctionsRuntimeScaleMonitoringEnabled
-	}
+	result["runtime_scale_monitoring_enabled"] = pointer.From(input.FunctionsRuntimeScaleMonitoringEnabled)
 
-	if input.NetFrameworkVersion != nil {
-		result["dotnet_framework_version"] = *input.NetFrameworkVersion
-	}
+	result["dotnet_framework_version"] = pointer.From(input.NetFrameworkVersion)
 
-	vnetRouteAllEnabled := false
-	if input.VnetRouteAllEnabled != nil {
-		vnetRouteAllEnabled = *input.VnetRouteAllEnabled
-	}
-	result["vnet_route_all_enabled"] = vnetRouteAllEnabled
+	result["vnet_route_all_enabled"] = pointer.From(input.VnetRouteAllEnabled)
 
 	publicNetworkAccessEnabled := true
 	if input.PublicNetworkAccess != nil {
 		publicNetworkAccessEnabled = !strings.EqualFold(pointer.From(input.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
 	}
-	result["public_network_access_enabled"] = publicNetworkAccessEnabled
+
+	if !features.FivePointOh() {
+		result["public_network_access_enabled"] = publicNetworkAccessEnabled
+	}
 
 	results = append(results, result)
 	return results
 }
 
-func flattenLogicAppStandardSiteCredential(input *web.UserProperties) []interface{} {
+func flattenLogicAppStandardSiteCredential(input *webapps.User) []interface{} {
 	results := make([]interface{}, 0)
 	result := make(map[string]interface{})
 
-	if input == nil {
+	if input == nil || input.Properties == nil {
 		log.Printf("[DEBUG] UserProperties is nil")
 		return results
 	}
 
-	if input.PublishingUserName != nil {
-		result["username"] = *input.PublishingUserName
-	}
+	result["username"] = input.Properties.PublishingUserName
 
-	if input.PublishingPassword != nil {
-		result["password"] = *input.PublishingPassword
-	}
+	result["password"] = pointer.From(input.Properties.PublishingPassword)
 
 	return append(results, result)
 }
 
-func flattenLogicAppStandardIpRestriction(input *[]web.IPSecurityRestriction) []interface{} {
+func flattenLogicAppStandardIpRestriction(input *[]webapps.IPSecurityRestriction) []interface{} {
 	restrictions := make([]interface{}, 0)
 
 	if input == nil {
@@ -1171,8 +1277,8 @@ func flattenLogicAppStandardIpRestriction(input *[]web.IPSecurityRestriction) []
 			if *ip == "Any" {
 				continue
 			} else {
-				switch v.Tag {
-				case web.IPFilterTagServiceTag:
+				switch pointer.From(v.Tag) {
+				case webapps.IPFilterTagServiceTag:
 					restriction["service_tag"] = *ip
 				default:
 					restriction["ip_address"] = *ip
@@ -1181,7 +1287,7 @@ func flattenLogicAppStandardIpRestriction(input *[]web.IPSecurityRestriction) []
 		}
 
 		subnetId := ""
-		if subnetIdRaw := v.VnetSubnetResourceID; subnetIdRaw != nil {
+		if subnetIdRaw := v.VnetSubnetResourceId; subnetIdRaw != nil {
 			subnetId = *subnetIdRaw
 		}
 		restriction["virtual_network_subnet_id"] = subnetId
@@ -1205,7 +1311,7 @@ func flattenLogicAppStandardIpRestriction(input *[]web.IPSecurityRestriction) []
 		restriction["action"] = action
 
 		if headers := v.Headers; headers != nil {
-			restriction["headers"] = flattenHeaders(headers)
+			restriction["headers"] = flattenHeaders(*headers)
 		}
 
 		restrictions = append(restrictions, restriction)
@@ -1214,7 +1320,7 @@ func flattenLogicAppStandardIpRestriction(input *[]web.IPSecurityRestriction) []
 	return restrictions
 }
 
-func flattenLogicAppStandardCorsSettings(input *web.CorsSettings) []interface{} {
+func flattenLogicAppStandardCorsSettings(input *webapps.CorsSettings) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -1260,9 +1366,9 @@ func flattenHeaders(input map[string][]string) []interface{} {
 	return append(output, headers)
 }
 
-func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig, error) {
+func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (webapps.SiteConfig, error) {
 	configs := d.Get("site_config").([]interface{})
-	siteConfig := web.SiteConfig{}
+	siteConfig := webapps.SiteConfig{}
 
 	if len(configs) == 0 {
 		return siteConfig, nil
@@ -1271,19 +1377,19 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig
 	config := configs[0].(map[string]interface{})
 
 	if v, ok := config["always_on"]; ok {
-		siteConfig.AlwaysOn = utils.Bool(v.(bool))
+		siteConfig.AlwaysOn = pointer.To(v.(bool))
 	}
 
 	if v, ok := config["use_32_bit_worker_process"]; ok {
-		siteConfig.Use32BitWorkerProcess = utils.Bool(v.(bool))
+		siteConfig.Use32BitWorkerProcess = pointer.To(v.(bool))
 	}
 
 	if v, ok := config["websockets_enabled"]; ok {
-		siteConfig.WebSocketsEnabled = utils.Bool(v.(bool))
+		siteConfig.WebSocketsEnabled = pointer.To(v.(bool))
 	}
 
 	if v, ok := config["linux_fx_version"]; ok {
-		siteConfig.LinuxFxVersion = utils.String(v.(string))
+		siteConfig.LinuxFxVersion = pointer.To(v.(string))
 	}
 
 	if v, ok := config["cors"]; ok {
@@ -1292,7 +1398,7 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig
 	}
 
 	if v, ok := config["http2_enabled"]; ok {
-		siteConfig.HTTP20Enabled = utils.Bool(v.(bool))
+		siteConfig.HTTP20Enabled = pointer.To(v.(bool))
 	}
 
 	if v, ok := config["ip_restriction"]; ok {
@@ -1313,155 +1419,83 @@ func expandLogicAppStandardSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig
 	}
 
 	if v, ok := config["scm_use_main_ip_restriction"]; ok {
-		siteConfig.ScmIPSecurityRestrictionsUseMain = utils.Bool(v.(bool))
+		siteConfig.ScmIPSecurityRestrictionsUseMain = pointer.To(v.(bool))
 	}
 
 	if v, ok := config["scm_min_tls_version"]; ok {
-		siteConfig.ScmMinTLSVersion = web.SupportedTLSVersions(v.(string))
+		siteConfig.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(v.(string)))
 	}
 
 	if v, ok := config["scm_type"]; ok {
-		siteConfig.ScmType = web.ScmType(v.(string))
+		siteConfig.ScmType = pointer.To(webapps.ScmType(v.(string)))
 	}
 
 	if v, ok := config["min_tls_version"]; ok {
-		siteConfig.MinTLSVersion = web.SupportedTLSVersions(v.(string))
+		siteConfig.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(v.(string)))
 	}
 
 	if v, ok := config["ftps_state"]; ok {
-		siteConfig.FtpsState = web.FtpsState(v.(string))
+		siteConfig.FtpsState = pointer.To(webapps.FtpsState(v.(string)))
 	}
 
 	// get value from `d` rather than the `config` map, or it will be covered by the zero-value "0" instead of nil.
 	if v, ok := d.GetOk("site_config.0.pre_warmed_instance_count"); ok {
-		siteConfig.PreWarmedInstanceCount = utils.Int32(int32(v.(int)))
+		siteConfig.PreWarmedInstanceCount = pointer.To(int64(v.(int)))
 	}
 
 	if v, ok := config["health_check_path"]; ok {
-		siteConfig.HealthCheckPath = utils.String(v.(string))
+		siteConfig.HealthCheckPath = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("site_config.0.elastic_instance_minimum"); ok {
-		siteConfig.MinimumElasticInstanceCount = utils.Int32(int32(v.(int)))
+		siteConfig.MinimumElasticInstanceCount = pointer.To(int64(v.(int)))
 	}
 
 	if v, ok := d.GetOk("site_config.0.app_scale_limit"); ok {
-		siteConfig.FunctionAppScaleLimit = utils.Int32(int32(v.(int)))
+		siteConfig.FunctionAppScaleLimit = pointer.To(int64(v.(int)))
 	}
 
 	if v, ok := config["runtime_scale_monitoring_enabled"]; ok {
-		siteConfig.FunctionsRuntimeScaleMonitoringEnabled = utils.Bool(v.(bool))
+		siteConfig.FunctionsRuntimeScaleMonitoringEnabled = pointer.To(v.(bool))
 	}
 
 	if v, ok := config["dotnet_framework_version"]; ok {
-		siteConfig.NetFrameworkVersion = utils.String(v.(string))
+		siteConfig.NetFrameworkVersion = pointer.To(v.(string))
 	}
 
 	if v, ok := config["vnet_route_all_enabled"]; ok {
-		siteConfig.VnetRouteAllEnabled = utils.Bool(v.(bool))
+		siteConfig.VnetRouteAllEnabled = pointer.To(v.(bool))
 	}
 
-	if v, ok := config["public_network_access_enabled"]; ok {
-		pna := helpers.PublicNetworkAccessEnabled
-		if !v.(bool) {
-			pna = helpers.PublicNetworkAccessDisabled
-		}
-		siteConfig.PublicNetworkAccess = pointer.To(pna)
+	if !features.FivePointOh() {
+		siteConfig.PublicNetworkAccess = pointer.To(reconcilePNA(d))
 	}
 
 	return siteConfig, nil
 }
 
-func expandLogicAppStandardIdentity(input []interface{}) (*web.ManagedServiceIdentity, error) {
-	expanded, err := identity.ExpandSystemAndUserAssignedMap(input)
-	if err != nil {
-		return nil, err
-	}
-
-	output := web.ManagedServiceIdentity{
-		Type: web.ManagedServiceIdentityType(expanded.Type),
-	}
-
-	if expanded.Type == identity.TypeUserAssigned || expanded.Type == identity.TypeSystemAssignedUserAssigned {
-		output.UserAssignedIdentities = expandLogicAppStandardUserAssignedIdentity(expanded.IdentityIds)
-	}
-
-	return &output, nil
-}
-
-func expandLogicAppStandardUserAssignedIdentity(input map[string]identity.UserAssignedIdentityDetails) map[string]*web.UserAssignedIdentity {
-	output := make(map[string]*web.UserAssignedIdentity)
-	for k := range input {
-		output[k] = &web.UserAssignedIdentity{}
-	}
-	return output
-}
-
-func flattenLogicAppStandardIdentity(input *web.ManagedServiceIdentity) ([]interface{}, error) {
-	var transform *identity.SystemAndUserAssignedMap
-
-	if input != nil {
-		transform = &identity.SystemAndUserAssignedMap{
-			Type: identity.Type(string(input.Type)),
-		}
-		if input.PrincipalID != nil {
-			transform.PrincipalId = *input.PrincipalID
-		}
-		if input.TenantID != nil {
-			transform.TenantId = *input.TenantID
-		}
-		if input.UserAssignedIdentities != nil {
-			transform.IdentityIds = flattenLogicAppStandardUserAssignedIdentity(input.UserAssignedIdentities)
-		}
-	}
-
-	output, err := identity.FlattenSystemAndUserAssignedMap(transform)
-	if err != nil {
-		return nil, err
-	}
-	return *output, nil
-}
-
-func flattenLogicAppStandardUserAssignedIdentity(input map[string]*web.UserAssignedIdentity) map[string]identity.UserAssignedIdentityDetails {
-	expanded := make(map[string]identity.UserAssignedIdentityDetails)
-	for k, v := range input {
-		identityDetail := identity.UserAssignedIdentityDetails{}
-		if v.PrincipalID != nil {
-			identityDetail.PrincipalId = v.PrincipalID
-		}
-		if v.ClientID != nil {
-			identityDetail.ClientId = v.ClientID
-		}
-		expanded[k] = identityDetail
-	}
-	return expanded
-}
-
-func expandLogicAppStandardSettings(
-	d *pluginsdk.ResourceData,
-	endpointSuffix string,
-) (map[string]*string, error) {
-	output := make(map[string]*string)
+func expandLogicAppStandardSettings(d *pluginsdk.ResourceData, endpointSuffix string) (map[string]string, error) {
+	output := make(map[string]string)
 	appSettings := expandAppSettings(d)
 	basicAppSettings, err := getBasicLogicAppSettings(d, endpointSuffix)
 	if err != nil {
 		return nil, err
 	}
 	for _, p := range append(basicAppSettings, appSettings...) {
-		output[*p.Name] = p.Value
+		output[*p.Name] = pointer.From(p.Value)
 	}
 
 	return output, nil
 }
 
-func expandAppSettings(d *pluginsdk.ResourceData) []web.NameValuePair {
+func expandAppSettings(d *pluginsdk.ResourceData) []webapps.NameValuePair {
 	input := d.Get("app_settings").(map[string]interface{})
-	output := make([]web.NameValuePair, 0)
+	output := make([]webapps.NameValuePair, 0)
 
 	for k, v := range input {
-		nameValue := web.NameValuePair{
-			Name:  utils.String(k),
-			Value: utils.String(v.(string)),
+		nameValue := webapps.NameValuePair{
+			Name:  pointer.To(k),
+			Value: pointer.To(v.(string)),
 		}
 		output = append(output, nameValue)
 	}
@@ -1469,11 +1503,9 @@ func expandAppSettings(d *pluginsdk.ResourceData) []web.NameValuePair {
 	return output
 }
 
-func expandLogicAppStandardConnectionStrings(
-	d *pluginsdk.ResourceData,
-) map[string]*web.ConnStringValueTypePair {
+func expandLogicAppStandardConnectionStrings(d *pluginsdk.ResourceData) map[string]webapps.ConnStringValueTypePair {
 	input := d.Get("connection_string").(*pluginsdk.Set).List()
-	output := make(map[string]*web.ConnStringValueTypePair, len(input))
+	output := make(map[string]webapps.ConnStringValueTypePair, len(input))
 
 	for _, v := range input {
 		vals := v.(map[string]interface{})
@@ -1482,18 +1514,18 @@ func expandLogicAppStandardConnectionStrings(
 		csType := vals["type"].(string)
 		csValue := vals["value"].(string)
 
-		output[csName] = &web.ConnStringValueTypePair{
-			Value: utils.String(csValue),
-			Type:  web.ConnectionStringType(csType),
+		output[csName] = webapps.ConnStringValueTypePair{
+			Value: csValue,
+			Type:  webapps.ConnectionStringType(csType),
 		}
 	}
 
 	return output
 }
 
-func expandLogicAppStandardCorsSettings(input interface{}) web.CorsSettings {
+func expandLogicAppStandardCorsSettings(input interface{}) webapps.CorsSettings {
 	settings := input.([]interface{})
-	corsSettings := web.CorsSettings{}
+	corsSettings := webapps.CorsSettings{}
 
 	if len(settings) == 0 {
 		return corsSettings
@@ -1513,14 +1545,14 @@ func expandLogicAppStandardCorsSettings(input interface{}) web.CorsSettings {
 	}
 
 	if v, ok := setting["support_credentials"]; ok {
-		corsSettings.SupportCredentials = utils.Bool(v.(bool))
+		corsSettings.SupportCredentials = pointer.To(v.(bool))
 	}
 
 	return corsSettings
 }
 
-func expandLogicAppStandardIpRestriction(input interface{}) ([]web.IPSecurityRestriction, error) {
-	restrictions := make([]web.IPSecurityRestriction, 0)
+func expandLogicAppStandardIpRestriction(input interface{}) ([]webapps.IPSecurityRestriction, error) {
+	restrictions := make([]webapps.IPSecurityRestriction, 0)
 
 	for _, r := range input.([]interface{}) {
 		if r == nil {
@@ -1554,7 +1586,7 @@ func expandLogicAppStandardIpRestriction(input interface{}) ([]web.IPSecurityRes
 			)
 		}
 
-		ipSecurityRestriction := web.IPSecurityRestriction{}
+		ipSecurityRestriction := webapps.IPSecurityRestriction{}
 		if ipAddress == "Any" {
 			continue
 		}
@@ -1565,11 +1597,11 @@ func expandLogicAppStandardIpRestriction(input interface{}) ([]web.IPSecurityRes
 
 		if serviceTag != "" {
 			ipSecurityRestriction.IPAddress = &serviceTag
-			ipSecurityRestriction.Tag = web.IPFilterTagServiceTag
+			ipSecurityRestriction.Tag = pointer.To(webapps.IPFilterTagServiceTag)
 		}
 
 		if vNetSubnetID != "" {
-			ipSecurityRestriction.VnetSubnetResourceID = &vNetSubnetID
+			ipSecurityRestriction.VnetSubnetResourceId = &vNetSubnetID
 		}
 
 		if name != "" {
@@ -1577,14 +1609,14 @@ func expandLogicAppStandardIpRestriction(input interface{}) ([]web.IPSecurityRes
 		}
 
 		if priority != 0 {
-			ipSecurityRestriction.Priority = utils.Int32(int32(priority))
+			ipSecurityRestriction.Priority = pointer.To(int64(priority))
 		}
 
 		if action != "" {
 			ipSecurityRestriction.Action = &action
 		}
 		if headers, ok := restriction["headers"]; ok {
-			ipSecurityRestriction.Headers = expandHeaders(headers.([]interface{}))
+			ipSecurityRestriction.Headers = pointer.To(expandHeaders(headers.([]interface{})))
 		}
 
 		restrictions = append(restrictions, ipSecurityRestriction)
@@ -1617,4 +1649,27 @@ func expandHeaders(input interface{}) map[string][]string {
 	}
 
 	return output
+}
+
+func reconcilePNA(d *pluginsdk.ResourceData) string {
+	pna := ""
+	scPNASet := true
+	if !d.GetRawConfig().AsValueMap()["public_network_access"].IsNull() { // is top level set, takes precedence
+		pna = d.Get("public_network_access").(string)
+	}
+	if sc := d.GetRawConfig().AsValueMap()["site_config"]; !sc.IsNull() {
+		if len(sc.AsValueSlice()) > 0 && !sc.AsValueSlice()[0].AsValueMap()["public_network_access_enabled"].IsNull() {
+			scPNASet = true
+		}
+	}
+	if pna == "" && scPNASet { // if not, or it's empty, is site_config value set
+		pnaBool := d.Get("site_config.0.public_network_access_enabled").(bool)
+		if pnaBool {
+			pna = helpers.PublicNetworkAccessEnabled
+		} else {
+			pna = helpers.PublicNetworkAccessDisabled
+		}
+	}
+
+	return pna
 }

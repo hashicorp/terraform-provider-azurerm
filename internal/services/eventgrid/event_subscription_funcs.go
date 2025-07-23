@@ -793,7 +793,7 @@ func flattenRangeValues(inputKey *string, inputValues *[][]any) map[string]any {
 	values := make([]any, 0)
 	if inputValues != nil {
 		for _, item := range *inputValues {
-			values = append(values, item...)
+			values = append(values, item) // nolint: asasalint
 		}
 	}
 

@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
 
-// Credentials sets up NewAuthorizer to return an Authorizer based on the provided credentails.
+// Credentials sets up NewAuthorizer to return an Authorizer based on the provided credentials.
 type Credentials struct {
 	// Specifies the national cloud environment to use
 	Environment environments.Environment
@@ -44,15 +44,24 @@ type Credentials struct {
 	// CustomManagedIdentityEndpoint specifies a custom endpoint which should be used for Managed Identity.
 	CustomManagedIdentityEndpoint string
 
+	// CustomManagedIdentityAPIVersion specifies the API version to use for IMDS.
+	CustomManagedIdentityAPIVersion string
+
 	// Enables OIDC authentication (federated client credentials).
 	EnableAuthenticationUsingOIDC bool
 	// OIDCAssertionToken specifies the OIDC Assertion Token to authenticate using Client Credentials.
 	OIDCAssertionToken string
 
-	// EnableAuthenticationUsingGitHubOIDC specifies whether GitHub OIDC
+	// EnableAuthenticationUsingGitHubOIDC specifies whether GitHub OIDC should be checked.
 	EnableAuthenticationUsingGitHubOIDC bool
-	// GitHubOIDCTokenRequestURL specifies the URL for GitHub's OIDC provider
-	GitHubOIDCTokenRequestURL string
-	// GitHubOIDCTokenRequestToken specifies the bearer token for the request to GitHub's OIDC provider
-	GitHubOIDCTokenRequestToken string
+
+	// EnableAuthenticationUsingADOPipelineOIDC specifies whether ADO Pipeline OIDC should be checked.
+	EnableAuthenticationUsingADOPipelineOIDC bool
+
+	// OIDCTokenRequestURL specifies the URL for the OIDC provider
+	OIDCTokenRequestURL string
+	// OIDCTokenRequestToken specifies the bearer token for the request to the OIDC provider
+	OIDCTokenRequestToken string
+	// ADOPipelineServiceConnectionID specifies the ADO Service Connection ID to authenticate.
+	ADOPipelineServiceConnectionID string
 }

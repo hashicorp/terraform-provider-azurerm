@@ -44,7 +44,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `identity` - An `identity` block as defined below.
 
--> **NOTE:** A `UserAssigned` identity must be specified when `encryption_key_url` is specified.
+-> **Note:** A `UserAssigned` identity must be specified when `encryption_key_url` is specified.
 
 * `tags` - A mapping of tags which should be assigned to the Mobile Network Sim Groups.
 
@@ -62,3 +62,8 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Mobile Network Sim Groups.
 
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.MobileNetwork`: 2022-11-01

@@ -43,6 +43,8 @@ The following attributes are exported:
 
 * `data_endpoint_enabled` - Whether dedicated data endpoints for this Container Registry are enabled?
 
+* `data_endpoint_host_names` - A set of data endpoint hostnames associated with the container registry if data endpoints are enabled.
+
 * `location` - The Azure Region in which this Container Registry exists.
 
 * `admin_enabled` - Is the Administrator account enabled for this Container Registry.
@@ -56,3 +58,9 @@ The following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container Registry.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.ContainerRegistry`: 2023-11-01-preview

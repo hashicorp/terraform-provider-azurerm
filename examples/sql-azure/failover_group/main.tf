@@ -43,13 +43,12 @@ resource "azurerm_mssql_database" "secondary" {
   creation_source_database_id = azurerm_mssql_database.example.id
 }
 
-resource "azurerm_sql_failover_group" "example" {
-  name                = "${var.prefix}-failover-group"
-  resource_group_name = azurerm_resource_group.example.name
-  server_name         = azurerm_mssql_server.example.name
-  databases           = [azurerm_mssql_database.example.id]
+resource "azurerm_mssql_failover_group" "example" {
+  name      = "${var.prefix}-failover-group"
+  server_id = azurerm_mssql_server.example.id
+  databases = [azurerm_mssql_database.example.id]
 
-  partner_servers {
+  partner_server {
     id = azurerm_mssql_server.secondary.id
   }
 

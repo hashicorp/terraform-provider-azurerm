@@ -1,0 +1,55 @@
+name: Assign Reviewer as Assignee
+
+on:
+  workflow_run:
+    workflows:
+      - "Pull Request Reviewed"
+    types:
+      - completed
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  assign_reviewer:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Artifact
+        id: get_artifact
+        continue-on-error: true
+        uses: dawidd6/action-download-artifact@07ab29fd4a977ae4d2b275087cf67563dfdf0295 # v9
+        with:
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          workflow: pull-request-reviewed.yaml
+
+      - name: env_vars
+        id: env_vars
+        if: steps.get_artifact.outcome == 'success'
+        run: |
+          echo "reviewer=$(cat artifact/reviewer.txt)" >>${GITHUB_OUTPUT}
+          echo "reviewState=$(cat artifact/reviewstate.txt)" >>${GITHUB_OUTPUT}
+          echo "prNumber=$(cat artifact/prnumber.txt)" >>${GITHUB_OUTPUT}
+
+      - name: Assign the reviewer as assignee when changes are requested
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410 # v6.4.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const reviewer = '${{ steps.env_vars.outputs.reviewer }}';
+            const prNumber = parseInt('${{ steps.env_vars.outputs.prNumber }}', 10);
+            const reviewState = '${{ steps.env_vars.outputs.reviewState }}';
+            const repo = '${{ github.event.repository.name }}';
+            const owner = '${{ github.event.repository.owner.login }}';
+
+            if (reviewState === 'changes_requested') {
+              console.log(`Assigning reviewer: ${reviewer} to PR #${prNumber} as changes were requested.`);
+              await github.rest.issues.addAssignees({
+                owner: owner,
+                repo: repo,
+                issue_number: prNumber,
+                assignees: [reviewer],
+              });
+            } else {
+              console.log(`No action taken. Review state is '${reviewState}'.`);
+            }

@@ -78,3 +78,9 @@ Log Analytics Query Pack Queries can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_log_analytics_query_pack_query.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.OperationalInsights/queryPacks/queryPack1/queries/15b49e87-8555-4d92-8a7b-2014b469a9df
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.OperationalInsights`: 2019-09-01

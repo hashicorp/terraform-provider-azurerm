@@ -73,3 +73,9 @@ Voice Services Communications Gateway Test Line can be imported using the `resou
 ```shell
 terraform import azurerm_voice_services_communications_gateway_test_line.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.VoiceServices/communicationsGateways/communicationsGateway1/testLines/testLine1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.VoiceServices`: 2023-04-03

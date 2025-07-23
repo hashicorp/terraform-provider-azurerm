@@ -8,13 +8,16 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/eventhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -25,7 +28,7 @@ import (
 var eventHubResourceName = "azurerm_eventhub"
 
 func resourceEventHub() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceEventHubCreate,
 		Read:   resourceEventHubRead,
 		Update: resourceEventHubUpdate,
@@ -51,14 +54,12 @@ func resourceEventHub() *pluginsdk.Resource {
 				ValidateFunc: validate.ValidateEventHubName(),
 			},
 
-			"namespace_name": {
+			"namespace_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.ValidateEventHubNamespaceName(),
+				ValidateFunc: namespaces.ValidateNamespaceID,
 			},
-
-			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"partition_count": {
 				Type:         pluginsdk.TypeInt,
@@ -68,8 +69,42 @@ func resourceEventHub() *pluginsdk.Resource {
 
 			"message_retention": {
 				Type:         pluginsdk.TypeInt,
-				Required:     true,
+				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validate.ValidateEventHubMessageRetentionCount,
+				ExactlyOneOf: []string{"retention_description", "message_retention"},
+			},
+
+			"retention_description": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*schema.Schema{
+						"cleanup_policy": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ForceNew: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(eventhubs.CleanupPolicyRetentionDescriptionDelete),
+								string(eventhubs.CleanupPolicyRetentionDescriptionCompact),
+							}, false),
+						},
+
+						"retention_time_in_hours": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ExactlyOneOf: []string{"retention_description.0.tombstone_retention_time_in_hours", "retention_description.0.retention_time_in_hours"},
+						},
+
+						"tombstone_retention_time_in_hours": {
+							Type:         pluginsdk.TypeInt,
+							Optional:     true,
+							ExactlyOneOf: []string{"retention_description.0.retention_time_in_hours", "retention_description.0.tombstone_retention_time_in_hours"},
+						},
+					},
+				},
 			},
 
 			"capture_description": {
@@ -163,6 +198,36 @@ func resourceEventHub() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		r.Schema["namespace_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ExactlyOneOf: []string{"namespace_id", "namespace_name"},
+			ValidateFunc: namespaces.ValidateNamespaceID,
+		}
+
+		r.Schema["namespace_name"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validate.ValidateEventHubNamespaceName(),
+			ExactlyOneOf: []string{"namespace_id", "namespace_name"},
+			Deprecated:   "`namespace_name` has been deprecated in favour of `namespace_id` and will be removed in v5.0 of the AzureRM Provider",
+		}
+
+		r.Schema["resource_group_name"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ExactlyOneOf: []string{"namespace_id", "resource_group_name"},
+			ValidateFunc: resourcegroups.ValidateName,
+			Deprecated:   "`resource_group_name` has been deprecated in favour of `namespace_id` and will be removed in v5.0 of the AzureRM Provider",
+		}
+	}
+
+	return r
 }
 
 func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -173,7 +238,23 @@ func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] preparing arguments for Azure ARM EventHub creation.")
 
-	id := eventhubs.NewEventhubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
+	namespaceName := ""
+	resourceGroupName := ""
+	if v := d.Get("namespace_id").(string); v != "" {
+		namespaceId, err := namespaces.ParseNamespaceID(v)
+		if err != nil {
+			return err
+		}
+		namespaceName = namespaceId.NamespaceName
+		resourceGroupName = namespaceId.ResourceGroupName
+	}
+
+	if !features.FivePointOh() && namespaceName == "" {
+		namespaceName = d.Get("namespace_name").(string)
+		resourceGroupName = d.Get("resource_group_name").(string)
+	}
+
+	id := eventhubs.NewEventhubID(subscriptionId, resourceGroupName, namespaceName, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.Get(ctx, id)
@@ -191,10 +272,17 @@ func resourceEventHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	eventhubStatus := eventhubs.EntityStatus(d.Get("status").(string))
 	parameters := eventhubs.Eventhub{
 		Properties: &eventhubs.EventhubProperties{
-			PartitionCount:         utils.Int64(int64(d.Get("partition_count").(int))),
-			MessageRetentionInDays: utils.Int64(int64(d.Get("message_retention").(int))),
-			Status:                 &eventhubStatus,
+			PartitionCount: utils.Int64(int64(d.Get("partition_count").(int))),
+			Status:         &eventhubStatus,
 		},
+	}
+
+	if _, ok := d.GetOk("retention_description"); ok {
+		parameters.Properties.RetentionDescription = expandEventHubRetentionDescription(d)
+	}
+
+	if _, ok := d.GetOk("message_retention"); ok {
+		parameters.Properties.MessageRetentionInDays = pointer.To(int64(d.Get("message_retention").(int)))
 	}
 
 	if _, ok := d.GetOk("capture_description"); ok {
@@ -218,7 +306,10 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	log.Printf("[INFO] preparing arguments for Azure ARM EventHub update.")
 
-	id := eventhubs.NewEventhubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("namespace_name").(string), d.Get("name").(string))
+	id, err := eventhubs.ParseEventhubID(d.Id())
+	if err != nil {
+		return err
+	}
 
 	if d.HasChange("partition_count") {
 		o, n := d.GetChange("partition_count")
@@ -243,8 +334,8 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	parameters := eventhubs.Eventhub{
 		Properties: &eventhubs.EventhubProperties{
 			PartitionCount:         utils.Int64(int64(d.Get("partition_count").(int))),
-			MessageRetentionInDays: utils.Int64(int64(d.Get("message_retention").(int))),
 			Status:                 &eventhubStatus,
+			MessageRetentionInDays: utils.Int64(int64(d.Get("message_retention").(int))),
 			CaptureDescription:     expandEventHubCaptureDescription(d),
 		},
 	}
@@ -253,7 +344,11 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		parameters.Properties.CaptureDescription = expandEventHubCaptureDescription(d)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
+	if d.HasChange("retention_description") {
+		parameters.Properties.RetentionDescription = expandEventHubRetentionDescription(d)
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, parameters); err != nil {
 		return err
 	}
 
@@ -282,18 +377,32 @@ func resourceEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("name", id.EventhubName)
-	d.Set("namespace_name", id.NamespaceName)
-	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if !features.FivePointOh() {
+		d.Set("namespace_name", id.NamespaceName)
+		d.Set("resource_group_name", id.ResourceGroupName)
+	}
+
+	namespaceId := namespaces.NewNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.NamespaceName)
+	d.Set("namespace_id", namespaceId.ID())
 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("partition_count", props.PartitionCount)
-			d.Set("message_retention", props.MessageRetentionInDays)
 			d.Set("partition_ids", props.PartitionIds)
 			d.Set("status", string(*props.Status))
 
 			captureDescription := flattenEventHubCaptureDescription(props.CaptureDescription)
 			if err := d.Set("capture_description", captureDescription); err != nil {
+				return err
+			}
+
+			// TODO - the `props.RetentionDescription.TombstoneRetentionTimeInHours == nil` check can be removed when https://github.com/Azure/azure-rest-api-specs/issues/36018 is fixed
+			if props.RetentionDescription == nil || props.RetentionDescription.TombstoneRetentionTimeInHours == nil {
+				d.Set("message_retention", props.MessageRetentionInDays)
+			}
+			retentionDescription := flattenEventHubRetentionDescription(props.RetentionDescription)
+			if err := d.Set("retention_description", retentionDescription); err != nil {
 				return err
 			}
 		}
@@ -322,6 +431,30 @@ func resourceEventHubDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	return nil
+}
+
+func expandEventHubRetentionDescription(d *pluginsdk.ResourceData) *eventhubs.RetentionDescription {
+	inputs := d.Get("retention_description").([]interface{})
+	if len(inputs) == 0 || inputs[0] == nil {
+		return nil
+	}
+	input := inputs[0].(map[string]interface{})
+
+	cleanupPolicy := input["cleanup_policy"].(string)
+
+	retentionDescription := eventhubs.RetentionDescription{
+		CleanupPolicy: pointer.To(eventhubs.CleanupPolicyRetentionDescription(cleanupPolicy)),
+	}
+
+	if cleanupPolicy == string(eventhubs.CleanupPolicyRetentionDescriptionDelete) {
+		retentionTimeInHours := input["retention_time_in_hours"].(int)
+		retentionDescription.RetentionTimeInHours = pointer.FromInt64(int64(retentionTimeInHours))
+	} else {
+		tombstoneRetentionTimeInHours := input["tombstone_retention_time_in_hours"].(int)
+		retentionDescription.TombstoneRetentionTimeInHours = pointer.FromInt64(int64(tombstoneRetentionTimeInHours))
+	}
+
+	return pointer.To(retentionDescription)
 }
 
 func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.CaptureDescription {
@@ -370,6 +503,30 @@ func expandEventHubCaptureDescription(d *pluginsdk.ResourceData) *eventhubs.Capt
 	}
 
 	return &captureDescription
+}
+
+func flattenEventHubRetentionDescription(description *eventhubs.RetentionDescription) []interface{} {
+	results := make([]interface{}, 0)
+
+	if description != nil {
+		output := make(map[string]interface{})
+
+		if cleanupPolicy := description.CleanupPolicy; cleanupPolicy != nil {
+			output["cleanup_policy"] = pointer.FromEnum(cleanupPolicy)
+		}
+
+		if retentionTimeInHours := description.RetentionTimeInHours; retentionTimeInHours != nil && output["cleanup_policy"] == "Delete" {
+			output["retention_time_in_hours"] = pointer.From(retentionTimeInHours)
+		}
+
+		if tombstoneRetentionTimeInHours := description.TombstoneRetentionTimeInHours; tombstoneRetentionTimeInHours != nil && output["cleanup_policy"] == "Compact" {
+			output["tombstone_retention_time_in_hours"] = pointer.From(tombstoneRetentionTimeInHours)
+		}
+
+		results = append(results, output)
+	}
+
+	return results
 }
 
 func flattenEventHubCaptureDescription(description *eventhubs.CaptureDescription) []interface{} {

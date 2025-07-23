@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-03-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkmanagers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -94,6 +94,31 @@ func TestAccNetworkManager(t *testing.T) {
 			"update":         testAccNetworkManagerDeployment_update,
 			"withTriggers":   testAccNetworkManagerDeployment_withTriggers,
 			"requiresImport": testAccNetworkManagerDeployment_requiresImport,
+		},
+		"IPAMPool": {
+			"basic":          testAccNetworkManagerIpamPool_basic,
+			"basicIPv6":      testAccNetworkManagerIpamPool_basicIPv6,
+			"complete":       testAccNetworkManagerIpamPool_complete,
+			"update":         testAccNetworkManagerIpamPool_update,
+			"requiresImport": testAccNetworkManagerIpamPool_requiresImport,
+			"dataSource":     testAccNetworkManagerIpamPoolDataSource_complete,
+		},
+		"VerifierWorkspace": {
+			"basic":          testAccNetworkManagerVerifierWorkspace_basic,
+			"complete":       testAccNetworkManagerVerifierWorkspace_complete,
+			"update":         testAccNetworkManagerVerifierWorkspace_update,
+			"requiresImport": testAccNetworkManagerVerifierWorkspace_requiresImport,
+		},
+		"VerifierWorkspaceReachabilityAnalysisIntent": {
+			"basic":          testAccNetworkManagerVerifierWorkspaceReachabilityAnalysisIntent_basic,
+			"complete":       testAccNetworkManagerVerifierWorkspaceReachabilityAnalysisIntent_complete,
+			"requiresImport": testAccNetworkManagerVerifierWorkspaceReachabilityAnalysisIntent_requiresImport,
+		},
+		"RoutingConfiguration": {
+			"basic":          testAccNetworkManagerRoutingConfiguration_basic,
+			"complete":       testAccNetworkManagerRoutingConfiguration_complete,
+			"update":         testAccNetworkManagerRoutingConfiguration_update,
+			"requiresImport": testAccNetworkManagerRoutingConfiguration_requiresImport,
 		},
 	}
 
@@ -210,7 +235,6 @@ resource "azurerm_network_manager" "test" {
   scope {
     subscription_ids = [data.azurerm_subscription.current.id]
   }
-  scope_accesses = ["SecurityAdmin"]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -225,7 +249,6 @@ resource "azurerm_network_manager" "import" {
   scope {
     subscription_ids = azurerm_network_manager.test.scope.0.subscription_ids
   }
-  scope_accesses = azurerm_network_manager.test.scope_accesses
 }
 `, r.basic(data))
 }

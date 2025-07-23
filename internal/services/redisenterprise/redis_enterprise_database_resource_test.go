@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-06-01-preview/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redisenterprise/2024-10-01/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -232,12 +232,12 @@ resource "azurerm_redis_enterprise_database" "test" {
 
   module {
     name = "RedisBloom"
-    args = "ERROR_RATE 1 INITIAL_SIZE 400"
+    args = ""
   }
 
   module {
     name = "RedisTimeSeries"
-    args = "RETENTION_POLICY 20"
+    args = ""
   }
 
   module {

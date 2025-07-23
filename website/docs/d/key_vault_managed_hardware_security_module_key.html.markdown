@@ -35,7 +35,7 @@ The following arguments are supported:
 
 * `managed_hsm_id` - Specifies the ID of the Managed Hardware Security Module instance where the Secret resides, available on the `azurerm_key_vault_managed_hardware_security_module_key` Data Source / Resource.
 
-**NOTE:** The Managed Hardware Security Module must be in the same subscription as the provider. If the Managed Hardware Security Module is in another subscription, you must create an aliased provider for that subscription.
+-> **Note:** The Managed Hardware Security Module must be in the same subscription as the provider. If the Managed Hardware Security Module is in another subscription, you must create an aliased provider for that subscription.
 
 ## Attributes Reference
 

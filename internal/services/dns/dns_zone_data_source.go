@@ -8,118 +8,135 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dns/2018-05-01/zones"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func dataSourceDnsZone() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Read: dataSourceDnsZoneRead,
+var _ sdk.DataSource = DnsZoneDataResource{}
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+type DnsZoneDataResource struct{}
+
+func (DnsZoneDataResource) ModelObject() interface{} {
+	return &DnsZoneDataResourceModel{}
+}
+
+func (d DnsZoneDataResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return zones.ValidateDnsZoneID
+}
+
+func (DnsZoneDataResource) ResourceType() string {
+	return "azurerm_dns_zone"
+}
+
+func (DnsZoneDataResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-			},
-
-			"resource_group_name": {
-				// TODO: we need a CommonSchema type for this which doesn't have ForceNew
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-			},
-
-			"number_of_record_sets": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
-			},
-
-			"max_number_of_record_sets": {
-				Type:     pluginsdk.TypeInt,
-				Computed: true,
-			},
-
-			"name_servers": {
-				Type:     pluginsdk.TypeSet,
-				Computed: true,
-				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
-				Set:      pluginsdk.HashString,
-			},
-
-			"tags": commonschema.TagsDataSource(),
+		"resource_group_name": {
+			// TODO: we need a CommonSchema type for this which doesn't have ForceNew
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
 		},
 	}
 }
 
-func dataSourceDnsZoneRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Dns.Zones
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (DnsZoneDataResource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"number_of_record_sets": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
 
-	id := zones.NewDnsZoneID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	var zone *zones.Zone
-	if id.ResourceGroupName != "" {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("%s was not found", id)
+		"max_number_of_record_sets": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
+
+		"name_servers": {
+			Type:     pluginsdk.TypeSet,
+			Computed: true,
+			Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+			Set:      pluginsdk.HashString,
+		},
+
+		"tags": commonschema.TagsDataSource(),
+	}
+}
+
+type DnsZoneDataResourceModel struct {
+	Name                  string            `tfschema:"name"`
+	ResourceGroupName     string            `tfschema:"resource_group_name"`
+	NumberOfRecordSets    int64             `tfschema:"number_of_record_sets"`
+	MaxNumberOfRecordSets int64             `tfschema:"max_number_of_record_sets"`
+	NameServers           []string          `tfschema:"name_servers"`
+	Tags                  map[string]string `tfschema:"tags"`
+}
+
+func (DnsZoneDataResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Dns.Zones
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
+			var state DnsZoneDataResourceModel
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
 			}
-			return fmt.Errorf("retrieving %s: %+v", id, err)
-		}
 
-		zone = resp.Model
-	} else {
-		result, resourceGroupName, err := findZone(ctx, client, id.SubscriptionId, id.DnsZoneName)
-		if err != nil {
-			return err
-		}
+			id := zones.NewDnsZoneID(subscriptionId, state.ResourceGroupName, state.Name)
+			var zone *zones.Zone
+			if id.ResourceGroupName != "" {
+				resp, err := client.Get(ctx, id)
+				if err != nil {
+					if response.WasNotFound(resp.HttpResponse) {
+						return fmt.Errorf("%s was not found", id)
+					}
+					return fmt.Errorf("retrieving %s: %+v", id, err)
+				}
 
-		if resourceGroupName == nil {
-			return fmt.Errorf("unable to locate the Resource Group for DNS Zone %q in Subscription %q", id.DnsZoneName, subscriptionId)
-		}
+				zone = resp.Model
+			} else {
+				result, resourceGroupName, err := findZone(ctx, client, id.SubscriptionId, id.DnsZoneName)
+				if err != nil {
+					return err
+				}
 
-		zone = result
-		id.ResourceGroupName = *resourceGroupName
+				if resourceGroupName == nil {
+					return fmt.Errorf("unable to locate the Resource Group for DNS Zone %q in Subscription %q", id.DnsZoneName, subscriptionId)
+				}
+
+				zone = result
+				id.ResourceGroupName = pointer.From(resourceGroupName)
+				state.ResourceGroupName = pointer.From(resourceGroupName)
+			}
+
+			if zone == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
+			}
+
+			metadata.SetID(id)
+
+			if props := zone.Properties; props != nil {
+				state.NumberOfRecordSets = pointer.From(props.NumberOfRecordSets)
+				state.MaxNumberOfRecordSets = pointer.From(props.MaxNumberOfRecordSets)
+				state.NameServers = pointer.From(props.NameServers)
+			}
+
+			state.Tags = pointer.From(zone.Tags)
+
+			return metadata.Encode(&state)
+		},
 	}
-
-	if zone == nil {
-		return fmt.Errorf("retrieving %s: `model` was nil", id)
-	}
-
-	d.SetId(id.ID())
-
-	d.Set("name", id.DnsZoneName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-
-	if props := zone.Properties; props != nil {
-		d.Set("number_of_record_sets", props.NumberOfRecordSets)
-		d.Set("max_number_of_record_sets", props.MaxNumberOfRecordSets)
-
-		nameServers := make([]string, 0)
-		if ns := props.NameServers; ns != nil {
-			nameServers = *ns
-		}
-		if err := d.Set("name_servers", nameServers); err != nil {
-			return err
-		}
-	}
-
-	if err := tags.FlattenAndSet(d, zone.Tags); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func findZone(ctx context.Context, client *zones.ZonesClient, subscriptionId, name string) (*zones.Zone, *string, error) {

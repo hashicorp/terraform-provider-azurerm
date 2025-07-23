@@ -7,17 +7,17 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"math"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -88,6 +88,28 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 				},
 				"ip_configuration": virtualMachineScaleSetIPConfigurationSchema(),
 
+				"auxiliary_mode": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						// None is not exposed
+						string(virtualmachinescalesets.NetworkInterfaceAuxiliaryModeAcceleratedConnections),
+						string(virtualmachinescalesets.NetworkInterfaceAuxiliaryModeFloating),
+					}, false),
+				},
+
+				"auxiliary_sku": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						// None is not exposed
+						string(virtualmachinescalesets.NetworkInterfaceAuxiliarySkuAEight),
+						string(virtualmachinescalesets.NetworkInterfaceAuxiliarySkuAFour),
+						string(virtualmachinescalesets.NetworkInterfaceAuxiliarySkuAOne),
+						string(virtualmachinescalesets.NetworkInterfaceAuxiliarySkuATwo),
+					}, false),
+				},
+
 				"dns_servers": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
@@ -128,13 +150,6 @@ func VirtualMachineScaleSetGalleryApplicationSchema() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 100,
-		Computed: !features.FourPointOhBeta(),
-		ConflictsWith: func() []string {
-			if !features.FourPointOhBeta() {
-				return []string{"gallery_applications"}
-			}
-			return []string{}
-		}(),
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"version_id": {
@@ -157,54 +172,7 @@ func VirtualMachineScaleSetGalleryApplicationSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      0,
 					ForceNew:     true,
-					ValidateFunc: validation.IntBetween(0, 2147483647),
-				},
-
-				// NOTE: Per the service team, "this is a pass through value that we just add to the model but don't depend on. It can be any string."
-				"tag": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-			},
-		},
-	}
-}
-
-func VirtualMachineScaleSetGalleryApplicationsSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:          pluginsdk.TypeList,
-		Optional:      true,
-		MaxItems:      100,
-		Computed:      !features.FourPointOhBeta(),
-		ConflictsWith: []string{"gallery_application"},
-		Deprecated:    "`gallery_applications` has been renamed to `gallery_application` and will be deprecated in 4.0",
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"package_reference_id": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ForceNew:     true,
-					ValidateFunc: galleryapplicationversions.ValidateApplicationVersionID,
-					Deprecated:   "`package_reference_id` has been renamed to `version_id` and will be deprecated in 4.0",
-				},
-
-				// Example: https://mystorageaccount.blob.core.windows.net/configurations/settings.config
-				"configuration_reference_blob_uri": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ForceNew:     true,
-					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
-					Deprecated:   "`configuration_reference_blob_uri` has been renamed to `configuration_blob_uri` and will be deprecated in 4.0",
-				},
-
-				"order": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Default:      0,
-					ForceNew:     true,
-					ValidateFunc: validation.IntBetween(0, 2147483647),
+					ValidateFunc: validation.IntBetween(0, math.MaxInt32),
 				},
 
 				// NOTE: Per the service team, "this is a pass through value that we just add to the model but don't depend on. It can be any string."
@@ -273,68 +241,6 @@ func flattenVirtualMachineScaleSetGalleryApplication(input *[]virtualmachinescal
 			"configuration_blob_uri": configurationReference,
 			"order":                  order,
 			"tag":                    tag,
-		}
-
-		out = append(out, app)
-	}
-
-	return out
-}
-
-func expandVirtualMachineScaleSetGalleryApplications(input []interface{}) *[]virtualmachinescalesets.VMGalleryApplication {
-	if len(input) == 0 {
-		return nil
-	}
-
-	out := make([]virtualmachinescalesets.VMGalleryApplication, 0)
-
-	for _, v := range input {
-		packageReferenceId := v.(map[string]interface{})["package_reference_id"].(string)
-		configurationReference := v.(map[string]interface{})["configuration_reference_blob_uri"].(string)
-		order := v.(map[string]interface{})["order"].(int)
-		tag := v.(map[string]interface{})["tag"].(string)
-
-		app := &virtualmachinescalesets.VMGalleryApplication{
-			PackageReferenceId:     packageReferenceId,
-			ConfigurationReference: pointer.To(configurationReference),
-			Order:                  pointer.To(int64(order)),
-			Tags:                   pointer.To(tag),
-		}
-
-		out = append(out, *app)
-	}
-
-	return &out
-}
-
-func flattenVirtualMachineScaleSetGalleryApplications(input *[]virtualmachinescalesets.VMGalleryApplication) []interface{} {
-	if len(*input) == 0 {
-		return nil
-	}
-
-	out := make([]interface{}, 0)
-
-	for _, v := range *input {
-		var configurationReference, tag string
-		var order int
-
-		if v.ConfigurationReference != nil {
-			configurationReference = *v.ConfigurationReference
-		}
-
-		if v.Order != nil {
-			order = int(*v.Order)
-		}
-
-		if v.Tags != nil {
-			tag = *v.Tags
-		}
-
-		app := map[string]interface{}{
-			"package_reference_id":             v.PackageReferenceId,
-			"configuration_reference_blob_uri": configurationReference,
-			"order":                            order,
-			"tag":                              tag,
 		}
 
 		out = append(out, app)
@@ -484,6 +390,16 @@ func VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource() *pluginsdk.Sche
 				},
 
 				"ip_configuration": virtualMachineScaleSetIPConfigurationSchemaForDataSource(),
+
+				"auxiliary_mode": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"auxiliary_sku": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
 
 				"dns_servers": {
 					Type:     pluginsdk.TypeList,
@@ -806,6 +722,14 @@ func ExpandVirtualMachineScaleSetNetworkInterface(input []interface{}) (*[]virtu
 			},
 		}
 
+		if auxiliaryMode := raw["auxiliary_mode"].(string); auxiliaryMode != "" {
+			config.Properties.AuxiliaryMode = pointer.To(virtualmachinescalesets.NetworkInterfaceAuxiliaryMode(auxiliaryMode))
+		}
+
+		if auxiliarySku := raw["auxiliary_sku"].(string); auxiliarySku != "" {
+			config.Properties.AuxiliarySku = pointer.To(virtualmachinescalesets.NetworkInterfaceAuxiliarySku(auxiliarySku))
+		}
+
 		if nsgId := raw["network_security_group_id"].(string); nsgId != "" {
 			config.Properties.NetworkSecurityGroup = &virtualmachinescalesets.SubResource{
 				Id: pointer.To(nsgId),
@@ -937,6 +861,14 @@ func ExpandVirtualMachineScaleSetNetworkInterfaceUpdate(input []interface{}) (*[
 			},
 		}
 
+		if auxiliaryMode := raw["auxiliary_mode"].(string); auxiliaryMode != "" {
+			config.Properties.AuxiliaryMode = pointer.To(virtualmachinescalesets.NetworkInterfaceAuxiliaryMode(auxiliaryMode))
+		}
+
+		if auxiliarySku := raw["auxiliary_sku"].(string); auxiliarySku != "" {
+			config.Properties.AuxiliarySku = pointer.To(virtualmachinescalesets.NetworkInterfaceAuxiliarySku(auxiliarySku))
+		}
+
 		if nsgId := raw["network_security_group_id"].(string); nsgId != "" {
 			config.Properties.NetworkSecurityGroup = &virtualmachinescalesets.SubResource{
 				Id: pointer.To(nsgId),
@@ -1030,10 +962,16 @@ func FlattenVirtualMachineScaleSetNetworkInterface(input *[]virtualmachinescales
 
 	results := make([]interface{}, 0)
 	for _, v := range *input {
-		var networkSecurityGroupId string
+		var auxiliaryMode, auxiliarySku, networkSecurityGroupId string
 		var enableAcceleratedNetworking, enableIPForwarding, primary bool
 		var dnsServers, ipConfigurations []interface{}
 		if props := v.Properties; props != nil {
+			if props.AuxiliaryMode != nil && *props.AuxiliaryMode != virtualmachinescalesets.NetworkInterfaceAuxiliaryModeNone {
+				auxiliaryMode = string(pointer.From(props.AuxiliaryMode))
+			}
+			if props.AuxiliarySku != nil && *props.AuxiliarySku != virtualmachinescalesets.NetworkInterfaceAuxiliarySkuNone {
+				auxiliarySku = string(pointer.From(props.AuxiliarySku))
+			}
 			if props.NetworkSecurityGroup != nil && props.NetworkSecurityGroup.Id != nil {
 				networkSecurityGroupId = *props.NetworkSecurityGroup.Id
 			}
@@ -1058,6 +996,8 @@ func FlattenVirtualMachineScaleSetNetworkInterface(input *[]virtualmachinescales
 
 			results = append(results, map[string]interface{}{
 				"name":                          v.Name,
+				"auxiliary_mode":                auxiliaryMode,
+				"auxiliary_sku":                 auxiliarySku,
 				"dns_servers":                   dnsServers,
 				"enable_accelerated_networking": enableAcceleratedNetworking,
 				"enable_ip_forwarding":          enableIPForwarding,
@@ -1804,32 +1744,6 @@ func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *virtualmachinescal
 	}
 }
 
-// TODO remove VirtualMachineScaleSetTerminateNotificationSchema in 4.0
-func VirtualMachineScaleSetTerminateNotificationSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:       pluginsdk.TypeList,
-		Optional:   true,
-		Computed:   true,
-		MaxItems:   1,
-		Deprecated: "`terminate_notification` has been renamed to `termination_notification` and will be removed in 4.0.",
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"enabled": {
-					Type:     pluginsdk.TypeBool,
-					Required: true,
-				},
-				"timeout": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: azValidate.ISO8601DurationBetween("PT5M", "PT15M"),
-					Default:      "PT5M",
-				},
-			},
-		},
-		ConflictsWith: []string{"termination_notification"},
-	}
-}
-
 func VirtualMachineScaleSetTerminationNotificationSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -1850,12 +1764,6 @@ func VirtualMachineScaleSetTerminationNotificationSchema() *pluginsdk.Schema {
 				},
 			},
 		},
-		ConflictsWith: func() []string {
-			if !features.FourPointOhBeta() {
-				return []string{"terminate_notification"}
-			}
-			return []string{}
-		}(),
 	}
 }
 
@@ -2037,13 +1945,6 @@ func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 			},
 		},
 		Set: virtualMachineScaleSetExtensionHash,
-	}
-
-	if !features.FourPointOhBeta() {
-		schema.Elem.(*pluginsdk.Resource).Schema["automatic_upgrade_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-		}
 	}
 
 	return schema

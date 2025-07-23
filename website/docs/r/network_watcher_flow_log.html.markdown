@@ -11,7 +11,7 @@ description: |-
 
 Manages a Network Watcher Flow Log.
 
-~> **Note** The `azurerm_network_watcher_flow_log` creates a new storage lifecyle management rule that overwrites existing rules. Please make sure to use a `storage_account` with no existing management rules, until the [issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/6935) is fixed.
+~> **Note:** The `azurerm_network_watcher_flow_log` creates a new storage lifecyle management rule that overwrites existing rules. Please make sure to use a `storage_account` with no existing management rules, until the [issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/6935) is fixed.
 
 ## Example Usage
 
@@ -38,10 +38,10 @@ resource "azurerm_storage_account" "test" {
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
 
-  account_tier              = "Standard"
-  account_kind              = "StorageV2"
-  account_replication_type  = "LRS"
-  enable_https_traffic_only = true
+  account_tier               = "Standard"
+  account_kind               = "StorageV2"
+  account_replication_type   = "LRS"
+  https_traffic_only_enabled = true
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
@@ -56,9 +56,9 @@ resource "azurerm_network_watcher_flow_log" "test" {
   resource_group_name  = azurerm_resource_group.example.name
   name                 = "example-log"
 
-  network_security_group_id = azurerm_network_security_group.test.id
-  storage_account_id        = azurerm_storage_account.test.id
-  enabled                   = true
+  target_resource_id = azurerm_network_security_group.test.id
+  storage_account_id = azurerm_storage_account.test.id
+  enabled            = true
 
   retention_policy {
     enabled = true
@@ -129,8 +129,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Network Watcher Flow Log.
-* `update` - (Defaults to 30 minutes) Used when updating the Network Watcher Flow Log.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Network Watcher Flow Log.
+* `update` - (Defaults to 30 minutes) Used when updating the Network Watcher Flow Log.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Network Watcher Flow Log.
 
 ## Import
@@ -140,3 +140,9 @@ Network Watcher Flow Logs can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_network_watcher_flow_log.watcher1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/networkWatchers/watcher1/flowLogs/log1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network`: 2024-05-01
