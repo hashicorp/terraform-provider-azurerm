@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `linked_database_id` - (Optional) A list of database resources to link with this database with a maximum of 5. Reference the database using the cluster address prefix to avoid cyclic dependency, for example: `${azurerm_managed_redis_cluster.example1.id}/databases/default`.
 
--> **Note:** Only the newly created databases can be added to an existing geo-replication group. Existing regular databases or recreated databases cannot be added to the existing geo-replication group. Any linked database removed from the list will be forcefully unlinked. The only recommended operation is to delete after force-unlink and the recommended scenario of force-unlink is region outage. The database cannot be linked again after force-unlink.
+-> **Note:** Adding an existing database to a geo-replication group will discard all cache data and causes an outage for several minutes. Please refer to [the Microsoft documentation about geo-replication](https://learn.microsoft.com/en-us/azure/redis/how-to-active-geo-replication#remove-from-an-active-geo-replication-group).
 
 * `linked_database_group_nickname` - (Optional) Nickname of the group of linked databases. Changing this forces a new Managed Redis Database to be created.
 

@@ -328,20 +328,9 @@ func (r ManagedRedisDatabaseResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ManagedRedis.DatabaseClient
-
-			id, err := databases.ParseDatabaseID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
-
 			var model ManagedRedisDatabaseResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
-			}
-
-			parameters := databases.DatabaseUpdate{
-				Properties: &databases.DatabaseProperties{},
 			}
 
 			if metadata.ResourceData.HasChange("linked_database_id") {
@@ -349,15 +338,9 @@ func (r ManagedRedisDatabaseResource) Update() sdk.ResourceFunc {
 				if err := forceUnlinkDatabase(ctx, &metadata, oldItems, newItems); err != nil {
 					return fmt.Errorf("force unlinking database error: %+v", err)
 				}
-				linkedDatabase, err := expandArmGeoLinkedDatabase(model.LinkedDatabaseId, id.ID(), model.LinkedDatabaseGroupNickname)
-				if err != nil {
-					return fmt.Errorf("expanding `linked_database_group_nickname` or `linked_database_id`: %+v", err)
+				if err := forceLinkDatabase(ctx, &metadata, oldItems, newItems); err != nil {
+					return fmt.Errorf("force linking database error: %+v", err)
 				}
-				parameters.Properties.GeoReplication = linkedDatabase
-			}
-
-			if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
-				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
 			return nil
@@ -554,6 +537,61 @@ func forceUnlinkDatabase(ctx context.Context, meta *sdk.ResourceMetaData, oldIte
 
 		if err := client.ForceUnlinkThenPoll(ctx, *id, parameters); err != nil {
 			return fmt.Errorf("force unlinking from database %s error: %+v", id, err)
+		}
+	}
+	return nil
+}
+
+func forceLinkItems(oldItemList []interface{}, newItemList []interface{}) (bool, []string) {
+	oldItems := make(map[string]bool)
+	forceLinkList := make([]string, 0)
+	for _, oldItem := range oldItemList {
+		oldItems[oldItem.(string)] = true
+	}
+
+	for _, newItem := range newItemList {
+		if !oldItems[newItem.(string)] {
+			forceLinkList = append(forceLinkList, newItem.(string))
+		}
+	}
+	if len(forceLinkList) > 0 {
+		return true, forceLinkList
+	}
+	return false, nil
+}
+
+func forceLinkDatabase(ctx context.Context, meta *sdk.ResourceMetaData, oldItems, newItems interface{}) error {
+	isForceLinkNeeded, data := forceLinkItems(oldItems.(*pluginsdk.Set).List(), newItems.(*pluginsdk.Set).List())
+	if isForceLinkNeeded {
+		client := meta.Client.ManagedRedis.DatabaseClient
+		log.Printf("[INFO] Preparing to link to a replication group")
+
+		id, err := databases.ParseDatabaseID(meta.ResourceData.Id())
+		if err != nil {
+			return err
+		}
+
+		var model ManagedRedisDatabaseResourceModel
+		if err := meta.Decode(&model); err != nil {
+			return fmt.Errorf("decoding model: %+v", err)
+		}
+
+		linkedDatabases := make([]databases.LinkedDatabase, 0)
+		for _, item := range data {
+			linkedDatabases = append(linkedDatabases, databases.LinkedDatabase{
+				Id: pointer.To(item),
+			})
+		}
+
+		parameters := databases.ForceLinkParameters{
+			GeoReplication: databases.ForceLinkParametersGeoReplication{
+				GroupNickname:   pointer.To(model.LinkedDatabaseGroupNickname),
+				LinkedDatabases: &linkedDatabases,
+			},
+		}
+
+		if err := client.ForceLinkToReplicationGroupThenPoll(ctx, *id, parameters); err != nil {
+			return fmt.Errorf("force linking to replication group %s error: %+v", id, err)
 		}
 	}
 	return nil

@@ -85,7 +85,7 @@ data "azurerm_managed_redis_database" "test" {
   name       = "default"
   cluster_id = azurerm_managed_redis_cluster.test.id
 }
-`, ManagedRedisDatabaseResource{}.geoDatabase(data))
+`, ManagedRedisDatabaseResource{}.threeLinkedDatabases(data))
 }
 
 func (r ManagedRedisDatabaseDataSource) dataSourceAccessKeysEnabled(data acceptance.TestData) string {

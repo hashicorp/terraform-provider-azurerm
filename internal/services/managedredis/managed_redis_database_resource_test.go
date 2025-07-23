@@ -65,7 +65,7 @@ func TestAccManagedRedisDatabase_geoDatabase(t *testing.T) {
 	r := ManagedRedisDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.geoDatabase(data),
+			Config: r.threeLinkedDatabases(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -121,14 +121,35 @@ func TestAccManagedRedisDatabase_unlinkDatabase(t *testing.T) {
 	r := ManagedRedisDatabaseResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.geoDatabase(data),
+			Config: r.threeLinkedDatabases(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.unlinkDatabase(data),
+			Config: r.twoLinkedDatabases(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccManagedRedisDatabase_linkDatabase(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis_database", "test")
+	r := ManagedRedisDatabaseResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.twoLinkedDatabases(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.threeLinkedDatabases(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -262,7 +283,7 @@ resource "azurerm_managed_redis_database" "test" {
 `, r.template(data))
 }
 
-func (r ManagedRedisDatabaseResource) geoDatabase(data acceptance.TestData) string {
+func (r ManagedRedisDatabaseResource) threeLinkedDatabases(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -314,7 +335,7 @@ resource "azurerm_managed_redis_database" "test" {
 `, r.templateThreeClusters(data))
 }
 
-func (r ManagedRedisDatabaseResource) unlinkDatabase(data acceptance.TestData) string {
+func (r ManagedRedisDatabaseResource) twoLinkedDatabases(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
