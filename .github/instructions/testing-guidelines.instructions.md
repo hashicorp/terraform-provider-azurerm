@@ -1020,3 +1020,77 @@ make testacc TEST=./internal/services/cdn TESTARGS='-run=TestAccCdnFrontDoorProf
 - **Naming Constraints**: Profile names must be globally unique across Azure
 - **Propagation Time**: Changes may take time to propagate globally
 - **Response Timeout**: Valid range is 16-240 seconds
+
+### Azure Provider Feature Flags for Test Cleanup
+
+**Critical Insight**: Some Azure resources with protective features (like VMSS resiliency, database high availability, etc.) may block Terraform's default cleanup behavior during test teardown. The test framework automatically tries to scale down resources to 0 instances before deletion, but Azure may prevent this due to service-specific requirements.
+
+**Root Cause Understanding**: 
+When tests fail with errors like `OperationNotAllowed: Cannot update [resource] when [protective feature] is enabled`, the issue is typically the **auto scale-down behavior** during cleanup. The Terraform test framework tries to gracefully scale resources to 0 instances before deletion, but Azure blocks this operation to maintain service guarantees (health monitoring, backup retention, etc.).
+
+**Force Delete Pattern for Protected Resources:**
+```go
+// Template function with force delete configuration
+func (r ServiceNameResource) templateWithForceDelete(data acceptance.TestData) string {
+    return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {
+    virtual_machine_scale_set {
+      force_delete = true
+    }
+    # Add other service-specific force delete flags as needed
+    # key_vault {
+    #   purge_soft_delete_on_destroy = true
+    # }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-service-%d"
+  location = "%s"
+}
+# ... other base resources
+`, r.templatePublicKey(), data.RandomInteger, data.Locations.Primary)
+}
+
+// Usage in test configurations
+func (r ServiceNameResource) resiliencyTestWithCleanup(data acceptance.TestData) string {
+    return fmt.Sprintf(`
+%s
+
+resource "azurerm_service_resource" "test" {
+  # ... resource configuration with protective features
+  resiliency {
+    enabled = true
+  }
+}
+`, r.templateWithForceDelete(data))
+}
+```
+
+**When to Use Force Delete Flags:**
+- **VMSS with resiliency enabled**: `virtual_machine_scale_set.force_delete = true`
+- **Key Vault with soft delete**: `key_vault.purge_soft_delete_on_destroy = true`
+- **SQL databases with backup protection**: Appropriate force delete flags
+- **Any resource where Azure blocks normal Terraform cleanup operations**
+
+**Common Cleanup Error Patterns to Watch For:**
+- `OperationNotAllowed: Cannot update [resource] when [protective feature] is enabled`
+- `ResourceGroupBeingDeleted: Cannot perform operation while resource group is being deleted`
+- Scale-down operations blocked due to health monitoring requirements
+- Soft-delete conflicts preventing immediate recreation
+
+**Template Organization Best Practices:**
+- Create semantic template functions: `templateWithForceDelete`, `templateWithBackupRetention`, etc.
+- Encapsulate provider feature flags within template functions rather than inline
+- Use descriptive names that clearly indicate the template's cleanup behavior
+- Follow existing patterns like `templateWithLocation` for consistency
+
+**Debugging Test Cleanup Issues:**
+1. **Identify the blocking operation**: Look for Azure API errors mentioning protective features
+2. **Understand the root cause**: Auto scale-down during cleanup is often the culprit
+3. **Apply appropriate force delete flags**: Use service-specific provider feature flags
+4. **Create semantic templates**: Organize force delete configurations in reusable template functions
+5. **Test the fix**: Verify that tests can create, update, and **successfully clean up** resources

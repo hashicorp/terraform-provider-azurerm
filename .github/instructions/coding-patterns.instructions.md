@@ -39,7 +39,7 @@ type ServiceNameResourceTypeModel struct {
     Enabled           bool              `tfschema:"enabled"`
     Configuration     []ConfigModel     `tfschema:"configuration"`
     Tags              map[string]string `tfschema:"tags"`
-    
+
     // Computed attributes
     Id                string            `tfschema:"id"`
     Endpoint          string            `tfschema:"endpoint"`
@@ -568,7 +568,7 @@ func resourceServiceNameResourceTypeRead(ctx context.Context, d *pluginsdk.Resou
 
     if model := resp.Model; model != nil {
         d.Set("location", azure.NormalizeLocation(model.Location))
-        
+
         if props := model.Properties; props != nil {
             // Set properties
         }
@@ -593,16 +593,16 @@ func resourceServiceNameResourceTypeRead(ctx context.Context, d *pluginsdk.Resou
 // 1. Detecting if a user explicitly set a value vs using a default
 func resourceServiceNameUpdate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
     client := meta.(*clients.Client).ServiceName.ResourceClient
-    
+
     id, err := parse.ServiceNameID(d.Id())
     if err != nil {
         return err
     }
-    
+
     parameters := serviceapi.UpdateParameters{
         Name: d.Get("name").(string),
     }
-    
+
     // Check if user explicitly configured the setting
     if raw := d.GetRawConfig().GetAttr("timeout_seconds"); !raw.IsNull() {
         // User explicitly set this value, use it
@@ -611,30 +611,30 @@ func resourceServiceNameUpdate(ctx context.Context, d *pluginsdk.ResourceData, m
     }
     // If raw is null, don't send timeout_seconds parameter to Azure API
     // This allows Azure to use its service default
-    
+
     if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
         return fmt.Errorf("updating %s: %+v", *id, err)
     }
-    
+
     return nil
 }
 
 // 1b. Alternative pattern using AsValueMap() for multiple fields
 func resourceServiceNameUpdateAlternative(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
     client := meta.(*clients.Client).ServiceName.ResourceClient
-    
+
     id, err := parse.ServiceNameID(d.Id())
     if err != nil {
         return err
     }
-    
+
     parameters := serviceapi.UpdateParameters{
         Name: d.Get("name").(string),
     }
-    
+
     // Get all raw config values at once for multiple checks
     rawConfig := d.GetRawConfig().AsValueMap()
-    
+
     // Check if user explicitly configured sampling_percentage
     samplingPercentage := rawConfig["sampling_percentage"]
     if !samplingPercentage.IsNull() {
@@ -645,18 +645,18 @@ func resourceServiceNameUpdateAlternative(ctx context.Context, d *pluginsdk.Reso
     } else {
         parameters.SamplingSettings = nil
     }
-    
+
     // Check if user explicitly configured timeout_seconds
     timeoutSeconds := rawConfig["timeout_seconds"]
     if !timeoutSeconds.IsNull() {
         timeoutValue := d.Get("timeout_seconds").(int)
         parameters.TimeoutSeconds = &timeoutValue
     }
-    
+
     if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
         return fmt.Errorf("updating %s: %+v", *id, err)
     }
-    
+
     return nil
 }
 
@@ -664,29 +664,29 @@ func resourceServiceNameUpdateAlternative(ctx context.Context, d *pluginsdk.Reso
 func resourceServiceNameCreate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
     client := meta.(*clients.Client).ServiceName.ResourceClient
     subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-    
+
     name := d.Get("name").(string)
     resourceGroupName := d.Get("resource_group_name").(string)
     location := azure.NormalizeLocation(d.Get("location").(string))
-    
+
     id := parse.NewServiceNameID(subscriptionId, resourceGroupName, name)
-    
+
     parameters := serviceapi.CreateParameters{
         Name:     name,
         Location: location,
     }
-    
+
     // Only include advanced_config if user explicitly configured it
     if raw := d.GetRawConfig().GetAttr("advanced_config"); !raw.IsNull() {
         advancedConfig := expandAdvancedConfig(d.Get("advanced_config").([]interface{}))
         parameters.AdvancedConfig = &advancedConfig
     }
     // If raw is null, don't include AdvancedConfig in API call
-    
+
     if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
         return fmt.Errorf("creating %s: %+v", id, err)
     }
-    
+
     d.SetId(id.ID())
     return nil
 }
@@ -694,12 +694,12 @@ func resourceServiceNameCreate(ctx context.Context, d *pluginsdk.ResourceData, m
 // 3. Preserving Azure service defaults vs Terraform defaults
 func resourceServiceNameRead(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
     client := meta.(*clients.Client).ServiceName.ResourceClient
-    
+
     id, err := parse.ServiceNameID(d.Id())
     if err != nil {
         return err
     }
-    
+
     resp, err := client.Get(ctx, *id)
     if err != nil {
         if response.WasNotFound(resp.HttpResponse) {
@@ -709,13 +709,13 @@ func resourceServiceNameRead(ctx context.Context, d *pluginsdk.ResourceData, met
         }
         return fmt.Errorf("retrieving %s: %+v", *id, err)
     }
-    
+
     d.Set("name", id.ServiceName)
     d.Set("resource_group_name", id.ResourceGroupName)
-    
+
     if model := resp.Model; model != nil {
         d.Set("location", azure.NormalizeLocation(model.Location))
-        
+
         if props := model.Properties; props != nil {
             // Only set in state if user originally configured it
             if raw := d.GetRawConfig().GetAttr("timeout_seconds"); !raw.IsNull() {
@@ -724,7 +724,7 @@ func resourceServiceNameRead(ctx context.Context, d *pluginsdk.ResourceData, met
             // If user never set timeout_seconds, don't store Azure's default in state
         }
     }
-    
+
     return nil
 }
 ```
@@ -734,16 +734,16 @@ func resourceServiceNameRead(ctx context.Context, d *pluginsdk.ResourceData, met
 // AVOID: Using GetRawConfig for required fields
 func resourceServiceNameCreate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
     client := meta.(*clients.Client).ServiceName.ResourceClient
-    
+
     // INCORRECT - required fields should always use d.Get()
     var name string
     if raw := d.GetRawConfig().GetAttr("name"); !raw.IsNull() {
         name = d.Get("name").(string)
     }
-    
+
     // CORRECT - required fields always use d.Get()
     name := d.Get("name").(string)
-    
+
     // Continue with resource creation...
     return nil
 }
@@ -751,7 +751,7 @@ func resourceServiceNameCreate(ctx context.Context, d *pluginsdk.ResourceData, m
 // AVOID: Using GetRawConfig when you always need the value
 func resourceServiceNameUpdate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
     client := meta.(*clients.Client).ServiceName.ResourceClient
-    
+
     // INCORRECT - if you always need the value, use d.Get()
     var enabled bool
     if raw := d.GetRawConfig().GetAttr("enabled"); !raw.IsNull() {
@@ -759,10 +759,10 @@ func resourceServiceNameUpdate(ctx context.Context, d *pluginsdk.ResourceData, m
     } else {
         enabled = false // This adds unnecessary complexity
     }
-    
+
     // CORRECT - use d.Get() with proper default handling
     enabled := d.Get("enabled").(bool) // Schema default will be used if not set
-    
+
     // Use the enabled value in API call...
     return nil
 }
@@ -777,7 +777,7 @@ func (r ServiceNameResource) Create() sdk.ResourceFunc {
             if err := metadata.Decode(&model); err != nil {
                 return fmt.Errorf("decoding: %+v", err)
             }
-            
+
             // DON'T try to use d.GetRawConfig() in typed resources
             // The metadata pattern handles this automatically
             return nil
@@ -797,7 +797,7 @@ func resourceServiceNameSchema() map[string]*pluginsdk.Schema {
             // NO Default here if you want to distinguish between
             // user-set vs Azure service default
         },
-        
+
         "advanced_config": {
             Type:     pluginsdk.TypeList,
             Optional: true,
@@ -813,7 +813,7 @@ func resourceServiceNameSchema() map[string]*pluginsdk.Schema {
                 },
             },
         },
-        
+
         "enabled": {
             Type:     pluginsdk.TypeBool,
             Optional: true,
@@ -852,11 +852,11 @@ import (
     "log"
     "regexp"
     "time"
-    
+
     // External dependencies second
     "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
     "github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-    
+
     // Internal imports last
     "github.com/hashicorp/terraform-provider-azurerm/internal/clients"
     "github.com/hashicorp/terraform-provider-azurerm/internal/common"
@@ -932,6 +932,155 @@ func(ctx context.Context, diff *pluginsdk.ResourceDiff, meta interface{}) error 
 - **Clear Error Messages**: Include field paths and specific constraint violations in error messages
 - **Field Name Formatting**: Wrap field names in backticks for clarity (`selector`, `match_variable`)
 - **Conditional Logic**: Handle complex Azure resource configuration dependencies
+
+### Azure PATCH Operation Pattern
+
+#### Critical PATCH Behavior Understanding
+
+**Azure Resource Manager PATCH Operations:**
+Many Azure services use PATCH operations for resource updates, which have fundamentally different behavior from PUT operations:
+
+- **PATCH preserves existing values** when fields are omitted from the request
+- **PUT replaces the entire resource** with the provided configuration
+- **Azure SDK nil filtering** removes nil values before sending requests to Azure
+- **Residual state persistence** means previously enabled features remain active unless explicitly disabled
+
+**PATCH Operation Challenges:**
+```go
+// PROBLEM: This approach fails with PATCH operations
+func ExpandPolicy(input []interface{}) *azuretype.Policy {
+    if len(input) == 0 {
+        return nil // SDK filters this out, Azure never gets disable command
+    }
+
+    // Only sends enabled policies, disabled policies remain unchanged
+    result := &azuretype.Policy{}
+    // Configure only enabled features...
+    return result
+}
+```
+
+**SOLUTION: Explicit Disable Pattern for PATCH Operations:**
+```go
+func ExpandPolicy(input []interface{}) *azuretype.Policy {
+    // PATCH Operations Requirement: Always return a complete structure
+    // with explicit enabled=false for disabled features to clear residual state
+
+    // Define complete structure with all features disabled by default
+    result := &azuretype.Policy{
+        AutomaticFeature: &azuretype.AutomaticFeature{
+            Enabled: pointer.To(false), // Explicit disable for PATCH
+            // Include all required fields even when disabled
+            RequiredSetting: pointer.To(azuretype.DefaultValue),
+        },
+        OptionalFeature: &azuretype.OptionalFeature{
+            Enabled: pointer.To(false), // Explicit disable for PATCH
+        },
+    }
+
+    // If no configuration, return everything disabled (clears residual state)
+    if len(input) == 0 || input[0] == nil {
+        return result
+    }
+
+    raw := input[0].(map[string]interface{})
+
+    // Enable only explicitly configured features
+    if automaticRaw, exists := raw["automatic_feature"]; exists {
+        automaticList := automaticRaw.([]interface{})
+        if len(automaticList) > 0 && automaticList[0] != nil {
+            // Enable the feature and apply user configuration
+            result.AutomaticFeature.Enabled = pointer.To(true)
+
+            automatic := automaticList[0].(map[string]interface{})
+            if setting := automatic["required_setting"].(string); setting != "" {
+                result.AutomaticFeature.RequiredSetting = pointer.To(azuretype.Setting(setting))
+            }
+        }
+        // If exists but empty block, feature remains disabled
+    }
+    // If not exists, feature remains disabled
+
+    return result
+}
+```
+
+**Key PATCH Operation Principles:**
+- **Always return complete structures** - Never return nil for PATCH operations
+- **Explicit disable commands** - Use `enabled=false` instead of omitting fields
+- **Required field compliance** - Provide all required fields even when features are disabled
+- **Residual state management** - Ensure previously enabled features can be properly disabled
+- **"None" Pattern Integration** - Combine with flatten functions that exclude disabled features from state
+
+**Documentation Requirements for PATCH Operations:**
+```go
+// PATCH Behavior Note: Azure VMSS uses PATCH operations which preserve existing values
+// when fields are omitted. This means previously enabled policies will remain active
+// unless explicitly disabled with enabled=false. Sending nil values gets filtered out
+// by the Azure SDK, so Azure never receives disable commands. We must explicitly
+// send enabled=false for all policies that should be disabled.
+```
+
+#### Real-World PATCH + "None" Pattern Integration
+
+**Resiliency Policy Example - Key Learnings:**
+The Azure VMSS resiliency policy implementation demonstrates the critical integration of PATCH operations with the "None" pattern:
+
+```go
+func ExpandVirtualMachineScaleSetResiliency(input []interface{}, resilientVMCreationEnabled, resilientVMDeletionEnabled bool) *virtualmachinescalesets.ResiliencyPolicy {
+    // PATCH Behavior Note: Azure VMSS uses PATCH operations which preserve existing values
+    // when fields are omitted. This means previously enabled policies will remain active
+    // unless explicitly disabled with enabled=false. Sending nil values gets filtered out
+    // by the Azure SDK, so Azure never receives disable commands. We must explicitly
+    // send enabled=false for all policies that should be disabled.
+
+    // Define result with all policies disabled by default
+    // Azure requires all fields to be present even when disabled
+    result := &virtualmachinescalesets.ResiliencyPolicy{
+        AutomaticZoneRebalancingPolicy: &virtualmachinescalesets.AutomaticZoneRebalancingPolicy{
+            Enabled:           pointer.To(false),                                                       // Disabled by default
+            RebalanceBehavior: pointer.To(virtualmachinescalesets.RebalanceBehaviorCreateBeforeDelete), // Required even when disabled
+            RebalanceStrategy: pointer.To(virtualmachinescalesets.RebalanceStrategyRecreate),           // Required even when disabled
+        },
+        ResilientVMCreationPolicy: &virtualmachinescalesets.ResilientVMCreationPolicy{
+            Enabled: pointer.To(resilientVMCreationEnabled),
+        },
+        ResilientVMDeletionPolicy: &virtualmachinescalesets.ResilientVMDeletionPolicy{
+            Enabled: pointer.To(resilientVMDeletionEnabled),
+        },
+    }
+
+    // Handle automatic zone rebalancing configuration - "None" pattern integration
+    if len(input) > 0 && input[0] != nil {
+        raw := input[0].(map[string]interface{})
+
+        // Enable automatic zone rebalancing if explicitly configured
+        if automaticZoneRebalancingRaw, exists := raw["automatic_zone_rebalancing"]; exists {
+            automaticZoneRebalancingList := automaticZoneRebalancingRaw.([]interface{})
+            if len(automaticZoneRebalancingList) > 0 && automaticZoneRebalancingList[0] != nil {
+                // User explicitly configured this feature - enable it
+                result.AutomaticZoneRebalancingPolicy.Enabled = pointer.To(true)
+                // Apply user configuration...
+            }
+            // If exists but empty block, feature remains disabled (following "None" pattern)
+        }
+        // If not configured at all, feature remains disabled (following "None" pattern)
+    }
+
+    return result
+}
+```
+
+**Critical Debugging Insights:**
+- **State Management Issue**: Originally returned `nil` when no configuration provided, causing residual state persistence
+- **PATCH Operation Interaction**: Azure API preserved previously enabled policies because disable commands were never sent
+- **"None" Pattern Compliance**: Users omit optional fields instead of explicitly setting them to default values
+- **Required Field Handling**: Even disabled features need all required fields populated with appropriate defaults
+
+**Testing Implications:**
+- **Test Scenarios**: Must test enabling → disabling → re-enabling features to catch residual state bugs
+- **State Verification**: Verify that removing configuration truly disables Azure features (not just Terraform state)
+- **PATCH Operation Testing**: Specifically test update scenarios where features are toggled on/off
 
 ### Client Management Pattern
 
@@ -1300,6 +1449,140 @@ func ServiceNameResourceTypeID(input string) (*ServiceNameResourceTypeId, error)
 }
 ```
 
+### Progressive Code Simplification Patterns
+
+#### When Complex Logic Needs Simplification
+
+When implementing Azure resource expand/flatten functions, especially for PATCH operations, complex conditional logic can often be simplified through strategic refactoring.
+
+**Anti-Pattern: Complex Conditional Logic**
+```go
+func ExpandPolicy(input []interface{}) *azuretype.Policy {
+    result := &azuretype.Policy{}
+
+    if len(input) == 0 || input[0] == nil {
+        // Create disabled policies with complex duplication
+        result.FeatureA = &azuretype.FeatureA{
+            Enabled: pointer.To(false),
+            RequiredField: pointer.To(azuretype.DefaultValue),
+        }
+        result.FeatureB = &azuretype.FeatureB{
+            Enabled: pointer.To(false),
+        }
+        return result
+    }
+
+    raw := input[0].(map[string]interface{})
+
+    // More complex conditional logic with duplication...
+    if featureARaw, exists := raw["feature_a"]; exists {
+        // Duplicate policy creation logic
+        result.FeatureA = &azuretype.FeatureA{
+            Enabled: pointer.To(true),
+            RequiredField: pointer.To(azuretype.DefaultValue),
+        }
+        // Configure...
+    } else {
+        // Duplicate disabled policy creation
+        result.FeatureA = &azuretype.FeatureA{
+            Enabled: pointer.To(false),
+            RequiredField: pointer.To(azuretype.DefaultValue),
+        }
+    }
+
+    return result
+}
+```
+
+**Progressive Simplification Strategy:**
+
+**Step 1: Extract Common Patterns**
+```go
+func ExpandPolicy(input []interface{}) *azuretype.Policy {
+    // Extract disabled policy as variable to reduce duplication
+    disabledFeatureA := &azuretype.FeatureA{
+        Enabled: pointer.To(false),
+        RequiredField: pointer.To(azuretype.DefaultValue),
+    }
+
+    result := &azuretype.Policy{}
+
+    if len(input) == 0 || input[0] == nil {
+        result.FeatureA = disabledFeatureA
+        result.FeatureB = &azuretype.FeatureB{Enabled: pointer.To(false)}
+        return result
+    }
+
+    raw := input[0].(map[string]interface{})
+
+    // Start with disabled, enable if configured
+    result.FeatureA = disabledFeatureA
+    if featureARaw, exists := raw["feature_a"]; exists {
+        // Only create enabled version when needed
+        result.FeatureA = &azuretype.FeatureA{
+            Enabled: pointer.To(true),
+            RequiredField: pointer.To(azuretype.DefaultValue),
+        }
+        // Configure...
+    }
+
+    return result
+}
+```
+
+**Step 2: Define Complete Disabled Structure (Recommended)**
+```go
+func ExpandPolicy(input []interface{}) *azuretype.Policy {
+    // Define complete result with all features disabled by default
+    result := &azuretype.Policy{
+        FeatureA: &azuretype.FeatureA{
+            Enabled: pointer.To(false),                    // Disabled by default
+            RequiredField: pointer.To(azuretype.DefaultValue), // Required even when disabled
+        },
+        FeatureB: &azuretype.FeatureB{
+            Enabled: pointer.To(false), // Disabled by default
+        },
+    }
+
+    // If no input, return everything disabled
+    if len(input) == 0 || input[0] == nil {
+        return result
+    }
+
+    raw := input[0].(map[string]interface{})
+
+    // Simple field flipping logic - enable only what's configured
+    if featureARaw, exists := raw["feature_a"]; exists {
+        featureAList := featureARaw.([]interface{})
+        if len(featureAList) > 0 && featureAList[0] != nil {
+            // Enable the feature and apply user configuration
+            result.FeatureA.Enabled = pointer.To(true)
+            // Apply other configuration...
+        }
+    }
+
+    if featureBEnabled, exists := raw["feature_b_enabled"]; exists {
+        result.FeatureB.Enabled = pointer.To(featureBEnabled.(bool))
+    }
+
+    return result
+}
+```
+
+**Benefits of Progressive Simplification:**
+- **Readability**: Clear intent - start disabled, enable what's configured
+- **Maintainability**: Single source of truth for structure definition
+- **Testability**: Easier to test individual feature enabling/disabling
+- **PATCH Compliance**: Naturally handles Azure PATCH operation requirements
+- **Reduced Duplication**: No repeated policy creation logic
+
+**Key Simplification Principles:**
+1. **Define end state first** - Create complete structure with desired defaults
+2. **Use simple field flipping** - Change only what needs to change based on input
+3. **Eliminate conditional returns** - Single return path reduces complexity
+4. **Extract common patterns** - Use variables for repeated structures
+5. **Start with working code** - Simplify incrementally, don't rewrite from scratch
+
 ### Testing Patterns
 
 For comprehensive testing patterns, implementation details, and Azure-specific testing guidelines, see [`testing-guidelines.instructions.md`](./testing-guidelines.instructions.md).
@@ -1311,3 +1594,168 @@ Key testing requirements:
 - Ensure tests are idempotent and can run in parallel
 - Include import tests for all resources (`data.ImportStep()`)
 - Test Azure-specific features like resource tagging and location handling
+
+#### Test Template Organization Patterns
+
+**Semantic Template Functions:**
+```go
+// Create semantic template functions that clearly indicate their behavior
+func (r ServiceNameResource) templateWithForceDelete(data acceptance.TestData) string {
+    return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    virtual_machine_scale_set {
+      force_delete = true
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-service-%d"
+  location = "%s"
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+// Use semantic templates in test configurations
+func (r ServiceNameResource) resiliencyTestWithCleanup(data acceptance.TestData) string {
+    return fmt.Sprintf(`
+%s
+
+resource "azurerm_service_resource" "test" {
+  # Resource configuration with protective features
+  resiliency {
+    enabled = true
+  }
+}
+`, r.templateWithForceDelete(data))
+}
+```
+
+**Template Naming Conventions:**
+- `templateWithForceDelete`: Provider with aggressive cleanup flags
+- `templateWithLocation`: Base resources in specific region
+- `templateWithBackupRetention`: Resources with backup/retention policies
+- `templatePublicKey`: Base template with SSH key generation
+
+### Troubleshooting Azure Resource State Management
+
+#### PATCH Operation + "None" Pattern Debugging
+
+When implementing Azure resources that use PATCH operations combined with the "None" pattern, several common issues can arise. This section documents debugging approaches learned from real-world troubleshooting sessions.
+
+**Common Symptoms:**
+- Resource state shows fields as disabled, but Azure portal shows them as enabled
+- Tests pass on creation but fail when testing disable  re-enable scenarios  
+- Azure API calls return success, but resource configuration doesn't change
+- Residual state persists after removing Terraform configuration blocks
+
+**Root Cause Analysis Framework:**
+
+1. **Identify the HTTP Method**: Check if the Azure service uses PATCH vs PUT operations
+   ```bash
+   # Look for PatchThenPoll vs CreateOrUpdateThenPoll in Azure SDK calls
+   grep -r "PatchThenPoll\|CreateOrUpdateThenPoll" internal/services/servicename/
+   ```
+
+2. **Trace Azure SDK Filtering**: Verify if nil values are being filtered out
+   ```go
+   // Look for patterns like this that cause issues:
+   if len(input) == 0 {
+       return nil // SDK filters this out, Azure never gets disable command
+   }
+   ```
+
+3. **Check "None" Pattern Implementation**: Ensure disabled features are explicit
+   ```go
+   // WRONG - Causes residual state
+   func ExpandFeature(input []interface{}) *azuretype.Feature {
+       if len(input) == 0 {
+           return nil
+       }
+       // Configure only enabled features
+   }
+
+   // RIGHT - Prevents residual state  
+   func ExpandFeature(input []interface{}) *azuretype.Feature {
+       result := &azuretype.Feature{
+           Enabled: pointer.To(false), // Explicit disable
+       }
+       if len(input) > 0 {
+           result.Enabled = pointer.To(true)
+       }
+       return result
+   }
+   ```
+
+**Testing Strategy for State Management Issues:**
+
+```go
+func TestAccServiceName_stateManagement(t *testing.T) {
+    data := acceptance.BuildTestData(t, "azurerm_service_name", "test")
+    r := ServiceNameResource{}
+
+    data.ResourceTest(t, r, []acceptance.TestStep{
+        {
+            // Step 1: Enable feature
+            Config: r.featureEnabled(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).Key("feature.#").HasValue("1"),
+                check.That(data.ResourceName).Key("feature.0.enabled").HasValue("true"),
+            ),
+        },
+        {
+            // Step 2: Disable feature (critical test for residual state)
+            Config: r.featureDisabled(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                // Verify feature is removed from Terraform state ("None" pattern)
+                check.That(data.ResourceName).Key("feature.#").HasValue("0"),
+                // Custom check to verify Azure resource is actually disabled
+                check.That(data.ResourceName).Key("id").Exists(),
+            ),
+        },
+        {
+            // Step 3: Re-enable feature (tests that disable actually worked)
+            Config: r.featureEnabled(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).Key("feature.#").HasValue("1"),
+                check.That(data.ResourceName).Key("feature.0.enabled").HasValue("true"),
+            ),
+        },
+    })
+}
+```
+
+**Documentation Patterns for Complex State Management:**
+
+```go
+func ExpandComplexFeature(input []interface{}) *azuretype.ComplexFeature {
+    // State Management Note: This Azure service uses PATCH operations combined with the "None" pattern.
+    // Previously enabled features will remain active unless explicitly disabled with enabled=false.
+    // When users omit the configuration block, we must send disabled=true to clear residual state.
+    
+    // Always return complete structure with explicit disable commands
+    result := &azuretype.ComplexFeature{
+        AutoFeature: &azuretype.AutoFeature{
+            Enabled: pointer.To(false),                           // Explicit disable
+            RequiredField: pointer.To(azuretype.DefaultValue),    // Required even when disabled  
+        },
+    }
+    
+    // Enable only explicitly configured features
+    if len(input) > 0 && input[0] != nil {
+        // User provided configuration - enable and apply settings
+    }
+    
+    return result
+}
+```
+
+**Key Debugging Insights:**
+- **PATCH + nil filtering**: Azure SDK removes nil values, so disable commands never reach Azure
+- **Residual state persistence**: Previously enabled features stay active without explicit disable
+- **"None" pattern compliance**: Users expect omitted fields to disable features, not preserve them
+- **Test coverage gaps**: Must test enable  disable  re-enable to catch state management bugs
+- **Documentation clarity**: Comment the interaction between PATCH operations and "None" patterns
+
+This debugging framework helps identify and resolve state management issues in Azure resources that combine PATCH operations with the "None" pattern for user-friendly configuration management.

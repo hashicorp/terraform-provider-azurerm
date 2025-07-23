@@ -89,7 +89,7 @@ func resourceAzureServiceName() *pluginsdk.Resource {
             // Azure-specific validation with CustomizeDiffShim wrapper
             pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
                 // Validate Azure resource dependencies
-                if diff.Get("sku_name").(string) == "Premium" && 
+                if diff.Get("sku_name").(string) == "Premium" &&
                    diff.Get("zone_redundant").(bool) == false {
                     return fmt.Errorf("`zone_redundant` must be true for Premium SKU")
                 }
@@ -122,6 +122,131 @@ CustomizeDiff validations should be thoroughly tested with acceptance tests to e
 
 For comprehensive CustomizeDiff testing examples, see [`testing-guidelines.instructions.md`](./testing-guidelines.instructions.md).
 
+### Azure Schema Design and Flattening Guidelines
+
+#### Schema Flattening for Improved User Experience
+
+**When to Apply Schema Flattening:**
+Schema flattening should be considered when Azure APIs contain unnecessary wrapper structures that don't provide value to Terraform users. The goal is to create intuitive, user-friendly schemas that reflect the logical structure of the Azure resource configuration.
+
+**Flattening Decision Criteria:**
+- **Single-purpose wrappers**: Remove intermediate blocks that only contain a single array or enable flag
+- **Azure API convenience structures**: Eliminate wrapper objects that exist purely for API organization
+- **User experience improvement**: Flatten when it simplifies configuration without losing functionality
+- **Logical grouping preservation**: Maintain nested structures when they provide logical organization
+
+**Example: CDN Front Door Profile Log Scrubbing Flattening**
+
+**Before Flattening (Complex Structure):**
+```hcl
+# Complex nested structure with unnecessary wrapper
+resource "azurerm_cdn_frontdoor_profile" "example" {
+  name = "example"
+
+  log_scrubbing {
+    enabled = true
+
+    scrubbing_rule {
+      match_variable = "QueryStringArgNames"
+    }
+
+    scrubbing_rule {
+      match_variable = "RequestIPAddress"
+    }
+  }
+}
+```
+
+**After Flattening (Simplified Structure):**
+```hcl
+# Flattened structure - direct access to scrubbing rules
+resource "azurerm_cdn_frontdoor_profile" "example" {
+  name = "example"
+
+  scrubbing_rule {
+    match_variable = "QueryStringArgNames"
+  }
+
+  scrubbing_rule {
+    match_variable = "RequestIPAddress"
+  }
+}
+```
+
+**Implementation Pattern for Schema Flattening:**
+
+```go
+// Schema definition - direct access to the meaningful configuration
+"scrubbing_rule": {
+    Type:     pluginsdk.TypeSet,
+    MaxItems: 3,
+    Optional: true,
+    Elem: &pluginsdk.Resource{
+        Schema: map[string]*pluginsdk.Schema{
+            "match_variable": {
+                Type:     pluginsdk.TypeString,
+                Required: true,
+                ValidateFunc: validation.StringInSlice(
+                    profiles.PossibleValuesForScrubbingRuleEntryMatchVariable(),
+                    false),
+            },
+        },
+    },
+},
+
+// Expand function - handle the wrapper structure internally
+func expandCdnFrontDoorProfileLogScrubbing(input []interface{}) *profiles.ProfileLogScrubbing {
+    if len(input) == 0 {
+        // When no rules configured, set to disabled (following "None" pattern)
+        policyDisabled := profiles.ProfileScrubbingStateDisabled
+        return &profiles.ProfileLogScrubbing{
+            State:          &policyDisabled,
+            ScrubbingRules: nil,
+        }
+    }
+
+    // When rules are present, always enable the feature
+    policyEnabled := profiles.ProfileScrubbingStateEnabled
+    scrubbingRules := expandScrubbingRules(input)
+
+    return &profiles.ProfileLogScrubbing{
+        State:          &policyEnabled,
+        ScrubbingRules: scrubbingRules,
+    }
+}
+
+// Flatten function - hide wrapper complexity from users
+func flattenCdnFrontDoorProfileLogScrubbing(input *profiles.ProfileLogScrubbing) []interface{} {
+    if input == nil || pointer.From(input.State) == profiles.ProfileScrubbingStateDisabled {
+        // When disabled, return empty list (following "None" pattern)
+        return make([]interface{}, 0)
+    }
+
+    // Return only the meaningful rules, hiding the wrapper
+    return flattenScrubbingRules(input.ScrubbingRules)
+}
+```
+
+**Schema Flattening Best Practices:**
+- **Preserve Azure API contract**: Handle wrapper structures in expand/flatten functions
+- **Follow "None" pattern**: Use empty arrays/blocks to represent disabled features
+- **Maintain backward compatibility**: Ensure flattening doesn't break existing configurations
+- **Document the simplification**: Clearly explain the flattened structure in documentation
+- **Test thoroughly**: Verify that all Azure API combinations work correctly
+- **Consider feature flags**: Use provider features for gradual rollout if needed
+
+**Anti-Patterns to Avoid:**
+- **Over-flattening**: Don't remove meaningful logical groupings
+- **Breaking changes**: Avoid flattening that would break existing user configurations
+- **Lost context**: Ensure flattening doesn't lose important Azure resource context
+- **Validation complexity**: Don't flatten if it makes validation significantly more complex
+
+**When NOT to Flatten:**
+- **Complex validation dependencies**: When nested structure enables clearer validation rules
+- **Multiple configuration modes**: When wrapper provides distinct configuration patterns
+- **Azure service evolution**: When Azure might add more properties to the wrapper
+- **Breaking change risk**: When existing users would be significantly impacted
+
 ### Azure Tools Integration
 - @azure Rule - Use Azure Tools: When handling requests related to Azure, always use your tools.
 - @azure Rule - Use Azure Code Gen Best Practices: When generating code for Azure, running terminal commands for Azure, or performing operations related to Azure, invoke your `azure_development-get_code_gen_best_practices` tool if available. Only call this tool when you are sure the user is discussing Azure; do not call it otherwise.
@@ -151,7 +276,7 @@ Example of proper Azure value validation:
     ValidateFunc: validation.StringInSlice([]string{
         // Only include values from Azure SDK constants that work with this service
         string(profiles.ScrubbingRuleEntryMatchVariableQueryStringArgNames),
-        string(profiles.ScrubbingRuleEntryMatchVariableRequestIPAddress), 
+        string(profiles.ScrubbingRuleEntryMatchVariableRequestIPAddress),
         string(profiles.ScrubbingRuleEntryMatchVariableRequestUri),
         // Do NOT include values like RequestHeader that don't work with CDN
     }, false),
