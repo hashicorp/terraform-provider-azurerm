@@ -199,12 +199,14 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 						}
 						defId = *(*roleDefinitions.Model)[0].Id
 						id = roledefinitions.NewScopedRoleDefinitionID(config.Scope, *(*roleDefinitions.Model)[0].Name)
-						return nil, "success", nil
+						return id, "success", nil
 					},
 				}
-				if _, err := c.WaitForStateContext(ctx); err != nil {
+				v, err := c.WaitForStateContext(ctx)
+				if err != nil {
 					return err
 				}
+				id = v.(roledefinitions.ScopedRoleDefinitionId)
 			} else {
 				id = roledefinitions.NewScopedRoleDefinitionID(config.Scope, defId)
 			}
