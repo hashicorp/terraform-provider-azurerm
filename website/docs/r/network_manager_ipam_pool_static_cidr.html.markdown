@@ -41,9 +41,6 @@ resource "azurerm_network_manager_ipam_pool_static_cidr" "example" {
   name             = "example-ipsc"
   ipam_pool_id     = azurerm_network_manager_ipam_pool.example.id
   address_prefixes = ["10.0.0.0/26", "10.0.0.128/27"]
-  lifecycle {
-    ignore_changes = [number_of_ip_addresses_to_allocate]
-  }
 }
 ```
 
@@ -59,11 +56,11 @@ The following arguments are supported:
 
 * `address_prefixes` - (Optional) Specifies a list of IPv4 or IPv6 IP address prefixes which will be allocated to the Static CIDR.
 
--> **Note:** Exactly one of `address_prefixes` or `number_of_ip_addresses_to_allocate` must be specified. If you set either property, the Azure API will automatically configure the other. Therefore, if you set `address_prefixes`, consider adding `number_of_ip_addresses_to_allocate` to `ignore_changes` to avoid plan diff.
+-> **Note:** Exactly one of `address_prefixes` or `number_of_ip_addresses_to_allocate` must be specified.
 
 * `number_of_ip_addresses_to_allocate` - (Optional) The number of IP addresses to allocated to the Static CIDR. The value must be a string representing a positive integer which is a positive power of 2, e.g., `"16"`.
 
--> **Note:** Exactly one of `address_prefixes` or `number_of_ip_addresses_to_allocate` must be specified. If you set either property, the Azure API will automatically configure the other. Therefore, if you set `number_of_ip_addresses_to_allocate`, consider adding `address_prefixes` to `ignore_changes` to avoid plan diff.
+-> **Note:** Exactly one of `address_prefixes` or `number_of_ip_addresses_to_allocate` must be specified.
 
 ## Attributes Reference
 

@@ -61,6 +61,17 @@ func (ManagerIpamPoolStaticCidrResource) Arguments() map[string]*pluginsdk.Schem
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.IsCIDR,
 			},
+			DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
+				// If `number_of_ip_addresses_to_allocate` is used instead of `address_prefixes` there is a perpetual diff
+				// due to the API returning a CIDR range provisioned by the IP Address Management Pool.
+				// Note: using `GetRawConfig` to avoid suppressing a diff if a user updates from `address_prefixes` to `number_of_ip_addresses_to_allocate`.
+				rawNumberOfIpAddressesToAllocate := d.GetRawConfig().AsValueMap()["number_of_ip_addresses_to_allocate"]
+				if !rawNumberOfIpAddressesToAllocate.IsNull() && rawNumberOfIpAddressesToAllocate.AsString() != "" {
+					return true
+				}
+
+				return false
+			},
 		},
 
 		"number_of_ip_addresses_to_allocate": {
@@ -68,6 +79,14 @@ func (ManagerIpamPoolStaticCidrResource) Arguments() map[string]*pluginsdk.Schem
 			Optional:     true,
 			ExactlyOneOf: []string{"address_prefixes", "number_of_ip_addresses_to_allocate"},
 			ValidateFunc: validate.NumberOfIpAddresses,
+			DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
+				rawAddressPrefixes := d.GetRawConfig().AsValueMap()["address_prefixes"]
+				if !rawAddressPrefixes.IsNull() && len(rawAddressPrefixes.AsValueSlice()) > 0 {
+					return true
+				}
+
+				return false
+			},
 		},
 	}
 }
@@ -194,6 +213,7 @@ func (r ManagerIpamPoolStaticCidrResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("address_prefixes") {
 				if len(model.AddressPrefixes) > 0 {
 					parameters.Properties.AddressPrefixes = pointer.To(model.AddressPrefixes)
+					// Set nil for AddressPrefixes when changing from `NumberOfIPAddressesToAllocate` to `AddressPrefixes` but the change for `NumberOfIPAddressesToAllocate` is not detected due to the diffSuppressFunc.
 					parameters.Properties.NumberOfIPAddressesToAllocate = pointer.To("")
 				} else {
 					parameters.Properties.AddressPrefixes = pointer.To([]string{})
