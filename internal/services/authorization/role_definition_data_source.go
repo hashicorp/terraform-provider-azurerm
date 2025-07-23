@@ -168,35 +168,41 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 
 			// search by name
 			var id roledefinitions.ScopedRoleDefinitionId
-			var role roledefinitions.RoleDefinition
 			if config.Name != "" {
 				// Accounting for eventual consistency
 				deadline, ok := ctx.Deadline()
 				if !ok {
 					return fmt.Errorf("internal error: context had no deadline")
 				}
-				err := pluginsdk.Retry(time.Until(deadline), func() *pluginsdk.RetryError {
-					roleDefinitions, err := client.List(ctx, commonids.NewScopeID(config.Scope), roledefinitions.ListOperationOptions{
-						Filter: pointer.To(fmt.Sprintf("roleName eq '%s'", config.Name)),
-					})
-					if err != nil {
-						return pluginsdk.NonRetryableError(fmt.Errorf("loading Role Definition List: %+v", err))
-					}
-					if roleDefinitions.Model == nil {
-						return pluginsdk.RetryableError(fmt.Errorf("loading Role Definition List: model was nil"))
-					}
-					if len(*roleDefinitions.Model) != 1 {
-						return pluginsdk.RetryableError(fmt.Errorf("loading Role Definition List: could not find role '%s'", config.Name))
-					}
-					if (*roleDefinitions.Model)[0].Name == nil {
-						return pluginsdk.NonRetryableError(fmt.Errorf("loading Role Definition List: values[0].NameD is nil '%s'", config.Name))
-					}
 
-					defId = *(*roleDefinitions.Model)[0].Id
-					id = roledefinitions.NewScopedRoleDefinitionID(config.Scope, *(*roleDefinitions.Model)[0].Name)
-					return nil
-				})
-				if err != nil {
+				c := &pluginsdk.StateChangeConf{
+					Pending:        []string{"retryableerror"},
+					Target:         []string{"success"},
+					Timeout:        time.Until(deadline),
+					MinTimeout:     5 * time.Second,
+					NotFoundChecks: 9, // Ends up to 10 retries in total
+					Refresh: func() (interface{}, string, error) {
+						roleDefinitions, err := client.List(ctx, commonids.NewScopeID(config.Scope), roledefinitions.ListOperationOptions{
+							Filter: pointer.To(fmt.Sprintf("roleName eq '%s'", config.Name)),
+						})
+						if err != nil {
+							return nil, "fail", fmt.Errorf("loading Role Definition List: %+v", err)
+						}
+						if roleDefinitions.Model == nil {
+							return nil, "fail", fmt.Errorf("loading Role Definition List: model was nil")
+						}
+						if len(*roleDefinitions.Model) != 1 {
+							return nil, "retryableerror", nil
+						}
+						if (*roleDefinitions.Model)[0].Name == nil {
+							return nil, "fail", fmt.Errorf("loading Role Definition List: values[0].NameD is nil '%s'", config.Name)
+						}
+						defId = *(*roleDefinitions.Model)[0].Id
+						id = roledefinitions.NewScopedRoleDefinitionID(config.Scope, *(*roleDefinitions.Model)[0].Name)
+						return nil, "success", nil
+					},
+				}
+				if _, err := c.WaitForStateContext(ctx); err != nil {
 					return err
 				}
 			} else {
@@ -211,8 +217,7 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `Model` was nil", id)
 			}
 
-			role = *resp.Model
-
+			role := *resp.Model
 			if role.Id == nil {
 				return fmt.Errorf("retrieving %s: `Id` was nil", id)
 			}
