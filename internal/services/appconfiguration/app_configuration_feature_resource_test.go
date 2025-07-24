@@ -322,12 +322,12 @@ resource "azurerm_app_configuration_feature" "test" {
     }
   }
 
-	custom_filter {
+  custom_filter {
     name = "custom-filter"
     parameters = {
-			param1 = "123"
-			param2 = "321"
-		}
+      param1 = "123"
+      param2 = "321"
+    }
   }
 }
 
@@ -569,9 +569,9 @@ resource "azurerm_app_configuration_feature" "test" {
   custom_filter {
     name = "custom-filter"
     parameters = {
-			param1 = "123"
-			param2 = "321"
-		}
+      param1 = "123"
+      param2 = "321"
+    }
   }
 }
 `, t.template(data), data.RandomInteger)
