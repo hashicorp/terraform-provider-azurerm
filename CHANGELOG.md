@@ -1,6 +1,7 @@
 ## 4.38.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_image` - improve validation for `os_disk`, `data_disk` and `zone_resilient` [GH-30222]
 * Data Source: `azurerm_databricks_workspace` - add support for the `custom_parameters` property [GH-30214]
 * `azurerm_subnet` - add support for the `ip_address_pool` block [GH-29840]
 * dependencies: `go-azure-sdk` update to v0.20250716.1144812 [GH-30171]
