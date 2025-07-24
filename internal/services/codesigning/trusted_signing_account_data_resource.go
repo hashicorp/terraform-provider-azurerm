@@ -69,7 +69,7 @@ func (d TrustedSigningAccountDataSource) Attributes() map[string]*pluginsdk.Sche
 }
 
 func (d TrustedSigningAccountDataSource) ModelObject() interface{} {
-	return nil
+	return &TrustedSigningAccountDataSourceModel{}
 }
 
 func (d TrustedSigningAccountDataSource) ResourceType() string {
