@@ -40,6 +40,8 @@ The following attributes are exported:
 
 * `partner_registration_id` - The immutable id of the corresponding partner registration.
 
+* `tags` - A mapping of tags which are assigned to the EventGrid Partner Registration.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
