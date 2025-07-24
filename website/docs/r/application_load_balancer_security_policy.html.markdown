@@ -3,12 +3,12 @@ subcategory: "Service Networking"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_application_load_balancer_security_policy"
 description: |-
-  Manages an Application Gateway for Containers Security Policy.
+  Manages an Application Load Balancer Security Policy.
 ---
 
 # azurerm_application_load_balancer_security_policy
 
-Manages an Application Gateway for Containers Security Policy.
+Manages an Application Load Balancer Security Policy.
 
 ## Example Usage
 
@@ -39,6 +39,7 @@ resource "azurerm_web_application_firewall_policy" "example" {
     mode    = "Detection"
   }
 }
+
 resource "azurerm_application_load_balancer_security_policy" "example" {
   name                               = "example-albsp"
   application_load_balancer_id       = azurerm_application_load_balancer.example.id
@@ -51,35 +52,36 @@ resource "azurerm_application_load_balancer_security_policy" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Application Gateway for Containers Security Policy. Changing this forces a new Application Load Balancer Security Policy to be created.
+* `name` - (Required) The name which should be used for this Application Load Balancer Security Policy. Changing this forces a new Application Load Balancer Security Policy to be created.
 
-* `application_load_balancer_id` - (Required) The ID of the Application Gateway for Containers. Changing this forces a new Application Gateway for Containers Security Policy to be created.
+* `application_load_balancer_id` - (Required) The ID of the Application Load Balancer. Changing this forces a new Application Gateway for Containers Security Policy to be created.
 
-* `web_application_firewall_policy_id` - (Required) The ID of the Web Application Firewall Policy. Changing this forces a new Application Gateway for Containers Security Policy to be created.
+* `web_application_firewall_policy_id` - (Required) The ID of the Web Application Firewall Policy. Changing this forces a new Application Load Balancer Security Policy to be created.
 
-* `location` - (Required) The Azure Region where the Application Gateway for Containers Security Policy should exist. Changing this forces a new resource to be created.
+* `location` - (Required) The Azure Region where the Application Load Balancer Security Policy should exist. Changing this forces a new resource to be created.
 
 ---
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Application Gateway for Containers Security Policy.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Application Load Balancer Security Policy.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Application Gateway for Containers Security Policy.
+* `id` - The ID of the Application Load Balancer Security Policy.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Application Gateway for Containers Security Policy.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Application Gateway for Containers Security Policy.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Application Gateway for Containers Security Policy.
+* `create` - (Defaults to 30 minutes) Used when creating the Application Load Balancer Security Policy.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Application Load Balancer Security Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the Application Load Balancer Security Policy.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Application Load Balancer Security Policy.
 
 ## Import
 
-Application Gateway for Containers Security Policy can be imported using the `resource id`, e.g.
+Application Load Balancer Security Policy can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_application_load_balancer_security_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.ServiceNetworking/trafficControllers/alb/securityPolicies/sp1

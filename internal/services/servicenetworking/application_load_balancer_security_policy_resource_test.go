@@ -151,7 +151,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_application_load_balancer_security_policy" "test" {
-  name                               = "acct-albsp-%d"
+  name                               = "acctest-albsp-%d"
   application_load_balancer_id       = azurerm_application_load_balancer.test.id
   location                           = azurerm_resource_group.test.location
   web_application_firewall_policy_id = azurerm_web_application_firewall_policy.test.id
@@ -168,7 +168,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_application_load_balancer_security_policy" "test" {
-  name                               = "acct-albsp-%d"
+  name                               = "acctest-albsp-%d"
   application_load_balancer_id       = azurerm_application_load_balancer.test.id
   location                           = azurerm_resource_group.test.location
   web_application_firewall_policy_id = azurerm_web_application_firewall_policy.test.id
@@ -188,7 +188,7 @@ provider "azurerm" {
 %s
 
 resource "azurerm_application_load_balancer_security_policy" "test" {
-  name                               = "acct-albsp-%d"
+  name                               = "acctest-albsp-%d"
   application_load_balancer_id       = azurerm_application_load_balancer.test.id
   location                           = azurerm_resource_group.test.location
   web_application_firewall_policy_id = azurerm_web_application_firewall_policy.test.id
@@ -202,7 +202,7 @@ resource "azurerm_application_load_balancer_security_policy" "test" {
 
 func (r ApplicationLoadBalancerSecurityPoliciesResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-	%s
+%s
 
 resource "azurerm_application_load_balancer_security_policy" "import" {
   name                               = azurerm_application_load_balancer_security_policy.test.name
