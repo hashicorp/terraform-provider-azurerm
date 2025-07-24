@@ -28,7 +28,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceKustoCluster() *pluginsdk.Resource {
@@ -293,10 +292,10 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		// Ensure that requested Capcity is always between min and max to support updating to not overlapping autoscale ranges
 		if *sku.Capacity < optimizedAutoScale.Minimum {
-			sku.Capacity = utils.Int64(optimizedAutoScale.Minimum)
+			sku.Capacity = pointer.To(optimizedAutoScale.Minimum)
 		}
 		if *sku.Capacity > optimizedAutoScale.Maximum {
-			sku.Capacity = utils.Int64(optimizedAutoScale.Maximum)
+			sku.Capacity = pointer.To(optimizedAutoScale.Maximum)
 		}
 		if optimizedAutoScale.Minimum > optimizedAutoScale.Maximum {
 			return fmt.Errorf("`optimized_auto_scaling.maximum_instances` must be >= `optimized_auto_scaling.minimum_instances`")
@@ -312,11 +311,11 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	clusterProperties := clusters.ClusterProperties{
 		OptimizedAutoscale:     optimizedAutoScale,
-		EnableAutoStop:         utils.Bool(d.Get("auto_stop_enabled").(bool)),
-		EnableDiskEncryption:   utils.Bool(d.Get("disk_encryption_enabled").(bool)),
-		EnableDoubleEncryption: utils.Bool(d.Get("double_encryption_enabled").(bool)),
-		EnableStreamingIngest:  utils.Bool(d.Get("streaming_ingestion_enabled").(bool)),
-		EnablePurge:            utils.Bool(d.Get("purge_enabled").(bool)),
+		EnableAutoStop:         pointer.To(d.Get("auto_stop_enabled").(bool)),
+		EnableDiskEncryption:   pointer.To(d.Get("disk_encryption_enabled").(bool)),
+		EnableDoubleEncryption: pointer.To(d.Get("double_encryption_enabled").(bool)),
+		EnableStreamingIngest:  pointer.To(d.Get("streaming_ingestion_enabled").(bool)),
+		EnablePurge:            pointer.To(d.Get("purge_enabled").(bool)),
 		PublicNetworkAccess:    &publicNetworkAccess,
 		PublicIPType:           &publicIPType,
 		TrustedExternalTenants: expandTrustedExternalTenants(d.Get("trusted_external_tenants").([]interface{})),
@@ -413,10 +412,10 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			}
 			// Ensure that requested Capcity is always between min and max to support updating to not overlapping autoscale ranges
 			if *sku.Capacity < optimizedAutoScale.Minimum {
-				sku.Capacity = utils.Int64(optimizedAutoScale.Minimum)
+				sku.Capacity = pointer.To(optimizedAutoScale.Minimum)
 			}
 			if *sku.Capacity > optimizedAutoScale.Maximum {
-				sku.Capacity = utils.Int64(optimizedAutoScale.Maximum)
+				sku.Capacity = pointer.To(optimizedAutoScale.Maximum)
 			}
 			if optimizedAutoScale.Minimum > optimizedAutoScale.Maximum {
 				return fmt.Errorf("`optimized_auto_scaling.maximum_instances` must be >= `optimized_auto_scaling.minimum_instances`")
@@ -454,15 +453,15 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("auto_stop_enabled") {
-		props.EnableAutoStop = utils.Bool(d.Get("auto_stop_enabled").(bool))
+		props.EnableAutoStop = pointer.To(d.Get("auto_stop_enabled").(bool))
 	}
 
 	if d.HasChange("disk_encryption_enabled") {
-		props.EnableDiskEncryption = utils.Bool(d.Get("disk_encryption_enabled").(bool))
+		props.EnableDiskEncryption = pointer.To(d.Get("disk_encryption_enabled").(bool))
 	}
 
 	if d.HasChange("double_encryption_enabled") {
-		props.EnableDoubleEncryption = utils.Bool(d.Get("double_encryption_enabled").(bool))
+		props.EnableDoubleEncryption = pointer.To(d.Get("double_encryption_enabled").(bool))
 	}
 
 	if d.HasChange("language_extensions") {
@@ -480,7 +479,7 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("purge_enabled") {
-		props.EnablePurge = utils.Bool(d.Get("purge_enabled").(bool))
+		props.EnablePurge = pointer.To(d.Get("purge_enabled").(bool))
 	}
 
 	if d.HasChange("public_ip_type") {
@@ -497,7 +496,7 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("streaming_ingestion_enabled") {
-		props.EnableStreamingIngest = utils.Bool(d.Get("streaming_ingestion_enabled").(bool))
+		props.EnableStreamingIngest = pointer.To(d.Get("streaming_ingestion_enabled").(bool))
 	}
 
 	if d.HasChange("trusted_external_tenants") {
@@ -554,7 +553,7 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -693,7 +692,7 @@ func expandKustoClusterSku(input []interface{}) (*clusters.AzureSku, error) {
 	azureSku := clusters.AzureSku{
 		Name:     clusters.AzureSkuName(name),
 		Tier:     clusters.AzureSkuTier(tier),
-		Capacity: utils.Int64(int64(capacity)),
+		Capacity: pointer.To(int64(capacity)),
 	}
 
 	return &azureSku, nil
