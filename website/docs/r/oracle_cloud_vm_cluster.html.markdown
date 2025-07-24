@@ -112,8 +112,6 @@ The following arguments are supported:
 
 * `virtual_network_id` - (Required) The ID of the Virtual Network associated with the Cloud VM Cluster. Changing this forces a new Cloud VM Cluster to be created.
 
-* `file_system_configuration` - (Optional) A `file_system_configuration` block as defined below.
-
 ---
 
 * `backup_subnet_cidr` - (Optional) The backup subnet CIDR of the Virtual Network associated with the Cloud VM Cluster. Changing this forces a new Cloud VM Cluster to be created.
@@ -147,6 +145,8 @@ The following arguments are supported:
 * `time_zone` - (Optional) The time zone of the Cloud VM Cluster. For details, see [Exadata Infrastructure Time Zones](https://docs.cloud.oracle.com/iaas/Content/Database/References/timezones.htm). Changing this forces a new Cloud VM Cluster to be created.
 
 * `zone_id` - (Optional) The OCID of the OCI Private DNS Zone to be associated with the Cloud VM Cluster. This is required for specifying your own private domain name. Changing this forces a new Cloud VM Cluster to be created.
+
+* `file_system_configuration` - (Optional) A `file_system_configuration` block as defined below.
 
 ---
 
