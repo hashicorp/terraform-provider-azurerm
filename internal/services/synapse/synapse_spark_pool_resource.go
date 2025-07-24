@@ -216,17 +216,9 @@ func resourceSynapseSparkPool() *pluginsdk.Resource {
 			"spark_version": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
-				ValidateFunc: validation.All(validation.StringInSlice([]string{
-					"3.3",
+				ValidateFunc: validation.StringInSlice([]string{
 					"3.4",
 				}, false),
-					func(v interface{}, k string) (warnings []string, errors []error) {
-						if val, ok := v.(string); ok && val == "3.3" {
-							warnings = append(warnings, fmt.Sprintf("Spark version %s is deprecated and will be removed in a future version of the AzureRM provider. Please consider upgrading to version 3.4 or later.", val))
-						}
-						return
-					},
-				),
 			},
 
 			"tags": tags.Schema(),

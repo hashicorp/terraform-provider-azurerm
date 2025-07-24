@@ -331,6 +331,10 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `static_website` block has been removed and superseded by the `azurerm_storage_account_static_website` resource.
 * The property `minimum_tls_version` no longer accepts `TLS1_0` or `TLS1_1` as a value.
 
+### `azurerm_synapse_spark_pool`
+
+* The `spark_version` property no longer accepts `3.2` or `3.3` as a value.
+
 ### `azurerm_storage_container`
 
 * The deprecated `storage_account_name` property has been removed in favour of the `storage_account_id` property.
