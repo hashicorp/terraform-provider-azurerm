@@ -44,7 +44,6 @@ func TestAccAppConfigurationFeature_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("targeting_filter.0.groups.0.rollout_percentage").HasValue("50"),
 				check.That(data.ResourceName).Key("targeting_filter.0.groups.1.name").HasValue("testgroup2"),
 				check.That(data.ResourceName).Key("targeting_filter.0.groups.1.rollout_percentage").HasValue("30"),
-
 				check.That(data.ResourceName).Key("custom_filter.0.name").HasValue("custom-filter"),
 				check.That(data.ResourceName).Key("custom_filter.0.parameters.param1").HasValue("123"),
 				check.That(data.ResourceName).Key("custom_filter.0.parameters.param2").HasValue("321"),
