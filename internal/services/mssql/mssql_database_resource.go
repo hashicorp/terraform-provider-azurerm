@@ -1911,8 +1911,7 @@ func resourceMsSqlDatabaseSchema() map[string]*pluginsdk.Schema {
 
 func calculateMaxSizeBytes(v float64) (*int64, error) {
 	var maxSizeBytes int64
-	integer := isPositiveInteger(v)
-	if integer {
+	if isPositiveInteger(v) {
 		maxSizeBytes = int64(math.Round(v)) * 1073741824
 	} else {
 		// When `max_size_gb` is below 1GB, the API only accepts 100MB and 500MB. 100MB is 104857600, and 500MB is 524288000.
