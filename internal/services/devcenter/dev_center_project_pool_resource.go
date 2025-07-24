@@ -84,6 +84,7 @@ func (r DevCenterProjectPoolResource) Arguments() map[string]*pluginsdk.Schema {
 		"managed_virtual_network_regions": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			MaxItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type:             pluginsdk.TypeString,
 				ValidateFunc:     location.EnhancedValidate,
@@ -147,10 +148,9 @@ func (r DevCenterProjectPoolResource) Create() sdk.ResourceFunc {
 				Tags: pointer.To(model.Tags),
 			}
 
+			parameters.Properties.VirtualNetworkType = pointer.To(pools.VirtualNetworkTypeUnmanaged)
 			if len(model.ManagedVirtualNetworkRegions) != 0 {
 				parameters.Properties.VirtualNetworkType = pointer.To(pools.VirtualNetworkTypeManaged)
-			} else {
-				parameters.Properties.VirtualNetworkType = pointer.To(pools.VirtualNetworkTypeUnmanaged)
 			}
 
 			if model.LocalAdministratorEnabled {
