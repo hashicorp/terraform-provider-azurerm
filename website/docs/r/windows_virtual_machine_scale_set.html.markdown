@@ -225,6 +225,213 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 }
 ```
 
+### With Load Balancer and Health Probe for Automatic Zone Rebalancing
+
+```hcl
+resource "azurerm_public_ip" "example" {
+  name                = "example-vmss-public-ip"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_lb" "example" {
+  name                = "example-vmss-lb"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku                 = "Standard"
+
+  frontend_ip_configuration {
+    name                 = "internal"
+    public_ip_address_id = azurerm_public_ip.example.id
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "example" {
+  loadbalancer_id = azurerm_lb.example.id
+  name            = "backend-pool"
+}
+
+resource "azurerm_lb_probe" "example" {
+  loadbalancer_id = azurerm_lb.example.id
+  name            = "health-probe"
+  protocol        = "Http"
+  request_path    = "/health"
+  port            = 80
+}
+
+resource "azurerm_lb_rule" "example" {
+  loadbalancer_id                = azurerm_lb.example.id
+  name                           = "http-rule"
+  protocol                       = "Tcp"
+  frontend_port                  = 80
+  backend_port                   = 80
+  frontend_ip_configuration_name = "internal"
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.example.id]
+  probe_id                       = azurerm_lb_probe.example.id
+}
+
+resource "azurerm_windows_virtual_machine_scale_set" "example" {
+  name                = "example-vmss"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  sku                 = "Standard_F2"
+  instances           = 3
+  admin_password      = "P@55w0rd1234!"
+  admin_username      = "adminuser"
+  zones               = ["1", "2", "3"]
+
+  # Health probe is required for automatic zone rebalancing
+  health_probe_id = azurerm_lb_probe.example.id
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2022-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name                                   = "internal"
+      primary                                = true
+      subnet_id                              = azurerm_subnet.internal.id
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.example.id]
+    }
+  }
+
+  # Complete resiliency configuration with automatic zone rebalancing
+  resiliency {
+    automatic_zone_rebalancing {
+      rebalance_behavior = "CreateBeforeDelete"
+      rebalance_strategy = "Recreate"
+    }
+  }
+
+  resilient_vm_creation_enabled = true
+  resilient_vm_deletion_enabled = true
+
+  # Install IIS and configure health endpoint
+  extension {
+    name                 = "health-extension"
+    publisher            = "Microsoft.Compute"
+    type                 = "CustomScriptExtension"
+    type_handler_version = "1.10"
+
+    settings = jsonencode({
+      commandToExecute = "powershell.exe Install-WindowsFeature -name Web-Server -IncludeManagementTools && echo 'healthy' > C:\\inetpub\\wwwroot\\health.txt"
+    })
+  }
+}
+```
+
+### With Production-Ready Configuration
+
+```hcl
+resource "azurerm_windows_virtual_machine_scale_set" "production" {
+  name                = "production-vmss"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  sku                 = "Standard_D2s_v3"
+  instances           = 5
+  admin_password      = var.admin_password
+  admin_username      = "adminuser"
+  zones               = ["1", "2", "3"]
+
+  # Production health probe configuration
+  health_probe_id = azurerm_lb_probe.example.id
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2022-Datacenter"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Premium_LRS"
+    caching              = "ReadWrite"
+    disk_size_gb         = 128
+  }
+
+  data_disk {
+    storage_account_type = "Premium_LRS"
+    caching              = "ReadWrite"
+    create_option        = "Empty"
+    disk_size_gb         = 256
+    lun                  = 0
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name                                   = "internal"
+      primary                                = true
+      subnet_id                              = azurerm_subnet.internal.id
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.example.id]
+    }
+  }
+
+  # Production resiliency configuration for high availability
+  resiliency {
+    automatic_zone_rebalancing {
+      rebalance_behavior = "CreateBeforeDelete"
+      rebalance_strategy = "Recreate"
+    }
+  }
+
+  resilient_vm_creation_enabled = true
+  resilient_vm_deletion_enabled = true
+
+  # Upgrade configuration for production workloads
+  upgrade_mode = "Rolling"
+
+  rolling_upgrade_policy {
+    max_batch_instance_percent         = 20
+    max_unhealthy_instance_percent     = 20
+    max_unhealthy_upgraded_instance_percent = 5
+    pause_time_between_batches         = "PT5M"
+    cross_zone_upgrades_enabled       = true
+    prioritize_unhealthy_instances_enabled = true
+  }
+
+  # Boot diagnostics for troubleshooting
+  boot_diagnostics {
+    storage_account_uri = azurerm_storage_account.example.primary_blob_endpoint
+  }
+
+  tags = {
+    Environment = "Production"
+    Application = "WebServer"
+    CostCenter  = "IT"
+  }
+}
+```
+
+## Feature Availability
+
+### Resiliency Policies
+
+The VMSS resiliency policies (including `automatic_zone_rebalancing`, `resilient_vm_creation_enabled`, and `resilient_vm_deletion_enabled`) are currently available in select Azure regions and may require specific subscription types or preview access. Before implementing in production:
+
+1. **Verify regional availability** in your target Azure region
+2. **Test in your subscription** to confirm feature access
+3. **Check Azure Portal** for resiliency options in VMSS configuration
+4. **Contact Azure Support** if features aren't available in your region
+
+~> **Note**: These features use Azure API version `2024-11-01` and may not be available in all regions or subscription types yet. If you encounter errors during deployment, verify that your Azure subscription and region support these resiliency features.
+
 ## Argument Reference
 
 * `name` - (Required) The name of the Windows Virtual Machine Scale Set. Changing this forces a new resource to be created.

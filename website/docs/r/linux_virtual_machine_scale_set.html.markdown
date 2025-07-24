@@ -214,6 +214,268 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 }
 ```
 
+### With Load Balancer and Health Probe for Automatic Zone Rebalancing
+
+```hcl
+resource "azurerm_public_ip" "example" {
+  name                = "example-vmss-public-ip"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_lb" "example" {
+  name                = "example-vmss-lb"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku                 = "Standard"
+
+  frontend_ip_configuration {
+    name                 = "internal"
+    public_ip_address_id = azurerm_public_ip.example.id
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "example" {
+  loadbalancer_id = azurerm_lb.example.id
+  name            = "backend-pool"
+}
+
+resource "azurerm_lb_probe" "example" {
+  loadbalancer_id = azurerm_lb.example.id
+  name            = "health-probe"
+  protocol        = "Http"
+  request_path    = "/health"
+  port            = 80
+}
+
+resource "azurerm_lb_rule" "example" {
+  loadbalancer_id                = azurerm_lb.example.id
+  name                           = "http-rule"
+  protocol                       = "Tcp"
+  frontend_port                  = 80
+  backend_port                   = 80
+  frontend_ip_configuration_name = "internal"
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.example.id]
+  probe_id                       = azurerm_lb_probe.example.id
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "example" {
+  name                = "example-vmss"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  sku                 = "Standard_F2"
+  instances           = 3
+  admin_username      = "adminuser"
+  zones               = ["1", "2", "3"]
+
+  # Health probe is required for automatic zone rebalancing
+  health_probe_id = azurerm_lb_probe.example.id
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = file("~/.ssh/id_rsa.pub")
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name                                   = "internal"
+      primary                                = true
+      subnet_id                              = azurerm_subnet.internal.id
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.example.id]
+    }
+  }
+
+  # Complete resiliency configuration with automatic zone rebalancing
+  resiliency {
+    automatic_zone_rebalancing {
+      rebalance_behavior = "CreateBeforeDelete"
+      rebalance_strategy = "Recreate"
+    }
+  }
+
+  resilient_vm_creation_enabled = true
+  resilient_vm_deletion_enabled = true
+}
+```
+
+### With Application Gateway Health Probe
+
+```hcl
+resource "azurerm_application_gateway" "example" {
+  name                = "example-app-gateway"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+
+  sku {
+    name = "Standard_v2"
+    tier = "Standard_v2"
+  }
+
+  autoscale_configuration {
+    min_capacity = 1
+    max_capacity = 3
+  }
+
+  gateway_ip_configuration {
+    name      = "my-gateway-ip-configuration"
+    subnet_id = azurerm_subnet.internal.id
+  }
+
+  frontend_port {
+    name = "frontend-port"
+    port = 80
+  }
+
+  frontend_ip_configuration {
+    name                 = "frontend-ip"
+    public_ip_address_id = azurerm_public_ip.example.id
+  }
+
+  backend_address_pool {
+    name = "backend-pool"
+  }
+
+  backend_http_settings {
+    name                  = "backend-http-settings"
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 60
+
+    probe_name = "health-probe"
+  }
+
+  probe {
+    name                = "health-probe"
+    protocol            = "Http"
+    path                = "/health"
+    host                = "127.0.0.1"
+    interval            = 30
+    timeout             = 30
+    unhealthy_threshold = 3
+  }
+
+  http_listener {
+    name                           = "http-listener"
+    frontend_ip_configuration_name = "frontend-ip"
+    frontend_port_name             = "frontend-port"
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = "routing-rule"
+    rule_type                  = "Basic"
+    http_listener_name         = "http-listener"
+    backend_address_pool_name  = "backend-pool"
+    backend_http_settings_name = "backend-http-settings"
+    priority                   = 100
+  }
+}
+
+resource "azurerm_linux_virtual_machine_scale_set" "example" {
+  name                = "example-vmss"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  sku                 = "Standard_F2"
+  instances           = 3
+  admin_username      = "adminuser"
+  zones               = ["1", "2", "3"]
+
+  # Application Gateway health probe for automatic zone rebalancing
+  health_probe_id = azurerm_application_gateway.example.probe[0].id
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = file("~/.ssh/id_rsa.pub")
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name                            = "internal"
+      primary                         = true
+      subnet_id                       = azurerm_subnet.internal.id
+      application_gateway_backend_address_pool_ids = [azurerm_application_gateway.example.backend_address_pool[0].id]
+    }
+  }
+
+  # Resiliency with automatic zone rebalancing for high availability
+  resiliency {
+    automatic_zone_rebalancing {
+      rebalance_behavior = "CreateBeforeDelete"
+      rebalance_strategy = "Recreate"
+    }
+  }
+
+  resilient_vm_creation_enabled = true
+  resilient_vm_deletion_enabled = true
+
+  # Custom script extension to configure health endpoint
+  extension {
+    name                 = "health-extension"
+    publisher            = "Microsoft.Azure.Extensions"
+    type                 = "CustomScript"
+    type_handler_version = "2.1"
+
+    settings = jsonencode({
+      script = base64encode(<<-EOF
+        #!/bin/bash
+        apt-get update
+        apt-get install -y nginx
+        echo "healthy" > /var/www/html/health
+        systemctl start nginx
+        systemctl enable nginx
+      EOF
+      )
+    })
+  }
+}
+```
+
+## Feature Availability
+
+### Resiliency Policies
+
+The VMSS resiliency policies (including `automatic_zone_rebalancing`, `resilient_vm_creation_enabled`, and `resilient_vm_deletion_enabled`) are currently available in select Azure regions and may require specific subscription types or preview access. Before implementing in production:
+
+1. **Verify regional availability** in your target Azure region
+2. **Test in your subscription** to confirm feature access
+3. **Check Azure Portal** for resiliency options in VMSS configuration
+4. **Contact Azure Support** if features aren't available in your region
+
+~> **Note**: These features use Azure API version `2024-11-01` and may not be available in all regions or subscription types yet. If you encounter errors during deployment, verify that your Azure subscription and region support these resiliency features.
+
 ## Argument Reference
 
 * `name` - (Required) The name of the Linux Virtual Machine Scale Set. Changing this forces a new resource to be created.
