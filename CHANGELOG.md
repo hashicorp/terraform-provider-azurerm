@@ -30,7 +30,7 @@ FEATURES:
 * **New Resource**: `azurerm_mssql_managed_instance_start_stop_schedule` [GH-26702]
 
 BUG FIXES:
-`azurerm_role_management_policy` - fix perpetual diff on `approval_status` [GH-29084]
+* `azurerm_role_management_policy` - fix perpetual diff on `activation_rules.approval_stage` [GH-29084]
 * `azurerm_log_analytics_workspace_table` - the `retention_in_days` property can now be reset [GH-29182]
 * `azurerm_postgresql_flexible_server_virtual_endpoint` - no longer causes an error when `replica_server_id` is from another subscription [GH-29270]
 * `azurerm_container_app_environment` - no longer panics when `log_analytics_workspace_id` is from another subscription [GH-29829]
