@@ -1,6 +1,7 @@
 ## 4.38.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_dev_center` - add support for the `project_catalog_item_sync_enabled` property [GH-29274]
 * `azurerm_image` - improve validation for `os_disk`, `data_disk` and `zone_resilient` [GH-30222]
 * Data Source: `azurerm_databricks_workspace` - add support for the `custom_parameters` property [GH-30214]
 * `azurerm_subnet` - add support for the `ip_address_pool` block [GH-29840]
