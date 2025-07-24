@@ -68,9 +68,6 @@ The following arguments are supported:
 
 * `purge_enabled` - (Optional) Specifies if the purge operations are enabled.
 
-
-~> **Note:** Currently removing `virtual_network_configuration` sets the `virtual_network_configuration` to `Disabled` state. But any changes to `virtual_network_configuration` in `Disabled` state forces a new resource to be created.
-
 * `language_extensions` - (Optional) An list of `language_extensions` to enable. Valid values are: `PYTHON`, `PYTHON_3.10.8` and `R`. `PYTHON` is used to specify Python 3.6.5 image and `PYTHON_3.10.8` is used to specify Python 3.10.8 image. Note that `PYTHON_3.10.8` is only available in skus which support nested virtualization.
 
 ~> **Note:** In `v4.0.0` and later version of the AzureRM Provider, `language_extensions` will be changed to a list of `language_extension` block. In each block, `name` and `image` are required. `name` is the name of the language extension, possible values are `PYTHON`, `R`. `image` is the image of the language extension, possible values are `Python3_6_5`, `Python3_10_8` and `R`.
@@ -94,16 +91,6 @@ A `sku` block supports the following:
 
 ~> **Note:** If no `optimized_auto_scale` block is defined, then the capacity is required.
 ~> **Note:** If an `optimized_auto_scale` block is defined and no capacity is set, then the capacity is initially set to the value of `minimum_instances`.
-
----
-
-A `virtual_network_configuration` block supports the following:
-
-* `subnet_id` - (Required) The subnet resource id.
-
-* `engine_public_ip_id` - (Required) Engine service's public IP address resource id.
-
-* `data_management_public_ip_id` - (Required) Data management's service public IP address resource id.
 
 ---
 
