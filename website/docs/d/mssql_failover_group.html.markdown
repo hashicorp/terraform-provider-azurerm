@@ -31,7 +31,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Failover Group.
 
-* `server_id` - (Required) The ID of the primary SQL Server on which to create the Failover Group.
+* `server_id` - (Required) The ID of the primary SQL Server where the Failover Group exists.
 
 ## Attributes Reference
 
@@ -39,7 +39,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Failover Group.
 
-* `databases` - A set of database names to include in the Failover Group.
+* `databases` - A set of database names in the Failover Group.
 
 * `partner_server` - A `partner_server` block as defined below.
 
@@ -47,13 +47,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `read_write_endpoint_failover_policy` - A `read_write_endpoint_failover_policy` block as defined below.
  
-* `tags` - A mapping of tags to assign to the resource.
+* `tags` - A mapping of tags which are assigned to the resource.
 
 ---
 
 A `partner_server` block exports the following:
 
-* `id` - The ID of a partner SQL server to include in the Failover Group.
+* `id` - The ID of the partner SQL server.
 
 * `location` - The location of the partner server.
 

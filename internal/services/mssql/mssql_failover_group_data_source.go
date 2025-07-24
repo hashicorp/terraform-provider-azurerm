@@ -40,19 +40,19 @@ type ReadWriteEndpointFailurePolicyDataSourceModel struct {
 	Mode         string `tfschema:"mode"`
 }
 
-var _ sdk.DataSource = MsSqlFailoverGroupDataResource{}
+var _ sdk.DataSource = MsSqlFailoverGroupDataSource{}
 
-type MsSqlFailoverGroupDataResource struct{}
+type MsSqlFailoverGroupDataSource struct{}
 
-func (d MsSqlFailoverGroupDataResource) ResourceType() string {
+func (d MsSqlFailoverGroupDataSource) ResourceType() string {
 	return "azurerm_mssql_failover_group"
 }
 
-func (d MsSqlFailoverGroupDataResource) ModelObject() interface{} {
+func (d MsSqlFailoverGroupDataSource) ModelObject() interface{} {
 	return nil
 }
 
-func (d MsSqlFailoverGroupDataResource) Arguments() map[string]*pluginsdk.Schema {
+func (d MsSqlFailoverGroupDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -68,7 +68,7 @@ func (d MsSqlFailoverGroupDataResource) Arguments() map[string]*pluginsdk.Schema
 	}
 }
 
-func (d MsSqlFailoverGroupDataResource) Attributes() map[string]*pluginsdk.Schema {
+func (d MsSqlFailoverGroupDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"partner_server": {
 			Type:     pluginsdk.TypeList,
@@ -125,7 +125,7 @@ func (d MsSqlFailoverGroupDataResource) Attributes() map[string]*pluginsdk.Schem
 	}
 }
 
-func (d MsSqlFailoverGroupDataResource) Read() sdk.ResourceFunc {
+func (d MsSqlFailoverGroupDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 

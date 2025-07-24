@@ -65,7 +65,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 // DataSources returns the typed DataSources supported by this service
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
-		MsSqlFailoverGroupDataResource{},
+		MsSqlFailoverGroupDataSource{},
 	}
 }
 

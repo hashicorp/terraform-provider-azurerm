@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type MsSqlFailoverGroupDataResource struct{}
+type MsSqlFailoverGroupDataSource struct{}
 
 func TestAccMsSqlFailoverGroupDataSource_automaticFailover(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mssql_failover_group", "test")
-	r := MsSqlFailoverGroupDataResource{}
+	r := MsSqlFailoverGroupDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -33,7 +33,7 @@ func TestAccMsSqlFailoverGroupDataSource_automaticFailover(t *testing.T) {
 
 func TestAccMsSqlFailoverGroupDataSource_automaticFailoverWithDatabases(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_mssql_failover_group", "test")
-	r := MsSqlFailoverGroupDataResource{}
+	r := MsSqlFailoverGroupDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -54,7 +54,7 @@ func TestAccMsSqlFailoverGroupDataSource_automaticFailoverWithDatabases(t *testi
 	})
 }
 
-func (r MsSqlFailoverGroupDataResource) template(data acceptance.TestData) string {
+func (r MsSqlFailoverGroupDataSource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -93,7 +93,7 @@ resource "azurerm_mssql_database" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.Locations.Secondary)
 }
 
-func (r MsSqlFailoverGroupDataResource) automaticFailover(data acceptance.TestData) string {
+func (r MsSqlFailoverGroupDataSource) automaticFailover(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -118,7 +118,7 @@ data "azurerm_mssql_failover_group" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r MsSqlFailoverGroupDataResource) automaticFailoverWithDatabases(data acceptance.TestData) string {
+func (r MsSqlFailoverGroupDataSource) automaticFailoverWithDatabases(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
