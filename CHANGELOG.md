@@ -23,6 +23,7 @@ ENHANCEMENTS:
 * `azurerm_management_group_policy_set_definition` - now forces a new resource to be created when the number of `parameters` is decreased [GH-29866]
 
 FEATURES:
+* **New Data Source** : `azurerm_mssql_failover_group` [GH-29428]
 
 * **New Resource**: - `azurerm_mssql_managed_instance_start_stop_schedule` [GH-26702]
 
