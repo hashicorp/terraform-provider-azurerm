@@ -60,6 +60,7 @@ func (r DevCenterResource) Arguments() map[string]*pluginsdk.Schema {
 		"project_catalog_item_sync_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
+			Default:  false,
 		},
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 		"tags":     commonschema.Tags(),
@@ -247,8 +248,8 @@ func (r DevCenterResource) mapDevCenterToDevCenterResourceSchema(input devcenter
 
 	output.DevCenterUri = pointer.From(input.Properties.DevCenterUri)
 
-	if v := input.Properties.ProjectCatalogSettings; v != nil && v.CatalogItemSyncEnableStatus != nil {
-		output.ProjectCatalogItemSyncEnabled = pointer.From(input.Properties.ProjectCatalogSettings.CatalogItemSyncEnableStatus) == devcenters.CatalogItemSyncEnableStatusEnabled
+	if v := input.Properties.ProjectCatalogSettings; v != nil {
+		output.ProjectCatalogItemSyncEnabled = pointer.From(v.CatalogItemSyncEnableStatus) == devcenters.CatalogItemSyncEnableStatusEnabled
 	}
 
 	return nil

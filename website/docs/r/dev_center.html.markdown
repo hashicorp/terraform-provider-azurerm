@@ -39,7 +39,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group within which this Dev Center should exist. Changing this forces a new Dev Center to be created.
 
-* `project_catalog_item_sync_enabled` - (Optional) Should project catalogs associated with projects in this Dev Center can be configured to sync catalog items?
+* `project_catalog_item_sync_enabled` - (Optional) Whether the project catalogs associated with projects in this Dev Center are allowed to sync catalog items. Defaults to `false`.
 
 * `identity` - (Optional) An `identity` block as defined below. Specifies the Managed Identity which should be assigned to this Dev Center.
 
