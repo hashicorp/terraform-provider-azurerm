@@ -6,10 +6,8 @@ package helpers
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -17,6 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -218,53 +218,13 @@ func pollDeploymentServiceStatus(ctx context.Context, host string, user string, 
 	}
 
 	statusReq.SetBasicAuth(user, passwd)
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("polling deployment service context had no deadline")
-	}
 
-	deployWait := &pluginsdk.StateChangeConf{
-		Pending:    []string{"retrying"},
-		Target:     []string{"success"},
-		MinTimeout: 30 * time.Second,
-		Timeout:    time.Until(deadline),
-		Refresh:    checkDeploymentServiceStatus(ctx, statusReq),
-	}
+	pollerType := custompollers.NewAppServiceDeploymentServicePoller(statusReq)
+	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
 
-	if _, err := deployWait.WaitForStateContext(ctx); err != nil {
+	if err = poller.PollUntilDone(ctx); err != nil {
 		return fmt.Errorf("waiting for deployment service to be ready: %+v", err)
 	}
 
 	return nil
-}
-
-func checkDeploymentServiceStatus(ctx context.Context, r *http.Request) pluginsdk.StateRefreshFunc {
-	return func() (interface{}, string, error) {
-		attemptCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
-		defer cancel()
-
-		reqWithTimeout := r.Clone(attemptCtx)
-
-		resp, err := http.DefaultClient.Do(reqWithTimeout)
-		if err != nil {
-			if errors.Is(err, context.DeadlineExceeded) {
-				log.Printf("[DEBUG] Deployment service isn't available yet, retrying...")
-				return nil, "retrying", nil
-			}
-			return nil, "", fmt.Errorf("client error: %s", err)
-		}
-
-		if resp.StatusCode >= 500 {
-			resp.Body.Close()
-			log.Printf("[DEBUG] Deployment service came back with a %d status code, retrying...", resp.StatusCode)
-			return nil, "retrying", nil
-		}
-
-		if resp.StatusCode >= 400 {
-			resp.Body.Close()
-			return nil, "", fmt.Errorf("client error: %s", resp.Status)
-		}
-
-		return resp, "success", nil
-	}
 }
