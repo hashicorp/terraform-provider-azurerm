@@ -12,6 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -26,15 +27,16 @@ import (
 type AIFoundryProject struct{}
 
 type AIFoundryProjectModel struct {
-	Name                      string                                     `tfschema:"name"`
-	Location                  string                                     `tfschema:"location"`
-	AIServicesHubId           string                                     `tfschema:"ai_services_hub_id"`
-	Identity                  []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	HighBusinessImpactEnabled bool                                       `tfschema:"high_business_impact_enabled"`
-	Description               string                                     `tfschema:"description"`
-	FriendlyName              string                                     `tfschema:"friendly_name"`
-	ProjectId                 string                                     `tfschema:"project_id"`
-	Tags                      map[string]interface{}                     `tfschema:"tags"`
+	Name                        string                                     `tfschema:"name"`
+	Location                    string                                     `tfschema:"location"`
+	AIServicesHubId             string                                     `tfschema:"ai_services_hub_id"`
+	Identity                    []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+	HighBusinessImpactEnabled   bool                                       `tfschema:"high_business_impact_enabled"`
+	Description                 string                                     `tfschema:"description"`
+	PrimaryUserAssignedIdentity string                                     `tfschema:"primary_user_assigned_identity"`
+	FriendlyName                string                                     `tfschema:"friendly_name"`
+	ProjectId                   string                                     `tfschema:"project_id"`
+	Tags                        map[string]interface{}                     `tfschema:"tags"`
 }
 
 func (r AIFoundryProject) ModelObject() interface{} {
@@ -103,6 +105,13 @@ func (r AIFoundryProject) Arguments() map[string]*pluginsdk.Schema {
 			// NOTE: O+C creating a project that has encryption enabled with system assigned identity will set this property to true
 			Computed: true,
 			ForceNew: true,
+		},
+
+		"primary_user_assigned_identity": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+			RequiredWith: []string{"identity"},
 		},
 
 		"description": {
@@ -177,6 +186,14 @@ func (r AIFoundryProject) Create() sdk.ResourceFunc {
 				payload.Identity = expandedIdentity
 			}
 
+			if model.PrimaryUserAssignedIdentity != "" {
+				userAssignedId, err := commonids.ParseUserAssignedIdentityID(model.PrimaryUserAssignedIdentity)
+				if err != nil {
+					return err
+				}
+				payload.Properties.PrimaryUserAssignedIdentity = pointer.To(userAssignedId.ID())
+			}
+
 			if model.Description != "" {
 				payload.Properties.Description = pointer.To(model.Description)
 			}
@@ -240,6 +257,14 @@ func (r AIFoundryProject) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("description") {
 				payload.Properties.Description = pointer.To(state.Description)
+			}
+
+			if metadata.ResourceData.HasChange("primary_user_assigned_identity") {
+				userAssignedId, err := commonids.ParseUserAssignedIdentityID(state.PrimaryUserAssignedIdentity)
+				if err != nil {
+					return err
+				}
+				payload.Properties.PrimaryUserAssignedIdentity = pointer.To(userAssignedId.ID())
 			}
 
 			if metadata.ResourceData.HasChange("friendly_name") {
@@ -313,6 +338,7 @@ func (r AIFoundryProject) Read() sdk.ResourceFunc {
 					hub.FriendlyName = pointer.From(props.FriendlyName)
 					hub.HighBusinessImpactEnabled = pointer.From(props.HbiWorkspace)
 					hub.ProjectId = pointer.From(props.WorkspaceId)
+					hub.PrimaryUserAssignedIdentity = pointer.From(props.PrimaryUserAssignedIdentity)
 				}
 			}
 

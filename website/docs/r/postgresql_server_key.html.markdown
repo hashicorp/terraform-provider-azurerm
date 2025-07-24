@@ -10,6 +10,8 @@ description: |-
 
 Manages a Customer Managed Key for a PostgreSQL Server.
 
+~> **Note:** The `azurerm_postgresql_server_key` resource is deprecated and will be removed in v5.0 of the AzureRM Provider. Azure Database for PostgreSQL Single Server and its sub resources have been retired as of 2025-03-28. For more information, see https://techcommunity.microsoft.com/blog/adforpostgresql/retiring-azure-database-for-postgresql-single-server-in-2025/3783783.
+
 ## Example Usage
 
 ```hcl
@@ -106,10 +108,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the PostgreSQL Server Key.
-* `update` - (Defaults to 60 minutes) Used when updating the PostgreSQL Server Key.
+* `create` - (Defaults to 1 hour) Used when creating the PostgreSQL Server Key.
 * `read` - (Defaults to 5 minutes) Used when retrieving the PostgreSQL Server Key.
-* `delete` - (Defaults to 60 minutes) Used when deleting the PostgreSQL Server Key.
+* `update` - (Defaults to 1 hour) Used when updating the PostgreSQL Server Key.
+* `delete` - (Defaults to 1 hour) Used when deleting the PostgreSQL Server Key.
 
 ## Import
 
@@ -118,3 +120,9 @@ A PostgreSQL Server Key can be imported using the `resource id` of the PostgreSQ
 ```shell
 terraform import azurerm_postgresql_server_key.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DBforPostgreSQL/servers/server1/keys/keyvaultname_key-name_keyversion
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DBforPostgreSQL`: 2020-01-01

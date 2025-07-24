@@ -65,9 +65,9 @@ In addition to the arguments above, the following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Site Recovery Replication Policy Association.
+* `create` - (Defaults to 1 hour) Used when creating the Site Recovery Replication Policy Association.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Site Recovery Replication Policy Association.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Site Recovery Replication Policy Association.
+* `delete` - (Defaults to 1 hour) Used when deleting the Site Recovery Replication Policy Association.
 
 ## Import
 
@@ -76,3 +76,9 @@ Site Recovery Replication Policies can be imported using the `resource id`, e.g.
 ```shell
 terraform import  azurerm_site_recovery_hyperv_replication_policy_association.mypolicy /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource-group-name/providers/Microsoft.RecoveryServices/vaults/recovery-vault-name/replicationFabrics/site-name/replicationProtectionContainers/container-name/replicationProtectionContainerMappings/mapping-name
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.RecoveryServices`: 2024-04-01

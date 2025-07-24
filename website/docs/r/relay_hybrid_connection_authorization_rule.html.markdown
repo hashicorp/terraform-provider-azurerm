@@ -101,3 +101,9 @@ Azure Relay Hybrid Connection Authorization Rules can be imported using the `res
 ```shell
 terraform import azurerm_relay_hybrid_connection_authorization_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Relay/namespaces/namespace1/hybridConnections/connection1/authorizationRules/rule1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Relay`: 2021-11-01

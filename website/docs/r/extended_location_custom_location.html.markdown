@@ -136,3 +136,9 @@ Custom Locations can be imported using the resource id, e.g.
 terraform import azurerm_extended_location_custom_location.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.ExtendedLocation/customLocations/example-custom-location
 ```
 
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ExtendedLocation`: 2021-08-15

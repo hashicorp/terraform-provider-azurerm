@@ -46,6 +46,8 @@ output "endpoint_id" {
 
 * `logs_ingestion_endpoint` - The endpoint used for ingesting logs, e.g., `https://mydce-abcd.eastus-1.ingest.monitor.azure.com`.
 
+* `metrics_ingestion_endpoint` - The endpoint used for ingesting metrics, e.g., `https://mydce-abcd.eastus-1.metrics.ingest.monitor.azure.com`.
+
 * `public_network_access_enabled` - Whether network access from public internet to the Data Collection Endpoint are allowed. Possible values are `true` and `false`.
 
 * `tags` - A mapping of tags which should be assigned to the Data Collection Endpoint.
@@ -55,3 +57,9 @@ output "endpoint_id" {
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Collection Endpoint.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Insights`: 2023-03-11

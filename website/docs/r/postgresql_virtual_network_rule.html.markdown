@@ -10,7 +10,9 @@ description: |-
 
 Manages a PostgreSQL Virtual Network Rule.
 
--> **NOTE:** PostgreSQL Virtual Network Rules [can only be used with SKU Tiers of `GeneralPurpose` or `MemoryOptimized`](https://docs.microsoft.com/azure/postgresql/concepts-data-access-and-security-vnet)
+~> **Note:** The `azurerm_postgresql_virtual_network_rule` resource is deprecated and will be removed in v5.0 of the AzureRM Provider. Azure Database for PostgreSQL Single Server and its sub resources have been retired as of 2025-03-28. For more information, see https://techcommunity.microsoft.com/blog/adforpostgresql/retiring-azure-database-for-postgresql-single-server-in-2025/3783783.
+
+-> **Note:** PostgreSQL Virtual Network Rules [can only be used with SKU Tiers of `GeneralPurpose` or `MemoryOptimized`](https://docs.microsoft.com/azure/postgresql/concepts-data-access-and-security-vnet)
 
 ## Example Usage
 
@@ -67,7 +69,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the PostgreSQL virtual network rule. Cannot be empty and must only contain alphanumeric characters and hyphens. Cannot start with a number, and cannot start or end with a hyphen. Changing this forces a new resource to be created.
 
-~> **NOTE:** `name` must be between 1-128 characters long and must satisfy all of the requirements below:
+~> **Note:** `name` must be between 1-128 characters long and must satisfy all of the requirements below:
 
 1. Contains only alphanumeric and hyphen characters
 2. Cannot start with a number or hyphen
@@ -92,8 +94,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the PostgreSQL Virtual Network Rule.
-* `update` - (Defaults to 30 minutes) Used when updating the PostgreSQL Virtual Network Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the PostgreSQL Virtual Network Rule.
+* `update` - (Defaults to 30 minutes) Used when updating the PostgreSQL Virtual Network Rule.
 * `delete` - (Defaults to 30 minutes) Used when deleting the PostgreSQL Virtual Network Rule.
 
 ## Import
@@ -103,3 +105,9 @@ PostgreSQL Virtual Network Rules can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_postgresql_virtual_network_rule.rule1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.DBforPostgreSQL/servers/myserver/virtualNetworkRules/vnetrulename
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DBforPostgreSQL`: 2017-12-01

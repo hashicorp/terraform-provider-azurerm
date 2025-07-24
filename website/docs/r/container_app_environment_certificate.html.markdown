@@ -36,7 +36,7 @@ resource "azurerm_container_app_environment" "example" {
 resource "azurerm_container_app_environment_certificate" "example" {
   name                         = "myfriendlyname"
   container_app_environment_id = azurerm_container_app_environment.example.id
-  certificate_blob             = filebase64("path/to/certificate_file.pfx")
+  certificate_blob_base64      = filebase64("path/to/certificate_file.pfx")
   certificate_password         = "$3cretSqu1rreL"
 }
 ```
@@ -79,8 +79,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container App Environment Certificate.
-* `update` - (Defaults to 30 minutes) Used when updating the Container App Environment Certificate.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container App Environment Certificate.
+* `update` - (Defaults to 30 minutes) Used when updating the Container App Environment Certificate.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Container App Environment Certificate.
 
 ## Import
@@ -90,3 +90,9 @@ A Container App Environment Certificate can be imported using the `resource id`,
 ```shell
 terraform import azurerm_container_app_environment_certificate.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.App/managedEnvironments/myenv/certificates/mycertificate"
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.App`: 2025-01-01

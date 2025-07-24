@@ -67,3 +67,9 @@ Cognitive Account Rai Blocklist can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_cognitive_account_rai_blocklist.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.CognitiveServices/accounts/account1/raiBlocklists/raiblocklist1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.CognitiveServices`: 2024-10-01

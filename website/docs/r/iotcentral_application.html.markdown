@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `display_name` - (Optional) A `display_name` name. Custom display name for the IoT Central application. Default is resource name.
 
-~> **NOTE:** Due to a bug in the provider, the default value of `display_name` of a newly created IoT Central App will be the Resource Group Name, it will be fixed and use resource name in 4.0. For an existing IoT Central App, this could be fixed by specifying the `display_name` explicitly.
+~> **Note:** Due to a bug in the provider, the default value of `display_name` of a newly created IoT Central App will be the Resource Group Name, it will be fixed and use resource name in 4.0. For an existing IoT Central App, this could be fixed by specifying the `display_name` explicitly.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
@@ -87,8 +87,8 @@ An `identity` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IoT Central Application.
-* `update` - (Defaults to 30 minutes) Used when updating the IoT Central Application.
 * `read` - (Defaults to 5 minutes) Used when retrieving the IoT Central Application.
+* `update` - (Defaults to 30 minutes) Used when updating the IoT Central Application.
 * `delete` - (Defaults to 30 minutes) Used when deleting the IoT Central Application.
 
 ## Import
@@ -98,3 +98,9 @@ The IoT Central Application can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_iotcentral_application.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.IoTCentral/iotApps/app1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.IoTCentral`: 2021-11-01-preview

@@ -82,9 +82,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this Private Link Association.
-* `delete` - (Defaults to 30 minutes) Used when deleting this Private Link Association.
-* `read` - (Defaults to 5 minutes) Used when retrieving this Private Link Association.
+* `create` - (Defaults to 30 minutes) Used when creating the Private Link Association.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Private Link Association.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Private Link Association.
 
 ## Import
 
@@ -93,3 +93,9 @@ An existing Private Link Association can be imported into Terraform using the `r
 ```shell
 terraform import azurerm_resource_management_private_link_association.example /providers/Microsoft.Management/managementGroups/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/privateLinkAssociations/00000000-0000-0000-0000-000000000000
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Management`: 2020-05-01

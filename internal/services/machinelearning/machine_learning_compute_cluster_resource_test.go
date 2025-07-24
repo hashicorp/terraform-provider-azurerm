@@ -165,6 +165,46 @@ func TestAccComputeCluster_identity(t *testing.T) {
 	})
 }
 
+func TestAccComputeCluster_basicUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_cluster", "test")
+	r := ComputeClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
+				check.That(data.ResourceName).Key("scale_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("scale_settings.0.max_node_count").HasValue("1"),
+				check.That(data.ResourceName).Key("scale_settings.0.min_node_count").HasValue("0"),
+				check.That(data.ResourceName).Key("scale_settings.0.scale_down_nodes_after_idle_duration").HasValue("PT30S"),
+				check.That(data.ResourceName).Key("tags").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
+				check.That(data.ResourceName).Key("scale_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("scale_settings.0.max_node_count").HasValue("2"),
+				check.That(data.ResourceName).Key("scale_settings.0.min_node_count").HasValue("1"),
+				check.That(data.ResourceName).Key("scale_settings.0.scale_down_nodes_after_idle_duration").HasValue("PT1M"),
+				check.That(data.ResourceName).Key("tags.foo").HasValue("bar"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ComputeClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	computeClusterClient := client.MachineLearning.MachineLearningComputes
 	id, err := machinelearningcomputes.ParseComputeID(state.ID)
@@ -202,6 +242,33 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
 
   identity {
     type = "SystemAssigned"
+  }
+}
+`, template, data.RandomIntOfLength(8))
+}
+
+func (r ComputeClusterResource) basicUpdate(data acceptance.TestData) string {
+	template := r.template_basic(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_machine_learning_compute_cluster" "test" {
+  name                          = "CC-%d"
+  location                      = azurerm_resource_group.test.location
+  vm_priority                   = "LowPriority"
+  vm_size                       = "STANDARD_DS2_V2"
+  machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
+  scale_settings {
+    min_node_count                       = 1
+    max_node_count                       = 2
+    scale_down_nodes_after_idle_duration = "PT1M" # 1 minute
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    foo = "bar"
   }
 }
 `, template, data.RandomIntOfLength(8))

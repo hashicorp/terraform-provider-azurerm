@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `restore_traffic_time_to_healed_or_new_endpoint_in_minutes` - (Optional) Specifies the amount of time which should elapse before shifting traffic to another endpoint when a healthy endpoint becomes unhealthy or a new endpoint is added. Possible values are between `0` and `50` minutes (inclusive). Default is `10` minutes.
 
--> **NOTE:** This property is currently not used, but will be in the near future.
+-> **Note:** This property is currently not used, but will be in the near future.
 
 * `session_affinity_enabled` - (Optional) Specifies whether session affinity should be enabled on this host. Defaults to `true`.
 
@@ -78,7 +78,7 @@ A `health_probe` block supports the following:
 
 * `path` - (Optional) Specifies the path relative to the origin that is used to determine the health of the origin. Defaults to `/`.
 
--> **NOTE:** Health probes can only be disabled if there is a single enabled origin in a single enabled origin group. For more information about the `health_probe` settings please see the [product documentation](https://docs.microsoft.com/azure/frontdoor/health-probes).
+-> **Note:** Health probes can only be disabled if there is a single enabled origin in a single enabled origin group. For more information about the `health_probe` settings please see the [product documentation](https://docs.microsoft.com/azure/frontdoor/health-probes).
 
 ---
 

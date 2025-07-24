@@ -89,8 +89,6 @@ The following arguments are supported:
 
 * `job_id` - (Required) The ID of the Elastic Job. Changing this forces a new Elastic Job Step to be created.
 
-* `job_credential_id` - (Required) The ID of the Elastic Job Credential to use when executing this Elastic Job Step.
-
 * `job_step_index` - (Required) The index at which to insert this Elastic Job Step into the Elastic Job.
 
 ~> **Note:** This value must be greater than or equal to 1 and less than or equal to the number of job steps in the Elastic Job.
@@ -104,6 +102,10 @@ The following arguments are supported:
 ---
 
 * `initial_retry_interval_seconds` - (Optional) The initial retry interval in seconds. Defaults to `1`.
+
+* `job_credential_id` - (Optional) The ID of the Elastic Job Credential to use when executing this Elastic Job Step. Omit this argument to run the step under the Job Agent's managed identity (user-assigned).
+
+!> **Note:** Once set, `job_credential_id` cannot be removed. Removing the credential will force a new resource to be created.
 
 * `maximum_retry_interval_seconds` - (Optional) The maximum retry interval in seconds. Defaults to `120`.
 
@@ -151,3 +153,9 @@ Elastic Job Steps can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_mssql_job_step.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Sql/servers/myserver1/jobAgents/myjobagent1/jobs/myjob1/steps/myjobstep1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Sql`: 2023-08-01-preview

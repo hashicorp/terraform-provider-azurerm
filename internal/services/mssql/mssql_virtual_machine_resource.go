@@ -1035,8 +1035,11 @@ func resourceMsSqlVirtualMachineAutoPatchingSettingsRefreshFunc(ctx context.Cont
 
 func expandSqlVirtualMachineAutoPatchingSettings(input []interface{}) *sqlvirtualmachines.AutoPatchingSettings {
 	if len(input) == 0 {
-		return nil
+		return &sqlvirtualmachines.AutoPatchingSettings{
+			Enable: pointer.To(false),
+		}
 	}
+
 	autoPatchingSetting := input[0].(map[string]interface{})
 
 	dayOfWeek := sqlvirtualmachines.DayOfWeek(autoPatchingSetting["day_of_week"].(string))

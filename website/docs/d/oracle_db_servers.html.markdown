@@ -49,6 +49,8 @@ A `db_servers` block exports the following:
 
 * `compartment_id` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the compartment.
 
+* `compute_model` - The compute model of the Exadata Infrastructure.
+
 * `cpu_core_count` - The number of CPU cores enabled on the DB Server.
 
 * `db_node_ids` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the Db nodes associated with the DB Server.
@@ -84,3 +86,9 @@ A `db_servers` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the DB Server.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Oracle.Database`: 2025-03-01

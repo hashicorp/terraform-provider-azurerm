@@ -73,6 +73,7 @@ func TestAccMsSqlDatabase_complete(t *testing.T) {
 	r := MsSqlDatabaseResource{}
 
 	maintenance_configuration_name := "SQL_Default"
+
 	switch data.Locations.Primary {
 	case "westeurope":
 		maintenance_configuration_name = "SQL_WestEurope_DB_2"
@@ -411,6 +412,7 @@ func TestAccMsSqlDatabase_createSecondaryMode(t *testing.T) {
 
 func TestAccMsSqlDatabase_createOnlineSecondaryMode(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_database", "secondary")
+
 	r := MsSqlDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -1109,7 +1111,10 @@ resource "azurerm_mssql_database" "import" {
 
 func (r MsSqlDatabaseResource) complete(data acceptance.TestData) string {
 	configName := "SQL_Default"
+
 	switch data.Locations.Primary {
+	case "eastus": // Added due to subscription quota policies...
+		configName = "SQL_EastUS_DB_2"
 	case "westeurope":
 		configName = "SQL_WestEurope_DB_2"
 	case "francecentral":

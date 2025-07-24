@@ -79,3 +79,9 @@ Stream Analytics Private Endpoints can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_stream_analytics_managed_private_endpoint.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.StreamAnalytics/clusters/cluster1/privateEndpoints/endpoint1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.StreamAnalytics`: 2020-03-01

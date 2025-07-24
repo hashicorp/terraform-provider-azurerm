@@ -45,9 +45,13 @@ The following arguments are supported:
 
 * `public_network_enabled` - (Optional) Should the Purview Account be visible to the public network? Defaults to `true`.
 
+* `managed_event_hub_enabled`- (Optional) Whether the Purview Account should create a managed Event Hub Namespace. Defaults to `true`.
+
+~> **Note:** `managed_event_hub_enabled` must be `false` in order to use a Kafka Configuration with the Purview Account.
+
 * `managed_resource_group_name` - (Optional) The name which should be used for the new Resource Group where Purview Account creates the managed resources. Changing this forces a new Purview Account to be created.
 
-~> **Note:** `managed_resource_group_name` must be a new Resource Group
+~> **Note:** `managed_resource_group_name` must be a new Resource Group.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Purview Account.
 
@@ -59,7 +63,7 @@ The `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Purview Account.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned`.
 
 ## Attributes Reference
 
@@ -70,6 +74,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `atlas_kafka_endpoint_primary_connection_string` - Atlas Kafka endpoint primary connection string.
 
 * `atlas_kafka_endpoint_secondary_connection_string` - Atlas Kafka endpoint secondary connection string.
+
+* `aws_external_id` - Configured in AWS to allow use of the role arn used for scanning
 
 * `catalog_endpoint` - Catalog endpoint.
 
@@ -115,3 +121,9 @@ Purview Accounts can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_purview_account.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Purview/accounts/account1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Purview`: 2021-12-01

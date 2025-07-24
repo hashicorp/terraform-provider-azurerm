@@ -67,3 +67,9 @@ Trusted Signing Accounts can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_trusted_signing_account.example /subscriptions/0000000-0000-0000-0000-000000000000/resourceGroups/example-rg/providers/Microsoft.CodeSigning/codeSigningAccounts/example-account
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.CodeSigning`: 2024-09-30-preview

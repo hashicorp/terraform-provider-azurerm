@@ -71,3 +71,9 @@ terraform import azurerm_nat_gateway_public_ip_association.example "/subscriptio
 ```
 
 -> **Note:** This is a Terraform Specific ID in the format `{natGatewayID}|{publicIPAddressID}`
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network`: 2024-05-01

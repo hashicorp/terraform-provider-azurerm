@@ -51,3 +51,9 @@ Marketplace Agreement can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_marketplace_agreement.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.MarketplaceOrdering/agreements/publisher1/offers/offer1/plans/plan1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.MarketplaceOrdering`: 2015-06-01
