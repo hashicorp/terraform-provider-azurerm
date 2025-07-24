@@ -1,6 +1,9 @@
 ## 4.38.0 (Unreleased)
 
 ENHANCEMENTS:
+* Data Source: `azurerm_oracle_cloud_vm_cluster` - add support for the `file_system_configuration` block [GH-30092]
+* Data Source: `azurerm_oracle_exadata_infrastructure` - add support for the `defined_file_system_configuration` block [GH-30092]
+* `azurerm_oracle_cloud_vm_cluster` - add support for the `file_system_configuration` block [GH-30092]
 * `azurerm_dev_center_project_pool` - add support for the `managed_virtual_network_regions` property [GH-30061]
 * `azurerm_dev_center` - add support for the `project_catalog_item_sync_enabled` property [GH-29274]
 * `azurerm_image` - improve validation for `os_disk`, `data_disk` and `zone_resilient` [GH-30222]
