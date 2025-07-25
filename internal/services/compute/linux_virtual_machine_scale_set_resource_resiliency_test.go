@@ -99,44 +99,6 @@ func TestAccLinuxVirtualMachineScaleSet_resiliency_update(t *testing.T) {
 	})
 }
 
-func TestAccLinuxVirtualMachineScaleSet_resiliency_vmCreationEnabledOnly(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
-
-	r := LinuxVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.resiliencyVMCreationOnly(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("resilient_vm_creation_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("resilient_vm_deletion_enabled").HasValue("false"),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
-
-func TestAccLinuxVirtualMachineScaleSet_resiliency_vmDeletionEnabledOnly(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
-
-	r := LinuxVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.resiliencyVMDeletionOnly(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("resilient_vm_creation_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("resilient_vm_deletion_enabled").HasValue("true"),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
-
 func TestAccLinuxVirtualMachineScaleSet_resiliency_fieldsNotSetInState(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
@@ -157,96 +119,52 @@ func TestAccLinuxVirtualMachineScaleSet_resiliency_fieldsNotSetInState(t *testin
 	})
 }
 
-func (r LinuxVirtualMachineScaleSetResource) resiliencyVMCreationOnly(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
+func TestAccLinuxVirtualMachineScaleSet_resiliency_explicitFalse(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
 
-resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_B1ls"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  disable_password_authentication = true
+	r := LinuxVirtualMachineScaleSetResource{}
 
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  admin_ssh_key {
-    username   = "adminuser"
-    public_key = local.first_public_key
-  }
-
-  network_interface {
-    name    = "example"
-    primary = true
-
-    ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-
-  resilient_vm_creation_enabled = true
-}
-`, r.template(data), data.RandomInteger)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// Test that explicit false values can be set and appear correctly in state
+			Config: r.resiliencyVMPolicies(data, false, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resilient_vm_creation_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("resilient_vm_deletion_enabled").HasValue("false"),
+			),
+		},
+		// Import test with field exclusions: Azure API doesn't return resiliency fields when they're false,
+		// treating them as "not configured". This is expected behavior, so we exclude these fields from
+		// import state verification to avoid false failures.
+		data.ImportStep("admin_password", "resilient_vm_creation_enabled", "resilient_vm_deletion_enabled"),
+		{
+			// Plan stability test: Verify that after Azure API interactions, applying the same config
+			// with explicit false values doesn't produce unexpected diffs. This ensures the provider
+			// correctly handles Azure's treatment of false values as "not configured".
+			Config: r.resiliencyVMPolicies(data, false, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resilient_vm_creation_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("resilient_vm_deletion_enabled").HasValue("false"),
+			),
+		},
+	})
 }
 
-func (r LinuxVirtualMachineScaleSetResource) resiliencyVMDeletionOnly(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
+func TestAccLinuxVirtualMachineScaleSet_resiliency_invalidValues(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
 
-resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_B1ls"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  disable_password_authentication = true
+	r := LinuxVirtualMachineScaleSetResource{}
 
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  admin_ssh_key {
-    username   = "adminuser"
-    public_key = local.first_public_key
-  }
-
-  network_interface {
-    name    = "example"
-    primary = true
-
-    ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-
-  resilient_vm_deletion_enabled = true
-}
-`, r.template(data), data.RandomInteger)
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.resiliencyInvalidValues(data),
+			ExpectError: regexp.MustCompile("Incorrect attribute value type"),
+		},
+	})
 }
 
 func (r LinuxVirtualMachineScaleSetResource) resiliencyVMPolicies(data acceptance.TestData, vmCreationEnabled, vmDeletionEnabled bool) string {
@@ -339,6 +257,53 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   # Note: resilient_vm_creation_enabled and resilient_vm_deletion_enabled are intentionally NOT configured
   # This tests backward compatibility - these fields should not appear in state
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineScaleSetResource) resiliencyInvalidValues(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine_scale_set" "test" {
+  name                            = "acctestvmss-%d"
+  resource_group_name             = azurerm_resource_group.test.name
+  location                        = azurerm_resource_group.test.location
+  sku                             = "Standard_B1ls"
+  instances                       = 1
+  admin_username                  = "adminuser"
+  disable_password_authentication = true
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  network_interface {
+    name    = "example"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+    }
+  }
+
+  resilient_vm_creation_enabled = "invalid"
+  resilient_vm_deletion_enabled = "invalid"
 }
 `, r.template(data), data.RandomInteger)
 }
