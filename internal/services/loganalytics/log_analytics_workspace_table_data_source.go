@@ -91,8 +91,7 @@ func (LogAnalyticsWorkspaceTableDataSource) Read() sdk.ResourceFunc {
 			metadata.SetID(id)
 
 			if model := resp.Model; model != nil {
-				props := model.Properties
-				if props != nil {
+				if props := model.Properties; props != nil {
 					state.RetentionInDays = pointer.From(props.RetentionInDays)
 					state.TotalRetentionInDays = pointer.From(props.TotalRetentionInDays)
 					state.Plan = string(pointer.From(props.Plan))
