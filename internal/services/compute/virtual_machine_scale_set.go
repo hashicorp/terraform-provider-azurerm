@@ -1999,39 +1999,6 @@ func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 	return schema
 }
 
-func VirtualMachineScaleSetResiliencySchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:        pluginsdk.TypeList,
-		Optional:    true,
-		MaxItems:    1,
-		Description: "Configuration for automatic zone rebalancing (private preview feature requiring registration)",
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"rebalance_behavior": {
-					Type:        pluginsdk.TypeString,
-					Optional:    true,
-					Default:     string(virtualmachinescalesets.RebalanceBehaviorCreateBeforeDelete),
-					Description: "The behavior to use when rebalancing across zones",
-					ValidateFunc: validation.StringInSlice(
-						virtualmachinescalesets.PossibleValuesForRebalanceBehavior(),
-						false,
-					),
-				},
-				"rebalance_strategy": {
-					Type:        pluginsdk.TypeString,
-					Optional:    true,
-					Default:     string(virtualmachinescalesets.RebalanceStrategyRecreate),
-					Description: "The strategy to use when rebalancing across zones",
-					ValidateFunc: validation.StringInSlice(
-						virtualmachinescalesets.PossibleValuesForRebalanceStrategy(),
-						false,
-					),
-				},
-			},
-		},
-	}
-}
-
 func virtualMachineScaleSetExtensionHash(v interface{}) int {
 	var buf bytes.Buffer
 
