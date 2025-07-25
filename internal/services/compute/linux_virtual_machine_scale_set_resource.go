@@ -117,7 +117,7 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 
 					// Only validate if the field is explicitly configured in the new state
 					// This prevents validation errors when user removes the field from config
-					if fieldExists && old.(bool) == true && new.(bool) == false {
+					if fieldExists && old.(bool) && !new.(bool) {
 						return fmt.Errorf("Azure does not support disabling resiliency policies. Once the `resilient_vm_creation_enabled` field is set to `true`, it cannot be reverted to `false`")
 					}
 				}
@@ -135,7 +135,7 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 
 					// Only validate if the field is explicitly configured in the new state
 					// This prevents validation errors when user removes the field from config
-					if fieldExists && old.(bool) == true && new.(bool) == false {
+					if fieldExists && old.(bool) && !new.(bool) {
 						return fmt.Errorf("Azure does not support disabling resiliency policies. Once the `resilient_vm_deletion_enabled` field is set to `true`, it cannot be reverted to `false`")
 					}
 				}
