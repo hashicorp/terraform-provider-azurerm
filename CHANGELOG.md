@@ -35,6 +35,11 @@ FEATURES:
 * **New Resource**: `azurerm_mssql_managed_instance_start_stop_schedule` [GH-26702]
 
 BUG FIXES:
+* Data Source: `azurerm_kusto_cluster` - fix returned error if cluster was not found [GH-30232]
+* `azurerm_kusto_attached_database_configuration` - resource is now removed from state if it no longer exists [GH-30232]
+* `azurerm_kusto_cluster_customer_managed_key` - resource is now removed from state if it no longer exists [GH-30232]
+* `azurerm_kusto_cluster_principal_assignment` - resource is now removed from state if it no longer exists [GH-30232]
+* `azurerm_kusto_cluster` - resource is now removed from state if it no longer exists [GH-30232]
 * `azurerm_role_management_policy` - fix perpetual diff on `activation_rules.approval_stage` [GH-29084]
 * `azurerm_log_analytics_workspace_table` - the `retention_in_days` property can now be reset [GH-29182]
 * `azurerm_postgresql_flexible_server_virtual_endpoint` - no longer causes an error when `replica_server_id` is from another subscription [GH-29270]
