@@ -34,7 +34,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "this" {
   name     = "test-resource-group"
-	location = "%s"
+  location = "%s"
 }
 
 resource "azurerm_log_analytics_workspace" "this" {
@@ -46,7 +46,7 @@ resource "azurerm_log_analytics_workspace" "this" {
 
   tags = {
     env = "test"
- 	}
+  }
 }
 `, data.Locations.Primary, data.Locations.Primary)
 }
