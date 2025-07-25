@@ -80,7 +80,7 @@ func TestAccCdnFrontDoorProfileDataSource_basicWithLogScrubbing(t *testing.T) {
 		{
 			Config: r.basicWithLogScrubbing(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("scrubbing_rule.0.match_variable").HasValue("QueryStringArgNames"),
+				check.That(data.ResourceName).Key("log_scrubbing_rule.0.match_variable").HasValue("QueryStringArgNames"),
 			),
 		},
 	})
@@ -138,5 +138,5 @@ data "azurerm_cdn_frontdoor_profile" "test" {
   name                = azurerm_cdn_frontdoor_profile.test.name
   resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
 }
-`, CdnFrontDoorProfileResource{}.logScrubbingPremiumSku(data))
+`, CdnFrontDoorProfileResource{}.logScrubbing(data))
 }

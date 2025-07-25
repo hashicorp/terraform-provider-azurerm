@@ -12,27 +12,6 @@ Manages a Front Door (standard/premium) Profile which contains a collection of e
 
 ## Example Usage
 
-### Basic
-
-```hcl
-resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
-  location = "West Europe"
-}
-
-resource "azurerm_cdn_frontdoor_profile" "example" {
-  name                = "example-cdn-profile"
-  resource_group_name = azurerm_resource_group.example.name
-  sku_name            = "Standard_AzureFrontDoor"
-
-  tags = {
-    environment = "Production"
-  }
-}
-```
-
-### Complete
-
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
@@ -56,16 +35,8 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
     identity_ids = [azurerm_user_assigned_identity.example.id]
   }
 
-  scrubbing_rule {
+  log_scrubbing_rule {
     match_variable = "RequestIPAddress"
-  }
-
-  scrubbing_rule {
-    match_variable = "RequestUri"
-  }
-
-  scrubbing_rule {
-    match_variable = "QueryStringArgNames"
   }
 
   tags = {
@@ -88,9 +59,9 @@ The following arguments are supported:
 
 * `response_timeout_seconds` - (Optional) Specifies the maximum response timeout in seconds. Possible values are between `16` and `240` seconds (inclusive). Defaults to `120` seconds.
 
-* `scrubbing_rule` - (Optional) One or more `scrubbing_rule` blocks as defined below.
+* `log_scrubbing_rule` - (Optional) One or more `log_scrubbing_rule` blocks as defined below.
 
-~> **Note:** When no `scrubbing_rule` blocks are defined, log scrubbing will be automatically `disabled`. When one or more `scrubbing_rule` blocks are present, log scrubbing will be `enabled`.
+~> **Note:** When no `log_scrubbing_rule` blocks are defined, log scrubbing will be automatically `disabled`. When one or more `log_scrubbing_rule` blocks are present, log scrubbing will be `enabled`.
 
 * `tags` - (Optional) Specifies a mapping of tags to assign to the resource.
 
@@ -105,11 +76,9 @@ An `identity` block supports the following:
 
 ---
 
-A `scrubbing_rule` block supports the following:
+A `log_scrubbing_rule` block supports the following:
 
 * `match_variable` - (Required) The variable to be scrubbed from the logs. Possible values are `QueryStringArgNames`, `RequestIPAddress`, and `RequestUri`.
-
-~> **Note:** When the `match_variable` field is present, the `scrubbing_rule` will be `enabled`. When the `match_variable` field is omitted, the `scrubbing_rule` will be `disabled`.
 
 ~> **Note:** The `operator` field is implicitly set to `EqualsAny`, as it is the sole supported value, and is therefore not exposed as a configurable option in the provider schema.
 

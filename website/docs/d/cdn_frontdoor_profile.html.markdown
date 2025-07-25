@@ -34,7 +34,7 @@ output "front_door_id" {
 }
 
 output "log_scrubbing_match_variable" {
-  value = data.azurerm_cdn_frontdoor_profile.example.scrubbing_rule.0.match_variable
+  value = data.azurerm_cdn_frontdoor_profile.example.log_scrubbing_rule.0.match_variable
 }
 ```
 
@@ -56,12 +56,6 @@ An `identity` block exports the following:
 
 * `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Front Door Profile.
 
----
-
-A `scrubbing_rule` block exports the following:
-
-* `match_variable` - The variable that is scrubbed from the logs.
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following attributes are exported:
@@ -72,13 +66,17 @@ In addition to the Arguments listed above - the following attributes are exporte
 
 * `sku_name` - Specifies the SKU for this Front Door Profile.
 
-* `scrubbing_rule` - One or more `scrubbing_rule` blocks as defined above.
-
-~> **Note:** When no `scrubbing_rule` blocks are present, log scrubbing is disabled on the Front Door Profile. When one or more `scrubbing_rule` blocks are present, log scrubbing is enabled.
+* `log_scrubbing_rule` - One or more `log_scrubbing_rule` blocks as defined below.
 
 * `response_timeout_seconds` - Specifies the maximum response timeout in seconds.
 
 * `tags` - Specifies a mapping of Tags assigned to this Front Door Profile.
+
+---
+
+A `log_scrubbing_rule` block exports the following:
+
+* `match_variable` - The variable that is scrubbed from the logs.
 
 ## Timeouts
 
