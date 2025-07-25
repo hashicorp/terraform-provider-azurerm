@@ -14,6 +14,8 @@ import (
 
 func TestAccLinuxVirtualMachineScaleSet_resiliency_vmPoliciesOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
+
 	r := LinuxVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -29,8 +31,46 @@ func TestAccLinuxVirtualMachineScaleSet_resiliency_vmPoliciesOnly(t *testing.T) 
 	})
 }
 
+func TestAccLinuxVirtualMachineScaleSet_resiliency_vmCreationOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.resiliencyVMPolicies(data, true, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resilient_vm_creation_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("resilient_vm_deletion_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
+func TestAccLinuxVirtualMachineScaleSet_resiliency_vmDeletionOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
+	r := LinuxVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.resiliencyVMPolicies(data, false, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("resilient_vm_creation_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("resilient_vm_deletion_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAccLinuxVirtualMachineScaleSet_resiliency_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
+
 	r := LinuxVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -61,6 +101,8 @@ func TestAccLinuxVirtualMachineScaleSet_resiliency_update(t *testing.T) {
 
 func TestAccLinuxVirtualMachineScaleSet_resiliency_vmCreationEnabledOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
+
 	r := LinuxVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -78,6 +120,8 @@ func TestAccLinuxVirtualMachineScaleSet_resiliency_vmCreationEnabledOnly(t *test
 
 func TestAccLinuxVirtualMachineScaleSet_resiliency_vmDeletionEnabledOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
+
 	r := LinuxVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -95,6 +139,8 @@ func TestAccLinuxVirtualMachineScaleSet_resiliency_vmDeletionEnabledOnly(t *test
 
 func TestAccLinuxVirtualMachineScaleSet_resiliency_fieldsNotSetInState(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
+
 	r := LinuxVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{

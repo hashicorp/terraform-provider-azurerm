@@ -14,6 +14,8 @@ import (
 
 func TestAccWindowsVirtualMachineScaleSet_resiliency_vmPoliciesOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
+
 	r := WindowsVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -31,6 +33,8 @@ func TestAccWindowsVirtualMachineScaleSet_resiliency_vmPoliciesOnly(t *testing.T
 
 func TestAccWindowsVirtualMachineScaleSet_resiliency_vmCreationOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
+
 	r := WindowsVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -48,6 +52,8 @@ func TestAccWindowsVirtualMachineScaleSet_resiliency_vmCreationOnly(t *testing.T
 
 func TestAccWindowsVirtualMachineScaleSet_resiliency_vmDeletionOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
+
 	r := WindowsVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -65,6 +71,8 @@ func TestAccWindowsVirtualMachineScaleSet_resiliency_vmDeletionOnly(t *testing.T
 
 func TestAccWindowsVirtualMachineScaleSet_resiliency_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
+
 	r := WindowsVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -95,6 +103,8 @@ func TestAccWindowsVirtualMachineScaleSet_resiliency_update(t *testing.T) {
 
 func TestAccWindowsVirtualMachineScaleSet_resiliency_vmCreationEnabledOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
+
 	r := WindowsVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -112,6 +122,8 @@ func TestAccWindowsVirtualMachineScaleSet_resiliency_vmCreationEnabledOnly(t *te
 
 func TestAccWindowsVirtualMachineScaleSet_resiliency_vmDeletionEnabledOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
+
 	r := WindowsVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -129,6 +141,8 @@ func TestAccWindowsVirtualMachineScaleSet_resiliency_vmDeletionEnabledOnly(t *te
 
 func TestAccWindowsVirtualMachineScaleSet_resiliency_fieldsNotSetInState(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
+
 	r := WindowsVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
