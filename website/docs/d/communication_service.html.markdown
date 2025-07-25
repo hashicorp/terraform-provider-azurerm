@@ -49,7 +49,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `tags` - A mapping of tags assigned to the Communication Service.
 
-* `hostname` - The hostname of the Communication Service
+* `hostname` - The hostname of the Communication Service.
+
+* `immutable_resource_id` - The immutable resource id of the Communication Service.
 
 ## Timeouts
 

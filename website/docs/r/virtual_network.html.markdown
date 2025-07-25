@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `address_space` - (Optional) The address space that is used the virtual network. You can supply more than one address space.
 
--> **NOTE** Exactly one of `address_space` or `ip_address_pool` must be specified. If `address_space` is not specified but you encounter a diff, this might indicate the `address_space` is allocated from the IP Address Pool. If this is the case, you may need to add this to [ignore_changes](https://developer.hashicorp.com/terraform/language/meta-arguments/lifecycle#ignore_changes).
+-> **Note:** Exactly one of `address_space` or `ip_address_pool` must be specified.
 
 * `bgp_community` - (Optional) The BGP community attribute in format `<as-number>:<community-value>`.
 
@@ -89,7 +89,7 @@ The following arguments are supported:
 
 * `ip_address_pool` - (Optional) One or two `ip_address_pool` blocks as defined below. Only one association of each IP type(IPv4 or IPv6) is allowed.
 
--> **NOTE** Exactly one of `address_space` or `ip_address_pool` must be specified.
+-> **Note:** Exactly one of `address_space` or `ip_address_pool` must be specified.
 
 * `subnet` - (Optional) Can be specified multiple times to define multiple subnets. Each `subnet` block supports fields documented below.
 
@@ -122,6 +122,8 @@ An `ip_address_pool` block supports the following:
 * `id` - (Required) The ID of the Network Manager IP Address Management (IPAM) Pool.
 
 * `number_of_ip_addresses` - (Required) The number of IP addresses to allocated to the Virtual Network. The value must be a string that represents a positive number, e.g., `"100"`.
+
+-> **Note:** `number_of_ip_addresses` cannot be decreased.
 
 ---
 
@@ -215,3 +217,9 @@ Virtual Networks can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_virtual_network.exampleNetwork /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/virtualNetworks/myvnet1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network`: 2024-05-01

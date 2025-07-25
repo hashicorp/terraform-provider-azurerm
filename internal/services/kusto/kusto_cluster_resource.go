@@ -21,6 +21,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
@@ -140,34 +141,6 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				},
 			},
 
-			"virtual_network_configuration": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"subnet_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: commonids.ValidateSubnetID,
-						},
-						"engine_public_ip_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: commonids.ValidatePublicIPAddressID,
-						},
-						"data_management_public_ip_id": {
-							Type:         pluginsdk.TypeString,
-							Required:     true,
-							ForceNew:     true,
-							ValidateFunc: commonids.ValidatePublicIPAddressID,
-						},
-					},
-				},
-			},
-
 			"uri": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -252,6 +225,37 @@ func resourceKustoCluster() *pluginsdk.Resource {
 		},
 	}
 
+	if !features.FivePointOh() {
+		resource.Schema["virtual_network_configuration"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			MaxItems:   1,
+			Deprecated: "The `virtual_network_configuration` block has been deprecated as it is no longer supported by Azure and will be removed in v5.0 of the AzureRM Provider - for more information see https://techcommunity.microsoft.com/blog/azuredataexplorer/deprecation-of-virtual-network-injection-for-azure-data-explorer/4198192",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"subnet_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: commonids.ValidateSubnetID,
+					},
+					"engine_public_ip_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: commonids.ValidatePublicIPAddressID,
+					},
+					"data_management_public_ip_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: commonids.ValidatePublicIPAddressID,
+					},
+				},
+			},
+		}
+	}
+
 	return resource
 }
 
@@ -318,11 +322,12 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		TrustedExternalTenants: expandTrustedExternalTenants(d.Get("trusted_external_tenants").([]interface{})),
 	}
 
-	if v, ok := d.GetOk("virtual_network_configuration"); ok {
-		vnet := expandKustoClusterVNET(v.([]interface{}))
-		clusterProperties.VirtualNetworkConfiguration = vnet
+	if !features.FivePointOh() {
+		if v, ok := d.GetOk("virtual_network_configuration"); ok {
+			vnet := expandKustoClusterVNET(v.([]interface{}))
+			clusterProperties.VirtualNetworkConfiguration = vnet
+		}
 	}
-
 	if v, ok := d.GetOk("allowed_fqdns"); ok {
 		clusterProperties.AllowedFqdnList = expandKustoListString(v.([]interface{}))
 	}
@@ -499,15 +504,17 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		props.TrustedExternalTenants = expandTrustedExternalTenants(d.Get("trusted_external_tenants").([]interface{}))
 	}
 
-	if d.HasChange("virtual_network_configuration") {
-		if v, ok := d.GetOk("virtual_network_configuration"); ok {
-			if vnetConfig := expandKustoClusterVNET(v.([]interface{})); vnetConfig != nil {
-				props.VirtualNetworkConfiguration = vnetConfig
+	if !features.FivePointOh() {
+		if d.HasChange("virtual_network_configuration") {
+			if v, ok := d.GetOk("virtual_network_configuration"); ok {
+				if vnetConfig := expandKustoClusterVNET(v.([]interface{})); vnetConfig != nil {
+					props.VirtualNetworkConfiguration = vnetConfig
+				}
+			} else {
+				// 'State' is hardcoded to 'Disabled' for the 'None' pattern.
+				// If the vNet block is present it is enabled, if the vNet block is removed it is disabled.
+				props.VirtualNetworkConfiguration.State = pointer.To(clusters.VnetStateDisabled)
 			}
-		} else {
-			// 'State' is hardcoded to 'Disabled' for the 'None' pattern.
-			// If the vNet block is present it is enabled, if the vNet block is removed it is disabled.
-			props.VirtualNetworkConfiguration.State = pointer.To(clusters.VnetStateDisabled)
 		}
 	}
 
@@ -593,7 +600,9 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 			d.Set("disk_encryption_enabled", props.EnableDiskEncryption)
 			d.Set("streaming_ingestion_enabled", props.EnableStreamingIngest)
 			d.Set("purge_enabled", props.EnablePurge)
-			d.Set("virtual_network_configuration", flattenKustoClusterVNET(props.VirtualNetworkConfiguration))
+			if !features.FivePointOh() {
+				d.Set("virtual_network_configuration", flattenKustoClusterVNET(props.VirtualNetworkConfiguration))
+			}
 			d.Set("uri", props.Uri)
 			d.Set("data_ingestion_uri", props.DataIngestionUri)
 			d.Set("public_ip_type", string(pointer.From(props.PublicIPType)))

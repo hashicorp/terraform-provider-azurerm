@@ -127,4 +127,4 @@ terraform import azurerm_kubernetes_cluster_trusted_access_role_binding.example 
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerService`: 2024-09-01
+* `Microsoft.ContainerService`: 2025-02-01

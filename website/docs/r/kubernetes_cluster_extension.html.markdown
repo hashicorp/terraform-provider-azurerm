@@ -123,4 +123,4 @@ terraform import azurerm_kubernetes_cluster_extension.example /subscriptions/000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.KubernetesConfiguration`: 2022-11-01
+* `Microsoft.KubernetesConfiguration`: 2024-11-01

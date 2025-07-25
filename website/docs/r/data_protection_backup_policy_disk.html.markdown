@@ -86,7 +86,7 @@ A `retention_rule` block supports the following:
 
 A `criteria` block supports the following:
 
-* `absolute_criteria` - (Optional) Possible values are `FirstOfDay` and `FirstOfWeek`. Changing this forces a new Backup Policy Disk to be created.
+* `absolute_criteria` - (Optional) Possible values are `AllBackup`, `FirstOfDay`, `FirstOfWeek`, `FirstOfMonth` and `FirstOfYear`. These values mean the first successful backup of the day/week/month/year. Changing this forces a new Backup Policy Disk to be created.
 
 ## Attributes Reference
 

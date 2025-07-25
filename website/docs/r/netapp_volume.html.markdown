@@ -203,9 +203,21 @@ The following arguments are supported:
 
 -> **Note:** Large volumes must be at least 50 TiB in size and can be up to 1,024 TiB (1 PiB). For more information, please refer to [Requirements and considerations for large volumes](https://learn.microsoft.com/en-us/azure/azure-netapp-files/large-volumes-requirements-considerations)
 
+* `cool_access` - (Optional) A `cool_access` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 -> **Note:** It is highly recommended to use the **lifecycle** property as noted in the example since it will prevent an accidental deletion of the volume if the `protocols` argument changes to a different protocol type.
+
+---
+
+A `cool_access` block supports the following:
+
+* `retrieval_policy` - (Required) The cool access retrieval policy for the volume. Possible values are `Default`, `Never` and `OnRead`.
+
+* `tiering_policy` - (Required) The cool access tiering policy for the volume. Possible values are `Auto` and `SnapshotOnly`.
+
+* `coolness_period_in_days` - (Required) The coolness period in days for the volume. Possible vales are between `2` and `183`.
 
 ---
 
@@ -215,7 +227,7 @@ An `export_policy_rule` block supports the following:
 
 * `allowed_clients` - (Required) A list of allowed clients IPv4 addresses.
 
-* `protocols_enabled` - (Optional) A list of allowed protocols. Valid values include `CIFS`, `NFSv3`, or `NFSv4.1`. Only one value is supported at this time. This replaces the previous arguments: `cifs_enabled`, `nfsv3_enabled` and `nfsv4_enabled`.
+* `protocol` - (Optional) A list of allowed protocols. Valid values include `CIFS`, `NFSv3`, or `NFSv4.1`. Only a single element is supported at this time. This replaces the previous arguments: `cifs_enabled`, `nfsv3_enabled` and `nfsv4_enabled`.
 
 * `unix_read_only` - (Optional) Is the file system on unix read only?
 

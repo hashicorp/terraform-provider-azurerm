@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -122,7 +123,8 @@ func resourceApiManagementApiOperation() *pluginsdk.Resource {
 			urlTemplateParamSet := make(map[string]struct{})
 			for _, match := range matches {
 				if len(match) > 1 {
-					urlTemplateParamSet[match[1]] = struct{}{}
+					// Since Azure API Management's `url_template` supports two formats: {name} and {*name}, `*` should be removed when getting name.
+					urlTemplateParamSet[strings.TrimPrefix(match[1], "*")] = struct{}{}
 				}
 			}
 
