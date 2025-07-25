@@ -12,17 +12,6 @@ Use this data source to access information about an existing Front Door (standar
 
 ## Example Usage
 
-### Basic Lookup
-
-```hcl
-data "azurerm_cdn_frontdoor_profile" "example" {
-  name                = "existing-cdn-profile"
-  resource_group_name = "existing-resources"
-}
-```
-
-### Using Data Source Output
-
 ```hcl
 data "azurerm_cdn_frontdoor_profile" "example" {
   name                = "existing-cdn-profile"
