@@ -16,10 +16,6 @@ func TestAccLinuxVirtualMachineScaleSet_resiliency_vmPoliciesOnly(t *testing.T) 
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	// TODO - Remove this override when resiliency policies are rolled out to all regions
-	// Currently only supported in specific regions like EastUS2
-	data.Locations.Primary = "eastus2"
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.resiliencyVMPolicies(data, true, true),
@@ -36,10 +32,6 @@ func TestAccLinuxVirtualMachineScaleSet_resiliency_vmPoliciesOnly(t *testing.T) 
 func TestAccLinuxVirtualMachineScaleSet_resiliency_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
-
-	// TODO - Remove this override when resiliency policies are rolled out to all regions
-	// Currently only supported in specific regions like EastUS2
-	data.Locations.Primary = "eastus2"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -71,10 +63,6 @@ func TestAccLinuxVirtualMachineScaleSet_resiliency_vmCreationEnabledOnly(t *test
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	// TODO - Remove this override when resiliency policies are rolled out to all regions
-	// Currently only supported in specific regions like EastUS2
-	data.Locations.Primary = "eastus2"
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.resiliencyVMCreationOnly(data),
@@ -92,10 +80,6 @@ func TestAccLinuxVirtualMachineScaleSet_resiliency_vmDeletionEnabledOnly(t *test
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
 
-	// TODO - Remove this override when resiliency policies are rolled out to all regions
-	// Currently only supported in specific regions like EastUS2
-	data.Locations.Primary = "eastus2"
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.resiliencyVMDeletionOnly(data),
@@ -112,10 +96,6 @@ func TestAccLinuxVirtualMachineScaleSet_resiliency_vmDeletionEnabledOnly(t *test
 func TestAccLinuxVirtualMachineScaleSet_resiliency_fieldsNotSetInState(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
 	r := LinuxVirtualMachineScaleSetResource{}
-
-	// TODO - Remove this override when resiliency policies are rolled out to all regions
-	// Currently only supported in specific regions like EastUS2
-	data.Locations.Primary = "eastus2"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -139,7 +119,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                            = "acctestvmss-%d"
   resource_group_name             = azurerm_resource_group.test.name
   location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
+  sku                             = "Standard_B1ls"
   instances                       = 1
   admin_username                  = "adminuser"
   disable_password_authentication = true
@@ -185,7 +165,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                            = "acctestvmss-%d"
   resource_group_name             = azurerm_resource_group.test.name
   location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
+  sku                             = "Standard_B1ls"
   instances                       = 1
   admin_username                  = "adminuser"
   disable_password_authentication = true
@@ -231,7 +211,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                            = "acctestvmss-%d"
   resource_group_name             = azurerm_resource_group.test.name
   location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
+  sku                             = "Standard_B1ls"
   instances                       = 1
   admin_username                  = "adminuser"
   disable_password_authentication = true
@@ -278,7 +258,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                            = "acctestvmss-%d"
   resource_group_name             = azurerm_resource_group.test.name
   location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_F2"
+  sku                             = "Standard_B1ls"
   instances                       = 1
   admin_username                  = "adminuser"
   disable_password_authentication = true

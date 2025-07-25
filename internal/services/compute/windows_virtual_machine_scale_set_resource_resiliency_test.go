@@ -16,10 +16,6 @@ func TestAccWindowsVirtualMachineScaleSet_resiliency_vmPoliciesOnly(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	// TODO - Remove this override when resiliency policies are rolled out to all regions
-	// Currently only supported in specific regions like EastUS2
-	data.Locations.Primary = "eastus2"
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.resiliencyVMPolicies(data, true, true),
@@ -36,10 +32,6 @@ func TestAccWindowsVirtualMachineScaleSet_resiliency_vmPoliciesOnly(t *testing.T
 func TestAccWindowsVirtualMachineScaleSet_resiliency_vmCreationOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
-
-	// TODO - Remove this override when resiliency policies are rolled out to all regions
-	// Currently only supported in specific regions like EastUS2
-	data.Locations.Primary = "eastus2"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -58,10 +50,6 @@ func TestAccWindowsVirtualMachineScaleSet_resiliency_vmDeletionOnly(t *testing.T
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	// TODO - Remove this override when resiliency policies are rolled out to all regions
-	// Currently only supported in specific regions like EastUS2
-	data.Locations.Primary = "eastus2"
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.resiliencyVMPolicies(data, false, true),
@@ -78,10 +66,6 @@ func TestAccWindowsVirtualMachineScaleSet_resiliency_vmDeletionOnly(t *testing.T
 func TestAccWindowsVirtualMachineScaleSet_resiliency_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
-
-	// TODO - Remove this override when resiliency policies are rolled out to all regions
-	// Currently only supported in specific regions like EastUS2
-	data.Locations.Primary = "eastus2"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -113,10 +97,6 @@ func TestAccWindowsVirtualMachineScaleSet_resiliency_vmCreationEnabledOnly(t *te
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	// TODO - Remove this override when resiliency policies are rolled out to all regions
-	// Currently only supported in specific regions like EastUS2
-	data.Locations.Primary = "eastus2"
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.resiliencyVMCreationOnly(data),
@@ -134,10 +114,6 @@ func TestAccWindowsVirtualMachineScaleSet_resiliency_vmDeletionEnabledOnly(t *te
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	// TODO - Remove this override when resiliency policies are rolled out to all regions
-	// Currently only supported in specific regions like EastUS2
-	data.Locations.Primary = "eastus2"
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.resiliencyVMDeletionOnly(data),
@@ -154,10 +130,6 @@ func TestAccWindowsVirtualMachineScaleSet_resiliency_vmDeletionEnabledOnly(t *te
 func TestAccWindowsVirtualMachineScaleSet_resiliency_fieldsNotSetInState(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
-
-	// TODO - Remove this override when resiliency policies are rolled out to all regions
-	// Currently only supported in specific regions like EastUS2
-	data.Locations.Primary = "eastus2"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -181,7 +153,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                 = "acctestvmss-%d"
   resource_group_name  = azurerm_resource_group.test.name
   location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F2"
+  sku                  = "Standard_B1ls"
   instances            = 1
   admin_username       = "adminuser"
   admin_password       = "P@55w0rd1234!"
@@ -223,7 +195,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                 = "acctestvmss-%d"
   resource_group_name  = azurerm_resource_group.test.name
   location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F2"
+  sku                  = "Standard_B1ls"
   instances            = 1
   admin_username       = "adminuser"
   admin_password       = "P@55w0rd1234!"
@@ -265,7 +237,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                 = "acctestvmss-%d"
   resource_group_name  = azurerm_resource_group.test.name
   location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F2"
+  sku                  = "Standard_B1ls"
   instances            = 1
   admin_username       = "adminuser"
   admin_password       = "P@55w0rd1234!"
@@ -308,7 +280,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                 = "acctestvmss-%d"
   resource_group_name  = azurerm_resource_group.test.name
   location             = azurerm_resource_group.test.location
-  sku                  = "Standard_F2"
+  sku                  = "Standard_B1ls"
   instances            = 1
   admin_username       = "adminuser"
   admin_password       = "P@55w0rd1234!"
