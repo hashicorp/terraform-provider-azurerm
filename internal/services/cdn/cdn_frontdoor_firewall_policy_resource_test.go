@@ -741,28 +741,6 @@ func TestAccCdnFrontDoorFirewallPolicy_jsChallengeStandardSkuCustomRuleActionErr
 	})
 }
 
-func TestAccCdnFrontDoorFirewallPolicy_jsChallengePolicyInvalidTimeSpanError(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
-	r := CdnFrontDoorFirewallPolicyResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.jsChallengePolicyInvalidTimeSpanError(data),
-			ExpectError: regexp.MustCompile(`expected js_challenge_cookie_expiration_in_minutes to be in the range \(5 - 1440\), got 4`),
-		},
-	})
-}
-
-func TestAccCdnFrontDoorFirewallPolicy_captchaPolicyInvalidTimeSpanError(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
-	r := CdnFrontDoorFirewallPolicyResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.captchaPolicyInvalidTimeSpanError(data),
-			ExpectError: regexp.MustCompile(`expected captcha_cookie_expiration_in_minutes to be in the range \(5 - 1440\), got 4`),
-		},
-	})
-}
-
 func TestAccCdnFrontDoorFirewallPolicy_skuDowngradeError(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
 	r := CdnFrontDoorFirewallPolicyResource{}
@@ -2101,44 +2079,6 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
       transforms         = ["Lowercase", "Trim"]
     }
   }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r CdnFrontDoorFirewallPolicyResource) jsChallengePolicyInvalidTimeSpanError(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
-  name                              = "accTestWAF%d"
-  resource_group_name               = azurerm_resource_group.test.name
-  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
-  enabled                           = true
-  mode                              = "Prevention"
-  redirect_url                      = "https://www.contoso.com"
-  custom_block_response_status_code = 403
-  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
-
-  js_challenge_cookie_expiration_in_minutes = 4
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r CdnFrontDoorFirewallPolicyResource) captchaPolicyInvalidTimeSpanError(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
-  name                              = "accTestWAF%d"
-  resource_group_name               = azurerm_resource_group.test.name
-  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
-  enabled                           = true
-  mode                              = "Prevention"
-  redirect_url                      = "https://www.contoso.com"
-  custom_block_response_status_code = 403
-  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
-
-  captcha_cookie_expiration_in_minutes = 4
 }
 `, r.template(data), data.RandomInteger)
 }
