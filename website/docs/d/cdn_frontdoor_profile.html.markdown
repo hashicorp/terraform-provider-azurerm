@@ -35,21 +35,15 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where this Front Door Profile exists.
 
-* `identity` - (Optional) An `identity` block as defined below.
-
 ---
-
-An `identity` block exports the following:
-
-* `type` - The type of Managed Service Identity that is configured on this Front Door Profile.
-
-* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Front Door Profile.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following attributes are exported:
 
 * `id` - The ID of this Front Door Profile.
+
+* `identity` - An `identity` block as defined below.
 
 * `resource_guid` - The UUID of the Front Door Profile which will be sent in the HTTP Header as the `X-Azure-FDID` attribute.
 
@@ -60,6 +54,14 @@ In addition to the Arguments listed above - the following attributes are exporte
 * `response_timeout_seconds` - Specifies the maximum response timeout in seconds.
 
 * `tags` - Specifies a mapping of Tags assigned to this Front Door Profile.
+
+---
+
+An `identity` block exports the following:
+
+* `type` - The type of Managed Service Identity that is configured on this Front Door Profile.
+
+* `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Front Door Profile.
 
 ---
 

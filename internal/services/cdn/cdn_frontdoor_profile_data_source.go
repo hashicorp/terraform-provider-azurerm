@@ -36,7 +36,7 @@ func dataSourceCdnFrontDoorProfile() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
 			"response_timeout_seconds": {
 				Type:     pluginsdk.TypeInt,
