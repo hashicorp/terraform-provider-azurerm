@@ -45,6 +45,8 @@ An `identity` block exports the following:
 
 * `identity_ids` - The list of User Assigned Managed Identity IDs assigned to this Front Door Profile.
 
+---
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following attributes are exported:
