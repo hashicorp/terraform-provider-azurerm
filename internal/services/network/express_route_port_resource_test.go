@@ -100,6 +100,33 @@ func TestAccExpressRoutePort_userAssignedIdentity(t *testing.T) {
 	})
 }
 
+func TestAccExpressRoutePort_userAssignedIdentityTagUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
+	r := ExpressRoutePortResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.userAssignedIdentityWithTags(data, "tag1"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("tag1"),
+			),
+		},
+		{
+			Config: r.userAssignedIdentityWithTags(data, "tag2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("tag2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccExpressRoutePort_linkCipher(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
 	r := ExpressRoutePortResource{}
@@ -288,6 +315,37 @@ resource "azurerm_express_route_port" "test" {
   }
 }
 `, template, data.RandomIntOfLength(8))
+}
+
+func (r ExpressRoutePortResource) userAssignedIdentityWithTags(data acceptance.TestData, tagValue string) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  location            = azurerm_resource_group.test.location
+  name                = "acctestUAI-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_express_route_port" "test" {
+  name                = "acctestERP-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  peering_location    = "Airtel-Chennai2-CLS"
+  bandwidth_in_gbps   = 10
+  encapsulation       = "Dot1Q"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  tags = {
+    environment = "%[3]s"
+  }
+}
+`, template, data.RandomIntOfLength(8), tagValue)
 }
 
 func (r ExpressRoutePortResource) template(data acceptance.TestData) string {
