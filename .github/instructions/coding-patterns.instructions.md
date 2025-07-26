@@ -37,6 +37,7 @@ type ServiceNameResourceTypeModel struct {
     Location          string            `tfschema:"location"`
     Sku               string            `tfschema:"sku_name"`
     Enabled           bool              `tfschema:"enabled"`
+    TimeoutSeconds    int64             `tfschema:"timeout_seconds"`
     Configuration     []ConfigModel     `tfschema:"configuration"`
     Tags              map[string]string `tfschema:"tags"`
 
@@ -96,6 +97,12 @@ func (r ServiceNameResourceTypeResource) Arguments() map[string]*pluginsdk.Schem
             Type:     pluginsdk.TypeBool,
             Optional: true,
             Default:  true,
+        },
+
+        "timeout_seconds": {
+            Type:         pluginsdk.TypeInt,
+            Optional:     true,
+            ValidateFunc: validation.IntBetween(1, 3600),
         },
 
         "configuration": {
@@ -260,22 +267,17 @@ func (r ServiceNameResourceTypeResource) Read() sdk.ResourceFunc {
                 ResourceGroup: id.ResourceGroupName,
             }
 
-            if model.Location != nil {
-                state.Location = *model.Location
-            }
+            // Use pointer.From() for consistent pointer dereferencing
+            state.Location = pointer.From(model.Location)
+            state.Tags = pointer.From(model.Tags)
 
             if model.Sku != nil {
                 state.Sku = string(model.Sku.Name)
             }
 
-            if model.Tags != nil {
-                state.Tags = *model.Tags
-            }
-
             if props := model.Properties; props != nil {
-                if props.Enabled != nil {
-                    state.Enabled = *props.Enabled
-                }
+                state.Enabled = pointer.FromBool(props.Enabled, false)
+                state.TimeoutSeconds = pointer.FromInt64(props.TimeoutSeconds, 0)
                 // Map other properties
             }
 
@@ -315,6 +317,7 @@ type ServiceNameResourceTypeDataSourceModel struct {
     Location          string            `tfschema:"location"`
     Sku               string            `tfschema:"sku_name"`
     Enabled           bool              `tfschema:"enabled"`
+    TimeoutSeconds    int64             `tfschema:"timeout_seconds"`
     Configuration     []ConfigModel     `tfschema:"configuration"`
     Tags              map[string]string `tfschema:"tags"`
     Endpoint          string            `tfschema:"endpoint"`
@@ -363,6 +366,11 @@ func (r ServiceNameResourceTypeDataSource) Attributes() map[string]*pluginsdk.Sc
 
         "enabled": {
             Type:     pluginsdk.TypeBool,
+            Computed: true,
+        },
+
+        "timeout_seconds": {
+            Type:     pluginsdk.TypeInt,
             Computed: true,
         },
 
@@ -427,22 +435,17 @@ func (r ServiceNameResourceTypeDataSource) Read() sdk.ResourceFunc {
             state.Name = id.ResourceTypeName
             state.ResourceGroup = id.ResourceGroupName
 
-            if model.Location != nil {
-                state.Location = *model.Location
-            }
+            // Use pointer.From() for consistent pointer dereferencing
+            state.Location = pointer.From(model.Location)
+            state.Tags = pointer.From(model.Tags)
 
             if model.Sku != nil {
                 state.Sku = string(model.Sku.Name)
             }
 
-            if model.Tags != nil {
-                state.Tags = *model.Tags
-            }
-
             if props := model.Properties; props != nil {
-                if props.Enabled != nil {
-                    state.Enabled = *props.Enabled
-                }
+                state.Enabled = pointer.FromBool(props.Enabled, false)
+                state.TimeoutSeconds = pointer.FromInt64(props.TimeoutSeconds, 0)
                 // Map other properties and computed attributes
             }
 
@@ -1164,7 +1167,7 @@ client := meta.(*clients.Client).ServiceName.ResourceClient
 // Use pointer package for pointer operations
 // Common scenarios: optional Azure API parameters, nullable fields
 enabled := pointer.To(d.Get("enabled").(bool))
-timeout := pointer.To(d.Get("timeout_seconds").(int))
+timeout := pointer.To(int64(d.Get("timeout_seconds").(int)))
 
 // Use resource ID parsing for type safety
 id := parse.NewResourceID(subscriptionId, resourceGroupName, resourceName)
@@ -1195,6 +1198,70 @@ if err != nil {
 // Set resource ID after creation
 d.SetId(id.ID())
 ```
+
+#### Pointer Dereferencing Best Practices
+
+**PREFERRED - Use `pointer.From()` for consistent dereferencing:**
+```go
+package servicename
+
+import (
+    "github.com/hashicorp/go-azure-helpers/lang/pointer"
+)
+
+// GOOD - Use pointer.From() for safe dereferencing
+state.DisplayName = pointer.From(props.DisplayName)
+state.Tags = pointer.From(model.Tags)
+
+if props.Api != nil {
+    state.ManagedApiId = pointer.From(props.Api.Id)
+}
+```
+
+**AVOID - Manual nil checks with dereferencing:**
+```go
+package servicename
+
+import (
+    "github.com/hashicorp/terraform-provider-azurerm/utils"
+)
+
+// AVOID - Manual nil checks and dereferencing (inconsistent pattern)
+if props.DisplayName != nil {
+    state.DisplayName = *props.DisplayName
+}
+
+if model.Tags != nil {
+    state.Tags = *model.Tags
+}
+
+// AVOID - Complex nested nil checks
+if props.Api != nil && props.Api.Id != nil {
+    state.ManagedApiId = *props.Api.Id
+}
+
+// AVOID - Legacy utils package patterns (where pointer package can be used)
+// Legacy patterns - use pointer package instead
+stringPtr := utils.String("example")  // Use pointer.To("example")
+intPtr := utils.Int32(42)             // Use pointer.To(42)
+boolPtr := utils.Bool(true)           // Use pointer.To(true)
+
+// Legacy dereference patterns
+if stringPtr != nil {
+    value := *stringPtr
+}
+// Use pointer.From(stringPtr) or pointer.FromString(stringPtr, "default")
+```
+
+**When to Use Each Package:**
+- **pointer package**: For basic pointer operations, type conversions, and nil checking
+- **utils package**: For Azure-specific utilities, complex transformations, and legacy compatibility where pointer package does not provide equivalent functionality
+
+**Migration Guidelines:**
+- **New Code**: Always use `pointer` package for pointer operations
+- **Existing Code**: Gradually migrate to `pointer` package during refactoring
+- **Legacy Compatibility**: Maintain `utils` package usage only where `pointer` package does not provide equivalent functionality
+- **Code Review Focus**: Replace manual nil checks with `pointer.From()` for consistent dereferencing patterns
 
 ### untyped Data Source Pattern
 
@@ -1583,6 +1650,280 @@ func ExpandPolicy(input []interface{}) *azuretype.Policy {
 4. **Extract common patterns** - Use variables for repeated structures
 5. **Start with working code** - Simplify incrementally, don't rewrite from scratch
 
+### Expand/Flatten Function Patterns
+
+#### HashiCorp Standard Expand Function Pattern
+
+**Simple Configuration Blocks:**
+```go
+func expandServiceConfiguration(input []interface{}) *serviceapi.Configuration {
+    if len(input) == 0 || input[0] == nil {
+        return nil
+    }
+
+    raw := input[0].(map[string]interface{})
+
+    return &serviceapi.Configuration{
+        Setting1: pointer.To(raw["setting1"].(string)),
+        Setting2: pointer.To(raw["setting2"].(bool)),
+        Setting3: pointer.To(raw["setting3"].(int)),
+    }
+}
+```
+
+**Array Configuration Blocks:**
+```go
+func expandServiceRules(input []interface{}) *[]serviceapi.Rule {
+    if len(input) == 0 {
+        return nil
+    }
+
+    rules := make([]serviceapi.Rule, 0)
+    for _, item := range input {
+        if item == nil {
+            continue
+        }
+
+        raw := item.(map[string]interface{})
+        rule := serviceapi.Rule{
+            Name:    pointer.To(raw["name"].(string)),
+            Enabled: pointer.To(raw["enabled"].(bool)),
+        }
+
+        rules = append(rules, rule)
+    }
+
+    return &rules
+}
+```
+
+#### HashiCorp Standard Flatten Function Pattern
+
+**Simple Configuration Blocks:**
+```go
+func flattenServiceConfiguration(input *serviceapi.Configuration) []interface{} {
+    if input == nil {
+        return make([]interface{}, 0)
+    }
+
+    return []interface{}{
+        map[string]interface{}{
+            "setting1": pointer.From(input.Setting1),
+            "setting2": pointer.From(input.Setting2),
+            "setting3": pointer.From(input.Setting3),
+        },
+    }
+}
+```
+
+**Array Configuration Blocks:**
+```go
+func flattenServiceRules(input *[]serviceapi.Rule) []interface{} {
+    if input == nil {
+        return make([]interface{}, 0)
+    }
+
+    rules := make([]interface{}, 0)
+    for _, rule := range *input {
+        rules = append(rules, map[string]interface{}{
+            "name":    pointer.From(rule.Name),
+            "enabled": pointer.From(rule.Enabled),
+        })
+    }
+
+    return rules
+}
+```
+
+#### Expand/Flatten Best Practices
+
+**DO:**
+- Use `pointer.To()` and `pointer.From()` for consistent pointer handling
+- Return `nil` for empty inputs in expand functions
+- Return `make([]interface{}, 0)` for empty inputs in flatten functions
+- Use clear, descriptive function names matching the schema field name
+- Handle nil pointers safely in flatten functions
+
+**DON'T:**
+- Create multiple expand/flatten functions for the same logical block
+- Use excessive variable assignments - directly construct structs when possible
+- Add unnecessary comments explaining obvious operations
+- Create complex conditional logic when simple struct initialization works
+
+### Azure PATCH Operation Pattern
+
+#### Critical PATCH Behavior Understanding
+
+**Azure Resource Manager PATCH Operations:**
+Many Azure services use PATCH operations for resource updates, which have fundamentally different behavior from PUT operations:
+
+- **PATCH preserves existing values** when fields are omitted from the request
+- **PUT replaces the entire resource** with the provided configuration
+- **Azure SDK nil filtering** removes nil values before sending requests to Azure
+- **Residual state persistence** means previously enabled features remain active unless explicitly disabled
+
+**PATCH Operation Challenges:**
+```go
+// PROBLEM: This approach fails with PATCH operations
+func ExpandPolicy(input []interface{}) *azuretype.Policy {
+    if len(input) == 0 {
+        return nil // SDK filters this out, Azure never gets disable command
+    }
+
+    // Only sends enabled policies, disabled policies remain unchanged
+    result := &azuretype.Policy{}
+    // Configure only enabled features...
+    return result
+}
+```
+
+**SOLUTION: Explicit Disable Pattern for PATCH Operations:**
+```go
+func ExpandPolicy(input []interface{}) *azuretype.Policy {
+    // PATCH Operations Requirement: Always return a complete structure
+    // with explicit enabled=false for disabled features to clear residual state
+
+    // Define complete structure with all features disabled by default
+    result := &azuretype.Policy{
+        AutomaticFeature: &azuretype.AutomaticFeature{
+            Enabled: pointer.To(false), // Explicit disable for PATCH
+            // Include all required fields even when disabled
+            RequiredSetting: pointer.To(azuretype.DefaultValue),
+        },
+        OptionalFeature: &azuretype.OptionalFeature{
+            Enabled: pointer.To(false), // Explicit disable for PATCH
+        },
+    }
+
+    // If no configuration, return everything disabled (clears residual state)
+    if len(input) == 0 || input[0] == nil {
+        return result
+    }
+
+    raw := input[0].(map[string]interface{})
+
+    // Enable only explicitly configured features
+    if automaticRaw, exists := raw["automatic_feature"]; exists {
+        automaticList := automaticRaw.([]interface{})
+        if len(automaticList) > 0 && automaticList[0] != nil {
+            // Enable the feature and apply user configuration
+            result.AutomaticFeature.Enabled = pointer.To(true)
+
+            automatic := automaticList[0].(map[string]interface{})
+            if setting := automatic["required_setting"].(string); setting != "" {
+                result.AutomaticFeature.RequiredSetting = pointer.To(azuretype.Setting(setting))
+            }
+        }
+        // If exists but empty block, feature remains disabled
+    }
+    // If not exists, feature remains disabled
+
+    return result
+}
+```
+
+**Key PATCH Operation Principles:**
+- **Always return complete structures** - Never return nil for PATCH operations
+- **Explicit disable commands** - Use `enabled=false` instead of omitting fields
+- **Required field compliance** - Provide all required fields even when features are disabled
+- **Residual state management** - Ensure previously enabled features can be properly disabled
+- **"None" Pattern Integration** - Combine with flatten functions that exclude disabled features from state
+
+**Documentation Requirements for PATCH Operations:**
+```go
+// PATCH Behavior Note: Azure VMSS uses PATCH operations which preserve existing values
+// when fields are omitted. This means previously enabled policies will remain active
+// unless explicitly disabled with enabled=false. Sending nil values gets filtered out
+// by the Azure SDK, so Azure never receives disable commands. We must explicitly
+// send enabled=false for all policies that should be disabled.
+```
+
+### Variable Assignment Standards
+
+#### Simplified Variable Assignment Pattern
+
+**PREFERRED - Direct Assignment:**
+```go
+// Simple, clear assignment
+name := d.Get("name").(string)
+enabled := d.Get("enabled").(bool)
+```
+
+**AVOID - Unnecessary Variable Assignment:**
+```go
+// Don't create intermediate variables for simple operations
+nameFromConfig := d.Get("name").(string)
+name := nameFromConfig
+
+// Don't over-assign simple boolean values
+enabledFromConfig := d.Get("enabled").(bool)
+enabled := enabledFromConfig
+```
+
+#### Pointer Helper Usage Standards
+
+**PREFERRED - Use Pointer Helpers:**
+```go
+properties := &serviceapi.Properties{
+    Name:    pointer.To(name),
+    Enabled: pointer.To(enabled),
+    Count:   pointer.To(int64(count)),
+}
+```
+
+**AVOID - Manual Pointer Creation:**
+```go
+namePtr := &name
+enabledPtr := &enabled
+properties := &serviceapi.Properties{
+    Name:    namePtr,
+    Enabled: enabledPtr,
+}
+```
+
+### Comment Guidelines
+
+#### Minimal Comment Standards
+
+**Comments should ONLY be used for:**
+- Complex business logic that isn't obvious from the code
+- Azure API-specific requirements or constraints
+- Workarounds for Azure SDK or API limitations
+- Non-obvious state management patterns (like PATCH operations)
+
+**DO NOT comment:**
+- Obvious operations like variable assignments
+- Standard expand/flatten operations
+- Simple struct initialization
+- Basic conditional logic
+
+**GOOD Examples:**
+```go
+// Azure Front Door requires 16-240 second timeout range
+if timeout < 16 || timeout > 240 {
+    return fmt.Errorf("timeout must be between 16 and 240 seconds")
+}
+
+// PATCH operations require explicit disable commands to clear residual state
+result := &azuretype.Policy{
+    AutoFeature: &azuretype.AutoFeature{
+        Enabled: pointer.To(false), // Explicit disable for PATCH
+    },
+}
+```
+
+**BAD Examples:**
+```go
+// Get the name from configuration
+name := d.Get("name").(string)
+
+// Create the configuration object
+config := expandConfiguration(d.Get("configuration").([]interface{}))
+
+// Set the properties
+properties.Name = pointer.To(name)
+```
+
 ### Testing Patterns
 
 For comprehensive testing patterns, implementation details, and Azure-specific testing guidelines, see [`testing-guidelines.instructions.md`](./testing-guidelines.instructions.md).
@@ -1646,7 +1987,7 @@ When implementing Azure resources that use PATCH operations combined with the "N
 
 **Common Symptoms:**
 - Resource state shows fields as disabled, but Azure portal shows them as enabled
-- Tests pass on creation but fail when testing disable  re-enable scenarios  
+- Tests pass on creation but fail when testing disable  re-enable scenarios
 - Azure API calls return success, but resource configuration doesn't change
 - Residual state persists after removing Terraform configuration blocks
 
@@ -1676,7 +2017,7 @@ When implementing Azure resources that use PATCH operations combined with the "N
        // Configure only enabled features
    }
 
-   // RIGHT - Prevents residual state  
+   // RIGHT - Prevents residual state
    func ExpandFeature(input []interface{}) *azuretype.Feature {
        result := &azuretype.Feature{
            Enabled: pointer.To(false), // Explicit disable
@@ -1733,20 +2074,20 @@ func ExpandComplexFeature(input []interface{}) *azuretype.ComplexFeature {
     // State Management Note: This Azure service uses PATCH operations combined with the "None" pattern.
     // Previously enabled features will remain active unless explicitly disabled with enabled=false.
     // When users omit the configuration block, we must send disabled=true to clear residual state.
-    
+
     // Always return complete structure with explicit disable commands
     result := &azuretype.ComplexFeature{
         AutoFeature: &azuretype.AutoFeature{
             Enabled: pointer.To(false),                           // Explicit disable
-            RequiredField: pointer.To(azuretype.DefaultValue),    // Required even when disabled  
+            RequiredField: pointer.To(azuretype.DefaultValue),    // Required even when disabled
         },
     }
-    
+
     // Enable only explicitly configured features
     if len(input) > 0 && input[0] != nil {
         // User provided configuration - enable and apply settings
     }
-    
+
     return result
 }
 ```

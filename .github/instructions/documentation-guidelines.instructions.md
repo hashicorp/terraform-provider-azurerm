@@ -416,6 +416,33 @@ output "log_scrubbing_enabled" {
 
 The second example might not work as expected since `enabled` could be omitted when following the "None" value pattern.
 
+### Example Configuration Guidelines
+
+#### The "None" Value Pattern in Documentation
+
+When documenting resources that implement the "None" value pattern (where users omit optional fields instead of explicitly setting "None" values), examples should reflect this behavior:
+
+**Example Considerations:**
+- Show meaningful field access in outputs rather than fields that might be omitted due to the "None" pattern
+- For log scrubbing examples, demonstrate accessing `match_variable` rather than `enabled` since `enabled` follows the "None" pattern
+- Focus examples on fields that users actually configure and can reliably access
+
+**Good Example Pattern:**
+```hcl
+output "log_scrubbing_match_variable" {
+  value = data.azurerm_cdn_frontdoor_profile.example.log_scrubbing.0.scrubbing_rule.0.match_variable
+}
+```
+
+**Pattern to Avoid:**
+```hcl
+output "log_scrubbing_enabled" {
+  value = data.azurerm_cdn_frontdoor_profile.example.log_scrubbing.0.enabled
+}
+```
+
+The second example might not work as expected since `enabled` could be omitted when following the "None" value pattern.
+
 #### Resource Example Requirements
 - Include resource group creation
 - Use realistic but generic names
@@ -621,6 +648,38 @@ In addition to the Arguments listed above - the following Attributes are exporte
 - Including import documentation (not applicable)
 - Not showing how to use the retrieved data
 - Missing practical lookup examples
+
+### Field Documentation Rules
+
+#### Field Ordering Standards
+- **Required fields first**: Always list required fields before optional fields in argument documentation
+- **Alphabetical within category**: Within required and optional groups, list fields alphabetically
+- **Consistent structure**: Maintain the same field ordering pattern across all block documentation
+
+#### Note Format Standards
+- **Use note blocks for conditional behavior**: When field usage depends on other field values, use note format instead of inline descriptions
+- **Note syntax**: Use `~> **Note:**` format for important behavioral information
+- **Clear conditional logic**: Explain exactly when fields are used vs ignored
+- **Separate concerns**: Keep the main field description simple, use notes for complex conditional behavior
+
+Example of proper field documentation:
+```markdown
+* `match_variable` - (Required) The variable to be scrubbed from the logs. Possible values are `QueryStringArgNames`, `RequestIPAddress`, and `RequestUri`.
+
+* `enabled` - (Optional) Is this scrubbing rule enabled? Defaults to `true`.
+
+* `operator` - (Optional) The operator to use for matching. Currently only `EqualsAny` is supported. Defaults to `EqualsAny`.
+
+* `selector` - (Optional) The name of the query string argument to be scrubbed.
+
+~> **Note:** The `selector` field is required when the `match_variable` is set to `QueryStringArgNames` and cannot be set when the `match_variable` is `RequestIPAddress` or `RequestUri`.
+```
+
+#### Azure-Specific Documentation Standards
+- **Valid values only**: Only document values that are actually supported by the Azure service
+- **API validation**: Verify all possible values against Azure SDK constants and API documentation
+- **Cross-reference validation**: When implementing similar features across resources, ensure consistent value documentation
+- **SDK alignment**: Match documentation values with Azure SDK enum constants where applicable
 
 ### Quality Checklist
 

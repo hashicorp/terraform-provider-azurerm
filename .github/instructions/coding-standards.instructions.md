@@ -81,6 +81,51 @@ This provider supports two implementation approaches for new and existing resour
 - **Unexported types**: camelCase
 - **Interface names**: Often descriptive or end with 'er' (e.g., `ResourceProvider`, `Validator`)
 
+#### Schema Field Naming Conventions
+
+**Descriptive Field Names:**
+- Use clear, descriptive names that indicate the field's purpose
+- Avoid abbreviations unless they are well-established industry terms
+- Use the full Azure service terminology when possible
+
+**Field Naming Pattern Examples:**
+```go
+// PREFERRED - Descriptive and clear
+"log_scrubbing_rule": {
+    Type:     pluginsdk.TypeSet,
+    Optional: true,
+    Elem: &pluginsdk.Resource{
+        Schema: map[string]*pluginsdk.Schema{
+            "match_variable": {
+                Type:     pluginsdk.TypeString,
+                Required: true,
+            },
+        },
+    },
+},
+
+// AVOID - Generic or ambiguous names
+"scrubbing_rule": {  // Too generic - what kind of scrubbing?
+    Type:     pluginsdk.TypeSet,
+    Optional: true,
+},
+"rule": {  // Too vague - what kind of rule?
+    Type:     pluginsdk.TypeSet,
+    Optional: true,
+},
+```
+
+**Consistency Across Resources:**
+- When similar functionality exists across multiple resources, use consistent naming
+- Match Azure API documentation terminology where possible
+- Maintain consistency between resource and data source field names
+
+#### Data Types for Typed Resource Models
+- **Integer fields**: Use `int64` for numeric fields in typed resource models (e.g., `TimeoutSeconds int64`)
+- **Pointer operations**: Use `pointer.FromInt64()` and `pointer.To(int64(...))` for int64 fields
+- **Schema mapping**: Integer fields map to `pluginsdk.TypeInt` in schema definitions
+- **Type conversion**: Convert from `d.Get("field").(int)` to `int64` when using with pointer operations
+
 ### File Organization
 
 #### Directory Structure
@@ -122,6 +167,7 @@ type ServiceNameModel struct {
     Location          string            `tfschema:"location"`
     Sku               string            `tfschema:"sku_name"`
     Enabled           bool              `tfschema:"enabled"`
+    TimeoutSeconds    int64             `tfschema:"timeout_seconds"`
     Tags              map[string]string `tfschema:"tags"`
 
     // Computed attributes
@@ -357,6 +403,41 @@ func resourceServiceName() *pluginsdk.Resource {
     }
 }
 ```
+
+#### ValidateFunc Patterns
+
+If the Azure SDK package offers a `PossibleValuesForFieldName` function, use that in the `validation.StringInSlice` function instead of hardcoding the possible values manually. However, if the Azure SDK package does not offer a `PossibleValuesForFieldName` hardcoding the possible values is acceptable.
+
+##### Example
+```go
+// AVOID - Hardcoded values that may become outdated
+"match_variable": {
+    Type:     pluginsdk.TypeString,
+    Required: true,
+    ValidateFunc: validation.StringInSlice([]string{
+        string(profiles.ScrubbingRuleEntryMatchVariableQueryStringArgNames),
+        string(profiles.ScrubbingRuleEntryMatchVariableRequestIPAddress),
+        string(profiles.ScrubbingRuleEntryMatchVariableRequestUri),
+    }, false),
+},
+
+// PREFERRED - Use SDK-provided possible values function
+"match_variable": {
+    Type:     pluginsdk.TypeString,
+    Required: true,
+    ValidateFunc: validation.StringInSlice(
+        profiles.PossibleValuesForScrubbingRuleEntryMatchVariable(),
+        false,
+    ),
+},
+```
+
+**Benefits of using SDK-provided functions:**
+
+- **Automatic updates**: When Azure adds new values, they're automatically available
+- **Consistency**: Ensures validation matches what the Azure API actually accepts
+- **Maintenance**: Reduces manual updates when Azure service capabilities change
+- **Accuracy**: Eliminates risk of typos in hardcoded values
 
 #### ValidateFunc Patterns
 
@@ -1224,13 +1305,13 @@ import (
 // Convert values to pointers
 // Common scenarios: optional Azure API parameters, nullable fields
 stringPtr := pointer.To("example")
-intPtr := pointer.To(42)
+intPtr := pointer.To(int64(42))
 boolPtr := pointer.To(true)
 
 // Convert pointers to values with defaults
 stringValue := pointer.From(stringPtr)
 stringValueWithDefault := pointer.FromString(stringPtr, "default")
-intValue := pointer.FromInt32(intPtr, 0)
+intValue := pointer.FromInt64(intPtr, 0)
 boolValue := pointer.FromBool(boolPtr, false)
 
 // Check if pointer is nil or has value
@@ -1239,12 +1320,46 @@ if pointer.IsNil(stringPtr) {
 }
 ```
 
+#### Pointer Dereferencing Best Practices
+
+**PREFERRED - Use `pointer.From()` for consistent dereferencing:**
+```go
+package servicename
+
+import (
+    "github.com/hashicorp/go-azure-helpers/lang/pointer"
+)
+
+// GOOD - Use pointer.From() for safe dereferencing
+state.DisplayName = pointer.From(props.DisplayName)
+state.Tags = pointer.From(model.Tags)
+
+if props.Api != nil {
+    state.ManagedApiId = pointer.From(props.Api.Id)
+}
+```
+
+**AVOID - Manual nil checks with dereferencing:**
 ```go
 package servicename
 
 import (
     "github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+// AVOID - Manual nil checks and dereferencing (inconsistent pattern)
+if props.DisplayName != nil {
+    state.DisplayName = *props.DisplayName
+}
+
+if model.Tags != nil {
+    state.Tags = *model.Tags
+}
+
+// AVOID - Complex nested nil checks
+if props.Api != nil && props.Api.Id != nil {
+    state.ManagedApiId = *props.Api.Id
+}
 
 // AVOID - Legacy utils package patterns (where pointer package can be used)
 // Legacy patterns - use pointer package instead
@@ -1267,6 +1382,7 @@ if stringPtr != nil {
 - **New Code**: Always use `pointer` package for pointer operations
 - **Existing Code**: Gradually migrate to `pointer` package during refactoring
 - **Legacy Compatibility**: Maintain `utils` package usage only where `pointer` package does not provide equivalent functionality
+- **Code Review Focus**: Replace manual nil checks with `pointer.From()` for consistent dereferencing patterns
 
 #### typed resource Client Usage
 ```go

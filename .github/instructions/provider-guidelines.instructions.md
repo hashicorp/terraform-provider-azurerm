@@ -112,6 +112,40 @@ func resourceAzureServiceName() *pluginsdk.Resource {
 - **Performance tier validation**: Validate Azure performance tier constraints
 - **Field conditional validation**: Validate field combinations based on Azure API constraints
 
+#### Boolean Comparison Best Practices in CustomizeDiff
+
+**Simplified Boolean Expressions:**
+When implementing boolean comparisons in CustomizeDiff functions, use simplified expressions for better readability and compliance with Go linting tools (gosimple):
+
+```go
+// PREFERRED - Simplified boolean expressions
+pluginsdk.ForceNewIfChange("resilient_vm_creation_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
+    fieldExists := !d.GetRawConfig().GetAttr("resilient_vm_creation_enabled").IsNull()
+    return fieldExists && old.(bool) && !new.(bool)
+}),
+
+pluginsdk.ForceNewIfChange("resilient_vm_deletion_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
+    fieldExists := !d.GetRawConfig().GetAttr("resilient_vm_deletion_enabled").IsNull()
+    return fieldExists && old.(bool) && !new.(bool)
+}),
+```
+
+**AVOID - Verbose boolean comparisons:**
+```go
+// AVOID - Verbose expressions that trigger gosimple linting errors
+return fieldExists && old.(bool) == true && new.(bool) == false
+
+// AVOID - Redundant boolean operations
+return fieldExists && (old.(bool) == true) && (new.(bool) == false)
+```
+
+**Key Principles:**
+- **Use direct boolean expressions**: `old.(bool) && !new.(bool)` instead of `old.(bool) == true && new.(bool) == false`
+- **Leverage Go's boolean semantics**: `bool` values can be used directly in logical expressions
+- **Comply with linting standards**: Simplified expressions pass gosimple and other Go linting tools
+- **Maintain readability**: Shorter expressions are easier to understand and maintain
+- **Consistent patterns**: Apply the same simplification approach across all boolean comparisons
+
 **Testing CustomizeDiff Validations:**
 CustomizeDiff validations should be thoroughly tested with acceptance tests to ensure they work correctly:
 - Test invalid configurations that should trigger validation errors
