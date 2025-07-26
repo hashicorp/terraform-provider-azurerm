@@ -59,7 +59,6 @@ func (d LogAnalyticsWorkspaceTableDataSource) basicWithDataSource(data acceptanc
 data "azurerm_log_analytics_workspace_table" "this" {
   name                = "InsightsMetrics"
   workspace_id        = azurerm_log_analytics_workspace.this.id
-  resource_group_name = "test-resource-group"
 }
 `, config)
 }
