@@ -147,7 +147,7 @@ func TestAccWindowsVirtualMachineScaleSet_resiliency_explicitFalse(t *testing.T)
 
 func TestAccWindowsVirtualMachineScaleSet_resiliency_unsupportedRegion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
-	data.Locations.Primary = "chilecentral" //Unsupported region
+	data.Locations.Primary = "chilecentral" // Unsupported region
 
 	r := WindowsVirtualMachineScaleSetResource{}
 

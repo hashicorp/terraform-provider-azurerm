@@ -142,7 +142,7 @@ func TestAccLinuxVirtualMachineScaleSet_resiliency_explicitFalse(t *testing.T) {
 
 func TestAccLinuxVirtualMachineScaleSet_resiliency_unsupportedRegion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-	data.Locations.Primary = "chilecentral" //Unsupported region
+	data.Locations.Primary = "chilecentral" // Unsupported region
 
 	r := LinuxVirtualMachineScaleSetResource{}
 
