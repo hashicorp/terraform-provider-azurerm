@@ -745,3 +745,58 @@ Example of proper field documentation:
 - Required fields
 - Optional fields where the default behavior is not intuitive
 - Fields where users commonly need to explicitly set values
+
+### Provider Documentation Standards (Note Formatting)
+
+#### Note Block Standards
+All notes should follow the exact same format (`(->|~>|!>) **Note:**`) where level of importance is indicated through the different types of notes as documented below.
+
+Breaking changes should not be included in resource documentation notes:
+- Breaking changes in a minor version should be added to the top of the changelog
+- Breaking changes in a major version should be added to the upgrade guide
+
+#### Informational Note (`-> **Note:**`)
+Use informational note blocks when providing additional useful information, recommendations and/or tips to the user.
+
+**Example - Additional information on supported values:**
+```markdown
+* `type` - (Required) The type. Possible values include `This`, `That`, and `Other`.
+
+-> **Note:** More information on each of the supported types can be found in [type documentation](https://docs.microsoft.com/azure/service-name/)
+```
+
+**Example - General product documentation reference:**
+```markdown
+* `configuration` - (Optional) A configuration block as defined below.
+
+-> **Note:** For more information, please see the [product documentation](https://docs.microsoft.com/azure/service-name/).
+```
+
+#### Warning Note (`~> **Note:**`)
+Use warning note blocks when providing information that the user needs to avoid certain errors, however if these errors are encountered they should not break anything or cause irreversible changes.
+
+**Example - Conditional argument requirements:**
+```markdown
+* `optional_argument_enabled` - (Optional) Is the optional argument enabled? Defaults to `false`.
+
+* `optional_argument` - (Optional) An optional argument.
+
+~> **Note:** The argument `optional_argument` is required when `optional_argument_enabled` is set to `true`.
+```
+
+#### Caution Note (`!> **Note:**`)
+Use caution note blocks when providing critical information on potential irreversible changes, data loss or other things that can negatively affect a user's environment.
+
+**Example - Irreversible changes:**
+```markdown
+* `irreversible_argument_enabled` - (Optional) Is irreversible argument enabled? Defaults to `false`.
+
+!> **Note:** The argument `irreversible_argument_enabled` cannot be disabled after being enabled.
+```
+
+#### Note Formatting Guidelines
+- **Consistent format**: Always use the exact syntax patterns shown above
+- **Appropriate level**: Choose the right note type based on the severity and impact of the information
+- **Clear messaging**: Provide actionable information that helps users avoid problems
+- **Avoid overuse**: Use notes for important information, not obvious functionality
+- **Reference linking**: Include links to external documentation when helpful
