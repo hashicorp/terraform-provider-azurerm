@@ -1529,12 +1529,20 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 
 		"spot_restore": VirtualMachineScaleSetSpotRestorePolicySchema(),
 
+		// This field is Optional+Computed for two reasons:
+		// 1. Once resilient VM creation policy is enabled (set to true), it cannot be disabled (reverted to false)
+		// 2. Backward compatibility - existing scale sets won't show diffs when upgrading the provider
+		// The Computed attribute ensures Terraform reflects the actual Azure state.
 		"resilient_vm_creation_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Computed: true,
 		},
 
+		// This field is Optional+Computed for two reasons:
+		// 1. Once resilient VM deletion policy is enabled (set to true), it cannot be disabled (reverted to false)
+		// 2. Backward compatibility - existing scale sets won't show diffs when upgrading the provider
+		// The Computed attribute ensures Terraform reflects the actual Azure state.
 		"resilient_vm_deletion_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
