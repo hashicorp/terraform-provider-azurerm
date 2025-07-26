@@ -1679,6 +1679,44 @@ if model.ShutdownOnIdle == string(azureapi.ShutdownOnIdleModeNone) {
 - Consistent with Terraform best practices
 - Reduces configuration bloat
 
+#### Optional+Computed Schema Fields Documentation Requirement
+
+When defining schema fields as both `Optional: true` and `Computed: true` (O+C pattern), **a comment explaining the rationale is mandatory**. This pattern is unusual and requires justification for future maintainers.
+
+**Documentation Requirements:**
+- **Rationale Comment**: Explain why the field uses Optional+Computed instead of Optional-only or Computed-only
+- **Azure Behavior**: Describe specific Azure API behavior that necessitates this pattern
+- **User Impact**: Clarify how this affects user experience and Terraform state management
+
+**Example O+C Schema with Required Documentation:**
+```go
+// This field is Optional+Computed for two reasons:
+// 1. Once resilient VM creation policy is enabled (set to true), it cannot be disabled (reverted to false)
+// 2. Backward compatibility - existing scale sets won't show diffs when upgrading the provider
+// The Computed attribute ensures Terraform reflects the actual Azure state.
+"resilient_vm_creation_enabled": {
+    Type:     pluginsdk.TypeBool,
+    Optional: true,
+    Computed: true,
+},
+
+// This field is Optional+Computed for two reasons:
+// 1. Once resilient VM deletion policy is enabled (set to true), it cannot be disabled (reverted to false)
+// 2. Backward compatibility - existing scale sets won't show diffs when upgrading the provider
+// The Computed attribute ensures Terraform reflects the actual Azure state.
+"resilient_vm_deletion_enabled": {
+    Type:     pluginsdk.TypeBool,
+    Optional: true,
+    Computed: true,
+},
+```
+
+**Common O+C Use Cases That Require Documentation:**
+- **Azure-managed defaults**: When Azure automatically sets values based on other configuration
+- **Irreversible settings**: When Azure prevents disabling features once enabled
+- **Conditional enablement**: When Azure enables features automatically under specific conditions
+- **Service-managed state**: When Azure controls field values independently of user configuration
+
 ### State Management Standards
 
 For detailed state management patterns including when to use `d.GetRawConfig()` vs `d.Get()` in untyped Plugin SDK resources, see the State Management section in [`coding-patterns.instructions.md`](./coding-patterns.instructions.md).

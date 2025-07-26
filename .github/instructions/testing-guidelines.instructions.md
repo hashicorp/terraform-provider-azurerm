@@ -927,6 +927,69 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 }
 ```
 
+#### Optional+Computed Schema Fields Testing Requirements
+
+When testing resources with Optional+Computed (O+C) schema fields, **comprehensive testing is mandatory** to ensure correct state management and Azure API integration. O+C fields have complex behavior that requires specific testing patterns.
+
+**Testing Requirements for O+C Fields:**
+- **Initial State Testing**: Verify the field behavior when not explicitly set by the user
+- **Explicit Configuration Testing**: Test behavior when the field is explicitly configured by the user
+- **Computed State Testing**: Verify that Azure-managed state changes are correctly reflected in Terraform
+- **Import State Testing**: Ensure import functionality handles both user-set and Azure-managed states correctly
+- **Backward Compatibility Testing**: Test that existing resources don't show unexpected diffs when upgrading the provider
+
+**O+C Field Testing Pattern:**
+```go
+func TestAccServiceName_optionalComputedField(t *testing.T) {
+    data := acceptance.BuildTestData(t, "azurerm_service_name", "test")
+    r := ServiceNameResource{}
+
+    data.ResourceTest(t, r, []acceptance.TestStep{
+        {
+            // Test initial state - field not explicitly set
+            Config: r.withoutOptionalComputedField(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+                // Verify Azure default behavior is reflected
+                check.That(data.ResourceName).Key("resilient_vm_creation_enabled").HasValue("false"),
+            ),
+        },
+        data.ImportStep(), // Verify import works with Azure-managed default
+        {
+            // Test explicit configuration by user
+            Config: r.withOptionalComputedFieldEnabled(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+                check.That(data.ResourceName).Key("resilient_vm_creation_enabled").HasValue("true"),
+            ),
+        },
+        data.ImportStep(), // Verify import works with user-configured value
+        {
+            // Test that irreversible changes cannot be reverted (if applicable)
+            Config: r.withOptionalComputedFieldDisabled(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+                // For irreversible Azure features, value should remain true
+                check.That(data.ResourceName).Key("resilient_vm_creation_enabled").HasValue("true"),
+            ),
+        },
+        data.ImportStep(), // Verify final state import
+    })
+}
+```
+
+**Azure-Specific O+C Testing Considerations:**
+- **Irreversible Features**: Test that Azure features that cannot be disabled maintain their enabled state
+- **Service Defaults**: Verify that Azure service defaults are correctly detected and preserved
+- **API Behavior Validation**: Ensure tests reflect actual Azure API behavior, not just Terraform logic
+- **Cross-Resource Dependencies**: Test O+C fields that depend on other resource configurations
+
+**Common O+C Testing Scenarios:**
+- **VM Scale Set Resiliency Policies**: Test irreversible enablement behavior
+- **Database High Availability**: Test Azure-managed redundancy settings
+- **Network Security Features**: Test security policies that cannot be downgraded
+- **Backup and Retention Policies**: Test Azure-managed retention configurations
+
 ### Environment Setup
 
 #### Required Environment Variables
