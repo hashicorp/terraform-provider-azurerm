@@ -14,13 +14,13 @@ Manages a Linux Virtual Machine Scale Set.
 
 -> **Note:** As of the **v2.86.0** (November 19, 2021) release of the provider this resource will only create Virtual Machine Scale Sets with the **Uniform** Orchestration Mode. For Virtual Machine Scale Sets with **Flexible** orchestration mode, use [`azurerm_orchestrated_virtual_machine_scale_set`](orchestrated_virtual_machine_scale_set.html). Flexible orchestration mode is recommended for workloads on Azure.
 
--> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text. [Read more about sensitive data in state](/docs/state/sensitive-data.html).
+-> **Note:** All arguments including the administrator login and password will be stored in the raw state as plain-text. Read more about [sensitive data](/docs/state/sensitive-data.html) in state.
 
--> **Note:** Terraform will automatically update & reimage the nodes in the Scale Set (if Required) during an Update - this behaviour can be configured [using the `features` setting within the Provider block](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block).
+-> **Note:** Terraform will automatically update & reimage the nodes in the Scale Set (if Required) during an Update - this behaviour can be configured using the [`features`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block) setting within the Provider block.
 
 ## Example Usage
 
-This example provisions a basic Linux Virtual Machine Scale Set on an internal network. Additional examples of how to use the `azurerm_linux_virtual_machine_scale_set` resource can be found [in the ./examples/vm-scale-set/linux` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/vm-scale-set/linux).
+This example provisions a basic Linux Virtual Machine Scale Set on an internal network. Additional examples of how to use the `azurerm_linux_virtual_machine_scale_set` resource can be found in the [`./examples/vm-scale-set/linux`](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/vm-scale-set/linux) directory within the GitHub Repository.
 
 ```hcl
 locals {
@@ -85,51 +85,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
       subnet_id = azurerm_subnet.internal.id
     }
   }
-}
-```
 
-### With Resilient VM Policies
-
-```hcl
-resource "azurerm_linux_virtual_machine_scale_set" "example" {
-  name                = "example-vmss"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
-  sku                 = "Standard_F2"
-  instances           = 1
-  admin_username      = "adminuser"
-
-  disable_password_authentication = true
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  network_interface {
-    name    = "example"
-    primary = true
-
-    ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.internal.id
-    }
-  }
-
-  admin_ssh_key {
-    username   = "adminuser"
-    public_key = file("~/.ssh/id_rsa.pub")
-  }
-
-  # Note: resiliency block omitted since we only want VM policies without automatic zone rebalancing
   resilient_vm_creation_enabled = true
   resilient_vm_deletion_enabled = false
 }
@@ -245,11 +201,11 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
 
 * `resilient_vm_creation_enabled` - (Optional) Should resilient VM creation be enabled? When enabled, the service will attempt to create VMs in alternative fault domains or zones if the primary location fails during creation. Defaults to `false`.
 
-~> **Note:** Azure does not support disabling resiliency policies. Once the `resilient_vm_creation_enabled` field is set to `true`, it cannot be reverted to `false`.
+!> **Note:** Azure does not support disabling resiliency policies. Once the `resilient_vm_creation_enabled` field is set to `true`, it cannot be reverted to `false`.
 
 * `resilient_vm_deletion_enabled` - (Optional) Should resilient VM deletion be enabled? When enabled, the service will use a more resilient deletion process that attempts to gracefully handle failures during VM termination. Defaults to `false`.
 
-~> **Note:** Azure does not support disabling resiliency policies. Once the `resilient_vm_deletion_enabled` field is set to `true`, it cannot be reverted to `false`.
+!> **Note:** Azure does not support disabling resiliency policies. Once the `resilient_vm_deletion_enabled` field is set to `true`, it cannot be reverted to `false`.
 
 * `rolling_upgrade_policy` - (Optional) A `rolling_upgrade_policy` block as defined below. This is Required and can only be specified when `upgrade_mode` is set to `Automatic` or `Rolling`. Changing this forces a new resource to be created.
 
