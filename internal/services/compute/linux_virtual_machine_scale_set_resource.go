@@ -102,40 +102,35 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 				return nil
 			}),
 
-			// Validate resiliency policy limitations - Azure does not allow disabling once enabled
+			// Validate resiliency policy location support and disable prevention
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
-				// Check resilient_vm_creation_enabled
+				location := azure.NormalizeLocation(diff.Get("location").(string))
+				var resiliencyCreationFieldExists, resiliencyDeletionFieldExists bool
+
+				if rawConfig := diff.GetRawConfig(); !rawConfig.IsNull() {
+					rawConfigMap := rawConfig.AsValueMap()
+					resiliencyCreationFieldExists = !rawConfigMap["resilient_vm_creation_enabled"].IsNull()
+					resiliencyDeletionFieldExists = !rawConfigMap["resilient_vm_deletion_enabled"].IsNull()
+				}
+
+				// Azure does not support resiliency policies in all regions
+				if (resiliencyCreationFieldExists || resiliencyDeletionFieldExists) && !isResiliencyPolicySupportedRegion(location) {
+					return fmt.Errorf("the resiliency policies `resilient_vm_creation_enabled` and `resilient_vm_deletion_enabled` are not supported in the `%s` region", location)
+				}
+
+				// Azure does not support disabling resiliency policies. Once set to `true`, they cannot be reverted to `false`.
 				if diff.HasChange("resilient_vm_creation_enabled") {
 					old, new := diff.GetChange("resilient_vm_creation_enabled")
 
-					// Use GetRawConfig to detect if field was explicitly configured by user
-					var fieldExists bool
-					if rawConfig := diff.GetRawConfig(); !rawConfig.IsNull() {
-						rawConfigMap := rawConfig.AsValueMap()
-						fieldExists = !rawConfigMap["resilient_vm_creation_enabled"].IsNull()
-					}
-
-					// Only validate if the field is explicitly configured in the new state
-					// This prevents validation errors when user removes the field from config
-					if fieldExists && old.(bool) && !new.(bool) {
+					if resiliencyCreationFieldExists && old.(bool) && !new.(bool) {
 						return fmt.Errorf("Azure does not support disabling resiliency policies. Once the `resilient_vm_creation_enabled` field is set to `true`, it cannot be reverted to `false`")
 					}
 				}
 
-				// Check resilient_vm_deletion_enabled
 				if diff.HasChange("resilient_vm_deletion_enabled") {
 					old, new := diff.GetChange("resilient_vm_deletion_enabled")
 
-					// Use GetRawConfig to detect if field was explicitly configured by user
-					var fieldExists bool
-					if rawConfig := diff.GetRawConfig(); !rawConfig.IsNull() {
-						rawConfigMap := rawConfig.AsValueMap()
-						fieldExists = !rawConfigMap["resilient_vm_deletion_enabled"].IsNull()
-					}
-
-					// Only validate if the field is explicitly configured in the new state
-					// This prevents validation errors when user removes the field from config
-					if fieldExists && old.(bool) && !new.(bool) {
+					if resiliencyDeletionFieldExists && old.(bool) && !new.(bool) {
 						return fmt.Errorf("Azure does not support disabling resiliency policies. Once the `resilient_vm_deletion_enabled` field is set to `true`, it cannot be reverted to `false`")
 					}
 				}
@@ -154,7 +149,6 @@ func resourceLinuxVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta i
 
 	id := virtualmachinescalesets.NewVirtualMachineScaleSetID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	// Upgrading to the 2021-07-01 exposed a new expand parameter to the GET method
 	exists, err := client.Get(ctx, id, virtualmachinescalesets.DefaultGetOperationOptions())
 	if err != nil {
 		if !response.WasNotFound(exists.HttpResponse) {
@@ -972,8 +966,6 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 
 			resilientVMCreationEnabled, resilientVMDeletionEnabled, shouldSetResiliencyFields := FlattenVirtualMachineScaleSetResiliency(props.ResiliencyPolicy)
 
-			// Set fields in state if Azure has a ResiliencyPolicy OR if user has configured these fields
-			// Use GetRawConfig to detect if field was explicitly configured by user vs using default
 			var userConfiguredCreation, userConfiguredDeletion bool
 			if rawConfig := d.GetRawConfig(); !rawConfig.IsNull() {
 				rawConfigMap := rawConfig.AsValueMap()

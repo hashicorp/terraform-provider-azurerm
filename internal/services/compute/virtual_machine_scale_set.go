@@ -427,6 +427,44 @@ func FlattenVirtualMachineScaleSetResiliency(input *virtualmachinescalesets.Resi
 	return resilientVMCreationEnabled, resilientVMDeletionEnabled, true
 }
 
+func isResiliencyPolicySupportedRegion(input string) bool {
+	// Azure VMSS resiliency policies are supported in specific regions
+	// This list should be updated as Azure expands support to additional regions
+	// Reference: https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/
+	unsupportedRegions := []string{
+		"austriaeast",
+		"belgiumcentral",
+		"bleufrancecentral",
+		"bleufrancesouth",
+		"centraluseuap",
+		"chilecentral",
+		"eastusstg",
+		"indonesiacentral",
+		"israelnorthwest",
+		"malaysiawest",
+		"mexicocentral",
+		"newzealandnorth",
+		"southcentralus2",
+		"southindia",
+		"southeastus3",
+		"southwestus",
+		"taiwannorthwest",
+		"eastasia",
+		"eastus",
+		"southcentralus",
+		"southeastasia",
+		"westeurope",
+	}
+
+	for _, region := range unsupportedRegions {
+		if input == region {
+			return false
+		}
+	}
+
+	return true
+}
+
 func VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,

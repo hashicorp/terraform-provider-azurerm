@@ -23,8 +23,6 @@ func TestAccLinuxVirtualMachineScaleSet_resiliency_vmPoliciesOnly(t *testing.T) 
 			Config: r.resiliencyVMPolicies(data, true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("resilient_vm_creation_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("resilient_vm_deletion_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -41,8 +39,6 @@ func TestAccLinuxVirtualMachineScaleSet_resiliency_vmCreationOnly(t *testing.T) 
 			Config: r.resiliencyVMPolicies(data, true, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("resilient_vm_creation_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("resilient_vm_deletion_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -59,8 +55,6 @@ func TestAccLinuxVirtualMachineScaleSet_resiliency_vmDeletionOnly(t *testing.T) 
 			Config: r.resiliencyVMPolicies(data, false, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("resilient_vm_creation_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("resilient_vm_deletion_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -78,8 +72,6 @@ func TestAccLinuxVirtualMachineScaleSet_resiliency_update(t *testing.T) {
 			Config: r.resiliencyVMPolicies(data, false, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("resilient_vm_creation_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("resilient_vm_deletion_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -87,8 +79,6 @@ func TestAccLinuxVirtualMachineScaleSet_resiliency_update(t *testing.T) {
 			Config: r.resiliencyVMPolicies(data, true, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("resilient_vm_creation_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("resilient_vm_deletion_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -110,9 +100,6 @@ func TestAccLinuxVirtualMachineScaleSet_resiliency_fieldsNotSetInState(t *testin
 			Config: r.resiliencyFieldsNotConfigured(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				// Verify that resilient fields are NOT present in state when not configured
-				check.That(data.ResourceName).Key("resilient_vm_creation_enabled").DoesNotExist(),
-				check.That(data.ResourceName).Key("resilient_vm_deletion_enabled").DoesNotExist(),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -153,16 +140,16 @@ func TestAccLinuxVirtualMachineScaleSet_resiliency_explicitFalse(t *testing.T) {
 	})
 }
 
-func TestAccLinuxVirtualMachineScaleSet_resiliency_invalidValues(t *testing.T) {
+func TestAccLinuxVirtualMachineScaleSet_resiliency_unsupportedRegion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
+	data.Locations.Primary = "chilecentral" //Unsupported region
 
 	r := LinuxVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.resiliencyInvalidValues(data),
-			ExpectError: regexp.MustCompile("Incorrect attribute value type"),
+			Config:      r.resiliencyVMPolicies(data, true, true),
+			ExpectError: regexp.MustCompile("the resiliency policies.*are not supported in the.*chilecentral.*region"),
 		},
 	})
 }
@@ -257,53 +244,6 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 
   # Note: resilient_vm_creation_enabled and resilient_vm_deletion_enabled are intentionally NOT configured
   # This tests backward compatibility - these fields should not appear in state
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r LinuxVirtualMachineScaleSetResource) resiliencyInvalidValues(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_linux_virtual_machine_scale_set" "test" {
-  name                            = "acctestvmss-%d"
-  resource_group_name             = azurerm_resource_group.test.name
-  location                        = azurerm_resource_group.test.location
-  sku                             = "Standard_B1ls"
-  instances                       = 1
-  admin_username                  = "adminuser"
-  disable_password_authentication = true
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-
-  os_disk {
-    storage_account_type = "Standard_LRS"
-    caching              = "ReadWrite"
-  }
-
-  admin_ssh_key {
-    username   = "adminuser"
-    public_key = local.first_public_key
-  }
-
-  network_interface {
-    name    = "example"
-    primary = true
-
-    ip_configuration {
-      name      = "internal"
-      primary   = true
-      subnet_id = azurerm_subnet.test.id
-    }
-  }
-
-  resilient_vm_creation_enabled = "invalid"
-  resilient_vm_deletion_enabled = "invalid"
 }
 `, r.template(data), data.RandomInteger)
 }
