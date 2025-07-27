@@ -451,6 +451,30 @@ The second example might not work as expected since `enabled` could be omitted w
 - Use consistent naming patterns
 - Show creation and configuration patterns
 
+#### Example Configuration Strategy
+When adding new fields to existing resources, follow this guidance for documentation examples:
+
+**Update Existing Examples (Preferred for Simple Fields):**
+- **Simple optional fields**: Add to existing basic/complete examples (e.g., `enabled = true`, `timeout_seconds = 300`)
+- **Common configuration options**: Update existing examples rather than creating new ones (e.g., tags, basic settings)
+- **Straightforward additions**: Fields that don't require complex explanation or setup
+
+**Create New Examples (Only for Complex Features):**
+- **Complex nested configurations**: Features requiring significant block structures or multiple related fields
+- **Advanced use cases**: Features that require specific prerequisites or detailed explanation
+- **Feature-specific scenarios**: When the field represents a distinct feature that warrants its own demonstration
+- **Conditional configurations**: When field usage depends on specific combinations of other settings
+
+**Example Decision Matrix:**
+```markdown
+✅ Update existing: `response_timeout_seconds = 120` (simple timeout field)
+✅ Update existing: `enabled = false` (basic boolean toggle)
+🆕 New example needed: Complex nested `security_policy` block with multiple sub-configurations
+🆕 New example needed: Advanced `custom_domain` setup requiring certificates and DNS validation
+```
+
+This approach keeps documentation concise while ensuring complex features receive adequate explanation.
+
 #### Data Source Example Requirements
 - Show how to look up existing resources
 - Demonstrate using data source outputs in other resources
