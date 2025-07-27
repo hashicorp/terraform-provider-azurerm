@@ -7,7 +7,7 @@ description: Complete implementation guide for Go files in the Terraform AzureRM
 
 This comprehensive guide covers all implementation requirements for the Terraform AzureRM provider.
 
-**Quick navigation:** [🏗️ Implementation Patterns](#🏗️-implementation-patterns) | [📏 Coding Standards](#📏-coding-standards) | [🎨 Coding Style](#🎨-coding-style) | [🔧 Azure SDK Integration](#🔧-azure-sdk-integration)
+**Quick navigation:** [🏗️ Implementation Patterns](#🏗️-implementation-patterns) | [📏 Coding Standards](#📏-coding-standards) | [🎨 Coding Style](#🎨-coding-style) | [🔧 Azure SDK Integration](#🔧-azure-sdk-integration) | [💡 AI Coding Guidance](#💡-ai-coding-guidance)
 
 ## 🏗️ Implementation Patterns
 
@@ -656,6 +656,396 @@ if err != nil {
 
 // Set resource ID after creation
 d.SetId(id.ID())
+```
+
+---
+[⬆️ Back to top](#terraform-azurerm-provider-implementation-guide)
+
+## 💡 AI Coding Guidance
+
+### Smart Code Generation Patterns
+
+#### Resource Implementation Decision Tree
+```
+New Resource Request
+├─ Implementation Approach
+│  ├─ NEW resource/data source → Use Typed Resource Implementation
+│  ├─ EXISTING resource maintenance → Continue Untyped Resource Implementation
+│  └─ MAJOR refactor → Consider migration to Typed Resource Implementation
+│
+├─ File Structure Creation
+│  ├─ Resource: internal/services/[service]/[resource]_resource.go
+│  ├─ Data Source: internal/services/[service]/[resource]_data_source.go
+│  ├─ Tests: same directory with _test.go suffix
+│  └─ Utilities: parse.go, validate.go, expand.go, flatten.go
+│
+└─ Implementation Order
+   ├─ 1. Define model structs (Typed) or schema (Untyped)
+   ├─ 2. Implement CRUD operations
+   ├─ 3. Add validation and error handling
+   ├─ 4. Create acceptance tests
+   └─ 5. Write documentation
+```
+
+#### Template Selection Guide
+```go
+// TYPED RESOURCE TEMPLATE - Use for NEW resources
+type ServiceNameResource struct{}
+var _ sdk.Resource = ServiceNameResource{}
+
+func (r ServiceNameResource) ResourceType() string {
+    return "azurerm_service_name"
+}
+
+func (r ServiceNameResource) ModelObject() interface{} {
+    return &ServiceNameResourceModel{}
+}
+
+// UNTYPED RESOURCE TEMPLATE - Use for EXISTING resource maintenance
+func resourceServiceName() *pluginsdk.Resource {
+    return &pluginsdk.Resource{
+        Create: resourceServiceNameCreate,
+        Read:   resourceServiceNameRead,
+        Update: resourceServiceNameUpdate,
+        Delete: resourceServiceNameDelete,
+        Schema: map[string]*pluginsdk.Schema{
+            // Schema definitions
+        },
+    }
+}
+```
+
+### Efficient Development Workflow
+
+#### Step-by-Step Implementation Checklist
+```
+□ 1. ANALYZE REQUEST
+  □ Identify Azure service and resource type
+  □ Check if resource already exists (grep search)
+  □ Determine implementation approach (Typed vs Untyped)
+
+□ 2. SETUP STRUCTURE
+  □ Create/locate service directory: internal/services/[service]/
+  □ Identify required files: resource, tests, utilities
+  □ Check client registration in internal/clients/
+
+□ 3. IMPLEMENT CORE LOGIC
+  □ Define model/schema with ALL required Azure properties
+  □ Implement Create() with proper validation and error handling
+  □ Implement Read() with nil checks and state management
+  □ Implement Update() if supported (check Azure API capabilities)
+  □ Implement Delete() with proper cleanup
+
+□ 4. ADD VALIDATION & ERROR HANDLING
+  □ Implement IDValidationFunc() for resource ID parsing
+  □ Add CustomizeDiff for complex Azure API constraints
+  □ Use proper error formatting with field names in backticks
+  □ Add timeout configurations appropriate for Azure operations
+
+□ 5. CREATE TESTS
+  □ Basic test with minimal configuration
+  □ RequiresImport test for import conflict detection
+  □ Update test if resource supports updates
+  □ CustomizeDiff validation tests if applicable
+
+□ 6. WRITE DOCUMENTATION
+  □ Resource documentation with examples
+  □ Data source documentation if applicable
+  □ Import documentation with example resource ID
+```
+
+### Common Implementation Patterns
+
+#### Quick Pattern Reference
+```go
+// AZURE RESOURCE ID PARSING
+id, err := parse.ServiceNameID(metadata.ResourceData.Id())
+if err != nil {
+    return err
+}
+
+// AZURE API CLIENT ACCESS (Typed)
+client := metadata.Client.ServiceName.ResourceClient
+
+// AZURE API CLIENT ACCESS (Untyped)
+client := meta.(*clients.Client).ServiceName.ResourceClient
+
+// ERROR HANDLING WITH CONTEXT
+if err != nil {
+    return fmt.Errorf("creating %s: %+v", id, err)
+}
+
+// AZURE RESOURCE EXISTENCE CHECK
+if !response.WasNotFound(existing.HttpResponse) {
+    return metadata.ResourceRequiresImport(r.ResourceType(), id)
+}
+
+// POINTER OPERATIONS
+enabled := pointer.To(true)
+value := pointer.From(response.Enabled)
+valueWithDefault := pointer.FromString(response.Name, "default")
+
+// AZURE RESOURCE STATE MANAGEMENT (Typed)
+metadata.SetID(id)
+return metadata.Encode(&model)
+
+// AZURE RESOURCE CLEANUP (Untyped)
+d.SetId("")
+return nil
+```
+
+### Azure-Specific Coding Patterns
+
+#### PATCH Operations Handling
+```go
+// Azure PATCH operations preserve existing values when fields are omitted
+// Always return complete structure with explicit enabled=false for disabled features
+func expandPolicy(input []interface{}) *azuretype.Policy {
+    result := &azuretype.Policy{
+        Feature1: &azuretype.Feature1{
+            Enabled: pointer.To(false), // Explicit disable for PATCH
+        },
+        Feature2: &azuretype.Feature2{
+            Enabled: pointer.To(false), // Explicit disable for PATCH
+        },
+    }
+
+    if len(input) == 0 || input[0] == nil {
+        return result // Returns everything disabled
+    }
+
+    // Enable only configured features
+    raw := input[0].(map[string]interface{})
+    if feature1Raw, exists := raw["feature1"]; exists {
+        result.Feature1.Enabled = pointer.To(true)
+        // Apply configuration...
+    }
+
+    return result
+}
+```
+
+#### CustomizeDiff Validation Patterns
+```go
+// Import requirements for CustomizeDiff
+import (
+    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"            // For *schema.ResourceDiff
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk" // For helpers
+)
+
+// Azure-specific validation patterns
+CustomizeDiff: pluginsdk.CustomDiffWithAll(
+    pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+        // Azure SKU validation
+        if diff.Get("sku_name").(string) == "Premium" && !diff.Get("zone_redundant").(bool) {
+            return fmt.Errorf("`zone_redundant` must be true for Premium SKU")
+        }
+
+        // Azure region constraints
+        location := diff.Get("location").(string)
+        if location == "West US" && diff.Get("advanced_features").(bool) {
+            return fmt.Errorf("advanced features not available in West US region")
+        }
+
+        return nil
+    }),
+    // Force recreation for immutable Azure properties
+    pluginsdk.ForceNewIfChange("location", func(ctx context.Context, old, new, meta interface{}) bool {
+        return old.(string) != new.(string)
+    }),
+),
+```
+
+#### Schema Design Patterns
+```go
+// Use Azure SDK constants for validation
+"match_variable": {
+    Type:     pluginsdk.TypeString,
+    Required: true,
+    ValidateFunc: validation.StringInSlice(
+        profiles.PossibleValuesForScrubbingRuleEntryMatchVariable(), // SDK function
+        false,
+    ),
+},
+
+// Azure resource naming pattern
+"name": {
+    Type:         pluginsdk.TypeString,
+    Required:     true,
+    ForceNew:     true,
+    ValidateFunc: validate.AzureResourceName, // Use validation utilities
+},
+
+// Azure common schema helpers
+"location": commonschema.Location(),
+"resource_group_name": commonschema.ResourceGroupName(),
+"tags": commonschema.Tags(),
+```
+
+### Testing Pattern Templates
+
+#### Essential Test Structure
+```go
+// Basic functionality test
+func TestAccServiceName_basic(t *testing.T) {
+    data := acceptance.BuildTestData(t, "azurerm_service_name", "test")
+    r := ServiceNameResource{}
+
+    data.ResourceTest(t, r, []acceptance.TestStep{
+        {
+            Config: r.basic(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+            ),
+        },
+        data.ImportStep(), // Validates all field values automatically
+    })
+}
+
+// Import conflict test
+func TestAccServiceName_requiresImport(t *testing.T) {
+    data := acceptance.BuildTestData(t, "azurerm_service_name", "test")
+    r := ServiceNameResource{}
+
+    data.ResourceTest(t, r, []acceptance.TestStep{
+        {
+            Config: r.basic(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+            ),
+        },
+        data.RequiresImportErrorStep(r.requiresImport),
+    })
+}
+
+// Update test (only if resource supports updates)
+func TestAccServiceName_update(t *testing.T) {
+    data := acceptance.BuildTestData(t, "azurerm_service_name", "test")
+    r := ServiceNameResource{}
+
+    data.ResourceTest(t, r, []acceptance.TestStep{
+        {
+            Config: r.basic(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+            ),
+        },
+        data.ImportStep(),
+        {
+            Config: r.updated(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+                check.That(data.ResourceName).Key("tags.Environment").HasValue("Updated"),
+            ),
+        },
+        data.ImportStep(),
+    })
+}
+
+// Complete test (comprehensive feature demonstration)
+func TestAccServiceName_complete(t *testing.T) {
+    data := acceptance.BuildTestData(t, "azurerm_service_name", "test")
+    r := ServiceNameResource{}
+
+    data.ResourceTest(t, r, []acceptance.TestStep{
+        {
+            Config: r.complete(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+                check.That(data.ResourceName).Key("sku_name").HasValue("Premium"),
+                check.That(data.ResourceName).Key("enabled").HasValue("true"),
+                check.That(data.ResourceName).Key("timeout_seconds").HasValue("300"),
+            ),
+        },
+        data.ImportStep(),
+    })
+}
+
+// CustomizeDiff validation test (if CustomizeDiff is implemented)
+func TestAccServiceName_customizeDiffValidation(t *testing.T) {
+    data := acceptance.BuildTestData(t, "azurerm_service_name", "test")
+    r := ServiceNameResource{}
+
+    data.ResourceTest(t, r, []acceptance.TestStep{
+        {
+            Config:      r.invalidConfiguration(data),
+            ExpectError: regexp.MustCompile("`configuration` is required when `enabled` is true"),
+        },
+        {
+            Config: r.validConfiguration(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+            ),
+        },
+        data.ImportStep(),
+    })
+}
+```
+
+### Error Handling Best Practices
+
+#### Structured Error Messages
+```go
+// Field names and values in backticks
+return fmt.Errorf("the `%s` field cannot be set when `%s` is `%s`", fieldName, otherField, value)
+
+// Azure resource context
+return fmt.Errorf("creating %s: %+v", id, err)
+
+// Import conflicts (Typed)
+return metadata.ResourceRequiresImport(r.ResourceType(), id)
+
+// Import conflicts (Untyped)
+return tf.ImportAsExistsError("azurerm_service_name", id.ID())
+
+// Resource not found (Typed)
+return metadata.MarkAsGone(id)
+
+// Resource not found (Untyped)
+log.Printf("[DEBUG] %s was not found - removing from state", id)
+d.SetId("")
+return nil
+```
+
+### Performance Optimization Patterns
+
+#### Efficient Azure API Usage
+```go
+// Use appropriate timeouts for Azure operations
+Timeouts: &pluginsdk.ResourceTimeout{
+    Create: pluginsdk.DefaultTimeout(30 * time.Minute), // Long-running operations
+    Read:   pluginsdk.DefaultTimeout(5 * time.Minute),  // Quick reads
+    Update: pluginsdk.DefaultTimeout(30 * time.Minute), // Potentially long updates
+    Delete: pluginsdk.DefaultTimeout(30 * time.Minute), // Cleanup operations
+},
+
+// Batch operations when possible
+var operations []azuretype.Operation
+for _, item := range items {
+    operations = append(operations, expandOperation(item))
+}
+return client.BatchUpdate(ctx, id, operations)
+
+// Use context with timeouts
+ctx, cancel := context.WithTimeout(ctx, 10*time.Minute)
+defer cancel()
+```
+
+### Code Quality Enforcement
+
+#### AI Self-Check Patterns
+```go
+// Before submitting code, verify:
+// □ All errors use %+v formatting
+// □ Field names in error messages use backticks
+// □ No hardcoded values in tests
+// □ Proper timeout configurations
+// □ Azure SDK constants used for validation
+// □ Import functionality tested
+// □ Documentation follows templates
+// □ CustomizeDiff tested if used
+// □ Proper pointer usage with pointer package
+// □ Resource ID parsing implemented correctly
 ```
 
 ---

@@ -58,6 +58,29 @@ This is the official Terraform Provider for Azure (Resource Manager), written in
 
 **If the code is self-explanatory, do not add comments explaining what it does.**
 
+## 🎯 AI Development Guidelines
+
+### Quick Decision Framework
+
+**For ANY resource implementation task:**
+1. **🔍 Analyze**: Determine if resource exists → Choose Typed (new) vs Untyped (maintenance)
+2. **📋 Structure**: Follow checklist in [`implementation-guide.instructions.md`](./instructions/implementation-guide.instructions.md)
+3. **⚡ Implement**: Use proven patterns from instruction files
+4. **🧪 Test**: Create comprehensive acceptance tests
+5. **📝 Document**: Follow templates in [`documentation-guidelines.instructions.md`](./instructions/documentation-guidelines.instructions.md)
+
+### Code Quality Enforcement
+
+**Before submitting ANY code:**
+- ✅ All errors use `%+v` formatting with proper context
+- ✅ Field names in error messages wrapped in backticks
+- ✅ Azure SDK constants used for validation (not hardcoded values)
+- ✅ Proper timeout configurations for Azure operations
+- ✅ Import functionality tested and documented
+- ✅ CustomizeDiff tested if validation logic exists
+- ✅ No hardcoded values in tests or examples
+- ✅ Resource ID parsing follows Azure patterns
+
 ## Implementation Approaches
 
 This provider supports two implementation approaches. **For comprehensive implementation patterns, detailed examples, and best practices, see the specialized instruction files in the repository.**
@@ -134,6 +157,63 @@ This provider supports two implementation approaches. **For comprehensive implem
 - Implement proper caching where appropriate
 - Monitor and optimize API call patterns
 - Use context with appropriate timeouts
+
+### Smart Pattern Recognition
+
+**When implementing new Azure resources, automatically apply these patterns:**
+
+#### 🔍 **Resource Analysis Patterns**
+```go
+// ALWAYS check these Azure service characteristics:
+// 1. Does the service support PATCH operations? → Use explicit enable/disable patterns
+// 2. Are there SKU-dependent features? → Add CustomizeDiff validation
+// 3. Does the service have regional limitations? → Add location validation
+// 4. Are there field dependency requirements? → Add CustomizeDiff logic
+// 5. Does the service support tagging? → Include tags schema and expand/flatten
+```
+
+#### ⚡ **Quick Implementation Patterns**
+```go
+// NEW RESOURCE: Always start with this template
+func (r ServiceNameResource) Create() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Timeout: 30 * time.Minute,
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := metadata.Client.ServiceName.ResourceClient
+            subscriptionId := metadata.Client.Account.SubscriptionId
+
+            var model ServiceNameModel
+            if err := metadata.Decode(&model); err != nil {
+                return fmt.Errorf("decoding: %+v", err)
+            }
+
+            id := parse.NewServiceNameID(subscriptionId, model.ResourceGroup, model.Name)
+
+            metadata.Logger.Infof("Import check for %s", id)
+            existing, err := client.Get(ctx, id)
+            if err != nil && !response.WasNotFound(existing.HttpResponse) {
+                return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+            }
+
+            if !response.WasNotFound(existing.HttpResponse) {
+                return metadata.ResourceRequiresImport(r.ResourceType(), id)
+            }
+
+            // Implementation continues...
+            return nil
+        },
+    }
+}
+```
+
+#### 🧪 **Testing Pattern Recognition**
+```go
+// ALWAYS include these tests for ANY resource:
+// 1. TestAcc[ResourceName]_basic - Core functionality
+// 2. TestAcc[ResourceName]_requiresImport - Import conflict detection
+// 3. TestAcc[ResourceName]_update - If resource supports updates
+// 4. TestAcc[ResourceName]_customizeDiffValidation - If CustomizeDiff exists
+```
 
 ### Documentation
 **For comprehensive documentation standards, see [`documentation-guidelines.instructions.md`](./instructions/documentation-guidelines.instructions.md)**
