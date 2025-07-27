@@ -30,16 +30,18 @@ website/node_modules
 
 website/vendor
 
-# VS Code: ignore personal settings but keep shared workspace configuration (GitHub Copilot instructions)
+# VS Code: Exclude personal settings but include shared workspace configuration
+# This allows team-wide GitHub Copilot instructions while preserving individual preferences
 .vscode/*
 !.vscode/settings.json
 
-# Include GitHub Copilot configuration, instructions and prompts
+# AI Development Framework: Include GitHub Copilot configuration and development guides
+# Main AI instruction file for GitHub Copilot integration
 !.github/copilot-instructions.md
-# Future: Additional development instructions
+# Comprehensive development guidelines and patterns for AI-assisted coding
 !.github/instructions/
 !.github/instructions/**
-# AI prompts for code generation and review
+# Specialized AI prompts for code review, testing, and development automation
 !.github/prompts/
 !.github/prompts/**
 

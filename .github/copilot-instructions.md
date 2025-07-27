@@ -279,6 +279,16 @@ BREAKING CHANGE: remove deprecated storage account properties
 Closes Issue: #87654
 ```
 
+```
+DOCS: add explicit warning to fieldName for clarity
+
+- Update documentation with clearer field usage warnings
+- Add note blocks for conditional behavior requirements
+- Improve user guidance for field combinations
+
+Closes Issue: #98765
+```
+
 ### Logging and Debugging
 - Use structured logging with appropriate log levels
 - Include resource IDs and operation context in logs
