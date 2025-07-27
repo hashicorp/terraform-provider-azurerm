@@ -5,7 +5,7 @@ description: Azure-specific implementation patterns for the Terraform AzureRM pr
 
 # Azure-Specific Implementation Patterns
 
-Quick navigation: [🔄 PATCH Operations](#-patch-operations) | [✅ CustomizeDiff](#-customizediff-validation) | [🎯 Schema Flattening](#-schema-flattening) | [🔐 Security](#-security-patterns)
+**Quick navigation:** [🔄 PATCH Operations](#🔄-patch-operations) | [✅ CustomizeDiff](#✅-customizediff-validation) | [🎯 Schema Flattening](#🎯-schema-flattening) | [🔐 Security](#🔐-security-patterns)
 
 ## 🔄 PATCH Operations
 
@@ -75,6 +75,9 @@ func ExpandPolicy(input []interface{}) *azuretype.Policy {
 // send enabled=false for all policies that should be disabled.
 ```
 
+---
+[⬆️ Back to top](#azure-specific-implementation-patterns)
+
 ## ✅ CustomizeDiff Validation
 
 ### Standard CustomizeDiff Pattern
@@ -143,6 +146,9 @@ return fieldExists && old.(bool) == true && new.(bool) == false
 - **API version compatibility**: Ensure feature combinations match Azure API versions
 - **Performance tier validation**: Validate Azure performance tier constraints
 - **Field conditional validation**: Validate field combinations based on Azure API constraints
+
+---
+[⬆️ Back to top](#azure-specific-implementation-patterns)
 
 ## 🎯 Schema Flattening
 
@@ -306,6 +312,9 @@ func (r ServiceResource) Read() sdk.ResourceFunc {
     }
 }
 ```
+
+---
+[⬆️ Back to top](#azure-specific-implementation-patterns)
 
 ## 🔐 Security Patterns
 
@@ -493,10 +502,12 @@ func ExpandPolicy(input []interface{}) *azuretype.Policy {
 5. **Start with working code** - Simplify incrementally, don't rewrite from scratch
 
 ---
+[⬆️ Back to top](#azure-specific-implementation-patterns)
+
+---
 
 ## Quick Reference Links
 
 - 🏗️ **Main Implementation Guide**: [implementation-guide.instructions.md](./implementation-guide.instructions.md)
 - 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
 - 📝 **Documentation Guide**: [documentation-guidelines.instructions.md](./documentation-guidelines.instructions.md)
-- ⚡ **Quick References**: [reference/](./reference/)

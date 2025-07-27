@@ -5,7 +5,7 @@ description: Error handling patterns and standards for the Terraform AzureRM pro
 
 # Error Handling Patterns
 
-Quick navigation: [💬 Error Messages](#-error-message-standards) | [🔍 Error Types](#-error-type-patterns) | [🐛 Debugging](#-debugging-patterns) | [🔄 State Management](#-state-management-errors)
+**Quick navigation:** [💬 Error Message Standards](#💬-error-message-standards) | [🔍 Error Type Patterns](#🔍-error-type-patterns) | [🐛 Debugging Patterns](#🐛-debugging-patterns) | [🔄 State Management Errors](#🔄-state-management-errors)
 
 ## 💬 Error Message Standards
 
@@ -85,6 +85,9 @@ return fmt.Errorf("resource `%s` isn't available in this region", resourceName)
 return fmt.Errorf("field `enabled` can't be disabled once set to true")
 ```
 
+---
+[⬆️ Back to top](#error-handling-patterns)
+
 ## 🔍 Error Type Patterns
 
 ### Typed Resource Error Patterns
@@ -113,7 +116,14 @@ if response.WasNotFound(resp.HttpResponse) {
 metadata.SetID(id)
 
 // Use metadata.Encode for state management
-return metadata.Encode(&model)
+    return metadata.Encode(&model)
+}
+```
+
+---
+[⬆️ Back to top](#error-handling-patterns)
+
+## Quick Reference Links
 ```
 
 ### UnTyped Resource Error Patterns
@@ -173,6 +183,9 @@ if err != nil {
     return fmt.Errorf("parsing Service ID `%s`: %+v", metadata.ResourceData.Id(), err)
 }
 ```
+
+---
+[⬆️ Back to top](#error-handling-patterns)
 
 ## 🐛 Debugging Patterns
 
@@ -243,6 +256,9 @@ if err != nil {
 - ❌ Long lines in git diff output that suddenly break
 
 #### ✅ **GOLDEN RULE**: If actual file content is valid → acknowledge console wrapping → do NOT flag as corruption
+
+---
+[⬆️ Back to top](#error-handling-patterns)
 
 ## 🔄 State Management Errors
 

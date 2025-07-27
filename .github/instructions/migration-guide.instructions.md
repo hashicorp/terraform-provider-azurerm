@@ -5,7 +5,7 @@ description: Migration patterns and upgrade procedures for the Terraform AzureRM
 
 # Migration Guide
 
-Quick navigation: [🔄 Implementation Migration](#-implementation-approach-migration) | [💔 Breaking Changes](#-breaking-change-patterns) | [📦 Version Compatibility](#-version-compatibility) | [🚧 Upgrade Procedures](#-upgrade-procedures)
+**Quick navigation:** [🔄 Implementation Migration](#🔄-implementation-approach-migration) | [💔 Breaking Changes](#💔-breaking-change-patterns) | [📦 Version Compatibility](#📦-version-compatibility) | [🚧 Upgrade Procedures](#🚧-upgrade-procedures)
 
 ## 🔄 Implementation Approach Migration
 
@@ -305,6 +305,9 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 - [ ] Examples continue to work
 - [ ] Attribute descriptions remain accurate
 
+---
+[⬆️ Back to top](#migration-guide)
+
 ## 💔 Breaking Change Patterns
 
 ### Field Rename Migration
@@ -389,6 +392,9 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
 - **Legacy Pattern Removal**: Remove deprecated patterns and anti-patterns
 - **SDK Updates**: Migration to newer Azure SDK patterns
 
+---
+[⬆️ Back to top](#migration-guide)
+
 ## 📦 Version Compatibility
 
 ### Terraform Plugin SDK Compatibility
@@ -448,6 +454,9 @@ func planMigration(providerVersion string) MigrationStrategy {
     }
 }
 ```
+
+---
+[⬆️ Back to top](#migration-guide)
 
 ## 🚧 Upgrade Procedures
 
@@ -631,6 +640,9 @@ return metadata.Encode(&state) // Correct pattern
 // Document rollback procedure in pull request description
 // Test rollback path before merging
 ```
+
+---
+[⬆️ Back to top](#migration-guide)
 
 ---
 

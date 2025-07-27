@@ -1,3 +1,8 @@
+---
+applyTo: "internal/**/*.go"
+description: "This is the official Terraform Provider for Azure (Resource Manager), written in Go. It enables Terraform to manage Azure resources through the Azure Resource Manager APIs."
+---
+
 # Custom instructions
 
 This is the official Terraform Provider for Azure (Resource Manager), written in Go. It enables Terraform to manage Azure resources through the Azure Resource Manager APIs.
@@ -69,7 +74,7 @@ This provider supports two implementation approaches. **For comprehensive implem
 - **Resource ID management**: metadata.SetID() for resource identification
 - **Logging**: Structured logging through metadata.Logger
 
-**Detailed Guidance**: See coding-patterns.instructions.md and coding-standards.instructions.md for comprehensive typed implementation patterns.
+**Detailed Guidance**: See [`implementation-guide.instructions.md`](./instructions/implementation-guide.instructions.md) for comprehensive typed implementation patterns.
 
 ### Untyped Resource Implementation (Maintenance Only)
 **Maintained for existing resources but not recommended for new development**
@@ -82,7 +87,7 @@ This provider supports two implementation approaches. **For comprehensive implem
 - **Resource ID management**: Direct d.SetId() calls
 - **Logging**: Traditional logging patterns
 
-**Detailed Guidance**: See coding-patterns.instructions.md for untyped implementation maintenance patterns.
+**Detailed Guidance**: See [`implementation-guide.instructions.md`](./instructions/implementation-guide.instructions.md) for untyped implementation maintenance patterns.
 
 ### Implementation-Aware Development
 - **Code Review**: Both approaches must follow the same quality standards
@@ -115,7 +120,7 @@ This provider supports two implementation approaches. **For comprehensive implem
 - Follow principle of least privilege for service principals
 
 ### Testing Guidelines
-**For comprehensive testing patterns and implementation-specific guidance, see `testing-guidelines.instructions.md`**
+**For comprehensive testing patterns and implementation-specific guidance, see [`testing-guidelines.instructions.md`](./instructions/testing-guidelines.instructions.md)**
 - Write comprehensive acceptance tests for all resources
 - Use the standard acceptance test framework
 - Mock external dependencies appropriately
@@ -131,7 +136,7 @@ This provider supports two implementation approaches. **For comprehensive implem
 - Use context with appropriate timeouts
 
 ### Documentation
-**For comprehensive documentation standards, see `documentation-guidelines.instructions.md`**
+**For comprehensive documentation standards, see [`documentation-guidelines.instructions.md`](./instructions/documentation-guidelines.instructions.md)**
 - Follow Terraform documentation standards
 - Include comprehensive examples for all resources
 - Document all resource attributes and their behaviors
@@ -154,7 +159,7 @@ This provider supports two implementation approaches. **For comprehensive implem
 - Avoid logging sensitive information (passwords, keys, etc.)
 
 ### Go Code Standards
-**For comprehensive coding standards, see `coding-standards.instructions.md` and `coding-style.instructions.md`**
+**For comprehensive coding standards, see [`implementation-guide.instructions.md`](./instructions/implementation-guide.instructions.md)**
 - Follow effective Go practices and idioms
 - Use gofmt for code formatting
 - Implement proper error handling (don't ignore errors)
@@ -178,7 +183,7 @@ This provider supports two implementation approaches. **For comprehensive implem
 - **Import**: Provide clear import documentation and test import functionality
 
 ### Azure-Specific Patterns
-**For comprehensive Azure-specific guidance, see `provider-guidelines.instructions.md`**
+**For comprehensive Azure-specific guidance, see [`provider-guidelines.instructions.md`](./instructions/provider-guidelines.instructions.md)**
 - Use standardized resource naming patterns with resourceToken
 - Implement proper location/region handling
 - Follow Azure resource tagging conventions

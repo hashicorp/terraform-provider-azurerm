@@ -5,7 +5,9 @@ description: Complete implementation guide for Go files in the Terraform AzureRM
 
 # Terraform AzureRM Provider Implementation Guide
 
-This comprehensive guide covers all implementation requirements for the Terraform AzureRM provider. Quick navigation: [🏗️ Implementation Patterns](#-implementation-patterns) | [📏 Standards](#-coding-standards) | [🎨 Style](#-coding-style) | [🔧 Azure Integration](#-azure-sdk-integration)
+This comprehensive guide covers all implementation requirements for the Terraform AzureRM provider.
+
+**Quick navigation:** [🏗️ Implementation Patterns](#🏗️-implementation-patterns) | [📏 Coding Standards](#📏-coding-standards) | [🎨 Coding Style](#🎨-coding-style) | [🔧 Azure SDK Integration](#🔧-azure-sdk-integration)
 
 ## 🏗️ Implementation Patterns
 
@@ -293,6 +295,9 @@ import (
 )
 ```
 
+---
+[⬆️ Back to top](#terraform-azurerm-provider-implementation-guide)
+
 ## 📏 Coding Standards
 
 ### Naming Conventions
@@ -386,6 +391,9 @@ if response.WasNotFound(resp.HttpResponse) {
 - Aim for files under 1000 lines when possible
 - Separate complex logic into utility functions
 
+---
+[⬆️ Back to top](#terraform-azurerm-provider-implementation-guide)
+
 ## 🎨 Coding Style
 
 ### Copyright Header (Required)
@@ -450,6 +458,9 @@ The AI should **NEVER** add comments to code unless absolutely necessary. Code s
 - Basic conditional logic
 - Self-explanatory function calls
 - Routine Azure API calls
+
+---
+[⬆️ Back to top](#terraform-azurerm-provider-implementation-guide)
 
 ## 🔧 Azure SDK Integration
 
@@ -648,10 +659,12 @@ d.SetId(id.ID())
 ```
 
 ---
+[⬆️ Back to top](#terraform-azurerm-provider-implementation-guide)
+
+---
 
 ## Quick Reference Links
 
 - 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
 - 📝 **Documentation Guide**: [documentation-guidelines.instructions.md](./documentation-guidelines.instructions.md)
 - ☁️ **Azure Patterns**: [azure-patterns.instructions.md](./azure-patterns.instructions.md)
-- ⚡ **Quick References**: [reference/](./reference/)

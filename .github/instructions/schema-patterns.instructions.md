@@ -5,7 +5,7 @@ description: Schema design patterns and validation standards for the Terraform A
 
 # Schema Design Patterns
 
-Quick navigation: [📋 Schema Types](#-schema-type-patterns) | [✅ Validation](#-validation-patterns) | [⚙️ Azure Specific](#-azure-specific-schema-patterns) | [🏗️ Complex Schemas](#-complex-schema-patterns)
+**Quick navigation:** [📋 Schema Types](#📋-schema-type-patterns) | [✅ Validation](#✅-validation-patterns) | [⚙️ Azure Specific](#⚙️-azure-specific-schema-patterns) | [🏗️ Complex Schemas](#🏗️-complex-schema-patterns)
 
 ## 📋 Schema Type Patterns
 
@@ -122,6 +122,9 @@ Quick navigation: [📋 Schema Types](#-schema-type-patterns) | [✅ Validation]
 },
 ```
 
+---
+[⬆️ Back to top](#schema-design-patterns)
+
 ## ✅ Validation Patterns
 
 ### String Validation
@@ -233,6 +236,9 @@ func ValidateSQLResourceName(v interface{}, k string) (warnings []string, errors
     return warnings, errors
 }
 ```
+
+---
+[⬆️ Back to top](#schema-design-patterns)
 
 ## ⚙️ Azure-Specific Schema Patterns
 
@@ -363,6 +369,9 @@ model.ShutdownOnIdle = shutdownOnIdle
     }, false),
 },
 ```
+
+---
+[⬆️ Back to top](#schema-design-patterns)
 
 ## 🏗️ Complex Schema Patterns
 
@@ -642,6 +651,9 @@ func (r ServiceResource) Arguments() map[string]*pluginsdk.Schema {
     }
 }
 ```
+
+---
+[⬆️ Back to top](#schema-design-patterns)
 
 ---
 

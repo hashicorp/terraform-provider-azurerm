@@ -4,11 +4,17 @@
     ],
     "github.copilot.chat.reviewSelection.enabled": true,
     "github.copilot.chat.reviewSelection.instructions": [
-        { "file": ".github/instructions/coding-standards.instructions.md" },
-        { "file": ".github/instructions/coding-style.instructions.md" },
-        { "file": ".github/instructions/coding-patterns.instructions.md" },
+        { "file": ".github/instructions/implementation-guide.instructions.md" },
+        { "file": ".github/instructions/azure-patterns.instructions.md" },
         { "file": ".github/instructions/documentation-guidelines.instructions.md" },
         { "file": ".github/instructions/provider-guidelines.instructions.md" },
-        { "file": ".github/instructions/testing-guidelines.instructions.md" }
-    ]
+        { "file": ".github/instructions/testing-guidelines.instructions.md" },
+        { "file": ".github/instructions/error-patterns.instructions.md" },
+        { "file": ".github/instructions/schema-patterns.instructions.md" },
+        { "file": ".github/instructions/migration-guide.instructions.md" }
+    ],
+    "files.associations": {
+        "*.instructions.md": "markdown",
+        ".github/*.md": "markdown"
+    }
 }
