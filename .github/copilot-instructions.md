@@ -61,7 +61,7 @@ This provider supports two implementation approaches. **For comprehensive implem
 **Recommended for all new resources and data sources**
 
 - **Framework**: Uses the internal/sdk framework with type-safe models
-- **Model structures**: Struct types with 	fschema tags for schema mapping
+- **Model structures**: Struct types with tfschema tags for schema mapping
 - **CRUD methods**: Receiver methods on resource struct types
 - **State management**: metadata.Decode() and metadata.Encode() patterns
 - **Client access**: metadata.Client for Azure SDK clients and structured logging
@@ -75,12 +75,10 @@ This provider supports two implementation approaches. **For comprehensive implem
 **Maintained for existing resources but not recommended for new development**
 
 - **Framework**: Traditional Plugin SDK patterns
-- **Function-based CRUD**: Functions like
-esourceNameCreate,
-esourceNameRead
+- **Function-based CRUD**: Functions like ResourceNameCreate, ResourceNameRead
 - **State management**: Direct d.Set() and d.Get() patterns
 - **Client access**: Traditional meta.(*clients.Client) initialization
-- **Error handling**: 	f.ImportAsExistsError() and direct state manipulation
+- **Error handling**: tf.ImportAsExistsError() and direct state manipulation
 - **Resource ID management**: Direct d.SetId() calls
 - **Logging**: Traditional logging patterns
 
