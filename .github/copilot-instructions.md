@@ -231,6 +231,54 @@ func (r ServiceNameResource) Create() sdk.ResourceFunc {
 - Include issue numbers in commit messages
 - Follow the contributor guidelines in /contributing directory
 
+### Commit Message Guidelines
+When writing commit messages, follow these standards for consistency and clarity:
+
+**Format**: Use clear commit format: `TYPE: description`
+- **Types**: ENHANCEMENT, BUG, DOCS, STYLE, REFACTOR, TEST, CHORE
+- **Description**: Clear, concise summary under 50 characters
+
+**For complex changes, include details:**
+1. **Breaking Changes**: Specify if the change introduces breaking changes and describe the impact
+2. **New Features**: Highlight any new resources, data sources, or significant features added
+3. **Azure Services**: Mention updates to Azure services, APIs, or SDK integrations
+4. **Line Length**: Keep each line under 72 characters for readability
+
+**Examples**:
+```
+ENHANCEMENT: add front door profile log scrubbing support
+
+- Add log_scrubbing_rule schema for CDN Front Door profiles
+- Implement expand/flatten functions for log scrubbing configuration
+- Add comprehensive acceptance tests for log scrubbing validation
+- Update documentation with log scrubbing examples
+
+Closes Issue: #12345
+```
+
+```
+BUG: fix storage account network rules state drift
+
+- Correct flatten function to handle empty network rules properly
+- Fix state inconsistency when Azure returns default values
+- Add acceptance test for network rules edge cases
+- Ensure import functionality preserves correct state
+
+Fixes Issue: #54321
+```
+
+```
+BREAKING CHANGE: remove deprecated storage account properties
+
+- Remove deprecated `enable_blob_encryption` and `enable_file_encryption` fields
+- These fields have been superseded by `encryption` block since v2.0
+- Existing configurations using deprecated fields will fail validation
+- Users must migrate to `encryption` block before upgrading provider
+- See v4.0 upgrade guide for migration steps
+
+Closes Issue: #87654
+```
+
 ### Logging and Debugging
 - Use structured logging with appropriate log levels
 - Include resource IDs and operation context in logs
