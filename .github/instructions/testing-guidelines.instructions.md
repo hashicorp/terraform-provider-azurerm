@@ -1,42 +1,88 @@
 ---
 applyTo: "internal/**/*.go"
-description: This document outlines the testing guidelines for Go files in the Terraform AzureRM provider repository. It includes unit test organization, acceptance test patterns, naming conventions, and best practices for Azure API integration testing.
+description: Testing guidelines for Terraform AzureRM provider Go files - test execution protocols, patterns, and Azure-specific considerations.
 ---
 
-## Testing Guidelines
-Given below are the testing guidelines for the Terraform AzureRM provider which **MUST** be followed.
+# 🧪 Testing Guidelines
 
-### 🚨 **CRITICAL: Test Execution Protocol** 🚨
+## 🚨 CRITICAL: Test Execution Protocol
 
-**⚠️ DO NOT RUN TESTS AUTOMATICALLY ⚠️**
+**⚠️ NEVER RUN TESTS AUTOMATICALLY ⚠️**
 
-**MANDATORY TEST EXECUTION PROTOCOL:**
-
-#### **Rule #1: NEVER RUN TESTS WITHOUT EXPLICIT USER PERMISSION**
+**Rules:**
 - **DO NOT** execute `make testacc`, `go test`, or any test commands automatically
-- **DO NOT** run tests "to verify the implementation"
-- **DO NOT** run tests "to check if everything works"
-- **ALWAYS** provide the exact commands for the user to run manually
-- **ALWAYS** explain what the tests will do before suggesting commands
+- **ALWAYS** provide exact commands for users to run manually
+- **ALWAYS** explain test purpose, duration, and Azure resource costs
+- Tests create **REAL AZURE RESOURCES** and require **VALID CREDENTIALS**
 
-#### **Rule #2: Test Command Provision Protocol**
-When providing test commands to users:
-1. **Explain the purpose**: What will this test verify?
-2. **Provide exact commands**: Full command with proper arguments
-3. **Set expectations**: How long will it take? What resources will be created?
-4. **Include cleanup verification**: How to confirm resources are cleaned up
-
-#### **Rule #3: Azure Resource Testing Considerations**
-- Tests create **REAL AZURE RESOURCES** that incur costs
-- Tests require **VALID AZURE CREDENTIALS** to be configured
-- Some tests take **10+ MINUTES** to complete due to Azure provisioning times
-- Failed tests may leave **ORPHANED RESOURCES** that continue to incur costs
-
-#### **Example of Correct Test Command Provision:**
+**Example Command Format:**
 ```powershell
-# This will test VMSS resiliency policy backward compatibility
-# Expected duration: 5-10 minutes, creates test VMSS resources in Azure
+# Purpose: Test VMSS resiliency policy backward compatibility
+# Duration: 5-10 minutes, creates test VMSS resources in Azure
 # Requires: ARM_SUBSCRIPTION_ID, ARM_CLIENT_ID, ARM_CLIENT_SECRET, ARM_TENANT_ID
+
+make testacc TEST=./internal/services/compute TESTARGS='-run=TestAccLinuxVirtualMachineScaleSet_fieldsNotSetInState'
+```
+
+## Test Types
+
+**Unit Tests:**
+- Place in same package with `_test.go` suffix
+- Test utility functions, parsers, validators
+- Use table-driven patterns
+- No Azure credentials required
+
+**Acceptance Tests:**
+- Test against real Azure APIs with live credentials
+- Package naming: `package servicename_test` (external test package)
+- Test CRUD operations, imports, and state management
+- Use acceptance testing framework
+
+## Naming Conventions
+
+**Unit Tests:** `TestFunctionName_Scenario_ExpectedOutcome`
+- Example: `TestParseFrontDoorProfileID_ValidID_ReturnsCorrectComponents`
+
+**Acceptance Tests:** `TestAccResourceName_scenario`
+- Example: `TestAccCdnFrontDoorProfile_basic`
+- Example: `TestAccCdnFrontDoorProfile_requiresImport`
+
+## Essential Test Patterns
+
+**Basic Resource Test:**
+```go
+func TestAccResourceName_basic(t *testing.T) {
+    data := acceptance.BuildTestData(t, "azurerm_resource_name", "test")
+    r := ResourceNameResource{}
+
+    data.ResourceTest(t, r, []acceptance.TestStep{
+        {
+            Config: r.basic(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+            ),
+        },
+        data.ImportStep(), // Validates all field values automatically
+    })
+}
+```
+
+**RequiresImport Test:**
+```go
+func TestAccResourceName_requiresImport(t *testing.T) {
+    data := acceptance.BuildTestData(t, "azurerm_resource_name", "test")
+    r := ResourceNameResource{}
+    data.ResourceTest(t, r, []acceptance.TestStep{
+        {
+            Config: r.basic(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+            ),
+        },
+        data.RequiresImportErrorStep(r.requiresImport),
+    })
+}
+```
 
 make testacc TEST=./internal/services/compute TESTARGS='-run=TestAccLinuxVirtualMachineScaleSet_fieldsNotSetInState'
 ```
@@ -51,57 +97,39 @@ make testacc TEST=./internal/services/compute TESTARGS='-run=TestAccLinuxVirtual
 
 ---
 
-### Implementation Approach Testing Considerations
+## CustomizeDiff Testing (MANDATORY)
 
-#### Testing Approach Consistency
+**Why Critical:**
+- CustomizeDiff prevents invalid Azure API calls
+- Enforces Azure service field combination requirements
+- Provides clear error messages before resource operations
 
-While the core testing principles remain the same, there are some differences in testing patterns between Typed Resource and UnTyped Resource implementations:
+**Required Test Coverage:**
+- **Error scenarios**: Test invalid field combinations with `ExpectError: regexp.MustCompile()`
+- **Success scenarios**: Test valid configurations that pass validation
+- **Edge cases**: Test boundary conditions and Azure service constraints
 
-**For detailed implementation approach information, see the main copilot instructions file.**
+**CustomizeDiff Test Pattern:**
+```go
+func TestAccServiceName_customizeDiffValidation(t *testing.T) {
+    data := acceptance.BuildTestData(t, "azurerm_service_name", "test")
+    r := ServiceNameResource{}
 
-**Testing Consistency Requirements:**
-- **User Experience**: Acceptance tests should be identical regardless of implementation approach
-- **Test Framework**: Both approaches use the same acceptance testing framework
-- **Resource Lifecycle**: Both approaches test the same CRUD operations and import functionality
-- **Azure Integration**: Both approaches test the same Azure API interactions and behaviors
-
-### Test Types
-
-#### Unit Tests
-- Place unit tests in the same package as the source code with `_test.go` suffix
-- Focus on utility functions, parsers, validators, and isolated business logic
-- Use Go's built-in `testing` package and `testify` for assertions
-- Follow table-driven test patterns for multiple scenarios
-- Mock external dependencies using interfaces
-- Test edge cases, error scenarios, and Azure-specific validation logic
-- Unit tests should not require Azure credentials or make external API calls
-
-#### Acceptance Tests
-- Primary testing method for Terraform resource lifecycle (CRUD operations)
-- Place acceptance tests in files ending with `_test.go` in the same directory as the resource
-- **Package Naming**: Acceptance tests must use the resource package name with `_test` appended
-  - Example: If the resource is in package `cdn`, tests should be in package `cdn_test`
-  - Example: If the resource is in package `compute`, tests should be in package `compute_test`
-  - This follows Go's external test package convention for testing exported APIs
-- Test against real Azure APIs with live Azure credentials
-- Use the acceptance testing framework provided by the provider
-- Test resource creation, updates, imports, and deletion
-- Test dependent resource relationships and state management
-
-### Naming Conventions
-
-#### Unit Test Functions
-- Use `TestFunctionName_Scenario_ExpectedOutcome` format
-- Example: `TestParseFrontDoorProfileID_ValidID_ReturnsCorrectComponents`
-- Example: `TestValidateFrontDoorProfileName_TooLong_ReturnsError`
-
-#### Acceptance Test Functions
-- Use `TestAccResourceName_scenario` format
-- Example: `TestAccCdnFrontDoorProfile_basic`
-- Example: `TestAccCdnFrontDoorProfile_update`
-- Example: `TestAccCdnFrontDoorProfile_requiresImport`
-
-### Testing CustomizeDiff Validations: Critical Requirements
+    data.ResourceTest(t, r, []acceptance.TestStep{
+        {
+            Config:      r.invalidConfiguration(data),
+            ExpectError: regexp.MustCompile("`configuration` is required when `enabled` is true"),
+        },
+        {
+            Config: r.validConfiguration(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+            ),
+        },
+        data.ImportStep(),
+    })
+}
+```
 
 CustomizeDiff validations are essential for enforcing Azure API constraints and preventing invalid configurations. **Testing these validations is mandatory** and requires comprehensive coverage of both success and failure scenarios.
 
@@ -219,29 +247,25 @@ func TestAccCdnFrontDoorFirewallPolicy_logScrubbingValidation(t *testing.T) {
             Config: r.logScrubbingValidQueryStringWithEquals(data),
             Check: acceptance.ComposeTestCheckFunc(
                 check.That(data.ResourceName).ExistsInAzure(r),
-                check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.0.match_variable").HasValue("QueryStringArgNames"),
-                check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.0.operator").HasValue("Equals"),
-                check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.0.selector").HasValue("custom_param"),
             ),
         },
+        data.ImportStep(),
         {
             // Test valid configuration with RequestIPAddress and EqualsAny operator
             Config: r.logScrubbingValidRequestIPAddress(data),
             Check: acceptance.ComposeTestCheckFunc(
                 check.That(data.ResourceName).ExistsInAzure(r),
-                check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.0.match_variable").HasValue("RequestIPAddress"),
-                check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.0.operator").HasValue("EqualsAny"),
             ),
         },
+        data.ImportStep(),
         {
             // Test valid configuration with RequestUri and EqualsAny operator
             Config: r.logScrubbingValidRequestUri(data),
             Check: acceptance.ComposeTestCheckFunc(
                 check.That(data.ResourceName).ExistsInAzure(r),
-                check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.0.match_variable").HasValue("RequestUri"),
-                check.That(data.ResourceName).Key("log_scrubbing.0.scrubbing_rule.0.operator").HasValue("EqualsAny"),
             ),
         },
+        data.ImportStep(),
     })
 }
 ```
@@ -286,15 +310,8 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   sku_name           = azurerm_cdn_frontdoor_profile.test.sku_name
   mode               = "Prevention"
 
-  log_scrubbing {
-    enabled = true
-
-    scrubbing_rule {
-      enabled        = true
-      match_variable = "RequestBodyJsonArgNames"
-      operator       = "EqualsAny"
-      selector       = "invalid_selector"  # This should trigger validation error
-    }
+  log_scrubbing_rule {
+    match_variable = "RequestBodyJsonArgNames"  # This should trigger validation error with simplified schema
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -310,15 +327,8 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   sku_name           = azurerm_cdn_frontdoor_profile.test.sku_name
   mode               = "Prevention"
 
-  log_scrubbing {
-    enabled = true
-
-    scrubbing_rule {
-      enabled        = true
-      match_variable = "QueryStringArgNames"
-      operator       = "Equals"
-      # No selector specified - this should trigger validation error
-    }
+  log_scrubbing_rule {
+    match_variable = "QueryStringArgNames"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -334,15 +344,8 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   sku_name           = azurerm_cdn_frontdoor_profile.test.sku_name
   mode               = "Prevention"
 
-  log_scrubbing {
-    enabled = true
-
-    scrubbing_rule {
-      enabled        = true
-      match_variable = "RequestIPAddress"
-      operator       = "Equals"  # This should trigger validation error - must be EqualsAny
-      selector       = "invalid_selector"
-    }
+  log_scrubbing_rule {
+    match_variable = "RequestIPAddress"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -358,15 +361,8 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   sku_name           = azurerm_cdn_frontdoor_profile.test.sku_name
   mode               = "Prevention"
 
-  log_scrubbing {
-    enabled = true
-
-    scrubbing_rule {
-      enabled        = true
-      match_variable = "RequestUri"
-      operator       = "Equals"  # This should trigger validation error - must be EqualsAny
-      selector       = "invalid_selector"
-    }
+  log_scrubbing_rule {
+    match_variable = "RequestUri"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -382,15 +378,8 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   sku_name           = azurerm_cdn_frontdoor_profile.test.sku_name
   mode               = "Prevention"
 
-  log_scrubbing {
-    enabled = true
-
-    scrubbing_rule {
-      enabled        = true
-      match_variable = "QueryStringArgNames"
-      operator       = "Equals"
-      selector       = "custom_param"  # This is valid for QueryStringArgNames with Equals
-    }
+  log_scrubbing_rule {
+    match_variable = "QueryStringArgNames"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -406,15 +395,8 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   sku_name           = azurerm_cdn_frontdoor_profile.test.sku_name
   mode               = "Prevention"
 
-  log_scrubbing {
-    enabled = true
-
-    scrubbing_rule {
-      enabled        = true
-      match_variable = "RequestIPAddress"
-      operator       = "EqualsAny"  # This is required for RequestIPAddress
-      # No selector - this is required for EqualsAny operator
-    }
+  log_scrubbing_rule {
+    match_variable = "RequestIPAddress"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -430,15 +412,8 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   sku_name           = azurerm_cdn_frontdoor_profile.test.sku_name
   mode               = "Prevention"
 
-  log_scrubbing {
-    enabled = true
-
-    scrubbing_rule {
-      enabled        = true
-      match_variable = "RequestUri"
-      operator       = "EqualsAny"  # This is required for RequestUri
-      # No selector - this is required for EqualsAny operator
-    }
+  log_scrubbing_rule {
+    match_variable = "RequestUri"
   }
 }
 `, r.template(data), data.RandomInteger)
@@ -992,383 +967,80 @@ func TestAccServiceName_optionalComputedField(t *testing.T) {
 
 ### Environment Setup
 
-#### Required Environment Variables
-```bash
-export ARM_SUBSCRIPTION_ID="your-azure-subscription-id"
-export ARM_CLIENT_ID="your-service-principal-client-id"
-export ARM_CLIENT_SECRET="your-service-principal-client-secret"
-export ARM_TENANT_ID="your-azure-tenant-id"
-export ARM_TEST_LOCATION=WestEurope
-export ARM_TEST_LOCATION_ALT=EastUS2
-export ARM_TEST_LOCATION_ALT2=WestUS2
-```
+## Test Organization and Placement Rules
 
-```powershell
-$env:ARM_SUBSCRIPTION_ID="your-azure-subscription-id"
-$env:ARM_CLIENT_ID="your-service-principal-client-id"
-$env:ARM_CLIENT_SECRET="your-service-principal-client-secret"
-$env:ARM_TENANT_ID="your-azure-tenant-id"
-$env:ARM_TEST_LOCATION="WestEurope"
-$env:ARM_TEST_LOCATION_ALT="EastUS2"
-$env:ARM_TEST_LOCATION_ALT2="WestUS2"
-```
+**Acceptance Test File Structure:**
+- **Test function placement**: All test functions must be placed before the `Exists` function in the test file
+- **Helper function placement**: Test configuration helper functions should be placed after the `Exists` function
+- **No duplicate functions**: Remove any duplicate or old test functions to maintain clean file structure
+- **Consistent ordering**: Place tests in logical order (basic, update, requires import, other scenarios)
 
-#### Running Tests
-```bash
-# Run unit tests
-go test ./internal/services/cdn/...
+**Test Case Consolidation Standards:**
+- **Basic Test**: Core functionality with minimal configuration
+- **Update Test**: Resource update scenarios (only if resource supports updates)
+- **RequiresImport Test**: Import conflict detection
+- **Complete Test**: Full feature demonstration (optional, for complex resources)
 
-# Run specific unit test
-go test -run TestParseFrontDoorProfileID ./internal/services/cdn/
-
-# Run acceptance tests for a service
-make testacc TEST=./internal/services/cdn TESTARGS='-run=TestAccCdnFrontDoorProfile'
-
-# Run specific acceptance test
-make testacc TEST=./internal/services/cdn TESTARGS='-run=TestAccCdnFrontDoorProfile_basic'
-```
-
-### Best Practices
-
-#### Test Organization
-- Group related tests using subtests with `t.Run()`
-- Use `data.ResourceTest()` for acceptance tests to ensure proper cleanup
-- Always include import tests for resources (`data.ImportStep()`)
-- Test both successful operations and error conditions
-
-#### Azure Resource Management
-- Use `acceptance.BuildTestData()` for consistent test data generation
-- Include dependency resources (resource groups, networks) in test configurations
-- Use unique naming with random integers to avoid resource conflicts
-- Test in multiple Azure regions when relevant
-
-#### Error Handling
-- Test validation functions with both valid and invalid inputs
-- Verify specific error messages and error types
-- Test Azure API error scenarios (resource not found, throttling, etc.)
-- Ensure proper error wrapping and context information
-
-#### Performance Considerations
-- Use parallel test execution where possible (`t.Parallel()`)
-- Minimize Azure API calls in unit tests
-- Use appropriate timeouts for long-running operations
-- Clean up test resources properly to avoid quota issues
-
-### CDN Front Door-Specific Testing Guidelines
-
-#### CDN Front Door Testing Considerations
-- **Global Resource**: CDN Front Door profiles are global resources, not tied to specific Azure regions
-- **SKU Limitations**: Different features are available in Standard vs Premium SKUs
-- **Naming Constraints**: Profile names must be globally unique across Azure
-- **Propagation Time**: Changes may take time to propagate globally
-- **Response Timeout**: Valid range is 16-240 seconds
-
-### CustomizeDiff Testing Patterns
-
-When testing resources that use CustomizeDiff, remember the dual import requirement:
-
+**Example of Proper Test Organization:**
 ```go
-import (
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-)
-```
+package cdn_test
 
-**Testing CustomizeDiff Validation:**
+// ESSENTIAL TESTS - Keep these
+func TestAccCdnFrontDoorProfile_basic(t *testing.T) { ... }
+func TestAccCdnFrontDoorProfile_update(t *testing.T) { ... }
+func TestAccCdnFrontDoorProfile_requiresImport(t *testing.T) { ... }
+
+// Exists function - SEPARATOR between tests and helpers
+func (CdnFrontDoorProfileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) { ... }
+
+// Helper functions - AFTER Exists function
+func (r CdnFrontDoorProfileResource) basic(data acceptance.TestData) string { ... }
+func (r CdnFrontDoorProfileResource) requiresImport(data acceptance.TestData) string { ... }
+```
+## Azure Test Cleanup Issues
+
+**Problem:** Azure resources with protective features block test cleanup.
+
+**Solution:** Use provider feature flags to force deletion:
 ```go
-func TestAccServiceName_customizeDiffValidation(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_service_name", "test")
-    r := ServiceNameResource{}
-
-    data.ResourceTest(t, r, []acceptance.TestStep{
-        {
-            Config:      r.invalidConfiguration(data),
-            ExpectError: regexp.MustCompile("`configuration` is required when `enabled` is true"),
-        },
-        {
-            Config: r.validConfiguration(data),
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r),
-            ),
-        },
-    })
-}
-```
-
-### Environment Setup
-
-#### Required Environment Variables
-```bash
-export ARM_SUBSCRIPTION_ID="your-azure-subscription-id"
-export ARM_CLIENT_ID="your-service-principal-client-id"
-export ARM_CLIENT_SECRET="your-service-principal-client-secret"
-export ARM_TENANT_ID="your-azure-tenant-id"
-export ARM_TEST_LOCATION=WestEurope
-export ARM_TEST_LOCATION_ALT=EastUS2
-export ARM_TEST_LOCATION_ALT2=WestUS2
-```
-
-```powershell
-$env:ARM_SUBSCRIPTION_ID="your-azure-subscription-id"
-$env:ARM_CLIENT_ID="your-service-principal-client-id"
-$env:ARM_CLIENT_SECRET="your-service-principal-client-secret"
-$env:ARM_TENANT_ID="your-azure-tenant-id"
-$env:ARM_TEST_LOCATION="WestEurope"
-$env:ARM_TEST_LOCATION_ALT="EastUS2"
-$env:ARM_TEST_LOCATION_ALT2="WestUS2"
-```
-
-#### Running Tests
-```bash
-# Run unit tests
-go test ./internal/services/cdn/...
-
-# Run specific unit test
-go test -run TestParseFrontDoorProfileID ./internal/services/cdn/
-
-# Run acceptance tests for a service
-make testacc TEST=./internal/services/cdn TESTARGS='-run=TestAccCdnFrontDoorProfile'
-
-# Run specific acceptance test
-make testacc TEST=./internal/services/cdn TESTARGS='-run=TestAccCdnFrontDoorProfile_basic'
-```
-
-### Best Practices
-
-#### Test Organization
-- Group related tests using subtests with `t.Run()`
-- Use `data.ResourceTest()` for acceptance tests to ensure proper cleanup
-- Always include import tests for resources (`data.ImportStep()`)
-- Test both successful operations and error conditions
-
-#### Azure Resource Management
-- Use `acceptance.BuildTestData()` for consistent test data generation
-- Include dependency resources (resource groups, networks) in test configurations
-- Use unique naming with random integers to avoid resource conflicts
-- Test in multiple Azure regions when relevant
-
-#### Error Handling
-- Test validation functions with both valid and invalid inputs
-- Verify specific error messages and error types
-- Test Azure API error scenarios (resource not found, throttling, etc.)
-- Ensure proper error wrapping and context information
-
-#### Performance Considerations
-- Use parallel test execution where possible (`t.Parallel()`)
-- Minimize Azure API calls in unit tests
-- Use appropriate timeouts for long-running operations
-- Clean up test resources properly to avoid quota issues
-
-### CDN Front Door-Specific Testing Guidelines
-
-#### CDN Front Door Testing Considerations
-- **Global Resource**: CDN Front Door profiles are global resources, not tied to specific Azure regions
-- **SKU Limitations**: Different features are available in Standard vs Premium SKUs
-- **Naming Constraints**: Profile names must be globally unique across Azure
-- **Propagation Time**: Changes may take time to propagate globally
-- **Response Timeout**: Valid range is 16-240 seconds
-
-### SKU Validation Testing
-
-```go
-func TestValidateFrontDoorProfileSku(t *testing.T) {
-    validSkus := []string{
-        "Standard_AzureFrontDoor",
-        "Premium_AzureFrontDoor",
-    }
-    invalidSkus := []string{
-        "Basic",
-        "Standard",
-        "Premium",
-        "Invalid_SKU",
-    }
-
-    for _, sku := range validSkus {
-        t.Run("valid_"+sku, func(t *testing.T) {
-            warnings, errors := ValidateFrontDoorProfileSku(sku, "test")
-            require.Empty(t, warnings)
-            require.Empty(t, errors)
-        })
-    }
-
-    for _, sku := range invalidSkus {
-        t.Run("invalid_"+sku, func(t *testing.T) {
-            _, errors := ValidateFrontDoorProfileSku(sku, "test")
-            require.NotEmpty(t, errors)
-        })
-    }
-}
-```
-
-#### CDN Front Door Testing Considerations
-- **Global Resource**: CDN Front Door profiles are global resources, not tied to specific Azure regions
-- **SKU Limitations**: Different features are available in Standard vs Premium SKUs
-- **Naming Constraints**: Profile names must be globally unique across Azure
-- **Propagation Time**: Changes may take time to propagate globally
-- **Response Timeout**: Valid range is 16-240 seconds
-
-### CustomizeDiff Testing Patterns
-
-When testing resources that use CustomizeDiff, remember the dual import requirement:
-
-```go
-import (
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-)
-```
-
-**Testing CustomizeDiff Validation:**
-```go
-func TestAccServiceName_customizeDiffValidation(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_service_name", "test")
-    r := ServiceNameResource{}
-
-    data.ResourceTest(t, r, []acceptance.TestStep{
-        {
-            Config:      r.invalidConfiguration(data),
-            ExpectError: regexp.MustCompile("`configuration` is required when `enabled` is true"),
-        },
-        {
-            Config: r.validConfiguration(data),
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r),
-            ),
-        },
-    })
-}
-```
-
-### Environment Setup
-
-#### Required Environment Variables
-```bash
-export ARM_SUBSCRIPTION_ID="your-azure-subscription-id"
-export ARM_CLIENT_ID="your-service-principal-client-id"
-export ARM_CLIENT_SECRET="your-service-principal-client-secret"
-export ARM_TENANT_ID="your-azure-tenant-id"
-export ARM_TEST_LOCATION=WestEurope
-export ARM_TEST_LOCATION_ALT=EastUS2
-export ARM_TEST_LOCATION_ALT2=WestUS2
-```
-
-```powershell
-$env:ARM_SUBSCRIPTION_ID="your-azure-subscription-id"
-$env:ARM_CLIENT_ID="your-service-principal-client-id"
-$env:ARM_CLIENT_SECRET="your-service-principal-client-secret"
-$env:ARM_TENANT_ID="your-azure-tenant-id"
-$env:ARM_TEST_LOCATION="WestEurope"
-$env:ARM_TEST_LOCATION_ALT="EastUS2"
-$env:ARM_TEST_LOCATION_ALT2="WestUS2"
-```
-
-#### Running Tests
-```bash
-# Run unit tests
-go test ./internal/services/cdn/...
-
-# Run specific unit test
-go test -run TestParseFrontDoorProfileID ./internal/services/cdn/
-
-# Run acceptance tests for a service
-make testacc TEST=./internal/services/cdn TESTARGS='-run=TestAccCdnFrontDoorProfile'
-
-# Run specific acceptance test
-make testacc TEST=./internal/services/cdn TESTARGS='-run=TestAccCdnFrontDoorProfile_basic'
-```
-
-### Best Practices
-
-#### Test Organization
-- Group related tests using subtests with `t.Run()`
-- Use `data.ResourceTest()` for acceptance tests to ensure proper cleanup
-- Always include import tests for resources (`data.ImportStep()`)
-- Test both successful operations and error conditions
-
-#### Azure Resource Management
-- Use `acceptance.BuildTestData()` for consistent test data generation
-- Include dependency resources (resource groups, networks) in test configurations
-- Use unique naming with random integers to avoid resource conflicts
-- Test in multiple Azure regions when relevant
-
-#### Error Handling
-- Test validation functions with both valid and invalid inputs
-- Verify specific error messages and error types
-- Test Azure API error scenarios (resource not found, throttling, etc.)
-- Ensure proper error wrapping and context information
-
-#### Performance Considerations
-- Use parallel test execution where possible (`t.Parallel()`)
-- Minimize Azure API calls in unit tests
-- Use appropriate timeouts for long-running operations
-- Clean up test resources properly to avoid quota issues
-
-### CDN Front Door-Specific Testing Guidelines
-
-#### CDN Front Door Testing Considerations
-- **Global Resource**: CDN Front Door profiles are global resources, not tied to specific Azure regions
-- **SKU Limitations**: Different features are available in Standard vs Premium SKUs
-- **Naming Constraints**: Profile names must be globally unique across Azure
-- **Propagation Time**: Changes may take time to propagate globally
-- **Response Timeout**: Valid range is 16-240 seconds
-
-### Azure Provider Feature Flags for Test Cleanup
-
-**Critical Insight**: Some Azure resources with protective features (like VMSS resiliency, database high availability, etc.) may block Terraform's default cleanup behavior during test teardown. The test framework automatically tries to scale down resources to 0 instances before deletion, but Azure may prevent this due to service-specific requirements.
-
-**Root Cause Understanding**:
-When tests fail with errors like `OperationNotAllowed: Cannot update [resource] when [protective feature] is enabled`, the issue is typically the **auto scale-down behavior** during cleanup. The Terraform test framework tries to gracefully scale resources to 0 instances before deletion, but Azure blocks this operation to maintain service guarantees (health monitoring, backup retention, etc.).
-
-**Force Delete Pattern for Protected Resources:**
-```go
-// Template function with force delete configuration
-func (r ServiceNameResource) templateWithForceDelete(data acceptance.TestData) string {
-    return fmt.Sprintf(`
-%s
-
 provider "azurerm" {
   features {
     virtual_machine_scale_set {
       force_delete = true
     }
-    # Add other service-specific force delete flags as needed
-    # key_vault {
-    #   purge_soft_delete_on_destroy = true
-    # }
+    key_vault {
+      purge_soft_delete_on_destroy = true
+    }
   }
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-service-%d"
-  location = "%s"
-}
-# ... other base resources
-`, r.templatePublicKey(), data.RandomInteger, data.Locations.Primary)
-}
-
-// Usage in test configurations
-func (r ServiceNameResource) resiliencyTestWithCleanup(data acceptance.TestData) string {
-    return fmt.Sprintf(`
-%s
-
-resource "azurerm_service_resource" "test" {
-  # ... resource configuration with protective features
-  resiliency {
-    enabled = true
-  }
-}
-`, r.templateWithForceDelete(data))
 }
 ```
 
-**When to Use Force Delete Flags:**
-- **VMSS with resiliency enabled**: `virtual_machine_scale_set.force_delete = true`
-- **Key Vault with soft delete**: `key_vault.purge_soft_delete_on_destroy = true`
-- **SQL databases with backup protection**: Appropriate force delete flags
-- **Any resource where Azure blocks normal Terraform cleanup operations**
+**When to Use:**
+- VMSS with resiliency enabled
+- Key Vault with soft delete
+- SQL databases with backup protection
+- Any resource blocking normal cleanup
 
-**Common Cleanup Error Patterns to Watch For:**
-- `OperationNotAllowed: Cannot update [resource] when [protective feature] is enabled`
+## Environment Setup
+
+**Required Environment Variables:**
+```bash
+export ARM_SUBSCRIPTION_ID="your-azure-subscription-id"
+export ARM_CLIENT_ID="your-service-principal-client-id"
+export ARM_CLIENT_SECRET="your-service-principal-client-secret"
+export ARM_TENANT_ID="your-azure-tenant-id"
+export ARM_TEST_LOCATION=WestEurope
+export ARM_TEST_LOCATION_ALT=EastUS2
+```
+
+**Running Tests:**
+```bash
+# Unit tests
+go test ./internal/services/cdn/...
+
+# Acceptance tests (MANUAL EXECUTION ONLY)
+make testacc TEST=./internal/services/cdn TESTARGS='-run=TestAccCdnFrontDoorProfile_basic'
+```
 - `ResourceGroupBeingDeleted: Cannot perform operation while resource group is being deleted`
 - Scale-down operations blocked due to health monitoring requirements
 - Soft-delete conflicts preventing immediate recreation

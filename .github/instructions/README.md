@@ -1,120 +1,52 @@
-# Terraform AzureRM Provider - AI Development Instructions
+# 🚀 Terraform AzureRM Provider - Development Guidelines
 
-This directory contains comprehensive coding guidelines and instruction files designed to work with GitHub Copilot and other AI development tools for the Terraform AzureRM provider.
+## Quick Access to Development Guidelines
 
-## 📁 File Organization
+Welcome to the instruction file system for the Terraform AzureRM provider. These guides provide comprehensive development guidance for contributors and AI assistance.
 
-### Core Instruction Files
+### 🎯 **Core Development Guides** (Start Here)
 
-| File | Purpose | Scope |
-|------|---------|-------|
-| [`coding-style.instructions.md`](./coding-style.instructions.md) | Basic Go formatting and style rules | Fundamental code formatting, import organization |
-| [`coding-standards.instructions.md`](./coding-standards.instructions.md) | Comprehensive coding standards | Naming conventions, error handling, file organization |
-| [`coding-patterns.instructions.md`](./coding-patterns.instructions.md) | Implementation patterns and examples | Resource implementation, client management, schema design |
-| [`provider-guidelines.instructions.md`](./provider-guidelines.instructions.md) | Azure-specific provider patterns | ARM integration, CustomizeDiff, Azure API patterns |
-| [`testing-guidelines.instructions.md`](./testing-guidelines.instructions.md) | Testing patterns and best practices | Unit tests, acceptance tests, Azure-specific testing |
-| [`documentation-guidelines.instructions.md`](./documentation-guidelines.instructions.md) | Documentation standards | Resource vs data source docs, examples, formatting |
+| Guide | Purpose | Key Content |
+|-------|---------|-------------|
+| [🏗️ **Implementation Guide**](./implementation-guide.md) | **Primary reference for all coding standards, patterns, and style** | Unified coding standards, typed vs untyped patterns, naming conventions, file organization, Azure SDK integration |
+| [🔷 **Azure Patterns**](./azure-patterns.md) | **Azure-specific implementation patterns and best practices** | PATCH operations, CustomizeDiff validation, schema flattening, security patterns, "None" value handling |
+| [❌ **Error Patterns**](./error-patterns.md) | **Comprehensive error handling and debugging guidelines** | Error message formatting, debugging protocols, Azure API errors, console output interpretation |
+| [📋 **Schema Patterns**](./schema-patterns.md) | **Schema design patterns and validation standards** | Field types, validation functions, Azure helpers, complex schemas, TypeSet vs TypeList |
 
-## 🏗️ Implementation Approaches
+### 🔧 **Specialized Development Guides**
 
-The Terraform AzureRM provider supports two implementation approaches:
+| Guide | Purpose | Key Content |
+|-------|---------|-------------|
+| [🔄 **Migration Guide**](./migration-guide.md) | **Implementation approach transitions and upgrade procedures** | Typed resource migration, breaking changes, version compatibility, upgrade procedures |
+| [🧪 **Testing Guidelines**](./testing-guidelines.instructions.md) | **Testing standards and patterns for acceptance and unit tests** | Test execution protocols, CustomizeDiff testing, Azure resource testing, cleanup patterns |
+| [📚 **Documentation Guidelines**](./documentation-guidelines.instructions.md) | **Documentation standards for resources and data sources** | Resource vs data source patterns, example standards, field documentation |
+| [🏢 **Provider Guidelines**](./provider-guidelines.instructions.md) | **Azure-specific provider patterns and integration guidelines** | ARM integration, client management, Azure service constraints |
 
-### 🎯 **Typed Resource Implementation (Preferred)**
-- **Framework**: Uses `internal/sdk` with type-safe models
-- **Pattern**: Receiver methods on resource structs
-- **State Management**: `tfschema` tags with `metadata.Decode()`/`metadata.Encode()`
-- **Recommended For**: All new resources and data sources
+## 🎓 **How to Use This System**
 
-### 🔧 **UnTyped Resource Implementation (Maintenance)**
-- **Framework**: Traditional Plugin SDK patterns
-- **Pattern**: Function-based CRUD operations
-- **State Management**: Direct `d.Set()`/`d.Get()` manipulation
-- **Used For**: Existing resource maintenance only
+### For New Developers
+1. **Start with**: [🏗️ Implementation Guide](./implementation-guide.md) - Get familiar with coding standards and patterns
+2. **Learn Azure specifics**: [🔷 Azure Patterns](./azure-patterns.md) - Understand Azure-specific implementation requirements
+3. **Master error handling**: [❌ Error Patterns](./error-patterns.md) - Learn proper error handling and debugging techniques
+4. **Schema design**: [📋 Schema Patterns](./schema-patterns.md) - Understand schema design patterns and validation
 
-Both approaches are fully documented with examples in the instruction files.
+### For Experienced Developers
+- **Quick Reference**: Use the emoji navigation within each file to jump between related sections
+- **Specific Tasks**: Use the purpose column above to find the most relevant guide
+- **Migration Work**: Start with [🔄 Migration Guide](./migration-guide.md) for implementation approach changes
 
-## 📚 Learning Path
+### For Code Reviews
+- **Standards Check**: [🏗️ Implementation Guide](./implementation-guide.md) for coding standards compliance
+- **Azure Compliance**: [🔷 Azure Patterns](./azure-patterns.md) for Azure-specific pattern verification
+- **Error Handling**: [❌ Error Patterns](./error-patterns.md) for proper error handling review
 
-For new contributors, we recommend reviewing the files in this order:
+## 🚀 **Next Steps**
 
-1. **Start Here**: [`coding-style.instructions.md`](./coding-style.instructions.md) - Basic formatting rules
-2. **Core Standards**: [`coding-standards.instructions.md`](./coding-standards.instructions.md) - Naming and error patterns
-3. **Implementation**: [`coding-patterns.instructions.md`](./coding-patterns.instructions.md) - Resource implementation patterns
-4. **Azure-Specific**: [`provider-guidelines.instructions.md`](./provider-guidelines.instructions.md) - Azure integration patterns
-5. **Testing**: [`testing-guidelines.instructions.md`](./testing-guidelines.instructions.md) - Comprehensive testing guide
-6. **Documentation**: [`documentation-guidelines.instructions.md`](./documentation-guidelines.instructions.md) - Writing great docs
-
-## 🔗 Cross-References
-
-### Common Topics Across Files
-
-| Topic | Primary File | Related Files |
-|-------|-------------|---------------|
-| **Error Handling** | `coding-standards.instructions.md` | `coding-patterns.instructions.md`, `testing-guidelines.instructions.md` |
-| **Azure SDK Usage** | `provider-guidelines.instructions.md` | `coding-patterns.instructions.md`, `coding-standards.instructions.md` |
-| **CustomizeDiff** | `provider-guidelines.instructions.md` | `coding-patterns.instructions.md`, `testing-guidelines.instructions.md` |
-| **Import Management** | `coding-patterns.instructions.md` | `coding-style.instructions.md`, `coding-standards.instructions.md` |
-| **Testing Patterns** | `testing-guidelines.instructions.md` | All implementation files |
-| **State Management** | `coding-patterns.instructions.md` | `coding-standards.instructions.md`, `provider-guidelines.instructions.md` |
-
-### Implementation-Specific Guidance
-
-#### For Typed Resource Development
-1. [`coding-patterns.instructions.md`](./coding-patterns.instructions.md) - Typed implementation patterns
-2. [`coding-standards.instructions.md`](./coding-standards.instructions.md) - Typed error handling
-3. [`testing-guidelines.instructions.md`](./testing-guidelines.instructions.md) - Testing typed resources
-
-#### For UnTyped Resource Maintenance
-1. [`coding-patterns.instructions.md`](./coding-patterns.instructions.md) - UnTyped maintenance patterns
-2. [`coding-standards.instructions.md`](./coding-standards.instructions.md) - Traditional error handling
-3. [`testing-guidelines.instructions.md`](./testing-guidelines.instructions.md) - Testing untyped resources
-
-## 🎯 AI Development Integration
-
-These instruction files are designed to work seamlessly with:
-
-- **GitHub Copilot**: Referenced in `.vscode/settings.json` for context-aware assistance
-- **AI Prompts**: Used by prompt files in `../.github/prompts/` for structured development tasks
-- **Code Reviews**: Provide standards for AI-assisted code review processes
-- **Documentation**: Guide AI in generating consistent, high-quality documentation
-
-## 🔄 Maintenance
-
-### Keeping Instructions Current
-
-- **Regular Reviews**: Instructions should be reviewed quarterly for accuracy
-- **Code Example Validation**: Automated testing of code examples (future enhancement)
-- **Azure SDK Updates**: Update patterns when Azure SDK versions change
-- **Provider Evolution**: Adjust guidelines as provider architecture evolves
-
-### Contributing to Instructions
-
-When updating instruction files:
-
-1. **Maintain Consistency**: Ensure examples work across all referenced files
-2. **Update Cross-References**: Check related files for impact
-3. **Test Examples**: Verify all code examples compile and follow current patterns
-4. **Azure Alignment**: Ensure Azure-specific guidance matches current SDK and API patterns
-
-## 📋 Quick Reference
-
-### Essential Commands
-```bash
-# Run tests following guidelines
-make test
-make testacc TEST=./internal/services/cdn TESTARGS='-run=TestAccCdnFrontDoorProfile'
-
-# Format code according to style guide
-gofmt -w .
-goimports -w .
-```
-
-### Key Patterns
-- **Resource Implementation**: See `coding-patterns.instructions.md` for CRUD patterns
-- **Error Handling**: Use `fmt.Errorf("action `%s`: %+v", resource, err)` format
-- **Azure Client Usage**: Follow patterns in `provider-guidelines.instructions.md`
-- **Testing**: Always include import tests with `data.ImportStep()`
+1. **Bookmark this file** as your starting point for development guidance
+2. **Use the emoji navigation** within each file to quickly find related information
+3. **Contribute improvements** by following the patterns established in these guides
+4. **Report issues** if you find gaps or inconsistencies in the guidance
 
 ---
 
-For questions about these guidelines or suggestions for improvements, please refer to the individual instruction files or contribute updates following the patterns established in this documentation system.
+*This instruction system provides operational guidance for Terraform AzureRM provider development. Each file includes cross-references to related content and clear navigation paths.*

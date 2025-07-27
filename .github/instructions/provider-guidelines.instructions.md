@@ -1,12 +1,11 @@
 ---
 applyTo: "internal/**/*.go"
-description: This document outlines the Azure-specific guidelines for Go files in the Terraform Azure Provider repository. It includes best practices for Azure Resource Manager integration, Terraform provider patterns, and resource implementation.
+description: Azure-specific guidelines for Go files in the Terraform Azure Provider repository. It includes best practices for Azure Resource Manager integration, Terraform provider patterns, and resource implementation.
 ---
 
-## Azure Terraform Provider Guidelines
-Given below are the Azure-specific guidelines for this Terraform Provider project which **MUST** be followed.
+# 🏢 Provider Guidelines
 
-### Azure Resource Manager (ARM) Integration
+## Azure Resource Manager (ARM) Integration
 - Use the HashiCorp Go Azure SDK as the primary SDK for Azure integrations
 - Implement proper error handling for Azure API responses
 - Use appropriate polling for long-running operations (LROs)
@@ -15,11 +14,7 @@ Given below are the Azure-specific guidelines for this Terraform Provider projec
 - Use managed identity authentication when possible
 - Always validate resource IDs using the proper parsing utilities
 
-### Implementation Approach Guidelines
-
-**For detailed implementation approach documentation, see [`coding-patterns.instructions.md`](./coding-patterns.instructions.md) and [`coding-standards.instructions.md`](./coding-standards.instructions.md).**
-
-#### Azure-Specific Implementation Requirements
+## Implementation Approach Guidelines
 
 **Typed Resource Implementation (Preferred):**
 - Use type-safe model structures with `tfschema` tags for Azure resource properties
@@ -44,16 +39,7 @@ Given below are the Azure-specific guidelines for this Terraform Provider projec
 - Use appropriate validation functions for Azure resource properties
 - Handle nested Azure resource configurations properly using TypeSet, TypeList, and TypeMap
 
-### Azure Client Management Patterns
-
-For comprehensive Azure client management patterns including typed and untyped resource client usage, see:
-- **Detailed Patterns**: [coding-patterns.instructions.md](./coding-patterns.instructions.md) - Client Management Pattern section with Azure-specific usage examples
-
-**Quick Reference**: Use appropriate client access patterns:
-- **Typed Resources**: metadata.Client.ServiceName.ResourceClient with structured logging
-- **UnTyped Resources**: meta.(*clients.Client).ServiceName.ResourceClient with standard error handling
-
-### CustomizeDiff Implementation for Azure Resources
+## CustomizeDiff Implementation for Azure Resources
 
 #### Standard CustomizeDiff Pattern
 ```go
@@ -115,17 +101,10 @@ func resourceAzureServiceName() *pluginsdk.Resource {
 #### Boolean Comparison Best Practices in CustomizeDiff
 
 **Simplified Boolean Expressions:**
-When implementing boolean comparisons in CustomizeDiff functions, use simplified expressions for better readability and compliance with Go linting tools (gosimple):
-
 ```go
 // PREFERRED - Simplified boolean expressions
 pluginsdk.ForceNewIfChange("resilient_vm_creation_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
     fieldExists := !d.GetRawConfig().GetAttr("resilient_vm_creation_enabled").IsNull()
-    return fieldExists && old.(bool) && !new.(bool)
-}),
-
-pluginsdk.ForceNewIfChange("resilient_vm_deletion_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
-    fieldExists := !d.GetRawConfig().GetAttr("resilient_vm_deletion_enabled").IsNull()
     return fieldExists && old.(bool) && !new.(bool)
 }),
 ```
@@ -134,19 +113,13 @@ pluginsdk.ForceNewIfChange("resilient_vm_deletion_enabled", func(ctx context.Con
 ```go
 // AVOID - Verbose expressions that trigger gosimple linting errors
 return fieldExists && old.(bool) == true && new.(bool) == false
-
-// AVOID - Redundant boolean operations
-return fieldExists && (old.(bool) == true) && (new.(bool) == false)
 ```
 
 **Key Principles:**
-- **Use direct boolean expressions**: `old.(bool) && !new.(bool)` instead of `old.(bool) == true && new.(bool) == false`
-- **Leverage Go's boolean semantics**: `bool` values can be used directly in logical expressions
-- **Comply with linting standards**: Simplified expressions pass gosimple and other Go linting tools
-- **Maintain readability**: Shorter expressions are easier to understand and maintain
-- **Consistent patterns**: Apply the same simplification approach across all boolean comparisons
-
-**Testing CustomizeDiff Validations:**
+- Use direct boolean expressions: `old.(bool) && !new.(bool)`
+- Leverage Go's boolean semantics: `bool` values can be used directly in logical expressions
+- Comply with linting standards: Simplified expressions pass gosimple and other Go linting tools
+- Maintain readability: Shorter expressions are easier to understand and maintain
 CustomizeDiff validations should be thoroughly tested with acceptance tests to ensure they work correctly:
 - Test invalid configurations that should trigger validation errors
 - Test valid configurations that should pass validation
@@ -197,11 +170,11 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
 resource "azurerm_cdn_frontdoor_profile" "example" {
   name = "example"
 
-  scrubbing_rule {
+  log_scrubbing_rule {
     match_variable = "QueryStringArgNames"
   }
 
-  scrubbing_rule {
+  log_scrubbing_rule {
     match_variable = "RequestIPAddress"
   }
 }
@@ -211,7 +184,7 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
 
 ```go
 // Schema definition - direct access to the meaningful configuration
-"scrubbing_rule": {
+"log_scrubbing_rule": {
     Type:     pluginsdk.TypeSet,
     MaxItems: 3,
     Optional: true,
