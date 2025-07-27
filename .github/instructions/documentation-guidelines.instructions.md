@@ -403,14 +403,14 @@ When documenting resources that implement the "None" value pattern (where users 
 **Good Example Pattern:**
 ```hcl
 output "log_scrubbing_match_variable" {
-  value = data.azurerm_cdn_frontdoor_profile.example.log_scrubbing.0.scrubbing_rule.0.match_variable
+  value = data.azurerm_cdn_frontdoor_profile.example.log_scrubbing_rule.0.match_variable
 }
 ```
 
 **Pattern to Avoid:**
 ```hcl
 output "log_scrubbing_enabled" {
-  value = data.azurerm_cdn_frontdoor_profile.example.log_scrubbing.0.enabled
+  value = data.azurerm_cdn_frontdoor_profile.example.log_scrubbing_rule.0.enabled
 }
 ```
 
@@ -430,14 +430,14 @@ When documenting resources that implement the "None" value pattern (where users 
 **Good Example Pattern:**
 ```hcl
 output "log_scrubbing_match_variable" {
-  value = data.azurerm_cdn_frontdoor_profile.example.log_scrubbing.0.scrubbing_rule.0.match_variable
+  value = data.azurerm_cdn_frontdoor_profile.example.log_scrubbing_rule.0.match_variable
 }
 ```
 
 **Pattern to Avoid:**
 ```hcl
 output "log_scrubbing_enabled" {
-  value = data.azurerm_cdn_frontdoor_profile.example.log_scrubbing.0.enabled
+  value = data.azurerm_cdn_frontdoor_profile.example.log_scrubbing_rule.0.enabled
 }
 ```
 
@@ -467,10 +467,10 @@ When adding new fields to existing resources, follow this guidance for documenta
 
 **Example Decision Matrix:**
 ```markdown
-✅ Update existing: `response_timeout_seconds = 120` (simple timeout field)
-✅ Update existing: `enabled = false` (basic boolean toggle)
-🆕 New example needed: Complex nested `security_policy` block with multiple sub-configurations
-🆕 New example needed: Advanced `custom_domain` setup requiring certificates and DNS validation
+✅ **Update existing**: `response_timeout_seconds = 120` (simple timeout field)
+✅ **Update existing**: `enabled = false` (basic boolean toggle)
+🆕 **New example needed**: Complex nested `security_policy` block with multiple sub-configurations
+🆕 **New example needed**: Advanced `custom_domain` setup requiring certificates and DNS validation
 ```
 
 This approach keeps documentation concise while ensuring complex features receive adequate explanation.
