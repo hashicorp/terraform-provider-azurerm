@@ -1885,34 +1885,47 @@ properties := &serviceapi.Properties{
 
 #### Minimal Comment Standards
 
+**⚠️ CRITICAL: Avoid Unnecessary Comments**
+
+The AI should **NEVER** add comments to code unless absolutely necessary. Code should be self-documenting through clear variable names, function names, and structure.
+
 **Comments should ONLY be used for:**
-- Complex business logic that isn't obvious from the code
-- Azure API-specific requirements or constraints
-- Workarounds for Azure SDK or API limitations
-- Non-obvious state management patterns (like PATCH operations)
+- **Azure API-specific quirks or behaviors** that are not obvious from the code
+- **Complex business logic** that cannot be made clear through code structure alone
+- **Workarounds for Azure SDK limitations** or API bugs
+- **Non-obvious state management patterns** (like PATCH operations or residual state handling)
+- **Azure service constraints** that require explanation (timeout ranges, SKU limitations, etc.)
 
 **DO NOT comment:**
-- Obvious operations like variable assignments
+- Obvious operations like variable assignments (`name := d.Get("name").(string)`)
 - Standard expand/flatten operations
 - Simple struct initialization
 - Basic conditional logic
+- Self-explanatory function calls
+- Routine Azure API calls
+- Standard Terraform patterns (CRUD operations, schema definitions, etc.)
+- Field mappings between Terraform and Azure API models
 
-**GOOD Examples:**
+**GOOD Examples (rare cases where comments are justified):**
 ```go
-// Azure Front Door requires 16-240 second timeout range
+// Azure Front Door requires 16-240 second timeout range (API constraint)
 if timeout < 16 || timeout > 240 {
     return fmt.Errorf("timeout must be between 16 and 240 seconds")
 }
 
 // PATCH operations require explicit disable commands to clear residual state
+// Azure preserves previously enabled features when fields are omitted
 result := &azuretype.Policy{
     AutoFeature: &azuretype.AutoFeature{
         Enabled: pointer.To(false), // Explicit disable for PATCH
     },
 }
+
+// Workaround: Azure API returns inconsistent casing for this field
+normalizedValue := strings.ToLower(response.SomeField)
 ```
 
-**BAD Examples:**
+**BAD Examples (unnecessary comments that should be removed):**
 ```go
 // Get the name from configuration
 name := d.Get("name").(string)
@@ -1922,7 +1935,21 @@ config := expandConfiguration(d.Get("configuration").([]interface{}))
 
 // Set the properties
 properties.Name = pointer.To(name)
+
+// Call the Azure API to create the resource
+if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
+    return fmt.Errorf("creating %s: %+v", id, err)
+}
+
+// Map the response to the model
+state.Name = response.Name
+state.Location = response.Location
+
+// Encode the state
+return metadata.Encode(&state)
 ```
+
+**Key Principle: If the code is self-explanatory, do not add comments explaining what it does.**
 
 ### Testing Patterns
 

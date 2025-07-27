@@ -15,7 +15,7 @@ This is the official Terraform Provider for Azure (Resource Manager), written in
 
 ```
 /internal
-  /acceptance         - Acceptance test framework and helpers  
+  /acceptance         - Acceptance test framework and helpers
   /clients           - Azure client configurations and setup
   /common            - Common utilities and helpers
   /features          - Feature flag management
@@ -33,6 +33,25 @@ This is the official Terraform Provider for Azure (Resource Manager), written in
 /scripts             - Build and maintenance scripts
 /vendor              - Go dependencies (managed by go mod)
 ```
+
+## ⚠️ CRITICAL CODE COMMENT POLICY ⚠️
+
+**NEVER add comments to code unless absolutely necessary.** Code should be self-documenting through clear variable names, function names, and structure.
+
+**Comments should ONLY be added for:**
+- Azure API-specific quirks or behaviors that are not obvious from code
+- Complex business logic that cannot be made clear through code structure
+- Workarounds for Azure SDK limitations or API bugs
+- Non-obvious state management patterns (PATCH operations, residual state handling)
+- Azure service constraints requiring explanation (timeout ranges, SKU limitations)
+
+**DO NOT add comments for:**
+- Variable assignments, struct initialization, basic operations
+- Standard Terraform patterns (CRUD operations, schema definitions)
+- Self-explanatory function calls or routine Azure API calls
+- Field mappings between Terraform and Azure API models
+
+**If the code is self-explanatory, do not add comments explaining what it does.**
 
 ## Implementation Approaches
 
@@ -56,8 +75,8 @@ This provider supports two implementation approaches. **For comprehensive implem
 **Maintained for existing resources but not recommended for new development**
 
 - **Framework**: Traditional Plugin SDK patterns
-- **Function-based CRUD**: Functions like 
-esourceNameCreate, 
+- **Function-based CRUD**: Functions like
+esourceNameCreate,
 esourceNameRead
 - **State management**: Direct d.Set() and d.Get() patterns
 - **Client access**: Traditional meta.(*clients.Client) initialization

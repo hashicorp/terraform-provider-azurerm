@@ -154,10 +154,12 @@ func resourceServiceSchema() map[string]*pluginsdk.Schema {
 ```
 
 #### Comment Style
+- **MINIMIZE COMMENTS**: Only add comments when absolutely necessary for Azure API quirks or complex logic
 - Use `//` for single-line comments
 - Use `/* */` for multi-line comments only when necessary
 - Comments should explain "why" not "what" when the code is clear
 - Keep comments up-to-date with code changes
+- **NEVER comment obvious operations**: variable assignments, basic operations, self-explanatory function calls
 
 For detailed implementation patterns and comprehensive standards, see:
 - [`coding-patterns.instructions.md`](./coding-patterns.instructions.md) - Detailed implementation patterns
