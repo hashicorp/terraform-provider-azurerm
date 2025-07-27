@@ -651,7 +651,7 @@ d.SetId(id.ID())
 
 ## Quick Reference Links
 
-- 🧪 **Testing Guide**: [testing-guidelines.md](./testing-guidelines.md)
-- 📝 **Documentation Guide**: [documentation-guidelines.md](./documentation-guidelines.md)
-- ☁️ **Azure Patterns**: [azure-patterns.md](./azure-patterns.md)
+- 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
+- 📝 **Documentation Guide**: [documentation-guidelines.instructions.md](./documentation-guidelines.instructions.md)
+- ☁️ **Azure Patterns**: [azure-patterns.instructions.md](./azure-patterns.instructions.md)
 - ⚡ **Quick References**: [reference/](./reference/)

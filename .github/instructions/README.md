@@ -25,10 +25,10 @@ Welcome to the instruction file system for the Terraform AzureRM provider. These
 ## 🎓 **How to Use This System**
 
 ### For New Developers
-1. **Start with**: [🏗️ Implementation Guide](./implementation-guide.md) - Get familiar with coding standards and patterns
-2. **Learn Azure specifics**: [🔷 Azure Patterns](./azure-patterns.md) - Understand Azure-specific implementation requirements
-3. **Master error handling**: [❌ Error Patterns](./error-patterns.md) - Learn proper error handling and debugging techniques
-4. **Schema design**: [📋 Schema Patterns](./schema-patterns.md) - Understand schema design patterns and validation
+1. **Start with**: [🏗️ Implementation Guide](./implementation-guide.instructions.md) - Get familiar with coding standards and patterns
+2. **Learn Azure specifics**: [🔷 Azure Patterns](./azure-patterns.instructions.md) - Understand Azure-specific implementation requirements
+3. **Master error handling**: [❌ Error Patterns](./error-patterns.instructions.md) - Learn proper error handling and debugging techniques
+4. **Schema design**: [📋 Schema Patterns](./schema-patterns.instructions.md) - Understand schema design patterns and validation
 
 ### For Experienced Developers
 - **Quick Reference**: Use the emoji navigation within each file to jump between related sections

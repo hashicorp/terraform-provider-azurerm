@@ -496,7 +496,7 @@ func ExpandPolicy(input []interface{}) *azuretype.Policy {
 
 ## Quick Reference Links
 
-- 🏗️ **Main Implementation Guide**: [implementation-guide.md](./implementation-guide.md)
-- 🧪 **Testing Guide**: [testing-guidelines.md](./testing-guidelines.md)
-- 📝 **Documentation Guide**: [documentation-guidelines.md](./documentation-guidelines.md)
+- 🏗️ **Main Implementation Guide**: [implementation-guide.instructions.md](./implementation-guide.instructions.md)
+- 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
+- 📝 **Documentation Guide**: [documentation-guidelines.instructions.md](./documentation-guidelines.instructions.md)
 - ⚡ **Quick References**: [reference/](./reference/)

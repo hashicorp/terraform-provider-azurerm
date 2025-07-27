@@ -647,8 +647,8 @@ func (r ServiceResource) Arguments() map[string]*pluginsdk.Schema {
 
 ## Quick Reference Links
 
-- 🏗️ **Main Implementation Guide**: [implementation-guide.md](./implementation-guide.md)
-- ⚡ **Azure Patterns**: [azure-patterns.md](./azure-patterns.md)
-- 🚨 **Error Patterns**: [error-patterns.md](./error-patterns.md)
-- 🧪 **Testing Guide**: [testing-guidelines.md](./testing-guidelines.md)
-- 📝 **Documentation Guide**: [documentation-guidelines.md](./documentation-guidelines.md)
+- 🏗️ **Main Implementation Guide**: [implementation-guide.instructions.md](./implementation-guide.instructions.md)
+- ⚡ **Azure Patterns**: [azure-patterns.instructions.md](./azure-patterns.instructions.md)
+- 🚨 **Error Patterns**: [error-patterns.instructions.md](./error-patterns.instructions.md)
+- 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
+- 📝 **Documentation Guide**: [documentation-guidelines.instructions.md](./documentation-guidelines.instructions.md)
