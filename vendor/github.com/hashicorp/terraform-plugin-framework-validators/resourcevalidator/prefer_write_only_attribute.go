@@ -14,6 +14,9 @@ import (
 
 // PreferWriteOnlyAttribute returns a warning if the Terraform client supports
 // write-only attributes, and the old attribute value is not null.
+//
+// NOTE: This validator will produce persistent warnings for practitioners on every Terraform run as long as the specified non-write-only attribute
+// has a value in the configuration. The validator will also produce warnings for users of shared modules who cannot immediately take action on the warning.
 func PreferWriteOnlyAttribute(oldAttribute path.Expression, writeOnlyAttribute path.Expression) resource.ConfigValidator {
 	return preferWriteOnlyAttributeValidator{
 		oldAttribute:       oldAttribute,

@@ -25,12 +25,16 @@ var (
 )
 
 const (
-	storagePropName               = "AzureWebJobsStorage"
-	functionVersionPropName       = "FUNCTIONS_EXTENSION_VERSION"
-	contentSharePropName          = "WEBSITE_CONTENTSHARE"
-	contentFileConnStringPropName = "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"
-	appKindPropName               = "APP_KIND"
-	appKindPropValue              = "workflowApp"
+	storagePropName                = "AzureWebJobsStorage"
+	functionVersionPropName        = "FUNCTIONS_EXTENSION_VERSION"
+	contentSharePropName           = "WEBSITE_CONTENTSHARE"
+	contentFileConnStringPropName  = "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"
+	appKindPropName                = "APP_KIND"
+	appKindPropValue               = "workflowApp"
+	storageConnectionFmt           = "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s"
+	extensionBundlePropName        = "AzureFunctionsJobHost__extensionBundle__id"
+	extensionBundleName            = "Microsoft.Azure.Functions.ExtensionBundle.Workflows"
+	extensionBundleVersionPropName = "AzureFunctionsJobHost__extensionBundle__version"
 )
 
 // FwLogicAppStandardResourceModel is a temporary struct - please use make generate function after creating/updating the schema function for the resource to correctly populate this and generate all modules for the schema
