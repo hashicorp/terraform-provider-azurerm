@@ -1,6 +1,7 @@
 ## 4.38.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_video_indexer_account` - add support for the `public_network_access` property [GH-29725]
 * dependencies: `servicebus` - update to API version `2024-01-01` [GH-30231]
 * `azurerm_network_security_rule` - improve validation for source and destination properties  [GH-29675]
 * Data Source: `azurerm_oracle_cloud_vm_cluster` - add support for the `file_system_configuration` block [GH-30092]
