@@ -47,7 +47,7 @@ var _ sdk.FrameworkWrappedResourceWithUpdate = &FwLogicAppStandardResource{}
 var _ sdk.FrameworkWrappedResourceWithConfigValidators = &FwLogicAppStandardResource{}
 
 func (r FwLogicAppStandardResource) ModelObject() interface{} {
-	return &FwLogicAppStandardResourceModel{}
+	return new(FwLogicAppStandardResourceModel)
 }
 
 func (r FwLogicAppStandardResource) ResourceType() string {
@@ -171,6 +171,7 @@ func (r FwLogicAppStandardResource) Schema(ctx context.Context, _ resource.Schem
 
 			"storage_account_share_name": schema.StringAttribute{
 				Optional: true,
+				Computed: true,
 			},
 
 			"version": schema.StringAttribute{
@@ -744,7 +745,45 @@ func (r FwLogicAppStandardResource) Identity() (id resourceids.ResourceId, idTyp
 }
 
 func (r *FwLogicAppStandardResourceModel) buildBaseAppSettings(storageAccountDomainSuffix string) []webapps.NameValuePair {
-	result := make([]webapps.NameValuePair, 0)
+	storageConnectionString := fmt.Sprintf(storageConnectionFmt, r.StorageAccountName.ValueString(), r.StorageAccountAccessKey.ValueString(), storageAccountDomainSuffix)
+	contentSharePropVal := fmt.Sprintf("%s-content", strings.ToLower(r.Name.ValueString()))
+	if v := r.StorageAccountShareName.ValueString(); v != "" {
+		contentSharePropVal = v
+	}
+
+	result := []webapps.NameValuePair{
+		{
+			Name:  pointer.To(storagePropName),
+			Value: pointer.To(storageConnectionString),
+		},
+		{
+			Name:  pointer.To(functionVersionPropName),
+			Value: pointer.To(r.Version.ValueString()),
+		},
+		{
+			Name:  pointer.To(appKindPropName),
+			Value: pointer.To(appKindPropValue),
+		},
+		{
+			Name:  pointer.To(contentSharePropName),
+			Value: pointer.To(contentSharePropVal),
+		},
+		{
+			Name:  pointer.To(contentFileConnStringPropName),
+			Value: pointer.To(storageConnectionString),
+		},
+	}
+
+	if r.UseExtensionBundle.ValueBool() {
+		result = append(result, webapps.NameValuePair{
+			Name:  pointer.To(extensionBundlePropName),
+			Value: pointer.To(extensionBundleName),
+		})
+		result = append(result, webapps.NameValuePair{
+			Name:  pointer.To(extensionBundleVersionPropName),
+			Value: pointer.To(r.BundleVersion.ValueString()),
+		})
+	}
 
 	return result
 }
@@ -950,7 +989,7 @@ func readLogicAppStandardAppSettings(ctx context.Context, id *commonids.AppServi
 				}
 			}
 
-			state.Version = types.StringValue(appSettings["AzureWebJobsStorageVersion"])
+			state.Version = types.StringValue(appSettings[functionVersionPropName])
 
 			_, useExtensionBundle := appSettings["AzureFunctionsJobHost__extensionBundle__id"]
 			state.UseExtensionBundle = types.BoolValue(useExtensionBundle)

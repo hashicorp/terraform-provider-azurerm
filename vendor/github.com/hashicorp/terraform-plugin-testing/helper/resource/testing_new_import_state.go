@@ -25,7 +25,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 )
 
-func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest.Helper, testCaseWorkingDir *plugintest.WorkingDir, step TestStep, cfgRaw string, providers *providerFactories, stepNumber int) error {
+func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest.Helper, testCaseWorkingDir *plugintest.WorkingDir, step TestStep, priorStepCfg teststep.Config, providers *providerFactories, stepNumber int) error {
 	t.Helper()
 
 	// step.ImportStateKind implicitly defaults to the zero-value (ImportCommandWithID) for backward compatibility
@@ -105,12 +105,6 @@ func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest
 		}
 	}
 
-	var inlineConfig string
-	if step.Config != "" {
-		inlineConfig = step.Config
-	} else {
-		inlineConfig = cfgRaw
-	}
 	testStepConfigRequest := config.TestStepConfigRequest{
 		StepNumber: stepNumber,
 		TestName:   t.Name(),
@@ -118,9 +112,20 @@ func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest
 	testStepConfig := teststep.Configuration(teststep.PrepareConfigurationRequest{
 		Directory:             step.ConfigDirectory,
 		File:                  step.ConfigFile,
-		Raw:                   inlineConfig,
+		Raw:                   step.Config,
 		TestStepConfigRequest: testStepConfigRequest,
 	}.Exec())
+
+	// If the current import state test step doesn't have configuration, use the prior test step config
+	if testStepConfig == nil {
+		if priorStepCfg == nil {
+			t.Fatal("Cannot import state with no specified config")
+		}
+
+		logging.HelperResourceTrace(ctx, "Using prior TestStep Config for import")
+
+		testStepConfig = priorStepCfg
+	}
 
 	switch {
 	case step.ImportStateConfigExact:
@@ -131,10 +136,6 @@ func testStepNewImportState(ctx context.Context, t testing.T, helper *plugintest
 
 	case kind.plannable():
 		testStepConfig = appendImportBlock(testStepConfig, resourceName, importId)
-	}
-
-	if testStepConfig == nil {
-		t.Fatal("Cannot import state with no specified config")
 	}
 
 	var workingDir *plugintest.WorkingDir
@@ -221,8 +222,9 @@ func testImportBlock(ctx context.Context, t testing.T, workingDir *plugintest.Wo
 	switch {
 	case importing == nil:
 		return fmt.Errorf("importing resource %s: expected an import operation, got %q action with plan \nstdout:\n\n%s", resourceChangeUnderTest.Address, actions, savedPlanRawStdout(ctx, t, workingDir, providers))
-
-	case !actions.NoOp():
+	// By default we want to ensure there isn't a proposed plan after importing, but for some resources this is unavoidable.
+	// An example would be importing a resource that cannot read it's entire value back from the remote API.
+	case !step.ExpectNonEmptyPlan && !actions.NoOp():
 		return fmt.Errorf("importing resource %s: expected a no-op import operation, got %q action with plan \nstdout:\n\n%s", resourceChangeUnderTest.Address, actions, savedPlanRawStdout(ctx, t, workingDir, providers))
 	}
 
