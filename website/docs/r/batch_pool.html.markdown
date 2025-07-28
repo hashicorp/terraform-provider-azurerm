@@ -290,7 +290,7 @@ A `start_task` block supports the following:
 
 * `container` - (Optional) A `container` block is the settings for the container under which the start task runs as defined below. When this is specified, all directories recursively below the `AZ_BATCH_NODE_ROOT_DIR` (the root of Azure Batch directories on the node) are mapped into the container, all task environment variables are mapped into the container, and the task command line is executed in the container.
 
-* `task_retry_maximum` - (Optional) The number of retry count.
+* `task_retry_maximum` - (Optional) The number of retry count. If this is set to `0`, the Batch service does not retry Tasks. If this is set to `-1`, the Batch service retries Batch Tasks without limit.
 
 * `wait_for_success` - (Optional) A flag that indicates if the Batch pool should wait for the start task to be completed. Default to `false`.
 

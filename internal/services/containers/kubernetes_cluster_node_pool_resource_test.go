@@ -19,8 +19,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type KubernetesClusterNodePoolResource struct{}
@@ -130,7 +130,7 @@ func TestAccKubernetesClusterNodePool_kubeletAndLinuxOSConfig(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("identity.0.identity_ids"),
 	})
 }
 
@@ -1000,7 +1000,7 @@ func TestAccKubernetesClusterNodePool_snapshotId(t *testing.T) {
 						Location: data.Locations.Primary,
 						Properties: &snapshots.SnapshotProperties{
 							CreationData: &snapshots.CreationData{
-								SourceResourceId: utils.String(poolId.ID()),
+								SourceResourceId: pointer.To(poolId.ID()),
 							},
 						},
 					}
@@ -1071,7 +1071,7 @@ func (t KubernetesClusterNodePoolResource) Exists(ctx context.Context, clients *
 		return nil, fmt.Errorf("reading Kubernetes Cluster Node Pool (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil && resp.Model.Id != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
 func (KubernetesClusterNodePoolResource) scaleNodePool(nodeCount int) acceptance.ClientCheckFunc {
@@ -1106,7 +1106,7 @@ func (KubernetesClusterNodePoolResource) scaleNodePool(nodeCount int) acceptance
 			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q): `properties` was nil", nodePoolName, clusterName, resourceGroup)
 		}
 
-		nodePool.Model.Properties.Count = utils.Int64(int64(nodeCount))
+		nodePool.Model.Properties.Count = pointer.To(int64(nodeCount))
 
 		err = clients.Containers.AgentPoolsClient.CreateOrUpdateThenPoll(ctx, parsedAgentPoolId, *nodePool.Model, agentpools.DefaultCreateOrUpdateOperationOptions())
 		if err != nil {
@@ -1370,9 +1370,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   }
 
   linux_os_config {
-    transparent_huge_page_enabled = "always"
-    transparent_huge_page_defrag  = "always"
-    swap_file_size_mb             = 300
+    transparent_huge_page        = "always"
+    transparent_huge_page_defrag = "always"
+    swap_file_size_mb            = 300
 
     sysctl_config {
       fs_aio_max_nr                      = 65536
@@ -1411,7 +1411,8 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 }
 
 func (KubernetesClusterNodePoolResource) kubeletAndLinuxOSConfigPartial(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -1455,6 +1456,61 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 
   linux_os_config {
     transparent_huge_page_enabled = "always"
+
+    sysctl_config {
+      fs_aio_max_nr               = 65536
+      fs_file_max                 = 100000
+      fs_inotify_max_user_watches = 1000000
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "test" {
+  name                  = "internal"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+
+  kubelet_config {
+    cpu_manager_policy    = "static"
+    cpu_cfs_quota_enabled = true
+    cpu_cfs_quota_period  = "10ms"
+  }
+
+  linux_os_config {
+    transparent_huge_page = "always"
 
     sysctl_config {
       fs_aio_max_nr               = 65536

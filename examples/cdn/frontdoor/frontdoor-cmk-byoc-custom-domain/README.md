@@ -44,7 +44,7 @@ The following Key Vault permission are granted by this example:
 
 | Object ID                                | Key Permissions | Secret Permissions   | Certificate Permissions                       |
 |:-----------------------------------------|:---------------:|:--------------------:|:---------------------------------------------:|
-| `Microsoft.Azure.Cdn` Object ID | -               | **Get**              | -                                             |
+| `Microsoft.Azure.Cdn` Object ID          | -               | **Get**              | -                                             |
 | Your Personal AAD Object ID              | -               | **Get** and **List** | **Get**, **List**, **Purge** and **Recover**  |
 | Terraform Service Principal              | -               | **Get**              | **Get**, **Import**, **Delete** and **Purge** |
 

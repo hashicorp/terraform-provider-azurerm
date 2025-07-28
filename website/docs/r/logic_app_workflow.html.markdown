@@ -85,7 +85,7 @@ A `content` block supports the following:
 
 A `trigger` block supports the following:
 
-* `allowed_caller_ip_address_range` - (Required) A list of the allowed caller IP address ranges.
+* `allowed_caller_ip_address_range` - (Optional) A list of the allowed caller IP address ranges.
 
 * `open_authentication_policy` - (Optional) A `open_authentication_policy` block as defined below.
 
