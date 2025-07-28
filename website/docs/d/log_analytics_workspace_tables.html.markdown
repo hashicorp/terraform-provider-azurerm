@@ -18,7 +18,7 @@ data "azurerm_log_analytics_workspace_tables" "example" {
 }
 
 output "table_names" {
-  value = [for table in data.azurerm_log_analytics_workspace_tables.example.tables : table.name]
+  value = data.azurerm_log_analytics_workspace_tables.example.names
 }
 ```
 
@@ -32,7 +32,7 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Log Analytics Workspace.
+* `names` - A list containing names of tables that exist in this log analytics workspace.
 
 * `tables` - A list of `tables` blocks as defined below.
 

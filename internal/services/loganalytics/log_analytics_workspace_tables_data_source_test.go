@@ -21,10 +21,15 @@ func TestAccDataSourceLogAnalyticsWorkspaceTables_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
+				acceptance.TestCheckResourceAttrSet(data.ResourceName, "tables.#"),
+				acceptance.TestCheckResourceAttrSet(data.ResourceName, "names.#"),
+
 				check.That(data.ResourceName).Key("tables.0.name").Exists(),
 				check.That(data.ResourceName).Key("tables.0.plan").Exists(),
 				check.That(data.ResourceName).Key("tables.0.retention_in_days").Exists(),
 				check.That(data.ResourceName).Key("tables.0.total_retention_in_days").Exists(),
+
+				check.That(data.ResourceName).Key("names.0").Exists(),
 			),
 		},
 	})

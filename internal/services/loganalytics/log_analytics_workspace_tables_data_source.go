@@ -22,6 +22,7 @@ var _ sdk.DataSource = LogAnalyticsWorkspaceTablesDataSource{}
 
 type LogAnalyticsWorkspaceTablesDataSourceModel struct {
 	WorkspaceId string                       `tfschema:"workspace_id"`
+	Names       []string                     `tfschema:"names"`
 	Tables      []TableEntityDataSourceModel `tfschema:"tables"`
 }
 
@@ -44,6 +45,13 @@ func (k LogAnalyticsWorkspaceTablesDataSource) Arguments() map[string]*pluginsdk
 
 func (k LogAnalyticsWorkspaceTablesDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
+		"names": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
 		"tables": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -107,7 +115,19 @@ func (k LogAnalyticsWorkspaceTablesDataSource) Read() sdk.ResourceFunc {
 			metadata.ResourceData.SetId(fmt.Sprintf("%s/tables", workspaceId.ID()))
 
 			if model := resp.Model; model != nil {
-				state.Tables = flattenLogAnalyticsTables(model)
+				tables := make([]TableEntityDataSourceModel, 0)
+				names := make([]string, 0)
+
+				if model.Value != nil && len(*model.Value) > 0 {
+					for _, props := range *model.Value {
+						name := pointer.From(props.Name)
+						names = append(names, name)
+						tables = append(tables, flattenTable(name, props.Properties))
+					}
+				}
+
+				state.Tables = tables
+				state.Names = names
 			}
 
 			return metadata.Encode(&state)
@@ -115,26 +135,15 @@ func (k LogAnalyticsWorkspaceTablesDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func flattenLogAnalyticsTables(input *tables.TablesListResult) []TableEntityDataSourceModel {
-	output := make([]TableEntityDataSourceModel, 0)
-
-	if input.Value == nil || len(*input.Value) == 0 {
-		return output
-	}
-
-	for _, props := range *input.Value {
-		table := TableEntityDataSourceModel{
-			Name: pointer.From(props.Name),
+func flattenTable(name string, properties *tables.TableProperties) TableEntityDataSourceModel {
+	table := TableEntityDataSourceModel{
+		Name: name,
 		}
 
-		if properties := props.Properties; properties != nil {
+	if properties != nil {
 			table.RetentionInDays = pointer.From(properties.RetentionInDays)
 			table.TotalRetentionInDays = pointer.From(properties.TotalRetentionInDays)
 			table.Plan = string(pointer.From(properties.Plan))
 		}
-
-		output = append(output, table)
-	}
-
-	return output
+	return table
 }
