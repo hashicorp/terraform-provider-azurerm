@@ -77,6 +77,8 @@ The following arguments are supported:
 
 -> **Note:** Removing `encryption_key` forces a new resource to be created.
 
+* `root_squash` - (Optional) A `root_squash` block as defined below.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Azure Managed Lustre File System.
 
 ---
@@ -114,6 +116,18 @@ An `encryption_key` block supports the following:
 * `key_url` - (Required) The URL to the Key Vault Key used as the Encryption Key. This can be found as `id` on the `azurerm_key_vault_key` resource.
 
 * `source_vault_id` - (Required) The ID of the source Key Vault. This can be found as `id` on the `azurerm_key_vault` resource.
+
+---
+
+A `root_squash` block supports the following:
+
+* `mode` - (Required) Squash mode of the AML file system. Possible values are `RootOnly`, and `All`. 
+
+* `no_squash_nids` - (Required) NID IP Address list(s) to be added to the TrustedSystems, separated by semicolons.
+
+* `squash_gid` - (Optional) The GID to be used for the root squash. Defaults to `0`.
+
+* `squash_uid` - (Optional) The UID to be used for the root squash. Defaults to `0`.
 
 ## Attributes Reference
 
