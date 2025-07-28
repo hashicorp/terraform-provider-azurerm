@@ -89,8 +89,6 @@ func (r ApiManagementStandaloneGatewayResource) Arguments() map[string]*pluginsd
 			},
 		},
 
-		"tags": commonschema.TagsForceNew(),
-
 		"backend_subnet_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -98,6 +96,8 @@ func (r ApiManagementStandaloneGatewayResource) Arguments() map[string]*pluginsd
 			ValidateFunc: commonids.ValidateSubnetID,
 			RequiredWith: []string{"virtual_network_type"},
 		},
+
+		"tags": commonschema.TagsForceNew(),
 
 		"virtual_network_type": {
 			Type:     pluginsdk.TypeString,

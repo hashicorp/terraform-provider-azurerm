@@ -63,19 +63,19 @@ resource "azurerm_api_management_standalone_gateway" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name which should be used for this Api Management Standalone Gateway. Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name which should be used for this API Management Standalone Gateway. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the Api Management Standalone Gateway should exist. Changing this forces a new resource to be created.
+* `resource_group_name` - (Required) Specifies the name of the Resource Group where the API Management Standalone Gateway should exist. Changing this forces a new resource to be created.
 
-* `location` - (Required) Specifies the Azure Region where the Api Management Standalone Gateway should exist. Changing this forces a new resource to be created.
+* `location` - (Required) Specifies the Azure Region where the API Management Standalone Gateway should exist. Changing this forces a new resource to be created.
 
 * `sku` - (Required) A `sku` block as defined below.
 
-* `backend_subnet_id` - (Optional) Specifies the subnet id which the backend systems are hosted. Required with `virtual_network_type`. Changing this forces a new resource to be created.
+* `backend_subnet_id` - (Optional) Specifies the subnet id which the backend systems are hosted. Changing this forces a new resource to be created.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Api Management Standalone Gateway. Changing this forces a new resource to be created.
+* `tags` - (Optional) A mapping of tags which should be assigned to the API Management Standalone Gateway. Changing this forces a new resource to be created.
 
-* `virtual_network_type` - (Optional) Specifies the type of VPN in which API Management gateway needs to be configured in. Required with `backend_subnet_id`. Possible values are `External` and `Internal`. Changing this forces a new resource to be created.
+* `virtual_network_type` - (Optional) Specifies the type of VPN in which API Management gateway needs to be configured in. Possible values are `External` and `Internal`. Changing this forces a new resource to be created.
 
 ---
 
@@ -91,21 +91,21 @@ A `sku` block supports the following:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Api Management Standalone Gateway.
+* `id` - The ID of the API Management Standalone Gateway.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Api Management Standalone Gateway.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Api Management Standalone Gateway.
-* `update` - (Defaults to 30 minutes) Used when updating the Api Management Standalone Gateway.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Api Management Standalone Gateway.
+* `create` - (Defaults to 30 minutes) Used when creating the API Management Standalone Gateway.
+* `read` - (Defaults to 5 minutes) Used when retrieving the API Management Standalone Gateway.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management Standalone Gateway.
+* `delete` - (Defaults to 30 minutes) Used when deleting the API Management Standalone Gateway.
 
 ## Import
 
-Api Management Standalone Gateway can be imported using the `resource id`, e.g.
+API Management Standalone Gateway can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_api_management_standalone_gateway.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.ApiManagement/gateways/gateway1
+terraform import azurerm_api_management_standalone_gateway.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ApiManagement/gateways/gateway1
 ```
