@@ -73,7 +73,15 @@ The following arguments are supported:
 
 * `active` - (Optional) Is the cost management export active? Default is `true`.
 
-* `file_format` - (Optional) Format for export. Valid values are `Csv` only. Default is `Csv`.
+* `file_format` - (Optional) Format for export. Valid values are `Csv` and `Parquet`. Default is `Csv`.
+
+* `compression_mode` – (Optional) Export file compression mode. Valid values are `gzip`, `snappy`, and `none`. Default is `none`.
+
+* `partition_data` – (Optional) If set to true, exported data will be partitioned by size and placed in a blob directory together with a manifest file. Default is `false`.
+
+* `data_overwrite_behavior` – (Optional) Enable overwrite data for the same month in customer storage account. Valid values are `CreateNewReport` and `OverwritePreviousReport`. Default is `CreateNewReport`.
+
+* `description` – (Optional) Export description.
 
 ---
 
@@ -89,9 +97,33 @@ A `export_data_storage_location` block supports the following:
 
 A `export_data_options` block supports the following:
 
-* `type` - (Required) The type of the query. Possible values are `ActualCost`, `AmortizedCost` and `Usage`.
+* `type` - (Required) The type of the query. Possible values are `ActualCost`, `AmortizedCost`, `FocusCost`, `PriceSheet`, `ReservationDetails`, `ReservationRecommendations`, `ReservationTransactions`, and `Usage`.
 
 * `time_frame` - (Required) The time frame for pulling data for the query. If custom, then a specific time period must be provided. Possible values include: `WeekToDate`, `MonthToDate`, `BillingMonthToDate`, `TheLast7Days`, `TheLastMonth`, `TheLastBillingMonth`, `Custom`.
+
+* `time_period` – (Optional) A `time_period` block as defined below.
+
+* `data_version` – (Optional) The data version for the selected for the export. If not provided then the export will default to latest data version.
+
+* `data_granularity` – (Optional) The granularity of rows in the export. Valid values are `Daily` and `Monthly`. Default is `Daily`.
+
+* `filter` – (Optional) A `filter` block as defined below. This is currently only supported for export type `ReservationRecommendations`.
+
+---
+
+A `filter` block supports the following:
+
+* `name` – (Required) The name of the filter. Valid values are `LookBackPeriod`, `ReservationScope`, `ResourceType`.
+
+* `value` – (Required) Value to filter by.  For `LookBackPeriod` supported values are `Last7Days`, `Last30Days`, and `Last60Days`. For `ReservationScope` supported values are `Single` and `Shared`. For `ResourceType` supported values are `VirtualMachines`, `SQLDatabases`, `PostgreSQL`, `ManagedDisk`, `MySQL`, `RedHat`, `MariaDB`, `RedisCache`, `CosmosDB`, `SqlDataWarehouse`, `SUSELinux`, `AppService`, `BlockBlob`, `AzureDataExplorer`, and `VMwareCloudSimple`.
+
+---
+
+A `time_period` block supports the following:
+
+* `from` – (Required) The start date for export data.
+
+* `to` – (Required) The end date for export data.
 
 ## Attributes Reference
 
@@ -120,4 +152,4 @@ terraform import azurerm_billing_account_cost_management_export.example /provide
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.CostManagement` - 2023-08-01
+* `Microsoft.CostManagement` - 2025-03-01

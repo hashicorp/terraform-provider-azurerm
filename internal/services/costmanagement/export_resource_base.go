@@ -6,12 +6,13 @@ package costmanagement
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2023-08-01/exports"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/exports"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -29,14 +30,9 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 		},
 
 		"recurrence_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(exports.RecurrenceTypeDaily),
-				string(exports.RecurrenceTypeWeekly),
-				string(exports.RecurrenceTypeMonthly),
-				string(exports.RecurrenceTypeAnnually),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringInSlice(exports.PossibleValuesForRecurrenceType(), false),
 		},
 
 		"recurrence_period_start_date": {
@@ -52,13 +48,10 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 		},
 
 		"file_format": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(exports.FormatTypeCsv),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(exports.FormatTypeCsv),
-				// TODO add support for Parquet once added to the SDK
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(exports.FormatTypeCsv),
+			ValidateFunc: validation.StringInSlice(exports.PossibleValuesForFormatType(), false),
 		},
 
 		"export_data_storage_location": {
@@ -74,10 +67,22 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 						ValidateFunc: commonids.ValidateStorageContainerID,
 					},
 					"root_folder_path": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ForceNew: true,
+						ValidateFunc: func(val interface{}, key string) ([]string, []error) {
+							warnings, errors := validation.StringIsNotEmpty(val, key)
+
+							// Since API 2025-03-01, root_folder_path cannot start with a slash.
+							if v := val.(string); strings.HasPrefix(v, "/") {
+								warnings = append(warnings, fmt.Sprintf("%q should not start with a slash", key))
+							}
+							return warnings, errors
+						},
+						DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
+							return strings.TrimPrefix(new, "/") == strings.TrimPrefix(old, "/")
+						},
+						DiffSuppressOnRefresh: true,
 					},
 				},
 			},
@@ -90,13 +95,9 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"type": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ValidateFunc: validation.StringInSlice([]string{
-							string(exports.ExportTypeActualCost),
-							string(exports.ExportTypeAmortizedCost),
-							string(exports.ExportTypeUsage),
-						}, false),
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(exports.PossibleValuesForExportType(), false),
 					},
 
 					"time_frame": {
@@ -113,8 +114,117 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 							"TheLast7Days",
 						}, false),
 					},
+
+					"time_period": {
+						Type:     pluginsdk.TypeList,
+						MaxItems: 1,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"from": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.IsRFC3339Time,
+								},
+
+								"to": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.IsRFC3339Time,
+								},
+							},
+						},
+					},
+
+					"data_version": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
+							// Ignore changes to data_version if it is not set
+							return new == ""
+						},
+						DiffSuppressOnRefresh: true,
+					},
+
+					"data_granularity": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						Default:      string(exports.GranularityTypeDaily),
+						ValidateFunc: validation.StringInSlice(exports.PossibleValuesForGranularityType(), false),
+					},
+
+					"filter": {
+						Type:     pluginsdk.TypeList,
+						Optional: true,
+						Elem: &pluginsdk.Resource{
+							Schema: map[string]*pluginsdk.Schema{
+								"name": {
+									Type:         pluginsdk.TypeString,
+									Required:     true,
+									ValidateFunc: validation.StringInSlice(exports.PossibleValuesForFilterItemNames(), false),
+								},
+								"value": {
+									Type:     pluginsdk.TypeString,
+									Required: true,
+									ValidateFunc: validation.StringInSlice([]string{
+										// for ReservationScope
+										"Single",
+										"Shared",
+
+										// for LookBackPeriod
+										"Last7Days",
+										"Last30Days",
+										"Last60Days",
+
+										// for ResourceType
+										"VirtualMachines",
+										"SQLDatabases",
+										"PostgreSQL",
+										"ManagedDisk",
+										"MySQL",
+										"RedHat",
+										"MariaDB",
+										"RedisCache",
+										"CosmosDB",
+										"SqlDataWarehouse",
+										"SUSELinux",
+										"AppService",
+										"BlockBlob",
+										"AzureDataExplorer",
+										"VMwareCloudSimple",
+									}, false),
+								},
+							},
+						},
+					},
 				},
 			},
+		},
+
+		"compression_mode": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(exports.CompressionModeTypeNone),
+			ValidateFunc: validation.StringInSlice(exports.PossibleValuesForCompressionModeType(), false),
+		},
+
+		"partition_data": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"data_overwrite_behavior": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(exports.DataOverwriteBehaviorTypeCreateNewReport),
+			ValidateFunc: validation.StringInSlice(exports.PossibleValuesForDataOverwriteBehaviorType(), false),
+		},
+
+		"description": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "",
 		},
 	}
 
@@ -204,7 +314,11 @@ func (br costManagementExportBaseResource) readFunc(scopeFieldName string) sdk.R
 					if err := metadata.ResourceData.Set("export_data_options", flattenExportDefinition(&props.Definition)); err != nil {
 						return fmt.Errorf("setting `export_data_options`: %+v", err)
 					}
+					metadata.ResourceData.Set("description", pointer.From(props.ExportDescription))
 					metadata.ResourceData.Set("file_format", string(pointer.From(props.Format)))
+					metadata.ResourceData.Set("compression_mode", string(pointer.From(props.CompressionMode)))
+					metadata.ResourceData.Set("partition_data", pointer.From(props.PartitionData))
+					metadata.ResourceData.Set("data_overwrite_behavior", string(pointer.From(props.DataOverwriteBehavior)))
 				}
 			}
 
@@ -277,7 +391,15 @@ func createOrUpdateCostManagementExport(ctx context.Context, client *exports.Exp
 		return fmt.Errorf("expanding `export_data_storage_location`: %+v", err)
 	}
 
+	// PartitionData cannot be set to false otherwise API will return an error.
+	var partitionData *bool
+	if v, ok := metadata.ResourceData.Get("partition_data").(bool); ok && v {
+		partitionData = utils.Bool(true)
+	}
+
 	format := exports.FormatType(metadata.ResourceData.Get("file_format").(string))
+	compressionMode := exports.CompressionModeType(metadata.ResourceData.Get("compression_mode").(string))
+	dataOverwriteBehavior := exports.DataOverwriteBehaviorType(metadata.ResourceData.Get("data_overwrite_behavior").(string))
 
 	recurrenceType := exports.RecurrenceType(metadata.ResourceData.Get("recurrence_type").(string))
 	props := exports.Export{
@@ -291,9 +413,13 @@ func createOrUpdateCostManagementExport(ctx context.Context, client *exports.Exp
 				},
 				Status: &status,
 			},
-			DeliveryInfo: *deliveryInfo,
-			Format:       &format,
-			Definition:   *expandExportDefinition(metadata.ResourceData.Get("export_data_options").([]interface{})),
+			DeliveryInfo:          *deliveryInfo,
+			ExportDescription:     utils.String(metadata.ResourceData.Get("description").(string)),
+			Format:                &format,
+			CompressionMode:       &compressionMode,
+			PartitionData:         partitionData,
+			Definition:            *expandExportDefinition(metadata.ResourceData.Get("export_data_options").([]interface{})),
+			DataOverwriteBehavior: &dataOverwriteBehavior,
 		},
 	}
 
@@ -314,12 +440,13 @@ func expandExportDataStorageLocation(input []interface{}) (*exports.ExportDelive
 	}
 
 	storageId := commonids.NewStorageAccountID(containerId.SubscriptionId, containerId.ResourceGroupName, containerId.StorageAccountName)
+	rootFolderPath := strings.TrimPrefix(attrs["root_folder_path"].(string), "/") // Ensure no leading slash
 
 	deliveryInfo := &exports.ExportDeliveryInfo{
 		Destination: exports.ExportDeliveryDestination{
 			ResourceId:     pointer.To(storageId.ID()),
 			Container:      containerId.ContainerName,
-			RootFolderPath: pointer.To(attrs["root_folder_path"].(string)),
+			RootFolderPath: pointer.To(rootFolderPath),
 		},
 	}
 
@@ -332,12 +459,51 @@ func expandExportDefinition(input []interface{}) *exports.ExportDefinition {
 	}
 
 	attrs := input[0].(map[string]interface{})
+	granularity := exports.GranularityType(attrs["data_granularity"].(string))
+
+	var timePeriod *exports.ExportTimePeriod
+	if v, ok := attrs["time_period"].([]map[string]string); ok && len(v) > 0 {
+		timePeriod = &exports.ExportTimePeriod{
+			From: v[0]["from"],
+			To:   v[0]["to"],
+		}
+	}
+
 	definitionInfo := &exports.ExportDefinition{
-		Type:      exports.ExportType(attrs["type"].(string)),
-		Timeframe: exports.TimeframeType(attrs["time_frame"].(string)),
+		Type:       exports.ExportType(attrs["type"].(string)),
+		Timeframe:  exports.TimeframeType(attrs["time_frame"].(string)),
+		TimePeriod: timePeriod,
+		DataSet: &exports.ExportDataset{
+			Granularity:   &granularity,
+			Configuration: expandExportDatasetConfiguration(attrs),
+		},
 	}
 
 	return definitionInfo
+}
+
+func expandExportDatasetConfiguration(attrs map[string]interface{}) *exports.ExportDatasetConfiguration {
+	var filters *[]exports.FilterItems
+	if filterInput, ok := attrs["filter"].([]map[string]string); ok && len(filterInput) > 0 {
+		filters = &[]exports.FilterItems{}
+		for _, item := range filterInput {
+			name := exports.FilterItemNames(item["name"])
+			*filters = append(*filters, exports.FilterItems{
+				Name:  &name,
+				Value: utils.String(item["value"]),
+			})
+		}
+	}
+
+	var dataVersion *string
+	if v, ok := attrs["data_version"].(string); ok && v != "" {
+		dataVersion = utils.String(v)
+	}
+
+	return &exports.ExportDatasetConfiguration{
+		DataVersion: dataVersion,
+		Filters:     filters,
+	}
 }
 
 func flattenExportDataStorageLocation(input *exports.ExportDeliveryInfo) ([]interface{}, error) {
@@ -384,10 +550,45 @@ func flattenExportDefinition(input *exports.ExportDefinition) []interface{} {
 		queryType = string(input.Type)
 	}
 
+	var timePeriod []map[string]string
+	if input.TimePeriod != nil {
+		timePeriod = []map[string]string{
+			{
+				"from": input.TimePeriod.From,
+				"to":   input.TimePeriod.To,
+			},
+		}
+	}
+
+	dataVersion := ""
+	dataGranularity := ""
+	filters := &[]map[string]string{}
+
+	if input.DataSet != nil {
+		dataGranularity = string(pointer.From(input.DataSet.Granularity))
+
+		if c := input.DataSet.Configuration; c != nil {
+			dataVersion = pointer.From(c.DataVersion)
+
+			if c.Filters != nil && len(*c.Filters) > 0 {
+				for _, item := range *c.Filters {
+					*filters = append(*filters, map[string]string{
+						"name":  string(pointer.From(item.Name)),
+						"value": pointer.From(item.Value),
+					})
+				}
+			}
+		}
+	}
+
 	return []interface{}{
 		map[string]interface{}{
-			"time_frame": string(input.Timeframe),
-			"type":       queryType,
+			"time_frame":       string(input.Timeframe),
+			"type":             queryType,
+			"time_period":      timePeriod,
+			"data_version":     dataVersion,
+			"data_granularity": dataGranularity,
+			"filter":           filters,
 		},
 	}
 }
