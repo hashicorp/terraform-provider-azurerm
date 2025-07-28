@@ -8,7 +8,6 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/api"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/apidiagnostic"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/apimanagementservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/apioperation"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/apioperationpolicy"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2023-05-01-preview/apioperationtag"
