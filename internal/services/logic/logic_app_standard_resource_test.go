@@ -702,6 +702,42 @@ func TestAccLogicAppStandard_scmIpRestrictionRemoved(t *testing.T) {
 	})
 }
 
+func TestAccLogicAppStandard_scmIpRestrictionUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
+	r := LogicAppStandardResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.scmIpRestriction(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.scmMultiIpRestriction(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.scmIpRestriction(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.unsetScmIpRestriction(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLogicAppStandard_manyIpRestrictions(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_logic_app_standard", "test")
 	r := LogicAppStandardResource{}
@@ -2078,6 +2114,33 @@ resource "azurerm_logic_app_standard" "test" {
     always_on = true
     scm_ip_restriction {
       ip_address = "10.10.10.10/32"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+func (r LogicAppStandardResource) scmMultiIpRestriction(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_logic_app_standard" "test" {
+  name                       = "acctest-%d-func"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  app_service_plan_id        = azurerm_app_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    always_on = true
+    scm_ip_restriction {
+      ip_address = "10.10.10.10/32"
+    }
+    scm_ip_restriction {
+      ip_address = "10.10.10.11/32"
+    }
+    scm_ip_restriction {
+      ip_address = "10.10.10.12/32"
     }
   }
 }
