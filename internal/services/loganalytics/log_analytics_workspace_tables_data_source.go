@@ -112,7 +112,7 @@ func (k LogAnalyticsWorkspaceTablesDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving tables by %s: %+v", workspaceId, err)
 			}
 
-			metadata.ResourceData.SetId(fmt.Sprintf("%s/tables", workspaceId.ID()))
+			metadata.SetID(workspaceId)
 
 			if model := resp.Model; model != nil {
 				tables := make([]TableEntityDataSourceModel, 0)
@@ -138,12 +138,12 @@ func (k LogAnalyticsWorkspaceTablesDataSource) Read() sdk.ResourceFunc {
 func flattenTable(name string, properties *tables.TableProperties) TableEntityDataSourceModel {
 	table := TableEntityDataSourceModel{
 		Name: name,
-		}
+	}
 
 	if properties != nil {
-			table.RetentionInDays = pointer.From(properties.RetentionInDays)
-			table.TotalRetentionInDays = pointer.From(properties.TotalRetentionInDays)
-			table.Plan = string(pointer.From(properties.Plan))
-		}
+		table.RetentionInDays = pointer.From(properties.RetentionInDays)
+		table.TotalRetentionInDays = pointer.From(properties.TotalRetentionInDays)
+		table.Plan = string(pointer.From(properties.Plan))
+	}
 	return table
 }
