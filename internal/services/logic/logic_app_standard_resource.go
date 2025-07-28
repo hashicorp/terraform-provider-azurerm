@@ -67,8 +67,8 @@ type LogicAppResourceModel struct {
 }
 
 var (
-	LogicAppStdKind   = "functionapp,workflowapp"
-	LogicAppLinuxKind = "functionapp,linux,container,workflowapp"
+	logicAppStdKind   = "functionapp,workflowapp"
+	logicAppLinuxKind = "functionapp,linux,container,workflowapp"
 
 	storageConnectionStringFmt           = "DefaultEndpointsProtocol=https;AccountName=%s;AccountKey=%s;EndpointSuffix=%s"
 	storageAppSettingName                = "AzureWebJobsStorage"
@@ -418,9 +418,9 @@ func (r LogicAppResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("expanding `site_config`: %+v", err)
 			}
 
-			kind := LogicAppStdKind
+			kind := logicAppStdKind
 			if siteConfig.LinuxFxVersion != nil && len(*siteConfig.LinuxFxVersion) > 0 {
-				kind = LogicAppLinuxKind
+				kind = logicAppLinuxKind
 			}
 
 			appSettings := expandAppSettings(data.AppSettings)
