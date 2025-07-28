@@ -85,7 +85,7 @@ func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, sub
 		tenantId = config.TenantID
 	}
 
-	// Finally, defer to Azure CLI to obtain tenant ID and client ID when not specified and missing from claims
+	// Finally, defer to Azure CLI to obtain tenant ID, subscription ID and client ID when not specified and missing from claims
 	realAuthorizer := authorizer
 	if cache, ok := authorizer.(*auth.CachedAuthorizer); ok {
 		realAuthorizer = cache.Source
@@ -104,6 +104,12 @@ func NewResourceManagerAccount(ctx context.Context, config auth.Credentials, sub
 		if id, ok := config.Environment.MicrosoftAzureCli.AppId(); ok {
 			clientId = *id
 			log.Printf("[DEBUG] Using client ID from Azure CLI: %q", clientId)
+		}
+
+		// Use the Azure CLI default subscription ID
+		if subscriptionId == "" {
+			subscriptionId = cli.DefaultSubscriptionID
+			log.Printf("[DEBUG] Using the default subscription ID from Azure CLI: %q", subscriptionId)
 		}
 	}
 
