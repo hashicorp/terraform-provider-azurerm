@@ -52,6 +52,7 @@ func (k LogAnalyticsWorkspaceTablesDataSource) Attributes() map[string]*pluginsd
 				Type: pluginsdk.TypeString,
 			},
 		},
+		
 		"tables": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
@@ -61,14 +62,17 @@ func (k LogAnalyticsWorkspaceTablesDataSource) Attributes() map[string]*pluginsd
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"plan": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
+
 					"retention_in_days": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
+
 					"total_retention_in_days": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
@@ -109,6 +113,7 @@ func (k LogAnalyticsWorkspaceTablesDataSource) Read() sdk.ResourceFunc {
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", workspaceId)
 				}
+
 				return fmt.Errorf("retrieving tables by %s: %+v", workspaceId, err)
 			}
 
@@ -122,7 +127,7 @@ func (k LogAnalyticsWorkspaceTablesDataSource) Read() sdk.ResourceFunc {
 					for _, props := range *model.Value {
 						name := pointer.From(props.Name)
 						names = append(names, name)
-						tables = append(tables, flattenTable(name, props.Properties))
+						tables = append(tables, flattenLogAnalyticsWorkspaceTable(name, props.Properties))
 					}
 				}
 
@@ -135,7 +140,7 @@ func (k LogAnalyticsWorkspaceTablesDataSource) Read() sdk.ResourceFunc {
 	}
 }
 
-func flattenTable(name string, properties *tables.TableProperties) TableEntityDataSourceModel {
+func flattenLogAnalyticsWorkspaceTable(name string, properties *tables.TableProperties) TableEntityDataSourceModel {
 	table := TableEntityDataSourceModel{
 		Name: name,
 	}
@@ -145,5 +150,6 @@ func flattenTable(name string, properties *tables.TableProperties) TableEntityDa
 		table.TotalRetentionInDays = pointer.From(properties.TotalRetentionInDays)
 		table.Plan = string(pointer.From(properties.Plan))
 	}
+
 	return table
 }
