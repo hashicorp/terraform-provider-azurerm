@@ -82,7 +82,7 @@ func (r AccountResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Default:      string(accounts.PublicNetworkAccessEnabled),
-			ValidateFunc: validation.StringInSlice(accounts.PossibleValuesForPublicNetworkAccess(), true),
+			ValidateFunc: validation.StringInSlice(accounts.PossibleValuesForPublicNetworkAccess(), false),
 		},
 
 		"tags": tags.Schema(),
