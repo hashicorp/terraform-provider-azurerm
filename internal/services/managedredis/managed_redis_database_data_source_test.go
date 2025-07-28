@@ -96,7 +96,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-managedRedis-%[1]d"
-  location = "eastus" # Hardcoded because feature not available in all regions
+  location = "%[2]s"
 }
 
 resource "azurerm_managed_redis_cluster" "test" {
@@ -118,5 +118,5 @@ data "azurerm_managed_redis_database" "test" {
   name       = "default"
   cluster_id = azurerm_managed_redis_cluster.test.id
 }
-`, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }

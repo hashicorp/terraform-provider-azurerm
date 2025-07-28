@@ -6,6 +6,7 @@ package managedredis_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -158,6 +159,28 @@ func TestAccManagedRedisDatabase_linkDatabase(t *testing.T) {
 	})
 }
 
+func TestAccManagedRedisDatabase_customizeDiffDatabaseIdError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis_database", "test")
+	r := ManagedRedisDatabaseResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.customizeDiffDatabaseIdError(data),
+			ExpectError: regexp.MustCompile("linked database list must include the current database ID"),
+		},
+	})
+}
+
+func TestAccManagedRedisDatabase_customizeDiffModuleError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_redis_database", "test")
+	r := ManagedRedisDatabaseResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.customizeDiffModuleError(),
+			ExpectError: regexp.MustCompile("Only `RediSearch` and `RedisJSON` modules are allowed with geo-replication"),
+		},
+	})
+}
+
 func (r ManagedRedisDatabaseResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := databases.ParseDatabaseID(state.ID)
 	if err != nil {
@@ -176,7 +199,7 @@ func (r ManagedRedisDatabaseResource) template(data acceptance.TestData) string 
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-managedRedis-%[1]d"
-  location = "eastus" # Hardcoded because feature not available in all regions
+  location = "%[2]s"
 }
 
 resource "azurerm_managed_redis_cluster" "test" {
@@ -184,16 +207,16 @@ resource "azurerm_managed_redis_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "Balanced_B3"
-}`, data.RandomInteger)
+}`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ManagedRedisDatabaseResource) templateThreeClusters(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-managedRedis-%[1]d"
-  location = "eastus" # Hardcoded because feature not available in all regions
+  location = "%[2]s"
 }
-
+	
 resource "azurerm_managed_redis_cluster" "test" {
   name                = "acctest-rec1-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -212,7 +235,7 @@ resource "azurerm_managed_redis_cluster" "test2" {
   location            = azurerm_resource_group.test.location
   sku_name            = "Balanced_B3"
 }
-`, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ManagedRedisDatabaseResource) basic(data acceptance.TestData) string {
@@ -416,4 +439,43 @@ resource "azurerm_managed_redis_database" "test" {
   linked_database_group_nickname = "tftestGeoGroup"
 }
 `, r.templateThreeClusters(data))
+}
+
+func (r ManagedRedisDatabaseResource) customizeDiffDatabaseIdError(data acceptance.TestData) string {
+	return `
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_managed_redis_database" "test" {
+  name       = "default"
+  cluster_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Cache/redisEnterprise/redisEnterprise1"
+
+  linked_database_id = [
+    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Cache/redisEnterprise/redisEnterprise2/databases/default",
+  ]
+}
+`
+}
+
+func (r ManagedRedisDatabaseResource) customizeDiffModuleError() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_managed_redis_database" "test" {
+  name       = "default"
+  cluster_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Cache/redisEnterprise/redisEnterprise1"
+
+	module {
+    name = "RedisTimeSeries"
+    args = ""
+  }
+
+  linked_database_id = [
+    "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Cache/redisEnterprise/redisEnterprise1/databases/default",
+  ]
+}
+`
 }

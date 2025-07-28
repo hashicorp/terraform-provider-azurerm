@@ -180,8 +180,7 @@ func (r ManagedRedisClusterResource) Create() sdk.ResourceFunc {
 			}
 
 			if len(model.CustomerManagedKey) > 0 {
-				encryption := expandManagedRedisClusterCustomerManagedKey(model.CustomerManagedKey)
-				parameters.Properties.Encryption = encryption
+				parameters.Properties.Encryption = expandManagedRedisClusterCustomerManagedKey(model.CustomerManagedKey)
 			}
 
 			expandedIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)

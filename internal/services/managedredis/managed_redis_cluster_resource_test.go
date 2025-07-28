@@ -138,7 +138,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-managedRedis-%[1]d"
-  location = "eastus"
+  location = "%[2]s"
 }
 
 resource "azurerm_managed_redis_cluster" "test" {
@@ -148,7 +148,7 @@ resource "azurerm_managed_redis_cluster" "test" {
 
   sku_name = "Balanced_B3"
 }
-`, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ManagedRedisClusterResource) update(data acceptance.TestData) string {
@@ -159,13 +159,70 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-managedRedis-%[1]d"
-  location = "eastus"
+  location = "%[2]s"
 }
+
+data "azurerm_client_config" "current" {}
 
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctest-uai-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_key_vault" "test" {
+  name                = "acctestMngdRedis%[3]s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  tenant_id           = data.azurerm_client_config.current.tenant_id
+  sku_name            = "standard"
+
+  purge_protection_enabled   = true
+  soft_delete_retention_days = 7
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Create",
+      "Delete",
+      "Get",
+      "List",
+      "Purge",
+      "Recover",
+      "Update",
+      "GetRotationPolicy",
+      "SetRotationPolicy"
+    ]
+  }
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+
+    key_permissions = [
+      "Get",
+      "WrapKey",
+      "UnwrapKey"
+    ]
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "acctest-key-%[1]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
 }
 
 resource "azurerm_managed_redis_cluster" "test" {
@@ -180,11 +237,16 @@ resource "azurerm_managed_redis_cluster" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 
+  customer_managed_key {
+    encryption_key_url        = azurerm_key_vault_key.test.id
+    user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  }
+
   tags = {
     environment = "Production"
   }
 }
-`, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))
 }
 
 func (r ManagedRedisClusterResource) requiresImport(data acceptance.TestData) string {
@@ -209,7 +271,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-managedRedis-%[1]d"
-  location = "eastus"
+  location = "%[2]s"
 }
 
 resource "azurerm_managed_redis_cluster" "test" {
@@ -230,7 +292,7 @@ resource "azurerm_managed_redis_cluster" "test" {
     ENV = "Test"
   }
 }
-`, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r ManagedRedisClusterResource) withCmk(data acceptance.TestData) string {
@@ -241,7 +303,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-managedRedis-%[1]d"
-  location = "eastus"
+  location = "%[2]s"
 }
 
 data "azurerm_client_config" "current" {}
@@ -253,7 +315,7 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "acctestMngdRedis%[2]s"
+  name                = "acctestMngdRedis%[3]s"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   tenant_id           = data.azurerm_client_config.current.tenant_id
@@ -324,7 +386,7 @@ resource "azurerm_managed_redis_cluster" "test" {
     user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 }
-`, data.RandomInteger, data.RandomStringOfLength(5))
+`, data.RandomInteger, data.Locations.Primary, data.RandomStringOfLength(5))
 }
 
 func (r ManagedRedisClusterResource) withPrivateEndpoint(data acceptance.TestData) string {
@@ -335,7 +397,7 @@ provider "azurerm" {
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-managedRedis-%[1]d"
-  location = "eastus"
+  location = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -373,5 +435,5 @@ resource "azurerm_private_endpoint" "test" {
   }
 }
 
-	`, data.RandomInteger)
+	`, data.RandomInteger, data.Locations.Primary)
 }

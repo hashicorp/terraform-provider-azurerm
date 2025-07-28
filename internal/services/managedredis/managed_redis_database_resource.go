@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ManagedRedisDatabaseResource struct{}
@@ -111,7 +110,6 @@ func (r ManagedRedisDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
 			MaxItems: 5,
-			Set:      pluginsdk.HashString,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: databases.ValidateDatabaseID,
@@ -244,7 +242,7 @@ func (r ManagedRedisDatabaseResource) Create() sdk.ResourceFunc {
 					ClientProtocol:           pointer.To(databases.Protocol(model.ClientProtocol)),
 					ClusteringPolicy:         pointer.To(databases.ClusteringPolicy(model.ClusteringPolicy)),
 					EvictionPolicy:           pointer.To(databases.EvictionPolicy(model.EvictionPolicy)),
-					Port:                     utils.Int64(model.Port),
+					Port:                     pointer.To(model.Port),
 					GeoReplication:           linkedDatabase,
 					Modules:                  module,
 				},
@@ -400,10 +398,17 @@ func (r ManagedRedisDatabaseResource) CustomizeDiff() sdk.ResourceFunc {
 
 			if isGeoEnabled {
 				var currentDatabaseId string
-				if metadata.ResourceData != nil && metadata.ResourceData.Id() != "" {
+				switch {
+				case metadata.ResourceData != nil && metadata.ResourceData.Id() != "":
 					currentDatabaseId = metadata.ResourceData.Id()
-				} else {
-					currentDatabaseId = model.ClusterId + "/databases/" + model.Name
+				case model.ClusterId != "" && model.Name != "":
+					clusterId, err := redisenterprise.ParseRedisEnterpriseID(model.ClusterId)
+					if err != nil {
+						return fmt.Errorf("parsing cluster ID: %+v", err)
+					}
+					currentDatabaseId = databases.NewDatabaseID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, model.Name).ID()
+				default:
+					return nil
 				}
 
 				isCurrentDbIncluded := false
@@ -420,7 +425,7 @@ func (r ManagedRedisDatabaseResource) CustomizeDiff() sdk.ResourceFunc {
 
 				for _, module := range model.Module {
 					if module.Name != "RediSearch" && module.Name != "RedisJSON" {
-						return fmt.Errorf("Only RediSearch and RedisJSON modules are allowed with geo-replication")
+						return fmt.Errorf("Only `RediSearch` and `RedisJSON` modules are allowed with geo-replication")
 					}
 				}
 			}
@@ -435,7 +440,7 @@ func expandArmDatabaseModuleArray(input []ModuleModel, isGeoEnabled bool) (*[]da
 
 	for _, item := range input {
 		if item.Name != "RediSearch" && item.Name != "RedisJSON" && isGeoEnabled {
-			return nil, fmt.Errorf("Only RediSearch and RedisJSON modules are allowed with geo-replication")
+			return nil, fmt.Errorf("Only `RediSearch` and `RedisJSON` modules are allowed with geo-replication")
 		}
 		results = append(results, databases.Module{
 			Name: item.Name,

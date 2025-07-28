@@ -90,17 +90,17 @@ func (r ManagedRedisDatabaseDataSource) Read() sdk.ResourceFunc {
 			client := metadata.Client.ManagedRedis.DatabaseClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model ManagedRedisDatabaseDataSourceModel
-			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding %+v", err)
+			var state ManagedRedisDatabaseDataSourceModel
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			clusterId, err := redisenterprise.ParseRedisEnterpriseID(model.ClusterId)
+			clusterId, err := redisenterprise.ParseRedisEnterpriseID(state.ClusterId)
 			if err != nil {
 				return err
 			}
 
-			id := databases.NewDatabaseID(subscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, model.Name)
+			id := databases.NewDatabaseID(subscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, state.Name)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {
@@ -110,20 +110,13 @@ func (r ManagedRedisDatabaseDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := ManagedRedisDatabaseDataSourceModel{
-				Name:      id.DatabaseName,
-				ClusterId: clusterId.ID(),
-			}
+			metadata.SetID(id)
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					if props.GeoReplication != nil {
-						if props.GeoReplication.GroupNickname != nil {
-							state.LinkedDatabaseGroupNickname = *props.GeoReplication.GroupNickname
-						}
-						if props.GeoReplication.LinkedDatabases != nil {
-							state.LinkedDatabaseId = flattenArmGeoLinkedDatabase(props.GeoReplication.LinkedDatabases)
-						}
+					if geoProps := props.GeoReplication; geoProps != nil {
+						state.LinkedDatabaseGroupNickname = pointer.From(geoProps.GroupNickname)
+						state.LinkedDatabaseId = flattenArmGeoLinkedDatabase(geoProps.LinkedDatabases)
 					}
 					if strings.EqualFold(string(pointer.From(props.AccessKeysAuthentication)), string(databases.AccessKeysAuthenticationEnabled)) {
 						keysResp, err := client.ListKeys(ctx, id)
@@ -138,7 +131,6 @@ func (r ManagedRedisDatabaseDataSource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			metadata.SetID(id)
 			return metadata.Encode(&state)
 		},
 	}
