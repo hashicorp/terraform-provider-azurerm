@@ -51,6 +51,7 @@ BUG FIXES:
 * `azurerm_eventhub` - fix perpetual diff with `message_retention` [GH-30169]
 * `azurerm_service_plan` - fix an issue that prevented supported SKUs from specifying `zone_balancing_enabled` as `true` [GH-30165]
 * `azurerm_monitor_alert_prometheus_rule_group` - prevent an error caused by the request containing an empty string for the `rule.for` property when not set [GH-30180]
+* `azurerm_mssql_database` - the `max_size_gb` can now support `0.1` and `0.5` [GH-28334]
 
 ## 4.37.0 (July 17, 2025)
 
