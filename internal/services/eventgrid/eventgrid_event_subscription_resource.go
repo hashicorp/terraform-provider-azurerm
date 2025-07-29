@@ -103,7 +103,7 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 
 			"expiration_time_utc": eventSubscriptionSchemaExpirationTimeUTC(),
 
-			"azure_function": eventSubscriptionSchemaFunction(
+			"azure_function": eventSubscriptionSchemaAzureFunction(
 				utils.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
 					string(AzureFunction),
@@ -444,7 +444,6 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 			if err := d.Set("azure_function", flattenEventSubscriptionDestinationAzureFunction(destination)); err != nil {
 				return fmt.Errorf("setting `azure_function` for %s: %+v", *id, err)
 			}
-
 			d.Set("eventhub_id", flattenEventSubscriptionDestinationEventHub(destination))
 			d.Set("arc_connection_id", flattenEventSubscriptionDestinationArcConnection(destination))
 			d.Set("service_bus_queue_id", flattenEventSubscriptionDestinationServiceBusQueue(destination))

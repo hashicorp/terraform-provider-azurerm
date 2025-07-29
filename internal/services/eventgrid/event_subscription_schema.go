@@ -104,7 +104,7 @@ func eventSubscriptionSchemaExpirationTimeUTC() *pluginsdk.Schema {
 	}
 }
 
-func eventSubscriptionSchemaFunction(conflictsWith []string) *pluginsdk.Schema {
+func eventSubscriptionSchemaAzureFunction(conflictsWith []string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeList,
 		MaxItems:      1,

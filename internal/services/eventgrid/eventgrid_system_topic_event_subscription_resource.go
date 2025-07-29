@@ -73,7 +73,7 @@ func resourceEventGridSystemTopicEventSubscription() *pluginsdk.Resource {
 
 			"expiration_time_utc": eventSubscriptionSchemaExpirationTimeUTC(),
 
-			"azure_function": eventSubscriptionSchemaFunction(
+			"azure_function": eventSubscriptionSchemaAzureFunction(
 				utils.RemoveFromStringArray(
 					possibleSystemTopicEventSubscriptionEndpointTypes(),
 					string(AzureFunction),
@@ -407,15 +407,21 @@ func resourceEventGridSystemTopicEventSubscriptionRead(d *pluginsdk.ResourceData
 				return fmt.Errorf("setting `delivery_property` for %s: %+v", *id, err)
 			}
 
-			if err := d.Set("azure_function_endpoint", flattenEventSubscriptionDestinationAzureFunction(destination)); err != nil {
+			if err := d.Set("azure_function", flattenEventSubscriptionDestinationAzureFunction(destination)); err != nil {
 				return fmt.Errorf("setting `azure_function_endpoint` for %s: %+v", *id, err)
 			}
-
-			d.Set("eventhub_endpoint_id", flattenEventSubscriptionDestinationEventHub(destination))
-			d.Set("hybrid_connection_endpoint_id", flattenEventSubscriptionDestinationArcConnection(destination))
+			d.Set("eventhub_id", flattenEventSubscriptionDestinationEventHub(destination))
+			d.Set("arc_connection_id", flattenEventSubscriptionDestinationArcConnection(destination))
 			d.Set("service_bus_queue_id", flattenEventSubscriptionDestinationServiceBusQueue(destination))
+			d.Set("service_bus_topic_id", flattenEventSubscriptionDestinationServiceBusTopic(destination))
 			if !features.FivePointOh() {
+				if err := d.Set("azure_function_endpoint", flattenEventSubscriptionDestinationAzureFunction(destination)); err != nil {
+					return fmt.Errorf("setting `azure_function_endpoint` for %s: %+v", *id, err)
+				}
+				d.Set("eventhub_endpoint_id", flattenEventSubscriptionDestinationEventHub(destination))
+				d.Set("hybrid_connection_endpoint_id", flattenEventSubscriptionDestinationArcConnection(destination))
 				d.Set("service_bus_queue_endpoint_id", flattenEventSubscriptionDestinationServiceBusQueue(destination))
+				d.Set("service_bus_topic_endpoint_id", flattenEventSubscriptionDestinationServiceBusTopic(destination))
 			}
 			d.Set("service_bus_topic_endpoint_id", flattenEventSubscriptionDestinationServiceBusTopic(destination))
 			if err := d.Set("storage_queue_endpoint", flattenEventSubscriptionDestinationStorageQueueEndpoint(destination)); err != nil {
