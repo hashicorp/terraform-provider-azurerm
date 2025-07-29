@@ -17,7 +17,6 @@ Use this data source to access information about an existing log_analytics_works
 data "azurerm_log_analytics_workspace_table" "this" {
   name                = "InsightsMetrics"
   workspace_id        = azurerm_log_analytics_workspace.this.id
-  resource_group_name = "test-resource-group"
 }
 
 output "retention_in_days" {
@@ -30,8 +29,6 @@ output "retention_in_days" {
 The following arguments are supported:
 
 * `name` - (Required) The name of this log analytics workspace table.
-
-* `resource_group_name` - (Required) The name of the Resource Group where the log analytics workspace exists.
 
 * `workspace_id` - (Required) The ID of the log analytics workspace the table belongs to.
 

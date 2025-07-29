@@ -7,8 +7,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/tables"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -16,7 +16,6 @@ import (
 type LogAnalyticsWorkspaceTableDataSource struct{}
 
 type LogAnalyticsWorkspaceTableDataSourceModel struct {
-	ResourceGroupName    string `tfschema:"resource_group_name"`
 	Name                 string `tfschema:"name"`
 	WorkspaceId          string `tfschema:"workspace_id"`
 	Plan                 string `tfschema:"plan"`
@@ -78,7 +77,7 @@ func (LogAnalyticsWorkspaceTableDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("invalid workspace object ID for table %s: %s", state.Name, err)
 			}
 
-			id := tables.NewTableID(metadata.Client.Account.SubscriptionId, state.ResourceGroupName, workspaceId.WorkspaceName, state.Name)
+			id := tables.NewTableID(metadata.Client.Account.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, state.Name)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {
