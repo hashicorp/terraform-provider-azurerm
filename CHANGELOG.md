@@ -1,6 +1,7 @@
 ## 4.38.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `go-azure-sdk` update to `v0.20250728.1144148` [GH-30254]
 * `azurerm_dynatrace_monitor` -  add support for  the `environment_properties` block [GH-29251]
 * `azurerm_mongo_cluster` - add support for `version` 8.0 [GH-29823]
 * `azurerm_video_indexer_account` - add support for the `public_network_access` property [GH-29725]
