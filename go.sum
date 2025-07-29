@@ -108,10 +108,10 @@ github.com/hashicorp/errwrap v1.1.0 h1:OxrOeh75EUXMY8TBjag2fzXGZ40LB6IKw45YeGUDY
 github.com/hashicorp/errwrap v1.1.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brvKWEqk/Jc4=
 github.com/hashicorp/go-azure-helpers v0.73.0 h1:J++NBrLzwv6U/hSXeC29pWOr+5S+xnoQWVT2r1XAexw=
 github.com/hashicorp/go-azure-helpers v0.73.0/go.mod h1:tAUWC+kwZQsuNAHEIlnbojMMcC6SWQb6W1HfIeluv1E=
-github.com/hashicorp/go-azure-sdk/resource-manager v0.20250716.1144812 h1:PSfsmKp4oosp1P8bp4ISUPpOU1X1W31qy69slBJNeic=
-github.com/hashicorp/go-azure-sdk/resource-manager v0.20250716.1144812/go.mod h1:rJDEHkDOqJTp/p/TaJkHGzdEX2czrdm7c1RZ6W9f3MY=
-github.com/hashicorp/go-azure-sdk/sdk v0.20250716.1144812 h1:EuVXykoC/o18sW/1++sZfE0PPAcbLX+YY/uJdV9QzQQ=
-github.com/hashicorp/go-azure-sdk/sdk v0.20250716.1144812/go.mod h1:eyNClZwQsa4Go51ScU9OYCE2EQvbNt8EjZ4eMxpQ1H8=
+github.com/hashicorp/go-azure-sdk/resource-manager v0.20250728.1144148 h1:1yA2960v1Wq91SDI6SNG7CfI6rUn6qFE+OCNeWxEj9E=
+github.com/hashicorp/go-azure-sdk/resource-manager v0.20250728.1144148/go.mod h1:XALGap33I9kIDkOWoFiAlAdbNkIaVb4K0OoJaxzCEv0=
+github.com/hashicorp/go-azure-sdk/sdk v0.20250728.1144148 h1:vH7BZ8LZZE6+/nRaNVAEUAvUbJIxMwkbt7yTaeDnFjQ=
+github.com/hashicorp/go-azure-sdk/sdk v0.20250728.1144148/go.mod h1:eyNClZwQsa4Go51ScU9OYCE2EQvbNt8EjZ4eMxpQ1H8=
 github.com/hashicorp/go-checkpoint v0.5.0 h1:MFYpPZCnQqQTE18jFwSII6eUQrD/oxMFp3mlgcqk5mU=
 github.com/hashicorp/go-checkpoint v0.5.0/go.mod h1:7nfLNL10NsxqO4iWuW6tWW0HjZuDrwkBuEQsVcpCOgg=
 github.com/hashicorp/go-cleanhttp v0.5.0/go.mod h1:JpRdi6/HCYpAwUzNwuwqhbovhLtngrth3wmdIIUrZ80=

@@ -158,7 +158,7 @@ github.com/hashicorp/go-azure-helpers/resourcemanager/tags
 github.com/hashicorp/go-azure-helpers/resourcemanager/zones
 github.com/hashicorp/go-azure-helpers/sender
 github.com/hashicorp/go-azure-helpers/storage
-# github.com/hashicorp/go-azure-sdk/resource-manager v0.20250716.1144812
+# github.com/hashicorp/go-azure-sdk/resource-manager v0.20250728.1144148
 ## explicit; go 1.24.1
 github.com/hashicorp/go-azure-sdk/resource-manager/aad/2021-05-01/domainservices
 github.com/hashicorp/go-azure-sdk/resource-manager/aadb2c/2021-04-01-preview
@@ -305,7 +305,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/netw
 github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/offers
 github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/publishers
 github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/securitysettings
-github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/skuses
+github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/skus
 github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/storagecontainers
 github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/updateruns
 github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/updates
@@ -981,8 +981,8 @@ github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/conf
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/firewallrules
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresqlhsc/2022-11-08/roles
 github.com/hashicorp/go-azure-sdk/resource-manager/powerbidedicated/2021-01-01/capacities
+github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatedns
 github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones
-github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/recordsets
 github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/virtualnetworklinks
 github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-07-01/account
 github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-12-01/account
@@ -1207,7 +1207,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapappli
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapcentralserverinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapdatabaseinstances
 github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances
-# github.com/hashicorp/go-azure-sdk/sdk v0.20250716.1144812
+# github.com/hashicorp/go-azure-sdk/sdk v0.20250728.1144148
 ## explicit; go 1.24.1
 github.com/hashicorp/go-azure-sdk/sdk/auth
 github.com/hashicorp/go-azure-sdk/sdk/auth/autorest
