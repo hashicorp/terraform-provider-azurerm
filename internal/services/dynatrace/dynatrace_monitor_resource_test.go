@@ -191,6 +191,7 @@ resource "azurerm_dynatrace_monitor" "test" {
 `, template, data.RandomInteger, r.dynatraceInfo.UserFirstName, r.dynatraceInfo.UserLastName, r.dynatraceInfo.UserEmail, r.dynatraceInfo.UserPhoneNumber, r.dynatraceInfo.UserCountry)
 }
 
+// For `environment_properties`, since it is a computed field, we lean on ignoring changes in the lifecycle block to avoid diffs during creation.
 func (r MonitorsResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
