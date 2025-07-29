@@ -8,19 +8,18 @@ description: |-
 
 # Data Source: azurerm_log_analytics_workspace_table
 
-Use this data source to access information about an existing log_analytics_workspace table.
+Use this data source to access information about an existing Log Analytics Workspace Table.
 
 ## Example Usage
 
 ```hcl
-
-data "azurerm_log_analytics_workspace_table" "this" {
-  name                = "InsightsMetrics"
-  workspace_id        = azurerm_log_analytics_workspace.this.id
+data "azurerm_log_analytics_workspace_table" "example" {
+  name         = "InsightsMetrics"
+  workspace_id = azurerm_log_analytics_workspace.example.id
 }
 
 output "retention_in_days" {
-  value = data.azurerm_log_analytics_workspace_table.this.retention_in_days
+  value = data.azurerm_log_analytics_workspace_table.example.retention_in_days
 }
 ```
 
@@ -28,9 +27,9 @@ output "retention_in_days" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of this log analytics workspace table.
+* `name` - (Required) The name of this Log Analytics Workspace Table.
 
-* `workspace_id` - (Required) The ID of the log analytics workspace the table belongs to.
+* `workspace_id` - (Required) The ID of the Log Analytics Workspace the table belongs to.
 
 ## Attributes Reference
 
@@ -39,6 +38,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `retention_in_days` - The table's data retention in days.
 
 * `total_retention_in_days` - The table's total data retention in days.
+
+* `plan` - The billing plan information for the Log Analytics Workspace Table.
 
 ## Timeouts
 
