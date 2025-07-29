@@ -11,7 +11,7 @@ import (
 type LogAnalyticsWorkspaceTableDataSource struct{}
 
 func TestLogAnalyticsWorkspaceTableDataSource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_log_analytics_workspace_table", "this")
+	data := acceptance.BuildTestData(t, "data.azurerm_log_analytics_workspace_table", "test")
 	r := LogAnalyticsWorkspaceTableDataSource{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
@@ -32,15 +32,15 @@ provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "this" {
-  name     = "test-resource-group"
-  location = "%s"
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-la-%[2]d"
+  location = "%[1]s"
 }
 
-resource "azurerm_log_analytics_workspace" "this" {
-  name                = "test"
-  resource_group_name = "test-resource-group"
-  location            = "%s"
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctest-LAW-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
   sku                 = "PerGB2018"
   retention_in_days   = 30
 
@@ -48,7 +48,7 @@ resource "azurerm_log_analytics_workspace" "this" {
     env = "test"
   }
 }
-`, data.Locations.Primary, data.Locations.Primary)
+`, data.Locations.Primary, data.RandomInteger)
 }
 
 func (d LogAnalyticsWorkspaceTableDataSource) basicWithDataSource(data acceptance.TestData) string {
@@ -56,9 +56,9 @@ func (d LogAnalyticsWorkspaceTableDataSource) basicWithDataSource(data acceptanc
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_log_analytics_workspace_table" "this" {
+data "azurerm_log_analytics_workspace_table" "test" {
   name         = "InsightsMetrics"
-  workspace_id = azurerm_log_analytics_workspace.this.id
+  workspace_id = azurerm_log_analytics_workspace.test.id
 }
 `, config)
 }

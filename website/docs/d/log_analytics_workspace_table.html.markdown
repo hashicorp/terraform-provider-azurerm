@@ -3,7 +3,7 @@ subcategory: "Log Analytics"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_log_analytics_workspace_table"
 description: |-
-  Gets information about an existing log_analytics_workspace.
+  Gets information about an existing Log Analytics Workspace Table.
 ---
 
 # Data Source: azurerm_log_analytics_workspace_table

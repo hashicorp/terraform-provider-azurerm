@@ -74,7 +74,7 @@ func (LogAnalyticsWorkspaceTableDataSource) Read() sdk.ResourceFunc {
 
 			workspaceId, err := workspaces.ParseWorkspaceID(state.WorkspaceId)
 			if err != nil {
-				return fmt.Errorf("invalid workspace object ID for table %s: %s", state.Name, err)
+				return err
 			}
 
 			id := tables.NewTableID(metadata.Client.Account.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.WorkspaceName, state.Name)
@@ -93,7 +93,7 @@ func (LogAnalyticsWorkspaceTableDataSource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.RetentionInDays = pointer.From(props.RetentionInDays)
 					state.TotalRetentionInDays = pointer.From(props.TotalRetentionInDays)
-					state.Plan = string(pointer.From(props.Plan))
+					state.Plan = pointer.FromEnum(props.Plan)
 				}
 			}
 			return metadata.Encode(&state)
