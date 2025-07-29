@@ -286,14 +286,43 @@ import (
 
 #### CustomizeDiff Import Requirements
 
-When using CustomizeDiff functions, you must import both packages:
+**IMPORTANT**: The dual import pattern is **only** required for specific scenarios:
 
+**When DUAL IMPORTS are Required:**
 ```go
 import (
     "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"            // For *schema.ResourceDiff
     "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk" // For helpers
 )
+
+// When using *schema.ResourceDiff directly in CustomizeDiff functions
+CustomizeDiff: pluginsdk.All(
+    pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+        // Custom validation using *schema.ResourceDiff
+        return nil
+    }),
+),
 ```
+
+**When SINGLE IMPORT is Sufficient (Legacy Resources):**
+```go
+import (
+    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"            // Only this import needed
+)
+
+// When using *pluginsdk.ResourceDiff in CustomizeDiffShim functions
+CustomizeDiff: pluginsdk.CustomDiffWithAll(
+    pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+        // Custom validation using *pluginsdk.ResourceDiff (which is an alias for *schema.ResourceDiff)
+        return nil
+    }),
+),
+```
+
+**Rule of Thumb:**
+- **Typed Resources**: Usually need dual imports when using `*schema.ResourceDiff` directly
+- **Legacy/Untyped Resources**: Usually only need schema import when using `*pluginsdk.ResourceDiff`
+- **Check the function signature**: If you see `*pluginsdk.ResourceDiff`, single import is sufficient
 
 ---
 [⬆️ Back to top](#terraform-azurerm-provider-implementation-guide)
@@ -687,6 +716,29 @@ New Resource Request
    └─ 5. Write documentation
 ```
 
+#### Cross-Implementation Consistency Validation
+When working with related Azure resources (like Linux and Windows variants), always verify:
+```
+Consistency Checklist
+├─ VALIDATION LOGIC
+│  ├─ CustomizeDiff functions must be identical across variants
+│  ├─ Field requirements must match (if Windows requires X, Linux must too)
+│  ├─ Error messages must use identical patterns
+│  └─ Default value handling must be consistent
+│
+├─ DOCUMENTATION
+│  ├─ Field descriptions must be identical for shared fields
+│  ├─ Note blocks must apply same conditional logic
+│  ├─ Examples must demonstrate equivalent patterns
+│  └─ Validation rules must be documented consistently
+│
+└─ TESTING
+   ├─ Test coverage must be equivalent between implementations
+   ├─ Test naming must follow parallel patterns
+   ├─ Helper function naming must use consistent camelCase
+   └─ Configuration templates must demonstrate same behaviors
+```
+
 #### Template Selection Guide
 ```go
 // TYPED RESOURCE TEMPLATE - Use for NEW resources
@@ -826,35 +878,111 @@ func expandPolicy(input []interface{}) *azuretype.Policy {
 ```
 
 #### CustomizeDiff Validation Patterns
+
+**Typed Resource CustomizeDiff Pattern:**
 ```go
-// Import requirements for CustomizeDiff
+// NOTE: Typed resources typically use dual imports when using *schema.ResourceDiff directly
 import (
     "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"            // For *schema.ResourceDiff
     "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk" // For helpers
 )
 
-// Azure-specific validation patterns
-CustomizeDiff: pluginsdk.CustomDiffWithAll(
-    pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
-        // Azure SKU validation
-        if diff.Get("sku_name").(string) == "Premium" && !diff.Get("zone_redundant").(bool) {
-            return fmt.Errorf("`zone_redundant` must be true for Premium SKU")
-        }
+// Typed resource CustomizeDiff implementation
+func (r ServiceNameResource) CustomizeDiff() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            var model ServiceNameModel
+            if err := metadata.Decode(&model); err != nil {
+                return fmt.Errorf("decoding: %+v", err)
+            }
 
-        // Azure region constraints
-        location := diff.Get("location").(string)
-        if location == "West US" && diff.Get("advanced_features").(bool) {
-            return fmt.Errorf("advanced features not available in West US region")
-        }
+            // Azure SKU validation for typed resources
+            if model.SkuName == "Premium" && !model.ZoneRedundant {
+                return fmt.Errorf("`zone_redundant` must be true for Premium SKU")
+            }
 
-        return nil
-    }),
-    // Force recreation for immutable Azure properties
-    pluginsdk.ForceNewIfChange("location", func(ctx context.Context, old, new, meta interface{}) bool {
-        return old.(string) != new.(string)
-    }),
-),
+            return nil
+        },
+    }
+}
 ```
+
+**Untyped Resource CustomizeDiff Pattern:**
+```go
+// NOTE: Untyped resources often use single import with *pluginsdk.ResourceDiff
+import (
+    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"            // Only this import needed
+)
+
+// Untyped resource CustomizeDiff implementation
+func resourceServiceName() *pluginsdk.Resource {
+    return &pluginsdk.Resource{
+        Create: resourceServiceNameCreate,
+        Read:   resourceServiceNameRead,
+        Update: resourceServiceNameUpdate,
+        Delete: resourceServiceNameDelete,
+
+        Schema: map[string]*pluginsdk.Schema{
+            // Schema definitions
+        },
+
+        CustomizeDiff: pluginsdk.CustomDiffWithAll(
+            pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+                // Azure SKU validation
+                if diff.Get("sku_name").(string) == "Premium" && !diff.Get("zone_redundant").(bool) {
+                    return fmt.Errorf("`zone_redundant` must be true for Premium SKU")
+                }
+
+                // Azure region constraints
+                location := diff.Get("location").(string)
+                if location == "West US" && diff.Get("advanced_features").(bool) {
+                    return fmt.Errorf("advanced features not available in West US region")
+                }
+
+                return nil
+            }),
+            // Force recreation for immutable Azure properties
+            pluginsdk.ForceNewIfChange("location", func(ctx context.Context, old, new, meta interface{}) bool {
+                return old.(string) != new.(string)
+            }),
+
+            // Programmatic ForceNew for complex state transitions
+            pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+                oldSkuProfile, newSkuProfile := diff.GetChange("sku_profile")
+                oldSkuProfileList := oldSkuProfile.([]interface{})
+                newSkuProfileList := newSkuProfile.([]interface{})
+
+                // Detect complex state transition requiring recreation
+                skuProfileBeingRemoved := len(oldSkuProfileList) > 0 && len(newSkuProfileList) == 0
+                if skuProfileBeingRemoved {
+                    oldSkuName, newSkuName := diff.GetChange("sku_name")
+
+                    // Force recreation for Azure API constraint
+                    if oldSkuName.(string) == "Mix" && newSkuName.(string) != "Mix" {
+                        if err := diff.ForceNew("sku_profile"); err != nil {
+                            return fmt.Errorf("forcing new resource when removing `sku_profile` with `sku_name` change from `Mix`: %+v", err)
+                        }
+                    }
+                }
+                return nil
+            }),
+        ),
+    }
+}
+```
+
+**Key Differences:**
+- **Typed Resources**: Use receiver methods and `sdk.ResourceFunc` patterns, validate against model structs
+- **Untyped Resources**: Use function-based patterns and `*schema.ResourceDiff` for field access
+- **Import Requirements**: Typed typically need dual imports, untyped often use single import
+- **Validation Style**: Typed validate against decoded models, untyped use `diff.Get()` patterns
+
+**Programmatic ForceNew Pattern Explanation:**
+Use `diff.ForceNew()` within CustomizeDiffShim when:
+1. Complex conditional logic determines if recreation is needed
+2. Multiple field changes combine to require ForceNew
+3. Azure API constraints require recreation for specific state transitions
+4. Static ForceNew: true or ForceNewIfChange cannot express the logic
 
 #### Schema Design Patterns
 ```go
@@ -1046,6 +1174,7 @@ defer cancel()
 // □ CustomizeDiff tested if used
 // □ Proper pointer usage with pointer package
 // □ Resource ID parsing implemented correctly
+// □ Tests use ONLY ExistsInAzure() check with ImportStep() - NO redundant field validation
 ```
 
 ---

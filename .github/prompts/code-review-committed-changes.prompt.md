@@ -17,7 +17,7 @@ Focus on delivering actionable feedback in the following areas:
 - Resource import functionality correctness
 - Terraform Plugin SDK usage violations
 - Implementation approach consistency (Typed vs Untyped Resource Implementation)
-- CustomizeDiff import pattern correctness (dual import requirement)
+- CustomizeDiff import pattern correctness (conditional import requirements)
 - Resource schema validation and type safety
 
 **Code Quality**:
@@ -25,11 +25,12 @@ Focus on delivering actionable feedback in the following areas:
 - Terraform resource implementation best practices
 - Azure SDK for Go usage patterns
 - Plugin SDK schema definitions and validation
-- CustomizeDiff function implementation patterns and import requirements
+- CustomizeDiff function implementation patterns and conditional import requirements
 - Implementation approach appropriateness (Typed for new, Untyped maintenance only)
 - Error handling and context propagation
 - Resource timeout configurations
 - Acceptance test coverage and quality
+- **Tests use ONLY ExistsInAzure() check with ImportStep() - NO redundant field validation**
 
 **Azure-Specific Concerns**:
 - Azure API version compatibility
@@ -138,7 +139,7 @@ Result: Console display issue, not file corruption
 
 **Scenario 2: JSON/YAML Line Breaking**
 ```json
-Git diff shows: 
+Git diff shows:
 {
     "prop": (appears incomplete)
 }
@@ -188,14 +189,14 @@ Result: Console display issue, not code corruption
 **VERIFICATION PROTOCOL FOR SUSPECTED ISSUES**:
 ### 🔍 **MANDATORY VERIFICATION STEPS:**
 1. **STOP** - If text appears broken/fragmented, this is likely console wrapping
-2. **VERIFY** - Use `cat filename` to check actual file content  
+2. **VERIFY** - Use `cat filename` to check actual file content
   - Windows PowerShell: `Get-Content 'filename'`
 3. **VALIDATE** - For `JSON`/structured files: `jq "." file.json`
   - Windows PowerShell: `Get-Content file.json | ConvertFrom-Json`
 
 ### 🚨 **CONSOLE WRAPPING RED FLAGS:** 🚨
 - ❌ Text breaks mid-sentence or mid-word without logical reason
-- ❌ Missing closing quotes/brackets that don't make sense contextually  
+- ❌ Missing closing quotes/brackets that don't make sense contextually
 - ❌ Fragmented lines that appear to continue elsewhere in the diff
 - ❌ Content looks syntactically invalid but conceptually correct
 - ❌ Long lines in git diff output that suddenly break
@@ -244,7 +245,7 @@ Result: Console display issue, not code corruption
     ### 🟢 **STRENGTHS**
     [List positive aspects and well-implemented features]
 
-    ### 🟡 **OBSERVATIONS** 
+    ### 🟡 **OBSERVATIONS**
     [List areas for consideration or minor improvements]
 
     ### 🔴 **ISSUES** (if any)
@@ -274,7 +275,7 @@ Result: Console display issue, not code corruption
     * **Terraform Impact** (if applicable): How this affects Terraform configurations or state
     * **Example** (if applicable): ...
     * **Suggested Change** (if applicable): (Go code snippet...)
-    
+
     ## (other suggestions...)
     ...
 
@@ -283,7 +284,7 @@ Result: Console display issue, not code corruption
 
 * Use the following emojis to indicate the priority of the suggestions:
     * 🔥 Critical
-    * 🔴 High  
+    * 🔴 High
     * 🟡 Medium
     * 🔵 Low (needs attention)
     * ✅ Positive feedback (good work, no action needed)
@@ -322,10 +323,15 @@ Use code review emojis. Give the reviewee added context and clarity to follow up
 When reviewing Terraform AzureRM provider code, pay special attention to:
 
 #### CustomizeDiff Import Requirements
-- **Dual Import Pattern**: When reviewing CustomizeDiff functions, verify both packages are imported:
-  - github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema for *schema.ResourceDiff
-  - github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk for resource types
-- **Correct Function Signatures**: Ensure CustomizeDiff functions use *schema.ResourceDiff (not aliased in pluginsdk)
+- **Conditional Import Pattern**: Import requirements depend on the CustomizeDiff implementation:
+  - **Dual Imports Required**: When using *schema.ResourceDiff directly in CustomizeDiff functions:
+    - github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema (for *schema.ResourceDiff)
+    - github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk (for helpers)
+  - **Single Import Sufficient**: When using *pluginsdk.ResourceDiff (legacy resources):
+    - github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema (only this import needed)
+- **Function Signature Analysis**: Check the function signature to determine import requirements:
+  - *schema.ResourceDiff → Usually typed resources, may need dual imports
+  - *pluginsdk.ResourceDiff → Usually legacy resources, single import sufficient
 - **Helper Function Usage**: Verify proper use of pluginsdk.All(), pluginsdk.ForceNewIfChange() helpers
 
 #### Resource Implementation

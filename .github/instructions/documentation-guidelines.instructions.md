@@ -501,6 +501,27 @@ Example of proper field documentation:
 - **Cross-reference validation**: When implementing similar features across resources, ensure consistent value documentation
 - **SDK alignment**: Match documentation values with Azure SDK enum constants where applicable
 
+### Cross-Implementation Documentation Consistency
+
+When documenting related Azure resources (like Linux and Windows VMSS), ensure consistency across implementations:
+
+**Field Documentation Consistency:**
+- **Identical descriptions**: Use the same field descriptions for shared functionality across resource variants
+- **Consistent validation rules**: Document the same validation requirements for equivalent fields
+- **Synchronized note blocks**: Apply identical conditional logic notes to both implementations
+- **Cross-reference accuracy**: When updating one variant's documentation, verify and update the related variant
+
+**Common Mistakes to Avoid:**
+- **Inconsistent rank field requirements**: Ensure both Linux and Windows VMSS document identical rank field usage patterns
+- **Mismatched default value claims**: Verify that default value documentation matches actual Azure SDK behavior
+- **Divergent validation patterns**: Maintain identical validation logic documentation across related resources
+
+**Documentation Validation Checklist:**
+- [ ] Field requirements match between Linux and Windows variants
+- [ ] Default value claims verified against Azure SDK behavior
+- [ ] Note blocks use consistent conditional logic across implementations
+- [ ] Examples demonstrate the same patterns for equivalent functionality
+
 ## Provider Documentation Standards (Note Formatting)
 
 ### Note Block Standards

@@ -172,6 +172,35 @@ This provider supports two implementation approaches. **For comprehensive implem
 // 5. Does the service support tagging? → Include tags schema and expand/flatten
 ```
 
+#### 🔄 **Cross-Implementation Consistency Validation**
+When working with related Azure resources (like Linux and Windows variants), always verify:
+```
+Consistency Checklist
+├─ VALIDATION LOGIC
+│  ├─ CustomizeDiff functions must be identical across variants
+│  ├─ Field requirements must match (if Windows requires X, Linux must too)
+│  ├─ Error messages must use identical patterns
+│  └─ Default value handling must be consistent
+│
+├─ DOCUMENTATION
+│  ├─ Field descriptions must be identical for shared fields
+│  ├─ Note blocks must apply same conditional logic
+│  ├─ Examples must demonstrate equivalent patterns
+│  └─ Validation rules must be documented consistently
+│
+├─ TESTING
+│  ├─ Test coverage must be equivalent between implementations
+│  ├─ Test naming must follow parallel patterns (TestAcc[Resource]_featureGroup_specificScenario)
+│  ├─ Helper function naming must use consistent camelCase
+│  └─ Configuration templates must demonstrate same behaviors
+│
+└─ IMPLEMENTATION VERIFICATION
+   ├─ Before submitting code, validate against related implementations
+   ├─ Check for field requirement consistency across resource variants
+   ├─ Verify documentation accuracy across all related resources
+   └─ Test both implementations to ensure equivalent behavior
+```
+
 #### ⚡ **Quick Implementation Patterns**
 ```go
 // NEW RESOURCE: Always start with this template
@@ -381,6 +410,7 @@ func resourceExampleResource() *pluginsdk.Resource {
 ### Code Review Checklist
 - [ ] Follows Go coding standards and conventions
 - [ ] Includes comprehensive acceptance tests
+- [ ] **Tests use ONLY ExistsInAzure() check with ImportStep() - NO redundant field validation**
 - [ ] Has proper error handling and logging
 - [ ] Documentation is complete and accurate
 - [ ] No hardcoded values or sensitive data
@@ -457,15 +487,43 @@ if response.WasThrottled(resp.HttpResponse) {
 
 #### CustomizeDiff Implementation Pattern
 
-**Dual Import Requirement:**
-When implementing CustomizeDiff functions, both packages must be imported:
+**IMPORTANT**: The dual import pattern is **only** required for specific scenarios:
 
-`go
+**When DUAL IMPORTS are Required:**
+```go
 import (
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"            // For *schema.ResourceDiff
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk" // For helpers
 )
-`
+
+// When using *schema.ResourceDiff directly in CustomizeDiff functions
+CustomizeDiff: pluginsdk.All(
+    pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+        // Custom validation using *schema.ResourceDiff
+        return nil
+    }),
+),
+```
+
+**When SINGLE IMPORT is Sufficient (Legacy Resources):**
+```go
+import (
+    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"            // Only this import needed
+)
+
+// When using *pluginsdk.ResourceDiff in CustomizeDiffShim functions
+CustomizeDiff: pluginsdk.CustomDiffWithAll(
+    pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+        // Custom validation using *pluginsdk.ResourceDiff (which is an alias for *schema.ResourceDiff)
+        return nil
+    }),
+),
+```
+
+**Rule of Thumb:**
+- **Typed Resources**: Usually need dual imports when using `*schema.ResourceDiff` directly
+- **Legacy/Untyped Resources**: Usually only need schema import when using `*pluginsdk.ResourceDiff`
+- **Check the function signature**: If you see `*pluginsdk.ResourceDiff`, single import is sufficient
 
 **Standard CustomizeDiff Resource Pattern:**
 `go
@@ -502,6 +560,41 @@ func resourceServiceName() *pluginsdk.Resource {
 - However, CustomizeDiff function signatures are **not** aliased and must use *schema.ResourceDiff
 - The pluginsdk.All(), pluginsdk.ForceNewIfChange() helpers are available in the internal package
 - Resource and schema definitions use pluginsdk types for consistency
+
+#### 🚨 CRITICAL TESTING RULE: NO REDUNDANT FIELD VALIDATION
+
+**MANDATORY: When using `data.ImportStep()`, DO NOT add redundant field validation checks**
+
+```go
+// ✅ CORRECT - Only ExistsInAzure check
+func TestAccResourceName_basic(t *testing.T) {
+    data.ResourceTest(t, r, []acceptance.TestStep{
+        {
+            Config: r.basic(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r), // ONLY THIS
+            ),
+        },
+        data.ImportStep(), // ImportStep validates ALL field values automatically
+    })
+}
+
+// ❌ FORBIDDEN - Redundant field validation
+func TestAccResourceName_basic(t *testing.T) {
+    data.ResourceTest(t, r, []acceptance.TestStep{
+        {
+            Config: r.basic(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+                check.That(data.ResourceName).Key("field").HasValue("value"), // FORBIDDEN
+            ),
+        },
+        data.ImportStep(), // Already validates the field above
+    })
+}
+```
+
+**Exception**: Only add Key() checks for computed fields, TypeSet behavior, or Azure API transformations NOT in the configuration.
 
 ### Detailed Implementation Guidance
 

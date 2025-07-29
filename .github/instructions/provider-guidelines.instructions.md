@@ -42,6 +42,10 @@ description: Azure-specific guidelines for Go files in the Terraform Azure Provi
 ## CustomizeDiff Implementation for Azure Resources
 
 #### Standard CustomizeDiff Pattern
+
+**Note:** CustomizeDiff implementation differs between typed and untyped resources. Choose the appropriate pattern based on your resource implementation approach.
+
+**Untyped Resource CustomizeDiff Pattern:**
 ```go
 import (
     "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -86,6 +90,28 @@ func resourceAzureServiceName() *pluginsdk.Resource {
                 return old.(string) != new.(string)
             }),
         ),
+    }
+}
+```
+
+**Typed Resource CustomizeDiff Pattern:**
+```go
+// Typed resources use receiver methods with sdk.ResourceFunc
+func (r ServiceNameResource) CustomizeDiff() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            var model ServiceNameModel
+            if err := metadata.Decode(&model); err != nil {
+                return fmt.Errorf("decoding: %+v", err)
+            }
+
+            // Azure SKU validation for typed resources
+            if model.SkuName == "Premium" && !model.ZoneRedundant {
+                return fmt.Errorf("`zone_redundant` must be true for Premium SKU")
+            }
+
+            return nil
+        },
     }
 }
 ```

@@ -24,6 +24,30 @@ description: Testing guidelines for Terraform AzureRM provider Go files - test e
 make testacc TEST=./internal/services/compute TESTARGS='-run=TestAccLinuxVirtualMachineScaleSet_fieldsNotSetInState'
 ```
 
+## 🚨 ENFORCEMENT RULES FOR TERMINAL TOOL USAGE
+
+**BEFORE using any terminal tool (run_in_terminal, get_terminal_output, etc.):**
+- **STOP** and ask yourself: "Am I about to run a test or build command?"
+- If **YES**: Provide manual command instead
+- If **NO**: Proceed with tool
+
+**run_in_terminal tool restrictions:**
+- **FORBIDDEN for**: make testacc, go test, go build, any compilation commands
+- **ALLOWED for**: file operations, directory listing, git status only
+- **WHEN IN DOUBT**: Provide manual command
+
+**Before providing ANY terminal command, answer:**
+1. Does this create Azure resources? → Manual command required
+2. Does this run tests? → Manual command required
+3. Does this build/compile code? → Manual command required
+4. Is this just file inspection? → Tool may be acceptable
+
+**If you catch yourself about to run a build/test command:**
+1. **STOP immediately**
+2. Provide this exact format: "Please run this command manually: [command]"
+3. Explain purpose, duration, and requirements
+4. **DO NOT** use run_in_terminal
+
 ## Test Types
 
 **Unit Tests:**
@@ -46,6 +70,17 @@ make testacc TEST=./internal/services/compute TESTARGS='-run=TestAccLinuxVirtual
 **Acceptance Tests:** `TestAccResourceName_scenario`
 - Example: `TestAccCdnFrontDoorProfile_basic`
 - Example: `TestAccCdnFrontDoorProfile_requiresImport`
+- Use underscores to separate logical components: `TestAccResourceName_featureGroup_specificScenario`
+- Example: `TestAccWindowsVirtualMachineScaleSet_skuProfile_Prioritized`
+
+**Test Helper Functions:** Use camelCase (Go convention for unexported functions)
+- Example: `skuProfilePrioritized(data acceptance.TestData) string`
+- Example: `withLogScrubbingRule(data acceptance.TestData) string`
+- Example: `basicConfiguration(data acceptance.TestData) string`
+
+**Key Distinction:**
+- **Test function names**: Use underscores for logical separation (`_featureGroup_scenario`)
+- **Helper function names**: Use camelCase following Go naming conventions for unexported functions
 
 ## Essential Test Patterns
 
@@ -184,15 +219,43 @@ func TestAccServiceName_customizeDiffValidation(t *testing.T) {
 
 ### CustomizeDiff Testing Patterns
 
-When testing resources that use CustomizeDiff, remember the dual import requirement:
+**IMPORTANT**: The dual import pattern is **only** required for specific scenarios:
 
+**When DUAL IMPORTS are Required:**
 ```go
-// When testing resources with CustomizeDiff, remember the dual import requirement:
+// When testing resources with CustomizeDiff using *schema.ResourceDiff directly
 import (
     "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"            // For *schema.ResourceDiff
     "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk" // For helpers
 )
+
+// Function signature uses *schema.ResourceDiff
+CustomizeDiff: pluginsdk.All(
+    pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+        return nil
+    }),
+),
 ```
+
+**When SINGLE IMPORT is Sufficient (Legacy Resources):**
+```go
+// When testing legacy resources with CustomizeDiff using *pluginsdk.ResourceDiff
+import (
+    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"            // Only this import needed
+)
+
+// Function signature uses *pluginsdk.ResourceDiff (alias for *schema.ResourceDiff)
+CustomizeDiff: pluginsdk.CustomDiffWithAll(
+    pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+        return nil
+    }),
+),
+```
+
+**Rule of Thumb for Testing:**
+- **Check the resource's CustomizeDiff signature**: If it uses `*pluginsdk.ResourceDiff`, single import is sufficient
+- **Legacy/Untyped Resources**: Usually only need schema import
+- **Typed Resources**: Usually need dual imports when using `*schema.ResourceDiff` directly
 
 **Testing CustomizeDiff Validation:**
 ```go
@@ -296,6 +359,52 @@ func TestAccServiceName_forceNewOnPropertyChange(t *testing.T) {
     })
 }
 ```
+
+**Testing CustomizeDiff ForceNew with ResourceTestIgnoreRecreate:**
+```go
+// Required imports for modern testing with plan checks
+import (
+    "github.com/hashicorp/terraform-plugin-testing/helper/resource"
+    "github.com/hashicorp/terraform-plugin-testing/plancheck"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+)
+
+func TestAccServiceName_forceNewWithCustomizeDiff(t *testing.T) {
+    data := acceptance.BuildTestData(t, "azurerm_service_name", "test")
+    r := ServiceNameResource{}
+
+    // Use ResourceTestIgnoreRecreate for CustomizeDiff ForceNew validation
+    data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+        {
+            Config: r.skuProfileBasic(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+            ),
+        },
+        data.ImportStep(),
+        {
+            // Configuration that triggers CustomizeDiff ForceNew
+            Config: r.skuProfileForceNewTransition(data),
+            ConfigPlanChecks: resource.ConfigPlanChecks{
+                PreApply: []plancheck.PlanCheck{
+                    plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+                },
+            },
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+            ),
+        },
+        data.ImportStep(),
+    })
+}
+```
+
+**When to Use ResourceTestIgnoreRecreate:**
+- **CustomizeDiff ForceNew validation**: When CustomizeDiff logic forces resource recreation
+- **Plan verification needed**: When you need to verify specific Terraform plan actions
+- **Framework conflict avoidance**: Prevents conflicts between test framework and CustomizeDiff recreation logic
+- **Complex state transitions**: When testing state changes that require recreation validation
 
 **CustomizeDiff Test Configuration Helper Functions:**
 ```go
@@ -540,7 +649,9 @@ func TestAccCdnFrontDoorProfile_requiresImport(t *testing.T) {
 
 When using `data.ImportStep()` in acceptance tests, most field validation checks are **redundant** because ImportStep automatically validates that the resource can be imported and that all field values match between the configuration and the imported state.
 
-**Standard Pattern - Minimal Checks with ImportStep:**
+**🚨 CRITICAL RULE: DO NOT ADD REDUNDANT FIELD VALIDATION CHECKS**
+
+**MANDATORY Pattern - Only ExistsInAzure Check:**
 ```go
 func TestAccCdnFrontDoorProfile_basic(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
@@ -550,22 +661,25 @@ func TestAccCdnFrontDoorProfile_basic(t *testing.T) {
         {
             Config: r.basic(data),
             Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r), // Essential - verifies resource exists
-                // AVOID: check.That(data.ResourceName).Key("name").HasValue(...) - ImportStep validates this
-                // AVOID: check.That(data.ResourceName).Key("sku_name").HasValue(...) - ImportStep validates this
+                check.That(data.ResourceName).ExistsInAzure(r), // ONLY THIS CHECK - verifies resource exists
+                // FORBIDDEN: check.That(data.ResourceName).Key("name").HasValue(...) - ImportStep validates this
+                // FORBIDDEN: check.That(data.ResourceName).Key("sku_name").HasValue(...) - ImportStep validates this
+                // FORBIDDEN: check.That(data.ResourceName).Key("field").HasValue(...) - ImportStep validates this
             ),
         },
-        data.ImportStep(), // Automatically validates all configured field values
+        data.ImportStep(), // Automatically validates ALL configured field values
     })
 }
 ```
 
-**Legitimate Validation Checks with ImportStep:**
-In rare circumstances, additional validation checks may be appropriate alongside ImportStep:
+**EXTREMELY RARE Exceptions - Only for Special Cases:**
+Additional validation checks are **FORBIDDEN** except in these extremely rare circumstances:
 
 1. **Computed Field Verification**: Testing computed values that aren't in the configuration
 2. **Complex Behavior Validation**: Testing TypeSet deduplication, ordering, or transformation logic
 3. **Azure API-Specific Behavior**: Testing Azure service-specific transformations
+
+**⚠️ WARNING: If you add check.That(data.ResourceName).Key() for configured fields, you are violating the guidelines and creating redundant validation.**
 
 **Example - Valid Additional Checks:**
 ```go
@@ -749,6 +863,43 @@ func TestAccCdnFrontDoorProfile_logScrubbingRuleFieldRename(t *testing.T) {
         },
         data.ImportStep(), // Verify import works with new field name
     })
+}
+```
+
+### Cross-Implementation Consistency Requirements
+
+When working with related Azure resources that have both Linux and Windows variants (like VMSS), ensure validation logic and behavior consistency:
+
+**Validation Logic Consistency:**
+- **Same validation rules**: Linux and Windows implementations must have identical CustomizeDiff validation logic
+- **Field requirements**: If Windows requires field X for scenario Y, Linux must have the same requirement
+- **Error messages**: Use identical error message patterns across related implementations
+- **Default behavior**: Ensure both implementations handle defaults and omitted fields identically
+
+**Documentation Consistency:**
+- **Cross-reference checks**: When updating documentation for one variant, verify the other variant's documentation
+- **Field descriptions**: Use identical descriptions for shared fields across resource variants
+- **Note blocks**: Apply the same conditional logic notes to both implementations
+- **Examples**: Ensure examples demonstrate the same patterns across variants
+
+**Testing Consistency:**
+- **Test coverage parity**: Both implementations should have equivalent test scenarios
+- **Naming conventions**: Use parallel naming patterns (`Linux...` vs `Windows...`)
+- **Helper function patterns**: Use consistent camelCase naming for test helper functions
+- **Configuration templates**: Maintain similar test configuration structures
+
+**Example Validation Consistency Pattern:**
+```go
+// Linux VMSS validation - must match Windows behavior
+if diff.Get("sku_profile_allocation_strategy").(string) == string(compute.AllocationStrategyLowestPrice) ||
+   diff.Get("sku_profile_allocation_strategy").(string) == string(compute.AllocationStrategyPrioritized) {
+    // rank field validation logic must be identical
+}
+
+// Windows VMSS validation - must match Linux behavior
+if diff.Get("sku_profile_allocation_strategy").(string) == string(compute.AllocationStrategyLowestPrice) ||
+   diff.Get("sku_profile_allocation_strategy").(string) == string(compute.AllocationStrategyPrioritized) {
+    // rank field validation logic must be identical
 }
 ```
 
