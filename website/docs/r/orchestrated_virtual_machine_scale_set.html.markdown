@@ -108,11 +108,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "example" {
 
 * `sku_name` - (Optional) The `name` of the SKU to be used by this Virtual Machine Scale Set. Valid values include: any of the [General purpose](https://docs.microsoft.com/azure/virtual-machines/sizes-general), [Compute optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-compute), [Memory optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-memory), [Storage optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-storage), [GPU optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-gpu), [FPGA optimized](https://docs.microsoft.com/azure/virtual-machines/sizes-field-programmable-gate-arrays), [High performance](https://docs.microsoft.com/azure/virtual-machines/sizes-hpc), or [Previous generation](https://docs.microsoft.com/azure/virtual-machines/sizes-previous-gen) virtual machine SKUs.
 
-* `sku_profile` - (Optional) A `sku_profile` block as defined below. Changing this forces a new resource to be created.
+* `sku_profile` - (Optional) A `sku_profile` block as defined below.
 
 -> **Note:** If `sku_profile` is specified the `sku_name` must be set to `Mix`.
 
-!> **Note:** The `sku_profile` feature has several important limitations: it is currently only supported in `East US`, `West US`, `East US 2`, and `West US 2` regions; it requires `platform_fault_domain_count` to be set to `1`; and configuring the `sku_profile` is a one-way operation that cannot be removed once it has been configured. Updating the `sku_profile` configuration may cause instance disruption, as changing allocation strategies or VM sizes typically requires Azure to redistribute or recreate instances.
+!> **Note:** The `sku_profile` feature comes with several key limitations: it is currently supported only in the `East US`, `West US`, `East US 2`, and `West US 2` regions; it requires the `platform_fault_domain_count` to be explicitly set to `1`; and while the `sku_profile` can be updated after deployment, it cannot be removed. Removing the `sku_profile` from the configuration after deployment will trigger the creation of a new resource. Additionally, modifying the `sku_profile` settings may result in instance disruption, as changes to allocation strategies or VM sizes typically necessitate instance redistribution or recreation by Azure.
 
 * `source_image_id` - (Optional) The ID of an Image which each Virtual Machine in this Scale Set should be based on. Possible Image ID types include `Image ID`s, `Shared Image ID`s, `Shared Image Version ID`s, `Community Gallery Image ID`s, `Community Gallery Image Version ID`s, `Shared Gallery Image ID`s and `Shared Gallery Image Version ID`s.
 
