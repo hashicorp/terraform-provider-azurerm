@@ -1,5 +1,7 @@
 ## 4.38.0 (Unreleased)
 
+FEATURES:
+
 ENHANCEMENTS:
 * dependencies: `go-azure-sdk` update to `v0.20250728.1144148` [GH-30254]
 * `azurerm_dynatrace_monitor` -  add support for  the `environment_properties` block [GH-29251]
@@ -38,6 +40,8 @@ FEATURES:
 * **New Resource** : `azurerm_eventgrid_partner_registration` [GH-29736]
 * **New Data Source**: `azurerm_trusted_signing_account` [GH-29293]
 * **New Data Source**: `azurerm_mssql_failover_group` [GH-29428]
+* **New Data Source**: `azurerm_log_analytics_workspace_table` [GH-30261]
+
 
 * **New Resource**: `azurerm_mssql_managed_instance_start_stop_schedule` [GH-26702]
 
