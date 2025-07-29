@@ -171,7 +171,6 @@ func (r MonitorsResource) Arguments() map[string]*pluginsdk.Schema {
 		"environment_properties": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
-			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"environment_info": {

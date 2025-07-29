@@ -223,6 +223,11 @@ resource "azurerm_dynatrace_monitor" "test" {
   tags = {
     environment = "Dev"
   }
+  lifecycle {
+    ignore_changes = [
+      environment_properties,
+    ]
+  }
 }
 
 data "azurerm_dynatrace_monitor" "data1" {
