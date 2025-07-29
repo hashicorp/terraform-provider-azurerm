@@ -13,30 +13,21 @@ import (
 	serviceBusQueues "github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/queues"
 	serviceBusTopics "github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/topics"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-// EventSubscriptionEndpointType enumerates the values for event subscription endpoint types.
 type EventSubscriptionEndpointType string
 
 const (
-	// AzureFunctionEndpoint ...
-	AzureFunctionEndpoint EventSubscriptionEndpointType = "azure_function_endpoint"
-	// EventHubEndpointID ...
-	EventHubEndpointID EventSubscriptionEndpointType = "eventhub_endpoint_id"
-	// HybridConnectionEndpointID ...
-	HybridConnectionEndpointID EventSubscriptionEndpointType = "hybrid_connection_endpoint_id"
-	// ServiceBusQueueEndpointID ...
-	ServiceBusQueueEndpointID EventSubscriptionEndpointType = "service_bus_queue_endpoint_id"
-	// ServiceBusTopicEndpointID ...
-	ServiceBusTopicEndpointID EventSubscriptionEndpointType = "service_bus_topic_endpoint_id"
-	// StorageQueueEndpoint ...
+	AzureFunction        EventSubscriptionEndpointType = "azure_function"
+	EventHubID           EventSubscriptionEndpointType = "eventhub_id"
+	ArcConnectionID      EventSubscriptionEndpointType = "arc_connection_id"
+	ServiceBusQueueID    EventSubscriptionEndpointType = "service_bus_queue_id"
+	ServiceBusTopicID    EventSubscriptionEndpointType = "service_bus_topic_id"
 	StorageQueueEndpoint EventSubscriptionEndpointType = "storage_queue_endpoint"
-	// WebHookEndpoint ...
-	WebHookEndpoint EventSubscriptionEndpointType = "webhook_endpoint"
+	WebHookEndpoint      EventSubscriptionEndpointType = "webhook_endpoint"
 )
 
 func eventSubscriptionSchemaEventSubscriptionName() *pluginsdk.Schema {
@@ -113,7 +104,7 @@ func eventSubscriptionSchemaExpirationTimeUTC() *pluginsdk.Schema {
 	}
 }
 
-func eventSubscriptionSchemaAzureFunctionEndpoint(conflictsWith []string) *pluginsdk.Schema {
+func eventSubscriptionSchemaFunction(conflictsWith []string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeList,
 		MaxItems:      1,
@@ -124,7 +115,7 @@ func eventSubscriptionSchemaAzureFunctionEndpoint(conflictsWith []string) *plugi
 				"function_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: azure.ValidateResourceID, // TODO: validation for a Function App ID
+					ValidateFunc: commonids.ValidateFunctionAppID,
 				},
 				"max_events_per_batch": {
 					Type:     pluginsdk.TypeInt,
@@ -139,7 +130,7 @@ func eventSubscriptionSchemaAzureFunctionEndpoint(conflictsWith []string) *plugi
 	}
 }
 
-func eventSubscriptionSchemaEventHubEndpointID(conflictsWith []string) *pluginsdk.Schema {
+func eventSubscriptionSchemaEventHubID(conflictsWith []string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeString,
 		Optional:      true,
@@ -149,7 +140,7 @@ func eventSubscriptionSchemaEventHubEndpointID(conflictsWith []string) *pluginsd
 	}
 }
 
-func eventSubscriptionSchemaHybridConnectionEndpointID(conflictsWith []string) *pluginsdk.Schema {
+func eventSubscriptionSchemaArcConnectionID(conflictsWith []string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeString,
 		Optional:      true,
@@ -159,7 +150,7 @@ func eventSubscriptionSchemaHybridConnectionEndpointID(conflictsWith []string) *
 	}
 }
 
-func eventSubscriptionSchemaServiceBusQueueEndpointID(conflictsWith []string) *pluginsdk.Schema {
+func eventSubscriptionSchemaServiceBusQueueID(conflictsWith []string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeString,
 		Optional:      true,
@@ -168,7 +159,7 @@ func eventSubscriptionSchemaServiceBusQueueEndpointID(conflictsWith []string) *p
 	}
 }
 
-func eventSubscriptionSchemaServiceBusTopicEndpointID(conflictsWith []string) *pluginsdk.Schema {
+func eventSubscriptionSchemaServiceBusTopicID(conflictsWith []string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeString,
 		Optional:      true,
