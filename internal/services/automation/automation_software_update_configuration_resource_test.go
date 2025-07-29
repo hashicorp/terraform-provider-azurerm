@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -49,6 +50,10 @@ func (a SoftwareUpdateConfigurationResource) Exists(ctx context.Context, client 
 }
 
 func TestAccSoftwareUpdateConfiguration_linuxBasic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_automation_software_update_configuration` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
 	r := newSoftwareUpdateConfigurationResource()
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -64,6 +69,10 @@ func TestAccSoftwareUpdateConfiguration_linuxBasic(t *testing.T) {
 }
 
 func TestAccSoftwareUpdateConfiguration_occurrence(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_automation_software_update_configuration` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
 	r := newSoftwareUpdateConfigurationResource()
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -79,6 +88,10 @@ func TestAccSoftwareUpdateConfiguration_occurrence(t *testing.T) {
 }
 
 func TestAccSoftwareUpdateConfiguration_linuxComplete(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_automation_software_update_configuration` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
 	r := newSoftwareUpdateConfigurationResource()
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -94,6 +107,10 @@ func TestAccSoftwareUpdateConfiguration_linuxComplete(t *testing.T) {
 }
 
 func TestAccSoftwareUpdateConfiguration_linuxUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_automation_software_update_configuration` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
 	r := newSoftwareUpdateConfigurationResource()
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -125,6 +142,10 @@ func TestAccSoftwareUpdateConfiguration_linuxUpdate(t *testing.T) {
 }
 
 func TestAccSoftwareUpdateConfiguration_CompleteUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_automation_software_update_configuration` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
 	r := newSoftwareUpdateConfigurationResource()
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -156,6 +177,10 @@ func TestAccSoftwareUpdateConfiguration_CompleteUpdate(t *testing.T) {
 }
 
 func TestAccSoftwareUpdateConfiguration_withTask(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_automation_software_update_configuration` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
 	r := newSoftwareUpdateConfigurationResource()
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -171,6 +196,10 @@ func TestAccSoftwareUpdateConfiguration_withTask(t *testing.T) {
 }
 
 func TestAccSoftwareUpdateConfiguration_defaultTimeZone(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_automation_software_update_configuration` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
 	r := newSoftwareUpdateConfigurationResource()
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -194,6 +223,10 @@ func TestAccSoftwareUpdateConfiguration_defaultTimeZone(t *testing.T) {
 }
 
 func TestAccSoftwareUpdateConfiguration_update(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_automation_software_update_configuration` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
 	r := newSoftwareUpdateConfigurationResource()
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -217,6 +250,10 @@ func TestAccSoftwareUpdateConfiguration_update(t *testing.T) {
 }
 
 func TestAccSoftwareUpdateConfiguration_windowsBasic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_automation_software_update_configuration` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
 	r := newSoftwareUpdateConfigurationResource()
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -232,6 +269,10 @@ func TestAccSoftwareUpdateConfiguration_windowsBasic(t *testing.T) {
 }
 
 func TestAccSoftwareUpdateConfiguration_windowsComplete(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_automation_software_update_configuration` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
 	r := newSoftwareUpdateConfigurationResource()
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -247,6 +288,10 @@ func TestAccSoftwareUpdateConfiguration_windowsComplete(t *testing.T) {
 }
 
 func TestAccSoftwareUpdateConfiguration_windowsUpdate(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_automation_software_update_configuration` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, automation.SoftwareUpdateConfigurationResource{}.ResourceType(), "test")
 	r := newSoftwareUpdateConfigurationResource()
 	data.ResourceTest(t, r, []acceptance.TestStep{

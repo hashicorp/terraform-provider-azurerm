@@ -129,6 +129,14 @@ type SoftwareUpdateConfigurationResource struct{}
 
 var _ sdk.ResourceWithUpdate = SoftwareUpdateConfigurationResource{}
 
+var _ sdk.ResourceWithDeprecationAndNoReplacement = SoftwareUpdateConfigurationResource{}
+
+func (m SoftwareUpdateConfigurationResource) DeprecationMessage() string {
+	return "The `azurerm_automation_software_update_configuration` resource is deprecated and will be removed in version 5.0 of the AzureRM Provider. " +
+		"Azure Automation Update Management was deprecated on 2024-08-31 and has been shut down on 2025-02-28. " +
+		"For more details, see: https://aka.ms/azurerm-automation-software-update-configuration-deprecation"
+}
+
 func (m SoftwareUpdateConfigurationResource) Arguments() map[string]*pluginsdk.Schema {
 	linux := pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{

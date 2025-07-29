@@ -10,6 +10,8 @@ description: |-
 
 Manages an Automation Software Update Configuration.
 
+!> **Note:** The `azurerm_automation_software_update_configuration` resource has been deprecated because the Azure Automation Update Management was retired on 2024-08-31 and has been shutdown on 2025-02-28. This resource will be removed in v5.0 of the AzureRM Provider. See https://techcommunity.microsoft.com/blog/azuregovernanceandmanagementblog/log-analytics-agent-based-azure-management-services-shut-down-starting-28-februa/4381853 for more information.
+
 ## Example Usage
 
 ```hcl
