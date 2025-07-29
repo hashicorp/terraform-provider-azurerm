@@ -436,7 +436,6 @@ func (r LogicAppResource) Create() sdk.ResourceFunc {
 					Enabled:                 pointer.To(data.Enabled),
 					ClientAffinityEnabled:   pointer.To(data.ClientAffinityEnabled),
 					ClientCertEnabled:       pointer.To(data.ClientCertificateMode != ""),
-					ClientCertMode:          pointer.ToEnum[webapps.ClientCertMode](data.ClientCertificateMode),
 					HTTPSOnly:               pointer.To(data.HTTPSOnly),
 					SiteConfig:              siteConfig,
 					VnetContentShareEnabled: pointer.To(data.VNETContentShareEnabled),
@@ -458,6 +457,14 @@ func (r LogicAppResource) Create() sdk.ResourceFunc {
 					siteEnvelope.Properties.SiteConfig.PublicNetworkAccess = pointer.To(helpers.PublicNetworkAccessEnabled)
 				}
 				siteEnvelope.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
+			}
+
+			if !features.FivePointOh() {
+				if data.ClientCertificateMode != "" {
+					siteEnvelope.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](data.ClientCertificateMode)
+				}
+			} else {
+				siteEnvelope.Properties.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](data.ClientCertificateMode)
 			}
 
 			if data.VirtualNetworkSubnetId != "" {
@@ -557,8 +564,10 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 					state.VNETContentShareEnabled = pointer.From(props.VnetContentShareEnabled)
 					state.PublicNetworkAccess = pointer.From(props.PublicNetworkAccess)
 					// Note this is a bug - the Service defaults to `Required` regardless of the Enabled value
-					if !features.FivePointOh() && pointer.From(props.ClientCertEnabled) {
-						state.ClientCertificateMode = pointer.FromEnum(props.ClientCertMode)
+					if !features.FivePointOh() {
+						if pointer.From(props.ClientCertEnabled) {
+							state.ClientCertificateMode = pointer.FromEnum(props.ClientCertMode)
+						}
 					} else {
 						state.ClientCertificateMode = pointer.FromEnum(props.ClientCertMode)
 					}
