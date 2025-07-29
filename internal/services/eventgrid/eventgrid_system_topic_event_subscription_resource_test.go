@@ -1720,6 +1720,55 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
 }
 
 func (EventGridSystemTopicEventSubscriptionResource) deliveryPropertiesForEventHubs(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctesteventhubnamespace-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+}
+
+resource "azurerm_eventhub" "test" {
+  name                = "acctesteventhub-%[1]d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  partition_count     = 2
+  message_retention   = 1
+}
+
+resource "azurerm_eventgrid_system_topic" "test" {
+  name                   = "acctesteg-%[1]d"
+  location               = "Global"
+  resource_group_name    = azurerm_resource_group.test.name
+  source_arm_resource_id = azurerm_resource_group.test.id
+  topic_type             = "Microsoft.Resources.ResourceGroups"
+}
+
+resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
+  name                = "acctesteg-%[1]d"
+  system_topic        = azurerm_eventgrid_system_topic.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  eventhub_endpoint_id = azurerm_eventhub.test.id
+
+  delivery_property {
+    header_name = "test-static-1"
+    type        = "Static"
+    value       = "1"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1770,6 +1819,55 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
 }
 
 func (EventGridSystemTopicEventSubscriptionResource) deliveryPropertiesForHybridRelay(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_relay_namespace" "test" {
+  name                = "acctest-%[1]d-rly-eventsub-repo"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku_name = "Standard"
+}
+
+resource "azurerm_relay_hybrid_connection" "test" {
+  name                          = "acctest-%[1]d-rhc-eventsub-repo"
+  resource_group_name           = azurerm_resource_group.test.name
+  relay_namespace_name          = azurerm_relay_namespace.test.name
+  requires_client_authorization = false
+}
+
+resource "azurerm_eventgrid_system_topic" "test" {
+  name                   = "acctesteg-%[1]d"
+  location               = "Global"
+  resource_group_name    = azurerm_resource_group.test.name
+  source_arm_resource_id = azurerm_resource_group.test.id
+  topic_type             = "Microsoft.Resources.ResourceGroups"
+}
+
+resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
+  name                = "acctesteg-%[1]d"
+  system_topic        = azurerm_eventgrid_system_topic.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  hybrid_connection_endpoint_id = azurerm_relay_hybrid_connection.test.id
+
+  delivery_property {
+    header_name = "test-static-1"
+    type        = "Static"
+    value       = "1"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

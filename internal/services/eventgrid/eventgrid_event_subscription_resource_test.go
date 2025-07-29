@@ -53,6 +53,21 @@ func TestAccEventGridEventSubscription_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccEventGridEventSubscription_azureFunction(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
+	r := EventGridEventSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.azureFunction(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccEventGridEventSubscription_eventHubID(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 	r := EventGridEventSubscriptionResource{}
@@ -589,6 +604,167 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   labels               = ["test4", "test5", "test6"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (EventGridEventSubscriptionResource) azureFunction(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = substr("acctestsa%[1]d", 0, 24)
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_service_plan" "test" {
+  name                = "acctestASP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Linux"
+  sku_name            = "S1"
+}
+
+resource "azurerm_linux_function_app" "test" {
+  name                       = "acctest-WFA-%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  site_config {
+    application_stack {
+      python_version = "3.9"
+    }
+  }
+}
+
+resource "azurerm_function_app_function" "test" {
+  name            = "acctestRG-eg-%[1]d"
+  function_app_id = azurerm_linux_function_app.test.id
+  language        = "Python"
+  test_data = jsonencode({
+    "name" = "Azure"
+  })
+  config_json = jsonencode({
+    "bindings" = [
+      {
+        "authLevel" = "function"
+        "direction" = "in"
+        "methods" = [
+          "get",
+          "post",
+        ]
+        "name" = "req"
+        "type" = "httpTrigger"
+      },
+      {
+        "direction" = "out"
+        "name"      = "$return"
+        "type"      = "http"
+      },
+    ]
+  })
+}
+
+resource "azurerm_eventgrid_event_subscription" "test" {
+  name                  = "acctest-eg-%[1]d"
+  scope                 = azurerm_resource_group.test.id
+  event_delivery_schema = "CloudEventSchemaV1_0"
+
+  azure_function_endpoint {
+    function_id = azurerm_function_app_function.test.id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[1]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_service_plan" "test" {
+  name                = "acctestASP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Linux"
+  sku_name            = "S1"
+}
+
+resource "azurerm_linux_function_app" "test" {
+  name                       = "acctest-WFA-%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+  site_config {
+    application_stack {
+      python_version = "3.9"
+    }
+  }
+}
+
+resource "azurerm_function_app_function" "test" {
+  name            = "acctestRG-eg-%[1]d"
+  function_app_id = azurerm_linux_function_app.test.id
+  language        = "Python"
+  test_data = jsonencode({
+    "name" = "Azure"
+  })
+  config_json = jsonencode({
+    "bindings" = [
+      {
+        "authLevel" = "function"
+        "direction" = "in"
+        "methods" = [
+          "get",
+          "post",
+        ]
+        "name" = "req"
+        "type" = "httpTrigger"
+      },
+      {
+        "direction" = "out"
+        "name"      = "$return"
+        "type"      = "http"
+      },
+    ]
+  })
+}
+
+resource "azurerm_eventgrid_event_subscription" "test" {
+  name                  = "acctest-eg-%[1]d"
+  scope                 = azurerm_resource_group.test.id
+  event_delivery_schema = "CloudEventSchemaV1_0"
+
+  azure_function {
+    function_id = azurerm_function_app_function.test.id
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (EventGridEventSubscriptionResource) eventHubID(data acceptance.TestData) string {

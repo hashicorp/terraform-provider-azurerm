@@ -408,7 +408,7 @@ func resourceEventGridSystemTopicEventSubscriptionRead(d *pluginsdk.ResourceData
 			}
 
 			if err := d.Set("azure_function", flattenEventSubscriptionDestinationAzureFunction(destination)); err != nil {
-				return fmt.Errorf("setting `azure_function_endpoint` for %s: %+v", *id, err)
+				return fmt.Errorf("setting `azure_function` for %s: %+v", *id, err)
 			}
 			d.Set("eventhub_id", flattenEventSubscriptionDestinationEventHub(destination))
 			d.Set("arc_connection_id", flattenEventSubscriptionDestinationArcConnection(destination))
@@ -423,7 +423,6 @@ func resourceEventGridSystemTopicEventSubscriptionRead(d *pluginsdk.ResourceData
 				d.Set("service_bus_queue_endpoint_id", flattenEventSubscriptionDestinationServiceBusQueue(destination))
 				d.Set("service_bus_topic_endpoint_id", flattenEventSubscriptionDestinationServiceBusTopic(destination))
 			}
-			d.Set("service_bus_topic_endpoint_id", flattenEventSubscriptionDestinationServiceBusTopic(destination))
 			if err := d.Set("storage_queue_endpoint", flattenEventSubscriptionDestinationStorageQueueEndpoint(destination)); err != nil {
 				return fmt.Errorf("setting `storage_queue_endpoint` for %s: %+v", *id, err)
 			}
