@@ -104,49 +104,49 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 			"expiration_time_utc": eventSubscriptionSchemaExpirationTimeUTC(),
 
 			"azure_function": eventSubscriptionSchemaFunction(
-				removeFromStringSlice(
+				utils.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
 					string(AzureFunction),
 				),
 			),
 
 			"eventhub_id": eventSubscriptionSchemaEventHubID(
-				removeFromStringSlice(
+				utils.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
 					string(EventHubID),
 				),
 			),
 
 			"arc_connection_id": eventSubscriptionSchemaArcConnectionID(
-				removeFromStringSlice(
+				utils.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
 					string(ArcConnectionID),
 				),
 			),
 
 			"service_bus_queue_id": eventSubscriptionSchemaServiceBusQueueID(
-				removeFromStringSlice(
+				utils.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
 					string(ServiceBusQueueID),
 				),
 			),
 
 			"service_bus_topic_id": eventSubscriptionSchemaServiceBusTopicID(
-				removeFromStringSlice(
+				utils.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
 					string(ServiceBusTopicID),
 				),
 			),
 
 			"storage_queue_endpoint": eventSubscriptionSchemaStorageQueueEndpoint(
-				removeFromStringSlice(
+				utils.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
 					string(StorageQueueEndpoint),
 				),
 			),
 
 			"webhook_endpoint": eventSubscriptionSchemaWebHookEndpoint(
-				removeFromStringSlice(
+				utils.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
 					string(WebHookEndpoint),
 				),
@@ -175,13 +175,11 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
-		endpointPropertyNames := possibleEventSubscriptionEndpointTypes()
-
 		resource.Schema["azure_function"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeList,
 			MaxItems:      1,
 			Optional:      true,
-			ConflictsWith: removeFromStringSlice(endpointPropertyNames, string(AzureFunction)),
+			ConflictsWith: utils.RemoveFromStringArray(possibleEventSubscriptionEndpointTypes(), string(AzureFunction)),
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"function_id": {
@@ -204,7 +202,7 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 			Type:          pluginsdk.TypeList,
 			MaxItems:      1,
 			Optional:      true,
-			ConflictsWith: removeFromStringSlice(endpointPropertyNames, "azure_function_endpoint"),
+			ConflictsWith: utils.RemoveFromStringArray(possibleEventSubscriptionEndpointTypes(), "azure_function_endpoint"),
 			Deprecated:    "`azure_function_endpoint` has been deprecated in favour of the `azure_function` property and will be removed in v5.0 of the AzureRM Provider",
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -229,14 +227,14 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			Computed:      true,
-			ConflictsWith: removeFromStringSlice(endpointPropertyNames, string(EventHubID)),
+			ConflictsWith: utils.RemoveFromStringArray(possibleEventSubscriptionEndpointTypes(), string(EventHubID)),
 			ValidateFunc:  eventhubs.ValidateEventhubID,
 		}
 		resource.Schema["eventhub_endpoint_id"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			Computed:      true,
-			ConflictsWith: removeFromStringSlice(endpointPropertyNames, "eventhub_endpoint_id"),
+			ConflictsWith: utils.RemoveFromStringArray(possibleEventSubscriptionEndpointTypes(), "eventhub_endpoint_id"),
 			ValidateFunc:  eventhubs.ValidateEventhubID,
 			Deprecated:    "`eventhub_endpoint_id` has been deprecated in favour of the `eventhub_id` property and will be removed in v5.0 of the AzureRM Provider",
 		}
@@ -245,14 +243,14 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			Computed:      true,
-			ConflictsWith: removeFromStringSlice(endpointPropertyNames, string(ArcConnectionID)),
+			ConflictsWith: utils.RemoveFromStringArray(possibleEventSubscriptionEndpointTypes(), string(ArcConnectionID)),
 			ValidateFunc:  hybridconnections.ValidateHybridConnectionID,
 		}
 		resource.Schema["hybrid_connection_endpoint_id"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			Computed:      true,
-			ConflictsWith: removeFromStringSlice(endpointPropertyNames, "hybrid_connection_endpoint_id"),
+			ConflictsWith: utils.RemoveFromStringArray(possibleEventSubscriptionEndpointTypes(), "hybrid_connection_endpoint_id"),
 			ValidateFunc:  hybridconnections.ValidateHybridConnectionID,
 			Deprecated:    "`hybrid_connection_endpoint_id` has been deprecated in favour of the `arc_connection_id` property and will be removed in v5.0 of the AzureRM Provider",
 		}
@@ -261,14 +259,14 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			Computed:      true,
-			ConflictsWith: removeFromStringSlice(endpointPropertyNames, "service_bus_queue_id"),
+			ConflictsWith: utils.RemoveFromStringArray(possibleEventSubscriptionEndpointTypes(), "service_bus_queue_id"),
 			ValidateFunc:  serviceBusQueues.ValidateQueueID,
 		}
 		resource.Schema["service_bus_queue_endpoint_id"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			Computed:      true,
-			ConflictsWith: removeFromStringSlice(endpointPropertyNames, "service_bus_queue_endpoint_id"),
+			ConflictsWith: utils.RemoveFromStringArray(possibleEventSubscriptionEndpointTypes(), "service_bus_queue_endpoint_id"),
 			ValidateFunc:  serviceBusQueues.ValidateQueueID,
 			Deprecated:    "`service_bus_queue_endpoint_id` has been deprecated in favour of the `service_bus_queue_id` property and will be removed in v5.0 of the AzureRM Provider",
 		}
@@ -277,14 +275,14 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			Computed:      true,
-			ConflictsWith: removeFromStringSlice(endpointPropertyNames, "service_bus_topic_id"),
+			ConflictsWith: utils.RemoveFromStringArray(possibleEventSubscriptionEndpointTypes(), "service_bus_topic_id"),
 			ValidateFunc:  serviceBusTopics.ValidateTopicID,
 		}
 		resource.Schema["service_bus_topic_endpoint_id"] = &pluginsdk.Schema{
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			Computed:      true,
-			ConflictsWith: removeFromStringSlice(endpointPropertyNames, "service_bus_topic_endpoint_id"),
+			ConflictsWith: utils.RemoveFromStringArray(possibleEventSubscriptionEndpointTypes(), "service_bus_topic_endpoint_id"),
 			ValidateFunc:  serviceBusTopics.ValidateTopicID,
 			Deprecated:    "`service_bus_topic_endpoint_id` has been deprecated in favour of the `service_bus_topic_id` property and will be removed in v5.0 of the AzureRM Provider",
 		}

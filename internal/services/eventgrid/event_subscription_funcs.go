@@ -826,13 +826,3 @@ func flattenKey(inputKey *string) map[string]any {
 		"key": key,
 	}
 }
-
-func removeFromStringSlice(input []string, exclude string) []string {
-	result := make([]string, 0, len(input))
-	for _, s := range input {
-		if s != exclude {
-			result = append(result, s)
-		}
-	}
-	return result
-}
