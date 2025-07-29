@@ -212,9 +212,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_profile {
     windows_configuration {
-      computer_name_prefix = "testvm"
-      admin_username       = "myadmin"
-      admin_password       = "Passwword1234"
+      computer_name_prefix     = "testvm"
+      admin_username           = "myadmin"
+      admin_password           = "Passwword1234"
       enable_automatic_updates = true
       provision_vm_agent       = true
     }
@@ -366,9 +366,9 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 
   os_profile {
     windows_configuration {
-      computer_name_prefix = "testvm"
-      admin_username       = "myadmin"
-      admin_password       = "Passwword1234"
+      computer_name_prefix     = "testvm"
+      admin_username           = "myadmin"
+      admin_password           = "Passwword1234"
       enable_automatic_updates = true
       provision_vm_agent       = true
     }
