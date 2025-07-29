@@ -24,13 +24,13 @@ func expandEventSubscriptionDestination(d *pluginsdk.ResourceData) eventsubscrip
 		return expandEventSubscriptionDestinationEventHub(v.(string), deliveryMappings)
 	}
 	if v, ok := d.GetOk("arc_connection_id"); ok {
-		return expandEventSubscriptionDestinationHybridConnection(v.(string), deliveryMappings)
+		return expandEventSubscriptionDestinationArcConnection(v.(string), deliveryMappings)
 	}
 	if v, ok := d.GetOk("service_bus_queue_id"); ok {
-		return expandEventSubscriptionDestinationServiceBusQueueEndpoint(v.(string), deliveryMappings)
+		return expandEventSubscriptionDestinationServiceBusQueue(v.(string), deliveryMappings)
 	}
 	if v, ok := d.GetOk("service_bus_topic_id"); ok {
-		return expandEventSubscriptionDestinationServiceBusTopicEndpoint(v.(string), deliveryMappings)
+		return expandEventSubscriptionDestinationServiceBusTopic(v.(string), deliveryMappings)
 	}
 
 	if !features.FivePointOh() {
@@ -41,13 +41,13 @@ func expandEventSubscriptionDestination(d *pluginsdk.ResourceData) eventsubscrip
 			return expandEventSubscriptionDestinationEventHub(v.(string), deliveryMappings)
 		}
 		if v, ok := d.GetOk("hybrid_connection_endpoint_id"); ok {
-			return expandEventSubscriptionDestinationHybridConnection(v.(string), deliveryMappings)
+			return expandEventSubscriptionDestinationArcConnection(v.(string), deliveryMappings)
 		}
 		if v, ok := d.GetOk("service_bus_queue_endpoint_id"); ok {
-			return expandEventSubscriptionDestinationServiceBusQueueEndpoint(v.(string), deliveryMappings)
+			return expandEventSubscriptionDestinationServiceBusQueue(v.(string), deliveryMappings)
 		}
 		if v, ok := d.GetOk("service_bus_topic_endpoint_id"); ok {
-			return expandEventSubscriptionDestinationServiceBusTopicEndpoint(v.(string), deliveryMappings)
+			return expandEventSubscriptionDestinationServiceBusTopic(v.(string), deliveryMappings)
 		}
 	}
 
@@ -152,7 +152,7 @@ func flattenEventSubscriptionDestinationEventHub(input eventsubscriptions.EventS
 	return ""
 }
 
-func expandEventSubscriptionDestinationHybridConnection(hybridConnectionId string, deliveryMappings []eventsubscriptions.DeliveryAttributeMapping) eventsubscriptions.EventSubscriptionDestination {
+func expandEventSubscriptionDestinationArcConnection(hybridConnectionId string, deliveryMappings []eventsubscriptions.DeliveryAttributeMapping) eventsubscriptions.EventSubscriptionDestination {
 	return eventsubscriptions.HybridConnectionEventSubscriptionDestination{
 		Properties: &eventsubscriptions.HybridConnectionEventSubscriptionDestinationProperties{
 			DeliveryAttributeMappings: pointer.To(deliveryMappings),
@@ -169,7 +169,7 @@ func flattenEventSubscriptionDestinationArcConnection(input eventsubscriptions.E
 	return ""
 }
 
-func expandEventSubscriptionDestinationServiceBusQueueEndpoint(serviceBusQueueEndpointId string, deliveryMappings []eventsubscriptions.DeliveryAttributeMapping) eventsubscriptions.EventSubscriptionDestination {
+func expandEventSubscriptionDestinationServiceBusQueue(serviceBusQueueEndpointId string, deliveryMappings []eventsubscriptions.DeliveryAttributeMapping) eventsubscriptions.EventSubscriptionDestination {
 	return eventsubscriptions.ServiceBusQueueEventSubscriptionDestination{
 		Properties: &eventsubscriptions.ServiceBusQueueEventSubscriptionDestinationProperties{
 			DeliveryAttributeMappings: pointer.To(deliveryMappings),
@@ -186,7 +186,7 @@ func flattenEventSubscriptionDestinationServiceBusQueue(input eventsubscriptions
 	return ""
 }
 
-func expandEventSubscriptionDestinationServiceBusTopicEndpoint(serviceBusTopicEndpointId string, deliveryMappings []eventsubscriptions.DeliveryAttributeMapping) eventsubscriptions.EventSubscriptionDestination {
+func expandEventSubscriptionDestinationServiceBusTopic(serviceBusTopicEndpointId string, deliveryMappings []eventsubscriptions.DeliveryAttributeMapping) eventsubscriptions.EventSubscriptionDestination {
 	return eventsubscriptions.ServiceBusTopicEventSubscriptionDestination{
 		Properties: &eventsubscriptions.ServiceBusTopicEventSubscriptionDestinationProperties{
 			DeliveryAttributeMappings: pointer.To(deliveryMappings),
