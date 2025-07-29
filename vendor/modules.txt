@@ -1461,8 +1461,6 @@ github.com/jackofallops/kermit/sdk/synapse/2020-08-01-preview/synapse
 github.com/jackofallops/kermit/sdk/synapse/2021-06-01-preview/synapse
 github.com/jackofallops/kermit/sdk/web/2022-09-01/web
 github.com/jackofallops/kermit/version
-# github.com/kr/text v0.2.0
-## explicit
 # github.com/magodo/terraform-provider-azurerm-example-gen v0.0.0-20250424222324-b015d063c1fc
 ## explicit; go 1.21
 github.com/magodo/terraform-provider-azurerm-example-gen/examplegen
