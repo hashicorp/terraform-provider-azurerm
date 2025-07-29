@@ -40,6 +40,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `total_retention_in_days` - The table's total data retention in days.
 
+* `plan` - The table's plan.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
