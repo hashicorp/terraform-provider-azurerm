@@ -127,6 +127,7 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 		"client_certificate_mode": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			Default:      webapps.ClientCertModeRequired,
 			ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForClientCertMode(), false),
 		},
 
@@ -247,6 +248,7 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 	}
 
 	if !features.FivePointOh() {
+		s["client_certificate_mode"].Default = nil
 		s["public_network_access"].Default = nil
 		s["public_network_access"].Computed = true
 	}
@@ -554,7 +556,12 @@ func (r LogicAppResource) Read() sdk.ResourceFunc {
 					state.VirtualNetworkSubnetId = pointer.From(props.VirtualNetworkSubnetId)
 					state.VNETContentShareEnabled = pointer.From(props.VnetContentShareEnabled)
 					state.PublicNetworkAccess = pointer.From(props.PublicNetworkAccess)
-					state.ClientCertificateMode = pointer.FromEnum(props.ClientCertMode)
+					// Note this is a bug - the Service defaults to `Required` regardless of the Enabled value
+					if !features.FivePointOh() && pointer.From(props.ClientCertEnabled) {
+						state.ClientCertificateMode = pointer.FromEnum(props.ClientCertMode)
+					} else {
+						state.ClientCertificateMode = pointer.FromEnum(props.ClientCertMode)
+					}
 				}
 			}
 
@@ -761,30 +768,20 @@ func (r LogicAppResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("enabled") {
-				siteEnvelope.Enabled = pointer.To(metadata.ResourceData.Get("enabled").(bool))
+				siteEnvelope.Enabled = pointer.To(data.Enabled)
 			}
 
 			if metadata.ResourceData.HasChange("client_affinity_enabled") {
-				siteEnvelope.ClientAffinityEnabled = pointer.To(metadata.ResourceData.Get("client_affinity_enabled").(bool))
+				siteEnvelope.ClientAffinityEnabled = pointer.To(data.ClientAffinityEnabled)
 			}
 
-			if metadata.ResourceData.HasChanges("client_certificate_mode", "client_certificate_enabled") {
-				siteEnvelope.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](metadata.ResourceData.Get("client_certificate_mode").(string))
-				if !features.FivePointOh() {
-					siteEnvelope.ClientCertEnabled = pointer.To(metadata.ResourceData.Get("client_certificate_mode").(string) != "")
-					// if explicitly set to true, take that value.
-					if !metadata.ResourceData.GetRawConfig().AsValueMap()["client_certificate_enabled"].IsNull() {
-						siteEnvelope.ClientCertEnabled = pointer.To(metadata.ResourceData.Get("client_certificate_enabled").(bool))
-					}
-					// if t, ok := metadata.ResourceData.GetOk("client_certificate_enabled"); ok && t.(bool) {
-					// }
-				} else {
-					siteEnvelope.ClientCertEnabled = pointer.To(metadata.ResourceData.Get("client_certificate_enabled").(bool))
-				}
+			if metadata.ResourceData.HasChange("client_certificate_mode") {
+				siteEnvelope.ClientCertMode = pointer.ToEnum[webapps.ClientCertMode](data.ClientCertificateMode)
+				siteEnvelope.ClientCertEnabled = pointer.To(data.ClientCertificateMode != "")
 			}
 
 			if metadata.ResourceData.HasChange("https_only") {
-				siteEnvelope.HTTPSOnly = pointer.To(metadata.ResourceData.Get("https_only").(bool))
+				siteEnvelope.HTTPSOnly = pointer.To(data.HTTPSOnly)
 			}
 
 			if metadata.ResourceData.HasChange("public_network_access") {

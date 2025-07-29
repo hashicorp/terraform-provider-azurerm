@@ -54,6 +54,10 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
 
+### `azurerm_logic_app_standard`
+
+* The `client_certificate_mode` property now defaults to `Required` aligning with the service default for this value.
+
 ### `azurerm_maps_creator`
 
 * This deprecated resource has been removed from the Azure Provider. Please see the [documentation for more details](https://aka.ms/AzureMapsCreatorDeprecation).
