@@ -94,17 +94,10 @@ func TestAccExpressRoutePort_userAssignedIdentity(t *testing.T) {
 			Config: r.userAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
 			),
 		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccExpressRoutePort_userAssignedIdentityTagUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
-	r := ExpressRoutePortResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.userAssignedIdentityWithTags(data, "tag1"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -142,6 +135,31 @@ func TestAccExpressRoutePort_linkCipher(t *testing.T) {
 	})
 }
 
+func TestAccExpressRoutePort_identityRemoval(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_port", "test")
+	r := ExpressRoutePortResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.linkCipher(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+				check.That(data.ResourceName).Key("link1.0.macsec_cipher").HasValue("GcmAesXpn256"),
+			),
+		},
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ExpressRoutePortResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.Network.ExpressRoutePorts
 
@@ -164,10 +182,10 @@ func (r ExpressRoutePortResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_express_route_port" "test" {
-  name                = "acctestERP-%d"
+  name                = "acctestERP-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "Equinix-London-LDS"
+  peering_location    = "Airtel-Chennai2-CLS"
   bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
   billing_type        = "MeteredData"
@@ -175,7 +193,7 @@ resource "azurerm_express_route_port" "test" {
     ENV = "Test"
   }
 }
-`, template, data.RandomInteger)
+`, template, data.RandomIntOfLength(8))
 }
 
 func (r ExpressRoutePortResource) adminState(data acceptance.TestData) string {
@@ -228,7 +246,7 @@ resource "azurerm_express_route_port" "test" {
   name                = "acctestERP-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "Area51-ERDirect"
+  peering_location    = "Airtel-Chennai2-CLS"
   bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
   identity {
@@ -303,7 +321,7 @@ resource "azurerm_express_route_port" "test" {
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
   link1 {
-    macsec_cipher                 = "GcmAes256"
+    macsec_cipher                 = "GcmAesXpn256"
     macsec_ckn_keyvault_secret_id = azurerm_key_vault_secret.ckn.id
     macsec_cak_keyvault_secret_id = azurerm_key_vault_secret.cak.id
     macsec_sci_enabled            = true
@@ -339,6 +357,14 @@ resource "azurerm_express_route_port" "test" {
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  link1 {
+    admin_enabled = false
+  }
+  
+  link2 {
+    admin_enabled = false
   }
 
   tags = {
