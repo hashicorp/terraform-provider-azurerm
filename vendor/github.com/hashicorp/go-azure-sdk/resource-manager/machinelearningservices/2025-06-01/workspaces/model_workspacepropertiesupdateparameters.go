@@ -17,5 +17,6 @@ type WorkspacePropertiesUpdateParameters struct {
 	PublicNetworkAccess             *PublicNetworkAccess             `json:"publicNetworkAccess,omitempty"`
 	ServerlessComputeSettings       *ServerlessComputeSettings       `json:"serverlessComputeSettings,omitempty"`
 	ServiceManagedResourcesSettings *ServiceManagedResourcesSettings `json:"serviceManagedResourcesSettings,omitempty"`
+	SystemDatastoresAuthMode        *SystemDatastoresAuthMode        `json:"systemDatastoresAuthMode,omitempty"`
 	V1LegacyMode                    *bool                            `json:"v1LegacyMode,omitempty"`
 }
