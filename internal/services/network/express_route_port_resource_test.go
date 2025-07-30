@@ -362,7 +362,7 @@ resource "azurerm_express_route_port" "test" {
   link1 {
     admin_enabled = false
   }
-  
+
   link2 {
     admin_enabled = false
   }
