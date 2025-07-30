@@ -85,81 +85,6 @@ func ExpandPolicy(input []interface{}) *azuretype.Policy {
 **IMPORTANT**: CustomizeDiff import requirements depend on the implementation approach and are covered comprehensively in the main implementation guide.
 
 **For complete import patterns, detailed examples, and implementation guidance, see:** [Implementation Guide - CustomizeDiff Import Requirements](./implementation-guide.instructions.md#customizediff-import-requirements)
-
-### CustomizeDiff Implementation
-
-**Typed Resource CustomizeDiff Pattern:**
-```go
-// NOTE: Typed resources typically use dual imports when using *schema.ResourceDiff directly
-import (
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"            // For *schema.ResourceDiff
-    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk" // For helpers
-)
-
-// Typed resource CustomizeDiff implementation
-func (r ServiceNameResource) CustomizeDiff() sdk.ResourceFunc {
-    return sdk.ResourceFunc{
-        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            var model ServiceNameModel
-            if err := metadata.Decode(&model); err != nil {
-                return fmt.Errorf("decoding: %+v", err)
-            }
-
-            // Azure SKU validation for typed resources
-            if model.SkuName == "Premium" && !model.ZoneRedundant {
-                return fmt.Errorf("`zone_redundant` must be true for Premium SKU")
-            }
-
-            return nil
-        },
-    }
-}
-```
-
-**Untyped Resource CustomizeDiff Pattern:**
-```go
-// NOTE: Untyped resources often use single import with *pluginsdk.ResourceDiff
-import (
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"            // Only this import needed
-)
-
-// Untyped resource CustomizeDiff implementation
-func resourceAzureServiceName() *pluginsdk.Resource {
-    return &pluginsdk.Resource{
-        Create: resourceAzureServiceNameCreate,
-        Read:   resourceAzureServiceNameRead,
-        Update: resourceAzureServiceNameUpdate,
-        Delete: resourceAzureServiceNameDelete,
-
-        Schema: map[string]*pluginsdk.Schema{
-            // Azure resource schema
-        },
-
-        CustomizeDiff: pluginsdk.CustomDiffWithAll(
-            // Azure-specific validation with CustomizeDiffShim wrapper
-            pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
-                // Validate Azure resource dependencies
-                if diff.Get("sku_name").(string) == "Premium" &&
-                   diff.Get("zone_redundant").(bool) == false {
-                    return fmt.Errorf("`zone_redundant` must be true for Premium SKU")
-                }
-                return nil
-            }),
-            // Force recreation for Azure resource properties that require it
-            pluginsdk.ForceNewIfChange("location", func(ctx context.Context, old, new, meta interface{}) bool {
-                return old.(string) != new.(string)
-            }),
-        ),
-    }
-}
-```
-
-**Key Differences:**
-- **Typed Resources**: Use receiver methods and `sdk.ResourceFunc` patterns, validate against model structs
-- **Untyped Resources**: Use function-based patterns and `*schema.ResourceDiff` for field access
-- **Import Requirements**: Typed typically need dual imports, untyped often use single import
-- **Validation Style**: Typed validate against decoded models, untyped use `diff.Get()` patterns
-
 ### Boolean Comparison Best Practices in CustomizeDiff
 
 **Simplified Boolean Expressions:**
@@ -174,117 +99,15 @@ pluginsdk.ForceNewIfChange("resilient_vm_creation_enabled", func(ctx context.Con
 return fieldExists && old.(bool) == true && new.(bool) == false
 ```
 
-### Multi-Function CustomizeDiff Pattern
-
-For complex Azure resources with multiple validation concerns, organize CustomizeDiff logic into multiple focused functions using `pluginsdk.CustomDiffWithAll`:
-
-```go
-CustomizeDiff: pluginsdk.CustomDiffWithAll(
-    // SKU profile and rank validation
-    pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-        allocationStrategy := diff.Get("sku_profile.0.allocation_strategy").(string)
-
-        // Validate rank is only used with Prioritized allocation strategy
-        skuProfileRaw := diff.GetRawConfig().AsValueMap()["sku_profile"]
-        if skuProfileRaw.IsNull() || !skuProfileRaw.IsKnown() {
-            return nil
-        }
-
-        vmSizeList := skuProfileRaw.AsValueSlice()[0].AsValueMap()["vm_sizes"].AsValueSlice()
-        for _, vmSize := range vmSizeList {
-            vmSizeMap := vmSize.AsValueMap()
-            rankExplicitlySet := !vmSizeMap["rank"].IsNull()
-
-            if rankExplicitlySet && allocationStrategy != "Prioritized" {
-                return fmt.Errorf("`rank` can only be set when `allocation_strategy` is `Prioritized`, got `%s`", allocationStrategy)
-            }
-        }
-
-        // Validate Prioritized allocation strategy requires consecutive ranks
-        if allocationStrategy == "Prioritized" {
-            ranks := make([]int, 0)
-            for _, vmSize := range vmSizeList {
-                vmSizeMap := vmSize.AsValueMap()
-                name := vmSizeMap["name"].AsString()
-
-                if vmSizeMap["rank"].IsNull() {
-                    return fmt.Errorf("when `allocation_strategy` is `Prioritized`, all `vm_sizes` must have the `rank` field set, `%s` is missing `rank`", name)
-                }
-
-                rankInt64, _ := vmSizeMap["rank"].AsBigFloat().Int64()
-                ranks = append(ranks, int(rankInt64))
-            }
-
-            sort.Ints(ranks)
-            for i, rank := range ranks {
-                if rank != i {
-                    return fmt.Errorf("the `rank` values must be consecutive starting from 0. Expected rank `%d` but got `%d`", i, rank)
-                }
-            }
-        }
-        return nil
-    }),
-
-    // Platform fault domain validation
-    pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-        _, hasSkuProfile := diff.GetOk("sku_profile")
-        platformFaultDomainCount := diff.Get("platform_fault_domain_count").(int)
-
-        if hasSkuProfile && platformFaultDomainCount != 1 {
-            return fmt.Errorf("`sku_profile` can only be configured when `platform_fault_domain_count` is set to `1`, got `%d`", platformFaultDomainCount)
-        }
-        return nil
-    }),
-
-    // Force recreation for complex state transitions
-    pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-        oldSkuProfile, newSkuProfile := diff.GetChange("sku_profile")
-        oldSkuProfileList := oldSkuProfile.([]interface{})
-        newSkuProfileList := newSkuProfile.([]interface{})
-
-        skuProfileBeingRemoved := len(oldSkuProfileList) > 0 && len(newSkuProfileList) == 0
-        if skuProfileBeingRemoved {
-            oldSkuName, newSkuName := diff.GetChange("sku_name")
-            if oldSkuName.(string) == "Mix" && newSkuName.(string) != "Mix" {
-                if err := diff.ForceNew("sku_profile"); err != nil {
-                    return fmt.Errorf("forcing new resource when removing `sku_profile` with `sku_name` change from `Mix`: %+v", err)
-                }
-            }
-        }
-        return nil
-    }),
-
-    // Upgrade policy validation
-    pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-        upgradeMode := diff.Get("upgrade_mode").(string)
-        rollingUpgradePolicyRaw := diff.Get("rolling_upgrade_policy").([]interface{})
-
-        if upgradeMode == "Manual" && len(rollingUpgradePolicyRaw) > 0 {
-            return fmt.Errorf("`rolling_upgrade_policy` cannot be specified when `upgrade_mode` is set to `%s`", upgradeMode)
-        }
-
-        if upgradeMode == "Rolling" && len(rollingUpgradePolicyRaw) == 0 {
-            return fmt.Errorf("`rolling_upgrade_policy` is required when `upgrade_mode` is set to `%s`", upgradeMode)
-        }
-        return nil
-    }),
-),
-```
-
-**Multi-Function Organization Benefits:**
-- **Separation of Concerns**: Each function handles a specific validation domain
-- **Improved Readability**: Complex logic is broken into focused, understandable pieces
-- **Easier Testing**: Individual validation logic can be tested independently
-- **Maintenance**: Changes to one validation area don't affect others
-- **Error Clarity**: Specific error messages for each validation concern
-
-**When to Use Multi-Function Pattern:**
-- Complex Azure resources with multiple interdependent fields
-- Resources with different validation rules for different configuration modes
-- Resources where field dependencies span multiple schema blocks
-- Resources with complex Azure API constraint enforcement requirements
+**Key Principles:**
+- Use direct boolean expressions: `old.(bool) && !new.(bool)`
+- Leverage Go's boolean semantics: `bool` values can be used directly in logical expressions
+- Comply with linting standards: Simplified expressions pass gosimple and other Go linting tools
+- Maintain readability: Shorter expressions are easier to understand and maintain
 
 ### Azure-Specific CustomizeDiff Use Cases
+
+Azure resources have unique validation requirements that CustomizeDiff functions must enforce:
 
 - **SKU validation**: Ensure Azure SKU combinations are valid
 - **Location constraints**: Validate region-specific feature availability
@@ -293,64 +116,15 @@ CustomizeDiff: pluginsdk.CustomDiffWithAll(
 - **Performance tier validation**: Validate Azure performance tier constraints
 - **Field conditional validation**: Validate field combinations based on Azure API constraints
 
+**For comprehensive multi-function CustomizeDiff patterns and complex validation examples, see:** [Implementation Guide - CustomizeDiff Import Requirements](./implementation-guide.instructions.md#customizediff-import-requirements)
+
 ### Zero Value Validation Pattern
 
 **Critical Pattern for Optional Integer Fields:**
 
 When validating optional integer fields in CustomizeDiff functions, Go's zero value behavior can cause false validation errors. An unset integer field defaults to `0`, which validation logic may incorrectly interpret as an explicitly set value.
 
-**Problem Scenario:**
-```go
-// PROBLEMATIC - Cannot distinguish between unset field and explicitly set 0
-func validateSkuProfile(diff *schema.ResourceDiff) error {
-    rank := diff.Get("sku_profile.0.vm_size.0.rank").(int)
-    if rank == 0 {
-        // This triggers for BOTH unset fields AND explicitly set 0 values
-        return fmt.Errorf("invalid rank value")
-    }
-    return nil
-}
-```
-
-**Solution Pattern - Raw Config Checking:**
-```go
-// CORRECT - Use raw config to distinguish explicitly set vs unset values
-func validateSkuProfile(diff *schema.ResourceDiff) error {
-    skuProfileRaw := diff.GetRawConfig().AsValueMap()["sku_profile"]
-    if skuProfileRaw.IsNull() || !skuProfileRaw.IsKnown() {
-        return nil // No sku_profile configured
-    }
-
-    skuProfileList := skuProfileRaw.AsValueSlice()
-    if len(skuProfileList) == 0 {
-        return nil
-    }
-
-    vmSizeRaw := skuProfileList[0].AsValueMap()["vm_size"]
-    if vmSizeRaw.IsNull() || !vmSizeRaw.IsKnown() {
-        return nil // No vm_size configured
-    }
-
-    vmSizeList := vmSizeRaw.AsValueSlice()
-    for i, vmSize := range vmSizeList {
-        vmSizeMap := vmSize.AsValueMap()
-
-        // Check if rank was explicitly set by the user
-        rankExplicitlySet := !vmSizeMap["rank"].IsNull()
-
-        if rankExplicitlySet {
-            rank := diff.Get(fmt.Sprintf("sku_profile.0.vm_size.%d.rank", i)).(int)
-            // Now validate the explicitly set rank value
-            if rank < 1 || rank > 100 {
-                return fmt.Errorf("rank must be between 1 and 100, got %d", rank)
-            }
-        }
-    }
-    return nil
-}
-```
-
-**Key Implementation Points:**
+**Key Implementation Pattern:**
 - **Use `GetRawConfig()`**: Access the raw configuration to check for null values
 - **Check `.IsNull()`**: Distinguish between unset fields and zero values
 - **Validation Logic**: Only validate fields that were explicitly configured by users
@@ -362,61 +136,7 @@ func validateSkuProfile(diff *schema.ResourceDiff) error {
 - **Optional numeric configurations**: port numbers, retry counts, threshold values
 - **Azure resource constraints**: SKU-dependent validation, region-specific limits
 
-### Advanced Zero Value Validation: Consecutive Rank Validation
-
-**Complex Validation Pattern for Azure Service Constraints:**
-
-Our VMSS SKU profile implementation demonstrated an advanced pattern for validating consecutive rank values while properly handling Go zero values:
-
-```go
-func validateConsecutiveRanks(diff *schema.ResourceDiff) error {
-    skuProfileRaw := diff.GetRawConfig().AsValueMap()["sku_profile"]
-    if skuProfileRaw.IsNull() || !skuProfileRaw.IsKnown() {
-        return nil
-    }
-
-    skuProfileList := skuProfileRaw.AsValueSlice()
-    if len(skuProfileList) == 0 {
-        return nil
-    }
-
-    vmSizeRaw := skuProfileList[0].AsValueMap()["vm_sizes"]
-    if vmSizeRaw.IsNull() || !vmSizeRaw.IsKnown() {
-        return nil
-    }
-
-    vmSizeList := vmSizeRaw.AsValueSlice()
-    ranks := make([]int, 0)
-
-    // Collect explicitly set ranks
-    for i, vmSize := range vmSizeList {
-        vmSizeMap := vmSize.AsValueMap()
-        if !vmSizeMap["rank"].IsNull() {
-            rank := diff.Get(fmt.Sprintf("sku_profile.0.vm_sizes.%d.rank", i)).(int)
-            ranks = append(ranks, rank)
-        }
-    }
-
-    // Validate consecutive ranks starting from 0
-    sort.Ints(ranks)
-    for i, rank := range ranks {
-        if rank != i {
-            return fmt.Errorf("the `rank` values must be consecutive starting from 0. Expected rank `%d` but got `%d`", i, rank)
-        }
-    }
-
-    return nil
-}
-```
-
-**Key Advanced Patterns:**
-- **Nested Array Validation**: Handle complex nested structure validation with proper null checking
-- **Collection and Sorting**: Gather values from nested arrays and validate their relationships
-- **Azure API Constraint Enforcement**: Validate Azure service-specific rules (consecutive ranks)
-- **Clear Error Messages**: Provide specific feedback about which rank values are expected
-
-**Real-World Application:**
-This pattern was used in Azure VMSS SKU profiles where Azure requires rank values to be consecutive starting from 0 for prioritized allocation strategies.
+**For complete zero value validation patterns and detailed examples, see:** [Implementation Guide - Zero Value Validation](./implementation-guide.instructions.md#ai-coding-guidance)
 
 ---
 [⬆️ Back to top](#azure-specific-implementation-patterns)
