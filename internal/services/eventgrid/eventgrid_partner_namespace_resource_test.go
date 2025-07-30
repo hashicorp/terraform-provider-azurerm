@@ -104,8 +104,8 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-	name     = "acctest-rg-%[1]d"
-	location = "%[2]s"
+  name     = "acctest-rg-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_eventgrid_partner_registration" "test" {
@@ -114,10 +114,10 @@ resource "azurerm_eventgrid_partner_registration" "test" {
 }
 
 resource "azurerm_eventgrid_partner_namespace" "test" {
-	name				= "acctest-egpn-%[1]d"
-	location			= "%[2]s"
-	resource_group_name = azurerm_resource_group.test.name
-	partner_registration_id = azurerm_eventgrid_partner_registration.test.id
+  name                    = "acctest-egpn-%[1]d"
+  location                = "%[2]s"
+  resource_group_name     = azurerm_resource_group.test.name
+  partner_registration_id = azurerm_eventgrid_partner_registration.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -129,10 +129,10 @@ func (EventGridPartnerNamespaceTestResource) requiresImport(data acceptance.Test
 %s
 
 resource "azurerm_eventgrid_partner_namespace" "import" {
-	name				= azurerm_eventgrid_partner_namespace.test.name
-	location			= azurerm_eventgrid_partner_namespace.test.location
-	resource_group_name = azurerm_eventgrid_partner_namespace.test.resource_group_name
-	partner_registration_id = azurerm_eventgrid_partner_namespace.test.partner_registration_id
+  name                    = azurerm_eventgrid_partner_namespace.test.name
+  location                = azurerm_eventgrid_partner_namespace.test.location
+  resource_group_name     = azurerm_eventgrid_partner_namespace.test.resource_group_name
+  partner_registration_id = azurerm_eventgrid_partner_namespace.test.partner_registration_id
 }
 `, template)
 }
@@ -144,37 +144,37 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-	name     = "acctest-rg-%[1]d"
-	location = "%[2]s"
+  name     = "acctest-rg-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_eventgrid_partner_registration" "test" {
-	name                = "acctest-egpr-%[1]d"
-	resource_group_name = azurerm_resource_group.test.name
-}  
+  name                = "acctest-egpr-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+}
 
 resource "azurerm_eventgrid_partner_namespace" "test" {
-	name				= "acctest-egpn-%[1]d"
-	location			= "%[2]s"
-	resource_group_name = azurerm_resource_group.test.name
-	partner_registration_id = azurerm_eventgrid_partner_registration.test.id
-	local_auth_enabled  = false
-	inbound_ip_rule {
-		ip_mask = "10.0.0.0/16"
-		action  = "Allow"
-	}
+  name                    = "acctest-egpn-%[1]d"
+  location                = "%[2]s"
+  resource_group_name     = azurerm_resource_group.test.name
+  partner_registration_id = azurerm_eventgrid_partner_registration.test.id
+  local_auth_enabled      = false
+  inbound_ip_rule {
+    ip_mask = "10.0.0.0/16"
+    action  = "Allow"
+  }
 
-	inbound_ip_rule {
-		ip_mask = "10.1.0.0/16"
-		action  = "Allow"
-	}
+  inbound_ip_rule {
+    ip_mask = "10.1.0.0/16"
+    action  = "Allow"
+  }
 
-	partner_topic_routing_mode = "ChannelNameHeader"
-	public_network_access_enabled = true
+  partner_topic_routing_mode    = "ChannelNameHeader"
+  public_network_access_enabled = true
 
-	tags = {
-		"foo" = "bar"
-	}
+  tags = {
+    "foo" = "bar"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -186,38 +186,38 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-	name     = "acctest-rg-%[1]d"
-	location = "%[2]s"
+  name     = "acctest-rg-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_eventgrid_partner_registration" "test" {
-	name                = "acctest-egpr-%[1]d"
-	resource_group_name = azurerm_resource_group.test.name
-}  
+  name                = "acctest-egpr-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+}
 
 resource "azurerm_eventgrid_partner_namespace" "test" {
-	name				= "acctest-egpn-%[1]d"
-	location			= "%[2]s"
-	resource_group_name = azurerm_resource_group.test.name
-	partner_registration_id = azurerm_eventgrid_partner_registration.test.id
-	local_auth_enabled  = true
-	inbound_ip_rule {
-		ip_mask = "10.0.0.0/16"
-		action  = "Allow"
-	}
+  name                    = "acctest-egpn-%[1]d"
+  location                = "%[2]s"
+  resource_group_name     = azurerm_resource_group.test.name
+  partner_registration_id = azurerm_eventgrid_partner_registration.test.id
+  local_auth_enabled      = true
+  inbound_ip_rule {
+    ip_mask = "10.0.0.0/16"
+    action  = "Allow"
+  }
 
-	inbound_ip_rule {
-		ip_mask = "10.10.10.10/16"
-		action  = "Allow"
-	}
+  inbound_ip_rule {
+    ip_mask = "10.10.10.10/16"
+    action  = "Allow"
+  }
 
-	partner_topic_routing_mode = "ChannelNameHeader"
-	public_network_access_enabled = false
+  partner_topic_routing_mode    = "ChannelNameHeader"
+  public_network_access_enabled = false
 
-	tags = {
-		"foo" = "bar"
-		"example" = "test"
-	}
+  tags = {
+    "foo"     = "bar"
+    "example" = "test"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
