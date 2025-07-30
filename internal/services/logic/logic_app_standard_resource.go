@@ -26,6 +26,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
@@ -251,6 +252,12 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 		s["client_certificate_mode"].Default = nil
 		s["public_network_access"].Default = nil
 		s["public_network_access"].Computed = true
+		s["site_config"].Elem.(*pluginsdk.Resource).Schema["ip_restriction"].Elem.(*pluginsdk.Resource).Schema["headers"].Elem.(*pluginsdk.Resource).Schema["x_forwarded_host"].DiffSuppressFunc = suppress.ListOrder
+		s["site_config"].Elem.(*pluginsdk.Resource).Schema["ip_restriction"].Elem.(*pluginsdk.Resource).Schema["headers"].Elem.(*pluginsdk.Resource).Schema["x_forwarded_for"].DiffSuppressFunc = suppress.ListOrder
+		s["site_config"].Elem.(*pluginsdk.Resource).Schema["ip_restriction"].Elem.(*pluginsdk.Resource).Schema["headers"].Elem.(*pluginsdk.Resource).Schema["x_azure_fdid"].DiffSuppressFunc = suppress.ListOrder
+		s["site_config"].Elem.(*pluginsdk.Resource).Schema["scm_ip_restriction"].Elem.(*pluginsdk.Resource).Schema["headers"].Elem.(*pluginsdk.Resource).Schema["x_forwarded_host"].DiffSuppressFunc = suppress.ListOrder
+		s["site_config"].Elem.(*pluginsdk.Resource).Schema["scm_ip_restriction"].Elem.(*pluginsdk.Resource).Schema["headers"].Elem.(*pluginsdk.Resource).Schema["x_forwarded_for"].DiffSuppressFunc = suppress.ListOrder
+		s["site_config"].Elem.(*pluginsdk.Resource).Schema["scm_ip_restriction"].Elem.(*pluginsdk.Resource).Schema["headers"].Elem.(*pluginsdk.Resource).Schema["x_azure_fdid"].DiffSuppressFunc = suppress.ListOrder
 	}
 
 	return s
