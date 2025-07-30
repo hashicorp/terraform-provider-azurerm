@@ -42,19 +42,12 @@ var expressRoutePortSchema = &pluginsdk.Schema{
 			"macsec_cipher": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-
-				// TODO: The following hardcode can be replaced by SDK types once following is merged:
-				// 	https://github.com/Azure/azure-rest-api-specs/pull/12329
-				Default: "GcmAes128",
-				// Default: string(expressrouteports.GcmAes128),
-
-				// TODO: The following hardcode can be replaced by SDK types once following is merged:
-				// 	https://github.com/Azure/azure-rest-api-specs/pull/12329
+				Default:  string(expressrouteports.ExpressRouteLinkMacSecCipherGcmAesOneTwoEight),
 				ValidateFunc: validation.StringInSlice([]string{
-					"GcmAes128",
-					"GcmAes256",
-					// string(expressrouteports.GcmAes128),
-					// string(expressrouteports.GcmAes256),
+					string(expressrouteports.ExpressRouteLinkMacSecCipherGcmAesOneTwoEight),
+					string(expressrouteports.ExpressRouteLinkMacSecCipherGcmAesTwoFiveSix),
+					string(expressrouteports.ExpressRouteLinkMacSecCipherGcmAesXpnOneTwoEight),
+					string(expressrouteports.ExpressRouteLinkMacSecCipherGcmAesXpnTwoFiveSix),
 				}, false),
 			},
 			"macsec_ckn_keyvault_secret_id": {
@@ -274,13 +267,11 @@ func resourceArmExpressRoutePortUpdate(d *pluginsdk.ResourceData, meta interface
 
 	payload := existing.Model
 
-	if d.HasChange("identity") {
-		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
-		if err != nil {
-			return fmt.Errorf("expanding `identity`: %+v", err)
-		}
-		payload.Identity = expandedIdentity
+	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
 	}
+	payload.Identity = expandedIdentity
 
 	if d.HasChange("billing_type") {
 		if v, ok := d.GetOk("billing_type"); ok {
@@ -299,6 +290,8 @@ func resourceArmExpressRoutePortUpdate(d *pluginsdk.ResourceData, meta interface
 	// a lock is needed here for subresource express_route_port_authorization needs a lock.
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
+
+	payload.Properties.Links = expandExpressRoutePortLinks(d.Get("link1").([]interface{}), d.Get("link2").([]interface{}))
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
