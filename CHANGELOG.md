@@ -44,6 +44,7 @@ FEATURES:
 * **New Resource**: `azurerm_mssql_managed_instance_start_stop_schedule` [GH-26702]
 
 BUG FIXES:
+* `appservice` - now checks for deployment service availability before zip deployment  [GH-30066]
 * `azurerm_mssql_managed_instance` - `administrator_login` is now Computed, preventing resource recreation when `azure_active_directory_administrator.azuread_authentication_only_enabled` is `true` [GH-30263]
 * `azurerm_web_application_firewall_policy` - `js_challenge_cookie_expiration_in_minutes` is now set to default value if not returned from API [GH-30245]
 * `azurerm_ai_foundry` - no longer crashes when the `key_vault_id` property is nil [GH-30252]
