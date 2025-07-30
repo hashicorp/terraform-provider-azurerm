@@ -216,43 +216,9 @@ func TestAccServiceName_customizeDiffValidation(t *testing.T) {
 
 ### CustomizeDiff Testing Patterns
 
-**IMPORTANT**: The dual import pattern is **only** required for specific scenarios:
+**IMPORTANT**: CustomizeDiff import requirements depend on implementation approach.
 
-**When DUAL IMPORTS are Required:**
-```go
-// When testing resources with CustomizeDiff using *schema.ResourceDiff directly
-import (
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"            // For *schema.ResourceDiff
-    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk" // For helpers
-)
-
-// Function signature uses *schema.ResourceDiff
-CustomizeDiff: pluginsdk.All(
-    pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
-        return nil
-    }),
-),
-```
-
-**When SINGLE IMPORT is Sufficient (Legacy Resources):**
-```go
-// When testing legacy resources with CustomizeDiff using *pluginsdk.ResourceDiff
-import (
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"            // Only this import needed
-)
-
-// Function signature uses *pluginsdk.ResourceDiff (alias for *schema.ResourceDiff)
-CustomizeDiff: pluginsdk.CustomDiffWithAll(
-    pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-        return nil
-    }),
-),
-```
-
-**Rule of Thumb for Testing:**
-- **Check the resource's CustomizeDiff signature**: If it uses `*pluginsdk.ResourceDiff`, single import is sufficient
-- **Legacy/Untyped Resources**: Usually only need schema import
-- **Typed Resources**: Usually need dual imports when using `*schema.ResourceDiff` directly
+**For complete import patterns, examples, and detailed guidance, see:** [Implementation Guide - CustomizeDiff Import Requirements](./implementation-guide.instructions.md#customizediff-import-requirements)
 
 **Testing CustomizeDiff Validation:**
 ```go

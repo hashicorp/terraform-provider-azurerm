@@ -40,22 +40,9 @@ This document provides detailed enforcement guidelines for maintaining code clar
 
 ## CustomizeDiff Import Requirements
 
-**Conditional Import Pattern**: Import requirements depend on the CustomizeDiff implementation:
+**IMPORTANT**: CustomizeDiff implementation patterns depend on resource type and are comprehensively documented in the main implementation guide.
 
-**Dual Imports Required**: When using *schema.ResourceDiff directly in CustomizeDiff functions:
-- `github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema` (for *schema.ResourceDiff)
-- `github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk` (for helpers)
-
-**Single Import Sufficient**: When using *pluginsdk.ResourceDiff (legacy resources):
-- `github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema` (only this import needed)
-
-**Function Signature Analysis**: Check the function signature to determine import requirements:
-- *schema.ResourceDiff → Usually typed resources, may need dual imports
-- *pluginsdk.ResourceDiff → Usually legacy resources, single import sufficient
-
-**Helper Function Usage**: Verify proper use of pluginsdk.All(), pluginsdk.ForceNewIfChange() helpers
-
-**For comprehensive CustomizeDiff patterns and Azure validation examples, see:** [azure-patterns.instructions.md](./azure-patterns.instructions.md#customizediff-validation)
+**For complete import patterns, examples, and decision criteria, see:** [Implementation Guide - CustomizeDiff Import Requirements](./implementation-guide.instructions.md#customizediff-import-requirements)
 
 ---
 [⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)

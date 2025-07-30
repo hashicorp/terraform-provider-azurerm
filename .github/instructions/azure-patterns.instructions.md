@@ -82,43 +82,9 @@ func ExpandPolicy(input []interface{}) *azuretype.Policy {
 
 ### Standard CustomizeDiff Pattern
 
-**IMPORTANT**: The dual import pattern is **only** required for specific scenarios:
+**IMPORTANT**: CustomizeDiff import requirements depend on the implementation approach and are covered comprehensively in the main implementation guide.
 
-**When DUAL IMPORTS are Required:**
-```go
-import (
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"            // For *schema.ResourceDiff
-    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk" // For helpers
-)
-
-// When using *schema.ResourceDiff directly in CustomizeDiff functions
-CustomizeDiff: pluginsdk.All(
-    pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
-        // Custom validation using *schema.ResourceDiff
-        return nil
-    }),
-),
-```
-
-**When SINGLE IMPORT is Sufficient (Legacy Resources):**
-```go
-import (
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"            // Only this import needed
-)
-
-// When using *pluginsdk.ResourceDiff in CustomizeDiffShim functions
-CustomizeDiff: pluginsdk.CustomDiffWithAll(
-    pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-        // Custom validation using *pluginsdk.ResourceDiff (which is an alias for *schema.ResourceDiff)
-        return nil
-    }),
-),
-```
-
-**Rule of Thumb:**
-- **Typed Resources**: Usually need dual imports when using `*schema.ResourceDiff` directly
-- **Legacy/Untyped Resources**: Usually only need schema import when using `*pluginsdk.ResourceDiff`
-- **Check the function signature**: If you see `*pluginsdk.ResourceDiff`, single import is sufficient
+**For complete import patterns, detailed examples, and implementation guidance, see:** [Implementation Guide - CustomizeDiff Import Requirements](./implementation-guide.instructions.md#customizediff-import-requirements)
 
 ### CustomizeDiff Implementation
 
