@@ -59,6 +59,8 @@ The following arguments are supported:
 
 * `identity` - (Required) An `identity` block as defined below.
 
+* `public_network_access` - The public network access for the Video Indexer Account. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
