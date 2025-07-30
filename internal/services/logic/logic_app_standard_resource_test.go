@@ -1201,14 +1201,14 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%[2]d-func"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  use_extension_bundle       = true
-  bundle_version             = "[1.31.12]"
+  name                                     = "acctest-%[2]d-func"
+  location                                 = azurerm_resource_group.test.location
+  resource_group_name                      = azurerm_resource_group.test.name
+  app_service_plan_id                      = azurerm_app_service_plan.test.id
+  storage_account_name                     = azurerm_storage_account.test.name
+  storage_account_access_key               = azurerm_storage_account.test.primary_access_key
+  use_extension_bundle                     = true
+  bundle_version                           = "[1.31.12]"
   client_certificate_mode                  = "Required"
   enabled                                  = false
   https_only                               = true
@@ -1323,14 +1323,14 @@ resource "azurerm_user_assigned_identity" "test2" {
 }
 
 resource "azurerm_logic_app_standard" "test" {
-  name                       = "acctest-%[2]d-func"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  app_service_plan_id        = azurerm_app_service_plan.test.id
-  storage_account_name       = azurerm_storage_account.test.name
-  storage_account_access_key = azurerm_storage_account.test.primary_access_key
-  use_extension_bundle       = true
-  bundle_version             = "[1.31.13]"
+  name                                     = "acctest-%[2]d-func"
+  location                                 = azurerm_resource_group.test.location
+  resource_group_name                      = azurerm_resource_group.test.name
+  app_service_plan_id                      = azurerm_app_service_plan.test.id
+  storage_account_name                     = azurerm_storage_account.test.name
+  storage_account_access_key               = azurerm_storage_account.test.primary_access_key
+  use_extension_bundle                     = true
+  bundle_version                           = "[1.31.13]"
   client_certificate_mode                  = "Required"
   enabled                                  = false
   https_only                               = true
