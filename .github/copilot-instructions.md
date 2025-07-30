@@ -41,22 +41,31 @@ This is the official Terraform Provider for Azure (Resource Manager), written in
 
 ## ⚠️ CRITICAL CODE COMMENT POLICY ⚠️
 
-**NEVER add comments to code unless absolutely necessary.** Code should be self-documenting through clear variable names, function names, and structure.
+**STRICTLY FORBIDDEN: Adding unnecessary comments to code.** Code must be self-documenting through clear variable names, function names, and structure.
 
-**Comments should ONLY be added for:**
+**🚫 DEFAULT BEHAVIOR: Write code WITHOUT comments**
+
+**Comments are ONLY permitted for these EXCEPTIONAL cases:**
 - Azure API-specific quirks or behaviors that are not obvious from code
-- Complex business logic that cannot be made clear through code structure
+- Complex business logic that cannot be made clear through code structure alone
 - Workarounds for Azure SDK limitations or API bugs
 - Non-obvious state management patterns (PATCH operations, residual state handling)
 - Azure service constraints requiring explanation (timeout ranges, SKU limitations)
 
-**DO NOT add comments for:**
+**🚫 ABSOLUTELY FORBIDDEN - Never comment:**
 - Variable assignments, struct initialization, basic operations
 - Standard Terraform patterns (CRUD operations, schema definitions)
 - Self-explanatory function calls or routine Azure API calls
 - Field mappings between Terraform and Azure API models
+- Obvious conditional logic or loops
+- Standard Go patterns (error handling, nil checks, etc.)
 
-**If the code is self-explanatory, do not add comments explaining what it does.**
+**ENFORCEMENT RULE: Before adding ANY comment, ask yourself:**
+1. "Is this code unclear without a comment?" → Refactor the code instead
+2. "Would a developer be confused by this logic?" → Only then consider a comment
+3. "Is this documenting an Azure API quirk?" → Comment may be acceptable
+
+**If the code is self-explanatory, NO COMMENT should exist.**
 
 ## 🎯 AI Development Guidelines
 

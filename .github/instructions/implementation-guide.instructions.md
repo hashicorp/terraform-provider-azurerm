@@ -473,20 +473,32 @@ name := nameFromConfig
 
 The AI should **NEVER** add comments to code unless absolutely necessary. Code should be self-documenting through clear variable names, function names, and structure.
 
-**Comments should ONLY be used for:**
+**🚫 DEFAULT APPROACH: Write code without comments**
+
+**Comments should ONLY be used for these EXCEPTIONAL cases:**
 - **Azure API-specific quirks or behaviors** that are not obvious from the code
 - **Complex business logic** that cannot be made clear through code structure alone
 - **Workarounds for Azure SDK limitations** or API bugs
 - **Non-obvious state management patterns** (like PATCH operations or residual state handling)
 - **Azure service constraints** that require explanation (timeout ranges, SKU limitations, etc.)
 
-**DO NOT comment:**
+**🚫 ABSOLUTELY FORBIDDEN - DO NOT comment:**
 - Obvious operations like variable assignments
 - Standard expand/flatten operations
 - Simple struct initialization
 - Basic conditional logic
 - Self-explanatory function calls
 - Routine Azure API calls
+- Standard Go patterns (error handling, nil checks)
+- Field mappings between Terraform and Azure models
+
+**BEFORE adding ANY comment, ask these questions:**
+1. Can I make the code clearer through better naming?
+2. Can I extract this into a well-named function?
+3. Is this truly an Azure-specific quirk that needs explanation?
+4. Would an experienced Go developer be confused by this logic?
+
+**If you answered "no" to question 3 and 4, DO NOT add a comment.**
 
 ---
 [⬆️ Back to top](#terraform-azurerm-provider-implementation-guide)
