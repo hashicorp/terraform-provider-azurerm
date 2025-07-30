@@ -31,6 +31,9 @@ Focus on delivering actionable feedback in the following areas:
 - Resource timeout configurations
 - Acceptance test coverage and quality
 - **Tests use ONLY ExistsInAzure() check with ImportStep() - NO redundant field validation**
+- **CRITICAL: Code comments policy enforcement - only Azure API quirks, complex business logic, or SDK workarounds**
+- **Comment justification requirement - all comments must have explicit reasoning documented**
+- **No comments on obvious operations, standard patterns, or self-explanatory code**
 
 **Azure-Specific Concerns**:
 - Azure API version compatibility
@@ -339,6 +342,24 @@ When reviewing Terraform AzureRM provider code, pay special attention to:
 - **Schema Validation**: Verify all required fields, validation functions, and type definitions
 - **ForceNew Logic**: Check that properties requiring resource recreation are properly marked
 - **Timeouts**: Ensure appropriate timeout values for Azure operations (often long-running)
+
+#### Code Comments Policy Enforcement
+- **🚫 ZERO TOLERANCE for unnecessary comments**: Flag any comments that don't meet the strict criteria
+- **MANDATORY comment criteria - comments ONLY allowed for**:
+  - Azure API-specific quirks or behaviors not obvious from code
+  - Complex business logic that cannot be made clear through code structure alone
+  - Workarounds for Azure SDK limitations or API bugs
+  - Non-obvious state management patterns (PATCH operations, residual state handling)
+  - Azure service constraints requiring explanation (timeout ranges, SKU limitations)
+- **🚫 FORBIDDEN comments - flag these immediately**:
+  - Variable assignments, struct initialization, basic operations
+  - Standard Terraform patterns (CRUD operations, schema definitions)
+  - Self-explanatory function calls or routine Azure API calls
+  - Field mappings between Terraform and Azure API models
+  - Obvious conditional logic or loops
+  - Standard Go patterns (error handling, nil checks, etc.)
+- **JUSTIFICATION REQUIREMENT**: If ANY comment exists, the developer MUST provide explicit justification
+- **SUGGESTED ACTION**: When flagging unnecessary comments, suggest how to make code self-explanatory instead
 
 #### Azure API Integration
 - **Error Handling**: Verify proper handling of Azure API errors, including 404s during Read operations

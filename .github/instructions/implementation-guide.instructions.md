@@ -500,6 +500,19 @@ The AI should **NEVER** add comments to code unless absolutely necessary. Code s
 
 **If you answered "no" to question 3 and 4, DO NOT add a comment.**
 
+**🔍 COMMENT JUSTIFICATION REQUIREMENT:**
+When I add ANY comment to code, I MUST explicitly state in my response:
+- **WHY this comment is necessary** (which exception case it falls under)
+- **WHAT Azure-specific behavior** it's documenting (if applicable)
+- **WHY the code cannot be made self-explanatory** through refactoring
+
+**Example acceptable justification:**
+> "Adding comment to document Azure PATCH operation quirk: Azure preserves existing values when fields are omitted, which is not obvious from the code structure and cannot be expressed through naming alone."
+
+**🚫 UNACCEPTABLE - No justification or vague reasoning:**
+> "Adding comment to explain what this code does" (FORBIDDEN)
+> "Adding comment for clarity" (FORBIDDEN - refactor code instead)
+
 ---
 [⬆️ Back to top](#terraform-azurerm-provider-implementation-guide)
 

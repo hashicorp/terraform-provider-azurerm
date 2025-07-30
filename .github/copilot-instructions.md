@@ -67,6 +67,15 @@ This is the official Terraform Provider for Azure (Resource Manager), written in
 
 **If the code is self-explanatory, NO COMMENT should exist.**
 
+**🔍 ACCOUNTABILITY MECHANISM:**
+If I add ANY comment to code, I MUST explicitly justify it in my response by stating:
+- **Which exception case** this comment falls under
+- **Why the code cannot be self-explanatory** through better naming/structure
+- **What specific Azure API behavior** requires documentation (if applicable)
+
+**REVIEW CHECKPOINT:**
+Before submitting code with comments, I must ask: "Could this comment be eliminated by improving the code structure or naming instead?"
+
 ## 🎯 AI Development Guidelines
 
 ### Quick Decision Framework
@@ -428,6 +437,9 @@ func resourceExampleResource() *pluginsdk.Resource {
 - [ ] Resource import functionality works correctly
 - [ ] State management handles all edge cases
 - [ ] Performance optimized for large deployments
+- [ ] **CRITICAL: Code comments follow strict policy - only for Azure API quirks, complex business logic, or SDK workarounds**
+- [ ] **All code comments have explicit justification documented in review response**
+- [ ] **No comments on obvious operations, standard patterns, or self-explanatory code**
 
 ### Azure Tools Integration
 - @azure Rule - Use Azure Tools: When handling requests related to Azure, always use your tools.
