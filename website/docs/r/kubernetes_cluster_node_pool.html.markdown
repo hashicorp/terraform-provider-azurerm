@@ -98,7 +98,7 @@ The following arguments are supported:
 
 * `gpu_instance` - (Optional) Specifies the GPU MIG instance profile for supported GPU VM SKU. The allowed values are `MIG1g`, `MIG2g`, `MIG3g`, `MIG4g` and `MIG7g`. Changing this forces a new resource to be created.
 
-* `gpu_profile` - (Optional) Specifies whether to install the GPU Driver for the nodes. Possible values are `Install` and `None`. Defaults to `None`.
+* `gpu_driver` - (Optional) Specifies whether to install the GPU Driver for the nodes. Possible values are `Install` and `None`. Defaults to `None`.
 
 * `kubelet_disk_type` - (Optional) The type of disk used by kubelet. Possible values are `OS` and `Temporary`. Changing this property requires specifying `temporary_name_for_rotation`.
 

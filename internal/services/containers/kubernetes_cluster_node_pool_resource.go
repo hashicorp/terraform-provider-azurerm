@@ -164,15 +164,12 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
-		"gpu_profile": {
-			Type:     pluginsdk.TypeString,
-			Default:  string(agentpools.GPUDriverNone),
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(agentpools.GPUDriverNone),
-				string(agentpools.GPUDriverInstall),
-			}, false),
+		"gpu_driver": {
+			Type:         pluginsdk.TypeString,
+			Default:      string(agentpools.GPUDriverNone),
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForGPUDriver(), false),
 		},
 
 		"kubelet_disk_type": {
@@ -505,7 +502,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	}
 
 	profile.GpuProfile = &agentpools.GPUProfile{
-		Driver: pointer.To(agentpools.GPUDriver(d.Get("gpu_profile").(string))),
+		Driver: pointer.To(agentpools.GPUDriver(d.Get("gpu_driver").(string))),
 	}
 
 	if osSku := d.Get("os_sku").(string); osSku != "" {
@@ -739,9 +736,9 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 		props.EnableFIPS = pointer.To(d.Get("fips_enabled").(bool))
 	}
 
-	if d.HasChange("gpu_profile") {
+	if d.HasChange("gpu_driver") {
 		props.GpuProfile = &agentpools.GPUProfile{
-			Driver: pointer.To(agentpools.GPUDriver(d.Get("gpu_profile").(string))),
+			Driver: pointer.To(agentpools.GPUDriver(d.Get("gpu_driver").(string))),
 		}
 	}
 
@@ -1060,7 +1057,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		}
 
 		if v := props.GpuProfile; v != nil {
-			d.Set("gpu_profile", string(*v.Driver))
+			d.Set("gpu_driver", string(*v.Driver))
 		}
 
 		if props.CreationData != nil {
