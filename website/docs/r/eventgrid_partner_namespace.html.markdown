@@ -69,6 +69,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the EventGrid Partner Namespace.
 
+* `endpoint` - The endpoint for the EventGrid Partner Namespace.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
