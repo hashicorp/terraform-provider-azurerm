@@ -35,6 +35,7 @@ type EventGridPartnerNamespaceResourceModel struct {
 	PartnerRegistrationFullyQualifiedID string                      `tfschema:"partner_registration_id"`
 	PartnerTopicRoutingMode             string                      `tfschema:"partner_topic_routing_mode"`
 	PublicNetworkAccessEnabled          bool                        `tfschema:"public_network_access_enabled"`
+	Endpoint                            string                      `tfschema:"endpoint"`
 	Tags                                map[string]string           `tfschema:"tags"`
 }
 
@@ -108,7 +109,12 @@ func (EventGridPartnerNamespaceResource) Arguments() map[string]*pluginsdk.Schem
 }
 
 func (EventGridPartnerNamespaceResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"endpoint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }
 
 func (r EventGridPartnerNamespaceResource) ModelObject() interface{} {
@@ -300,6 +306,7 @@ func (r EventGridPartnerNamespaceResource) Read() sdk.ResourceFunc {
 					state.PartnerRegistrationFullyQualifiedID = pointer.From(props.PartnerRegistrationFullyQualifiedId)
 					state.PartnerTopicRoutingMode = string(pointer.From(props.PartnerTopicRoutingMode))
 					state.PublicNetworkAccessEnabled = pointer.From(props.PublicNetworkAccess) == partnernamespaces.PublicNetworkAccessEnabled
+					state.Endpoint = pointer.From(props.Endpoint)
 				}
 
 				if model.Tags != nil {
