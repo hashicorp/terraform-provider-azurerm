@@ -32,7 +32,7 @@ The following arguments are supported:
 
 * `shape` - (Optional) The model name of the Cloud Exadata Infrastructure resource. Possible values are `ExaDbXS`, `Exadata.X9M`, and `Exadata.X11M`. This is used to filter out the available GiVersions compatible with the given model.
 
-* `zone` - (Optional) Indicates the Azure zone for the Cloud Exadata Infrastructure, used to filter the available GiVersion within a given region.
+* `zone` - (Optional) Indicates the Azure zone for the Cloud Exadata Infrastructure, used to filter the available GI versions within a given zone.
 
 ## Attributes Reference
 

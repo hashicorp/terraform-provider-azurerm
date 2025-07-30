@@ -31,7 +31,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region to query for the system shapes in.
 
-* `zone` - (Optional) The Cloud Exadata Infrastructure Azure zone, used to filter out the available dbSystem shapes in the specific region. 
+* `zone` - (Optional) The Cloud Exadata Infrastructure Azure zone, used to filter out the available DB System Shapes in the specific zone.
 
 ## Attributes Reference
 

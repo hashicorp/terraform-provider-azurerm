@@ -196,6 +196,10 @@ func (d DbSystemShapesDataSource) Read() sdk.ResourceFunc {
 
 			options := dbsystemshapes.ListByLocationOperationOptions{}
 
+			if state.Zone != "" {
+				options.Zone = &state.Zone
+			}
+
 			if state.Zone == "" {
 				log.Printf("[WARN] DbSystem shapes data source: Zone parameter is empty. This may result in unfiltered results from the API. Consider specifying Zone for more precise results in the desired zone.")
 			}
