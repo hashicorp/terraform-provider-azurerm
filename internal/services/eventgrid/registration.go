@@ -39,6 +39,7 @@ func (r Registration) Resources() []sdk.Resource {
 		EventGridNamespaceResource{},
 		EventGridPartnerConfigurationResource{},
 		EventGridPartnerRegistrationResource{},
+		EventGridPartnerNamespaceResource{},
 	}
 }
 
