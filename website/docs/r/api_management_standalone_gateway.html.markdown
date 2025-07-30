@@ -71,19 +71,19 @@ The following arguments are supported:
 
 * `sku` - (Required) A `sku` block as defined below.
 
-* `backend_subnet_id` - (Optional) Specifies the subnet id which the backend systems are hosted. Changing this forces a new resource to be created.
+* `backend_subnet_id` - (Optional) Specifies the subnet ID in which the backend systems are hosted. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the API Management Standalone Gateway. Changing this forces a new resource to be created.
 
-* `virtual_network_type` - (Optional) Specifies the type of VPN in which API Management gateway needs to be configured in. Possible values are `External` and `Internal`. Changing this forces a new resource to be created.
+* `virtual_network_type` - (Optional) Specifies the type of VPN in which API Management gateway needs to be configured. Possible values are `External` and `Internal`. Changing this forces a new resource to be created.
 
 ---
 
 A `sku` block supports the following:
 
-* `name` - (Required) The Name of the Sku. The only possible value is `WorkspaceGatewayPremium`.
+* `name` - (Required) The name of the SKU. The only possible value is `WorkspaceGatewayPremium`.
 
-* `capacity` - (Optional) The number of deployed units of the Sku. Defaults to `1`.
+* `capacity` - (Optional) The number of deployed units of the SKU. Defaults to `1`.
 
 ---
 
