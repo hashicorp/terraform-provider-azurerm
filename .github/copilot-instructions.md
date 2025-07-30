@@ -18,7 +18,7 @@ This is the official Terraform Provider for Azure (Resource Manager), written in
 
 ## Project Structure
 
-```
+```go
 /internal
   /acceptance         - Acceptance test framework and helpers
   /clients           - Azure client configurations and setup
@@ -76,6 +76,8 @@ If I add ANY comment to code, I MUST explicitly justify it in my response by sta
 **REVIEW CHECKPOINT:**
 Before submitting code with comments, I must ask: "Could this comment be eliminated by improving the code structure or naming instead?"
 
+📋 **For comprehensive enforcement guidelines and detailed examples, see:** [Code Clarity Enforcement Guidelines](./instructions/code-clarity-enforcement.instructions.md)
+
 ## 🎯 AI Development Guidelines
 
 ### Quick Decision Framework
@@ -98,6 +100,9 @@ Before submitting code with comments, I must ask: "Could this comment be elimina
 - ✅ CustomizeDiff tested if validation logic exists
 - ✅ No hardcoded values in tests or examples
 - ✅ Resource ID parsing follows Azure patterns
+- ✅ **CRITICAL: Code comments follow strict policy - only for Azure API quirks, complex business logic, or SDK workarounds**
+- ✅ **All code comments have explicit justification documented in review response**
+- ✅ **No comments on obvious operations, standard patterns, or self-explanatory code**
 
 ## Implementation Approaches
 
@@ -192,7 +197,8 @@ This provider supports two implementation approaches. **For comprehensive implem
 
 #### 🔄 **Cross-Implementation Consistency Validation**
 When working with related Azure resources (like Linux and Windows variants), always verify:
-```
+
+```go
 Consistency Checklist
 ├─ VALIDATION LOGIC
 │  ├─ CustomizeDiff functions must be identical across variants
@@ -292,7 +298,7 @@ When writing commit messages, follow these standards for consistency and clarity
 4. **Line Length**: Keep each line under 72 characters for readability
 
 **Examples**:
-```
+```go
 ENHANCEMENT: add front door profile log scrubbing support
 
 - Add log_scrubbing_rule schema for CDN Front Door profiles
@@ -303,7 +309,7 @@ ENHANCEMENT: add front door profile log scrubbing support
 Closes Issue: #12345
 ```
 
-```
+```go
 BUG: fix storage account network rules state drift
 
 - Correct flatten function to handle empty network rules properly
@@ -314,7 +320,7 @@ BUG: fix storage account network rules state drift
 Fixes Issue: #54321
 ```
 
-```
+```go
 BREAKING CHANGE: remove deprecated storage account properties
 
 - Remove deprecated `enable_blob_encryption` and `enable_file_encryption` fields
@@ -326,7 +332,7 @@ BREAKING CHANGE: remove deprecated storage account properties
 Closes Issue: #87654
 ```
 
-```
+```go
 DOCS: add explicit warning to fieldName for clarity
 
 - Update documentation with clearer field usage warnings
@@ -451,7 +457,7 @@ func resourceExampleResource() *pluginsdk.Resource {
 ### Error Handling Standards
 
 #### Typed Resource Error Patterns
-`go
+```go
 // Use metadata.Decode for model decoding errors
 var model ServiceNameResourceModel
 if err := metadata.Decode(&model); err != nil {
@@ -476,10 +482,10 @@ metadata.SetID(id)
 
 // Use metadata.Encode for state management
 return metadata.Encode(&model)
-`
+```
 
 #### Untyped Error Patterns
-`go
+```go
 // Use consistent error formatting with context
 if err != nil {
     return fmt.Errorf("creating Resource %q: %+v", name, err)
@@ -496,7 +502,7 @@ if response.WasNotFound(resp.HttpResponse) {
 if response.WasThrottled(resp.HttpResponse) {
     return resource.RetryableError(fmt.Errorf("request was throttled"))
 }
-`
+```
 
 #### Common Error Standards (Both Approaches)
 - Field names in error messages should be wrapped in backticks for clarity
@@ -547,7 +553,7 @@ CustomizeDiff: pluginsdk.CustomDiffWithAll(
 - **Check the function signature**: If you see `*pluginsdk.ResourceDiff`, single import is sufficient
 
 **Standard CustomizeDiff Resource Pattern:**
-`go
+```go
 func resourceServiceName() *pluginsdk.Resource {
     return &pluginsdk.Resource{
         Create: resourceServiceNameCreate,
@@ -574,7 +580,7 @@ func resourceServiceName() *pluginsdk.Resource {
         },
     }
 }
-`
+```
 
 **Why This Pattern is Required:**
 - The internal pluginsdk package provides aliases for most Plugin SDK types

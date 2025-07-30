@@ -208,7 +208,7 @@ Result: Console display issue, not markdown corruption
 - ❌ Content looks syntactically invalid but conceptually correct
 - ❌ Long lines in git diff output that suddenly break
 
-#### ✅ **GOLDEN RULE**: If actual file content is valid → acknowledge console wrapping → DO NOT FLAG as corruption
+### ✅ **GOLDEN RULE**: If actual file content is valid → acknowledge console wrapping → DO NOT FLAG as corruption
 
 **Verification Rule**: If actual file content is valid, acknowledge console wrapping and do not flag as an issue
 
@@ -276,7 +276,7 @@ Result: Console display issue, not markdown corruption
 
 Use code review emojis. Give the reviewee added context and clarity to follow up on code review. For example, knowing whether something really requires action (🔧), highlighting nit-picky comments (⛏️), flagging out of scope items for follow-up (📌)
 
-#### Emoji Legend
+### Emoji Legend
 
 | `Emoji` |      `:code:`        | `Meaning`                                                                                               |
 | :-----: | :------------------: | ------------------------------------------------------------------------------------------------------- |
@@ -293,61 +293,12 @@ Use code review emojis. Give the reviewee added context and clarity to follow up
 
 When reviewing Terraform AzureRM provider code, pay special attention to:
 
-#### CustomizeDiff Import Requirements
-- **Conditional Import Pattern**: Import requirements depend on the CustomizeDiff implementation:
-  - **Dual Imports Required**: When using *schema.ResourceDiff directly in CustomizeDiff functions:
-    - github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema (for *schema.ResourceDiff)
-    - github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk (for helpers)
-  - **Single Import Sufficient**: When using *pluginsdk.ResourceDiff (legacy resources):
-    - github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema (only this import needed)
-- **Function Signature Analysis**: Check the function signature to determine import requirements:
-  - *schema.ResourceDiff → Usually typed resources, may need dual imports
-  - *pluginsdk.ResourceDiff → Usually legacy resources, single import sufficient
-- **Helper Function Usage**: Verify proper use of pluginsdk.All(), pluginsdk.ForceNewIfChange() helpers
+- **Code Comments Policy**: Apply strict zero-tolerance policy for unnecessary comments
+- **CustomizeDiff Import Requirements**: Verify correct import patterns based on implementation type
+- **Resource Implementation**: Ensure proper CRUD operations, schema validation, and Azure patterns
+- **Azure API Integration**: Check error handling, polling, and authentication patterns
+- **State Management**: Verify drift detection, import functionality, and resource ID handling
+- **Testing Standards**: Ensure comprehensive acceptance tests and proper cleanup
+- **Documentation Quality**: Verify examples, attributes, and import documentation
 
-#### Resource Implementation
-- **CRUD Operations**: Ensure Create, Read, Update, Delete functions handle all edge cases
-- **Schema Validation**: Verify all required fields, validation functions, and type definitions
-- **ForceNew Logic**: Check that properties requiring resource recreation are properly marked
-- **Timeouts**: Ensure appropriate timeout values for Azure operations (often long-running)
-
-#### Code Comments Policy Enforcement
-- **🚫 ZERO TOLERANCE for unnecessary comments**: Flag any comments that don't meet the strict criteria
-- **MANDATORY comment criteria - comments ONLY allowed for**:
-  - Azure API-specific quirks or behaviors not obvious from code
-  - Complex business logic that cannot be made clear through code structure alone
-  - Workarounds for Azure SDK limitations or API bugs
-  - Non-obvious state management patterns (PATCH operations, residual state handling)
-  - Azure service constraints requiring explanation (timeout ranges, SKU limitations)
-- **🚫 FORBIDDEN comments - flag these immediately**:
-  - Variable assignments, struct initialization, basic operations
-  - Standard Terraform patterns (CRUD operations, schema definitions)
-  - Self-explanatory function calls or routine Azure API calls
-  - Field mappings between Terraform and Azure API models
-  - Obvious conditional logic or loops
-  - Standard Go patterns (error handling, nil checks, etc.)
-- **JUSTIFICATION REQUIREMENT**: If ANY comment exists, the developer MUST provide explicit justification
-- **SUGGESTED ACTION**: When flagging unnecessary comments, suggest how to make code self-explanatory instead
-
-#### Azure API Integration
-- **Error Handling**: Verify proper handling of Azure API errors, including 404s during Read operations
-- **Polling**: Check for proper implementation of long-running operation polling
-- **API Versions**: Ensure correct and consistent Azure API versions are used
-- **Authentication**: Verify proper use of Azure client authentication patterns
-
-#### State Management
-- **Drift Detection**: Ensure Read operations properly detect and handle resource drift
-- **Import Functionality**: Verify resource import works correctly and sets all required attributes
-- **Nested Resources**: Check proper handling of complex nested Azure resource structures
-- **Resource IDs**: Ensure consistent Azure resource ID parsing and formatting
-
-#### Testing
-- **Acceptance Tests**: Verify comprehensive test coverage including error scenarios
-- **Test Cleanup**: Ensure tests properly clean up Azure resources
-- **Multiple Regions**: Check if tests account for regional Azure service availability
-- **Test Configuration**: Verify test fixtures use appropriate Azure resource configurations
-
-#### Documentation
-- **Examples**: Ensure realistic and working Terraform configuration examples
-- **Attributes**: Verify all resource attributes are documented with correct types
-- **Import Documentation**: Check that import syntax and requirements are clearly documented
+**📋 For detailed enforcement guidelines, see: [Code Clarity Enforcement](../instructions/code-clarity-enforcement.instructions.md)**

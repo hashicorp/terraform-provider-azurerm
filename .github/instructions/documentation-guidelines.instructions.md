@@ -22,7 +22,7 @@ description: This document outlines the standards and guidelines for writing doc
 ## Documentation Structure
 
 **File Organization:**
-```
+```text
 website/docs/
  r/                          # Resource documentation
     service_resource.html.markdown
@@ -41,7 +41,7 @@ website/docs/
 
 ### Standard Resource Documentation Structure
 
-```markdown
+````markdown
 ---
 subcategory: "Service Name"
 layout: "azurerm"
@@ -115,6 +115,7 @@ Service Resources can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_service_resource.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Service/resources/resource1
 ```
+````
 
 ### Example Usage Subsections
 
@@ -137,13 +138,12 @@ terraform import azurerm_service_resource.example /subscriptions/00000000-0000-0
 - Minor field variations (add to main example instead)
 - Single optional field demonstrations
 - Tag variations or simple property changes
-```
 
 ## Data Source Documentation Template
 
 ### Standard Data Source Documentation Structure
 
-```markdown
+````markdown
 ---
 subcategory: "Service Name"
 layout: "azurerm"
@@ -194,7 +194,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Service Resource.
-```
+````
 
 ## Writing Guidelines
 
@@ -292,12 +292,10 @@ When adding new fields to existing resources, follow this guidance for documenta
 - **Conditional configurations**: When field usage depends on specific combinations of other settings
 
 **Example Decision Matrix:**
-```markdown
- **Update existing**: `response_timeout_seconds = 120` (simple timeout field)
- **Update existing**: `enabled = false` (basic boolean toggle)
- **New example needed**: Complex nested `security_policy` block with multiple sub-configurations
- **New example needed**: Advanced `custom_domain` setup requiring certificates and DNS validation
-```
+- **Update existing**: `response_timeout_seconds = 120` (simple timeout field)
+- **Update existing**: `enabled = false` (basic boolean toggle)
+- **New example needed**: Complex nested `security_policy` block with multiple sub-configurations
+- **New example needed**: Advanced `custom_domain` setup requiring certificates and DNS validation
 
 This approach keeps documentation concise while ensuring complex features receive adequate explanation.
 
@@ -569,3 +567,6 @@ Use caution note blocks when providing critical information on potential irrever
 - **Clear messaging**: Provide actionable information that helps users avoid problems
 - **Avoid overuse**: Use notes for important information, not obvious functionality
 - **Reference linking**: Include links to external documentation when helpful
+
+---
+[⬆️ Back to top](#documentation-guidelines)

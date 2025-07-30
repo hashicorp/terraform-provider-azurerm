@@ -28,7 +28,7 @@ This provider supports two implementation approaches. **Unit testing patterns sh
 - Test resource interfaces (sdk.Resource, sdk.ResourceWithUpdate, etc.)
 - Test IDValidationFunc() method implementations
 
-### Untyped Resource Implementation Testing  
+### Untyped Resource Implementation Testing
 **For resources using traditional Plugin SDK patterns**
 
 - Test function-based CRUD patterns
@@ -72,7 +72,7 @@ This provider supports two implementation approaches. **Unit testing patterns sh
 
 ### typed resource Resource Testing Patterns
 
-#### Model Structure Testing
+### Model Structure Testing
 ```go
 package servicename_test
 
@@ -89,7 +89,7 @@ func TestServiceNameResourceModel_TfschemaValidation(t *testing.T) {
         Location:      "West Europe",
         Enabled:       true,
     }
-    
+
     // Test that model fields have correct tfschema tags
     // This would typically be tested through the resource's Arguments() and Attributes() methods
     require.Equal(t, "test-resource", model.Name)
@@ -97,25 +97,25 @@ func TestServiceNameResourceModel_TfschemaValidation(t *testing.T) {
 }
 ```
 
-#### Resource Interface Testing
+### Resource Interface Testing
 ```go
 func TestServiceNameResource_Interfaces(t *testing.T) {
     resource := servicename.ServiceNameResource{}
-    
+
     // Test that resource implements required interfaces
     var _ sdk.Resource = resource
     var _ sdk.ResourceWithUpdate = resource
-    
+
     // Test ResourceType method
     require.Equal(t, "azurerm_service_name", resource.ResourceType())
-    
+
     // Test ModelObject method
     model := resource.ModelObject()
     require.IsType(t, &servicename.ServiceNameResourceModel{}, model)
 }
 ```
 
-#### typed resource Error Handling Testing
+### Typed Resource Error Handling Testing
 ```go
 func TestServiceNameResource_ErrorHandling(t *testing.T) {
     // Test metadata error patterns
@@ -134,7 +134,7 @@ func TestServiceNameResource_ErrorHandling(t *testing.T) {
             expectedError: "decoding:",
         },
     }
-    
+
     for _, tc := range testCases {
         t.Run(tc.name, func(t *testing.T) {
             // Test error handling patterns specific to typed resource
@@ -145,7 +145,7 @@ func TestServiceNameResource_ErrorHandling(t *testing.T) {
 
 ### untyped Plugin SDK Testing Patterns
 
-#### Function-Based CRUD Testing
+### Function-Based CRUD Testing
 ```go
 package servicename_test
 
@@ -176,7 +176,7 @@ func TestResourceServiceNameCreate_ValidationPatterns(t *testing.T) {
             errorMsg: "name is required",
         },
     }
-    
+
     for _, tc := range testCases {
         t.Run(tc.name, func(t *testing.T) {
             // Test untyped validation patterns
@@ -185,7 +185,7 @@ func TestResourceServiceNameCreate_ValidationPatterns(t *testing.T) {
 }
 ```
 
-#### untyped Error Handling Testing
+### Untyped Error Handling Testing
 ```go
 func TestResourceServiceName_untypedErrorHandling(t *testing.T) {
     testCases := []struct {
@@ -204,7 +204,7 @@ func TestResourceServiceName_untypedErrorHandling(t *testing.T) {
             expectedAction: "retry",
         },
     }
-    
+
     for _, tc := range testCases {
         t.Run(tc.name, func(t *testing.T) {
             // Test untyped error handling patterns
@@ -245,7 +245,7 @@ func TestParseServiceNameResourceID(t *testing.T) {
             wantErr: true,
         },
     }
-    
+
     for _, tc := range testCases {
         t.Run(tc.name, func(t *testing.T) {
             result, err := servicename.ParseServiceNameResourceID(tc.input)
@@ -269,7 +269,7 @@ func TestValidateServiceNameResourceName(t *testing.T) {
         "name-with-numbers-123",
         "a", // minimum length if applicable
     }
-    
+
     invalidNames := []string{
         "",                                    // empty
         "toolong" + strings.Repeat("a", 100), // too long
@@ -278,7 +278,7 @@ func TestValidateServiceNameResourceName(t *testing.T) {
         "invalid_underscore",                 // invalid characters
         "Invalid-Uppercase",                  // invalid case
     }
-    
+
     for _, name := range validNames {
         t.Run("valid_"+name, func(t *testing.T) {
             warnings, errors := servicename.ValidateServiceNameResourceName(name, "test")
@@ -286,7 +286,7 @@ func TestValidateServiceNameResourceName(t *testing.T) {
             require.Empty(t, errors)
         })
     }
-    
+
     for _, name := range invalidNames {
         t.Run("invalid_"+name, func(t *testing.T) {
             _, errors := servicename.ValidateServiceNameResourceName(name, "test")
@@ -306,13 +306,13 @@ func TestValidateAzureLocation(t *testing.T) {
         "eastus",      // normalized form
         "westeurope",  // normalized form
     }
-    
+
     invalidLocations := []string{
         "",
         "Invalid Location",
         "123-invalid",
     }
-    
+
     for _, location := range validLocations {
         t.Run("valid_"+location, func(t *testing.T) {
             warnings, errors := servicename.ValidateAzureLocation(location, "location")
@@ -320,7 +320,7 @@ func TestValidateAzureLocation(t *testing.T) {
             require.Empty(t, errors)
         })
     }
-    
+
     for _, location := range invalidLocations {
         t.Run("invalid_"+location, func(t *testing.T) {
             _, errors := servicename.ValidateAzureLocation(location, "location")
@@ -347,9 +347,9 @@ func TestExpandServiceNameResourceConfig(t *testing.T) {
             },
         },
     }
-    
+
     result := servicename.ExpandServiceNameResourceConfig(input)
-    
+
     require.NotNil(t, result)
     require.Equal(t, "test", *result.Name)
     require.True(t, *result.Enabled)
@@ -370,17 +370,17 @@ func TestFlattenServiceNameResourceConfig(t *testing.T) {
             "Project":     "terraform",
         },
     }
-    
+
     result := servicename.FlattenServiceNameResourceConfig(input)
-    
+
     require.Len(t, result, 1)
     config := result[0].(map[string]interface{})
     require.Equal(t, "test", config["name"])
     require.True(t, config["enabled"].(bool))
-    
+
     settings := config["settings"].(map[string]interface{})
     require.Equal(t, "value1", settings["key1"])
-    
+
     tags := config["tags"].(map[string]interface{})
     require.Equal(t, "test", tags["Environment"])
 }
@@ -420,7 +420,7 @@ func TestHandleAzureAPIErrors(t *testing.T) {
             expectedType: "server_error",
         },
     }
-    
+
     for _, tc := range testCases {
         t.Run(tc.name, func(t *testing.T) {
             // Test Azure API error handling patterns
@@ -428,7 +428,7 @@ func TestHandleAzureAPIErrors(t *testing.T) {
                 StatusCode: tc.statusCode,
                 Body:       ioutil.NopCloser(strings.NewReader(tc.errorBody)),
             }
-            
+
             errorType := servicename.ClassifyAzureAPIError(resp)
             require.Equal(t, tc.expectedType, errorType)
         })
@@ -456,7 +456,7 @@ func TestAzureLocationNormalization(t *testing.T) {
         {"Southeast Asia", "southeastasia"},
         {"eastus", "eastus"}, // already normalized
     }
-    
+
     for _, tc := range testCases {
         t.Run(tc.input, func(t *testing.T) {
             result := servicename.NormalizeAzureLocation(tc.input)
@@ -474,9 +474,9 @@ func TestAzureResourceTags(t *testing.T) {
         "Project":     "terraform-provider",
         "Owner":       "platform-team",
     }
-    
+
     result := servicename.ExpandTags(input)
-    
+
     require.NotNil(t, result)
     require.Equal(t, "production", (*result)["Environment"])
     require.Equal(t, "terraform-provider", (*result)["Project"])

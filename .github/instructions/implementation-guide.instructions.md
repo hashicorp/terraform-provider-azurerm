@@ -513,6 +513,8 @@ When I add ANY comment to code, I MUST explicitly state in my response:
 > "Adding comment to explain what this code does" (FORBIDDEN)
 > "Adding comment for clarity" (FORBIDDEN - refactor code instead)
 
+📋 **For comprehensive enforcement guidelines and detailed examples, see:** [Code Clarity Enforcement Guidelines](./code-clarity-enforcement.instructions.md)
+
 ---
 [⬆️ Back to top](#terraform-azurerm-provider-implementation-guide)
 
@@ -720,7 +722,7 @@ d.SetId(id.ID())
 ### Smart Code Generation Patterns
 
 #### Resource Implementation Decision Tree
-```
+```text
 New Resource Request
 ├─ Implementation Approach
 │  ├─ NEW resource/data source → Use Typed Resource Implementation
@@ -743,7 +745,7 @@ New Resource Request
 
 #### Cross-Implementation Consistency Validation
 When working with related Azure resources (like Linux and Windows variants), always verify:
-```
+```text
 Consistency Checklist
 ├─ VALIDATION LOGIC
 │  ├─ CustomizeDiff functions must be identical across variants
@@ -795,7 +797,7 @@ func resourceServiceName() *pluginsdk.Resource {
 ### Efficient Development Workflow
 
 #### Step-by-Step Implementation Checklist
-```
+```text
 □ 1. ANALYZE REQUEST
   □ Identify Azure service and resource type
   □ Check if resource already exists (grep search)
@@ -1187,19 +1189,19 @@ defer cancel()
 ### Code Quality Enforcement
 
 #### AI Self-Check Patterns
-```go
-// Before submitting code, verify:
-// □ All errors use %+v formatting
-// □ Field names in error messages use backticks
-// □ No hardcoded values in tests
-// □ Proper timeout configurations
-// □ Azure SDK constants used for validation
-// □ Import functionality tested
-// □ Documentation follows templates
-// □ CustomizeDiff tested if used
-// □ Proper pointer usage with pointer package
-// □ Resource ID parsing implemented correctly
-// □ Tests use ONLY ExistsInAzure() check with ImportStep() - NO redundant field validation
+```text
+Before submitting code, verify:
+□ All errors use %+v formatting
+□ Field names in error messages use backticks
+□ No hardcoded values in tests
+□ Proper timeout configurations
+□ Azure SDK constants used for validation
+□ Import functionality tested
+□ Documentation follows templates
+□ CustomizeDiff tested if used
+□ Proper pointer usage with pointer package
+□ Resource ID parsing implemented correctly
+□ Tests use ONLY ExistsInAzure() check with ImportStep() - NO redundant field validation
 ```
 
 ---
@@ -1209,6 +1211,7 @@ defer cancel()
 
 ## Quick Reference Links
 
+- 📋 **Code Clarity Enforcement**: [code-clarity-enforcement.instructions.md](./code-clarity-enforcement.instructions.md)
 - 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
 - 📝 **Documentation Guide**: [documentation-guidelines.instructions.md](./documentation-guidelines.instructions.md)
 - ☁️ **Azure Patterns**: [azure-patterns.instructions.md](./azure-patterns.instructions.md)

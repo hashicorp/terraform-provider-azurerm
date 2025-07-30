@@ -16,7 +16,7 @@ description: Testing guidelines for Terraform AzureRM provider Go files - test e
 - Tests create **REAL AZURE RESOURCES** and require **VALID CREDENTIALS**
 
 **Example Command Format:**
-```powershell
+```bash
 # Purpose: Test VMSS resiliency policy backward compatibility
 # Duration: 5-10 minutes, creates test VMSS resources in Azure
 # Requires: ARM_SUBSCRIPTION_ID, ARM_CLIENT_ID, ARM_CLIENT_SECRET, ARM_TENANT_ID
@@ -117,9 +117,6 @@ func TestAccResourceName_requiresImport(t *testing.T) {
         data.RequiresImportErrorStep(r.requiresImport),
     })
 }
-```
-
-make testacc TEST=./internal/services/compute TESTARGS='-run=TestAccLinuxVirtualMachineScaleSet_fieldsNotSetInState'
 ```
 
 #### **Rule #4: User Confirmation Required**
@@ -1208,3 +1205,6 @@ make testacc TEST=./internal/services/cdn TESTARGS='-run=TestAccCdnFrontDoorProf
 3. **Apply appropriate force delete flags**: Use service-specific provider feature flags
 4. **Create semantic templates**: Organize force delete configurations in reusable template functions
 5. **Test the fix**: Verify that tests can create, update, and **successfully clean up** resources
+
+---
+[⬆️ Back to top](#🧪-testing-guidelines)
