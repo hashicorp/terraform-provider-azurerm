@@ -34,20 +34,6 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
   custom_block_response_status_code = 403
   custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
 
-  js_challenge_cookie_expiration_in_minutes = 45
-  captcha_cookie_expiration_in_minutes      = 45
-
-  log_scrubbing {
-    enabled = true
-
-    scrubbing_rule {
-      enabled        = true
-      match_variable = "RequestCookieNames"
-      operator       = "Equals"
-      selector       = "ChocolateChip"
-    }
-  }
-
   custom_rule {
     name                           = "Rule1"
     enabled                        = true
@@ -88,38 +74,6 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
       negation_condition = false
       match_values       = ["windows"]
       transforms         = ["Lowercase", "Trim"]
-    }
-  }
-
-  custom_rule {
-    name                           = "CustomJSChallenge"
-    enabled                        = true
-    priority                       = 100
-    rate_limit_duration_in_minutes = 1
-    rate_limit_threshold           = 10
-    type                           = "MatchRule"
-    action                         = "JSChallenge"
-
-    match_condition {
-      match_variable     = "RemoteAddr"
-      operator           = "IPMatch"
-      negation_condition = false
-      match_values       = ["192.168.1.0/24"]
-    }
-  }
-
-  custom_rule {
-    name     = "CustomCaptchaChallenge"
-    enabled  = true
-    priority = 150
-    type     = "MatchRule"
-    action   = "CAPTCHA"
-
-    match_condition {
-      match_variable     = "RequestUri"
-      operator           = "Contains"
-      negation_condition = false
-      match_values       = ["/path/captcha"]
     }
   }
 
@@ -170,16 +124,6 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
     type    = "Microsoft_BotManagerRuleSet"
     version = "1.1"
     action  = "Log"
-
-    override {
-      rule_group_name = "BadBots"
-
-      rule {
-        action  = "JSChallenge"
-        enabled = true
-        rule_id = "Bot100200"
-      }
-    }
   }
 }
 ```
