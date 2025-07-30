@@ -24,10 +24,10 @@ resource "azurerm_eventgrid_partner_registration" "example" {
 }
 
 resource "azurerm_eventgrid_partner_namespace" "example" {
-  name                         = "example-partner-namespace"
-  location                     = azurerm_resource_group.example.location
-  resource_group_name          = azurerm_resource_group.example.name
-  partner_registration_id      = azurerm_eventgrid_partner_registration.example.id
+  name                    = "example-partner-namespace"
+  location                = azurerm_resource_group.example.location
+  resource_group_name     = azurerm_resource_group.example.name
+  partner_registration_id = azurerm_eventgrid_partner_registration.example.id
 }
 ```
 
