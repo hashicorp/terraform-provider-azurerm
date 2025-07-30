@@ -2119,6 +2119,7 @@ resource "azurerm_logic_app_standard" "test" {
 }
 `, r.template(data), data.RandomInteger)
 }
+
 func (r LogicAppStandardResource) scmMultiIpRestriction(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
