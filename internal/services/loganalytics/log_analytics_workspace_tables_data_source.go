@@ -52,7 +52,7 @@ func (k LogAnalyticsWorkspaceTablesDataSource) Attributes() map[string]*pluginsd
 				Type: pluginsdk.TypeString,
 			},
 		},
-		
+
 		"tables": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
