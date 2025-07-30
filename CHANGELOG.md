@@ -34,6 +34,7 @@ ENHANCEMENTS:
 * `azurerm_management_group_policy_set_definition` - now forces a new resource to be created when the number of `parameters` is decreased [GH-29866]
 
 FEATURES:
+* **New Data Source** : `azurerm_api_connection` [GH-30178]
 * **New Resource**: `azurerm_application_load_balancer_security_policy` [GH-30128]
 * **New Resource** : `azurerm_eventgrid_partner_registration` [GH-29736]
 * **New Data Source**: `azurerm_trusted_signing_account` [GH-29293]
