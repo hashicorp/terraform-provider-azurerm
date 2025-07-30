@@ -1,7 +1,5 @@
 ## 4.38.0 (Unreleased)
 
-FEATURES:
-
 ENHANCEMENTS:
 * dependencies: `go-azure-sdk` update to `v0.20250728.1144148` [GH-30254]
 * `azurerm_dynatrace_monitor` -  add support for  the `environment_properties` block [GH-29251]
