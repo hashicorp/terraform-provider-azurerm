@@ -269,3 +269,9 @@ MS SQL Managed Instance Start Stop Schedule can be imported using the `resource 
 ```shell
 terraform import azurerm_mssql_managed_instance_start_stop_schedule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Sql/managedInstances/managedInstance1/startStopSchedules/default
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Sql`: 2023-08-01-preview
