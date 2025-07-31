@@ -242,11 +242,3 @@ const (
 	statusInProgress status = "InProgress"
 	statusSucceeded  status = "Succeeded"
 )
-
-func statusIsTerminal(s status) bool {
-	switch s {
-	case statusCanceled, statusCancelled, statusFailed, statusSucceeded, statusInProgress:
-		return true
-	}
-	return false
-}

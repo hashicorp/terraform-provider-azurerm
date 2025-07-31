@@ -1,3 +1,11 @@
+## 4.38.1 (July 31, 2025)
+
+**NOTE:** This patch release addresses a critical problem in App Service and Logic Apps resources preventing all Long Running Operations from completing successfully. 
+
+BUG FIXES:
+
+* dependencies: `go-azure-sdk/sdk` update to `v0.20250731.1142049` ([#30282](https://github.com/hashicorp/terraform-provider-azurerm/issues/30282))
+
 ## 4.38.0 (July 30, 2025)
 
 FEATURES:
