@@ -70,6 +70,10 @@ type ProviderServer interface {
 	   // ListResourceServer is an interface encapsulating all the list
 	   // resource-related RPC requests.
 	   ListResourceServer*/
+
+	/* // Add this back once temporary interface is removed
+	   // ActionServer is an interface encapsulating all the action-related RPC requests.
+	   ActionServer*/
 }
 
 // ProviderServerWithListResource is a temporary interface for servers
@@ -87,6 +91,22 @@ type ProviderServerWithListResource interface {
 	// ListResourceServer is an interface encapsulating all the list
 	// resource-related RPC requests.
 	ListResourceServer
+}
+
+// ProviderServerWithActions is a temporary interface for servers
+// to implement Action RPCs
+//
+// - PlanAction
+// - InvokeAction
+//
+// Deprecated: All methods will be moved into the
+// ProviderServer interface and this interface will be removed in a future
+// version.
+type ProviderServerWithActions interface {
+	ProviderServer
+
+	// ActionServer is an interface encapsulating all the action-related RPC requests.
+	ActionServer
 }
 
 // GetMetadataRequest represents a GetMetadata RPC request.
@@ -117,6 +137,9 @@ type GetMetadataResponse struct {
 
 	// ListResources returns metadata for all list resources.
 	ListResources []ListResourceMetadata
+
+	// Actions returns metadata for all actions.
+	Actions []ActionMetadata
 }
 
 // GetProviderSchemaRequest represents a Terraform RPC request for the
@@ -170,8 +193,13 @@ type GetProviderSchemaResponse struct {
 	// `ephemeral` in a user's configuration.
 	EphemeralResourceSchemas map[string]*Schema
 
-	// ListResourceSchemas is a map of resource identity schemas and names.
+	// ListResourceSchemas is a map of list resource schemas and names.
 	ListResourceSchemas map[string]*Schema
+
+	// ActionSchemas is a map of action names to their schema and action type.
+	// The name should be an action name that is prefixed with your provider's
+	// shortname and an underscore.
+	ActionSchemas map[string]*ActionSchema
 
 	// Diagnostics report errors or warnings related to returning the
 	// provider's schemas. Returning an empty slice indicates success, with

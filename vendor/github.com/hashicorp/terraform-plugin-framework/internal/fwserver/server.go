@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/hashicorp/terraform-plugin-framework/action"
+	actionschema "github.com/hashicorp/terraform-plugin-framework/action/schema"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
@@ -39,6 +41,39 @@ type Server struct {
 	// [provider.ConfigureResponse.EphemeralResourceData] field value which is passed
 	// to [ephemeral.ConfigureRequest.ProviderData].
 	EphemeralResourceConfigureData any
+	
+	// ListResourceConfigureData is the
+	// [provider.ConfigureResponse.ListResourceData] field value which is passed
+	// to [list.ConfigureRequest.ProviderData].
+	ListResourceConfigureData any
+
+	// ActionConfigureData is the
+	// [provider.ConfigureResponse.ActionData] field value which is passed
+	// to [action.ConfigureRequest.ProviderData].
+	ActionConfigureData any
+
+	// actionSchemas is the cached Action Schemas for RPCs that need to
+	// convert configuration data from the protocol. If not found, it will be
+	// fetched from the Action.Schema() method.
+	actionSchemas map[string]actionschema.SchemaType
+
+	// actionSchemasMutex is a mutex to protect concurrent actionSchemas
+	// access from race conditions.
+	actionSchemasMutex sync.RWMutex
+
+	// actionFuncs is the cached Action functions for RPCs that need to
+	// access actions. If not found, it will be fetched from the
+	// Provider.Actions() method.
+	actionFuncs map[string]func() action.Action
+
+	// actionFuncsDiags is the cached Diagnostics obtained while populating
+	// actionFuncs. This is to ensure any warnings or errors are also
+	// returned appropriately when fetching actionFuncs.
+	actionFuncsDiags diag.Diagnostics
+
+	// actionFuncsMutex is a mutex to protect concurrent actionFuncs
+	// access from race conditions.
+	actionFuncsMutex sync.Mutex
 
 	// dataSourceSchemas is the cached DataSource Schemas for RPCs that need to
 	// convert configuration data from the protocol. If not found, it will be

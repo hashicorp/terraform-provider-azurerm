@@ -25,9 +25,9 @@ require (
 	github.com/hashicorp/go-uuid v1.0.3
 	github.com/hashicorp/go-version v1.7.0
 	github.com/hashicorp/terraform-json v0.25.0
-	github.com/hashicorp/terraform-plugin-framework v1.15.1-0.20250701153714-52edf5b94f50
+	github.com/hashicorp/terraform-plugin-framework v1.15.1-0.20250717180626-a78febbbf89c
 	github.com/hashicorp/terraform-plugin-framework-validators v0.17.0
-	github.com/hashicorp/terraform-plugin-go v0.29.0-alpha.1
+	github.com/hashicorp/terraform-plugin-go v0.29.0-alpha.1.0.20250709165734-a8477a15f806
 	github.com/hashicorp/terraform-plugin-mux v0.20.1-0.20250709145736-70f977f9fcb3
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.37.0
 	github.com/hashicorp/terraform-plugin-testing v1.13.1

@@ -6335,10 +6335,9 @@ type PlanAction_Request struct {
 	state      protoimpl.MessageState `protogen:"open.v1"`
 	ActionType string                 `protobuf:"bytes,1,opt,name=action_type,json=actionType,proto3" json:"action_type,omitempty"`
 	// linked resources, this should match the order the resources are specified in the schema.
-	LinkedResources []*PlanAction_Request_LinkedResource `protobuf:"bytes,2,rep,name=linked_resources,json=linkedResources,proto3" json:"linked_resources,omitempty"`
-	// config of the action, based on the schema of the actual action
-	ProposedActionData []*DynamicValue     `protobuf:"bytes,3,rep,name=proposed_action_data,json=proposedActionData,proto3" json:"proposed_action_data,omitempty"`
-	ClientCapabilities *ClientCapabilities `protobuf:"bytes,4,opt,name=client_capabilities,json=clientCapabilities,proto3" json:"client_capabilities,omitempty"`
+	LinkedResources    []*PlanAction_Request_LinkedResource `protobuf:"bytes,2,rep,name=linked_resources,json=linkedResources,proto3" json:"linked_resources,omitempty"`
+	Config             *DynamicValue                        `protobuf:"bytes,3,opt,name=config,proto3" json:"config,omitempty"`
+	ClientCapabilities *ClientCapabilities                  `protobuf:"bytes,4,opt,name=client_capabilities,json=clientCapabilities,proto3" json:"client_capabilities,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -6387,9 +6386,9 @@ func (x *PlanAction_Request) GetLinkedResources() []*PlanAction_Request_LinkedRe
 	return nil
 }
 
-func (x *PlanAction_Request) GetProposedActionData() []*DynamicValue {
+func (x *PlanAction_Request) GetConfig() *DynamicValue {
 	if x != nil {
-		return x.ProposedActionData
+		return x.Config
 	}
 	return nil
 }
@@ -6590,10 +6589,9 @@ type InvokeAction_Request struct {
 	ActionType string                 `protobuf:"bytes,1,opt,name=action_type,json=actionType,proto3" json:"action_type,omitempty"`
 	// linked resources, matching the order they are specified in the schema
 	LinkedResources []*InvokeAction_Request_LinkedResource `protobuf:"bytes,2,rep,name=linked_resources,json=linkedResources,proto3" json:"linked_resources,omitempty"`
-	// response from the plan
-	PlannedActionData *DynamicValue `protobuf:"bytes,3,opt,name=planned_action_data,json=plannedActionData,proto3" json:"planned_action_data,omitempty"`
-	unknownFields     protoimpl.UnknownFields
-	sizeCache         protoimpl.SizeCache
+	Config          *DynamicValue                          `protobuf:"bytes,3,opt,name=config,proto3" json:"config,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *InvokeAction_Request) Reset() {
@@ -6640,9 +6638,9 @@ func (x *InvokeAction_Request) GetLinkedResources() []*InvokeAction_Request_Link
 	return nil
 }
 
-func (x *InvokeAction_Request) GetPlannedActionData() *DynamicValue {
+func (x *InvokeAction_Request) GetConfig() *DynamicValue {
 	if x != nil {
-		return x.PlannedActionData
+		return x.Config
 	}
 	return nil
 }
@@ -7392,14 +7390,14 @@ const file_tfplugin6_proto_rawDesc = "" +
 	"\ttype_name\x18\x01 \x01(\tR\btypeName\x12/\n" +
 	"\x06config\x18\x02 \x01(\v2\x17.tfplugin6.DynamicValueR\x06config\x1aC\n" +
 	"\bResponse\x127\n" +
-	"\vdiagnostics\x18\x01 \x03(\v2\x15.tfplugin6.DiagnosticR\vdiagnostics\"\x9f\a\n" +
+	"\vdiagnostics\x18\x01 \x03(\v2\x15.tfplugin6.DiagnosticR\vdiagnostics\"\x85\a\n" +
 	"\n" +
-	"PlanAction\x1a\xa2\x04\n" +
+	"PlanAction\x1a\x88\x04\n" +
 	"\aRequest\x12\x1f\n" +
 	"\vaction_type\x18\x01 \x01(\tR\n" +
 	"actionType\x12W\n" +
-	"\x10linked_resources\x18\x02 \x03(\v2,.tfplugin6.PlanAction.Request.LinkedResourceR\x0flinkedResources\x12I\n" +
-	"\x14proposed_action_data\x18\x03 \x03(\v2\x17.tfplugin6.DynamicValueR\x12proposedActionData\x12N\n" +
+	"\x10linked_resources\x18\x02 \x03(\v2,.tfplugin6.PlanAction.Request.LinkedResourceR\x0flinkedResources\x12/\n" +
+	"\x06config\x18\x03 \x01(\v2\x17.tfplugin6.DynamicValueR\x06config\x12N\n" +
 	"\x13client_capabilities\x18\x04 \x01(\v2\x1d.tfplugin6.ClientCapabilitiesR\x12clientCapabilities\x1a\x81\x02\n" +
 	"\x0eLinkedResource\x128\n" +
 	"\vprior_state\x18\x01 \x01(\v2\x17.tfplugin6.DynamicValueR\n" +
@@ -7413,13 +7411,13 @@ const file_tfplugin6_proto_rawDesc = "" +
 	"\bdeferred\x18\x03 \x01(\v2\x13.tfplugin6.DeferredR\bdeferred\x1a\x9a\x01\n" +
 	"\x0eLinkedResource\x12<\n" +
 	"\rplanned_state\x18\x01 \x01(\v2\x17.tfplugin6.DynamicValueR\fplannedState\x12J\n" +
-	"\x10planned_identity\x18\x02 \x01(\v2\x1f.tfplugin6.ResourceIdentityDataR\x0fplannedIdentity\"\x90\b\n" +
-	"\fInvokeAction\x1a\xd6\x03\n" +
+	"\x10planned_identity\x18\x02 \x01(\v2\x1f.tfplugin6.ResourceIdentityDataR\x0fplannedIdentity\"\xf8\a\n" +
+	"\fInvokeAction\x1a\xbe\x03\n" +
 	"\aRequest\x12\x1f\n" +
 	"\vaction_type\x18\x01 \x01(\tR\n" +
 	"actionType\x12Y\n" +
-	"\x10linked_resources\x18\x02 \x03(\v2..tfplugin6.InvokeAction.Request.LinkedResourceR\x0flinkedResources\x12G\n" +
-	"\x13planned_action_data\x18\x03 \x01(\v2\x17.tfplugin6.DynamicValueR\x11plannedActionData\x1a\x85\x02\n" +
+	"\x10linked_resources\x18\x02 \x03(\v2..tfplugin6.InvokeAction.Request.LinkedResourceR\x0flinkedResources\x12/\n" +
+	"\x06config\x18\x03 \x01(\v2\x17.tfplugin6.DynamicValueR\x06config\x1a\x85\x02\n" +
 	"\x0eLinkedResource\x128\n" +
 	"\vprior_state\x18\x01 \x01(\v2\x17.tfplugin6.DynamicValueR\n" +
 	"priorState\x12<\n" +
@@ -7762,7 +7760,7 @@ var file_tfplugin6_proto_depIdxs = []int32{
 	6,   // 138: tfplugin6.ValidateListResourceConfig.Request.config:type_name -> tfplugin6.DynamicValue
 	7,   // 139: tfplugin6.ValidateListResourceConfig.Response.diagnostics:type_name -> tfplugin6.Diagnostic
 	123, // 140: tfplugin6.PlanAction.Request.linked_resources:type_name -> tfplugin6.PlanAction.Request.LinkedResource
-	6,   // 141: tfplugin6.PlanAction.Request.proposed_action_data:type_name -> tfplugin6.DynamicValue
+	6,   // 141: tfplugin6.PlanAction.Request.config:type_name -> tfplugin6.DynamicValue
 	18,  // 142: tfplugin6.PlanAction.Request.client_capabilities:type_name -> tfplugin6.ClientCapabilities
 	124, // 143: tfplugin6.PlanAction.Response.linked_resources:type_name -> tfplugin6.PlanAction.Response.LinkedResource
 	7,   // 144: tfplugin6.PlanAction.Response.diagnostics:type_name -> tfplugin6.Diagnostic
@@ -7774,7 +7772,7 @@ var file_tfplugin6_proto_depIdxs = []int32{
 	6,   // 150: tfplugin6.PlanAction.Response.LinkedResource.planned_state:type_name -> tfplugin6.DynamicValue
 	14,  // 151: tfplugin6.PlanAction.Response.LinkedResource.planned_identity:type_name -> tfplugin6.ResourceIdentityData
 	127, // 152: tfplugin6.InvokeAction.Request.linked_resources:type_name -> tfplugin6.InvokeAction.Request.LinkedResource
-	6,   // 153: tfplugin6.InvokeAction.Request.planned_action_data:type_name -> tfplugin6.DynamicValue
+	6,   // 153: tfplugin6.InvokeAction.Request.config:type_name -> tfplugin6.DynamicValue
 	128, // 154: tfplugin6.InvokeAction.Event.progress:type_name -> tfplugin6.InvokeAction.Event.Progress
 	129, // 155: tfplugin6.InvokeAction.Event.completed:type_name -> tfplugin6.InvokeAction.Event.Completed
 	6,   // 156: tfplugin6.InvokeAction.Request.LinkedResource.prior_state:type_name -> tfplugin6.DynamicValue

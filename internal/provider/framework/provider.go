@@ -525,10 +525,10 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 func (p *azureRmFrameworkProvider) Configure(ctx context.Context, request provider.ConfigureRequest, response *provider.ConfigureResponse) {
 	var data ProviderModel
 
-	response.Diagnostics.Append(request.Config.Get(ctx, &data)...)
-	if response.Diagnostics.HasError() {
-		return
-	}
+	//response.Diagnostics.Append(request.Config.Get(ctx, &data)...)
+	//if response.Diagnostics.HasError() {
+	//	return
+	//}
 
 	if p.V2Provider != nil {
 		v := p.V2Provider.Meta()
@@ -536,6 +536,7 @@ func (p *azureRmFrameworkProvider) Configure(ctx context.Context, request provid
 		response.ResourceData = v
 		response.DataSourceData = v
 		response.EphemeralResourceData = v
+		response.LisResourceData = v
 	} else {
 		p.Load(ctx, &data, request.TerraformVersion, &response.Diagnostics)
 

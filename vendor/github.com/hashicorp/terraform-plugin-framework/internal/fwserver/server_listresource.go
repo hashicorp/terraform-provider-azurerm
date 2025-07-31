@@ -5,13 +5,15 @@ package fwserver
 
 import (
 	"context"
-	"errors"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"iter"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/list"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
@@ -29,6 +31,10 @@ type ListRequest struct {
 	// Resource field in the ListResult struct.
 	IncludeResource bool
 
+	// Limit specifies the maximum number of results that Terraform is
+	// expecting.
+	Limit int64
+
 	ResourceSchema         fwschema.Schema
 	ResourceIdentitySchema fwschema.Schema
 }
@@ -44,6 +50,7 @@ type ListResultsStream struct {
 	// Results is a function that emits [ListResult] values via its push
 	// function argument.
 	Results iter.Seq[ListResult]
+	ResultsProtov5 iter.Seq[tfprotov5.ListResourceResult]
 }
 
 func ListResultError(summary string, detail string) ListResult {
@@ -80,17 +87,63 @@ type ListResult struct {
 var NoListResults = func(func(ListResult) bool) {}
 
 // ListResource implements the framework server ListResource RPC.
-func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream *ListResultsStream) error {
+func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream *ListResultsStream) {
 	listResource := fwReq.ListResource
 
-	if fwReq.Config == nil {
-		fwStream.Results = NoListResults
-		return errors.New("Invalid ListResource request: Config cannot be nil")
+	if fwReq.Config == nil && fwReq.ResourceSchema != nil {
+		fwReq.Config = &tfsdk.Config{
+			Raw:    tftypes.NewValue(fwReq.ResourceSchema.Type().TerraformType(ctx), nil),
+			Schema: fwReq.ResourceSchema,
+		}
+	} else if fwReq.Config == nil && fwReq.ResourceIdentitySchema == nil {
+		fwReq.Config = &tfsdk.Config{
+			Raw:    tftypes.NewValue(tftypes.Object{}, nil),
+			Schema: fwReq.ResourceSchema,
+		}
+	}
+
+	diagsStream := &list.ListResultsStream{}
+	
+	if listResourceWithConfigure, ok := listResource.(list.ListResourceWithConfigure); ok {
+		logging.FrameworkTrace(ctx, "ListResource implements ListResourceWithConfigure")
+
+		configureReq := resource.ConfigureRequest{
+			ProviderData: s.ListResourceConfigureData,
+		}
+		configureResp := resource.ConfigureResponse{}
+
+		logging.FrameworkTrace(ctx, "Calling provider defined ListResource Configure")
+		listResourceWithConfigure.Configure(ctx, configureReq, &configureResp)
+		logging.FrameworkTrace(ctx, "Called provider defined ListResource Configure")
+
+		if len(configureResp.Diagnostics) > 0 {
+			diagsResp := list.ListResult{}
+			diagsResp.Diagnostics.Append(configureResp.Diagnostics...)
+
+			diagsStream.Results = func(push func(list.ListResult) bool) {
+				if !push(diagsResp) {
+					return
+				}
+			}
+
+			if diagsResp.Diagnostics.HasError() {
+				// push the diag into the stream and return
+				fwStream.Results = func(push func(ListResult) bool) {
+					for result := range diagsStream.Results {
+						if !push(ListResult(result)) {
+							return
+						}
+					}
+				}
+				return
+			}
+		}
 	}
 
 	req := list.ListRequest{
 		Config:                 *fwReq.Config,
 		IncludeResource:        fwReq.IncludeResource,
+		Limit:                  fwReq.Limit,
 		ResourceSchema:         fwReq.ResourceSchema,
 		ResourceIdentitySchema: fwReq.ResourceIdentitySchema,
 	}
@@ -102,12 +155,56 @@ func (s *Server) ListResource(ctx context.Context, fwReq *ListRequest, fwStream 
 	logging.FrameworkTrace(ctx, "Called provider defined ListResource")
 
 	// If the provider returned a nil results stream, we return an empty stream.
-	if stream.Results == nil {
+	if stream.Results == nil && stream.Proto5Results == nil {
 		stream.Results = list.NoListResults
 	}
+	
+	if diagsStream.Results == nil {
+		diagsStream.Results = list.NoListResults
+	}
 
-	fwStream.Results = processListResults(req, stream.Results)
-	return nil
+	//fwStream.Results = processListResultss(req, stream.Results, diagsStream.Results)
+	fwStream.ResultsProtov5 = processListResultsProtov5(req, stream.Proto5Results)
+}
+
+func processListResultsProtov5(req list.ListRequest, stream iter.Seq[tfprotov5.ListResourceResult]) iter.Seq[tfprotov5.ListResourceResult] {
+	return func(push func(tfprotov5.ListResourceResult) bool) {
+		for result := range stream {
+			if !push(processListResultProtov5(req, result)) {
+				return
+			}
+		}
+	}
+}
+//
+//// processListResult validates the content of a list.ListResult and returns a
+//// ListResult
+func processListResultProtov5(req list.ListRequest, result tfprotov5.ListResourceResult) tfprotov5.ListResourceResult {
+	if len(result.Diagnostics) > 0 {
+		return tfprotov5.ListResourceResult(result)
+	}
+
+	//if result.Identity == nil {
+	//	return ListResultError(
+	//		"Incomplete List Result",
+	//		"When listing resources, an implementation issue was found. "+
+	//			"This is always a problem with the provider. Please report this to the provider developers.\n\n"+
+	//			"The \"Identity\" field is nil.\n\n",
+	//	)
+	//}
+	//
+	//if req.IncludeResource {
+	//	if result.Resource == nil || result.Resource.Raw.IsNull() {
+	//		result.Diagnostics.AddWarning(
+	//			"Incomplete List Result",
+	//			"When listing resources, an implementation issue was found. "+
+	//				"This is always a problem with the provider. Please report this to the provider developers.\n\n"+
+	//				"The \"IncludeResource\" field in the ListRequest is true, but the \"Resource\" field in the ListResult is nil.\n\n",
+	//		)
+	//	}
+	//}
+
+	return tfprotov5.ListResourceResult(result)
 }
 
 func processListResults(req list.ListRequest, stream iter.Seq[list.ListResult]) iter.Seq[ListResult] {
@@ -120,10 +217,26 @@ func processListResults(req list.ListRequest, stream iter.Seq[list.ListResult]) 
 	}
 }
 
+func processListResultss(req list.ListRequest, streams ...iter.Seq[list.ListResult]) iter.Seq[ListResult] {
+	return func(push func(ListResult) bool) {
+		for _, stream := range streams {
+			for result := range stream {
+				if !push(processListResult(req, result)) {
+					return
+				}
+			}
+		}
+	}
+}
+
 // processListResult validates the content of a list.ListResult and returns a
 // ListResult
 func processListResult(req list.ListRequest, result list.ListResult) ListResult {
 	if result.Diagnostics.HasError() {
+		return ListResult(result)
+	}
+
+	if len(result.Diagnostics) > 0 && result.DisplayName == "" && result.Identity == nil && result.Resource == nil {
 		return ListResult(result)
 	}
 

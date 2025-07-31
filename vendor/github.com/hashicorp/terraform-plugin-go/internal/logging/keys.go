@@ -63,6 +63,9 @@ const (
 	// The type of list resource being operated on
 	KeyListResourceType = "tf_list_resource_type"
 
+	// The action being operated on
+	KeyActionType = "tf_action_type"
+
 	// Path to protocol data file, such as "/tmp/example.json"
 	KeyProtocolDataFile = "tf_proto_data_file"
 

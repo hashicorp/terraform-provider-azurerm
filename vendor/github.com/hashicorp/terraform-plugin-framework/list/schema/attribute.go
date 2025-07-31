@@ -9,6 +9,14 @@ import (
 
 // Attribute define a value field inside the Schema. Implementations in this
 // package include:
+//   - BoolAttribute
+//   - Float32Attribute
+//   - Float64Attribute
+//   - Int32Attribute
+//   - Int64Attribute
+//   - ListAttribute
+//   - MapAttribute
+//   - NumberAttribute
 //   - StringAttribute
 //
 // In practitioner configurations, an equals sign (=) is required to set

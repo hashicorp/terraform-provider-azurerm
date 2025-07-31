@@ -7,10 +7,17 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/go-cty/cty/msgpack"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/hcl2shim"
+
+	//"github.com/hashicorp/go-cty/cty/gocty"
+	//"github.com/hashicorp/go-cty/cty/msgpack"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	listschema "github.com/hashicorp/terraform-plugin-framework/list/schema"
-	frameworkProvider "github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	//"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -45,9 +52,66 @@ import (
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_network -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
-func SDKResourceFromContext(ctx context.Context) (*schema.Resource, bool) {
-	r, ok := ctx.Value(frameworkProvider.SDKResourceKey).(*schema.Resource)
-	return r, ok
+func tftypeFromCtyType(in cty.Type) (tftypes.Type, error) {
+	switch {
+	case in.Equals(cty.String):
+		return tftypes.String, nil
+	case in.Equals(cty.Number):
+		return tftypes.Number, nil
+	case in.Equals(cty.Bool):
+		return tftypes.Bool, nil
+	case in.Equals(cty.DynamicPseudoType):
+		return tftypes.DynamicPseudoType, nil
+	case in.IsSetType():
+		elemType, err := tftypeFromCtyType(in.ElementType())
+		if err != nil {
+			return nil, err
+		}
+		return tftypes.Set{
+			ElementType: elemType,
+		}, nil
+	case in.IsListType():
+		elemType, err := tftypeFromCtyType(in.ElementType())
+		if err != nil {
+			return nil, err
+		}
+		return tftypes.List{
+			ElementType: elemType,
+		}, nil
+	case in.IsTupleType():
+		elemTypes := make([]tftypes.Type, 0, in.Length())
+		for _, typ := range in.TupleElementTypes() {
+			elemType, err := tftypeFromCtyType(typ)
+			if err != nil {
+				return nil, err
+			}
+			elemTypes = append(elemTypes, elemType)
+		}
+		return tftypes.Tuple{
+			ElementTypes: elemTypes,
+		}, nil
+	case in.IsMapType():
+		elemType, err := tftypeFromCtyType(in.ElementType())
+		if err != nil {
+			return nil, err
+		}
+		return tftypes.Map{
+			ElementType: elemType,
+		}, nil
+	case in.IsObjectType():
+		attrTypes := make(map[string]tftypes.Type)
+		for key, typ := range in.AttributeTypes() {
+			attrType, err := tftypeFromCtyType(typ)
+			if err != nil {
+				return nil, err
+			}
+			attrTypes[key] = attrType
+		}
+		return tftypes.Object{
+			AttributeTypes: attrTypes,
+		}, nil
+	}
+	return nil, fmt.Errorf("unknown cty type %s", in.GoString())
 }
 
 var _ sdk.ListResource = &VirtualNetworkListResource{}
@@ -60,11 +124,15 @@ func NewVirtualNetworkListResource() list.ListResource {
 	return &VirtualNetworkListResource{}
 }
 
-func (r VirtualNetworkListResource) Metadata(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *VirtualNetworkListResource) Metadata(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = VirtualNetworkResourceName
 }
 
-func (r VirtualNetworkListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, resp *list.ListResourceSchemaResponse) {
+func (r *VirtualNetworkListResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	r.Defaults(req, resp)
+}
+
+func (r *VirtualNetworkListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, resp *list.ListResourceSchemaResponse) {
 	resp.Schema = listschema.Schema{
 		Attributes: map[string]listschema.Attribute{
 			"resource_group_name": listschema.StringAttribute{
@@ -78,7 +146,7 @@ type VirtualNetworkListModel struct {
 	ResourceGroupName string `tfsdk:"resource_group_name"`
 }
 
-func (r VirtualNetworkListResource) List(ctx context.Context, req list.ListRequest, stream *list.ListResultsStream) {
+func (r *VirtualNetworkListResource) List(ctx context.Context, req list.ListRequest, stream *list.ListResultsStream) {
 	var data VirtualNetworkListModel
 
 	diags := req.Config.Get(ctx, &data)
@@ -86,60 +154,171 @@ func (r VirtualNetworkListResource) List(ctx context.Context, req list.ListReque
 		stream.Results = list.ListResultsStreamDiagnostics(diags)
 		return
 	}
-	stream.Results = func(push func(list.ListResult) bool) {
-		client := r.Client.Network.VirtualNetworks
 
-		// TODO what about timeouts?
-		ctx, cancel := context.WithTimeout(ctx, time.Minute*5)
-		defer cancel()
+	virtualNetworks := make([]virtualnetworks.VirtualNetwork, 0)
 
-		virtualNetworks, err := client.List(ctx, commonids.NewResourceGroupID(r.SubscriptionId, data.ResourceGroupName))
-		// TODO check HttpResponse etc.
-		if err != nil {
-			sdk.SetResponseErrorDiagnostic(stream.Results, "", err)
-		}
+	client := r.Client.Network.VirtualNetworks
 
-		_, ok := SDKResourceFromContext(ctx)
-		if !ok {
-			sdk.SetResponseErrorDiagnostic(stream.Results, "SDKResource not found in context", fmt.Errorf("SDKResource not found in context"))
-			return
-		}
+	// TODO what about timeouts?
+	ctx, cancel := context.WithTimeout(ctx, time.Minute*5)
+	defer cancel()
 
-		if models := virtualNetworks.Model; models != nil {
-			for _, model := range *models {
-				result := req.NewListResult()
+	resp, err := client.List(ctx, commonids.NewResourceGroupID(r.SubscriptionId, data.ResourceGroupName))
+	// TODO check HttpResponse etc.
+	if err != nil {
+		sdk.SetResponseErrorDiagnostic(stream.Results, "", err)
+	}
 
-				// ignoring nil-checks for the time being...
-				result.DisplayName = *model.Name
-				id, err := commonids.ParseVirtualNetworkID(*model.Id)
-				if err != nil {
-					// things here
-				}
+	if resp.Model != nil {
+		virtualNetworks = *resp.Model
+	}
 
-				// id needs to be transformed into:
-				// {
-				//		"subscription_id": "00000000-0000-0000-0000-000000000000",
-				//		"resource_group_name": "example-resources",
-				//		"name": "example-vnet",
-				// }
+	//stream.Results = func(push func(list.ListResult) bool) {
+	//	for _, vnet := range virtualNetworks {
+	//		result := req.NewListResult()
+	//		result.DisplayName = pointer.From(vnet.Name)
+	//
+	//		if !push(result) {
+	//			return
+	//		}
+	//	}
+	//}
 
-				// Setting Identity in the result for Framework
-				if diags := result.Identity.Set(ctx, id); diags.HasError() {
-					result.Diagnostics.Append(diags...)
-				}
+	stream.Proto5Results = func(push func(tfprotov5.ListResourceResult) bool) {
+		for _, vnet := range virtualNetworks {
+			result := req.NewListResultProtov5()
+			result.DisplayName = pointer.From(vnet.Name)
 
-				// Setting Identity in SDKv2 but this sets it to state?
-				// ResourceData d is unavailable
-				rd := &pluginsdk.ResourceData{}
-				if err := pluginsdk.SetResourceIdentityData(rd, id); err != nil {
-					// things here
-				}
+			// ignoring nil-checks for the time being...
 
-				// Is include_resource behaviour handled here by the provider?
-				// Set resource object info below
+			id, err := commonids.ParseVirtualNetworkID(*vnet.Id)
+			if err != nil {
+				sdk.SetResponseErrorDiagnostic(stream.Results, "parsing Virtual Network ID", err)
+				return
+			}
+
+			// Get v2 Resource Identity Schema
+			vNetResource := resourceVirtualNetwork()
+			identitySchema, err := vNetResource.CoreIdentitySchema()
+			if err != nil {
+				sdk.SetResponseErrorDiagnostic(stream.Results, "getting identity schema", err)
+				return
+			}
+
+			// Convert v2 Resource Identity Schema Type to tftypes
+			identitySchemaType, err := tftypeFromCtyType(identitySchema.ImpliedType())
+			if err != nil {
+				sdk.SetResponseErrorDiagnostic(stream.Results, "converting identity schema type", err)
+				return
+			}
+
+			idValue := map[string]tftypes.Value{
+				"subscription_id":     tftypes.NewValue(tftypes.String, id.SubscriptionId),
+				"resource_group_name": tftypes.NewValue(tftypes.String, id.ResourceGroupName),
+				"name":                tftypes.NewValue(tftypes.String, id.VirtualNetworkName),
+			}
+
+			val, err := tfprotov5.NewDynamicValue(identitySchemaType, tftypes.NewValue(identitySchemaType, idValue))
+			if err != nil {
+				sdk.SetResponseErrorDiagnostic(stream.Results, "creating dynamic value", err)
+				return
+			}
+
+			result.Identity = &tfprotov5.ResourceIdentityData{
+				IdentityData: &val,
+			}
+
+			resourceSchema := vNetResource.CoreConfigSchema()
+
+			resourceSchemaType, err := tftypeFromCtyType(resourceSchema.ImpliedType())
+
+			log.Print(resourceSchema, resourceSchemaType)
+
+			rd := vNetResource.Data(nil)
+
+			err = resourceVirtualNetworkEncode(rd, *id, &vnet)
+			if err != nil {
+				sdk.SetResponseErrorDiagnostic(stream.Results, "encoding resource data", err)
+				return
+			}
+
+			// SetId() must be called in the encoding function or this returns nil/sdkv2 thinks the resource doesn't exist
+			state := rd.State()
+
+			newStateVal, err := hcl2shim.HCL2ValueFromFlatmap(state.Attributes, resourceSchema.ImpliedType())
+			if err != nil {
+				sdk.SetResponseErrorDiagnostic(stream.Results, "converting state to HCL2 value", err)
+				return
+			}
+
+			stateMP, err := msgpack.Marshal(newStateVal, resourceSchema.ImpliedType())
+			if err != nil {
+				sdk.SetResponseErrorDiagnostic(stream.Results, "marshalling state to msgpack", err)
+				return
+			}
+
+			result.Resource = &tfprotov5.DynamicValue{
+				MsgPack: stateMP,
+			}
+
+			if !push(result) {
+				return
 			}
 		}
+
 	}
+
+	//stream.Results = func(push func(list.ListResult) bool) {
+	//	for _, vnet := range virtualNetworks {
+	//
+	//		result := req.NewListResult()
+	//		result.DisplayName = pointer.From(vnet.Name)
+	//
+	//		// ignoring nil-checks for the time being...
+	//
+	//		id, err := commonids.ParseVirtualNetworkID(*vnet.Id)
+	//		if err != nil {
+	//			// things here
+	//		}
+	//
+	//		// Get v2 Resource Identity Schema
+	//		vNetResource := resourceVirtualNetwork()
+	//		identitySchema, err := vNetResource.CoreIdentitySchema()
+	//		if err != nil {
+	//			// things here
+	//		}
+	//
+	//		// Convert v2 Resource Identity Schema Type to tftypes
+	//		identitySchemaType, err := tftypeFromCtyType(identitySchema.ImpliedType())
+	//		if err != nil {
+	//			// do things
+	//		}
+	//
+	//		idValue := map[string]tftypes.Value{
+	//			"subscription_id":     tftypes.NewValue(tftypes.String, id.SubscriptionId),
+	//			"resource_group_name": tftypes.NewValue(tftypes.String, id.ResourceGroupName),
+	//			"name":                tftypes.NewValue(tftypes.String, id.VirtualNetworkName),
+	//		}
+	//
+	//		val, err := tfprotov5.NewDynamicValue(identitySchemaType, tftypes.NewValue(identitySchemaType, idValue))
+	//		if err != nil {
+	//			// do things
+	//		}
+	//
+	//		result.Identity = &tfsdk.ResourceIdentity{
+	//			Raw: tftypes.NewValue(identitySchemaType, idValue),
+	//		}
+	//
+	//		log.Print(identitySchemaType, val)
+	//
+	//		if !push(result) {
+	//			return
+	//		}
+	//	}
+	//	//if models := virtualNetworks.Model; models != nil {
+	//	//
+	//	//}
+	//}
 }
 
 var VirtualNetworkResourceName = "azurerm_virtual_network"
@@ -520,20 +699,88 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	if err := resourceVirtualNetworkEncode(d, *id, resp.Model); err != nil {
+		return fmt.Errorf("encoding %s: %+v", *id, err)
+	}
+
+	//d.Set("name", id.VirtualNetworkName)
+	//d.Set("resource_group_name", id.ResourceGroupName)
+	//
+	//if model := resp.Model; model != nil {
+	//	d.Set("location", location.NormalizeNilable(model.Location))
+	//	d.Set("edge_zone", flattenEdgeZoneModel(model.ExtendedLocation))
+	//
+	//	if props := model.Properties; props != nil {
+	//		d.Set("guid", props.ResourceGuid)
+	//		d.Set("flow_timeout_in_minutes", props.FlowTimeoutInMinutes)
+	//		d.Set("private_endpoint_vnet_policies", string(pointer.From(props.PrivateEndpointVNetPolicies)))
+	//
+	//		if space := props.AddressSpace; space != nil {
+	//			if err = d.Set("address_space", space.AddressPrefixes); err != nil {
+	//				return fmt.Errorf("setting `address_space`: %+v", err)
+	//			}
+	//
+	//			if err := d.Set("ip_address_pool", flattenVirtualNetworkIPAddressPool(space.IPamPoolPrefixAllocations)); err != nil {
+	//				return fmt.Errorf("setting `ip_address_pool`: %+v", err)
+	//			}
+	//		}
+	//
+	//		if err := d.Set("ddos_protection_plan", flattenVirtualNetworkDDoSProtectionPlan(props)); err != nil {
+	//			return fmt.Errorf("setting `ddos_protection_plan`: %+v", err)
+	//		}
+	//
+	//		if err := d.Set("encryption", flattenVirtualNetworkEncryption(props.Encryption)); err != nil {
+	//			return fmt.Errorf("setting `encryption`: %+v", err)
+	//		}
+	//
+	//		subnet, err := flattenVirtualNetworkSubnets(props.Subnets)
+	//		if err != nil {
+	//			return fmt.Errorf("flattening `subnet`: %+v", err)
+	//		}
+	//		if err := d.Set("subnet", subnet); err != nil {
+	//			return fmt.Errorf("setting `subnet`: %+v", err)
+	//		}
+	//
+	//		if err := d.Set("dns_servers", flattenVirtualNetworkDNSServers(props.DhcpOptions)); err != nil {
+	//			return fmt.Errorf("setting `dns_servers`: %+v", err)
+	//		}
+	//
+	//		bgpCommunity := ""
+	//		if p := props.BgpCommunities; p != nil {
+	//			bgpCommunity = p.VirtualNetworkCommunity
+	//		}
+	//		if err := d.Set("bgp_community", bgpCommunity); err != nil {
+	//			return fmt.Errorf("setting `bgp_community`: %+v", err)
+	//		}
+	//	}
+	//
+	//	if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+	//		return fmt.Errorf("flattening `tags`: %+v", err)
+	//	}
+	//}
+	//
+	//if err := pluginsdk.SetResourceIdentityData(d, id); err != nil {
+	//	return err
+	//}
+
+	return nil
+}
+
+func resourceVirtualNetworkEncode(d *pluginsdk.ResourceData, id commonids.VirtualNetworkId, vnet *virtualnetworks.VirtualNetwork) error {
 	d.Set("name", id.VirtualNetworkName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
-		d.Set("edge_zone", flattenEdgeZoneModel(model.ExtendedLocation))
+	if vnet != nil {
+		d.Set("location", location.NormalizeNilable(vnet.Location))
+		d.Set("edge_zone", flattenEdgeZoneModel(vnet.ExtendedLocation))
 
-		if props := model.Properties; props != nil {
+		if props := vnet.Properties; props != nil {
 			d.Set("guid", props.ResourceGuid)
 			d.Set("flow_timeout_in_minutes", props.FlowTimeoutInMinutes)
 			d.Set("private_endpoint_vnet_policies", string(pointer.From(props.PrivateEndpointVNetPolicies)))
 
 			if space := props.AddressSpace; space != nil {
-				if err = d.Set("address_space", space.AddressPrefixes); err != nil {
+				if err := d.Set("address_space", space.AddressPrefixes); err != nil {
 					return fmt.Errorf("setting `address_space`: %+v", err)
 				}
 
@@ -569,14 +816,16 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 			if err := d.Set("bgp_community", bgpCommunity); err != nil {
 				return fmt.Errorf("setting `bgp_community`: %+v", err)
 			}
-		}
 
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
-			return fmt.Errorf("flattening `tags`: %+v", err)
+			if err := tags.FlattenAndSet(d, vnet.Tags); err != nil {
+				return fmt.Errorf("flattening `tags`: %+v", err)
+			}
 		}
 	}
 
-	if err := pluginsdk.SetResourceIdentityData(d, id); err != nil {
+	d.SetId(id.ID())
+
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
 		return err
 	}
 

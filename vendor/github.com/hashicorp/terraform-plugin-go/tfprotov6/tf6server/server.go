@@ -22,6 +22,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-go/internal/logging"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6/internal/diag"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6/internal/fromproto"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6/internal/tf6serverlogging"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6/internal/tfplugin6"
@@ -1288,6 +1289,161 @@ func (s *server) ListResource(protoReq *tfplugin6.ListResource_Request, protoStr
 
 		default:
 			protoEv := toproto.ListResource_ListResourceEvent(&ev)
+			if err := protoStream.Send(protoEv); err != nil {
+				logging.ProtocolError(ctx, "Error sending event", map[string]any{logging.KeyError: err})
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (s *server) PlanAction(ctx context.Context, protoReq *tfplugin6.PlanAction_Request) (*tfplugin6.PlanAction_Response, error) {
+	rpc := "PlanAction"
+	ctx = s.loggingContext(ctx)
+	ctx = logging.RpcContext(ctx, rpc)
+	ctx = logging.ActionContext(ctx, protoReq.ActionType)
+	ctx = s.stoppableContext(ctx)
+	logging.ProtocolTrace(ctx, "Received request")
+	defer logging.ProtocolTrace(ctx, "Served request")
+
+	req := fromproto.PlanActionRequest(protoReq)
+
+	tf6serverlogging.PlanActionClientCapabilities(ctx, req.ClientCapabilities)
+	logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", "Config", req.Config)
+
+	// Log all of the linked resource data
+	for i, linkedResource := range req.LinkedResources {
+		prefix := fmt.Sprintf("LinkedResource.%d", i)
+		logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", fmt.Sprintf("%s.PriorState", prefix), linkedResource.PriorState)
+		logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", fmt.Sprintf("%s.PlannedState", prefix), linkedResource.PlannedState)
+		logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", fmt.Sprintf("%s.Config", prefix), linkedResource.Config)
+	}
+
+	ctx = tf6serverlogging.DownstreamRequest(ctx)
+
+	// TODO: Remove this check and error in preference of
+	// s.downstream.PlanAction below once ProviderServer interface
+	// implements this RPC method.
+	// nolint:staticcheck
+	actionsProviderServer, ok := s.downstream.(tfprotov6.ProviderServerWithActions)
+	if !ok {
+		logging.ProtocolError(ctx, "ProviderServer does not implement PlanAction")
+
+		protoResp := &tfplugin6.PlanAction_Response{
+			Diagnostics: []*tfplugin6.Diagnostic{
+				{
+					Severity: tfplugin6.Diagnostic_ERROR,
+					Summary:  "Provider PlanAction Not Implemented",
+					Detail: "A PlanAction call was received by the provider, however the provider does not implement the call. " +
+						"Either upgrade the provider to a version that implements action support or this is a bug in Terraform that should be reported to the Terraform maintainers.",
+				},
+			},
+		}
+
+		return protoResp, nil
+	}
+
+	// TODO: Update this to call downstream once optional interface is removed
+	// resp, err := s.downstream.PlanAction(ctx, req)
+	resp, err := actionsProviderServer.PlanAction(ctx, req)
+	if err != nil {
+		logging.ProtocolError(ctx, "Error from downstream", map[string]interface{}{logging.KeyError: err})
+		return nil, err
+	}
+
+	tf6serverlogging.DownstreamResponse(ctx, resp.Diagnostics)
+
+	// Log all of the linked resource data
+	for i, linkedResource := range resp.LinkedResources {
+		prefix := fmt.Sprintf("LinkedResource.%d", i)
+		logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Response", fmt.Sprintf("%s.PlannedState", prefix), linkedResource.PlannedState)
+	}
+	tf6serverlogging.Deferred(ctx, resp.Deferred)
+
+	if resp.Deferred != nil && (req.ClientCapabilities == nil || !req.ClientCapabilities.DeferralAllowed) {
+		resp.Diagnostics = append(resp.Diagnostics, invalidDeferredResponseDiag(resp.Deferred.Reason))
+	}
+
+	protoResp := toproto.PlanAction_Response(resp)
+
+	return protoResp, nil
+}
+
+func (s *server) InvokeAction(protoReq *tfplugin6.InvokeAction_Request, protoStream grpc.ServerStreamingServer[tfplugin6.InvokeAction_Event]) error {
+	rpc := "InvokeAction"
+	ctx := protoStream.Context()
+	ctx = s.loggingContext(ctx)
+	ctx = logging.RpcContext(ctx, rpc)
+	ctx = logging.ActionContext(ctx, protoReq.ActionType)
+	ctx = s.stoppableContext(ctx)
+	logging.ProtocolTrace(ctx, "Received request")
+	defer logging.ProtocolTrace(ctx, "Served request")
+
+	req := fromproto.InvokeActionRequest(protoReq)
+	logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", "Config", req.Config)
+
+	// Log all of the linked resource data
+	for i, linkedResource := range req.LinkedResources {
+		prefix := fmt.Sprintf("LinkedResource.%d", i)
+		logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", fmt.Sprintf("%s.PriorState", prefix), linkedResource.PriorState)
+		logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", fmt.Sprintf("%s.PlannedState", prefix), linkedResource.PlannedState)
+		logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", fmt.Sprintf("%s.Config", prefix), linkedResource.Config)
+	}
+
+	ctx = tf6serverlogging.DownstreamRequest(ctx)
+
+	// TODO: Remove this check and error in preference of
+	// s.downstream.InvokeAction below once ProviderServer interface
+	// implements this RPC method.
+	// nolint:staticcheck
+	actionsProviderServer, ok := s.downstream.(tfprotov6.ProviderServerWithActions)
+	if !ok {
+		logging.ProtocolError(ctx, "ProviderServer does not implement InvokeAction")
+
+		protoEvent := &tfplugin6.InvokeAction_Event{
+			Type: &tfplugin6.InvokeAction_Event_Completed_{
+				Completed: &tfplugin6.InvokeAction_Event_Completed{
+					Diagnostics: []*tfplugin6.Diagnostic{
+						{
+							Severity: tfplugin6.Diagnostic_ERROR,
+							Summary:  "Provider InvokeAction Not Implemented",
+							Detail: "An InvokeAction call was received by the provider, however the provider does not implement the call. " +
+								"Either upgrade the provider to a version that implements action support or this is a bug in Terraform that should be reported to the Terraform maintainers.",
+						},
+					},
+				},
+			},
+		}
+
+		return protoStream.Send(protoEvent)
+	}
+
+	// TODO: Update this to call downstream once optional interface is removed
+	// resp, err := s.downstream.InvokeAction(ctx, req)
+	resp, err := actionsProviderServer.InvokeAction(ctx, req)
+	if err != nil {
+		logging.ProtocolError(ctx, "Error from downstream", map[string]interface{}{logging.KeyError: err})
+		return err
+	}
+
+	for ev := range resp.Events {
+		select {
+		case <-ctx.Done():
+			logging.ProtocolTrace(ctx, "Context done")
+			return nil
+
+		default:
+			switch ev := ev.Type.(type) {
+			// MAINTAINER NOTE: Only the completed event has diagnostics to log, otherwise we just send an empty slice.
+			case *tfprotov6.CompletedInvokeActionEventType:
+				tf6serverlogging.DownstreamServerEvent(ctx, ev.Diagnostics)
+			default:
+				tf6serverlogging.DownstreamServerEvent(ctx, make(diag.Diagnostics, 0))
+			}
+
+			protoEv := toproto.InvokeAction_InvokeActionEvent(&ev)
 			if err := protoStream.Send(protoEv); err != nil {
 				logging.ProtocolError(ctx, "Error sending event", map[string]any{logging.KeyError: err})
 				return err

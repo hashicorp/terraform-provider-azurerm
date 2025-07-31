@@ -935,8 +935,7 @@ message PlanAction {
         // linked resources, this should match the order the resources are specified in the schema.
         repeated LinkedResource linked_resources = 2;
 
-        // config of the action, based on the schema of the actual action
-        repeated DynamicValue proposed_action_data = 3;
+        DynamicValue config = 3;
 
         ClientCapabilities client_capabilities = 4;
     }
@@ -970,8 +969,7 @@ message InvokeAction {
         // linked resources, matching the order they are specified in the schema
         repeated LinkedResource linked_resources = 2;
 
-        // response from the plan
-        DynamicValue planned_action_data = 3;
+        DynamicValue config = 3;
     }
 
     message Event {

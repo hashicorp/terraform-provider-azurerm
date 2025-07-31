@@ -18,6 +18,7 @@ func GetProviderSchemaResponse(ctx context.Context, fw *fwserver.GetProviderSche
 	}
 
 	protov6 := &tfprotov6.GetProviderSchemaResponse{
+		ActionSchemas:            make(map[string]*tfprotov6.ActionSchema, len(fw.ActionSchemas)),
 		DataSourceSchemas:        make(map[string]*tfprotov6.Schema, len(fw.DataSourceSchemas)),
 		Diagnostics:              Diagnostics(ctx, fw.Diagnostics),
 		EphemeralResourceSchemas: make(map[string]*tfprotov6.Schema, len(fw.EphemeralResourceSchemas)),
@@ -51,6 +52,20 @@ func GetProviderSchemaResponse(ctx context.Context, fw *fwserver.GetProviderSche
 		})
 
 		return protov6
+	}
+
+	for actionType, actionSchema := range fw.ActionSchemas {
+		protov6.ActionSchemas[actionType], err = ActionSchema(ctx, actionSchema)
+
+		if err != nil {
+			protov6.Diagnostics = append(protov6.Diagnostics, &tfprotov6.Diagnostic{
+				Severity: tfprotov6.DiagnosticSeverityError,
+				Summary:  "Error converting action schema",
+				Detail:   "The schema for the action \"" + actionType + "\" couldn't be converted into a usable type. This is always a problem with the provider. Please report the following to the provider developer:\n\n" + err.Error(),
+			})
+
+			return protov6
+		}
 	}
 
 	for dataSourceType, dataSourceSchema := range fw.DataSourceSchemas {

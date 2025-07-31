@@ -100,6 +100,15 @@ func ListResourceContext(ctx context.Context, listResource string) context.Conte
 	return ctx
 }
 
+// ActionContext injects the action type into logger contexts.
+func ActionContext(ctx context.Context, action string) context.Context {
+	ctx = tfsdklog.SetField(ctx, KeyActionType, action)
+	ctx = tfsdklog.SubsystemSetField(ctx, SubsystemProto, KeyActionType, action)
+	ctx = tflog.SetField(ctx, KeyActionType, action)
+
+	return ctx
+}
+
 // RpcContext injects the RPC name into logger contexts.
 func RpcContext(ctx context.Context, rpc string) context.Context {
 	ctx = tfsdklog.SetField(ctx, KeyRPC, rpc)

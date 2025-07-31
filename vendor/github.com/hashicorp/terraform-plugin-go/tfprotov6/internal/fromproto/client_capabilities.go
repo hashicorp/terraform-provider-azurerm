@@ -91,3 +91,15 @@ func OpenEphemeralResourceClientCapabilities(in *tfplugin6.ClientCapabilities) *
 
 	return resp
 }
+
+func PlanActionClientCapabilities(in *tfplugin6.ClientCapabilities) *tfprotov6.PlanActionClientCapabilities {
+	if in == nil {
+		return nil
+	}
+
+	resp := &tfprotov6.PlanActionClientCapabilities{
+		DeferralAllowed: in.DeferralAllowed,
+	}
+
+	return resp
+}

@@ -65,13 +65,11 @@ func (s *Server) ListResource(ctx context.Context, protoReq *tfprotov6.ListResou
 		ResourceSchema:         resourceSchema,
 		ResourceIdentitySchema: identitySchema,
 		IncludeResource:        protoReq.IncludeResource,
+		Limit:                  protoReq.Limit,
 	}
 	stream := &fwserver.ListResultsStream{}
 
-	err := s.FrameworkServer.ListResource(ctx, req, stream)
-	if err != nil {
-		return protoStream, err
-	}
+	s.FrameworkServer.ListResource(ctx, req, stream)
 
 	protoStream.Results = func(push func(tfprotov6.ListResourceResult) bool) {
 		for result := range stream.Results {

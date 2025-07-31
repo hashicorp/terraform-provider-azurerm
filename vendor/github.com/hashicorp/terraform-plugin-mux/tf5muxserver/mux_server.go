@@ -150,9 +150,9 @@ func (s *muxServer) getListResourceServer(ctx context.Context, typeName string) 
 			return server, s.serverDiscoveryDiagnostics, nil
 		}
 
-		return nil, []*tfprotov5.Diagnostic{
-			listResourceMissingError(typeName),
-		}, nil
+		//return nil, []*tfprotov5.Diagnostic{
+		//	listResourceMissingError(typeName),
+		//}, nil
 	}
 
 	err := s.serverDiscovery(ctx)
@@ -166,9 +166,9 @@ func (s *muxServer) getListResourceServer(ctx context.Context, typeName string) 
 	s.serverDiscoveryMutex.RUnlock()
 
 	if !ok {
-		return nil, []*tfprotov5.Diagnostic{
-			listResourceMissingError(typeName),
-		}, nil
+		//return nil, []*tfprotov5.Diagnostic{
+		//	listResourceMissingError(typeName),
+		//}, nil
 	}
 
 	return server, s.serverDiscoveryDiagnostics, nil

@@ -8,7 +8,7 @@ import (
 )
 
 type ListResource interface {
-	list.ListResource
+	list.ListResourceWithConfigure
 }
 
 type ListResourceMetadata struct {
@@ -29,6 +29,8 @@ func (r *ListResourceMetadata) Defaults(req resource.ConfigureRequest, resp *res
 		resp.Diagnostics.AddError("Client Provider Data Error", "invalid provider data supplied")
 		return
 	}
+
+	//resp.Diagnostics.AddWarning("test warning", "this is a test warning")
 
 	r.Client = c
 	r.SubscriptionId = c.Account.SubscriptionId

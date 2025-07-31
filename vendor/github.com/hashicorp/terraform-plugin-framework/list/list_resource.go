@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
 
 // ListResource represents an implementation of listing instances of a managed resource
@@ -66,7 +67,7 @@ type ListResourceWithConfigure interface {
 type ListResourceWithConfigValidators interface {
 	ListResource
 
-	// ListResourceConfigValidators returns a list of functions which will all be performed during validation.
+	// ConfigValidators returns a list of functions which will all be performed during validation.
 	ListResourceConfigValidators(context.Context) []ConfigValidator
 }
 
@@ -99,6 +100,10 @@ type ListRequest struct {
 	// [ListResult.Resource] field.
 	IncludeResource bool
 
+	// Limit specifies the maximum number of results that Terraform is
+	// expecting.
+	Limit int64
+
 	ResourceSchema         fwschema.Schema
 	ResourceIdentitySchema fwschema.Schema
 }
@@ -117,6 +122,18 @@ func (r ListRequest) NewListResult() ListResult {
 	}
 }
 
+func (r ListRequest) NewListResultProtov5() tfprotov5.ListResourceResult {
+	//identity := &tfsdk.ResourceIdentity{Schema: r.ResourceIdentitySchema}
+	//resource := &tfsdk.Resource{Schema: r.ResourceSchema}
+
+	return tfprotov5.ListResourceResult{
+		DisplayName: "",
+		Resource:    nil,
+		Identity:    nil,
+		Diagnostics: nil,
+	}
+}
+
 // ListResultsStream represents a streaming response to a [ListRequest].  An
 // instance of this struct is supplied as an argument to the provider's
 // [ListResource.List] function. The provider should set a Results iterator
@@ -131,10 +148,13 @@ type ListResultsStream struct {
 	// To indicate a fatal processing error, push a [ListResult] that contains
 	// a [diag.ErrorDiagnostic].
 	Results iter.Seq[ListResult]
+	Proto5Results iter.Seq[tfprotov5.ListResourceResult]
 }
 
 // NoListResults is an iterator that pushes zero results.
 var NoListResults = func(push func(ListResult) bool) {}
+
+var NoListResultsProtov5 = func(push func(tfprotov5.ListResourceResult) bool) {}
 
 // ListResultsStreamDiagnostics returns a function that yields a single
 // [ListResult] with the given Diagnostics

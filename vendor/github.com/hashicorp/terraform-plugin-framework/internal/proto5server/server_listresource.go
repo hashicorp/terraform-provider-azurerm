@@ -38,6 +38,7 @@ func SDKResourceFromContext(ctx context.Context) (*sdk.Resource, bool) {
 	r, ok := ctx.Value(provider.SDKResourceKey).(*sdk.Resource)
 	return r, ok
 }
+
 func (s *Server) ListResource(ctx context.Context, protoReq *tfprotov5.ListResourceRequest) (*tfprotov5.ListResourceServerStream, error) {
 	protoStream := &tfprotov5.ListResourceServerStream{Results: tfprotov5.NoListResults}
 	allDiags := diag.Diagnostics{}
@@ -68,40 +69,43 @@ func (s *Server) ListResource(ctx context.Context, protoReq *tfprotov5.ListResou
 	switch ok {
 	case true:
 		// A simpler path for list resources that return tfprotov5 results
-		//resourceSchema := sdkResource.Schema
-		//identitySchema := sdkResource.Identity.SchemaFunc
-		//
-		//req := &fwserver.ListRequest{
-		//	Config:                 config,
-		//	ListResource:           listResource,
-		//	ResourceSchema:         resourceSchema,
-		//	ResourceIdentitySchema: identitySchema,
-		//	IncludeResource:        protoReq.IncludeResource,
-		//}
 		req := &fwserver.ListRequest{
 			Config: config,
 			ListResource: listResource,
+			IncludeResource: protoReq.IncludeResource,
 		}
+
 		stream := &fwserver.ListResultsStream{}
-		err := s.FrameworkServer.ListResource(ctx, req, stream)
-		if err != nil {
-			return protoStream, err
-		}
+		s.FrameworkServer.ListResource(ctx, req, stream)
 
 		protoStream.Results = func(push func(tfprotov5.ListResourceResult) bool) {
-			for result := range stream.Results {
-				var protoResult tfprotov5.ListResourceResult
-				if req.IncludeResource {
-					protoResult = toproto5.ListResourceResultWithResource(ctx, &result)
-				} else {
-					protoResult = toproto5.ListResourceResult(ctx, &result)
-				}
+			for result := range stream.ResultsProtov5 {
+				//var protoResult tfprotov5.ListResourceResult
+				//if req.IncludeResource {
+				//	protoResult = toproto5.ListResourceResultWithResource(ctx, &result)
+				//} else {
+				//	protoResult = toproto5.ListResourceResult(ctx, &result)
+				//}
 
-				if !push(protoResult) {
+				if !push(result) {
 					return
 				}
 			}
 		}
+		//protoStream.Results = func(push func(tfprotov5.ListResourceResult) bool) {
+		//	for result := range stream.Results {
+		//		var protoResult tfprotov5.ListResourceResult
+		//		if req.IncludeResource {
+		//			protoResult = toproto5.ListResourceResultWithResource(ctx, &result)
+		//		} else {
+		//			protoResult = toproto5.ListResourceResult(ctx, &result)
+		//		}
+		//
+		//		if !push(protoResult) {
+		//			return
+		//		}
+		//	}
+		//}
 	case false:
 		resourceSchema, diags := s.FrameworkServer.ResourceSchema(ctx, protoReq.TypeName)
 		allDiags.Append(diags...)
@@ -124,10 +128,7 @@ func (s *Server) ListResource(ctx context.Context, protoReq *tfprotov5.ListResou
 		}
 		stream := &fwserver.ListResultsStream{}
 
-		err := s.FrameworkServer.ListResource(ctx, req, stream)
-		if err != nil {
-			return protoStream, err
-		}
+		s.FrameworkServer.ListResource(ctx, req, stream)
 
 		protoStream.Results = func(push func(tfprotov5.ListResourceResult) bool) {
 			for result := range stream.Results {
@@ -144,6 +145,6 @@ func (s *Server) ListResource(ctx context.Context, protoReq *tfprotov5.ListResou
 			}
 		}
 	}
-	
+
 	return protoStream, nil
 }

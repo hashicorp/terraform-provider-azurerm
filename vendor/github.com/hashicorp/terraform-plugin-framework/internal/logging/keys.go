@@ -15,6 +15,9 @@ const (
 	// as parent.0.child in this project.
 	KeyAttributePath = "tf_attribute_path"
 
+	// The type of action being operated on, such as "examplecloud_do_thing"
+	KeyActionType = "tf_action_type"
+
 	// The type of data source being operated on, such as "archive_file"
 	KeyDataSourceType = "tf_data_source_type"
 
