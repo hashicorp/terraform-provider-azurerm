@@ -69,6 +69,7 @@ func (EventGridPartnerNamespaceResource) Arguments() map[string]*pluginsdk.Schem
 		"inbound_ip_rule": &schema.Schema{
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			MaxItems: 16,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"ip_mask": {
