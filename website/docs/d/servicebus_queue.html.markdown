@@ -77,4 +77,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.ServiceBus`: 2022-10-01-preview, 2021-06-01-preview
+* `Microsoft.ServiceBus`: 2024-01-01
