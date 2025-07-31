@@ -13,16 +13,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	fs = afero.NewOsFs()
+func Make() *cobra.Command {
+	fs := afero.NewOsFs()
 
-	rootCmd = &cobra.Command{
+	rootCmd := &cobra.Command{
 		Use:   "docthebuilder [validate|fix|scaffold]",
 		Short: "A small tool to validate provider documentation.",
 		Long:  `A small tool to validate provider documentation based on a set of custom rules. It can also fix most found issues.`,
 	}
 
-	validateCmd = &cobra.Command{
+	validateCmd := &cobra.Command{
 		Use:   "validate",
 		Short: "Validates documentation",
 		PreRun: func(cmd *cobra.Command, args []string) {
@@ -65,7 +65,7 @@ var (
 		},
 	}
 
-	fixCmd = &cobra.Command{
+	fixCmd := &cobra.Command{
 		Use:   "fix",
 		Short: "Attempts to fix documentation",
 		PreRun: func(cmd *cobra.Command, args []string) {
@@ -112,7 +112,7 @@ var (
 		},
 	}
 
-	scaffoldCmd = &cobra.Command{
+	scaffoldCmd := &cobra.Command{
 		Use:   "scaffold",
 		Short: "Scaffolds new resource documentation (Not Implemented)",
 		PreRun: func(cmd *cobra.Command, args []string) {
@@ -123,12 +123,10 @@ var (
 			panic("TODO: implement `website-scaffold` functionality")
 		},
 	}
-)
 
-func Make() *cobra.Command {
 	rootCmd.AddCommand(validateCmd, fixCmd, scaffoldCmd)
 
-	configureFlags()
+	configureFlags(rootCmd)
 
 	return rootCmd
 }
