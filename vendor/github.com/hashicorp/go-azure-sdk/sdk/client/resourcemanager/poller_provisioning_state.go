@@ -114,26 +114,36 @@ func (p *provisioningStatePoller) Poll(ctx context.Context) (*pollers.PollResult
 		return nil, fmt.Errorf("unmarshaling result: %+v", err)
 	}
 
-	status := string(result.Status)
+	s := string(result.Status)
 
 	// if the result has a provisioningState field, we should prioritise that
-	if statusIsTerminal(result.Properties.ProvisioningState) {
-		status = string(result.Properties.ProvisioningState)
+	if result.Properties.ProvisioningState != "" {
+		s = string(result.Properties.ProvisioningState)
 	}
 
-	if strings.EqualFold(status, string(statusCanceled)) || strings.EqualFold(status, string(statusCancelled)) {
+	if s == "" {
+		// Some Operations support both an LRO and immediate completion, but _don't_ return a provisioningState field
+		// since we're checking for a 200 OK, if we didn't get a provisioningState field, for the moment we have to
+		// assume that we're done.
+		return &pollers.PollResult{
+			PollInterval: p.initialRetryDuration,
+			Status:       pollers.PollingStatusSucceeded,
+		}, nil
+	}
+
+	if strings.EqualFold(s, string(statusCanceled)) || strings.EqualFold(s, string(statusCancelled)) {
 		return nil, pollers.PollingCancelledError{
 			HttpResponse: resp,
 		}
 	}
 
-	if strings.EqualFold(status, string(statusFailed)) {
+	if strings.EqualFold(s, string(statusFailed)) {
 		return nil, pollers.PollingFailedError{
 			HttpResponse: resp,
 		}
 	}
 
-	if strings.EqualFold(status, string(statusSucceeded)) {
+	if strings.EqualFold(s, string(statusSucceeded)) {
 		return &pollers.PollResult{
 			PollInterval: p.initialRetryDuration,
 			Status:       pollers.PollingStatusSucceeded,
