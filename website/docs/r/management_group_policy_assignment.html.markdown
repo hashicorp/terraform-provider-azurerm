@@ -170,4 +170,4 @@ terraform import azurerm_management_group_policy_assignment.example /providers/M
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Authorization`: 2022-06-01
+* `Microsoft.Authorization` - 2022-06-01

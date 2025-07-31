@@ -66,4 +66,4 @@ terraform import azurerm_log_analytics_query_pack.example /subscriptions/1234567
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.OperationalInsights`: 2019-09-01
+* `Microsoft.OperationalInsights` - 2019-09-01

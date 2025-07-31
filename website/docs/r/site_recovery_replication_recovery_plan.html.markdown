@@ -351,4 +351,4 @@ terraform import  azurerm_site_recovery_replication_recovery_plan.example /subsc
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.RecoveryServices`: 2024-04-01
+* `Microsoft.RecoveryServices` - 2024-04-01

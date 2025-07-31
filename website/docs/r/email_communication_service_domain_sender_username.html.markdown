@@ -73,4 +73,4 @@ terraform import azurerm_email_communication_service_domain_sender_username.exam
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Communication`: 2023-03-31
+* `Microsoft.Communication` - 2023-03-31
