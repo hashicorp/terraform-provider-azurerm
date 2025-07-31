@@ -67,7 +67,7 @@ A `model` block supports the following:
 
 * `format` - (Required) The format of the Cognitive Services Account Deployment model. Changing this forces a new resource to be created.
 
-~> **Note:** Possible values can be found by running the command `az cognitiveservices account list-models`. The available values may vary by region or due to quota limitations. These could include models from `AI21 Labs`, `Black Forest Labs`, `Cohere`, `Core42`, `DeepSeek`, `Meta`, `Microsoft`, `Mistral AI`, `OpenAI`, and `xAI`.
+~> **Note:** Possible values of `format` can be found by running the command `az cognitiveservices account list-models`. The available values may vary by region or due to quota limitations. These could include models from `AI21 Labs`, `Black Forest Labs`, `Cohere`, `Core42`, `DeepSeek`, `Meta`, `Microsoft`, `Mistral AI`, `OpenAI`, and `xAI`.
 
 * `name` - (Required) The name of the Cognitive Services Account Deployment model. Changing this forces a new resource to be created.
 
