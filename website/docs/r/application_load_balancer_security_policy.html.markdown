@@ -86,3 +86,9 @@ Application Load Balancer Security Policy can be imported using the `resource id
 ```shell
 terraform import azurerm_application_load_balancer_security_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.ServiceNetworking/trafficControllers/alb/securityPolicies/sp1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ServiceNetworking`: 2025-01-01
