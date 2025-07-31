@@ -141,4 +141,4 @@ terraform import azurerm_extended_location_custom_location.example /subscription
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ExtendedLocation`: 2021-08-15
+* `Microsoft.ExtendedLocation` - 2021-08-15

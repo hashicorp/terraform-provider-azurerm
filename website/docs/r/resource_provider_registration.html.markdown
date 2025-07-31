@@ -84,4 +84,4 @@ terraform import azurerm_resource_provider_registration.example /subscriptions/0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Features`: 2021-07-01
+* `Microsoft.Features` - 2021-07-01
