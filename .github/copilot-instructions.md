@@ -2,15 +2,9 @@
 applyTo: "internal/**/*.go"
 description: "This is the official Terraform Provider for Azure (Resource Manager), written in Go. It enables Terraform to manage Azure resources through the Azure Resource Manager APIs."
 ---
-
-**Detailed Guidance**: See [`implementation-guide.instructions.md`](./instructions/implementation-guide.instructions.md) for untyped implementation maintenance patterns.
-
----
-[⬆️ Back to top](#custom-instructions)
-
----
-
 # Custom instructions
+
+This is the official Terraform Provider for Azure (Resource Manager), written in Go. It enables Terraform to manage Azure resources through the Azure Resource Manager APIs.
 
 **Quick navigation:** [📚 Stack](#stack) | [🏗️ Project Structure](#project-structure) | [💬 Comment Policy](#⚠️-critical-code-comment-policy-⚠️) | [🚨 Testing Policy](#🚨-critical-testing-rule-policy-no-redundant-field-validation) | [🎯 AI Guidelines](#🎯-ai-development-guidelines) | [⚡ Implementation](#implementation-approaches) | [📖 Generic Guidelines](#generic-guidelines) | [🧠 Smart Patterns](#smart-pattern-recognition) | [❌ Error Handling](#error-handling-standards) | [🔧 Implementation Guide](#detailed-implementation-guidance) | [📚 Quick Reference](#quick-reference-links)
 
