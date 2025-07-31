@@ -184,7 +184,7 @@ The following arguments are supported:
 
 * `network_acl_bypass_ids` - (Optional) The list of resource Ids for Network Acl Bypass for this Cosmos DB account.
 
-* `local_authentication_disabled` - (Optional) Disable local authentication and ensure only MSI and AAD can be used exclusively for authentication. Defaults to `false`. Can be set only when using the SQL API.
+* `local_authentication_enabled` - (Optional) Whether local authentication is allowed, as opposed to only Managed Identity and Microsoft Entra (AAD). This can be set only when using the SQL API. Defaults to `true`. 
 
 * `backup` - (Optional) A `backup` block as defined below.
 
@@ -381,9 +381,3 @@ CosmosDB Accounts can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_cosmosdb_account.account1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DocumentDB/databaseAccounts/account1
 ```
-
-## API Providers
-<!-- This section is generated, changes will be overwritten -->
-This resource uses the following Azure API Providers:
-
-* `Microsoft.DocumentDB`: 2024-08-15
