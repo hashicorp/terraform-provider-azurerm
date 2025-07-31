@@ -3,7 +3,7 @@ applyTo: "internal/website/docs/**/*.html.markdown"
 description: This document outlines the standards and guidelines for writing documentation for Terraform resources and data sources in the AzureRM provider.
 ---
 
-#  Documentation Guidelines
+# Documentation Guidelines
 
 This document outlines the standards and guidelines for writing documentation for Terraform resources and data sources in the AzureRM provider.
 
