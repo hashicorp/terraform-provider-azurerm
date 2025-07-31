@@ -7,75 +7,27 @@ description: Code clarity and policy enforcement guidelines for Terraform AzureR
 
 This document provides detailed enforcement guidelines for maintaining code clarity and quality standards in the Terraform AzureRM provider.
 
-**Quick Navigation:** [🚫 Comment Policy](#-zero-tolerance-for-unnecessary-comments) | [🔄 CustomizeDiff](#customizediff-import-requirements) | [☁️ Azure Standards](#azure-api-integration-standards) | [🎯 Enforcement Priority](#enforcement-priority)
+**Quick Navigation:** [🚫 Comment Policy](#🚫-zero-tolerance-for-unnecessary-comments-policy) | [🎯 Strategic Decision-Making](#🎯-strategic-decision-making-guidance) | [🔄 CustomizeDiff](#customizediff-import-requirements) | [🏗️ Resource Standards](#resource-implementation-standards) | [☁️ Azure Integration](#azure-api-integration-standards) | [🔄 State Management](#state-management-requirements) | [🧪 Testing Standards](#testing-standards) | [📝 Documentation](#documentation-quality) | [🎯 Enforcement Priority](#enforcement-priority) | [⚡ Decision Trees](#⚡-quick-decision-trees) | [📊 Performance Metrics](#📊-performance-metrics--success-indicators) | [🎯 AI Optimization](#🎯-context-aware-ai-optimization) | [🔗 Quick Reference](#quick-reference-links)
 
 **Related Guidelines:**
 - 🏗️ **Core Implementation**: [implementation-guide.instructions.md](./implementation-guide.instructions.md) - Main coding standards and patterns
 - ☁️ **Azure Patterns**: [azure-patterns.instructions.md](./azure-patterns.instructions.md) - PATCH operations, CustomizeDiff validation, Azure-specific behaviors
 - 🧪 **Testing Standards**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md) - Comprehensive test requirements and patterns
 
-## 🎯 Strategic Decision-Making Guidance
 
-**Implementation Context Awareness**: When making coding decisions during pair programming, always consider:
-
-**1. Comment Policy Enforcement Priority**
-- **Zero tolerance for unnecessary comments** - This is the highest priority enforcement guideline
-- **Before ANY comment**: Ask whether code structure, naming, or extraction can eliminate the need
-- **Exception criteria**: Only Azure API quirks, complex business logic, SDK workarounds, or non-obvious state management patterns
-
-**2. Implementation Pattern Context**
-- **Typed vs Untyped resources**: Apply same comment standards regardless of implementation approach
-- **Azure service constraints**: Comments acceptable for Azure-specific behaviors that cannot be expressed through code structure
-- **CustomizeDiff patterns**: Complex validation logic may require explanation of Azure API constraints
-
-**3. Performance-Critical Decisions**
-- **Code clarity over comments**: Always prefer refactoring to commenting
-- **Cross-pattern consistency**: Ensure comment policies apply uniformly across resource variants (Linux/Windows VMSS, etc.)
-- **Maintainability impact**: Favor self-documenting code patterns that reduce long-term maintenance burden
-
-**4. Quality Gate Integration**
-- **Pre-submission validation**: Every comment must have explicit justification documented in review response
-- **Cross-file consistency**: Validate related implementations maintain identical comment policies
-- **Azure API alignment**: Comments must reflect actual Azure service behavior, not implementation assumptions
-
-## CustomizeDiff Import Requirements
-
-**IMPORTANT**: CustomizeDiff implementation patterns depend on resource type and are comprehensively documented in the main implementation guide.
-
-**For complete import patterns, examples, and decision criteria, see:** [Implementation Guide - CustomizeDiff Import Requirements](./implementation-guide.instructions.md#customizediff-import-requirements)
-
----
-[⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)
-
-## Resource Implementation Standards
-
-**CRUD Operations**: Ensure Create, Read, Update, Delete functions handle all edge cases
-
-**Schema Validation**: Verify all required fields, validation functions, and type definitions
-
-**ForceNew Logic**: Check that properties requiring resource recreation are properly marked
-
-**Timeouts**: Ensure appropriate timeout values for Azure operations (often long-running)
-
----
-[⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)
-
-## Code Comments Policy Enforcement
-
-### 🚫 ZERO TOLERANCE for Unnecessary Comments
+## 🚫 **ZERO TOLERANCE FOR UNNECESSARY COMMENTS POLICY**
 
 **MANDATORY comment criteria - comments ONLY allowed for**:
-- Azure API-specific quirks or behaviors not obvious from code
-- Complex business logic that cannot be made clear through code structure alone
-- Workarounds for Azure SDK limitations or API bugs
-- Non-obvious state management patterns (PATCH operations, residual state handling)
-- Azure service constraints requiring explanation (timeout ranges, SKU limitations)
+- Azure API-specific quirks not obvious from code
+- Complex business logic that cannot be simplified
+- Azure SDK workarounds for limitations/bugs
+- Non-obvious state patterns (PATCH operations, residual state)
 
-**For detailed Azure API patterns requiring comments, see:** [azure-patterns.instructions.md](./azure-patterns.instructions.md#patch-operations)
+**For detailed Azure API patterns requiring comments, see:** [azure-patterns.instructions.md](./azure-patterns.instructions.md#🔄-patch-operations)
 
-### 🚫 FORBIDDEN Comments - Flag These Immediately
+### 🚫 **FORBIDDEN COMMENTS** - Flag These Immediately
 
-**Never comment**:
+**NEVER COMMENT**:
 - Variable assignments, struct initialization, basic operations
 - Standard Terraform patterns (CRUD operations, schema definitions)
 - Self-explanatory function calls or routine Azure API calls
@@ -102,6 +54,55 @@ Before allowing any comment, ask:
 1. "Is this code unclear without a comment?" → Refactor the code instead
 2. "Would a developer be confused by this logic?" → Only then consider a comment
 3. "Is this documenting an Azure API quirk?" → Comment may be acceptable
+
+---
+[⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)
+
+## 🎯 Strategic Decision-Making Guidance
+
+**Implementation Context Awareness**: When making coding decisions during pair programming, always consider:
+
+**1. Comment Policy Enforcement Priority**
+- **Zero tolerance for unnecessary comments** - This is the highest priority enforcement guideline
+- **Before ANY comment**: Ask whether code structure, naming, or extraction can eliminate the need
+- **Exception criteria**: Only Azure API quirks, complex business logic, SDK workarounds, or non-obvious state management patterns
+
+**2. Implementation Pattern Context**
+- **Typed vs Untyped resources**: Apply same comment standards regardless of implementation approach
+- **Azure service constraints**: Comments acceptable for Azure-specific behaviors that cannot be expressed through code structure
+- **CustomizeDiff patterns**: Complex validation logic may require explanation of Azure API constraints
+
+**3. Performance-Critical Decisions**
+- **Code clarity over comments**: Always prefer refactoring to commenting
+- **Cross-pattern consistency**: Ensure comment policies apply uniformly across resource variants (Linux/Windows VMSS, etc.)
+- **Maintainability impact**: Favor self-documenting code patterns that reduce long-term maintenance burden
+
+**4. Quality Gate Integration**
+- **Pre-submission validation**: Every comment must have explicit justification documented in review response
+- **Cross-file consistency**: Validate related implementations maintain identical comment policies
+- **Azure API alignment**: Comments must reflect actual Azure service behavior, not implementation assumptions
+
+---
+[⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)
+
+## CustomizeDiff Import Requirements
+
+**IMPORTANT**: CustomizeDiff implementation patterns depend on resource type and are comprehensively documented in the main implementation guide.
+
+**For complete import patterns, examples, and decision criteria, see:** [Implementation Guide - CustomizeDiff Import Requirements](./implementation-guide.instructions.md#customizediff-import-requirements)
+
+---
+[⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)
+
+## Resource Implementation Standards
+
+**CRUD Operations**: Ensure Create, Read, Update, Delete functions handle all edge cases
+
+**Schema Validation**: Verify all required fields, validation functions, and type definitions
+
+**ForceNew Logic**: Check that properties requiring resource recreation are properly marked
+
+**Timeouts**: Ensure appropriate timeout values for Azure operations (often long-running)
 
 ---
 [⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)
@@ -158,7 +159,7 @@ Before allowing any comment, ask:
 
 ## Enforcement Priority
 
-1. **Highest**: Code Comments Policy - Zero tolerance for unnecessary comments
+1. **Highest**: ZERO TOLERANCE FOR UNNECESSARY COMMENTS POLICY - Zero tolerance for unnecessary comments
 2. **High**: Strategic Decision-Making - Performance-critical choices during pair programming
 3. **High**: CustomizeDiff Import Requirements - Critical for compilation
 4. **High**: Azure API Integration - Essential for functionality
@@ -167,6 +168,9 @@ Before allowing any comment, ask:
 7. **Medium**: Testing and Documentation - Completeness standards
 
 **Performance Decision Framework**: Use strategic guidance above to make rapid, correct decisions during active development work.
+
+---
+[⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)
 
 ## ⚡ Quick Decision Trees
 
@@ -201,6 +205,39 @@ Azure API behavior involved?
 └─ NO → Standard coding patterns apply
 ```
 
+### **Implementation Approach Decision Tree (15-second assessment)**
+```text
+New resource or data source request?
+├─ NEW resource/data source → Use Typed Resource Implementation
+├─ EXISTING resource maintenance → Continue Untyped Resource Implementation
+├─ Major refactor → Consider migration to Typed Resource Implementation
+└─ Bug fix → Maintain existing implementation approach
+```
+
+### **Pointer Package Decision Tree (5-second check)**
+```text
+Working with Azure API parameters?
+├─ Creating pointers → Use pointer.To()
+├─ Reading pointer values → Use pointer.From() or pointer.FromType()
+├─ Need defaults? → Use pointer.FromTypeWithDefault()
+└─ Manual pointer ops? → Replace with pointer package functions
+```
+
+### **CustomizeDiff Validation Decision Tree (20-second evaluation)**
+```text
+Adding field validation logic?
+├─ Azure service constraint? → Use CustomizeDiff
+│  ├─ SKU dependency? → Add validation logic
+│  ├─ Region limitation? → Add constraint check
+│  ├─ Field combination rule? → Add conditional validation
+│  └─ Must test with ExpectError patterns
+├─ Simple field validation? → Use schema ValidateFunc
+└─ Complex state transition? → Use programmatic ForceNew in CustomizeDiff
+```
+
+---
+[⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)
+
 ## 📊 Performance Metrics & Success Indicators
 
 ### **Real-Time Decision Quality Checklist**
@@ -221,6 +258,9 @@ Azure API behavior involved?
 - **Pattern Recognition**: Faster identification of Azure API quirks vs standard patterns
 - **Refactoring Suggestions**: Increasing ratio of refactoring suggestions vs comment acceptance
 
+---
+[⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)
+
 ## 🎯 Context-Aware AI Optimization
 
 ### **Session Context Indicators**
@@ -239,6 +279,23 @@ Azure API behavior involved?
 - **High Intensity**: New resource implementation, complex Azure services, cross-pattern validation
 - **Medium Intensity**: Bug fixes, updates, standard patterns
 - **Low Intensity**: Documentation updates, minor configuration changes
+
+---
+[⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)
+
+---
+
+## Quick Reference Links
+
+- 🏠 **Home**: [../copilot-instructions.md](../copilot-instructions.md)
+- ☁️ **Azure Patterns**: [azure-patterns.instructions.md](./azure-patterns.instructions.md)
+- 📝 **Documentation Guide**: [documentation-guidelines.instructions.md](./documentation-guidelines.instructions.md)
+- ❌ **Error Patterns**: [error-patterns.instructions.md](./error-patterns.instructions.md)
+- 🏗️ **Implementation Guide**: [implementation-guide.instructions.md](./implementation-guide.instructions.md)
+- 🔄 **Migration Guide**: [migration-guide.instructions.md](./migration-guide.instructions.md)
+- 🏢 **Provider Guidelines**: [provider-guidelines.instructions.md](./provider-guidelines.instructions.md)
+- 📐 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md)
+- 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
 
 ---
 [⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)

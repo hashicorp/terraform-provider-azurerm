@@ -5,11 +5,15 @@ description: This document outlines the standards and guidelines for writing doc
 
 #  Documentation Guidelines
 
-## Key Differences: Resources vs Data Sources
+This document outlines the standards and guidelines for writing documentation for Terraform resources and data sources in the AzureRM provider.
+
+**Quick navigation:** [📚 Key Differences](#📚-key-differences-resources-vs-data-sources) | [🏗️ Documentation Structure](#🏗️-documentation-structure) | [📄 Resource Template](#📄-resource-documentation-template) | [📊 Data Source Template](#📊-data-source-documentation-template) | [✍️ Writing Guidelines](#✍️-writing-guidelines) | [💡 Example Configuration](#💡-example-configuration-guidelines) | [📁 Import Documentation](#📁-import-documentation) | [⏱️ Timeout Documentation](#⏱️-timeout-documentation) | [☁️ Azure-Specific Patterns](#☁️-azure-specific-documentation-patterns) | [📋 Attributes Reference](#📋-attributes-reference-differences) | [📝 Field Documentation](#📝-field-documentation-rules) | [📋 Provider Standards](#📋-provider-documentation-standards-note-formatting)
+
+## 📚 Key Differences: Resources vs Data Sources
 
 **Language Patterns:**
-- **Resources**: Use action verbs - "Manages", "Creates", "Configures"
-- **Data Sources**: Use retrieval verbs - "Gets information about", "Use this data source to access information about"
+- **Resources**: Use action verbs - `Manages`, `Creates`, `Configures`
+- **Data Sources**: Use retrieval verbs - `Gets information about`, `Use this data source to access information about`
 
 **Argument Types:**
 - **Resources**: Arguments are for configuration (Required/Optional)
@@ -19,16 +23,19 @@ description: This document outlines the standards and guidelines for writing doc
 - **Resources**: Exports computed values after creation/update
 - **Data Sources**: Exports all available information from existing resources
 
-## Documentation Structure
+---
+[⬆️ Back to top](#documentation-guidelines)
+
+## 🏗️ Documentation Structure
 
 **File Organization:**
 ```text
 website/docs/
- r/                          # Resource documentation
+ r/                                # Resource documentation
     service_resource.html.markdown
- d/                          # Data source documentation
+ d/                                # Data source documentation
     service_resource.html.markdown
- guides/                     # Provider guides and tutorials
+ guides/                           # Provider guides and tutorials
      guide_name.html.markdown
 ```
 
@@ -37,7 +44,10 @@ website/docs/
 - **Data Sources**: `d/service_resourcetype.html.markdown`
 - Use lowercase with underscores, match Terraform resource name exactly
 
-## Resource Documentation Template
+---
+[⬆️ Back to top](#documentation-guidelines)
+
+## 📄 Resource Documentation Template
 
 ### Standard Resource Documentation Structure
 
@@ -139,7 +149,10 @@ terraform import azurerm_service_resource.example /subscriptions/00000000-0000-0
 - Single optional field demonstrations
 - Tag variations or simple property changes
 
-## Data Source Documentation Template
+---
+[⬆️ Back to top](#documentation-guidelines)
+
+## 📊 Data Source Documentation Template
 
 ### Standard Data Source Documentation Structure
 
@@ -195,8 +208,10 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Service Resource.
 ````
+---
+[⬆️ Back to top](#documentation-guidelines)
 
-## Writing Guidelines
+## ✍️ Writing Guidelines
 
 ### Language and Tone
 - **Resources**: Use present tense action verbs ("manages", "creates", "configures")
@@ -248,8 +263,10 @@ A `configuration` block supports the following:
 
 * `optional_setting` - (Optional) Description of the optional setting. Defaults to `default_value`.
 ```
+---
+[⬆️ Back to top](#documentation-guidelines)
 
-## Example Configuration Guidelines
+## 💡 Example Configuration Guidelines
 
 ### The "None" Value Pattern in Documentation
 
@@ -346,8 +363,10 @@ resource "azurerm_other_resource" "example" {
   service_id = data.azurerm_service_resource.example.id
 }
 ```
+---
+[⬆️ Back to top](#documentation-guidelines)
 
-## Import Documentation
+## 📁 Import Documentation
 
 ### Resource Import Format
 ````markdown
@@ -363,7 +382,10 @@ terraform import azurerm_service_resource.example /subscriptions/00000000-0000-0
 ### Data Source Import (Not Applicable)
 Data sources do not support import operations, so this section should be omitted from data source documentation.
 
-## Timeout Documentation
+---
+[⬆️ Back to top](#documentation-guidelines)
+
+## ⏱️ Timeout Documentation
 
 ### Resource Timeout Block
 ```markdown
@@ -385,8 +407,10 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Resource.
 ```
+---
+[⬆️ Back to top](#documentation-guidelines)
 
-## Azure-Specific Documentation Patterns
+## ☁️ Azure-Specific Documentation Patterns
 
 ### Resource Location Documentation
 ```markdown
@@ -424,8 +448,10 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 # For Data Sources
 * `sku_name` - The SKU name of the Resource.
 ```
+---
+[⬆️ Back to top](#documentation-guidelines)
 
-## Attributes Reference Differences
+## 📋 Attributes Reference Differences
 
 ### Resource Attributes
 - Focus on what becomes available after creation
@@ -466,8 +492,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `tags` - A mapping of tags assigned to the resource.
 ```
+---
+[⬆️ Back to top](#documentation-guidelines)
 
-## Field Documentation Rules
+## 📝 Field Documentation Rules
 
 ### Field Ordering Standards
 - **Required fields first**: Always list required fields before optional fields in argument documentation
@@ -520,7 +548,10 @@ When documenting related Azure resources (like Linux and Windows VMSS), ensure c
 - [ ] Note blocks use consistent conditional logic across implementations
 - [ ] Examples demonstrate the same patterns for equivalent functionality
 
-## Provider Documentation Standards (Note Formatting)
+---
+[⬆️ Back to top](#documentation-guidelines)
+
+## 📋 Provider Documentation Standards (Note Formatting)
 
 ### Note Block Standards
 All notes should follow the exact same format (`(->|~>|!>) **Note:**`) where level of importance is indicated through the different types of notes as documented below.
@@ -567,6 +598,23 @@ Use caution note blocks when providing critical information on potential irrever
 - **Clear messaging**: Provide actionable information that helps users avoid problems
 - **Avoid overuse**: Use notes for important information, not obvious functionality
 - **Reference linking**: Include links to external documentation when helpful
+
+---
+[⬆️ Back to top](#documentation-guidelines)
+
+---
+
+## Quick Reference Links
+
+- 🏠 **Home**: [../copilot-instructions.md](../copilot-instructions.md)
+- ☁️ **Azure Patterns**: [azure-patterns.instructions.md](./azure-patterns.instructions.md)
+- 📋 **Code Clarity Enforcement**: [code-clarity-enforcement.instructions.md](./code-clarity-enforcement.instructions.md)
+- ❌ **Error Patterns**: [error-patterns.instructions.md](./error-patterns.instructions.md)
+- 🏗️ **Implementation Guide**: [implementation-guide.instructions.md](./implementation-guide.instructions.md)
+- 🔄 **Migration Guide**: [migration-guide.instructions.md](./migration-guide.instructions.md)
+- 🏢 **Provider Guidelines**: [provider-guidelines.instructions.md](./provider-guidelines.instructions.md)
+- 📐 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md)
+- 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
 
 ---
 [⬆️ Back to top](#documentation-guidelines)

@@ -185,7 +185,7 @@ Result: Console display issue, not code corruption
 
 ## Console Output Interpretation
 
-**🚨 CRITICAL: CONSOLE LINE WRAPPING DETECTION PROTOCOL 🚨**
+**🚨 CRITICAL: CONSOLE LINE WRAPPING DETECTION POLICY 🚨**
 
 **CONSOLE LINE WRAPPING WARNING**: When reviewing `git` diff output in terminal/console, be aware that long lines may wrap and appear malformed. Always verify actual file content for syntax validation, especially for `JSON`, `YAML`, or structured data files. Console wrapping can make valid syntax appear broken.
 
@@ -205,6 +205,8 @@ Result: Console display issue, not code corruption
 - ❌ Long lines in git diff output that suddenly break
 
 ### ✅ **GOLDEN RULE**: If actual file content is valid → acknowledge console wrapping → DO NOT FLAG as corruption
+
+> **📖 Full Policy Details**: See the complete [Console Line Wrapping Detection Policy](../instructions/error-patterns.instructions.md) for comprehensive guidelines and enforcement procedures.
 
 **Verification Rule**: If actual file content is valid, acknowledge console wrapping and do not flag as an issue
 

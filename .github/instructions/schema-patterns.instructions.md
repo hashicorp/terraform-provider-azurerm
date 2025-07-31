@@ -5,6 +5,8 @@ description: Schema design patterns and validation standards for the Terraform A
 
 # Schema Design Patterns
 
+Schema design patterns and validation standards for the Terraform AzureRM provider including field types, validation patterns, and Azure-specific schema considerations.
+
 **Quick navigation:** [📋 Schema Types](#📋-schema-type-patterns) | [✅ Validation](#✅-validation-patterns) | [⚙️ Azure Specific](#⚙️-azure-specific-schema-patterns) | [🏗️ Complex Schemas](#🏗️-complex-schema-patterns)
 
 ## 📋 Schema Type Patterns
@@ -659,8 +661,15 @@ func (r ServiceResource) Arguments() map[string]*pluginsdk.Schema {
 
 ## Quick Reference Links
 
-- 🏗️ **Main Implementation Guide**: [implementation-guide.instructions.md](./implementation-guide.instructions.md)
-- ⚡ **Azure Patterns**: [azure-patterns.instructions.md](./azure-patterns.instructions.md)
-- 🚨 **Error Patterns**: [error-patterns.instructions.md](./error-patterns.instructions.md)
-- 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
+- 🏠 **Home**: [../copilot-instructions.md](../copilot-instructions.md)
+- ☁️ **Azure Patterns**: [azure-patterns.instructions.md](./azure-patterns.instructions.md)
+- 📋 **Code Clarity Enforcement**: [code-clarity-enforcement.instructions.md](./code-clarity-enforcement.instructions.md)
 - 📝 **Documentation Guide**: [documentation-guidelines.instructions.md](./documentation-guidelines.instructions.md)
+- ❌ **Error Patterns**: [error-patterns.instructions.md](./error-patterns.instructions.md)
+- 🏗️ **Implementation Guide**: [implementation-guide.instructions.md](./implementation-guide.instructions.md)
+- 🔄 **Migration Guide**: [migration-guide.instructions.md](./migration-guide.instructions.md)
+- 🏢 **Provider Guidelines**: [provider-guidelines.instructions.md](./provider-guidelines.instructions.md)
+- 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
+
+---
+[⬆️ Back to top](#schema-design-patterns)

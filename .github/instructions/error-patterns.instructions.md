@@ -5,7 +5,32 @@ description: Error handling patterns and standards for the Terraform AzureRM pro
 
 # Error Handling Patterns
 
-**Quick navigation:** [💬 Error Message Standards](#💬-error-message-standards) | [🔍 Error Type Patterns](#🔍-error-type-patterns) | [🐛 Debugging Patterns](#🐛-debugging-patterns) | [🔄 State Management Errors](#🔄-state-management-errors)
+Error handling patterns and standards for the Terraform AzureRM provider including message formatting, error types, and debugging guidelines.
+
+**Quick navigation:** [🚨 Console Line Wrapping Policy](#🚨-critical-console-line-wrapping-detection-policy-🚨) | [💬 Error Message Standards](#💬-error-message-standards) | [🔍 Error Type Patterns](#🔍-error-type-patterns) | [🐛 Debugging Patterns](#🐛-debugging-patterns) | [🔄 State Management Errors](#🔄-state-management-errors)
+
+## 🚨 **CRITICAL: CONSOLE LINE WRAPPING DETECTION POLICY** 🚨**
+
+**CONSOLE LINE WRAPPING WARNING**: When reviewing `git` diff output in terminal/console, be aware that long lines may wrap and appear malformed. Always verify actual file content for syntax validation, especially for `JSON`, `YAML`, or structured data files. Console wrapping can make valid syntax appear broken.
+
+**VERIFICATION PROTOCOL FOR SUSPECTED ISSUES**:
+
+🔍 **MANDATORY VERIFICATION STEPS:**
+1. **STOP** - If text appears broken/fragmented, this is likely console wrapping
+2. **VERIFY** - Use `Get-Content filename` (PowerShell) or `cat filename` (bash) to check actual file content
+3. **VALIDATE** - For JSON/structured files: `Get-Content file.json | ConvertFrom-Json` (PowerShell) or `jq "." file.json` (bash)
+
+### 🚨 **Console Wrapping Red Flags:**
+- ❌ Text breaks mid-sentence or mid-word without logical reason
+- ❌ Missing closing quotes/brackets that don't make sense contextually
+- ❌ Fragmented lines that appear to continue elsewhere in the diff
+- ❌ Content looks syntactically invalid but conceptually correct
+- ❌ Long lines in git diff output that suddenly break
+
+### ✅ **GOLDEN RULE**: If actual file content is valid → acknowledge console wrapping → do NOT flag as corruption
+
+---
+[⬆️ Back to top](#error-handling-patterns)
 
 ## 💬 Error Message Standards
 
@@ -22,7 +47,7 @@ return fmt.Errorf("field `zones` cannot be set when `availability_set_id` is spe
 // BAD - Missing backticks around field names and values
 return fmt.Errorf("creating Storage Account %q with SKU %s in location %s: %+v", name, skuName, location, err)
 return fmt.Errorf("property account_tier must be Standard or Premium, got %s", accountTier)
-return fmt.Errorf("field zones cannot be set when availability_set_id is specified")
+return fmt.Errorf("field zones can not be set when availability_set_id is specified")
 ```
 
 ### Lowercase, No Punctuation, Descriptive
@@ -123,8 +148,7 @@ metadata.SetID(id)
 ---
 [⬆️ Back to top](#error-handling-patterns)
 
-## Quick Reference Links
-```
+## 🔍 Error Type Patterns
 
 ### UnTyped Resource Error Patterns
 
@@ -234,29 +258,6 @@ if err != nil {
        return result
    }
    ```
-
-### Console Line Wrapping Detection
-
-**🚨 CRITICAL: Console Line Wrapping Detection Protocol 🚨**
-
-**CONSOLE LINE WRAPPING WARNING**: When reviewing git diff output in terminal/console, be aware that long lines may wrap and appear malformed. Always verify actual file content for syntax validation, especially for JSON, YAML, or structured data files.
-
-**VERIFICATION PROTOCOL FOR SUSPECTED ISSUES**:
-
-🔍 **MANDATORY VERIFICATION STEPS:**
-1. **STOP** - If text appears broken/fragmented, this is likely console wrapping
-2. **VERIFY** - Use `Get-Content filename` (PowerShell) or `cat filename` (bash) to check actual file content
-3. **VALIDATE** - For JSON/structured files: `Get-Content file.json | ConvertFrom-Json` or `jq "." file.json`
-
-### 🚨 **Console Wrapping Red Flags:**
-- ❌ Text breaks mid-sentence or mid-word without logical reason
-- ❌ Missing closing quotes/brackets that don't make sense contextually
-- ❌ Fragmented lines that appear to continue elsewhere in the diff
-- ❌ Content looks syntactically invalid but conceptually correct
-- ❌ Long lines in git diff output that suddenly break
-
-#### ✅ **GOLDEN RULE**: If actual file content is valid → acknowledge console wrapping → do NOT flag as corruption
-
 ---
 [⬆️ Back to top](#error-handling-patterns)
 
@@ -305,6 +306,8 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
     }
 }
 ```
+---
+[⬆️ Back to top](#error-handling-patterns)
 
 ## 🚨 Common Error Scenarios
 
@@ -381,6 +384,8 @@ func ValidateResourceName(v interface{}, k string) (warnings []string, errors []
     return warnings, errors
 }
 ```
+---
+[⬆️ Back to top](#error-handling-patterns)
 
 ## 🏗️ Error Recovery Patterns
 
@@ -472,7 +477,15 @@ func isRetryableError(err error) bool {
 
 ## Quick Reference Links
 
-- 🏗️ **Main Implementation Guide**: [implementation-guide.instructions.md](./implementation-guide.instructions.md)
-- ⚡ **Azure Patterns**: [azure-patterns.instructions.md](./azure-patterns.instructions.md)
-- 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
+- 🏠 **Home**: [../copilot-instructions.md](../copilot-instructions.md)
+- 📋 **Code Clarity Enforcement**: [code-clarity-enforcement.instructions.md](./code-clarity-enforcement.instructions.md)
+- 🏗️ **Implementation Guide**: [implementation-guide.instructions.md](./implementation-guide.instructions.md)
+- ☁️ **Azure Patterns**: [azure-patterns.instructions.md](./azure-patterns.instructions.md)
 - 📝 **Documentation Guide**: [documentation-guidelines.instructions.md](./documentation-guidelines.instructions.md)
+- 🔄 **Migration Guide**: [migration-guide.instructions.md](./migration-guide.instructions.md)
+- 🏢 **Provider Guidelines**: [provider-guidelines.instructions.md](./provider-guidelines.instructions.md)
+- 📐 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md)
+- 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
+
+---
+[⬆️ Back to top](#error-handling-patterns)

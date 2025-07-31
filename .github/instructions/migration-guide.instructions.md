@@ -5,6 +5,8 @@ description: Migration patterns and upgrade procedures for the Terraform AzureRM
 
 # Migration Guide
 
+Migration patterns and upgrade procedures for the Terraform AzureRM provider including implementation approach transitions, breaking changes, and version compatibility.
+
 **Quick navigation:** [🔄 Implementation Migration](#🔄-implementation-approach-migration) | [💔 Breaking Changes](#💔-breaking-change-patterns) | [📦 Version Compatibility](#📦-version-compatibility) | [🚧 Upgrade Procedures](#🚧-upgrade-procedures)
 
 ## 🔄 Implementation Approach Migration
@@ -13,7 +15,7 @@ description: Migration patterns and upgrade procedures for the Terraform AzureRM
 
 | Scenario | Action | Approach |
 |----------|--------|----------|
-| New Resource | Always use Typed Resource Implementation | Start with typed from day one |
+| New source | Always use Typed Resource Implementation | Start with typed from day one |
 | Bug Fix (< 5 lines) | Maintain Untyped Implementation | Quick fix in existing pattern |
 | Feature Addition (< 50 lines) | Consider migration if touching >30% of resource | Evaluate cost/benefit |
 | Major Refactor (> 50 lines) | Migrate to Typed Implementation | Plan migration with comprehensive testing |
@@ -92,23 +94,23 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 ### Step-by-Step Migration Process
 
 **Phase 1: Assessment and Planning**
-```go
-// 1. Create backup branch
-git checkout -b migration/resource-name-to-typed
+1. Create backup branch
+   ```bash
+   git checkout -b migration/resource-name-to-typed
+   ```
 
-// 2. Analyze existing untyped implementation
-// Study these files:
-// - internal/services/servicename/resource_name_resource.go
-// - internal/services/servicename/resource_name_resource_test.go
-// - website/docs/r/service_name_resource.html.markdown
+2. Analyze existing untyped implementation
+   - Study these files:
+     - `internal/services/servicename/resource_name_resource.go`
+     - `internal/services/servicename/resource_name_resource_test.go`
+     - `website/docs/r/service_name_resource.html.markdown`
 
-// 3. Document current behavior
-// - All schema fields and their types
-// - CRUD operation behaviors
-// - Error handling patterns
-// - CustomizeDiff validations
-// - Import functionality
-```
+3. Document current behavior
+   - All schema fields and their types
+   - CRUD operation behaviors
+   - Error handling patterns
+   - CustomizeDiff validations
+   - Import functionality
 
 **Phase 2: Model Structure Creation**
 ```go
@@ -563,7 +565,7 @@ NOTES:
 ### Field Rename: `scrubbing_rule` → `log_scrubbing_rule`
 
 **Before (v3.x):**
-```hcl
+```go
 resource "azurerm_cdn_frontdoor_profile" "example" {
   scrubbing_rule {
     match_variable = "QueryStringArgNames"
@@ -572,7 +574,7 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
 ```
 
 **After (v4.x):**
-```hcl
+```go
 resource "azurerm_cdn_frontdoor_profile" "example" {
   log_scrubbing_rule {
     match_variable = "QueryStringArgNames"
@@ -584,7 +586,6 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
 1. Update your configuration files to use `log_scrubbing_rule`
 2. Run `terraform plan` to verify changes
 3. Apply the configuration
-```
 
 ### Common Migration Pitfalls
 
@@ -634,12 +635,10 @@ return metadata.Encode(&state) // Correct pattern
 - [ ] No breaking changes to user configurations (unless intentional)
 
 **Rollback Plan:**
-```go
-// Maintain ability to revert if critical issues arise
-// Keep backup branch: migration/resource-name-to-typed-backup
-// Document rollback procedure in pull request description
-// Test rollback path before merging
-```
+- Maintain ability to revert if critical issues arise
+- Keep backup branch: `migration/resource-name-to-typed-backup`
+- Document rollback procedure in pull request description
+- Test rollback path before merging
 
 ---
 [⬆️ Back to top](#migration-guide)
@@ -648,9 +647,15 @@ return metadata.Encode(&state) // Correct pattern
 
 ## Quick Reference Links
 
-- 🏗️ **Main Implementation Guide**: [implementation-guide.instructions.md](./implementation-guide.instructions.md)
-- ⚡ **Azure Patterns**: [azure-patterns.instructions.md](./azure-patterns.instructions.md)
-- 🚨 **Error Patterns**: [error-patterns.instructions.md](./error-patterns.instructions.md)
-- 📋 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md)
-- 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
+- 🏠 **Home**: [../copilot-instructions.md](../copilot-instructions.md)
+- 📋 **Code Clarity Enforcement**: [code-clarity-enforcement.instructions.md](./code-clarity-enforcement.instructions.md)
+- 🏗️ **Implementation Guide**: [implementation-guide.instructions.md](./implementation-guide.instructions.md)
+- ☁️ **Azure Patterns**: [azure-patterns.instructions.md](./azure-patterns.instructions.md)
 - 📝 **Documentation Guide**: [documentation-guidelines.instructions.md](./documentation-guidelines.instructions.md)
+- ❌ **Error Patterns**: [error-patterns.instructions.md](./error-patterns.instructions.md)
+- 🔄 **Migration Guide**: [migration-guide.instructions.md](./migration-guide.instructions.md)
+- 🏢 **Provider Guidelines**: [provider-guidelines.instructions.md](./provider-guidelines.instructions.md)
+- 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
+
+---
+[⬆️ Back to top](#migration-guide)

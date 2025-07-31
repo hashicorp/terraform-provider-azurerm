@@ -5,7 +5,9 @@ description: Azure-specific implementation patterns for the Terraform AzureRM pr
 
 # Azure-Specific Implementation Patterns
 
-**Quick navigation:** [🔄 PATCH Operations](#🔄-patch-operations) | [✅ CustomizeDiff](#✅-customizediff-validation) | [🎯 Schema Flattening](#🎯-schema-flattening) | [🔐 Security](#🔐-security-patterns)
+Azure-specific implementation patterns for the Terraform AzureRM provider including PATCH operations, CustomizeDiff patterns, and Azure SDK integration patterns.
+
+**Quick navigation:** [🔄 PATCH Operations](#🔄-patch-operations) | [✅ CustomizeDiff](#✅-customizediff-validation) | [🎯 Schema Flattening](#🎯-schema-flattening) | [🚫 "None" Value Pattern](#🚫-none-value-pattern) | [🔐 Security](#🔐-security-patterns) | [🔄 State Management](#🔄-state-management-with-dgetrawconfig) | [🏗️ Progressive Code Simplification](#🏗️-progressive-code-simplification)
 
 ## 🔄 PATCH Operations
 
@@ -16,7 +18,7 @@ Many Azure services use PATCH operations for resource updates, which have fundam
 
 - **PATCH preserves existing values** when fields are omitted from the request
 - **PUT replaces the entire resource** with the provided configuration
-- **Azure SDK nil filtering** removes nil values before sending requests to Azure
+- **Azure SDK nil filtering** removes `nil` values before sending requests to Azure
 - **Residual state persistence** means previously enabled features remain active unless explicitly disabled
 
 ### PATCH Operation Pattern
@@ -95,7 +97,7 @@ pluginsdk.ForceNewIfChange("resilient_vm_creation_enabled", func(ctx context.Con
     return fieldExists && old.(bool) && !new.(bool)
 }),
 
-// AVOID - Verbose expressions that trigger gosimple linting errors
+// FORBIDDEN - Verbose expressions that trigger gosimple linting errors
 return fieldExists && old.(bool) == true && new.(bool) == false
 ```
 
@@ -120,9 +122,9 @@ Azure resources have unique validation requirements that CustomizeDiff functions
 
 ### Zero Value Validation Pattern
 
-**Critical Pattern for Optional Integer Fields:**
+**Critical Pattern for Optional Fields with Go Zero Values:**
 
-When validating optional integer fields in CustomizeDiff functions, Go's zero value behavior can cause false validation errors. An unset integer field defaults to `0`, which validation logic may incorrectly interpret as an explicitly set value.
+When validating optional fields in CustomizeDiff functions, Go's zero value behavior can cause false validation errors. An unset field defaults to its Go zero value (`0` for integers, `false` for booleans, `""` for strings), which validation logic may incorrectly interpret as an explicitly set value.
 
 **Key Implementation Pattern:**
 - **Use `GetRawConfig()`**: Access the raw configuration to check for null values
@@ -133,10 +135,18 @@ When validating optional integer fields in CustomizeDiff functions, Go's zero va
 
 **Common Use Cases:**
 - **Optional integer fields**: rank, timeout_seconds, priority, weight
+- **Optional boolean fields**: enabled, allow_public_access, force_destroy
+- **Optional string fields**: When empty string (`""`) is not a valid configuration
 - **Optional numeric configurations**: port numbers, retry counts, threshold values
 - **Azure resource constraints**: SKU-dependent validation, region-specific limits
 
-**For complete zero value validation patterns and detailed examples, see:** [Implementation Guide - Zero Value Validation](./implementation-guide.instructions.md#ai-coding-guidance)
+**When NOT to Use `GetRawConfig()` for Zero Value Validation:**
+- **Required fields**: Always use `diff.Get()` since required fields must have values
+- **Typed resource implementations**: Use `metadata.Decode()` patterns instead of raw config access
+- **Simple field access**: When you need the value regardless of how it was set
+- **Performance-critical paths**: Raw config access has overhead, use sparingly
+
+**For comprehensive `GetRawConfig()` usage guidance, see:** [State Management with d.GetRawConfig()](#🔄-state-management-with-dgetrawconfig)
 
 ---
 [⬆️ Back to top](#azure-specific-implementation-patterns)
@@ -155,7 +165,7 @@ Schema flattening should be considered when Azure APIs contain unnecessary wrapp
 ### Schema Flattening Example
 
 **Before Flattening (Complex Structure):**
-```hcl
+```go
 resource "azurerm_cdn_frontdoor_profile" "example" {
   name = "example"
 
@@ -170,7 +180,7 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
 ```
 
 **After Flattening (Simplified Structure):**
-```hcl
+```go
 resource "azurerm_cdn_frontdoor_profile" "example" {
   name = "example"
 
@@ -205,20 +215,16 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
 func expandCdnFrontDoorProfileLogScrubbing(input []interface{}) *profiles.ProfileLogScrubbing {
     if len(input) == 0 {
         // When no rules configured, set to disabled (following "None" pattern)
-        policyDisabled := profiles.ProfileScrubbingStateDisabled
         return &profiles.ProfileLogScrubbing{
-            State:          &policyDisabled,
+            State:          pointer.To(profiles.ProfileScrubbingStateDisabled),
             ScrubbingRules: nil,
         }
     }
 
     // When rules are present, always enable the feature
-    policyEnabled := profiles.ProfileScrubbingStateEnabled
-    scrubbingRules := expandScrubbingRules(input)
-
     return &profiles.ProfileLogScrubbing{
-        State:          &policyEnabled,
-        ScrubbingRules: scrubbingRules,
+        State:          pointer.To(profiles.ProfileScrubbingStateEnabled),
+        ScrubbingRules: expandScrubbingRules(input),
     }
 }
 
@@ -233,6 +239,8 @@ func flattenCdnFrontDoorProfileLogScrubbing(input *profiles.ProfileLogScrubbing)
     return flattenScrubbingRules(input.ScrubbingRules)
 }
 ```
+---
+[⬆️ Back to top](#azure-specific-implementation-patterns)
 
 ## 🚫 "None" Value Pattern
 
@@ -267,13 +275,11 @@ func (r ServiceResource) Create() sdk.ResourceFunc {
             }
 
             // Default to "None" if user did not specify a value
-            shutdownOnIdle := string(azureapi.ShutdownOnIdleModeNone)
-            if model.ShutdownOnIdle != "" {
-                shutdownOnIdle = model.ShutdownOnIdle
-            }
-
             properties := azureapi.ServiceProperties{
-                ShutdownOnIdle: &shutdownOnIdle,
+                ShutdownOnIdle: pointer.To(string(azureapi.ShutdownOnIdleModeNone)),
+            }
+            if model.ShutdownOnIdle != "" {
+                properties.ShutdownOnIdle = pointer.To(model.ShutdownOnIdle)
             }
 
             // ...continue with resource creation
@@ -291,11 +297,9 @@ func (r ServiceResource) Read() sdk.ResourceFunc {
             model := ServiceModel{}
 
             // Only set value in state if it is not "None"
-            shutdownOnIdle := ""
             if props.ShutdownOnIdle != nil && *props.ShutdownOnIdle != string(azureapi.ShutdownOnIdleModeNone) {
-                shutdownOnIdle = string(*props.ShutdownOnIdle)
+                model.ShutdownOnIdle = *props.ShutdownOnIdle
             }
-            model.ShutdownOnIdle = shutdownOnIdle
             // If Azure returns "None", field remains empty in Terraform state
 
             return metadata.Encode(&model)
@@ -317,7 +321,7 @@ func (r ServiceResource) Read() sdk.ResourceFunc {
 metadata.Logger.Infof("Creating Storage Account %s", id.StorageAccountName)
 log.Printf("[DEBUG] Configuring network rules for %s", id)
 
-// BAD - Sensitive data in logs
+// FORBIDDEN - Sensitive data in logs
 log.Printf("[DEBUG] Connection string: %s", connectionString) // Never log connection strings
 metadata.Logger.Debugf("Client secret: %s", clientSecret)     // Never log secrets
 log.Printf("[DEBUG] SAS token: %s", sasToken)                 // Never log tokens
@@ -374,6 +378,8 @@ func ValidateAzureResourceName(v interface{}, k string) (warnings []string, erro
     return warnings, errors
 }
 ```
+---
+[⬆️ Back to top](#azure-specific-implementation-patterns)
 
 ## 🔄 State Management with d.GetRawConfig()
 
@@ -425,8 +431,7 @@ func resourceServiceNameCreate(ctx context.Context, d *pluginsdk.ResourceData, m
 
     // Only include advanced_config if user explicitly configured it
     if raw := d.GetRawConfig().GetAttr("advanced_config"); !raw.IsNull() {
-        advancedConfig := expandAdvancedConfig(d.Get("advanced_config").([]interface{}))
-        parameters.AdvancedConfig = &advancedConfig
+        parameters.AdvancedConfig = pointer.To(expandAdvancedConfig(d.Get("advanced_config").([]interface{})))
     }
     // If raw is null, don't include AdvancedConfig in API call
 
@@ -434,11 +439,8 @@ func resourceServiceNameCreate(ctx context.Context, d *pluginsdk.ResourceData, m
 }
 ```
 
-**When NOT to Use `d.GetRawConfig()`:**
-- Required fields (always use `d.Get()`)
-- When you always need the value regardless of how it was set
-- In typed resource implementations (use metadata patterns instead)
-- When simple default handling in schema is sufficient
+---
+[⬆️ Back to top](#azure-specific-implementation-patterns)
 
 ## 🏗️ Progressive Code Simplification
 
@@ -499,6 +501,15 @@ func ExpandPolicy(input []interface{}) *azuretype.Policy {
 
 ## Quick Reference Links
 
-- 🏗️ **Main Implementation Guide**: [implementation-guide.instructions.md](./implementation-guide.instructions.md)
-- 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
+- 🏠 **Home**: [../copilot-instructions.md](../copilot-instructions.md)
+- ☁️ **Azure Patterns**: [azure-patterns.instructions.md](./azure-patterns.instructions.md)
 - 📝 **Documentation Guide**: [documentation-guidelines.instructions.md](./documentation-guidelines.instructions.md)
+- ❌ **Error Patterns**: [error-patterns.instructions.md](./error-patterns.instructions.md)
+- 🏗️ **Implementation Guide**: [implementation-guide.instructions.md](./implementation-guide.instructions.md)
+- 🔄 **Migration Guide**: [migration-guide.instructions.md](./migration-guide.instructions.md)
+- 🏢 **Provider Guidelines**: [provider-guidelines.instructions.md](./provider-guidelines.instructions.md)
+- 📐 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md)
+- 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
+
+---
+[⬆️ Back to top](#azure-specific-implementation-patterns)

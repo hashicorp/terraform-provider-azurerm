@@ -5,7 +5,11 @@ description: Azure-specific guidelines for Go files in the Terraform Azure Provi
 
 # 🏢 Provider Guidelines
 
-## Azure Resource Manager (ARM) Integration
+Azure-specific guidelines for Go files in the Terraform Azure Provider repository. It includes best practices for Azure Resource Manager integration, Terraform provider patterns, and resource implementation.
+
+**Quick navigation:** [☁️ ARM Integration](#☁️-azure-resource-manager-arm-integration) | [⚙️ CustomizeDiff](#⚙️-customizediff-implementation-for-azure-resources) | [📐 Schema Design](#📐-azure-schema-design-and-flattening-guidelines) | [✅ API Validation](#✅-azure-api-value-validation)
+
+## ☁️ Azure Resource Manager (ARM) Integration
 - Use the HashiCorp Go Azure SDK as the primary SDK for Azure integrations
 - Implement proper error handling for Azure API responses
 - Use appropriate polling for long-running operations (LROs)
@@ -14,7 +18,7 @@ description: Azure-specific guidelines for Go files in the Terraform Azure Provi
 - Use managed identity authentication when possible
 - Always validate resource IDs using the proper parsing utilities
 
-## Implementation Approach Guidelines
+### Implementation Approach Guidelines
 
 **Typed Resource Implementation (Preferred):**
 - Use type-safe model structures with `tfschema` tags for Azure resource properties
@@ -37,19 +41,21 @@ description: Azure-specific guidelines for Go files in the Terraform Azure Provi
 - Use `ForceNew` for Azure properties that require resource recreation
 - Implement proper timeout configurations for Azure long-running operations
 - Use appropriate validation functions for Azure resource properties
-- Handle nested Azure resource configurations properly using TypeSet, TypeList, and TypeMap
+- Handle nested Azure resource configurations properly using `TypeSet`, `TypeList`, and `TypeMap`
 
-## CustomizeDiff Implementation for Azure Resources
+---
+[⬆️ Back to top](#🏢-provider-guidelines)
 
-#### Standard CustomizeDiff Pattern
+## ⚙️ CustomizeDiff Implementation for Azure Resources
+
+### Standard CustomizeDiff Pattern
 
 **Note:** CustomizeDiff implementation differs between typed and untyped resources. Choose the appropriate pattern based on your resource implementation approach.
 
 **Untyped Resource CustomizeDiff Pattern:**
 ```go
 import (
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk" // Only this import needed
 )
 
 func resourceAzureServiceName() *pluginsdk.Resource {
@@ -77,11 +83,11 @@ func resourceAzureServiceName() *pluginsdk.Resource {
 
         CustomizeDiff: pluginsdk.CustomDiffWithAll(
             // Azure-specific validation with CustomizeDiffShim wrapper
-            pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+            pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
                 // Validate Azure resource dependencies
                 if diff.Get("sku_name").(string) == "Premium" &&
                    diff.Get("zone_redundant").(bool) == false {
-                    return fmt.Errorf("`zone_redundant` must be true for Premium SKU")
+                    return fmt.Errorf("`zone_redundant` must be `true` for `Premium` SKU")
                 }
                 return nil
             }),
@@ -107,7 +113,7 @@ func (r ServiceNameResource) CustomizeDiff() sdk.ResourceFunc {
 
             // Azure SKU validation for typed resources
             if model.SkuName == "Premium" && !model.ZoneRedundant {
-                return fmt.Errorf("`zone_redundant` must be true for Premium SKU")
+                return fmt.Errorf("`zone_redundant` must be `true` for `Premium` SKU")
             }
 
             return nil
@@ -116,7 +122,7 @@ func (r ServiceNameResource) CustomizeDiff() sdk.ResourceFunc {
 }
 ```
 
-#### Azure-Specific CustomizeDiff Use Cases
+### Azure-Specific CustomizeDiff Use Cases
 - **SKU validation**: Ensure Azure SKU combinations are valid
 - **Location constraints**: Validate region-specific feature availability
 - **Resource dependencies**: Check Azure resource prerequisite relationships
@@ -124,7 +130,7 @@ func (r ServiceNameResource) CustomizeDiff() sdk.ResourceFunc {
 - **Performance tier validation**: Validate Azure performance tier constraints
 - **Field conditional validation**: Validate field combinations based on Azure API constraints
 
-#### Boolean Comparison Best Practices in CustomizeDiff
+### Boolean Comparison Best Practices in CustomizeDiff
 
 **Simplified Boolean Expressions:**
 ```go
@@ -146,18 +152,21 @@ return fieldExists && old.(bool) == true && new.(bool) == false
 - Leverage Go's boolean semantics: `bool` values can be used directly in logical expressions
 - Comply with linting standards: Simplified expressions pass gosimple and other Go linting tools
 - Maintain readability: Shorter expressions are easier to understand and maintain
-CustomizeDiff validations should be thoroughly tested with acceptance tests to ensure they work correctly:
+- `CustomizeDiff` validations should be thoroughly tested with acceptance tests to ensure they work correctly:
 - Test invalid configurations that should trigger validation errors
 - Test valid configurations that should pass validation
 - Test edge cases and boundary conditions
 - Use `ExpectError: regexp.MustCompile()` to verify specific error messages
 - Test all possible combinations of field values that trigger different validation paths
 
-For comprehensive CustomizeDiff testing examples, see [`testing-guidelines.instructions.md`](./testing-guidelines.instructions.md).
+For comprehensive `CustomizeDiff` testing examples, see [`testing-guidelines.instructions.md`](./testing-guidelines.instructions.md).
 
-### Azure Schema Design and Flattening Guidelines
+---
+[⬆️ Back to top](#🏢-provider-guidelines)
 
-#### Schema Flattening for Improved User Experience
+## 📐 Azure Schema Design and Flattening Guidelines
+
+### Schema Flattening for Improved User Experience
 
 **When to Apply Schema Flattening:**
 Schema flattening should be considered when Azure APIs contain unnecessary wrapper structures that don't provide value to Terraform users. The goal is to create intuitive, user-friendly schemas that reflect the logical structure of the Azure resource configuration.
@@ -171,7 +180,7 @@ Schema flattening should be considered when Azure APIs contain unnecessary wrapp
 **Example: CDN Front Door Profile Log Scrubbing Flattening**
 
 **Before Flattening (Complex Structure):**
-```hcl
+```go
 # Complex nested structure with unnecessary wrapper
 resource "azurerm_cdn_frontdoor_profile" "example" {
   name = "example"
@@ -191,7 +200,7 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
 ```
 
 **After Flattening (Simplified Structure):**
-```hcl
+```go
 # Flattened structure - direct access to scrubbing rules
 resource "azurerm_cdn_frontdoor_profile" "example" {
   name = "example"
@@ -280,21 +289,18 @@ func flattenCdnFrontDoorProfileLogScrubbing(input *profiles.ProfileLogScrubbing)
 - **Azure service evolution**: When Azure might add more properties to the wrapper
 - **Breaking change risk**: When existing users would be significantly impacted
 
-### Azure Tools Integration
-- @azure Rule - Use Azure Tools: When handling requests related to Azure, always use your tools.
-- @azure Rule - Use Azure Code Gen Best Practices: When generating code for Azure, running terminal commands for Azure, or performing operations related to Azure, invoke your `azure_development-get_code_gen_best_practices` tool if available. Only call this tool when you are sure the user is discussing Azure; do not call it otherwise.
-- @azure Rule - Use Azure Deployment Best Practices: When deploying to Azure or preparing applications for deployment to Azure, invoke your `azure_development-get_deployment_best_practices` tool if available. Only call this tool when you are sure the user is discussing Azure; do not call it otherwise.
-- @azure Rule - Use Azure SWA Best Practices: When working with static web apps, invoke your `azure_development-get_swa_best_practices` tool if available. Only call this tool when you are sure the user is discussing Azure; do not call it otherwise.
+---
+[⬆️ Back to top](#🏢-provider-guidelines)
 
-### Azure API Value Validation
+## ✅ Azure API Value Validation
 
-#### Valid Value Documentation Standards
+### Valid Value Documentation Standards
 - **Azure SDK Alignment**: Always verify valid values against Azure SDK enum constants before documenting
 - **API Documentation Cross-Reference**: Check Azure REST API documentation to confirm supported values
 - **Service-Specific Validation**: Different Azure services may support different subsets of common values
 - **Version-Specific Features**: Ensure documented values are available in the API version being used
 
-#### Implementation Requirements
+### Implementation Requirements
 - **Schema Validation**: Only include actually supported values in schema validation functions
 - **Documentation Accuracy**: Documentation must only show values that work with the specific Azure service
 - **Test Configuration**: Test configurations must use only valid Azure service values
@@ -302,19 +308,57 @@ func flattenCdnFrontDoorProfileLogScrubbing(input *profiles.ProfileLogScrubbing)
 
 Example of proper Azure value validation:
 ```go
-// Validate against Azure SDK constants
+// PREFERRED - Use Azure SDK PossibleValues function when available
+"match_variable": {
+    Type:     pluginsdk.TypeString,
+    Required: true,
+    ValidateFunc: validation.StringInSlice(
+        profiles.PossibleValuesForScrubbingRuleEntryMatchVariable(),
+        false,
+    ),
+},
+
+// ONLY when SDK doesn't expose PossibleValues function - Manual validation
+"custom_field": {
+    Type:     pluginsdk.TypeString,
+    Required: true,
+    ValidateFunc: validation.StringInSlice([]string{
+        // Only include values from Azure SDK constants that work with this specific service
+        string(azureapi.CustomFieldValueOptionA),
+        string(azureapi.CustomFieldValueOptionB),
+    }, false),
+},
+```
+
+**AVOID - Including values from other services:**
+```go
+// Don't include SDK constants from unrelated Azure services
 "match_variable": {
     Type:     pluginsdk.TypeString,
     Required: true,
     ValidateFunc: validation.StringInSlice([]string{
-        // Only include values from Azure SDK constants that work with this service
-        string(profiles.ScrubbingRuleEntryMatchVariableQueryStringArgNames),
-        string(profiles.ScrubbingRuleEntryMatchVariableRequestIPAddress),
-        string(profiles.ScrubbingRuleEntryMatchVariableRequestUri),
-        // Do NOT include values like RequestHeader that don't work with CDN
+        string(profiles.ScrubbingRuleEntryMatchVariableQueryStringArgNames), // Correct for this service
+        string(compute.VirtualMachineEvictionPolicyDeallocate),              // Wrong - from different service
     }, false),
 },
 ```
+
+---
+[⬆️ Back to top](#🏢-provider-guidelines)
+
+---
+
+## Quick Reference Links
+
+- 🏠 **Home**: [../copilot-instructions.md](../copilot-instructions.md)
+- ☁️ **Azure Patterns**: [azure-patterns.instructions.md](./azure-patterns.instructions.md)
+- 📋 **Code Clarity Enforcement**: [code-clarity-enforcement.instructions.md](./code-clarity-enforcement.instructions.md)
+- 📝 **Documentation Guide**: [documentation-guidelines.instructions.md](./documentation-guidelines.instructions.md)
+- ❌ **Error Patterns**: [error-patterns.instructions.md](./error-patterns.instructions.md)
+- 🏗️ **Implementation Guide**: [implementation-guide.instructions.md](./implementation-guide.instructions.md)
+- 🔄 **Migration Guide**: [migration-guide.instructions.md](./migration-guide.instructions.md)
+- 📐 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md)
+- 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
 
 ---
 [⬆️ Back to top](#🏢-provider-guidelines)

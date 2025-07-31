@@ -3,7 +3,16 @@ applyTo: "internal/**/*.go"
 description: "This is the official Terraform Provider for Azure (Resource Manager), written in Go. It enables Terraform to manage Azure resources through the Azure Resource Manager APIs."
 ---
 
+**Detailed Guidance**: See [`implementation-guide.instructions.md`](./instructions/implementation-guide.instructions.md) for untyped implementation maintenance patterns.
+
+---
+[⬆️ Back to top](#custom-instructions)
+
+---
+
 # Custom instructions
+
+**Quick navigation:** [📚 Stack](#stack) | [🏗️ Project Structure](#project-structure) | [💬 Comment Policy](#⚠️-critical-code-comment-policy-⚠️) | [🚨 Testing Policy](#🚨-critical-testing-rule-policy-no-redundant-field-validation) | [🎯 AI Guidelines](#🎯-ai-development-guidelines) | [⚡ Implementation](#implementation-approaches) | [📖 Generic Guidelines](#generic-guidelines) | [🧠 Smart Patterns](#smart-pattern-recognition) | [❌ Error Handling](#error-handling-standards) | [🔧 Implementation Guide](#detailed-implementation-guidance) | [📚 Quick Reference](#quick-reference-links)
 
 This is the official Terraform Provider for Azure (Resource Manager), written in Go. It enables Terraform to manage Azure resources through the Azure Resource Manager APIs.
 
@@ -16,11 +25,14 @@ This is the official Terraform Provider for Azure (Resource Manager), written in
 - HashiCorp Go Azure Helpers
 - Azure Resource Manager APIs
 
+---
+[⬆️ Back to top](#custom-instructions)
+
 ## Project Structure
 
-```go
+```text
 /internal
-  /acceptance         - Acceptance test framework and helpers
+  /acceptance        - Acceptance test framework and helpers
   /clients           - Azure client configurations and setup
   /common            - Common utilities and helpers
   /features          - Feature flag management
@@ -39,44 +51,85 @@ This is the official Terraform Provider for Azure (Resource Manager), written in
 /vendor              - Go dependencies (managed by go mod)
 ```
 
+---
+[⬆️ Back to top](#custom-instructions)
+
 ## ⚠️ CRITICAL CODE COMMENT POLICY ⚠️
 
-**STRICTLY FORBIDDEN: Adding unnecessary comments to code.** Code must be self-documenting through clear variable names, function names, and structure.
+**ABSOLUTE RULE: NO UNNECESSARY COMMENTS**
 
-**🚫 DEFAULT BEHAVIOR: Write code WITHOUT comments**
+Code must be self-documenting. Comments are the exception, not the rule.
 
-**Comments are ONLY permitted for these EXCEPTIONAL cases:**
-- Azure API-specific quirks or behaviors that are not obvious from code
-- Complex business logic that cannot be made clear through code structure alone
-- Workarounds for Azure SDK limitations or API bugs
-- Non-obvious state management patterns (PATCH operations, residual state handling)
-- Azure service constraints requiring explanation (timeout ranges, SKU limitations)
+**🚫 DEFAULT: Write code WITHOUT comments**
 
-**🚫 ABSOLUTELY FORBIDDEN - Never comment:**
-- Variable assignments, struct initialization, basic operations
-- Standard Terraform patterns (CRUD operations, schema definitions)
-- Self-explanatory function calls or routine Azure API calls
-- Field mappings between Terraform and Azure API models
-- Obvious conditional logic or loops
-- Standard Go patterns (error handling, nil checks, etc.)
+**Comments ONLY for these 4 cases:**
+- Azure API-specific quirks not obvious from code
+- Complex business logic that cannot be simplified
+- Azure SDK workarounds for limitations/bugs
+- Non-obvious state patterns (PATCH operations, residual state)
 
-**ENFORCEMENT RULE: Before adding ANY comment, ask yourself:**
-1. "Is this code unclear without a comment?" → Refactor the code instead
-2. "Would a developer be confused by this logic?" → Only then consider a comment
-3. "Is this documenting an Azure API quirk?" → Comment may be acceptable
+**🚫 NEVER comment these:**
+- Variable assignments or struct initialization
+- Standard Terraform/Go patterns
+- Self-explanatory function calls
+- Field mappings or obvious logic
+- Error handling or nil checks
 
-**If the code is self-explanatory, NO COMMENT should exist.**
+**3-SECOND RULE: Before ANY comment:**
+1. Can I refactor instead? → **YES: Refactor, don't comment**
+2. Is this an Azure API quirk? → **MAYBE: Comment acceptable**
+3. Is this self-explanatory? → **YES: NO COMMENT**
 
-**🔍 ACCOUNTABILITY MECHANISM:**
-If I add ANY comment to code, I MUST explicitly justify it in my response by stating:
-- **Which exception case** this comment falls under
-- **Why the code cannot be self-explanatory** through better naming/structure
-- **What specific Azure API behavior** requires documentation (if applicable)
+**🔍 MANDATORY JUSTIFICATION:**
+Every comment requires explicit justification:
+- Which of the 4 exception cases applies?
+- Why code cannot be self-explanatory?
+- What specific Azure behavior needs documentation?
 
-**REVIEW CHECKPOINT:**
-Before submitting code with comments, I must ask: "Could this comment be eliminated by improving the code structure or naming instead?"
+**FINAL CHECK:** "Can I eliminate this comment through better code?"
 
-📋 **For comprehensive enforcement guidelines and detailed examples, see:** [Code Clarity Enforcement Guidelines](./instructions/code-clarity-enforcement.instructions.md)
+📋 **For comprehensive enforcement guidelines and detailed examples, see:** [Code Clarity Enforcement Guidelines](./instructions/code-clarity-enforcement.instructions.md#🚫-zero-tolerance-for-unnecessary-comments-policy)
+
+---
+[⬆️ Back to top](#custom-instructions)
+
+## 🚨 CRITICAL TESTING RULE POLICY: No Redundant Field Validation
+
+**MANDATORY: When using `data.ImportStep()`, DO NOT add redundant field validation checks**
+
+```go
+// ✅ CORRECT - Only ExistsInAzure check
+func TestAccResourceName_basic(t *testing.T) {
+    data.ResourceTest(t, r, []acceptance.TestStep{
+        {
+            Config: r.basic(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r), // ONLY THIS
+            ),
+        },
+        data.ImportStep(), // ImportStep validates ALL field values automatically
+    })
+}
+
+// ❌ FORBIDDEN - Redundant field validation
+func TestAccResourceName_basic(t *testing.T) {
+    data.ResourceTest(t, r, []acceptance.TestStep{
+        {
+            Config: r.basic(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+                check.That(data.ResourceName).Key("field").HasValue("value"), // FORBIDDEN
+            ),
+        },
+        data.ImportStep(), // Already validates the field above
+    })
+}
+```
+
+**Exception**: Only add Key() checks for computed fields, TypeSet behavior, or Azure API transformations NOT in the configuration.
+
+---
+[⬆️ Back to top](#custom-instructions)
 
 ## 🎯 AI Development Guidelines
 
@@ -141,6 +194,85 @@ This provider supports two implementation approaches. **For comprehensive implem
 - **Documentation**: User-facing documentation should be consistent between approaches
 - **Azure Integration**: Both approaches integrate with the same Azure APIs and follow the same Azure-specific patterns
 
+### CustomizeDiff Implementation Pattern
+
+**IMPORTANT**: The dual import pattern is **only** required for specific scenarios:
+
+**When DUAL IMPORTS are Required:**
+```go
+import (
+    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"            // For *schema.ResourceDiff
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk" // For helpers
+)
+
+// When using *schema.ResourceDiff directly in CustomizeDiff functions
+CustomizeDiff: pluginsdk.All(
+    pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+        // Custom validation using *schema.ResourceDiff
+        return nil
+    }),
+),
+```
+
+**When SINGLE IMPORT is Sufficient (Legacy Resources):**
+```go
+import (
+    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"            // Only this import needed
+)
+
+// When using *pluginsdk.ResourceDiff in CustomizeDiffShim functions
+CustomizeDiff: pluginsdk.CustomDiffWithAll(
+    pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+        // Custom validation using *pluginsdk.ResourceDiff (which is an alias for *schema.ResourceDiff)
+        return nil
+    }),
+),
+```
+
+**Rule of Thumb:**
+- **Typed Resources**: Usually need dual imports when using `*schema.ResourceDiff` directly
+- **Legacy/Untyped Resources**: Usually only need schema import when using `*pluginsdk.ResourceDiff`
+- **Check the function signature**: If you see `*pluginsdk.ResourceDiff`, single import is sufficient
+
+**Standard CustomizeDiff Resource Pattern:**
+```go
+func resourceServiceName() *pluginsdk.Resource {
+    return &pluginsdk.Resource{
+        Create: resourceServiceNameCreate,
+        Read:   resourceServiceNameRead,
+        Update: resourceServiceNameUpdate,
+        Delete: resourceServiceNameDelete,
+
+        CustomizeDiff: pluginsdk.All(
+            // Must use *schema.ResourceDiff from external package
+            pluginsdk.ForceNewIfChange("property_name", func(ctx context.Context, old, new, meta interface{}) bool {
+                return old.(string) != new.(string)
+            }),
+            func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+                // Custom validation logic
+                if diff.Get("enabled").(bool) && diff.Get("configuration") == nil {
+                    return fmt.Errorf("configuration is required when enabled is true")
+                }
+                return nil
+            },
+        ),
+
+        Schema: map[string]*pluginsdk.Schema{
+            // Schema definitions use pluginsdk types
+        },
+    }
+}
+```
+
+**Why This Pattern is Required:**
+- The internal pluginsdk package provides aliases for most Plugin SDK types
+- However, CustomizeDiff function signatures are **not** aliased and must use *schema.ResourceDiff
+- The pluginsdk.All(), pluginsdk.ForceNewIfChange() helpers are available in the internal package
+- Resource and schema definitions use pluginsdk types for consistency
+
+---
+[⬆️ Back to top](#custom-instructions)
+
 ## Generic Guidelines
 
 ### Resource Implementation Guidelines
@@ -181,25 +313,26 @@ This provider supports two implementation approaches. **For comprehensive implem
 - Monitor and optimize API call patterns
 - Use context with appropriate timeouts
 
-### Smart Pattern Recognition
+---
+[⬆️ Back to top](#custom-instructions)
+
+## Smart Pattern Recognition
 
 **When implementing new Azure resources, automatically apply these patterns:**
 
-#### 🔍 **Resource Analysis Patterns**
-```go
-// ALWAYS check these Azure service characteristics:
-// 1. Does the service support PATCH operations? → Use explicit enable/disable patterns
-// 2. Are there SKU-dependent features? → Add CustomizeDiff validation
-// 3. Does the service have regional limitations? → Add location validation
-// 4. Are there field dependency requirements? → Add CustomizeDiff logic
-// 5. Does the service support tagging? → Include tags schema and expand/flatten
-```
+### 🔍 Resource Analysis Patterns
+**ALWAYS check these Azure service characteristics:**
+- Does the service support PATCH operations? → Use explicit enable/disable patterns
+- Are there SKU-dependent features? → Add CustomizeDiff validation
+- Does the service have regional limitations? → Add location validation
+- Are there field dependency requirements? → Add CustomizeDiff logic
+- Does the service support tagging? → Include tags schema and expand/flatten
 
-#### 🔄 **Cross-Implementation Consistency Validation**
+### 🔄 Cross-Implementation Consistency Validation
 When working with related Azure resources (like Linux and Windows variants), always verify:
 
-```go
-Consistency Checklist
+**Consistency Checklist:**
+```text
 ├─ VALIDATION LOGIC
 │  ├─ CustomizeDiff functions must be identical across variants
 │  ├─ Field requirements must match (if Windows requires X, Linux must too)
@@ -225,7 +358,7 @@ Consistency Checklist
    └─ Test both implementations to ensure equivalent behavior
 ```
 
-#### ⚡ **Quick Implementation Patterns**
+### ⚡ Quick Implementation Patterns
 ```go
 // NEW RESOURCE: Always start with this template
 func (r ServiceNameResource) Create() sdk.ResourceFunc {
@@ -259,14 +392,15 @@ func (r ServiceNameResource) Create() sdk.ResourceFunc {
 }
 ```
 
-#### 🧪 **Testing Pattern Recognition**
-```go
-// ALWAYS include these tests for ANY resource:
-// 1. TestAcc[ResourceName]_basic - Core functionality
-// 2. TestAcc[ResourceName]_requiresImport - Import conflict detection
-// 3. TestAcc[ResourceName]_update - If resource supports updates
-// 4. TestAcc[ResourceName]_customizeDiffValidation - If CustomizeDiff exists
-```
+### 🧪 Testing Pattern Recognition
+
+**ALWAYS include these tests for ANY resource:**
+
+- **TestAcc[ResourceName]_basic** - Core functionality
+- **TestAcc[ResourceName]_requiresImport** - Import conflict detection
+- **TestAcc[ResourceName]_update** - If resource supports updates
+- **TestAcc[ResourceName]_complete** - Comprehensive feature demonstration with all sensible field values
+- **TestAcc[ResourceName]_customizeDiffValidation** - If CustomizeDiff exists
 
 ### Documentation
 **For comprehensive documentation standards, see [`documentation-guidelines.instructions.md`](./instructions/documentation-guidelines.instructions.md)**
@@ -298,7 +432,7 @@ When writing commit messages, follow these standards for consistency and clarity
 4. **Line Length**: Keep each line under 72 characters for readability
 
 **Examples**:
-```go
+```text
 ENHANCEMENT: add front door profile log scrubbing support
 
 - Add log_scrubbing_rule schema for CDN Front Door profiles
@@ -309,7 +443,7 @@ ENHANCEMENT: add front door profile log scrubbing support
 Closes Issue: #12345
 ```
 
-```go
+```text
 BUG: fix storage account network rules state drift
 
 - Correct flatten function to handle empty network rules properly
@@ -320,7 +454,7 @@ BUG: fix storage account network rules state drift
 Fixes Issue: #54321
 ```
 
-```go
+```text
 BREAKING CHANGE: remove deprecated storage account properties
 
 - Remove deprecated `enable_blob_encryption` and `enable_file_encryption` fields
@@ -332,7 +466,7 @@ BREAKING CHANGE: remove deprecated storage account properties
 Closes Issue: #87654
 ```
 
-```go
+```text
 DOCS: add explicit warning to fieldName for clarity
 
 - Update documentation with clearer field usage warnings
@@ -454,9 +588,12 @@ func resourceExampleResource() *pluginsdk.Resource {
 - @azure Rule - Use Azure Functions Code Gen Best Practices: When generating code for Azure Functions or performing operations related to Azure Functions, invoke your `azure_development-get_azure_function_code_gen_best_practices` tool if available. Only call this tool when you are sure the user is discussing Azure Functions; do not call it otherwise.
 - @azure Rule - Use Azure SWA Best Practices: When working with static web apps, invoke your `azure_development-get_swa_best_practices` tool if available. Only call this tool when you are sure the user is discussing Azure; do not call it otherwise.
 
-### Error Handling Standards
+---
+[⬆️ Back to top](#custom-instructions)
 
-#### Typed Resource Error Patterns
+## Error Handling Standards
+
+### Typed Resource Error Patterns
 ```go
 // Use metadata.Decode for model decoding errors
 var model ServiceNameResourceModel
@@ -484,7 +621,7 @@ metadata.SetID(id)
 return metadata.Encode(&model)
 ```
 
-#### Untyped Error Patterns
+### Untyped Error Patterns
 ```go
 // Use consistent error formatting with context
 if err != nil {
@@ -504,7 +641,7 @@ if response.WasThrottled(resp.HttpResponse) {
 }
 ```
 
-#### Common Error Standards (Both Approaches)
+### Common Error Standards (Both Approaches)
 - Field names in error messages should be wrapped in backticks for clarity
 - Field values in error messages should be wrapped in backticks for clarity
 - Error messages must follow Go standards (lowercase, no punctuation, descriptive)
@@ -512,126 +649,18 @@ if response.WasThrottled(resp.HttpResponse) {
 - Error messages must use '%+v' for verbose error output formatting
 - Error messages must be clear, concise, and provide actionable guidance
 
-#### CustomizeDiff Implementation Pattern
+---
+[⬆️ Back to top](#custom-instructions)
 
-**IMPORTANT**: The dual import pattern is **only** required for specific scenarios:
+## Detailed Implementation Guidance
 
-**When DUAL IMPORTS are Required:**
-```go
-import (
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"            // For *schema.ResourceDiff
-    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk" // For helpers
-)
-
-// When using *schema.ResourceDiff directly in CustomizeDiff functions
-CustomizeDiff: pluginsdk.All(
-    pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
-        // Custom validation using *schema.ResourceDiff
-        return nil
-    }),
-),
-```
-
-**When SINGLE IMPORT is Sufficient (Legacy Resources):**
-```go
-import (
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"            // Only this import needed
-)
-
-// When using *pluginsdk.ResourceDiff in CustomizeDiffShim functions
-CustomizeDiff: pluginsdk.CustomDiffWithAll(
-    pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-        // Custom validation using *pluginsdk.ResourceDiff (which is an alias for *schema.ResourceDiff)
-        return nil
-    }),
-),
-```
-
-**Rule of Thumb:**
-- **Typed Resources**: Usually need dual imports when using `*schema.ResourceDiff` directly
-- **Legacy/Untyped Resources**: Usually only need schema import when using `*pluginsdk.ResourceDiff`
-- **Check the function signature**: If you see `*pluginsdk.ResourceDiff`, single import is sufficient
-
-**Standard CustomizeDiff Resource Pattern:**
-```go
-func resourceServiceName() *pluginsdk.Resource {
-    return &pluginsdk.Resource{
-        Create: resourceServiceNameCreate,
-        Read:   resourceServiceNameRead,
-        Update: resourceServiceNameUpdate,
-        Delete: resourceServiceNameDelete,
-
-        CustomizeDiff: pluginsdk.All(
-            // Must use *schema.ResourceDiff from external package
-            pluginsdk.ForceNewIfChange("property_name", func(ctx context.Context, old, new, meta interface{}) bool {
-                return old.(string) != new.(string)
-            }),
-            func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
-                // Custom validation logic
-                if diff.Get("enabled").(bool) && diff.Get("configuration") == nil {
-                    return fmt.Errorf("configuration is required when enabled is true")
-                }
-                return nil
-            },
-        ),
-
-        Schema: map[string]*pluginsdk.Schema{
-            // Schema definitions use pluginsdk types
-        },
-    }
-}
-```
-
-**Why This Pattern is Required:**
-- The internal pluginsdk package provides aliases for most Plugin SDK types
-- However, CustomizeDiff function signatures are **not** aliased and must use *schema.ResourceDiff
-- The pluginsdk.All(), pluginsdk.ForceNewIfChange() helpers are available in the internal package
-- Resource and schema definitions use pluginsdk types for consistency
-
-#### 🚨 CRITICAL TESTING RULE: NO REDUNDANT FIELD VALIDATION
-
-**MANDATORY: When using `data.ImportStep()`, DO NOT add redundant field validation checks**
-
-```go
-// ✅ CORRECT - Only ExistsInAzure check
-func TestAccResourceName_basic(t *testing.T) {
-    data.ResourceTest(t, r, []acceptance.TestStep{
-        {
-            Config: r.basic(data),
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r), // ONLY THIS
-            ),
-        },
-        data.ImportStep(), // ImportStep validates ALL field values automatically
-    })
-}
-
-// ❌ FORBIDDEN - Redundant field validation
-func TestAccResourceName_basic(t *testing.T) {
-    data.ResourceTest(t, r, []acceptance.TestStep{
-        {
-            Config: r.basic(data),
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r),
-                check.That(data.ResourceName).Key("field").HasValue("value"), // FORBIDDEN
-            ),
-        },
-        data.ImportStep(), // Already validates the field above
-    })
-}
-```
-
-**Exception**: Only add Key() checks for computed fields, TypeSet behavior, or Azure API transformations NOT in the configuration.
-
-### Detailed Implementation Guidance
-
-#### Choosing Implementation Approach
+### Choosing Implementation Approach
 - **New Resources/Data Sources**: Always use Typed Resource Implementation
 - **Existing Resources**: Continue using Untyped Resource Implementation for maintenance
 - **Major Updates**: Consider migrating untyped resources to typed resource approach if significant changes are required
 - **Bug Fixes**: Maintain existing implementation approach for simple bug fixes
 
-#### Typed Resource Implementation Best Practices
+### Typed Resource Implementation Best Practices
 - Use type-safe model structures with appropriate `tfschema` tags
 - Leverage receiver methods on resource struct types for CRUD operations
 - Implement proper resource interfaces (`sdk.Resource`, `sdk.ResourceWithUpdate`, etc.)
@@ -639,7 +668,7 @@ func TestAccResourceName_basic(t *testing.T) {
 - Follow structured error handling patterns with `metadata` methods
 - Implement comprehensive validation in `IDValidationFunc()` method
 
-#### Untyped Resource Maintenance Best Practices
+### Untyped Resource Maintenance Best Practices
 - Maintain existing function-based CRUD patterns
 - Use direct schema manipulation with `d.Set()` and `d.Get()`
 - Continue using traditional client initialization patterns
@@ -647,9 +676,29 @@ func TestAccResourceName_basic(t *testing.T) {
 - Preserve existing resource behavior and state management
 - Ensure backward compatibility when making changes
 
-#### Migration Considerations
+### Migration Considerations
 - **User Experience**: Migration from untyped to typed resource should be transparent to users
 - **State Compatibility**: Ensure Terraform state remains compatible across implementations
 - **Feature Parity**: typed implementation should maintain all existing functionality
 - **Testing**: Comprehensive testing required to validate migration behavior
 - **Documentation**: Update internal development docs but keep user docs consistent
+
+---
+[⬆️ Back to top](#custom-instructions)
+
+---
+
+## Quick Reference Links
+
+- 🏗️ **Implementation Guide**: [implementation-guide.instructions.md](./instructions/implementation-guide.instructions.md)
+- 📋 **Code Clarity**: [code-clarity-enforcement.instructions.md](./instructions/code-clarity-enforcement.instructions.md)
+- ⚡ **Azure Patterns**: [azure-patterns.instructions.md](./instructions/azure-patterns.instructions.md)
+- 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./instructions/testing-guidelines.instructions.md)
+- 📝 **Documentation Guide**: [documentation-guidelines.instructions.md](./instructions/documentation-guidelines.instructions.md)
+- ❌ **Error Patterns**: [error-patterns.instructions.md](./instructions/error-patterns.instructions.md)
+- 🔄 **Migration Guide**: [migration-guide.instructions.md](./instructions/migration-guide.instructions.md)
+- 🏢 **Provider Guidelines**: [provider-guidelines.instructions.md](./instructions/provider-guidelines.instructions.md)
+- 📐 **Schema Patterns**: [schema-patterns.instructions.md](./instructions/schema-patterns.instructions.md)
+
+---
+[⬆️ Back to top](#custom-instructions)

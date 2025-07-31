@@ -284,11 +284,11 @@ import (
 )
 ```
 
-#### CustomizeDiff Import Requirements
+### CustomizeDiff Import Requirements
 
 **IMPORTANT**: The dual import pattern is **only** required for specific scenarios:
 
-**When DUAL IMPORTS are Required:**
+**When DUAL IMPORTS are Required (Typed Resources):**
 ```go
 import (
     "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"            // For *schema.ResourceDiff
@@ -304,10 +304,10 @@ CustomizeDiff: pluginsdk.All(
 ),
 ```
 
-**When SINGLE IMPORT is Sufficient (Legacy Resources):**
+**When SINGLE IMPORT is Sufficient (Untyped Resources):**
 ```go
 import (
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"            // Only this import needed
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk" // Only this import needed
 )
 
 // When using *pluginsdk.ResourceDiff in CustomizeDiffShim functions
@@ -320,9 +320,9 @@ CustomizeDiff: pluginsdk.CustomDiffWithAll(
 ```
 
 **Rule of Thumb:**
-- **Typed Resources**: Usually need dual imports when using `*schema.ResourceDiff` directly
-- **Legacy/Untyped Resources**: Usually only need schema import when using `*pluginsdk.ResourceDiff`
-- **Check the function signature**: If you see `*pluginsdk.ResourceDiff`, single import is sufficient
+- **Typed Resources**: Usually need dual imports `schema` and `pluginsdk` when using `*schema.ResourceDiff` directly
+- **Untyped Resources**: Usually only need `pluginsdk` import when using `*pluginsdk.ResourceDiff`
+- **Check the function signature**: If you see `*pluginsdk.ResourceDiff` or `pluginsdk.CustomDiffWithAll`, single import is sufficient
 
 ---
 [⬆️ Back to top](#terraform-azurerm-provider-implementation-guide)
@@ -458,7 +458,7 @@ name := d.Get("name").(string)
 enabled := d.Get("enabled").(bool)
 ```
 
-**AVOID - Unnecessary Variable Assignment:**
+**FORBIDDEN - Unnecessary Variable Assignment:**
 ```go
 // Don't create intermediate variables for simple operations
 nameFromConfig := d.Get("name").(string)
@@ -469,51 +469,19 @@ name := nameFromConfig
 
 #### Minimal Comment Standards
 
-**⚠️ CRITICAL: Avoid Unnecessary Comments**
+**⚠️ CRITICAL: Follow ZERO TOLERANCE FOR UNNECESSARY COMMENTS POLICY**
 
-The AI should **NEVER** add comments to code unless absolutely necessary. Code should be self-documenting through clear variable names, function names, and structure.
+📋 **For complete policy details, enforcement guidelines, decision trees, and comprehensive examples, see:** [Code Clarity Enforcement Guidelines](./code-clarity-enforcement.instructions.md#🚫-zero-tolerance-for-unnecessary-comments-policy)
 
-**🚫 DEFAULT APPROACH: Write code without comments**
+**Quick Reference - Comments ONLY for:**
+- Azure API-specific quirks not obvious from code
+- Complex business logic that cannot be simplified
+- Azure SDK workarounds for limitations/bugs
+- Non-obvious state patterns (PATCH operations, residual state)
 
-**Comments should ONLY be used for these EXCEPTIONAL cases:**
-- **Azure API-specific quirks or behaviors** that are not obvious from the code
-- **Complex business logic** that cannot be made clear through code structure alone
-- **Workarounds for Azure SDK limitations** or API bugs
-- **Non-obvious state management patterns** (like PATCH operations or residual state handling)
-- **Azure service constraints** that require explanation (timeout ranges, SKU limitations, etc.)
+**All other comment scenarios are FORBIDDEN - refactor code instead.**
 
-**🚫 ABSOLUTELY FORBIDDEN - DO NOT comment:**
-- Obvious operations like variable assignments
-- Standard expand/flatten operations
-- Simple struct initialization
-- Basic conditional logic
-- Self-explanatory function calls
-- Routine Azure API calls
-- Standard Go patterns (error handling, nil checks)
-- Field mappings between Terraform and Azure models
-
-**BEFORE adding ANY comment, ask these questions:**
-1. Can I make the code clearer through better naming?
-2. Can I extract this into a well-named function?
-3. Is this truly an Azure-specific quirk that needs explanation?
-4. Would an experienced Go developer be confused by this logic?
-
-**If you answered "no" to question 3 and 4, DO NOT add a comment.**
-
-**🔍 COMMENT JUSTIFICATION REQUIREMENT:**
-When I add ANY comment to code, I MUST explicitly state in my response:
-- **WHY this comment is necessary** (which exception case it falls under)
-- **WHAT Azure-specific behavior** it's documenting (if applicable)
-- **WHY the code cannot be made self-explanatory** through refactoring
-
-**Example acceptable justification:**
-> "Adding comment to document Azure PATCH operation quirk: Azure preserves existing values when fields are omitted, which is not obvious from the code structure and cannot be expressed through naming alone."
-
-**🚫 UNACCEPTABLE - No justification or vague reasoning:**
-> "Adding comment to explain what this code does" (FORBIDDEN)
-> "Adding comment for clarity" (FORBIDDEN - refactor code instead)
-
-📋 **For comprehensive enforcement guidelines and detailed examples, see:** [Code Clarity Enforcement Guidelines](./code-clarity-enforcement.instructions.md)
+**🔍 MANDATORY JUSTIFICATION:** Every comment requires explicit justification documented in review response explaining which exception case applies and why code cannot be self-explanatory through refactoring.
 
 ---
 [⬆️ Back to top](#terraform-azurerm-provider-implementation-guide)
@@ -529,16 +497,43 @@ import (
     "github.com/hashicorp/go-azure-helpers/lang/pointer"
 )
 
-// PREFERRED - Use pointer package
+// PREFERRED - Use pointer package for creating pointers
 stringPtr := pointer.To("example")
 intPtr := pointer.To(int64(42))
 boolPtr := pointer.To(true)
+slicePtr := pointer.To([]string{"item1", "item2"})
 
 // Convert pointers to values with defaults
 stringValue := pointer.From(stringPtr)
 stringValueWithDefault := pointer.FromString(stringPtr, "default")
 intValue := pointer.FromInt64(intPtr, 0)
 boolValue := pointer.FromBool(boolPtr, false)
+
+// Azure API Parameter Patterns
+parameters := azuretype.CreateParameters{
+    Name:     pointer.To("resource-name"),
+    Location: pointer.To("eastus"),
+    Enabled:  pointer.To(true),
+    Tags:     pointer.To(map[string]string{"env": "prod"}),
+}
+
+// Nested Structure Patterns
+properties := &azuretype.Properties{
+    Config: &azuretype.Config{
+        Timeout:  pointer.To(int64(300)),
+        Retries:  pointer.To(int32(3)),
+        Advanced: pointer.To(false),
+    },
+}
+
+// FORBIDDEN - Manual pointer creation (inconsistent pattern)
+name := "resource-name"
+namePtr := &name  // Use pointer.To() instead
+
+// FORBIDDEN - Manual nil checks with dereferencing
+if props.Name != nil {
+    state.Name = *props.Name  // Use pointer.From() instead
+}
 ```
 
 ### Pointer Dereferencing Best Practices
@@ -554,9 +549,9 @@ if props.Api != nil {
 }
 ```
 
-**AVOID - Manual nil checks with dereferencing:**
+**FORBIDDEN - Manual nil checks with dereferencing:**
 ```go
-// AVOID - Manual nil checks and dereferencing (inconsistent pattern)
+// FORBIDDEN - Manual nil checks and dereferencing (inconsistent pattern)
 if props.DisplayName != nil {
     state.DisplayName = *props.DisplayName
 }
@@ -632,7 +627,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 "size": {
     Type:     pluginsdk.TypeString,
     Optional: true,
-    // ForceNew: false allows in-place updates
+    // Omitting ForceNew defaults to false, allowing in-place updates
 },
 ```
 
@@ -1004,6 +999,8 @@ func resourceServiceName() *pluginsdk.Resource {
 - **Import Requirements**: Typed typically need dual imports, untyped often use single import
 - **Validation Style**: Typed validate against decoded models, untyped use `diff.Get()` patterns
 
+**For Azure-specific CustomizeDiff validation techniques including zero value handling patterns, see:** [Azure Patterns - Zero Value Validation](./azure-patterns.instructions.md#zero-value-validation-pattern)
+
 **Programmatic ForceNew Pattern Explanation:**
 Use `diff.ForceNew()` within CustomizeDiffShim when:
 1. Complex conditional logic determines if recreation is needed
@@ -1090,7 +1087,6 @@ func TestAccServiceName_update(t *testing.T) {
             Config: r.updated(data),
             Check: acceptance.ComposeTestCheckFunc(
                 check.That(data.ResourceName).ExistsInAzure(r),
-                check.That(data.ResourceName).Key("tags.Environment").HasValue("Updated"),
             ),
         },
         data.ImportStep(),
@@ -1107,12 +1103,27 @@ func TestAccServiceName_complete(t *testing.T) {
             Config: r.complete(data),
             Check: acceptance.ComposeTestCheckFunc(
                 check.That(data.ResourceName).ExistsInAzure(r),
-                check.That(data.ResourceName).Key("sku_name").HasValue("Premium"),
-                check.That(data.ResourceName).Key("enabled").HasValue("true"),
-                check.That(data.ResourceName).Key("timeout_seconds").HasValue("300"),
             ),
         },
         data.ImportStep(),
+    })
+}
+
+// TypeSet deduplication test (valid use of Key() validation)
+func TestAccServiceName_typeSetDeduplication(t *testing.T) {
+    data := acceptance.BuildTestData(t, "azurerm_service_name", "test")
+    r := ServiceNameResource{}
+
+    data.ResourceTest(t, r, []acceptance.TestStep{
+        {
+            Config: r.withDuplicateSetItems(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+                // VALID: Testing TypeSet deduplication behavior - not simple field validation
+                check.That(data.ResourceName).Key("security_rule.#").HasValue("1"),
+            ),
+        },
+        data.ImportStep(), // Still validates all other field values
     })
 }
 
@@ -1126,13 +1137,6 @@ func TestAccServiceName_customizeDiffValidation(t *testing.T) {
             Config:      r.invalidConfiguration(data),
             ExpectError: regexp.MustCompile("`configuration` is required when `enabled` is true"),
         },
-        {
-            Config: r.validConfiguration(data),
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r),
-            ),
-        },
-        data.ImportStep(),
     })
 }
 ```
@@ -1142,7 +1146,7 @@ func TestAccServiceName_customizeDiffValidation(t *testing.T) {
 #### Structured Error Messages
 ```go
 // Field names and values in backticks
-return fmt.Errorf("the `%s` field cannot be set when `%s` is `%s`", fieldName, otherField, value)
+return fmt.Errorf("the `fieldName` field cannot be set when `otherField` is `%s`", value)
 
 // Azure resource context
 return fmt.Errorf("creating %s: %+v", id, err)
@@ -1211,7 +1215,12 @@ Before submitting code, verify:
 
 ## Quick Reference Links
 
+- 🏠 **Home**: [../copilot-instructions.md](../copilot-instructions.md)
 - 📋 **Code Clarity Enforcement**: [code-clarity-enforcement.instructions.md](./code-clarity-enforcement.instructions.md)
-- 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
-- 📝 **Documentation Guide**: [documentation-guidelines.instructions.md](./documentation-guidelines.instructions.md)
 - ☁️ **Azure Patterns**: [azure-patterns.instructions.md](./azure-patterns.instructions.md)
+- 📝 **Documentation Guide**: [documentation-guidelines.instructions.md](./documentation-guidelines.instructions.md)
+- ❌ **Error Patterns**: [error-patterns.instructions.md](./error-patterns.instructions.md)
+- 🔄 **Migration Guide**: [migration-guide.instructions.md](./migration-guide.instructions.md)
+- 🏢 **Provider Guidelines**: [provider-guidelines.instructions.md](./provider-guidelines.instructions.md)
+- 📐 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md)
+- 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
