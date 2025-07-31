@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/data"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/markdown"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/template"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/data"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/markdown"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/template"
 	log "github.com/sirupsen/logrus"
 )
 

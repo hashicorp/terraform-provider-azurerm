@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/util"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/util"
 )
 
 type DiffError struct {

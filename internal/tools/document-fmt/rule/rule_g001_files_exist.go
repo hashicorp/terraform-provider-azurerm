@@ -3,8 +3,8 @@ package rule
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/data"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/util"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/data"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/util"
 	"github.com/spf13/afero"
 )
 

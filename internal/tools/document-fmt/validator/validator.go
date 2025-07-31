@@ -1,8 +1,8 @@
 package validator
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/data"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/rule"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/data"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/rule"
 )
 
 // Validator.Run provides a separation between `data` and `rule` packages to avoid cyclic imports...

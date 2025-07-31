@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/cmd"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/cmd"
 )
 
 func main() {

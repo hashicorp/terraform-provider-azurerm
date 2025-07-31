@@ -8,11 +8,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/data"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/differror"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/markdown"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/template"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/util"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/data"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/differror"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/markdown"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/template"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/util"
 	log "github.com/sirupsen/logrus"
 )
 

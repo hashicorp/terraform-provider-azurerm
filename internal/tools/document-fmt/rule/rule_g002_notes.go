@@ -5,8 +5,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/data"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/differror"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/data"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/differror"
 )
 
 type G002 struct{}

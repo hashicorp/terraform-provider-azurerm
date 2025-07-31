@@ -7,7 +7,7 @@ import (
 	"unicode"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/util"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/util"
 	"github.com/spf13/afero"
 )
 

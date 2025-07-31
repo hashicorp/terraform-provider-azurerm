@@ -5,9 +5,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/data"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/util"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/validator"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/data"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/util"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/validator"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
@@ -17,7 +17,7 @@ func Make() *cobra.Command {
 	fs := afero.NewOsFs()
 
 	rootCmd := &cobra.Command{
-		Use:   "docthebuilder [validate|fix|scaffold]",
+		Use:   "documentfmt [validate|fix|scaffold]",
 		Short: "A small tool to validate provider documentation.",
 		Long:  `A small tool to validate provider documentation based on a set of custom rules. It can also fix most found issues.`,
 	}

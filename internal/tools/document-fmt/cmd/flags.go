@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/rule"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/util"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/rule"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/util"
 	"github.com/spf13/cobra"
 )
 

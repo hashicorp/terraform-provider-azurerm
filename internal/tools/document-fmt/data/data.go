@@ -7,8 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/markdown"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/util"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/markdown"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/util"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 )

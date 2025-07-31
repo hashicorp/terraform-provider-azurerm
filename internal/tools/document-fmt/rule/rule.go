@@ -3,7 +3,7 @@ package rule
 import (
 	"fmt"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/docthebuilder/data"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-fmt/data"
 )
 
 type Rule interface {
