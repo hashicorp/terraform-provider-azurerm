@@ -64,7 +64,7 @@ func (EventGridPartnerNamespaceResource) Arguments() map[string]*pluginsdk.Schem
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: ValidatePartnerRegistrationFullyQualifiedID,
+			ValidateFunc: partnerregistrations.ValidatePartnerRegistrationID,
 		},
 		"inbound_ip_rule": &schema.Schema{
 			Type:     pluginsdk.TypeList,
@@ -234,38 +234,26 @@ func (r EventGridPartnerNamespaceResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `model.Properties` was nil", *id)
 			}
 
-			payload := existing.Model
-
-			param := partnernamespaces.PartnerNamespace{
-				Location: payload.Location,
-				Properties: &partnernamespaces.PartnerNamespaceProperties{
-					DisableLocalAuth:                    payload.Properties.DisableLocalAuth,
-					InboundIPRules:                      payload.Properties.InboundIPRules,
-					PartnerRegistrationFullyQualifiedId: payload.Properties.PartnerRegistrationFullyQualifiedId,
-					PartnerTopicRoutingMode:             payload.Properties.PartnerTopicRoutingMode,
-					PublicNetworkAccess:                 payload.Properties.PublicNetworkAccess,
-				},
-				Tags: payload.Tags,
-			}
+			model := existing.Model
 
 			if metadata.ResourceData.HasChange("local_auth_enabled") {
-				param.Properties.DisableLocalAuth = pointer.To(!config.LocalAuthEnabled)
+				model.Properties.DisableLocalAuth = pointer.To(!config.LocalAuthEnabled)
 			}
 			if metadata.ResourceData.HasChange("inbound_ip_rule") {
-				param.Properties.InboundIPRules = expandPartnerInboundIPRules(config.InboundIPRules)
+				model.Properties.InboundIPRules = expandPartnerInboundIPRules(config.InboundIPRules)
 			}
 			if metadata.ResourceData.HasChange("public_network_access_enabled") {
 				if config.PublicNetworkAccessEnabled {
-					param.Properties.PublicNetworkAccess = pointer.To(partnernamespaces.PublicNetworkAccessEnabled)
+					model.Properties.PublicNetworkAccess = pointer.To(partnernamespaces.PublicNetworkAccessEnabled)
 				} else {
-					param.Properties.PublicNetworkAccess = pointer.To(partnernamespaces.PublicNetworkAccessDisabled)
+					model.Properties.PublicNetworkAccess = pointer.To(partnernamespaces.PublicNetworkAccessDisabled)
 				}
 			}
 			if metadata.ResourceData.HasChange("tags") {
-				param.Tags = pointer.To(config.Tags)
+				model.Tags = pointer.To(config.Tags)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, param); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -339,17 +327,4 @@ func (r EventGridPartnerNamespaceResource) Delete() sdk.ResourceFunc {
 
 func (EventGridPartnerNamespaceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return partnernamespaces.ValidatePartnerNamespaceID
-}
-
-func ValidatePartnerRegistrationFullyQualifiedID(i interface{}, k string) (warnings []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
-		errors = append(errors, fmt.Errorf("expected type of %q to be string", k))
-		return warnings, errors
-	}
-
-	if _, err := partnerregistrations.ParsePartnerRegistrationID(v); err != nil {
-		errors = append(errors, fmt.Errorf("expected %q to be a valid Partner Registration Fully Qualified ID, got %v: %v", k, i, err))
-	}
-	return warnings, errors
 }
