@@ -101,7 +101,6 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 
 					"gpu_driver": {
 						Type:         pluginsdk.TypeString,
-						Default:      string(agentpools.GPUDriverNone),
 						Optional:     true,
 						ForceNew:     true,
 						ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForGPUDriver(), false),
@@ -908,9 +907,10 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.GpuInstanceProfile = pointer.To(managedclusters.GPUInstanceProfile(gpuInstanceProfile))
 	}
 
-	gpuDriver := raw["gpu_driver"].(string)
-	profile.GpuProfile = &managedclusters.GPUProfile{
-		Driver: pointer.To(managedclusters.GPUDriver(gpuDriver)),
+	if gpuDriver := raw["gpu_driver"].(string); gpuDriver != "" {
+		profile.GpuProfile = &managedclusters.GPUProfile{
+			Driver: pointer.To(managedclusters.GPUDriver(gpuDriver)),
+		}
 	}
 
 	count := raw["node_count"].(int)

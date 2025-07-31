@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -214,8 +215,8 @@ func dataSourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta int
 		d.Set("eviction_policy", evictionPolicy)
 
 		gpuDriver := ""
-		if props.GpuProfile != nil && *props.GpuProfile.Driver != "" {
-			gpuDriver = string(*props.GpuProfile.Driver)
+		if props.GpuProfile != nil {
+			gpuDriver = string(pointer.From(props.GpuProfile.Driver))
 		}
 		d.Set("gpu_driver", gpuDriver)
 

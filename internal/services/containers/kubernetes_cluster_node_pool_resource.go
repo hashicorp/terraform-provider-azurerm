@@ -166,7 +166,6 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 
 		"gpu_driver": {
 			Type:         pluginsdk.TypeString,
-			Default:      string(agentpools.GPUDriverNone),
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForGPUDriver(), false),
@@ -501,8 +500,10 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.GpuInstanceProfile = pointer.To(agentpools.GPUInstanceProfile(gpuInstanceProfile))
 	}
 
-	profile.GpuProfile = &agentpools.GPUProfile{
-		Driver: pointer.To(agentpools.GPUDriver(d.Get("gpu_driver").(string))),
+	if gpuDriver := d.Get("gpu_driver").(string); gpuDriver != "" {
+		profile.GpuProfile = &agentpools.GPUProfile{
+			Driver: pointer.To(agentpools.GPUDriver(d.Get("gpu_driver").(string))),
+		}
 	}
 
 	if osSku := d.Get("os_sku").(string); osSku != "" {
