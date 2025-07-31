@@ -114,25 +114,11 @@ func (p *provisioningStatePoller) Poll(ctx context.Context) (*pollers.PollResult
 		return nil, fmt.Errorf("unmarshaling result: %+v", err)
 	}
 
-	status := ""
-	if statusIsTerminal(result.Status) {
-		status = string(result.Status)
-	}
+	status := string(result.Status)
+
 	// if the result has a provisioningState field, we should prioritise that
 	if statusIsTerminal(result.Properties.ProvisioningState) {
 		status = string(result.Properties.ProvisioningState)
-	}
-	if status == "" {
-		// Some Operations support both an LRO and immediate completion, but _don't_ return a provisioningState field
-		// since we're checking for a 200 OK, if we didn't get a provisioningState field, for the moment we have to
-		// assume that we're done.
-		// Examples: `APIManagement` API Versions `2021-08-01` and `2022-08-01` - `Services.GlobalSchemaCreateOrUpdate`.
-		// Examples: `Automation` API Versions `2020-01-13-preview` - `DscNodeConfiguration.CreateOrUpdate`.
-		// https://github.com/hashicorp/go-azure-sdk/issues/542
-		return &pollers.PollResult{
-			PollInterval: p.initialRetryDuration,
-			Status:       pollers.PollingStatusSucceeded,
-		}, nil
 	}
 
 	if strings.EqualFold(status, string(statusCanceled)) || strings.EqualFold(status, string(statusCancelled)) {
@@ -154,8 +140,9 @@ func (p *provisioningStatePoller) Poll(ctx context.Context) (*pollers.PollResult
 		}, nil
 	}
 
-	// some API's have unique provisioningStates (e.g. Storage Accounts has `ResolvingDns`)
-	// if we don't recognise it, treat it as a polling status
+	// any other condition for polling should be considered in-progress
+	// Note: Some APIs return a polling URL, but complete immediately. These should be considered on a case by case basis
+	// when deciding if the operation should be polled. e.g. taking the HTTP code into account.
 	return &pollers.PollResult{
 		PollInterval: p.initialRetryDuration,
 		Status:       pollers.PollingStatusInProgress,

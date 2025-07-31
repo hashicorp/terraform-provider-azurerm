@@ -168,8 +168,11 @@ func (r MsSqlManagedInstanceResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"administrator_login": {
-			Type:         schema.TypeString,
-			Optional:     true,
+			Type:     schema.TypeString,
+			Optional: true,
+			// Note: O+C because Azure returns a generated value if `azure_active_directory_administrator.azuread_authentication_only_enabled` is `true`.
+			// which leads to unnecessary resource recreation on subsequent plans where Terraform tries to remove it.
+			Computed:     true,
 			ForceNew:     true,
 			AtLeastOneOf: []string{"administrator_login", "azure_active_directory_administrator"},
 			RequiredWith: []string{"administrator_login", "administrator_login_password"},
@@ -656,7 +659,7 @@ func (r MsSqlManagedInstanceResource) Read() sdk.ResourceFunc {
 			if existing.Model != nil {
 				model = MsSqlManagedInstanceModel{
 					Name:              id.ManagedInstanceName,
-					Location:          location.NormalizeNilable(&existing.Model.Location),
+					Location:          location.Normalize(existing.Model.Location),
 					ResourceGroupName: id.ResourceGroupName,
 					Identity:          r.flattenIdentity(existing.Model.Identity),
 					Tags:              pointer.From(existing.Model.Tags),
