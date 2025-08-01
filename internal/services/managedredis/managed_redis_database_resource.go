@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/custompollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/databaselink"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -70,7 +71,6 @@ func (r ManagedRedisDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 		"access_keys_authentication_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			ForceNew: true,
 			Default:  false,
 		},
 
@@ -326,10 +326,32 @@ func (r ManagedRedisDatabaseResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ManagedRedis.DatabaseClient
+
+			id, err := databases.ParseDatabaseID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
 			var model ManagedRedisDatabaseResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
+
+			existing, err := client.Get(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
+			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+			}
+
+			param := existing.Model
+			databaseUpdateNeeded := false
 
 			if metadata.ResourceData.HasChange("linked_database_id") {
 				oldItems, newItems := metadata.ResourceData.GetChange("linked_database_id")
@@ -338,6 +360,22 @@ func (r ManagedRedisDatabaseResource) Update() sdk.ResourceFunc {
 				}
 				if err := forceLinkDatabase(ctx, &metadata, oldItems, newItems); err != nil {
 					return fmt.Errorf("force linking database error: %+v", err)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("access_keys_authentication_enabled") {
+				param.Properties.AccessKeysAuthentication = pointer.To(databases.AccessKeysAuthenticationDisabled)
+				if model.AccessKeysAuthenticationEnabled {
+					param.Properties.AccessKeysAuthentication = pointer.To(databases.AccessKeysAuthenticationEnabled)
+				}
+				databaseUpdateNeeded = true
+			}
+
+			if databaseUpdateNeeded {
+				// Oddly this SDK does not have a CreateOrUpdate method. Despite the name, Create uses PUT. Update / PATCH
+				// method cannot be used because it has a bug where accessKeysAuthentication update is not yet implemented.
+				if err := client.CreateThenPoll(ctx, *id, *param); err != nil {
+					return fmt.Errorf("updating %s: %+v", *id, err)
 				}
 			}
 
@@ -507,26 +545,8 @@ func flattenArmGeoLinkedDatabase(inputDB *[]databases.LinkedDatabase) []string {
 	return results
 }
 
-func forceUnlinkItems(oldItemList []interface{}, newItemList []interface{}) (bool, []string) {
-	newItems := make(map[string]bool)
-	forceUnlinkList := make([]string, 0)
-	for _, newItem := range newItemList {
-		newItems[newItem.(string)] = true
-	}
-
-	for _, oldItem := range oldItemList {
-		if !newItems[oldItem.(string)] {
-			forceUnlinkList = append(forceUnlinkList, oldItem.(string))
-		}
-	}
-	if len(forceUnlinkList) > 0 {
-		return true, forceUnlinkList
-	}
-	return false, nil
-}
-
 func forceUnlinkDatabase(ctx context.Context, meta *sdk.ResourceMetaData, oldItems, newItems interface{}) error {
-	isForceUnlinkNeeded, data := forceUnlinkItems(oldItems.(*pluginsdk.Set).List(), newItems.(*pluginsdk.Set).List())
+	isForceUnlinkNeeded, data := databaselink.ForceUnlinkItems(oldItems.(*pluginsdk.Set).List(), newItems.(*pluginsdk.Set).List())
 	if isForceUnlinkNeeded {
 		client := meta.Client.ManagedRedis.DatabaseClient
 		log.Printf("[INFO] Preparing to unlink a linked database")
@@ -547,21 +567,8 @@ func forceUnlinkDatabase(ctx context.Context, meta *sdk.ResourceMetaData, oldIte
 	return nil
 }
 
-func forceLinkNeeded(oldItemList []interface{}, newItemList []interface{}) bool {
-	oldItems := make(map[string]bool)
-	for _, oldItem := range oldItemList {
-		oldItems[oldItem.(string)] = true
-	}
-	for _, newItem := range newItemList {
-		if !oldItems[newItem.(string)] {
-			return true
-		}
-	}
-	return false
-}
-
 func forceLinkDatabase(ctx context.Context, meta *sdk.ResourceMetaData, oldItems, newItems interface{}) error {
-	if forceLinkNeeded(oldItems.(*pluginsdk.Set).List(), newItems.(*pluginsdk.Set).List()) {
+	if databaselink.ForceLinkNeeded(oldItems.(*pluginsdk.Set).List(), newItems.(*pluginsdk.Set).List()) {
 		client := meta.Client.ManagedRedis.DatabaseClient
 		log.Printf("[INFO] Preparing to link to a replication group")
 
