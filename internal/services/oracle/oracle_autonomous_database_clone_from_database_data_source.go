@@ -16,66 +16,73 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.DataSource = AutonomousDatabaseCloneFromBackupDataSource{}
+var _ sdk.DataSource = AutonomousDatabaseCloneFromDatabaseDataSource{}
 
-type AutonomousDatabaseCloneFromBackupDataSource struct{}
+type AutonomousDatabaseCloneFromDatabaseDataSource struct{}
 
-type AutonomousDatabaseCloneFomBackupDataSourceModel struct {
+type AutonomousDatabaseCloneFromDatabaseDataSourceModel struct {
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Location          string            `tfschema:"location"`
 	Tags              map[string]string `tfschema:"tags"`
 
-	SourceAutonomousDatabaseId string `tfschema:"source_autonomous_database_id"`
+	// Clone-specific properties
+	SourceId                string `tfschema:"source_id"`
+	CloneType               string `tfschema:"clone_type"`
+	ReconnectCloneEnabled   bool   `tfschema:"reconnect_clone_enabled"`
+	RefreshableClone        bool   `tfschema:"refreshable_clone"`
+	RefreshableModel        string `tfschema:"refreshable_model"`
+	RefreshableStatus       string `tfschema:"refreshable_status"`
+	TimeUntilReconnectClone string `tfschema:"time_until_reconnect_clone"`
 
 	// Base properties (computed)
-	AutonomousDatabaseId                    string                          `tfschema:"autonomous_database_id"`
+	ActualUsedDataStorageSizeInTbs          float64                         `tfschema:"actual_used_data_storage_size_in_tbs"`
+	AllocatedStorageSizeInTbs               float64                         `tfschema:"allocated_storage_size_in_tbs"`
 	AllowedIps                              []string                        `tfschema:"allowed_ips"`
+	AutoScalingEnabled                      bool                            `tfschema:"auto_scaling_enabled"`
+	AutoScalingForStorageEnabled            bool                            `tfschema:"auto_scaling_for_storage_enabled"`
+	AutonomousDatabaseId                    string                          `tfschema:"autonomous_database_id"`
+	AvailableUpgradeVersions                []string                        `tfschema:"available_upgrade_versions"`
 	BackupRetentionPeriodInDays             int64                           `tfschema:"backup_retention_period_in_days"`
 	CharacterSet                            string                          `tfschema:"character_set"`
 	ComputeCount                            float64                         `tfschema:"compute_count"`
 	ComputeModel                            string                          `tfschema:"compute_model"`
+	ConnectionStrings                       []string                        `tfschema:"connection_strings"`
+	CpuCoreCount                            int64                           `tfschema:"cpu_core_count"`
 	CustomerContacts                        []string                        `tfschema:"customer_contacts"`
 	DataStorageSizeInGbs                    int64                           `tfschema:"data_storage_size_in_gbs"`
 	DataStorageSizeInTbs                    int64                           `tfschema:"data_storage_size_in_tbs"`
-	DbVersion                               string                          `tfschema:"db_version"`
-	DbWorkload                              string                          `tfschema:"db_workload"`
+	DatabaseVersion                         string                          `tfschema:"database_version"`
+	DatabaseWorkload                        string                          `tfschema:"database_workload"`
 	DisplayName                             string                          `tfschema:"display_name"`
-	LicenseModel                            string                          `tfschema:"license_model"`
-	AutoScalingEnabled                      bool                            `tfschema:"auto_scaling_enabled"`
-	AutoScalingForStorageEnabled            bool                            `tfschema:"auto_scaling_for_storage_enabled"`
-	MtlsConnectionRequired                  bool                            `tfschema:"mtls_connection_required"`
-	NationalCharacterSet                    string                          `tfschema:"national_character_set"`
-	SubnetId                                string                          `tfschema:"subnet_id"`
-	VnetId                                  string                          `tfschema:"virtual_network_id"`
-	LifecycleState                          string                          `tfschema:"lifecycle_state"`
-	PrivateEndpoint                         string                          `tfschema:"private_endpoint"`
-	PrivateEndpointIp                       string                          `tfschema:"private_endpoint_ip"`
-	ServiceConsoleUrl                       string                          `tfschema:"service_console_url"`
-	SqlWebDeveloperUrl                      string                          `tfschema:"sql_web_developer_url"`
-	TimeCreated                             string                          `tfschema:"time_created"`
-	OciUrl                                  string                          `tfschema:"oci_url"`
-	ActualUsedDataStorageSizeInTbs          float64                         `tfschema:"actual_used_data_storage_size_in_tbs"`
-	AllocatedStorageSizeInTbs               float64                         `tfschema:"allocated_storage_size_in_tbs"`
-	AvailableUpgradeVersions                []string                        `tfschema:"available_upgrade_versions"`
-	CpuCoreCount                            int64                           `tfschema:"cpu_core_count"`
 	FailedDataRecoveryInSeconds             int64                           `tfschema:"failed_data_recovery_in_seconds"`
+	LicenseModel                            string                          `tfschema:"license_model"`
 	LifecycleDetails                        string                          `tfschema:"lifecycle_details"`
+	LifecycleState                          string                          `tfschema:"lifecycle_state"`
 	LocalAdgAutoFailoverMaxDataLossLimit    int64                           `tfschema:"local_adg_auto_failover_max_data_loss_limit"`
 	LocalDataGuardEnabled                   bool                            `tfschema:"local_data_guard_enabled"`
 	LongTermBackupSchedule                  []LongTermBackUpScheduleDetails `tfschema:"long_term_backup_schedule"`
 	MemoryAreaInGbs                         int64                           `tfschema:"in_memory_area_in_gbs"`
 	MemoryPerOracleComputeUnitInGbs         int64                           `tfschema:"memory_per_oracle_compute_unit_in_gbs"`
+	MtlsConnectionRequired                  bool                            `tfschema:"mtls_connection_required"`
+	NationalCharacterSet                    string                          `tfschema:"national_character_set"`
 	NextLongTermBackupTimeStamp             string                          `tfschema:"next_long_term_backup_time_stamp"`
+	OciUrl                                  string                          `tfschema:"oci_url"`
 	Ocid                                    string                          `tfschema:"ocid"`
 	PeerDbId                                string                          `tfschema:"peer_db_id"`
 	PeerDbIds                               []string                        `tfschema:"peer_db_ids"`
 	Preview                                 bool                            `tfschema:"preview"`
 	PreviewVersionWithServiceTermsAccepted  bool                            `tfschema:"preview_version_with_service_terms_accepted"`
+	PrivateEndpoint                         string                          `tfschema:"private_endpoint"`
+	PrivateEndpointIp                       string                          `tfschema:"private_endpoint_ip"`
 	PrivateEndpointLabel                    string                          `tfschema:"private_endpoint_label"`
 	ProvisionableCPUs                       []int64                         `tfschema:"provisionable_cpus"`
 	RemoteDataGuardEnabled                  bool                            `tfschema:"remote_data_guard_enabled"`
+	ServiceConsoleUrl                       string                          `tfschema:"service_console_url"`
+	SqlWebDeveloperUrl                      string                          `tfschema:"sql_web_developer_url"`
+	SubnetId                                string                          `tfschema:"subnet_id"`
 	SupportedRegionsToCloneTo               []string                        `tfschema:"supported_regions_to_clone_to"`
+	TimeCreated                             string                          `tfschema:"time_created"`
 	TimeDataGuardRoleChanged                string                          `tfschema:"time_data_guard_role_changed"`
 	TimeDeletionOfFreeAutonomousDatabase    string                          `tfschema:"time_deletion_of_free_autonomous_database"`
 	TimeLocalDataGuardEnabled               string                          `tfschema:"time_local_data_guard_enabled_on"`
@@ -88,9 +95,10 @@ type AutonomousDatabaseCloneFomBackupDataSourceModel struct {
 	TimeReclamationOfFreeAutonomousDatabase string                          `tfschema:"time_reclamation_of_free_autonomous_database"`
 	UsedDataStorageSizeInGbs                int64                           `tfschema:"used_data_storage_size_in_gbs"`
 	UsedDataStorageSizeInTbs                int64                           `tfschema:"used_data_storage_size_in_tbs"`
+	VnetId                                  string                          `tfschema:"virtual_network_id"`
 }
 
-func (AutonomousDatabaseCloneFromBackupDataSource) Arguments() map[string]*pluginsdk.Schema {
+func (AutonomousDatabaseCloneFromDatabaseDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -102,16 +110,49 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Arguments() map[string]*plugi
 	}
 }
 
-func (AutonomousDatabaseCloneFromBackupDataSource) Attributes() map[string]*pluginsdk.Schema {
+func (AutonomousDatabaseCloneFromDatabaseDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.LocationComputed(),
 
 		"tags": commonschema.TagsDataSource(),
 
-		"source_autonomous_database_id": {
+		// Clone-specific properties
+		"source_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
+		"clone_type": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"reconnect_clone_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
+		"refreshable_clone": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
+		"refreshable_model": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"refreshable_status": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"time_until_reconnect_clone": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		// Base properties
 		"autonomous_database_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -172,6 +213,14 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Attributes() map[string]*plug
 			Computed: true,
 		},
 
+		"connection_strings": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
+		},
+
 		"cpu_core_count": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
@@ -195,12 +244,12 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Attributes() map[string]*plug
 			Computed: true,
 		},
 
-		"db_version": {
+		"database_version": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"db_workload": {
+		"database_workload": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -446,22 +495,22 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Attributes() map[string]*plug
 	}
 }
 
-func (AutonomousDatabaseCloneFromBackupDataSource) ModelObject() interface{} {
-	return &AutonomousDatabaseCloneFomBackupDataSourceModel{}
+func (AutonomousDatabaseCloneFromDatabaseDataSource) ModelObject() interface{} {
+	return &AutonomousDatabaseCloneFromDatabaseDataSourceModel{}
 }
 
-func (AutonomousDatabaseCloneFromBackupDataSource) ResourceType() string {
-	return "azurerm_oracle_autonomous_database_clone_from_backup"
+func (AutonomousDatabaseCloneFromDatabaseDataSource) ResourceType() string {
+	return "azurerm_oracle_autonomous_database_clone_from_database"
 }
 
-func (AutonomousDatabaseCloneFromBackupDataSource) Read() sdk.ResourceFunc {
+func (AutonomousDatabaseCloneFromDatabaseDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
 
-			var state AutonomousDatabaseCloneFomBackupDataSourceModel
+			var state AutonomousDatabaseCloneFromDatabaseDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -476,76 +525,58 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
-				state.Name = id.AutonomousDatabaseName
-				state.ResourceGroupName = id.ResourceGroupName
 
-				props, ok := model.Properties.(autonomousdatabases.AutonomousDatabaseFromBackupTimestampProperties)
+				props, ok := model.Properties.(autonomousdatabases.AutonomousDatabaseCloneProperties)
 				if !ok {
 					return fmt.Errorf("%s is not a clone type autonomous database", id)
 				}
-				state.SourceAutonomousDatabaseId = props.SourceId
-
-				// Base properties
-				state.ActualUsedDataStorageSizeInTbs = pointer.From(props.ActualUsedDataStorageSizeInTbs)
-				state.AllocatedStorageSizeInTbs = pointer.From(props.AllocatedStorageSizeInTbs)
-				state.AllowedIps = pointer.From(props.WhitelistedIPs)
-				state.AutoScalingEnabled = pointer.From(props.IsAutoScalingEnabled)
-				state.AutoScalingForStorageEnabled = pointer.From(props.IsAutoScalingForStorageEnabled)
+				state.CloneType = string(props.CloneType)
+				state.SourceId = props.SourceId
+				state.ReconnectCloneEnabled = pointer.From(props.IsReconnectCloneEnabled)
+				state.RefreshableClone = pointer.From(props.IsRefreshableClone)
+				state.TimeUntilReconnectClone = pointer.From(props.TimeUntilReconnectCloneEnabled)
+				state.RefreshableModel = pointer.FromEnum(props.RefreshableModel)
+				state.RefreshableStatus = pointer.FromEnum(props.RefreshableStatus)
 				state.AutonomousDatabaseId = pointer.From(props.AutonomousDatabaseId)
-				state.AvailableUpgradeVersions = pointer.From(props.AvailableUpgradeVersions)
+				state.AllowedIps = pointer.From(props.WhitelistedIPs)
 				state.BackupRetentionPeriodInDays = pointer.From(props.BackupRetentionPeriodInDays)
 				state.CharacterSet = pointer.From(props.CharacterSet)
 				state.ComputeCount = pointer.From(props.ComputeCount)
 				state.ComputeModel = string(pointer.From(props.ComputeModel))
-				state.CpuCoreCount = pointer.From(props.CpuCoreCount)
 				state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
 				state.DataStorageSizeInGbs = pointer.From(props.DataStorageSizeInGbs)
 				state.DataStorageSizeInTbs = pointer.From(props.DataStorageSizeInTbs)
-				state.DbVersion = pointer.From(props.DbVersion)
-				state.DbWorkload = string(pointer.From(props.DbWorkload))
+				state.DatabaseVersion = pointer.From(props.DbVersion)
+				state.DatabaseWorkload = string(pointer.From(props.DbWorkload))
 				state.DisplayName = pointer.From(props.DisplayName)
-				state.FailedDataRecoveryInSeconds = pointer.From(props.FailedDataRecoveryInSeconds)
 				state.LicenseModel = string(pointer.From(props.LicenseModel))
-				state.LifecycleDetails = pointer.From(props.LifecycleDetails)
 				state.LifecycleState = pointer.FromEnum(props.LifecycleState)
-				state.LocalAdgAutoFailoverMaxDataLossLimit = pointer.From(props.LocalAdgAutoFailoverMaxDataLossLimit)
-				state.LocalDataGuardEnabled = pointer.From(props.IsLocalDataGuardEnabled)
-				state.LongTermBackupSchedule = FlattenLongTermBackUpScheduleDetails(props.LongTermBackupSchedule)
-				state.MemoryAreaInGbs = pointer.From(props.InMemoryAreaInGbs)
-				state.MemoryPerOracleComputeUnitInGbs = pointer.From(props.MemoryPerOracleComputeUnitInGbs)
+				state.AutoScalingEnabled = pointer.From(props.IsAutoScalingEnabled)
+				state.AutoScalingForStorageEnabled = pointer.From(props.IsAutoScalingForStorageEnabled)
 				state.MtlsConnectionRequired = pointer.From(props.IsMtlsConnectionRequired)
 				state.NationalCharacterSet = pointer.From(props.NcharacterSet)
-				state.NextLongTermBackupTimeStamp = pointer.From(props.NextLongTermBackupTimeStamp)
-				state.OciUrl = pointer.From(props.OciURL)
-				state.Ocid = pointer.From(props.Ocid)
-				state.PeerDbId = pointer.From(props.PeerDbId)
-				state.PeerDbIds = pointer.From(props.PeerDbIds)
-				state.Preview = pointer.From(props.IsPreview)
-				state.PreviewVersionWithServiceTermsAccepted = pointer.From(props.IsPreviewVersionWithServiceTermsAccepted)
+				state.SubnetId = pointer.From(props.SubnetId)
+				state.VnetId = pointer.From(props.VnetId)
 				state.PrivateEndpoint = pointer.From(props.PrivateEndpoint)
 				state.PrivateEndpointIp = pointer.From(props.PrivateEndpointIP)
-				state.PrivateEndpointLabel = pointer.From(props.PrivateEndpointLabel)
-				state.ProvisionableCPUs = pointer.From(props.ProvisionableCPUs)
-				state.RemoteDataGuardEnabled = pointer.From(props.IsRemoteDataGuardEnabled)
 				state.ServiceConsoleUrl = pointer.From(props.ServiceConsoleURL)
 				state.SqlWebDeveloperUrl = pointer.From(props.SqlWebDeveloperURL)
-				state.SubnetId = pointer.From(props.SubnetId)
-				state.SupportedRegionsToCloneTo = pointer.From(props.SupportedRegionsToCloneTo)
 				state.TimeCreated = pointer.From(props.TimeCreated)
-				state.TimeDataGuardRoleChanged = pointer.From(props.TimeDataGuardRoleChanged)
-				state.TimeDeletionOfFreeAutonomousDatabase = pointer.From(props.TimeDeletionOfFreeAutonomousDatabase)
-				state.TimeLocalDataGuardEnabled = pointer.From(props.TimeLocalDataGuardEnabled)
-				state.TimeMaintenanceBegin = pointer.From(props.TimeMaintenanceBegin)
-				state.TimeMaintenanceEnd = pointer.From(props.TimeMaintenanceEnd)
-				state.TimeOfLastFailover = pointer.From(props.TimeOfLastFailover)
-				state.TimeOfLastRefresh = pointer.From(props.TimeOfLastRefresh)
-				state.TimeOfLastRefreshPoint = pointer.From(props.TimeOfLastRefreshPoint)
-				state.TimeOfLastSwitchover = pointer.From(props.TimeOfLastSwitchover)
-				state.TimeReclamationOfFreeAutonomousDatabase = pointer.From(props.TimeReclamationOfFreeAutonomousDatabase)
-				state.UsedDataStorageSizeInGbs = pointer.From(props.UsedDataStorageSizeInGbs)
-				state.UsedDataStorageSizeInTbs = pointer.From(props.UsedDataStorageSizeInTbs)
-				state.VnetId = pointer.From(props.VnetId)
-
+				state.OciUrl = pointer.From(props.OciURL)
+				if props.ConnectionStrings != nil && props.ConnectionStrings.AllConnectionStrings != nil {
+					connStrings := make([]string, 0)
+					allConnStrings := *props.ConnectionStrings.AllConnectionStrings
+					if allConnStrings.High != nil {
+						connStrings = append(connStrings, *allConnStrings.High)
+					}
+					if allConnStrings.Medium != nil {
+						connStrings = append(connStrings, *allConnStrings.Medium)
+					}
+					if allConnStrings.Low != nil {
+						connStrings = append(connStrings, *allConnStrings.Low)
+					}
+					state.ConnectionStrings = connStrings
+				}
 			}
 
 			metadata.SetID(id)

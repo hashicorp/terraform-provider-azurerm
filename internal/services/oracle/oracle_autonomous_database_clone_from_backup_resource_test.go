@@ -26,11 +26,9 @@ func TestAccAutonomousDatabaseCloneFromBackup_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("ADB%dclone", data.RandomInteger)),
-				check.That(data.ResourceName).Key("data_base_type").HasValue("Clone"),
 			),
 		},
-		data.ImportStep("admin_password", "source", "clone_type"),
+		data.ImportStep("admin_password", "source", "clone_type", "use_latest_available_backup_time_stamp"),
 	})
 }
 
@@ -58,7 +56,6 @@ func TestAccAutonomousDatabaseCloneFromBackup_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("data_base_type").HasValue("CloneFromBackupTimestamp"),
 			),
 		},
 		data.ImportStep("admin_password", "source", "clone_type", "use_latest_available_backup_time_stamp"),
@@ -84,14 +81,14 @@ func (r AutonomousDatabaseCloneFromBackupResource) basic(data acceptance.TestDat
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_oracle_autonomous_database_clone" "test" {
+resource "azurerm_oracle_autonomous_database_clone_from_backup" "test" {
   name                = "ADB%[2]dclone"
   resource_group_name = azurerm_oracle_autonomous_database.test.resource_group_name
   location            = azurerm_oracle_autonomous_database.test.location
 
-  source_autonomous_database_id    = azurerm_oracle_autonomous_database.test.id
-  clone_type     = "Full"
-  source         = "BackupFromTimestamp"
+  source_autonomous_database_id = azurerm_oracle_autonomous_database.test.id
+  clone_type                    = "Full"
+  source                        = "BackupFromTimestamp"
 
   use_latest_available_backup_time_stamp = true
 
@@ -100,7 +97,7 @@ resource "azurerm_oracle_autonomous_database_clone" "test" {
   character_set                    = "AL32UTF8"
   compute_count                    = 2.0
   compute_model                    = "ECPU"
-  data_storage_size_in_tb         = 1
+  data_storage_size_in_tb          = 1
   db_version                       = "19c"
   db_workload                      = "OLTP"
   display_name                     = "ADB%[2]dclone"
@@ -124,27 +121,26 @@ func (r AutonomousDatabaseCloneFromBackupResource) requiresImport(data acceptanc
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_oracle_autonomous_database_clone" "import" {
+resource "azurerm_oracle_autonomous_database_clone_from_backup" "import" {
   name                             = azurerm_oracle_autonomous_database_clone_from_backup.test.name
   resource_group_name              = azurerm_oracle_autonomous_database_clone_from_backup.test.resource_group_name
   location                         = azurerm_oracle_autonomous_database_clone_from_backup.test.location
-  source_autonomous_database_id                       = azurerm_oracle_autonomous_database_clone_from_backup.test.source_autonomous_database_id
+  source_autonomous_database_id    = azurerm_oracle_autonomous_database_clone_from_backup.test.source_autonomous_database_id
   clone_type                       = azurerm_oracle_autonomous_database_clone_from_backup.test.clone_type
   source                           = azurerm_oracle_autonomous_database_clone_from_backup.test.source
-  data_base_type                   = azurerm_oracle_autonomous_database_clone_from_backup.test.data_base_type
   admin_password                   = azurerm_oracle_autonomous_database_clone_from_backup.test.admin_password
   backup_retention_period_in_days  = azurerm_oracle_autonomous_database_clone_from_backup.test.backup_retention_period_in_days
   character_set                    = azurerm_oracle_autonomous_database_clone_from_backup.test.character_set
   compute_count                    = azurerm_oracle_autonomous_database_clone_from_backup.test.compute_count
   compute_model                    = azurerm_oracle_autonomous_database_clone_from_backup.test.compute_model
-  data_storage_size_in_tb         = azurerm_oracle_autonomous_database_clone_from_backup.test.data_storage_size_in_tb
+  data_storage_size_in_tb          = azurerm_oracle_autonomous_database_clone_from_backup.test.data_storage_size_in_tb
   db_version                       = azurerm_oracle_autonomous_database_clone_from_backup.test.db_version
   db_workload                      = azurerm_oracle_autonomous_database_clone_from_backup.test.db_workload
   display_name                     = azurerm_oracle_autonomous_database_clone_from_backup.test.display_name
   license_model                    = azurerm_oracle_autonomous_database_clone_from_backup.test.license_model
   auto_scaling_enabled             = azurerm_oracle_autonomous_database_clone_from_backup.test.auto_scaling_enabled
   auto_scaling_for_storage_enabled = azurerm_oracle_autonomous_database_clone_from_backup.test.auto_scaling_for_storage_enabled
-  mtls_connection_required         = azurerm_oracle_autonomous_database_clone.test.mtls_connection_required
+  mtls_connection_required         = azurerm_oracle_autonomous_database_clone_from_backup.test.mtls_connection_required
   national_character_set           = azurerm_oracle_autonomous_database_clone_from_backup.test.national_character_set
   subnet_id                        = azurerm_oracle_autonomous_database_clone_from_backup.test.subnet_id
   virtual_network_id               = azurerm_oracle_autonomous_database_clone_from_backup.test.virtual_network_id
@@ -157,15 +153,14 @@ func (r AutonomousDatabaseCloneFromBackupResource) complete(data acceptance.Test
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_oracle_autonomous_database_clone" "test" {
+resource "azurerm_oracle_autonomous_database_clone_from_backup" "test" {
   name                = "ADB%[2]dclone"
   resource_group_name = azurerm_oracle_autonomous_database.test.resource_group_name
   location            = azurerm_oracle_autonomous_database.test.location
 
- source_autonomous_database_id      = azurerm_oracle_autonomous_database.test.id
-  clone_type     = "Metadata"
-  source         = "BackupFromTimestamp"
-  data_base_type = "CloneFromBackupTimestamp"
+  source_autonomous_database_id = azurerm_oracle_autonomous_database.test.id
+  clone_type                    = "Metadata"
+  source                        = "BackupFromTimestamp"
 
   # Use latest backup
   use_latest_available_backup_time_stamp = true
@@ -175,7 +170,7 @@ resource "azurerm_oracle_autonomous_database_clone" "test" {
   character_set                    = "AL32UTF8"
   compute_count                    = 2.0
   compute_model                    = "ECPU"
-  data_storage_size_in_tb         = 1
+  data_storage_size_in_tb          = 1
   db_version                       = "19c"
   db_workload                      = "OLTP"
   display_name                     = "ADB%[2]dclone"

@@ -38,11 +38,12 @@ type AutonomousDatabaseCloneFromBackupResourceModel struct {
 	// Required (inherited from base)
 
 	AdminPassword                string   `tfschema:"admin_password"`
+	AllowedIps                   []string `tfschema:"allowed_ips"`
 	BackupRetentionPeriodInDays  int64    `tfschema:"backup_retention_period_in_days"`
 	CharacterSet                 string   `tfschema:"character_set"`
 	ComputeCount                 float64  `tfschema:"compute_count"`
 	ComputeModel                 string   `tfschema:"compute_model"`
-	DataStorageSizeInTbs         int64    `tfschema:"data_storage_size_in_tbs"`
+	DataStorageSizeInTb          int64    `tfschema:"data_storage_size_in_tb"`
 	DbVersion                    string   `tfschema:"db_version"`
 	DbWorkload                   string   `tfschema:"db_workload"`
 	DisplayName                  string   `tfschema:"display_name"`
@@ -53,12 +54,11 @@ type AutonomousDatabaseCloneFromBackupResourceModel struct {
 	NationalCharacterSet         string   `tfschema:"national_character_set"`
 	SubnetId                     string   `tfschema:"subnet_id"`
 	VnetId                       string   `tfschema:"virtual_network_id"`
-	AllowedIps                   []string `tfschema:"allowed_ips"`
 
 	// Optional
 
-	CustomerContacts                  []string `tfschema:"customer_contacts"`
 	BackupTimestamp                   string   `tfschema:"backup_timestamp"`
+	CustomerContacts                  []string `tfschema:"customer_contacts"`
 	UseLatestAvailableBackupTimeStamp bool     `tfschema:"use_latest_available_backup_time_stamp"`
 }
 
@@ -152,7 +152,7 @@ func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*plugins
 			ValidateFunc: validate.AdbsComputeModel,
 		},
 
-		"data_storage_size_in_tbs": {
+		"data_storage_size_in_tb": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
 			ValidateFunc: validation.IntBetween(1, 384),
@@ -304,7 +304,7 @@ func (r AutonomousDatabaseCloneFromBackupResource) Create() sdk.ResourceFunc {
 				ComputeCount:                   pointer.To(model.ComputeCount),
 				ComputeModel:                   pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
 				CustomerContacts:               expandCloneCustomerContactsPtr(model.CustomerContacts),
-				DataStorageSizeInTbs:           pointer.To(model.DataStorageSizeInTbs),
+				DataStorageSizeInTbs:           pointer.To(model.DataStorageSizeInTb),
 				DbWorkload:                     pointer.To(autonomousdatabases.WorkloadType(model.DbWorkload)),
 				DbVersion:                      pointer.To(model.DbVersion),
 				DisplayName:                    pointer.To(model.DisplayName),
@@ -370,6 +370,9 @@ func (r AutonomousDatabaseCloneFromBackupResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
+				state.Name = id.AutonomousDatabaseName
+				state.ResourceGroupName = id.ResourceGroupName
+
 				props, ok := model.Properties.(autonomousdatabases.AutonomousDatabaseFromBackupTimestampProperties)
 				if !ok {
 					return fmt.Errorf("%s was not of type `Regular`", id)
@@ -383,7 +386,7 @@ func (r AutonomousDatabaseCloneFromBackupResource) Read() sdk.ResourceFunc {
 				state.ComputeCount = pointer.From(props.ComputeCount)
 				state.ComputeModel = pointer.FromEnum(props.ComputeModel)
 				state.CustomerContacts = flattenCloneCustomerContacts(pointer.From(props.CustomerContacts))
-				state.DataStorageSizeInTbs = pointer.From(props.DataStorageSizeInTbs)
+				state.DataStorageSizeInTb = pointer.From(props.DataStorageSizeInTbs)
 				state.DbVersion = pointer.From(props.DbVersion)
 				state.DbWorkload = string(pointer.From(props.DbWorkload))
 				state.DisplayName = pointer.From(props.DisplayName)
@@ -434,85 +437,4 @@ func (r AutonomousDatabaseCloneFromBackupResource) Update() sdk.ResourceFunc {
 
 func (r AutonomousDatabaseCloneFromBackupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return autonomousdatabases.ValidateAutonomousDatabaseID
-}
-
-func (AutonomousDatabaseCloneFromBackupResource) CustomizeDiff() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 30 * time.Second,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			if metadata.ResourceData == nil {
-				return nil
-			}
-
-			sourceId := metadata.ResourceData.Get("source_id").(string)
-			dbWorkload := metadata.ResourceData.Get("db_workload").(string)
-
-			if sourceId == "" || dbWorkload == "" {
-				return nil
-			}
-
-			if metadata.ResourceData.Id() != "" {
-				return nil
-			}
-
-			sourceWorkload, err := getSourceWorkload(ctx, sourceId, metadata)
-			if err != nil {
-				return err
-			}
-
-			targets, exists := workloadMatrix[sourceWorkload]
-			if !exists {
-				return fmt.Errorf("unsupported source workload: %s", sourceWorkload)
-			}
-
-			for _, target := range targets {
-				if dbWorkload == target {
-					return nil
-				}
-			}
-
-			return fmt.Errorf("invalid workload: %s->%s not allowed", sourceWorkload, dbWorkload)
-		},
-	}
-}
-
-var workloadMatrix = map[string][]string{
-	"DW":   {"OLTP", "DW"},
-	"OLTP": {"DW", "OLTP"},
-	"AJD":  {"OLTP", "DW", "APEX"},
-	"APEX": {"AJD", "OLTP", "DW"},
-}
-
-func getSourceWorkload(ctx context.Context, sourceId string, metadata sdk.ResourceMetaData) (string, error) {
-	id, err := autonomousdatabases.ParseAutonomousDatabaseID(sourceId)
-	if err != nil {
-		return "", fmt.Errorf("invalid source_id format: %v", err)
-	}
-
-	if metadata.Client == nil || metadata.Client.Oracle == nil || metadata.Client.Oracle.OracleClient == nil {
-		return "", fmt.Errorf("oracle client not available")
-	}
-
-	client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
-	resp, err := client.Get(ctx, *id)
-	if err != nil {
-		return "", fmt.Errorf("failed to get source database: %v", err)
-	}
-
-	if resp.Model == nil || resp.Model.Properties == nil {
-		return "", fmt.Errorf("source database has no properties")
-	}
-
-	switch props := resp.Model.Properties.(type) {
-	case autonomousdatabases.AutonomousDatabaseProperties:
-		if props.DbWorkload != nil {
-			return string(*props.DbWorkload), nil
-		}
-	case autonomousdatabases.AutonomousDatabaseFromBackupTimestampProperties:
-		if props.DbWorkload != nil {
-			return string(*props.DbWorkload), nil
-		}
-	}
-
-	return "", fmt.Errorf("workload type not found in source database properties")
 }

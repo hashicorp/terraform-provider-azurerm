@@ -20,9 +20,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = AutonomousDatabaseCloneResource{}
+var _ sdk.Resource = AutonomousDatabaseCloneFromDatabaseResource{}
 
-type AutonomousDatabaseCloneResource struct{}
+type AutonomousDatabaseCloneFromDatabaseResource struct{}
 
 type AutonomousDatabaseCloneResourceModel struct {
 	Location          string            `tfschema:"location"`
@@ -63,7 +63,7 @@ type AutonomousDatabaseCloneResourceModel struct {
 	TimeUntilReconnect string   `tfschema:"time_until_reconnect"`
 }
 
-func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema {
+func (AutonomousDatabaseCloneFromDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
 
@@ -83,7 +83,6 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 			Required: true,
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				string(autonomousdatabases.SourceTypeCloneToRefreshable),
 				string(autonomousdatabases.SourceTypeDatabase),
 			}, false),
 			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
@@ -249,19 +248,19 @@ func (AutonomousDatabaseCloneResource) Arguments() map[string]*pluginsdk.Schema 
 	}
 }
 
-func (AutonomousDatabaseCloneResource) Attributes() map[string]*pluginsdk.Schema {
+func (AutonomousDatabaseCloneFromDatabaseResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (AutonomousDatabaseCloneResource) ModelObject() interface{} {
+func (AutonomousDatabaseCloneFromDatabaseResource) ModelObject() interface{} {
 	return &AutonomousDatabaseCloneResourceModel{}
 }
 
-func (AutonomousDatabaseCloneResource) ResourceType() string {
-	return "azurerm_oracle_autonomous_database_clone"
+func (AutonomousDatabaseCloneFromDatabaseResource) ResourceType() string {
+	return "azurerm_oracle_autonomous_database_clone_from_database"
 }
 
-func (r AutonomousDatabaseCloneResource) Create() sdk.ResourceFunc {
+func (r AutonomousDatabaseCloneFromDatabaseResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -341,7 +340,7 @@ func (r AutonomousDatabaseCloneResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r AutonomousDatabaseCloneResource) Read() sdk.ResourceFunc {
+func (r AutonomousDatabaseCloneFromDatabaseResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -372,6 +371,8 @@ func (r AutonomousDatabaseCloneResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
+				state.Name = id.AutonomousDatabaseName
+				state.ResourceGroupName = id.ResourceGroupName
 
 				props, ok := model.Properties.(autonomousdatabases.AutonomousDatabaseCloneProperties)
 				if !ok {
@@ -387,10 +388,10 @@ func (r AutonomousDatabaseCloneResource) Read() sdk.ResourceFunc {
 				state.CharacterSet = pointer.From(props.CharacterSet)
 				state.ComputeCount = pointer.From(props.ComputeCount)
 				state.ComputeModel = pointer.FromEnum(props.ComputeModel)
-				state.CustomerContacts = flattenCloneCustomerContacts(*props.CustomerContacts)
 				state.DataStorageSizeInTb = pointer.From(props.DataStorageSizeInTbs)
 				state.DbVersion = pointer.From(props.DbVersion)
 				state.DbVersion = pointer.From(props.DbVersion)
+				state.DbWorkload = string(pointer.From(props.DbWorkload))
 				state.DisplayName = pointer.From(props.DisplayName)
 				state.AutoScalingEnabled = pointer.From(props.IsAutoScalingEnabled)
 				state.AutoScalingForStorageEnabled = pointer.From(props.IsAutoScalingForStorageEnabled)
@@ -400,6 +401,12 @@ func (r AutonomousDatabaseCloneResource) Read() sdk.ResourceFunc {
 				state.SubnetId = pointer.From(props.SubnetId)
 				state.VnetId = pointer.From(props.VnetId)
 				state.AllowedIps = pointer.From(props.WhitelistedIPs)
+
+				if props.CustomerContacts != nil {
+					state.CustomerContacts = flattenCloneCustomerContacts(*props.CustomerContacts)
+				} else {
+					state.CustomerContacts = []string{}
+				}
 			}
 
 			return metadata.Encode(&state)
@@ -407,7 +414,7 @@ func (r AutonomousDatabaseCloneResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r AutonomousDatabaseCloneResource) Delete() sdk.ResourceFunc {
+func (r AutonomousDatabaseCloneFromDatabaseResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -427,7 +434,7 @@ func (r AutonomousDatabaseCloneResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (r AutonomousDatabaseCloneResource) Update() sdk.ResourceFunc {
+func (r AutonomousDatabaseCloneFromDatabaseResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -437,7 +444,7 @@ func (r AutonomousDatabaseCloneResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r AutonomousDatabaseCloneResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r AutonomousDatabaseCloneFromDatabaseResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return autonomousdatabases.ValidateAutonomousDatabaseID
 }
 
@@ -480,7 +487,7 @@ func flattenCloneCustomerContacts(input []autonomousdatabases.CustomerContact) [
 	return emails
 }
 
-func (AutonomousDatabaseCloneResource) CustomizeDiff() sdk.ResourceFunc {
+func (AutonomousDatabaseCloneFromDatabaseResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Second,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

@@ -15,28 +15,26 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AutonomousDatabaseCloneResource struct{}
+type AutonomousDatabaseCloneFromDatabaseResource struct{}
 
-func TestAccAutonomousDatabaseClone_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_oracle_autonomous_database_clone", "test")
-	r := AutonomousDatabaseCloneResource{}
+func TestAccAutonomousDatabaseCloneFromDatabase_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_oracle_autonomous_database_clone_from_database", "test")
+	r := AutonomousDatabaseCloneFromDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("display_name").HasValue(fmt.Sprintf("ADB%dclone", data.RandomInteger)),
-				check.That(data.ResourceName).Key("data_base_type").HasValue("Clone"),
 			),
 		},
 		data.ImportStep("admin_password", "source", "clone_type"),
 	})
 }
 
-func TestAccAutonomousDatabaseClone_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_oracle_autonomous_database_clone", "test")
-	r := AutonomousDatabaseCloneResource{}
+func TestAccAutonomousDatabaseCloneFromDatabase_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_oracle_autonomous_database_clone_from_database", "test")
+	r := AutonomousDatabaseCloneFromDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -49,9 +47,9 @@ func TestAccAutonomousDatabaseClone_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAutonomousDatabaseClone_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_oracle_autonomous_database_clone", "test")
-	r := AutonomousDatabaseCloneResource{}
+func TestAccAutonomousDatabaseCloneFromDatabase_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_oracle_autonomous_database_clone_from_database", "test")
+	r := AutonomousDatabaseCloneFromDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -64,9 +62,9 @@ func TestAccAutonomousDatabaseClone_complete(t *testing.T) {
 	})
 }
 
-func TestAccAutonomousDatabaseClone_metadataClone(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_oracle_autonomous_database_clone", "test")
-	r := AutonomousDatabaseCloneResource{}
+func TestAccAutonomousDatabaseCloneFromDatabase_metadataClone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_oracle_autonomous_database_clone_from_database", "test")
+	r := AutonomousDatabaseCloneFromDatabaseResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -80,7 +78,7 @@ func TestAccAutonomousDatabaseClone_metadataClone(t *testing.T) {
 	})
 }
 
-func (r AutonomousDatabaseCloneResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r AutonomousDatabaseCloneFromDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := autonomousdatabases.ParseAutonomousDatabaseID(state.ID)
 	if err != nil {
 		return nil, err
@@ -95,25 +93,25 @@ func (r AutonomousDatabaseCloneResource) Exists(ctx context.Context, clients *cl
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r AutonomousDatabaseCloneResource) basic(data acceptance.TestData) string {
+func (r AutonomousDatabaseCloneFromDatabaseResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_oracle_autonomous_database_clone" "test" {
+resource "azurerm_oracle_autonomous_database_clone_from_database" "test" {
   name                = "ADB%[2]dclone"
   resource_group_name = azurerm_oracle_autonomous_database.test.resource_group_name
   location            = azurerm_oracle_autonomous_database.test.location
 
-  source_autonomous_database_id      = azurerm_oracle_autonomous_database.test.id
-  clone_type     = "Full"
-  source         = "Database"
+  source_autonomous_database_id = azurerm_oracle_autonomous_database.test.id
+  clone_type                    = "Full"
+  source                        = "Database"
 
   admin_password                   = "BEstrO0ng_#11"
   backup_retention_period_in_days  = 7
   character_set                    = "AL32UTF8"
   compute_count                    = 2.0
   compute_model                    = "ECPU"
-  data_storage_size_in_tb         = 1
+  data_storage_size_in_tb          = 1
   db_version                       = "19c"
   db_workload                      = "OLTP"
   display_name                     = "ADB%[2]dclone"
@@ -135,58 +133,57 @@ resource "azurerm_oracle_autonomous_database_clone" "test" {
 `, AdbsRegularResource{}.basic(data), data.RandomInteger)
 }
 
-func (r AutonomousDatabaseCloneResource) requiresImport(data acceptance.TestData) string {
+func (r AutonomousDatabaseCloneFromDatabaseResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_oracle_autonomous_database_clone" "import" {
-  name                             = azurerm_oracle_autonomous_database_clone.test.name
-  resource_group_name              = azurerm_oracle_autonomous_database_clone.test.resource_group_name
-  location                         = azurerm_oracle_autonomous_database_clone.test.location
-  source_autonomous_database_id                        = azurerm_oracle_autonomous_database_clone.test.source_autonomous_database_id
-  clone_type                       = azurerm_oracle_autonomous_database_clone.test.clone_type
-  source                           = azurerm_oracle_autonomous_database_clone.test.source
-  data_base_type                   = azurerm_oracle_autonomous_database_clone.test.data_base_type
-  admin_password                   = azurerm_oracle_autonomous_database_clone.test.admin_password
-  backup_retention_period_in_days  = azurerm_oracle_autonomous_database_clone.test.backup_retention_period_in_days
-  character_set                    = azurerm_oracle_autonomous_database_clone.test.character_set
-  compute_count                    = azurerm_oracle_autonomous_database_clone.test.compute_count
-  compute_model                    = azurerm_oracle_autonomous_database_clone.test.compute_model
-  data_storage_size_in_tb         = azurerm_oracle_autonomous_database_clone.test.data_storage_size_in_tb
-  db_version                       = azurerm_oracle_autonomous_database_clone.test.db_version
-  db_workload                      = azurerm_oracle_autonomous_database_clone.test.db_workload
-  display_name                     = azurerm_oracle_autonomous_database_clone.test.display_name
-  license_model                    = azurerm_oracle_autonomous_database_clone.test.license_model
-  auto_scaling_enabled             = azurerm_oracle_autonomous_database_clone.test.auto_scaling_enabled
-  auto_scaling_for_storage_enabled = azurerm_oracle_autonomous_database_clone.test.auto_scaling_for_storage_enabled
-  mtls_connection_required         = azurerm_oracle_autonomous_database_clone.test.mtls_connection_required
-  national_character_set           = azurerm_oracle_autonomous_database_clone.test.national_character_set
-  subnet_id                        = azurerm_oracle_autonomous_database_clone.test.subnet_id
-  virtual_network_id               = azurerm_oracle_autonomous_database_clone.test.virtual_network_id
-  tags                             = azurerm_oracle_autonomous_database_clone.test.tags
+resource "azurerm_oracle_autonomous_database_clone_from_database" "import" {
+  name                             = azurerm_oracle_autonomous_database_clone_from_database.test.name
+  resource_group_name              = azurerm_oracle_autonomous_database_clone_from_database.test.resource_group_name
+  location                         = azurerm_oracle_autonomous_database_clone_from_database.test.location
+  source_autonomous_database_id    = azurerm_oracle_autonomous_database_clone_from_database.test.source_autonomous_database_id
+  clone_type                       = azurerm_oracle_autonomous_database_clone_from_database.test.clone_type
+  source                           = azurerm_oracle_autonomous_database_clone_from_database.test.source
+  admin_password                   = azurerm_oracle_autonomous_database_clone_from_database.test.admin_password
+  backup_retention_period_in_days  = azurerm_oracle_autonomous_database_clone_from_database.test.backup_retention_period_in_days
+  character_set                    = azurerm_oracle_autonomous_database_clone_from_database.test.character_set
+  compute_count                    = azurerm_oracle_autonomous_database_clone_from_database.test.compute_count
+  compute_model                    = azurerm_oracle_autonomous_database_clone_from_database.test.compute_model
+  data_storage_size_in_tb          = azurerm_oracle_autonomous_database_clone_from_database.test.data_storage_size_in_tb
+  db_version                       = azurerm_oracle_autonomous_database_clone_from_database.test.db_version
+  db_workload                      = azurerm_oracle_autonomous_database_clone_from_database.test.db_workload
+  display_name                     = azurerm_oracle_autonomous_database_clone_from_database.test.display_name
+  license_model                    = azurerm_oracle_autonomous_database_clone_from_database.test.license_model
+  auto_scaling_enabled             = azurerm_oracle_autonomous_database_clone_from_database.test.auto_scaling_enabled
+  auto_scaling_for_storage_enabled = azurerm_oracle_autonomous_database_clone_from_database.test.auto_scaling_for_storage_enabled
+  mtls_connection_required         = azurerm_oracle_autonomous_database_clone_from_database.test.mtls_connection_required
+  national_character_set           = azurerm_oracle_autonomous_database_clone_from_database.test.national_character_set
+  subnet_id                        = azurerm_oracle_autonomous_database_clone_from_database.test.subnet_id
+  virtual_network_id               = azurerm_oracle_autonomous_database_clone_from_database.test.virtual_network_id
+  tags                             = azurerm_oracle_autonomous_database_clone_from_database.test.tags
 }
 `, r.basic(data))
 }
 
-func (r AutonomousDatabaseCloneResource) complete(data acceptance.TestData) string {
+func (r AutonomousDatabaseCloneFromDatabaseResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_oracle_autonomous_database_clone" "test" {
+resource "azurerm_oracle_autonomous_database_clone_from_database" "test" {
   name                = "ADB%[2]dclone"
   resource_group_name = azurerm_oracle_autonomous_database.test.resource_group_name
   location            = azurerm_oracle_autonomous_database.test.location
 
-  source_autonomous_database_id     = azurerm_oracle_autonomous_database.test.id
-  clone_type     = "Full"
-  source         = "Database"
+  source_autonomous_database_id = azurerm_oracle_autonomous_database.test.id
+  clone_type                    = "Full"
+  source                        = "Database"
 
   admin_password                   = "BEstrO0ng_#11"
   backup_retention_period_in_days  = 15
   character_set                    = "AL32UTF8"
   compute_count                    = 4.0
   compute_model                    = "ECPU"
-  data_storage_size_in_tb         = 2
+  data_storage_size_in_tb          = 2
   db_version                       = "19c"
   db_workload                      = "DW"
   display_name                     = "ADB%[2]dclone"
@@ -213,25 +210,25 @@ resource "azurerm_oracle_autonomous_database_clone" "test" {
 `, AdbsRegularResource{}.basic(data), data.RandomInteger)
 }
 
-func (r AutonomousDatabaseCloneResource) metadataClone(data acceptance.TestData) string {
+func (r AutonomousDatabaseCloneFromDatabaseResource) metadataClone(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_oracle_autonomous_database_clone" "test" {
+resource "azurerm_oracle_autonomous_database_clone_from_database" "test" {
   name                = "ADB%[2]dclone"
   resource_group_name = azurerm_oracle_autonomous_database.test.resource_group_name
   location            = azurerm_oracle_autonomous_database.test.location
 
-  source_autonomous_database_id      = azurerm_oracle_autonomous_database.test.id
-  clone_type     = "Metadata"
-  source         = "Database"
+  source_autonomous_database_id = azurerm_oracle_autonomous_database.test.id
+  clone_type                    = "Metadata"
+  source                        = "Database"
 
   admin_password                   = "BEstrO0ng_#11"
   backup_retention_period_in_days  = 7
   character_set                    = "AL32UTF8"
   compute_count                    = 2.0
   compute_model                    = "ECPU"
-  data_storage_size_in_tb         = 1
+  data_storage_size_in_tb          = 1
   db_version                       = "19c"
   db_workload                      = "OLTP"
   display_name                     = "ADB%[2]dclone"

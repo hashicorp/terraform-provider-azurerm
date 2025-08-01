@@ -1,25 +1,25 @@
 ---
 subcategory: "Oracle"
 layout: "azurerm"
-page_title: "Azure Resource Manager: Data Source: azurerm_oracle_autonomous_database_clone"
+page_title: "Azure Resource Manager: Data Source: azurerm_oracle_autonomous_database_clone_from_database"
 description: |-
  Gets information about an existing Autonomous Database Clone.
 ---
 
-# Data Source: azurerm_oracle_autonomous_database_clone
+# Data Source: azurerm_oracle_autonomous_database_clone_from_database
 
 Use this data source to access information about an existing Autonomous Database Clone.
 
 ## Example Usage
 
 ```hcl
-data "azurerm_oracle_autonomous_database_clone" "example" {
-  name                = "existing-clone"
-  resource_group_name = "existing"
+data "azurerm_oracle_autonomous_database_clone_from_database" "example" {
+  name                = azurerm_oracle_autonomous_database_clone_from_database.example.name
+  resource_group_name = azurerm_oracle_autonomous_database_clone_from_database.example.resource_group_name
 }
 
 output "id" {
-  value = data.azurerm_oracle_autonomous_database_clone.example.source_id
+  value = data.azurerm_oracle_autonomous_database_clone_from_database.example.id
 }
 
 ```
@@ -42,26 +42,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `tags` - A mapping of tags assigned to the Autonomous Database Clone.
 
-### Clone-Specific Attributes
-
-* `source_id` - The ID of the source Autonomous Database that was cloned.
-
-* `clone_type` - The type of clone. Values include `Full` and `Metadata`.
-
-* `source` - The source of the clone. Values include  `Database`, `BackupFromId`, `BackupFromTimestamp`, `CloneToRefreshable`.
-
-* `is_refreshable_clone` - Indicates whether the clone is a refreshable clone.
-
-* `refreshable_model` - The refreshable model for the clone. Values include `Automatic` and `Manual`.
-
-* `refreshable_status` - The current refreshable status of the clone. Values include `Refreshing` and `NotRefreshing`.
-
-* `is_reconnect_clone_enabled` - Indicates whether reconnect clone is enabled.
-
-* `time_until_reconnect_clone_enabled` - The time until reconnect clone is enabled.
-
-### Database Attributes
-
 * `actual_used_data_storage_size_in_tbs` - The current amount of storage in use for user and system data, in terabytes (TB).
 
 * `allocated_storage_size_in_tbs` - The amount of storage currently allocated for the database tables and billed for, rounded up. When auto-scaling is not enabled, this value is equal to the `dataStorageSizeInTBs` value. You can compare this value to the `actualUsedDataStorageSizeInTBs` value to determine if a manual shrink operation is appropriate for your allocated storage.
@@ -80,11 +60,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `data_storage_size_in_gbs` - The quantity of data in the database, in gigabytes.
 
-* `data_storage_size_in_tbs` - The maximum storage that can be allocated for the database, in terabytes.
+* `data_storage_size_in_tb` - The maximum storage that can be allocated for the database, in terabytes.
 
 * `db_node_storage_size_in_gbs` - The DB node storage size in, in gigabytes.
 
-* `db_version` - A valid Oracle Database version for Autonomous Database.
+* `database_version` - A valid Oracle Database version for Autonomous Database.
 
 * `display_name` - The user-friendly name for the Autonomous Database. The name does not have to be unique.
 
@@ -96,16 +76,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `auto_scaling_for_storage_enabled` - Indicates if auto scaling is enabled for the Autonomous Database storage.
 
-* `local_data_guard_enabled` - Indicates whether the Autonomous Database has local (in-region) Data Guard enabled. Not applicable to cross-region Autonomous Data Guard associations, or to Autonomous Databases using dedicated Exadata infrastructure or Exadata Cloud@Customer infrastructure.
-
-* `mtls_connection_required` - Specifies if the Autonomous Database requires mTLS connections.
-
-* `preview` - Indicates if the Autonomous Database version is a preview version.
-
-* `preview_version_with_service_terms_accepted` - Indicates if the Autonomous Database version is a preview version with service terms accepted.
-
-* `remote_data_guard_enabled` - Indicates whether the Autonomous Database has Cross Region Data Guard enabled. Not applicable to Autonomous Databases using dedicated Exadata infrastructure or Exadata Cloud@Customer infrastructure.
-
 * `key_history_entry` - Key History Entry.
 
 * `lifecycle_details` - Information about the current lifecycle state.
@@ -113,6 +83,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `local_adg_auto_failover_max_data_loss_limit` - Parameter that allows users to select an acceptable maximum data loss limit in seconds, up to which Automatic Failover will be triggered when necessary for a Local Autonomous Data Guard
 
 * `location` - The Azure Region where the Autonomous Database exists.
+
+* `local_data_guard_enabled` - Indicates whether the Autonomous Database has local (in-region) Data Guard enabled. Not applicable to cross-region Autonomous Data Guard associations, or to Autonomous Databases using dedicated Exadata infrastructure or Exadata Cloud@Customer infrastructure.
+
+* `mtls_connection_required` - Specifies if the Autonomous Database requires mTLS connections.
 
 * `memory_per_oracle_compute_unit_in_gbs` - The amount of memory (in GBs) enabled per ECPU or OCPU.
 
@@ -126,6 +100,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `peer_db_ids` - The list of [OCIDs](https://docs.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of standby databases located in Autonomous Data Guard remote regions that are associated with the source database. Note that for Autonomous Database Serverless instances, standby databases located in the same region as the source primary database do not have OCIDs.
 
+* `preview` - Indicates if the Autonomous Database version is a preview version.
+
+* `preview_version_with_service_terms_accepted` - Indicates if the Autonomous Database version is a preview version with service terms accepted.
+
 * `private_endpoint` - The private endpoint for the resource.
 
 * `private_endpoint_ip` - The private endpoint Ip address for the resource.
@@ -134,13 +112,25 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `provisionable_cpus` - An array of CPU values that an Autonomous Database can be scaled to.
 
+* `refreshable_clone_enabled` - Indicates whether the clone is a refreshable clone.
+
+* `refreshable_status` - The current refreshable status of the clone. Values include `Refreshing` and `NotRefreshing`.
+
+* `reconnect_clone_enabled` - Indicates whether reconnect clone is enabled.
+
+* `remote_data_guard_enabled` - Indicates whether the Autonomous Database has Cross Region Data Guard enabled. Not applicable to Autonomous Databases using dedicated Exadata infrastructure or Exadata Cloud@Customer infrastructure.
+
 * `service_console_url` - The URL of the Service Console for the Autonomous Database.
 
 * `sql_web_developer_url` - The URL of the SQL web developer.
 
+* `source_id` - The ID of the source Autonomous Database that was cloned.
+
 * `subnet_id` - The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the subnet the resource is associated with.
 
 * `supported_regions_to_clone_to` - The list of regions that support the creation of an Autonomous Database clone or an Autonomous Data Guard standby database.
+
+* `time_until_reconnect_clone` - The time until reconnect clone is enabled.
 
 * `tags` - A mapping of tags assigned to the Autonomous Database.
 
