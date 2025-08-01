@@ -1,4 +1,4 @@
-## 4.39.1 (Unreleased)
+## 4.39.0 (Unreleased)
 
 ENHANCEMENTS:
 * `azurerm_site_recovery_replicated_vm` - the `target_disk_type` property now supports the `StandardSSD_ZRS`, `Premium_ZRS` and `PremiumV2_LRS` values and the `target_replica_disk_type` now supports the `StandardSSD_ZRS` and `Premium_ZRS` properties [GH-30291]
