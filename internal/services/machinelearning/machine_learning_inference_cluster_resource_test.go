@@ -469,7 +469,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary,
+`, data.RandomInteger, data.Locations.Secondary,
 		data.RandomIntOfLength(17), data.RandomIntOfLength(17), data.RandomIntOfLength(16),
 		data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, nodeCount, vmSize)
 }
@@ -571,7 +571,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary,
+`, data.RandomInteger, data.Locations.Secondary,
 		data.RandomIntOfLength(17), data.RandomIntOfLength(17), data.RandomIntOfLength(16),
 		data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, nodeCount, vmSize)
 }

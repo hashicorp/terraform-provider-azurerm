@@ -496,5 +496,5 @@ resource "azurerm_ai_services" "test" {
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "S0"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Secondary, data.RandomString)
 }
