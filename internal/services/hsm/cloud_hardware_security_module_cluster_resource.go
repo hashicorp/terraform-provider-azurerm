@@ -327,10 +327,10 @@ func (r CloudHardwareSecurityModuleClusterResource) Read() sdk.ResourceFunc {
 								hsmModel.Fqdn = *hsm.Fqdn
 							}
 							if hsm.State != nil {
-								hsmModel.State = string(*hsm.State)
+								hsmModel.State = pointer.From(hsm.State)
 							}
 							if hsm.StateMessage != nil {
-								hsmModel.StateMessage = *hsm.StateMessage
+								hsmModel.StateMessage = pointer.From(hsm.StateMessage)
 							}
 							hsms = append(hsms, hsmModel)
 						}
