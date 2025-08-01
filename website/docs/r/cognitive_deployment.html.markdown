@@ -43,6 +43,40 @@ resource "azurerm_cognitive_deployment" "example" {
 
 ```
 
+## Example Usage - AI Services
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_ai_services" "example" {
+  name                = "example-ai-services"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+  sku_name            = "S0"
+
+  custom_subdomain_name = "example-ai-services"
+}
+
+resource "azurerm_cognitive_deployment" "example" {
+  name                 = "example-cd"
+  cognitive_account_id = azurerm_ai_services.example.id
+
+  model {
+    format  = "DeepSeek"
+    name    = "DeepSeek-R1"
+    version = "1"
+  }
+
+  sku {
+    name = "GlobalStandard"
+  }
+}
+
+```
+
 ## Arguments Reference
 
 The following arguments are supported:
@@ -65,7 +99,7 @@ The following arguments are supported:
 
 A `model` block supports the following:
 
-* `format` - (Required) The format of the Cognitive Services Account Deployment model. Possible values are `OpenAI` and `Cohere`. Changing this forces a new resource to be created.
+* `format` - (Required) The format of the Cognitive Services Account Deployment model. This is case sensitive. Example values: OpenAI, Cohere, DeepSeek, xAI. Changing this forces a new resource to be created.
 
 * `name` - (Required) The name of the Cognitive Services Account Deployment model. Changing this forces a new resource to be created.
 
