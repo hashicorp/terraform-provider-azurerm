@@ -85,4 +85,4 @@ terraform import azurerm_relay_namespace.relay1 /subscriptions/00000000-0000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Relay`: 2021-11-01
+* `Microsoft.Relay` - 2021-11-01

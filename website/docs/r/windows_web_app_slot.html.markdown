@@ -937,4 +937,4 @@ terraform import azurerm_windows_web_app_slot.example /subscriptions/12345678-12
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Web`: 2023-12-01
+* `Microsoft.Web` - 2023-12-01

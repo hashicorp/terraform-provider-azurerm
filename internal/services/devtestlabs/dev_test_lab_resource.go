@@ -166,24 +166,24 @@ func resourceDevTestLabRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			d.Set("location", azure.NormalizeLocation(*location))
 		}
 
-		if props := model.Properties; props != nil {
-			// Computed fields
-			d.Set("artifacts_storage_account_id", props.ArtifactsStorageAccount)
-			d.Set("default_storage_account_id", props.DefaultStorageAccount)
-			d.Set("default_premium_storage_account_id", props.DefaultPremiumStorageAccount)
+		props := model.Properties
+		// Computed fields
+		d.Set("artifacts_storage_account_id", props.ArtifactsStorageAccount)
+		d.Set("default_storage_account_id", props.DefaultStorageAccount)
+		d.Set("default_premium_storage_account_id", props.DefaultPremiumStorageAccount)
 
-			kvId := ""
-			if props.VaultName != nil {
-				id, err := commonids.ParseKeyVaultIDInsensitively(*props.VaultName)
-				if err != nil {
-					return fmt.Errorf("parsing %q: %+v", *props.VaultName, err)
-				}
-				kvId = id.ID()
+		kvId := ""
+		if props.VaultName != nil {
+			id, err := commonids.ParseKeyVaultIDInsensitively(*props.VaultName)
+			if err != nil {
+				return fmt.Errorf("parsing %q: %+v", *props.VaultName, err)
 			}
-			d.Set("key_vault_id", kvId)
-			d.Set("premium_data_disk_storage_account_id", props.PremiumDataDiskStorageAccount)
-			d.Set("unique_identifier", props.UniqueIdentifier)
+			kvId = id.ID()
 		}
+		d.Set("key_vault_id", kvId)
+		d.Set("premium_data_disk_storage_account_id", props.PremiumDataDiskStorageAccount)
+		d.Set("unique_identifier", props.UniqueIdentifier)
+
 		if err = tags.FlattenAndSet(d, flattenTags(model.Tags)); err != nil {
 			return err
 		}

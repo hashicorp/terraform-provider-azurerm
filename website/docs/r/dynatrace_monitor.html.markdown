@@ -67,6 +67,8 @@ The following arguments are supported:
 
 * `monitoring_enabled` - (Optional) Flag specifying if the resource monitoring is enabled or disabled. Default is `true`.
 
+* `environment_properties` - (Optional) Properties of the Dynatrace environment. An `environment_properties` block as defined below.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -101,6 +103,18 @@ A `user` block supports the following:
 
 * `phone_number` - (Required) phone number of the user by Dynatrace for contacting them if needed.
 
+---
+
+An `environment_properties` block supports the following:
+
+* `environment_info` - (Required) Information about the Dynatrace environment. An `environment_info` block as defined below.
+
+---
+
+An `environment_info` block supports the following:
+
+* `environment_id` - (Required) The ID of the Dynatrace environment to be created.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -128,4 +142,4 @@ terraform import azurerm_dynatrace_monitor.example /subscriptions/12345678-1234-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Dynatrace.Observability`: 2023-04-27
+* `Dynatrace.Observability` - 2023-04-27

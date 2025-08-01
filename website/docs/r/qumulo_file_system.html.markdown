@@ -112,4 +112,4 @@ terraform import azurerm_qumulo_file_system.example /subscriptions/00000000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Qumulo.Storage`: 2024-06-19
+* `Qumulo.Storage` - 2024-06-19

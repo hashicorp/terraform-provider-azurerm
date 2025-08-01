@@ -74,4 +74,4 @@ terraform import azurerm_private_dns_resolver.example /subscriptions/00000000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2022-07-01
+* `Microsoft.Network` - 2022-07-01

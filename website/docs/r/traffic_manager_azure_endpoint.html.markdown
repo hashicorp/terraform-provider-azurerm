@@ -129,4 +129,4 @@ terraform import azurerm_traffic_manager_azure_endpoint.example /subscriptions/0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2022-04-01
+* `Microsoft.Network` - 2022-04-01

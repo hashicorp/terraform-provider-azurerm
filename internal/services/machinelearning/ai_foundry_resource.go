@@ -487,11 +487,13 @@ func (r AIFoundry) Read() sdk.ResourceFunc {
 					}
 					hub.StorageAccountId = storageAccountId.ID()
 
-					keyVaultId, err := commonids.ParseKeyVaultID(*props.KeyVault)
-					if err != nil {
-						return err
+					if props.KeyVault != nil {
+						keyVaultId, err := commonids.ParseKeyVaultID(*props.KeyVault)
+						if err != nil {
+							return err
+						}
+						hub.KeyVaultId = keyVaultId.ID()
 					}
-					hub.KeyVaultId = keyVaultId.ID()
 
 					hub.Description = pointer.From(props.Description)
 					hub.FriendlyName = pointer.From(props.FriendlyName)
