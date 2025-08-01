@@ -1132,6 +1132,23 @@ func TestAccKubernetesClusterNodePool_virtualNetworkOwnershipRaceCondition(t *te
 	})
 }
 
+func TestAccKubernetesClusterNodePool_parallelPodSubnet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
+	r := KubernetesClusterNodePoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.parallelPodSubnetConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That("azurerm_kubernetes_cluster_node_pool.pool1").ExistsInAzure(r),
+				check.That("azurerm_kubernetes_cluster_node_pool.pool2").ExistsInAzure(r),
+			),
+		},
+		data.ImportStepFor("azurerm_kubernetes_cluster_node_pool.pool1"),
+		data.ImportStepFor("azurerm_kubernetes_cluster_node_pool.pool2"),
+	})
+}
+
 func TestAccKubernetesClusterNodePool_updateVmSizeAfterFailureWithTempAndOriginal(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
@@ -3153,4 +3170,95 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
 }
  `, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KubernetesClusterNodePoolResource) parallelPodSubnetConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestnw-%d"
+  address_space       = ["10.0.0.0/8"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "nodesubnet" {
+  name                 = "nodesubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.240.0.0/16"]
+}
+
+resource "azurerm_subnet" "podsubnet" {
+  name                 = "podsubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.241.0.0/16"]
+  delegation {
+    name = "aks-delegation"
+    service_delegation {
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+      name = "Microsoft.ContainerService/managedClusters"
+    }
+  }
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+  sku_tier            = "Standard"
+  default_node_pool {
+    name           = "default"
+    node_count     = 1
+    vm_size        = "Standard_DS2_v2"
+    pod_subnet_id  = azurerm_subnet.podsubnet.id
+    vnet_subnet_id = azurerm_subnet.nodesubnet.id
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+  network_profile {
+    network_plugin = "azure"
+  }
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "pool1" {
+  name                  = "pool1"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  pod_subnet_id         = azurerm_subnet.podsubnet.id
+  vnet_subnet_id        = azurerm_subnet.nodesubnet.id
+}
+
+resource "azurerm_kubernetes_cluster_node_pool" "pool2" {
+  name                  = "pool2"
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
+  vm_size               = "Standard_DS2_v2"
+  node_count            = 1
+  pod_subnet_id         = azurerm_subnet.podsubnet.id
+  vnet_subnet_id        = azurerm_subnet.nodesubnet.id
+}
+`,
+		data.RandomInteger,     // resource_group name
+		data.Locations.Primary, // resource_group location
+		data.RandomInteger,     // virtual_network name
+		data.RandomInteger,     // kubernetes_cluster name
+		data.RandomInteger,     // kubernetes_cluster dns_prefix
+	)
 }
