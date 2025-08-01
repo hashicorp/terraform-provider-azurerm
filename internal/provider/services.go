@@ -159,6 +159,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		cognitive.Registration{},
 		communication.Registration{},
 		compute.Registration{},
+		connections.Registration{},
 		consumption.Registration{},
 		containerapps.Registration{},
 		cosmos.Registration{},

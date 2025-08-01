@@ -70,6 +70,7 @@ func resourceEventHub() *pluginsdk.Resource {
 			"message_retention": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
+				Computed:     true,
 				ValidateFunc: validate.ValidateEventHubMessageRetentionCount,
 				ExactlyOneOf: []string{"retention_description", "message_retention"},
 			},
@@ -78,6 +79,7 @@ func resourceEventHub() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				MaxItems: 1,
+				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*schema.Schema{
 						"cleanup_policy": {
@@ -331,14 +333,11 @@ func resourceEventHubUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	eventhubStatus := eventhubs.EntityStatus(d.Get("status").(string))
 	parameters := eventhubs.Eventhub{
 		Properties: &eventhubs.EventhubProperties{
-			PartitionCount:     utils.Int64(int64(d.Get("partition_count").(int))),
-			Status:             &eventhubStatus,
-			CaptureDescription: expandEventHubCaptureDescription(d),
+			PartitionCount:         utils.Int64(int64(d.Get("partition_count").(int))),
+			Status:                 &eventhubStatus,
+			MessageRetentionInDays: utils.Int64(int64(d.Get("message_retention").(int))),
+			CaptureDescription:     expandEventHubCaptureDescription(d),
 		},
-	}
-
-	if d.HasChange("message_retention") {
-		parameters.Properties.MessageRetentionInDays = pointer.To(int64(d.Get("message_retention").(int)))
 	}
 
 	if d.HasChange("capture_description") {
@@ -398,13 +397,13 @@ func resourceEventHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				return err
 			}
 
+			// TODO - the `props.RetentionDescription.TombstoneRetentionTimeInHours == nil` check can be removed when https://github.com/Azure/azure-rest-api-specs/issues/36018 is fixed
+			if props.RetentionDescription == nil || props.RetentionDescription.TombstoneRetentionTimeInHours == nil {
+				d.Set("message_retention", props.MessageRetentionInDays)
+			}
 			retentionDescription := flattenEventHubRetentionDescription(props.RetentionDescription)
 			if err := d.Set("retention_description", retentionDescription); err != nil {
 				return err
-			}
-
-			if props.RetentionDescription == nil {
-				d.Set("message_retention", props.MessageRetentionInDays)
 			}
 		}
 	}

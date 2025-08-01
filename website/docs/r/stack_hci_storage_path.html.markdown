@@ -72,4 +72,4 @@ terraform import azurerm_stack_hci_storage_path.example /subscriptions/00000000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.AzureStackHCI`: 2024-01-01
+* `Microsoft.AzureStackHCI` - 2024-01-01

@@ -257,4 +257,4 @@ terraform import azurerm_data_protection_backup_instance_kubernetes_cluster.exam
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DataProtection`: 2024-04-01
+* `Microsoft.DataProtection` - 2024-04-01
