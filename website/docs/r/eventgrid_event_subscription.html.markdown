@@ -40,9 +40,9 @@ resource "azurerm_eventgrid_event_subscription" "example" {
   name  = "example-aees"
   scope = azurerm_resource_group.example.id
 
-  storage_queue_endpoint {
+  storage_queue {
     storage_account_id = azurerm_storage_account.example.id
-    queue_name         = azurerm_storage_queue.example.name
+    name               = azurerm_storage_queue.example.name
   }
 }
 ```
@@ -59,21 +59,21 @@ The following arguments are supported:
 
 * `event_delivery_schema` - (Optional) Specifies the event delivery schema for the event subscription. Possible values include: `EventGridSchema`, `CloudEventSchemaV1_0`, `CustomInputSchema`. Defaults to `EventGridSchema`. Changing this forces a new resource to be created.
 
-* `azure_function_endpoint` - (Optional) An `azure_function_endpoint` block as defined below.
+* `azure_function` - (Optional) An `azure_function` block as defined below.
 
-* `eventhub_endpoint_id` - (Optional) Specifies the id where the Event Hub is located.
+* `eventhub_id` - (Optional) Specifies the id of the Event Hub endpoint.
 
-* `hybrid_connection_endpoint_id` - (Optional) Specifies the id where the Hybrid Connection is located.
+* `arc_connection_id` - (Optional) Specifies the id of the Arc Connection endpoint.
 
-* `service_bus_queue_endpoint_id` - (Optional) Specifies the id where the Service Bus Queue is located.
+* `service_bus_queue_id` - (Optional) Specifies the id of the Service Bus Queue endpoint.
 
-* `service_bus_topic_endpoint_id` - (Optional) Specifies the id where the Service Bus Topic is located.
+* `service_bus_topic_id` - (Optional) Specifies the id of the Service Bus Topic endpoint.
 
-* `storage_queue_endpoint` - (Optional) A `storage_queue_endpoint` block as defined below.
+* `storage_queue` - (Optional) A `storage_queue` endpoint block as defined below.
 
-* `webhook_endpoint` - (Optional) A `webhook_endpoint` block as defined below.
+* `webhook` - (Optional) A `webhook` endpoint block as defined below.
 
-~> **Note:** One of `eventhub_endpoint_id`, `hybrid_connection_endpoint_id`, `service_bus_queue_endpoint_id`, `service_bus_topic_endpoint_id`, `storage_queue_endpoint`, `webhook_endpoint` or `azure_function_endpoint` must be specified.
+~> **Note:** One of `eventhub_id`, `arc_connection_id`, `service_bus_queue_id`, `service_bus_topic_id`, `storage_queue`, `webhook` or `azure_function` must be specified.
 
 * `included_event_types` - (Optional) A list of applicable event types that need to be part of the event subscription.
 
@@ -99,17 +99,17 @@ The following arguments are supported:
 
 ---
 
-A `storage_queue_endpoint` block supports the following:
+A `storage_queue` endpoint block supports the following:
 
 * `storage_account_id` - (Required) Specifies the id of the storage account id where the storage queue is located.
 
-* `queue_name` - (Required) Specifies the name of the storage queue where the Event Subscription will receive events.
+* `name` - (Required) Specifies the name of the storage queue where the Event Subscription will receive events.
 
-* `queue_message_time_to_live_in_seconds` - (Optional) Storage queue message time to live in seconds.
+* `message_time_to_live_in_seconds` - (Optional) Storage queue message time to live in seconds.
 
 ---
 
-An `azure_function_endpoint` block supports the following:
+An `azure_function` endpoint block supports the following:
 
 * `function_id` - (Required) Specifies the ID of the Function where the Event Subscription will receive events. This must be the functions ID in format {function_app.id}/functions/{name}.
 
@@ -119,7 +119,7 @@ An `azure_function_endpoint` block supports the following:
 
 ---
 
-A `webhook_endpoint` block supports the following:
+A `webhook` endpoint block supports the following:
 
 * `url` - (Required) Specifies the url of the webhook where the Event Subscription will receive events.
 
