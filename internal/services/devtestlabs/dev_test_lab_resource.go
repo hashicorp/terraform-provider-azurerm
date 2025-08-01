@@ -8,7 +8,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -21,6 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceDevTestLab() *pluginsdk.Resource {
@@ -123,7 +123,7 @@ func resourceDevTestLabCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 	location := azure.NormalizeLocation(d.Get("location").(string))
 
 	parameters := labs.Lab{
-		Location: pointer.To(location),
+		Location: utils.String(location),
 		Tags:     expandTags(d.Get("tags").(map[string]interface{})),
 	}
 
