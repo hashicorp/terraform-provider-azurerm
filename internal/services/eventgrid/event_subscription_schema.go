@@ -124,7 +124,7 @@ func eventSubscriptionSchemaAzureFunctionEndpoint(conflictsWith []string) *plugi
 				"function_id": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
-					ValidateFunc: webapps.ValidateFunctionID,
+					ValidateFunc: azure.ValidateResourceID, // TODO: validation for a Function App ID
 				},
 				"max_events_per_batch": {
 					Type:     pluginsdk.TypeInt,
