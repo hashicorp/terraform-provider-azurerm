@@ -48,7 +48,7 @@ func (p *CloudHsmClusterStatePoller) Poll(ctx context.Context) (*pollers.PollRes
 			HttpResponse: &client.Response{
 				Response: resp.HttpResponse,
 			},
-			Status:       pollers.PollingStatusSucceeded,
+			Status: pollers.PollingStatusSucceeded,
 		}, nil
 	}
 
