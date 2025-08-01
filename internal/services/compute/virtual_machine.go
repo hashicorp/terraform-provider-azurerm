@@ -230,6 +230,16 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					Default:  false,
 				},
 
+				"managed_disk_id": {
+					// Note: O+C as this is the same value as `id` below but to support
+					// import of the OSDisk and not break compatibility with existing configs / references
+					// we're adding it as a separate property.
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: commonids.ValidateManagedDiskID,
+				},
+
 				"id": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
@@ -242,6 +252,7 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 func expandVirtualMachineOSDisk(input []interface{}, osType virtualmachines.OperatingSystemTypes) (*virtualmachines.OSDisk, error) {
 	raw := input[0].(map[string]interface{})
 	caching := raw["caching"].(string)
+
 	disk := virtualmachines.OSDisk{
 		Caching: pointer.To(virtualmachines.CachingTypes(caching)),
 		ManagedDisk: &virtualmachines.ManagedDiskParameters{
@@ -255,6 +266,14 @@ func expandVirtualMachineOSDisk(input []interface{}, osType virtualmachines.Oper
 		// an image of the machine (e.g. an Image/Shared Image Gallery)
 		CreateOption: virtualmachines.DiskCreateOptionTypesFromImage,
 		OsType:       pointer.To(osType),
+	}
+	if diskID, ok := raw["managed_disk_id"]; ok {
+		diskId, err := commonids.ParseManagedDiskID(diskID.(string))
+		if err != nil {
+			return nil, err
+		}
+		disk.ManagedDisk.Id = pointer.To(diskId.ID())
+		disk.CreateOption = virtualmachines.DiskCreateOptionTypesAttach
 	}
 
 	securityEncryptionType := raw["security_encryption_type"].(string)
@@ -396,6 +415,7 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 			"disk_encryption_set_id":           diskEncryptionSetId,
 			"disk_size_gb":                     diskSizeGb,
 			"id":                               osDiskId,
+			"managed_disk_id":                  osDiskId,
 			"name":                             name,
 			"storage_account_type":             storageAccountType,
 			"secure_vm_disk_encryption_set_id": secureVMDiskEncryptionSetId,

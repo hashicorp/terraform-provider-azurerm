@@ -406,6 +406,21 @@ func TestAccLinuxVirtualMachine_diskOSConfidentialVmWithDiskAndVMGuestStateCMK(t
 	})
 }
 
+func TestAccLinuxVirtualMachine_diskOSImportManagedDisk(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.diskOSImportManagedDisk(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r LinuxVirtualMachineResource) diskOSBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -1198,4 +1213,57 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
   object_id = azurerm_disk_encryption_set.test.identity.0.principal_id
 }
 `, r.templateWithOutProvider(data), data.RandomInteger, data.RandomString)
+}
+
+func (r LinuxVirtualMachineResource) diskOSImportManagedDisk(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_platform_image" "test" {
+  location  = azurerm_resource_group.test.location
+  publisher = "Canonical"
+  offer     = "0001-com-ubuntu-server-jammy"
+  sku       = "22_04-lts"
+}
+
+resource "azurerm_managed_disk" "test" {
+  name                 = "acctestd-%[2]d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  os_type              = "Linux"
+  hyper_v_generation   = "V1"
+  create_option        = "FromImage"
+  image_reference_id   = data.azurerm_platform_image.test.id
+  storage_account_type = "Standard_LRS"
+}
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+    managed_disk_id      = azurerm_managed_disk.test.id
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
