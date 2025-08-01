@@ -6,7 +6,7 @@ description: "This is the official Terraform Provider for Azure (Resource Manage
 
 This is the official Terraform Provider for Azure (Resource Manager), written in Go. It enables Terraform to manage Azure resources through the Azure Resource Manager APIs.
 
-**Quick navigation:** [📚 Stack](#stack) | [🏗️ Project Structure](#project-structure) | [💬 Comment Policy](#⚠️-critical-code-comment-policy-⚠️) | [🚨 Testing Policy](#🚨-critical-testing-rule-policy-no-redundant-field-validation) | [🎯 AI Guidelines](#🎯-ai-development-guidelines) | [⚡ Implementation](#implementation-approaches) | [📖 Generic Guidelines](#generic-guidelines) | [🧠 Smart Patterns](#smart-pattern-recognition) | [❌ Error Handling](#error-handling-standards) | [🔧 Implementation Guide](#detailed-implementation-guidance) | [📚 Quick Reference](#quick-reference-links)
+**Quick navigation:** [📚 Stack](#stack) | [🏗️ Project Structure](#project-structure) | [💬 Comment Policy](#⚠️-critical-code-comment-policy-⚠️) | [🚨 Comment Audit](#🚨-mandatory-comment-audit-checklist-🚨) | [🎯 Priority Enforcement](#🎯-ai-development-priority-enforcement) | [🚨 Testing Policy](#🚨-critical-testing-rule-policy-no-redundant-field-validation) | [🎯 AI Guidelines](#🎯-ai-development-guidelines) | [⚡ Implementation](#implementation-approaches) | [📖 Generic Guidelines](#generic-guidelines) | [🧠 Smart Patterns](#smart-pattern-recognition) | [❌ Error Handling](#error-handling-standards) | [🔧 Implementation Guide](#detailed-implementation-guidance) | [📚 Quick Reference](#quick-reference-links)
 
 ## Stack
 
@@ -80,6 +80,60 @@ Every comment requires explicit justification:
 
 **FINAL CHECK:** "Can I eliminate this comment through better code?"
 
+## 🚨 MANDATORY COMMENT AUDIT CHECKLIST 🚨
+
+**BEFORE ANY CODE SUBMISSION - BLOCKING REQUIREMENT:**
+
+**Step 1: AUTOMATIC VIOLATION SCAN**
+- [ ] Search ALL code for comment patterns: `//`, `/*`, `#`
+- [ ] For EACH comment found, answer: "Which of the 4 exception cases applies?"
+  1. Azure API-specific quirks not obvious from code
+  2. Complex business logic that cannot be simplified
+  3. Azure SDK workarounds for limitations/bugs
+  4. Non-obvious state patterns (PATCH operations, residual state)
+- [ ] If NONE apply → **MANDATORY REMOVAL**
+
+**Step 2: JUSTIFICATION DOCUMENTATION**
+- [ ] For each remaining comment, document in review response:
+  - Exception case number (1-4)
+  - Why code cannot be self-explanatory through refactoring
+  - Specific Azure behavior requiring documentation
+
+**Step 3: REFACTORING VERIFICATION**
+- [ ] Attempted better variable naming? **YES/NO**
+- [ ] Attempted function extraction? **YES/NO**
+- [ ] Attempted structure reorganization? **YES/NO**
+- [ ] Cannot eliminate through code improvement? **YES/NO**
+
+**🚫 FAILURE TO COMPLETE AUDIT = CODE REJECTION**
+
+**FORBIDDEN COMMENT PATTERNS - Auto-Reject:**
+```go
+// Variable assignment comments
+var enabled = true // Set enabled to true → DELETE
+
+// Function call explanations
+client.Create(params) // Create the resource → DELETE
+
+// Obvious operations
+d.Set("name", name) // Set the name field → DELETE
+
+// Standard patterns
+if err != nil { // Check for errors → DELETE
+    return err
+}
+```
+
+**ACCEPTABLE COMMENT PATTERNS:**
+```go
+// Azure Front Door PATCH operations preserve existing values when fields
+// are omitted. Must explicitly send enabled=false to disable features.
+result.Feature.Enabled = pointer.To(false)
+
+// Azure SDK bug: nil values get filtered out before API call
+// Workaround: always provide complete structure
+```
+
 📋 **For comprehensive enforcement guidelines and detailed examples, see:** [Code Clarity Enforcement Guidelines](./instructions/code-clarity-enforcement.instructions.md#🚫-zero-tolerance-for-unnecessary-comments-policy)
 
 ---
@@ -148,6 +202,9 @@ func TestAccResourceName_basic(t *testing.T) {
 - ✅ **CRITICAL: Code comments follow strict policy - only for Azure API quirks, complex business logic, or SDK workarounds**
 - ✅ **All code comments have explicit justification documented in review response**
 - ✅ **No comments on obvious operations, standard patterns, or self-explanatory code**
+
+---
+[⬆️ Back to top](#custom-instructions)
 
 ## Implementation Approaches
 
@@ -304,6 +361,35 @@ func resourceServiceName() *pluginsdk.Resource {
 - Implement proper caching where appropriate
 - Monitor and optimize API call patterns
 - Use context with appropriate timeouts
+
+---
+[⬆️ Back to top](#custom-instructions)
+
+## 🎯 AI Development Priority Enforcement
+
+### **BLOCKING PRIORITY #1: ZERO TOLERANCE COMMENT POLICY**
+
+**MANDATORY ACTIONS FOR EVERY CODE OPERATION:**
+
+🚫 **BEFORE ANY CODE GENERATION/REVIEW:**
+1. **AUTOMATIC SCAN**: Every code block MUST be scanned for comment patterns
+2. **MANDATORY QUESTION**: "Are there ANY comments (`//`, `/*`) in this code?"
+3. **BLOCKING CHECK**: If YES → Apply 4-exception audit (Azure API quirks, complex business logic, SDK workarounds, non-obvious state patterns)
+4. **IMMEDIATE ACTION**: If comment doesn't meet exception criteria → **AUTOMATIC REFACTORING REQUIRED**
+
+🔧 **REFACTORING-FIRST APPROACH:**
+- **Variable naming improvements** → BEFORE commenting
+- **Function extraction** → BEFORE commenting
+- **Structure reorganization** → BEFORE commenting
+- **Pattern clarification** → BEFORE commenting
+
+⚠️ **ENFORCEMENT TRIGGERS:**
+- Any comment without explicit 4-exception justification → **AUTOMATIC VIOLATION**
+- Any obvious operation comment → **IMMEDIATE REMOVAL REQUIRED**
+- Any variable assignment comment → **IMMEDIATE REMOVAL REQUIRED**
+- Any standard pattern comment → **IMMEDIATE REMOVAL REQUIRED**
+
+**This policy takes ABSOLUTE PRIORITY over all other development guidance.**
 
 ---
 [⬆️ Back to top](#custom-instructions)

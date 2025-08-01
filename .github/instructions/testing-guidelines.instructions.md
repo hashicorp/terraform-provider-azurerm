@@ -905,11 +905,12 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 When testing resources with Optional+Computed (O+C) schema fields, **comprehensive testing is mandatory** to ensure correct state management and Azure API integration. O+C fields have complex behavior that requires specific testing patterns.
 
 **Testing Requirements for O+C Fields:**
-- **Initial State Testing**: Verify the field behavior when not explicitly set by the user
+- **Initial State Testing**: Verify the field behavior when not explicitly set by the user (should show default value)
 - **Explicit Configuration Testing**: Test behavior when the field is explicitly configured by the user
 - **Computed State Testing**: Verify that Azure-managed state changes are correctly reflected in Terraform
 - **Import State Testing**: Ensure import functionality handles both user-set and Azure-managed states correctly
 - **Backward Compatibility Testing**: Test that existing resources don't show unexpected diffs when upgrading the provider
+- **State Presence Testing**: Verify O+C fields are always present in state regardless of configuration status
 
 **O+C Field Testing Pattern:**
 ```go
@@ -919,11 +920,11 @@ func TestAccServiceName_optionalComputedField(t *testing.T) {
 
     data.ResourceTest(t, r, []acceptance.TestStep{
         {
-            // Test initial state - field not explicitly set
+            // Test initial state - field not explicitly set (should show default)
             Config: r.withoutOptionalComputedField(data),
             Check: acceptance.ComposeTestCheckFunc(
                 check.That(data.ResourceName).ExistsInAzure(r),
-                // Verify Azure default behavior is reflected
+                // Verify default value is shown in state when field not configured
                 check.That(data.ResourceName).Key("resilient_vm_creation_enabled").HasValue("false"),
             ),
         },
@@ -962,6 +963,87 @@ func TestAccServiceName_optionalComputedField(t *testing.T) {
 - **Database High Availability**: Test Azure-managed redundancy settings
 - **Network Security Features**: Test security policies that cannot be downgraded
 - **Backup and Retention Policies**: Test Azure-managed retention configurations
+
+### Default Restoration Testing for O+C Fields
+
+When O+C fields need to restore default values after being removed from configuration, use this specialized testing pattern that validates the three-function approach:
+
+**Complete Default Restoration Test Pattern:**
+```go
+func TestAccServiceName_defaultRestoration(t *testing.T) {
+    data := acceptance.BuildTestData(t, "azurerm_service_name", "test")
+    r := ServiceNameResource{}
+
+    data.ResourceTest(t, r, []acceptance.TestStep{
+        {
+            // Step 1: Create resource with explicit non-default values
+            Config: r.withExplicitFieldValues(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+                check.That(data.ResourceName).Key("cookie_expiration_in_minutes").HasValue("60"),
+            ),
+        },
+        data.ImportStep(),
+        {
+            // Step 2: Remove fields from configuration (should show defaults in state)
+            Config: r.withoutOptionalComputedFields(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+                // Verify defaults are shown in state when fields removed from config
+                check.That(data.ResourceName).Key("cookie_expiration_in_minutes").HasValue("30"),
+            ),
+        },
+        data.ImportStep(), // Verify import works with defaults
+        {
+            // Step 3: Re-add explicit values to ensure pattern works both directions
+            Config: r.withExplicitFieldValues(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+                check.That(data.ResourceName).Key("cookie_expiration_in_minutes").HasValue("60"),
+            ),
+        },
+        data.ImportStep(), // Verify final state consistency
+    })
+}
+
+// Test configuration helpers for default restoration pattern
+func (r ServiceNameResource) withExplicitFieldValues(data acceptance.TestData) string {
+    return fmt.Sprintf(`
+// ... base configuration
+resource "azurerm_service_name" "test" {
+  // ... required fields
+  cookie_expiration_in_minutes = 60  // Explicit non-default value
+  // ... other fields
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r ServiceNameResource) withoutOptionalComputedFields(data acceptance.TestData) string {
+    return fmt.Sprintf(`
+// ... base configuration
+resource "azurerm_service_name" "test" {
+  // ... required fields only
+  // cookie_expiration_in_minutes field REMOVED from configuration
+  // ... other fields
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+```
+
+**Critical Testing Validations for Default Restoration:**
+- **Step 1**: Verify explicit values work correctly
+- **Step 2**: Verify defaults are shown in state when fields removed from configuration
+- **Step 3**: Verify re-addition of explicit values works correctly
+- **Import Testing**: Verify import works at each step of the lifecycle
+- **State Consistency**: Ensure no unexpected diffs between steps
+
+**Key Testing Principles for Three-Function O+C Pattern:**
+- **Read Function Testing**: Verify simple Azure value reading (no config presence logic needed)
+- **Update Function Testing**: Verify default application using GetOk() pattern when fields removed
+- **CustomizeDiff Testing**: Verify O+C persistence handling when fields removed from config
+- **Lifecycle Testing**: Verify complete remove → show defaults → re-add → remove cycle
+- **Edge Case Testing**: Test when Azure already has default values vs non-default values
+- **State Presence**: O+C fields persist in state forever once set for all test steps
 
 ---
 [⬆️ Back to top](#🧪-testing-guidelines)

@@ -306,6 +306,18 @@ model.ShutdownOnIdle = shutdownOnIdle
 - Azure-managed defaults that users can override
 - Irreversible settings that cannot be disabled once enabled
 - Service-managed state that users can influence but not fully control
+- Fields requiring default value restoration when removed from configuration
+
+**Schema Definition:**
+```go
+// O+C fields require special handling in both Read and Update functions
+"cookie_expiration_in_minutes": {
+    Type:     pluginsdk.TypeInt,
+    Optional: true,
+    Computed: true,
+    ValidateFunc: validation.IntBetween(1, 1440),
+},
+```
 
 **Documentation Requirements for O+C:**
 ```go
@@ -319,6 +331,82 @@ model.ShutdownOnIdle = shutdownOnIdle
     Computed: true,
 },
 ```
+
+**Critical Implementation Pattern for Default Restoration:**
+
+When O+C fields need to restore default values after being removed from configuration, use this three-function approach with proper separation of concerns:
+
+**Read Function - Simple Azure Value Reading:**
+```go
+func resourceServiceNameRead(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
+    // ... standard read logic
+
+    if response.Model != nil && response.Model.Properties != nil {
+        props := response.Model.Properties
+
+        // Simple: Just read Azure values directly
+        // O+C fields persist in state forever once set - removing from config doesn't make them nil
+        if props.CookieExpirationInMinutes != nil {
+            d.Set("cookie_expiration_in_minutes", int(pointer.From(props.CookieExpirationInMinutes)))
+        }
+    }
+
+    return nil
+}
+```
+
+**Update Function - Default Value Application:**
+```go
+func resourceServiceNameUpdate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
+    // Include O+C fields in HasChanges check
+    if d.HasChanges("cookie_expiration_in_minutes", "other_fields") {
+
+        // Use GetOk pattern to apply defaults when fields not explicitly set
+        cookieExpiration := 30 // Default value
+        if v, ok := d.GetOk("cookie_expiration_in_minutes"); ok {
+            cookieExpiration = v.(int)
+        }
+
+        parameters := servicetype.UpdateParameters{
+            CookieExpirationInMinutes: pointer.To(int32(cookieExpiration)),
+        }
+
+        // ... Azure API call
+    }
+
+    return resourceServiceNameRead(ctx, d, meta)
+}
+```
+
+**CustomizeDiff Function - O+C Field Persistence:**
+```go
+CustomizeDiff: pluginsdk.CustomDiffWithAll(
+    pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+        rawConfig := diff.GetRawConfig()
+
+        // Handle O+C field persistence: force default when field removed from config
+        if rawConfig.IsNull() || rawConfig.GetAttr("cookie_expiration_in_minutes").IsNull() {
+            // Check the current value in state
+            if diff.Get("cookie_expiration_in_minutes").(int) != 30 {
+                // Force the value to default when removed from config
+                if err := diff.SetNew("cookie_expiration_in_minutes", 30); err != nil {
+                    return fmt.Errorf("setting default for `cookie_expiration_in_minutes`: %+v", err)
+                }
+            }
+        }
+
+        return nil
+    }),
+),
+```
+
+**Key Principles:**
+- **Read Function**: SIMPLE - just read Azure values directly (O+C fields persist in state forever once set)
+- **Update Function**: Applies defaults using `GetOk()` pattern when fields not present
+- **CustomizeDiff Function**: Handles O+C persistence by forcing defaults when fields removed from config
+- **State Behavior**: O+C fields stay in state forever - removing from config doesn't make them nil
+- **Separation of Concerns**: CustomizeDiff does the heavy lifting, Read stays simple
+- **Include O+C fields** in `d.HasChanges()` list to ensure Update function is called
 
 ### ForceNew Patterns
 
