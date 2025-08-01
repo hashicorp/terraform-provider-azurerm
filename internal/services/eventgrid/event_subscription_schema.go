@@ -4,6 +4,8 @@
 package eventgrid
 
 import (
+	"context"
+	"fmt"
 	"regexp"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -22,13 +24,13 @@ import (
 type EventSubscriptionEndpointType string
 
 const (
-	AzureFunction        EventSubscriptionEndpointType = "azure_function"
-	EventHubID           EventSubscriptionEndpointType = "eventhub_id"
-	ArcConnectionID      EventSubscriptionEndpointType = "arc_connection_id"
-	ServiceBusQueueID    EventSubscriptionEndpointType = "service_bus_queue_id"
-	ServiceBusTopicID    EventSubscriptionEndpointType = "service_bus_topic_id"
-	StorageQueueEndpoint EventSubscriptionEndpointType = "storage_queue_endpoint"
-	WebHookEndpoint      EventSubscriptionEndpointType = "webhook_endpoint"
+	AzureFunction     EventSubscriptionEndpointType = "azure_function"
+	EventHubID        EventSubscriptionEndpointType = "eventhub_id"
+	ArcConnectionID   EventSubscriptionEndpointType = "arc_connection_id"
+	ServiceBusQueueID EventSubscriptionEndpointType = "service_bus_queue_id"
+	ServiceBusTopicID EventSubscriptionEndpointType = "service_bus_topic_id"
+	StorageQueue      EventSubscriptionEndpointType = "storage_queue"
+	WebHook           EventSubscriptionEndpointType = "webhook"
 )
 
 func eventSubscriptionSchemaEventSubscriptionName() *pluginsdk.Schema {
@@ -169,7 +171,7 @@ func eventSubscriptionSchemaServiceBusTopicID(conflictsWith []string) *pluginsdk
 	}
 }
 
-func eventSubscriptionSchemaStorageQueueEndpoint(conflictsWith []string) *pluginsdk.Schema {
+func eventSubscriptionSchemaStorageQueue(conflictsWith []string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeList,
 		MaxItems:      1,
@@ -182,12 +184,12 @@ func eventSubscriptionSchemaStorageQueueEndpoint(conflictsWith []string) *plugin
 					Required:     true,
 					ValidateFunc: commonids.ValidateStorageAccountID,
 				},
-				"queue_name": {
+				"name": {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
-				"queue_message_time_to_live_in_seconds": {
+				"message_time_to_live_in_seconds": {
 					Type:     pluginsdk.TypeInt,
 					Optional: true,
 				},
@@ -196,7 +198,7 @@ func eventSubscriptionSchemaStorageQueueEndpoint(conflictsWith []string) *plugin
 	}
 }
 
-func eventSubscriptionSchemaWebHookEndpoint(conflictsWith []string) *pluginsdk.Schema {
+func eventSubscriptionSchemaWebHook(conflictsWith []string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:          pluginsdk.TypeList,
 		MaxItems:      1,
@@ -768,3 +770,24 @@ func eventSubscriptionSchemaIdentity() *pluginsdk.Schema {
 		},
 	}
 }
+
+var advancedFilterLimitCustomizeDiffFunc = pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+	if filterRaw := d.Get("advanced_filter"); len(filterRaw.([]interface{})) == 1 {
+		filters := filterRaw.([]interface{})[0].(map[string]interface{})
+		valueCount := 0
+		for _, valRaw := range filters {
+			for _, val := range valRaw.([]interface{}) {
+				v := val.(map[string]interface{})
+				if values, ok := v["values"]; ok {
+					valueCount += len(values.([]interface{}))
+				} else if _, ok := v["value"]; ok {
+					valueCount++
+				}
+			}
+		}
+		if valueCount > 25 {
+			return fmt.Errorf("the total number of `advanced_filter` values allowed on a single event subscription is 25, but %d are configured", valueCount)
+		}
+	}
+	return nil
+})

@@ -1153,8 +1153,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test1" {
       values = [[5, 13], [21, 34]]
     }
     string_begins_with {
-      key    = "subject"
-      values = ["foo"]
+      key = "subject"
     }
   }
 }

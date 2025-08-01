@@ -32,6 +32,12 @@ func expandEventSubscriptionDestination(d *pluginsdk.ResourceData) eventsubscrip
 	if v, ok := d.GetOk("service_bus_topic_id"); ok {
 		return expandEventSubscriptionDestinationServiceBusTopic(v.(string), deliveryMappings)
 	}
+	if v, ok := d.GetOk("storage_queue"); ok {
+		return expandEventSubscriptionStorageQueue(v.([]interface{}))
+	}
+	if v, ok := d.GetOk("webhook"); ok {
+		return expandEventGridEventSubscriptionWebhook(v.([]interface{}), deliveryMappings)
+	}
 
 	if !features.FivePointOh() {
 		if val, ok := d.GetOk("azure_function_endpoint"); ok && len(val.([]interface{})) == 1 {
@@ -49,20 +55,18 @@ func expandEventSubscriptionDestination(d *pluginsdk.ResourceData) eventsubscrip
 		if v, ok := d.GetOk("service_bus_topic_endpoint_id"); ok {
 			return expandEventSubscriptionDestinationServiceBusTopic(v.(string), deliveryMappings)
 		}
-	}
-
-	if v, ok := d.GetOk("storage_queue_endpoint"); ok {
-		return expandEventSubscriptionStorageQueueEndpoint(v.([]interface{}))
-	}
-
-	if v, ok := d.GetOk("webhook_endpoint"); ok {
-		return expandEventGridEventSubscriptionWebhookEndpoint(v.([]interface{}), deliveryMappings)
+		if v, ok := d.GetOk("storage_queue_endpoint"); ok {
+			return expandEventSubscriptionStorageQueue(v.([]interface{}))
+		}
+		if v, ok := d.GetOk("webhook_endpoint"); ok {
+			return expandEventGridEventSubscriptionWebhook(v.([]interface{}), deliveryMappings)
+		}
 	}
 
 	return nil
 }
 
-func expandEventGridEventSubscriptionWebhookEndpoint(input []interface{}, deliveryMappings []eventsubscriptions.DeliveryAttributeMapping) eventsubscriptions.EventSubscriptionDestination {
+func expandEventGridEventSubscriptionWebhook(input []interface{}, deliveryMappings []eventsubscriptions.DeliveryAttributeMapping) eventsubscriptions.EventSubscriptionDestination {
 	props := eventsubscriptions.WebHookEventSubscriptionDestinationProperties{
 		DeliveryAttributeMappings: &deliveryMappings,
 	}
@@ -203,16 +207,27 @@ func flattenEventSubscriptionDestinationServiceBusTopic(input eventsubscriptions
 	return ""
 }
 
-func expandEventSubscriptionStorageQueueEndpoint(input []interface{}) eventsubscriptions.EventSubscriptionDestination {
+func expandEventSubscriptionStorageQueue(input []interface{}) eventsubscriptions.EventSubscriptionDestination {
 	raw := input[0].(map[string]interface{})
 	props := eventsubscriptions.StorageQueueEventSubscriptionDestinationProperties{
 		ResourceId: pointer.To(raw["storage_account_id"].(string)),
-		QueueName:  pointer.To(raw["queue_name"].(string)),
+		QueueName:  pointer.To(raw["name"].(string)),
 	}
 
-	if ttlInSeconds := raw["queue_message_time_to_live_in_seconds"]; ttlInSeconds != 0 {
+	if ttlInSeconds := raw["message_time_to_live_in_seconds"]; ttlInSeconds != 0 {
 		queueMessageTimeToLiveInSeconds := int64(ttlInSeconds.(int))
 		props.QueueMessageTimeToLiveInSeconds = &queueMessageTimeToLiveInSeconds
+	}
+
+	if !features.FivePointOh() {
+		if v, ok := raw["queue_name"]; ok && v != 0 {
+			queueMessageTimeToLiveInSeconds := int64(v.(int))
+			props.QueueMessageTimeToLiveInSeconds = &queueMessageTimeToLiveInSeconds
+		}
+		if v, ok := raw["queue_message_time_to_live_in_seconds"]; ok && v != 0 {
+			queueMessageTimeToLiveInSeconds := int64(v.(int))
+			props.QueueMessageTimeToLiveInSeconds = &queueMessageTimeToLiveInSeconds
+		}
 	}
 
 	return eventsubscriptions.StorageQueueEventSubscriptionDestination{
@@ -220,7 +235,7 @@ func expandEventSubscriptionStorageQueueEndpoint(input []interface{}) eventsubsc
 	}
 }
 
-func flattenEventSubscriptionDestinationStorageQueueEndpoint(input eventsubscriptions.EventSubscriptionDestination) []interface{} {
+func flattenEventSubscriptionDestinationStorageQueue(input eventsubscriptions.EventSubscriptionDestination) []interface{} {
 	output := make([]interface{}, 0)
 
 	val, ok := input.(eventsubscriptions.StorageQueueEventSubscriptionDestination)
@@ -355,7 +370,7 @@ func expandEventSubscriptionIdentity(input []interface{}) (*eventsubscriptions.E
 	return &eventgridIdentity, nil
 }
 
-func flattenEventSubscriptionWebhookEndpoint(input eventsubscriptions.EventSubscriptionDestination, fullUrl *eventsubscriptions.EventSubscriptionFullURL) []interface{} {
+func flattenEventSubscriptionWebhook(input eventsubscriptions.EventSubscriptionDestination, fullUrl *eventsubscriptions.EventSubscriptionFullURL) []interface{} {
 	output := make([]interface{}, 0)
 	val, ok := input.(eventsubscriptions.WebHookEventSubscriptionDestination)
 	if ok {
