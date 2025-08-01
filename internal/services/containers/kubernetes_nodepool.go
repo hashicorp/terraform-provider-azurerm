@@ -1193,7 +1193,10 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		gpuInstanceProfile = string(*agentPool.GpuInstanceProfile)
 	}
 
-	gpuDriver := string(*agentPool.GpuProfile.Driver)
+	gpuDriver := ""
+	if agentPool.GpuProfile != nil {
+		gpuDriver = string(*agentPool.GpuProfile.Driver)
+	}
 
 	maxCount := 0
 	if agentPool.MaxCount != nil {
