@@ -236,13 +236,13 @@ func TestAccCdnFrontDoorFirewallPolicy_jsChallengePolicyUpdate(t *testing.T) {
 		data.ImportStep(),
 		{
 			// NOTE: Since this is an O+C field, when the field is removed
-			// from the config it will get the last value from the state
-			// file so you need to verify that the last tests value is
-			// passed as the value for the field...
+			// from the config we need to check if the reset to default
+			// logic worked in the update function and reset the value
+			// to its default value of 30...
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("js_challenge_cookie_expiration_in_minutes").HasValue("1440"),
+				check.That(data.ResourceName).Key("js_challenge_cookie_expiration_in_minutes").HasValue("30"),
 			),
 		},
 		data.ImportStep(),
@@ -279,13 +279,13 @@ func TestAccCdnFrontDoorFirewallPolicy_captchaPolicyUpdate(t *testing.T) {
 		data.ImportStep(),
 		{
 			// NOTE: Since this is an O+C field, when the field is removed
-			// from the config it will get the last value from the state
-			// file so you need to verify that the last tests value is
-			// passed as the value for the field...
+			// from the config we need to check if the reset to default
+			// logic worked in the update function and reset the value
+			// to its default value of 30...
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("captcha_cookie_expiration_in_minutes").HasValue("1440"),
+				check.That(data.ResourceName).Key("captcha_cookie_expiration_in_minutes").HasValue("30"),
 			),
 		},
 		data.ImportStep(),

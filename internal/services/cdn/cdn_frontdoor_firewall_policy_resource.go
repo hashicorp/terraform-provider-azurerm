@@ -584,6 +584,35 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 				}
 				return nil
 			}),
+
+			// Handle default value reset when field is removed from the configuration
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				rawConfig := diff.GetRawConfig()
+
+				// Only valid for 'Premium_AzureFrontDoor' skus
+				if diff.Get("sku_name").(string) == string(waf.SkuNamePremiumAzureFrontDoor) {
+
+					if rawConfig.IsNull() || rawConfig.GetAttr("js_challenge_cookie_expiration_in_minutes").IsNull() {
+						if diff.Get("js_challenge_cookie_expiration_in_minutes").(int) != 30 {
+							// Force the value to default when removed from config
+							if err := diff.SetNew("js_challenge_cookie_expiration_in_minutes", 30); err != nil {
+								return fmt.Errorf("setting default for `js_challenge_cookie_expiration_in_minutes`: %+v", err)
+							}
+						}
+					}
+
+					if rawConfig.IsNull() || rawConfig.GetAttr("captcha_cookie_expiration_in_minutes").IsNull() {
+						if diff.Get("captcha_cookie_expiration_in_minutes").(int) != 30 {
+							// Force the value to default when removed from config
+							if err := diff.SetNew("captcha_cookie_expiration_in_minutes", 30); err != nil {
+								return fmt.Errorf("setting default for `captcha_cookie_expiration_in_minutes`: %+v", err)
+							}
+						}
+					}
+				}
+
+				return nil
+			}),
 		),
 	}
 }
@@ -876,8 +905,9 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 				d.Set("custom_block_response_status_code", int(pointer.From(policy.CustomBlockResponseStatusCode)))
 				d.Set("custom_block_response_body", policy.CustomBlockResponseBody)
 
-				// NOTE: js_challenge_cookie_expiration_in_minutes is only returned
-				// for Premium_AzureFrontDoor skus, else it will be 'nil'...
+				// NOTE: `js_challenge_cookie_expiration_in_minutes` and
+				// `captcha_cookie_expiration_in_minutes` is only returned
+				// for Premium_AzureFrontDoor skus, else they will be 'nil'...
 				if policy.JavascriptChallengeExpirationInMinutes != nil {
 					d.Set("js_challenge_cookie_expiration_in_minutes", int(pointer.From(policy.JavascriptChallengeExpirationInMinutes)))
 				}
