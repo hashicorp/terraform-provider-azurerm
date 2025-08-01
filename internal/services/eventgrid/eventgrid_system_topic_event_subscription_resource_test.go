@@ -126,7 +126,6 @@ func TestAccEventGridSystemTopicEventSubscription_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("event_delivery_schema").HasValue("EventGridSchema"),
-				check.That(data.ResourceName).Key("storage_queue_endpoint.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_blob_dead_letter_destination.#").HasValue("1"),
 				check.That(data.ResourceName).Key("included_event_types.0").HasValue("Microsoft.Resources.ResourceWriteSuccess"),
 				check.That(data.ResourceName).Key("retry_policy.0.max_delivery_attempts").HasValue("11"),
@@ -141,7 +140,6 @@ func TestAccEventGridSystemTopicEventSubscription_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("included_event_types.0").HasValue("Microsoft.Storage.BlobCreated"),
 				check.That(data.ResourceName).Key("included_event_types.1").HasValue("Microsoft.Storage.BlobDeleted"),
-				check.That(data.ResourceName).Key("storage_queue_endpoint.0.queue_message_time_to_live_in_seconds").HasValue("3600"),
 				check.That(data.ResourceName).Key("subject_filter.0.subject_ends_with").HasValue(".jpg"),
 				check.That(data.ResourceName).Key("subject_filter.0.subject_begins_with").HasValue("test/test"),
 				check.That(data.ResourceName).Key("retry_policy.0.max_delivery_attempts").HasValue("10"),
@@ -508,9 +506,9 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
   system_topic        = azurerm_eventgrid_system_topic.test.name
   resource_group_name = azurerm_resource_group.test.name
 
-  storage_queue_endpoint {
+  storage_queue {
     storage_account_id = azurerm_storage_account.test.id
-    queue_name         = azurerm_storage_queue.test.name
+    name               = azurerm_storage_queue.test.name
   }
 
   storage_blob_dead_letter_destination {
@@ -589,9 +587,9 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
   system_topic        = azurerm_eventgrid_system_topic.test.name
   resource_group_name = azurerm_resource_group.test.name
 
-  storage_queue_endpoint {
+  storage_queue {
     storage_account_id = azurerm_storage_account.test.id
-    queue_name         = azurerm_storage_queue.test.name
+    name               = azurerm_storage_queue.test.name
   }
 
   storage_blob_dead_letter_destination {
@@ -679,9 +677,9 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
   system_topic        = azurerm_eventgrid_system_topic.test.name
   resource_group_name = azurerm_resource_group.test.name
 
-  storage_queue_endpoint {
+  storage_queue {
     storage_account_id = azurerm_storage_account.test.id
-    queue_name         = azurerm_storage_queue.test.name
+    name               = azurerm_storage_queue.test.name
   }
 
   storage_blob_dead_letter_destination {
@@ -769,10 +767,10 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
   system_topic        = azurerm_eventgrid_system_topic.test.name
   resource_group_name = azurerm_resource_group.test.name
 
-  storage_queue_endpoint {
-    storage_account_id                    = azurerm_storage_account.test.id
-    queue_name                            = azurerm_storage_queue.test.name
-    queue_message_time_to_live_in_seconds = 3600
+  storage_queue {
+    storage_account_id              = azurerm_storage_account.test.id
+    name                            = azurerm_storage_queue.test.name
+    message_time_to_live_in_seconds = 3600
   }
 
   storage_blob_dead_letter_destination {
@@ -1012,6 +1010,63 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
 }
 
 func (EventGridSystemTopicEventSubscriptionResource) filter(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_queue" "test" {
+  name                 = "mysamplequeue-%[1]d"
+  storage_account_name = azurerm_storage_account.test.name
+}
+
+resource "azurerm_eventgrid_system_topic" "test" {
+  name                   = "acctesteg-%[1]d"
+  location               = "Global"
+  resource_group_name    = azurerm_resource_group.test.name
+  source_arm_resource_id = azurerm_resource_group.test.id
+  topic_type             = "Microsoft.Resources.ResourceGroups"
+}
+
+resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
+  name                = "acctesteg-%[1]d"
+  system_topic        = azurerm_eventgrid_system_topic.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  storage_queue {
+    storage_account_id = azurerm_storage_account.test.id
+    name               = azurerm_storage_queue.test.name
+  }
+
+  advanced_filtering_on_arrays_enabled = true
+
+  included_event_types = ["Microsoft.Storage.BlobCreated", "Microsoft.Storage.BlobDeleted"]
+
+  subject_filter {
+    subject_begins_with = "test/test"
+    subject_ends_with   = ".jpg"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1052,9 +1107,9 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
   system_topic        = azurerm_eventgrid_system_topic.test.name
   resource_group_name = azurerm_resource_group.test.name
 
-  storage_queue_endpoint {
+  storage_queue {
     storage_account_id = azurerm_storage_account.test.id
-    queue_name         = azurerm_storage_queue.test.name
+    queue              = azurerm_storage_queue.test.name
   }
 
   advanced_filtering_on_arrays_enabled = true
@@ -1110,9 +1165,9 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test1" {
   system_topic        = azurerm_eventgrid_system_topic.test.name
   resource_group_name = azurerm_resource_group.test.name
 
-  storage_queue_endpoint {
+  storage_queue {
     storage_account_id = azurerm_storage_account.test.id
-    queue_name         = azurerm_storage_queue.test.name
+    name               = azurerm_storage_queue.test.name
   }
 
   advanced_filter {
@@ -1163,9 +1218,9 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test2" {
   system_topic        = azurerm_eventgrid_system_topic.test.name
   resource_group_name = azurerm_resource_group.test.name
 
-  storage_queue_endpoint {
+  storage_queue {
     storage_account_id = azurerm_storage_account.test.id
-    queue_name         = azurerm_storage_queue.test.name
+    name               = azurerm_storage_queue.test.name
   }
 
   advanced_filter {
@@ -1249,9 +1304,9 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
   system_topic        = azurerm_eventgrid_system_topic.test.name
   resource_group_name = azurerm_resource_group.test.name
 
-  storage_queue_endpoint {
+  storage_queue {
     storage_account_id = azurerm_storage_account.test.id
-    queue_name         = azurerm_storage_queue.test.name
+    name               = azurerm_storage_queue.test.name
   }
 
   advanced_filter {
@@ -1390,9 +1445,9 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
     type = "SystemAssigned"
   }
 
-  storage_queue_endpoint {
+  storage_queue {
     storage_account_id = azurerm_storage_account.test.id
-    queue_name         = azurerm_storage_queue.test.name
+    name               = azurerm_storage_queue.test.name
   }
 
   storage_blob_dead_letter_destination {
@@ -1500,9 +1555,9 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
     user_assigned_identity = azurerm_user_assigned_identity.test.id
   }
 
-  storage_queue_endpoint {
+  storage_queue {
     storage_account_id = azurerm_storage_account.test.id
-    queue_name         = azurerm_storage_queue.test.name
+    name               = azurerm_storage_queue.test.name
   }
 
   storage_blob_dead_letter_destination {
