@@ -104,25 +104,40 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			// Validate resiliency policy location support and disable prevention
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
-				location := azure.NormalizeLocation(diff.Get("location").(string))
-				var resiliencyCreationFieldExists, resiliencyDeletionFieldExists bool
+				var creationExists, deletionExists bool
 
 				if rawConfig := diff.GetRawConfig(); !rawConfig.IsNull() {
-					rawConfigMap := rawConfig.AsValueMap()
-					resiliencyCreationFieldExists = !rawConfigMap["resilient_vm_creation_enabled"].IsNull()
-					resiliencyDeletionFieldExists = !rawConfigMap["resilient_vm_deletion_enabled"].IsNull()
+					creationExists = !rawConfig.AsValueMap()["resilient_vm_creation_enabled"].IsNull()
+					deletionExists = !rawConfig.AsValueMap()["resilient_vm_deletion_enabled"].IsNull()
 				}
 
-				// Azure does not support resiliency policies in all regions
-				if (resiliencyCreationFieldExists || resiliencyDeletionFieldExists) && !isResiliencyPolicySupportedRegion(location) {
-					return fmt.Errorf("the resiliency policies `resilient_vm_creation_enabled` and `resilient_vm_deletion_enabled` are not supported in the `%s` region", location)
+				if diff.Id() != "" {
+					// Force new resource when resilient policy fields are removed from
+					// the configuration only if they were previously `true`
+					if !creationExists {
+						if old, _ := diff.GetChange("resilient_vm_creation_enabled"); old.(bool) {
+							if err := diff.SetNew("resilient_vm_creation_enabled", false); err != nil {
+								return fmt.Errorf("setting `resilient_vm_creation_enabled` to `false`: %+v", err)
+							}
+							return diff.ForceNew("resilient_vm_creation_enabled")
+						}
+					}
+
+					if !deletionExists {
+						if old, _ := diff.GetChange("resilient_vm_deletion_enabled"); old.(bool) {
+							if err := diff.SetNew("resilient_vm_deletion_enabled", false); err != nil {
+								return fmt.Errorf("setting `resilient_vm_deletion_enabled` to `false`: %+v", err)
+							}
+							return diff.ForceNew("resilient_vm_deletion_enabled")
+						}
+					}
 				}
 
 				// Azure does not support disabling resiliency policies. Once set to `true`, they cannot be reverted to `false`.
 				if diff.HasChange("resilient_vm_creation_enabled") {
 					old, new := diff.GetChange("resilient_vm_creation_enabled")
 
-					if resiliencyCreationFieldExists && old.(bool) && !new.(bool) {
+					if creationExists && old.(bool) && !new.(bool) {
 						return fmt.Errorf("Azure does not support disabling resiliency policies. Once the `resilient_vm_creation_enabled` field is set to `true`, it cannot be reverted to `false`")
 					}
 				}
@@ -130,7 +145,7 @@ func resourceLinuxVirtualMachineScaleSet() *pluginsdk.Resource {
 				if diff.HasChange("resilient_vm_deletion_enabled") {
 					old, new := diff.GetChange("resilient_vm_deletion_enabled")
 
-					if resiliencyDeletionFieldExists && old.(bool) && !new.(bool) {
+					if deletionExists && old.(bool) && !new.(bool) {
 						return fmt.Errorf("Azure does not support disabling resiliency policies. Once the `resilient_vm_deletion_enabled` field is set to `true`, it cannot be reverted to `false`")
 					}
 				}
@@ -964,19 +979,9 @@ func resourceLinuxVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta int
 				d.Set("spot_restore", FlattenVirtualMachineScaleSetSpotRestorePolicy(props.SpotRestorePolicy))
 			}
 
-			resilientVMCreationEnabled, resilientVMDeletionEnabled, shouldSetResiliencyFields := FlattenVirtualMachineScaleSetResiliency(props.ResiliencyPolicy)
-
-			var userConfiguredCreation, userConfiguredDeletion bool
-			if rawConfig := d.GetRawConfig(); !rawConfig.IsNull() {
-				rawConfigMap := rawConfig.AsValueMap()
-				userConfiguredCreation = !rawConfigMap["resilient_vm_creation_enabled"].IsNull()
-				userConfiguredDeletion = !rawConfigMap["resilient_vm_deletion_enabled"].IsNull()
-			}
-
-			if shouldSetResiliencyFields || userConfiguredCreation || userConfiguredDeletion {
-				d.Set("resilient_vm_creation_enabled", resilientVMCreationEnabled)
-				d.Set("resilient_vm_deletion_enabled", resilientVMDeletionEnabled)
-			}
+			resilientVMCreationEnabled, resilientVMDeletionEnabled := FlattenVirtualMachineScaleSetResiliency(props.ResiliencyPolicy)
+			d.Set("resilient_vm_creation_enabled", resilientVMCreationEnabled)
+			d.Set("resilient_vm_deletion_enabled", resilientVMDeletionEnabled)
 
 			if profile := props.VirtualMachineProfile; profile != nil {
 				if err := d.Set("boot_diagnostics", flattenBootDiagnosticsVMSS(profile.DiagnosticsProfile)); err != nil {
@@ -1403,9 +1408,8 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		// This field is Optional+Computed for two reasons:
-		// 1. Once resilient VM creation policy is enabled (set to true), it cannot be disabled (reverted to false)
-		// 2. Backward compatibility - existing scale sets won't show diffs when upgrading the provider
+		// This field is Optional+Computed for:
+		// 1. Backward compatibility - existing scale sets won't show diffs when upgrading the provider
 		// The Computed attribute ensures Terraform reflects the actual Azure state.
 		"resilient_vm_creation_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -1413,9 +1417,8 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		// This field is Optional+Computed for two reasons:
-		// 1. Once resilient VM deletion policy is enabled (set to true), it cannot be disabled (reverted to false)
-		// 2. Backward compatibility - existing scale sets won't show diffs when upgrading the provider
+		// This field is Optional+Computed for:
+		// 1. Backward compatibility - existing scale sets won't show diffs when upgrading the provider
 		// The Computed attribute ensures Terraform reflects the actual Azure state.
 		"resilient_vm_deletion_enabled": {
 			Type:     pluginsdk.TypeBool,

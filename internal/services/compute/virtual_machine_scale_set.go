@@ -404,14 +404,14 @@ func ExpandVirtualMachineScaleSetResiliency(resilientVMCreationEnabled, resilien
 	return result
 }
 
-func FlattenVirtualMachineScaleSetResiliency(input *virtualmachinescalesets.ResiliencyPolicy) (bool, bool, bool) {
+func FlattenVirtualMachineScaleSetResiliency(input *virtualmachinescalesets.ResiliencyPolicy) (bool, bool) {
 	// Default values for the top-level fields
 	resilientVMCreationEnabled := false
 	resilientVMDeletionEnabled := false
 
 	if input == nil {
 		// No ResiliencyPolicy - don't set these fields in state for backward compatibility
-		return resilientVMCreationEnabled, resilientVMDeletionEnabled, false
+		return resilientVMCreationEnabled, resilientVMDeletionEnabled
 	}
 
 	// Extract top-level fields - these are always set in Terraform state based on Azure response
@@ -424,45 +424,7 @@ func FlattenVirtualMachineScaleSetResiliency(input *virtualmachinescalesets.Resi
 	}
 
 	// ResiliencyPolicy exists - set fields in state
-	return resilientVMCreationEnabled, resilientVMDeletionEnabled, true
-}
-
-func isResiliencyPolicySupportedRegion(input string) bool {
-	// Azure VMSS resiliency policies are supported in specific regions
-	// This list should be updated as Azure expands support to additional regions
-	// Reference: https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/
-	unsupportedRegions := []string{
-		"austriaeast",
-		"belgiumcentral",
-		"bleufrancecentral",
-		"bleufrancesouth",
-		"centraluseuap",
-		"chilecentral",
-		"eastusstg",
-		"indonesiacentral",
-		"israelnorthwest",
-		"malaysiawest",
-		"mexicocentral",
-		"newzealandnorth",
-		"southcentralus2",
-		"southindia",
-		"southeastus3",
-		"southwestus",
-		"taiwannorthwest",
-		"eastasia",
-		"eastus",
-		"southcentralus",
-		"southeastasia",
-		"westeurope",
-	}
-
-	for _, region := range unsupportedRegions {
-		if input == region {
-			return false
-		}
-	}
-
-	return true
+	return resilientVMCreationEnabled, resilientVMDeletionEnabled
 }
 
 func VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource() *pluginsdk.Schema {

@@ -8,26 +8,11 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
-
-func TestAccWindowsVirtualMachineScaleSet_resiliency_vmPoliciesOnly(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
-	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
-
-	r := WindowsVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.resiliencyVMPolicies(data, true, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
 
 func TestAccWindowsVirtualMachineScaleSet_resiliency_vmCreationOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
@@ -46,23 +31,6 @@ func TestAccWindowsVirtualMachineScaleSet_resiliency_vmCreationOnly(t *testing.T
 	})
 }
 
-func TestAccWindowsVirtualMachineScaleSet_resiliency_vmDeletionOnly(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
-	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
-
-	r := WindowsVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.resiliencyVMPolicies(data, false, true),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
-
 func TestAccWindowsVirtualMachineScaleSet_resiliency_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
@@ -71,7 +39,14 @@ func TestAccWindowsVirtualMachineScaleSet_resiliency_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.resiliencyVMPolicies(data, true, false),
+			Config: r.resiliencyFieldsNotConfigured(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.resiliencyVMPolicies(data, false, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -91,26 +66,6 @@ func TestAccWindowsVirtualMachineScaleSet_resiliency_update(t *testing.T) {
 	})
 }
 
-func TestAccWindowsVirtualMachineScaleSet_resiliency_fieldsNotSetInState(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
-	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
-
-	r := WindowsVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.resiliencyFieldsNotConfigured(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				// Verify that resilient fields are NOT present in state when not configured
-				check.That(data.ResourceName).Key("resilient_vm_creation_enabled").DoesNotExist(),
-				check.That(data.ResourceName).Key("resilient_vm_deletion_enabled").DoesNotExist(),
-			),
-		},
-		data.ImportStep("admin_password"),
-	})
-}
-
 func TestAccWindowsVirtualMachineScaleSet_resiliency_explicitFalse(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
@@ -119,42 +74,39 @@ func TestAccWindowsVirtualMachineScaleSet_resiliency_explicitFalse(t *testing.T)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			// Test that explicit false values can be set and appear correctly in state
 			Config: r.resiliencyVMPolicies(data, false, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("resilient_vm_creation_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("resilient_vm_deletion_enabled").HasValue("false"),
 			),
 		},
-		// Import test with field exclusions: Azure API doesn't return resiliency fields when they're false,
-		// treating them as "not configured". This is expected behavior, so we exclude these fields from
-		// import state verification to avoid false failures.
-		data.ImportStep("admin_password", "resilient_vm_creation_enabled", "resilient_vm_deletion_enabled"),
-		{
-			// Plan stability test: Verify that after Azure API interactions, applying the same config
-			// with explicit false values doesn't produce unexpected diffs. This ensures the provider
-			// correctly handles Azure's treatment of false values as "not configured".
-			Config: r.resiliencyVMPolicies(data, false, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("resilient_vm_creation_enabled").HasValue("false"),
-				check.That(data.ResourceName).Key("resilient_vm_deletion_enabled").HasValue("false"),
-			),
-		},
+		data.ImportStep("admin_password"),
 	})
 }
 
-func TestAccWindowsVirtualMachineScaleSet_resiliency_unsupportedRegion(t *testing.T) {
+func TestAccWindowsVirtualMachineScaleSet_resiliency_forceNew(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
-	data.Locations.Primary = "chilecentral" // Unsupported region
+	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
 
 	r := WindowsVirtualMachineScaleSetResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
-			Config:      r.resiliencyVMPolicies(data, true, true),
-			ExpectError: regexp.MustCompile("the resiliency policies.*are not supported in the.*chilecentral.*region"),
+			Config: r.resiliencyVMPolicies(data, true, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.resiliencyFieldsNotConfigured(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 	})
 }
