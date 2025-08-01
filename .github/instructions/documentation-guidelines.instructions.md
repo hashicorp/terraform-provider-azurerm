@@ -7,7 +7,44 @@ description: This document outlines the standards and guidelines for writing doc
 
 This document outlines the standards and guidelines for writing documentation for Terraform resources and data sources in the AzureRM provider.
 
-**Quick navigation:** [📚 Key Differences](#📚-key-differences-resources-vs-data-sources) | [🏗️ Documentation Structure](#🏗️-documentation-structure) | [📄 Resource Template](#📄-resource-documentation-template) | [📊 Data Source Template](#📊-data-source-documentation-template) | [✍️ Writing Guidelines](#✍️-writing-guidelines) | [💡 Example Configuration](#💡-example-configuration-guidelines) | [📁 Import Documentation](#📁-import-documentation) | [⏱️ Timeout Documentation](#⏱️-timeout-documentation) | [☁️ Azure-Specific Patterns](#☁️-azure-specific-documentation-patterns) | [📋 Attributes Reference](#📋-attributes-reference-differences) | [📝 Field Documentation](#📝-field-documentation-rules) | [📋 Provider Standards](#📋-provider-documentation-standards-note-formatting)
+**Quick navigation:** [� Pre-Implementation Requirements](#🚨-critical-pre-implementation-requirements-🚨) | [�📚 Key Differences](#📚-key-differences-resources-vs-data-sources) | [🏗️ Documentation Structure](#🏗️-documentation-structure) | [📄 Resource Template](#📄-resource-documentation-template) | [📊 Data Source Template](#📊-data-source-documentation-template) | [✍️ Writing Guidelines](#✍️-writing-guidelines) | [💡 Example Configuration](#💡-example-configuration-guidelines) | [📁 Import Documentation](#📁-import-documentation) | [⏱️ Timeout Documentation](#⏱️-timeout-documentation) | [☁️ Azure-Specific Patterns](#☁️-azure-specific-documentation-patterns) | [📋 Attributes Reference](#📋-attributes-reference-differences) | [📝 Field Documentation](#📝-field-documentation-rules) | [📋 Provider Standards](#📋-provider-documentation-standards-note-formatting)
+
+## 🚨 **CRITICAL: PRE-IMPLEMENTATION REQUIREMENTS** 🚨
+
+**⚠️ MANDATORY BEFORE ANY DOCUMENTATION CHANGES ⚠️**
+
+**BEFORE making ANY documentation changes, you MUST:**
+
+1. **📋 READ NOTE FORMATTING GUIDELINES FIRST**
+   - Scroll to [Provider Documentation Standards (Note Formatting)](#📋-provider-documentation-standards-note-formatting)
+   - Review the three note types: Informational (`->`), Warning (`~>`), Caution (`!>`)
+   - Understand the categorization criteria for each type
+
+2. **🎯 CATEGORIZE YOUR CONTENT**
+   - **Informational (`-> **Note:**`)**: Additional useful information, recommendations, tips, external links
+   - **Warning (`~> **Note:**`)**: Information to avoid errors that won't cause irreversible changes (ForceNew behavior, conditional requirements)
+   - **Caution (`!> **Note:**`)**: Critical information about irreversible changes, data loss, permanent effects
+
+3. **✅ VALIDATE BEFORE IMPLEMENTATION**
+   - Ask yourself: "What type of information am I documenting?"
+   - Choose the appropriate note format based on the categorization criteria
+   - ForceNew behavior = Warning note (`~> **Note:**`) - users need to avoid configuration errors
+   - Azure service limitations = Often caution notes (`!> **Note:**`) if irreversible
+   - Additional information/tips = Informational notes (`-> **Note:**`)
+
+**🚫 COMMON MISTAKES TO AVOID:**
+- Using informational notes (`->`) for ForceNew behavior warnings
+- Using warning notes (`~>`) for simple tips or external links
+- Using caution notes (`!>`) for reversible configuration changes
+
+**📋 ENFORCEMENT CHECKLIST:**
+- [ ] Read the note formatting guidelines section first
+- [ ] Categorized the information type according to the criteria
+- [ ] Chosen the appropriate note format based on impact and reversibility
+- [ ] Verified the format matches the content type (warning for ForceNew, etc.)
+
+---
+[⬆️ Back to top](#documentation-guidelines)
 
 ## 📚 Key Differences: Resources vs Data Sources
 

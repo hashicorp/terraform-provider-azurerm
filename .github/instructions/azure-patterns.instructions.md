@@ -7,7 +7,7 @@ description: Azure-specific implementation patterns for the Terraform AzureRM pr
 
 Azure-specific implementation patterns for the Terraform AzureRM provider including PATCH operations, CustomizeDiff patterns, and Azure SDK integration patterns.
 
-**Quick navigation:** [🔄 PATCH Operations](#🔄-patch-operations) | [✅ CustomizeDiff](#✅-customizediff-validation) | [🎯 Schema Flattening](#🎯-schema-flattening) | [🚫 "None" Value Pattern](#🚫-none-value-pattern) | [🔐 Security](#🔐-security-patterns) | [🔄 State Management](#🔄-state-management-with-dgetrawconfig) | [🏗️ Progressive Code Simplification](#🏗️-progressive-code-simplification)
+**Quick navigation:** [🔄 PATCH Operations](#🔄-patch-operations) | [✅ CustomizeDiff](#✅-customizediff-validation) | [🔄 Field Removal ForceNew](#field-removal-forcenew-pattern) | [🎯 Schema Flattening](#🎯-schema-flattening) | [🚫 "None" Value Pattern](#🚫-none-value-pattern) | [🔐 Security](#🔐-security-patterns) | [🔄 State Management](#🔄-state-management-with-dgetrawconfig) | [🏗️ Progressive Code Simplification](#🏗️-progressive-code-simplification)
 
 ## 🔄 PATCH Operations
 
@@ -145,6 +145,84 @@ When validating optional fields in CustomizeDiff functions, Go's zero value beha
 - **Typed resource implementations**: Use `metadata.Decode()` patterns instead of raw config access
 - **Simple field access**: When you need the value regardless of how it was set
 - **Performance-critical paths**: Raw config access has overhead, use sparingly
+
+**For comprehensive `GetRawConfig()` usage guidance, see:** [State Management with d.GetRawConfig()](#🔄-state-management-with-dgetrawconfig)
+
+#### Field Removal ForceNew Pattern
+
+**Critical Pattern for Fields Removed from Configuration Requiring Resource Recreation:**
+
+When Azure resources have irreversible configuration changes (like enabling security policies that cannot be disabled), removing the field from Terraform configuration should trigger resource recreation. This requires using `CustomizeDiffShim` with both `SetNew()` and `ForceNew()` to work together.
+
+**Why Both SetNew and ForceNew Are Required:**
+- **SetNew()**: Creates a detectable state change in Terraform's plan showing the field going from `true` → `false`
+- **ForceNew()**: Triggers resource recreation when this change occurs
+- **Plan Visibility**: Terraform must show the field value change to justify the ForceNew action to users
+- **Test Framework**: Acceptance tests require visible state changes to validate ForceNew behavior
+
+**Implementation Pattern:**
+```go
+pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+    var featureExists, policyExists bool
+
+    // Check if fields exist in the raw configuration (not computed/inferred values)
+    if rawConfig := diff.GetRawConfig(); !rawConfig.IsNull() {
+        featureExists = !rawConfig.AsValueMap()["irreversible_feature_enabled"].IsNull()
+        policyExists = !rawConfig.AsValueMap()["security_policy_enabled"].IsNull()
+    }
+
+    // Only apply ForceNew logic during updates (not during initial creation)
+    if diff.Id() != "" {
+        // Handle irreversible_feature_enabled field removal
+        if !featureExists {
+            // Check if field was previously enabled in state
+            if old, _ := diff.GetChange("irreversible_feature_enabled"); old.(bool) {
+                // CRITICAL: SetNew makes the change visible in Terraform plan
+                // This shows users: irreversible_feature_enabled: true → false
+                if err := diff.SetNew("irreversible_feature_enabled", false); err != nil {
+                    return fmt.Errorf("setting `irreversible_feature_enabled` to `false`: %+v", err)
+                }
+                // ForceNew triggers resource recreation since Azure cannot disable this feature
+                return diff.ForceNew("irreversible_feature_enabled")
+            }
+        }
+
+        // Handle security_policy_enabled field removal (same pattern)
+        if !policyExists {
+            if old, _ := diff.GetChange("security_policy_enabled"); old.(bool) {
+                // Same pattern: make change visible then force recreation
+                if err := diff.SetNew("security_policy_enabled", false); err != nil {
+                    return fmt.Errorf("setting `security_policy_enabled` to `false`: %+v", err)
+                }
+                return diff.ForceNew("security_policy_enabled")
+            }
+        }
+    }
+
+    return nil
+}),
+```
+
+**Azure Use Cases:**
+- **VM Scale Set Resiliency Policies**: Cannot be disabled once enabled
+- **Security Features**: Irreversible security configurations
+- **Compliance Settings**: Audit policies that cannot be downgraded
+- **Performance Tiers**: Service levels that require recreation to reduce
+
+**Key Requirements:**
+- **Irreversible Changes**: Only use for Azure features that cannot be disabled once enabled
+- **Raw Config Detection**: Use `GetRawConfig().AsValueMap()` to detect field presence vs absence in configuration
+- **Update-Only Logic**: Check `diff.Id() != ""` to ensure logic only applies to existing resources, not during creation
+- **State Visibility**: SetNew must be called before ForceNew to create visible plan entry
+- **Error Handling**: SetNew errors should be caught and wrapped with descriptive context
+- **Test Validation**: Tests must verify both the state change and ForceNew trigger
+
+**Common Mistakes to Avoid:**
+- **ForceNew without SetNew**: Plan won't show why recreation is needed - users will be confused by ForceNew without visible changes
+- **SetNew without ForceNew**: State changes but resource doesn't recreate when Azure constraints require it
+- **Missing Error Handling**: SetNew failures can break plan generation if not properly handled
+- **Wrong Field Detection**: Use `GetRawConfig().AsValueMap()[field].IsNull()` to detect field removal, not `diff.Get()`
+- **Creation vs Update**: Apply logic only during updates (`diff.Id() != ""`), not during initial resource creation
 
 **For comprehensive `GetRawConfig()` usage guidance, see:** [State Management with d.GetRawConfig()](#🔄-state-management-with-dgetrawconfig)
 
