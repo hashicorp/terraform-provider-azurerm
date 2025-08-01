@@ -124,8 +124,22 @@ func NewVirtualNetworkListResource() list.ListResource {
 	return &VirtualNetworkListResource{}
 }
 
-func (r *VirtualNetworkListResource) Metadata(_ context.Context, _ resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *VirtualNetworkListResource) Metadata(ctx context.Context, _ list.MetadataRequest, resp *list.MetadataResponse) {
 	resp.TypeName = VirtualNetworkResourceName
+
+	// The List resource depends on a legacy resource so we supply the resource and identity schema here
+	vnet := resourceVirtualNetwork()
+	resp.ProtoV5Schema = func() *tfprotov5.Schema {
+		return vnet.ProtoSchema(ctx)
+	}
+	
+	resp.ProtoV5IdentitySchema = func() *tfprotov5.ResourceIdentitySchema {
+		s, err := vnet.ProtoIdentitySchema(ctx)
+		if err != nil {
+			sdk.SetResponseErrorDiagnostic(resp, "getting identity schema", err)
+		}
+		return s
+	}
 }
 
 func (r *VirtualNetworkListResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {

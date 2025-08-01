@@ -41,33 +41,6 @@ func (s *Server) ValidateListResourceConfig(ctx context.Context, proto5Req *tfpr
 	if diags.HasError() {
 		return toproto5.ValidateListResourceConfigResponse(ctx, fwResp), nil
 	}
-	// HERE
-	//resourceSchema, diags := s.FrameworkServer.ResourceSchema(ctx, proto5Req.TypeName)
-	//
-	//fwResp.Diagnostics.Append(diags...)
-	//
-	//if diags.HasError() {
-	//	return toproto5.ValidateListResourceConfigResponse(ctx, fwResp), nil
-	//}
-	//
-	//identitySchema, diags := s.FrameworkServer.ResourceIdentitySchema(ctx, proto5Req.TypeName)
-	//
-	//fwResp.Diagnostics.Append(diags...)
-	//
-	//if diags.HasError() {
-	//	return toproto5.ValidateListResourceConfigResponse(ctx, fwResp), nil
-	//}
-	//
-	//req := &fwserver.ListRequest{
-	//	Config:                 config,
-	//	ListResource:           listResource,
-	//	//ResourceSchema:         resourceSchema,
-	//	//ResourceIdentitySchema: identitySchema,
-	//}
-	//stream := &fwserver.ListResultsStream{}
-	//
-	////Why do we call ListResource here?
-	//s.FrameworkServer.ListResource(ctx, req, stream)
 
 	fwReq, diags := fromproto5.ValidateListResourceConfigRequest(ctx, proto5Req, listResource, listResourceSchema)
 

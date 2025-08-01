@@ -45,23 +45,28 @@ func TestAccVirtualNetwork_list(t *testing.T) {
 		providerserver.NewProtocol5(azurermProvider.NewFrameworkProvider(v2Provider)),
 	}
 
-	// Setup the interceptors
-	listInterceptor := func(ctx context.Context, req *tfprotov5.ListResourceRequest) context.Context {
-		typeName := req.TypeName
-		resource, ok := v2Provider.ResourcesMap[typeName]
-		if !ok {
-			return ctx
-		}
-
-		return azurermProvider.NewContextWithSDKResource(ctx, resource)
-	}
-	interceptor := tf5muxserver.Interceptor{BeforeListResource: listInterceptor}
-
-	// Create the mux server with the configured providers and interceptors
-	muxServer, err := tf5muxserver.NewMuxServerWithOptions(ctx, tf5muxserver.Servers(providers...), tf5muxserver.Interceptors(interceptor))
+	muxServer, err := tf5muxserver.NewMuxServer(ctx, providers...)
 	if err != nil {
 		t.Errorf("configuring provider: %+v", err)
 	}
+
+	// Setup the interceptors
+	//listInterceptor := func(ctx context.Context, req *tfprotov5.ListResourceRequest) context.Context {
+	//	typeName := req.TypeName
+	//	resource, ok := v2Provider.ResourcesMap[typeName]
+	//	if !ok {
+	//		return ctx
+	//	}
+	//
+	//	return azurermProvider.NewContextWithSDKResource(ctx, resource)
+	//}
+	//interceptor := tf5muxserver.Interceptor{BeforeListResource: listInterceptor}
+	//
+	//// Create the mux server with the configured providers and interceptors
+	//muxServer, err := tf5muxserver.NewMuxServerWithOptions(ctx, tf5muxserver.Servers(providers...), tf5muxserver.Interceptors(interceptor))
+	//if err != nil {
+	//	t.Errorf("configuring provider: %+v", err)
+	//}
 
 	s, ok := muxServer.ProviderServer().(tfprotov5.ProviderServerWithListResource)
 	if !ok {

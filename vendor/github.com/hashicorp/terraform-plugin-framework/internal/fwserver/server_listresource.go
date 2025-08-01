@@ -51,6 +51,7 @@ type ListResultsStream struct {
 	// function argument.
 	Results iter.Seq[ListResult]
 	ResultsProtov5 iter.Seq[tfprotov5.ListResourceResult]
+	Diagnostics diag.Diagnostics
 }
 
 func ListResultError(summary string, detail string) ListResult {
