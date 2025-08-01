@@ -216,7 +216,7 @@ resource "azurerm_resource_group" "test" {
   name     = "acctestRG-managedRedis-%[1]d"
   location = "%[2]s"
 }
-	
+
 resource "azurerm_managed_redis_cluster" "test" {
   name                = "acctest-rec1-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -468,7 +468,7 @@ resource "azurerm_managed_redis_database" "test" {
   name       = "default"
   cluster_id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Cache/redisEnterprise/redisEnterprise1"
 
-	module {
+  module {
     name = "RedisTimeSeries"
     args = ""
   }
