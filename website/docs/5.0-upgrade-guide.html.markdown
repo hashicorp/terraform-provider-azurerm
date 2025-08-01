@@ -219,6 +219,14 @@ Please follow the format in the example below for listing breaking changes in re
 
 * Validation for `rbac_authorization.resource_id` has been changed to validate for an integration runtime resource ID (case-sensitive) rather than validating for a non-empty string.
 
+### `azurerm_eventgrid_event_subscription`
+
+* Validation for `azure_function.function_id` has been changed to validate for an Azure Function resource ID (case-sensitive) rather than validating for an Azure resource ID.
+
+### `azurerm_eventgrid_system_topic_event_subscription`
+
+* Validation for `azure_function.function_id` has been changed to validate for an Azure Function resource ID (case-sensitive) rather than validating for an Azure resource ID.
+
 ### `azurerm_eventhub`
 
 * The deprecated `namespace_name` property has been removed in favour of the `namespace_id` property.
