@@ -28,6 +28,8 @@ func TestAccBotChannelDirectline_basic(t *testing.T) {
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("extension_key1").Exists(),
+				check.That(data.ResourceName).Key("extension_key2").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -43,6 +45,8 @@ func TestAccBotChannelDirectline_complete(t *testing.T) {
 			Config: r.completeConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("extension_key1").Exists(),
+				check.That(data.ResourceName).Key("extension_key2").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -58,6 +62,8 @@ func TestAccBotChannelDirectline_update(t *testing.T) {
 			Config: r.basicConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("extension_key1").Exists(),
+				check.That(data.ResourceName).Key("extension_key2").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -65,6 +71,8 @@ func TestAccBotChannelDirectline_update(t *testing.T) {
 			Config: r.completeConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("extension_key1").Exists(),
+				check.That(data.ResourceName).Key("extension_key2").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -72,6 +80,8 @@ func TestAccBotChannelDirectline_update(t *testing.T) {
 			Config: r.basicUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("extension_key1").Exists(),
+				check.That(data.ResourceName).Key("extension_key2").Exists(),
 			),
 		},
 		data.ImportStep(),
