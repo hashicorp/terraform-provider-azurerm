@@ -105,4 +105,4 @@ terraform import azurerm_management_lock.lock1 /subscriptions/00000000-0000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Authorization`: 2020-05-01
+* `Microsoft.Authorization` - 2020-05-01

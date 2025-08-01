@@ -77,4 +77,4 @@ terraform import azurerm_site_recovery_replication_policy.mypolicy /subscription
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.RecoveryServices`: 2024-04-01
+* `Microsoft.RecoveryServices` - 2024-04-01

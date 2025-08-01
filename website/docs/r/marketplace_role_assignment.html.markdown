@@ -115,4 +115,4 @@ terraform import azurerm_marketplace_role_assignment.example /providers/Microsof
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Authorization`: 2022-05-01-preview, 2022-04-01
+* `Microsoft.Authorization` - 2022-05-01-preview, 2022-04-01

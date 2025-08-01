@@ -150,4 +150,4 @@ terraform import azurerm_subscription_cost_management_view.example /subscription
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.CostManagement`: 2023-08-01
+* `Microsoft.CostManagement` - 2023-08-01

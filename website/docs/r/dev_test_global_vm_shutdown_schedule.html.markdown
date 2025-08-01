@@ -146,4 +146,4 @@ The name of the resource within the `resource id` will always follow the format 
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DevTestLab`: 2018-09-15
+* `Microsoft.DevTestLab` - 2018-09-15

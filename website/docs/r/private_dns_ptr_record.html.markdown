@@ -77,4 +77,4 @@ terraform import azurerm_private_dns_ptr_record.example /subscriptions/00000000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2024-06-01
+* `Microsoft.Network` - 2024-06-01

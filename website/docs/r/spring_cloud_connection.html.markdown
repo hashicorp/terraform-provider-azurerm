@@ -157,4 +157,4 @@ terraform import azurerm_spring_cloud_connection.example /subscriptions/00000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ServiceLinker`: 2024-04-01, 2022-05-01
+* `Microsoft.ServiceLinker` - 2024-04-01, 2022-05-01

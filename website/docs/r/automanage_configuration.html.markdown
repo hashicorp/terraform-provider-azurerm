@@ -240,4 +240,4 @@ terraform import azurerm_automanage_configuration.example /subscriptions/0000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.AutoManage`: 2022-05-04
+* `Microsoft.AutoManage` - 2022-05-04

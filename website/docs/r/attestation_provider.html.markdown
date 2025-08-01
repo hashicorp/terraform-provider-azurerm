@@ -84,4 +84,4 @@ terraform import azurerm_attestation_provider.example /subscriptions/00000000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Attestation`: 2020-10-01
+* `Microsoft.Attestation` - 2020-10-01

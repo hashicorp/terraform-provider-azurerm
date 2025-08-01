@@ -126,4 +126,4 @@ terraform import azurerm_storage_mover_job_definition.example /subscriptions/000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.StorageMover`: 2023-03-01
+* `Microsoft.StorageMover` - 2023-03-01

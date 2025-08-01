@@ -386,4 +386,4 @@ terraform import azurerm_cosmosdb_account.account1 /subscriptions/00000000-0000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DocumentDB`: 2024-08-15
+* `Microsoft.DocumentDB` - 2024-08-15

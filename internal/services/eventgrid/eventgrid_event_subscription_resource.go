@@ -6,6 +6,7 @@ package eventgrid
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"log"
 	"time"
 
@@ -209,7 +210,7 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 					"function_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ValidateFunc: commonids.ValidateFunctionAppID,
+						ValidateFunc: azure.ValidateResourceID,
 					},
 					"max_events_per_batch": {
 						Type:     pluginsdk.TypeInt,

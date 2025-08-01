@@ -108,4 +108,4 @@ terraform import azurerm_orbital_spacecraft.example /subscriptions/00000000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Orbital`: 2022-11-01
+* `Microsoft.Orbital` - 2022-11-01

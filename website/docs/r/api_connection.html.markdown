@@ -102,4 +102,4 @@ terraform import azurerm_api_connection.example /subscriptions/00000000-0000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Web`: 2016-06-01
+* `Microsoft.Web` - 2016-06-01

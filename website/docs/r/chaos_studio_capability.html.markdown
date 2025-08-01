@@ -85,4 +85,4 @@ terraform import azurerm_chaos_studio_capability.example /{scope}/providers/Micr
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Chaos`: 2023-11-01
+* `Microsoft.Chaos` - 2023-11-01

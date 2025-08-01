@@ -128,4 +128,4 @@ terraform import azurerm_healthcare_medtech_service.example /subscriptions/12345
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.HealthcareApis`: 2022-12-01
+* `Microsoft.HealthcareApis` - 2022-12-01

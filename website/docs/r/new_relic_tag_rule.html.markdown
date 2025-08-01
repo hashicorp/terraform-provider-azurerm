@@ -121,4 +121,4 @@ terraform import azurerm_new_relic_tag_rule.example /subscriptions/00000000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `NewRelic.Observability`: 2024-03-01
+* `NewRelic.Observability` - 2024-03-01

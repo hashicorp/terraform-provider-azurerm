@@ -106,4 +106,4 @@ terraform import azurerm_monitor_aad_diagnostic_setting.example /providers/Micro
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.AADIAM`: 2017-04-01
+* `Microsoft.AADIAM` - 2017-04-01

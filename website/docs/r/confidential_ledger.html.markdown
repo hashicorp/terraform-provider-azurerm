@@ -103,4 +103,4 @@ terraform import azurerm_confidential_ledger.example /subscriptions/12345678-123
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ConfidentialLedger`: 2022-05-13
+* `Microsoft.ConfidentialLedger` - 2022-05-13

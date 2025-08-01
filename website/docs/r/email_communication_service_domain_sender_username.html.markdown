@@ -68,3 +68,9 @@ Communication Service Domain Sender Usernames can be imported using the `resourc
 ```shell
 terraform import azurerm_email_communication_service_domain_sender_username.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Communication/emailServices/service1/domains/domain1/senderUsernames/username1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Communication` - 2023-03-31

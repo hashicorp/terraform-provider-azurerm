@@ -56,4 +56,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.MarketplaceOrdering`: 2015-06-01
+* `Microsoft.MarketplaceOrdering` - 2015-06-01

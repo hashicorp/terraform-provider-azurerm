@@ -113,4 +113,4 @@ terraform import azurerm_hpc_cache_access_policy.example /subscriptions/12345678
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.StorageCache`: 2023-05-01
+* `Microsoft.StorageCache` - 2023-05-01

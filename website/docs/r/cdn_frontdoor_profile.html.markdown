@@ -85,4 +85,4 @@ terraform import azurerm_cdn_frontdoor_profile.example /subscriptions/00000000-0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Cdn`: 2024-02-01
+* `Microsoft.Cdn` - 2024-02-01

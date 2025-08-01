@@ -147,4 +147,4 @@ terraform import azurerm_storage_account_local_user.example /subscriptions/12345
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Storage`: 2023-05-01
+* `Microsoft.Storage` - 2023-05-01

@@ -91,4 +91,4 @@ terraform import azurerm_fabric_capacity.example /subscriptions/00000000-0000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Fabric`: 2023-11-01
+* `Microsoft.Fabric` - 2023-11-01

@@ -119,4 +119,4 @@ terraform import azurerm_datadog_monitor_tag_rule.example /subscriptions/0000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Datadog`: 2021-03-01
+* `Microsoft.Datadog` - 2021-03-01

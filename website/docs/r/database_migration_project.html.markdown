@@ -97,4 +97,4 @@ terraform import azurerm_database_migration_project.example /subscriptions/00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DataMigration`: 2021-06-30
+* `Microsoft.DataMigration` - 2021-06-30

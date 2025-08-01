@@ -162,4 +162,4 @@ terraform import azurerm_dev_test_windows_virtual_machine.machine1 /subscription
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DevTestLab`: 2018-09-15
+* `Microsoft.DevTestLab` - 2018-09-15

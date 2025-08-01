@@ -97,4 +97,4 @@ terraform import azurerm_application_load_balancer_subnet_association.example /s
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ServiceNetworking`: 2025-01-01
+* `Microsoft.ServiceNetworking` - 2025-01-01

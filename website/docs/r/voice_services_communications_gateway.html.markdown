@@ -134,4 +134,4 @@ terraform import azurerm_voice_services_communications_gateway.example /subscrip
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.VoiceServices`: 2023-04-03
+* `Microsoft.VoiceServices` - 2023-04-03

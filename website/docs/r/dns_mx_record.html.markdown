@@ -103,4 +103,4 @@ terraform import azurerm_dns_mx_record.example /subscriptions/00000000-0000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2018-05-01
+* `Microsoft.Network` - 2018-05-01

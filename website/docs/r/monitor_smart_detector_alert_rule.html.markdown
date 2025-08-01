@@ -108,4 +108,4 @@ terraform import azurerm_monitor_smart_detector_alert_rule.example /subscription
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.AlertsManagement`: 2019-06-01
+* `Microsoft.AlertsManagement` - 2019-06-01

@@ -140,4 +140,4 @@ terraform import azurerm_dynatrace_tag_rules.example /subscriptions/12345678-123
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Dynatrace.Observability`: 2023-04-27
+* `Dynatrace.Observability` - 2023-04-27

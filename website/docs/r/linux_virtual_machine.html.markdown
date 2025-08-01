@@ -435,4 +435,4 @@ terraform import azurerm_linux_virtual_machine.example /subscriptions/00000000-0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Compute`: 2024-03-01, 2023-04-02
+* `Microsoft.Compute` - 2024-03-01, 2023-04-02

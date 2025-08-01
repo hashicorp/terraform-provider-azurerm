@@ -132,4 +132,4 @@ terraform import azurerm_stream_analytics_stream_input_eventhub.example /subscri
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.StreamAnalytics`: 2020-03-01
+* `Microsoft.StreamAnalytics` - 2020-03-01

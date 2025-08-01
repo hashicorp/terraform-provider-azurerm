@@ -899,4 +899,4 @@ terraform import azurerm_linux_web_app.example /subscriptions/12345678-1234-9876
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Web`: 2023-12-01, 2023-01-01
+* `Microsoft.Web` - 2023-12-01, 2023-01-01

@@ -142,4 +142,4 @@ terraform import azurerm_spring_cloud_customized_accelerator.example /subscripti
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.AppPlatform`: 2024-01-01-preview
+* `Microsoft.AppPlatform` - 2024-01-01-preview

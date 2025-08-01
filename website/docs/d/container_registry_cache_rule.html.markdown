@@ -53,4 +53,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.ContainerRegistry`: 2023-07-01
+* `Microsoft.ContainerRegistry` - 2023-07-01

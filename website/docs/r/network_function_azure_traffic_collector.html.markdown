@@ -72,4 +72,4 @@ terraform import azurerm_network_function_azure_traffic_collector.example /subsc
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.NetworkFunction`: 2022-11-01
+* `Microsoft.NetworkFunction` - 2022-11-01

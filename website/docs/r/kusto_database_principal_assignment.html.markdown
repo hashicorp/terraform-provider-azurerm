@@ -104,4 +104,4 @@ terraform import azurerm_kusto_database_principal_assignment.example /subscripti
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Kusto`: 2024-04-13
+* `Microsoft.Kusto` - 2024-04-13

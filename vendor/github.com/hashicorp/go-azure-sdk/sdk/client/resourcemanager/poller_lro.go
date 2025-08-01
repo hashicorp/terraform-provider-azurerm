@@ -184,6 +184,8 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 				HttpResponse: result.HttpResponse,
 				Message:      lroError.Error(),
 			}
+
+			return
 		}
 
 		if result.Status == pollers.PollingStatusCancelled || op.Status == statusCanceled || op.Properties.ProvisioningState == statusCanceled {
@@ -196,6 +198,8 @@ func (p *longRunningOperationPoller) Poll(ctx context.Context) (result *pollers.
 				HttpResponse: result.HttpResponse,
 				Message:      lroError.Error(),
 			}
+
+			return
 		}
 
 		if result.Status == pollers.PollingStatusSucceeded || op.Status == statusSucceeded || op.Properties.ProvisioningState == statusSucceeded {
@@ -238,11 +242,3 @@ const (
 	statusInProgress status = "InProgress"
 	statusSucceeded  status = "Succeeded"
 )
-
-func statusIsTerminal(s status) bool {
-	switch s {
-	case statusCanceled, statusCancelled, statusFailed, statusSucceeded, statusInProgress:
-		return true
-	}
-	return false
-}

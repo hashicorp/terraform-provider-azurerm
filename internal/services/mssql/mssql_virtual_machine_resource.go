@@ -527,7 +527,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 	var sqlVmGroupId string
 	if sqlVmGroupId = d.Get("sql_virtual_machine_group_id").(string); sqlVmGroupId != "" {
-		parsedVmGroupId, err := sqlvirtualmachines.ParseSqlVirtualMachineGroupIDInsensitively(sqlVmGroupId)
+		parsedVmGroupId, err := sqlvirtualmachinegroups.ParseSqlVirtualMachineGroupIDInsensitively(sqlVmGroupId)
 		if err != nil {
 			return err
 		}
@@ -700,13 +700,13 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 
 			sqlVirtualMachineGroupId := ""
 			if props.SqlVirtualMachineGroupResourceId != nil {
-				parsedId, err := sqlvirtualmachines.ParseSqlVirtualMachineGroupIDInsensitively(*props.SqlVirtualMachineGroupResourceId)
+				parsedId, err := sqlvirtualmachinegroups.ParseSqlVirtualMachineGroupIDInsensitively(*props.SqlVirtualMachineGroupResourceId)
 				if err != nil {
 					return err
 				}
 
 				// get correct casing for subscription in id due to https://github.com/Azure/azure-rest-api-specs/issues/25211
-				sqlVirtualMachineGroupId = sqlvirtualmachines.NewSqlVirtualMachineGroupID(id.SubscriptionId, parsedId.ResourceGroupName, parsedId.SqlVirtualMachineGroupName).ID()
+				sqlVirtualMachineGroupId = sqlvirtualmachinegroups.NewSqlVirtualMachineGroupID(id.SubscriptionId, parsedId.ResourceGroupName, parsedId.SqlVirtualMachineGroupName).ID()
 			}
 			d.Set("sql_virtual_machine_group_id", sqlVirtualMachineGroupId)
 

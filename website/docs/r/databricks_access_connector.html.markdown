@@ -101,4 +101,4 @@ terraform import azurerm_databricks_access_connector.connector1 /subscriptions/0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Databricks`: 2022-10-01-preview
+* `Microsoft.Databricks` - 2022-10-01-preview

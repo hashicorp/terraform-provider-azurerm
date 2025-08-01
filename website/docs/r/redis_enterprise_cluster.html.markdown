@@ -76,4 +76,4 @@ terraform import azurerm_redis_enterprise_cluster.example /subscriptions/0000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Cache`: 2024-10-01
+* `Microsoft.Cache` - 2024-10-01

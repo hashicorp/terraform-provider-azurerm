@@ -94,4 +94,4 @@ terraform import azurerm_relay_namespace_authorization_rule.example /subscriptio
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Relay`: 2021-11-01
+* `Microsoft.Relay` - 2021-11-01

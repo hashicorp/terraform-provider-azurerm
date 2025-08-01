@@ -283,4 +283,4 @@ Note the URI in the above sample can be found using the Resource Explorer tool i
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Portal`: 2019-01-01-preview
+* `Microsoft.Portal` - 2019-01-01-preview

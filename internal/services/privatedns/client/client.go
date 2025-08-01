@@ -6,20 +6,20 @@ package client
 import (
 	"fmt"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatedns"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/recordsets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/virtualnetworklinks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	RecordSetsClient          *recordsets.RecordSetsClient
+	RecordSetsClient          *privatedns.PrivateDNSClient
 	PrivateZonesClient        *privatezones.PrivateZonesClient
 	VirtualNetworkLinksClient *virtualnetworklinks.VirtualNetworkLinksClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
-	recordSetsClient, err := recordsets.NewRecordSetsClientWithBaseURI(o.Environment.ResourceManager)
+	recordSetsClient, err := privatedns.NewPrivateDNSClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Record Sets Client: %v", err)
 	}

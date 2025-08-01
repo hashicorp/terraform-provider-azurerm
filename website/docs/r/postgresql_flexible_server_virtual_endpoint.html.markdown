@@ -99,4 +99,4 @@ terraform import azurerm_postgresql_flexible_server_virtual_endpoint.example "/s
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DBforPostgreSQL`: 2024-08-01
+* `Microsoft.DBforPostgreSQL` - 2024-08-01

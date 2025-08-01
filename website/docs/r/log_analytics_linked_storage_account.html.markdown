@@ -80,4 +80,4 @@ terraform import azurerm_log_analytics_linked_storage_account.example /subscript
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.OperationalInsights`: 2020-08-01
+* `Microsoft.OperationalInsights` - 2020-08-01

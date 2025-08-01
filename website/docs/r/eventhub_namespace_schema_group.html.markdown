@@ -71,4 +71,4 @@ terraform import azurerm_eventhub_namespace_schema_group.example /subscriptions/
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.EventHub`: 2024-01-01
+* `Microsoft.EventHub` - 2024-01-01

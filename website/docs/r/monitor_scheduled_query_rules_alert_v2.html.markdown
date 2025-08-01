@@ -263,4 +263,4 @@ terraform import azurerm_monitor_scheduled_query_rules_alert_v2.example /subscri
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Insights`: 2023-03-15-preview
+* `Microsoft.Insights` - 2023-03-15-preview

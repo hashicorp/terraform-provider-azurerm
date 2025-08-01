@@ -112,4 +112,4 @@ terraform import azurerm_private_dns_resolver_inbound_endpoint.example /subscrip
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2022-07-01
+* `Microsoft.Network` - 2022-07-01

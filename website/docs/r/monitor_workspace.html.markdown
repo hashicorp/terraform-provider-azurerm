@@ -75,4 +75,4 @@ terraform import azurerm_monitor_workspace.example /subscriptions/00000000-0000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Monitor`: 2023-04-03
+* `Microsoft.Monitor` - 2023-04-03

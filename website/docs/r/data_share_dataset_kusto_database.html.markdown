@@ -111,4 +111,4 @@ terraform import azurerm_data_share_dataset_kusto_database.example /subscription
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DataShare`: 2019-11-01
+* `Microsoft.DataShare` - 2019-11-01

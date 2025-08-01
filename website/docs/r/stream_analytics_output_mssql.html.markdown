@@ -103,4 +103,4 @@ terraform import azurerm_stream_analytics_output_mssql.example /subscriptions/00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.StreamAnalytics`: 2021-10-01-preview
+* `Microsoft.StreamAnalytics` - 2021-10-01-preview

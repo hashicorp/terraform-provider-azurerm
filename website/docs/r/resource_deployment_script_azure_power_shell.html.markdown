@@ -155,4 +155,4 @@ terraform import azurerm_resource_deployment_script_azure_power_shell.example /s
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Resources`: 2020-10-01
+* `Microsoft.Resources` - 2020-10-01

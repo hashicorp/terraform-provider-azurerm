@@ -190,4 +190,4 @@ terraform import azurerm_cosmosdb_sql_container.example /subscriptions/00000000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DocumentDB`: 2024-08-15
+* `Microsoft.DocumentDB` - 2024-08-15

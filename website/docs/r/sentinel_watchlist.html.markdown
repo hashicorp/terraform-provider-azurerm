@@ -84,4 +84,4 @@ terraform import azurerm_sentinel_watchlist.example /subscriptions/12345678-1234
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.OperationalInsights`: 2022-11-01
+* `Microsoft.OperationalInsights` - 2022-11-01

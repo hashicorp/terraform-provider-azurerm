@@ -94,4 +94,4 @@ terraform import azurerm_sentinel_alert_rule_fusion.example /subscriptions/00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.OperationalInsights`: 2023-12-01-preview
+* `Microsoft.OperationalInsights` - 2023-12-01-preview

@@ -102,4 +102,4 @@ terraform import azurerm_elastic_san.example /subscriptions/00000000-0000-0000-0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ElasticSan`: 2023-01-01
+* `Microsoft.ElasticSan` - 2023-01-01

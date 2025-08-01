@@ -59,4 +59,4 @@ terraform import azurerm_lighthouse_assignment.example /subscriptions/00000000-0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ManagedServices`: 2022-10-01
+* `Microsoft.ManagedServices` - 2022-10-01

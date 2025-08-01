@@ -84,4 +84,4 @@ terraform import azurerm_dev_center_dev_box_definition.example /subscriptions/00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DevCenter`: 2025-02-01
+* `Microsoft.DevCenter` - 2025-02-01

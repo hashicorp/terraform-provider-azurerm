@@ -113,6 +113,6 @@ terraform import azurerm_web_app_hybrid_connection.example "/subscriptions/12345
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Relay`: 2021-11-01
+* `Microsoft.Relay` - 2021-11-01
 
-* `Microsoft.Web`: 2023-12-01
+* `Microsoft.Web` - 2023-12-01

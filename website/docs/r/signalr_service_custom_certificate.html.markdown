@@ -137,4 +137,4 @@ terraform import azurerm_signalr_service_custom_certificate.example /subscriptio
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.SignalRService`: 2024-03-01
+* `Microsoft.SignalRService` - 2024-03-01

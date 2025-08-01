@@ -86,4 +86,4 @@ terraform import azurerm_subnet_route_table_association.association1 /subscripti
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2024-05-01
+* `Microsoft.Network` - 2024-05-01

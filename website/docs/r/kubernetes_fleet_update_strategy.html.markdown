@@ -90,4 +90,4 @@ terraform import azurerm_kubernetes_fleet_update_strategy.example /subscriptions
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerService`: 2024-04-01
+* `Microsoft.ContainerService` - 2024-04-01

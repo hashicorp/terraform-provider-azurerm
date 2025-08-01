@@ -597,8 +597,8 @@ terraform import azurerm_stack_hci_deployment_setting.example /subscriptions/123
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.AzureStackHCI`: 2024-01-01
+* `Microsoft.AzureStackHCI` - 2024-01-01
 
-* `Microsoft.ExtendedLocation`: 2021-08-15
+* `Microsoft.ExtendedLocation` - 2021-08-15
 
-* `Microsoft.ResourceConnector`: 2022-10-27
+* `Microsoft.ResourceConnector` - 2022-10-27

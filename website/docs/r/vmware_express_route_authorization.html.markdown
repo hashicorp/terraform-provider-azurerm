@@ -83,4 +83,4 @@ terraform import azurerm_vmware_express_route_authorization.example /subscriptio
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.AVS`: 2022-05-01
+* `Microsoft.AVS` - 2022-05-01

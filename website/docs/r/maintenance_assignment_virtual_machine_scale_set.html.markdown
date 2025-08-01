@@ -214,4 +214,4 @@ terraform import azurerm_maintenance_assignment_virtual_machine_scale_set.exampl
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Maintenance`: 2023-04-01
+* `Microsoft.Maintenance` - 2023-04-01

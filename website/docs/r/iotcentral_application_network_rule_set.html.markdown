@@ -94,4 +94,4 @@ terraform import azurerm_iotcentral_application_network_rule_set.example /subscr
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.IoTCentral`: 2021-11-01-preview
+* `Microsoft.IoTCentral` - 2021-11-01-preview

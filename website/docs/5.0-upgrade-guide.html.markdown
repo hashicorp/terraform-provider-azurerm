@@ -219,16 +219,18 @@ Please follow the format in the example below for listing breaking changes in re
 
 * Validation for `rbac_authorization.resource_id` has been changed to validate for an integration runtime resource ID (case-sensitive) rather than validating for a non-empty string.
 
-### `azurerm_eventgrid_system_topic_event_subscription`
+### `azurerm_eventgrid_event_subscription`
 
+* Validation for `azure_function.function_id` has been changed to validate for an Azure Function resource ID (case-sensitive) rather than validating for an Azure resource ID.
 * The deprecated `azure_function_endpoint` property has been removed in favour of the `azure_function` property.
 * The deprecated `eventhub_endpoint_id` property has been removed in favour of the `eventhub_id` property.
 * The deprecated `hybrid_connection_endpoint_id` property has been removed in favour of the `arc_connection_id` property.
 * The deprecated `service_bus_queue_endpoint_id` property has been removed in favour of the `service_bus_queue_id` property.
 * The deprecated `service_bus_topic_endpoint_id` property has been removed in favour of the `service_bus_topic_id` property.
 
-### `azurerm_eventgrid_event_subscription`
+### `azurerm_eventgrid_system_topic_event_subscription`
 
+* Validation for `azure_function.function_id` has been changed to validate for an Azure Function resource ID (case-sensitive) rather than validating for an Azure resource ID.
 * The deprecated `azure_function_endpoint` property has been removed in favour of the `azure_function` property.
 * The deprecated `eventhub_endpoint_id` property has been removed in favour of the `eventhub_id` property.
 * The deprecated `hybrid_connection_endpoint_id` property has been removed in favour of the `arc_connection_id` property.

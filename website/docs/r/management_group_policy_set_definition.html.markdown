@@ -127,4 +127,4 @@ terraform import azurerm_management_group_policy_set_definition.example /provide
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Management`: 2025-01-01
+* `Microsoft.Management` - 2025-01-01

@@ -194,4 +194,4 @@ terraform import azurerm_monitor_alert_prometheus_rule_group.example /subscripti
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.AlertsManagement`: 2023-03-01
+* `Microsoft.AlertsManagement` - 2023-03-01

@@ -197,4 +197,4 @@ terraform import azurerm_oracle_cloud_vm_cluster.example /subscriptions/00000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Oracle.Database`: 2025-03-01
+* `Oracle.Database` - 2025-03-01

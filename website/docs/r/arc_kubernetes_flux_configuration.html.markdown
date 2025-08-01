@@ -209,4 +209,4 @@ terraform import azurerm_arc_kubernetes_flux_configuration.example /subscription
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.KubernetesConfiguration`: 2024-11-01
+* `Microsoft.KubernetesConfiguration` - 2024-11-01

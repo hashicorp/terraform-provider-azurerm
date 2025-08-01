@@ -118,4 +118,4 @@ terraform import azurerm_static_web_app_custom_domain.example /subscriptions/123
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Web`: 2023-01-01
+* `Microsoft.Web` - 2023-01-01

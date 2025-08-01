@@ -113,4 +113,4 @@ terraform import azurerm_lb_nat_rule.example /subscriptions/00000000-0000-0000-0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2023-09-01
+* `Microsoft.Network` - 2023-09-01

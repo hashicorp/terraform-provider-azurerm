@@ -174,4 +174,4 @@ terraform import azurerm_security_center_automation.example /subscriptions/00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Security`: 2019-01-01-preview
+* `Microsoft.Security` - 2019-01-01-preview

@@ -89,6 +89,22 @@ func TestAccDynatraceMonitor_update(t *testing.T) {
 	})
 }
 
+func TestAccDynatraceMonitor_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_dynatrace_monitor", "test")
+	r := MonitorsResource{}
+	r.preCheck(t)
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("user"),
+	})
+}
+
 func TestAccDynatraceMonitor_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dynatrace_monitor", "test")
 	r := MonitorsResource{}
@@ -173,6 +189,87 @@ resource "azurerm_dynatrace_monitor" "test" {
   }
 }
 `, template, data.RandomInteger, r.dynatraceInfo.UserFirstName, r.dynatraceInfo.UserLastName, r.dynatraceInfo.UserEmail, r.dynatraceInfo.UserPhoneNumber, r.dynatraceInfo.UserCountry)
+}
+
+// For `environment_properties`, since it is a computed field, we lean on ignoring changes in the lifecycle block to avoid diffs during creation.
+func (r MonitorsResource) complete(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_dynatrace_monitor" "test" {
+  name                     = "acctestacc%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  marketplace_subscription = "Active"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  user {
+    first_name   = "%[4]s"
+    last_name    = "%[5]s"
+    email        = "%[6]s"
+    phone_number = "%[7]s"
+    country      = "%[8]s"
+  }
+
+  plan {
+    usage_type    = "COMMITTED"
+    billing_cycle = "MONTHLY"
+    plan          = "azureportalintegration_privatepreview@TIDgmz7xq9ge3py"
+  }
+
+  tags = {
+    environment = "Dev"
+  }
+  lifecycle {
+    ignore_changes = [
+      environment_properties,
+    ]
+  }
+}
+
+data "azurerm_dynatrace_monitor" "data1" {
+  name                = azurerm_dynatrace_monitor.test.name
+  resource_group_name = azurerm_dynatrace_monitor.test.resource_group_name
+}
+
+resource "azurerm_dynatrace_monitor" "test2" {
+  name                     = "acctest2acc%[3]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  marketplace_subscription = "Active"
+
+  identity {
+    type = "SystemAssigned"
+  }
+  user {
+    first_name   = "%[4]s"
+    last_name    = "%[5]s"
+    email        = "%[6]s"
+    phone_number = "%[7]s"
+    country      = "%[8]s"
+  }
+
+  environment_properties {
+    environment_info {
+      environment_id = data.azurerm_dynatrace_monitor.data1.environment_properties.0.environment_info.0.environment_id
+    }
+  }
+
+  plan {
+    usage_type    = "COMMITTED"
+    billing_cycle = "MONTHLY"
+    plan          = "azureportalintegration_privatepreview@TIDgmz7xq9ge3py"
+  }
+
+  tags = {
+    environment = "Dev"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger, r.dynatraceInfo.UserLastName, r.dynatraceInfo.UserFirstName, r.dynatraceInfo.UserEmail, r.dynatraceInfo.UserPhoneNumber, r.dynatraceInfo.UserCountry)
 }
 
 func (r MonitorsResource) updated(data acceptance.TestData) string {

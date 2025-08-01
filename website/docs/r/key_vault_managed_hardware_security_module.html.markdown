@@ -115,4 +115,4 @@ terraform import azurerm_key_vault_managed_hardware_security_module.example /sub
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.KeyVault`: 2023-07-01
+* `Microsoft.KeyVault` - 2023-07-01

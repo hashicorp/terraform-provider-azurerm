@@ -148,4 +148,4 @@ terraform import azurerm_private_endpoint_application_security_group_association
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2024-05-01
+* `Microsoft.Network` - 2024-05-01

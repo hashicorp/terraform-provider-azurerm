@@ -91,4 +91,4 @@ terraform import azurerm_kusto_cluster_principal_assignment.example /subscriptio
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Kusto`: 2024-04-13
+* `Microsoft.Kusto` - 2024-04-13

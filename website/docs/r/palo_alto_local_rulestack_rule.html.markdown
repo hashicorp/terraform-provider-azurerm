@@ -164,4 +164,4 @@ terraform import azurerm_palo_alto_local_rulestack_rule.example /subscriptions/0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `PaloAltoNetworks.Cloudngfw`: 2022-08-29
+* `PaloAltoNetworks.Cloudngfw` - 2022-08-29

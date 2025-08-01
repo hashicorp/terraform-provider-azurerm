@@ -101,4 +101,4 @@ terraform import azurerm_postgresql_firewall_rule.rule1 /subscriptions/00000000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DBforPostgreSQL`: 2017-12-01
+* `Microsoft.DBforPostgreSQL` - 2017-12-01

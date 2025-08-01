@@ -120,4 +120,4 @@ terraform import azurerm_automation_watcher.example /subscriptions/12345678-1234
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Automation`: 2020-01-13-preview
+* `Microsoft.Automation` - 2020-01-13-preview
