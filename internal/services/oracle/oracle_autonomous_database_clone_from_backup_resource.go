@@ -289,7 +289,6 @@ func (r AutonomousDatabaseCloneFromBackupResource) Create() sdk.ResourceFunc {
 			}
 
 			param.Properties = &autonomousdatabases.AutonomousDatabaseFromBackupTimestampProperties{
-
 				CloneType:    autonomousdatabases.CloneType(model.CloneType),
 				SourceId:     model.SourceAutonomousDatabaseId,
 				Source:       autonomousdatabases.Source(autonomousdatabases.SourceTypeBackupFromTimestamp),
@@ -398,7 +397,6 @@ func (r AutonomousDatabaseCloneFromBackupResource) Read() sdk.ResourceFunc {
 				state.SubnetId = pointer.From(props.SubnetId)
 				state.VnetId = pointer.From(props.VnetId)
 				state.AllowedIps = pointer.From(props.WhitelistedIPs)
-
 			}
 
 			return metadata.Encode(&state)
@@ -408,7 +406,7 @@ func (r AutonomousDatabaseCloneFromBackupResource) Read() sdk.ResourceFunc {
 
 func (r AutonomousDatabaseCloneFromBackupResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 120 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
 

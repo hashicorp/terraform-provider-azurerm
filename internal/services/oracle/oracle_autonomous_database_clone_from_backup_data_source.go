@@ -545,7 +545,6 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Read() sdk.ResourceFunc {
 				state.UsedDataStorageSizeInGbs = pointer.From(props.UsedDataStorageSizeInGbs)
 				state.UsedDataStorageSizeInTbs = pointer.From(props.UsedDataStorageSizeInTbs)
 				state.VnetId = pointer.From(props.VnetId)
-
 			}
 
 			metadata.SetID(id)

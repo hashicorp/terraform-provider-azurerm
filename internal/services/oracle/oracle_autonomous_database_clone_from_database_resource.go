@@ -416,7 +416,7 @@ func (r AutonomousDatabaseCloneFromDatabaseResource) Read() sdk.ResourceFunc {
 
 func (r AutonomousDatabaseCloneFromDatabaseResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 120 * time.Minute,
+		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
 
