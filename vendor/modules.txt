@@ -583,6 +583,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/graphservices/2023-04-13
 github.com/hashicorp/go-azure-sdk/resource-manager/graphservices/2023-04-13/graphservicesprods
 github.com/hashicorp/go-azure-sdk/resource-manager/guestconfiguration/2020-06-25/guestconfigurationassignments
 github.com/hashicorp/go-azure-sdk/resource-manager/hardwaresecuritymodules/2021-11-30/dedicatedhsms
+github.com/hashicorp/go-azure-sdk/resource-manager/hardwaresecuritymodules/2025-03-31/cloudhsmclusters
 github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01
 github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/applications
 github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/clusters
