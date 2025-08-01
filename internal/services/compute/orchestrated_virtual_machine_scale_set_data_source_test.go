@@ -28,6 +28,26 @@ func TestAccOrchestratedVMSSDataSource_complete(t *testing.T) {
 	})
 }
 
+func TestAccOrchestratedVMSSDataSource_skuProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_orchestrated_virtual_machine_scale_set", "test")
+	d := OrchestratedVirtualMachineScaleSetDataSource{}
+
+	// TODO - Remove this override when Preview is rolled out to westeurope - currently only supported in EastUS, WestUS, EastUS2, and WestUS2
+	data.Locations.Primary = "eastus2"
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: d.skuProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
+				check.That(data.ResourceName).Key("sku_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("sku_profile.0.allocation_strategy").HasValue("CapacityOptimized"),
+				check.That(data.ResourceName).Key("sku_profile.0.vm_sizes.#").HasValue("3"),
+			),
+		},
+	})
+}
+
 func (OrchestratedVirtualMachineScaleSetDataSource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -37,4 +57,15 @@ data azurerm_orchestrated_virtual_machine_scale_set test {
   resource_group_name = azurerm_orchestrated_virtual_machine_scale_set.test.resource_group_name
 }
 `, OrchestratedVirtualMachineScaleSetResource{}.linuxInstances(data))
+}
+
+func (OrchestratedVirtualMachineScaleSetDataSource) skuProfile(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data azurerm_orchestrated_virtual_machine_scale_set test {
+  name                = azurerm_orchestrated_virtual_machine_scale_set.test.name
+  resource_group_name = azurerm_orchestrated_virtual_machine_scale_set.test.resource_group_name
+}
+`, OrchestratedVirtualMachineScaleSetResource{}.skuProfileBasic(data))
 }

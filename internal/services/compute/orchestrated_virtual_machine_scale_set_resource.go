@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -27,6 +28,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/migration"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -45,6 +47,11 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 		Read:   resourceOrchestratedVirtualMachineScaleSetRead,
 		Update: resourceOrchestratedVirtualMachineScaleSetUpdate,
 		Delete: resourceOrchestratedVirtualMachineScaleSetDelete,
+
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.OrchestratedVirtualMachineScaleSetUpgradeV0ToV1{},
+		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			_, err := commonids.ParseVirtualMachineScaleSetID(id)
@@ -116,7 +123,6 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 			"sku_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				ForceNew: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -133,9 +139,20 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeSet,
 							Required: true,
 							MinItems: 1,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"name": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotEmpty,
+									},
+
+									"rank": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(0, 2),
+									},
+								},
 							},
 						},
 					},
@@ -351,13 +368,14 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				return false
 			}),
 
+			// SKU Profile validation
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 				skuName, hasSkuName := diff.GetOk("sku_name")
 				_, hasSkuProfile := diff.GetOk("sku_profile")
 
 				if hasSkuProfile {
 					if !hasSkuName || skuName != SkuNameMix {
-						return fmt.Errorf("`sku_profile` can only be configured when `sku_name` is set to `Mix`")
+						return fmt.Errorf("`sku_profile` can only be configured when `sku_name` is set to `Mix`, got `%s`", skuName)
 					}
 				} else {
 					if hasSkuName && skuName == SkuNameMix {
@@ -365,6 +383,111 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 					}
 				}
 
+				// Validate SKU Profile configuration
+				if skuProfileRaw := diff.Get("sku_profile").([]interface{}); len(skuProfileRaw) > 0 {
+					skuProfile := skuProfileRaw[0].(map[string]interface{})
+					allocationStrategy := skuProfile["allocation_strategy"].(string)
+
+					// Validate rank is only used with Prioritized allocation strategy
+					skuProfileRaw := diff.GetRawConfig().AsValueMap()["sku_profile"]
+					if skuProfileRaw.IsNull() || !skuProfileRaw.IsKnown() {
+						return nil
+					}
+
+					skuProfileList := skuProfileRaw.AsValueSlice()
+					if len(skuProfileList) == 0 {
+						return nil
+					}
+
+					vmSizeRaw := skuProfileList[0].AsValueMap()["vm_sizes"]
+					if vmSizeRaw.IsNull() || !vmSizeRaw.IsKnown() {
+						return nil
+					}
+
+					vmSizeList := vmSizeRaw.AsValueSlice()
+					for _, vmSize := range vmSizeList {
+						vmSizeMap := vmSize.AsValueMap()
+
+						// Check if rank was explicitly set by the user
+						rankExplicitlySet := !vmSizeMap["rank"].IsNull()
+
+						if rankExplicitlySet {
+							if allocationStrategy != string(virtualmachinescalesets.AllocationStrategyPrioritized) {
+								return fmt.Errorf("`rank` can only be set when `allocation_strategy` is `Prioritized`, got `%s`", allocationStrategy)
+							}
+						}
+					}
+
+					// Validate Prioritized allocation strategy requires rank for all VM sizes
+					if allocationStrategy == string(virtualmachinescalesets.AllocationStrategyPrioritized) {
+						ranks := make([]int, 0)
+						for _, vmSize := range vmSizeList {
+							vmSizeMap := vmSize.AsValueMap()
+							name := vmSizeMap["name"].AsString()
+
+							// Check if rank was explicitly set by the user
+							rankExplicitlySet := !vmSizeMap["rank"].IsNull()
+
+							if !rankExplicitlySet {
+								return fmt.Errorf("when `allocation_strategy` is `Prioritized`, all `vm_sizes` must have the `rank` field set, `%s` is missing `rank`", name)
+							}
+
+							rankInt64, _ := vmSizeMap["rank"].AsBigFloat().Int64()
+							rank := int(rankInt64)
+
+							ranks = append(ranks, rank)
+						}
+
+						// Validate ranks are in ascending order and no gaps
+						sort.Ints(ranks)
+						for i, rank := range ranks {
+							if rank != i {
+								return fmt.Errorf("the `rank` values must be consecutive starting from 0. Expected rank `%d` but got `%d`", i, rank)
+							}
+						}
+					}
+				}
+
+				return nil
+			}),
+
+			// Platform fault domain count validation for sku_profile
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				_, hasSkuProfile := diff.GetOk("sku_profile")
+				platformFaultDomainCount := diff.Get("platform_fault_domain_count").(int)
+
+				if hasSkuProfile && platformFaultDomainCount != 1 {
+					return fmt.Errorf("`sku_profile` can only be configured when `platform_fault_domain_count` is set to `1`, got `%d`", platformFaultDomainCount)
+				}
+
+				return nil
+			}),
+
+			// Force recreation when sku_profile is removed and sku_name changes from mix
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				oldSkuProfile, newSkuProfile := diff.GetChange("sku_profile")
+				oldSkuProfileList := oldSkuProfile.([]interface{})
+				newSkuProfileList := newSkuProfile.([]interface{})
+
+				// Check if sku_profile is being removed (old has value, new is empty)
+				skuProfileBeingRemoved := len(oldSkuProfileList) > 0 && len(newSkuProfileList) == 0
+
+				if skuProfileBeingRemoved {
+					oldSkuName, newSkuName := diff.GetChange("sku_name")
+
+					// Force recreation if removing sku_profile and sku_name is changing from Mix
+					if oldSkuName.(string) == "Mix" && newSkuName.(string) != "Mix" {
+						if err := diff.ForceNew("sku_profile"); err != nil {
+							return fmt.Errorf("forcing new resource when removing `sku_profile` with `sku_name` change from `Mix`: %+v", err)
+						}
+					}
+				}
+
+				return nil
+			}),
+
+			// Upgrade policy validation
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 				upgradeMode := virtualmachinescalesets.UpgradeMode(diff.Get("upgrade_mode").(string))
 				rollingUpgradePolicyRaw := diff.Get("rolling_upgrade_policy").([]interface{})
 
@@ -376,6 +499,11 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 					return fmt.Errorf("`rolling_upgrade_policy` is required when `upgrade_mode` is set to `%s`", string(upgradeMode))
 				}
 
+				return nil
+			}),
+
+			// Network interface validation
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 				networkInterfaces := diff.Get("network_interface").([]interface{})
 				for _, networkInterface := range networkInterfaces {
 					raw := networkInterface.(map[string]interface{})
@@ -1563,10 +1691,17 @@ func expandOrchestratedVirtualMachineScaleSetSkuProfile(input []interface{}) *vi
 	v := input[0].(map[string]interface{})
 	vmSizesRaw := v["vm_sizes"].(*pluginsdk.Set).List()
 	vmSizes := make([]virtualmachinescalesets.SkuProfileVMSize, 0)
-	for _, vmSize := range vmSizesRaw {
-		vmSizes = append(vmSizes, virtualmachinescalesets.SkuProfileVMSize{
-			Name: pointer.To(vmSize.(string)),
-		})
+	for _, vmSizeRaw := range vmSizesRaw {
+		vmSizeMap := vmSizeRaw.(map[string]interface{})
+		vmSize := virtualmachinescalesets.SkuProfileVMSize{
+			Name: pointer.To(vmSizeMap["name"].(string)),
+		}
+
+		if rank, ok := vmSizeMap["rank"]; ok && rank.(int) != 0 {
+			vmSize.Rank = pointer.To(int64(rank.(int)))
+		}
+
+		vmSizes = append(vmSizes, vmSize)
 	}
 
 	return &virtualmachinescalesets.SkuProfile{
@@ -1580,10 +1715,18 @@ func flattenOrchestratedVirtualMachineScaleSetSkuProfile(input *virtualmachinesc
 		return make([]interface{}, 0)
 	}
 
-	vmSizes := make([]string, 0)
+	vmSizes := make([]interface{}, 0)
 	if input.VMSizes != nil {
 		for _, vmSize := range *input.VMSizes {
-			vmSizes = append(vmSizes, *vmSize.Name)
+			vmSizeMap := map[string]interface{}{
+				"name": pointer.From(vmSize.Name),
+			}
+
+			if vmSize.Rank != nil {
+				vmSizeMap["rank"] = int(*vmSize.Rank)
+			}
+
+			vmSizes = append(vmSizes, vmSizeMap)
 		}
 	}
 
