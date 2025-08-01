@@ -2,7 +2,6 @@ package redisenterprise
 
 import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 )
 
@@ -17,7 +16,6 @@ type Cluster struct {
 	Name       *string                            `json:"name,omitempty"`
 	Properties *ClusterProperties                 `json:"properties,omitempty"`
 	Sku        Sku                                `json:"sku"`
-	SystemData *systemdata.SystemData             `json:"systemData,omitempty"`
 	Tags       *map[string]string                 `json:"tags,omitempty"`
 	Type       *string                            `json:"type,omitempty"`
 	Zones      *zones.Schema                      `json:"zones,omitempty"`
