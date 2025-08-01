@@ -1543,7 +1543,7 @@ resource "azurerm_linux_function_app" "test" {
 }
 
 resource "azurerm_function_app_function" "test" {
-  name            = "testAcc-FnAppFn-%[1]d"
+  name            = "acctest-FnAppFn-%[1]d"
   function_app_id = azurerm_linux_function_app.test.id
   language        = "Python"
   test_data = jsonencode({
