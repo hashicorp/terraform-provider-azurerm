@@ -16,6 +16,8 @@ Manages a Key Vault Secret.
 
 ~> **Note:** The Azure Provider includes a Feature Toggle which will purge a Key Vault Secret resource on destroy, rather than the default soft-delete. See [`purge_soft_deleted_secrets_on_destroy`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#purge_soft_deleted_secrets_on_destroy) for more information.
 
+~> **Note:** When managing Azure Key Vault secrets with soft-delete enabled, Terraform may create a new version of a secret upon recovery. This occurs because Terraform cannot determine if the recovered secret's value matches the configuration, it sets the secret again to ensure consistency—resulting in a new version being created.
+
 ## Example Usage
 
 ```hcl
