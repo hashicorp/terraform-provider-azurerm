@@ -7,7 +7,36 @@ description: Complete implementation guide for Go files in the Terraform AzureRM
 
 This comprehensive guide covers all implementation requirements for the Terraform AzureRM provider.
 
-**Quick navigation:** [🏗️ Implementation Patterns](#🏗️-implementation-patterns) | [📏 Coding Standards](#📏-coding-standards) | [🎨 Coding Style](#🎨-coding-style) | [🔧 Azure SDK Integration](#🔧-azure-sdk-integration) | [💡 AI Coding Guidance](#💡-ai-coding-guidance)
+**🧠 SMART MEMORY MANAGEMENT:**
+- **Pattern Cache**: Keep these templates in active memory during implementation sessions
+- **Context Stack**: Maintain decision tree paths for rapid access
+- **Quick Templates**: Ready-to-use code patterns for immediate application
+
+**⚡ HOT PATTERNS (Keep in Working Memory):**
+```go
+// Typed Resource Quick Template
+type ServiceNameResourceModel struct {
+    Name              string            `tfschema:"name"`
+    ResourceGroup     string            `tfschema:"resource_group_name"`
+    Location          string            `tfschema:"location"`
+    Tags              map[string]string `tfschema:"tags"`
+    Id                string            `tfschema:"id"`
+}
+
+// PATCH Operation Pattern
+func ExpandFeature(input []interface{}) *azuretype.Feature {
+    result := &azuretype.Feature{
+        Enabled: pointer.To(false), // Explicit disable for PATCH
+    }
+    if len(input) > 0 && input[0] != nil {
+        result.Enabled = pointer.To(true)
+    }
+    return result
+}
+
+// Error Pattern
+return fmt.Errorf("creating %s: %+v", id, err)
+```
 
 ## 🏗️ Implementation Patterns
 
@@ -567,7 +596,7 @@ subscriptionId := metadata.Client.Account.SubscriptionId
 
 // Use pointer package for pointer operations
 enabled := pointer.To(true)
-name := pointer.To("example-resource")
+name := pointer.To("example")
 
 // Use structured logging with metadata.Logger
 metadata.Logger.Infof("Creating %s", id)
@@ -658,7 +687,7 @@ If the Azure SDK package offers a `PossibleValuesForFieldName` function, use tha
 },
 ```
 
-### Expand/Flatten Function Patterns
+#### Expand/Flatten Function Patterns
 
 #### HashiCorp Standard Expand Function Pattern
 
@@ -933,7 +962,7 @@ func (r ServiceNameResource) CustomizeDiff() sdk.ResourceFunc {
 ```go
 // NOTE: Untyped resources often use single import with *pluginsdk.ResourceDiff
 import (
-    "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"            // Only this import needed
+    "github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk" // Only this import needed
 )
 
 // Untyped resource CustomizeDiff implementation
@@ -1139,6 +1168,36 @@ func TestAccServiceName_customizeDiffValidation(t *testing.T) {
         },
     })
 }
+
+func TestAccServiceNameDataSource_basic(t *testing.T) {
+    data := acceptance.BuildTestData(t, "azurerm_service_name", "test")
+    d := ServiceNameDataSource{}
+
+    data.DataSourceTest(t, []acceptance.TestStep{
+        {
+            Config: d.basic(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).Key("name").HasValue(fmt.Sprintf("acctest-%d", data.RandomInteger)),
+                check.That(data.ResourceName).Key("resource_group_name").HasValue(fmt.Sprintf("acctestRG-%d", data.RandomInteger)),
+                check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
+                check.That(data.ResourceName).Key("id").Exists(),
+                check.That(data.ResourceName).Key("sku_name").Exists(),
+                check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+            ),
+        },
+    })
+}
+
+func (ServiceNameDataSource) basic(data acceptance.TestData) string {
+    return fmt.Sprintf(`
+%s
+
+data "azurerm_service_name" "test" {
+  name                = azurerm_service_name.test.name
+  resource_group_name = azurerm_service_name.test.resource_group_name
+}
+`, ServiceNameResource{}.basic(data))
+}
 ```
 
 ### Error Handling Best Practices
@@ -1216,11 +1275,20 @@ Before submitting code, verify:
 ## Quick Reference Links
 
 - 🏠 **Home**: [../copilot-instructions.md](../copilot-instructions.md)
-- 📋 **Code Clarity Enforcement**: [code-clarity-enforcement.instructions.md](./code-clarity-enforcement.instructions.md)
 - ☁️ **Azure Patterns**: [azure-patterns.instructions.md](./azure-patterns.instructions.md)
+- 📋 **Code Clarity Enforcement**: [code-clarity-enforcement.instructions.md](./code-clarity-enforcement.instructions.md)
 - 📝 **Documentation Guide**: [documentation-guidelines.instructions.md](./documentation-guidelines.instructions.md)
 - ❌ **Error Patterns**: [error-patterns.instructions.md](./error-patterns.instructions.md)
 - 🔄 **Migration Guide**: [migration-guide.instructions.md](./migration-guide.instructions.md)
 - 🏢 **Provider Guidelines**: [provider-guidelines.instructions.md](./provider-guidelines.instructions.md)
 - 📐 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md)
 - 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
+
+### 🚀 Enhanced Guidance Files
+
+- 🔄 **API Evolution**: [api-evolution-patterns.instructions.md](./api-evolution-patterns.instructions.md)
+- ⚡ **Performance**: [performance-optimization.instructions.md](./performance-optimization.instructions.md)
+- 🔐 **Security**: [security-compliance.instructions.md](./security-compliance.instructions.md)
+- 🔧 **Troubleshooting**: [troubleshooting-decision-trees.instructions.md](./troubleshooting-decision-trees.instructions.md)
+
+---

@@ -30,27 +30,40 @@ make testacc TEST=./internal/services/compute TESTARGS='-run=TestAccLinuxVirtual
 
 ## 🚨 ENFORCEMENT RULES FOR TERMINAL TOOL USAGE
 
-**BEFORE using any terminal tool (run_in_terminal, get_terminal_output, etc.):**
-- **STOP** and ask yourself: "Am I about to run a test or build command?"
-- If **YES**: Provide manual command instead
-- If **NO**: Proceed with tool
+**MANDATORY SELF-CHECK BEFORE ANY TERMINAL COMMAND:**
 
-**run_in_terminal tool restrictions:**
-- **FORBIDDEN for**: make testacc, go test, go build, any compilation commands
-- **ALLOWED for**: file operations, directory listing, git status only
-- **WHEN IN DOUBT**: Provide manual command
+**Before using any terminal tool, AI MUST answer these questions:**
+1. "Does this command run tests?" → If YES: **AUTOMATIC VIOLATION - PROVIDE MANUAL COMMAND**
+2. "Does this command build/compile?" → If YES: **AUTOMATIC VIOLATION - PROVIDE MANUAL COMMAND**
+3. "Does this create Azure resources?" → If YES: **AUTOMATIC VIOLATION - PROVIDE MANUAL COMMAND**
+4. "Is this only file inspection?" → If YES: Tool may be acceptable
 
-**Before providing ANY terminal command, answer:**
-1. Does this create Azure resources? → Manual command required
-2. Does this run tests? → Manual command required
-3. Does this build/compile code? → Manual command required
-4. Is this just file inspection? → Tool may be acceptable
+**🚫 AUTOMATIC VIOLATIONS - NEVER USE run_in_terminal FOR:**
+- `make testacc` - Azure resource creation
+- `go test` - Test execution
+- `go build` - Compilation
+- `terraform plan/apply` - Infrastructure changes
+- Any command creating billable Azure resources
 
-**If you catch yourself about to run a build/test command:**
+**✅ ACCEPTABLE run_in_terminal USAGE:**
+- `ls`, `dir` - Directory listing
+- `cat`, `Get-Content` - File reading
+- `git status` - Repository status
+- File operations that don't execute code
+
+**🔄 VIOLATION RESPONSE PROTOCOL:**
+If you catch yourself about to run a forbidden command:
 1. **STOP immediately**
-2. Provide this exact format: "Please run this command manually: [command]"
-3. Explain purpose, duration, and requirements
-4. **DO NOT** use run_in_terminal
+2. **NEVER** use run_in_terminal
+3. Provide manual command with this exact format:
+   ```
+   Please run this command manually:
+   [command]
+
+   Purpose: [what this does]
+   Duration: [expected time]
+   Requirements: [prerequisites]
+   ```
 
 ---
 [⬆️ Back to top](#🧪-testing-guidelines)
@@ -1078,6 +1091,7 @@ func (CdnFrontDoorProfileResource) Exists(ctx context.Context, clients *clients.
 func (r CdnFrontDoorProfileResource) basic(data acceptance.TestData) string { ... }
 func (r CdnFrontDoorProfileResource) requiresImport(data acceptance.TestData) string { ... }
 ```
+
 ### Azure Test Cleanup Issues
 
 **Problem:** Azure resources with protective features block test cleanup.
@@ -1101,6 +1115,19 @@ provider "azurerm" {
 - Key Vault with soft delete
 - SQL databases with backup protection
 - Any resource blocking normal cleanup
+
+**Template Organization Best Practices:**
+- Create semantic template functions: `templateWithForceDelete`, `templateWithBackupRetention`, etc.
+- Encapsulate provider feature flags within template functions rather than inline
+- Use descriptive names that clearly indicate the template's cleanup behavior
+- Follow existing patterns like `templateWithLocation` for consistency
+
+**Debugging Test Cleanup Issues:**
+1. **Identify the blocking operation**: Look for Azure API errors mentioning protective features
+2. **Understand the root cause**: Auto scale-down during cleanup is often the culprit
+3. **Apply appropriate force delete flags**: Use service-specific provider feature flags
+4. **Create semantic templates**: Organize force delete configurations in reusable template functions
+5. **Test the fix**: Verify that tests can create, update, and **successfully clean up** resources
 
 ---
 [⬆️ Back to top](#🧪-testing-guidelines)
@@ -1158,6 +1185,13 @@ make testacc TEST=./internal/services/cdn TESTARGS='-run=TestAccCdnFrontDoorProf
 - 🔄 **Migration Guide**: [migration-guide.instructions.md](./migration-guide.instructions.md)
 - 🏢 **Provider Guidelines**: [provider-guidelines.instructions.md](./provider-guidelines.instructions.md)
 - 📐 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md)
+
+### 🚀 Enhanced Guidance Files
+
+- 🔄 **API Evolution**: [api-evolution-patterns.instructions.md](./api-evolution-patterns.instructions.md)
+- ⚡ **Performance**: [performance-optimization.instructions.md](./performance-optimization.instructions.md)
+- 🔐 **Security**: [security-compliance.instructions.md](./security-compliance.instructions.md)
+- 🔧 **Troubleshooting**: [troubleshooting-decision-trees.instructions.md](./troubleshooting-decision-trees.instructions.md)
 
 ---
 [⬆️ Back to top](#🧪-testing-guidelines)

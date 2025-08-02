@@ -52,13 +52,203 @@ This document outlines the standards and guidelines for writing documentation fo
 - **Resources**: Use action verbs - `Manages`, `Creates`, `Configures`
 - **Data Sources**: Use retrieval verbs - `Gets information about`, `Use this data source to access information about`
 
+**Description Patterns:**
+```markdown
+# Resource Description
+description: |-
+  Manages a Service Resource.
+
+# Data Source Description
+description: |-
+  Gets information about an existing Service Resource.
+```
+
 **Argument Types:**
 - **Resources**: Arguments are for configuration (Required/Optional)
 - **Data Sources**: Arguments are for identification/filtering (Required for lookup)
 
-**Attributes:**
+**Resource Arguments:**
+```markdown
+* `name` - (Required) The name of the Service Resource. Changing this forces a new resource to be created.
+* `enabled` - (Optional) Whether this Service Resource is enabled. Defaults to `true`.
+```
+
+**Data Source Arguments:**
+```markdown
+* `name` - (Required) The name of this Service Resource.
+* `resource_group_name` - (Required) The name of the Resource Group where the Service Resource exists.
+```
+
+**Attributes Reference:**
 - **Resources**: Exports computed values after creation/update
 - **Data Sources**: Exports all available information from existing resources
+
+**Resource Attributes:**
+```markdown
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Service Resource.
+* `endpoint` - The endpoint URL of the Service Resource.
+```
+
+**Data Source Attributes:**
+```markdown
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Service Resource.
+* `location` - The Azure Region where the Service Resource exists.
+* `sku_name` - The SKU name of the Service Resource.
+* `enabled` - Whether the Service Resource is enabled.
+* `tags` - A mapping of tags assigned to the resource.
+```
+
+**Timeout Blocks:**
+- **Resources**: Include all CRUD operations
+- **Data Sources**: Only include read operation
+
+**Resource Timeouts:**
+```markdown
+## Timeouts
+
+* `create` - (Defaults to 30 minutes) Used when creating the Service Resource.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Service Resource.
+* `update` - (Defaults to 30 minutes) Used when updating the Service Resource.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Service Resource.
+```
+
+**Data Source Timeouts:**
+```markdown
+## Timeouts
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Service Resource.
+```
+
+**Import Documentation:**
+- **Resources**: Include import section with example
+- **Data Sources**: Omit import section (data sources don't support import)
+
+### Data Source Example Configuration Patterns
+
+**Data Source Example Requirements:**
+- Show how to look up existing resources
+- Demonstrate using data source outputs in other resources
+- Include multiple lookup scenarios when relevant
+- Show filtering and selection patterns
+- Demonstrate practical use cases
+
+**Basic Data Source Example:**
+```hcl
+data "azurerm_service_resource" "example" {
+  name                = "existing-resource"
+  resource_group_name = "existing-resources"
+}
+
+output "service_resource_id" {
+  value = data.azurerm_service_resource.example.id
+}
+```
+
+**Data Source with Resource Integration:**
+```hcl
+data "azurerm_service_resource" "example" {
+  name                = "existing-service"
+  resource_group_name = "existing-resources"
+}
+
+resource "azurerm_other_resource" "example" {
+  name       = "example-other"
+  service_id = data.azurerm_service_resource.example.id
+  location   = data.azurerm_service_resource.example.location
+}
+```
+
+**Data Source Example Naming Conventions:**
+```hcl
+# Data source examples focus on lookup and retrieval
+data "azurerm_service_resource" "example" {
+  name                = "existing-service"
+  resource_group_name = "existing-resources"
+}
+
+# Show how to use the retrieved data
+output "service_endpoint" {
+  value = data.azurerm_service_resource.example.endpoint
+}
+
+# Or use in other resources
+resource "azurerm_other_resource" "example" {
+  service_id = data.azurerm_service_resource.example.id
+}
+```
+
+### Field Documentation Differences
+
+**Argument Field Documentation:**
+- **Resources**: Focus on configuration behavior and defaults
+- **Data Sources**: Focus on lookup and filtering behavior
+
+**Resource Field Documentation:**
+```markdown
+* `sku_name` - (Required) The SKU name for this Service Resource. Possible values are `Standard` and `Premium`.
+* `enabled` - (Optional) Whether this Service Resource is enabled. Defaults to `true`.
+* `location` - (Required) The Azure Region where the Service Resource should exist. Changing this forces a new resource to be created.
+```
+
+**Data Source Field Documentation:**
+```markdown
+* `sku_name` - The SKU name of the Service Resource.
+* `enabled` - Whether the Service Resource is enabled.
+* `location` - The Azure Region where the Service Resource exists.
+```
+
+**Attribute Field Documentation:**
+- **Resources**: Focus on what becomes available after creation
+- **Data Sources**: Focus on what information is retrieved
+
+**Key Documentation Patterns:**
+- **Resource Language**: "should exist", "forces a new resource", "defaults to"
+- **Data Source Language**: "exists", "is", "assigned to"
+- **Resource Focus**: Configuration and lifecycle management
+- **Data Source Focus**: Information retrieval and reference
+
+### Computed vs Configurable Fields
+
+**Resource Fields (Mix of Arguments and Attributes):**
+```markdown
+## Arguments Reference
+
+* `name` - (Required) The name of the Service Resource.
+* `enabled` - (Optional) Whether this Service Resource is enabled.
+
+## Attributes Reference
+
+* `id` - The ID of the Service Resource.
+* `endpoint` - The endpoint URL of the Service Resource.
+```
+
+**Data Source Fields (Mostly Attributes):**
+```markdown
+## Arguments Reference
+
+* `name` - (Required) The name of this Service Resource.
+
+## Attributes Reference
+
+* `id` - The ID of the Service Resource.
+* `location` - The Azure Region where the Service Resource exists.
+* `enabled` - Whether the Service Resource is enabled.
+* `endpoint` - The endpoint URL of the Service Resource.
+```
+
+**Documentation Decision Matrix:**
+- **Resource Argument**: User configures this value
+- **Resource Attribute**: Azure generates/computes this value
+- **Data Source Argument**: User provides this for lookup
+- **Data Source Attribute**: Data source retrieves this from Azure
 
 ---
 [⬆️ Back to top](#documentation-guidelines)
@@ -245,6 +435,995 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Service Resource.
 ````
+
+### Data Source Documentation Differences
+
+**Critical Differences Between Resource and Data Source Documentation:**
+
+**Language Patterns:**
+- **Resources**: Use action verbs - `Manages`, `Creates`, `Configures`
+- **Data Sources**: Use retrieval verbs - `Gets information about`, `Use this data source to access information about`
+
+**Description Patterns:**
+```markdown
+# Resource Description
+description: |-
+  Manages a Service Resource.
+
+# Data Source Description
+description: |-
+  Gets information about an existing Service Resource.
+```
+
+**Argument Types:**
+- **Resources**: Arguments are for configuration (Required/Optional)
+- **Data Sources**: Arguments are for identification/filtering (Required for lookup)
+
+**Resource Arguments:**
+```markdown
+* `name` - (Required) The name of the Service Resource. Changing this forces a new resource to be created.
+* `enabled` - (Optional) Whether this Service Resource is enabled. Defaults to `true`.
+```
+
+**Data Source Arguments:**
+```markdown
+* `name` - (Required) The name of this Service Resource.
+* `resource_group_name` - (Required) The name of the Resource Group where the Service Resource exists.
+```
+
+**Attributes Reference:**
+- **Resources**: Exports computed values after creation/update
+- **Data Sources**: Exports all available information from existing resources
+
+**Resource Attributes:**
+```markdown
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Service Resource.
+* `endpoint` - The endpoint URL of the Service Resource.
+```
+
+**Data Source Attributes:**
+```markdown
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Service Resource.
+* `location` - The Azure Region where the Service Resource exists.
+* `sku_name` - The SKU name of the Service Resource.
+* `enabled` - Whether the Service Resource is enabled.
+* `tags` - A mapping of tags assigned to the resource.
+```
+
+**Timeout Blocks:**
+- **Resources**: Include all CRUD operations
+- **Data Sources**: Only include read operation
+
+**Resource Timeouts:**
+```markdown
+## Timeouts
+
+* `create` - (Defaults to 30 minutes) Used when creating the Service Resource.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Service Resource.
+* `update` - (Defaults to 30 minutes) Used when updating the Service Resource.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Service Resource.
+```
+
+**Data Source Timeouts:**
+```markdown
+## Timeouts
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Service Resource.
+```
+
+**Import Documentation:**
+- **Resources**: Include import section with example
+- **Data Sources**: Omit import section (data sources don't support import)
+
+### Data Source Example Configuration Patterns
+
+**Data Source Example Requirements:**
+- Show how to look up existing resources
+- Demonstrate using data source outputs in other resources
+- Include multiple lookup scenarios when relevant
+- Show filtering and selection patterns
+- Demonstrate practical use cases
+
+**Basic Data Source Example:**
+```hcl
+data "azurerm_service_resource" "example" {
+  name                = "existing-resource"
+  resource_group_name = "existing-resources"
+}
+
+output "service_resource_id" {
+  value = data.azurerm_service_resource.example.id
+}
+```
+
+**Data Source with Resource Integration:**
+```hcl
+data "azurerm_service_resource" "example" {
+  name                = "existing-service"
+  resource_group_name = "existing-resources"
+}
+
+resource "azurerm_other_resource" "example" {
+  name       = "example-other"
+  service_id = data.azurerm_service_resource.example.id
+  location   = data.azurerm_service_resource.example.location
+}
+```
+
+**Data Source Example Naming Conventions:**
+```hcl
+# Data source examples focus on lookup and retrieval
+data "azurerm_service_resource" "example" {
+  name                = "existing-service"
+  resource_group_name = "existing-resources"
+}
+
+# Show how to use the retrieved data
+output "service_endpoint" {
+  value = data.azurerm_service_resource.example.endpoint
+}
+
+# Or use in other resources
+resource "azurerm_other_resource" "example" {
+  service_id = data.azurerm_service_resource.example.id
+}
+```
+
+### Field Documentation Differences
+
+**Argument Field Documentation:**
+- **Resources**: Focus on configuration behavior and defaults
+- **Data Sources**: Focus on lookup and filtering behavior
+
+**Resource Field Documentation:**
+```markdown
+* `sku_name` - (Required) The SKU name for this Service Resource. Possible values are `Standard` and `Premium`.
+* `enabled` - (Optional) Whether this Service Resource is enabled. Defaults to `true`.
+* `location` - (Required) The Azure Region where the Service Resource should exist. Changing this forces a new resource to be created.
+```
+
+**Data Source Field Documentation:**
+```markdown
+* `sku_name` - The SKU name of the Service Resource.
+* `enabled` - Whether the Service Resource is enabled.
+* `location` - The Azure Region where the Service Resource exists.
+```
+
+**Attribute Field Documentation:**
+- **Resources**: Focus on what becomes available after creation
+- **Data Sources**: Focus on what information is retrieved
+
+**Key Documentation Patterns:**
+- **Resource Language**: "should exist", "forces a new resource", "defaults to"
+- **Data Source Language**: "exists", "is", "assigned to"
+- **Resource Focus**: Configuration and lifecycle management
+- **Data Source Focus**: Information retrieval and reference
+
+### Computed vs Configurable Fields
+
+**Resource Fields (Mix of Arguments and Attributes):**
+```markdown
+## Arguments Reference
+
+* `name` - (Required) The name of the Service Resource.
+* `enabled` - (Optional) Whether this Service Resource is enabled.
+
+## Attributes Reference
+
+* `id` - The ID of the Service Resource.
+* `endpoint` - The endpoint URL of the Service Resource.
+```
+
+**Data Source Fields (Mostly Attributes):**
+```markdown
+## Arguments Reference
+
+* `name` - (Required) The name of this Service Resource.
+
+## Attributes Reference
+
+* `id` - The ID of the Service Resource.
+* `location` - The Azure Region where the Service Resource exists.
+* `enabled` - Whether the Service Resource is enabled.
+* `endpoint` - The endpoint URL of the Service Resource.
+```
+
+**Documentation Decision Matrix:**
+- **Resource Argument**: User configures this value
+- **Resource Attribute**: Azure generates/computes this value
+- **Data Source Argument**: User provides this for lookup
+- **Data Source Attribute**: Data source retrieves this from Azure
+
+---
+[⬆️ Back to top](#documentation-guidelines)
+
+## 🏗️ Documentation Structure
+
+**File Organization:**
+```text
+website/docs/
+ r/                                # Resource documentation
+    service_resource.html.markdown
+ d/                                # Data source documentation
+    service_resource.html.markdown
+ guides/                           # Provider guides and tutorials
+     guide_name.html.markdown
+```
+
+**File Naming:**
+- **Resources**: `r/service_resourcetype.html.markdown`
+- **Data Sources**: `d/service_resourcetype.html.markdown`
+- Use lowercase with underscores, match Terraform resource name exactly
+
+---
+[⬆️ Back to top](#documentation-guidelines)
+
+## 📄 Resource Documentation Template
+
+### Standard Resource Documentation Structure
+
+````markdown
+---
+subcategory: "Service Name"
+layout: "azurerm"
+page_title: "Azure Resource Manager: azurerm_service_resource"
+description: |-
+  Manages a Service Resource.
+---
+
+# azurerm_service_resource
+
+Manages a Service Resource.
+
+## Example Usage
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_service_resource" "example" {
+  name                = "example-resource"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+
+  sku_name = "Standard"
+
+  tags = {
+    environment = "Production"
+  }
+}
+```
+
+## Arguments Reference
+
+The following arguments are supported:
+
+* `name` - (Required) The name of the Service Resource. Changing this forces a new resource to be created.
+
+* `resource_group_name` - (Required) The name of the Resource Group where the Service Resource should exist. Changing this forces a new resource to be created.
+
+* `location` - (Required) The Azure Region where the Service Resource should exist. Changing this forces a new resource to be created.
+
+* `sku_name` - (Required) The SKU name for this Service Resource. Possible values are `Standard` and `Premium`.
+
+* `enabled` - (Optional) Whether this Service Resource is enabled. Defaults to `true`.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Service Resource.
+
+* `endpoint` - The endpoint URL of the Service Resource.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Service Resource.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Service Resource.
+* `update` - (Defaults to 30 minutes) Used when updating the Service Resource.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Service Resource.
+
+## Import
+
+Service Resources can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_service_resource.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Service/resources/resource1
+````
+
+### Example Usage Subsections
+
+**Standard Pattern**: Use only "## Example Usage" without subsections for most resources.
+
+**When to Add Subsections**: Only create subsections under "Example Usage" when demonstrating meaningfully different configurations:
+
+**Valid Subsection Scenarios:**
+- **Platform variations**: "### Windows Function App" vs "### Linux Function App"
+- **Authentication methods**: "### (with Base64 Certificate)" vs "### (with Key Vault Certificate)"
+- **Deployment modes**: "### Standard Deployment" vs "### Premium Deployment with Custom Domain"
+- **Integration patterns**: "### With Virtual Network" vs "### With Private Endpoint"
+
+**Subsection Naming Convention:**
+- Use descriptive names that clearly indicate the variation: "### Windows Function App"
+- Include context in parentheses when helpful: "### (with Key Vault Certificate)"
+- Avoid generic terms like "Basic", "Simple", or "Advanced"
+
+**What NOT to create subsections for:**
+- Minor field variations (add to main example instead)
+- Single optional field demonstrations
+- Tag variations or simple property changes
+
+---
+[⬆️ Back to top](#documentation-guidelines)
+
+## 📊 Data Source Documentation Template
+
+### Standard Data Source Documentation Structure
+
+````markdown
+---
+subcategory: "Service Name"
+layout: "azurerm"
+page_title: "Azure Resource Manager: azurerm_service_resource"
+description: |-
+  Gets information about an existing Service Resource.
+---
+
+# Data Source: azurerm_service_resource
+
+Use this data source to access information about an existing Service Resource.
+
+## Example Usage
+
+```hcl
+data "azurerm_service_resource" "example" {
+  name                = "existing-resource"
+  resource_group_name = "existing-resources"
+}
+
+output "service_resource_id" {
+  value = data.azurerm_service_resource.example.id
+}
+```
+
+## Arguments Reference
+
+The following arguments are supported:
+
+* `name` - (Required) The name of this Service Resource.
+
+* `resource_group_name` - (Required) The name of the Resource Group where the Service Resource exists.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Service Resource.
+
+* `location` - The Azure Region where the Service Resource exists.
+
+* `sku_name` - The SKU name of the Service Resource.
+
+* `tags` - A mapping of tags assigned to the resource.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Service Resource.
+````
+
+### Data Source Documentation Differences
+
+**Critical Differences Between Resource and Data Source Documentation:**
+
+**Language Patterns:**
+- **Resources**: Use action verbs - `Manages`, `Creates`, `Configures`
+- **Data Sources**: Use retrieval verbs - `Gets information about`, `Use this data source to access information about`
+
+**Description Patterns:**
+```markdown
+# Resource Description
+description: |-
+  Manages a Service Resource.
+
+# Data Source Description
+description: |-
+  Gets information about an existing Service Resource.
+```
+
+**Argument Types:**
+- **Resources**: Arguments are for configuration (Required/Optional)
+- **Data Sources**: Arguments are for identification/filtering (Required for lookup)
+
+**Resource Arguments:**
+```markdown
+* `name` - (Required) The name of the Service Resource. Changing this forces a new resource to be created.
+* `enabled` - (Optional) Whether this Service Resource is enabled. Defaults to `true`.
+```
+
+**Data Source Arguments:**
+```markdown
+* `name` - (Required) The name of this Service Resource.
+* `resource_group_name` - (Required) The name of the Resource Group where the Service Resource exists.
+```
+
+**Attributes Reference:**
+- **Resources**: Exports computed values after creation/update
+- **Data Sources**: Exports all available information from existing resources
+
+**Resource Attributes:**
+```markdown
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Service Resource.
+* `endpoint` - The endpoint URL of the Service Resource.
+```
+
+**Data Source Attributes:**
+```markdown
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Service Resource.
+* `location` - The Azure Region where the Service Resource exists.
+* `sku_name` - The SKU name of the Service Resource.
+* `enabled` - Whether the Service Resource is enabled.
+* `tags` - A mapping of tags assigned to the resource.
+```
+
+**Timeout Blocks:**
+- **Resources**: Include all CRUD operations
+- **Data Sources**: Only include read operation
+
+**Resource Timeouts:**
+```markdown
+## Timeouts
+
+* `create` - (Defaults to 30 minutes) Used when creating the Service Resource.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Service Resource.
+* `update` - (Defaults to 30 minutes) Used when updating the Service Resource.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Service Resource.
+```
+
+**Data Source Timeouts:**
+```markdown
+## Timeouts
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Service Resource.
+```
+
+**Import Documentation:**
+- **Resources**: Include import section with example
+- **Data Sources**: Omit import section (data sources don't support import)
+
+### Data Source Example Configuration Patterns
+
+**Data Source Example Requirements:**
+- Show how to look up existing resources
+- Demonstrate using data source outputs in other resources
+- Include multiple lookup scenarios when relevant
+- Show filtering and selection patterns
+- Demonstrate practical use cases
+
+**Basic Data Source Example:**
+```hcl
+data "azurerm_service_resource" "example" {
+  name                = "existing-resource"
+  resource_group_name = "existing-resources"
+}
+
+output "service_resource_id" {
+  value = data.azurerm_service_resource.example.id
+}
+```
+
+**Data Source with Resource Integration:**
+```hcl
+data "azurerm_service_resource" "example" {
+  name                = "existing-service"
+  resource_group_name = "existing-resources"
+}
+
+resource "azurerm_other_resource" "example" {
+  name       = "example-other"
+  service_id = data.azurerm_service_resource.example.id
+  location   = data.azurerm_service_resource.example.location
+}
+```
+
+**Data Source Example Naming Conventions:**
+```hcl
+# Data source examples focus on lookup and retrieval
+data "azurerm_service_resource" "example" {
+  name                = "existing-service"
+  resource_group_name = "existing-resources"
+}
+
+# Show how to use the retrieved data
+output "service_endpoint" {
+  value = data.azurerm_service_resource.example.endpoint
+}
+
+# Or use in other resources
+resource "azurerm_other_resource" "example" {
+  service_id = data.azurerm_service_resource.example.id
+}
+```
+
+### Field Documentation Differences
+
+**Argument Field Documentation:**
+- **Resources**: Focus on configuration behavior and defaults
+- **Data Sources**: Focus on lookup and filtering behavior
+
+**Resource Field Documentation:**
+```markdown
+* `sku_name` - (Required) The SKU name for this Service Resource. Possible values are `Standard` and `Premium`.
+* `enabled` - (Optional) Whether this Service Resource is enabled. Defaults to `true`.
+* `location` - (Required) The Azure Region where the Service Resource should exist. Changing this forces a new resource to be created.
+```
+
+**Data Source Field Documentation:**
+```markdown
+* `sku_name` - The SKU name of the Service Resource.
+* `enabled` - Whether the Service Resource is enabled.
+* `location` - The Azure Region where the Service Resource exists.
+```
+
+**Attribute Field Documentation:**
+- **Resources**: Focus on what becomes available after creation
+- **Data Sources**: Focus on what information is retrieved
+
+**Key Documentation Patterns:**
+- **Resource Language**: "should exist", "forces a new resource", "defaults to"
+- **Data Source Language**: "exists", "is", "assigned to"
+- **Resource Focus**: Configuration and lifecycle management
+- **Data Source Focus**: Information retrieval and reference
+
+### Computed vs Configurable Fields
+
+**Resource Fields (Mix of Arguments and Attributes):**
+```markdown
+## Arguments Reference
+
+* `name` - (Required) The name of the Service Resource.
+* `enabled` - (Optional) Whether this Service Resource is enabled.
+
+## Attributes Reference
+
+* `id` - The ID of the Service Resource.
+* `endpoint` - The endpoint URL of the Service Resource.
+```
+
+**Data Source Fields (Mostly Attributes):**
+```markdown
+## Arguments Reference
+
+* `name` - (Required) The name of this Service Resource.
+
+## Attributes Reference
+
+* `id` - The ID of the Service Resource.
+* `location` - The Azure Region where the Service Resource exists.
+* `enabled` - Whether the Service Resource is enabled.
+* `endpoint` - The endpoint URL of the Service Resource.
+```
+
+**Documentation Decision Matrix:**
+- **Resource Argument**: User configures this value
+- **Resource Attribute**: Azure generates/computes this value
+- **Data Source Argument**: User provides this for lookup
+- **Data Source Attribute**: Data source retrieves this from Azure
+
+---
+[⬆️ Back to top](#documentation-guidelines)
+
+## 🏗️ Documentation Structure
+
+**File Organization:**
+```text
+website/docs/
+ r/                                # Resource documentation
+    service_resource.html.markdown
+ d/                                # Data source documentation
+    service_resource.html.markdown
+ guides/                           # Provider guides and tutorials
+     guide_name.html.markdown
+```
+
+**File Naming:**
+- **Resources**: `r/service_resourcetype.html.markdown`
+- **Data Sources**: `d/service_resourcetype.html.markdown`
+- Use lowercase with underscores, match Terraform resource name exactly
+
+---
+[⬆️ Back to top](#documentation-guidelines)
+
+## 📄 Resource Documentation Template
+
+### Standard Resource Documentation Structure
+
+````markdown
+---
+subcategory: "Service Name"
+layout: "azurerm"
+page_title: "Azure Resource Manager: azurerm_service_resource"
+description: |-
+  Manages a Service Resource.
+---
+
+# azurerm_service_resource
+
+Manages a Service Resource.
+
+## Example Usage
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_service_resource" "example" {
+  name                = "example-resource"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+
+  sku_name = "Standard"
+
+  tags = {
+    environment = "Production"
+  }
+}
+```
+
+## Arguments Reference
+
+The following arguments are supported:
+
+* `name` - (Required) The name of the Service Resource. Changing this forces a new resource to be created.
+
+* `resource_group_name` - (Required) The name of the Resource Group where the Service Resource should exist. Changing this forces a new resource to be created.
+
+* `location` - (Required) The Azure Region where the Service Resource should exist. Changing this forces a new resource to be created.
+
+* `sku_name` - (Required) The SKU name for this Service Resource. Possible values are `Standard` and `Premium`.
+
+* `enabled` - (Optional) Whether this Service Resource is enabled. Defaults to `true`.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Service Resource.
+
+* `endpoint` - The endpoint URL of the Service Resource.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `create` - (Defaults to 30 minutes) Used when creating the Service Resource.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Service Resource.
+* `update` - (Defaults to 30 minutes) Used when updating the Service Resource.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Service Resource.
+
+## Import
+
+Service Resources can be imported using the `resource id`, e.g.
+
+```shell
+terraform import azurerm_service_resource.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Service/resources/resource1
+````
+
+### Example Usage Subsections
+
+**Standard Pattern**: Use only "## Example Usage" without subsections for most resources.
+
+**When to Add Subsections**: Only create subsections under "Example Usage" when demonstrating meaningfully different configurations:
+
+**Valid Subsection Scenarios:**
+- **Platform variations**: "### Windows Function App" vs "### Linux Function App"
+- **Authentication methods**: "### (with Base64 Certificate)" vs "### (with Key Vault Certificate)"
+- **Deployment modes**: "### Standard Deployment" vs "### Premium Deployment with Custom Domain"
+- **Integration patterns**: "### With Virtual Network" vs "### With Private Endpoint"
+
+**Subsection Naming Convention:**
+- Use descriptive names that clearly indicate the variation: "### Windows Function App"
+- Include context in parentheses when helpful: "### (with Key Vault Certificate)"
+- Avoid generic terms like "Basic", "Simple", or "Advanced"
+
+**What NOT to create subsections for:**
+- Minor field variations (add to main example instead)
+- Single optional field demonstrations
+- Tag variations or simple property changes
+
+---
+[⬆️ Back to top](#documentation-guidelines)
+
+## 📊 Data Source Documentation Template
+
+### Standard Data Source Documentation Structure
+
+````markdown
+---
+subcategory: "Service Name"
+layout: "azurerm"
+page_title: "Azure Resource Manager: azurerm_service_resource"
+description: |-
+  Gets information about an existing Service Resource.
+---
+
+# Data Source: azurerm_service_resource
+
+Use this data source to access information about an existing Service Resource.
+
+## Example Usage
+
+```hcl
+data "azurerm_service_resource" "example" {
+  name                = "existing-resource"
+  resource_group_name = "existing-resources"
+}
+
+output "service_resource_id" {
+  value = data.azurerm_service_resource.example.id
+}
+```
+
+## Arguments Reference
+
+The following arguments are supported:
+
+* `name` - (Required) The name of this Service Resource.
+
+* `resource_group_name` - (Required) The name of the Resource Group where the Service Resource exists.
+
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Service Resource.
+
+* `location` - The Azure Region where the Service Resource exists.
+
+* `sku_name` - The SKU name of the Service Resource.
+
+* `tags` - A mapping of tags assigned to the resource.
+
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Service Resource.
+````
+
+### Data Source Documentation Differences
+
+**Critical Differences Between Resource and Data Source Documentation:**
+
+**Language Patterns:**
+- **Resources**: Use action verbs - `Manages`, `Creates`, `Configures`
+- **Data Sources**: Use retrieval verbs - `Gets information about`, `Use this data source to access information about`
+
+**Description Patterns:**
+```markdown
+# Resource Description
+description: |-
+  Manages a Service Resource.
+
+# Data Source Description
+description: |-
+  Gets information about an existing Service Resource.
+```
+
+**Argument Types:**
+- **Resources**: Arguments are for configuration (Required/Optional)
+- **Data Sources**: Arguments are for identification/filtering (Required for lookup)
+
+**Resource Arguments:**
+```markdown
+* `name` - (Required) The name of the Service Resource. Changing this forces a new resource to be created.
+* `enabled` - (Optional) Whether this Service Resource is enabled. Defaults to `true`.
+```
+
+**Data Source Arguments:**
+```markdown
+* `name` - (Required) The name of this Service Resource.
+* `resource_group_name` - (Required) The name of the Resource Group where the Service Resource exists.
+```
+
+**Attributes Reference:**
+- **Resources**: Exports computed values after creation/update
+- **Data Sources**: Exports all available information from existing resources
+
+**Resource Attributes:**
+```markdown
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Service Resource.
+* `endpoint` - The endpoint URL of the Service Resource.
+```
+
+**Data Source Attributes:**
+```markdown
+## Attributes Reference
+
+In addition to the Arguments listed above - the following Attributes are exported:
+
+* `id` - The ID of the Service Resource.
+* `location` - The Azure Region where the Service Resource exists.
+* `sku_name` - The SKU name of the Service Resource.
+* `enabled` - Whether the Service Resource is enabled.
+* `tags` - A mapping of tags assigned to the resource.
+```
+
+**Timeout Blocks:**
+- **Resources**: Include all CRUD operations
+- **Data Sources**: Only include read operation
+
+**Resource Timeouts:**
+```markdown
+## Timeouts
+
+* `create` - (Defaults to 30 minutes) Used when creating the Service Resource.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Service Resource.
+* `update` - (Defaults to 30 minutes) Used when updating the Service Resource.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Service Resource.
+```
+
+**Data Source Timeouts:**
+```markdown
+## Timeouts
+
+* `read` - (Defaults to 5 minutes) Used when retrieving the Service Resource.
+```
+
+**Import Documentation:**
+- **Resources**: Include import section with example
+- **Data Sources**: Omit import section (data sources don't support import)
+
+### Data Source Example Configuration Patterns
+
+**Data Source Example Requirements:**
+- Show how to look up existing resources
+- Demonstrate using data source outputs in other resources
+- Include multiple lookup scenarios when relevant
+- Show filtering and selection patterns
+- Demonstrate practical use cases
+
+**Basic Data Source Example:**
+```hcl
+data "azurerm_service_resource" "example" {
+  name                = "existing-resource"
+  resource_group_name = "existing-resources"
+}
+
+output "service_resource_id" {
+  value = data.azurerm_service_resource.example.id
+}
+```
+
+**Data Source with Resource Integration:**
+```hcl
+data "azurerm_service_resource" "example" {
+  name                = "existing-service"
+  resource_group_name = "existing-resources"
+}
+
+resource "azurerm_other_resource" "example" {
+  name       = "example-other"
+  service_id = data.azurerm_service_resource.example.id
+  location   = data.azurerm_service_resource.example.location
+}
+```
+
+**Data Source Example Naming Conventions:**
+```hcl
+# Data source examples focus on lookup and retrieval
+data "azurerm_service_resource" "example" {
+  name                = "existing-service"
+  resource_group_name = "existing-resources"
+}
+
+# Show how to use the retrieved data
+output "service_endpoint" {
+  value = data.azurerm_service_resource.example.endpoint
+}
+
+# Or use in other resources
+resource "azurerm_other_resource" "example" {
+  service_id = data.azurerm_service_resource.example.id
+}
+```
+
+### Field Documentation Differences
+
+**Argument Field Documentation:**
+- **Resources**: Focus on configuration behavior and defaults
+- **Data Sources**: Focus on lookup and filtering behavior
+
+**Resource Field Documentation:**
+```markdown
+* `sku_name` - (Required) The SKU name for this Service Resource. Possible values are `Standard` and `Premium`.
+* `enabled` - (Optional) Whether this Service Resource is enabled. Defaults to `true`.
+* `location` - (Required) The Azure Region where the Service Resource should exist. Changing this forces a new resource to be created.
+```
+
+**Data Source Field Documentation:**
+```markdown
+* `sku_name` - The SKU name of the Service Resource.
+* `enabled` - Whether the Service Resource is enabled.
+* `location` - The Azure Region where the Service Resource exists.
+```
+
+**Attribute Field Documentation:**
+- **Resources**: Focus on what becomes available after creation
+- **Data Sources**: Focus on what information is retrieved
+
+**Key Documentation Patterns:**
+- **Resource Language**: "should exist", "forces a new resource", "defaults to"
+- **Data Source Language**: "exists", "is", "assigned to"
+- **Resource Focus**: Configuration and lifecycle management
+- **Data Source Focus**: Information retrieval and reference
+
+### Computed vs Configurable Fields
+
+**Resource Fields (Mix of Arguments and Attributes):**
+```markdown
+## Arguments Reference
+
+* `name` - (Required) The name of the Service Resource.
+* `enabled` - (Optional) Whether this Service Resource is enabled.
+
+## Attributes Reference
+
+* `id` - The ID of the Service Resource.
+* `endpoint` - The endpoint URL of the Service Resource.
+```
+
+**Data Source Fields (Mostly Attributes):**
+```markdown
+## Arguments Reference
+
+* `name` - (Required) The name of this Service Resource.
+
+## Attributes Reference
+
+* `id` - The ID of the Service Resource.
+* `location` - The Azure Region where the Service Resource exists.
+* `enabled` - Whether the Service Resource is enabled.
+* `endpoint` - The endpoint URL of the Service Resource.
+```
+
+**Documentation Decision Matrix:**
+- **Resource Argument**: User configures this value
+- **Resource Attribute**: Azure generates/computes this value
+- **Data Source Argument**: User provides this for lookup
+- **Data Source Attribute**: Data source retrieves this from Azure
+
 ---
 [⬆️ Back to top](#documentation-guidelines)
 
@@ -652,6 +1831,13 @@ Use caution note blocks when providing critical information on potential irrever
 - 🏢 **Provider Guidelines**: [provider-guidelines.instructions.md](./provider-guidelines.instructions.md)
 - 📐 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md)
 - 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
+
+### 🚀 Enhanced Guidance Files
+
+- 🔄 **API Evolution**: [api-evolution-patterns.instructions.md](./api-evolution-patterns.instructions.md)
+- ⚡ **Performance**: [performance-optimization.instructions.md](./performance-optimization.instructions.md)
+- 🔐 **Security**: [security-compliance.instructions.md](./security-compliance.instructions.md)
+- 🔧 **Troubleshooting**: [troubleshooting-decision-trees.instructions.md](./troubleshooting-decision-trees.instructions.md)
 
 ---
 [⬆️ Back to top](#documentation-guidelines)

@@ -17,13 +17,46 @@ This document provides detailed enforcement guidelines for maintaining code clar
 
 ## 🚫 **ZERO TOLERANCE FOR UNNECESSARY COMMENTS POLICY**
 
-**MANDATORY comment criteria - comments ONLY allowed for**:
+**⚠️ MANDATORY BLOCKING ENFORCEMENT ⚠️**
+
+**BEFORE ANY CODE IS WRITTEN OR REVIEWED - MANDATORY STOP:**
+
+**AI MUST ASK ITSELF THESE QUESTIONS:**
+1. "Am I about to add ANY comments (`//`, `/*`) to this code?"
+2. "If YES → STOP and justify under 4-exception criteria"
+3. "If NO exception applies → REFACTOR instead of commenting"
+
+**ABSOLUTE RULE: NO UNNECESSARY COMMENTS**
+
+Code must be self-documenting. Comments are the exception, not the rule.
+
+**🚫 DEFAULT: Write code WITHOUT comments**
+
+**Comments ONLY for these 4 cases:**
 - Azure API-specific quirks not obvious from code
 - Complex business logic that cannot be simplified
 - Azure SDK workarounds for limitations/bugs
 - Non-obvious state patterns (PATCH operations, residual state)
 
-**For detailed Azure API patterns requiring comments, see:** [azure-patterns.instructions.md](./azure-patterns.instructions.md#🔄-patch-operations)
+**🚫 NEVER comment these:**
+- Variable assignments or struct initialization
+- Standard Terraform/Go patterns
+- Self-explanatory function calls
+- Field mappings or obvious logic
+- Error handling or nil checks
+
+**3-SECOND RULE: Before ANY comment:**
+1. Can I refactor instead? → **YES: Refactor, don't comment**
+2. Is this an Azure API quirk? → **MAYBE: Comment acceptable**
+3. Is this self-explanatory? → **YES: NO COMMENT**
+
+**🔍 MANDATORY JUSTIFICATION:**
+Every comment requires explicit justification:
+- Which of the 4 exception cases applies?
+- Why code cannot be self-explanatory?
+- What specific Azure behavior needs documentation?
+
+**FINAL CHECK:** "Can I eliminate this comment through better code?"
 
 ### 🚫 **FORBIDDEN COMMENTS** - Flag These Immediately
 
@@ -296,6 +329,13 @@ Adding field validation logic?
 - 🏢 **Provider Guidelines**: [provider-guidelines.instructions.md](./provider-guidelines.instructions.md)
 - 📐 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md)
 - 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
+
+### 🚀 Enhanced Guidance Files
+
+- 🔄 **API Evolution**: [api-evolution-patterns.instructions.md](./api-evolution-patterns.instructions.md)
+- ⚡ **Performance**: [performance-optimization.instructions.md](./performance-optimization.instructions.md)
+- 🔐 **Security**: [security-compliance.instructions.md](./security-compliance.instructions.md)
+- 🔧 **Troubleshooting**: [troubleshooting-decision-trees.instructions.md](./troubleshooting-decision-trees.instructions.md)
 
 ---
 [⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)

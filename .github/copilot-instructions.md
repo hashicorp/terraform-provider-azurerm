@@ -6,7 +6,7 @@ description: "This is the official Terraform Provider for Azure (Resource Manage
 
 This is the official Terraform Provider for Azure (Resource Manager), written in Go. It enables Terraform to manage Azure resources through the Azure Resource Manager APIs.
 
-**Quick navigation:** [📚 Stack](#stack) | [🏗️ Project Structure](#project-structure) | [💬 Comment Policy](#⚠️-critical-code-comment-policy-⚠️) | [🚨 Comment Audit](#🚨-mandatory-comment-audit-checklist-🚨) | [🎯 Priority Enforcement](#🎯-ai-development-priority-enforcement) | [🚨 Testing Policy](#🚨-critical-testing-rule-policy-no-redundant-field-validation) | [🎯 AI Guidelines](#🎯-ai-development-guidelines) | [⚡ Implementation](#implementation-approaches) | [📖 Generic Guidelines](#generic-guidelines) | [🧠 Smart Patterns](#smart-pattern-recognition) | [❌ Error Handling](#error-handling-standards) | [🔧 Implementation Guide](#detailed-implementation-guidance) | [📚 Quick Reference](#quick-reference-links)
+**Quick navigation:** [📚 Stack](#stack) | [🏗️ Project Structure](#project-structure) | [💬 Comment Policy](#🚨-blocking-enforcement-zero-tolerance-comment-policy-🚨) | [🚨 Comment Audit](#🚨-mandatory-comment-audit-checklist-🚨) | [🎯 Priority Enforcement](#🎯-ai-development-priority-enforcement) | [🚨 Testing Policy](#🚨-critical-testing-rule-policy-no-redundant-field-validation) | [🎯 AI Guidelines](#🎯-ai-development-guidelines) | [⚡ Implementation](#implementation-approaches) | [📖 Generic Guidelines](#generic-guidelines) | [🧠 Smart Patterns](#smart-pattern-recognition) | [❌ Error Handling](#error-handling-standards) | [🔧 Implementation Guide](#detailed-implementation-guidance) | [📚 Quick Reference](#quick-reference-links)
 
 ## Stack
 
@@ -46,7 +46,14 @@ This is the official Terraform Provider for Azure (Resource Manager), written in
 ---
 [⬆️ Back to top](#custom-instructions)
 
-## ⚠️ CRITICAL CODE COMMENT POLICY ⚠️
+## 🚨 BLOCKING ENFORCEMENT: ZERO TOLERANCE COMMENT POLICY 🚨
+
+**🛑 BEFORE ANY CODE GENERATION - MANDATORY STOP**
+
+**AI MUST ASK ITSELF THESE QUESTIONS BEFORE WRITING ANY CODE:**
+1. "Am I about to add ANY comments (`//`, `/*`) to this code?"
+2. "If YES → STOP and justify under 4-exception criteria"
+3. "If NO exception applies → REFACTOR instead of commenting"
 
 **ABSOLUTE RULE: NO UNNECESSARY COMMENTS**
 
@@ -106,6 +113,33 @@ Every comment requires explicit justification:
 - [ ] Cannot eliminate through code improvement? **YES/NO**
 
 **🚫 FAILURE TO COMPLETE AUDIT = CODE REJECTION**
+
+**FORBIDDEN COMMENT PATTERNS - Auto-Reject:**
+```go
+// Variable assignment comments
+var enabled = true // Set enabled to true → DELETE
+
+// Function call explanations
+client.Create(params) // Create the resource → DELETE
+
+// Obvious operations
+d.Set("name", name) // Set the name field → DELETE
+
+// Standard patterns
+if err != nil { // Check for errors → DELETE
+    return err
+}
+```
+
+**ACCEPTABLE COMMENT PATTERNS:**
+```go
+// Azure Front Door PATCH operations preserve existing values when fields
+// are omitted. Must explicitly send enabled=false to disable features.
+result.Feature.Enabled = pointer.To(false)
+
+// Azure SDK bug: nil values get filtered out before API call
+// Workaround: always provide complete structure
+```
 
 **FORBIDDEN COMMENT PATTERNS - Auto-Reject:**
 ```go
@@ -388,6 +422,22 @@ func resourceServiceName() *pluginsdk.Resource {
 - Any obvious operation comment → **IMMEDIATE REMOVAL REQUIRED**
 - Any variable assignment comment → **IMMEDIATE REMOVAL REQUIRED**
 - Any standard pattern comment → **IMMEDIATE REMOVAL REQUIRED**
+
+### **BLOCKING PRIORITY #2: TEST EXECUTION POLICY**
+
+**MANDATORY SELF-CHECK BEFORE ANY TERMINAL TOOL:**
+1. "Does this command run tests?" → **AUTOMATIC VIOLATION**
+2. "Does this command build/compile?" → **AUTOMATIC VIOLATION**
+3. "Does this create Azure resources?" → **AUTOMATIC VIOLATION**
+
+**VIOLATION RESPONSE**: Immediately provide manual command format
+
+### **BLOCKING PRIORITY #3: REDUNDANT TEST VALIDATION**
+
+**MANDATORY PATTERN ENFORCEMENT:**
+- Use ONLY `ExistsInAzure()` check with `ImportStep()`
+- **FORBIDDEN**: Any `check.That().Key().HasValue()` with `ImportStep()`
+- **EXCEPTION**: Only for computed fields, TypeSet behavior, or Azure transformations
 
 **This policy takes ABSOLUTE PRIORITY over all other development guidance.**
 
@@ -777,6 +827,13 @@ if response.WasThrottled(resp.HttpResponse) {
 - 🔄 **Migration Guide**: [migration-guide.instructions.md](./instructions/migration-guide.instructions.md)
 - 🏢 **Provider Guidelines**: [provider-guidelines.instructions.md](./instructions/provider-guidelines.instructions.md)
 - 📐 **Schema Patterns**: [schema-patterns.instructions.md](./instructions/schema-patterns.instructions.md)
+
+### 🚀 Enhanced Guidance Files
+
+- ⚡ **Performance Optimization**: [performance-optimization.instructions.md](./instructions/performance-optimization.instructions.md)
+- 🔐 **Security & Compliance**: [security-compliance.instructions.md](./instructions/security-compliance.instructions.md)
+- 🔧 **Troubleshooting Decision Trees**: [troubleshooting-decision-trees.instructions.md](./instructions/troubleshooting-decision-trees.instructions.md)
+- 🔄 **API Evolution Patterns**: [api-evolution-patterns.instructions.md](./instructions/api-evolution-patterns.instructions.md)
 
 ---
 [⬆️ Back to top](#custom-instructions)

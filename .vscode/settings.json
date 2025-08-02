@@ -1,20 +1,26 @@
 {
     "github.copilot.chat.commitMessageGeneration.instructions": [
-        { "text": "Provide a concise and clear commit message that summarizes the changes made in the code. For complex changes, include the following details: 1) Specify if the change introduces a breaking change and describe its impact. 2) Highlight any new resources or features added. 3) Mention updates to Azure services or APIs. Aim to keep the message under 72 characters per line for readability." }
+{ "text": "Provide a concise and clear commit message that summarizes the changes made in the code. For complex changes, include the following details: 1) Specify if the change introduces a breaking change and describe its impact. 2) Highlight any new resources or features added. 3) Mention updates to Azure services or APIs. Aim to keep the message under 72 characters per line for readability." }
     ],
     "github.copilot.chat.reviewSelection.enabled": true,
     "github.copilot.chat.reviewSelection.instructions": [
-        { "file": ".github/instructions/implementation-guide.instructions.md" },
-        { "file": ".github/instructions/azure-patterns.instructions.md" },
-        { "file": ".github/instructions/provider-guidelines.instructions.md" },
-        { "file": ".github/instructions/testing-guidelines.instructions.md" },
-        { "file": ".github/instructions/documentation-guidelines.instructions.md" },
-        { "file": ".github/instructions/schema-patterns.instructions.md" },
-        { "file": ".github/instructions/error-patterns.instructions.md" },
-        { "file": ".github/instructions/migration-guide.instructions.md" }
+        {"file": ".github/copilot-instructions.md"},
+        {"file": ".github/instructions/implementation-guide.instructions.md"},
+        {"file": ".github/instructions/azure-patterns.instructions.md"},
+        {"file": ".github/instructions/testing-guidelines.instructions.md"},
+        {"file": ".github/instructions/documentation-guidelines.instructions.md"},
+        {"file": ".github/instructions/error-patterns.instructions.md"},
+        {"file": ".github/instructions/migration-guide.instructions.md"},
+        {"file": ".github/instructions/provider-guidelines.instructions.md"},
+        {"file": ".github/instructions/schema-patterns.instructions.md"},
+        {"file": ".github/instructions/code-clarity-enforcement.instructions.md"},
+        {"file": ".github/instructions/performance-optimization.instructions.md"},
+        {"file": ".github/instructions/security-compliance.instructions.md"},
+        {"file": ".github/instructions/troubleshooting-decision-trees.instructions.md"},
+        {"file": ".github/instructions/api-evolution-patterns.instructions.md"}
     ],
-    "files.associations": {
-        "*.instructions.md": "markdown",
-        ".github/*.md": "markdown"
+"files.associations": {
+    "*.instructions.md": "markdown",
+    ".github/*.md": "markdown"
     }
 }
