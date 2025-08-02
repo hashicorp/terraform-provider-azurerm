@@ -763,10 +763,10 @@ resource "azurerm_servicebus_queue" "test" {
   partitioning_enabled = true
 }
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name                          = "acctest-eg-%[1]d"
-  scope                         = azurerm_resource_group.test.id
-  event_delivery_schema         = "CloudEventSchemaV1_0"
-  service_bus_queue_endpoint_id = azurerm_servicebus_queue.test.id
+  name                  = "acctest-eg-%[1]d"
+  scope                 = azurerm_resource_group.test.id
+  event_delivery_schema = "CloudEventSchemaV1_0"
+  service_bus_queue_id  = azurerm_servicebus_queue.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -792,10 +792,10 @@ resource "azurerm_servicebus_topic" "test" {
   partitioning_enabled = true
 }
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name                          = "acctest-eg-%[1]d"
-  scope                         = azurerm_resource_group.test.id
-  event_delivery_schema         = "CloudEventSchemaV1_0"
-  service_bus_topic_endpoint_id = azurerm_servicebus_topic.test.id
+  name                  = "acctest-eg-%[1]d"
+  scope                 = azurerm_resource_group.test.id
+  event_delivery_schema = "CloudEventSchemaV1_0"
+  service_bus_topic_id  = azurerm_servicebus_topic.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

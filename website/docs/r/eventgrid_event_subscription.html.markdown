@@ -69,9 +69,9 @@ The following arguments are supported:
 
 * `service_bus_topic_id` - (Optional) Specifies the id of the Service Bus Topic endpoint.
 
-* `storage_queue` - (Optional) A `storage_queue` endpoint block as defined below.
+* `storage_queue` - (Optional) A `storage_queue` block as defined below.
 
-* `webhook` - (Optional) A `webhook` endpoint block as defined below.
+* `webhook` - (Optional) A `webhook` block as defined below.
 
 ~> **Note:** One of `eventhub_id`, `arc_connection_id`, `service_bus_queue_id`, `service_bus_topic_id`, `storage_queue`, `webhook` or `azure_function` must be specified.
 
@@ -99,7 +99,7 @@ The following arguments are supported:
 
 ---
 
-A `storage_queue` endpoint block supports the following:
+A `storage_queue` block supports the following:
 
 * `storage_account_id` - (Required) Specifies the id of the storage account id where the storage queue is located.
 
@@ -109,7 +109,7 @@ A `storage_queue` endpoint block supports the following:
 
 ---
 
-An `azure_function` endpoint block supports the following:
+An `azure_function` block supports the following:
 
 * `function_id` - (Required) Specifies the ID of the Function where the Event Subscription will receive events. This must be the functions ID in format {function_app.id}/functions/{name}.
 
@@ -119,7 +119,7 @@ An `azure_function` endpoint block supports the following:
 
 ---
 
-A `webhook` endpoint block supports the following:
+A `webhook` block supports the following:
 
 * `url` - (Required) Specifies the url of the webhook where the Event Subscription will receive events.
 

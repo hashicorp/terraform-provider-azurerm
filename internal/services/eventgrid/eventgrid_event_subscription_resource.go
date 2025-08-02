@@ -162,6 +162,7 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 			Type:          pluginsdk.TypeList,
 			MaxItems:      1,
 			Optional:      true,
+			Computed:      true,
 			ConflictsWith: utils.RemoveFromStringArray(possibleEventSubscriptionEndpointTypes(), string(AzureFunction)),
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -366,6 +367,7 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 			Type:          pluginsdk.TypeList,
 			MaxItems:      1,
 			Optional:      true,
+			Computed:      true,
 			ConflictsWith: utils.RemoveFromStringArray(possibleEventSubscriptionEndpointTypes(), "webhook_endpoint"),
 			Deprecated:    "`webhook_endpoint` has been deprecated in favour of the `webhook` property and will be removed in v5.0 of the AzureRM Provider",
 			Elem: &pluginsdk.Resource{

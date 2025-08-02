@@ -236,18 +236,21 @@ func expandEventSubscriptionStorageQueue(input []interface{}) eventsubscriptions
 }
 
 func flattenEventSubscriptionDestinationStorageQueue(input eventsubscriptions.EventSubscriptionDestination) []interface{} {
-	output := make([]interface{}, 0)
+	props := make(map[string]interface{}, 0)
 
 	val, ok := input.(eventsubscriptions.StorageQueueEventSubscriptionDestination)
 	if ok && val.Properties != nil {
-		output = append(output, map[string]interface{}{
-			"queue_message_time_to_live_in_seconds": int(pointer.From(val.Properties.QueueMessageTimeToLiveInSeconds)),
-			"storage_account_id":                    pointer.From(val.Properties.ResourceId),
-			"queue_name":                            pointer.From(val.Properties.QueueName),
-		})
+		props["message_time_to_live_in_seconds"] = int(pointer.From(val.Properties.QueueMessageTimeToLiveInSeconds))
+		props["storage_account_id"] = pointer.From(val.Properties.ResourceId)
+		props["name"] = pointer.From(val.Properties.QueueName)
+
+		if !features.FivePointOh() {
+			props["queue_name"] = pointer.From(val.Properties.QueueName)
+			props["queue_message_time_to_live_in_seconds"] = int(pointer.From(val.Properties.QueueMessageTimeToLiveInSeconds))
+		}
 	}
 
-	return output
+	return []interface{}{props}
 }
 
 func expandEventSubscriptionDeliveryAttributeMappings(input []interface{}) []eventsubscriptions.DeliveryAttributeMapping {

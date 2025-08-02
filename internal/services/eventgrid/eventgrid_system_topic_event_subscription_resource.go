@@ -549,6 +549,12 @@ func resourceEventGridSystemTopicEventSubscriptionRead(d *pluginsdk.ResourceData
 			d.Set("arc_connection_id", flattenEventSubscriptionDestinationArcConnection(destination))
 			d.Set("service_bus_queue_id", flattenEventSubscriptionDestinationServiceBusQueue(destination))
 			d.Set("service_bus_topic_id", flattenEventSubscriptionDestinationServiceBusTopic(destination))
+			if err := d.Set("storage_queue", flattenEventSubscriptionDestinationStorageQueue(destination)); err != nil {
+				return fmt.Errorf("setting `storage_queue` for %s: %+v", *id, err)
+			}
+			if err := d.Set("webhook_endpoint", flattenEventSubscriptionWebhook(destination, fullUrlResp.Model)); err != nil {
+				return fmt.Errorf("setting `webhook_endpoint` for %s: %+v", *id, err)
+			}
 			if !features.FivePointOh() {
 				if err := d.Set("azure_function_endpoint", flattenEventSubscriptionDestinationAzureFunction(destination)); err != nil {
 					return fmt.Errorf("setting `azure_function_endpoint` for %s: %+v", *id, err)
@@ -557,12 +563,12 @@ func resourceEventGridSystemTopicEventSubscriptionRead(d *pluginsdk.ResourceData
 				d.Set("hybrid_connection_endpoint_id", flattenEventSubscriptionDestinationArcConnection(destination))
 				d.Set("service_bus_queue_endpoint_id", flattenEventSubscriptionDestinationServiceBusQueue(destination))
 				d.Set("service_bus_topic_endpoint_id", flattenEventSubscriptionDestinationServiceBusTopic(destination))
-			}
-			if err := d.Set("storage_queue_endpoint", flattenEventSubscriptionDestinationStorageQueue(destination)); err != nil {
-				return fmt.Errorf("setting `storage_queue_endpoint` for %s: %+v", *id, err)
-			}
-			if err := d.Set("webhook_endpoint", flattenEventSubscriptionWebhook(destination, fullUrlResp.Model)); err != nil {
-				return fmt.Errorf("setting `webhook_endpoint` for %s: %+v", *id, err)
+				if err := d.Set("storage_queue_endpoint", flattenEventSubscriptionDestinationStorageQueue(destination)); err != nil {
+					return fmt.Errorf("setting `storage_queue_endpoint` for %s: %+v", *id, err)
+				}
+				if err := d.Set("webhook_endpoint", flattenEventSubscriptionWebhook(destination, fullUrlResp.Model)); err != nil {
+					return fmt.Errorf("setting `webhook_endpoint` for %s: %+v", *id, err)
+				}
 			}
 
 			deadLetterDestination := props.DeadLetterDestination
