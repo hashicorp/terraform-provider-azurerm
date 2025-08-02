@@ -11,6 +11,7 @@ type WorkspaceProperties struct {
 	Description                     *string                          `json:"description,omitempty"`
 	DiscoveryURL                    *string                          `json:"discoveryUrl,omitempty"`
 	EnableDataIsolation             *bool                            `json:"enableDataIsolation,omitempty"`
+	EnableServiceSideCMKEncryption  *bool                            `json:"enableServiceSideCMKEncryption,omitempty"`
 	Encryption                      *EncryptionProperty              `json:"encryption,omitempty"`
 	FeatureStoreSettings            *FeatureStoreSettings            `json:"featureStoreSettings,omitempty"`
 	FriendlyName                    *string                          `json:"friendlyName,omitempty"`
@@ -24,6 +25,7 @@ type WorkspaceProperties struct {
 	PrimaryUserAssignedIdentity     *string                          `json:"primaryUserAssignedIdentity,omitempty"`
 	PrivateEndpointConnections      *[]PrivateEndpointConnection     `json:"privateEndpointConnections,omitempty"`
 	PrivateLinkCount                *int64                           `json:"privateLinkCount,omitempty"`
+	ProvisionNetworkNow             *bool                            `json:"provisionNetworkNow,omitempty"`
 	ProvisioningState               *ProvisioningState               `json:"provisioningState,omitempty"`
 	PublicNetworkAccess             *PublicNetworkAccess             `json:"publicNetworkAccess,omitempty"`
 	ServerlessComputeSettings       *ServerlessComputeSettings       `json:"serverlessComputeSettings,omitempty"`
@@ -32,6 +34,7 @@ type WorkspaceProperties struct {
 	SharedPrivateLinkResources      *[]SharedPrivateLinkResource     `json:"sharedPrivateLinkResources,omitempty"`
 	StorageAccount                  *string                          `json:"storageAccount,omitempty"`
 	StorageHnsEnabled               *bool                            `json:"storageHnsEnabled,omitempty"`
+	SystemDatastoresAuthMode        *SystemDatastoresAuthMode        `json:"systemDatastoresAuthMode,omitempty"`
 	TenantId                        *string                          `json:"tenantId,omitempty"`
 	V1LegacyMode                    *bool                            `json:"v1LegacyMode,omitempty"`
 	WorkspaceHubConfig              *WorkspaceHubConfig              `json:"workspaceHubConfig,omitempty"`
