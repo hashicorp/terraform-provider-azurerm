@@ -1,3 +1,13 @@
+## 4.39.0 (Unreleased)
+
+ENHANCEMENTS:
+* dependencies: `machinelearning` - update API version to `2025-06-01` [GH-30268]
+* `azurerm_site_recovery_replicated_vm` - the `target_disk_type` property now supports the `StandardSSD_ZRS`, `Premium_ZRS` and `PremiumV2_LRS` values and the `target_replica_disk_type` now supports the `StandardSSD_ZRS` and `Premium_ZRS` properties [GH-30291]
+
+FEATURES:
+
+BUG FIXES:
+
 ## 4.38.1 (July 31, 2025)
 
 **NOTE:** This patch release addresses a critical problem in App Service and Logic Apps resources preventing all Long Running Operations from completing successfully. 
