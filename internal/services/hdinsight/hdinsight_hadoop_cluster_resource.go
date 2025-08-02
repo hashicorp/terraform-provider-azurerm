@@ -26,7 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 // NOTE: this isn't a recommended way of building resources in Terraform
@@ -203,6 +202,8 @@ func resourceHDInsightHadoopCluster() *pluginsdk.Resource {
 
 			"extension": SchemaHDInsightsExtension(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(GetStorageAccountDiffShim()),
 	}
 }
 
@@ -271,12 +272,12 @@ func resourceHDInsightHadoopClusterCreate(d *pluginsdk.ResourceData, meta interf
 
 	var configurationsRaw interface{} = configurations
 	payload := clusters.ClusterCreateParametersExtended{
-		Location: utils.String(location),
+		Location: pointer.To(location),
 		Properties: &clusters.ClusterCreateProperties{
 			Tier:                      pointer.To(tier),
 			OsType:                    pointer.To(clusters.OSTypeLinux),
-			ClusterVersion:            utils.String(clusterVersion),
-			MinSupportedTlsVersion:    utils.String(tls),
+			ClusterVersion:            pointer.To(clusterVersion),
+			MinSupportedTlsVersion:    pointer.To(tls),
 			NetworkProperties:         networkProperties,
 			PrivateLinkConfigurations: privateLinkConfigurations,
 			ClusterDefinition: &clusters.ClusterDefinition{
@@ -609,7 +610,7 @@ func expandHDInsightApplicationEdgeNodeInstallScriptActions(input []interface{})
 			Name: name,
 			Uri:  uri,
 			// The only role available for edge nodes is edgenode
-			Parameters: utils.String(parameters),
+			Parameters: pointer.To(parameters),
 			Roles:      []string{"edgenode"},
 		}
 
@@ -637,9 +638,9 @@ func expandHDInsightApplicationEdgeNodeHttpsEndpoints(input []interface{}) *[]ap
 		endPoint := applications.ApplicationGetHTTPSEndpoint{
 			AccessModes:        &accessModes,
 			DestinationPort:    pointer.To(destinationPort),
-			PrivateIPAddress:   utils.String(privateIpAddress),
-			SubDomainSuffix:    utils.String(subDomainSuffix),
-			DisableGatewayAuth: utils.Bool(disableGatewayAuth),
+			PrivateIPAddress:   pointer.To(privateIpAddress),
+			SubDomainSuffix:    pointer.To(subDomainSuffix),
+			DisableGatewayAuth: pointer.To(disableGatewayAuth),
 		}
 
 		endpoints = append(endpoints, endPoint)
@@ -664,7 +665,7 @@ func expandHDInsightApplicationEdgeNodeUninstallScriptActions(input []interface{
 		action := applications.RuntimeScriptAction{
 			Name:       name,
 			Uri:        uri,
-			Parameters: utils.String(parameters),
+			Parameters: pointer.To(parameters),
 			Roles:      []string{"edgenode"},
 		}
 
