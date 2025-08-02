@@ -449,6 +449,36 @@ func TestAccPostgresqlFlexibleServer_upgradeVersion(t *testing.T) {
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.upgradeVersion(data, "16"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.upgradeVersion(data, "17"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+	})
+}
+
+func TestAccPostgresqlFlexibleServer_version17(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withVersion(data, 17, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("version").HasValue("17"),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
 	})
 }
 

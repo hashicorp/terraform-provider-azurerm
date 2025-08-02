@@ -1,3 +1,9 @@
+## Unreleased
+
+ENHANCEMENTS:
+
+* `azurerm_postgresql_flexible_server` - support for PostgreSQL version `17` ([#30297](https://github.com/hashicorp/terraform-provider-azurerm/issues/30297))
+
 ## 4.38.1 (July 31, 2025)
 
 **NOTE:** This patch release addresses a critical problem in App Service and Logic Apps resources preventing all Long Running Operations from completing successfully. 
