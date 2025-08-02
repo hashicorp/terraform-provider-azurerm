@@ -230,6 +230,23 @@ func TestAccVirtualMachineDataDiskAttachment_importImplicitDataDisk(t *testing.T
 	})
 }
 
+func TestAccVirtualMachineDataDiskAttachment_stopInstance(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_machine_data_disk_attachment", "test")
+	r := VirtualMachineDataDiskAttachmentResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.stopInstance(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_machine_id").Exists(),
+				check.That(data.ResourceName).Key("managed_disk_id").Exists(),
+				check.That(data.ResourceName).Key("lun").HasValue("10"),
+				check.That(data.ResourceName).Key("stop_vm_before_detaching").HasValue("true"),
+			),
+		},
+	})
+}
+
 func (t VirtualMachineDataDiskAttachmentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.DataDiskID(state.ID)
 	if err != nil {
@@ -1051,4 +1068,18 @@ resource "azurerm_virtual_machine_data_disk_attachment" "test" {
   caching            = "None"
 }
 `, data.RandomInteger, location, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (r VirtualMachineDataDiskAttachmentResource) stopInstance(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_machine_data_disk_attachment" "test" {
+  managed_disk_id          = azurerm_managed_disk.test.id
+  virtual_machine_id       = azurerm_virtual_machine.test.id
+  lun                      = "10"
+  caching                  = "ReadWrite"
+  stop_vm_before_detaching = true
+}
+`, r.template(data))
 }

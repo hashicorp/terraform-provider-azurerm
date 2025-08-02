@@ -133,6 +133,18 @@ func resourceVirtualMachineDataDiskAttachment() *pluginsdk.Resource {
 				Optional: true,
 				Default:  false,
 			},
+
+			"stop_vm_before_detaching": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"skip_destroy": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
 		},
 	}
 }
@@ -320,6 +332,10 @@ func resourceVirtualMachineDataDiskAttachmentDelete(d *pluginsdk.ResourceData, m
 		return err
 	}
 
+	if d.Get("skip_destroy").(bool) {
+		return nil
+	}
+
 	virtualMachineId := virtualmachines.NewVirtualMachineID(id.SubscriptionId, id.ResourceGroup, id.VirtualMachineName)
 
 	locks.ByName(id.VirtualMachineName, VirtualMachineResourceName)
@@ -360,6 +376,14 @@ func resourceVirtualMachineDataDiskAttachmentDelete(d *pluginsdk.ResourceData, m
 	virtualMachine.Model.Resources = nil
 	// fixes #24145
 	virtualMachine.Model.Properties.ApplicationProfile = nil
+
+	if d.Get("stop_vm_before_detaching").(bool) {
+		options := virtualmachines.DefaultPowerOffOperationOptions()
+		options.SkipShutdown = pointer.To(false)
+		if err := client.PowerOffThenPoll(ctx, virtualMachineId, options); err != nil {
+			return fmt.Errorf("sending Power Off to %s: %+v", virtualMachineId, err)
+		}
+	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, virtualMachineId, *virtualMachine.Model, virtualmachines.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("removing %s from Virtual Machine %q : %+v", id, id.VirtualMachineName, err)

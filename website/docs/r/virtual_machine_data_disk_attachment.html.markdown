@@ -121,6 +121,10 @@ The following arguments are supported:
 
 * `write_accelerator_enabled` - (Optional) Specifies if Write Accelerator is enabled on the disk. This can only be enabled on `Premium_LRS` managed disks with no caching and [M-Series VMs](https://docs.microsoft.com/azure/virtual-machines/workloads/sap/how-to-enable-write-accelerator). Defaults to `false`.
 
+* `skip_destroy` - (Optional) Set this to true if you do not wish to detach the volume from the instance to which it is attached at destroy time, and instead just remove the attachment from Terraform state. This is useful when destroying an instance which has volumes created by some other means attached. Defaults to `false`.
+
+* `stop_instance_before_detaching` - (Optional) Set this to true to ensure that the target instance is stopped before trying to detach the volume. Stops the instance, if it is not already stopped.  Defaults to `false`.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
