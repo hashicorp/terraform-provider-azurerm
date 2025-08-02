@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/maintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/managedclusters"
@@ -676,6 +677,34 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"bootstrap_profile": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"artifact_source": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(managedclusters.ArtifactSourceCache),
+								string(managedclusters.ArtifactSourceDirect),
+							}, false),
+						},
+
+						"container_registry_id": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+							ValidateFunc: validation.Any(
+								validation.StringIsEmpty,
+								registries.ValidateRegistryID,
+							),
+						},
+					},
+				},
+			},
+
 			"local_account_disabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -1115,6 +1144,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								string(managedclusters.OutboundTypeUserDefinedRouting),
 								string(managedclusters.OutboundTypeManagedNATGateway),
 								string(managedclusters.OutboundTypeUserAssignedNATGateway),
+								string(managedclusters.OutboundTypeNone),
 							}, false),
 						},
 
@@ -1700,6 +1730,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	azureMonitorKubernetesMetricsRaw := d.Get("monitor_metrics").([]interface{})
 	azureMonitorProfile := expandKubernetesClusterAzureMonitorProfile(azureMonitorKubernetesMetricsRaw)
 
+	bootstrapProfileRaw := d.Get("bootstrap_profile").([]interface{})
+	bootstrapProfile := expandBootstrapProfile(bootstrapProfileRaw)
+
 	httpProxyConfigRaw := d.Get("http_proxy_config").([]interface{})
 	httpProxyConfig := expandKubernetesClusterHttpProxyConfig(httpProxyConfigRaw)
 
@@ -1792,6 +1825,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			DnsPrefix:                 pointer.To(dnsPrefix),
 			EnableRBAC:                pointer.To(d.Get("role_based_access_control_enabled").(bool)),
 			KubernetesVersion:         pointer.To(kubernetesVersion),
+			BootstrapProfile:          bootstrapProfile,
 			LinuxProfile:              linuxProfile,
 			WindowsProfile:            windowsProfile,
 			MetricsProfile:            metricsProfile,
@@ -2370,6 +2404,17 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	if d.HasChange("bootstrap_profile") {
+		bootstrapProfileRaw := d.Get("bootstrap_profile").([]interface{})
+		profile := expandBootstrapProfile(bootstrapProfileRaw)
+
+		// If profile is not specified than no reason to change.
+		if profile != nil {
+			updateCluster = true
+			existing.Model.Properties.BootstrapProfile = profile
+		}
+	}
+
 	if d.HasChange("upgrade_override") {
 		upgradeOverrideSettingRaw := d.Get("upgrade_override").([]interface{})
 
@@ -2912,6 +2957,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 
 			d.Set("support_plan", pointer.From(props.SupportPlan))
+
+			bootstrapProfile := flattenBootstrapProfile(props.BootstrapProfile)
+			if err := d.Set("bootstrap_profile", bootstrapProfile); err != nil {
+				return fmt.Errorf("setting `bootstrap_profile`: %+v", err)
+			}
 		}
 
 		identity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
@@ -3159,6 +3209,36 @@ func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedCl
 	return []interface{}{
 		map[string]interface{}{
 			"authorized_ip_ranges": apiServerAuthorizedIPRanges,
+		},
+	}
+}
+
+func expandBootstrapProfile(rawBootsrapProfile []interface{}) *managedclusters.ManagedClusterBootstrapProfile {
+	if len(rawBootsrapProfile) == 0 || rawBootsrapProfile[0] == nil {
+		return nil
+	}
+
+	config := rawBootsrapProfile[0].(map[string]interface{})
+	source := managedclusters.ArtifactSource(config["artifact_source"].(string))
+	var containerRegistryID *string
+	if v, exists := config["container_registry_id"]; exists && v != "" {
+		containerRegistryID = pointer.To(v.(string))
+	}
+
+	return &managedclusters.ManagedClusterBootstrapProfile{
+		ArtifactSource:      &source,
+		ContainerRegistryId: containerRegistryID,
+	}
+}
+
+func flattenBootstrapProfile(profile *managedclusters.ManagedClusterBootstrapProfile) []interface{} {
+	if profile == nil || profile.ArtifactSource == nil {
+		return []interface{}{}
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"artifact_source":       profile.ArtifactSource,
+			"container_registry_id": profile.ContainerRegistryId,
 		},
 	}
 }
