@@ -15,16 +15,20 @@ type PrivateEndpointOutboundRule struct {
 
 	// Fields inherited from OutboundRule
 
-	Category *RuleCategory `json:"category,omitempty"`
-	Status   *RuleStatus   `json:"status,omitempty"`
-	Type     RuleType      `json:"type"`
+	Category         *RuleCategory `json:"category,omitempty"`
+	ErrorInformation *string       `json:"errorInformation,omitempty"`
+	ParentRuleNames  *[]string     `json:"parentRuleNames,omitempty"`
+	Status           *RuleStatus   `json:"status,omitempty"`
+	Type             RuleType      `json:"type"`
 }
 
 func (s PrivateEndpointOutboundRule) OutboundRule() BaseOutboundRuleImpl {
 	return BaseOutboundRuleImpl{
-		Category: s.Category,
-		Status:   s.Status,
-		Type:     s.Type,
+		Category:         s.Category,
+		ErrorInformation: s.ErrorInformation,
+		ParentRuleNames:  s.ParentRuleNames,
+		Status:           s.Status,
+		Type:             s.Type,
 	}
 }
 

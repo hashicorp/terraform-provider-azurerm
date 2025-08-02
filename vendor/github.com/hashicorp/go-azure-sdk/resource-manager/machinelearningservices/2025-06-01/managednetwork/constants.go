@@ -141,14 +141,20 @@ func parseRuleCategory(input string) (*RuleCategory, error) {
 type RuleStatus string
 
 const (
-	RuleStatusActive   RuleStatus = "Active"
-	RuleStatusInactive RuleStatus = "Inactive"
+	RuleStatusActive       RuleStatus = "Active"
+	RuleStatusDeleting     RuleStatus = "Deleting"
+	RuleStatusFailed       RuleStatus = "Failed"
+	RuleStatusInactive     RuleStatus = "Inactive"
+	RuleStatusProvisioning RuleStatus = "Provisioning"
 )
 
 func PossibleValuesForRuleStatus() []string {
 	return []string{
 		string(RuleStatusActive),
+		string(RuleStatusDeleting),
+		string(RuleStatusFailed),
 		string(RuleStatusInactive),
+		string(RuleStatusProvisioning),
 	}
 }
 
@@ -167,8 +173,11 @@ func (s *RuleStatus) UnmarshalJSON(bytes []byte) error {
 
 func parseRuleStatus(input string) (*RuleStatus, error) {
 	vals := map[string]RuleStatus{
-		"active":   RuleStatusActive,
-		"inactive": RuleStatusInactive,
+		"active":       RuleStatusActive,
+		"deleting":     RuleStatusDeleting,
+		"failed":       RuleStatusFailed,
+		"inactive":     RuleStatusInactive,
+		"provisioning": RuleStatusProvisioning,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
