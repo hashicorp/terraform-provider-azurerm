@@ -861,6 +861,7 @@ const (
 	ServerVersionOneFive  ServerVersion = "15"
 	ServerVersionOneFour  ServerVersion = "14"
 	ServerVersionOneOne   ServerVersion = "11"
+	ServerVersionOneSeven ServerVersion = "17"
 	ServerVersionOneSix   ServerVersion = "16"
 	ServerVersionOneThree ServerVersion = "13"
 	ServerVersionOneTwo   ServerVersion = "12"
@@ -871,6 +872,7 @@ func PossibleValuesForServerVersion() []string {
 		string(ServerVersionOneFive),
 		string(ServerVersionOneFour),
 		string(ServerVersionOneOne),
+		string(ServerVersionOneSeven),
 		string(ServerVersionOneSix),
 		string(ServerVersionOneThree),
 		string(ServerVersionOneTwo),
@@ -895,6 +897,7 @@ func parseServerVersion(input string) (*ServerVersion, error) {
 		"15": ServerVersionOneFive,
 		"14": ServerVersionOneFour,
 		"11": ServerVersionOneOne,
+		"17": ServerVersionOneSeven,
 		"16": ServerVersionOneSix,
 		"13": ServerVersionOneThree,
 		"12": ServerVersionOneTwo,
