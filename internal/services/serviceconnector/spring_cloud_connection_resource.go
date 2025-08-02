@@ -255,8 +255,8 @@ func (r SpringCloudConnectorResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.ServiceConnector.LinksClient
-			id, err := links.ParseScopedLinkerID(metadata.ResourceData.Id())
+			client := metadata.Client.ServiceConnector.ServiceLinkerClient
+			id, err := servicelinker.ParseScopedLinkerID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -266,24 +266,26 @@ func (r SpringCloudConnectorResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			linkerProps := links.LinkerProperties{}
+			existing, err := client.LinkerGet(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("checking for presence of existing %s: %+v", *id, err)
+			}
+			linkerProps := existing.Model.Properties
 			d := metadata.ResourceData
 
 			if d.HasChange("client_type") {
-				clientType := links.ClientType(state.ClientType)
-				linkerProps.ClientType = &clientType
+				linkerProps.ClientType = pointer.To(servicelinker.ClientType(state.ClientType))
 			}
 
 			if d.HasChange("vnet_solution") {
-				vnetSolutionType := links.VNetSolutionType(state.VnetSolution)
-				vnetSolution := links.VNetSolution{
-					Type: &vnetSolutionType,
+				vnetSolution := servicelinker.VNetSolution{
+					Type: pointer.To(servicelinker.VNetSolutionType(state.VnetSolution)),
 				}
-				linkerProps.VNetSolution = &vnetSolution
+				linkerProps.VNetSolution = pointer.To(vnetSolution)
 			}
 
 			if d.HasChange("secret_store") {
-				linkerProps.SecretStore = pointer.To(links.SecretStore{KeyVaultId: expandSecretStore(state.SecretStore).KeyVaultId})
+				linkerProps.SecretStore = pointer.To(servicelinker.SecretStore{KeyVaultId: expandSecretStore(state.SecretStore).KeyVaultId})
 			}
 
 			if d.HasChange("authentication") {
@@ -295,11 +297,11 @@ func (r SpringCloudConnectorResource) Update() sdk.ResourceFunc {
 				linkerProps.AuthInfo = authInfo
 			}
 
-			props := links.LinkerPatch{
-				Properties: &linkerProps,
+			props := servicelinker.LinkerResource{
+				Properties: linkerProps,
 			}
 
-			if err := client.LinkerUpdateThenPoll(ctx, *id, props); err != nil {
+			if err := client.LinkerCreateOrUpdateThenPoll(ctx, *id, props); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 			return nil
