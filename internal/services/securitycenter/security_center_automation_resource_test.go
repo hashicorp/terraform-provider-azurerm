@@ -8,13 +8,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/security/2019-01-01-preview/automations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type SecurityCenterAutomationResource struct{}
@@ -225,11 +226,12 @@ func (t SecurityCenterAutomationResource) Exists(ctx context.Context, clients *c
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model.Properties != nil), nil
+	return pointer.To(resp.Model.Properties != nil), nil
 }
 
 func (SecurityCenterAutomationResource) logicApp(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -272,10 +274,56 @@ resource "azurerm_security_center_automation" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_logic_app_workflow" "test" {
+  name                = "acctestlogicapp-%d"
+  location            = "%s"
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_security_center_automation" "test" {
+  name                = "acctestautomation-%d"
+  location            = "%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  scopes = [
+    "/subscriptions/${data.azurerm_client_config.current.subscription_id}"
+  ]
+
+  action {
+    type        = "LogicApp"
+    resource_id = azurerm_logic_app_workflow.test.id
+    trigger_url = "https://example.net/this_is_never_validated_by_azure"
+  }
+
+  source {
+    event_source = "Alerts"
+  }
+
+  tags = {
+    Env2 = "Test2"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
 func (SecurityCenterAutomationResource) logAnalytics(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -314,10 +362,52 @@ resource "azurerm_security_center_automation" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestlogs-%d"
+  location            = "%s"
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "PerGB2018"
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_security_center_automation" "test" {
+  name                = "acctestautomation-%d"
+  location            = "%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  scopes = [
+    "/subscriptions/${data.azurerm_client_config.current.subscription_id}"
+  ]
+
+  action {
+    type        = "Workspace"
+    resource_id = azurerm_log_analytics_workspace.test.id
+  }
+
+  source {
+    event_source = "Alerts"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
 }
 
 func (SecurityCenterAutomationResource) eventHub(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -336,10 +426,8 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-
+  name              = "acctesteventhub-%d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
   partition_count   = 2
   message_retention = 1
 }
@@ -378,6 +466,68 @@ resource "azurerm_security_center_automation" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
+	}
+
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventhub_namespace" "test" {
+  name                = "acctesteventhub-%d"
+  location            = "%s"
+  resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
+  capacity            = 1
+}
+
+resource "azurerm_eventhub" "test" {
+  name         = "acctesteventhub-%d"
+  namespace_id = azurerm_eventhub_namespace.test.id
+
+  partition_count   = 2
+  message_retention = 1
+}
+
+resource "azurerm_eventhub_authorization_rule" "test" {
+  name                = "acctest-eventhub-auth-rule-%d"
+  namespace_name      = azurerm_eventhub_namespace.test.name
+  eventhub_name       = azurerm_eventhub.test.name
+  resource_group_name = azurerm_resource_group.test.name
+
+  listen = true
+  send   = false
+  manage = false
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_security_center_automation" "test" {
+  name                = "acctestautomation-%d"
+  location            = "%s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  scopes = [
+    "/subscriptions/${data.azurerm_client_config.current.subscription_id}"
+  ]
+
+  action {
+    type              = "EventHub"
+    resource_id       = azurerm_eventhub.test.id
+    connection_string = azurerm_eventhub_authorization_rule.test.primary_connection_string
+  }
+
+  source {
+    event_source = "Alerts"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r SecurityCenterAutomationResource) requiresImport(data acceptance.TestData) string {
@@ -394,7 +544,7 @@ resource "azurerm_security_center_automation" "import" {
   ]
 
   action {
-    type        = "logicapp"
+    type        = "LogicApp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -436,7 +586,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "logicapp"
+    type        = "LogicApp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -493,7 +643,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "logicapp"
+    type        = "LogicApp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -543,7 +693,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "logicapp"
+    type        = "LogicApp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -605,7 +755,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "logicapp"
+    type        = "LogicApp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
@@ -681,13 +831,13 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "logicapp"
+    type        = "LogicApp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }
 
   action {
-    type        = "logicapp"
+    type        = "LogicApp"
     resource_id = azurerm_logic_app_workflow.test2.id
     trigger_url = "https://example.net/this_is_also_never_validated_by_azure"
   }
@@ -729,7 +879,7 @@ resource "azurerm_security_center_automation" "test" {
   ]
 
   action {
-    type        = "logicapp"
+    type        = "LogicApp"
     resource_id = azurerm_logic_app_workflow.test.id
     trigger_url = "https://example.net/this_is_never_validated_by_azure"
   }

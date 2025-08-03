@@ -149,4 +149,4 @@ terraform import azurerm_ai_foundry_project.example /subscriptions/00000000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.MachineLearningServices`: 2024-04-01
+* `Microsoft.MachineLearningServices` - 2024-04-01

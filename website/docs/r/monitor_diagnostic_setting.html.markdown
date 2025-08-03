@@ -144,3 +144,9 @@ terraform import azurerm_monitor_diagnostic_setting.example "/subscriptions/0000
 ```
 
 -> **Note:** This is a Terraform specific Resource ID which uses the format `{resourceId}|{diagnosticSettingName}`
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Insights` - 2021-05-01-preview

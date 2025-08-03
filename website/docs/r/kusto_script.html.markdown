@@ -137,4 +137,4 @@ terraform import azurerm_kusto_script.example /subscriptions/12345678-1234-9876-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Kusto`: 2024-04-13
+* `Microsoft.Kusto` - 2024-04-13

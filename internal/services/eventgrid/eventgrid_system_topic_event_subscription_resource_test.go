@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/eventsubscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type EventGridSystemTopicEventSubscriptionResource struct{}
@@ -63,6 +63,21 @@ func TestAccEventGridSystemTopicEventSubscription_eventHubID(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("event_delivery_schema").HasValue("CloudEventSchemaV1_0"),
 				check.That(data.ResourceName).Key("eventhub_endpoint_id").Exists(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccEventGridSystemTopicEventSubscription_azureFunction(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic_event_subscription", "test")
+	r := EventGridSystemTopicEventSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.azureFunction(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -435,7 +450,7 @@ func (EventGridSystemTopicEventSubscriptionResource) Exists(ctx context.Context,
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (EventGridSystemTopicEventSubscriptionResource) basic(data acceptance.TestData) string {
@@ -827,6 +842,45 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
   eventhub_endpoint_id = azurerm_eventhub.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (EventGridSystemTopicEventSubscriptionResource) azureFunction(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
+}
+%[4]s
+resource "azurerm_eventgrid_system_topic" "test" {
+  name                   = "acctesteg-%[1]d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  source_arm_resource_id = azurerm_linux_function_app.test.id
+  topic_type             = "Microsoft.Web.Sites"
+}
+
+resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
+  name                                 = "acctesteg-%[1]d"
+  system_topic                         = azurerm_eventgrid_system_topic.test.name
+  resource_group_name                  = azurerm_resource_group.test.name
+  advanced_filtering_on_arrays_enabled = true
+  event_delivery_schema                = "EventGridSchema"
+
+  azure_function_endpoint {
+    function_id                       = azurerm_function_app_function.test.id
+    max_events_per_batch              = 1
+    preferred_batch_size_in_kilobytes = 64
+  }
+
+  depends_on = [
+    azurerm_function_app_active_slot.test,
+  ]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, azureFunctionTemplate(data))
 }
 
 func (EventGridSystemTopicEventSubscriptionResource) serviceBusQueueID(data acceptance.TestData) string {
