@@ -208,49 +208,67 @@ func flattenEventSubscriptionDestinationServiceBusTopic(input eventsubscriptions
 }
 
 func expandEventSubscriptionStorageQueue(input []interface{}) eventsubscriptions.EventSubscriptionDestination {
-	raw := input[0].(map[string]interface{})
-	props := eventsubscriptions.StorageQueueEventSubscriptionDestinationProperties{
-		ResourceId: pointer.To(raw["storage_account_id"].(string)),
-		QueueName:  pointer.To(raw["name"].(string)),
-	}
+	storageQueue := eventsubscriptions.StorageQueueEventSubscriptionDestination{}
 
-	if ttlInSeconds := raw["message_time_to_live_in_seconds"]; ttlInSeconds != 0 {
-		queueMessageTimeToLiveInSeconds := int64(ttlInSeconds.(int))
-		props.QueueMessageTimeToLiveInSeconds = &queueMessageTimeToLiveInSeconds
-	}
-
-	if !features.FivePointOh() {
-		if v, ok := raw["queue_name"]; ok && v != 0 {
-			queueMessageTimeToLiveInSeconds := int64(v.(int))
-			props.QueueMessageTimeToLiveInSeconds = &queueMessageTimeToLiveInSeconds
+	if len(input) > 0 {
+		raw := input[0].(map[string]interface{})
+		props := eventsubscriptions.StorageQueueEventSubscriptionDestinationProperties{
+			ResourceId: pointer.To(raw["storage_account_id"].(string)),
 		}
-		if v, ok := raw["queue_message_time_to_live_in_seconds"]; ok && v != 0 {
-			queueMessageTimeToLiveInSeconds := int64(v.(int))
-			props.QueueMessageTimeToLiveInSeconds = &queueMessageTimeToLiveInSeconds
+
+		if raw["name"] != nil && raw["name"].(string) != "" {
+			props.QueueName = pointer.To(raw["name"].(string))
+		}
+
+		if raw["message_time_to_live_in_seconds"] != nil && raw["message_time_to_live_in_seconds"].(int) != 0 {
+			props.QueueMessageTimeToLiveInSeconds = pointer.To(int64(raw["message_time_to_live_in_seconds"].(int)))
+		}
+
+		if !features.FivePointOh() {
+			if raw["queue_name"] != nil && raw["queue_name"].(string) != "" {
+				props.QueueName = pointer.To(raw["queue_name"].(string))
+			}
+			if raw["queue_message_time_to_live_in_seconds"] != nil && raw["queue_message_time_to_live_in_seconds"].(int) != 0 {
+				props.QueueMessageTimeToLiveInSeconds = pointer.To(int64(raw["queue_message_time_to_live_in_seconds"].(int)))
+			}
+		}
+
+		return eventsubscriptions.StorageQueueEventSubscriptionDestination{
+			Properties: &props,
 		}
 	}
 
-	return eventsubscriptions.StorageQueueEventSubscriptionDestination{
-		Properties: &props,
-	}
+	return &storageQueue
 }
 
 func flattenEventSubscriptionDestinationStorageQueue(input eventsubscriptions.EventSubscriptionDestination) []interface{} {
-	props := make(map[string]interface{}, 0)
+	output := make([]interface{}, 0)
 
 	val, ok := input.(eventsubscriptions.StorageQueueEventSubscriptionDestination)
 	if ok && val.Properties != nil {
-		props["message_time_to_live_in_seconds"] = int(pointer.From(val.Properties.QueueMessageTimeToLiveInSeconds))
-		props["storage_account_id"] = pointer.From(val.Properties.ResourceId)
-		props["name"] = pointer.From(val.Properties.QueueName)
-
-		if !features.FivePointOh() {
-			props["queue_name"] = pointer.From(val.Properties.QueueName)
-			props["queue_message_time_to_live_in_seconds"] = int(pointer.From(val.Properties.QueueMessageTimeToLiveInSeconds))
-		}
+		output = append(output, map[string]interface{}{
+			"message_time_to_live_in_seconds": int(pointer.From(val.Properties.QueueMessageTimeToLiveInSeconds)),
+			"storage_account_id":              pointer.From(val.Properties.ResourceId),
+			"name":                            pointer.From(val.Properties.QueueName),
+		})
 	}
 
-	return []interface{}{props}
+	return output
+}
+
+func flattenEventSubscriptionDestinationStorageQueueEndpoint(input eventsubscriptions.EventSubscriptionDestination) []interface{} {
+	output := make([]interface{}, 0)
+
+	val, ok := input.(eventsubscriptions.StorageQueueEventSubscriptionDestination)
+	if ok && val.Properties != nil {
+		output = append(output, map[string]interface{}{
+			"queue_message_time_to_live_in_seconds": int(pointer.From(val.Properties.QueueMessageTimeToLiveInSeconds)),
+			"storage_account_id":                    pointer.From(val.Properties.ResourceId),
+			"queue_name":                            pointer.From(val.Properties.QueueName),
+		})
+	}
+
+	return output
 }
 
 func expandEventSubscriptionDeliveryAttributeMappings(input []interface{}) []eventsubscriptions.DeliveryAttributeMapping {

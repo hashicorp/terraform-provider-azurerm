@@ -579,7 +579,7 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 				d.Set("hybrid_connection_endpoint_id", flattenEventSubscriptionDestinationArcConnection(destination))
 				d.Set("service_bus_queue_endpoint_id", flattenEventSubscriptionDestinationServiceBusQueue(destination))
 				d.Set("service_bus_topic_endpoint_id", flattenEventSubscriptionDestinationServiceBusTopic(destination))
-				if err := d.Set("storage_queue_endpoint", flattenEventSubscriptionDestinationStorageQueue(destination)); err != nil {
+				if err := d.Set("storage_queue_endpoint", flattenEventSubscriptionDestinationStorageQueueEndpoint(destination)); err != nil {
 					return fmt.Errorf("setting `storage_queue_endpoint` for %s: %+v", *id, err)
 				}
 				if err := d.Set("webhook_endpoint", flattenEventSubscriptionWebhook(destination, fullUrlResp.Model)); err != nil {
