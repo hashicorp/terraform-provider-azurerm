@@ -15,11 +15,11 @@ type AzureDataLakeStoreSource struct {
 
 	// Fields inherited from CopySource
 
-	DisableMetricsCollection *bool   `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64  `json:"maxConcurrentConnections,omitempty"`
-	SourceRetryCount         *int64  `json:"sourceRetryCount,omitempty"`
-	SourceRetryWait          *string `json:"sourceRetryWait,omitempty"`
-	Type                     string  `json:"type"`
+	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *int64       `json:"sourceRetryCount,omitempty"`
+	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
+	Type                     string       `json:"type"`
 }
 
 func (s AzureDataLakeStoreSource) CopySource() BaseCopySourceImpl {

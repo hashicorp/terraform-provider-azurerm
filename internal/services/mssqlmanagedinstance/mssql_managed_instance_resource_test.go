@@ -1284,6 +1284,11 @@ resource "azuread_user" "test" {
   password            = "TerrAform321!"
 }
 
+resource "random_password" "test" {
+  length  = 16
+  special = true
+}
+
 resource "azurerm_mssql_managed_instance" "test" {
   name                = "acctestsqlserver%[2]d"
   resource_group_name = azurerm_resource_group.test.name
@@ -1296,7 +1301,7 @@ resource "azurerm_mssql_managed_instance" "test" {
   vcores             = 4
 
   administrator_login          = "missadministrator"
-  administrator_login_password = "NCC-1701-D"
+  administrator_login_password = random_password.test.result
 
   identity {
     type = "SystemAssigned"
@@ -1412,10 +1417,6 @@ resource "azurerm_mssql_managed_instance" "test" {
     azurerm_subnet_network_security_group_association.test,
     azurerm_subnet_route_table_association.test,
   ]
-  # Changing administrator_login is ignored because API returns the value of administrator_login even if it is not specified in the config when azuread_authentication_only_enabled is set to true
-  lifecycle {
-    ignore_changes = [administrator_login]
-  }
 }
 `, r.template(data, data.Locations.Primary), data.RandomInteger)
 }

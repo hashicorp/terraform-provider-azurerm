@@ -15,7 +15,7 @@ type XmlReadSettings struct {
 	DetectDataType        *bool                   `json:"detectDataType,omitempty"`
 	NamespacePrefixes     *map[string]string      `json:"namespacePrefixes,omitempty"`
 	Namespaces            *bool                   `json:"namespaces,omitempty"`
-	ValidationMode        *string                 `json:"validationMode,omitempty"`
+	ValidationMode        *interface{}            `json:"validationMode,omitempty"`
 
 	// Fields inherited from FormatReadSettings
 
@@ -60,7 +60,7 @@ func (s *XmlReadSettings) UnmarshalJSON(bytes []byte) error {
 		DetectDataType    *bool              `json:"detectDataType,omitempty"`
 		NamespacePrefixes *map[string]string `json:"namespacePrefixes,omitempty"`
 		Namespaces        *bool              `json:"namespaces,omitempty"`
-		ValidationMode    *string            `json:"validationMode,omitempty"`
+		ValidationMode    *interface{}       `json:"validationMode,omitempty"`
 		Type              string             `json:"type"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {

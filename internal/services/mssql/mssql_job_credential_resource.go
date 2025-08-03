@@ -12,8 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobcredentials"
 	"github.com/hashicorp/go-cty/cty"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -39,10 +37,6 @@ func resourceMsSqlJobCredential() *pluginsdk.Resource {
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(60 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
-		},
-
-		ValidateRawResourceConfigFuncs: []schema.ValidateRawResourceConfigFunc{
-			validation.PreferWriteOnlyAttribute(cty.GetAttrPath("password"), cty.GetAttrPath("password_wo")),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{

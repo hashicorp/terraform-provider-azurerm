@@ -10,7 +10,9 @@ As a general rule, the more complex the resource the more tests there are - for 
 
 > **Note:** Acceptance Tests provision real resources within Azure - which may have an associated charge for each resource.
 
-> When selecting SKUs for testing, pick the lowest/cheapest SKU which covers the test - unless there's good reason to otherwise (e.g. some configurations can provision more quickly using one SKU over another).
+* When selecting SKUs for testing, **pick the lowest or cheapest SKU** which covers the test - unless there's good reason to otherwise (e.g. some configurations can provision more quickly using one SKU over another).
+
+* Always put the resource being tested **at the end of each configuration**, especially if a test requires multiple resource or data declarations. This makes it easy to find the resource being tested, especially in large configurations. Example: note how the `azurerm_virtual_machine` is positioned at the end of each configuration [virtual_machine_resource_test.go](../../internal/services/legacy/virtual_machine_resource_test.go)
 
 ### Running the Tests
 
@@ -47,22 +49,24 @@ func TestAccExampleResource_category_test2(t *testing.T) { ... }
 
 ## Acceptance Tests
 
-The Acceptance Tests for both Data Sources and Resources within this Provider use a Go struct for each test, in the form `{Name}{DataSource|Resource}Test`, for example:
+The Acceptance Tests for both Data Sources and Resources within this Provider use a Go struct for each test, in the form `{Name}{DataSource|Resource}`, for example:
 
 ```go
 // for a data source named Example:
-type ExampleDataSourceTest struct {}
+type ExampleDataSource struct {}
 
 // for a resource named Example:
-type ExampleResourceTest struct {}
+type ExampleResource struct {}
 ```
 
-This allows the test configurations to be scoped (and not used unintentionally across different resources), for example a Resource may use:
+They are differentiated from the implementation's struct by their package, which is the same as the implementation's but with a `_test` suffix. This allows the test configurations to be scoped (and not used unintentionally across different resources), for example a Resource may look like this:
 
 ```go
-type ExampleResourceTest struct {}
+package example_test
 
-func (ExampleResourceTest) basic(data acceptance.TestData) string {
+type ExampleResource struct {}
+
+func (ExampleResource) basic(data acceptance.TestData) string {
 return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -83,7 +87,7 @@ This allows the Acceptance Test for each Data Source/Resource to reference that 
 ```go
 func TestAccExampleResource_basic(t *testing.T) {
         data := acceptance.BuildTestData(t, "azurerm_example_resource", "test")
-        r := ExampleResourceTest{}
+        r := ExampleResource{}
 
         data.ResourceTest(t, r, []acceptance.TestStep{
                 {
@@ -97,19 +101,21 @@ func TestAccExampleResource_basic(t *testing.T) {
 }
 ```
 
+> Originally, the acceptance tests were in the same package as the resource or data source. In order to avoid a name collision, test structs were suffixed with `Test`. However, moving tests to their own package made the struct suffix superfluous.
+
 ### Which Tests are Required?
 
 At a minimum, a Data Source requires:
 
-* A `basic` test ([Example](#Example---DataSource---Basic)) - this tests the minimum fields (e.g. all Required fields) for this Data Source.
+* A `basic` test ([Example](#Example---Data-Source---Basic)) - this tests the minimum fields (e.g. all Required fields) for this Data Source.
 
-However more complex Data Sources can warrant additional acceptance tests - consideration should be given during the development of each Data Source to what's important to be tested.
+However, more complex Data Sources can warrant additional acceptance tests - consideration should be given during the development of each Data Source to what's important to be tested.
 
 ---
 
 At a minimum, a Resource requires:
 
-* A `basic` test ([Example](#Example---Basic---Resource)) - this tests the minimum fields (e.g. all Required fields) for this Resource.
+* A `basic` test ([Example](#Example---Resource---Basic)) - this tests the minimum fields (e.g. all Required fields) for this Resource.
 
 * A `requiresImport` test ([Example](#Example---Resource---Requires-Import)) - this test exercises the logic in the `create` function of a resource that checks for the prior existence of the resource and being created and expects an error. The acceptance test package provides a helper function is provided to be used in the test, called `RequiresImportErrorStep` for this purpose.
 
@@ -117,7 +123,7 @@ At a minimum, a Resource requires:
 
 * A `update` test ([Example](#Example---Resource---Update)) - This test exercises a change of values for any properties that can be updated by executing consecutive configurations to change a resource in a predictable manner. Properties which are `ForceNew` should not be tested in this way.
 
-However more complex Resource generally warrant additional acceptance tests - consideration should be given during the development of each Resource to what's important to be tested.
+However, more complex Resource generally warrant additional acceptance tests - consideration should be given during the development of each Resource to what's important to be tested.
 
 ### Example - Data Source - Basic
 
@@ -128,7 +134,7 @@ Since the Data Source primarily exposes Computed-only fields which aren't specif
 ```go
 func TestAccExampleDataSource_complete(t *testing.T) {
         data := acceptance.BuildTestData(t, "data.azurerm_example_resource", "test")
-        r := ExampleDataSourceTest{}
+        r := ExampleDataSource{}
 
         data.ResourceTest(t, r, []acceptance.TestStep{
                 {
@@ -143,8 +149,8 @@ func TestAccExampleDataSource_complete(t *testing.T) {
         })
 }
 
-func (ExampleDataSourceTest) complete(data acceptance.TestData) string {
-	template := ExampleResourceTest{}.basic(data)
+func (ExampleDataSource) complete(data acceptance.TestData) string {
+	template := ExampleResource{}.basic(data)
     return fmt.Sprintf(`
 %[1]s
 
@@ -167,7 +173,7 @@ As we're testing the Resource, we make use of an `ImportStep` as a part of the A
 ```go
 func TestAccExampleResource_basic(t *testing.T) {
         data := acceptance.BuildTestData(t, "azurerm_example_resource", "test")
-        r := ExampleResourceTest{}
+        r := ExampleResource{}
 
         data.ResourceTest(t, r, []acceptance.TestStep{
                 {
@@ -180,7 +186,7 @@ func TestAccExampleResource_basic(t *testing.T) {
         })
 }
 
-func (ExampleResourceTest) basic(data acceptance.TestData) string {
+func (ExampleResource) basic(data acceptance.TestData) string {
     return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -204,7 +210,7 @@ As we're testing the Resource, we make use of an `ImportStep` as a part of the A
 ```go
 func TestAccExampleResource_complete(t *testing.T) {
         data := acceptance.BuildTestData(t, "azurerm_example_resource", "test")
-        r := ExampleResourceTest{}
+        r := ExampleResource{}
 
         data.ResourceTest(t, r, []acceptance.TestStep{
                 {
@@ -217,7 +223,7 @@ func TestAccExampleResource_complete(t *testing.T) {
         })
 }
 
-func (ExampleResourceTest) complete(data acceptance.TestData) string {
+func (ExampleResource) complete(data acceptance.TestData) string {
     return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -249,7 +255,7 @@ Since this test is attempting to provision the same resource, with the same iden
 ```go
 func TestAccExampleResource_basic(t *testing.T) {
         data := acceptance.BuildTestData(t, "azurerm_example_resource", "test")
-        r := ExampleResourceTest{}
+        r := ExampleResource{}
 
         data.ResourceTest(t, r, []acceptance.TestStep{
                 {
@@ -262,7 +268,7 @@ func TestAccExampleResource_basic(t *testing.T) {
         })
 }
 
-func (r ExampleResourceTest) requiresImport(data acceptance.TestData) string {
+func (r ExampleResource) requiresImport(data acceptance.TestData) string {
 	template := r.basic(data)  
     return fmt.Sprintf(`
 %[1]s
@@ -285,7 +291,7 @@ The bare-minimum example for this is provisioning the `basic` configuration and 
 ```go
 func TestAccExampleResource_update(t *testing.T) {
         data := acceptance.BuildTestData(t, "azurerm_example_resource", "test")
-        r := ExampleResourceTest{}
+        r := ExampleResource{}
 
         data.ResourceTest(t, r, []acceptance.TestStep{
             {   // first provision the resource
@@ -306,14 +312,14 @@ func TestAccExampleResource_update(t *testing.T) {
 }
 ```
 
-However this doesn't necessarily cover all of the use-cases for this resource - or may be too broad depending on the resource, as such it's also common to have tests covering a subset of the fields, for example:
+However, this doesn't necessarily cover all use-cases for this resource - or may be too broad depending on the resource, as such it's also common to have tests covering a subset of the fields, for example:
 
 > **Note:** This is a simplified example for testing purposes, we'd generally recommend a test covering a related subset of the resource (e.g. enabling/disabling a block within the resource), rather than a single field - but it depends on the resource.
 
 ```go
 func TestAccExampleResource_someSetting(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_example_resource", "test")
-    r := ExampleResourceTest{}
+    r := ExampleResource{}
     
     data.ResourceTest(t, r, []acceptance.TestStep{
         {   // first provision the resource
@@ -340,7 +346,7 @@ func TestAccExampleResource_someSetting(t *testing.T) {
     })
 }
 
-func (ExampleResourceTest) someSettingEnabled(data acceptance.TestData) string {
+func (ExampleResource) someSettingEnabled(data acceptance.TestData) string {
     return fmt.Sprintf(`
 provider "azurerm" {
   features {}

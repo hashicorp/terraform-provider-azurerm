@@ -24,6 +24,7 @@ func (r Registration) Resources() []sdk.Resource {
 		ApplicationLoadBalancerResource{},
 		FrontendsResource{},
 		ApplicationLoadBalancerSubnetAssociationResource{},
+		SecurityPoliciesResource{},
 	}
 }
 

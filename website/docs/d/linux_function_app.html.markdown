@@ -111,6 +111,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `usage` - The current usage state. Possible values are `Normal` and `Exceeded`.
 
+* `virtual_network_backup_restore_enabled` - Whether backup and restore operations over the linked virtual network are enabled.
+
 * `virtual_network_subnet_id` - The subnet id which the Linux Function App is vNet Integrated with.
 
 * `webdeploy_publish_basic_authentication_enabled` - Are the default WebDeploy Basic Authentication publishing credentials enabled.
@@ -658,3 +660,9 @@ A `site_credential` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 25 minutes) Used when retrieving the Linux Function App.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Web` - 2023-12-01

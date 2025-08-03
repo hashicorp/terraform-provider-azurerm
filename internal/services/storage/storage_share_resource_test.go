@@ -945,7 +945,7 @@ resource "azurerm_storage_share" "import" {
   storage_account_name = azurerm_storage_share.test.storage_account_name
   quota                = azurerm_storage_share.test.quota
 }
-`, r.template(data))
+`, r.basicDeprecated(data))
 }
 
 func (r StorageShareResource) requiresImport(data acceptance.TestData) string {

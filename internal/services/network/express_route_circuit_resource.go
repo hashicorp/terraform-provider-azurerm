@@ -203,6 +203,10 @@ func resourceExpressRouteCircuitCreate(d *pluginsdk.ResourceData, meta interface
 		AuthorizationKey: pointer.To(d.Get("authorization_key").(string)),
 	}
 
+	if v, ok := d.GetOk("allow_classic_operations"); ok {
+		erc.Properties.AllowClassicOperations = pointer.To(v.(bool))
+	}
+
 	if v, ok := d.GetOk("rate_limiting_enabled"); ok {
 		erc.Properties.EnableDirectPortRateLimit = pointer.To(v.(bool))
 	}
@@ -309,7 +313,11 @@ func resourceExpressRouteCircuitUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("bandwidth_in_gbps") {
-		payload.Properties.BandwidthInGbps = utils.Float(d.Get("bandwidth_in_gbps").(float64))
+		payload.Properties.BandwidthInGbps = pointer.To(d.Get("bandwidth_in_gbps").(float64))
+	}
+
+	if d.HasChange("bandwidth_in_mbps") {
+		payload.Properties.ServiceProviderProperties.BandwidthInMbps = pointer.To(int64(d.Get("bandwidth_in_mbps").(int)))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, payload); err != nil {

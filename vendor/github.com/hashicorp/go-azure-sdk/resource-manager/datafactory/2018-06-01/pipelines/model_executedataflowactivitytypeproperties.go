@@ -12,5 +12,5 @@ type ExecuteDataFlowActivityTypeProperties struct {
 	RunConcurrently          *bool                                         `json:"runConcurrently,omitempty"`
 	SourceStagingConcurrency *int64                                        `json:"sourceStagingConcurrency,omitempty"`
 	Staging                  *DataFlowStagingInfo                          `json:"staging,omitempty"`
-	TraceLevel               *string                                       `json:"traceLevel,omitempty"`
+	TraceLevel               *interface{}                                  `json:"traceLevel,omitempty"`
 }

@@ -37,7 +37,7 @@ resource "azurerm_kusto_cluster_principal_assignment" "example" {
   cluster_name        = azurerm_kusto_cluster.example.name
 
   tenant_id      = data.azurerm_client_config.current.tenant_id
-  principal_id   = data.azurerm_client_config.current.client_id
+  principal_id   = data.azurerm_client_config.current.principal_id
   principal_type = "App"
   role           = "AllDatabasesAdmin"
 }
@@ -86,3 +86,9 @@ Data Explorer Cluster Principal Assignments can be imported using the `resource 
 ```shell
 terraform import azurerm_kusto_cluster_principal_assignment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/clusters/cluster1/principalAssignments/assignment1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Kusto` - 2024-04-13

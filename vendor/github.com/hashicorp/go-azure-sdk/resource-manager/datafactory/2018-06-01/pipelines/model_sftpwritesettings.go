@@ -11,12 +11,12 @@ import (
 var _ StoreWriteSettings = SftpWriteSettings{}
 
 type SftpWriteSettings struct {
-	OperationTimeout  *string `json:"operationTimeout,omitempty"`
-	UseTempFileRename *bool   `json:"useTempFileRename,omitempty"`
+	OperationTimeout  *interface{} `json:"operationTimeout,omitempty"`
+	UseTempFileRename *bool        `json:"useTempFileRename,omitempty"`
 
 	// Fields inherited from StoreWriteSettings
 
-	CopyBehavior             *string         `json:"copyBehavior,omitempty"`
+	CopyBehavior             *interface{}    `json:"copyBehavior,omitempty"`
 	DisableMetricsCollection *bool           `json:"disableMetricsCollection,omitempty"`
 	MaxConcurrentConnections *int64          `json:"maxConcurrentConnections,omitempty"`
 	Metadata                 *[]MetadataItem `json:"metadata,omitempty"`

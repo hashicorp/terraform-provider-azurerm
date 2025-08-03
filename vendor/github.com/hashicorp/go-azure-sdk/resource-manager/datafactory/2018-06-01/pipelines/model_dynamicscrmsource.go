@@ -12,15 +12,15 @@ var _ CopySource = DynamicsCrmSource{}
 
 type DynamicsCrmSource struct {
 	AdditionalColumns *interface{} `json:"additionalColumns,omitempty"`
-	Query             *string      `json:"query,omitempty"`
+	Query             *interface{} `json:"query,omitempty"`
 
 	// Fields inherited from CopySource
 
-	DisableMetricsCollection *bool   `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64  `json:"maxConcurrentConnections,omitempty"`
-	SourceRetryCount         *int64  `json:"sourceRetryCount,omitempty"`
-	SourceRetryWait          *string `json:"sourceRetryWait,omitempty"`
-	Type                     string  `json:"type"`
+	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *int64       `json:"sourceRetryCount,omitempty"`
+	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
+	Type                     string       `json:"type"`
 }
 
 func (s DynamicsCrmSource) CopySource() BaseCopySourceImpl {

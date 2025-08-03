@@ -10,7 +10,7 @@ import (
 
 type GetMetadataActivityTypeProperties struct {
 	Dataset        DatasetReference   `json:"dataset"`
-	FieldList      *[]string          `json:"fieldList,omitempty"`
+	FieldList      *[]interface{}     `json:"fieldList,omitempty"`
 	FormatSettings FormatReadSettings `json:"formatSettings"`
 	StoreSettings  StoreReadSettings  `json:"storeSettings"`
 }
@@ -20,7 +20,7 @@ var _ json.Unmarshaler = &GetMetadataActivityTypeProperties{}
 func (s *GetMetadataActivityTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
 		Dataset   DatasetReference `json:"dataset"`
-		FieldList *[]string        `json:"fieldList,omitempty"`
+		FieldList *[]interface{}   `json:"fieldList,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)

@@ -38,7 +38,7 @@ func (client SecurityMLAnalyticsSettingsClient) List(ctx context.Context, resour
 			},
 		},
 	}); err != nil {
-		return result, validation.NewError("securityinsight.SecurityMLAnalyticsSettingsClient", "List", err.Error()) // nolint: govet
+		return result, validation.NewError("securityinsight.SecurityMLAnalyticsSettingsClient", "List", "%+v", err.Error())
 	}
 
 	result.fn = client.listNextResults

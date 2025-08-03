@@ -20,17 +20,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/automation/validate"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceAutomationAccount() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	r := &pluginsdk.Resource{
 		Create: resourceAutomationAccountCreate,
 		Read:   resourceAutomationAccountRead,
 		Update: resourceAutomationAccountUpdate,
@@ -76,19 +76,6 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
-						},
-
-						"key_source": {
-							Type:       pluginsdk.TypeString,
-							Optional:   true,
-							Deprecated: "This field is now ignored and will be removed in the next major version of the Azure Provider, the `encryption` block can be omitted to disable encryption",
-							ValidateFunc: validation.StringInSlice(
-								[]string{
-									string(automationaccount.EncryptionKeySourceTypeMicrosoftPointAutomation),
-									string(automationaccount.EncryptionKeySourceTypeMicrosoftPointKeyvault),
-								},
-								false,
-							),
 						},
 
 						"key_vault_key_id": {
@@ -155,6 +142,23 @@ func resourceAutomationAccount() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		r.Schema["encryption"].Elem.(*schema.Resource).Schema["key_source"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeString,
+			Optional:   true,
+			Deprecated: "`encryption.key_source` has been deprecated and will be removed in v5.0 of the AzureRM Provider. To disable encryption, omit the `encryption` block",
+			ValidateFunc: validation.StringInSlice(
+				[]string{
+					string(automationaccount.EncryptionKeySourceTypeMicrosoftPointAutomation),
+					string(automationaccount.EncryptionKeySourceTypeMicrosoftPointKeyvault),
+				},
+				false,
+			),
+		}
+	}
+
+	return r
 }
 
 func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -186,17 +190,17 @@ func resourceAutomationAccountCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	parameters := automationaccount.AutomationAccountCreateOrUpdateParameters{
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &automationaccount.AutomationAccountCreateOrUpdateProperties{
 			Encryption: enc,
 			Sku: &automationaccount.Sku{
 				Name: automationaccount.SkuNameEnum(d.Get("sku_name").(string)),
 			},
-			PublicNetworkAccess: utils.Bool(d.Get("public_network_access_enabled").(bool)),
+			PublicNetworkAccess: pointer.To(d.Get("public_network_access_enabled").(bool)),
 		},
 	}
 
-	parameters.Properties.DisableLocalAuth = utils.Bool(!d.Get("local_authentication_enabled").(bool))
+	parameters.Properties.DisableLocalAuth = pointer.To(!d.Get("local_authentication_enabled").(bool))
 
 	// for create account do not set identity property (even TypeNone is not allowed), or api will response error
 	if identityVal.Type != identity.TypeNone {
@@ -235,19 +239,19 @@ func resourceAutomationAccountUpdate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	parameters := automationaccount.AutomationAccountUpdateParameters{
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Identity: identity,
 		Properties: &automationaccount.AutomationAccountUpdateProperties{
 			Sku: &automationaccount.Sku{
 				Name: automationaccount.SkuNameEnum(d.Get("sku_name").(string)),
 			},
-			PublicNetworkAccess: utils.Bool(d.Get("public_network_access_enabled").(bool)),
+			PublicNetworkAccess: pointer.To(d.Get("public_network_access_enabled").(bool)),
 			Encryption:          enc,
 		},
 	}
 
 	if d.HasChange("local_authentication_enabled") {
-		parameters.Properties.DisableLocalAuth = utils.Bool(!d.Get("local_authentication_enabled").(bool))
+		parameters.Properties.DisableLocalAuth = pointer.To(!d.Get("local_authentication_enabled").(bool))
 	}
 
 	if tagsVal := tags.Expand(d.Get("tags").(map[string]interface{})); tagsVal != nil {
@@ -402,9 +406,9 @@ func expandEncryption(input []interface{}) (*automationaccount.EncryptionPropert
 			return nil, err
 		}
 		prop.KeyVaultProperties = &automationaccount.KeyVaultProperties{
-			KeyName:     utils.String(keyId.Name),
-			KeyVersion:  utils.String(keyId.Version),
-			KeyvaultUri: utils.String(keyId.KeyVaultBaseUrl),
+			KeyName:     pointer.To(keyId.Name),
+			KeyVersion:  pointer.To(keyId.Version),
+			KeyvaultUri: pointer.To(keyId.KeyVaultBaseUrl),
 		}
 	}
 	return prop, nil
@@ -434,15 +438,18 @@ func flattenEncryption(encryption *automationaccount.EncryptionProperties) []int
 			}
 		}
 	}
-	return []interface{}{
+	flattened := []interface{}{
 		map[string]interface{}{
 			"key_vault_key_id":          keyVaultKeyId,
 			"user_assigned_identity_id": userAssignedIdentityId,
-
-			// TODO: remove this field in 4.x
-			"key_source": "",
 		},
 	}
+
+	if !features.FivePointOh() {
+		flattened[0].(map[string]interface{})["key_source"] = ""
+	}
+
+	return flattened
 }
 
 func flattenPrivateEndpointConnections(input *[]automationaccount.PrivateEndpointConnection) []interface{} {

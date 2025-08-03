@@ -5,14 +5,14 @@ package pipelines
 
 type WebActivityTypeProperties struct {
 	Authentication        *WebActivityAuthentication   `json:"authentication,omitempty"`
-	Body                  *string                      `json:"body,omitempty"`
+	Body                  *interface{}                 `json:"body,omitempty"`
 	ConnectVia            *IntegrationRuntimeReference `json:"connectVia,omitempty"`
 	Datasets              *[]DatasetReference          `json:"datasets,omitempty"`
 	DisableCertValidation *bool                        `json:"disableCertValidation,omitempty"`
-	HTTPRequestTimeout    *string                      `json:"httpRequestTimeout,omitempty"`
+	HTTPRequestTimeout    *interface{}                 `json:"httpRequestTimeout,omitempty"`
 	Headers               *map[string]interface{}      `json:"headers,omitempty"`
 	LinkedServices        *[]LinkedServiceReference    `json:"linkedServices,omitempty"`
 	Method                WebActivityMethod            `json:"method"`
 	TurnOffAsync          *bool                        `json:"turnOffAsync,omitempty"`
-	Url                   string                       `json:"url"`
+	Url                   interface{}                  `json:"url"`
 }

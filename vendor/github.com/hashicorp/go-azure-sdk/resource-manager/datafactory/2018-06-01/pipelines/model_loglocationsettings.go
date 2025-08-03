@@ -5,5 +5,5 @@ package pipelines
 
 type LogLocationSettings struct {
 	LinkedServiceName LinkedServiceReference `json:"linkedServiceName"`
-	Path              *string                `json:"path,omitempty"`
+	Path              *interface{}           `json:"path,omitempty"`
 }

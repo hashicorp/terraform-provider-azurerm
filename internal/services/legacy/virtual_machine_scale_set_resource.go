@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -2127,8 +2127,8 @@ func expandAzureRmVirtualMachineScaleSetOsProfileWindowsConfig(d *pluginsdk.Reso
 				content := config["content"].(string)
 
 				addContent := virtualmachinescalesets.AdditionalUnattendContent{
-					PassName:      pointer.To(virtualmachinescalesets.PassNames(pass)),
-					ComponentName: pointer.To(virtualmachinescalesets.ComponentNames(component)),
+					PassName:      pointer.To(virtualmachinescalesets.PassName(pass)),
+					ComponentName: pointer.To(virtualmachinescalesets.ComponentName(component)),
 					SettingName:   pointer.To(virtualmachinescalesets.SettingNames(settingName)),
 				}
 

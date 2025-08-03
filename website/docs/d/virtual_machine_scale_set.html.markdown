@@ -59,55 +59,94 @@ An `identity` block exports the following:
 
 ---
 
-`instances` exports the following:
+An `instances` block exports the following:
 
 * `computer_name` - The Hostname of this Virtual Machine.
+
 * `instance_id` - The Instance ID of this Virtual Machine.
+
 * `latest_model_applied` - Whether the latest model has been applied to this Virtual Machine.
+
 * `name` - The name of the this Virtual Machine.
+
 * `private_ip_address` - The Primary Private IP Address assigned to this Virtual Machine.
+ 
 * `private_ip_addresses` - A list of Private IP Addresses assigned to this Virtual Machine.
+ 
 * `public_ip_address` - The Primary Public IP Address assigned to this Virtual Machine.
+
 * `public_ip_addresses` - A list of the Public IP Addresses assigned to this Virtual Machine.
+ 
 * `power_state` - The power state of the virtual machine.
+
 * `virtual_machine_id` - The unique ID of the virtual machine.
+
 * `zone` - The zones of the virtual machine.
 
 ---
 
-`network_interface` exports the following:
+A `network_interface` block exports the following:
 
 * `name` - The name of the network interface configuration.
+
+* `auxiliary_mode` - The auxiliary mode for the network interface.
+
+* `auxiliary_sku` - The auxiliary SKU for the network interface.
+
 * `primary` - Whether network interfaces created from the network interface configuration will be the primary NIC of the VM.
-* `ip_configuration` - An `ip_configuration` block as documented below.
-* `enable_accelerated_networking` - Whether to enable accelerated networking or not.
+
+* `ip_configuration` - An `ip_configuration` block as defined below.
+
+* `enable_accelerated_networking` - Whether accelerated networking is enabled.
+
 * `dns_servers` - An array of the DNS servers in use.
+
 * `enable_ip_forwarding` - Whether IP forwarding is enabled on this NIC.
+
 * `network_security_group_id` - The identifier for the network security group.
 
-`ip_configuration` exports the following:
+---
+
+An `ip_configuration` block exports the following:
 
 * `name` - The name of the IP configuration.
-* `subnet_id` - The identifier of the subnet.
-* `application_gateway_backend_address_pool_ids` - An array of references to backend address pools of application gateways.
-* `load_balancer_backend_address_pool_ids` - An array of references to backend address pools of load balancers.
-* `load_balancer_inbound_nat_rules_ids` - An array of references to inbound NAT pools for load balancers.
-* `primary` -  If this ip_configuration is the primary one.
-* `application_security_group_ids` -  The application security group IDs to use.
-* `public_ip_address` - The virtual machines scale set IP Configuration's PublicIPAddress configuration. The `public_ip_address` is documented below.
 
-`public_ip_address` exports the following:
+* `subnet_id` - The identifier of the subnet.
+
+* `application_gateway_backend_address_pool_ids` - An array of references to backend address pools of application gateways.
+
+* `load_balancer_backend_address_pool_ids` - An array of references to backend address pools of load balancers.
+
+* `load_balancer_inbound_nat_rules_ids` - An array of references to inbound NAT pools for load balancers.
+
+* `primary` -  If this ip_configuration is the primary one.
+
+* `application_security_group_ids` -  The application security group IDs to use.
+
+* `public_ip_address` - A `public_ip_address` block as defined below.
+
+---
+
+A `public_ip_address` block exports the following:
 
 * `name` - The name of the public IP address configuration
+
 * `idle_timeout_in_minutes` - The idle timeout in minutes.
+
 * `domain_name_label` - The domain name label for the DNS settings.
+
 * `ip_tag` - A list of `ip_tag` blocks as defined below.
+
 * `public_ip_prefix_id` - The ID of the public IP prefix.
+
 * `version` - The Internet Protocol Version of the public IP address.
 
-`ip_tag` exports the following:
+---
+
+An `ip_tag` block exports the following:
 
 * `tag` - The IP Tag associated with the Public IP.
+
 * `type` - The Type of IP Tag.
 
 ## Timeouts
@@ -115,3 +154,9 @@ An `identity` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Scale Set.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Compute` - 2024-11-01, 2024-03-01, 2023-09-01

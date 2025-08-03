@@ -505,7 +505,25 @@ func expandDataFactoryDatasetCompression(d *pluginsdk.ResourceData) *datafactory
 
 	props := compression[0].(map[string]interface{})
 	return &datafactory.DatasetCompression{
-		Type:  props["type"].(string),
+		Type:  expandCompressionType(props["type"].(string)),
 		Level: props["level"].(string),
 	}
+}
+
+// API expects character case for some compression type to be lower, otherwise they won't take effect
+func expandCompressionType(inputType string) string {
+	compressionTypes := []string{
+		TypeBasicDatasetCompressionTypeBZip2,
+		TypeBasicDatasetCompressionTypeDeflate,
+		TypeBasicDatasetCompressionTypeGZip,
+		TypeBasicDatasetCompressionTypeTar,
+	}
+
+	for _, compcompressionType := range compressionTypes {
+		if strings.EqualFold(compcompressionType, inputType) {
+			return strings.ToLower(inputType)
+		}
+	}
+
+	return inputType
 }

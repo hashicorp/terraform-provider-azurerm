@@ -121,6 +121,7 @@ resource "azurerm_log_analytics_query_pack" "test" {
 }
 
 resource "azurerm_log_analytics_query_pack_query" "test" {
+  name          = "%[3]s"
   query_pack_id = azurerm_log_analytics_query_pack.test.id
   display_name  = "Exceptions - New in the last 24 hours"
 
@@ -139,7 +140,7 @@ resource "azurerm_log_analytics_query_pack_query" "test" {
     | order by count_ desc
   BODY
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, r.uuid)
 }
 
 func (r LogAnalyticsQueryPackQueryResource) complete(data acceptance.TestData) string {

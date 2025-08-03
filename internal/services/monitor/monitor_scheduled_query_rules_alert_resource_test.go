@@ -18,11 +18,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type MonitorScheduledQueryRulesResource struct{}
+type MonitorScheduledQueryRulesAlertResource struct{}
 
 func TestAccMonitorScheduledQueryRules_AlertingActionBasic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_alert", "test")
-	r := MonitorScheduledQueryRulesResource{}
+	r := MonitorScheduledQueryRulesAlertResource{}
 	ts := time.Now().Format(time.RFC3339)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -38,7 +38,7 @@ func TestAccMonitorScheduledQueryRules_AlertingActionBasic(t *testing.T) {
 
 func TestAccMonitorScheduledQueryRules_AlertingActionQueryTypeNumber(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_alert", "test")
-	r := MonitorScheduledQueryRulesResource{}
+	r := MonitorScheduledQueryRulesAlertResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -53,7 +53,7 @@ func TestAccMonitorScheduledQueryRules_AlertingActionQueryTypeNumber(t *testing.
 
 func TestAccMonitorScheduledQueryRules_AlertingActionUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_alert", "test")
-	r := MonitorScheduledQueryRulesResource{}
+	r := MonitorScheduledQueryRulesAlertResource{}
 	ts := time.Now().Format(time.RFC3339)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -76,7 +76,7 @@ func TestAccMonitorScheduledQueryRules_AlertingActionUpdate(t *testing.T) {
 
 func TestAccMonitorScheduledQueryRules_AlertingActionComplete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_alert", "test")
-	r := MonitorScheduledQueryRulesResource{}
+	r := MonitorScheduledQueryRulesAlertResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -91,7 +91,7 @@ func TestAccMonitorScheduledQueryRules_AlertingActionComplete(t *testing.T) {
 
 func TestAccMonitorScheduledQueryRules_AlertingActionCrossResource(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_alert", "test")
-	r := MonitorScheduledQueryRulesResource{}
+	r := MonitorScheduledQueryRulesAlertResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -106,7 +106,7 @@ func TestAccMonitorScheduledQueryRules_AlertingActionCrossResource(t *testing.T)
 
 func TestAccMonitorScheduledQueryRules_AutoMitigate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_scheduled_query_rules_alert", "test")
-	r := MonitorScheduledQueryRulesResource{}
+	r := MonitorScheduledQueryRulesAlertResource{}
 	ts := time.Now().Format(time.RFC3339)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -134,7 +134,7 @@ func TestAccMonitorScheduledQueryRules_AutoMitigate(t *testing.T) {
 	})
 }
 
-func (MonitorScheduledQueryRulesResource) AlertingActionAutoMitigate(data acceptance.TestData, ts string, autoMitigate bool) string {
+func (MonitorScheduledQueryRulesAlertResource) AlertingActionAutoMitigate(data acceptance.TestData, ts string, autoMitigate bool) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -178,7 +178,7 @@ QUERY
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, ts, ts, strconv.FormatBool(autoMitigate))
 }
 
-func (MonitorScheduledQueryRulesResource) AlertingActionQueryTypeNumber(data acceptance.TestData) string {
+func (MonitorScheduledQueryRulesAlertResource) AlertingActionQueryTypeNumber(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -225,7 +225,7 @@ QUERY
 }`, data.RandomInteger, data.Locations.Primary)
 }
 
-func (MonitorScheduledQueryRulesResource) AlertingActionConfigBasic(data acceptance.TestData, ts string) string {
+func (MonitorScheduledQueryRulesAlertResource) AlertingActionConfigBasic(data acceptance.TestData, ts string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -276,7 +276,7 @@ QUERY
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, ts, ts)
 }
 
-func (MonitorScheduledQueryRulesResource) AlertingActionConfigUpdate(data acceptance.TestData, ts string) string {
+func (MonitorScheduledQueryRulesAlertResource) AlertingActionConfigUpdate(data acceptance.TestData, ts string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -330,7 +330,7 @@ QUERY
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, ts, ts)
 }
 
-func (MonitorScheduledQueryRulesResource) AlertingActionConfigComplete(data acceptance.TestData) string {
+func (MonitorScheduledQueryRulesAlertResource) AlertingActionConfigComplete(data acceptance.TestData) string {
 	ts := time.Now().Format(time.RFC3339)
 
 	return fmt.Sprintf(`
@@ -396,7 +396,7 @@ resource "azurerm_monitor_scheduled_query_rules_alert" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, ts, ts)
 }
 
-func (MonitorScheduledQueryRulesResource) AlertingActionCrossResourceConfig(data acceptance.TestData) string {
+func (MonitorScheduledQueryRulesAlertResource) AlertingActionCrossResourceConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -468,7 +468,7 @@ QUERY
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (t MonitorScheduledQueryRulesResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t MonitorScheduledQueryRulesAlertResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := scheduledqueryrules.ParseScheduledQueryRuleID(state.ID)
 	if err != nil {
 		return nil, err

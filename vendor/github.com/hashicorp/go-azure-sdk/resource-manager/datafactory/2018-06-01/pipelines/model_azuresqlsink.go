@@ -11,25 +11,25 @@ import (
 var _ CopySink = AzureSqlSink{}
 
 type AzureSqlSink struct {
-	PreCopyScript                         *string            `json:"preCopyScript,omitempty"`
-	SqlWriterStoredProcedureName          *string            `json:"sqlWriterStoredProcedureName,omitempty"`
-	SqlWriterTableType                    *string            `json:"sqlWriterTableType,omitempty"`
+	PreCopyScript                         *interface{}       `json:"preCopyScript,omitempty"`
+	SqlWriterStoredProcedureName          *interface{}       `json:"sqlWriterStoredProcedureName,omitempty"`
+	SqlWriterTableType                    *interface{}       `json:"sqlWriterTableType,omitempty"`
 	SqlWriterUseTableLock                 *bool              `json:"sqlWriterUseTableLock,omitempty"`
 	StoredProcedureParameters             *interface{}       `json:"storedProcedureParameters,omitempty"`
-	StoredProcedureTableTypeParameterName *string            `json:"storedProcedureTableTypeParameterName,omitempty"`
-	TableOption                           *string            `json:"tableOption,omitempty"`
+	StoredProcedureTableTypeParameterName *interface{}       `json:"storedProcedureTableTypeParameterName,omitempty"`
+	TableOption                           *interface{}       `json:"tableOption,omitempty"`
 	UpsertSettings                        *SqlUpsertSettings `json:"upsertSettings,omitempty"`
 	WriteBehavior                         *interface{}       `json:"writeBehavior,omitempty"`
 
 	// Fields inherited from CopySink
 
-	DisableMetricsCollection *bool   `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64  `json:"maxConcurrentConnections,omitempty"`
-	SinkRetryCount           *int64  `json:"sinkRetryCount,omitempty"`
-	SinkRetryWait            *string `json:"sinkRetryWait,omitempty"`
-	Type                     string  `json:"type"`
-	WriteBatchSize           *int64  `json:"writeBatchSize,omitempty"`
-	WriteBatchTimeout        *string `json:"writeBatchTimeout,omitempty"`
+	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
+	SinkRetryCount           *int64       `json:"sinkRetryCount,omitempty"`
+	SinkRetryWait            *interface{} `json:"sinkRetryWait,omitempty"`
+	Type                     string       `json:"type"`
+	WriteBatchSize           *int64       `json:"writeBatchSize,omitempty"`
+	WriteBatchTimeout        *interface{} `json:"writeBatchTimeout,omitempty"`
 }
 
 func (s AzureSqlSink) CopySink() BaseCopySinkImpl {

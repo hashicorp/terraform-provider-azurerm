@@ -45,7 +45,6 @@ type AutoHealSlowRequest struct {
 	TimeTaken string `tfschema:"time_taken"`
 	Interval  string `tfschema:"interval"`
 	Count     int64  `tfschema:"count"`
-	Path      string `tfschema:"path,removedInNextMajorVersion"`
 }
 
 type AutoHealSlowRequestWithPath struct {
@@ -615,7 +614,6 @@ func flattenAutoHealSettingsWindows(autoHealRules *webapps.AutoHealRules) []Auto
 				TimeTaken: pointer.From(triggers.SlowRequests.TimeTaken),
 				Interval:  pointer.From(triggers.SlowRequests.TimeInterval),
 				Count:     pointer.From(triggers.SlowRequests.Count),
-				Path:      pointer.From(triggers.SlowRequests.Path),
 			})
 		}
 

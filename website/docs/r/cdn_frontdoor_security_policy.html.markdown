@@ -124,7 +124,7 @@ An `association` block supports the following:
 
 A `domain` block supports the following:
 
-~> **NOTE:** The number of `domain` blocks that maybe included in the configuration file varies depending on the `sku_name` field of the linked Front Door Profile. The `Standard_AzureFrontDoor` sku may contain up to 100 `domain` blocks and a `Premium_AzureFrontDoor` sku may contain up to 500 `domain` blocks.
+~> **Note:** The number of `domain` blocks that maybe included in the configuration file varies depending on the `sku_name` field of the linked Front Door Profile. The `Standard_AzureFrontDoor` sku may contain up to 100 `domain` blocks and a `Premium_AzureFrontDoor` sku may contain up to 500 `domain` blocks.
 
 * `cdn_frontdoor_domain_id` - (Required) The Resource Id of the **Front Door Custom Domain** or **Front Door Endpoint** that should be bound to this Front Door Security Policy. Changing this forces a new Front Door Security Policy to be created.
 
@@ -153,3 +153,9 @@ Front Door Security Policies can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_cdn_frontdoor_security_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Cdn/profiles/profile1/securityPolicies/policy1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Cdn` - 2024-02-01

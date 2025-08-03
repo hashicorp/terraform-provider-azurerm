@@ -8,7 +8,7 @@ description: |-
 
 # azurerm_container_registry_token_password
 
-Manages a Container Registry Token Password.
+Manages a Container Registry Token Password associated with a scope map.  For more information on scope maps and their tokens see the [product documentation](https://learn.microsoft.com/en-us/azure/container-registry/container-registry-repository-scoped-permissions).
 
 ## Example Usage
 
@@ -22,7 +22,7 @@ resource "azurerm_container_registry" "example" {
   name                     = "example-registry"
   resource_group_name      = azurerm_resource_group.example.name
   location                 = azurerm_resource_group.example.location
-  sku                      = "Premium"
+  sku                      = "Basic"
   admin_enabled            = false
   georeplication_locations = ["East US", "West Europe"]
 }
@@ -101,3 +101,9 @@ Container Registry Token Passwords can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_container_registry_token_password.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.ContainerRegistry/registries/registry1/tokens/token1/passwords/password
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ContainerRegistry` - 2023-11-01-preview

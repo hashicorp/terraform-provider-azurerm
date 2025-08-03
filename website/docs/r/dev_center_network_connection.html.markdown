@@ -75,10 +75,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this Dev Center Network Connection.
-* `delete` - (Defaults to 30 minutes) Used when deleting this Dev Center Network Connection.
-* `read` - (Defaults to 5 minutes) Used when retrieving this Dev Center Network Connection.
-* `update` - (Defaults to 30 minutes) Used when updating this Dev Center Network Connection.
+* `create` - (Defaults to 30 minutes) Used when creating the Dev Center Network Connection.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Dev Center Network Connection.
+* `update` - (Defaults to 30 minutes) Used when updating the Dev Center Network Connection.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Dev Center Network Connection.
 
 ## Import
 
@@ -87,3 +87,9 @@ An existing Dev Center Network Connection can be imported into Terraform using t
 ```shell
 terraform import azurerm_dev_center_network_connection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevCenter/networkConnections/networkConnection1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DevCenter` - 2025-02-01

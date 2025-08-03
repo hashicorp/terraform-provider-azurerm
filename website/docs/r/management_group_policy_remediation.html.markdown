@@ -70,8 +70,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Policy Remediation.
-* `update` - (Defaults to 30 minutes) Used when updating the Policy Remediation.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Policy Remediation.
+* `update` - (Defaults to 30 minutes) Used when updating the Policy Remediation.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Policy Remediation.
 
 ## Import
@@ -81,3 +81,9 @@ Policy Remediations can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_management_group_policy_remediation.example /providers/Microsoft.Management/managementGroups/my-mgmt-group-id/providers/Microsoft.PolicyInsights/remediations/remediation1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Management` - 2021-10-01

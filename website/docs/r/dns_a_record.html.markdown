@@ -102,9 +102,9 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the DNS A Record.
 
-* `update` - (Defaults to 30 minutes) Used when updating the DNS A Record.
-
 * `read` - (Defaults to 5 minutes) Used when retrieving the DNS A Record.
+
+* `update` - (Defaults to 30 minutes) Used when updating the DNS A Record.
 
 * `delete` - (Defaults to 30 minutes) Used when deleting the DNS A Record.
 
@@ -115,3 +115,9 @@ A records can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_dns_a_record.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/dnsZones/zone1/A/myrecord1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2018-05-01

@@ -81,8 +81,6 @@ The following arguments are supported:
 
 * `create_mode` - (Optional) The creation mode for the MongoDB Cluster. Possibles values are `Default` and `GeoReplica`. Defaults to `Default`. Changing this forces a new resource to be created.
 
--> **Note** The creation mode `GeoReplica` is currently in preview. It is only available when `preview_features` is set.
-
 * `preview_features` - (Optional) The preview features that can be enabled on the MongoDB Cluster. Changing this forces a new resource to be created.
 
 * `shard_count` -  (Optional) The Number of shards to provision on the MongoDB Cluster. Changing this forces a new resource to be created.
@@ -93,7 +91,7 @@ The following arguments are supported:
 
 * `administrator_password` - (Optional) The Password associated with the `administrator_username` for the MongoDB Cluster.
 
-* `compute_tier` - (Optional) The compute tier to assign to the MongoDB Cluster. Possible values are `Free`, `M25`, `M30`, `M40`, `M50`, `M60` and `M80`.
+* `compute_tier` - (Optional) The compute tier to assign to the MongoDB Cluster. Possible values are `Free`, `M10`, `M20`, `M25`, `M30`, `M40`, `M50`, `M60`, `M80`, and `M200`.
 
 * `high_availability_mode` - (Optional) The high availability mode for the MongoDB Cluster. Possibles values are `Disabled` and `ZoneRedundantPreferred`.
 
@@ -103,13 +101,25 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the MongoDB Cluster.
 
-* `version` - (Optional) The version for the MongoDB Cluster. Possibles values are `5.0`, `6.0` and `7.0`.
+* `version` - (Optional) The version for the MongoDB Cluster. Possibles values are `5.0`, `6.0`, `7.0` and `8.0`.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the MongoDB Cluster.
+
+* `connection_strings` - The list of `connection_strings` blocks as defined below.
+
+---
+
+A `connection_strings` exports the following:
+
+* `name` - The name of the connection string.
+
+* `description` - The description of the connection string.
+
+* `value` - The value of the Mongo Cluster connection string. The `<user>:<password>` placeholder returned from API will be replaced by the real `administrator_username` and `administrator_password` if available in the state.
 
 ## Timeouts
 
@@ -127,3 +137,9 @@ MongoDB Clusters can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_mongo_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DocumentDB/mongoClusters/myMongoCluster
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DocumentDB` - 2024-07-01

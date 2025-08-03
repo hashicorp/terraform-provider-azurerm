@@ -12,19 +12,19 @@ var _ CopySource = SapOdpSource{}
 
 type SapOdpSource struct {
 	AdditionalColumns *interface{} `json:"additionalColumns,omitempty"`
-	ExtractionMode    *string      `json:"extractionMode,omitempty"`
+	ExtractionMode    *interface{} `json:"extractionMode,omitempty"`
 	Projection        *interface{} `json:"projection,omitempty"`
-	QueryTimeout      *string      `json:"queryTimeout,omitempty"`
+	QueryTimeout      *interface{} `json:"queryTimeout,omitempty"`
 	Selection         *interface{} `json:"selection,omitempty"`
-	SubscriberProcess *string      `json:"subscriberProcess,omitempty"`
+	SubscriberProcess *interface{} `json:"subscriberProcess,omitempty"`
 
 	// Fields inherited from CopySource
 
-	DisableMetricsCollection *bool   `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64  `json:"maxConcurrentConnections,omitempty"`
-	SourceRetryCount         *int64  `json:"sourceRetryCount,omitempty"`
-	SourceRetryWait          *string `json:"sourceRetryWait,omitempty"`
-	Type                     string  `json:"type"`
+	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *int64       `json:"sourceRetryCount,omitempty"`
+	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
+	Type                     string       `json:"type"`
 }
 
 func (s SapOdpSource) CopySource() BaseCopySourceImpl {

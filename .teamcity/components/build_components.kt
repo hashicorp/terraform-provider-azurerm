@@ -127,9 +127,13 @@ fun ParametrizedWithType.hiddenPasswordVariable(name: String, value: String, des
     password(name, value, "", description, ParameterDisplay.HIDDEN)
 }
 
-fun Triggers.RunNightly(nightlyTestsEnabled: Boolean, startHour: Int, daysOfWeek: String, daysOfMonth: String) {
+fun Triggers.RunNightly(nightlyTestsEnabled: Boolean, startHour: Int, daysOfWeek: String, daysOfMonth: String, disableTriggers: Boolean = false) {
     // @tombuildsstuff: this temporary flag enables/disables all triggers, allowing a migration between CI servers
     if (!enableTestTriggersGlobally) {
+        return
+    }
+
+    if (disableTriggers) {
         return
     }
 

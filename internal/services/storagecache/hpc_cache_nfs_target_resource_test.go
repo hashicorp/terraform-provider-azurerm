@@ -19,6 +19,9 @@ import (
 type HPCCacheNFSTargetResource struct{}
 
 func TestAccHPCCacheNFSTarget_basic(t *testing.T) {
+	// https://azure.microsoft.com/en-us/updates?id=hpccacheretirement
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")
 	r := HPCCacheNFSTargetResource{}
 
@@ -34,6 +37,8 @@ func TestAccHPCCacheNFSTarget_basic(t *testing.T) {
 }
 
 func TestAccHPCCacheNFSTarget_usageModel(t *testing.T) {
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")
 	r := HPCCacheNFSTargetResource{}
 
@@ -77,6 +82,8 @@ func TestAccHPCCacheNFSTarget_usageModel(t *testing.T) {
 }
 
 func TestAccHPCCacheNFSTarget_namespaceJunction(t *testing.T) {
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")
 	r := HPCCacheNFSTargetResource{}
 
@@ -106,6 +113,8 @@ func TestAccHPCCacheNFSTarget_namespaceJunction(t *testing.T) {
 }
 
 func TestAccHPCCacheNFSTarget_requiresImport(t *testing.T) {
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")
 	r := HPCCacheNFSTargetResource{}
 
@@ -121,6 +130,8 @@ func TestAccHPCCacheNFSTarget_requiresImport(t *testing.T) {
 }
 
 func TestAccHPCCacheNFSTarget_accessPolicy(t *testing.T) {
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_nfs_target", "test")
 	r := HPCCacheNFSTargetResource{}
 
@@ -162,7 +173,7 @@ func (HPCCacheNFSTargetResource) Exists(ctx context.Context, clients *clients.Cl
 		return nil, err
 	}
 
-	resp, err := clients.StorageCache.StorageTargets.Get(ctx, *id)
+	resp, err := clients.StorageCache_2023_05_01.StorageTargets.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving HPC Cache NFS Target (%s): %+v", id.String(), err)
 	}

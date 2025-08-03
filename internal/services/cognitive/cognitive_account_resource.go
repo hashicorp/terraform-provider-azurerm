@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
@@ -487,6 +488,17 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
+	if d.HasChanges("customer_managed_key") {
+		old, new := d.GetChange("customer_managed_key")
+		// Remove `customer_managed_key` (switch using a customer managed key to microsoft managed), and explicitly specify KeySource as `Microsoft.CognitiveServices`.
+		if len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0 {
+			props.Properties.Encryption = &cognitiveservicesaccounts.Encryption{
+				KeySource: pointer.To(cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices),
+			}
+		}
+	}
+
 	identityRaw := d.Get("identity").([]interface{})
 	identity, err := identity.ExpandSystemAndUserAssignedMap(identityRaw)
 	if err != nil {
@@ -860,6 +872,10 @@ func expandCognitiveAccountCustomerManagedKey(input []interface{}) *cognitiveser
 
 	v := input[0].(map[string]interface{})
 	keyId, _ := keyVaultParse.ParseOptionallyVersionedNestedItemID(v["key_vault_key_id"].(string))
+	if keyId == nil {
+		return nil
+	}
+
 	keySource := cognitiveservicesaccounts.KeySourceMicrosoftPointKeyVault
 
 	var identity string
@@ -879,7 +895,7 @@ func expandCognitiveAccountCustomerManagedKey(input []interface{}) *cognitiveser
 }
 
 func flattenCognitiveAccountCustomerManagedKey(input *cognitiveservicesaccounts.Encryption) ([]interface{}, error) {
-	if input == nil {
+	if input == nil || pointer.From(input.KeySource) == cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices {
 		return []interface{}{}, nil
 	}
 

@@ -77,6 +77,34 @@ func TestAccCdnFrontDoorFirewallPolicy_jsChallengeCustomRuleBasic(t *testing.T) 
 	})
 }
 
+func TestAccCdnFrontDoorFirewallPolicy_logScrubbingBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.logScrubbingBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorFirewallPolicy_logScrubbingStandardBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.logScrubbingStandardBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCdnFrontDoorFirewallPolicy_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
 	r := CdnFrontDoorFirewallPolicyResource{}
@@ -275,13 +303,145 @@ func TestAccCdnFrontDoorFirewallPolicy_jsChallengeCustomRuleUpdate(t *testing.T)
 	})
 }
 
+func TestAccCdnFrontDoorFirewallPolicy_logScrubbingBasicUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.logScrubbingDisabledBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.logScrubbingDisabledBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.logScrubbingRuleDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.logScrubbingDisabledBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorFirewallPolicy_logScrubbingStandardBasicUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.logScrubbingStandardBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.logScrubbingStandardDisabledBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.logScrubbingStandardRuleDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.logScrubbingStandardBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorFirewallPolicy_logScrubbingCompleteUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.logScrubbingBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.logScrubbingComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.logScrubbingCompleteUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.logScrubbingDisabledBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.logScrubbingComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCdnFrontDoorFirewallPolicy_complete(t *testing.T) {
-	// NOTE: Regression test case for issue #19088
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
 	r := CdnFrontDoorFirewallPolicyResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCdnFrontDoorFirewallPolicy_logScrubbingComplete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.logScrubbingComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -512,6 +672,50 @@ func TestAccCdnFrontDoorFirewallPolicy_skuDowngradeError(t *testing.T) {
 	})
 }
 
+func TestAccCdnFrontDoorFirewallPolicy_logScrubbingRequestIPAddressError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.logScrubbingRequestIPAddressError(data),
+			ExpectError: regexp.MustCompile(`the "RequestIPAddress" 'match_variable' must use the "EqualsAny" 'operator', got "Equals"`),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorFirewallPolicy_logScrubbingRequestUriError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.logScrubbingRequestUriError(data),
+			ExpectError: regexp.MustCompile(`the "RequestUri" 'match_variable' must use the "EqualsAny" 'operator', got "Equals"`),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorFirewallPolicy_logScrubbingSelectorEqualsError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.logScrubbingSelectorEqualsError(data),
+			ExpectError: regexp.MustCompile(`the 'selector' field must be set when the "Equals" 'operator' is used, got "nil"`),
+		},
+	})
+}
+
+func TestAccCdnFrontDoorFirewallPolicy_logScrubbingSelectorEqualsAnyError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_firewall_policy", "test")
+	r := CdnFrontDoorFirewallPolicyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.logScrubbingSelectorEqualsAnyError(data),
+			ExpectError: regexp.MustCompile(`the 'selector' field cannot be set when the "EqualsAny" 'operator' is used, got "bar"`),
+		},
+	})
+}
+
 func (CdnFrontDoorFirewallPolicyResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := waf.ParseFrontDoorWebApplicationFirewallPolicyID(state.ID)
 	if err != nil {
@@ -565,7 +769,6 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) basic(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -575,11 +778,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
   mode                = "Prevention"
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) basicStandard(data acceptance.TestData) string {
-	tmp := r.templateStandard(data)
 	return fmt.Sprintf(`
 %s
 
@@ -589,11 +791,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
   mode                = "Prevention"
 }
-`, tmp, data.RandomInteger)
+`, r.templateStandard(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jSChallengePolicyBasic(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -605,11 +806,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 
   js_challenge_cookie_expiration_in_minutes = 45
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jSChallengePolicyBasicUpdate(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -621,7 +821,151 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 
   js_challenge_cookie_expiration_in_minutes = 1440
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) logScrubbingBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                = "accTestWAF%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
+  mode                = "Prevention"
+
+  log_scrubbing {
+    enabled = true
+
+    scrubbing_rule {
+      enabled        = true
+      match_variable = "RequestHeaderNames"
+      operator       = "Equals"
+      selector       = "foo"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) logScrubbingStandardBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                = "accTestWAF%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
+  mode                = "Prevention"
+
+  log_scrubbing {
+    enabled = true
+
+    scrubbing_rule {
+      enabled        = true
+      match_variable = "RequestHeaderNames"
+      operator       = "Equals"
+      selector       = "foo"
+    }
+  }
+}
+`, r.templateStandard(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) logScrubbingDisabledBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                = "accTestWAF%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
+  mode                = "Prevention"
+
+  log_scrubbing {
+    enabled = false
+
+    scrubbing_rule {
+      enabled        = true
+      match_variable = "RequestHeaderNames"
+      operator       = "Equals"
+      selector       = "foo"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) logScrubbingRuleDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                = "accTestWAF%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
+  mode                = "Prevention"
+
+  log_scrubbing {
+    enabled = true
+
+    scrubbing_rule {
+      enabled        = false
+      match_variable = "RequestHeaderNames"
+      operator       = "Equals"
+      selector       = "foo"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) logScrubbingStandardRuleDisabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                = "accTestWAF%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
+  mode                = "Prevention"
+
+  log_scrubbing {
+    enabled = true
+
+    scrubbing_rule {
+      enabled        = false
+      match_variable = "RequestHeaderNames"
+      operator       = "Equals"
+      selector       = "foo"
+    }
+  }
+}
+`, r.templateStandard(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) logScrubbingStandardDisabledBasic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                = "accTestWAF%d"
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
+  mode                = "Prevention"
+
+  log_scrubbing {
+    enabled = false
+
+    scrubbing_rule {
+      enabled        = true
+      match_variable = "RequestHeaderNames"
+      operator       = "Equals"
+      selector       = "foo"
+    }
+  }
+}
+`, r.templateStandard(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) requiresImport(data acceptance.TestData) string {
@@ -638,7 +982,6 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "import" {
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) update(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -692,11 +1035,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     action  = "Log"
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) complete(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -830,11 +1172,133 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     action  = "Block"
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) logScrubbingComplete(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled                           = true
+  mode                              = "Prevention"
+  redirect_url                      = "https://www.contoso.com"
+  custom_block_response_status_code = 403
+  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
+
+  log_scrubbing {
+    enabled = true
+
+    scrubbing_rule {
+      enabled        = true
+      match_variable = "RequestIPAddress"
+      operator       = "EqualsAny"
+    }
+
+    scrubbing_rule {
+      enabled        = true
+      match_variable = "RequestUri"
+      operator       = "EqualsAny"
+    }
+
+    scrubbing_rule {
+      enabled        = true
+      match_variable = "RequestHeaderNames"
+      operator       = "Equals"
+      selector       = "keyToBlock"
+    }
+
+    scrubbing_rule {
+      enabled        = true
+      match_variable = "RequestCookieNames"
+      operator       = "Equals"
+      selector       = "Chocolate Chip"
+    }
+
+    scrubbing_rule {
+      enabled        = true
+      match_variable = "RequestBodyPostArgNames"
+      operator       = "Equals"
+      selector       = "var"
+    }
+
+    scrubbing_rule {
+      enabled        = true
+      match_variable = "RequestBodyJsonArgNames"
+      operator       = "Equals"
+      selector       = "JsonValue"
+    }
+
+    scrubbing_rule {
+      enabled        = true
+      match_variable = "QueryStringArgNames"
+      operator       = "Equals"
+      selector       = "foo"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) logScrubbingCompleteUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled                           = true
+  mode                              = "Prevention"
+  redirect_url                      = "https://www.contoso.com"
+  custom_block_response_status_code = 403
+  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
+
+  log_scrubbing {
+    enabled = false
+
+    scrubbing_rule {
+      enabled        = false
+      match_variable = "RequestHeaderNames"
+      operator       = "Equals"
+      selector       = "keyToBlock"
+    }
+
+    scrubbing_rule {
+      enabled        = true
+      match_variable = "RequestCookieNames"
+      operator       = "Equals"
+      selector       = "ChocolateChip"
+    }
+
+    scrubbing_rule {
+      enabled        = true
+      match_variable = "RequestBodyJsonArgNames"
+      operator       = "Equals"
+      selector       = "foo"
+    }
+
+    scrubbing_rule {
+      enabled        = true
+      match_variable = "RequestBodyJsonArgNames"
+      operator       = "EqualsAny"
+    }
+
+    scrubbing_rule {
+      enabled        = false
+      match_variable = "QueryStringArgNames"
+      operator       = "Equals"
+      selector       = "bar"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) drsOnePointOh(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -864,11 +1328,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) drsOnePointOhError(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -898,11 +1361,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) drsOnePointOhTypeError(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -932,11 +1394,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) drsTwoPointOh(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -966,11 +1427,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) drsTwoPointOhError(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1000,11 +1460,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) drsTwoPointOhTypeError(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1034,11 +1493,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) drsTwoPointOneActionLog(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1074,11 +1532,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) drsTwoPointOneActionError(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1114,11 +1571,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jsChallengeDRSError(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1148,11 +1604,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jsChallengePolicyStandardSku(data acceptance.TestData) string {
-	tmp := r.templateStandard(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1183,11 +1638,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.templateStandard(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jsChallengePolicyStandardSkuError(data acceptance.TestData) string {
-	tmp := r.templateStandard(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1203,11 +1657,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 
   js_challenge_cookie_expiration_in_minutes = 45
 }
-`, tmp, data.RandomInteger)
+`, r.templateStandard(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) standardSkuManagedRuleError(data acceptance.TestData) string {
-	tmp := r.templateStandard(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1237,11 +1690,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.templateStandard(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jsChallengeStandardSkuCustomRuleActionError(data acceptance.TestData) string {
-	tmp := r.templateStandard(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1272,11 +1724,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.templateStandard(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jsChallengeManagedRuleBasic(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1306,11 +1757,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jsChallengeCustomRuleBasic(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1350,11 +1800,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jsChallengeManagedRuleUpdate(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1384,11 +1833,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jsChallengeCustomRuleUpdate(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1428,11 +1876,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     }
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jsChallengePolicyInvalidTimeSpanError(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1448,11 +1895,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
 
   js_challenge_cookie_expiration_in_minutes = 4
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jsChallengeManagedRuleRemove(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1472,11 +1918,10 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
     action  = "Log"
   }
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jsChallengeCustomRuleRemove(data acceptance.TestData) string {
-	tmp := r.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -1490,5 +1935,116 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   custom_block_response_status_code = 403
   custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
 }
-`, tmp, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) logScrubbingRequestIPAddressError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled                           = true
+  mode                              = "Prevention"
+  redirect_url                      = "https://www.contoso.com"
+  custom_block_response_status_code = 403
+  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
+
+  log_scrubbing {
+    enabled = true
+
+    scrubbing_rule {
+      enabled        = true
+      match_variable = "RequestIPAddress"
+      operator       = "Equals"
+      selector       = "bar"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) logScrubbingRequestUriError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled                           = true
+  mode                              = "Prevention"
+  redirect_url                      = "https://www.contoso.com"
+  custom_block_response_status_code = 403
+  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
+
+  log_scrubbing {
+    enabled = true
+
+    scrubbing_rule {
+      enabled        = true
+      match_variable = "RequestUri"
+      operator       = "Equals"
+      selector       = "bar"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) logScrubbingSelectorEqualsError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled                           = true
+  mode                              = "Prevention"
+  redirect_url                      = "https://www.contoso.com"
+  custom_block_response_status_code = 403
+  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
+
+  log_scrubbing {
+    enabled = true
+
+    scrubbing_rule {
+      enabled        = true
+      match_variable = "QueryStringArgNames"
+      operator       = "Equals"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r CdnFrontDoorFirewallPolicyResource) logScrubbingSelectorEqualsAnyError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
+  name                              = "accTestWAF%d"
+  resource_group_name               = azurerm_resource_group.test.name
+  sku_name                          = azurerm_cdn_frontdoor_profile.test.sku_name
+  enabled                           = true
+  mode                              = "Prevention"
+  redirect_url                      = "https://www.contoso.com"
+  custom_block_response_status_code = 403
+  custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
+
+  log_scrubbing {
+    enabled = true
+
+    scrubbing_rule {
+      enabled        = true
+      match_variable = "RequestBodyJsonArgNames"
+      operator       = "EqualsAny"
+      selector       = "bar"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
 }

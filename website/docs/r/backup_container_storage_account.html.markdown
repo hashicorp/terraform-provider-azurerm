@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `storage_account_id` - (Required) The ID of the Storage Account to be registered Changing this forces a new resource to be created.
 
--> **NOTE** Azure Backup places a Resource Lock on the storage account that will cause deletion to fail until the account is unregistered from Azure Backup
+-> **Note:** Azure Backup places a Resource Lock on the storage account that will cause deletion to fail until the account is unregistered from Azure Backup
 
 ## Attributes Reference
 

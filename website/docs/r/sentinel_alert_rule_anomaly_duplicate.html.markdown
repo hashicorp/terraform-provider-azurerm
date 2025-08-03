@@ -70,7 +70,7 @@ The following arguments are supported:
 
 * `threshold_observation` - (Optional) A list of `threshold_observation` blocks as defined below.
 
--> **NOTE:** un-specified `multi_select_observation`, `single_select_observation`, `prioritized_exclude_observation` and `threshold_observation` will be inherited from the built-in Anomaly Alert Rule.
+-> **Note:** un-specified `multi_select_observation`, `single_select_observation`, `prioritized_exclude_observation` and `threshold_observation` will be inherited from the built-in Anomaly Alert Rule.
 
 ---
 

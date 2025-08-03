@@ -72,10 +72,10 @@ The following arguments are supported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Kusto Cluster Customer Managed Key.
+* `create` - (Defaults to 1 hour) Used when creating the Kusto Cluster Customer Managed Key.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kusto Cluster Customer Managed Key.
-* `update` - (Defaults to 60 minutes) Used when updating the Kusto Cluster Customer Managed Key.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Kusto Cluster Customer Managed Key.
+* `update` - (Defaults to 1 hour) Used when updating the Kusto Cluster Customer Managed Key.
+* `delete` - (Defaults to 1 hour) Used when deleting the Kusto Cluster Customer Managed Key.
 
 ## Import
 
@@ -84,3 +84,9 @@ Managed Private Endpoint for a Kusto Cluster can be imported using the `resource
 ```shell
 terraform import azurerm_kusto_cluster_managed_private_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Kusto/clusters/cluster1/managedPrivateEndpoints/managedPrivateEndpoint1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Kusto` - 2024-04-13

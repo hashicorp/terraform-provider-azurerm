@@ -4,8 +4,8 @@ package loadbalancers
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type LoadBalancerHealthPerRulePerBackendAddress struct {
-	IPAddress                         *string                          `json:"ipAddress,omitempty"`
-	NetworkInterfaceIPConfigurationId *NetworkInterfaceIPConfiguration `json:"networkInterfaceIPConfigurationId,omitempty"`
-	Reason                            *string                          `json:"reason,omitempty"`
-	State                             *string                          `json:"state,omitempty"`
+	IPAddress                         *string `json:"ipAddress,omitempty"`
+	NetworkInterfaceIPConfigurationId *string `json:"networkInterfaceIPConfigurationId,omitempty"`
+	Reason                            *string `json:"reason,omitempty"`
+	State                             *string `json:"state,omitempty"`
 }

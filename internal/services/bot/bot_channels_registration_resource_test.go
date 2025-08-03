@@ -234,7 +234,7 @@ resource "azurerm_key_vault_access_policy" "test" {
 resource "azurerm_key_vault_access_policy" "test2" {
   key_vault_id = azurerm_key_vault.test.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azuread_service_principal.test.id
+  object_id    = data.azuread_service_principal.test.object_id
 
   key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"]
   secret_permissions = ["Get"]
@@ -351,7 +351,7 @@ resource "azurerm_key_vault_access_policy" "test" {
 resource "azurerm_key_vault_access_policy" "test2" {
   key_vault_id = azurerm_key_vault.test.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azuread_service_principal.test.id
+  object_id    = data.azuread_service_principal.test.object_id
 
   key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"]
   secret_permissions = ["Get"]
@@ -468,7 +468,7 @@ resource "azurerm_key_vault_access_policy" "test" {
 resource "azurerm_key_vault_access_policy" "test2" {
   key_vault_id = azurerm_key_vault.test.id
   tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azuread_service_principal.test.id
+  object_id    = data.azuread_service_principal.test.object_id
 
   key_permissions    = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"]
   secret_permissions = ["Get"]

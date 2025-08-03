@@ -89,3 +89,16 @@ func OpenEphemeralResourceClientCapabilities(in *tfprotov6.OpenEphemeralResource
 		DeferralAllowed: in.DeferralAllowed,
 	}
 }
+
+func ValidateResourceConfigClientCapabilities(in *tfprotov6.ValidateResourceConfigClientCapabilities) resource.ValidateConfigClientCapabilities {
+	if in == nil {
+		// Client did not indicate any supported capabilities
+		return resource.ValidateConfigClientCapabilities{
+			WriteOnlyAttributesAllowed: false,
+		}
+	}
+
+	return resource.ValidateConfigClientCapabilities{
+		WriteOnlyAttributesAllowed: in.WriteOnlyAttributesAllowed,
+	}
+}

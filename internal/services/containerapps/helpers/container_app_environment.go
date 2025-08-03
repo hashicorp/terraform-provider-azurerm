@@ -4,10 +4,8 @@
 package helpers
 
 import (
-	"strings"
-
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -50,8 +48,17 @@ type WorkloadProfileModel struct {
 
 func WorkloadProfileSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
-		Type:     pluginsdk.TypeSet,
-		Optional: true,
+		Type:                  pluginsdk.TypeSet,
+		Optional:              true,
+		DiffSuppressOnRefresh: true,
+		DiffSuppressFunc: func(k, _, _ string, d *pluginsdk.ResourceData) bool {
+			o, n := d.GetChange("workload_profile")
+
+			oldProfiles := o.(*pluginsdk.Set)
+			newProfiles := n.(*pluginsdk.Set)
+
+			return OneAdditionalConsumptionProfileReturnedByAPI(oldProfiles, newProfiles)
+		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"name": {
@@ -106,16 +113,13 @@ func ExpandWorkloadProfiles(input []WorkloadProfileModel) *[]managedenvironments
 	return &result
 }
 
-func FlattenWorkloadProfiles(input *[]managedenvironments.WorkloadProfile, consumptionDefined bool) []WorkloadProfileModel {
+func FlattenWorkloadProfiles(input *[]managedenvironments.WorkloadProfile) []WorkloadProfileModel {
 	if input == nil || len(*input) == 0 {
 		return []WorkloadProfileModel{}
 	}
 	result := make([]WorkloadProfileModel, 0)
 
 	for _, v := range *input {
-		if strings.EqualFold(v.WorkloadProfileType, string(WorkloadProfileSkuConsumption)) && !consumptionDefined {
-			continue
-		}
 		result = append(result, WorkloadProfileModel{
 			Name:                v.Name,
 			MaximumCount:        pointer.From(v.MaximumCount),
@@ -125,4 +129,26 @@ func FlattenWorkloadProfiles(input *[]managedenvironments.WorkloadProfile, consu
 	}
 
 	return result
+}
+
+func OneAdditionalConsumptionProfileReturnedByAPI(returnedProfiles, definedProfiles *pluginsdk.Set) bool {
+	// if 1 more profile is returned by the API than is defined, then check if it is a consumption profile
+	if returnedProfiles.Len() == definedProfiles.Len()+1 {
+		// check if we have defined a consumption profile
+		for _, v := range definedProfiles.List() {
+			profile := v.(map[string]interface{})
+			if profile["workload_profile_type"].(string) == string(WorkloadProfileSkuConsumption) {
+				return false
+			}
+		}
+
+		// now that we know there are no consumption profiles defined in the config, check if the API returned a consumption profile
+		for _, v := range returnedProfiles.List() {
+			profile := v.(map[string]interface{})
+			if profile["workload_profile_type"].(string) == string(WorkloadProfileSkuConsumption) {
+				return true
+			}
+		}
+	}
+	return false
 }

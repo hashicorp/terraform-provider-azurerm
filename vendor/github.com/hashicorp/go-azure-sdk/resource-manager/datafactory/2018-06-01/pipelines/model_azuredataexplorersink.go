@@ -11,19 +11,19 @@ import (
 var _ CopySink = AzureDataExplorerSink{}
 
 type AzureDataExplorerSink struct {
-	FlushImmediately       *bool   `json:"flushImmediately,omitempty"`
-	IngestionMappingAsJson *string `json:"ingestionMappingAsJson,omitempty"`
-	IngestionMappingName   *string `json:"ingestionMappingName,omitempty"`
+	FlushImmediately       *bool        `json:"flushImmediately,omitempty"`
+	IngestionMappingAsJson *interface{} `json:"ingestionMappingAsJson,omitempty"`
+	IngestionMappingName   *interface{} `json:"ingestionMappingName,omitempty"`
 
 	// Fields inherited from CopySink
 
-	DisableMetricsCollection *bool   `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64  `json:"maxConcurrentConnections,omitempty"`
-	SinkRetryCount           *int64  `json:"sinkRetryCount,omitempty"`
-	SinkRetryWait            *string `json:"sinkRetryWait,omitempty"`
-	Type                     string  `json:"type"`
-	WriteBatchSize           *int64  `json:"writeBatchSize,omitempty"`
-	WriteBatchTimeout        *string `json:"writeBatchTimeout,omitempty"`
+	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
+	SinkRetryCount           *int64       `json:"sinkRetryCount,omitempty"`
+	SinkRetryWait            *interface{} `json:"sinkRetryWait,omitempty"`
+	Type                     string       `json:"type"`
+	WriteBatchSize           *int64       `json:"writeBatchSize,omitempty"`
+	WriteBatchTimeout        *interface{} `json:"writeBatchTimeout,omitempty"`
 }
 
 func (s AzureDataExplorerSink) CopySink() BaseCopySinkImpl {

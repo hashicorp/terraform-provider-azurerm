@@ -42,7 +42,7 @@ At the top of this page, you'll need to take note of the "Application (client) I
 
 An application will need a federated credential specified for each GitHub Environment, Branch Name, Pull Request, or Tag based on your use case. For this example, we'll give permission to `main` branch workflow runs.
 
--> **Tip:** You can also configure the Application using the [azuread_application](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/resources/application) and [azuread_application_federated_identity_credential](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/resources/application_federated_identity_credential) resources in the AzureAD Terraform Provider.
+-> **Note:** You can also configure the Application using the [azuread_application](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/resources/application) and [azuread_application_federated_identity_credential](https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/resources/application_federated_identity_credential) resources in the AzureAD Terraform Provider.
 
 #### Via the Portal
 
@@ -184,7 +184,7 @@ At this point running either `terraform plan` or `terraform apply` should allow 
 
 It's also possible to configure these variables either in-line or from using variables in Terraform (as the `oidc_token`, `oidc_token_file_path`, or `oidc_request_token`, `oidc_request_url` and `ado_pipeline_service_connection_id` are in this example), like so:
 
-~> **NOTE:** We'd recommend not defining these variables in-line since they could easily be checked into Source Control.
+~> **Note:** We'd recommend not defining these variables in-line since they could easily be checked into Source Control.
 
 ```hcl
 variable "oidc_token" {}

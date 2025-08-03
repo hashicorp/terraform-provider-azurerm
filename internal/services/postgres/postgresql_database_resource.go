@@ -37,6 +37,8 @@ func resourcePostgreSQLDatabase() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
+		DeprecationMessage: "The `azurerm_postgresql_database` resource is deprecated and will be removed in v5.0 of the AzureRM Provider. Azure Database for PostgreSQL Single Server and its sub resources have been retired as of 2025-03-28, please use the `azurerm_postgresql_flexible_server_database` resource instead. For more information, see https://techcommunity.microsoft.com/blog/adforpostgresql/retiring-azure-database-for-postgresql-single-server-in-2025/3783783.",
+
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.PostgresqlDatabaseV0ToV1{},

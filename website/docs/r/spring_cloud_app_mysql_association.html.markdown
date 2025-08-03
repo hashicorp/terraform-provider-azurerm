@@ -10,6 +10,8 @@ description: |-
 
 Associates a [Spring Cloud Application](spring_cloud_app.html) with a [MySQL Database](mysql_database.html).
 
+!> **Note:** Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_app_mysql_association` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.
+
 ## Example Usage
 
 ```hcl
@@ -36,7 +38,7 @@ resource "azurerm_mysql_flexible_server" "example" {
   location               = azurerm_resource_group.example.location
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
-  sku_name               = "B_Standard_B1s"
+  sku_name               = "B_Standard_B1ms"
   zone                   = "2"
 }
 

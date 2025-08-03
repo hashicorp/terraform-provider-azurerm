@@ -27,6 +27,10 @@ type UpdateRequest struct {
 	// operation.
 	State tfsdk.State
 
+	// Identity is the planned identity for the resource. If the resource does not
+	// support identity, this value will not be set.
+	Identity *tfsdk.ResourceIdentity
+
 	// ProviderMeta is metadata from the provider_meta block of the module.
 	ProviderMeta tfsdk.Config
 
@@ -48,6 +52,14 @@ type UpdateResponse struct {
 	// This field is pre-populated from UpdateResourceRequest.Plan and
 	// should be set during the resource's Update operation.
 	State tfsdk.State
+
+	// Identity is the identity of the resource following the Update operation.
+	// This field is pre-populated from UpdateRequest.Identity and
+	// should be set during the resource's Update operation.
+	//
+	// If the resource does not support identity, this value will not be set and will
+	// raise a diagnostic if set by the resource's Update operation.
+	Identity *tfsdk.ResourceIdentity
 
 	// Private is the private state resource data following the Update operation.
 	// This field is pre-populated from UpdateRequest.Private and

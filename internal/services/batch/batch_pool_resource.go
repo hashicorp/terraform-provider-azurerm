@@ -945,12 +945,13 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		return deploymentErr
 	}
 
-	certificates := d.Get("certificate").([]interface{})
-	certificateReferences, err := ExpandBatchPoolCertificateReferences(certificates)
-	if err != nil {
-		return fmt.Errorf("expanding `certificate`: %+v", err)
+	if v, ok := d.GetOk("certificate"); ok {
+		certificateReferences, err := ExpandBatchPoolCertificateReferences(v.([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `certificate`: %+v", err)
+		}
+		parameters.Properties.Certificates = certificateReferences
 	}
-	parameters.Properties.Certificates = certificateReferences
 
 	if err := validateBatchPoolCrossFieldRules(parameters.Properties); err != nil {
 		return err
@@ -1078,6 +1079,15 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 
 		parameters.Properties.StartTask = startTask
+	}
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			// when updating `data_disks`, it has to include additional properties such as `NodeAgentSkuId`, `ImageReference` and `OsDisk`, otherwise API request will fail.
+			parameters.Properties.DeploymentConfiguration = props.DeploymentConfiguration
+			if d.HasChange("data_disks") {
+				parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration.DataDisks = expandBatchPoolDataDisks(d.Get("data_disks").([]interface{}))
+			}
+		}
 	}
 	certificates := d.Get("certificate").([]interface{})
 	certificateReferences, err := ExpandBatchPoolCertificateReferences(certificates)
@@ -1524,8 +1534,9 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"task_retry_maximum": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntAtLeast(-1),
 		},
 
 		"wait_for_success": {

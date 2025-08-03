@@ -114,7 +114,8 @@ func (p *Poller) PollUntilDone(ctx context.Context) error {
 				retryDuration = p.latestResponse.PollInterval
 			}
 			endTime := time.Now().Add(retryDuration)
-			select {
+
+			select { // nolint: gosimple
 			case <-time.After(time.Until(endTime)):
 				{
 					break
@@ -160,24 +161,20 @@ func (p *Poller) PollUntilDone(ctx context.Context) error {
 				case PollingStatusCancelled:
 					p.latestError = fmt.Errorf("internal-error: a polling status of `Cancelled` should be surfaced as a PollingCancelledError")
 					done = true
-					break
 
 				case PollingStatusFailed:
 					p.latestError = fmt.Errorf("internal-error: a polling status of `Failed` should be surfaced as a PollingFailedError")
 					done = true
-					break
 
 				case PollingStatusInProgress:
 					continue
 
 				case PollingStatusSucceeded:
 					done = true
-					break
 
 				default:
 					p.latestError = fmt.Errorf("internal-error: unimplemented polling status %q", string(response.Status))
 					done = true
-					break
 				}
 
 				if done {

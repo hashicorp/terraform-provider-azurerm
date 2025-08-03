@@ -90,9 +90,6 @@ type ProviderWithFunctions interface {
 // include ephemeral resources for usage in practitioner configurations.
 //
 // Ephemeral resources are supported in Terraform version 1.10 and later.
-//
-// NOTE: Ephemeral resource support is experimental and exposed without compatibility promises until
-// these notices are removed.
 type ProviderWithEphemeralResources interface {
 	Provider
 

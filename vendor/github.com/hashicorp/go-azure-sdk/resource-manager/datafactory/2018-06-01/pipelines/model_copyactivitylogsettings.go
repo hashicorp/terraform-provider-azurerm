@@ -4,6 +4,6 @@ package pipelines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type CopyActivityLogSettings struct {
-	EnableReliableLogging *bool   `json:"enableReliableLogging,omitempty"`
-	LogLevel              *string `json:"logLevel,omitempty"`
+	EnableReliableLogging *bool        `json:"enableReliableLogging,omitempty"`
+	LogLevel              *interface{} `json:"logLevel,omitempty"`
 }

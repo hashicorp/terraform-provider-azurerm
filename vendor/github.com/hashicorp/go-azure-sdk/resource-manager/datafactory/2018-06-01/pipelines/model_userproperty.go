@@ -4,6 +4,6 @@ package pipelines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type UserProperty struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	Name  string      `json:"name"`
+	Value interface{} `json:"value"`
 }

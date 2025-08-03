@@ -189,9 +189,8 @@ func (r DashboardGrafanaResource) Arguments() map[string]*pluginsdk.Schema {
 		"grafana_major_version": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
-				"9", "10",
+				"10", "11",
 			}, false),
 		},
 
@@ -380,6 +379,10 @@ func (r DashboardGrafanaResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("smtp") {
 				properties.Properties.GrafanaConfigurations = expandSMTPConfigurationModel(model.SMTP)
+			}
+
+			if metadata.ResourceData.HasChange("grafana_major_version") {
+				properties.Properties.GrafanaMajorVersion = &model.GrafanaMajorVersion
 			}
 
 			if err := client.GrafanaCreateThenPoll(ctx, *id, *properties); err != nil {

@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
@@ -35,7 +36,7 @@ import (
 )
 
 func resourceWindowsVirtualMachine() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceWindowsVirtualMachineCreate,
 		Read:   resourceWindowsVirtualMachineRead,
 		Update: resourceWindowsVirtualMachineUpdate,
@@ -375,12 +376,6 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: commonids.ValidateVirtualMachineScaleSetID,
 			},
 
-			"vm_agent_platform_updates_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
 			"platform_fault_domain": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
@@ -433,8 +428,23 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
+			"vm_agent_platform_updates_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["vm_agent_platform_updates_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "this property has been deprecated due to a breaking change introduced by the Service team, which redefined it as a read-only field within the API",
+		}
+	}
+
+	return resource
 }
 
 func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -517,8 +527,6 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	sourceImageId := d.Get("source_image_id").(string)
 	sourceImageReference := expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
 
-	vmAgentPlatformUpdatesEnabled := d.Get("vm_agent_platform_updates_enabled").(bool)
-
 	winRmListenersRaw := d.Get("winrm_listener").(*pluginsdk.Set).List()
 	winRmListeners := expandWinRMListener(winRmListenersRaw)
 
@@ -541,10 +549,9 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 				ComputerName:             pointer.To(computerName),
 				AllowExtensionOperations: pointer.To(allowExtensionOperations),
 				WindowsConfiguration: &virtualmachines.WindowsConfiguration{
-					ProvisionVMAgent:             pointer.To(provisionVMAgent),
-					EnableAutomaticUpdates:       pointer.To(enableAutomaticUpdates),
-					EnableVMAgentPlatformUpdates: pointer.To(vmAgentPlatformUpdatesEnabled),
-					WinRM:                        winRmListeners,
+					ProvisionVMAgent:       pointer.To(provisionVMAgent),
+					EnableAutomaticUpdates: pointer.To(enableAutomaticUpdates),
+					WinRM:                  winRmListeners,
 				},
 				Secrets: secrets,
 			},
@@ -988,6 +995,7 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 					}
 				}
 			}
+
 			// Resources created with azurerm_virtual_machine have priority set to ""
 			// We need to treat "" as equal to "Regular" to allow migration azurerm_virtual_machine -> azurerm_linux_virtual_machine
 			priority := string(virtualmachines.VirtualMachinePriorityTypesRegular)
@@ -1159,19 +1167,6 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		update.Properties.OsProfile.AllowExtensionOperations = pointer.To(allowExtensionOperations)
-	}
-
-	if d.HasChange("vm_agent_platform_updates_enabled") {
-		shouldUpdate = true
-		if update.Properties.OsProfile == nil {
-			update.Properties.OsProfile = &virtualmachines.OSProfile{}
-		}
-
-		if update.Properties.OsProfile.WindowsConfiguration == nil {
-			update.Properties.OsProfile.WindowsConfiguration = &virtualmachines.WindowsConfiguration{}
-		}
-
-		update.Properties.OsProfile.WindowsConfiguration.EnableVMAgentPlatformUpdates = pointer.To(d.Get("vm_agent_platform_updates_enabled").(bool))
 	}
 
 	if d.HasChange("patch_mode") {
@@ -1728,27 +1723,6 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving Windows %s: %+v", id, err)
 	}
 
-	if !meta.(*clients.Client).Features.VirtualMachine.SkipShutdownAndForceDelete {
-		// If the VM was in a Failed state we can skip powering off, since that'll fail
-		if existing.Model != nil && existing.Model.Properties != nil && strings.EqualFold(*existing.Model.Properties.ProvisioningState, "failed") {
-			log.Printf("[DEBUG] Powering Off Windows %s was skipped because the VM was in %q state", id, *existing.Model.Properties.ProvisioningState)
-		} else {
-			// ISSUE: 4920
-			// shutting down the Virtual Machine prior to removing it means users are no longer charged for some Azure resources
-			// thus this can be a large cost-saving when deleting larger instances
-			// https://docs.microsoft.com/en-us/azure/virtual-machines/states-lifecycle
-			log.Printf("[DEBUG] Powering Off Windows %s.", id)
-			skipShutdown := !meta.(*clients.Client).Features.VirtualMachine.GracefulShutdown
-			options := virtualmachines.PowerOffOperationOptions{
-				SkipShutdown: pointer.To(skipShutdown),
-			}
-			if err := client.PowerOffThenPoll(ctx, *id, options); err != nil {
-				return fmt.Errorf("powering off Windows %s: %+v", id, err)
-			}
-			log.Printf("[DEBUG] Powered Off Windows %s", id)
-		}
-	}
-
 	log.Printf("[DEBUG] Deleting Windows %s", id)
 
 	// Force Delete is in an opt-in Preview and can only be specified (true/false) if the feature is enabled
@@ -1761,6 +1735,7 @@ func resourceWindowsVirtualMachineDelete(d *pluginsdk.ResourceData, meta interfa
 	if err := client.DeleteThenPoll(ctx, *id, options); err != nil {
 		return fmt.Errorf("deleting Windows %s: %+v", id, err)
 	}
+
 	log.Printf("[DEBUG] Deleted Windows %s", id)
 
 	deleteOSDisk := meta.(*clients.Client).Features.VirtualMachine.DeleteOSDiskOnDeletion

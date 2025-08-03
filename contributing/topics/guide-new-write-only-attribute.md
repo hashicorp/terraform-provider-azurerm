@@ -133,6 +133,8 @@ func (SomeDatabase) Update() sdk.ResourceFunc {
 
 The `terraform-plugin-sdk@v2` provides a helpful validation for WO attributes that surfaces a warning to users if they are on a version of Terraform that supports WO attributes but are using the non-WO attribute version of a sensitive property.
 
+> **Note:** We currently recommend not adding this validation to the resource since the only way to remove the warning diagnostic is to use to WO attribute.
+
 ```go
 // update the interface that the resource should implement
 var _ sdk.ResourceWithConfigValidation = SomeDatabase{}

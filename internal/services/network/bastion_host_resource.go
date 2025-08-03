@@ -26,6 +26,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name bastion_host -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 var skuWeight = map[string]int8{
 	"Developer": 1,
 	"Basic":     2,
@@ -40,10 +42,11 @@ func resourceBastionHost() *pluginsdk.Resource {
 		Update: resourceBastionHostUpdate,
 		Delete: resourceBastionHostDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := bastionhosts.ParseBastionHostID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&bastionhosts.BastionHostId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&bastionhosts.BastionHostId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -468,10 +471,12 @@ func resourceBastionHostRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceBastionHostDelete(d *pluginsdk.ResourceData, meta interface{}) error {

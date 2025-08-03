@@ -6,7 +6,7 @@ package migration
 import (
 	"context"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/subscriptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/subscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 

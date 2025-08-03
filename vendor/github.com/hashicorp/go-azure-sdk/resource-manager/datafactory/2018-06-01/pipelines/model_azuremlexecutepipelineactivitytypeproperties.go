@@ -6,10 +6,10 @@ package pipelines
 type AzureMLExecutePipelineActivityTypeProperties struct {
 	ContinueOnStepFailure *bool              `json:"continueOnStepFailure,omitempty"`
 	DataPathAssignments   *interface{}       `json:"dataPathAssignments,omitempty"`
-	ExperimentName        *string            `json:"experimentName,omitempty"`
-	MlParentRunId         *string            `json:"mlParentRunId,omitempty"`
-	MlPipelineEndpointId  *string            `json:"mlPipelineEndpointId,omitempty"`
-	MlPipelineId          *string            `json:"mlPipelineId,omitempty"`
+	ExperimentName        *interface{}       `json:"experimentName,omitempty"`
+	MlParentRunId         *interface{}       `json:"mlParentRunId,omitempty"`
+	MlPipelineEndpointId  *interface{}       `json:"mlPipelineEndpointId,omitempty"`
+	MlPipelineId          *interface{}       `json:"mlPipelineId,omitempty"`
 	MlPipelineParameters  *map[string]string `json:"mlPipelineParameters,omitempty"`
-	Version               *string            `json:"version,omitempty"`
+	Version               *interface{}       `json:"version,omitempty"`
 }

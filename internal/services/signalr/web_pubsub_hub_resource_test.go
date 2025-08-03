@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -76,7 +76,21 @@ func TestAccWebPubsubHub_usingAuthGuid(t *testing.T) {
 	})
 }
 
-func TestAccWebPubsubHub_withAuthUpdate(t *testing.T) {
+func TestAccWebPubsubHub_usingAuthTokenAudience(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
+	r := WebPubsubHubResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.usingAuthTokenAudience(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r)),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccWebPubsubHub_usingAuthUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_web_pubsub_hub", "test")
 	r := WebPubsubHubResource{}
 
@@ -90,6 +104,20 @@ func TestAccWebPubsubHub_withAuthUpdate(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.usingAuthTokenAudience(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.usingAuthGuid(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -235,6 +263,30 @@ resource "azurerm_web_pubsub_hub" "test" {
 
     auth {
       managed_identity_id = "12345678-9012-3456-7890-123456789012"
+    }
+  }
+  anonymous_connections_enabled = true
+
+  depends_on = [
+    azurerm_web_pubsub.test
+  ]
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r WebPubsubHubResource) usingAuthTokenAudience(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_web_pubsub_hub" "test" {
+  name          = "acctestwpsh%d"
+  web_pubsub_id = azurerm_web_pubsub.test.id
+  event_handler {
+    url_template       = "https://test.com/api/{hub}/{event}"
+    user_event_pattern = "*"
+    system_events      = ["connect", "connected"]
+
+    auth {
+      managed_identity_id = "api://AzureADTokenExchange"
     }
   }
   anonymous_connections_enabled = true

@@ -1428,7 +1428,7 @@ resource "azuread_application" "cluster_explorer" {
 }
 
 resource "azuread_service_principal" "cluster_explorer" {
-  application_id = azuread_application.cluster_explorer.application_id
+  client_id = azuread_application.cluster_explorer.client_id
 }
 
 resource "azuread_application" "cluster_console" {
@@ -1454,7 +1454,7 @@ resource "azuread_application" "cluster_console" {
   }
 
   required_resource_access {
-    resource_app_id = azuread_application.cluster_explorer.application_id
+    resource_app_id = azuread_application.cluster_explorer.client_id
 
     resource_access {
       id   = "311a71cc-e848-46a1-bdf8-97ff7156d8e6" # sign in and user profile permission ctx https://github.com/Azure/azure-cli/issues/7925
@@ -1464,7 +1464,7 @@ resource "azuread_application" "cluster_console" {
 }
 
 resource "azuread_service_principal" "cluster_console" {
-  application_id = azuread_application.cluster_console.application_id
+  client_id = azuread_application.cluster_console.client_id
 }
 
 resource "azurerm_service_fabric_cluster" "test" {
@@ -1483,8 +1483,8 @@ resource "azurerm_service_fabric_cluster" "test" {
 
   azure_active_directory {
     tenant_id              = data.azurerm_client_config.current.tenant_id
-    cluster_application_id = azuread_application.cluster_explorer.application_id
-    client_application_id  = azuread_application.cluster_console.application_id
+    cluster_application_id = azuread_application.cluster_explorer.client_id
+    client_application_id  = azuread_application.cluster_console.client_id
   }
 
   fabric_settings {

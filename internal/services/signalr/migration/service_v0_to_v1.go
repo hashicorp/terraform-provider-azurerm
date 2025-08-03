@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 

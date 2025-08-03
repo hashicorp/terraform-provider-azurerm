@@ -29,6 +29,7 @@ type ProviderModel struct {
 	UseOIDC                        types.Bool   `tfsdk:"use_oidc"`
 	UseMSI                         types.Bool   `tfsdk:"use_msi"`
 	MSIEndpoint                    types.String `tfsdk:"msi_endpoint"`
+	MSIAPIVersion                  types.String `tfsdk:"msi_api_version"`
 	UseCLI                         types.Bool   `tfsdk:"use_cli"`
 	UseAKSWorkloadIdentity         types.Bool   `tfsdk:"use_aks_workload_identity"`
 	PartnerId                      types.String `tfsdk:"partner_id"`
@@ -60,6 +61,7 @@ type Features struct {
 	RecoveryService          types.List `tfsdk:"recovery_service"`
 	RecoveryServicesVaults   types.List `tfsdk:"recovery_services_vaults"`
 	NetApp                   types.List `tfsdk:"netapp"`
+	DatabricksWorkspace      types.List `tfsdk:"databricks_workspace"`
 }
 
 // FeaturesAttributes and the other block attribute vars are required for unit testing on the Load func
@@ -83,6 +85,7 @@ var FeaturesAttributes = map[string]attr.Type{
 	"recovery_service":           types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(RecoveryServiceAttributes)),
 	"recovery_services_vaults":   types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(RecoveryServiceVaultsAttributes)),
 	"netapp":                     types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(NetAppAttributes)),
+	"databricks_workspace":       types.ListType{}.WithElementType(types.ObjectType{}.WithAttributeTypes(DatabricksWorkspaceAttributes)),
 }
 
 type APIManagement struct {
@@ -167,7 +170,7 @@ var TemplateDeploymentAttributes = map[string]attr.Type{
 
 type VirtualMachine struct {
 	DeleteOsDiskOnDeletion           types.Bool `tfsdk:"delete_os_disk_on_deletion"`
-	GracefulShutdown                 types.Bool `tfsdk:"graceful_shutdown"`
+	GracefulShutdown                 types.Bool `tfsdk:"graceful_shutdown"` // TODO: Remove in 5.0 - Currently not possible to deprecate feature block struct items via feature flagging. Feature made redundant/ineffective by a breaking API change.
 	SkipShutdownAndForceDelete       types.Bool `tfsdk:"skip_shutdown_and_force_delete"`
 	DetachImplicitDataDiskOnDeletion types.Bool `tfsdk:"detach_implicit_data_disk_on_deletion"`
 }
@@ -175,7 +178,7 @@ type VirtualMachine struct {
 var VirtualMachineAttributes = map[string]attr.Type{
 	"delete_os_disk_on_deletion":            types.BoolType,
 	"detach_implicit_data_disk_on_deletion": types.BoolType,
-	"graceful_shutdown":                     types.BoolType,
+	"graceful_shutdown":                     types.BoolType, // TODO: Remove in 5.0 - Currently not possible to deprecate feature block struct items via feature flagging. Feature made redundant/ineffective by a breaking API change.
 	"skip_shutdown_and_force_delete":        types.BoolType,
 }
 
@@ -269,4 +272,12 @@ type NetApp struct {
 var NetAppAttributes = map[string]attr.Type{
 	"delete_backups_on_backup_vault_destroy": types.BoolType,
 	"prevent_volume_destruction":             types.BoolType,
+}
+
+type DatabricksWorkspace struct {
+	ForceDelete types.Bool `tfsdk:"force_delete"`
+}
+
+var DatabricksWorkspaceAttributes = map[string]attr.Type{
+	"force_delete": types.BoolType,
 }

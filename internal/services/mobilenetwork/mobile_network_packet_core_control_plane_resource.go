@@ -119,6 +119,8 @@ func (r PacketCoreControlPlaneResource) Arguments() map[string]*pluginsdk.Schema
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MinItems: 1,
+			MaxItems: 1,
+			ForceNew: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: site.ValidateSiteID,
@@ -424,10 +426,6 @@ func (r PacketCoreControlPlaneResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("local_diagnostics_access") {
 				model.Properties.LocalDiagnosticsAccess = expandPacketCoreControlLocalDiagnosticsAccessConfiguration(plan.LocalDiagnosticsAccess)
-			}
-
-			if metadata.ResourceData.HasChange("mobile_network_id") {
-				model.Properties.Sites = expandPacketCoreControlPlaneSites(plan.SiteIds)
 			}
 
 			if metadata.ResourceData.HasChange("platform") {

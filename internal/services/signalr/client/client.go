@@ -4,15 +4,15 @@
 package client
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
-	webpubsub_v2023_02_01 "github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
+	webpubsub_v2024_03_01 "github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
 	SignalRClient   *signalr.SignalRClient
-	WebPubSubClient *webpubsub_v2023_02_01.Client
+	WebPubSubClient *webpubsub_v2024_03_01.Client
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -22,7 +22,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(signalRClient.Client, o.Authorizers.ResourceManager)
 
-	webPubSubClient, err := webpubsub_v2023_02_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+	webPubSubClient, err := webpubsub_v2024_03_01.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
 		o.Configure(c, o.Authorizers.ResourceManager)
 	})
 	if err != nil {

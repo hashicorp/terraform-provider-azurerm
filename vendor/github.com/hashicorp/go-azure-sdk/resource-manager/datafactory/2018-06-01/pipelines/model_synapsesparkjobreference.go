@@ -4,6 +4,6 @@ package pipelines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type SynapseSparkJobReference struct {
-	ReferenceName string                `json:"referenceName"`
+	ReferenceName interface{}           `json:"referenceName"`
 	Type          SparkJobReferenceType `json:"type"`
 }

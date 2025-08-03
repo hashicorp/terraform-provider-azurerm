@@ -10,6 +10,8 @@ description: |-
 
 Allows you to set a user or group as the AD administrator for an PostgreSQL server in Azure
 
+~> **Note:** The `azurerm_postgresql_active_directory_administrator` resource is deprecated and will be removed in v5.0 of the AzureRM Provider. Azure Database for PostgreSQL Single Server and its sub resources have been retired as of 2025-03-28, please use the `azurerm_postgresql_flexible_server_active_directory_administrator` resource instead. For more information, see https://techcommunity.microsoft.com/blog/adforpostgresql/retiring-azure-database-for-postgresql-single-server-in-2025/3783783.
+
 ## Example Usage
 
 ```hcl
@@ -65,8 +67,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the PostgreSQL Active Directory Administrator.
-* `update` - (Defaults to 30 minutes) Used when updating the PostgreSQL Active Directory Administrator.
 * `read` - (Defaults to 5 minutes) Used when retrieving the PostgreSQL Active Directory Administrator.
+* `update` - (Defaults to 30 minutes) Used when updating the PostgreSQL Active Directory Administrator.
 * `delete` - (Defaults to 30 minutes) Used when deleting the PostgreSQL Active Directory Administrator.
 
 ## Import
@@ -76,3 +78,9 @@ A PostgreSQL Active Directory Administrator can be imported using the `resource 
 ```shell
 terraform import azurerm_postgresql_active_directory_administrator.administrator /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.DBforPostgreSQL/servers/myserver
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DBforPostgreSQL` - 2017-12-01

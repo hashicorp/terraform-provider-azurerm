@@ -12,17 +12,17 @@ var _ CopySource = SalesforceSource{}
 
 type SalesforceSource struct {
 	AdditionalColumns *interface{} `json:"additionalColumns,omitempty"`
-	Query             *string      `json:"query,omitempty"`
-	QueryTimeout      *string      `json:"queryTimeout,omitempty"`
-	ReadBehavior      *string      `json:"readBehavior,omitempty"`
+	Query             *interface{} `json:"query,omitempty"`
+	QueryTimeout      *interface{} `json:"queryTimeout,omitempty"`
+	ReadBehavior      *interface{} `json:"readBehavior,omitempty"`
 
 	// Fields inherited from CopySource
 
-	DisableMetricsCollection *bool   `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64  `json:"maxConcurrentConnections,omitempty"`
-	SourceRetryCount         *int64  `json:"sourceRetryCount,omitempty"`
-	SourceRetryWait          *string `json:"sourceRetryWait,omitempty"`
-	Type                     string  `json:"type"`
+	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *int64       `json:"sourceRetryCount,omitempty"`
+	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
+	Type                     string       `json:"type"`
 }
 
 func (s SalesforceSource) CopySource() BaseCopySourceImpl {

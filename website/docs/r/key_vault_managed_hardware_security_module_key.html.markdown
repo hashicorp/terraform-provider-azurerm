@@ -12,6 +12,8 @@ Manages a Key Vault Managed Hardware Security Module Key.
 
 ~> **Note:** The Azure Provider includes a Feature Toggle which will purge a Key Vault Managed Hardware Security Module Key resource on destroy, rather than the default soft-delete. See [`purge_soft_deleted_hardware_security_modules_on_destroy`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#purge_soft_deleted_hardware_security_module_keys_on_destroy) for more information.
 
+## Example Usage
+
 ```hcl
 data "azurerm_client_config" "current" {}
 
@@ -80,7 +82,7 @@ The following arguments are supported:
 
 * `curve` - (Optional) Specifies the curve to use when creating an `EC-HSM` key. Possible values are `P-256`, `P-256K`, `P-384`, and `P-521`. This field is required if `key_type` is `EC-HSM`. Changing this forces a new resource to be created.
 
-* `key_opts` - (Required) A list of JSON web key operations. Possible values include: `decrypt`, `encrypt`, `sign`, `unwrapKey`, `verify` and `wrapKey`. Please note these values are case-sensitive.
+* `key_opts` - (Required) A list of JSON web key operations. Possible values include: `decrypt`, `encrypt`, `sign`, `unwrapKey`, `verify`, `wrapKey` and `import`. Please note these values are case-sensitive.
 
 * `not_before_date` - (Optional) Key not usable before the provided UTC datetime (Y-m-d'T'H:M:S'Z').
 
@@ -103,10 +105,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Key Vault Managed Hardware Security Module Key.
-* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Managed Hardware Security Module Key.
+* `create` - (Defaults to 30 minutes) Used when creating the Key Vault Managed Hardware Security Module Key.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Managed Hardware Security Module Key.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Key Vault Managed Hardware Security Module Key.
+* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Managed Hardware Security Module Key.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault Managed Hardware Security Module Key.
 
 ## Import
 
@@ -115,3 +117,9 @@ Key Vault Managed Hardware Security Module Key can be imported using the `resour
 ```shell
 terraform import azurerm_key_vault_managed_hardware_security_module_key.example https://exampleHSM.managedhsm.azure.net/keys/exampleKey
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.KeyVault` - 2023-07-01

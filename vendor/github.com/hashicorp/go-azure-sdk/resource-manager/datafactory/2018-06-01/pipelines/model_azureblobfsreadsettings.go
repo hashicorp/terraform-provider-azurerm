@@ -11,15 +11,15 @@ import (
 var _ StoreReadSettings = AzureBlobFSReadSettings{}
 
 type AzureBlobFSReadSettings struct {
-	DeleteFilesAfterCompletion *bool   `json:"deleteFilesAfterCompletion,omitempty"`
-	EnablePartitionDiscovery   *bool   `json:"enablePartitionDiscovery,omitempty"`
-	FileListPath               *string `json:"fileListPath,omitempty"`
-	ModifiedDatetimeEnd        *string `json:"modifiedDatetimeEnd,omitempty"`
-	ModifiedDatetimeStart      *string `json:"modifiedDatetimeStart,omitempty"`
-	PartitionRootPath          *string `json:"partitionRootPath,omitempty"`
-	Recursive                  *bool   `json:"recursive,omitempty"`
-	WildcardFileName           *string `json:"wildcardFileName,omitempty"`
-	WildcardFolderPath         *string `json:"wildcardFolderPath,omitempty"`
+	DeleteFilesAfterCompletion *bool        `json:"deleteFilesAfterCompletion,omitempty"`
+	EnablePartitionDiscovery   *bool        `json:"enablePartitionDiscovery,omitempty"`
+	FileListPath               *interface{} `json:"fileListPath,omitempty"`
+	ModifiedDatetimeEnd        *interface{} `json:"modifiedDatetimeEnd,omitempty"`
+	ModifiedDatetimeStart      *interface{} `json:"modifiedDatetimeStart,omitempty"`
+	PartitionRootPath          *interface{} `json:"partitionRootPath,omitempty"`
+	Recursive                  *bool        `json:"recursive,omitempty"`
+	WildcardFileName           *interface{} `json:"wildcardFileName,omitempty"`
+	WildcardFolderPath         *interface{} `json:"wildcardFolderPath,omitempty"`
 
 	// Fields inherited from StoreReadSettings
 

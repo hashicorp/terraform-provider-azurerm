@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -78,8 +78,8 @@ func expandAdditionalUnattendContentVMSS(input []interface{}) *[]virtualmachines
 			Content:     pointer.To(raw["content"].(string)),
 
 			// no other possible values
-			PassName:      pointer.To(virtualmachinescalesets.PassNamesOobeSystem),
-			ComponentName: pointer.To(virtualmachinescalesets.ComponentNamesMicrosoftNegativeWindowsNegativeShellNegativeSetup),
+			PassName:      pointer.To(virtualmachinescalesets.PassNameOobeSystem),
+			ComponentName: pointer.To(virtualmachinescalesets.ComponentNameMicrosoftNegativeWindowsNegativeShellNegativeSetup),
 		})
 	}
 

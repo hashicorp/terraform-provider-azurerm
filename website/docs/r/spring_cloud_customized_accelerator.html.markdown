@@ -10,6 +10,8 @@ description: |-
 
 Manages a Spring Cloud Customized Accelerator.
 
+!> **Note:** Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_customized_accelerator` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.
+
 ## Example Usage
 
 ```hcl
@@ -135,3 +137,9 @@ Spring Cloud Customized Accelerators can be imported using the `resource id`, e.
 ```shell
 terraform import azurerm_spring_cloud_customized_accelerator.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.AppPlatform/spring/spring1/applicationAccelerators/default/customizedAccelerators/customizedAccelerator1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AppPlatform` - 2024-01-01-preview

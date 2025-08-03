@@ -100,6 +100,23 @@ for _, item := range items {
 ```
 
 
+### Example Usage: `PrivateZonesClient.RecordSetsList`
+
+```go
+ctx := context.TODO()
+id := privatezones.NewPrivateDnsZoneID("12345678-1234-9876-4563-123456789012", "example-resource-group", "privateDnsZoneName")
+
+// alternatively `client.RecordSetsList(ctx, id, privatezones.DefaultRecordSetsListOperationOptions())` can be used to do batched pagination
+items, err := client.RecordSetsListComplete(ctx, id, privatezones.DefaultRecordSetsListOperationOptions())
+if err != nil {
+	// handle the error
+}
+for _, item := range items {
+	// do something
+}
+```
+
+
 ### Example Usage: `PrivateZonesClient.Update`
 
 ```go

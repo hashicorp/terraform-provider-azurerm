@@ -11,9 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/authorization/mgmt/2020-04-01-preview/authorization" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roleassignments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-05-01-preview/roledefinitions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2022-12-01/subscriptions"
 	"github.com/hashicorp/go-uuid"
@@ -82,7 +83,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 				Optional:         true,
 				Computed:         true,
 				ForceNew:         true,
-				ConflictsWith:    []string{"role_definition_name"},
+				ExactlyOneOf:     []string{"role_definition_id", "role_definition_name"},
 				DiffSuppressFunc: suppress.CaseDifference,
 			},
 
@@ -91,7 +92,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 				Optional:         true,
 				Computed:         true,
 				ForceNew:         true,
-				ConflictsWith:    []string{"role_definition_id"},
+				ExactlyOneOf:     []string{"role_definition_name", "role_definition_id"},
 				DiffSuppressFunc: suppress.CaseDifference,
 				ValidateFunc:     validation.StringIsNotEmpty,
 			},
@@ -156,7 +157,7 @@ func resourceArmRoleAssignment() *pluginsdk.Resource {
 }
 
 func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	roleAssignmentsClient := meta.(*clients.Client).Authorization.RoleAssignmentsClient
+	roleAssignmentsClient := meta.(*clients.Client).Authorization.ScopedRoleAssignmentsClient
 	roleDefinitionsClient := meta.(*clients.Client).Authorization.ScopedRoleDefinitionsClient
 	subscriptionClient := meta.(*clients.Client).Subscription.SubscriptionsClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
@@ -173,32 +174,32 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 	var roleDefinitionId string
 	if v, ok := d.GetOk("role_definition_id"); ok {
 		roleDefinitionId = v.(string)
-	} else if v, ok := d.GetOk("role_definition_name"); ok {
+	}
+
+	if v, ok := d.GetOk("role_definition_name"); ok {
 		roleName := v.(string)
-		roleDefinitions, err := roleDefinitionsClient.List(ctx, *scopeId, roledefinitions.ListOperationOptions{
+		roleDefinitions, err := roleDefinitionsClient.List(ctx, commonids.NewScopeID(scope), roledefinitions.ListOperationOptions{
 			Filter: pointer.To(fmt.Sprintf("roleName eq '%s'", roleName)),
 		})
 		if err != nil {
-			return fmt.Errorf("loading Role Definition List: %+v", err)
+			return fmt.Errorf("listing role definitions: %+v", err)
 		}
 		if roleDefinitions.Model == nil || len(*roleDefinitions.Model) != 1 {
-			return fmt.Errorf("loading Role Definition List: could not find role '%s'", roleName)
+			return fmt.Errorf("listing role definitions: could not find role `%s`", roleName)
 		}
 		roleDefinitionId = *(*roleDefinitions.Model)[0].Id
-	} else {
-		return fmt.Errorf("Error: either role_definition_id or role_definition_name needs to be set")
 	}
 	d.Set("role_definition_id", roleDefinitionId)
 
 	principalId := d.Get("principal_id").(string)
 
 	if name == "" {
-		uuid, err := uuid.GenerateUUID()
+		generatedUUID, err := uuid.GenerateUUID()
 		if err != nil {
 			return fmt.Errorf("generating UUID for Role Assignment: %+v", err)
 		}
 
-		name = uuid
+		name = generatedUUID
 	}
 
 	tenantId := ""
@@ -211,27 +212,32 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
-	existing, err := roleAssignmentsClient.Get(ctx, scope, name, tenantId)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing Role Assignment ID for %q (Scope %q): %+v", name, scope, err)
-		}
+	id := parse.NewScopedRoleAssignmentID(scope, name, tenantId)
+	options := roleassignments.DefaultGetOperationOptions()
+	if tenantId != "" {
+		options.TenantId = pointer.To(tenantId)
 	}
 
-	if existing.ID != nil && *existing.ID != "" {
-		return tf.ImportAsExistsError("azurerm_role_assignment", *existing.ID)
+	existing, err := roleAssignmentsClient.Get(ctx, id.ScopedId, options)
+	if err != nil && !response.WasNotFound(existing.HttpResponse) {
+		return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 	}
 
-	properties := authorization.RoleAssignmentCreateParameters{
-		RoleAssignmentProperties: &authorization.RoleAssignmentProperties{
-			RoleDefinitionID: utils.String(roleDefinitionId),
-			PrincipalID:      utils.String(principalId),
-			Description:      utils.String(d.Get("description").(string)),
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_role_assignment", id.ID())
+	}
+
+	params := roleassignments.RoleAssignmentCreateParameters{
+		Properties: roleassignments.RoleAssignmentProperties{
+			RoleDefinitionId: roleDefinitionId,
+			PrincipalId:      principalId,
+			Description:      pointer.To(d.Get("description").(string)),
 		},
 	}
+	props := &params.Properties
 
 	if len(delegatedManagedIdentityResourceID) > 0 {
-		properties.RoleAssignmentProperties.DelegatedManagedIdentityResourceID = utils.String(delegatedManagedIdentityResourceID)
+		props.DelegatedManagedIdentityResourceId = pointer.To(delegatedManagedIdentityResourceID)
 	}
 
 	condition := d.Get("condition").(string)
@@ -239,96 +245,94 @@ func resourceArmRoleAssignmentCreate(d *pluginsdk.ResourceData, meta interface{}
 
 	switch {
 	case condition != "" && conditionVersion != "":
-		properties.RoleAssignmentProperties.Condition = utils.String(condition)
-		properties.RoleAssignmentProperties.ConditionVersion = utils.String(conditionVersion)
-	case condition != "" && conditionVersion == "":
-		properties.RoleAssignmentProperties.Condition = utils.String(condition)
-		properties.RoleAssignmentProperties.ConditionVersion = utils.String("2.0")
-	case condition == "" && conditionVersion != "":
-		return fmt.Errorf("`conditionVersion` should not be set without `condition`")
+		props.Condition = pointer.To(condition)
+		props.ConditionVersion = pointer.To(conditionVersion)
+	case condition != "":
+		props.Condition = pointer.To(condition)
+		props.ConditionVersion = pointer.To("2.0")
+	case conditionVersion != "":
+		return fmt.Errorf("`condition_version` should not be set without `condition`")
 	}
 
 	skipPrincipalCheck := d.Get("skip_service_principal_aad_check").(bool)
 	if skipPrincipalCheck {
-		properties.RoleAssignmentProperties.PrincipalType = authorization.ServicePrincipal
+		props.PrincipalType = pointer.To(roleassignments.PrincipalTypeServicePrincipal)
 	}
 
-	principalType := d.Get("principal_type").(string)
-	if principalType != "" {
-		properties.RoleAssignmentProperties.PrincipalType = authorization.PrincipalType(principalType)
+	if principalType := d.Get("principal_type").(string); principalType != "" {
+		props.PrincipalType = pointer.To(roleassignments.PrincipalType(principalType))
 	}
 
 	// LinkedAuthorizationFailed may occur in cross tenant setup because of replication lag.
 	// Let's retry this error for cross tenant setup and when we are skipping principal check.
 	retryLinkedAuthorizationFailedError := len(delegatedManagedIdentityResourceID) > 0 && skipPrincipalCheck
-
-	if err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), retryRoleAssignmentsClient(d, scope, name, properties, meta, tenantId, retryLinkedAuthorizationFailedError)); err != nil {
+	if err := pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), retryRoleAssignmentsClient(d, id, params, meta, retryLinkedAuthorizationFailedError)); err != nil {
 		return err
 	}
 
-	read, err := roleAssignmentsClient.Get(ctx, scope, name, tenantId)
-	if err != nil {
-		return err
-	}
-	if read.ID == nil {
-		return fmt.Errorf("Cannot read Role Assignment ID for %q (Scope %q)", name, scope)
-	}
+	d.SetId(id.ID())
 
-	d.SetId(parse.ConstructRoleAssignmentId(*read.ID, tenantId))
 	return resourceArmRoleAssignmentRead(d, meta)
 }
 
 func resourceArmRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Authorization.RoleAssignmentsClient
+	client := meta.(*clients.Client).Authorization.ScopedRoleAssignmentsClient
 	roleDefinitionsClient := meta.(*clients.Client).Authorization.ScopedRoleDefinitionsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.RoleAssignmentID(d.Id())
+	id, err := parse.ScopedRoleAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
-	resp, err := client.GetByID(ctx, id.AzureResourceID(), id.TenantId)
+
+	options := roleassignments.DefaultGetOperationOptions()
+	if id.TenantId != "" {
+		options.TenantId = pointer.To(id.TenantId)
+	}
+
+	resp, err := client.Get(ctx, id.ScopedId, options)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Role Assignment ID %q was not found - removing from state", d.Id())
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("loading Role Assignment %q: %+v", d.Id(), err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", resp.Name)
+	if model := resp.Model; model != nil {
+		d.Set("name", model.Name)
 
-	if props := resp.RoleAssignmentPropertiesWithScope; props != nil {
-		d.Set("scope", normalizeScopeValue(pointer.From(props.Scope)))
-		d.Set("role_definition_id", props.RoleDefinitionID)
-		d.Set("principal_id", props.PrincipalID)
-		d.Set("principal_type", props.PrincipalType)
-		d.Set("delegated_managed_identity_resource_id", props.DelegatedManagedIdentityResourceID)
-		d.Set("description", props.Description)
-		d.Set("condition", props.Condition)
-		d.Set("condition_version", props.ConditionVersion)
+		if props := model.Properties; props != nil {
+			d.Set("scope", normalizeScopeValue(pointer.From(props.Scope)))
+			d.Set("role_definition_id", props.RoleDefinitionId)
+			d.Set("principal_id", props.PrincipalId)
+			d.Set("principal_type", pointer.From(props.PrincipalType))
+			d.Set("delegated_managed_identity_resource_id", props.DelegatedManagedIdentityResourceId)
+			d.Set("description", props.Description)
+			d.Set("condition", props.Condition)
+			d.Set("condition_version", props.ConditionVersion)
 
-		// allows for import when role name is used (also if the role name changes a plan will show a diff)
-		if roleDefResourceId := props.RoleDefinitionID; roleDefResourceId != nil {
-			// Workaround for https://github.com/hashicorp/pandora/issues/3257
-			// The role definition id returned does not contain scope when the role definition was on tenant level (management group or tenant).
-			// And adding tenant id as scope will cause 404 response, so just adding a slash to parse that.
-			if strings.HasPrefix(*roleDefResourceId, "/providers") {
-				roleDefResourceId = pointer.To(fmt.Sprintf("/%s", *roleDefResourceId))
-			}
-			parsedRoleDefId, err := roledefinitions.ParseScopedRoleDefinitionID(*roleDefResourceId)
-			if err != nil {
-				return fmt.Errorf("parsing %q: %+v", *roleDefResourceId, err)
-			}
-			roleResp, err := roleDefinitionsClient.Get(ctx, *parsedRoleDefId)
-			if err != nil {
-				return fmt.Errorf("loading Role Definition %q: %+v", *roleDefResourceId, err)
-			}
-			if roleResp.Model != nil && roleResp.Model.Properties != nil {
-				d.Set("role_definition_name", pointer.From(roleResp.Model.Properties.RoleName))
+			if roleDefResourceId := props.RoleDefinitionId; roleDefResourceId != "" {
+				// Workaround for https://github.com/hashicorp/pandora/issues/3257
+				// The role definition id returned does not contain scope when the role definition was on tenant level (management group or tenant).
+				// And adding tenant id as scope will cause 404 response, so just adding a slash to parse that.
+				if strings.HasPrefix(roleDefResourceId, "/providers") {
+					roleDefResourceId = fmt.Sprintf("/%s", roleDefResourceId)
+				}
+				parsedRoleDefId, err := roledefinitions.ParseScopedRoleDefinitionID(roleDefResourceId)
+				if err != nil {
+					return fmt.Errorf("parsing %q: %+v", roleDefResourceId, err)
+				}
+				roleResp, err := roleDefinitionsClient.Get(ctx, *parsedRoleDefId)
+				if err != nil {
+					return fmt.Errorf("retrieving Role Definition %q: %+v", roleDefResourceId, err)
+				}
+				if roleResp.Model != nil && roleResp.Model.Properties != nil {
+					d.Set("role_definition_name", pointer.From(roleResp.Model.Properties.RoleName))
+				}
 			}
 		}
 	}
@@ -337,18 +341,23 @@ func resourceArmRoleAssignmentRead(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceArmRoleAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Authorization.RoleAssignmentsClient
+	client := meta.(*clients.Client).Authorization.ScopedRoleAssignmentsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parseRoleAssignmentId(d.Id())
+	id, err := parse.ScopedRoleAssignmentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Delete(ctx, id.scope, id.name, id.tenantId)
+	options := roleassignments.DefaultDeleteOperationOptions()
+	if id.TenantId != "" {
+		options.TenantId = pointer.To(id.TenantId)
+	}
+
+	resp, err := client.Delete(ctx, id.ScopedId, options)
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp.Response) {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return err
 		}
 	}
@@ -356,29 +365,29 @@ func resourceArmRoleAssignmentDelete(d *pluginsdk.ResourceData, meta interface{}
 	return nil
 }
 
-func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, scope string, name string, properties authorization.RoleAssignmentCreateParameters, meta interface{}, tenantId string, retryLinkedAuthorizationFailedError bool) func() *pluginsdk.RetryError {
+func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, id parse.ScopedRoleAssignmentId, param roleassignments.RoleAssignmentCreateParameters, meta interface{}, retryLinkedAuthorizationFailedError bool) func() *pluginsdk.RetryError {
 	return func() *pluginsdk.RetryError {
-		roleAssignmentsClient := meta.(*clients.Client).Authorization.RoleAssignmentsClient
+		roleAssignmentsClient := meta.(*clients.Client).Authorization.ScopedRoleAssignmentsClient
 		ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 		defer cancel()
 
-		resp, err := roleAssignmentsClient.Create(ctx, scope, name, properties)
+		resp, err := roleAssignmentsClient.Create(ctx, id.ScopedId, param)
 		if err != nil {
 			switch {
 			case utils.ResponseErrorIsRetryable(err):
 				return pluginsdk.RetryableError(err)
-			case utils.ResponseWasStatusCode(resp.Response, 400) && strings.Contains(err.Error(), "PrincipalNotFound"):
+			case response.WasStatusCode(resp.HttpResponse, 400) && strings.Contains(err.Error(), "PrincipalNotFound"):
 				// When waiting for service principal to become available
 				return pluginsdk.RetryableError(err)
-			case retryLinkedAuthorizationFailedError && utils.ResponseWasForbidden(resp.Response) && strings.Contains(err.Error(), "LinkedAuthorizationFailed"):
+			case retryLinkedAuthorizationFailedError && response.WasForbidden(resp.HttpResponse) && strings.Contains(err.Error(), "LinkedAuthorizationFailed"):
 				return pluginsdk.RetryableError(err)
 			default:
 				return pluginsdk.NonRetryableError(err)
 			}
 		}
 
-		if resp.ID == nil {
-			return pluginsdk.NonRetryableError(fmt.Errorf("creation of Role Assignment %q did not return an id value", name))
+		if resp.Model == nil || resp.Model.Id == nil {
+			return pluginsdk.NonRetryableError(fmt.Errorf("creation of %s did not return an id value", id))
 		}
 
 		stateConf := &pluginsdk.StateChangeConf{
@@ -388,53 +397,30 @@ func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, scope string, name st
 			Target: []string{
 				"ready",
 			},
-			Refresh:                   roleAssignmentCreateStateRefreshFunc(ctx, roleAssignmentsClient, *resp.ID, tenantId),
+			Refresh:                   roleAssignmentCreateStateRefreshFunc(ctx, roleAssignmentsClient, id),
 			MinTimeout:                5 * time.Second,
 			ContinuousTargetOccurence: 5,
 			Timeout:                   d.Timeout(pluginsdk.TimeoutCreate),
 		}
 
 		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-			return pluginsdk.NonRetryableError(fmt.Errorf("failed waiting for Role Assignment %q to finish replicating: %+v", name, err))
+			return pluginsdk.NonRetryableError(fmt.Errorf("failed waiting for Role Assignment %s to finish replicating: %+v", id, err))
 		}
 
 		return nil
 	}
 }
 
-type roleAssignmentId struct {
-	scope    string
-	name     string
-	tenantId string
-}
-
-func parseRoleAssignmentId(input string) (*roleAssignmentId, error) {
-	tenantId := ""
-	segments := strings.Split(input, "|")
-	if len(segments) == 2 {
-		tenantId = segments[1]
-		input = segments[0]
-	}
-
-	segments = strings.Split(input, "/providers/Microsoft.Authorization/roleAssignments/")
-	if len(segments) != 2 {
-		return nil, fmt.Errorf("Expected Role Assignment ID to be in the format `{scope}/providers/Microsoft.Authorization/roleAssignments/{name}` but got %q", input)
-	}
-
-	// /{scope}/providers/Microsoft.Authorization/roleAssignments/{roleAssignmentName}
-	id := roleAssignmentId{
-		scope:    strings.TrimPrefix(segments[0], "/"),
-		name:     segments[1],
-		tenantId: tenantId,
-	}
-	return &id, nil
-}
-
-func roleAssignmentCreateStateRefreshFunc(ctx context.Context, client *authorization.RoleAssignmentsClient, roleID string, tenantId string) pluginsdk.StateRefreshFunc {
+func roleAssignmentCreateStateRefreshFunc(ctx context.Context, client *roleassignments.RoleAssignmentsClient, id parse.ScopedRoleAssignmentId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		resp, err := client.GetByID(ctx, roleID, tenantId)
+		options := roleassignments.DefaultGetOperationOptions()
+		if id.TenantId != "" {
+			options.TenantId = pointer.To(id.TenantId)
+		}
+
+		resp, err := client.Get(ctx, id.ScopedId, options)
 		if err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
+			if response.WasNotFound(resp.HttpResponse) {
 				return resp, "pending", nil
 			}
 			return resp, "failed", err

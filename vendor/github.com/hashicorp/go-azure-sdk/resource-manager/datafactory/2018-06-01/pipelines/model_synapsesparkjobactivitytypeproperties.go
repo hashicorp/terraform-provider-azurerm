@@ -5,18 +5,18 @@ package pipelines
 
 type SynapseSparkJobActivityTypeProperties struct {
 	Args                     *[]interface{}                              `json:"args,omitempty"`
-	ClassName                *string                                     `json:"className,omitempty"`
+	ClassName                *interface{}                                `json:"className,omitempty"`
 	Conf                     *interface{}                                `json:"conf,omitempty"`
 	ConfigurationType        *ConfigurationType                          `json:"configurationType,omitempty"`
-	DriverSize               *string                                     `json:"driverSize,omitempty"`
-	ExecutorSize             *string                                     `json:"executorSize,omitempty"`
-	File                     *string                                     `json:"file,omitempty"`
-	Files                    *[]string                                   `json:"files,omitempty"`
-	FilesV2                  *[]string                                   `json:"filesV2,omitempty"`
+	DriverSize               *interface{}                                `json:"driverSize,omitempty"`
+	ExecutorSize             *interface{}                                `json:"executorSize,omitempty"`
+	File                     *interface{}                                `json:"file,omitempty"`
+	Files                    *[]interface{}                              `json:"files,omitempty"`
+	FilesV2                  *[]interface{}                              `json:"filesV2,omitempty"`
 	NumExecutors             *int64                                      `json:"numExecutors,omitempty"`
-	PythonCodeReference      *[]string                                   `json:"pythonCodeReference,omitempty"`
+	PythonCodeReference      *[]interface{}                              `json:"pythonCodeReference,omitempty"`
 	ScanFolder               *bool                                       `json:"scanFolder,omitempty"`
-	SparkConfig              *map[string]string                          `json:"sparkConfig,omitempty"`
+	SparkConfig              *map[string]interface{}                     `json:"sparkConfig,omitempty"`
 	SparkJob                 SynapseSparkJobReference                    `json:"sparkJob"`
 	TargetBigDataPool        *BigDataPoolParametrizationReference        `json:"targetBigDataPool,omitempty"`
 	TargetSparkConfiguration *SparkConfigurationParametrizationReference `json:"targetSparkConfiguration,omitempty"`

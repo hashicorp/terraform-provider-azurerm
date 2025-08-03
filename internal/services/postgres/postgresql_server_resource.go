@@ -21,8 +21,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/serversecurityalertpolicies"
 	"github.com/hashicorp/go-cty/cty"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	pluginSdkValidation "github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -112,14 +110,12 @@ func resourcePostgreSQLServer() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
+		DeprecationMessage: "The `azurerm_postgresql_server` resource is deprecated and will be removed in v5.0 of the AzureRM Provider. Azure Database for PostgreSQL Single Server and its sub resources have been retired as of 2025-03-28, please use the `azurerm_postgresql_flexible_server` resource instead. For more information, see https://techcommunity.microsoft.com/blog/adforpostgresql/retiring-azure-database-for-postgresql-single-server-in-2025/3783783.",
+
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.PostgresqlServerV0ToV1{},
 		}),
-
-		ValidateRawResourceConfigFuncs: []schema.ValidateRawResourceConfigFunc{
-			pluginSdkValidation.PreferWriteOnlyAttribute(cty.GetAttrPath("administrator_login_password"), cty.GetAttrPath("administrator_login_password_wo")),
-		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {

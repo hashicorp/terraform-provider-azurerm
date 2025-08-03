@@ -6,12 +6,12 @@ package pipelines
 type SynapseNotebookActivityTypeProperties struct {
 	Conf                     *interface{}                                `json:"conf,omitempty"`
 	ConfigurationType        *ConfigurationType                          `json:"configurationType,omitempty"`
-	DriverSize               *string                                     `json:"driverSize,omitempty"`
-	ExecutorSize             *string                                     `json:"executorSize,omitempty"`
+	DriverSize               *interface{}                                `json:"driverSize,omitempty"`
+	ExecutorSize             *interface{}                                `json:"executorSize,omitempty"`
 	Notebook                 SynapseNotebookReference                    `json:"notebook"`
 	NumExecutors             *int64                                      `json:"numExecutors,omitempty"`
 	Parameters               *map[string]NotebookParameter               `json:"parameters,omitempty"`
-	SparkConfig              *map[string]string                          `json:"sparkConfig,omitempty"`
+	SparkConfig              *map[string]interface{}                     `json:"sparkConfig,omitempty"`
 	SparkPool                *BigDataPoolParametrizationReference        `json:"sparkPool,omitempty"`
 	TargetSparkConfiguration *SparkConfigurationParametrizationReference `json:"targetSparkConfiguration,omitempty"`
 }

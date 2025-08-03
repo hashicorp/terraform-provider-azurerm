@@ -4,7 +4,7 @@ package pipelines
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ContinuationSettingsReference struct {
-	ContinuationTtlInMinutes *int64  `json:"continuationTtlInMinutes,omitempty"`
-	CustomizedCheckpointKey  *string `json:"customizedCheckpointKey,omitempty"`
-	IdleCondition            *string `json:"idleCondition,omitempty"`
+	ContinuationTtlInMinutes *int64       `json:"continuationTtlInMinutes,omitempty"`
+	CustomizedCheckpointKey  *interface{} `json:"customizedCheckpointKey,omitempty"`
+	IdleCondition            *interface{} `json:"idleCondition,omitempty"`
 }

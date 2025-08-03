@@ -13,23 +13,23 @@ var _ CopySource = SapTableSource{}
 type SapTableSource struct {
 	AdditionalColumns                *interface{}               `json:"additionalColumns,omitempty"`
 	BatchSize                        *int64                     `json:"batchSize,omitempty"`
-	CustomRfcReadTableFunctionModule *string                    `json:"customRfcReadTableFunctionModule,omitempty"`
+	CustomRfcReadTableFunctionModule *interface{}               `json:"customRfcReadTableFunctionModule,omitempty"`
 	PartitionOption                  *interface{}               `json:"partitionOption,omitempty"`
 	PartitionSettings                *SapTablePartitionSettings `json:"partitionSettings,omitempty"`
-	QueryTimeout                     *string                    `json:"queryTimeout,omitempty"`
-	RfcTableFields                   *string                    `json:"rfcTableFields,omitempty"`
-	RfcTableOptions                  *string                    `json:"rfcTableOptions,omitempty"`
+	QueryTimeout                     *interface{}               `json:"queryTimeout,omitempty"`
+	RfcTableFields                   *interface{}               `json:"rfcTableFields,omitempty"`
+	RfcTableOptions                  *interface{}               `json:"rfcTableOptions,omitempty"`
 	RowCount                         *int64                     `json:"rowCount,omitempty"`
 	RowSkips                         *int64                     `json:"rowSkips,omitempty"`
-	SapDataColumnDelimiter           *string                    `json:"sapDataColumnDelimiter,omitempty"`
+	SapDataColumnDelimiter           *interface{}               `json:"sapDataColumnDelimiter,omitempty"`
 
 	// Fields inherited from CopySource
 
-	DisableMetricsCollection *bool   `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64  `json:"maxConcurrentConnections,omitempty"`
-	SourceRetryCount         *int64  `json:"sourceRetryCount,omitempty"`
-	SourceRetryWait          *string `json:"sourceRetryWait,omitempty"`
-	Type                     string  `json:"type"`
+	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *int64       `json:"sourceRetryCount,omitempty"`
+	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
+	Type                     string       `json:"type"`
 }
 
 func (s SapTableSource) CopySource() BaseCopySourceImpl {

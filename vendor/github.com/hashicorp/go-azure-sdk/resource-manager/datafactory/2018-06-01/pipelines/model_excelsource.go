@@ -16,11 +16,11 @@ type ExcelSource struct {
 
 	// Fields inherited from CopySource
 
-	DisableMetricsCollection *bool   `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64  `json:"maxConcurrentConnections,omitempty"`
-	SourceRetryCount         *int64  `json:"sourceRetryCount,omitempty"`
-	SourceRetryWait          *string `json:"sourceRetryWait,omitempty"`
-	Type                     string  `json:"type"`
+	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *int64       `json:"sourceRetryCount,omitempty"`
+	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
+	Type                     string       `json:"type"`
 }
 
 func (s ExcelSource) CopySource() BaseCopySourceImpl {
@@ -66,7 +66,7 @@ func (s *ExcelSource) UnmarshalJSON(bytes []byte) error {
 		DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
 		MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
 		SourceRetryCount         *int64       `json:"sourceRetryCount,omitempty"`
-		SourceRetryWait          *string      `json:"sourceRetryWait,omitempty"`
+		SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
 		Type                     string       `json:"type"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {

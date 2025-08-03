@@ -149,8 +149,28 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `allowed_ips` - The client IP access control list (ACL). This feature is available for [Autonomous Database Serverless] (https://docs.oracle.com/en/cloud/paas/autonomous-database/index.html) and on Exadata Cloud@Customer. Only clients connecting from an IP address included in the ACL may access the Autonomous Database instance. If `arePrimaryWhitelistedIpsUsed` is 'TRUE' then Autonomous Database uses this primary's IP access control list (ACL) for the disaster recovery peer called `standbywhitelistedips`.
 
+* `long_term_backup_schedule` - A `long_term_backup_schedule` block as defined below
+
+---
+
+A `long_term_backup_schedule` blocks exports the following:
+
+* `repeat_cadence` - The frequency for automated long-term backups.
+
+* `time_of_backup` - The date and time in which the backup would be made.
+
+* `retention_period_in_days` - The retention period in days for Autonomous database backup.
+
+* `enabled` -  A boolean value that indicates if long term backup is enabled/disabled.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Autonomous Database.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Oracle.Database` - 2025-03-01

@@ -52,7 +52,7 @@ data "azurerm_monitor_scheduled_query_rules_alert" "test" {
   name                = basename(azurerm_monitor_scheduled_query_rules_alert.test.id)
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, MonitorScheduledQueryRulesResource{}.AlertingActionConfigBasic(data, ts))
+`, MonitorScheduledQueryRulesAlertResource{}.AlertingActionConfigBasic(data, ts))
 }
 
 func (MonitorScheduledQueryRulesDataSource) AlertingActionCrossResourceConfig(data acceptance.TestData) string {
@@ -63,5 +63,5 @@ data "azurerm_monitor_scheduled_query_rules_alert" "test" {
   name                = basename(azurerm_monitor_scheduled_query_rules_alert.test.id)
   resource_group_name = "${azurerm_resource_group.test.name}"
 }
-`, MonitorScheduledQueryRulesResource{}.AlertingActionCrossResourceConfig(data))
+`, MonitorScheduledQueryRulesAlertResource{}.AlertingActionCrossResourceConfig(data))
 }

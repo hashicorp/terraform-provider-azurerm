@@ -12,19 +12,19 @@ var _ CopySource = Office365Source{}
 
 type Office365Source struct {
 	AllowedGroups      *[]string    `json:"allowedGroups,omitempty"`
-	DateFilterColumn   *string      `json:"dateFilterColumn,omitempty"`
-	EndTime            *string      `json:"endTime,omitempty"`
+	DateFilterColumn   *interface{} `json:"dateFilterColumn,omitempty"`
+	EndTime            *interface{} `json:"endTime,omitempty"`
 	OutputColumns      *interface{} `json:"outputColumns,omitempty"`
-	StartTime          *string      `json:"startTime,omitempty"`
-	UserScopeFilterUri *string      `json:"userScopeFilterUri,omitempty"`
+	StartTime          *interface{} `json:"startTime,omitempty"`
+	UserScopeFilterUri *interface{} `json:"userScopeFilterUri,omitempty"`
 
 	// Fields inherited from CopySource
 
-	DisableMetricsCollection *bool   `json:"disableMetricsCollection,omitempty"`
-	MaxConcurrentConnections *int64  `json:"maxConcurrentConnections,omitempty"`
-	SourceRetryCount         *int64  `json:"sourceRetryCount,omitempty"`
-	SourceRetryWait          *string `json:"sourceRetryWait,omitempty"`
-	Type                     string  `json:"type"`
+	DisableMetricsCollection *bool        `json:"disableMetricsCollection,omitempty"`
+	MaxConcurrentConnections *int64       `json:"maxConcurrentConnections,omitempty"`
+	SourceRetryCount         *int64       `json:"sourceRetryCount,omitempty"`
+	SourceRetryWait          *interface{} `json:"sourceRetryWait,omitempty"`
+	Type                     string       `json:"type"`
 }
 
 func (s Office365Source) CopySource() BaseCopySourceImpl {

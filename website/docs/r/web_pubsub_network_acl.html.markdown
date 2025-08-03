@@ -95,7 +95,7 @@ A `public_network` block supports the following:
 
 * `denied_request_types` - (Optional) The denied request types for the public network. Possible values are `ClientConnection`, `ServerConnection`, `RESTAPI` and `Trace`.
 
--> **NOTE:** When `default_action` is `Allow`, `allowed_request_types`cannot be set. When `default_action` is `Deny`, `denied_request_types`cannot be set.
+-> **Note:** When `default_action` is `Allow`, `allowed_request_types`cannot be set. When `default_action` is `Deny`, `denied_request_types`cannot be set.
 
 ---
 
@@ -107,7 +107,7 @@ A `private_endpoint` block supports the following:
 
 * `denied_request_types` - (Optional) The denied request types for the Private Endpoint Connection. Possible values are `ClientConnection`, `ServerConnection`, `RESTAPI` and `Trace`.
 
--> **NOTE:** When `default_action` is `Allow`, `allowed_request_types`cannot be set. When `default_action` is `Deny`, `denied_request_types`cannot be set.
+-> **Note:** When `default_action` is `Allow`, `allowed_request_types`cannot be set. When `default_action` is `Deny`, `denied_request_types`cannot be set.
 
 ## Attributes Reference
 
@@ -131,3 +131,9 @@ Network ACLs for a Web Pubsub service can be imported using the `resource id`, e
 ```shell
 terraform import azurerm_web_pubsub_network_acl.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/webPubSub/webpubsub1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.SignalRService` - 2024-03-01

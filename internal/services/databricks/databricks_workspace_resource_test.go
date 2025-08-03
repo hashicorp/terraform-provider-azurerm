@@ -515,6 +515,51 @@ func TestAccDatabricksWorkspace_enhancedComplianceSecurityWithInvalidComplianceS
 	})
 }
 
+// TODO: this test does not yet cover the entire flow. Ideally the test should be:
+//
+// 1. Create workspace
+// 2. Destroy workspace with force delete set to true
+// 3. Check managed resource group is deleted
+//
+// # Not sure yet how to do step 3 as there is no PostDestroy hook in acceptance.TestStep
+//
+// There are certain condition that automatically enables Unity Catalog assignment for newly created workspaces.
+// The "isUcEnabled" prop can be used to determine if workspace has Unity Catalog enabled.
+// See MS doc: https://learn.microsoft.com/en-us/azure/databricks/data-governance/unity-catalog/enable-workspaces
+//
+// The expected behaviour of force deletion with regards to isUcEnabled is as follows:
+//
+// 1. If isUcEnabled is true, forceDeletion set to true, the managed resource group (MRG) will be deleted upon workspace deletion.
+// 2. If isUcEnabled is true, forceDeletion set to false (default), MRG will be left intact.
+// 3. If isUcEnabled is false, MRG will be deleted irrespective of forceDeletion setting.
+func TestAccDatabricksWorkspace_withForceDeleteSetToTrue(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.workspaceForceDelete(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
+func TestAccDatabricksWorkspace_withForceDeleteSetToFalse(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.workspaceForceDelete(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func getDatabricksPrincipalId(subscriptionId string) string {
 	databricksPrincipalID := "bb9ef821-a78b-4312-90cc-5ece3fad3430"
 	if strings.HasPrefix(strings.ToLower(subscriptionId), "85b3dbca") {
@@ -3100,4 +3145,28 @@ resource "azurerm_databricks_workspace" "test" {
   }
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, sku, automaticClusterUpdateEnabled, complianceSecurityProfileEnabled, complianceSecurityProfileStandardsStr, enhancedSecurityMonitoringEnabled)
+}
+
+func (DatabricksWorkspaceResource) workspaceForceDelete(data acceptance.TestData, forceDelete bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    databricks_workspace {
+      force_delete = %t
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-databricks-%d"
+  location = "%s"
+}
+
+resource "azurerm_databricks_workspace" "test" {
+  name                = "acctestDBW-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "premium"
+}
+  `, forceDelete, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

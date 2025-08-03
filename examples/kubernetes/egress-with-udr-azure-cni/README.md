@@ -1,4 +1,4 @@
-## Example: Kubernetes Cluster with Azure CNI and cluster egress using a User-Defined Route
+## Example: Kubernetes Cluster with Azure CNI and cluster egress using a User-Defined Route
 
 This example creates a Kubernetes Cluster with Azure CNI and cluster egress using a User-Defined Route.
 

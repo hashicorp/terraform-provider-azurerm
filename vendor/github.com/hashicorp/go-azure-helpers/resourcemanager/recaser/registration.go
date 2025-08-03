@@ -25,7 +25,7 @@ func KnownResourceIds() map[string]resourceids.ResourceId {
 var resourceIdsWriteLock = &sync.Mutex{}
 
 func init() {
-	//register common ids
+	// register common ids
 	for _, id := range commonids.CommonIds() {
 		RegisterResourceId(id)
 	}

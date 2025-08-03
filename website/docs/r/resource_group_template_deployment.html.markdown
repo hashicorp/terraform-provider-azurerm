@@ -111,7 +111,7 @@ The following arguments are supported:
 
 * `parameters_content` - (Optional) The contents of the ARM Template parameters file - containing a JSON list of parameters.
 
--> An example of how to pass Terraform variables into an ARM Template can be seen in the example.
+-> **Note:** An example of how to pass Terraform variables into an ARM Template can be seen in the example.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Resource Group Template Deployment.
 
@@ -123,7 +123,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `output_content` - The JSON Content of the Outputs of the ARM Template Deployment.
 
--> An example of how to consume ARM Template outputs in Terraform can be seen in the example.
+-> **Note:** An example of how to consume ARM Template outputs in Terraform can be seen in the example.
 
 ## Timeouts
 

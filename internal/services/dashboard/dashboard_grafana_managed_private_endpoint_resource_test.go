@@ -107,7 +107,7 @@ resource "azurerm_dashboard_grafana" "test" {
   name                  = "a-dg-%d"
   resource_group_name   = azurerm_resource_group.test.name
   location              = azurerm_resource_group.test.location
-  grafana_major_version = "10"
+  grafana_major_version = "11"
 }
 
 resource "azurerm_monitor_workspace" "test" {
@@ -166,6 +166,8 @@ resource "azurerm_dashboard_grafana_managed_private_endpoint" "test" {
   }
 
   request_message = "please approve"
+
+  private_link_service_url = "sub.example.com"
 }
 `, template, data.RandomIntOfLength(8))
 }
@@ -188,6 +190,8 @@ resource "azurerm_dashboard_grafana_managed_private_endpoint" "test" {
   }
 
   request_message = "please approve"
+
+  private_link_service_url = "sub.my-domain.com"
 }
 `, template, data.RandomIntOfLength(8))
 }

@@ -68,6 +68,7 @@ type VirtualNetworkRules struct {
 }
 
 type NetworkACLs struct {
+	Bypass              string                `tfschema:"bypass"`
 	DefaultAction       string                `tfschema:"default_action"`
 	IpRules             []string              `tfschema:"ip_rules"`
 	VirtualNetworkRules []VirtualNetworkRules `tfschema:"virtual_network_rules"`
@@ -179,6 +180,15 @@ func (AIServices) Arguments() map[string]*pluginsdk.Schema {
 			RequiredWith: []string{"custom_subdomain_name"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					"bypass": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						Default:  cognitiveservicesaccounts.ByPassSelectionAzureServices,
+						ValidateFunc: validation.StringInSlice(
+							cognitiveservicesaccounts.PossibleValuesForByPassSelection(),
+							false,
+						),
+					},
 					"default_action": {
 						Type:     pluginsdk.TypeString,
 						Required: true,
@@ -737,7 +747,10 @@ func expandNetworkACLs(input []NetworkACLs) (*cognitiveservicesaccounts.NetworkR
 		networkRules = append(networkRules, rule)
 	}
 
+	bypass := cognitiveservicesaccounts.ByPassSelection((v.Bypass))
+
 	ruleSet := cognitiveservicesaccounts.NetworkRuleSet{
+		Bypass:              &bypass,
 		DefaultAction:       &defaultAction,
 		IPRules:             &ipRules,
 		VirtualNetworkRules: &networkRules,
@@ -774,7 +787,8 @@ func flattenNetworkACLs(input *cognitiveservicesaccounts.NetworkRuleSet) []Netwo
 	}
 
 	return []NetworkACLs{{
-		DefaultAction:       string(*input.DefaultAction),
+		Bypass:              string(pointer.From(input.Bypass)),
+		DefaultAction:       string(pointer.From(input.DefaultAction)),
 		IpRules:             ipRules,
 		VirtualNetworkRules: virtualNetworkRules,
 	}}
