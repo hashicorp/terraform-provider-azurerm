@@ -80,6 +80,8 @@ Authentication Problems
    ├─ Check cross-tenant access
    └─ Review guest user permissions
 ```
+---
+[⬆️ Back to top](#troubleshooting-decision-trees)
 
 ## 🔍 Root Cause Analysis Framework
 
@@ -189,6 +191,8 @@ func testAPIEndpoints(ctx context.Context) error {
     return nil
 }
 ```
+---
+[⬆️ Back to top](#troubleshooting-decision-trees)
 
 ## 🚨 Error Diagnostic Patterns
 
@@ -312,6 +316,8 @@ type CheckResult struct {
     Details interface{} `json:"details,omitempty"`
 }
 ```
+---
+[⬆️ Back to top](#troubleshooting-decision-trees)
 
 ## 🔄 State Management Troubleshooting
 
@@ -396,6 +402,8 @@ func reconstructResourceState(ctx context.Context, resourceID string) (map[strin
     return terraformState, nil
 }
 ```
+---
+[⬆️ Back to top](#troubleshooting-decision-trees)
 
 ## 🔧 Implementation Choice Decision Trees
 
@@ -446,6 +454,8 @@ Designing resource schema?
    ├─ Conditional requirements? → Check field existence first
    └─ Performance critical? → Minimize raw config access
 ```
+---
+[⬆️ Back to top](#troubleshooting-decision-trees)
 
 ## 🧪 Testing Strategy Decision Trees
 
@@ -501,6 +511,8 @@ Ready to run tests?
    ├─ Soft-delete considerations
    └─ Billing impact minimized
 ```
+---
+[⬆️ Back to top](#troubleshooting-decision-trees)
 
 ## 📝 Code Quality Decision Trees
 
@@ -566,6 +578,8 @@ Handling Azure API errors?
    ├─ Preserve Azure request ID
    └─ Provide actionable error message
 ```
+---
+[⬆️ Back to top](#troubleshooting-decision-trees)
 
 ## 🔄 Azure Resource Lifecycle Decision Trees
 
@@ -625,6 +639,8 @@ CustomizeDiff validation not working?
    ├─ Edge cases included? → Test boundary conditions
    └─ Azure API constraints validated? → Match actual service behavior
 ```
+---
+[⬆️ Back to top](#troubleshooting-decision-trees)
 
 ## 🔍 Performance Optimization Decision Trees
 
@@ -658,6 +674,8 @@ Performance issues with resource operations?
    ├─ Parallel test conflicts? → Review resource naming/isolation
    └─ CI/CD pipeline slow? → Consider test parallelization
 ```
+---
+[⬆️ Back to top](#troubleshooting-decision-trees)
 
 ## Quick Reference Links
 
