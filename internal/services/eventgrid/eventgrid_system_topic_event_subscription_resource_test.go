@@ -479,7 +479,7 @@ resource "azurerm_storage_queue" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -813,11 +813,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%[1]d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "acctesteventhub-%[1]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
@@ -866,7 +865,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
   advanced_filtering_on_arrays_enabled = true
   event_delivery_schema                = "EventGridSchema"
 
-  azure_function_endpoint {
+  azure_function {
     function_id                       = azurerm_function_app_function.test.id
     max_events_per_batch              = 1
     preferred_batch_size_in_kilobytes = 64
@@ -1051,9 +1050,9 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
   system_topic        = azurerm_eventgrid_system_topic.test.name
   resource_group_name = azurerm_resource_group.test.name
 
-  storage_queue {
+  storage_queue_endpoint {
     storage_account_id = azurerm_storage_account.test.id
-    name               = azurerm_storage_queue.test.name
+    queue_name         = azurerm_storage_queue.test.name
   }
 
   advanced_filtering_on_arrays_enabled = true
@@ -1109,7 +1108,7 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
 
   storage_queue {
     storage_account_id = azurerm_storage_account.test.id
-    queue              = azurerm_storage_queue.test.name
+    name               = azurerm_storage_queue.test.name
   }
 
   advanced_filtering_on_arrays_enabled = true

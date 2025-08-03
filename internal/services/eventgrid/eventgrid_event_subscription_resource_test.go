@@ -690,11 +690,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%[1]d"
-  namespace_id        = azurerm_eventhub_namespace.test.id
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "acctesteventhub-%[1]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {
@@ -726,7 +725,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   scope                                = azurerm_linux_function_app.test.id
   event_delivery_schema                = "EventGridSchema"
 
-  azure_function_endpoint {
+  azure_function {
     function_id                       = azurerm_function_app_function.test.id
     max_events_per_batch              = 1
     preferred_batch_size_in_kilobytes = 64
@@ -1489,11 +1488,10 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%[1]d"
-  namespace_id        = azurerm_eventhub_namespace.test.id
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "acctesteventhub-%[1]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_eventgrid_event_subscription" "test" {

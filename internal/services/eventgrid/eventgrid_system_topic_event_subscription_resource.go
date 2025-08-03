@@ -552,8 +552,8 @@ func resourceEventGridSystemTopicEventSubscriptionRead(d *pluginsdk.ResourceData
 			if err := d.Set("storage_queue", flattenEventSubscriptionDestinationStorageQueue(destination)); err != nil {
 				return fmt.Errorf("setting `storage_queue` for %s: %+v", *id, err)
 			}
-			if err := d.Set("webhook_endpoint", flattenEventSubscriptionWebhook(destination, fullUrlResp.Model)); err != nil {
-				return fmt.Errorf("setting `webhook_endpoint` for %s: %+v", *id, err)
+			if err := d.Set("webhook", flattenEventSubscriptionWebhook(destination, fullUrlResp.Model)); err != nil {
+				return fmt.Errorf("setting `webhook` for %s: %+v", *id, err)
 			}
 			if !features.FivePointOh() {
 				if err := d.Set("azure_function_endpoint", flattenEventSubscriptionDestinationAzureFunction(destination)); err != nil {
