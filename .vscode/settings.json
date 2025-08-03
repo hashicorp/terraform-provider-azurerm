@@ -2,6 +2,7 @@
     "github.copilot.chat.commitMessageGeneration.instructions": [
 { "text": "Provide a concise and clear commit message that summarizes the changes made in the code. For complex changes, include the following details: 1) Specify if the change introduces a breaking change and describe its impact. 2) Highlight any new resources or features added. 3) Mention updates to Azure services or APIs. Aim to keep the message under 72 characters per line for readability." }
     ],
+    "github.copilot.chat.summarizeAgentConversationHistory.enabled": false,
     "github.copilot.chat.reviewSelection.enabled": true,
     "github.copilot.chat.reviewSelection.instructions": [
         {"file": ".github/copilot-instructions.md"},

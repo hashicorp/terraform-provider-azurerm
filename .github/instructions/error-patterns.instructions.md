@@ -7,7 +7,7 @@ description: Error handling patterns and standards for the Terraform AzureRM pro
 
 Error handling patterns and standards for the Terraform AzureRM provider including message formatting, error types, and debugging guidelines.
 
-**Quick navigation:** [🚨 Console Line Wrapping Policy](#🚨-critical-console-line-wrapping-detection-policy-🚨) | [💬 Error Message Standards](#💬-error-message-standards) | [🔍 Error Type Patterns](#🔍-error-type-patterns) | [🐛 Debugging Patterns](#🐛-debugging-patterns) | [🔄 State Management Errors](#🔄-state-management-errors)
+**Quick navigation:** [🚨 Console Line Wrapping Policy](#🚨-critical-console-line-wrapping-detection-policy-🚨) | [💬 Error Message Standards](#💬-error-message-standards) | [🔍 Error Patterns for Typed Resources](#🔍-error-patterns-for-typed-resources) | [🔍 Error Patterns for UnTyped Resources](#🔍-error-patterns-for-untyped-resources) | [🐛 Debugging Patterns](#🐛-debugging-patterns) | [🔄 State Management Errors](#🔄-state-management-errors)
 
 ## 🚨 **CRITICAL: CONSOLE LINE WRAPPING DETECTION POLICY** 🚨**
 
@@ -113,7 +113,7 @@ return fmt.Errorf("field `enabled` can't be disabled once set to true")
 ---
 [⬆️ Back to top](#error-handling-patterns)
 
-## 🔍 Error Type Patterns
+## 🔍 Error Patterns for Typed Resources
 
 ### Typed Resource Error Patterns
 
@@ -141,14 +141,13 @@ if response.WasNotFound(resp.HttpResponse) {
 metadata.SetID(id)
 
 // Use metadata.Encode for state management
-    return metadata.Encode(&model)
-}
+return metadata.Encode(&model)
 ```
 
 ---
 [⬆️ Back to top](#error-handling-patterns)
 
-## 🔍 Error Type Patterns
+## 🔍 Error Patterns for UnTyped Resources
 
 ### UnTyped Resource Error Patterns
 

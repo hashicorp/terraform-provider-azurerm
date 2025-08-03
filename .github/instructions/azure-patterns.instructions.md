@@ -7,7 +7,7 @@ description: Azure-specific implementation patterns for the Terraform AzureRM pr
 
 Azure-specific implementation patterns for the Terraform AzureRM provider including PATCH operations, CustomizeDiff patterns, and Azure SDK integration patterns.
 
-**Quick navigation:** [🔄 PATCH Operations](#🔄-patch-operations) | [✅ CustomizeDiff](#✅-customizediff-validation) | [🔄 Field Removal ForceNew](#field-removal-forcenew-pattern) | [🎯 Schema Flattening](#🎯-schema-flattening) | [🚫 "None" Value Pattern](#🚫-none-value-pattern) | [🔐 Security](#🔐-security-patterns) | [🔄 State Management](#🔄-state-management-with-dgetrawconfig) | [🏗️ Progressive Code Simplification](#🏗️-progressive-code-simplification)
+**Quick navigation:** [🔄 PATCH Operations](#🔄-patch-operations) | [✅ CustomizeDiff](#✅-customizediff-validation) | [🎯 Schema Flattening](#🎯-schema-flattening) | [🚫 "None" Value Pattern](#🚫-none-value-pattern) | [🔐 Security](#🔐-security-patterns) | [🔄 State Management](#🔄-state-management-with-dgetrawconfig) | [🏗️ Progressive Code Simplification](#🏗️-progressive-code-simplification)
 
 ## 🔄 PATCH Operations
 
@@ -148,7 +148,7 @@ When validating optional fields in CustomizeDiff functions, Go's zero value beha
 
 **For comprehensive `GetRawConfig()` usage guidance, see:** [State Management with d.GetRawConfig()](#🔄-state-management-with-dgetrawconfig)
 
-#### Field Removal ForceNew Pattern
+### Field Removal ForceNew Pattern
 
 **Critical Pattern for Fields Removed from Configuration Requiring Resource Recreation:**
 

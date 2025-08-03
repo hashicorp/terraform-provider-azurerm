@@ -7,7 +7,7 @@ description: Testing guidelines for Terraform AzureRM provider Go files - test e
 
 Testing guidelines for Terraform AzureRM provider Go files - test execution protocols, patterns, and Azure-specific considerations.
 
-**Quick navigation:** [🚨 Test Execution Policy](#🚨-critical-test-execution-policy-🚨) | [🚨 Redundant Validation Policy](#🚨-critical-redundant-validation-checks-with-import-step-policy-🚨) | [🧪 Test Types](#🧪-test-types) | [⚡ Essential Patterns](#⚡-essential-test-patterns) | [✅ CustomizeDiff Testing](#✅-customizediff-testing-mandatory) | [📊 Data Source Testing](#📊-data-source-testing-patterns) | [📋 ImportStep Guidelines](#📋-importstep-validation-guidelines) | [🏗️ Test Organization](#🏗️-test-organization-and-placement-rules) | [☁️ Azure-Specific Testing](#☁️-azure-specific-testing-guidelines) | [🔧 Environment Setup](#🔧-environment-setup)
+**Quick navigation:** [🚨 Test Execution Policy](#🚨-critical-test-execution-policy-🚨) | [🚨 Redundant Validation Policy](#🚨-critical-redundant-validation-checks-with-import-step-policy-🚨) | [🧪 Test Types](#🧪-test-types) | [⚡ Essential Patterns](#⚡-essential-test-patterns) | [✅ CustomizeDiff Testing](#✅-customizediff-testing-mandatory) | [📊 Data Source Testing](#📊-data-source-testing-patterns) | [🏗️ Test Organization](#🏗️-test-organization-and-placement-rules) | [☁️ Azure-Specific Testing](#☁️-azure-specific-testing-guidelines) | [🔧 Environment Setup](#🔧-environment-setup)
 
 ## 🚨 CRITICAL: TEST EXECUTION POLICY 🚨
 
@@ -137,6 +137,73 @@ func TestAccCdnFrontDoorProfile_basic(t *testing.T) {
 **Key Distinction:**
 - **Test function names**: Use underscores for logical separation (`_featureGroup_scenario`)
 - **Helper function names**: Use camelCase following Go naming conventions for unexported functions
+
+### Go Testing Patterns
+
+**Table-Driven Tests:**
+```go
+func TestParseResourceID(t *testing.T) {
+    testCases := []struct {
+        name        string
+        input       string
+        expected    ResourceID
+        shouldError bool
+    }{
+        {
+            name:     "valid resource ID",
+            input:    "/subscriptions/12345/resourceGroups/rg1/providers/Microsoft.Service/resources/resource1",
+            expected: ResourceID{SubscriptionID: "12345", ResourceGroup: "rg1", Name: "resource1"},
+            shouldError: false,
+        },
+        {
+            name:        "invalid resource ID",
+            input:       "invalid-id",
+            expected:    ResourceID{},
+            shouldError: true,
+        },
+    }
+
+    for _, tc := range testCases {
+        t.Run(tc.name, func(t *testing.T) {
+            result, err := ParseResourceID(tc.input)
+
+            if tc.shouldError {
+                if err == nil {
+                    t.Errorf("expected error but got none")
+                }
+                return
+            }
+
+            if err != nil {
+                t.Errorf("unexpected error: %v", err)
+                return
+            }
+
+            if !reflect.DeepEqual(result, tc.expected) {
+                t.Errorf("expected %+v, got %+v", tc.expected, result)
+            }
+        })
+    }
+}
+```
+
+**Assertion Patterns:**
+```go
+// Use testify assertions for cleaner test code
+func TestResourceValidation(t *testing.T) {
+    require := require.New(t)
+    assert := assert.New(t)
+
+    // Test setup
+    resource := createTestResource()
+
+    // Assertions
+    require.NotNil(resource)
+    assert.Equal("expected-value", resource.Name)
+    assert.True(resource.Enabled)
+    assert.Contains(resource.Tags, "environment")
+}
+```
 
 ---
 [⬆️ Back to top](#🧪-testing-guidelines)
@@ -285,58 +352,6 @@ func TestAccServiceName_customizeDiffValidation(t *testing.T) {
 ---
 [⬆️ Back to top](#🧪-testing-guidelines)
 
-## Go Testing Patterns
-
-#### Table-Driven Tests
-```go
-func TestParseResourceID(t *testing.T) {
-    testCases := []struct {
-        name        string
-        input       string
-        expected    *ResourceId
-        expectError bool
-    }{        {
-            name:  "valid resource ID",
-            input: "/subscriptions/12345/resourceGroups/rg1/providers/Microsoft.Cdn/profiles/profile1",
-            expected: &ResourceId{
-                SubscriptionId: "12345",
-                ResourceGroup:  "rg1",
-                Name:          "profile1",
-            },
-            expectError: false,
-        },
-        {
-            name:        "invalid resource ID",
-            input:       "invalid-id",
-            expected:    nil,
-            expectError: true,
-        },
-    }
-
-    for _, tc := range testCases {
-        t.Run(tc.name, func(t *testing.T) {
-            result, err := ParseResourceID(tc.input)
-            if tc.expectError {
-                require.Error(t, err)
-                return
-            }
-            require.NoError(t, err)
-            require.Equal(t, tc.expected, result)
-        })
-    }
-}
-```
-
-### Assertion Patterns
-- Use `require.NoError(t, err)` for errors that should stop test execution
-- Use `assert.Error(t, err)` for expected errors that shouldn't stop execution
-- Use `require.Equal(t, expected, actual)` for value comparisons
-- Use `require.NotNil(t, result)` or `require.Nil(t, result)` for nil checks
-- Use `require.True(t, condition)` or `require.False(t, condition)` for boolean conditions
-
----
-[⬆️ Back to top](#🧪-testing-guidelines)
-
 ## Acceptance Testing Patterns
 
 ### Basic Resource Test
@@ -460,42 +475,6 @@ check.That(data.ResourceName).Key("endpoint").Exists(),
 check.That(data.ResourceName).Key("log_scrubbing_rule.#").HasValue("2"),
 check.That(data.ResourceName).Key("log_scrubbing_rule.0.match_variable").HasValue("QueryStringArgNames"),
 ```
----
-[⬆️ Back to top](#🧪-testing-guidelines)
-
-## 📋 ImportStep Validation Guidelines
-
-When using `data.ImportStep()` in acceptance tests, most field validation checks are **redundant** because ImportStep automatically validates that the resource can be imported and that all field values match between the configuration and the imported state.
-
-**🚨 CRITICAL RULE: DO NOT ADD REDUNDANT FIELD VALIDATION CHECKS**
-
-**MANDATORY Pattern - Only ExistsInAzure Check:**
-```go
-func TestAccCdnFrontDoorProfile_basic(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
-    r := CdnFrontDoorProfileResource{}
-
-    data.ResourceTest(t, r, []acceptance.TestStep{
-        {
-            Config: r.basic(data),
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r), // ONLY THIS CHECK - verifies resource exists
-                // FORBIDDEN: check.That(data.ResourceName).Key("name").HasValue(...) - ImportStep validates this
-                // FORBIDDEN: check.That(data.ResourceName).Key("sku_name").HasValue(...) - ImportStep validates this
-                // FORBIDDEN: check.That(data.ResourceName).Key("field").HasValue(...) - ImportStep validates this
-            ),
-        },
-        data.ImportStep(), // Automatically validates ALL configured field values
-    })
-}
-```
-
-**Key Principles:**
-- **ImportStep handles field validation**: Don't duplicate validation of configured field values
-- **Keep only ExistsInAzure**: Essential for verifying resource creation/existence
-- **Add checks sparingly**: Only for behavior that ImportStep cannot verify
-- **Document rationale**: Comment why additional checks are needed when used
-
 ---
 [⬆️ Back to top](#🧪-testing-guidelines)
 
