@@ -109,4 +109,4 @@ terraform import azurerm_machine_learning_workspace_network_outbound_rule_fqdn.e
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.MachineLearningServices` - 2025-06-01
+* `Microsoft.MachineLearningServices` - 2024-04-01
