@@ -1,4 +1,4 @@
-package managednetwork
+package workspaces
 
 import (
 	"encoding/json"
@@ -16,9 +16,11 @@ type OutboundRule interface {
 var _ OutboundRule = BaseOutboundRuleImpl{}
 
 type BaseOutboundRuleImpl struct {
-	Category *RuleCategory `json:"category,omitempty"`
-	Status   *RuleStatus   `json:"status,omitempty"`
-	Type     RuleType      `json:"type"`
+	Category         *RuleCategory `json:"category,omitempty"`
+	ErrorInformation *string       `json:"errorInformation,omitempty"`
+	ParentRuleNames  *[]string     `json:"parentRuleNames,omitempty"`
+	Status           *RuleStatus   `json:"status,omitempty"`
+	Type             RuleType      `json:"type"`
 }
 
 func (s BaseOutboundRuleImpl) OutboundRule() BaseOutboundRuleImpl {

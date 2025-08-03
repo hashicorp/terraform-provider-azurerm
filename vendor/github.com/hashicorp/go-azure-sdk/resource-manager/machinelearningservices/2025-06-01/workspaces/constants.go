@@ -94,6 +94,47 @@ func parseEncryptionStatus(input string) (*EncryptionStatus, error) {
 	return &out, nil
 }
 
+type FirewallSku string
+
+const (
+	FirewallSkuBasic    FirewallSku = "Basic"
+	FirewallSkuStandard FirewallSku = "Standard"
+)
+
+func PossibleValuesForFirewallSku() []string {
+	return []string{
+		string(FirewallSkuBasic),
+		string(FirewallSkuStandard),
+	}
+}
+
+func (s *FirewallSku) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseFirewallSku(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseFirewallSku(input string) (*FirewallSku, error) {
+	vals := map[string]FirewallSku{
+		"basic":    FirewallSkuBasic,
+		"standard": FirewallSkuStandard,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := FirewallSku(input)
+	return &out, nil
+}
+
 type IsolationMode string
 
 const (
@@ -135,6 +176,47 @@ func parseIsolationMode(input string) (*IsolationMode, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := IsolationMode(input)
+	return &out, nil
+}
+
+type ManagedNetworkKind string
+
+const (
+	ManagedNetworkKindVOne ManagedNetworkKind = "V1"
+	ManagedNetworkKindVTwo ManagedNetworkKind = "V2"
+)
+
+func PossibleValuesForManagedNetworkKind() []string {
+	return []string{
+		string(ManagedNetworkKindVOne),
+		string(ManagedNetworkKindVTwo),
+	}
+}
+
+func (s *ManagedNetworkKind) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseManagedNetworkKind(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseManagedNetworkKind(input string) (*ManagedNetworkKind, error) {
+	vals := map[string]ManagedNetworkKind{
+		"v1": ManagedNetworkKindVOne,
+		"v2": ManagedNetworkKindVTwo,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ManagedNetworkKind(input)
 	return &out, nil
 }
 
@@ -464,14 +546,20 @@ func parseRuleCategory(input string) (*RuleCategory, error) {
 type RuleStatus string
 
 const (
-	RuleStatusActive   RuleStatus = "Active"
-	RuleStatusInactive RuleStatus = "Inactive"
+	RuleStatusActive       RuleStatus = "Active"
+	RuleStatusDeleting     RuleStatus = "Deleting"
+	RuleStatusFailed       RuleStatus = "Failed"
+	RuleStatusInactive     RuleStatus = "Inactive"
+	RuleStatusProvisioning RuleStatus = "Provisioning"
 )
 
 func PossibleValuesForRuleStatus() []string {
 	return []string{
 		string(RuleStatusActive),
+		string(RuleStatusDeleting),
+		string(RuleStatusFailed),
 		string(RuleStatusInactive),
+		string(RuleStatusProvisioning),
 	}
 }
 
@@ -490,8 +578,11 @@ func (s *RuleStatus) UnmarshalJSON(bytes []byte) error {
 
 func parseRuleStatus(input string) (*RuleStatus, error) {
 	vals := map[string]RuleStatus{
-		"active":   RuleStatusActive,
-		"inactive": RuleStatusInactive,
+		"active":       RuleStatusActive,
+		"deleting":     RuleStatusDeleting,
+		"failed":       RuleStatusFailed,
+		"inactive":     RuleStatusInactive,
+		"provisioning": RuleStatusProvisioning,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
@@ -590,5 +681,49 @@ func parseSkuTier(input string) (*SkuTier, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := SkuTier(input)
+	return &out, nil
+}
+
+type SystemDatastoresAuthMode string
+
+const (
+	SystemDatastoresAuthModeAccessKey         SystemDatastoresAuthMode = "AccessKey"
+	SystemDatastoresAuthModeIdentity          SystemDatastoresAuthMode = "Identity"
+	SystemDatastoresAuthModeUserDelegationSAS SystemDatastoresAuthMode = "UserDelegationSAS"
+)
+
+func PossibleValuesForSystemDatastoresAuthMode() []string {
+	return []string{
+		string(SystemDatastoresAuthModeAccessKey),
+		string(SystemDatastoresAuthModeIdentity),
+		string(SystemDatastoresAuthModeUserDelegationSAS),
+	}
+}
+
+func (s *SystemDatastoresAuthMode) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseSystemDatastoresAuthMode(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseSystemDatastoresAuthMode(input string) (*SystemDatastoresAuthMode, error) {
+	vals := map[string]SystemDatastoresAuthMode{
+		"accesskey":         SystemDatastoresAuthModeAccessKey,
+		"identity":          SystemDatastoresAuthModeIdentity,
+		"userdelegationsas": SystemDatastoresAuthModeUserDelegationSAS,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := SystemDatastoresAuthMode(input)
 	return &out, nil
 }

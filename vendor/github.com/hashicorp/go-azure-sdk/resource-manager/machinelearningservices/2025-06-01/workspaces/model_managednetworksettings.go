@@ -9,25 +9,34 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ManagedNetworkSettings struct {
-	IsolationMode *IsolationMode                 `json:"isolationMode,omitempty"`
-	NetworkId     *string                        `json:"networkId,omitempty"`
-	OutboundRules *map[string]OutboundRule       `json:"outboundRules,omitempty"`
-	Status        *ManagedNetworkProvisionStatus `json:"status,omitempty"`
+	FirewallPublicIPAddress *string                        `json:"firewallPublicIpAddress,omitempty"`
+	FirewallSku             *FirewallSku                   `json:"firewallSku,omitempty"`
+	IsolationMode           *IsolationMode                 `json:"isolationMode,omitempty"`
+	ManagedNetworkKind      *ManagedNetworkKind            `json:"managedNetworkKind,omitempty"`
+	NetworkId               *string                        `json:"networkId,omitempty"`
+	OutboundRules           *map[string]OutboundRule       `json:"outboundRules,omitempty"`
+	Status                  *ManagedNetworkProvisionStatus `json:"status,omitempty"`
 }
 
 var _ json.Unmarshaler = &ManagedNetworkSettings{}
 
 func (s *ManagedNetworkSettings) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		IsolationMode *IsolationMode                 `json:"isolationMode,omitempty"`
-		NetworkId     *string                        `json:"networkId,omitempty"`
-		Status        *ManagedNetworkProvisionStatus `json:"status,omitempty"`
+		FirewallPublicIPAddress *string                        `json:"firewallPublicIpAddress,omitempty"`
+		FirewallSku             *FirewallSku                   `json:"firewallSku,omitempty"`
+		IsolationMode           *IsolationMode                 `json:"isolationMode,omitempty"`
+		ManagedNetworkKind      *ManagedNetworkKind            `json:"managedNetworkKind,omitempty"`
+		NetworkId               *string                        `json:"networkId,omitempty"`
+		Status                  *ManagedNetworkProvisionStatus `json:"status,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
+	s.FirewallPublicIPAddress = decoded.FirewallPublicIPAddress
+	s.FirewallSku = decoded.FirewallSku
 	s.IsolationMode = decoded.IsolationMode
+	s.ManagedNetworkKind = decoded.ManagedNetworkKind
 	s.NetworkId = decoded.NetworkId
 	s.Status = decoded.Status
 
