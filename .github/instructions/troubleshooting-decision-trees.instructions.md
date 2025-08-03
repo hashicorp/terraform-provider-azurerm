@@ -409,6 +409,10 @@ func reconstructResourceState(ctx context.Context, resourceID string) (map[strin
 - 🏢 **Provider Guidelines**: [provider-guidelines.instructions.md](./provider-guidelines.instructions.md)
 - 📐 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md)
 - 📋 **Code Clarity**: [code-clarity-enforcement.instructions.md](./code-clarity-enforcement.instructions.md)
+
+### 🚀 Enhanced Guidance Files
+
+- 🔄 **API Evolution**: [api-evolution-patterns.instructions.md](./api-evolution-patterns.instructions.md)
 - ⚡ **Performance**: [performance-optimization.instructions.md](./performance-optimization.instructions.md)
 - 🔐 **Security**: [security-compliance.instructions.md](./security-compliance.instructions.md)
 

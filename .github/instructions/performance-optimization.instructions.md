@@ -340,5 +340,11 @@ func processLargeDataset(ctx context.Context, dataSource DataSource) error {
 - 📐 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md)
 - 📋 **Code Clarity**: [code-clarity-enforcement.instructions.md](./code-clarity-enforcement.instructions.md)
 
+### 🚀 Enhanced Guidance Files
+
+- 🔄 **API Evolution**: [api-evolution-patterns.instructions.md](./api-evolution-patterns.instructions.md)
+- 🔐 **Security**: [security-compliance.instructions.md](./security-compliance.instructions.md)
+- 🔧 **Troubleshooting**: [troubleshooting-decision-trees.instructions.md](./troubleshooting-decision-trees.instructions.md)
+
 ---
 [⬆️ Back to top](#performance-optimization-guide)

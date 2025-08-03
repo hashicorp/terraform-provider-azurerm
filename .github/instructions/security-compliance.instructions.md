@@ -413,7 +413,12 @@ func validateGDPRCompliance(resource interface{}) error {
 - 🏢 **Provider Guidelines**: [provider-guidelines.instructions.md](./provider-guidelines.instructions.md)
 - 📐 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md)
 - 📋 **Code Clarity**: [code-clarity-enforcement.instructions.md](./code-clarity-enforcement.instructions.md)
+
+### 🚀 Enhanced Guidance Files
+
+- 🔄 **API Evolution**: [api-evolution-patterns.instructions.md](./api-evolution-patterns.instructions.md)
 - ⚡ **Performance**: [performance-optimization.instructions.md](./performance-optimization.instructions.md)
+- 🔧 **Troubleshooting**: [troubleshooting-decision-trees.instructions.md](./troubleshooting-decision-trees.instructions.md)
 
 ---
 [⬆️ Back to top](#security--compliance-patterns)

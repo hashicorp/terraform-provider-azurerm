@@ -25,6 +25,15 @@ Welcome to the instruction file system for the Terraform AzureRM provider. These
 | [📚 **Documentation Guidelines**](./documentation-guidelines.instructions.md) | **Documentation standards for resources and data sources** | Resource vs data source patterns, example standards, field documentation |
 | [🏢 **Provider Guidelines**](./provider-guidelines.instructions.md) | **Azure-specific provider patterns and integration guidelines** | ARM integration, client management, Azure service constraints |
 
+### 🚀 **Enhanced Guidance Files**
+
+| Guide | Purpose | Key Content |
+|-------|---------|-------------|
+| [🔄 **API Evolution**](./api-evolution-patterns.instructions.md) | **API evolution and versioning patterns** | Version management, backward compatibility, migration strategies, deprecation management |
+| [⚡ **Performance**](./performance-optimization.instructions.md) | **Performance optimization and efficiency guidelines** | Azure API efficiency, resource management optimization, monitoring patterns, scalability |
+| [🔐 **Security**](./security-compliance.instructions.md) | **Security and compliance patterns** | Input validation, credential management, security best practices, compliance requirements |
+| [🔧 **Troubleshooting**](./troubleshooting-decision-trees.instructions.md) | **Troubleshooting decision trees and diagnostic patterns** | Common issues resolution, root cause analysis, error diagnostics, state management troubleshooting |
+
 ---
 [⬆️ Back to top](#🚀-terraform-azurerm-provider---development-guidelines)
 
@@ -42,6 +51,9 @@ Welcome to the instruction file system for the Terraform AzureRM provider. These
 - **Specific Tasks**: Use the purpose column above to find the most relevant guide
 - **Migration Work**: Start with [🔄 Migration Guide](./migration-guide.instructions.md) for implementation approach changes
 - **Policy Enforcement**: Reference [📋 Code Clarity Enforcement](./code-clarity-enforcement.instructions.md) for code review standards
+- **Performance Issues**: Use [⚡ Performance](./performance-optimization.instructions.md) for optimization guidance
+- **Security Reviews**: Reference [🔐 Security](./security-compliance.instructions.md) for security pattern compliance
+- **Troubleshooting**: Use [🔧 Troubleshooting](./troubleshooting-decision-trees.instructions.md) for systematic issue resolution
 
 ### For Code Reviews
 - **Comment Policy**: [📋 Code Clarity Enforcement](./code-clarity-enforcement.instructions.md) - **CRITICAL**: Zero tolerance for unnecessary comments
@@ -80,6 +92,13 @@ Welcome to the instruction file system for the Terraform AzureRM provider. These
 - 🏢 **Provider Guidelines**: [provider-guidelines.instructions.md](./provider-guidelines.instructions.md)
 - 📐 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md)
 - 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
+
+### 🚀 Enhanced Guidance Files
+
+- 🔄 **API Evolution**: [api-evolution-patterns.instructions.md](./api-evolution-patterns.instructions.md)
+- ⚡ **Performance**: [performance-optimization.instructions.md](./performance-optimization.instructions.md)
+- 🔐 **Security**: [security-compliance.instructions.md](./security-compliance.instructions.md)
+- 🔧 **Troubleshooting**: [troubleshooting-decision-trees.instructions.md](./troubleshooting-decision-trees.instructions.md)
 
 ---
 

@@ -141,9 +141,9 @@ pluginsdk.ForceNewIfChange("resilient_vm_creation_enabled", func(ctx context.Con
 }),
 ```
 
-**AVOID - Verbose boolean comparisons:**
+**FORBIDDEN - Verbose boolean comparisons:**
 ```go
-// AVOID - Verbose expressions that trigger gosimple linting errors
+// FORBIDDEN - Verbose expressions that trigger gosimple linting errors
 return fieldExists && old.(bool) == true && new.(bool) == false
 ```
 

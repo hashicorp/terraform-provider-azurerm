@@ -95,35 +95,6 @@ func TestAccCdnFrontDoorProfile_basic(t *testing.T) {
 }
 ```
 
-**EXTREMELY RARE Exceptions - Only for Special Cases:**
-Additional validation checks are **FORBIDDEN** except in these extremely rare circumstances:
-
-1. **Computed Field Verification**: Testing computed values that aren't in the configuration
-2. **Complex Behavior Validation**: Testing TypeSet deduplication, ordering, or transformation logic
-3. **Azure API-Specific Behavior**: Testing Azure service-specific transformations
-
-**⚠️ WARNING: If you add check.That(data.ResourceName).Key() for configured fields, you are violating the guidelines and creating redundant validation.**
-
-**Example - Valid Additional Checks:**
-```go
-func TestAccCdnFrontDoorProfile_logScrubbing_withDuplicateScrubbingRules(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
-    r := CdnFrontDoorProfileResource{}
-
-    data.ResourceTest(t, r, []acceptance.TestStep{
-        {
-            Config: r.logScrubbingDuplicateScrubbingRules(data),
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r),
-                // VALID: Testing TypeSet deduplication behavior - not simple field validation
-                check.That(data.ResourceName).Key("log_scrubbing_rule.#").HasValue("1"),
-            ),
-        },
-        data.ImportStep(), // Still validates all other field values
-    })
-}
-```
-
 **Key Principles:**
 - **ImportStep handles field validation**: Don't duplicate validation of configured field values
 - **Keep only ExistsInAzure**: Essential for verifying resource creation/existence
@@ -494,8 +465,6 @@ check.That(data.ResourceName).Key("log_scrubbing_rule.0.match_variable").HasValu
 
 ## 📋 ImportStep Validation Guidelines
 
-### Redundant Validation Checks with ImportStep
-
 When using `data.ImportStep()` in acceptance tests, most field validation checks are **redundant** because ImportStep automatically validates that the resource can be imported and that all field values match between the configuration and the imported state.
 
 **🚨 CRITICAL RULE: DO NOT ADD REDUNDANT FIELD VALIDATION CHECKS**
@@ -521,35 +490,6 @@ func TestAccCdnFrontDoorProfile_basic(t *testing.T) {
 }
 ```
 
-**EXTREMELY RARE Exceptions - Only for Special Cases:**
-Additional validation checks are **FORBIDDEN** except in these extremely rare circumstances:
-
-1. **Computed Field Verification**: Testing computed values that aren't in the configuration
-2. **Complex Behavior Validation**: Testing TypeSet deduplication, ordering, or transformation logic
-3. **Azure API-Specific Behavior**: Testing Azure service-specific transformations
-
-**⚠️ WARNING: If you add check.That(data.ResourceName).Key() for configured fields, you are violating the guidelines and creating redundant validation.**
-
-**Example - Valid Additional Checks:**
-```go
-func TestAccCdnFrontDoorProfile_logScrubbing_withDuplicateScrubbingRules(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
-    r := CdnFrontDoorProfileResource{}
-
-    data.ResourceTest(t, r, []acceptance.TestStep{
-        {
-            Config: r.logScrubbingDuplicateScrubbingRules(data),
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r),
-                // VALID: Testing TypeSet deduplication behavior - not simple field validation
-                check.That(data.ResourceName).Key("log_scrubbing_rule.#").HasValue("1"),
-            ),
-        },
-        data.ImportStep(), // Still validates all other field values
-    })
-}
-```
-
 **Key Principles:**
 - **ImportStep handles field validation**: Don't duplicate validation of configured field values
 - **Keep only ExistsInAzure**: Essential for verifying resource creation/existence
@@ -562,11 +502,10 @@ func TestAccCdnFrontDoorProfile_logScrubbing_withDuplicateScrubbingRules(t *test
 ## 🏗️ Test Organization and Placement Rules
 
 ### Acceptance Test File Structure
-- **Test function placement**: All test functions must be placed before the `Exists` function in the test file. This ensures a consistent structure across test files, making it easier to locate and understand test cases. Additionally, placing test functions first improves readability by prioritizing the main test logic over helper functions.
-- **Helper function placement**: Test configuration helper functions should be placed after the `Exists` function to separate them from the main test logic and maintain a clean structure.
-- **No duplicate functions**: Remove any duplicate or old test functions to maintain clean file structure.
-- **Consistent ordering**: Place tests in logical order (basic, update, requires import, other scenarios).
-- **Exceptions for complex scenarios**: In cases where helper functions or dependencies are required earlier in the file for complex test scenarios, it is acceptable to deviate from this rule. Developers should document the rationale for such deviations within the code to ensure clarity for future maintainers.
+- **Test function placement**: All test functions must be placed before the `Exists` function in the test file
+- **Helper function placement**: Test configuration helper functions should be placed after the `Exists` function
+- **No duplicate functions**: Remove any duplicate or old test functions to maintain clean file structure
+- **Consistent ordering**: Place tests in logical order (basic, update, requires import, other scenarios)
 
 ### Test Case Consolidation Standards
 
@@ -582,145 +521,7 @@ func TestAccCdnFrontDoorProfile_logScrubbing_withDuplicateScrubbingRules(t *test
 - Redundant validation tests that don't add value
 - Over-testing obvious functionality
 
-**Example of Proper Test Organization:**
-```go
-package cdn_test
-
-// ESSENTIAL TESTS - Keep these
-func TestAccCdnFrontDoorProfile_basic(t *testing.T) { ... }
-func TestAccCdnFrontDoorProfile_update(t *testing.T) { ... }
-func TestAccCdnFrontDoorProfile_requiresImport(t *testing.T) { ... }
-
-// FEATURE-SPECIFIC TESTS - Only if testing complex features
-func TestAccCdnFrontDoorProfile_logScrubbing(t *testing.T) { ... }
-
-// Exists function - SEPARATOR between tests and helpers
-func (CdnFrontDoorProfileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) { ... }
-
-// Helper functions - AFTER Exists function
-func (r CdnFrontDoorProfileResource) basic(data acceptance.TestData) string { ... }
-func (r CdnFrontDoorProfileResource) requiresImport(data acceptance.TestData) string { ... }
-```
-
-### Test Configuration Consolidation
-
-**Consolidate Multiple Examples into Single, Comprehensive Examples:**
-
-**PREFERRED - Single Comprehensive Example:**
-```go
-func (r CdnFrontDoorProfileResource) complete(data acceptance.TestData) string {
-    return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cdn-%d"
-  location = "%s"
-}
-
-resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                     = "acctestcdnfd-%d"
-  resource_group_name      = azurerm_resource_group.test.name
-  sku_name                = "Premium_AzureFrontDoor"
-  response_timeout_seconds = 120
-
-  scrubbing_rule {
-    match_variable = "QueryStringArgNames"
-    operator       = "Equals"
-    selector       = "secret"
-  }
-
-  scrubbing_rule {
-    match_variable = "RequestIPAddress"
-    operator       = "EqualsAny"
-  }
-
-  tags = {
-    environment = "Production"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-```
-
-**AVOID - Multiple Separate Examples:**
-```go
-// Don't create separate functions for minor variations
-func (r CdnFrontDoorProfileResource) withTimeout(data acceptance.TestData) string { ... }
-func (r CdnFrontDoorProfileResource) withTags(data acceptance.TestData) string { ... }
-func (r CdnFrontDoorProfileResource) withScrubbing(data acceptance.TestData) string { ... }
-```
-
-### Test Configuration Standards
-- **Azure value validation**: Only use valid Azure service values in test configurations
-- **SDK constant alignment**: Test values should match Azure SDK constants and API documentation
-- **Cross-resource consistency**: When testing similar features across resources, use consistent value patterns
-
-### Field Rename Testing Requirements
-
-When implementing field renames for better descriptive naming, comprehensive testing across all affected files is mandatory:
-
-**Field Rename Testing Checklist:**
-- **Resource implementation**: Update field name in schema definition and all references
-- **Data source implementation**: Ensure consistency between resource and data source field names
-- **Test configurations**: Update all test helper functions to use the new field name
-- **Documentation**: Update website documentation with new field name and examples
-- **Import functionality**: Verify that resource import still works correctly after field rename
-- **State compatibility**: Ensure that existing Terraform state remains compatible
-
-**Example Field Rename Pattern:**
-```go
-// BEFORE - Generic field name
-"scrubbing_rule": {
-    Type:     pluginsdk.TypeSet,
-    Optional: true,
-    Elem: &pluginsdk.Resource{
-        Schema: map[string]*pluginsdk.Schema{
-            "match_variable": {
-                Type:     pluginsdk.TypeString,
-                Required: true,
-            },
-        },
-    },
-},
-
-// AFTER - Descriptive field name
-"log_scrubbing_rule": {
-    Type:     pluginsdk.TypeSet,
-    Optional: true,
-    Elem: &pluginsdk.Resource{
-        Schema: map[string]*pluginsdk.Schema{
-            "match_variable": {
-                Type:     pluginsdk.TypeString,
-                Required: true,
-            },
-        },
-    },
-},
-```
-
-**Field Rename Validation Testing:**
-```go
-func TestAccCdnFrontDoorProfile_logScrubbingRuleFieldRename(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
-    r := CdnFrontDoorProfileResource{}
-
-    data.ResourceTest(t, r, []acceptance.TestStep{
-        {
-            Config: r.withLogScrubbingRule(data),
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r),
-            ),
-        },
-        data.ImportStep(), // Verify import works with new field name
-    })
-}
-```
----
-[⬆️ Back to top](#🧪-testing-guidelines)
-
-## Cross-Implementation Consistency Requirements
+### Cross-Implementation Consistency Requirements
 
 When working with related Azure resources that have both Linux and Windows variants (like VMSS), ensure validation logic and behavior consistency:
 
@@ -730,32 +531,6 @@ When working with related Azure resources that have both Linux and Windows varia
 - **Error messages**: Use identical error message patterns across related implementations
 - **Default behavior**: Ensure both implementations handle defaults and omitted fields identically
 
-**Documentation Consistency:**
-- **Cross-reference checks**: When updating documentation for one variant, verify the other variant's documentation
-- **Field descriptions**: Use identical descriptions for shared fields across resource variants
-- **Note blocks**: Apply the same conditional logic notes to both implementations
-- **Examples**: Ensure examples demonstrate the same patterns across variants
-
-**Testing Consistency:**
-- **Test coverage parity**: Both implementations should have equivalent test scenarios
-- **Naming conventions**: Use parallel naming patterns (`Linux...` vs `Windows...`)
-- **Helper function patterns**: Use consistent camelCase naming for test helper functions
-- **Configuration templates**: Maintain similar test configuration structures
-
-**Example Validation Consistency Pattern:**
-```go
-// Linux VMSS validation - must match Windows behavior
-if diff.Get("sku_profile_allocation_strategy").(string) == string(compute.AllocationStrategyLowestPrice) ||
-   diff.Get("sku_profile_allocation_strategy").(string) == string(compute.AllocationStrategyPrioritized) {
-    // rank field validation logic must be identical
-}
-
-// Windows VMSS validation - must match Linux behavior
-if diff.Get("sku_profile_allocation_strategy").(string) == string(compute.AllocationStrategyLowestPrice) ||
-   diff.Get("sku_profile_allocation_strategy").(string) == string(compute.AllocationStrategyPrioritized) {
-    // rank field validation logic must be identical
-}
-```
 ---
 [⬆️ Back to top](#🧪-testing-guidelines)
 
@@ -782,7 +557,7 @@ func (r ServiceNameResource) Exists(ctx context.Context, clients *clients.Client
 }
 ```
 
-**UnTyped Resource Resource Existence Check:**
+**UnTyped Resource Existence Check:**
 ```go
 func (CdnFrontDoorProfileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
     id, err := parse.FrontDoorProfileID(state.ID)
@@ -797,299 +572,6 @@ func (CdnFrontDoorProfileResource) Exists(ctx context.Context, clients *clients.
 
     return utils.Bool(resp.Model != nil), nil
 }
-```
----
-[⬆️ Back to top](#🧪-testing-guidelines)
-
-## Test Configuration Templates
-
-Test configuration templates should be consistent regardless of implementation approach, but the underlying resource structure may differ:
-
-**Typed Resource Test Configuration Example:**
-```go
-func (r ServiceNameResource) basic(data acceptance.TestData) string {
-    return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-servicename-%d"
-  location = "%s"
-}
-
-resource "azurerm_service_name" "test" {
-  name                = "acctest-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku_name           = "Standard"
-
-  tags = {
-    environment = "Production"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-```
-
-**UnTyped Resource Test Configuration Example:**
-```go
-func (CdnFrontDoorProfileResource) basic(data acceptance.TestData) string {
-    return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cdn-%d"
-  location = "%s"
-}
-
-resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctestcdnfd-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Standard_AzureFrontDoor"
-
-  tags = {
-    environment = "Production"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (CdnFrontDoorProfileResource) complete(data acceptance.TestData) string {
-    return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cdn-%d"
-  location = "%s"
-}
-
-resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctestcdnfd-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Premium_AzureFrontDoor"
-
-  response_timeout_seconds = 120
-
-  tags = {
-    environment = "Production"
-    project     = "AccTest"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (CdnFrontDoorProfileResource) updated(data acceptance.TestData) string {
-    return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cdn-%d"
-  location = "%s"
-}
-
-resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctestcdnfd-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name           = "Standard_AzureFrontDoor"
-
-  response_timeout_seconds = 240
-
-  tags = {
-    environment = "Test"
-    project     = "AccTest"
-    updated     = "true"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-```
----
-[⬆️ Back to top](#🧪-testing-guidelines)
-
-## Optional+Computed Schema Fields Testing Requirements
-
-When testing resources with Optional+Computed (O+C) schema fields, **comprehensive testing is mandatory** to ensure correct state management and Azure API integration. O+C fields have complex behavior that requires specific testing patterns.
-
-**Testing Requirements for O+C Fields:**
-- **Initial State Testing**: Verify the field behavior when not explicitly set by the user (should show default value)
-- **Explicit Configuration Testing**: Test behavior when the field is explicitly configured by the user
-- **Computed State Testing**: Verify that Azure-managed state changes are correctly reflected in Terraform
-- **Import State Testing**: Ensure import functionality handles both user-set and Azure-managed states correctly
-- **Backward Compatibility Testing**: Test that existing resources don't show unexpected diffs when upgrading the provider
-- **State Presence Testing**: Verify O+C fields are always present in state regardless of configuration status
-
-**O+C Field Testing Pattern:**
-```go
-func TestAccServiceName_optionalComputedField(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_service_name", "test")
-    r := ServiceNameResource{}
-
-    data.ResourceTest(t, r, []acceptance.TestStep{
-        {
-            // Test initial state - field not explicitly set (should show default)
-            Config: r.withoutOptionalComputedField(data),
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r),
-                // Verify default value is shown in state when field not configured
-                check.That(data.ResourceName).Key("resilient_vm_creation_enabled").HasValue("false"),
-            ),
-        },
-        data.ImportStep(), // Verify import works with Azure-managed default
-        {
-            // Test explicit configuration by user
-            Config: r.withOptionalComputedFieldEnabled(data),
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r),
-                check.That(data.ResourceName).Key("resilient_vm_creation_enabled").HasValue("true"),
-            ),
-        },
-        data.ImportStep(), // Verify import works with user-configured value
-        {
-            // Test that irreversible changes cannot be reverted (if applicable)
-            Config: r.withOptionalComputedFieldDisabled(data),
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r),
-                // For irreversible Azure features, value should remain true
-                check.That(data.ResourceName).Key("resilient_vm_creation_enabled").HasValue("true"),
-            ),
-        },
-        data.ImportStep(), // Verify final state import
-    })
-}
-```
-
-**Azure-Specific O+C Testing Considerations:**
-- **Irreversible Features**: Test that Azure features that cannot be disabled maintain their enabled state
-- **Service Defaults**: Verify that Azure service defaults are correctly detected and preserved
-- **API Behavior Validation**: Ensure tests reflect actual Azure API behavior, not just Terraform logic
-- **Cross-Resource Dependencies**: Test O+C fields that depend on other resource configurations
-
-**Common O+C Testing Scenarios:**
-- **VM Scale Set Resiliency Policies**: Test irreversible enablement behavior
-- **Database High Availability**: Test Azure-managed redundancy settings
-- **Network Security Features**: Test security policies that cannot be downgraded
-- **Backup and Retention Policies**: Test Azure-managed retention configurations
-
-### Default Restoration Testing for O+C Fields
-
-When O+C fields need to restore default values after being removed from configuration, use this specialized testing pattern that validates the three-function approach:
-
-**Complete Default Restoration Test Pattern:**
-```go
-func TestAccServiceName_defaultRestoration(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_service_name", "test")
-    r := ServiceNameResource{}
-
-    data.ResourceTest(t, r, []acceptance.TestStep{
-        {
-            // Step 1: Create resource with explicit non-default values
-            Config: r.withExplicitFieldValues(data),
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r),
-                check.That(data.ResourceName).Key("cookie_expiration_in_minutes").HasValue("60"),
-            ),
-        },
-        data.ImportStep(),
-        {
-            // Step 2: Remove fields from configuration (should show defaults in state)
-            Config: r.withoutOptionalComputedFields(data),
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r),
-                // Verify defaults are shown in state when fields removed from config
-                check.That(data.ResourceName).Key("cookie_expiration_in_minutes").HasValue("30"),
-            ),
-        },
-        data.ImportStep(), // Verify import works with defaults
-        {
-            // Step 3: Re-add explicit values to ensure pattern works both directions
-            Config: r.withExplicitFieldValues(data),
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r),
-                check.That(data.ResourceName).Key("cookie_expiration_in_minutes").HasValue("60"),
-            ),
-        },
-        data.ImportStep(), // Verify final state consistency
-    })
-}
-
-// Test configuration helpers for default restoration pattern
-func (r ServiceNameResource) withExplicitFieldValues(data acceptance.TestData) string {
-    return fmt.Sprintf(`
-// ... base configuration
-resource "azurerm_service_name" "test" {
-  // ... required fields
-  cookie_expiration_in_minutes = 60  // Explicit non-default value
-  // ... other fields
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
-func (r ServiceNameResource) withoutOptionalComputedFields(data acceptance.TestData) string {
-    return fmt.Sprintf(`
-// ... base configuration
-resource "azurerm_service_name" "test" {
-  // ... required fields only
-  // cookie_expiration_in_minutes field REMOVED from configuration
-  // ... other fields
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-```
-
-**Critical Testing Validations for Default Restoration:**
-- **Step 1**: Verify explicit values work correctly
-- **Step 2**: Verify defaults are shown in state when fields removed from configuration
-- **Step 3**: Verify re-addition of explicit values works correctly
-- **Import Testing**: Verify import works at each step of the lifecycle
-- **State Consistency**: Ensure no unexpected diffs between steps
-
-**Key Testing Principles for Three-Function O+C Pattern:**
-- **Read Function Testing**: Verify simple Azure value reading (no config presence logic needed)
-- **Update Function Testing**: Verify default application using GetOk() pattern when fields removed
-- **CustomizeDiff Testing**: Verify O+C persistence handling when fields removed from config
-- **Lifecycle Testing**: Verify complete remove → show defaults → re-add → remove cycle
-- **Edge Case Testing**: Test when Azure already has default values vs non-default values
-- **State Presence**: O+C fields persist in state forever once set for all test steps
-
----
-[⬆️ Back to top](#🧪-testing-guidelines)
-
-## Test Organization and Placement Rules
-
-**Acceptance Test File Structure:**
-- **Test function placement**: All test functions must be placed before the `Exists` function in the test file
-- **Helper function placement**: Test configuration helper functions should be placed after the `Exists` function
-- **No duplicate functions**: Remove any duplicate or old test functions to maintain clean file structure
-- **Consistent ordering**: Place tests in logical order (basic, update, requires import, other scenarios)
-
-**Test Case Consolidation Standards:**
-- **Basic Test**: Core functionality with minimal configuration
-- **Update Test**: Resource update scenarios (only if resource supports updates)
-- **RequiresImport Test**: Import conflict detection
-- **Complete Test**: Full feature demonstration (optional, for complex resources)
-
-**Example of Proper Test Organization:**
-```go
-package cdn_test
-
-// ESSENTIAL TESTS - Keep these
-func TestAccCdnFrontDoorProfile_basic(t *testing.T) { ... }
-func TestAccCdnFrontDoorProfile_update(t *testing.T) { ... }
-func TestAccCdnFrontDoorProfile_requiresImport(t *testing.T) { ... }
-
-// Exists function - SEPARATOR between tests and helpers
-func (CdnFrontDoorProfileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) { ... }
-
-// Helper functions - AFTER Exists function
-func (r CdnFrontDoorProfileResource) basic(data acceptance.TestData) string { ... }
-func (r CdnFrontDoorProfileResource) requiresImport(data acceptance.TestData) string { ... }
 ```
 
 ### Azure Test Cleanup Issues
@@ -1116,19 +598,6 @@ provider "azurerm" {
 - SQL databases with backup protection
 - Any resource blocking normal cleanup
 
-**Template Organization Best Practices:**
-- Create semantic template functions: `templateWithForceDelete`, `templateWithBackupRetention`, etc.
-- Encapsulate provider feature flags within template functions rather than inline
-- Use descriptive names that clearly indicate the template's cleanup behavior
-- Follow existing patterns like `templateWithLocation` for consistency
-
-**Debugging Test Cleanup Issues:**
-1. **Identify the blocking operation**: Look for Azure API errors mentioning protective features
-2. **Understand the root cause**: Auto scale-down during cleanup is often the culprit
-3. **Apply appropriate force delete flags**: Use service-specific provider feature flags
-4. **Create semantic templates**: Organize force delete configurations in reusable template functions
-5. **Test the fix**: Verify that tests can create, update, and **successfully clean up** resources
-
 ---
 [⬆️ Back to top](#🧪-testing-guidelines)
 
@@ -1152,27 +621,14 @@ go test ./internal/services/cdn/...
 # Acceptance tests (MANUAL EXECUTION ONLY)
 make testacc TEST=./internal/services/cdn TESTARGS='-run=TestAccCdnFrontDoorProfile_basic'
 ```
+
+**Common Azure Test Cleanup Issues:**
 - `ResourceGroupBeingDeleted: Cannot perform operation while resource group is being deleted`
 - Scale-down operations blocked due to health monitoring requirements
 - Soft-delete conflicts preventing immediate recreation
 
-**Template Organization Best Practices:**
-- Create semantic template functions: `templateWithForceDelete`, `templateWithBackupRetention`, etc.
-- Encapsulate provider feature flags within template functions rather than inline
-- Use descriptive names that clearly indicate the template's cleanup behavior
-- Follow existing patterns like `templateWithLocation` for consistency
-
-**Debugging Test Cleanup Issues:**
-1. **Identify the blocking operation**: Look for Azure API errors mentioning protective features
-2. **Understand the root cause**: Auto scale-down during cleanup is often the culprit
-3. **Apply appropriate force delete flags**: Use service-specific provider feature flags
-4. **Create semantic templates**: Organize force delete configurations in reusable template functions
-5. **Test the fix**: Verify that tests can create, update, and **successfully clean up** resources
-
 ---
 [⬆️ Back to top](#🧪-testing-guidelines)
-
----
 
 ## Quick Reference Links
 

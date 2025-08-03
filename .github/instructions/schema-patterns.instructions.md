@@ -7,7 +7,7 @@ description: Schema design patterns and validation standards for the Terraform A
 
 Schema design patterns and validation standards for the Terraform AzureRM provider including field types, validation patterns, and Azure-specific schema considerations.
 
-**Quick navigation:** [📋 Schema Types](#📋-schema-type-patterns) | [✅ Validation](#✅-validation-patterns) | [⚙️ Azure Specific](#⚙️-azure-specific-schema-patterns) | [🏗️ Complex Schemas](#🏗️-complex-schema-patterns)
+**Quick navigation:** [📋 Schema Types](#📋-schema-type-patterns) | [✅ Validation](#✅-validation-patterns) | [⚙️ Azure Specific](#⚙️-azure-specific-schema-patterns) | [🏗️ Complex Schemas](#🏗️-complex-schema-patterns) | [🔍 Field Naming](#🔍-field-naming-standards) | [🧪 Testing](#🧪-testing-schema-patterns) | [🔧 Test Helpers](#🔧-test-configuration-helpers)
 
 ## 📋 Schema Type Patterns
 
@@ -597,291 +597,201 @@ func validateAdvancedConfiguration(ctx context.Context, diff *pluginsdk.Resource
     return nil
 }
 ```
+---
+[⬆️ Back to top](#schema-design-patterns)
 
-### Field Removal ForceNew Pattern
+## 🏗️ Complex Schema Patterns
 
-**Critical Pattern for Fields Removed from Configuration Requiring Resource Recreation:**
+### Advanced Schema Patterns
 
-When Azure resources have irreversible configuration changes (like enabling security policies that cannot be disabled), removing the field from Terraform configuration should trigger resource recreation. This requires using `CustomizeDiffShim` with both `SetNew()` and `ForceNew()` to work together.
-
-**Why Both SetNew and ForceNew Are Required:**
-- **SetNew()**: Creates a detectable state change in Terraform's plan showing the field going from `true` → `false`
-- **ForceNew()**: Triggers resource recreation when this change occurs
-- **Plan Visibility**: Terraform must show the field value change to justify the ForceNew action to users
-- **Test Framework**: Acceptance tests require visible state changes to validate ForceNew behavior
-
-**Implementation Pattern:**
 ```go
-pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-    var featureExists, policyExists bool
-
-    // Check if fields exist in the raw configuration (not computed/inferred values)
-    if rawConfig := diff.GetRawConfig(); !rawConfig.IsNull() {
-        featureExists = !rawConfig.AsValueMap()["irreversible_feature_enabled"].IsNull()
-        policyExists = !rawConfig.AsValueMap()["security_policy_enabled"].IsNull()
-    }
-
-    // Only apply ForceNew logic during updates (not during initial creation)
-    if diff.Id() != "" {
-        // Handle irreversible_feature_enabled field removal
-        if !featureExists {
-            // Check if field was previously enabled in state
-            if old, _ := diff.GetChange("irreversible_feature_enabled"); old.(bool) {
-                // CRITICAL: SetNew makes the change visible in Terraform plan
-                // This shows users: irreversible_feature_enabled: true → false
-                if err := diff.SetNew("irreversible_feature_enabled", false); err != nil {
-                    return fmt.Errorf("setting `irreversible_feature_enabled` to `false`: %+v", err)
-                }
-                // ForceNew triggers resource recreation since Azure cannot disable this feature
-                return diff.ForceNew("irreversible_feature_enabled")
-            }
-        }
-
-        // Handle security_policy_enabled field removal (same pattern)
-        if !policyExists {
-            if old, _ := diff.GetChange("security_policy_enabled"); old.(bool) {
-                // Same pattern: make change visible then force recreation
-                if err := diff.SetNew("security_policy_enabled", false); err != nil {
-                    return fmt.Errorf("setting `security_policy_enabled` to `false`: %+v", err)
-                }
-                return diff.ForceNew("security_policy_enabled")
-            }
-        }
-    }
-
-    return nil
-}),
-```
-
-**Azure Use Cases:**
-- **VM Scale Set Resiliency Policies**: Cannot be disabled once enabled
-- **Security Features**: Irreversible security configurations
-- **Compliance Settings**: Audit policies that cannot be downgraded
-- **Performance Tiers**: Service levels that require recreation to reduce
-
-**Key Requirements:**
-- **Irreversible Changes**: Only use for Azure features that cannot be disabled once enabled
-- **Raw Config Detection**: Use `GetRawConfig().AsValueMap()` to detect field presence vs absence in configuration
-- **Update-Only Logic**: Check `diff.Id() != ""` to ensure logic only applies to existing resources, not during creation
-- **State Visibility**: SetNew must be called before ForceNew to create visible plan entry
-- **Error Handling**: SetNew errors should be caught and wrapped with descriptive context
-- **Test Validation**: Tests must verify both the state change and ForceNew trigger
-
-**Common Mistakes to Avoid:**
-- **ForceNew without SetNew**: Plan won't show why recreation is needed - users will be confused by ForceNew without visible changes
-- **SetNew without ForceNew**: State changes but resource doesn't recreate when Azure constraints require it
-- **Missing Error Handling**: SetNew failures can break plan generation if not properly handled
-- **Wrong Field Detection**: Use `GetRawConfig().AsValueMap()[field].IsNull()` to detect field removal, not `diff.Get()`
-- **Creation vs Update**: Apply logic only during updates (`diff.Id() != ""`), not during initial resource creation
-
-### Optional+Computed Field Patterns
-
-**Modern Optional+Computed Implementation for Azure Service Defaults:**
-
-Optional+Computed (O+C) fields handle Azure service defaults gracefully while maintaining user control. This pattern is essential for Azure resources where the service provides intelligent defaults that users may want to override.
-
-**Schema Definition Pattern:**
-```go
-"resilient_vm_creation_enabled": {
-    Type:     pluginsdk.TypeBool,
-    Optional: true,
-    Computed: true,
-},
-
-"cookie_expiration_in_minutes": {
-    Type:         pluginsdk.TypeInt,
-    Optional:     true,
-    Computed:     true,
-    ValidateFunc: validation.IntBetween(1, 43200), // 1 minute to 30 days
-},
-
-"encryption_settings": {
+// Single configuration block
+"configuration": {
     Type:     pluginsdk.TypeList,
     Optional: true,
-    Computed: true,
     MaxItems: 1,
     Elem: &pluginsdk.Resource{
+        Schema: configurationSchema(),
+    },
+},
+
+// Limited multiple items with Azure service constraints
+"log_scrubbing_rule": {
+    Type:     pluginsdk.TypeSet,
+    Optional: true,
+    MaxItems: 3, // Azure service limitation
+    Elem: &pluginsdk.Resource{
+        Schema: scrubbingRuleSchema(),
+    },
+},
+
+// Unlimited items (don't specify MaxItems)
+"network_interface": {
+    Type:     pluginsdk.TypeSet,
+    Optional: true,
+    Elem: &pluginsdk.Resource{
+        Schema: networkInterfaceSchema(),
+    },
+},
+```
+
+### TypeSet vs TypeList Guidelines
+
+**Use TypeSet when:**
+- Order doesn't matter
+- Duplicates should be prevented
+- Items are independent configurations
+
+```go
+"log_scrubbing_rule": {
+    Type:     pluginsdk.TypeSet,
+    MaxItems: 3,
+    Optional: true,
+    Elem: &pluginsdk.Resource{
         Schema: map[string]*pluginsdk.Schema{
-            "enabled": {
-                Type:     pluginsdk.TypeBool,
-                Optional: true,
-                Computed: true,
-            },
-            "key_vault_key_id": {
-                Type:         pluginsdk.TypeString,
-                Optional:     true,
-                ValidateFunc: keyVaultValidate.NestedItemId,
+            "match_variable": {
+                Type:     pluginsdk.TypeString,
+                Required: true,
+                ValidateFunc: validation.StringInSlice(
+                    profiles.PossibleValuesForScrubbingRuleEntryMatchVariable(),
+                    false),
             },
         },
     },
 },
 ```
 
-**Three-Function Implementation Pattern for O+C Fields:**
+**Use TypeList when:**
+- Order matters
+- Duplicates are allowed/meaningful
+- Sequential processing is required
 
-**1. Read Function - Simple Azure Value Reading:**
 ```go
-func (r ServiceResource) Read() sdk.ResourceFunc {
-    return sdk.ResourceFunc{
-        Timeout: 5 * time.Minute,
-        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            // ...existing Azure API call logic...
+"custom_rule": {
+    Type:     pluginsdk.TypeList,
+    Optional: true,
+    Elem: &pluginsdk.Resource{
+        Schema: customRuleSchema(),
+    },
+},
+```
 
-            state := ServiceResourceModel{}
+### Sensitive Field Patterns
 
-            // Simple value assignment - no config presence logic needed
-            if props := resp.Model.Properties; props != nil {
-                state.ResilientVmCreationEnabled = pointer.FromBool(props.ResilientVmCreationEnabled, false)
-                state.CookieExpirationInMinutes = pointer.FromInt32(props.CookieExpirationInMinutes, 30)
+```go
+// Sensitive strings (passwords, keys, secrets)
+"password": {
+    Type:      pluginsdk.TypeString,
+    Required:  true,
+    Sensitive: true,
+},
 
-                if encryptionSettings := props.EncryptionSettings; encryptionSettings != nil {
-                    state.EncryptionSettings = []EncryptionSettingsModel{{
-                        Enabled:       pointer.FromBool(encryptionSettings.Enabled, false),
-                        KeyVaultKeyId: pointer.FromString(encryptionSettings.KeyVaultKeyId, ""),
-                    }}
-                }
-            }
+// Sensitive in state but not in logs
+"connection_string": {
+    Type:      pluginsdk.TypeString,
+    Computed:  true,
+    Sensitive: true,
+},
+```
+---
+[⬆️ Back to top](#schema-design-patterns)
 
-            return metadata.Encode(&state)
+## 🔍 Field Naming Standards
+
+### Descriptive Field Names
+
+```go
+// PREFERRED - Descriptive and clear
+"log_scrubbing_rule": {
+    Type:     pluginsdk.TypeSet,
+    Optional: true,
+    Elem: &pluginsdk.Resource{
+        Schema: map[string]*pluginsdk.Schema{
+            "match_variable": {
+                Type:     pluginsdk.TypeString,
+                Required: true,
+            },
+        },
+    },
+},
+
+// AVOID - Generic or ambiguous names
+"scrubbing_rule": {  // Too generic - what kind of scrubbing?
+    Type:     pluginsdk.TypeSet,
+    Optional: true,
+},
+"rule": {  // Too vague - what kind of rule?
+    Type:     pluginsdk.TypeSet,
+    Optional: true,
+},
+```
+
+### Consistency Across Resources
+
+```go
+// Consistent naming for similar functionality
+"response_timeout_seconds": {
+    Type:         pluginsdk.TypeInt,
+    Optional:     true,
+    ValidateFunc: validation.IntBetween(16, 240),
+},
+
+// Use same pattern across resources
+"connection_timeout_seconds": {
+    Type:         pluginsdk.TypeInt,
+    Optional:     true,
+    ValidateFunc: validation.IntBetween(1, 300),
+},
+```
+
+### Field Ordering Standards
+
+**Arguments Section Ordering:**
+- Required fields first (alphabetical within category)
+- Optional fields second (alphabetical within category)
+- Consistent structure across all resources
+
+**Attributes Section Ordering:**
+- Standard Azure fields first (`id`, `location`, etc.)
+- Service-specific computed fields
+- Complex nested computed structures
+
+```go
+func (r ServiceResource) Arguments() map[string]*pluginsdk.Schema {
+    return map[string]*pluginsdk.Schema{
+        // Required fields first (alphabetical)
+        "location": commonschema.Location(),
+        "name": {
+            Type:         pluginsdk.TypeString,
+            Required:     true,
+            ForceNew:     true,
+            ValidateFunc: validation.StringIsNotEmpty,
+        },
+        "resource_group_name": commonschema.ResourceGroupName(),
+
+        // Optional fields second (alphabetical)
+        "enabled": {
+            Type:     pluginsdk.TypeBool,
+            Optional: true,
+            Default:  true,
+        },
+        "tags": tags.Schema(),
+        "timeout_seconds": {
+            Type:         pluginsdk.TypeInt,
+            Optional:     true,
+            ValidateFunc: validation.IntBetween(1, 3600),
         },
     }
 }
 ```
 
-**2. Update Function - Default Application Using GetOk() Pattern:**
-```go
-func (r ServiceResource) Update() sdk.ResourceFunc {
-    return sdk.ResourceFunc{
-        Timeout: 30 * time.Minute,
-        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            var model ServiceResourceModel
-            if err := metadata.Decode(&model); err != nil {
-                return fmt.Errorf("decoding: %+v", err)
-            }
+---
+[⬆️ Back to top](#schema-design-patterns)
 
-            // Read existing resource to get current values
-            existing, err := client.Get(ctx, id)
-            if err != nil {
-                return fmt.Errorf("retrieving existing %s: %+v", id, err)
-            }
+## 🧪 Testing Schema Patterns
 
-            properties := existing.Model.Properties
+### Advanced Configuration Testing
 
-            // Use GetOk() to detect field presence vs absence in configuration
-            d := metadata.ResourceData
-
-            // Apply user values when configured, preserve existing when removed from config
-            if v, ok := d.GetOk("resilient_vm_creation_enabled"); ok {
-                properties.ResilientVmCreationEnabled = pointer.To(v.(bool))
-            } else {
-                // Field removed from config - apply Azure service default
-                properties.ResilientVmCreationEnabled = pointer.To(false) // Azure default
-            }
-
-            if v, ok := d.GetOk("cookie_expiration_in_minutes"); ok {
-                properties.CookieExpirationInMinutes = pointer.To(int32(v.(int)))
-            } else {
-                // Field removed from config - apply Azure service default
-                properties.CookieExpirationInMinutes = pointer.To(int32(30)) // Azure default
-            }
-
-            if encryptionRaw, ok := d.GetOk("encryption_settings"); ok {
-                encryptionList := encryptionRaw.([]interface{})
-                if len(encryptionList) > 0 && encryptionList[0] != nil {
-                    encryption := encryptionList[0].(map[string]interface{})
-                    properties.EncryptionSettings = &azureapi.EncryptionSettings{
-                        Enabled:       pointer.To(encryption["enabled"].(bool)),
-                        KeyVaultKeyId: pointer.To(encryption["key_vault_key_id"].(string)),
-                    }
-                }
-            } else {
-                // Block removed from config - apply Azure service defaults
-                properties.EncryptionSettings = &azureapi.EncryptionSettings{
-                    Enabled:       pointer.To(false), // Azure default
-                    KeyVaultKeyId: nil,               // Azure default
-                }
-            }
-
-            // Update the resource with new properties
-            if err := client.UpdateThenPoll(ctx, id, azureapi.UpdateParameters{
-                Properties: properties,
-            }); err != nil {
-                return fmt.Errorf("updating %s: %+v", id, err)
-            }
-
-            return nil
-        },
-    }
-}
-```
-
-**3. CustomizeDiff Function - O+C Persistence Handling:**
-```go
-func (r ServiceResource) CustomizeDiff() sdk.ResourceFunc {
-    return sdk.ResourceFunc{
-        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-            d := metadata.ResourceData
-
-            // Handle O+C field persistence when removed from configuration
-            if d.Id() != "" { // Only for existing resources
-                // Check if O+C fields were removed from configuration
-                if !d.GetRawConfig().GetAttr("resilient_vm_creation_enabled").IsNull() {
-                    // Field is present in config - normal validation applies
-                } else {
-                    // Field removed from config - ensure it persists in state with default
-                    oldVal, _ := d.GetChange("resilient_vm_creation_enabled")
-                    if oldVal != nil {
-                        // Keep the field in state showing the default value
-                        d.SetNewComputed("resilient_vm_creation_enabled")
-                    }
-                }
-
-                // Same pattern for other O+C fields
-                if !d.GetRawConfig().GetAttr("cookie_expiration_in_minutes").IsNull() {
-                    // Field is present in config
-                } else {
-                    // Field removed from config
-                    oldVal, _ := d.GetChange("cookie_expiration_in_minutes")
-                    if oldVal != nil {
-                        d.SetNewComputed("cookie_expiration_in_minutes")
-                    }
-                }
-
-                if !d.GetRawConfig().GetAttr("encryption_settings").IsNull() {
-                    // Block is present in config
-                } else {
-                    // Block removed from config
-                    oldVal, _ := d.GetChange("encryption_settings")
-                    if oldVal != nil {
-                        d.SetNewComputed("encryption_settings")
-                    }
-                }
-            }
-
-            return nil
-        },
-    }
-}
-```
-
-**Key Principles for O+C Implementation:**
-- **Read Function**: Simple Azure value reading, no configuration presence logic
-- **Update Function**: Use `GetOk()` to detect field presence and apply defaults when removed
-- **CustomizeDiff**: Ensure O+C fields persist in state when removed from configuration
-- **State Presence**: O+C fields remain in state forever once set, showing current values
-- **Default Restoration**: When fields are removed from config, they show Azure service defaults in state
-- **User Override**: When fields are re-added to config, user values take precedence
-
-**Advanced O+C Testing Requirements:**
-- **Initial State Testing**: Verify defaults appear when fields not configured
-- **Explicit Configuration Testing**: Verify user values override defaults
-- **Default Restoration Testing**: Verify defaults appear when fields removed from config
-- **Import State Testing**: Verify import works with both user-set and default values
-- **State Persistence Testing**: Verify O+C fields never disappear from state once set
-
-### Advanced Testing Patterns for Complex Schemas
-
-**Comprehensive Schema Testing:**
 ```go
 func TestAccResource_advancedConfiguration(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_resource", "test")
@@ -892,7 +802,6 @@ func TestAccResource_advancedConfiguration(t *testing.T) {
             Config: r.advancedConfigurationComplete(data),
             Check: acceptance.ComposeTestCheckFunc(
                 check.That(data.ResourceName).ExistsInAzure(r),
-                // Test hierarchical enable patterns
                 check.That(data.ResourceName).Key("monitoring.0.enabled").HasValue("true"),
                 check.That(data.ResourceName).Key("monitoring.0.metrics.0.enabled").HasValue("true"),
                 check.That(data.ResourceName).Key("monitoring.0.logs.0.enabled").HasValue("true"),
@@ -900,7 +809,6 @@ func TestAccResource_advancedConfiguration(t *testing.T) {
         },
         data.ImportStep(),
         {
-            // Test disabling parent disables children
             Config: r.advancedConfigurationDisabled(data),
             Check: acceptance.ComposeTestCheckFunc(
                 check.That(data.ResourceName).ExistsInAzure(r),
@@ -910,21 +818,11 @@ func TestAccResource_advancedConfiguration(t *testing.T) {
         data.ImportStep(),
     })
 }
+```
 
-// Test SKU dependency validation
-func TestAccResource_advancedConfiguration_skuValidation(t *testing.T) {
-    data := acceptance.BuildTestData(t, "azurerm_resource", "test")
-    r := ResourceResource{}
+### Field Removal ForceNew Testing
 
-    data.ResourceTest(t, r, []acceptance.TestStep{
-        {
-            Config:      r.advancedConfigurationInvalidSku(data),
-            ExpectError: regexp.MustCompile("`advanced_security` is only available with Premium or BusinessCritical SKUs"),
-        },
-    })
-}
-
-// Test field removal ForceNew behavior
+```go
 func TestAccResource_advancedConfiguration_fieldRemovalForceNew(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_resource", "test")
     r := ResourceResource{}
@@ -939,27 +837,27 @@ func TestAccResource_advancedConfiguration_fieldRemovalForceNew(t *testing.T) {
         },
         data.ImportStep(),
         {
-            // Removing irreversible feature should force new resource
             Config:             r.withoutIrreversibleFeature(data),
-            ExpectNonEmptyPlan: true, // ForceNew creates a plan
+            ExpectNonEmptyPlan: true,
             Check: acceptance.ComposeTestCheckFunc(
                 check.That(data.ResourceName).ExistsInAzure(r),
-                // After ForceNew, the field should show false in new resource
                 check.That(data.ResourceName).Key("irreversible_feature_enabled").HasValue("false"),
             ),
         },
         data.ImportStep(),
     })
 }
+```
 
-// Test O+C field default restoration
+### Optional+Computed Field Testing
+
+```go
 func TestAccResource_optionalComputedDefaultRestoration(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_resource", "test")
     r := ResourceResource{}
 
     data.ResourceTest(t, r, []acceptance.TestStep{
         {
-            // Step 1: Create with explicit values
             Config: r.withExplicitOCValues(data),
             Check: acceptance.ComposeTestCheckFunc(
                 check.That(data.ResourceName).ExistsInAzure(r),
@@ -969,18 +867,15 @@ func TestAccResource_optionalComputedDefaultRestoration(t *testing.T) {
         },
         data.ImportStep(),
         {
-            // Step 2: Remove from config (should show defaults)
             Config: r.withoutOCFields(data),
             Check: acceptance.ComposeTestCheckFunc(
                 check.That(data.ResourceName).ExistsInAzure(r),
-                // O+C fields should show Azure service defaults when removed from config
                 check.That(data.ResourceName).Key("cookie_expiration_in_minutes").HasValue("30"),
                 check.That(data.ResourceName).Key("resilient_vm_creation_enabled").HasValue("false"),
             ),
         },
         data.ImportStep(),
         {
-            // Step 3: Re-add explicit values
             Config: r.withExplicitOCValues(data),
             Check: acceptance.ComposeTestCheckFunc(
                 check.That(data.ResourceName).ExistsInAzure(r),
@@ -993,7 +888,10 @@ func TestAccResource_optionalComputedDefaultRestoration(t *testing.T) {
 }
 ```
 
-**Test Configuration Helpers for Advanced Patterns:**
+## 🔧 Test Configuration Helpers
+
+### Advanced Pattern Helpers
+
 ```go
 func (r ResourceResource) withExplicitOCValues(data acceptance.TestData) string {
     return fmt.Sprintf(`
@@ -1091,188 +989,6 @@ resource "azurerm_resource" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 ```
-// Single configuration block
-"configuration": {
-    Type:     pluginsdk.TypeList,
-    Optional: true,
-    MaxItems: 1,
-    Elem: &pluginsdk.Resource{
-        Schema: configurationSchema(),
-    },
-},
-
-// Limited multiple items with Azure service constraints
-"log_scrubbing_rule": {
-    Type:     pluginsdk.TypeSet,
-    Optional: true,
-    MaxItems: 3, // Azure service limitation
-    Elem: &pluginsdk.Resource{
-        Schema: scrubbingRuleSchema(),
-    },
-},
-
-// Unlimited items (don't specify MaxItems)
-"network_interface": {
-    Type:     pluginsdk.TypeSet,
-    Optional: true,
-    Elem: &pluginsdk.Resource{
-        Schema: networkInterfaceSchema(),
-    },
-},
-```
-
-### TypeSet vs TypeList Guidelines
-
-**Use TypeSet when:**
-- Order doesn't matter
-- Duplicates should be prevented
-- Items are independent configurations
-
-```go
-"log_scrubbing_rule": {
-    Type:     pluginsdk.TypeSet,
-    MaxItems: 3,
-    Optional: true,
-    Elem: &pluginsdk.Resource{
-        Schema: map[string]*pluginsdk.Schema{
-            "match_variable": {
-                Type:     pluginsdk.TypeString,
-                Required: true,
-                ValidateFunc: validation.StringInSlice(
-                    profiles.PossibleValuesForScrubbingRuleEntryMatchVariable(),
-                    false),
-            },
-        },
-    },
-},
-```
-
-**Use TypeList when:**
-- Order matters
-- Duplicates are allowed/meaningful
-- Sequential processing is required
-
-```go
-"custom_rule": {
-    Type:     pluginsdk.TypeList,
-    Optional: true,
-    Elem: &pluginsdk.Resource{
-        Schema: customRuleSchema(),
-    },
-},
-```
-
-### Sensitive Field Patterns
-
-```go
-// Sensitive strings (passwords, keys, secrets)
-"password": {
-    Type:      pluginsdk.TypeString,
-    Required:  true,
-    Sensitive: true,
-},
-
-// Sensitive in state but not in logs
-"connection_string": {
-    Type:      pluginsdk.TypeString,
-    Computed:  true,
-    Sensitive: true,
-},
-```
-
-## 🔍 Field Naming Standards
-
-### Descriptive Field Names
-
-```go
-// PREFERRED - Descriptive and clear
-"log_scrubbing_rule": {
-    Type:     pluginsdk.TypeSet,
-    Optional: true,
-    Elem: &pluginsdk.Resource{
-        Schema: map[string]*pluginsdk.Schema{
-            "match_variable": {
-                Type:     pluginsdk.TypeString,
-                Required: true,
-            },
-        },
-    },
-},
-
-// AVOID - Generic or ambiguous names
-"scrubbing_rule": {  // Too generic - what kind of scrubbing?
-    Type:     pluginsdk.TypeSet,
-    Optional: true,
-},
-"rule": {  // Too vague - what kind of rule?
-    Type:     pluginsdk.TypeSet,
-    Optional: true,
-},
-```
-
-### Consistency Across Resources
-
-```go
-// Consistent naming for similar functionality
-"response_timeout_seconds": {
-    Type:         pluginsdk.TypeInt,
-    Optional:     true,
-    ValidateFunc: validation.IntBetween(16, 240),
-},
-
-// Use same pattern across resources
-"connection_timeout_seconds": {
-    Type:         pluginsdk.TypeInt,
-    Optional:     true,
-    ValidateFunc: validation.IntBetween(1, 300),
-},
-```
-
-### Field Ordering Standards
-
-**Arguments Section Ordering:**
-- Required fields first (alphabetical within category)
-- Optional fields second (alphabetical within category)
-- Consistent structure across all resources
-
-**Attributes Section Ordering:**
-- Standard Azure fields first (`id`, `location`, etc.)
-- Service-specific computed fields
-- Complex nested computed structures
-
-```go
-func (r ServiceResource) Arguments() map[string]*pluginsdk.Schema {
-    return map[string]*pluginsdk.Schema{
-        // Required fields first (alphabetical)
-        "location": commonschema.Location(),
-        "name": {
-            Type:         pluginsdk.TypeString,
-            Required:     true,
-            ForceNew:     true,
-            ValidateFunc: validation.StringIsNotEmpty,
-        },
-        "resource_group_name": commonschema.ResourceGroupName(),
-
-        // Optional fields second (alphabetical)
-        "enabled": {
-            Type:     pluginsdk.TypeBool,
-            Optional: true,
-            Default:  true,
-        },
-        "tags": tags.Schema(),
-        "timeout_seconds": {
-            Type:         pluginsdk.TypeInt,
-            Optional:     true,
-            ValidateFunc: validation.IntBetween(1, 3600),
-        },
-    }
-}
-```
-
----
-[⬆️ Back to top](#schema-design-patterns)
-
----
 
 ## Quick Reference Links
 

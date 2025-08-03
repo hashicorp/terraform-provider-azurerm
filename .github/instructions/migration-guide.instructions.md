@@ -557,7 +557,7 @@ NOTES:
 ```
 
 **Migration Guide Entry:**
-```markdown
+````markdown
 # Upgrading to 4.0
 
 ## CDN Front Door Profile Changes
@@ -565,7 +565,7 @@ NOTES:
 ### Field Rename: `scrubbing_rule` → `log_scrubbing_rule`
 
 **Before (v3.x):**
-```go
+```hcl
 resource "azurerm_cdn_frontdoor_profile" "example" {
   scrubbing_rule {
     match_variable = "QueryStringArgNames"
@@ -574,7 +574,7 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
 ```
 
 **After (v4.x):**
-```go
+```hcl
 resource "azurerm_cdn_frontdoor_profile" "example" {
   log_scrubbing_rule {
     match_variable = "QueryStringArgNames"
@@ -586,6 +586,7 @@ resource "azurerm_cdn_frontdoor_profile" "example" {
 1. Update your configuration files to use `log_scrubbing_rule`
 2. Run `terraform plan` to verify changes
 3. Apply the configuration
+````
 
 ### Common Migration Pitfalls
 
