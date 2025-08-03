@@ -69,6 +69,7 @@ func resourceEventHubNamespaceSchemaRegistry() *pluginsdk.Resource {
 				ValidateFunc: validation.StringInSlice([]string{
 					string(schemaregistry.SchemaTypeUnknown),
 					string(schemaregistry.SchemaTypeAvro),
+					"Json",
 				}, false),
 			},
 		},

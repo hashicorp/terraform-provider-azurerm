@@ -68,7 +68,7 @@ The following arguments are supported:
 
 ~> **Note:** The type of Default Node Pool for the Kubernetes Cluster must be `VirtualMachineScaleSets` to attach multiple node pools.
 
-* `vm_size` - (Required) The SKU which should be used for the Virtual Machines used in this Node Pool. Changing this property requires specifying `temporary_name_for_rotation`.
+* `vm_size` - (Optional) The SKU which should be used for the Virtual Machines used in this Node Pool. Changing this property requires specifying `temporary_name_for_rotation`.
 
 ---
 
@@ -212,7 +212,7 @@ A `linux_os_config` block supports the following:
 
 * `transparent_huge_page_defrag` - (Optional) specifies the defrag configuration for Transparent Huge Page. Possible values are `always`, `defer`, `defer+madvise`, `madvise` and `never`. 
 
-* `transparent_huge_page_enabled` - (Optional) Specifies the Transparent Huge Page enabled configuration. Possible values are `always`, `madvise` and `never`.
+* `transparent_huge_page` - (Optional) Specifies the Transparent Huge Page configuration. Possible values are `always`, `madvise` and `never`.
 
 ---
 
@@ -328,10 +328,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Kubernetes Cluster Node Pool.
-* `update` - (Defaults to 60 minutes) Used when updating the Kubernetes Cluster Node Pool.
+* `create` - (Defaults to 1 hour) Used when creating the Kubernetes Cluster Node Pool.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kubernetes Cluster Node Pool.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Kubernetes Cluster Node Pool.
+* `update` - (Defaults to 1 hour) Used when updating the Kubernetes Cluster Node Pool.
+* `delete` - (Defaults to 1 hour) Used when deleting the Kubernetes Cluster Node Pool.
 
 ## Import
 
@@ -340,3 +340,9 @@ Kubernetes Cluster Node Pools can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_kubernetes_cluster_node_pool.pool1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1/agentPools/pool1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ContainerService` - 2025-02-01

@@ -300,13 +300,13 @@ A `data_protection_replication` block is used when enabling the Cross-Region Rep
 
 This block supports the following:
 
-* `remote_volume_location` - (Required) Location of the primary volume.
+* `remote_volume_location` - (Required) Location of the primary volume. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `remote_volume_resource_id` - (Required) Resource ID of the primary volume.
+* `remote_volume_resource_id` - (Required) Resource ID of the primary volume. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `replication_frequency` - (Required) eplication frequency. Possible values are `10minutes`, `daily` and `hourly`.
+* `replication_frequency` - (Required) eplication frequency. Possible values are `10minutes`, `daily` and `hourly`. Changing this forces a new Application Volume Group to be created and data will be lost.
 
-* `endpoint_type` - (Optional) The endpoint type. Possible values are `dst` and `src`. Defaults to `dst`.
+* `endpoint_type` - (Optional) The endpoint type. Possible values are `dst` and `src`. Defaults to `dst`. Changing this forces a new Application Volume Group to be created and data will be lost.
 
 ---
 
@@ -356,3 +356,9 @@ Application Volume Groups can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_netapp_volume_group_sap_hana.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mytest-rg/providers/Microsoft.NetApp/netAppAccounts/netapp-account-test/volumeGroups/netapp-volumegroup-test
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.NetApp` - 2025-01-01

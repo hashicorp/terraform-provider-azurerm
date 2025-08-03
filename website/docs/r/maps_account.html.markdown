@@ -105,8 +105,8 @@ An `identity` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Maps Account.
-* `update` - (Defaults to 30 minutes) Used when updating the Maps Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Maps Account.
+* `update` - (Defaults to 30 minutes) Used when updating the Maps Account.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Maps Account.
 
 ## Import
@@ -116,3 +116,9 @@ A Maps Account can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_maps_account.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Maps/accounts/my-maps-account
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Maps` - 2023-06-01

@@ -69,8 +69,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Front Door Profile.
-* `update` - (Defaults to 30 minutes) Used when updating the Front Door Profile.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Profile.
+* `update` - (Defaults to 30 minutes) Used when updating the Front Door Profile.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Profile.
 
 ## Import
@@ -80,3 +80,9 @@ Front Door Profiles can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_cdn_frontdoor_profile.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Cdn/profiles/myprofile1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Cdn` - 2024-02-01

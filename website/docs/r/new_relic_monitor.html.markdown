@@ -142,7 +142,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 30 minutes) Used when creating the Azure Native New Relic Monitor.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Native New Relic Monitor.
-* `update` - (Defaults to 30 minutes) Used when updating the Azure Native New Relic Monitor.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Azure Native New Relic Monitor.
 
 ## Import
@@ -152,3 +151,9 @@ Azure Native New Relic Monitor can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_new_relic_monitor.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/NewRelic.Observability/monitors/monitor1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `NewRelic.Observability` - 2024-03-01

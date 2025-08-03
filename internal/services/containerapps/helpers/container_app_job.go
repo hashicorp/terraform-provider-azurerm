@@ -535,6 +535,7 @@ func expandContainerJobVolumeMounts(input []ContainerVolumeMount) *[]jobs.Volume
 		volumeMounts = append(volumeMounts, jobs.VolumeMount{
 			MountPath:  pointer.To(v.Path),
 			VolumeName: pointer.To(v.Name),
+			SubPath:    pointer.To(v.SubPath),
 		})
 	}
 
@@ -700,8 +701,9 @@ func flattenContainerJobVolumeMounts(input *[]jobs.VolumeMount) []ContainerVolum
 	result := make([]ContainerVolumeMount, 0)
 	for _, v := range *input {
 		result = append(result, ContainerVolumeMount{
-			Name: pointer.From(v.VolumeName),
-			Path: pointer.From(v.MountPath),
+			Name:    pointer.From(v.VolumeName),
+			Path:    pointer.From(v.MountPath),
+			SubPath: pointer.From(v.SubPath),
 		})
 	}
 

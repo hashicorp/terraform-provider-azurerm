@@ -1,14 +1,14 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-// Terraform Plugin RPC protocol version 6.8
+// Terraform Plugin RPC protocol version 6.9
 //
-// This file defines version 6.8 of the RPC protocol. To implement a plugin
+// This file defines version 6.9 of the RPC protocol. To implement a plugin
 // against this protocol, copy this definition into your own codebase and
 // use protoc to generate stubs for your target language.
 //
 // This file will not be updated. Any minor versions of protocol 6 to follow
-// should copy this file and modify the copy while maintaing backwards
+// should copy this file and modify the copy while maintaining backwards
 // compatibility. Breaking changes, if any are required, will come
 // in a subsequent major version with its own separate proto definition.
 //
@@ -43,10 +43,12 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	Provider_GetMetadata_FullMethodName                     = "/tfplugin6.Provider/GetMetadata"
 	Provider_GetProviderSchema_FullMethodName               = "/tfplugin6.Provider/GetProviderSchema"
+	Provider_GetResourceIdentitySchemas_FullMethodName      = "/tfplugin6.Provider/GetResourceIdentitySchemas"
 	Provider_ValidateProviderConfig_FullMethodName          = "/tfplugin6.Provider/ValidateProviderConfig"
 	Provider_ValidateResourceConfig_FullMethodName          = "/tfplugin6.Provider/ValidateResourceConfig"
 	Provider_ValidateDataResourceConfig_FullMethodName      = "/tfplugin6.Provider/ValidateDataResourceConfig"
 	Provider_UpgradeResourceState_FullMethodName            = "/tfplugin6.Provider/UpgradeResourceState"
+	Provider_UpgradeResourceIdentity_FullMethodName         = "/tfplugin6.Provider/UpgradeResourceIdentity"
 	Provider_ConfigureProvider_FullMethodName               = "/tfplugin6.Provider/ConfigureProvider"
 	Provider_ReadResource_FullMethodName                    = "/tfplugin6.Provider/ReadResource"
 	Provider_PlanResourceChange_FullMethodName              = "/tfplugin6.Provider/PlanResourceChange"
@@ -76,10 +78,16 @@ type ProviderClient interface {
 	// GetSchema returns schema information for the provider, data resources,
 	// and managed resources.
 	GetProviderSchema(ctx context.Context, in *GetProviderSchema_Request, opts ...grpc.CallOption) (*GetProviderSchema_Response, error)
+	// GetResourceIdentitySchemas returns the identity schemas for all managed
+	// resources.
+	GetResourceIdentitySchemas(ctx context.Context, in *GetResourceIdentitySchemas_Request, opts ...grpc.CallOption) (*GetResourceIdentitySchemas_Response, error)
 	ValidateProviderConfig(ctx context.Context, in *ValidateProviderConfig_Request, opts ...grpc.CallOption) (*ValidateProviderConfig_Response, error)
 	ValidateResourceConfig(ctx context.Context, in *ValidateResourceConfig_Request, opts ...grpc.CallOption) (*ValidateResourceConfig_Response, error)
 	ValidateDataResourceConfig(ctx context.Context, in *ValidateDataResourceConfig_Request, opts ...grpc.CallOption) (*ValidateDataResourceConfig_Response, error)
 	UpgradeResourceState(ctx context.Context, in *UpgradeResourceState_Request, opts ...grpc.CallOption) (*UpgradeResourceState_Response, error)
+	// UpgradeResourceIdentityData should return the upgraded resource identity
+	// data for a managed resource type.
+	UpgradeResourceIdentity(ctx context.Context, in *UpgradeResourceIdentity_Request, opts ...grpc.CallOption) (*UpgradeResourceIdentity_Response, error)
 	// ////// One-time initialization, called before other functions below
 	ConfigureProvider(ctx context.Context, in *ConfigureProvider_Request, opts ...grpc.CallOption) (*ConfigureProvider_Response, error)
 	// ////// Managed Resource Lifecycle
@@ -131,6 +139,16 @@ func (c *providerClient) GetProviderSchema(ctx context.Context, in *GetProviderS
 	return out, nil
 }
 
+func (c *providerClient) GetResourceIdentitySchemas(ctx context.Context, in *GetResourceIdentitySchemas_Request, opts ...grpc.CallOption) (*GetResourceIdentitySchemas_Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetResourceIdentitySchemas_Response)
+	err := c.cc.Invoke(ctx, Provider_GetResourceIdentitySchemas_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *providerClient) ValidateProviderConfig(ctx context.Context, in *ValidateProviderConfig_Request, opts ...grpc.CallOption) (*ValidateProviderConfig_Response, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ValidateProviderConfig_Response)
@@ -165,6 +183,16 @@ func (c *providerClient) UpgradeResourceState(ctx context.Context, in *UpgradeRe
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UpgradeResourceState_Response)
 	err := c.cc.Invoke(ctx, Provider_UpgradeResourceState_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *providerClient) UpgradeResourceIdentity(ctx context.Context, in *UpgradeResourceIdentity_Request, opts ...grpc.CallOption) (*UpgradeResourceIdentity_Response, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpgradeResourceIdentity_Response)
+	err := c.cc.Invoke(ctx, Provider_UpgradeResourceIdentity_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -324,10 +352,16 @@ type ProviderServer interface {
 	// GetSchema returns schema information for the provider, data resources,
 	// and managed resources.
 	GetProviderSchema(context.Context, *GetProviderSchema_Request) (*GetProviderSchema_Response, error)
+	// GetResourceIdentitySchemas returns the identity schemas for all managed
+	// resources.
+	GetResourceIdentitySchemas(context.Context, *GetResourceIdentitySchemas_Request) (*GetResourceIdentitySchemas_Response, error)
 	ValidateProviderConfig(context.Context, *ValidateProviderConfig_Request) (*ValidateProviderConfig_Response, error)
 	ValidateResourceConfig(context.Context, *ValidateResourceConfig_Request) (*ValidateResourceConfig_Response, error)
 	ValidateDataResourceConfig(context.Context, *ValidateDataResourceConfig_Request) (*ValidateDataResourceConfig_Response, error)
 	UpgradeResourceState(context.Context, *UpgradeResourceState_Request) (*UpgradeResourceState_Response, error)
+	// UpgradeResourceIdentityData should return the upgraded resource identity
+	// data for a managed resource type.
+	UpgradeResourceIdentity(context.Context, *UpgradeResourceIdentity_Request) (*UpgradeResourceIdentity_Response, error)
 	// ////// One-time initialization, called before other functions below
 	ConfigureProvider(context.Context, *ConfigureProvider_Request) (*ConfigureProvider_Response, error)
 	// ////// Managed Resource Lifecycle
@@ -365,6 +399,9 @@ func (UnimplementedProviderServer) GetMetadata(context.Context, *GetMetadata_Req
 func (UnimplementedProviderServer) GetProviderSchema(context.Context, *GetProviderSchema_Request) (*GetProviderSchema_Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetProviderSchema not implemented")
 }
+func (UnimplementedProviderServer) GetResourceIdentitySchemas(context.Context, *GetResourceIdentitySchemas_Request) (*GetResourceIdentitySchemas_Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetResourceIdentitySchemas not implemented")
+}
 func (UnimplementedProviderServer) ValidateProviderConfig(context.Context, *ValidateProviderConfig_Request) (*ValidateProviderConfig_Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ValidateProviderConfig not implemented")
 }
@@ -376,6 +413,9 @@ func (UnimplementedProviderServer) ValidateDataResourceConfig(context.Context, *
 }
 func (UnimplementedProviderServer) UpgradeResourceState(context.Context, *UpgradeResourceState_Request) (*UpgradeResourceState_Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpgradeResourceState not implemented")
+}
+func (UnimplementedProviderServer) UpgradeResourceIdentity(context.Context, *UpgradeResourceIdentity_Request) (*UpgradeResourceIdentity_Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpgradeResourceIdentity not implemented")
 }
 func (UnimplementedProviderServer) ConfigureProvider(context.Context, *ConfigureProvider_Request) (*ConfigureProvider_Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ConfigureProvider not implemented")
@@ -476,6 +516,24 @@ func _Provider_GetProviderSchema_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Provider_GetResourceIdentitySchemas_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetResourceIdentitySchemas_Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProviderServer).GetResourceIdentitySchemas(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Provider_GetResourceIdentitySchemas_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProviderServer).GetResourceIdentitySchemas(ctx, req.(*GetResourceIdentitySchemas_Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Provider_ValidateProviderConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ValidateProviderConfig_Request)
 	if err := dec(in); err != nil {
@@ -544,6 +602,24 @@ func _Provider_UpgradeResourceState_Handler(srv interface{}, ctx context.Context
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ProviderServer).UpgradeResourceState(ctx, req.(*UpgradeResourceState_Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Provider_UpgradeResourceIdentity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpgradeResourceIdentity_Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ProviderServer).UpgradeResourceIdentity(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Provider_UpgradeResourceIdentity_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ProviderServer).UpgradeResourceIdentity(ctx, req.(*UpgradeResourceIdentity_Request))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -816,6 +892,10 @@ var Provider_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Provider_GetProviderSchema_Handler,
 		},
 		{
+			MethodName: "GetResourceIdentitySchemas",
+			Handler:    _Provider_GetResourceIdentitySchemas_Handler,
+		},
+		{
 			MethodName: "ValidateProviderConfig",
 			Handler:    _Provider_ValidateProviderConfig_Handler,
 		},
@@ -830,6 +910,10 @@ var Provider_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpgradeResourceState",
 			Handler:    _Provider_UpgradeResourceState_Handler,
+		},
+		{
+			MethodName: "UpgradeResourceIdentity",
+			Handler:    _Provider_UpgradeResourceIdentity_Handler,
 		},
 		{
 			MethodName: "ConfigureProvider",

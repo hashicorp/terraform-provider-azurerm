@@ -9,6 +9,44 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
+type AmazonRdsForOracleAuthenticationType string
+
+const (
+	AmazonRdsForOracleAuthenticationTypeBasic AmazonRdsForOracleAuthenticationType = "Basic"
+)
+
+func PossibleValuesForAmazonRdsForOracleAuthenticationType() []string {
+	return []string{
+		string(AmazonRdsForOracleAuthenticationTypeBasic),
+	}
+}
+
+func (s *AmazonRdsForOracleAuthenticationType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseAmazonRdsForOracleAuthenticationType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseAmazonRdsForOracleAuthenticationType(input string) (*AmazonRdsForOracleAuthenticationType, error) {
+	vals := map[string]AmazonRdsForOracleAuthenticationType{
+		"basic": AmazonRdsForOracleAuthenticationTypeBasic,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := AmazonRdsForOracleAuthenticationType(input)
+	return &out, nil
+}
+
 type AmazonRdsForSqlAuthenticationType string
 
 const (
@@ -827,6 +865,47 @@ func parseImpalaAuthenticationType(input string) (*ImpalaAuthenticationType, err
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := ImpalaAuthenticationType(input)
+	return &out, nil
+}
+
+type ImpalaThriftTransportProtocol string
+
+const (
+	ImpalaThriftTransportProtocolBinary ImpalaThriftTransportProtocol = "Binary"
+	ImpalaThriftTransportProtocolHTTP   ImpalaThriftTransportProtocol = "HTTP"
+)
+
+func PossibleValuesForImpalaThriftTransportProtocol() []string {
+	return []string{
+		string(ImpalaThriftTransportProtocolBinary),
+		string(ImpalaThriftTransportProtocolHTTP),
+	}
+}
+
+func (s *ImpalaThriftTransportProtocol) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseImpalaThriftTransportProtocol(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseImpalaThriftTransportProtocol(input string) (*ImpalaThriftTransportProtocol, error) {
+	vals := map[string]ImpalaThriftTransportProtocol{
+		"binary": ImpalaThriftTransportProtocolBinary,
+		"http":   ImpalaThriftTransportProtocolHTTP,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ImpalaThriftTransportProtocol(input)
 	return &out, nil
 }
 

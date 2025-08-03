@@ -123,8 +123,8 @@ An `identity` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 2 hours) Used when creating the Recovery Services Vault.
-* `update` - (Defaults to 60 minutes) Used when updating the Recovery Services Vault.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Recovery Services Vault.
+* `update` - (Defaults to 1 hour) Used when updating the Recovery Services Vault.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Recovery Services Vault.
 
 ## Import
@@ -134,3 +134,9 @@ Recovery Services Vaults can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_recovery_services_vault.vault1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.RecoveryServices/vaults/vault1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.RecoveryServices` - 2024-04-01, 2024-01-01

@@ -135,7 +135,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container App.
-* `update` - (Defaults to 30 minutes) Used when updating the Container App.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container App.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Container App.
 
@@ -146,3 +145,9 @@ A Container App Custom Domain can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_container_app_custom_domain.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.App/containerApps/myContainerApp/customDomainName/mycustomdomain.example.com"
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.App` - 2025-01-01

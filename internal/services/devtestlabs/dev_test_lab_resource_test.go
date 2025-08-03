@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/labs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DevTestLabResource struct{}
@@ -77,7 +77,7 @@ func (DevTestLabResource) Exists(ctx context.Context, clients *clients.Client, s
 		return nil, fmt.Errorf("retrievisng %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil && resp.Model.Properties != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (DevTestLabResource) basic(data acceptance.TestData) string {

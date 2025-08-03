@@ -109,8 +109,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management Authorization Server.
-* `update` - (Defaults to 30 minutes) Used when updating the API Management Authorization Server.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management Authorization Server.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management Authorization Server.
 * `delete` - (Defaults to 30 minutes) Used when deleting the API Management Authorization Server.
 
 ## Import
@@ -120,3 +120,9 @@ API Management Authorization Servers can be imported using the `resource id`, e.
 ```shell
 terraform import azurerm_api_management_authorization_server.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ApiManagement/service/service1/authorizationServers/server1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ApiManagement` - 2022-08-01

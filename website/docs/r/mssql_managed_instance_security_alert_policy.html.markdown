@@ -250,8 +250,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the MS SQL Managed Instance Security Alert Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the MS SQL Managed Instance Security Alert Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the MS SQL Managed Instance Security Alert Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the MS SQL Managed Instance Security Alert Policy.
 * `delete` - (Defaults to 30 minutes) Used when deleting the MS SQL Managed Instance Security Alert Policy.
 
 ## Import
@@ -261,3 +261,9 @@ MS SQL Managed Instance Security Alert Policy can be imported using the `resourc
 ```shell
 terraform import azurerm_mssql_managed_instance_security_alert_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/acceptanceTestResourceGroup1/providers/Microsoft.Sql/managedInstances/instance1/securityAlertPolicies/Default
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Sql` - 2023-08-01-preview

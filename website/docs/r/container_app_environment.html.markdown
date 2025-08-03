@@ -61,6 +61,8 @@ The following arguments are supported:
 
 ~> **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `zone_redundancy_enabled` - (Optional) Should the Container App Environment be created with Zone Redundancy enabled? Defaults to `false`. Changing this forces a new resource to be created.
 
 ~> **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified.
@@ -94,6 +96,14 @@ A `workload_profile` block supports the following:
 * `maximum_count` - (Required) The maximum number of instances of workload profile that can be deployed in the Container App Environment.
 
 * `minimum_count` - (Required) The minimum number of instances of workload profile that can be deployed in the Container App Environment.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) The type of managed identity to assign. Possible values are `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned` (to enable both).
+
+* `identity_ids` - (Optional) - A list of one or more Resource IDs for User Assigned Managed identities to assign. Required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ## Attributes Reference
 
@@ -140,3 +150,11 @@ A Container App Environment can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_container_app_environment.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.App/managedEnvironments/myEnvironment"
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.App` - 2025-01-01
+
+* `Microsoft.OperationalInsights` - 2020-08-01

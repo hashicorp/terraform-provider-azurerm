@@ -135,8 +135,8 @@ An `identity` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Job.
-* `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Job.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics Job.
+* `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Job.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Stream Analytics Job.
 
 ## Import
@@ -146,3 +146,9 @@ Stream Analytics Job's can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_stream_analytics_job.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StreamAnalytics/streamingJobs/job1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.StreamAnalytics` - 2021-10-01-preview, 2020-03-01

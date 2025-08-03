@@ -78,8 +78,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Certificate Issuer.
 * `create` - (Defaults to 30 minutes) Used when creating the Key Vault Certificate Issuer.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Certificate Issuer.
 * `update` - (Defaults to 30 minutes) Used when updating the Key Vault Certificate Issuer.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault Certificate Issuer.
 

@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-07-01/account"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/purview/2021-12-01/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -75,6 +75,13 @@ func testAccPurviewAccount_update(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -161,10 +168,11 @@ provider "azurerm" {
 %s
 
 resource "azurerm_purview_account" "test" {
-  name                   = "acctestpurview%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  public_network_enabled = false
+  name                      = "acctestpurview%d"
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  public_network_enabled    = false
+  managed_event_hub_enabled = false
 
   identity {
     type = "SystemAssigned"
@@ -186,10 +194,11 @@ provider "azurerm" {
 %s
 
 resource "azurerm_purview_account" "test" {
-  name                   = "acctestpurview%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  public_network_enabled = false
+  name                      = "acctestpurview%d"
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  public_network_enabled    = false
+  managed_event_hub_enabled = false
 
   identity {
     type = "SystemAssigned"

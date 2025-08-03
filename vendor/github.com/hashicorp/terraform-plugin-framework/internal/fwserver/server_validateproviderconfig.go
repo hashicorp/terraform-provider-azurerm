@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 )
 
@@ -77,8 +78,17 @@ func (s *Server) ValidateProviderConfig(ctx context.Context, req *ValidateProvid
 		resp.Diagnostics.Append(vpcRes.Diagnostics...)
 	}
 
+	schemaCapabilities := validator.ValidateSchemaClientCapabilities{
+		// The SchemaValidate function is shared between provider, resource,
+		// data source and ephemeral resource schemas; however, WriteOnlyAttributesAllowed
+		// capability is only valid for resource schemas, so this is explicitly set to false
+		// for all other schema types.
+		WriteOnlyAttributesAllowed: false,
+	}
+
 	validateSchemaReq := ValidateSchemaRequest{
-		Config: *req.Config,
+		ClientCapabilities: schemaCapabilities,
+		Config:             *req.Config,
 	}
 	// Instantiate a new response for each request to prevent validators
 	// from modifying or removing diagnostics.

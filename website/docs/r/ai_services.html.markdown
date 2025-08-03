@@ -142,10 +142,10 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the AI Services Account.
-* `update` - (Defaults to 30 minutes) Used when updating the AI Services Account.
+* `create` - (Defaults to 3 hours) Used when creating the AI Services Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the AI Services Account.
-* `delete` - (Defaults to 30 minutes) Used when deleting the AI Services Account.
+* `update` - (Defaults to 3 hours) Used when updating the AI Services Account.
+* `delete` - (Defaults to 3 hours) Used when deleting the AI Services Account.
 
 ## Import
 
@@ -154,3 +154,9 @@ AI Services Account can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_ai_services.account1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.CognitiveServices/accounts/account1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.CognitiveServices` - 2024-10-01

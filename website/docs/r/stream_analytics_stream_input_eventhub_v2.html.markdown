@@ -113,8 +113,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Stream Input EventHub V2.
-* `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Stream Input EventHub V2.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics Stream Input EventHub V2.
+* `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Stream Input EventHub V2.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Stream Analytics Stream Input EventHub V2.
 
 ## Import
@@ -124,3 +124,9 @@ Stream Analytics Stream Input EventHub's can be imported using the `resource id`
 ```shell
 terraform import azurerm_stream_analytics_stream_input_eventhub_v2.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StreamAnalytics/streamingJobs/job1/inputs/input1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.StreamAnalytics` - 2020-03-01

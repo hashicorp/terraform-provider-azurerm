@@ -429,6 +429,14 @@ A `network_interface` block supports the following:
 
 * `ip_configuration` - (Required) One or more `ip_configuration` blocks as defined above.
 
+* `auxiliary_mode` - (Optional) Specifies the auxiliary mode used to enable network high-performance feature on Network Virtual Appliances (NVAs). This feature offers competitive performance in Connections Per Second (CPS) optimization, along with improvements to handling large amounts of simultaneous connections. Possible values are `AcceleratedConnections` and `Floating`.
+
+-> **Note:** `auxiliary_mode` is in **Preview** and requires that the prerequisites are enabled - [more information can be found in the Azure documentation](https://learn.microsoft.com/azure/networking/nva-accelerated-connections#prerequisites).
+
+* `auxiliary_sku` - (Optional) Specifies the SKU used for the network high-performance feature on Network Virtual Appliances (NVAs). Possible values are `A1`, `A2`, `A4` and `A8`.
+
+-> **Note:** `auxiliary_sku` is in **Preview** and requires that the prerequisites are enabled - [more information can be found in the Azure documentation](https://learn.microsoft.com/azure/networking/nva-accelerated-connections#prerequisites).
+
 * `dns_servers` - (Optional) A list of IP Addresses of DNS Servers which should be assigned to the Network Interface.
 
 * `enable_accelerated_networking` - (Optional) Does this Network Interface support Accelerated Networking? Defaults to `false`.
@@ -611,10 +619,10 @@ A `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Windows Virtual Machine Scale Set.
-* `read` - (Defaults to 5 minutes) Used when reading the Windows Virtual Machine Scale Set.
-* `update` - (Defaults to 60 minutes) Used when updating (and rolling the instances of) the Windows Virtual Machine Scale Set (e.g. when changing SKU).
-* `delete` - (Defaults to 60 minutes) Used when deleting the Windows Virtual Machine Scale Set.
+* `create` - (Defaults to 1 hour) Used when creating the Windows Virtual Machine Scale Set.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Windows Virtual Machine Scale Set.
+* `update` - (Defaults to 1 hour) Used when updating the Windows Virtual Machine Scale Set.
+* `delete` - (Defaults to 1 hour) Used when deleting the Windows Virtual Machine Scale Set.
 
 ## Import
 
@@ -623,3 +631,9 @@ Windows Virtual Machine Scale Sets can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_windows_virtual_machine_scale_set.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/virtualMachineScaleSets/scaleset1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Compute` - 2024-11-01

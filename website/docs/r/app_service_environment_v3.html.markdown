@@ -160,8 +160,8 @@ An `inbound_network_dependencies` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 6 hours) Used when creating the 3rd Generation (v3) App Service Environment.
-* `update` - (Defaults to 6 hours) Used when updating the 3rd Generation (v3) App Service Environment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the 3rd Generation (v3) App Service Environment.
+* `update` - (Defaults to 6 hours) Used when updating the 3rd Generation (v3) App Service Environment.
 * `delete` - (Defaults to 6 hours) Used when deleting the 3rd Generation (v3) App Service Environment.
 
 ## Import
@@ -171,3 +171,11 @@ A 3rd Generation (v3) App Service Environment can be imported using the `resourc
 ```shell
 terraform import azurerm_app_service_environment_v3.myAppServiceEnv /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myResourceGroup/providers/Microsoft.Web/hostingEnvironments/myAppServiceEnv
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01
+
+* `Microsoft.Web` - 2023-01-01
