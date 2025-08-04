@@ -1544,7 +1544,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   customer_managed_key {
     key_vault_key_id                     = azurerm_key_vault_key.test.id
     primary_user_assigned_identity_id    = azurerm_user_assigned_identity.test.id
-    geo_backup_key_vault_key_id          = azurerm_key_vault_key.test2.versionless_id
+    geo_backup_key_vault_key_id          = azurerm_key_vault_key.test2.id
     geo_backup_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
   }
 }
