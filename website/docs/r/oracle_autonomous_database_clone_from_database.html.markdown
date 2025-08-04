@@ -135,4 +135,4 @@ terraform import azurerm_oracle_autonomous_database_clone_from_database.example 
 
 ## API Providers
 
-* `Oracle.Database`: 2025-03-01
+* `Oracle.Database` - 2025-03-01
