@@ -84,7 +84,7 @@ func (d ApiManagementWorkspaceDataSource) Read() sdk.ResourceFunc {
 
 			state := ApiManagementWorkspaceDataSourceModel{
 				Name:            workspaceId.WorkspaceId,
-				ApiManagementId: model.ApiManagementId,
+				ApiManagementId: id.ID(),
 			}
 
 			if model := resp.Model; model != nil {
