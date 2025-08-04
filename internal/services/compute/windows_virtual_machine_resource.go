@@ -1842,21 +1842,6 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	if shouldUpdate {
-		if err := client.UpdateThenPoll(ctx, *id, update, virtualmachines.DefaultUpdateOperationOptions()); err != nil {
-			return fmt.Errorf("updating Windows %s: %+v", id, err)
-		}
-	}
-
-	// if we've shut it down and it was turned off, let's boot it back up
-	if shouldTurnBackOn && (shouldShutDown || shouldDeallocate) {
-		log.Printf("[DEBUG] Starting Windows %s", id)
-		if err := client.StartThenPoll(ctx, *id); err != nil {
-			return fmt.Errorf("starting Windows %s: %+v", id, err)
-		}
-		log.Printf("[DEBUG] Started Windows %s", id)
-	}
-
 	if d.HasChange("admin_password_wo_version") {
 		shouldUpdate = true
 
@@ -1872,6 +1857,21 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		if !woPassword.IsNull() {
 			update.Properties.OsProfile.AdminPassword = pointer.To(woPassword.AsString())
 		}
+	}
+
+	if shouldUpdate {
+		if err := client.UpdateThenPoll(ctx, *id, update, virtualmachines.DefaultUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("updating Windows %s: %+v", id, err)
+		}
+	}
+
+	// if we've shut it down and it was turned off, let's boot it back up
+	if shouldTurnBackOn && (shouldShutDown || shouldDeallocate) {
+		log.Printf("[DEBUG] Starting Windows %s", id)
+		if err := client.StartThenPoll(ctx, *id); err != nil {
+			return fmt.Errorf("starting Windows %s: %+v", id, err)
+		}
+		log.Printf("[DEBUG] Started Windows %s", id)
 	}
 
 	return resourceWindowsVirtualMachineRead(d, meta)
