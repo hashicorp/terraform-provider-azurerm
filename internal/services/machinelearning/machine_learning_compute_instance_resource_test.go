@@ -428,7 +428,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[1]d"
+  name                     = substr("acctestsa%[1]d", 0, 24)
   location                 = azurerm_resource_group.test.location
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
@@ -461,5 +461,5 @@ resource "azurerm_machine_learning_compute_instance" "test" {
   node_public_ip_enabled        = false
   subnet_resource_id            = null
 }
-`, data.RandomIntOfLength(8), data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary)
 }
