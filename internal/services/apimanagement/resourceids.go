@@ -45,4 +45,3 @@ package apimanagement
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=Subscription -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/subscriptions/subscription1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=Tag -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/tags/tag1
 //go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=User -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/users/user1
-//go:generate go run ../../tools/generator-resource-id/main.go -path=./ -name=Workspace -id=/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.ApiManagement/service/service1/workspaces/workspace1
