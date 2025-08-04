@@ -1,14 +1,14 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/raipolicies` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/raipolicies` Documentation
 
-The `raipolicies` SDK allows for interaction with Azure Resource Manager `cognitive` (API Version `2024-10-01`).
+The `raipolicies` SDK allows for interaction with Azure Resource Manager `cognitive` (API Version `2025-06-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
 ### Import Path
 
 ```go
-import "github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/raipolicies"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/raipolicies"
 ```
 
 
