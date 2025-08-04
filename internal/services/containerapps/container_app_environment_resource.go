@@ -477,7 +477,7 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("expanding identity: %+v", err)
 				}
-				existing.Model.Identity = ident
+				payload.Identity = ident
 			}
 
 			if metadata.ResourceData.HasChange("workload_profile") {
