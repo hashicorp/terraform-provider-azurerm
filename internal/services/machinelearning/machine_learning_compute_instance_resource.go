@@ -321,35 +321,16 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("ssh", flattenComputeSSHSetting(props.Properties.SshSettings))
 		d.Set("assign_to_user", flattenComputePersonalComputeInstanceSetting(props.Properties.PersonalComputeInstanceSettings))
 
+		// Only save the subnet ID to state if the workspace has a user-assigned subnet, i.e. NOT using managed
+		// networking (i.e. isolation_mode == "Disabled"). If checking the workspace fails, fall back to persisting
+		// the subnet to state.
 		if props.Properties.Subnet != nil {
-			// Only save the subnet to state if the workspace is NOT using managed networking (i.e. isolation_mode = "Disabled")
-			workspace, err := meta.(*clients.Client).MachineLearning.Workspaces.Get(ctx, workspaceId)
-			if err != nil {
-				return err
-			}
-			if workspace.Model == nil {
-				return fmt.Errorf("machine learning %s Workspace: model is nil", id)
-			}
-			if workspace.Model.Location == nil {
-				return fmt.Errorf("machine learning %s Workspace: model `Location` is nil", id)
-			}
-			if workspace.Model.Properties == nil {
-				return fmt.Errorf("machine learning %s Workspace: model `Properties` is nil", id)
-			}
-			if workspace.Model.Properties.ManagedNetwork == nil {
-				return fmt.Errorf("machine learning %s Workspace: model `Properties.ManagedNetwork` is nil", id)
-			}
-			if pointer.From(workspace.Model.Properties.ManagedNetwork.IsolationMode) == workspaces.IsolationModeDisabled {
+			if workspace, err := meta.(*clients.Client).MachineLearning.Workspaces.Get(ctx, workspaceId); err != nil || !hasManagedNetwork(workspace.Model) {
 				d.Set("subnet_resource_id", props.Properties.Subnet.Id)
 			}
 		}
 
-		enableNodePublicIP := true
-		if props.Properties.ConnectivityEndpoints.PublicIPAddress == nil {
-			enableNodePublicIP = false
-		}
-
-		d.Set("node_public_ip_enabled", enableNodePublicIP)
+		d.Set("node_public_ip_enabled", props.Properties.ConnectivityEndpoints != nil && props.Properties.ConnectivityEndpoints.PublicIPAddress != nil)
 	}
 
 	return tags.FlattenAndSet(d, resp.Model.Tags)
@@ -427,4 +408,11 @@ func flattenComputeSSHSetting(settings *machinelearningcomputes.ComputeInstanceS
 			"port":       settings.SshPort,
 		},
 	}
+}
+
+func hasManagedNetwork(workspace *workspaces.Workspace) bool {
+	if workspace == nil || workspace.Properties == nil || workspace.Properties.ManagedNetwork == nil {
+		return false
+	}
+	return pointer.From(workspace.Properties.ManagedNetwork.IsolationMode) == workspaces.IsolationModeDisabled
 }
