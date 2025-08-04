@@ -28,6 +28,7 @@ resource "azurerm_data_protection_backup_vault" "example" {
 
 resource "azurerm_data_protection_backup_policy_blob_storage" "example" {
   name                                   = "example-backup-policy"
+  vault_id                               = azurerm_data_protection_backup_vault.example.id
   operational_default_retention_duration = "P30D"
   vault_default_retention_duration       = "P7D"
 
@@ -114,7 +115,7 @@ A `retention_rule` block supports the following:
 
 A `criteria` block supports the following:
 
-* `absolute_criteria` - (Optional) Possible values are `AllBackup`, `FirstOfDay`, `FirstOfWeek`, `FirstOfMonth` and `FirstOfYear`. These values mean the first successful backup of the day/week/month/year. Changing this forces a new Backup Policy Blob Storage to be created. 
+* `absolute_criteria` - (Optional) Possible values are `AllBackup`, `FirstOfDay`, `FirstOfWeek`, `FirstOfMonth` and `FirstOfYear`. These values mean the first successful backup of the day/week/month/year. Changing this forces a new Backup Policy Blob Storage to be created.
 
 * `days_of_month` - (Optional) Must be between `0` and `28`. `0` for last day within the month. Changing this forces a new Backup Policy Blob Storage to be created.
 
