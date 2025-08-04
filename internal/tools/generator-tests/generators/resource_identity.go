@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package generators
 
 import (
@@ -29,6 +32,7 @@ type resourceIdentityData struct {
 	KnownValueMap      map[string]string
 	CompareValues      string
 	CompareValueMap    map[string]string
+	TestName           string
 }
 
 var _ cli.Command = &ResourceIdentityCommand{}
@@ -53,6 +57,8 @@ Optional args:
 		If the value for a 'known-value' is a CSV, replace the comma with a semi-colon to allow the parser to replace it for you. (see below for a full example)
 	- compare-values [string]
 		'compare-values' specifies resource identity values that do not have a one to one relationship with any values in the schema or state (i.e. the schema references a parent resource id but the resource identity includes the pieces of that parent resource id).
+	- test-name [string]
+		'test-name' specifies the test config name that will be used to test Resource Identity. Defaults to 'basic'.
 
 Example:
 generate-resource-identity -resource-name some_azure_resource -properties "resource_group_name,some_property" -test-params "customSku" -known-values "subscription_id:data.Subscriptions.Primary,kind:someApp;linux" -compare-values "parent_resource_name:parent_resource_id,resource_group_name:parent_resource_id"
@@ -97,6 +103,7 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 	argSet.StringVar(&d.BasicTestParams, "test-params", "", "(Optional) comma separated list of additional properties that need to be passed to the basic test config for this resource.")
 	argSet.StringVar(&d.KnownValues, "known-values", "", "(Optional) comma separated list of known (aka discriminated) value names and their values for this resource type, formatted as [attribute_name]:[attribute value]. e.g. `kind:linux;functionapp,foo:bar`")
 	argSet.StringVar(&d.CompareValues, "compare-values", "", "(Optional) comma separated list of resource identity names that are contained within a schema property value, formatted as [attribute_name]:[attribute value]. e.g. `parent_name:parent_resource_id;resource_group_name,parent_resource_id`")
+	argSet.StringVar(&d.TestName, "test-name", "basic", "(Optional) the name of the config that will be used to test Resource Identity. Defaults to `basic`.")
 
 	if err := argSet.Parse(args); err != nil {
 		errors = append(errors, err)
@@ -107,25 +114,25 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 	switch {
 	case d.ResourceName == "":
 		errors = append(errors, fmt.Errorf("resource name is required"))
-	case d.IdentityProperties == "":
-		errors = append(errors, fmt.Errorf("properties is required"))
 	case d.ServicePackageName == "":
 		errors = append(errors, fmt.Errorf("service-package-path is required"))
 	}
 
 	// d.PropertyNameMap = strings.Split(d.IdentityProperties, ",")
-	d.PropertyNameMap = map[string]string{}
-	propertiesList := strings.Split(d.IdentityProperties, ",")
-	for _, property := range propertiesList {
-		v := strings.Split(property, ":")
-		switch len(v) {
-		case 1:
-			d.PropertyNameMap[v[0]] = v[0]
-		case 2:
-			d.PropertyNameMap[v[0]] = v[1]
-		default:
-			errors = append(errors, fmt.Errorf("invalid property name: %s", property))
-			return
+	if len(d.IdentityProperties) > 0 {
+		d.PropertyNameMap = map[string]string{}
+		propertiesList := strings.Split(d.IdentityProperties, ",")
+		for _, property := range propertiesList {
+			v := strings.Split(property, ":")
+			switch len(v) {
+			case 1:
+				d.PropertyNameMap[v[0]] = v[0]
+			case 2:
+				d.PropertyNameMap[v[0]] = v[1]
+			default:
+				errors = append(errors, fmt.Errorf("invalid property name: %s", property))
+				return
+			}
 		}
 	}
 

@@ -36,7 +36,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_network -service-package-name network -properties "virtual_network_name:name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_network -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 var VirtualNetworkResourceName = "azurerm_virtual_network"
 
@@ -84,6 +84,17 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
+			},
+			DiffSuppressFunc: func(_, old, new string, d *schema.ResourceData) bool {
+				// If `ip_address_pool` is used instead of `address_space` there is a perpetual diff
+				// due to the API returning a CIDR range provisioned by the IP Address Management Pool.
+				// Note: using `GetRawConfig` to avoid suppressing a diff if a user updates from `ip_address_pool` to `address_space`.
+				rawIpAddressPool := d.GetRawConfig().AsValueMap()["ip_address_pool"]
+				if !rawIpAddressPool.IsNull() && len(rawIpAddressPool.AsValueSlice()) > 0 {
+					return true
+				}
+
+				return false
 			},
 		},
 

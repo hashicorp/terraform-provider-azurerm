@@ -37,6 +37,7 @@ resource "azurerm_management_group_policy_set_definition" "example" {
 PARAMETERS
 
   policy_definition_reference {
+    version              = "1.0.*"
     policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/e765b5de-1225-4ba3-bd56-1ac6695af988"
     parameter_values     = <<VALUES
    {
@@ -67,7 +68,7 @@ The following arguments are supported:
 
 * `metadata` - (Optional) The metadata for the Policy Set Definition in JSON format.
 
-* `parameters` - (Optional) The parameters for the Policy Set Definition in JSON format.
+* `parameters` - (Optional) The parameters for the Policy Set Definition in JSON format. Reducing the number of parameters forces a new resource to be created.
 
 * `policy_definition_group` - (Optional) One or more `policy_definition_group` blocks as defined below.
 
@@ -97,6 +98,8 @@ A `policy_definition_reference` block supports the following:
 
 * `reference_id` - (Optional) A unique ID within this Policy Set Definition for this Policy Definition Reference.
 
+* `version` - (Optional) The version of the Policy Definition to use.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
@@ -119,3 +122,9 @@ Policy Set Definitions can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_management_group_policy_set_definition.example /providers/Microsoft.Management/managementGroups/0000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/policySetDefinitions/policySetDefinitionName
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Management` - 2025-01-01
