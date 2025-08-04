@@ -149,7 +149,8 @@ func (r ApiManagementStandaloneGatewayResource) Create() sdk.ResourceFunc {
 				Properties: apigateway.ApiManagementGatewayBaseProperties{
 					VirtualNetworkType: pointer.To(apigateway.VirtualNetworkType(virtualNetworkType)),
 				},
-				Sku: pointer.From(expandGatewaySkuModel(model.Sku)),
+				Sku:  pointer.From(expandGatewaySkuModel(model.Sku)),
+				Tags: pointer.To(model.Tags),
 			}
 
 			if model.BackendSubnetId != "" {
@@ -158,10 +159,6 @@ func (r ApiManagementStandaloneGatewayResource) Create() sdk.ResourceFunc {
 						Id: pointer.To(model.BackendSubnetId),
 					},
 				}
-			}
-
-			if model.Tags != nil {
-				properties.Tags = pointer.To(model.Tags)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, *properties); err != nil {
