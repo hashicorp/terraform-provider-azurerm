@@ -55,7 +55,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ---
 
-A `secret` block supports the following:
+A `secret` block exports the following:
 
 * `identity` - The identity used for accessing the Key Vault.
 
@@ -67,7 +67,7 @@ A `secret` block supports the following:
 
 ---
 
-A `template` block supports the following:
+A `template` block exports the following:
 
 * `init_container` - One or more `init_container` blocks as detailed below.
 
@@ -85,7 +85,7 @@ A `template` block supports the following:
 
 ---
 
-A `volume` block supports the following:
+A `volume` block exports the following:
 
 * `name` - The name of the volume.
 
@@ -97,7 +97,7 @@ A `volume` block supports the following:
 
 ---
 
-A `init_container` block supports the following:
+A `init_container` block exports the following:
 
 * `args` - A list of extra arguments to pass to the container.
 
@@ -119,7 +119,7 @@ A `init_container` block supports the following:
 
 ---
 
-A `container` block supports the following:
+A `container` block exports the following:
 
 * `args` - A list of extra arguments to pass to the container.
 
@@ -147,7 +147,7 @@ A `container` block supports the following:
 
 ---
 
-A `liveness_probe` block supports the following:
+A `liveness_probe` block exports the following:
 
 * `failure_count_threshold` - The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `10`. Defaults to `3`.
 
@@ -169,7 +169,7 @@ A `liveness_probe` block supports the following:
 
 ---
 
-A `header` block supports the following:
+A `header` block exports the following:
 
 * `name` - The HTTP Header Name.
 
@@ -177,7 +177,7 @@ A `header` block supports the following:
 
 ---
 
-An `env` block supports the following:
+An `env` block exports the following:
 
 * `name` - The name of the environment variable for the container.
 
@@ -187,7 +187,7 @@ An `env` block supports the following:
 
 ---
 
-A `readiness_probe` block supports the following:
+A `readiness_probe` block exports the following:
 
 * `failure_count_threshold` - The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.
 
@@ -211,7 +211,7 @@ A `readiness_probe` block supports the following:
 
 ---
 
-A `header` block supports the following:
+A `header` block exports the following:
 
 * `name` - The HTTP Header Name.
 
@@ -219,7 +219,7 @@ A `header` block supports the following:
 
 ---
 
-A `startup_probe` block supports the following:
+A `startup_probe` block exports the following:
 
 * `failure_count_threshold` - The number of consecutive failures required to consider this probe as failed. Possible values are between `1` and `30`. Defaults to `3`.
 
@@ -241,7 +241,7 @@ A `startup_probe` block supports the following:
 
 ---
 
-A `header` block supports the following:
+A `header` block exports the following:
 
 * `name` - The HTTP Header Name.
 
@@ -249,16 +249,17 @@ A `header` block supports the following:
 
 ---
 
-A `volume_mounts` block supports the following:
+A `volume_mounts` block exports the following:
 
 * `name` - The name of the Volume to be mounted in the container.
 
 * `path` - The path in the container at which to mount this volume.
 
 * `sub_path` - The sub path of the volume to be mounted in the container.
+
 ---
 
-An `identity` block supports the following:
+An `identity` block exports the following:
 
 * `type` - The type of managed identity to assign. Possible values are `UserAssigned` and `SystemAssigned`
 
@@ -266,11 +267,13 @@ An `identity` block supports the following:
 
 ---
 
-An `ingress` block supports the following:
+An `ingress` block exports the following:
 
 * `allow_insecure_connections` - Should this ingress allow insecure connections?
 
 * `client_certificate_mode` - The client certificate mode for the Ingress.
+
+* `cors` - A `cors` block as detailed below.
 
 * `custom_domain` - One or more `custom_domain` block as detailed below.
 
@@ -288,7 +291,23 @@ An `ingress` block supports the following:
 
 ---
 
-A `custom_domain` block supports the following:
+A `cors` block exports the following:
+
+* `allowed_origins` - The list of origins that are allowed to make cross-origin calls.
+
+* `allow_credentials_enabled` - Whether user credentials are allowed in the cross-origin request.
+
+* `allowed_headers` - The list of request headers that are permitted in the actual request.
+
+* `allowed_methods` - The list of HTTP methods are allowed when accessing the resource in a cross-origin request.
+
+* `exposed_headers` - The list of headers exposed to the browser in the response to a cross-origin request.
+
+* `max_age_in_seconds` - The number of seconds that the browser can cache the results of a preflight request.
+
+---
+
+A `custom_domain` block exports the following:
 
 * `certificate_binding_type` - The Binding type. Possible values include `Disabled` and `SniEnabled`. Defaults to `Disabled`.
 
@@ -310,7 +329,7 @@ A `ip_security_restriction` block exports the following:
 
 ---
 
-A `traffic_weight` block supports the following:
+A `traffic_weight` block exports the following:
 
 * `label` - The label to apply to the revision as a name prefix for routing traffic.
 
@@ -322,7 +341,7 @@ A `traffic_weight` block supports the following:
 
 ---
 
-A `dapr` block supports the following:
+A `dapr` block exports the following:
 
 * `app_id` - The Dapr Application Identifier.
 
@@ -332,7 +351,7 @@ A `dapr` block supports the following:
 
 ---
 
-A `registry` block supports the following:
+A `registry` block exports the following:
 
 * `server` - The hostname for the Container Registry.
 
@@ -347,3 +366,9 @@ A `registry` block supports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container App.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.App` - 2025-01-01

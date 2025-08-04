@@ -36,6 +36,14 @@ func (s *Server) ReadResource(ctx context.Context, proto6Req *tfprotov6.ReadReso
 		return toproto6.ReadResourceResponse(ctx, fwResp), nil
 	}
 
+	identitySchema, diags := s.FrameworkServer.ResourceIdentitySchema(ctx, proto6Req.TypeName)
+
+	fwResp.Diagnostics.Append(diags...)
+
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.ReadResourceResponse(ctx, fwResp), nil
+	}
+
 	providerMetaSchema, diags := s.FrameworkServer.ProviderMetaSchema(ctx)
 
 	fwResp.Diagnostics.Append(diags...)
@@ -44,7 +52,15 @@ func (s *Server) ReadResource(ctx context.Context, proto6Req *tfprotov6.ReadReso
 		return toproto6.ReadResourceResponse(ctx, fwResp), nil
 	}
 
-	fwReq, diags := fromproto6.ReadResourceRequest(ctx, proto6Req, resource, resourceSchema, providerMetaSchema)
+	resourceBehavior, diags := s.FrameworkServer.ResourceBehavior(ctx, proto6Req.TypeName)
+
+	fwResp.Diagnostics.Append(diags...)
+
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.ReadResourceResponse(ctx, fwResp), nil
+	}
+
+	fwReq, diags := fromproto6.ReadResourceRequest(ctx, proto6Req, resource, resourceSchema, providerMetaSchema, resourceBehavior, identitySchema)
 
 	fwResp.Diagnostics.Append(diags...)
 

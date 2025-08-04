@@ -10,7 +10,7 @@ description: |-
 
 Manages an IotHub Storage Container Endpoint
 
-~> **NOTE:** Endpoints can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_endpoint_*` resources - but the two ways of defining the endpoints cannot be used together. If both are used against the same IoTHub, spurious changes will occur. Also, defining a `azurerm_iothub_endpoint_*` resource and another endpoint of a different type directly on the `azurerm_iothub` resource is not supported.
+~> **Note:** Endpoints can be defined either directly on the `azurerm_iothub` resource, or using the `azurerm_iothub_endpoint_*` resources - but the two ways of defining the endpoints cannot be used together. If both are used against the same IoTHub, spurious changes will occur. Also, defining a `azurerm_iothub_endpoint_*` resource and another endpoint of a different type directly on the `azurerm_iothub` resource is not supported.
 
 ## Example Usage
 
@@ -76,7 +76,7 @@ The following arguments are supported:
 
 * `identity_id` - (Optional) ID of the User Managed Identity used to authenticate against the storage endpoint.
 
--> **NOTE:** `identity_id` can only be specified when `authentication_type` is `identityBased`. It must be one of the `identity_ids` of the Iot Hub. If not specified when `authentication_type` is `identityBased`, System Assigned Managed Identity of the Iot Hub will be used.
+-> **Note:** `identity_id` can only be specified when `authentication_type` is `identityBased`. It must be one of the `identity_ids` of the Iot Hub. If not specified when `authentication_type` is `identityBased`, System Assigned Managed Identity of the Iot Hub will be used.
 
 * `endpoint_uri` - (Optional) URI of the Storage Container endpoint. This corresponds to the `primary_blob_endpoint` of the parent storage account. This attribute can only be specified and is mandatory when `authentication_type` is `identityBased`.
 
@@ -101,8 +101,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IotHub Storage Container Endpoint.
-* `update` - (Defaults to 30 minutes) Used when updating the IotHub Storage Container Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the IotHub Storage Container Endpoint.
+* `update` - (Defaults to 30 minutes) Used when updating the IotHub Storage Container Endpoint.
 * `delete` - (Defaults to 30 minutes) Used when deleting the IotHub Storage Container Endpoint.
 
 ## Import

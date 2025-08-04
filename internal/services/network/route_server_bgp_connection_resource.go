@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -19,6 +20,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name route_server_bgp_connection -service-package-name network -properties "name" -compare-values "subscription_id:route_server_id,resource_group_name:route_server_id,hub_name:route_server_id"
 
 func resourceRouteServerBgpConnection() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -32,10 +35,11 @@ func resourceRouteServerBgpConnection() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseVirtualHubBGPConnectionID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.VirtualHubBGPConnectionId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.VirtualHubBGPConnectionId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -146,7 +150,8 @@ func resourceRouteServerBgpConnectionRead(d *pluginsdk.ResourceData, meta interf
 			}
 		}
 	}
-	return nil
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceRouteServerBgpConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {

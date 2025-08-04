@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 	"github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration"
@@ -59,10 +60,13 @@ type VaultKeyReference struct {
 func (k KeyResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"configuration_store_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: configurationstores.ValidateConfigurationStoreID,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			// User-specified segments are lowercased in the API response
+			// tracked in https://github.com/Azure/azure-rest-api-specs/issues/24337
+			DiffSuppressFunc: suppress.CaseDifference,
+			ValidateFunc:     configurationstores.ValidateConfigurationStoreID,
 		},
 		"key": {
 			Type:         pluginsdk.TypeString,
@@ -196,22 +200,22 @@ func (k KeyResource) Create() sdk.ResourceFunc {
 			}
 
 			entity := appconfiguration.KeyValue{
-				Key:   utils.String(model.Key),
-				Label: utils.String(model.Label),
+				Key:   pointer.To(model.Key),
+				Label: pointer.To(model.Label),
 				Tags:  tags.Expand(model.Tags),
 			}
 
 			switch model.Type {
 			case KeyTypeKV:
-				entity.ContentType = utils.String(model.ContentType)
-				entity.Value = utils.String(model.Value)
+				entity.ContentType = pointer.To(model.ContentType)
+				entity.Value = pointer.To(model.Value)
 			case KeyTypeVault:
-				entity.ContentType = utils.String(VaultKeyContentType)
+				entity.ContentType = pointer.To(VaultKeyContentType)
 				ref, err := json.Marshal(VaultKeyReference{URI: model.VaultKeyReference})
 				if err != nil {
 					return fmt.Errorf("while encoding vault key reference: %+v", err)
 				}
-				entity.Value = utils.String(string(ref))
+				entity.Value = pointer.To(string(ref))
 			}
 
 			if _, err = client.PutKeyValue(ctx, model.Key, model.Label, &entity, "", ""); err != nil {
@@ -364,22 +368,22 @@ func (k KeyResource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("value") || metadata.ResourceData.HasChange("content_type") || metadata.ResourceData.HasChange("tags") || metadata.ResourceData.HasChange("type") || metadata.ResourceData.HasChange("vault_key_reference") {
 				entity := appconfiguration.KeyValue{
-					Key:   utils.String(model.Key),
-					Label: utils.String(model.Label),
+					Key:   pointer.To(model.Key),
+					Label: pointer.To(model.Label),
 					Tags:  tags.Expand(model.Tags),
 				}
 
 				switch model.Type {
 				case KeyTypeKV:
-					entity.ContentType = utils.String(model.ContentType)
-					entity.Value = utils.String(model.Value)
+					entity.ContentType = pointer.To(model.ContentType)
+					entity.Value = pointer.To(model.Value)
 				case KeyTypeVault:
-					entity.ContentType = utils.String(VaultKeyContentType)
+					entity.ContentType = pointer.To(VaultKeyContentType)
 					ref, err := json.Marshal(VaultKeyReference{URI: model.VaultKeyReference})
 					if err != nil {
 						return fmt.Errorf("while encoding vault key reference: %+v", err)
 					}
-					entity.Value = utils.String(string(ref))
+					entity.Value = pointer.To(string(ref))
 				}
 				if _, err = client.PutKeyValue(ctx, model.Key, model.Label, &entity, "", ""); err != nil {
 					return fmt.Errorf("while updating key/label pair %s/%s: %+v", model.Key, model.Label, err)

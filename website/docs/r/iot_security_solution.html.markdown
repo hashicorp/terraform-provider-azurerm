@@ -127,8 +127,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Iot Security Solution.
-* `update` - (Defaults to 30 minutes) Used when updating the Iot Security Solution.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Iot Security Solution.
+* `update` - (Defaults to 30 minutes) Used when updating the Iot Security Solution.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Iot Security Solution.
 
 ## Import

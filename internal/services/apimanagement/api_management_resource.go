@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"strconv"
 	"strings"
 	"time"
@@ -21,7 +22,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/delegationsettings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/deletedservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/policy"
@@ -29,11 +29,15 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/signinsettings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/signupsettings"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tenantaccess"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	apimValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -95,12 +99,16 @@ func resourceApiManagementService() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("virtual_network_configuration", func(ctx context.Context, old, new, meta interface{}) bool {
 				return !(len(old.([]interface{})) == 0 && len(new.([]interface{})) > 0)
 			}),
+
+			pluginsdk.ForceNewIfChange("sku_name", func(ctx context.Context, old, new, meta interface{}) bool {
+				return (strings.Contains(old.(string), "V2") && !strings.Contains(new.(string), "V2")) || (strings.Contains(new.(string), "V2") && !strings.Contains(old.(string), "V2"))
+			}),
 		),
 	}
 }
 
 func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"name": schemaz.SchemaApiManagementName(),
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -296,11 +304,10 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"enable_http2": {
+					"http2_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
-						// TODO 4.0: change this from enable_* to *_enabled
 					},
 				},
 			},
@@ -313,41 +320,35 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					// TODO 4.0: change this from enable_* to *_enabled
-					"enable_backend_ssl30": {
+					"backend_ssl30_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
 					},
-					// TODO 4.0: change this from enable_* to *_enabled
-					"enable_backend_tls10": {
+					"backend_tls10_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
 					},
-					// TODO 4.0: change this from enable_* to *_enabled
-					"enable_backend_tls11": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-
-					// TODO 4.0: change this from enable_* to *_enabled
-					"enable_frontend_ssl30": {
+					"backend_tls11_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
 					},
 
-					// TODO 4.0: change this from enable_* to *_enabled
-					"enable_frontend_tls10": {
+					"frontend_ssl30_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
 					},
 
-					// TODO 4.0: change this from enable_* to *_enabled
-					"enable_frontend_tls11": {
+					"frontend_tls10_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+
+					"frontend_tls11_enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
@@ -639,7 +640,107 @@ func resourceApiManagementSchema() map[string]*pluginsdk.Schema {
 		"tags": commonschema.Tags(),
 	}
 
-	return schema
+	if !features.FivePointOh() {
+		s["protocols"].Elem.(*pluginsdk.Resource).Schema["enable_http2"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"protocols.0.http2_enabled"},
+			Deprecated:    "`protocols.enable_http2` has been deprecated in favour of the `protocols.http2_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+		s["protocols"].Elem.(*pluginsdk.Resource).Schema["http2_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"protocols.0.enable_http2"},
+		}
+
+		s["security"].Elem.(*pluginsdk.Resource).Schema["enable_backend_ssl30"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"security.0.backend_ssl30_enabled"},
+			Deprecated:    "`security.enable_backend_ssl30` has been deprecated in favour of the `security.backend_ssl30_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+		s["security"].Elem.(*pluginsdk.Resource).Schema["backend_ssl30_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"security.0.enable_backend_ssl30"},
+		}
+
+		s["security"].Elem.(*pluginsdk.Resource).Schema["enable_backend_tls10"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"security.0.backend_tls10_enabled"},
+			Deprecated:    "`security.enable_backend_tls10` has been deprecated in favour of the `security.backend_tls10_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+		s["security"].Elem.(*pluginsdk.Resource).Schema["backend_tls10_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"security.0.enable_backend_tls10"},
+		}
+
+		s["security"].Elem.(*pluginsdk.Resource).Schema["enable_backend_tls11"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"security.0.backend_tls11_enabled"},
+			Deprecated:    "`security.enable_backend_tls11` has been deprecated in favour of the `security.backend_tls11_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+		s["security"].Elem.(*pluginsdk.Resource).Schema["backend_tls11_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"security.0.enable_backend_tls11"},
+		}
+
+		s["security"].Elem.(*pluginsdk.Resource).Schema["enable_frontend_ssl30"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"security.0.frontend_ssl30_enabled"},
+			Deprecated:    "`security.enable_frontend_ssl30` has been deprecated in favour of the `security.frontend_ssl30_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+		s["security"].Elem.(*pluginsdk.Resource).Schema["frontend_ssl30_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"security.0.enable_frontend_ssl30"},
+		}
+
+		s["security"].Elem.(*pluginsdk.Resource).Schema["enable_frontend_tls10"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"security.0.frontend_tls10_enabled"},
+			Deprecated:    "`security.enable_frontend_tls10` has been deprecated in favour of the `security.frontend_tls10_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+		s["security"].Elem.(*pluginsdk.Resource).Schema["frontend_tls10_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"security.0.enable_frontend_tls10"},
+		}
+
+		s["security"].Elem.(*pluginsdk.Resource).Schema["enable_frontend_tls11"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"security.0.frontend_tls11_enabled"},
+			Deprecated:    "`security.enable_frontend_tls11` has been deprecated in favour of the `security.frontend_tls11_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+		s["security"].Elem.(*pluginsdk.Resource).Schema["frontend_tls11_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"security.0.enable_frontend_tls11"},
+		}
+	}
+
+	return s
 }
 
 func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -652,7 +753,6 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 	defer cancel()
 
 	sku := expandAzureRmApiManagementSkuName(d.Get("sku_name").(string))
-
 	log.Printf("[INFO] preparing arguments for API Management Service creation.")
 
 	id := apimanagementservice.NewServiceID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
@@ -873,10 +973,11 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	signInSettingsRaw := d.Get("sign_in").([]interface{})
-	if sku.Name == apimanagementservice.SkuTypeConsumption && len(signInSettingsRaw) > 0 {
-		return errors.New("`sign_in` is not support for sku tier `Consumption`")
+	if (sku.Name == apimanagementservice.SkuTypeConsumption || strings.Contains(string(sku.Name), "V2")) && len(signInSettingsRaw) > 0 {
+		return errors.New("`sign_in` is not supported for sku tiers `Consumption` and `V2`")
 	}
-	if sku.Name != apimanagementservice.SkuTypeConsumption {
+
+	if sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(sku.Name), "V2") {
 		signInSettingServiceId := signinsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
 		signInSettings := expandApiManagementSignInSettings(signInSettingsRaw)
 		signInClient := meta.(*clients.Client).ApiManagement.SignInClient
@@ -886,10 +987,10 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	signUpSettingsRaw := d.Get("sign_up").([]interface{})
-	if sku.Name == apimanagementservice.SkuTypeConsumption && len(signUpSettingsRaw) > 0 {
-		return fmt.Errorf("`sign_up` is not support for sku tier `Consumption`")
+	if (sku.Name == apimanagementservice.SkuTypeConsumption || strings.Contains(string(sku.Name), "V2")) && len(signUpSettingsRaw) > 0 {
+		return fmt.Errorf("`sign_up` is not supported for sku tiers `Consumption` and `V2`")
 	}
-	if sku.Name != apimanagementservice.SkuTypeConsumption {
+	if sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(sku.Name), "V2") {
 		signUpSettingServiceId := signupsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
 		signUpSettings := expandApiManagementSignUpSettings(signUpSettingsRaw)
 		signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
@@ -899,10 +1000,10 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	delegationSettingsRaw := d.Get("delegation").([]interface{})
-	if sku.Name == apimanagementservice.SkuTypeConsumption && len(delegationSettingsRaw) > 0 {
-		return fmt.Errorf("`delegation` is not support for sku tier `Consumption`")
+	if (sku.Name == apimanagementservice.SkuTypeConsumption || strings.Contains(string(sku.Name), "V2")) && len(delegationSettingsRaw) > 0 {
+		return fmt.Errorf("`delegation` is not supported for sku tiers `Consumption` and `V2`")
 	}
-	if sku.Name != apimanagementservice.SkuTypeConsumption && len(delegationSettingsRaw) > 0 {
+	if sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(sku.Name), "V2") && len(delegationSettingsRaw) > 0 {
 		delegationSettingServiceId := delegationsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
 		delegationSettings := expandApiManagementDelegationSettings(delegationSettingsRaw)
 		delegationClient := meta.(*clients.Client).ApiManagement.DelegationSettingsClient
@@ -912,10 +1013,10 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	tenantAccessRaw := d.Get("tenant_access").([]interface{})
-	if sku.Name == apimanagementservice.SkuTypeConsumption && len(tenantAccessRaw) > 0 {
-		return fmt.Errorf("`tenant_access` is not supported for sku tier `Consumption`")
+	if (sku.Name == apimanagementservice.SkuTypeConsumption || strings.Contains(string(sku.Name), "V2")) && len(tenantAccessRaw) > 0 {
+		return fmt.Errorf("`tenant_access` is not supported for sku tiers `Consumption` and `V2`")
 	}
-	if sku.Name != apimanagementservice.SkuTypeConsumption && d.HasChange("tenant_access") {
+	if sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(sku.Name), "V2") && d.HasChange("tenant_access") {
 		tenantAccessServiceId := tenantaccess.NewAccessID(subscriptionId, id.ResourceGroupName, id.ServiceName, "access")
 		tenantAccessInformationParametersRaw := d.Get("tenant_access").([]interface{})
 		tenantAccessInformationParameters := expandApiManagementTenantAccessSettings(tenantAccessInformationParametersRaw)
@@ -1090,10 +1191,10 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	if d.HasChange("sign_in") {
 		signInSettingsRaw := d.Get("sign_in").([]interface{})
-		if sku.Name == apimanagementservice.SkuTypeConsumption && len(signInSettingsRaw) > 0 {
-			return errors.New("`sign_in` is not support for sku tier `Consumption`")
+		if (sku.Name == apimanagementservice.SkuTypeConsumption || strings.Contains(string(sku.Name), "V2")) && len(signInSettingsRaw) > 0 {
+			return errors.New("`sign_in` is not supported for sku tiers `Consumption` and `V2`")
 		}
-		if sku.Name != apimanagementservice.SkuTypeConsumption {
+		if sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(sku.Name), "V2") {
 			signInSettingServiceId := signinsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
 			signInSettings := expandApiManagementSignInSettings(signInSettingsRaw)
 			signInClient := meta.(*clients.Client).ApiManagement.SignInClient
@@ -1105,10 +1206,10 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	if d.HasChange("sign_up") {
 		signUpSettingsRaw := d.Get("sign_up").([]interface{})
-		if sku.Name == apimanagementservice.SkuTypeConsumption && len(signUpSettingsRaw) > 0 {
-			return errors.New("`sign_up` is not support for sku tier `Consumption`")
+		if (sku.Name == apimanagementservice.SkuTypeConsumption || strings.Contains(string(sku.Name), "V2")) && len(signUpSettingsRaw) > 0 {
+			return errors.New("`sign_up` is not supported for sku tiers `Consumption` and `V2`")
 		}
-		if sku.Name != apimanagementservice.SkuTypeConsumption {
+		if sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(sku.Name), "V2") {
 			signUpSettingServiceId := signupsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
 			signUpSettings := expandApiManagementSignUpSettings(signUpSettingsRaw)
 			signUpClient := meta.(*clients.Client).ApiManagement.SignUpClient
@@ -1120,10 +1221,10 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	if d.HasChange("delegation") {
 		delegationSettingsRaw := d.Get("delegation").([]interface{})
-		if sku.Name == apimanagementservice.SkuTypeConsumption && len(delegationSettingsRaw) > 0 {
-			return errors.New("`delegation` is not support for sku tier `Consumption`")
+		if (sku.Name == apimanagementservice.SkuTypeConsumption || strings.Contains(string(sku.Name), "V2")) && len(delegationSettingsRaw) > 0 {
+			return errors.New("`delegation` is not supported for sku tiers `Consumption` and `V2`")
 		}
-		if sku.Name != apimanagementservice.SkuTypeConsumption && len(delegationSettingsRaw) > 0 {
+		if sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(sku.Name), "V2") && len(delegationSettingsRaw) > 0 {
 			delegationSettingServiceId := delegationsettings.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
 			delegationSettings := expandApiManagementDelegationSettings(delegationSettingsRaw)
 			delegationClient := meta.(*clients.Client).ApiManagement.DelegationSettingsClient
@@ -1135,10 +1236,10 @@ func resourceApiManagementServiceUpdate(d *pluginsdk.ResourceData, meta interfac
 
 	if d.HasChange("tenant_access") {
 		tenantAccessRaw := d.Get("tenant_access").([]interface{})
-		if sku.Name == apimanagementservice.SkuTypeConsumption && len(tenantAccessRaw) > 0 {
-			return fmt.Errorf("`tenant_access` is not supported for sku tier `Consumption`")
+		if (sku.Name == apimanagementservice.SkuTypeConsumption || strings.Contains(string(sku.Name), "V2")) && len(tenantAccessRaw) > 0 {
+			return fmt.Errorf("`tenant_access` is not supported for sku tiers `Consumption` and `V2`")
 		}
-		if sku.Name != apimanagementservice.SkuTypeConsumption && d.HasChange("tenant_access") {
+		if sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(sku.Name), "V2") && d.HasChange("tenant_access") {
 			tenantAccessServiceId := tenantaccess.NewAccessID(subscriptionId, id.ResourceGroupName, id.ServiceName, "access")
 			tenantAccessInformationParametersRaw := d.Get("tenant_access").([]interface{})
 			tenantAccessInformationParameters := expandApiManagementTenantAccessSettings(tenantAccessInformationParametersRaw)
@@ -1258,7 +1359,7 @@ func resourceApiManagementServiceRead(d *pluginsdk.ResourceData, meta interface{
 		}
 		d.Set("zones", zones.FlattenUntyped(model.Zones))
 
-		if model.Sku.Name != apimanagementservice.SkuTypeConsumption {
+		if model.Sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(model.Sku.Name), "V2") {
 			signInSettingServiceId := signinsettings.NewServiceID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName)
 			signInSettings, err := signInClient.Get(ctx, signInSettingServiceId)
 			if err != nil {
@@ -1331,8 +1432,27 @@ func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	log.Printf("[DEBUG] Deleting %s", *id)
-	if err = client.DeleteThenPoll(ctx, *id); err != nil {
-		return fmt.Errorf("deleting %s: %+v", *id, err)
+	resp, err := client.Delete(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("deleting %s: %v", *id, err)
+	}
+
+	isLroStatus := resp.HttpResponse.StatusCode == http.StatusCreated || resp.HttpResponse.StatusCode == http.StatusAccepted
+	if isLroStatus {
+		pollerType, err := custompollers.NewAPIManagementPoller(client, resp.HttpResponse)
+		if err != nil {
+			return fmt.Errorf("polling deleting %s: %+v", id, err)
+		}
+		if pollerType != nil {
+			poller := pollers.NewPoller(pollerType, 20*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+			if err := poller.PollUntilDone(ctx); err != nil {
+				return fmt.Errorf("polling deleting %s: %+v", id, err)
+			}
+		}
+	} else {
+		if err := resp.Poller.PollUntilDone(ctx); err != nil {
+			return fmt.Errorf("deleting %s: %v", *id, err)
+		}
 	}
 
 	if model := existing.Model; model != nil {
@@ -1350,12 +1470,23 @@ func resourceApiManagementServiceDelete(d *pluginsdk.ResourceData, meta interfac
 				return fmt.Errorf("purging the deleted %s: %+v", *id, err)
 			}
 
-			if !response.WasNotFound(resp.HttpResponse) {
+			isLroStatus = resp.HttpResponse.StatusCode == http.StatusCreated || resp.HttpResponse.StatusCode == http.StatusAccepted
+			if isLroStatus {
+				pollerType, err := custompollers.NewAPIManagementPoller(client, resp.HttpResponse)
+				if err != nil {
+					return fmt.Errorf("polling deleting %s: %+v", id, err)
+				}
+				if pollerType != nil {
+					poller := pollers.NewPoller(pollerType, 20*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+					if err := poller.PollUntilDone(ctx); err != nil {
+						return fmt.Errorf("polling purging the deleting %s: %+v", id, err)
+					}
+				}
+			} else {
 				if err := resp.Poller.PollUntilDone(ctx); err != nil {
 					return fmt.Errorf("purging the deleted %s: %+v", *id, err)
 				}
 			}
-
 			log.Printf("[DEBUG] Purged %s.", *id)
 			return nil
 		}
@@ -1456,8 +1587,13 @@ func expandApiManagementCommonHostnameConfiguration(input map[string]interface{}
 	if v, ok := input["host_name"]; ok && v.(string) != "" {
 		output.HostName = v.(string)
 	}
-	if v, ok := input["key_vault_id"]; ok && v.(string) != "" {
+	if v, ok := input["key_vault_certificate_id"]; ok && v.(string) != "" {
 		output.KeyVaultId = pointer.To(v.(string))
+	}
+	if !features.FivePointOh() {
+		if v, ok := input["key_vault_id"]; ok && v.(string) != "" {
+			output.KeyVaultId = pointer.To(v.(string))
+		}
 	}
 
 	if v, ok := input["negotiate_client_certificate"]; ok {
@@ -1488,8 +1624,12 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagementservice.Ho
 
 		output["host_name"] = config.HostName
 		output["negotiate_client_certificate"] = pointer.From(config.NegotiateClientCertificate)
-		output["key_vault_id"] = pointer.From(config.KeyVaultId)
+		output["key_vault_certificate_id"] = pointer.From(config.KeyVaultId)
 		output["ssl_keyvault_identity_client_id"] = pointer.From(config.IdentityClientId)
+
+		if !features.FivePointOh() {
+			output["key_vault_id"] = pointer.From(config.KeyVaultId)
+		}
 
 		if config.Certificate != nil {
 			if config.Certificate.Expiry != "" {
@@ -1700,12 +1840,33 @@ func expandApiManagementCustomProperties(d *pluginsdk.ResourceData, skuIsConsump
 
 	if vs := d.Get("security").([]interface{}); len(vs) > 0 {
 		v := vs[0].(map[string]interface{})
-		backendProtocolSsl3 = v["enable_backend_ssl30"].(bool)
-		backendProtocolTls10 = v["enable_backend_tls10"].(bool)
-		backendProtocolTls11 = v["enable_backend_tls11"].(bool)
-		frontendProtocolSsl3 = v["enable_frontend_ssl30"].(bool)
-		frontendProtocolTls10 = v["enable_frontend_tls10"].(bool)
-		frontendProtocolTls11 = v["enable_frontend_tls11"].(bool)
+		backendProtocolSsl3 = v["backend_ssl30_enabled"].(bool)
+		backendProtocolTls10 = v["backend_tls10_enabled"].(bool)
+		backendProtocolTls11 = v["backend_tls11_enabled"].(bool)
+		frontendProtocolSsl3 = v["frontend_ssl30_enabled"].(bool)
+		frontendProtocolTls10 = v["frontend_tls10_enabled"].(bool)
+		frontendProtocolTls11 = v["frontend_tls11_enabled"].(bool)
+
+		if !features.FivePointOh() {
+			if val, ok := d.GetOk("security.0.enable_backend_ssl30"); ok {
+				backendProtocolSsl3 = val.(bool)
+			}
+			if val, ok := d.GetOk("security.0.enable_backend_tls10"); ok {
+				backendProtocolTls10 = val.(bool)
+			}
+			if val, ok := d.GetOk("security.0.enable_backend_tls11"); ok {
+				backendProtocolTls11 = val.(bool)
+			}
+			if val, ok := d.GetOk("security.0.enable_frontend_ssl30"); ok {
+				frontendProtocolSsl3 = val.(bool)
+			}
+			if val, ok := d.GetOk("security.0.enable_frontend_tls10"); ok {
+				frontendProtocolTls10 = val.(bool)
+			}
+			if val, ok := d.GetOk("security.0.enable_frontend_tls11"); ok {
+				frontendProtocolTls11 = val.(bool)
+			}
+		}
 
 		if v, exists := v["triple_des_ciphers_enabled"]; exists {
 			tripleDesCiphers = v.(bool)
@@ -1723,47 +1884,50 @@ func expandApiManagementCustomProperties(d *pluginsdk.ResourceData, skuIsConsump
 		tlsRsaWithAes128CbcShaCiphers = v["tls_rsa_with_aes128_cbc_sha_ciphers_enabled"].(bool)
 
 		if skuIsConsumption && frontendProtocolSsl3 {
-			return nil, errors.New("`enable_frontend_ssl30` is not support for Sku Tier `Consumption`")
+			if !features.FivePointOh() {
+				return nil, errors.New("`frontend_ssl30_enabled`/`enable_frontend_ssl30` are not supported for Sku Tier `Consumption`")
+			}
+			return nil, errors.New("`frontend_ssl30_enabled` is not supported for Sku Tier `Consumption`")
 		}
 
 		if skuIsConsumption && tripleDesCiphers {
-			return nil, errors.New("`enable_triple_des_ciphers` is not support for Sku Tier `Consumption`")
+			return nil, errors.New("`enable_triple_des_ciphers` is not supported for Sku Tier `Consumption`")
 		}
 
 		if skuIsConsumption && tlsEcdheEcdsaWithAes256CbcShaCiphers {
-			return nil, errors.New("`tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+			return nil, errors.New("`tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled` is not supported for Sku Tier `Consumption`")
 		}
 
 		if skuIsConsumption && tlsEcdheEcdsaWithAes128CbcShaCiphers {
-			return nil, errors.New("`tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+			return nil, errors.New("`tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled` is not supported for Sku Tier `Consumption`")
 		}
 
 		if skuIsConsumption && tlsEcdheRsaWithAes256CbcShaCiphers {
-			return nil, errors.New("`tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+			return nil, errors.New("`tls_ecdhe_rsa_with_aes256_cbc_sha_ciphers_enabled` is not supported for Sku Tier `Consumption`")
 		}
 
 		if skuIsConsumption && tlsEcdheRsaWithAes128CbcShaCiphers {
-			return nil, errors.New("`tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+			return nil, errors.New("`tls_ecdhe_rsa_with_aes128_cbc_sha_ciphers_enabled` is not supported for Sku Tier `Consumption`")
 		}
 
 		if skuIsConsumption && tlsRsaWithAes128GcmSha256Ciphers {
-			return nil, errors.New("`tls_rsa_with_aes128_gcm_sha256_ciphers_enabled` is not support for Sku Tier `Consumption`")
+			return nil, errors.New("`tls_rsa_with_aes128_gcm_sha256_ciphers_enabled` is not supported for Sku Tier `Consumption`")
 		}
 
 		if skuIsConsumption && tlsRsaWithAes256CbcSha256Ciphers {
-			return nil, errors.New("`tls_rsa_with_aes256_cbc_sha256_ciphers_enabled` is not support for Sku Tier `Consumption`")
+			return nil, errors.New("`tls_rsa_with_aes256_cbc_sha256_ciphers_enabled` is not supported for Sku Tier `Consumption`")
 		}
 
 		if skuIsConsumption && tlsRsaWithAes128CbcSha256Ciphers {
-			return nil, errors.New("`tls_rsa_with_aes128_cbc_sha256_ciphers_enabled` is not support for Sku Tier `Consumption`")
+			return nil, errors.New("`tls_rsa_with_aes128_cbc_sha256_ciphers_enabled` is not supported for Sku Tier `Consumption`")
 		}
 
 		if skuIsConsumption && tlsRsaWithAes256CbcShaCiphers {
-			return nil, errors.New("`tls_rsa_with_aes256_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+			return nil, errors.New("`tls_rsa_with_aes256_cbc_sha_ciphers_enabled` is not supported for Sku Tier `Consumption`")
 		}
 
 		if skuIsConsumption && tlsRsaWithAes128CbcShaCiphers {
-			return nil, errors.New("`tls_rsa_with_aes128_cbc_sha_ciphers_enabled` is not support for Sku Tier `Consumption`")
+			return nil, errors.New("`tls_rsa_with_aes128_cbc_sha_ciphers_enabled` is not supported for Sku Tier `Consumption`")
 		}
 	}
 
@@ -1792,7 +1956,12 @@ func expandApiManagementCustomProperties(d *pluginsdk.ResourceData, skuIsConsump
 
 	if vp := d.Get("protocols").([]interface{}); len(vp) > 0 {
 		vpr := vp[0].(map[string]interface{})
-		enableHttp2 := vpr["enable_http2"].(bool)
+		enableHttp2 := vpr["http2_enabled"].(bool)
+		if !features.FivePointOh() {
+			if v, ok := d.GetOk("protocols.0.enable_http2"); ok {
+				enableHttp2 = v.(bool)
+			}
+		}
 		customProperties[apimHttp2Protocol] = strconv.FormatBool(enableHttp2)
 	}
 
@@ -1815,14 +1984,27 @@ func expandAzureRmApiManagementVirtualNetworkConfigurations(d *pluginsdk.Resourc
 func flattenApiManagementSecurityCustomProperties(input map[string]string, skuIsConsumption bool) []interface{} {
 	output := make(map[string]interface{})
 
-	output["enable_backend_ssl30"] = parseApiManagementNilableDictionary(input, apimBackendProtocolSsl3)
-	output["enable_backend_tls10"] = parseApiManagementNilableDictionary(input, apimBackendProtocolTls10)
-	output["enable_backend_tls11"] = parseApiManagementNilableDictionary(input, apimBackendProtocolTls11)
-	output["enable_frontend_tls10"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls10)
-	output["enable_frontend_tls11"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls11)
+	output["backend_ssl30_enabled"] = parseApiManagementNilableDictionary(input, apimBackendProtocolSsl3)
+	output["backend_tls10_enabled"] = parseApiManagementNilableDictionary(input, apimBackendProtocolTls10)
+	output["backend_tls11_enabled"] = parseApiManagementNilableDictionary(input, apimBackendProtocolTls11)
+	output["frontend_tls10_enabled"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls10)
+	output["frontend_tls11_enabled"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls11)
+
+	if !features.FivePointOh() {
+		output["enable_backend_ssl30"] = parseApiManagementNilableDictionary(input, apimBackendProtocolSsl3)
+		output["enable_backend_tls10"] = parseApiManagementNilableDictionary(input, apimBackendProtocolTls10)
+		output["enable_backend_tls11"] = parseApiManagementNilableDictionary(input, apimBackendProtocolTls11)
+		output["enable_frontend_tls10"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls10)
+		output["enable_frontend_tls11"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolTls11)
+	}
 
 	if !skuIsConsumption {
-		output["enable_frontend_ssl30"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolSsl3)
+		output["frontend_ssl30_enabled"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolSsl3)
+
+		if !features.FivePointOh() {
+			output["enable_frontend_ssl30"] = parseApiManagementNilableDictionary(input, apimFrontendProtocolSsl3)
+		}
+
 		output["triple_des_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTripleDesCiphers)
 		output["tls_ecdhe_ecdsa_with_aes256_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheEcdsaWithAes256CbcShaCiphers)
 		output["tls_ecdhe_ecdsa_with_aes128_cbc_sha_ciphers_enabled"] = parseApiManagementNilableDictionary(input, apimTlsEcdheEcdsaWithAes128CbcShaCiphers)
@@ -1842,7 +2024,11 @@ func flattenApiManagementSecurityCustomProperties(input map[string]string, skuIs
 func flattenApiManagementProtocolsCustomProperties(input map[string]string) []interface{} {
 	output := make(map[string]interface{})
 
-	output["enable_http2"] = parseApiManagementNilableDictionary(input, apimHttp2Protocol)
+	output["http2_enabled"] = parseApiManagementNilableDictionary(input, apimHttp2Protocol)
+
+	if !features.FivePointOh() {
+		output["enable_http2"] = parseApiManagementNilableDictionary(input, apimHttp2Protocol)
+	}
 
 	return []interface{}{output}
 }

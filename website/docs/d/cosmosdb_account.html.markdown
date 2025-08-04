@@ -47,7 +47,7 @@ The following attributes are exported:
 
 * `key_vault_key_id` - The Key Vault key URI for CMK encryption.
 
-~> **NOTE:** The CosmosDB service always uses the latest version of the specified key.
+~> **Note:** The CosmosDB service always uses the latest version of the specified key.
 
 * `ip_range_filter` - The current IP Filter for this CosmosDB account
 
@@ -114,3 +114,9 @@ The following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the CosmosDB Account.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.DocumentDB` - 2024-08-15

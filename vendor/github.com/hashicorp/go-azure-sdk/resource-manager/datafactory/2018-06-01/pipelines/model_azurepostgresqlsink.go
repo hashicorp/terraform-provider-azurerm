@@ -11,7 +11,9 @@ import (
 var _ CopySink = AzurePostgreSqlSink{}
 
 type AzurePostgreSqlSink struct {
-	PreCopyScript *interface{} `json:"preCopyScript,omitempty"`
+	PreCopyScript  *interface{}                       `json:"preCopyScript,omitempty"`
+	UpsertSettings *AzurePostgreSqlSinkUpsertSettings `json:"upsertSettings,omitempty"`
+	WriteMethod    *AzurePostgreSqlWriteMethodEnum    `json:"writeMethod,omitempty"`
 
 	// Fields inherited from CopySink
 
