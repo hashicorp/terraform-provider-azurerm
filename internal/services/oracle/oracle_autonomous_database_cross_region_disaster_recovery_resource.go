@@ -5,6 +5,8 @@ package oracle
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
@@ -15,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"time"
 )
 
 var _ sdk.Resource = AutonomousDatabaseCrossRegionDisasterRecoveryResource{}
@@ -23,33 +24,33 @@ var _ sdk.Resource = AutonomousDatabaseCrossRegionDisasterRecoveryResource{}
 type AutonomousDatabaseCrossRegionDisasterRecoveryResource struct{}
 
 type AutonomousDatabaseCrossRegionDisasterRecoveryResourceModel struct {
-	Location                     string            `tfschema:"location"`
-	Name                         string            `tfschema:"name"`
-	ResourceGroupName            string            `tfschema:"resource_group_name"`
-	Tags                         map[string]string `tfschema:"tags"`
-	RemoteDisasterRecoveryType   string            `tfschema:"remote_disaster_recovery_type"`
-	Source                       string            `tfschema:"source"`
-	SourceId                     string            `tfschema:"source_id"`
-	DatabaseType                 string            `tfschema:"database_type"`
-	IsReplicateAutomaticBackups  bool              `tfschema:"replicate_automatic_backups"`
-	AdminPassword                string            `tfschema:"admin_password"`
-	AutoScalingEnabled           bool              `tfschema:"auto_scaling_enabled"`
-	AutoScalingForStorageEnabled bool              `tfschema:"auto_scaling_for_storage_enabled"`
-	BackupRetentionPeriodInDays  int64             `tfschema:"backup_retention_period_in_days"`
-	CharacterSet                 string            `tfschema:"character_set"`
-	ComputeCount                 float64           `tfschema:"compute_count"`
-	ComputeModel                 string            `tfschema:"compute_model"`
-	DataStorageSizeInTbs         int64             `tfschema:"data_storage_size_in_tbs"`
-	DbVersion                    string            `tfschema:"db_version"`
-	DbWorkload                   string            `tfschema:"db_workload"`
-	DisplayName                  string            `tfschema:"display_name"`
-	LicenseModel                 string            `tfschema:"license_model"`
-	MtlsConnectionRequired       bool              `tfschema:"mtls_connection_required"`
-	NationalCharacterSet         string            `tfschema:"national_character_set"`
-	SourceOcid                   string            `tfschema:"source_ocid"`
-	SourceLocation               string            `tfschema:"source_location"`
-	SubnetId                     string            `tfschema:"subnet_id"`
-	VnetId                       string            `tfschema:"virtual_network_id"`
+	Location                         string            `tfschema:"location"`
+	Name                             string            `tfschema:"name"`
+	ResourceGroupName                string            `tfschema:"resource_group_name"`
+	Tags                             map[string]string `tfschema:"tags"`
+	RemoteDisasterRecoveryType       string            `tfschema:"remote_disaster_recovery_type"`
+	Source                           string            `tfschema:"source"`
+	SourceId                         string            `tfschema:"source_id"`
+	DatabaseType                     string            `tfschema:"database_type"`
+	ReplicateAutomaticBackupsEnabled bool              `tfschema:"replicate_automatic_backups_enabled"`
+	AdminPassword                    string            `tfschema:"admin_password"`
+	AutoScalingEnabled               bool              `tfschema:"auto_scaling_enabled"`
+	AutoScalingForStorageEnabled     bool              `tfschema:"auto_scaling_for_storage_enabled"`
+	BackupRetentionPeriodInDays      int64             `tfschema:"backup_retention_period_in_days"`
+	CharacterSet                     string            `tfschema:"character_set"`
+	ComputeCount                     float64           `tfschema:"compute_count"`
+	ComputeModel                     string            `tfschema:"compute_model"`
+	DataStorageSizeInTbs             int64             `tfschema:"data_storage_size_in_tbs"`
+	DbVersion                        string            `tfschema:"db_version"`
+	DbWorkload                       string            `tfschema:"db_workload"`
+	DisplayName                      string            `tfschema:"display_name"`
+	LicenseModel                     string            `tfschema:"license_model"`
+	MtlsConnectionRequired           bool              `tfschema:"mtls_connection_required"`
+	NationalCharacterSet             string            `tfschema:"national_character_set"`
+	SourceOcid                       string            `tfschema:"source_ocid"`
+	SourceLocation                   string            `tfschema:"source_location"`
+	SubnetId                         string            `tfschema:"subnet_id"`
+	VnetId                           string            `tfschema:"virtual_network_id"`
 
 	// Optional
 	CustomerContacts []string `tfschema:"customer_contacts"`
@@ -69,7 +70,7 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Arguments() map[str
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		// Cross Region Disaster Recovery
-		//Required
+		// Required
 		"database_type": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -95,7 +96,7 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Arguments() map[str
 		},
 
 		// Optional
-		"replicate_automatic_backups": {
+		"replicate_automatic_backups_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
@@ -280,8 +281,7 @@ func (r AutonomousDatabaseCrossRegionDisasterRecoveryResource) Create() sdk.Reso
 				Location: location.Normalize(model.Location),
 				Tags:     pointer.To(model.Tags),
 				Properties: &autonomousdatabases.AutonomousDatabaseCrossRegionDisasterRecoveryProperties{
-
-					IsReplicateAutomaticBackups:    pointer.To(model.IsReplicateAutomaticBackups),
+					IsReplicateAutomaticBackups:    pointer.To(model.ReplicateAutomaticBackupsEnabled),
 					RemoteDisasterRecoveryType:     autonomousdatabases.DisasterRecoveryType(model.RemoteDisasterRecoveryType),
 					Source:                         autonomousdatabases.Source(model.Source),
 					SourceId:                       model.SourceId,
@@ -395,7 +395,7 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Read() sdk.Resource
 					return fmt.Errorf("%s was not of type `CrossRegionDisasterRecovery`", id)
 				}
 
-				state.IsReplicateAutomaticBackups = pointer.From(props.IsReplicateAutomaticBackups)
+				state.ReplicateAutomaticBackupsEnabled = pointer.From(props.IsReplicateAutomaticBackups)
 				state.RemoteDisasterRecoveryType = string(props.RemoteDisasterRecoveryType)
 				state.Source = string(props.Source)
 				state.SourceId = props.SourceId

@@ -15,31 +15,31 @@ Cross Region Disaster Recovery Autonomous Database is an Autonomous Database wit
 
 ```hcl
 resource "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "adbs_secondary_crdr" {
-  name                             = "example"
-  display_name                     = "example_display_name"
-  location                         = "westus"
-  database_type                    = "CrossRegionDisasterRecovery"
-  source                           = "CrossRegionDisasterRecovery"
-  source_id      				   = "/subscriptions/xxxxx-xxxxxxxxxxxxx-xxxxxxxx/resourceGroups/resource_group_name/providers/Oracle.Database/autonomousDatabases/autonomous_database_name"
-  source_ocid                      = "ocid1.autonomousdatabase.xx.xx.xxxxxxxxxxxxxxx"
-  remote_disaster_recovery_type    = "Adg"
-  replicate_automatic_backups	   = true
-  subnet_id                        = "/subscriptions/xxxxx-xxxxxxxxxxxxx-xxxxxxxx/resourceGroups/resource_group_name/providers/Microsoft.Network/virtualNetworks/virtual_network_name/subnets/subnet_name",
-  virtual_network_id               = "/subscriptions/xxxxx-xxxxxxxxxxxxx-xxxxxxxx/resourceGroups/resource_group_name/providers/Microsoft.Network/virtualNetworks/virtual_network_name"
-  resource_group_name              = "example"
-  source_location				   = "eastus"
-  license_model                    = "example"
-  backup_retention_period_in_days  = 42
-  auto_scaling_enabled             = true
-  auto_scaling_for_storage_enabled = true
-  mtls_connection_required         = false
-  compute_model                    = "example"
-  compute_count                    = 1.23456
-  db_workload                      = "example"
-  db_version                       = "example"
-  admin_password                   = "example"
-  character_set                    = "example"
-  national_character_set           = "example"
+  name                                = "example"
+  display_name                        = "example_display_name"
+  location                            = "westus"
+  database_type                       = "CrossRegionDisasterRecovery"
+  source                              = "CrossRegionDisasterRecovery"
+  source_id                           = "/subscriptions/xxxxx-xxxxxxxxxxxxx-xxxxxxxx/resourceGroups/resource_group_name/providers/Oracle.Database/autonomousDatabases/autonomous_database_name"
+  source_ocid                         = "ocid1.autonomousdatabase.xx.xx.xxxxxxxxxxxxxxx"
+  remote_disaster_recovery_type       = "Adg"
+  replicate_automatic_backups_enabled = true
+  subnet_id                           = "/subscriptions/xxxxx-xxxxxxxxxxxxx-xxxxxxxx/resourceGroups/resource_group_name/providers/Microsoft.Network/virtualNetworks/virtual_network_name/subnets/subnet_name"
+  virtual_network_id                  = "/subscriptions/xxxxx-xxxxxxxxxxxxx-xxxxxxxx/resourceGroups/resource_group_name/providers/Microsoft.Network/virtualNetworks/virtual_network_name"
+  resource_group_name                 = "example"
+  source_location                     = "eastus"
+  license_model                       = "example"
+  backup_retention_period_in_days     = 42
+  auto_scaling_enabled                = true
+  auto_scaling_for_storage_enabled    = true
+  mtls_connection_required            = false
+  compute_model                       = "example"
+  compute_count                       = 1.23456
+  db_workload                         = "example"
+  db_version                          = "example"
+  admin_password                      = "example"
+  character_set                       = "example"
+  national_character_set              = "example"
 }
 
 ```
@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `remote_disaster_recovery_type` - (Required) Type of recovery. Value can be either `Adg` (Autonomous Data Guard) or `BackupBased`.
 
-* `replicate_automatic_backups` - (Required) If true, 7 days worth of backups are replicated across regions for Cross-Region ADB or Backup-Based Disaster Recovery between Primary and Standby. If false, the backups taken on the Primary are not replicated to the Standby database.
+* `replicate_automatic_backups_enabled` - (Required) If true, 7 days worth of backups are replicated across regions for Cross-Region ADB or Backup-Based Disaster Recovery between Primary and Standby. If false, the backups taken on the Primary are not replicated to the Standby database.
 
 * `subnet_id` - (Required) The Immutable Azure Resource ID of the subnet the resource is associated with. Must be associated with virtual network for this Cross Region Disaster Recovery Autonomous Database.
 
@@ -98,6 +98,15 @@ The following arguments are supported:
 
 * `national_character_set` - (Required) The national character set for the autonomous database. The default is AL16UTF16. Allowed values are: AL16UTF16 or UTF8.
 
+## Timeouts
+
+The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+
+* `create` - (Defaults to 2 hours) Used when creating the Cross Region Disaster Recovery Autonomous Database.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Cross Region Disaster Recovery Autonomous Database.
+* `update` - (Defaults to 30 minutes) Used when updating the Cross Region Disaster Recovery Autonomous Database.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Cross Region Disaster Recovery Autonomous Database.
+
 ## Import
 
 Cross Region Disaster Recovery Autonomous Database cannot be imported. `admin_password` parameter is required, but this parameter cannot be imported, therefore the entire import procedure cannot be executed.
@@ -110,4 +119,4 @@ Cross Region Disaster Recovery Autonomous Database cannot be updated as is must 
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Oracle.Database`: 2025-03-01
+* `Oracle.Database` - 2025-03-01
