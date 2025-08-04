@@ -10,6 +10,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+* `azurerm_container_app_environment` - fix an issue where `identity` was not set to the update request payload [GH-30311]
 
 ## 4.38.1 (July 31, 2025)
 
