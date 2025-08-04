@@ -49,6 +49,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the PostgreSQL Flexible Server Backup.
 
+* `completed_time` - The Time (ISO8601 format) at which the backup was completed.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
