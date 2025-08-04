@@ -83,6 +83,13 @@ func TestAccContainerAppEnvironment_updateIdentity(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.withSystemAssignedUserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -427,6 +434,33 @@ resource "azurerm_container_app_environment" "test" {
 
   identity {
     type = "SystemAssigned"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppEnvironmentResource) withSystemAssignedUserAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_container_app_environment" "test" {
+  name                = "acctest-CAEnv%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
 `, r.template(data), data.RandomInteger)
