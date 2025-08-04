@@ -935,7 +935,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if requireUpdateOnLogin {
 		updateMode := servers.CreateModeUpdate
-		// login pasword can from adminitrator_password or administrator_password_wo
+		// Login password can be set using `administrator_password` or `administrator_password_wo`
 		loginPassword := d.Get("administrator_password").(string)
 		if !woPassword.IsNull() {
 			loginPassword = woPassword.AsString()
