@@ -67,12 +67,12 @@ func (d ApiManagementWorkspaceDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id, err := apimanagementservice.ParseServiceID(model.ApiManagementId)
+			apiManagementId, err := apimanagementservice.ParseServiceID(model.ApiManagementId)
 			if err != nil {
 				return err
 			}
 
-			workspaceId := workspace.NewWorkspaceID(subscriptionId, id.ResourceGroupName, id.ServiceName, model.Name)
+			workspaceId := workspace.NewWorkspaceID(subscriptionId, apiManagementId.ResourceGroupName, apiManagementId.ServiceName, model.Name)
 
 			resp, err := client.Get(ctx, workspaceId)
 			if err != nil {
@@ -84,7 +84,7 @@ func (d ApiManagementWorkspaceDataSource) Read() sdk.ResourceFunc {
 
 			state := ApiManagementWorkspaceDataSourceModel{
 				Name:            workspaceId.WorkspaceId,
-				ApiManagementId: id.ID(),
+				ApiManagementId: apiManagementId.ID(),
 			}
 
 			if model := resp.Model; model != nil {
