@@ -136,6 +136,6 @@ terraform import azurerm_application_insights.instance1 /subscriptions/00000000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.AlertsManagement`: 2019-06-01
+* `Microsoft.AlertsManagement` - 2019-06-01
 
-* `Microsoft.Insights`: 2020-02-02, 2015-05-01
+* `Microsoft.Insights` - 2020-02-02, 2015-05-01

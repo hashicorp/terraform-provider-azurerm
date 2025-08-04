@@ -249,6 +249,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `cluster_resource_id` property has been removed in favour of the `cluster_id` property.
 
+### `azurerm_kusto_cluster`
+
+* The deprecated `virtual_network_configuration` block has been removed as it is no longer supported by the resource.
+
 ### `azurerm_linux_function_app`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
@@ -348,6 +352,10 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_redis_enterprise_cluster`
 
 * The property `minimum_tls_version` property no longer accepts `1.0` or `1.1` as a value.
+
+### `azurerm_security_center_automation`
+
+* Valid values for `action.type` have changed from `logicapp`, `eventhub`, and `loganalytics` to `LogicApp`, `EventHub`,  and `Workspace`.
 
 ### `azurerm_sentinel_alert_rule_fusion`
 
