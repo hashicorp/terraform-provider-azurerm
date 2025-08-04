@@ -92,7 +92,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `remote_disaster_recovery_type` - Type of recovery. Value can be either `Adg` (Autonomous Data Guard) or `BackupBased`.
 
-* `replicate_automatic_backups` - If true, 7 days worth of backups are replicated across regions for Cross-Region ADB or Backup-Based Disaster Recovery between Primary and Standby. If false, the backups taken on the Primary are not replicated to the Standby database.
+* `replicate_automatic_backups_enabled` - If true, 7 days worth of backups are replicated across regions for Cross-Region ADB or Backup-Based Disaster Recovery between Primary and Standby. If false, the backups taken on the Primary are not replicated to the Standby database.
 
 * `source` - The source of the database. For cross region disaster recovery autonomous database the source is always "CrossRegionDisasterRecovery" as this type of autonomous database can be created only as disaster recovery solution for another autonomous database.
 
@@ -126,4 +126,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Oracle.Database`: 2025-03-01
+* `Oracle.Database` - 2025-03-01

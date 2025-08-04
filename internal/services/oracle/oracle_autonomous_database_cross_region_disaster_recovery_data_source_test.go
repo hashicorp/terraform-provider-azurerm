@@ -4,10 +4,11 @@ package oracle_test
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle"
-	"testing"
 )
 
 type AutonomousDatabaseCrossRegionDisasterRecoveryDataSource struct{}
