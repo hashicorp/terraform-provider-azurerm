@@ -26,12 +26,12 @@ type AutonomousDatabaseCrossRegionDisasterRecoveryDataModel struct {
 	Tags              map[string]string `tfschema:"tags"`
 
 	// Cross Region Disaster Recovery properties
-	IsReplicateAutomaticBackups bool   `tfschema:"replicate_automatic_backups"`
-	RemoteDisasterRecoveryType  string `tfschema:"remote_disaster_recovery_type"`
-	Source                      string `tfschema:"source"`
-	SourceId                    string `tfschema:"source_id"`
-	SourceLocation              string `tfschema:"source_location"`
-	SourceOcid                  string `tfschema:"source_ocid"`
+	ReplicateAutomaticBackupsEnabled bool   `tfschema:"replicate_automatic_backups_enabled"`
+	RemoteDisasterRecoveryType       string `tfschema:"remote_disaster_recovery_type"`
+	Source                           string `tfschema:"source"`
+	SourceId                         string `tfschema:"source_id"`
+	SourceLocation                   string `tfschema:"source_location"`
+	SourceOcid                       string `tfschema:"source_ocid"`
 
 	// AutonomousDatabaseProperties
 	ActualUsedDataStorageSizeInTbs          float64  `tfschema:"actual_used_data_storage_size_in_tbs"`
@@ -111,7 +111,7 @@ func (d AutonomousDatabaseCrossRegionDisasterRecoveryDataSource) Attributes() ma
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-		"replicate_automatic_backups": {
+		"replicate_automatic_backups_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
@@ -469,7 +469,7 @@ func (d AutonomousDatabaseCrossRegionDisasterRecoveryDataSource) Read() sdk.Reso
 					return fmt.Errorf("%s was not of type `CrossRegionDisasterRecovery`", id)
 				}
 
-				state.IsReplicateAutomaticBackups = pointer.From(adbsProps.IsReplicateAutomaticBackups)
+				state.ReplicateAutomaticBackupsEnabled = pointer.From(adbsProps.IsReplicateAutomaticBackups)
 				state.RemoteDisasterRecoveryType = string(adbsProps.RemoteDisasterRecoveryType)
 				state.DataBaseType = string(adbsProps.DataBaseType)
 				state.Source = string(adbsProps.Source)
