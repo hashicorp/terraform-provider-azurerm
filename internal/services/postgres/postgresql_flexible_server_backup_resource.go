@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/backups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -25,8 +27,9 @@ func (r PostgresqlFlexibleServerBackupResource) ModelObject() interface{} {
 }
 
 type PostgresqlFlexibleServerBackupResourceModel struct {
-	Name     string `tfschema:"name"`
-	ServerId string `tfschema:"server_id"`
+	Name          string `tfschema:"name"`
+	ServerId      string `tfschema:"server_id"`
+	CompletedTime string `tfschema:"completed_time"`
 }
 
 func (r PostgresqlFlexibleServerBackupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -46,17 +49,17 @@ func (r PostgresqlFlexibleServerBackupResource) Arguments() map[string]*pluginsd
 			ValidateFunc: validate.FlexibleServerBackupName,
 		},
 
-		"server_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: backups.ValidateFlexibleServerID,
-		},
+		"server_id": commonschema.ResourceIDReferenceRequiredForceNew(&backups.FlexibleServerId{}),
 	}
 }
 
 func (r PostgresqlFlexibleServerBackupResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"completed_time": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }
 
 func (r PostgresqlFlexibleServerBackupResource) Create() sdk.ResourceFunc {
@@ -121,6 +124,12 @@ func (r PostgresqlFlexibleServerBackupResource) Read() sdk.ResourceFunc {
 			state := PostgresqlFlexibleServerBackupResourceModel{
 				Name:     id.BackupName,
 				ServerId: backups.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName).ID(),
+			}
+
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					state.CompletedTime = pointer.From(props.CompletedTime)
+				}
 			}
 
 			return metadata.Encode(&state)

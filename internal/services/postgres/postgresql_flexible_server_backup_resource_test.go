@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type PostgresqlFlexibleServerBackupTestResource struct{}
+type PostgresqlFlexibleServerBackupResource struct{}
 
 func TestAccPostgresqlFlexibleServerBackup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_backup", "test")
-	r := PostgresqlFlexibleServerBackupTestResource{}
+	r := PostgresqlFlexibleServerBackupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -35,7 +35,7 @@ func TestAccPostgresqlFlexibleServerBackup_basic(t *testing.T) {
 
 func TestAccPostgresqlFlexibleServerBackup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server_backup", "test")
-	r := PostgresqlFlexibleServerBackupTestResource{}
+	r := PostgresqlFlexibleServerBackupResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -48,7 +48,7 @@ func TestAccPostgresqlFlexibleServerBackup_requiresImport(t *testing.T) {
 	})
 }
 
-func (r PostgresqlFlexibleServerBackupTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r PostgresqlFlexibleServerBackupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := backups.ParseBackupID(state.ID)
 	if err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func (r PostgresqlFlexibleServerBackupTestResource) Exists(ctx context.Context, 
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r PostgresqlFlexibleServerBackupTestResource) basic(data acceptance.TestData) string {
+func (r PostgresqlFlexibleServerBackupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -77,7 +77,7 @@ resource "azurerm_postgresql_flexible_server_backup" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r PostgresqlFlexibleServerBackupTestResource) requiresImport(data acceptance.TestData) string {
+func (r PostgresqlFlexibleServerBackupResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -88,7 +88,7 @@ resource "azurerm_postgresql_flexible_server_backup" "import" {
 `, r.basic(data))
 }
 
-func (r PostgresqlFlexibleServerBackupTestResource) template(data acceptance.TestData) string {
+func (r PostgresqlFlexibleServerBackupResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-postgresql-%d"
