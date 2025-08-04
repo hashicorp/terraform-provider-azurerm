@@ -83,12 +83,12 @@ func (r WindowsVirtualMachineResource) authPasswordWriteOnly(data acceptance.Tes
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
-  admin_password_wo   = "P@$$w0rd1234!"
+  name                      = local.vm_name
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  size                      = "Standard_F2"
+  admin_username            = "adminuser"
+  admin_password_wo         = "P@$$w0rd1234!"
   admin_password_wo_version = 1
   network_interface_ids = [
     azurerm_network_interface.test.id,
@@ -114,12 +114,12 @@ func (r WindowsVirtualMachineResource) authPasswordWriteOnlyUpdate(data acceptan
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
-  admin_password_wo   = "P@$$w0rd5678!"
+  name                      = local.vm_name
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  size                      = "Standard_F2"
+  admin_username            = "adminuser"
+  admin_password_wo         = "P@$$w0rd5678!"
   admin_password_wo_version = 2
   network_interface_ids = [
     azurerm_network_interface.test.id,
