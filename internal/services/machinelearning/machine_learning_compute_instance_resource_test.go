@@ -112,7 +112,7 @@ func TestAccComputeInstance_withWorkspaceManagedNetworkAndNoSubnet(t *testing.T)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withWorkspaceManagedNetworkAndNoSubnet(data),
+			Config: r.withWorkspaceManagedNetworkAndInstanceNoSubnet(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -391,7 +391,7 @@ resource "azurerm_machine_learning_workspace" "test" {
 		data.RandomIntOfLength(15), data.RandomIntOfLength(16))
 }
 
-func (r ComputeInstanceResource) withWorkspaceManagedNetworkAndNoSubnet(data acceptance.TestData) string {
+func (r ComputeInstanceResource) withWorkspaceManagedNetworkAndInstanceNoSubnet(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -454,12 +454,11 @@ resource "azurerm_machine_learning_workspace" "test" {
 }
 
 resource "azurerm_machine_learning_compute_instance" "test" {
-  name                          = "acctest%[1]d"
+  name                          = substr("acctest%[1]d", 0, 24)
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   virtual_machine_size          = "STANDARD_DS2_V2"
   local_auth_enabled            = false
   node_public_ip_enabled        = false
-  subnet_resource_id            = null
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

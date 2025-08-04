@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -216,11 +217,8 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	if model.Properties == nil {
 		return fmt.Errorf("machine learning %s Workspace: model `Properties` is nil", id)
 	}
-	if model.Properties.ManagedNetwork == nil {
-		return fmt.Errorf("machine learning %s Workspace: model `Properties.ManagedNetwork` is nil", id)
-	}
-	if !d.Get("node_public_ip_enabled").(bool) && d.Get("subnet_resource_id").(string) == "" && pointer.From(workspace.Model.Properties.ManagedNetwork.IsolationMode) == workspaces.IsolationModeDisabled {
-		return fmt.Errorf("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false` and the workspace is not using a managed network (isolation_mode = \"Disabled\")")
+	if !d.Get("node_public_ip_enabled").(bool) && d.Get("subnet_resource_id").(string) == "" && !hasManagedNetwork(model) {
+		return fmt.Errorf("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false` and the workspace is NOT using a managed network (isolation_mode = \"Disabled\")")
 	}
 
 	parameters := machinelearningcomputes.ComputeResource{
@@ -229,7 +227,6 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	// NOTE: In 4.0 the 'location' field will be deprecated...
 	props := machinelearningcomputes.ComputeInstance{
 		Properties: &machinelearningcomputes.ComputeInstanceProperties{
 			VMSize:                          pointer.To(d.Get("virtual_machine_size").(string)),
@@ -321,9 +318,8 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("ssh", flattenComputeSSHSetting(props.Properties.SshSettings))
 		d.Set("assign_to_user", flattenComputePersonalComputeInstanceSetting(props.Properties.PersonalComputeInstanceSettings))
 
-		// Only save the subnet ID to state if the workspace has a user-assigned subnet, i.e. NOT using managed
-		// networking (i.e. isolation_mode == "Disabled"). If checking the workspace fails, fall back to persisting
-		// the subnet to state.
+		// Only save the subnet ID to state if the instance's workspace is NOT using managed networking.
+		// Azure does not allow instances to have a user-defined subnet ID if they are to run in a workspace with managed networking.
 		if props.Properties.Subnet != nil {
 			if workspace, err := meta.(*clients.Client).MachineLearning.Workspaces.Get(ctx, workspaceId); err != nil || !hasManagedNetwork(workspace.Model) {
 				d.Set("subnet_resource_id", props.Properties.Subnet.Id)
@@ -414,5 +410,5 @@ func hasManagedNetwork(workspace *workspaces.Workspace) bool {
 	if workspace == nil || workspace.Properties == nil || workspace.Properties.ManagedNetwork == nil {
 		return false
 	}
-	return pointer.From(workspace.Properties.ManagedNetwork.IsolationMode) == workspaces.IsolationModeDisabled
+	return slices.Contains([]workspaces.IsolationMode{workspaces.IsolationModeAllowInternetOutbound, workspaces.IsolationModeAllowOnlyApprovedOutbound}, pointer.From(workspace.Properties.ManagedNetwork.IsolationMode))
 }
