@@ -1717,6 +1717,23 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
+	if d.HasChange("admin_password_wo_version") {
+		shouldUpdate = true
+
+		if update.Properties.OsProfile == nil {
+			update.Properties.OsProfile = &virtualmachines.OSProfile{}
+		}
+
+		woPassword, err := pluginsdk.GetWriteOnly(d, "admin_password_wo", cty.String)
+		if err != nil {
+			return err
+		}
+
+		if !woPassword.IsNull() {
+			update.Properties.OsProfile.AdminPassword = pointer.To(woPassword.AsString())
+		}
+	}
+
 	if shouldUpdate {
 		log.Printf("[DEBUG] Updating Windows %s", id)
 		if err := client.UpdateThenPoll(ctx, *id, update, virtualmachines.DefaultUpdateOperationOptions()); err != nil {
@@ -1733,23 +1750,6 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("starting Windows %s: %+v", id, err)
 		}
 		log.Printf("[DEBUG] Started Windows %s", id)
-	}
-
-	if d.HasChange("admin_password_wo_version") {
-		shouldUpdate = true
-
-		if update.Properties.OsProfile == nil {
-			update.Properties.OsProfile = &virtualmachines.OSProfile{}
-		}
-
-		woPassword, err := pluginsdk.GetWriteOnly(d, "admin_password_wo", cty.String)
-		if err != nil {
-			return err
-		}
-
-		if !woPassword.IsNull() {
-			update.Properties.OsProfile.AdminPassword = pointer.To(woPassword.AsString())
-		}
 	}
 
 	return resourceWindowsVirtualMachineRead(d, meta)
