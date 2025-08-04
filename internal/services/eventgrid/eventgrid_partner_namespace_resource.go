@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/partnernamespaces"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/partnerregistrations"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -28,13 +27,13 @@ type EventGridPartnerNamespaceResource struct{}
 
 type EventGridPartnerNamespaceResourceModel struct {
 	PartnerNamespaceName                string                      `tfschema:"name"`
-	Location                            string                      `tfschema:"location"`
 	ResourceGroup                       string                      `tfschema:"resource_group_name"`
+	Location                            string                      `tfschema:"location"`
 	InboundIPRules                      []PartnerInboundIpRuleModel `tfschema:"inbound_ip_rule"`
-	LocalAuthEnabled                    bool                        `tfschema:"local_auth_enabled"`
+	LocalAuthEnabled                    bool                        `tfschema:"local_authentication_enabled"`
 	PartnerRegistrationFullyQualifiedID string                      `tfschema:"partner_registration_id"`
 	PartnerTopicRoutingMode             string                      `tfschema:"partner_topic_routing_mode"`
-	PublicNetworkAccessEnabled          bool                        `tfschema:"public_network_access_enabled"`
+	PublicNetworkAccess                 string                      `tfschema:"public_network_access"`
 	Endpoint                            string                      `tfschema:"endpoint"`
 	Tags                                map[string]string           `tfschema:"tags"`
 }
@@ -46,7 +45,7 @@ type PartnerInboundIpRuleModel struct {
 
 func (EventGridPartnerNamespaceResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"name": &schema.Schema{
+		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
@@ -54,19 +53,14 @@ func (EventGridPartnerNamespaceResource) Arguments() map[string]*pluginsdk.Schem
 				validation.StringIsNotEmpty,
 				validation.StringMatch(
 					regexp.MustCompile("^[-a-zA-Z0-9]{3,50}$"),
-					"EventGrid Partner Namespace name must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
+					"`name` must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
 				),
 			),
 		},
-		"resource_group_name": commonschema.ResourceGroupName(),
-		"location":            commonschema.Location(),
-		"partner_registration_id": &schema.Schema{
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: partnerregistrations.ValidatePartnerRegistrationID,
-		},
-		"inbound_ip_rule": &schema.Schema{
+		"resource_group_name":     commonschema.ResourceGroupName(),
+		"location":                commonschema.Location(),
+		"partner_registration_id": commonschema.ResourceIDReferenceRequiredForceNew(&partnerregistrations.PartnerRegistrationId{}),
+		"inbound_ip_rule": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 16,
@@ -88,22 +82,26 @@ func (EventGridPartnerNamespaceResource) Arguments() map[string]*pluginsdk.Schem
 				},
 			},
 		},
-		"local_auth_enabled": &schema.Schema{
+		"local_authentication_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
 		},
-		"partner_topic_routing_mode": &schema.Schema{
+		"partner_topic_routing_mode": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(partnernamespaces.PossibleValuesForPartnerTopicRoutingMode(), false),
 			Default:      string(partnernamespaces.PartnerTopicRoutingModeChannelNameHeader),
 		},
-		"public_network_access_enabled": {
-			Type:     pluginsdk.TypeBool,
+		"public_network_access": {
+			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(partnernamespaces.PublicNetworkAccessEnabled),
+				string(partnernamespaces.PublicNetworkAccessDisabled),
+			}, false),
+			Default: string(partnernamespaces.PublicNetworkAccessEnabled),
 		},
 		"tags": tags.Schema(),
 	}
@@ -148,19 +146,14 @@ func (r EventGridPartnerNamespaceResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			publicNetworkAccess := partnernamespaces.PublicNetworkAccessEnabled
-			if !config.PublicNetworkAccessEnabled {
-				publicNetworkAccess = partnernamespaces.PublicNetworkAccessDisabled
-			}
-
 			param := partnernamespaces.PartnerNamespace{
 				Location: config.Location,
 				Properties: &partnernamespaces.PartnerNamespaceProperties{
 					DisableLocalAuth:                    pointer.To(!config.LocalAuthEnabled),
 					InboundIPRules:                      expandPartnerInboundIPRules(config.InboundIPRules),
 					PartnerRegistrationFullyQualifiedId: pointer.To(config.PartnerRegistrationFullyQualifiedID),
-					PartnerTopicRoutingMode:             pointer.To(partnernamespaces.PartnerTopicRoutingMode(config.PartnerTopicRoutingMode)),
-					PublicNetworkAccess:                 pointer.To(publicNetworkAccess),
+					PartnerTopicRoutingMode:             pointer.ToEnum[partnernamespaces.PartnerTopicRoutingMode](config.PartnerTopicRoutingMode),
+					PublicNetworkAccess:                 pointer.ToEnum[partnernamespaces.PublicNetworkAccess](config.PublicNetworkAccess),
 				},
 				Tags: pointer.To(config.Tags),
 			}
@@ -173,37 +166,6 @@ func (r EventGridPartnerNamespaceResource) Create() sdk.ResourceFunc {
 			return nil
 		},
 	}
-}
-
-func expandPartnerInboundIPRules(input []PartnerInboundIpRuleModel) *[]partnernamespaces.InboundIPRule {
-	if len(input) == 0 {
-		return nil
-	}
-
-	ipRules := make([]partnernamespaces.InboundIPRule, 0)
-	for _, v := range input {
-		ipRules = append(ipRules, partnernamespaces.InboundIPRule{
-			Action: pointer.To(partnernamespaces.IPActionType(v.Action)),
-			IPMask: pointer.To(v.IpMask),
-		})
-	}
-	return &ipRules
-}
-
-func flattenPartnerInboundIPRules(ipRules *[]partnernamespaces.InboundIPRule) []PartnerInboundIpRuleModel {
-	output := make([]PartnerInboundIpRuleModel, 0)
-
-	if ipRules == nil || len(*ipRules) == 0 {
-		return output
-	}
-
-	for _, v := range *ipRules {
-		output = append(output, PartnerInboundIpRuleModel{
-			IpMask: pointer.From(v.IPMask),
-			Action: string(pointer.From(v.Action)),
-		})
-	}
-	return output
 }
 
 func (r EventGridPartnerNamespaceResource) Update() sdk.ResourceFunc {
@@ -237,24 +199,32 @@ func (r EventGridPartnerNamespaceResource) Update() sdk.ResourceFunc {
 
 			model := existing.Model
 
-			if metadata.ResourceData.HasChange("local_auth_enabled") {
-				model.Properties.DisableLocalAuth = pointer.To(!config.LocalAuthEnabled)
-			}
-			if metadata.ResourceData.HasChange("inbound_ip_rule") {
-				model.Properties.InboundIPRules = expandPartnerInboundIPRules(config.InboundIPRules)
-			}
-			if metadata.ResourceData.HasChange("public_network_access_enabled") {
-				if config.PublicNetworkAccessEnabled {
-					model.Properties.PublicNetworkAccess = pointer.To(partnernamespaces.PublicNetworkAccessEnabled)
-				} else {
-					model.Properties.PublicNetworkAccess = pointer.To(partnernamespaces.PublicNetworkAccessDisabled)
-				}
-			}
-			if metadata.ResourceData.HasChange("tags") {
-				model.Tags = pointer.To(config.Tags)
+			param := partnernamespaces.PartnerNamespace{
+				Location: model.Location,
+				Properties: &partnernamespaces.PartnerNamespaceProperties{
+					DisableLocalAuth:                    model.Properties.DisableLocalAuth,
+					InboundIPRules:                      model.Properties.InboundIPRules,
+					PartnerRegistrationFullyQualifiedId: model.Properties.PartnerRegistrationFullyQualifiedId,
+					PartnerTopicRoutingMode:             model.Properties.PartnerTopicRoutingMode,
+					PublicNetworkAccess:                 model.Properties.PublicNetworkAccess,
+				},
+				Tags: model.Tags,
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
+			if metadata.ResourceData.HasChange("local_authentication_enabled") {
+				param.Properties.DisableLocalAuth = pointer.To(!config.LocalAuthEnabled)
+			}
+			if metadata.ResourceData.HasChange("inbound_ip_rule") {
+				param.Properties.InboundIPRules = expandPartnerInboundIPRules(config.InboundIPRules)
+			}
+			if metadata.ResourceData.HasChange("public_network_access") {
+				param.Properties.PublicNetworkAccess = pointer.ToEnum[partnernamespaces.PublicNetworkAccess](config.PublicNetworkAccess)
+			}
+			if metadata.ResourceData.HasChange("tags") {
+				param.Tags = pointer.To(config.Tags)
+			}
+
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, param); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -271,7 +241,7 @@ func (r EventGridPartnerNamespaceResource) Read() sdk.ResourceFunc {
 
 			id, err := partnernamespaces.ParsePartnerNamespaceID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %q: %+v", metadata.ResourceData.Id(), err)
+				return err
 			}
 
 			resp, err := client.Get(ctx, *id)
@@ -288,13 +258,13 @@ func (r EventGridPartnerNamespaceResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := resp.Model; model != nil {
-				state.Location = location.NormalizeNilable(pointer.To(model.Location))
+				state.Location = location.Normalize(model.Location)
 				if props := model.Properties; props != nil {
 					state.LocalAuthEnabled = !pointer.From(props.DisableLocalAuth)
 					state.InboundIPRules = flattenPartnerInboundIPRules(props.InboundIPRules)
 					state.PartnerRegistrationFullyQualifiedID = pointer.From(props.PartnerRegistrationFullyQualifiedId)
-					state.PartnerTopicRoutingMode = string(pointer.From(props.PartnerTopicRoutingMode))
-					state.PublicNetworkAccessEnabled = pointer.From(props.PublicNetworkAccess) == partnernamespaces.PublicNetworkAccessEnabled
+					state.PartnerTopicRoutingMode = pointer.FromEnum(props.PartnerTopicRoutingMode)
+					state.PublicNetworkAccess = pointer.FromEnum(props.PublicNetworkAccess)
 					state.Endpoint = pointer.From(props.Endpoint)
 				}
 
@@ -328,4 +298,35 @@ func (r EventGridPartnerNamespaceResource) Delete() sdk.ResourceFunc {
 
 func (EventGridPartnerNamespaceResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return partnernamespaces.ValidatePartnerNamespaceID
+}
+
+func expandPartnerInboundIPRules(input []PartnerInboundIpRuleModel) *[]partnernamespaces.InboundIPRule {
+	if len(input) == 0 {
+		return nil
+	}
+
+	ipRules := make([]partnernamespaces.InboundIPRule, 0)
+	for _, v := range input {
+		ipRules = append(ipRules, partnernamespaces.InboundIPRule{
+			Action: pointer.ToEnum[partnernamespaces.IPActionType](v.Action),
+			IPMask: pointer.To(v.IpMask),
+		})
+	}
+	return &ipRules
+}
+
+func flattenPartnerInboundIPRules(ipRules *[]partnernamespaces.InboundIPRule) []PartnerInboundIpRuleModel {
+	output := make([]PartnerInboundIpRuleModel, 0)
+
+	if ipRules == nil {
+		return output
+	}
+
+	for _, v := range *ipRules {
+		output = append(output, PartnerInboundIpRuleModel{
+			IpMask: pointer.From(v.IPMask),
+			Action: pointer.FromEnum(v.Action),
+		})
+	}
+	return output
 }

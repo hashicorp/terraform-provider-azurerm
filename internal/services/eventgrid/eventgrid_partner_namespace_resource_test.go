@@ -123,8 +123,6 @@ resource "azurerm_eventgrid_partner_namespace" "test" {
 }
 
 func (EventGridPartnerNamespaceTestResource) requiresImport(data acceptance.TestData) string {
-	template := EventGridPartnerNamespaceTestResource{}.basic(data)
-
 	return fmt.Sprintf(`
 %s
 
@@ -134,7 +132,7 @@ resource "azurerm_eventgrid_partner_namespace" "import" {
   resource_group_name     = azurerm_eventgrid_partner_namespace.test.resource_group_name
   partner_registration_id = azurerm_eventgrid_partner_namespace.test.partner_registration_id
 }
-`, template)
+`, EventGridPartnerNamespaceTestResource{}.basic(data))
 }
 
 func (EventGridPartnerNamespaceTestResource) complete(data acceptance.TestData) string {
@@ -154,11 +152,11 @@ resource "azurerm_eventgrid_partner_registration" "test" {
 }
 
 resource "azurerm_eventgrid_partner_namespace" "test" {
-  name                    = "acctest-egpn-%[1]d"
-  location                = "%[2]s"
-  resource_group_name     = azurerm_resource_group.test.name
-  partner_registration_id = azurerm_eventgrid_partner_registration.test.id
-  local_auth_enabled      = false
+  name                         = "acctest-egpn-%[1]d"
+  location                     = "%[2]s"
+  resource_group_name          = azurerm_resource_group.test.name
+  partner_registration_id      = azurerm_eventgrid_partner_registration.test.id
+  local_authentication_enabled = false
   inbound_ip_rule {
     ip_mask = "10.0.0.0/16"
     action  = "Allow"
@@ -169,8 +167,8 @@ resource "azurerm_eventgrid_partner_namespace" "test" {
     action  = "Allow"
   }
 
-  partner_topic_routing_mode    = "ChannelNameHeader"
-  public_network_access_enabled = true
+  partner_topic_routing_mode = "ChannelNameHeader"
+  public_network_access      = "Enabled"
 
   tags = {
     "foo" = "bar"
@@ -196,11 +194,11 @@ resource "azurerm_eventgrid_partner_registration" "test" {
 }
 
 resource "azurerm_eventgrid_partner_namespace" "test" {
-  name                    = "acctest-egpn-%[1]d"
-  location                = "%[2]s"
-  resource_group_name     = azurerm_resource_group.test.name
-  partner_registration_id = azurerm_eventgrid_partner_registration.test.id
-  local_auth_enabled      = true
+  name                         = "acctest-egpn-%[1]d"
+  location                     = "%[2]s"
+  resource_group_name          = azurerm_resource_group.test.name
+  partner_registration_id      = azurerm_eventgrid_partner_registration.test.id
+  local_authentication_enabled = true
   inbound_ip_rule {
     ip_mask = "10.0.0.0/16"
     action  = "Allow"
@@ -211,8 +209,8 @@ resource "azurerm_eventgrid_partner_namespace" "test" {
     action  = "Allow"
   }
 
-  partner_topic_routing_mode    = "ChannelNameHeader"
-  public_network_access_enabled = false
+  partner_topic_routing_mode = "ChannelNameHeader"
+  public_network_access      = "Disabled"
 
   tags = {
     "foo"     = "bar"

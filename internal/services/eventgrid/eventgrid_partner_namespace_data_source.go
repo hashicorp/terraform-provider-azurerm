@@ -23,13 +23,16 @@ var _ sdk.DataSource = EventGridPartnerNamespaceDataSource{}
 type EventGridPartnerNamespaceDataSource struct{}
 
 type EventGridPartnerNamespaceDataSourceModel struct {
-	Name                                string            `tfschema:"name"`
-	ResourceGroup                       string            `tfschema:"resource_group_name"`
-	Location                            string            `tfschema:"location"`
-	Endpoint                            string            `tfschema:"endpoint"`
-	PartnerRegistrationFullyQualifiedID string            `tfschema:"partner_registration_id"`
-	PartnerTopicRoutingMode             string            `tfschema:"partner_topic_routing_mode"`
-	Tags                                map[string]string `tfschema:"tags"`
+	PartnerNamespaceName                string                      `tfschema:"name"`
+	ResourceGroup                       string                      `tfschema:"resource_group_name"`
+	Endpoint                            string                      `tfschema:"endpoint"`
+	Location                            string                      `tfschema:"location"`
+	InboundIPRules                      []PartnerInboundIpRuleModel `tfschema:"inbound_ip_rule"`
+	LocalAuthEnabled                    bool                        `tfschema:"local_authentication_enabled"`
+	PartnerRegistrationFullyQualifiedID string                      `tfschema:"partner_registration_id"`
+	PartnerTopicRoutingMode             string                      `tfschema:"partner_topic_routing_mode"`
+	PublicNetworkAccess                 string                      `tfschema:"public_network_access"`
+	Tags                                map[string]string           `tfschema:"tags"`
 }
 
 func (r EventGridPartnerNamespaceDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -52,12 +55,39 @@ func (r EventGridPartnerNamespaceDataSource) Attributes() map[string]*pluginsdk.
 			Computed: true,
 		},
 
+		"inbound_ip_rule": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"ip_mask": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"action": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
+
+		"local_authentication_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
+
 		"partner_registration_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
 		"partner_topic_routing_mode": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"public_network_access": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -79,7 +109,7 @@ func (r EventGridPartnerNamespaceDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := partnernamespaces.NewPartnerNamespaceID(subscriptionId, state.ResourceGroup, state.Name)
+			id := partnernamespaces.NewPartnerNamespaceID(subscriptionId, state.ResourceGroup, state.PartnerNamespaceName)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {
@@ -89,18 +119,21 @@ func (r EventGridPartnerNamespaceDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
+			metadata.SetID(id)
+
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
 				state.Tags = pointer.From(model.Tags)
 
 				if props := model.Properties; props != nil {
 					state.PartnerRegistrationFullyQualifiedID = pointer.From(props.PartnerRegistrationFullyQualifiedId)
-					state.PartnerTopicRoutingMode = string(pointer.From(props.PartnerTopicRoutingMode))
+					state.PartnerTopicRoutingMode = pointer.FromEnum(props.PartnerTopicRoutingMode)
 					state.Endpoint = pointer.From(props.Endpoint)
+					state.InboundIPRules = flattenPartnerInboundIPRules(props.InboundIPRules)
+					state.LocalAuthEnabled = !pointer.From(props.DisableLocalAuth)
+					state.PublicNetworkAccess = pointer.FromEnum(props.PublicNetworkAccess)
 				}
 			}
-
-			metadata.SetID(id)
 
 			return metadata.Encode(&state)
 		},
