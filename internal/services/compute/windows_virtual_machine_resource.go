@@ -22,7 +22,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	sdkValidation "github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -55,6 +57,10 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(45 * time.Minute),
 		},
 
+		ValidateRawResourceConfigFuncs: []schema.ValidateRawResourceConfigFunc{
+			sdkValidation.PreferWriteOnlyAttribute(cty.GetAttrPath("admin_password"), cty.GetAttrPath("admin_password_wo")),
+		},
+
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:         pluginsdk.TypeString,
@@ -73,13 +79,25 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ForceNew:         true,
 				Sensitive:        true,
 				DiffSuppressFunc: adminPasswordDiffSuppressFunc,
-				RequiredWith: []string{
-					"admin_username",
-				},
-				ConflictsWith: []string{
-					"os_managed_disk_id",
-				},
-				ValidateFunc: computeValidate.WindowsAdminPassword,
+				ValidateFunc:     computeValidate.WindowsAdminPassword,
+				ConflictsWith:    []string{"admin_password_wo"},
+				ExactlyOneOf:     []string{"admin_password", "admin_password_wo"},
+			},
+
+			"admin_password_wo": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				WriteOnly:     true,
+				RequiredWith:  []string{"admin_password_wo_version"},
+				ConflictsWith: []string{"admin_password"},
+				ExactlyOneOf:  []string{"admin_password", "admin_password_wo"},
+				ValidateFunc:  computeValidate.WindowsAdminPassword,
+			},
+
+			"admin_password_wo_version": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				RequiredWith: []string{"admin_password_wo"},
 			},
 
 			"admin_username": {
@@ -564,6 +582,16 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	additionalUnattendContentRaw := d.Get("additional_unattend_content").([]interface{})
 	additionalUnattendContent := expandAdditionalUnattendContent(additionalUnattendContentRaw)
 
+	adminPassword := d.Get("admin_password").(string)
+
+	woPassword, err := pluginsdk.GetWriteOnly(d, "admin_password_wo", cty.String)
+	if err != nil {
+		return err
+	}
+	if !woPassword.IsNull() {
+		adminPassword = woPassword.AsString()
+	}
+
 	allowExtensionOperations := true
 	if !d.GetRawConfig().AsValueMap()["allow_extension_operations"].IsNull() {
 		allowExtensionOperations = d.Get("allow_extension_operations").(bool)
@@ -670,7 +698,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		params.Properties.OsProfile = &virtualmachines.OSProfile{
-			AdminPassword:            pointer.To(d.Get("admin_password").(string)),
+			AdminPassword:            pointer.To(adminPassword),
 			AdminUsername:            pointer.To(d.Get("admin_username").(string)),
 			ComputerName:             pointer.To(computerName),
 			AllowExtensionOperations: pointer.To(allowExtensionOperations),
@@ -1072,6 +1100,10 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 				d.Set("admin_username", profile.AdminUsername)
 				d.Set("allow_extension_operations", profile.AllowExtensionOperations)
 				d.Set("computer_name", profile.ComputerName)
+
+				if d.Get("admin_password_wo_version") != nil {
+					d.Set("admin_password_wo_version", d.Get("admin_password_wo_version"))
+				}
 
 				if config := profile.WindowsConfiguration; config != nil {
 					if err := d.Set("additional_unattend_content", flattenAdditionalUnattendContent(config.AdditionalUnattendContent, d)); err != nil {
@@ -1823,6 +1855,23 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("starting Windows %s: %+v", id, err)
 		}
 		log.Printf("[DEBUG] Started Windows %s", id)
+	}
+
+	if d.HasChange("admin_password_wo_version") {
+		shouldUpdate = true
+
+		if update.Properties.OsProfile == nil {
+			update.Properties.OsProfile = &virtualmachines.OSProfile{}
+		}
+
+		woPassword, err := pluginsdk.GetWriteOnly(d, "admin_password_wo", cty.String)
+		if err != nil {
+			return err
+		}
+
+		if !woPassword.IsNull() {
+			update.Properties.OsProfile.AdminPassword = pointer.To(woPassword.AsString())
+		}
 	}
 
 	return resourceWindowsVirtualMachineRead(d, meta)
