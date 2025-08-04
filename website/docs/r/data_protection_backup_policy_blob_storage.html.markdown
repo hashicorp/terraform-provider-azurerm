@@ -28,8 +28,51 @@ resource "azurerm_data_protection_backup_vault" "example" {
 
 resource "azurerm_data_protection_backup_policy_blob_storage" "example" {
   name                                   = "example-backup-policy"
-  vault_id                               = azurerm_data_protection_backup_vault.example.id
   operational_default_retention_duration = "P30D"
+  vault_default_retention_duration       = "P7D"
+
+  retention_rule {
+    name     = "Weekly"
+    priority = 20
+
+    life_cycle {
+      duration        = "P90D"
+      data_store_type = "VaultStore"
+    }
+
+    criteria {
+      days_of_week = ["Monday"]
+    }
+  }
+
+  retention_rule {
+    name     = "Monthly"
+    priority = 10
+
+    life_cycle {
+      duration        = "P180D"
+      data_store_type = "VaultStore"
+    }
+
+    criteria {
+      days_of_month = [1]
+    }
+  }
+
+  retention_rule {
+    name     = "Yearly"
+    priority = 5
+
+    life_cycle {
+      duration        = "P365D"
+      data_store_type = "VaultStore"
+    }
+
+    criteria {
+      months_of_year = ["January"]
+      days_of_month  = [1]
+    }
+  }
 }
 ```
 
@@ -71,17 +114,19 @@ A `retention_rule` block supports the following:
 
 A `criteria` block supports the following:
 
-* `absolute_criteria` - (Optional) Possible values are `AllBackup`, `FirstOfDay`, `FirstOfWeek`, `FirstOfMonth` and `FirstOfYear`. These values mean the first successful backup of the day/week/month/year. Changing this forces a new Backup Policy Blob Storage to be created.
+* `absolute_criteria` - (Optional) Possible values are `AllBackup`, `FirstOfDay`, `FirstOfWeek`, `FirstOfMonth` and `FirstOfYear`. These values mean the first successful backup of the day/week/month/year. Changing this forces a new Backup Policy Blob Storage to be created. 
 
 * `days_of_month` - (Optional) Must be between `0` and `28`. `0` for last day within the month. Changing this forces a new Backup Policy Blob Storage to be created.
 
 * `days_of_week` - (Optional) Possible values are `Monday`, `Tuesday`, `Thursday`, `Friday`, `Saturday` and `Sunday`. Changing this forces a new Backup Policy Blob Storage to be created.
 
-* `months_of_year` - (Optional) Possible values are `January`, `February`, `March`, `April`, `May`, `June`, `July`, `August`, `September`, `October`, `November` and `December`. Changing this forces a new Backup Policy Blob Storage to be created.
+* `months_of_year` - (Optional) Possible values are `January`, `February`, `March`, `April`, `May`, `June`, `July`, `August`, `September`, `October`, `November` and `December`. Changing this forces a new Backup Policy Blob Storage to be created. When this property is specified, exactly one of the following must also be set: `days_of_month`, `days_of_week`
 
 * `scheduled_backup_times` - (Optional) Specifies a list of backup times for backup in the `RFC3339` format. Changing this forces a new Backup Policy Blob Storage to be created.
 
-* `weeks_of_month` - (Optional) Possible values are `First`, `Second`, `Third`, `Fourth` and `Last`. Changing this forces a new Backup Policy Blob Storage to be created.
+* `weeks_of_month` - (Optional) Possible values are `First`, `Second`, `Third`, `Fourth` and `Last`. Changing this forces a new Backup Policy Blob Storage to be created. When this property is specified, exactly one of the following must also be set: `days_of_month`, `days_of_week`
+
+-> **Note:** When not using `absolute_criteria`, you must use exactly one of `days_of_month` or `days_of_week`. Regarding the remaining two properties, `weeks_of_month` and `months_of_year`, you may use either, both, or neither. If you would like to set multiple intervals, you may do so by using multiple `retention_rule` blocks.
 
 A `life_cycle` block supports the following:
 
