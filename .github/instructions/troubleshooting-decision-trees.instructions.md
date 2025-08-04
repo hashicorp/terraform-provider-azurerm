@@ -11,6 +11,11 @@ Troubleshooting decision trees and diagnostic patterns for the Terraform AzureRM
 
 ## 🔧 Common Issue Resolution Flowchart
 
+**📋 Authoritative Sources:**
+- [Error Patterns](./error-patterns.instructions.md) - Complete error handling patterns
+- [Azure Patterns](./azure-patterns.instructions.md) - Azure-specific behaviors
+- [Implementation Guide](./implementation-guide.instructions.md) - CRUD operation patterns
+
 ### Resource Creation Failures
 
 ```text
@@ -84,6 +89,11 @@ Authentication Problems
 [⬆️ Back to top](#troubleshooting-decision-trees)
 
 ## 🔍 Root Cause Analysis Framework
+
+**📋 Authoritative Sources:**
+- [Error Patterns](./error-patterns.instructions.md) - Systematic debugging approaches
+- [Testing Guidelines](./testing-guidelines.instructions.md) - Environment and configuration validation
+- [Azure Patterns](./azure-patterns.instructions.md) - Azure SDK integration diagnostics
 
 ### Systematic Debugging Approach
 
@@ -195,6 +205,11 @@ func testAPIEndpoints(ctx context.Context) error {
 [⬆️ Back to top](#troubleshooting-decision-trees)
 
 ## 🚨 Error Diagnostic Patterns
+
+**📋 Authoritative Sources:**
+- [Error Patterns](./error-patterns.instructions.md) - Complete error classification and resolution
+- [Provider Guidelines](./provider-guidelines.instructions.md) - Azure API error handling standards
+- [Security Compliance](./security-compliance.instructions.md) - Authentication and authorization patterns
 
 ### Error Classification System
 
@@ -321,6 +336,11 @@ type CheckResult struct {
 
 ## 🔄 State Management Troubleshooting
 
+**📋 Authoritative Sources:**
+- [Azure Patterns](./azure-patterns.instructions.md) - State management with d.GetRawConfig()
+- [Implementation Guide](./implementation-guide.instructions.md) - State encoding/decoding patterns
+- [Migration Guide](./migration-guide.instructions.md) - State compatibility and migration
+
 ### State Drift Detection
 
 ```text
@@ -407,6 +427,11 @@ func reconstructResourceState(ctx context.Context, resourceID string) (map[strin
 
 ## 🔧 Implementation Choice Decision Trees
 
+**📋 Authoritative Sources:**
+- [Implementation Guide](./implementation-guide.instructions.md) - Complete typed vs untyped patterns
+- [Migration Guide](./migration-guide.instructions.md) - Implementation approach migration
+- [Provider Guidelines](./provider-guidelines.instructions.md) - Azure ARM integration standards
+
 ### Implementation Approach Selection
 
 ```text
@@ -458,6 +483,11 @@ Designing resource schema?
 [⬆️ Back to top](#troubleshooting-decision-trees)
 
 ## 🧪 Testing Strategy Decision Trees
+
+**📋 Authoritative Sources:**
+- [Testing Guidelines](./testing-guidelines.instructions.md) - Complete testing patterns and execution protocols
+- [Azure Patterns](./azure-patterns.instructions.md) - CustomizeDiff testing requirements
+- [Implementation Guide](./implementation-guide.instructions.md) - Test organization for typed vs untyped resources
 
 ### Test Type Selection
 
@@ -515,6 +545,11 @@ Ready to run tests?
 [⬆️ Back to top](#troubleshooting-decision-trees)
 
 ## 📝 Code Quality Decision Trees
+
+**📋 Authoritative Sources:**
+- [Code Clarity Enforcement](./code-clarity-enforcement.instructions.md) - Zero tolerance comment policy and enforcement
+- [Error Patterns](./error-patterns.instructions.md) - Error message standards and formatting
+- [Implementation Guide](./implementation-guide.instructions.md) - Coding standards and Go patterns
 
 ### Comment Policy Decision Tree
 
@@ -583,6 +618,11 @@ Handling Azure API errors?
 
 ## 🔄 Azure Resource Lifecycle Decision Trees
 
+**📋 Authoritative Sources:**
+- [Azure Patterns](./azure-patterns.instructions.md) - PATCH operations, CustomizeDiff validation, and "None" value patterns
+- [Provider Guidelines](./provider-guidelines.instructions.md) - Azure Resource Manager integration and CustomizeDiff implementation
+- [Schema Patterns](./schema-patterns.instructions.md) - Zero value validation and field removal patterns
+
 ### PATCH Operation Troubleshooting
 
 ```text
@@ -643,6 +683,11 @@ CustomizeDiff validation not working?
 [⬆️ Back to top](#troubleshooting-decision-trees)
 
 ## 🔍 Performance Optimization Decision Trees
+
+**📋 Authoritative Sources:**
+- [Performance Optimization](./performance-optimization.instructions.md) - Complete Azure API efficiency and scalability patterns
+- [Provider Guidelines](./provider-guidelines.instructions.md) - Azure SDK integration best practices
+- [Testing Guidelines](./testing-guidelines.instructions.md) - Performance testing and resource management
 
 ### Resource Management Performance
 
