@@ -8,69 +8,89 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
 func init() {
 	recaser.RegisterResourceId(&WorkspaceId{})
 }
 
 var _ resourceids.ResourceId = &WorkspaceId{}
 
+// WorkspaceId is a struct representing the Resource ID for a Workspace
 type WorkspaceId struct {
-	SubscriptionId string
-	ResourceGroup  string
-	ServiceName    string
-	WorkspaceId    string
+	SubscriptionId    string
+	ResourceGroupName string
+	ServiceName       string
+	WorkspaceId       string
 }
 
-func NewWorkspaceID(subscriptionId, resourceGroup, serviceName, workspaceId string) WorkspaceId {
+// NewWorkspaceID returns a new WorkspaceId struct
+func NewWorkspaceID(subscriptionId string, resourceGroupName string, serviceName string, workspaceId string) WorkspaceId {
 	return WorkspaceId{
-		SubscriptionId: subscriptionId,
-		ResourceGroup:  resourceGroup,
-		ServiceName:    serviceName,
-		WorkspaceId:    workspaceId,
+		SubscriptionId:    subscriptionId,
+		ResourceGroupName: resourceGroupName,
+		ServiceName:       serviceName,
+		WorkspaceId:       workspaceId,
 	}
 }
 
+// ParseWorkspaceID parses 'input' into a WorkspaceId
 func ParseWorkspaceID(input string) (*WorkspaceId, error) {
-	id, err := resourceids.ParseAzureResourceID(input)
+	parser := resourceids.NewParserFromResourceIdType(&WorkspaceId{})
+	parsed, err := parser.Parse(input, false)
 	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
+	}
+
+	id := WorkspaceId{}
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
-	resourceId := WorkspaceId{
-		SubscriptionId: id.SubscriptionID,
-		ResourceGroup:  id.ResourceGroup,
+	return &id, nil
+}
+
+// ParseWorkspaceIDInsensitively parses 'input' case-insensitively into a WorkspaceId
+// note: this method should only be used for API response data and not user input
+func ParseWorkspaceIDInsensitively(input string) (*WorkspaceId, error) {
+	parser := resourceids.NewParserFromResourceIdType(&WorkspaceId{})
+	parsed, err := parser.Parse(input, true)
+	if err != nil {
+		return nil, fmt.Errorf("parsing %q: %+v", input, err)
 	}
 
-	if resourceId.ServiceName, err = id.PopSegment("service"); err != nil {
-		return nil, err
-	}
-	if resourceId.WorkspaceId, err = id.PopSegment("workspaces"); err != nil {
-		return nil, err
-	}
-
-	if err := id.ValidateNoEmptySegments(input); err != nil {
+	id := WorkspaceId{}
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
-	return &resourceId, nil
+	return &id, nil
 }
 
 func (id *WorkspaceId) FromParseResult(input resourceids.ParseResult) error {
-	if subscriptionId, ok := input.Parsed["subscriptionId"]; ok {
-		id.SubscriptionId = subscriptionId
+	var ok bool
+
+	if id.SubscriptionId, ok = input.Parsed["subscriptionId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "subscriptionId", input)
 	}
-	if resourceGroup, ok := input.Parsed["resourceGroup"]; ok {
-		id.ResourceGroup = resourceGroup
+
+	if id.ResourceGroupName, ok = input.Parsed["resourceGroupName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "resourceGroupName", input)
 	}
-	if serviceName, ok := input.Parsed["service"]; ok {
-		id.ServiceName = serviceName
+
+	if id.ServiceName, ok = input.Parsed["serviceName"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "serviceName", input)
 	}
-	if workspaceId, ok := input.Parsed["workspaces"]; ok {
-		id.WorkspaceId = workspaceId
+
+	if id.WorkspaceId, ok = input.Parsed["workspaceId"]; !ok {
+		return resourceids.NewSegmentNotSpecifiedError(id, "workspaceId", input)
 	}
+
 	return nil
 }
 
+// ValidateWorkspaceID checks that 'input' can be parsed as a Workspace ID
 func ValidateWorkspaceID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
@@ -85,32 +105,35 @@ func ValidateWorkspaceID(input interface{}, key string) (warnings []string, erro
 	return
 }
 
+// ID returns the formatted Workspace ID
 func (id WorkspaceId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.ApiManagement/service/%s/workspaces/%s"
-	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroup, id.ServiceName, id.WorkspaceId)
+	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.WorkspaceId)
 }
 
+// Segments returns a slice of Resource ID Segments which comprise this Workspace ID
 func (id WorkspaceId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
 		resourceids.SubscriptionIdSegment("subscriptionId", "12345678-1234-9876-4563-123456789012"),
 		resourceids.StaticSegment("staticResourceGroups", "resourceGroups", "resourceGroups"),
-		resourceids.ResourceGroupSegment("resourceGroup", "example-resource-group"),
+		resourceids.ResourceGroupSegment("resourceGroupName", "example-resource-group"),
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
-		resourceids.StaticSegment("staticMicrosoftApiManagement", "Microsoft.ApiManagement", "Microsoft.ApiManagement"),
+		resourceids.ResourceProviderSegment("staticMicrosoftApiManagement", "Microsoft.ApiManagement", "Microsoft.ApiManagement"),
 		resourceids.StaticSegment("staticService", "service", "service"),
-		resourceids.UserSpecifiedSegment("serviceName", "serviceValue"),
+		resourceids.UserSpecifiedSegment("serviceName", "serviceName"),
 		resourceids.StaticSegment("staticWorkspaces", "workspaces", "workspaces"),
-		resourceids.UserSpecifiedSegment("workspaceId", "workspaceValue"),
+		resourceids.UserSpecifiedSegment("workspaceId", "workspaceId"),
 	}
 }
 
+// String returns a human-readable description of this Workspace ID
 func (id WorkspaceId) String() string {
 	components := []string{
-		fmt.Sprintf("SubscriptionId: %q", id.SubscriptionId),
-		fmt.Sprintf("ResourceGroup: %q", id.ResourceGroup),
-		fmt.Sprintf("ServiceName: %q", id.ServiceName),
-		fmt.Sprintf("WorkspaceId: %q", id.WorkspaceId),
+		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
+		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
+		fmt.Sprintf("Service Name: %q", id.ServiceName),
+		fmt.Sprintf("Workspace: %q", id.WorkspaceId),
 	}
-	return fmt.Sprintf("Workspace (%s)", strings.Join(components, " / "))
+	return fmt.Sprintf("Workspace (%s)", strings.Join(components, "\n"))
 }
