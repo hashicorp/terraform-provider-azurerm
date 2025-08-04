@@ -475,7 +475,7 @@ func (r ContainerAppEnvironmentResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("identity") {
 				ident, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(state.Identity)
 				if err != nil {
-					return fmt.Errorf("expanding identity: %+v", err)
+					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
 				payload.Identity = ident
 			}
