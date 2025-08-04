@@ -23,6 +23,7 @@ type ApiManagementWorkspaceModel struct {
 	Name            string `tfschema:"name"`
 	ApiManagementId string `tfschema:"api_management_id"`
 	DisplayName     string `tfschema:"display_name"`
+	Description     string `tfschema:"description"`
 }
 
 type ApiManagementWorkspaceResource struct{}
@@ -53,6 +54,12 @@ func (r ApiManagementWorkspaceResource) Arguments() map[string]*pluginsdk.Schema
 			Required:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 			Description:  "The display name of the API Management Workspace.",
+		},
+		"description": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			Description:  "The description of the API Management Workspace.",
 		},
 	}
 }
@@ -106,6 +113,7 @@ func (r ApiManagementWorkspaceResource) Create() sdk.ResourceFunc {
 			properties := workspace.WorkspaceContract{
 				Properties: &workspace.WorkspaceContractProperties{
 					DisplayName: model.DisplayName,
+					Description: model.Description,
 				},
 			}
 
@@ -150,6 +158,7 @@ func (r ApiManagementWorkspaceResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
 					state.DisplayName = props.DisplayName
+					state.Description = props.Description
 				}
 			}
 
@@ -197,6 +206,7 @@ func (r ApiManagementWorkspaceResource) Update() sdk.ResourceFunc {
 			properties := workspace.WorkspaceContract{
 				Properties: &workspace.WorkspaceContractProperties{
 					DisplayName: model.DisplayName,
+					Description: model.Description,
 				},
 			}
 
