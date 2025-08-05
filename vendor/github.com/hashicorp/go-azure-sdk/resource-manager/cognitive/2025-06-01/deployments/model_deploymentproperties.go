@@ -15,5 +15,6 @@ type DeploymentProperties struct {
 	RaiPolicyName            *string                              `json:"raiPolicyName,omitempty"`
 	RateLimits               *[]ThrottlingRule                    `json:"rateLimits,omitempty"`
 	ScaleSettings            *DeploymentScaleSettings             `json:"scaleSettings,omitempty"`
+	SpilloverDeploymentName  *string                              `json:"spilloverDeploymentName,omitempty"`
 	VersionUpgradeOption     *DeploymentModelVersionUpgradeOption `json:"versionUpgradeOption,omitempty"`
 }

@@ -625,6 +625,47 @@ func parseRoutingMethods(input string) (*RoutingMethods, error) {
 	return &out, nil
 }
 
+type ScenarioType string
+
+const (
+	ScenarioTypeAgent ScenarioType = "agent"
+	ScenarioTypeNone  ScenarioType = "none"
+)
+
+func PossibleValuesForScenarioType() []string {
+	return []string{
+		string(ScenarioTypeAgent),
+		string(ScenarioTypeNone),
+	}
+}
+
+func (s *ScenarioType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseScenarioType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseScenarioType(input string) (*ScenarioType, error) {
+	vals := map[string]ScenarioType{
+		"agent": ScenarioTypeAgent,
+		"none":  ScenarioTypeNone,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ScenarioType(input)
+	return &out, nil
+}
+
 type SkuTier string
 
 const (
