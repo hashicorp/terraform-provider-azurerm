@@ -718,6 +718,11 @@ func (s *GRPCProviderServer) ConfigureProvider(ctx context.Context, req *tfproto
 
 	schemaBlock := s.getProviderSchemaBlock()
 
+	// HACK to get around configuring this when it's already been configured
+	if req.Config == nil {
+		return resp, nil
+	}
+	
 	configVal, err := msgpack.Unmarshal(req.Config.MsgPack, schemaBlock.ImpliedType())
 	if err != nil {
 		resp.Diagnostics = convert.AppendProtoDiag(ctx, resp.Diagnostics, err)
