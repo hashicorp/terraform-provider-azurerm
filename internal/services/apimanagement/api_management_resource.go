@@ -21,15 +21,15 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/delegationsettings"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/deletedservice"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/policy"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/product"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/signinsettings"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/signupsettings"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tenantaccess"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/api"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/delegationsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/deletedservice"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/policy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/product"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/signinsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/signupsettings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/tenantaccess"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
@@ -964,7 +964,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 				return fmt.Errorf("parsing product ID: %+v", err)
 			}
 			log.Printf("[DEBUG] Deleting %s", productId)
-			if delResp, err := productsClient.Delete(ctx, *productId, product.DeleteOperationOptions{DeleteSubscriptions: pointer.To(true)}); err != nil {
+			if delResp, err := productsClient.Delete(ctx, *productId, product.DeleteOperationOptions{DeleteSubscriptions: pointer.To(true), IfMatch: pointer.To("*")}); err != nil {
 				if !response.WasNotFound(delResp.HttpResponse) {
 					return fmt.Errorf("deleting %s: %+v", *productId, err)
 				}
