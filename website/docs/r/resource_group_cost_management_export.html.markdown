@@ -72,6 +72,12 @@ The following arguments are supported:
 
 * `active` - (Optional) Is the cost management export active? Default is `true`.
 
+* `description` – (Optional) Export description.
+
+* `location` — (Optional) The Azure Region where Cost Management Export exists.
+
+* `identity` - An `identity` block as defined below.
+
 * `file_format` - (Optional) Format for export. Valid values are `Csv` and `Parquet`. Default is `Csv`.
 
 * `compression_mode` – (Optional) Export file compression mode. Valid values are `gzip`, `snappy`, and `none`. Default is `none`.
@@ -80,7 +86,15 @@ The following arguments are supported:
 
 * `data_overwrite_behavior` – (Optional) Enable overwrite data for the same month in customer storage account. Valid values are `CreateNewReport` and `OverwritePreviousReport`. Default is `CreateNewReport`.
 
-* `description` – (Optional) Export description.
+---
+
+An `identity` block exports the following:
+
+* `type` - The type of Managed Service Identity that is configured on this Cost Management Export.
+
+* `principal_id` - The Principal ID of the System Assigned Managed Service Identity that is configured on this Cost Management Export.
+
+* `tenant_id` - The Tenant ID of the System Assigned Managed Service Identity that is configured on this Cost Management Export.
 
 ---
 
