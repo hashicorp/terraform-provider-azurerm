@@ -406,7 +406,7 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 						return nil
 					}
 
-					//TODO: Remove in v5.0
+					// TODO: Remove in v5.0
 					vmSizesProvided := len(skuProfile["vm_sizes"].(*pluginsdk.Set).List()) > 0
 					vmSizeProvided := len(skuProfile["vm_size"].(*pluginsdk.Set).List()) > 0
 					if !vmSizesProvided && !vmSizeProvided {
