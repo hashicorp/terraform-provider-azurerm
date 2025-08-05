@@ -66,3 +66,9 @@ An existing PostgreSQL Flexible Server Backup can be imported into Terraform usi
 ```shell
 terraform import azurerm_postgresql_flexible_server_backup.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DBforPostgreSQL/flexibleServers/fs1/backups/backup1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DBforPostgreSQL` - 2024-08-01
