@@ -4,6 +4,7 @@ package loadtestservice
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -22,8 +23,8 @@ import (
 )
 
 var (
-	_ sdk.Resource           = LoadTestResource{}
-	_ sdk.ResourceWithUpdate = LoadTestResource{}
+	_ sdk.ResourceWithUpdate        = LoadTestResource{}
+	_ sdk.ResourceWithCustomizeDiff = LoadTestResource{}
 )
 
 type LoadTestResource struct{}
@@ -122,6 +123,39 @@ func (r LoadTestResource) Attributes() map[string]*pluginsdk.Schema {
 		"data_plane_uri": {
 			Computed: true,
 			Type:     pluginsdk.TypeString,
+		},
+	}
+}
+
+func (r LoadTestResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 10 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var model LoadTestResourceSchema
+			if err := metadata.DecodeDiff(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			if len(model.Encryption) == 1 && len(model.Encryption[0].Identity) == 1 && model.Encryption[0].Identity[0].Type == string(loadtests.TypeUserAssigned) {
+				msg := "when `encryption.identity.type` is set to `UserAssigned`, the `encryption.identity.identity_id` provided must also be specified in the `identity.identity_ids` list"
+				if len(model.Identity) == 0 {
+					return errors.New(msg)
+				}
+
+				existsInIdentity := false
+				for _, id := range model.Identity[0].IdentityIds {
+					if id == model.Encryption[0].Identity[0].IdentityID {
+						existsInIdentity = true
+						break
+					}
+				}
+
+				if !existsInIdentity {
+					return errors.New(msg)
+				}
+			}
+
+			return nil
 		},
 	}
 }
