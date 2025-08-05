@@ -430,6 +430,34 @@ func TestAccSubnet_sharingScope(t *testing.T) {
 	})
 }
 
+func TestAccSubnet_sharingScopeUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.sharingScope(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func TestAccSubnet_updateAddressPrefix(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}
@@ -1045,12 +1073,12 @@ func (r SubnetResource) sharingScope(data acceptance.TestData) string {
 %s
 
 resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
+  name                            = "internal"
+  resource_group_name             = azurerm_resource_group.test.name
+  virtual_network_name            = azurerm_virtual_network.test.name
+  address_prefixes                = ["10.0.2.0/24"]
   default_outbound_access_enabled = false
-	sharing_scope = "Tenant"
+  sharing_scope                   = "Tenant"
 }
 `, r.template(data))
 }
