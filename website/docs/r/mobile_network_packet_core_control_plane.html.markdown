@@ -81,7 +81,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Mobile Network Packet Core Control Plane should exist. Changing this forces a new Mobile Network Packet Core Control Plane to be created.
 
-* `site_ids` - (Required) A list of Mobile Network Site IDs in which this packet core control plane should be deployed. The Sites must be in the same location as the packet core control plane.
+* `site_ids` - (Required) A list of Mobile Network Site IDs in which this packet core control plane should be deployed. The Sites must be in the same location as the packet core control plane. Currently, the API supports exactly 1 resource ID in the list. Changing this forces a new resource to be created.
 
 * `sku` - (Required) The SKU defining the throughput and SIM allowances for this packet core control plane deployment. Possible values are `G0`, `G1`, `G2`, `G3`, `G4`, `G5` and `G10`.
 
@@ -170,4 +170,4 @@ terraform import azurerm_mobile_network_packet_core_control_plane.example /subsc
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.MobileNetwork`: 2022-11-01
+* `Microsoft.MobileNetwork` - 2022-11-01

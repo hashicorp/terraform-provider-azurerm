@@ -127,4 +127,4 @@ In this scenario, the `subscription_id` property can be completed and Terraform 
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Resources`: 2023-07-01
+* `Microsoft.Resources` - 2023-07-01

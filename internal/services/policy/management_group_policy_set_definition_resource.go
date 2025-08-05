@@ -31,7 +31,10 @@ type ManagementGroupPolicySetDefinitionResourceModel struct {
 	PolicyDefinitionGroup     []PolicyDefinitionGroupModel     `tfschema:"policy_definition_group"`
 }
 
-var _ sdk.ResourceWithUpdate = ManagementGroupPolicySetDefinitionResource{}
+var (
+	_ sdk.ResourceWithUpdate        = ManagementGroupPolicySetDefinitionResource{}
+	_ sdk.ResourceWithCustomizeDiff = ManagementGroupPolicySetDefinitionResource{}
+)
 
 func (r ManagementGroupPolicySetDefinitionResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -345,4 +348,37 @@ func (r ManagementGroupPolicySetDefinitionResource) Delete() sdk.ResourceFunc {
 
 func (r ManagementGroupPolicySetDefinitionResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return policysetdefinitions.ValidateProviders2PolicySetDefinitionID
+}
+
+func (r ManagementGroupPolicySetDefinitionResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 10 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if metadata.ResourceDiff.HasChange("parameters") {
+				oldParametersRaw, newParametersRaw := metadata.ResourceDiff.GetChange("parameters")
+				if oldParametersString := oldParametersRaw.(string); oldParametersString != "" {
+					newParametersString := newParametersRaw.(string)
+					if newParametersString == "" {
+						return metadata.ResourceDiff.ForceNew("parameters")
+					}
+
+					oldParameters, err := expandParameterDefinitionsValue(oldParametersString)
+					if err != nil {
+						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
+					}
+
+					newParameters, err := expandParameterDefinitionsValue(newParametersString)
+					if err != nil {
+						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
+					}
+
+					if len(*newParameters) < len(*oldParameters) {
+						return metadata.ResourceDiff.ForceNew("parameters")
+					}
+				}
+			}
+
+			return nil
+		},
+	}
 }

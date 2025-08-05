@@ -98,4 +98,4 @@ terraform import azurerm_databox_edge_device.example /subscriptions/00000000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DataBoxEdge`: 2022-03-01
+* `Microsoft.DataBoxEdge` - 2022-03-01

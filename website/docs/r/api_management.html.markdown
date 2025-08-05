@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `publisher_email` - (Required) The email of publisher/company.
 
-* `sku_name` - (Required) `sku_name` is a string consisting of two parts separated by an underscore(\_). The first part is the `name`, valid values include: `Consumption`, `Developer`, `Basic`, `Standard` and `Premium`. The second part is the `capacity` (e.g. the number of deployed units of the `sku`), which must be a positive `integer` (e.g. `Developer_1`).
+* `sku_name` - (Required) `sku_name` is a string consisting of two parts separated by an underscore(\_). The first part is the `name`, valid values include: `Consumption`, `Developer`, `Basic`, `BasicV2`, `Standard`, `StandardV2`, `Premium` and `PremiumV2`. The second part is the `capacity` (e.g. the number of deployed units of the `sku`), which must be a positive `integer` (e.g. `Developer_1`).
 
 ~> **Note:** Premium SKUs are limited to a default maximum of 12 (i.e. `Premium_12`), this can, however, be increased via support request.
 
@@ -432,4 +432,4 @@ terraform import azurerm_api_management.example /subscriptions/00000000-0000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ApiManagement`: 2022-08-01
+* `Microsoft.ApiManagement` - 2024-05-01, 2022-08-01
