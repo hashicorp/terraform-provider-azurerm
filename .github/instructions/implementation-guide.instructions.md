@@ -1039,26 +1039,21 @@ Use `diff.ForceNew()` within CustomizeDiffShim when:
 3. Azure API constraints require recreation for specific state transitions
 4. Static ForceNew: true or ForceNewIfChange cannot express the logic
 
+## 📚 Specialized Guidance (On-Demand)
+
+### **Schema & Validation**
+- 📐 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md) - Field types, validation patterns, complex schemas
+- 📋 **Code Clarity**: [code-clarity-enforcement.instructions.md](./code-clarity-enforcement.instructions.md) - Comment policies, quality standards
+
+### **Migration & Evolution**
+- 🔄 **Migration Guide**: [migration-guide.instructions.md](./migration-guide.instructions.md) - Implementation transitions, breaking changes
+- 🔄 **API Evolution**: [api-evolution-patterns.instructions.md](./api-evolution-patterns.instructions.md) - API versioning, backward compatibility
+
+### **Specialized Development**
+- ❌ **Error Patterns**: [error-patterns.instructions.md](./error-patterns.instructions.md) - Error handling, debugging patterns
+- 🔧 **Troubleshooting**: [troubleshooting-decision-trees.instructions.md](./troubleshooting-decision-trees.instructions.md) - Common issues, workflows
+- ⚡ **Performance**: [performance-optimization.instructions.md](./performance-optimization.instructions.md) - API efficiency, scalability
+- 🔐 **Security**: [security-compliance.instructions.md](./security-compliance.instructions.md) - Input validation, compliance
+
 ---
 [⬆️ Back to top](#terraform-azurerm-provider-implementation-guide)
-
-## Quick Reference Links
-
-- 🏠 **Home**: [../copilot-instructions.md](../copilot-instructions.md)
-- ☁️ **Azure Patterns**: [azure-patterns.instructions.md](./azure-patterns.instructions.md)
-- 📋 **Code Clarity Enforcement**: [code-clarity-enforcement.instructions.md](./code-clarity-enforcement.instructions.md)
-- 📝 **Documentation Guide**: [documentation-guidelines.instructions.md](./documentation-guidelines.instructions.md)
-- ❌ **Error Patterns**: [error-patterns.instructions.md](./error-patterns.instructions.md)
-- 🔄 **Migration Guide**: [migration-guide.instructions.md](./migration-guide.instructions.md)
-- 🏢 **Provider Guidelines**: [provider-guidelines.instructions.md](./provider-guidelines.instructions.md)
-- 📐 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md)
-- 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
-
-### 🚀 Enhanced Guidance Files
-
-- 🔄 **API Evolution**: [api-evolution-patterns.instructions.md](./api-evolution-patterns.instructions.md)
-- ⚡ **Performance**: [performance-optimization.instructions.md](./performance-optimization.instructions.md)
-- 🔐 **Security**: [security-compliance.instructions.md](./security-compliance.instructions.md)
-- 🔧 **Troubleshooting**: [troubleshooting-decision-trees.instructions.md](./troubleshooting-decision-trees.instructions.md)
-
----

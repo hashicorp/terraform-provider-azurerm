@@ -1,745 +1,317 @@
 ---
 applyTo: "internal/**/*.go"
-description: Troubleshooting decision trees and diagnostic patterns for the Terraform AzureRM provider including common issues, root cause analysis, and resolution frameworks.
+description: Troubleshooting decision trees and diagnostic patterns for the Terraform AzureRM provider including common issues, debugging workflows, and resolution strategies.
 ---
 
-# Troubleshooting Decision Trees
+# 🔧 Troubleshooting Decision Trees
 
-Troubleshooting decision trees and diagnostic patterns for the Terraform AzureRM provider including common issues, root cause analysis, and resolution frameworks.
+Troubleshooting decision trees and diagnostic patterns for the Terraform AzureRM provider including common issues, debugging workflows, and resolution strategies.
 
-**Quick navigation:** [🔧 Common Issues](#🔧-common-issue-resolution-flowchart) | [🔍 Root Cause Analysis](#🔍-root-cause-analysis-framework) | [🚨 Error Diagnostics](#🚨-error-diagnostic-patterns) | [🔄 State Issues](#🔄-state-management-troubleshooting) | [🏗️ Implementation Choice](#🔧-implementation-choice-decision-trees) | [🧪 Testing Strategy](#🧪-testing-strategy-decision-trees) | [📝 Code Quality](#📝-code-quality-decision-trees) | [🔄 Azure Lifecycle](#🔄-azure-resource-lifecycle-decision-trees) | [🔍 Performance](#🔍-performance-optimization-decision-trees)
+**Quick navigation:** [🚨 Common Issues](#🚨-common-issues) | [🔍 Debugging Workflows](#🔍-debugging-workflows) | [⚡ Quick Fixes](#⚡-quick-fixes) | [🏗️ Development Troubleshooting](#🏗️-development-troubleshooting)
 
-## 🔧 Common Issue Resolution Flowchart
+## 🚨 Common Issues
 
-**📋 Authoritative Sources:**
-- [Error Patterns](./error-patterns.instructions.md) - Complete error handling patterns
-- [Azure Patterns](./azure-patterns.instructions.md) - Azure-specific behaviors
-- [Implementation Guide](./implementation-guide.instructions.md) - CRUD operation patterns
+### Azure API Rate Limiting
 
-### Resource Creation Failures
+**Symptoms:**
+- HTTP 429 errors in logs
+- Intermittent failures during resource operations
+- Slow resource creation/update cycles
 
+**Decision Tree:**
 ```text
-Resource Creation Fails
-├─ Azure API Error 409 (Conflict)
-│  ├─ Check import conflict detection
-│  ├─ Verify resource doesn't already exist
-│  └─ Review RequiresImport implementation
-├─ Azure API Error 400 (Bad Request)
-│  ├─ Validate field combinations in CustomizeDiff
-│  ├─ Check required field validation
-│  └─ Verify Azure SDK parameter mapping
-├─ Timeout Error
-│  ├─ Increase timeout values for long-running operations
-│  ├─ Check Azure service health
-│  └─ Verify polling implementation for LROs
-├─ Permission Error (403)
-│  ├─ Verify service principal permissions
-│  ├─ Check Azure RBAC assignments
-│  └─ Validate subscription access
-└─ Unknown Error
-   ├─ Check Azure SDK version compatibility
-   ├─ Review Azure service API changes
-   └─ Validate authentication configuration
+API Rate Limiting Detected
+├─ Check subscription limits
+│  ├─ Review Azure portal quotas
+│  ├─ Verify service tier limits
+│  └─ Consider subscription upgrade
+├─ Implement retry logic
+│  ├─ Use exponential backoff
+│  ├─ Add jitter to reduce thundering herd
+│  └─ Set maximum retry limits
+└─ Optimize API calls
+   ├─ Batch operations where possible
+   ├─ Cache frequently accessed data
+   └─ Reduce unnecessary API calls
 ```
 
-### PATCH Operation Issues
+**Resolution Pattern:**
+```go
+// Implement proper retry with exponential backoff
+func retryWithBackoff(operation func() error) error {
+    backoff := time.Second
+    maxRetries := 5
 
+    for i := 0; i < maxRetries; i++ {
+        err := operation()
+        if err == nil {
+            return nil
+        }
+
+        if !isRetryableError(err) {
+            return err
+        }
+
+        time.Sleep(backoff)
+        backoff *= 2
+        if backoff > 30*time.Second {
+            backoff = 30*time.Second
+        }
+    }
+
+    return fmt.Errorf("operation failed after %d retries", maxRetries)
+}
+```
+
+### Resource State Drift
+
+**Symptoms:**
+- Terraform shows unexpected diffs on plan
+- Resources appear modified outside Terraform
+- Import operations fail with state mismatches
+
+**Decision Tree:**
 ```text
-PATCH Operation Problems
-├─ Residual State (features remain enabled after removal)
-│  ├─ Check "None" pattern implementation
-│  ├─ Verify explicit disable commands
-│  └─ Review Azure SDK nil filtering behavior
-├─ Fields Not Updating
-│  ├─ Verify expand function completeness
-│  ├─ Check Azure API field mapping
-│  └─ Validate pointer usage patterns
-├─ State Drift Detection
-│  ├─ Check flatten function accuracy
-│  ├─ Verify Read function implementation
-│  └─ Review computed field handling
-└─ Import Failures
-   ├─ Verify resource ID parsing
-   ├─ Check flatten function completeness
-   └─ Validate state reconstruction logic
+State Drift Detected
+├─ Identify drift source
+│  ├─ Manual Azure portal changes
+│  ├─ Other automation tools
+│  ├─ Azure service auto-scaling
+│  └─ Provider version differences
+├─ Resolve drift
+│  ├─ Update Terraform configuration to match
+│  ├─ Import resources to sync state
+│  ├─ Apply changes to restore desired state
+│  └─ Use refresh-only plan to update state
+└─ Prevent future drift
+   ├─ Implement Azure Policy controls
+   ├─ Use resource locks where appropriate
+   ├─ Establish change management processes
+   └─ Monitor for unauthorized changes
 ```
 
 ### Authentication and Authorization Issues
 
+**Symptoms:**
+- HTTP 401/403 errors
+- "Principal does not have access" errors
+- Authentication timeouts
+
+**Decision Tree:**
 ```text
-Authentication Problems
-├─ Invalid Credentials
-│  ├─ Verify environment variables are set
-│  ├─ Check credential format validation
-│  └─ Test authentication outside Terraform
-├─ Token Expiration
-│  ├─ Implement token refresh logic
-│  ├─ Check token lifetime settings
-│  └─ Verify refresh token handling
-├─ Insufficient Permissions
-│  ├─ Review required Azure permissions
-│  ├─ Check resource group access
-│  └─ Validate subscription-level permissions
-└─ Multi-Tenant Issues
-   ├─ Verify tenant ID configuration
-   ├─ Check cross-tenant access
-   └─ Review guest user permissions
-```
----
-[⬆️ Back to top](#troubleshooting-decision-trees)
-
-## 🔍 Root Cause Analysis Framework
-
-**📋 Authoritative Sources:**
-- [Error Patterns](./error-patterns.instructions.md) - Systematic debugging approaches
-- [Testing Guidelines](./testing-guidelines.instructions.md) - Environment and configuration validation
-- [Azure Patterns](./azure-patterns.instructions.md) - Azure SDK integration diagnostics
-
-### Systematic Debugging Approach
-
-```go
-func debugResourceIssue(ctx context.Context, resourceType string, operation string) {
-    logger := log.WithFields(logrus.Fields{
-        "resource_type": resourceType,
-        "operation":     operation,
-        "debug_session": generateDebugID(),
-    })
-
-    // Step 1: Environment validation
-    if err := validateEnvironment(); err != nil {
-        logger.Errorf("Environment validation failed: %+v", err)
-        return
-    }
-
-    // Step 2: Configuration analysis
-    if err := analyzeConfiguration(); err != nil {
-        logger.Errorf("Configuration analysis failed: %+v", err)
-        return
-    }
-
-    // Step 3: Azure API testing
-    if err := testAzureAPI(ctx); err != nil {
-        logger.Errorf("Azure API test failed: %+v", err)
-        return
-    }
-
-    // Step 4: State comparison
-    if err := compareExpectedVsActualState(); err != nil {
-        logger.Errorf("State comparison failed: %+v", err)
-        return
-    }
-
-    logger.Info("Debug analysis complete")
-}
+Authentication Issue
+├─ Verify credentials
+│  ├─ Check environment variables
+│  ├─ Validate service principal
+│  ├─ Confirm tenant/subscription IDs
+│  └─ Test credential expiration
+├─ Check permissions
+│  ├─ Review Azure RBAC assignments
+│  ├─ Verify resource-level permissions
+│  ├─ Check API permissions for service principal
+│  └─ Validate subscription access
+└─ Test authentication
+   ├─ Use Azure CLI for validation
+   ├─ Test with minimal permissions
+   ├─ Verify network connectivity
+   └─ Check for conditional access policies
 ```
 
-### Configuration Validation
+## 🔍 Debugging Workflows
 
-```go
-func analyzeConfiguration() error {
-    checks := []struct {
-        name string
-        fn   func() error
-    }{
-        {"Schema Validation", validateSchemaConfiguration},
-        {"Field Dependencies", validateFieldDependencies},
-        {"Azure Constraints", validateAzureConstraints},
-        {"Resource Limits", validateResourceLimits},
-    }
+### Step-by-Step Resource Debugging
 
-    for _, check := range checks {
-        if err := check.fn(); err != nil {
-            return fmt.Errorf("%s failed: %+v", check.name, err)
-        }
-    }
+**1. Information Gathering**
+```bash
+# Check Terraform version and provider version
+terraform version
 
-    return nil
-}
+# Review resource configuration
+terraform show -json | jq '.values.root_module.resources[] | select(.address == "azurerm_resource.example")'
 
-func validateFieldDependencies() error {
-    // Check for missing required field combinations
-    // Validate conditional field requirements
-    // Verify CustomizeDiff logic alignment
-    return nil
-}
+# Check current state
+terraform state show azurerm_resource.example
 ```
 
-### Azure API Diagnostics
+**2. Azure SDK Debugging**
+```bash
+# Enable detailed logging
+$env:TF_LOG = "DEBUG"
+$env:ARM_LOG_LEVEL = "DEBUG"
 
-```go
-func testAzureAPI(ctx context.Context) error {
-    // Test basic connectivity
-    if err := testConnectivity(ctx); err != nil {
-        return fmt.Errorf("connectivity test failed: %+v", err)
-    }
-
-    // Test authentication
-    if err := testAuthentication(ctx); err != nil {
-        return fmt.Errorf("authentication test failed: %+v", err)
-    }
-
-    // Test specific API endpoints
-    if err := testAPIEndpoints(ctx); err != nil {
-        return fmt.Errorf("API endpoint test failed: %+v", err)
-    }
-
-    return nil
-}
-
-func testAPIEndpoints(ctx context.Context) error {
-    endpoints := []string{
-        "/subscriptions/{subscriptionId}/providers/Microsoft.Resources/resourceGroups",
-        "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProvider}",
-    }
-
-    for _, endpoint := range endpoints {
-        if err := testEndpoint(ctx, endpoint); err != nil {
-            return fmt.Errorf("endpoint %s failed: %+v", endpoint, err)
-        }
-    }
-
-    return nil
-}
-```
----
-[⬆️ Back to top](#troubleshooting-decision-trees)
-
-## 🚨 Error Diagnostic Patterns
-
-**📋 Authoritative Sources:**
-- [Error Patterns](./error-patterns.instructions.md) - Complete error classification and resolution
-- [Provider Guidelines](./provider-guidelines.instructions.md) - Azure API error handling standards
-- [Security Compliance](./security-compliance.instructions.md) - Authentication and authorization patterns
-
-### Error Classification System
-
-```go
-type ErrorCategory int
-
-const (
-    AuthenticationError ErrorCategory = iota
-    AuthorizationError
-    ConfigurationError
-    AzureAPIError
-    NetworkError
-    TimeoutError
-    StateError
-    UnknownError
-)
-
-func classifyError(err error) ErrorCategory {
-    if err == nil {
-        return UnknownError
-    }
-
-    errorString := strings.ToLower(err.Error())
-
-    switch {
-    case strings.Contains(errorString, "unauthorized") || strings.Contains(errorString, "authentication"):
-        return AuthenticationError
-    case strings.Contains(errorString, "forbidden") || strings.Contains(errorString, "permission"):
-        return AuthorizationError
-    case strings.Contains(errorString, "bad request") || strings.Contains(errorString, "invalid"):
-        return ConfigurationError
-    case strings.Contains(errorString, "timeout") || strings.Contains(errorString, "deadline"):
-        return TimeoutError
-    case strings.Contains(errorString, "conflict") || strings.Contains(errorString, "already exists"):
-        return StateError
-    default:
-        return AzureAPIError
-    }
-}
+# Run targeted operation
+terraform plan -target=azurerm_resource.example
 ```
 
-### Error Resolution Mapping
-
-```go
-func getResolutionSteps(category ErrorCategory, err error) []string {
-    resolutions := map[ErrorCategory][]string{
-        AuthenticationError: {
-            "Verify ARM_CLIENT_ID, ARM_CLIENT_SECRET, ARM_TENANT_ID environment variables",
-            "Check service principal credentials",
-            "Test authentication with Azure CLI: az login --service-principal",
-            "Verify credential expiration dates",
-        },
-        AuthorizationError: {
-            "Check Azure RBAC role assignments",
-            "Verify service principal has required permissions",
-            "Review resource group access permissions",
-            "Check subscription-level permissions",
-        },
-        ConfigurationError: {
-            "Run CustomizeDiff validation tests",
-            "Verify field combinations and dependencies",
-            "Check Azure service constraints",
-            "Validate input data types and formats",
-        },
-        TimeoutError: {
-            "Increase timeout values in resource configuration",
-            "Check Azure service health status",
-            "Verify network connectivity to Azure endpoints",
-            "Review long-running operation polling implementation",
-        },
-        StateError: {
-            "Check for existing resources with same name",
-            "Verify import detection logic",
-            "Review state file for conflicts",
-            "Validate resource ID uniqueness",
-        },
-    }
-
-    return resolutions[category]
-}
+**3. API Level Debugging**
+```bash
+# Use Azure CLI to test API directly
+az rest --method GET --url "https://management.azure.com/subscriptions/{subscription-id}/resourceGroups/{rg}/providers/Microsoft.Service/resources/{name}?api-version=2023-01-01"
 ```
 
-### Automated Diagnostics
+### Network and Connectivity Issues
 
-```go
-func runAutomatedDiagnostics(ctx context.Context, resource interface{}) DiagnosticReport {
-    report := DiagnosticReport{
-        Timestamp: time.Now(),
-        Checks:    make(map[string]CheckResult),
-    }
-
-    // Configuration checks
-    report.Checks["schema_validation"] = validateResourceSchema(resource)
-    report.Checks["field_dependencies"] = validateFieldDependencies(resource)
-
-    // Azure connectivity checks
-    report.Checks["azure_connectivity"] = testAzureConnectivity(ctx)
-    report.Checks["authentication"] = testAuthentication(ctx)
-
-    // Performance checks
-    report.Checks["api_latency"] = measureAPILatency(ctx)
-    report.Checks["resource_quotas"] = checkResourceQuotas(ctx)
-
-    // State checks
-    report.Checks["state_consistency"] = validateStateConsistency(resource)
-
-    return report
-}
-
-type DiagnosticReport struct {
-    Timestamp time.Time                `json:"timestamp"`
-    Checks    map[string]CheckResult   `json:"checks"`
-    Summary   string                   `json:"summary"`
-}
-
-type CheckResult struct {
-    Status  string      `json:"status"` // "pass", "fail", "warning"
-    Message string      `json:"message"`
-    Details interface{} `json:"details,omitempty"`
-}
-```
----
-[⬆️ Back to top](#troubleshooting-decision-trees)
-
-## 🔄 State Management Troubleshooting
-
-**📋 Authoritative Sources:**
-- [Azure Patterns](./azure-patterns.instructions.md) - State management with d.GetRawConfig()
-- [Implementation Guide](./implementation-guide.instructions.md) - State encoding/decoding patterns
-- [Migration Guide](./migration-guide.instructions.md) - State compatibility and migration
-
-### State Drift Detection
-
+**Debugging Pattern:**
 ```text
-State Drift Issues
-├─ Read Function Problems
-│  ├─ Check API response parsing
-│  ├─ Verify flatten function accuracy
-│  └─ Review null/empty value handling
-├─ Azure Resource Changes
-│  ├─ Check for manual Azure portal changes
-│  ├─ Verify Azure policy effects
-│  └─ Review Azure automation impacts
-├─ Provider Version Changes
-│  ├─ Check for breaking changes in provider updates
-│  ├─ Review schema modifications
-│  └─ Validate migration requirements
-└─ Terraform State Corruption
-   ├─ Backup and restore state file
-   ├─ Use terraform state pull/push commands
-   └─ Consider terraform refresh operations
+Connectivity Issue
+├─ Test basic connectivity
+│  ├─ Check internet connection
+│  ├─ Verify DNS resolution
+│  ├─ Test Azure endpoints
+│  └─ Check proxy/firewall settings
+├─ Azure-specific tests
+│  ├─ Test authentication endpoint
+│  ├─ Verify Azure API endpoints
+│  ├─ Check service-specific endpoints
+│  └─ Test from different networks
+└─ Provider-specific debugging
+   ├─ Enable TF_LOG=DEBUG
+   ├─ Check HTTP response codes
+   ├─ Review timeout settings
+   └─ Test with reduced concurrency
 ```
 
-### Import Issues
+## ⚡ Quick Fixes
 
+### Common Error Resolution
+
+**"Resource already exists" during creation:**
+```bash
+# Import existing resource
+terraform import azurerm_resource.example /subscriptions/.../resourceGroups/.../providers/Microsoft.Service/resources/name
+
+# Or force replacement
+terraform apply -replace=azurerm_resource.example
+```
+
+**"Resource not found" during read:**
+```bash
+# Refresh state to detect deletion
+terraform refresh
+
+# Remove from state if manually deleted
+terraform state rm azurerm_resource.example
+```
+
+**Schema validation errors:**
+```hcl
+# Check for deprecated arguments
+# Review provider upgrade guides
+# Validate argument types and values
+```
+
+### Performance Optimization
+
+**Slow plan/apply operations:**
+```bash
+# Reduce parallelism
+terraform plan -parallelism=1
+
+# Target specific resources
+terraform plan -target=azurerm_resource.example
+
+# Use partial configuration
+terraform plan -var-file=minimal.tfvars
+```
+
+## 🏗️ Development Troubleshooting
+
+### Provider Development Issues
+
+**Build Failures:**
+```bash
+# Check Go version compatibility
+go version
+
+# Update dependencies
+go mod tidy
+
+# Run specific tests
+go test -v ./internal/services/servicename -run TestAccResourceName_basic
+```
+
+**Test Failures:**
+```bash
+# Run with detailed output
+TF_ACC=1 go test -v ./internal/services/servicename -run TestAccResourceName_basic -timeout 60m
+
+# Check for resource cleanup issues
+# Review Azure credentials and permissions
+# Verify test resource naming patterns
+```
+
+**Debugging Test Issues:**
 ```go
-func debugImportIssues(resourceID string) error {
-    // Step 1: Validate resource ID format
-    if err := validateResourceIDFormat(resourceID); err != nil {
-        return fmt.Errorf("invalid resource ID format: %+v", err)
-    }
+// Add debug logging to tests
+t.Logf("Testing configuration: %s", config)
 
-    // Step 2: Check resource existence in Azure
-    exists, err := checkResourceExistence(resourceID)
-    if err != nil {
-        return fmt.Errorf("error checking resource existence: %+v", err)
-    }
-    if !exists {
-        return fmt.Errorf("resource does not exist in Azure")
-    }
+// Use acceptance.BuildTestData for consistent naming
+data := acceptance.BuildTestData(t, "azurerm_resource", "test")
 
-    // Step 3: Test resource parsing
-    if err := testResourceParsing(resourceID); err != nil {
-        return fmt.Errorf("resource parsing failed: %+v", err)
-    }
+// Check for test isolation issues
+// Verify resource group cleanup
+// Review parallel test execution
+```
 
-    // Step 4: Validate flatten functions
-    if err := testFlattenFunctions(resourceID); err != nil {
-        return fmt.Errorf("flatten function validation failed: %+v", err)
+### CustomizeDiff Debugging
+
+**Validation Logic Issues:**
+```go
+// Add logging to CustomizeDiff functions
+func validateConfiguration(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+    log.Printf("[DEBUG] CustomizeDiff: validating configuration")
+
+    // Test specific field combinations
+    enabled := diff.Get("enabled").(bool)
+    config := diff.Get("configuration").([]interface{})
+
+    log.Printf("[DEBUG] enabled: %t, config length: %d", enabled, len(config))
+
+    if enabled && len(config) == 0 {
+        return fmt.Errorf("`configuration` is required when `enabled` is true")
     }
 
     return nil
 }
 ```
 
-### State Reconstruction
-
+**ForceNew Logic Issues:**
 ```go
-func reconstructResourceState(ctx context.Context, resourceID string) (map[string]interface{}, error) {
-    // Parse resource ID
-    id, err := parseResourceID(resourceID)
-    if err != nil {
-        return nil, fmt.Errorf("parsing resource ID: %+v", err)
-    }
+// Debug ForceNew conditions
+pluginsdk.ForceNewIfChange("field_name", func(ctx context.Context, old, new, meta interface{}) bool {
+    log.Printf("[DEBUG] ForceNew check: old=%v, new=%v", old, new)
 
-    // Fetch current state from Azure
-    azureState, err := fetchFromAzure(ctx, id)
-    if err != nil {
-        return nil, fmt.Errorf("fetching from Azure: %+v", err)
-    }
+    shouldForceNew := old.(string) != new.(string)
+    log.Printf("[DEBUG] ForceNew result: %t", shouldForceNew)
 
-    // Apply flatten functions
-    terraformState := flattenToTerraformState(azureState)
+    return shouldForceNew
+}),
+```
 
-    // Validate reconstructed state
-    if err := validateReconstructedState(terraformState); err != nil {
-        return nil, fmt.Errorf("state validation failed: %+v", err)
-    }
+### Azure API Integration Issues
 
-    return terraformState, nil
+**Client Configuration Problems:**
+```go
+// Debug client initialization
+func debugClientSetup(metadata sdk.ResourceMetaData) {
+    log.Printf("[DEBUG] Subscription ID: %s", metadata.Client.Account.SubscriptionId)
+    log.Printf("[DEBUG] Client features: %+v", metadata.Client.Features)
+
+    // Test client connectivity
+    client := metadata.Client.ServiceName.ResourceClient
+    // Make a lightweight API call to test
 }
 ```
----
-[⬆️ Back to top](#troubleshooting-decision-trees)
 
-## 🔧 Implementation Choice Decision Trees
-
-**📋 Authoritative Sources:**
-- [Implementation Guide](./implementation-guide.instructions.md) - Complete typed vs untyped patterns
-- [Migration Guide](./migration-guide.instructions.md) - Implementation approach migration
-- [Provider Guidelines](./provider-guidelines.instructions.md) - Azure ARM integration standards
-
-### Implementation Approach Selection
-
-```text
-Need to implement new resource/data source?
-├─ NEW implementation
-│  ├─ Use Typed Resource Implementation (Preferred)
-│  ├─ Benefits: Type safety, better error handling, metadata
-│  └─ Pattern: sdk.Resource with receiver methods
-├─ EXISTING resource maintenance
-│  ├─ Continue with Untyped Resource Implementation
-│  ├─ Maintain existing function-based CRUD patterns
-│  └─ Pattern: pluginsdk.Resource with function pointers
-├─ Major refactor/migration
-│  ├─ Consider migration to Typed Implementation
-│  ├─ Evaluate cost/benefit of migration
-│  └─ Follow migration guide patterns
-└─ Bug fix/minor change
-   ├─ Maintain existing implementation approach
-   ├─ Don't mix typed/untyped patterns
-   └─ Apply same standards regardless of approach
-```
-
-### Schema Design Decision Tree
-
-```text
-Designing resource schema?
-├─ Azure API has wrapper structures
-│  ├─ Single-purpose wrapper? → Consider schema flattening
-│  ├─ Logical grouping? → Maintain nested structure
-│  ├─ User experience improved? → Flatten responsibly
-│  └─ Complex validation needed? → Keep structure for clarity
-├─ Field validation requirements
-│  ├─ Simple validation? → Use schema ValidateFunc
-│  ├─ Azure service constraint? → Use CustomizeDiff
-│  ├─ Field combinations? → Use CustomizeDiff with GetRawConfig
-│  └─ Complex state transitions? → Use CustomizeDiff ForceNew
-├─ Azure PATCH operations
-│  ├─ Service uses PATCH? → Implement "None" pattern
-│  ├─ Residual state concerns? → Explicit disable patterns
-│  ├─ Feature toggles? → Always return complete structures
-│  └─ nil filtering issues? → Use pointer.To(false) for disable
-└─ Optional field handling
-   ├─ Go zero value conflicts? → Use GetRawConfig().IsNull()
-   ├─ Required combinations? → Validate in CustomizeDiff
-   ├─ Conditional requirements? → Check field existence first
-   └─ Performance critical? → Minimize raw config access
+**Resource ID Parsing Issues:**
+```go
+// Debug resource ID parsing
+id, err := parse.ServiceNameID(resourceId)
+if err != nil {
+    log.Printf("[DEBUG] Failed to parse resource ID '%s': %+v", resourceId, err)
+    return fmt.Errorf("parsing Resource ID `%s`: %+v", resourceId, err)
+}
+log.Printf("[DEBUG] Parsed ID: %+v", id)
 ```
 ---
-[⬆️ Back to top](#troubleshooting-decision-trees)
-
-## 🧪 Testing Strategy Decision Trees
-
-**📋 Authoritative Sources:**
-- [Testing Guidelines](./testing-guidelines.instructions.md) - Complete testing patterns and execution protocols
-- [Azure Patterns](./azure-patterns.instructions.md) - CustomizeDiff testing requirements
-- [Implementation Guide](./implementation-guide.instructions.md) - Test organization for typed vs untyped resources
-
-### Test Type Selection
-
-```text
-What needs testing?
-├─ Unit testing required
-│  ├─ Parser functions → Table-driven tests
-│  ├─ Validation logic → Error/success scenarios
-│  ├─ Utility functions → Edge cases and boundaries
-│  └─ SDK integration → Mock Azure responses
-├─ Acceptance testing required
-│  ├─ Basic CRUD → ExistsInAzure + ImportStep pattern
-│  ├─ Update scenarios → Multi-step resource lifecycle
-│  ├─ Error scenarios → ExpectError with regexp
-│  ├─ CustomizeDiff validation → MANDATORY error testing
-│  └─ Import functionality → RequiresImport pattern
-├─ Data source testing
-│  ├─ Field validation → Key checks (NOT redundant with ImportStep)
-│  ├─ Computed attributes → Verify population
-│  ├─ Complex structures → Nested value validation
-│  └─ No ImportStep → All validation must be explicit
-└─ Performance testing
-   ├─ Large resource sets → Parallel processing patterns
-   ├─ Azure API limits → Rate limiting and retry logic
-   ├─ Long-running operations → Timeout and polling
-   └─ Memory usage → Large state file handling
-```
-
-### Test Execution Decision Tree
-
-```text
-Ready to run tests?
-├─ ⚠️ STOP: Never run automatically
-│  ├─ Tests create REAL Azure resources
-│  ├─ Require valid Azure credentials
-│  ├─ Generate billable charges
-│  └─ Need user confirmation
-├─ Manual execution only
-│  ├─ Provide exact command to user
-│  ├─ Explain purpose and duration
-│  ├─ List prerequisites (credentials)
-│  └─ Warn about Azure costs
-├─ Environment check
-│  ├─ ARM_SUBSCRIPTION_ID set?
-│  ├─ ARM_CLIENT_ID/SECRET/TENANT_ID configured?
-│  ├─ Azure permissions sufficient?
-│  └─ Test region availability confirmed?
-└─ Cleanup verification
-   ├─ Provider features for force deletion
-   ├─ Resource dependencies handled
-   ├─ Soft-delete considerations
-   └─ Billing impact minimized
-```
----
-[⬆️ Back to top](#troubleshooting-decision-trees)
-
-## 📝 Code Quality Decision Trees
-
-**📋 Authoritative Sources:**
-- [Code Clarity Enforcement](./code-clarity-enforcement.instructions.md) - Zero tolerance comment policy and enforcement
-- [Error Patterns](./error-patterns.instructions.md) - Error message standards and formatting
-- [Implementation Guide](./implementation-guide.instructions.md) - Coding standards and Go patterns
-
-### Comment Policy Decision Tree
-
-```text
-About to add a comment?
-├─ ⚠️ MANDATORY STOP: Zero tolerance policy
-│  ├─ Can code be self-explanatory instead?
-│  ├─ Better naming eliminate need?
-│  ├─ Function extraction possible?
-│  └─ Structure reorganization help?
-├─ Exception evaluation (4 cases only)
-│  ├─ Azure API quirk not obvious? → MAY be acceptable
-│  ├─ Complex business logic that can't be simplified? → MAY be acceptable
-│  ├─ Azure SDK workaround/limitation? → MAY be acceptable
-│  ├─ Non-obvious state pattern (PATCH, residual state)? → MAY be acceptable
-│  └─ Everything else → NO COMMENT (refactor instead)
-├─ Justification required
-│  ├─ Which exception case applies?
-│  ├─ Why can't code be self-explanatory?
-│  ├─ What specific Azure behavior needs documentation?
-│  └─ Can this comment be eliminated through better code?
-└─ Final check
-   ├─ Is this truly necessary?
-   ├─ Does it add value beyond code?
-   ├─ Will future developers need this context?
-   └─ Can refactoring eliminate this need?
-```
-
-### Error Handling Decision Tree
-
-```text
-Handling Azure API errors?
-├─ Resource not found (404)
-│  ├─ During Read operation? → metadata.MarkAsGone() or return nil
-│  ├─ During Create operation? → Proceed with creation
-│  ├─ During Update operation? → Resource deleted externally
-│  └─ During Delete operation? → Consider already deleted
-├─ Authentication errors (401)
-│  ├─ Check credential configuration
-│  ├─ Verify service principal permissions
-│  ├─ Test token expiration
-│  └─ Validate tenant access
-├─ Authorization errors (403)
-│  ├─ Check RBAC role assignments
-│  ├─ Verify resource group permissions
-│  ├─ Check subscription access
-│  └─ Review resource-specific permissions
-├─ Conflict errors (409)
-│  ├─ Import conflict? → Return metadata.ResourceRequiresImport
-│  ├─ Resource state conflict? → Check for external changes
-│  ├─ Azure policy violation? → Review compliance requirements
-│  └─ Concurrent modification? → Implement retry logic
-├─ Rate limiting (429)
-│  ├─ Implement exponential backoff
-│  ├─ Check for batch operations
-│  ├─ Review concurrent request patterns
-│  └─ Consider Azure SDK automatic retry
-└─ Unknown errors
-   ├─ Log full error context
-   ├─ Include operation details
-   ├─ Preserve Azure request ID
-   └─ Provide actionable error message
-```
----
-[⬆️ Back to top](#troubleshooting-decision-trees)
-
-## 🔄 Azure Resource Lifecycle Decision Trees
-
-**📋 Authoritative Sources:**
-- [Azure Patterns](./azure-patterns.instructions.md) - PATCH operations, CustomizeDiff validation, and "None" value patterns
-- [Provider Guidelines](./provider-guidelines.instructions.md) - Azure Resource Manager integration and CustomizeDiff implementation
-- [Schema Patterns](./schema-patterns.instructions.md) - Zero value validation and field removal patterns
-
-### PATCH Operation Troubleshooting
-
-```text
-Azure resource not updating correctly?
-├─ Service uses PATCH operations?
-│  ├─ Features remain enabled after removal? → Implement explicit disable
-│  ├─ nil values being filtered? → Use pointer.To(false) for disabled features
-│  ├─ Residual state persisting? → Return complete structure with all features
-│  └─ Wrapper structures causing issues? → Apply "None" pattern
-├─ Configuration removal not working?
-│  ├─ Check expand function returns disabled state
-│  ├─ Verify all features explicitly set to false
-│  ├─ Ensure required fields included even when disabled
-│  └─ Test with empty configuration scenarios
-├─ State drift detection failing?
-│  ├─ Flatten function handling disabled features?
-│  ├─ Read operation detecting all state changes?
-│  ├─ Computed fields properly updated?
-│  └─ Import functionality reconstructing full state?
-└─ Field combination validation?
-   ├─ CustomizeDiff handling PATCH requirements?
-   ├─ GetRawConfig() used for field existence checks?
-   ├─ Zero value validation preventing false errors?
-   └─ Conditional logic matching Azure API constraints?
-```
-
-### CustomizeDiff Troubleshooting
-
-```text
-CustomizeDiff validation not working?
-├─ Import requirements issues?
-│  ├─ Typed resource? → May need dual imports (schema + pluginsdk)
-│  ├─ Untyped resource? → Usually only pluginsdk import sufficient
-│  ├─ Function signature mismatch? → Check *schema.ResourceDiff vs *pluginsdk.ResourceDiff
-│  └─ Compilation errors? → Verify import requirements
-├─ Zero value validation problems?
-│  ├─ Optional fields causing false errors? → Use GetRawConfig().IsNull()
-│  ├─ Go zero values triggering validation? → Check field existence first
-│  ├─ Required fields incorrectly validated? → Use diff.Get() for required fields
-│  └─ Performance issues? → Minimize raw config access overhead
-├─ Field removal ForceNew not working?
-│  ├─ SetNew() called before ForceNew()? → Both required for visibility
-│  ├─ Plan showing state change? → SetNew creates visible transition
-│  ├─ Update-only logic? → Check diff.Id() != "" to avoid creation issues
-│  └─ Error handling? → Wrap SetNew errors with descriptive context
-├─ Boolean expressions causing linting errors?
-│  ├─ Using verbose comparisons? → Simplify: old.(bool) && !new.(bool)
-│  ├─ Explicit true/false checks? → Use direct boolean semantics
-│  ├─ Compliance with gosimple? → Apply simplified expressions
-│  └─ Readability maintained? → Shorter expressions are clearer
-└─ Testing validation logic?
-   ├─ Error scenarios covered? → Use ExpectError with regexp.MustCompile()
-   ├─ Success scenarios tested? → Basic/update/complete tests handle these
-   ├─ Edge cases included? → Test boundary conditions
-   └─ Azure API constraints validated? → Match actual service behavior
-```
----
-[⬆️ Back to top](#troubleshooting-decision-trees)
-
-## 🔍 Performance Optimization Decision Trees
-
-**📋 Authoritative Sources:**
-- [Performance Optimization](./performance-optimization.instructions.md) - Complete Azure API efficiency and scalability patterns
-- [Provider Guidelines](./provider-guidelines.instructions.md) - Azure SDK integration best practices
-- [Testing Guidelines](./testing-guidelines.instructions.md) - Performance testing and resource management
-
-### Resource Management Performance
-
-```text
-Performance issues with resource operations?
-├─ Create/Update operations slow?
-│  ├─ Long-running operations? → Verify polling implementation
-│  ├─ Multiple API calls? → Consider batch operations
-│  ├─ Timeout values appropriate? → Match Azure service SLA
-│  └─ Connection pooling configured? → Check HTTP client settings
-├─ Read operations inefficient?
-│  ├─ Unnecessary API calls? → Cache computed values appropriately
-│  ├─ Large response payloads? → Filter required fields only
-│  ├─ State comparison overhead? → Optimize flatten functions
-│  └─ Drift detection expensive? → Implement incremental checks
-├─ Multiple resources slow?
-│  ├─ Sequential processing? → Implement parallel patterns with semaphores
-│  ├─ Resource dependencies? → Optimize dependency resolution
-│  ├─ Azure API rate limits? → Implement intelligent backoff
-│  └─ Memory usage high? → Optimize state management patterns
-├─ Import operations problematic?
-│  ├─ Resource ID parsing expensive? → Cache parsed components
-│  ├─ State reconstruction slow? → Optimize flatten functions
-│  ├─ Multiple resources import? → Batch processing where possible
-│  └─ Error handling overhead? → Streamline validation logic
-└─ Test execution performance?
-   ├─ Acceptance tests slow? → Minimize Azure resource creation
-   ├─ Setup/teardown expensive? → Optimize test fixtures
-   ├─ Parallel test conflicts? → Review resource naming/isolation
-   └─ CI/CD pipeline slow? → Consider test parallelization
-```
----
-[⬆️ Back to top](#troubleshooting-decision-trees)
-
-## Quick Reference Links
-
-- 🏠 **Home**: [../copilot-instructions.md](../copilot-instructions.md)
-- ☁️ **Azure Patterns**: [azure-patterns.instructions.md](./azure-patterns.instructions.md)
-- 🏗️ **Implementation Guide**: [implementation-guide.instructions.md](./implementation-guide.instructions.md)
-- 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
-- 📝 **Documentation Guide**: [documentation-guidelines.instructions.md](./documentation-guidelines.instructions.md)
-- ❌ **Error Patterns**: [error-patterns.instructions.md](./error-patterns.instructions.md)
-- 🔄 **Migration Guide**: [migration-guide.instructions.md](./migration-guide.instructions.md)
-- 🏢 **Provider Guidelines**: [provider-guidelines.instructions.md](./provider-guidelines.instructions.md)
-- 📐 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md)
-- 📋 **Code Clarity**: [code-clarity-enforcement.instructions.md](./code-clarity-enforcement.instructions.md)
-
-### 🚀 Enhanced Guidance Files
-
-- 🔄 **API Evolution**: [api-evolution-patterns.instructions.md](./api-evolution-patterns.instructions.md)
-- ⚡ **Performance**: [performance-optimization.instructions.md](./performance-optimization.instructions.md)
-- 🔐 **Security**: [security-compliance.instructions.md](./security-compliance.instructions.md)
-
----
-[⬆️ Back to top](#troubleshooting-decision-trees)
+[⬆️ Back to top](#🔧-troubleshooting-decision-trees)

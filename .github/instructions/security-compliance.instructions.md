@@ -400,25 +400,5 @@ func validateGDPRCompliance(resource interface{}) error {
     return nil
 }
 ```
-
-## Quick Reference Links
-
-- 🏠 **Home**: [../copilot-instructions.md](../copilot-instructions.md)
-- ☁️ **Azure Patterns**: [azure-patterns.instructions.md](./azure-patterns.instructions.md)
-- 🏗️ **Implementation Guide**: [implementation-guide.instructions.md](./implementation-guide.instructions.md)
-- 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
-- 📝 **Documentation Guide**: [documentation-guidelines.instructions.md](./documentation-guidelines.instructions.md)
-- ❌ **Error Patterns**: [error-patterns.instructions.md](./error-patterns.instructions.md)
-- 🔄 **Migration Guide**: [migration-guide.instructions.md](./migration-guide.instructions.md)
-- 🏢 **Provider Guidelines**: [provider-guidelines.instructions.md](./provider-guidelines.instructions.md)
-- 📐 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md)
-- 📋 **Code Clarity**: [code-clarity-enforcement.instructions.md](./code-clarity-enforcement.instructions.md)
-
-### 🚀 Enhanced Guidance Files
-
-- 🔄 **API Evolution**: [api-evolution-patterns.instructions.md](./api-evolution-patterns.instructions.md)
-- ⚡ **Performance**: [performance-optimization.instructions.md](./performance-optimization.instructions.md)
-- 🔧 **Troubleshooting**: [troubleshooting-decision-trees.instructions.md](./troubleshooting-decision-trees.instructions.md)
-
 ---
 [⬆️ Back to top](#security--compliance-patterns)

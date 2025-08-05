@@ -990,24 +990,19 @@ resource "azurerm_resource" "test" {
 }
 ```
 
-## Quick Reference Links
+## 📚 Related Implementation Guidance (On-Demand)
 
-- 🏠 **Home**: [../copilot-instructions.md](../copilot-instructions.md)
-- ☁️ **Azure Patterns**: [azure-patterns.instructions.md](./azure-patterns.instructions.md)
-- 📋 **Code Clarity Enforcement**: [code-clarity-enforcement.instructions.md](./code-clarity-enforcement.instructions.md)
-- 📝 **Documentation Guide**: [documentation-guidelines.instructions.md](./documentation-guidelines.instructions.md)
-- ❌ **Error Patterns**: [error-patterns.instructions.md](./error-patterns.instructions.md)
-- 🏗️ **Implementation Guide**: [implementation-guide.instructions.md](./implementation-guide.instructions.md)
-- 🔄 **Migration Guide**: [migration-guide.instructions.md](./migration-guide.instructions.md)
-- 🏢 **Provider Guidelines**: [provider-guidelines.instructions.md](./provider-guidelines.instructions.md)
-- 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
+### **Core Implementation**
+- 🏗️ **Implementation Guide**: [implementation-guide.instructions.md](./implementation-guide.instructions.md) - Complete implementation patterns with schema integration
+- ☁️ **Azure Patterns**: [azure-patterns.instructions.md](./azure-patterns.instructions.md) - Azure-specific schema behaviors and the "None" pattern
 
-### 🚀 Enhanced Guidance Files
+### **Testing & Validation**
+- 🧪 **Testing Guidelines**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md) - Schema validation testing patterns
+- ❌ **Error Patterns**: [error-patterns.instructions.md](./error-patterns.instructions.md) - Schema validation error handling
 
-- 🔄 **API Evolution**: [api-evolution-patterns.instructions.md](./api-evolution-patterns.instructions.md)
-- ⚡ **Performance**: [performance-optimization.instructions.md](./performance-optimization.instructions.md)
-- 🔐 **Security**: [security-compliance.instructions.md](./security-compliance.instructions.md)
-- 🔧 **Troubleshooting**: [troubleshooting-decision-trees.instructions.md](./troubleshooting-decision-trees.instructions.md)
+### **Documentation & Standards**
+- 📝 **Documentation Guidelines**: [documentation-guidelines.instructions.md](./documentation-guidelines.instructions.md) - Documenting schema fields and validation
+- 🏢 **Provider Guidelines**: [provider-guidelines.instructions.md](./provider-guidelines.instructions.md) - Azure provider schema standards
 
 ---
 [⬆️ Back to top](#schema-design-patterns)

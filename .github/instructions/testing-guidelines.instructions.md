@@ -7,17 +7,17 @@ description: Testing guidelines for Terraform AzureRM provider Go files - test e
 
 Testing guidelines for Terraform AzureRM provider Go files - test execution protocols, patterns, and Azure-specific considerations.
 
-**Quick navigation:** [🚨 Test Execution Policy](#🚨-critical-test-execution-policy-🚨) | [🚨 Redundant Validation Policy](#🚨-critical-redundant-validation-checks-with-import-step-policy-🚨) | [🧪 Test Types](#🧪-test-types) | [⚡ Essential Patterns](#⚡-essential-test-patterns) | [✅ CustomizeDiff Testing](#✅-customizediff-testing-mandatory) | [📊 Data Source Testing](#📊-data-source-testing-patterns) | [🏗️ Test Organization](#🏗️-test-organization-and-placement-rules) | [☁️ Azure-Specific Testing](#☁️-azure-specific-testing-guidelines) | [🔧 Environment Setup](#🔧-environment-setup)
+**Quick navigation:** [🚨 Test Execution Awareness](#🚨-test-execution-awareness) | [🧪 Efficient Testing](#🧪-efficient-testing-with-importstep) | [🧪 Test Types](#🧪-test-types) | [⚡ Essential Patterns](#⚡-essential-test-patterns) | [✅ CustomizeDiff Testing](#✅-customizediff-testing) | [📊 Data Source Testing](#📊-data-source-testing-patterns) | [🏗️ Test Organization](#🏗️-test-organization-and-structure) | [☁️ Azure-Specific Testing](#☁️-azure-specific-testing-guidelines) | [🔧 Environment Setup](#🔧-environment-setup)
 
-## 🚨 CRITICAL: TEST EXECUTION POLICY 🚨
+## 🚨 Test Execution Awareness
 
-**⚠️ NEVER RUN TESTS AUTOMATICALLY ⚠️**
+**⚠️ Azure Testing Considerations**
 
-**Rules:**
-- **DO NOT** execute `make testacc`, `go test`, or any test commands automatically
-- **ALWAYS** provide exact commands for users to run manually
-- **ALWAYS** explain test purpose, duration, and Azure resource costs
-- Tests create **REAL AZURE RESOURCES** and require **VALID CREDENTIALS**
+**Important Notes:**
+- Acceptance tests create **real Azure resources** and require **valid credentials**
+- Tests may incur Azure costs depending on resources created
+- Ensure proper cleanup after test execution
+- Unit tests are safe and don't require Azure credentials
 
 **Example Command Format:**
 ```bash
@@ -28,53 +28,14 @@ Testing guidelines for Terraform AzureRM provider Go files - test execution prot
 make testacc TEST=./internal/services/compute TESTARGS='-run=TestAccLinuxVirtualMachineScaleSet_fieldsNotSetInState'
 ```
 
-## 🚨 ENFORCEMENT RULES FOR TERMINAL TOOL USAGE
-
-**MANDATORY SELF-CHECK BEFORE ANY TERMINAL COMMAND:**
-
-**Before using any terminal tool, AI MUST answer these questions:**
-1. "Does this command run tests?" → If YES: **AUTOMATIC VIOLATION - PROVIDE MANUAL COMMAND**
-2. "Does this command build/compile?" → If YES: **AUTOMATIC VIOLATION - PROVIDE MANUAL COMMAND**
-3. "Does this create Azure resources?" → If YES: **AUTOMATIC VIOLATION - PROVIDE MANUAL COMMAND**
-4. "Is this only file inspection?" → If YES: Tool may be acceptable
-
-**🚫 AUTOMATIC VIOLATIONS - NEVER USE run_in_terminal FOR:**
-- `make testacc` - Azure resource creation
-- `go test` - Test execution
-- `go build` - Compilation
-- `terraform plan/apply` - Infrastructure changes
-- Any command creating billable Azure resources
-
-**✅ ACCEPTABLE run_in_terminal USAGE:**
-- `ls`, `dir` - Directory listing
-- `cat`, `Get-Content` - File reading
-- `git status` - Repository status
-- File operations that don't execute code
-
-**🔄 VIOLATION RESPONSE PROTOCOL:**
-If you catch yourself about to run a forbidden command:
-1. **STOP immediately**
-2. **NEVER** use run_in_terminal
-3. Provide manual command with this exact format:
-   ```
-   Please run this command manually:
-   [command]
-
-   Purpose: [what this does]
-   Duration: [expected time]
-   Requirements: [prerequisites]
-   ```
-
 ---
 [⬆️ Back to top](#🧪-testing-guidelines)
 
-## 🚨 CRITICAL: REDUNDANT VALIDATION CHECKS WITH IMPORT STEP POLICY 🚨
+## 🧪 Efficient Testing with ImportStep
 
-When using `data.ImportStep()` in acceptance tests, most field validation checks are **redundant** because ImportStep automatically validates that the resource can be imported and that all field values match between the configuration and the imported state.
+When using `data.ImportStep()` in acceptance tests, field validation checks are often redundant because ImportStep automatically validates that the resource can be imported and that all field values match between the configuration and the imported state.
 
-**🚨 CRITICAL RULE: DO NOT ADD REDUNDANT FIELD VALIDATION CHECKS**
-
-**MANDATORY Pattern - Only ExistsInAzure Check:**
+**Recommended Pattern - ExistsInAzure Check:**
 ```go
 func TestAccCdnFrontDoorProfile_basic(t *testing.T) {
     data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
@@ -84,22 +45,20 @@ func TestAccCdnFrontDoorProfile_basic(t *testing.T) {
         {
             Config: r.basic(data),
             Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r), // ONLY THIS CHECK - verifies resource exists
-                // FORBIDDEN: check.That(data.ResourceName).Key("name").HasValue(...) - ImportStep validates this
-                // FORBIDDEN: check.That(data.ResourceName).Key("sku_name").HasValue(...) - ImportStep validates this
-                // FORBIDDEN: check.That(data.ResourceName).Key("field").HasValue(...) - ImportStep validates this
+                check.That(data.ResourceName).ExistsInAzure(r), // Primary check - verifies resource exists
+                // Additional checks only when ImportStep cannot verify specific behavior
             ),
         },
-        data.ImportStep(), // Automatically validates ALL configured field values
+        data.ImportStep(), // Validates all configured field values automatically
     })
 }
 ```
 
-**Key Principles:**
-- **ImportStep handles field validation**: Don't duplicate validation of configured field values
-- **Keep only ExistsInAzure**: Essential for verifying resource creation/existence
-- **Add checks sparingly**: Only for behavior that ImportStep cannot verify
-- **Document rationale**: Comment why additional checks are needed when used
+**Best Practices:**
+- **ImportStep provides comprehensive validation**: Reduces need for explicit field checks
+- **Focus on ExistsInAzure**: Essential for verifying resource creation and existence
+- **Add specific checks when needed**: For computed fields, complex behaviors, or edge cases
+- **Document rationale**: Explain when additional checks add value beyond ImportStep
 
 ---
 [⬆️ Back to top](#🧪-testing-guidelines)
@@ -245,27 +204,27 @@ func TestAccResourceName_requiresImport(t *testing.T) {
 }
 ```
 
-### **Rule #4: User Confirmation Required**
-- Before providing test commands, confirm user wants to run tests
-- Verify user has Azure credentials configured
-- Confirm user understands costs and time requirements
-- Provide cleanup verification steps
+### **Azure Testing Best Practices**
+- Be aware that acceptance tests create real Azure resources
+- Ensure Azure credentials are properly configured when needed
+- Consider costs and cleanup requirements for acceptance tests
+- Unit tests are safe and can be run without Azure resources
 
-**This protocol prevents accidental resource creation, unexpected costs, and ensures users maintain control over their Azure environment.**
+**These practices help maintain awareness of Azure resource implications while enabling effective testing workflows.**
 
 ---
 [⬆️ Back to top](#🧪-testing-guidelines)
 
-## ✅ CustomizeDiff Testing (MANDATORY)
+## ✅ CustomizeDiff Testing
 
-**Why Critical:**
+**Why Important:**
 - CustomizeDiff prevents invalid Azure API calls
 - Enforces Azure service field combination requirements
 - Provides clear error messages before resource operations
 
-**Required Test Coverage:**
+**Recommended Test Coverage:**
 - **Error scenarios**: Test invalid field combinations with `ExpectError: regexp.MustCompile()`
-- **Success scenarios**: Not needed, they will be tested in the other test cases (e.g., `basic`, `update`, and `complete`)
+- **Success scenarios**: Usually covered by other test cases (e.g., `basic`, `update`, and `complete`)
 - **Edge cases**: Test boundary conditions and Azure service constraints
 
 **CustomizeDiff Test Pattern:**
@@ -283,9 +242,9 @@ func TestAccServiceName_featureName_customizeDiffValidation(t *testing.T) {
 }
 ```
 
-CustomizeDiff validations are essential for enforcing Azure API constraints and preventing invalid configurations. **Testing these validations is mandatory** and requires comprehensive coverage of both success and failure scenarios.
+CustomizeDiff validations are essential for enforcing Azure API constraints and preventing invalid configurations. Testing these validations provides comprehensive coverage of both success and failure scenarios.
 
-### Why CustomizeDiff Testing is Critical
+### Why CustomizeDiff Testing is Important
 
 **Azure API Constraint Enforcement:**
 - CustomizeDiff validations prevent invalid API calls that would fail at runtime
@@ -293,15 +252,15 @@ CustomizeDiff validations are essential for enforcing Azure API constraints and 
 - They validate complex resource dependencies before Azure API interaction
 - They provide clear error messages to users before resource `creation`/`update`
 
-**Testing Requirements:**
+**Testing Best Practices:**
 - **Error Scenarios**: Test all invalid field combinations that should trigger validation errors
-- **Success Scenarios**: Not needed, they will be tested in the other test cases (e.g., `basic`, `update`, and `complete`)
+- **Success Scenarios**: Usually covered by other test cases (e.g., `basic`, `update`, and `complete`)
 - **Edge Cases**: Test boundary conditions and corner cases
 - **Error Message Validation**: Verify specific error messages using `ExpectError: regexp.MustCompile()`
 - **Field Path Accuracy**: Ensure error messages include correct field paths and constraints
 - **Azure API Alignment**: Test that validations match actual Azure API behavior
 
-### CustomizeDiff Testing Mandatory Practices
+### CustomizeDiff Testing Best Practices
 
 **Comprehensive Test Coverage:**
 ```go
@@ -310,7 +269,7 @@ func TestAccServiceName_customizeDiffValidation(t *testing.T) {
     r := ServiceNameResource{}
 
     data.ResourceTest(t, r, []acceptance.TestStep{
-        // REQUIRED: Test invalid configuration
+        // Test invalid configuration
         {
             Config:      r.invalidConfiguration(data),
             ExpectError: regexp.MustCompile("`configuration` is required when `enabled` is `true`"),
@@ -455,11 +414,11 @@ data "azurerm_cdn_frontdoor_profile" "test" {
 }
 ```
 
-**Data Source Key Validation Requirements:**
-- **Field Verification**: Data sources MUST validate that expected fields are populated with correct values
+**Data Source Key Validation Guidelines:**
+- **Field Verification**: Data sources should validate that expected fields are populated with correct values
 - **Computed Field Verification**: Test that computed fields (like IDs, endpoints) are populated
 - **Complex Structure Validation**: Use Key validation for nested data structures retrieved from Azure
-- **No ImportStep**: Data sources don't support import, so all validation must be explicit
+- **No ImportStep**: Data sources don't support import, so all validation should be explicit
 
 **Valid Data Source Key Validation Examples:**
 ```go
@@ -478,23 +437,23 @@ check.That(data.ResourceName).Key("log_scrubbing_rule.0.match_variable").HasValu
 ---
 [⬆️ Back to top](#🧪-testing-guidelines)
 
-## 🏗️ Test Organization and Placement Rules
+## 🏗️ Test Organization and Structure
 
 ### Acceptance Test File Structure
-- **Test function placement**: All test functions must be placed before the `Exists` function in the test file
+- **Test function placement**: Test functions should be placed before the `Exists` function in the test file
 - **Helper function placement**: Test configuration helper functions should be placed after the `Exists` function
 - **No duplicate functions**: Remove any duplicate or old test functions to maintain clean file structure
 - **Consistent ordering**: Place tests in logical order (basic, update, requires import, other scenarios)
 
-### Test Case Consolidation Standards
+### Test Case Consolidation Guidelines
 
-**HashiCorp Standard - Essential Tests Only:**
+**HashiCorp Standard - Essential Tests:**
 - **Basic Test**: Core functionality with minimal configuration
 - **Update Test**: Resource update scenarios (only if resource supports updates)
 - **RequiresImport Test**: Import conflict detection
 - **Complete Test**: Full feature demonstration (optional, for complex resources)
 
-**AVOID Excessive Test Cases:**
+**Avoid Excessive Test Cases:**
 - Multiple basic tests with minor variations
 - Separate tests for each individual field
 - Redundant validation tests that don't add value
@@ -505,10 +464,10 @@ check.That(data.ResourceName).Key("log_scrubbing_rule.0.match_variable").HasValu
 When working with related Azure resources that have both Linux and Windows variants (like VMSS), ensure validation logic and behavior consistency:
 
 **Validation Logic Consistency:**
-- **Same validation rules**: Linux and Windows implementations must have identical CustomizeDiff validation logic
-- **Field requirements**: If Windows requires field X for scenario Y, Linux must have the same requirement
-- **Error messages**: Use identical error message patterns across related implementations
-- **Default behavior**: Ensure both implementations handle defaults and omitted fields identically
+- **Same validation rules**: Linux and Windows implementations should use consistent CustomizeDiff validation logic
+- **Field requirements**: If Windows requires field X for scenario Y, Linux should have similar requirements
+- **Error messages**: Use consistent error message patterns across related implementations
+- **Default behavior**: Ensure both implementations handle defaults and omitted fields consistently
 
 ---
 [⬆️ Back to top](#🧪-testing-guidelines)
@@ -597,7 +556,7 @@ export ARM_TEST_LOCATION_ALT=EastUS2
 # Unit tests
 go test ./internal/services/cdn/...
 
-# Acceptance tests (MANUAL EXECUTION ONLY)
+# Acceptance tests (Manual execution recommended)
 make testacc TEST=./internal/services/cdn TESTARGS='-run=TestAccCdnFrontDoorProfile_basic'
 ```
 
@@ -606,27 +565,18 @@ make testacc TEST=./internal/services/cdn TESTARGS='-run=TestAccCdnFrontDoorProf
 - Scale-down operations blocked due to health monitoring requirements
 - Soft-delete conflicts preventing immediate recreation
 
----
-[⬆️ Back to top](#🧪-testing-guidelines)
+## 📚 Specialized Testing Guidance (On-Demand)
 
-## Quick Reference Links
+### **Advanced Testing Patterns**
+- 🔧 **Troubleshooting**: [troubleshooting-decision-trees.instructions.md](./troubleshooting-decision-trees.instructions.md) - Debugging test failures, common issues
+- ❌ **Error Patterns**: [error-patterns.instructions.md](./error-patterns.instructions.md) - Error handling in tests, debugging patterns
 
-- 🏠 **Home**: [../copilot-instructions.md](../copilot-instructions.md)
-- ☁️ **Azure Patterns**: [azure-patterns.instructions.md](./azure-patterns.instructions.md)
-- 📋 **Code Clarity Enforcement**: [code-clarity-enforcement.instructions.md](./code-clarity-enforcement.instructions.md)
-- 📝 **Documentation Guide**: [documentation-guidelines.instructions.md](./documentation-guidelines.instructions.md)
-- ❌ **Error Patterns**: [error-patterns.instructions.md](./error-patterns.instructions.md)
-- 🏗️ **Implementation Guide**: [implementation-guide.instructions.md](./implementation-guide.instructions.md)
-- 🔄 **Migration Guide**: [migration-guide.instructions.md](./migration-guide.instructions.md)
-- 🏢 **Provider Guidelines**: [provider-guidelines.instructions.md](./provider-guidelines.instructions.md)
-- 📐 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md)
+### **Test Infrastructure**
+- ⚡ **Performance**: [performance-optimization.instructions.md](./performance-optimization.instructions.md) - Test performance, scalability testing
+- 🔐 **Security**: [security-compliance.instructions.md](./security-compliance.instructions.md) - Security testing patterns, compliance validation
 
-### 🚀 Enhanced Guidance Files
-
-- 🔄 **API Evolution**: [api-evolution-patterns.instructions.md](./api-evolution-patterns.instructions.md)
-- ⚡ **Performance**: [performance-optimization.instructions.md](./performance-optimization.instructions.md)
-- 🔐 **Security**: [security-compliance.instructions.md](./security-compliance.instructions.md)
-- 🔧 **Troubleshooting**: [troubleshooting-decision-trees.instructions.md](./troubleshooting-decision-trees.instructions.md)
-
+### **Test Evolution**
+- 🔄 **Migration Guide**: [migration-guide.instructions.md](./migration-guide.instructions.md) - Test migration patterns, breaking change testing
+- 🔄 **API Evolution**: [api-evolution-patterns.instructions.md](./api-evolution-patterns.instructions.md) - Testing API changes, version compatibility
 ---
 [⬆️ Back to top](#🧪-testing-guidelines)

@@ -343,29 +343,19 @@ Example of proper Azure value validation:
 },
 ```
 
----
-[⬆️ Back to top](#🏢-provider-guidelines)
+## 📚 Related Implementation Guidance (On-Demand)
 
----
+### **Schema & Testing**
+- 📐 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md) - Azure schema design and validation
 
-## Quick Reference Links
+### **Quality & Evolution**
+- 📋 **Code Clarity**: [code-clarity-enforcement.instructions.md](./code-clarity-enforcement.instructions.md) - Code quality standards
+- 🔄 **Migration Guide**: [migration-guide.instructions.md](./migration-guide.instructions.md) - Provider evolution patterns
+- 🔄 **API Evolution**: [api-evolution-patterns.instructions.md](./api-evolution-patterns.instructions.md) - Azure API versioning
 
-- 🏠 **Home**: [../copilot-instructions.md](../copilot-instructions.md)
-- ☁️ **Azure Patterns**: [azure-patterns.instructions.md](./azure-patterns.instructions.md)
-- 📋 **Code Clarity Enforcement**: [code-clarity-enforcement.instructions.md](./code-clarity-enforcement.instructions.md)
-- 📝 **Documentation Guide**: [documentation-guidelines.instructions.md](./documentation-guidelines.instructions.md)
-- ❌ **Error Patterns**: [error-patterns.instructions.md](./error-patterns.instructions.md)
-- 🏗️ **Implementation Guide**: [implementation-guide.instructions.md](./implementation-guide.instructions.md)
-- 🔄 **Migration Guide**: [migration-guide.instructions.md](./migration-guide.instructions.md)
-- 📐 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md)
-- 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
-
-### 🚀 Enhanced Guidance Files
-
-- 🔄 **API Evolution**: [api-evolution-patterns.instructions.md](./api-evolution-patterns.instructions.md)
-- ⚡ **Performance**: [performance-optimization.instructions.md](./performance-optimization.instructions.md)
-- 🔐 **Security**: [security-compliance.instructions.md](./security-compliance.instructions.md)
-- 🔧 **Troubleshooting**: [troubleshooting-decision-trees.instructions.md](./troubleshooting-decision-trees.instructions.md)
+### **Specialized Areas**
+- 🔐 **Security**: [security-compliance.instructions.md](./security-compliance.instructions.md) - Azure security patterns
+- ⚡ **Performance**: [performance-optimization.instructions.md](./performance-optimization.instructions.md) - Azure provider optimization
 
 ---
 [⬆️ Back to top](#🏢-provider-guidelines)

@@ -17,15 +17,6 @@ This document provides detailed enforcement guidelines for maintaining code clar
 
 ## 🚫 **ZERO TOLERANCE FOR UNNECESSARY COMMENTS POLICY**
 
-**⚠️ MANDATORY BLOCKING ENFORCEMENT ⚠️**
-
-**BEFORE ANY CODE IS WRITTEN OR REVIEWED - MANDATORY STOP:**
-
-**AI MUST ASK ITSELF THESE QUESTIONS:**
-1. "Am I about to add ANY comments (`//`, `/*`) to this code?"
-2. "If YES → STOP and justify under 4-exception criteria"
-3. "If NO exception applies → REFACTOR instead of commenting"
-
 **ABSOLUTE RULE: NO UNNECESSARY COMMENTS**
 
 Code must be self-documenting. Comments are the exception, not the rule.
@@ -312,30 +303,6 @@ Adding field validation logic?
 - **High Intensity**: New resource implementation, complex Azure services, cross-pattern validation
 - **Medium Intensity**: Bug fixes, updates, standard patterns
 - **Low Intensity**: Documentation updates, minor configuration changes
-
----
-[⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)
-
----
-
-## Quick Reference Links
-
-- 🏠 **Home**: [../copilot-instructions.md](../copilot-instructions.md)
-- ☁️ **Azure Patterns**: [azure-patterns.instructions.md](./azure-patterns.instructions.md)
-- 📝 **Documentation Guide**: [documentation-guidelines.instructions.md](./documentation-guidelines.instructions.md)
-- ❌ **Error Patterns**: [error-patterns.instructions.md](./error-patterns.instructions.md)
-- 🏗️ **Implementation Guide**: [implementation-guide.instructions.md](./implementation-guide.instructions.md)
-- 🔄 **Migration Guide**: [migration-guide.instructions.md](./migration-guide.instructions.md)
-- 🏢 **Provider Guidelines**: [provider-guidelines.instructions.md](./provider-guidelines.instructions.md)
-- 📐 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md)
-- 🧪 **Testing Guide**: [testing-guidelines.instructions.md](./testing-guidelines.instructions.md)
-
-### 🚀 Enhanced Guidance Files
-
-- 🔄 **API Evolution**: [api-evolution-patterns.instructions.md](./api-evolution-patterns.instructions.md)
-- ⚡ **Performance**: [performance-optimization.instructions.md](./performance-optimization.instructions.md)
-- 🔐 **Security**: [security-compliance.instructions.md](./security-compliance.instructions.md)
-- 🔧 **Troubleshooting**: [troubleshooting-decision-trees.instructions.md](./troubleshooting-decision-trees.instructions.md)
 
 ---
 [⬆️ Back to top](#code-clarity-and-policy-enforcement-guidelines)
