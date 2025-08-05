@@ -127,3 +127,9 @@ Cloud Hardware Security Module Clusters can be imported using the `resource id`,
 ```shell
 terraform import azurerm_cloud_hardware_security_module_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.HardwareSecurityModules/cloudHsmClusters/cluster1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.HardwareSecurityModules` - 2025-03-31
