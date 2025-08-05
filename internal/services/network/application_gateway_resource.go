@@ -4949,7 +4949,7 @@ func applicationGatewayProbeHash(v interface{}) int {
 
 				// Only include in hash if it's not the default
 				if body != "" || (len(statusCodes) != 1 || statusCodes[0] != "200-399") {
-					buf.WriteString(fmt.Sprintf("%s-%+v", attr["body"].(string), attr["status_code"].([]interface{})))
+					buf.WriteString(fmt.Sprintf("%s-%+v", body, statusCodes))
 				}
 			}
 		}
