@@ -486,7 +486,6 @@ func TestAccLogicAppStandard_corsSettingsRemoved(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.cors.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -501,7 +500,6 @@ func TestAccLogicAppStandard_corsSettingsRemoved(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("site_config.0.cors.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),

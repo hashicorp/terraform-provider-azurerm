@@ -1141,15 +1141,7 @@ func expandLogicAppStandardSiteConfigForUpdate(d []helpers.LogicAppSiteConfig, m
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.cors") {
-		if len(config.Cors) == 0 {
-			// removing this block should reset the CORS settings to the default values of an empty CORS configuration
-			siteConfig.Cors = &webapps.CorsSettings{
-				AllowedOrigins:     pointer.To(make([]string, 0)),
-				SupportCredentials: pointer.To(false),
-			}
-		} else {
-			siteConfig.Cors = helpers.ExpandCorsSettings(config.Cors)
-		}
+		siteConfig.Cors = helpers.ExpandCorsSettings(config.Cors)
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.ip_restriction") {
