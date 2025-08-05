@@ -12,30 +12,6 @@ import (
 	"github.com/hashicorp/go-cty/cty/convert"
 )
 
-// FlatmapValueFromHCL2 converts a value from HCL2 (really, from the cty dynamic
-// types library that HCL2 uses) to a map compatible with what would be
-// produced by the "flatmap" package.
-//
-// The type of the given value informs the structure of the resulting map.
-// The value must be of an object type or this function will panic.
-//
-// Flatmap values can only represent maps when they are of primitive types,
-// so the given value must not have any maps of complex types or the result
-// is undefined.
-func FlatmapValueFromHCL2(v cty.Value) map[string]string {
-	if v.IsNull() {
-		return nil
-	}
-
-	if !v.Type().IsObjectType() {
-		panic(fmt.Sprintf("HCL2ValueFromFlatmap called on %#v", v.Type()))
-	}
-
-	m := make(map[string]string)
-	flatmapValueFromHCL2Map(m, "", v)
-	return m
-}
-
 func flatmapValueFromHCL2Value(m map[string]string, key string, val cty.Value) {
 	ty := val.Type()
 	switch {
