@@ -69,7 +69,7 @@ type VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddressIPTag s
 
 type VirtualMachineScaleSetSkuProfile struct {
 	AllocationStrategy string                                   `tfschema:"allocation_strategy"`
-	VMSizes            []VirtualMachineScaleSetSkuProfileVMSize `tfschema:"vm_sizes"`
+	VMSize             []VirtualMachineScaleSetSkuProfileVMSize `tfschema:"vm_size"`
 }
 
 type VirtualMachineScaleSetSkuProfileVMSize struct {
@@ -154,7 +154,7 @@ func (r OrchestratedVirtualMachineScaleSetDataSource) Attributes() map[string]*p
 						Computed: true,
 					},
 
-					"vm_sizes": {
+					"vm_size": {
 						Type:     pluginsdk.TypeSet,
 						Computed: true,
 						Elem: &pluginsdk.Resource{
@@ -373,7 +373,7 @@ func flattenVirtualMachineScaleSetSkuProfileForDataSource(input *virtualmachines
 			}
 
 			if vmSize.Rank != nil {
-				vmSizeStruct.Rank = *vmSize.Rank
+				vmSizeStruct.Rank = pointer.From(vmSize.Rank)
 			}
 
 			vmSizes = append(vmSizes, vmSizeStruct)
@@ -382,6 +382,6 @@ func flattenVirtualMachineScaleSetSkuProfileForDataSource(input *virtualmachines
 
 	return []VirtualMachineScaleSetSkuProfile{{
 		AllocationStrategy: string(pointer.From(input.AllocationStrategy)),
-		VMSizes:            vmSizes,
+		VMSize:             vmSizes,
 	}}
 }

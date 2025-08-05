@@ -42,7 +42,7 @@ func TestAccOrchestratedVMSSDataSource_skuProfile(t *testing.T) {
 				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
 				check.That(data.ResourceName).Key("sku_profile.#").HasValue("1"),
 				check.That(data.ResourceName).Key("sku_profile.0.allocation_strategy").HasValue("CapacityOptimized"),
-				check.That(data.ResourceName).Key("sku_profile.0.vm_sizes.#").HasValue("3"),
+				check.That(data.ResourceName).Key("sku_profile.0.vm_size.#").HasValue("3"),
 			),
 		},
 	})

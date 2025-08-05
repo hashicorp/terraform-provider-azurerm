@@ -125,11 +125,11 @@ A `sku_profile` block exports the following:
 
 * `allocation_strategy` - The allocation strategy used by this Orchestrated Virtual Machine Scale Set.
 
-* `vm_sizes` - A list of `vm_sizes` blocks as defined below.
+* `vm_size` - A list of `vm_size` blocks as defined below.
 
 ---
 
-A `vm_sizes` block exports the following:
+A `vm_size` block exports the following:
 
 * `name` - The name of the VM size.
 
