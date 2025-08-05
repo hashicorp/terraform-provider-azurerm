@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/api"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/gateway"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/gatewayapi"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/api"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/gateway"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/gatewayapi"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -70,7 +70,7 @@ func resourceApiManagementGatewayApiCreate(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("parsing `api_id`: %v", err)
 	}
 
-	gatewayID, err := gateway.ParseGatewayID(d.Get("gateway_id").(string))
+	gatewayID, err := gateway.ParseServiceGatewayID(d.Get("gateway_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing `gateway_id`: %v", err)
 	}
@@ -131,7 +131,7 @@ func resourceApiManagementGatewayApiRead(d *pluginsdk.ResourceData, meta interfa
 		d.SetId("")
 		return nil
 	}
-	gateway := gatewayapi.NewGatewayID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.GatewayId)
+	gateway := gatewayapi.NewServiceGatewayID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.GatewayId)
 
 	d.Set("api_id", apiId.ID())
 	d.Set("gateway_id", gateway.ID())
