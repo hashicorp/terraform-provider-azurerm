@@ -95,6 +95,21 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 
 			"os_disk": virtualMachineOSDiskSchema(),
 
+			"os_managed_disk_id": {
+				// Note: O+C as this is the same value as `id` below but to support
+				// import of the OSDisk and not break compatibility with existing configs / references
+				// we're adding it as a separate property.
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ForceNew:     true,
+				ValidateFunc: commonids.ValidateManagedDiskID,
+				AtLeastOneOf: []string{
+					"os_disk",
+					"os_managed_disk_id",
+				},
+			},
+
 			"size": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
