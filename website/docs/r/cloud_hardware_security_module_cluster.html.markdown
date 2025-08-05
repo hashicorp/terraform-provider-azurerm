@@ -115,10 +115,10 @@ A `private_link_service_connection_state` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Cloud Hardware Security Module Cluster.
+* `create` - (Defaults to 1 hour) Used when creating the Cloud Hardware Security Module Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cloud Hardware Security Module Cluster.
-* `update` - (Defaults to 60 minutes) Used when updating the Cloud Hardware Security Module Cluster.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Cloud Hardware Security Module Cluster.
+* `update` - (Defaults to 1 hour) Used when updating the Cloud Hardware Security Module Cluster.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Cloud Hardware Security Module Cluster.
 
 ## Import
 
