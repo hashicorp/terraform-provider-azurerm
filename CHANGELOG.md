@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 * dependencies: `machinelearning` - update API version to `2025-06-01` [GH-30268]
+* dependencies: `cognitive` - update API version to `2025-06-01` [GH-30302]
 * `azurerm_linux_web_app` - add support for the `8.4` value in the `php_version` property [GH-30281]
 * `azurerm_linux_web_app_slot` - add support for the `8.4` value in the `php_version` property [GH-30281]
 * `azurerm_cognitive_deployment` - remove `model.format` validation [GH-30276]
