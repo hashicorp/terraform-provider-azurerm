@@ -110,10 +110,6 @@ resource "azurerm_stack_hci_cluster" "test" {
   location            = azurerm_resource_group.test.location
   client_id           = data.azurerm_client_config.current.client_id
   tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  tags = {
-    ENV = "Test"
-  }
 }
 
 resource "azurerm_stack_hci_cluster_automanage_configuration_assignment" "test" {
@@ -148,10 +144,6 @@ resource "azurerm_stack_hci_cluster" "test" {
   location            = azurerm_resource_group.test.location
   client_id           = data.azurerm_client_config.current.client_id
   tenant_id           = data.azurerm_client_config.current.tenant_id
-
-  tags = {
-    ENV = "Test"
-  }
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

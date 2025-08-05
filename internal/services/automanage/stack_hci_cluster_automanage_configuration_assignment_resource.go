@@ -74,7 +74,7 @@ func (v StackHCIClusterConfigurationAssignment) Create() sdk.ResourceFunc {
 				return err
 			}
 
-			// Currently, the configuration profile assignment name has to be hardcoded to "default" by API requirement. -- VERIFY
+			// Currently, the configuration profile assignment name has to be hardcoded to "default" by API requirement.
 			id := configurationprofilehciassignments.NewConfigurationProfileAssignmentID(subscriptionId, stackHciClusterId.ResourceGroupName, stackHciClusterId.ClusterName, "default")
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {

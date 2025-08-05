@@ -225,7 +225,7 @@ resource "azurerm_stack_hci_cluster" "test" {
   name                = "acctest-StackHCICluster-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  client_id           = azuread_application.test.application_id
+  client_id           = azuread_application.test.object_id
   tenant_id           = data.azurerm_client_config.current.tenant_id
 }
 `, template, data.RandomInteger)
@@ -255,7 +255,7 @@ resource "azurerm_stack_hci_cluster" "test" {
   name                = "acctest-StackHCICluster-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  client_id           = azuread_application.test.application_id
+  client_id           = azuread_application.test.object_id
   tenant_id           = data.azurerm_client_config.current.tenant_id
   identity {
     type = "SystemAssigned"
@@ -273,7 +273,7 @@ resource "azurerm_stack_hci_cluster" "test" {
   name                = "acctest-StackHCICluster-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  client_id           = azuread_application.test.application_id
+  client_id           = azuread_application.test.object_id
   tenant_id           = data.azurerm_client_config.current.tenant_id
   identity {
     type = "SystemAssigned"
@@ -295,7 +295,7 @@ resource "azurerm_stack_hci_cluster" "test" {
   name                = "acctest-StackHCICluster-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  client_id           = azuread_application.test.application_id
+  client_id           = azuread_application.test.object_id
   tenant_id           = data.azurerm_client_config.current.tenant_id
 
   tags = {
