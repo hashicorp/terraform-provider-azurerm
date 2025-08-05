@@ -123,7 +123,12 @@ func flattenVirtualMachineNetworkInterfaceIDs(input *[]virtualmachines.NetworkIn
 func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Required: true,
+		Optional: true,
+		Computed: true,
+		AtLeastOneOf: []string{
+			"os_disk",
+			"os_managed_disk_id",
+		},
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -230,16 +235,16 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					Default:  false,
 				},
 
-				"managed_disk_id": {
-					// Note: O+C as this is the same value as `id` below but to support
-					// import of the OSDisk and not break compatibility with existing configs / references
-					// we're adding it as a separate property.
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: commonids.ValidateManagedDiskID,
-				},
-
+				// "managed_disk_id": {
+				// 	// Note: O+C as this is the same value as `id` below but to support
+				// 	// import of the OSDisk and not break compatibility with existing configs / references
+				// 	// we're adding it as a separate property.
+				// 	Type:         pluginsdk.TypeString,
+				// 	Optional:     true,
+				// 	Computed:     true,
+				// 	ValidateFunc: commonids.ValidateManagedDiskID,
+				// },
+				//
 				"id": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
@@ -267,14 +272,15 @@ func expandVirtualMachineOSDisk(input []interface{}, osType virtualmachines.Oper
 		CreateOption: virtualmachines.DiskCreateOptionTypesFromImage,
 		OsType:       pointer.To(osType),
 	}
-	if diskID, ok := raw["managed_disk_id"]; ok {
-		diskId, err := commonids.ParseManagedDiskID(diskID.(string))
-		if err != nil {
-			return nil, err
-		}
-		disk.ManagedDisk.Id = pointer.To(diskId.ID())
-		disk.CreateOption = virtualmachines.DiskCreateOptionTypesAttach
-	}
+
+	// if diskID, ok := raw["managed_disk_id"]; ok && diskID.(string) != "" {
+	// 	diskId, err := commonids.ParseManagedDiskID(diskID.(string))
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// 	disk.ManagedDisk.Id = pointer.To(diskId.ID())
+	// 	disk.CreateOption = virtualmachines.DiskCreateOptionTypesAttach
+	// }
 
 	securityEncryptionType := raw["security_encryption_type"].(string)
 	if securityEncryptionType != "" {
@@ -410,12 +416,12 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"caching":                          string(pointer.From(input.Caching)),
-			"diff_disk_settings":               diffDiskSettings,
-			"disk_encryption_set_id":           diskEncryptionSetId,
-			"disk_size_gb":                     diskSizeGb,
-			"id":                               osDiskId,
-			"managed_disk_id":                  osDiskId,
+			"caching":                string(pointer.From(input.Caching)),
+			"diff_disk_settings":     diffDiskSettings,
+			"disk_encryption_set_id": diskEncryptionSetId,
+			"disk_size_gb":           diskSizeGb,
+			"id":                     osDiskId,
+			// "managed_disk_id":                  osDiskId,
 			"name":                             name,
 			"storage_account_type":             storageAccountType,
 			"secure_vm_disk_encryption_set_id": secureVMDiskEncryptionSetId,
