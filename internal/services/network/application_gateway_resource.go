@@ -4948,7 +4948,7 @@ func applicationGatewayProbeHash(v interface{}) int {
 				statusCodes := attr["status_code"].([]interface{})
 
 				// Only include in hash if it's not the default
-				if body != "" || (len(statusCodes) != 1 || statusCodes[0] != "200-399") {
+				if body != "" || !(len(statusCodes) == 1 && statusCodes[0] == "200-399") {
 					buf.WriteString(fmt.Sprintf("%s-%+v", body, statusCodes))
 				}
 			}
