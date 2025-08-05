@@ -48,6 +48,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // these tests all conflict with one another
         "authorization" to testConfiguration(parallelism = 1),
 
+        // Automanage tests use HCICluster, which is only available in certain locations
+        "automanage" to testConfiguration(locationOverride = LocationConfiguration("australiaeast", "eastus", "westeurope", true)),
+
         // HCICluster is only available in certain locations
         "azurestackhci" to testConfiguration(locationOverride = LocationConfiguration("australiaeast", "eastus", "westeurope", true)),
 
