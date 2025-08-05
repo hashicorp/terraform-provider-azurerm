@@ -4948,8 +4948,8 @@ func applicationGatewayProbeHash(v interface{}) int {
 				statusCodes := attr["status_code"].([]interface{})
 
 				// Only include in hash if it's not the default
-				isDefault := body == "" && len(statusCodes) == 1 && statusCodes[0].(string) == "200-399"
-				if !isDefault {
+				defaultMatch := body == "" && len(statusCodes) == 1 && statusCodes[0].(string) == "200-399"
+				if !defaultMatch {
 					buf.WriteString(fmt.Sprintf("%s-%+v", body, statusCodes))
 				}
 			}
