@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -18,15 +19,15 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/azurestackhci/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceArmStackHCICluster() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceArmStackHCIClusterCreate,
 		Read:   resourceArmStackHCIClusterRead,
 		Update: resourceArmStackHCIClusterUpdate,
@@ -71,14 +72,6 @@ func resourceArmStackHCICluster() *pluginsdk.Resource {
 				ValidateFunc: validation.IsUUID,
 			},
 
-			"automanage_configuration_id": {
-				// TODO: this field should be removed in 4.0 - there's an "association" API specifically for this purpose
-				// so we should be outputting this as an association resource.
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: configurationprofiles.ValidateConfigurationProfileID,
-			},
-
 			"cloud_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -99,6 +92,18 @@ func resourceArmStackHCICluster() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["automanage_configuration_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: configurationprofiles.ValidateConfigurationProfileID,
+			Deprecated:   "the `automanage_configuration_id` property has been deprecated in favour of `azurerm_stack_hci_cluster_automanage_configuration_assignment` and will be removed in version 5.0 of the Provider.",
+		}
+	}
+
+	return resource
 }
 
 func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -122,7 +127,7 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 	cluster := clusters.Cluster{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: &clusters.ClusterProperties{
-			AadClientId: utils.String(d.Get("client_id").(string)),
+			AadClientId: pointer.To(d.Get("client_id").(string)),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
@@ -132,10 +137,10 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if v, ok := d.GetOk("tenant_id"); ok {
-		cluster.Properties.AadTenantId = utils.String(v.(string))
+		cluster.Properties.AadTenantId = pointer.To(v.(string))
 	} else {
 		tenantId := meta.(*clients.Client).Account.TenantId
-		cluster.Properties.AadTenantId = utils.String(tenantId)
+		cluster.Properties.AadTenantId = pointer.To(tenantId)
 	}
 
 	if _, err := client.Create(ctx, id, cluster); err != nil {
@@ -164,7 +169,7 @@ func resourceArmStackHCIClusterCreate(d *pluginsdk.ResourceData, meta interface{
 		if response.WasNotFound(assignmentsResp.HttpResponse) {
 			properties := configurationprofilehciassignments.ConfigurationProfileAssignment{
 				Properties: &configurationprofilehciassignments.ConfigurationProfileAssignmentProperties{
-					ConfigurationProfile: utils.String(configurationProfileId.ID()),
+					ConfigurationProfile: pointer.To(configurationProfileId.ID()),
 				},
 			}
 
@@ -280,7 +285,7 @@ func resourceArmStackHCIClusterUpdate(d *pluginsdk.ResourceData, meta interface{
 
 			properties := configurationprofilehciassignments.ConfigurationProfileAssignment{
 				Properties: &configurationprofilehciassignments.ConfigurationProfileAssignmentProperties{
-					ConfigurationProfile: utils.String(configurationProfileId.ID()),
+					ConfigurationProfile: pointer.To(configurationProfileId.ID()),
 				},
 			}
 

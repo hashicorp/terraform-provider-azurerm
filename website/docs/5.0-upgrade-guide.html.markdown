@@ -401,6 +401,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The property `minimum_tls_version` no longer accepts `1.0` or `1.1` as a value.
 
+### `azurerm_stack_hci_cluster`
+
+* The `automanage_configuration_id` property has been removed and superseded by the `azurerm_stack_hci_cluster_automanage_configuration_assignment` resource.
+
 ### `azurerm_storage_account`
 
 * The deprecated `queue_properties` block has been removed and superseded by the `azurerm_storage_account_queue_properties` resource.
