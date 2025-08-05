@@ -3015,7 +3015,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   name                  = "internal"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_NC24ads_A100_v4"
-  gpu_driver           = "Install"
+  gpu_driver            = "Install"
 }
  `, data.Locations.Primary, data.RandomInteger)
 }
