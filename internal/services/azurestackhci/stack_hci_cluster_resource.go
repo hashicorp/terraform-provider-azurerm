@@ -95,9 +95,9 @@ func resourceArmStackHCICluster() *pluginsdk.Resource {
 
 	if !features.FivePointOh() {
 		resource.Schema["automanage_configuration_id"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// Does this need to be Computed?
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
 			ValidateFunc: configurationprofiles.ValidateConfigurationProfileID,
 			Deprecated:   "the `automanage_configuration_id` property has been deprecated in favour of `azurerm_stack_hci_cluster_automanage_configuration_assignment` and will be removed in version 5.0 of the Provider.",
 		}
