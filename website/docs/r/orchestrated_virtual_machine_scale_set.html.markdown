@@ -142,19 +142,17 @@ A `sku_profile` block supports the following:
 
 * `allocation_strategy` - (Required) Specifies the allocation strategy for the virtual machine scale set based on which the VMs will be allocated. Possible values are `LowestPrice`, `Prioritized`, and `CapacityOptimized`.
 
-* `vm_sizes` - (Required) One or more `vm_sizes` blocks as defined below.
+* `vm_size` - (Required) One or more `vm_size` blocks as defined below.
 
 ---
 
-A `vm_sizes` block supports the following:
+A `vm_size` block supports the following:
 
 * `name` - (Required) The name of the VM SKU which should be used for this Virtual Machine Scale Set, such as `Standard_B1ls` or `Standard_B2s`.
 
 * `rank` - (Optional) Specifies the priority rank of the VM size. Possible values are integers between `0` and `2`, inclusive.
 
--> **Note:** The `rank` field is used when `allocation_strategy` is set to `Prioritized`. Where `0` represents the highest priority, `1` represents medium priority, and `2` represents the lowest priority.
-
-~> **Note:** In previous versions of this provider, `vm_sizes` was defined as a list of strings. When upgrading to this version, the provider will automatically migrate your existing state from the old format (e.g., `["Standard_D2s_v3", "Standard_D4s_v3"]`) to the new block format (e.g., `[{name = "Standard_D2s_v3"}, {name = "Standard_D4s_v3"}]`) without requiring any changes to your configuration.
+-> **Note:** The `rank` field is required when `allocation_strategy` is set to `Prioritized`. Where `0` represents the highest priority, `1` represents medium priority, and `2` represents the lowest priority.
 
 ---
 

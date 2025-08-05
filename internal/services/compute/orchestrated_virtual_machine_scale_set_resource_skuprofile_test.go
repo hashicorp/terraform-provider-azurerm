@@ -32,6 +32,33 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_basic(t *testing.T) {
 	})
 }
 
+// TODO: Remove in v5.0
+// Note: This test validates the legacy vm_sizes array format for backward compatibility.
+// We cannot use ImportStep() because the flatten function generates vm_size objects
+// with rank fields that don't exist in the original legacy configuration, causing
+// ImportStateVerify failures. This is a known limitation when supporting multiple
+// configuration formats for the same Azure API data.
+func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_vmSizesBackwardCompatibility(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
+
+	// TODO - Remove this override when Preview is rolled out to westeurope - currently only supported in EastUS, WestUS, EastUS2, and WestUS2
+	data.Locations.Primary = "eastus2"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.skuProfileDeprecatedSimple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("sku_profile.0.allocation_strategy").HasValue("LowestPrice"),
+				check.That(data.ResourceName).Key("sku_profile.0.vm_sizes.#").HasValue("2"),
+				check.That(data.ResourceName).Key("sku_profile.0.vm_sizes.0").HasValue("Standard_B1ls"),
+				check.That(data.ResourceName).Key("sku_profile.0.vm_sizes.1").HasValue("Standard_B1s"),
+			),
+		},
+	})
+}
+
 func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
@@ -92,7 +119,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_duplicateVMSizes(t *te
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				// TypeSet automatically deduplicates, so we should only have 1 VM size
-				check.That(data.ResourceName).Key("sku_profile.0.vm_sizes.#").HasValue("1"),
+				check.That(data.ResourceName).Key("sku_profile.0.vm_size.#").HasValue("1"),
 			),
 		},
 		data.ImportStep("os_profile.0.windows_configuration.0.admin_password"),
@@ -125,7 +152,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_customizeDiffValidatio
 		},
 		{
 			Config:      r.skuProfilePrioritizedWithoutRank(data),
-			ExpectError: regexp.MustCompile("when `allocation_strategy` is `Prioritized`, all `vm_sizes` must have the `rank` field set, `Standard_B1ls` is missing `rank`"),
+			ExpectError: regexp.MustCompile("when `allocation_strategy` is `Prioritized`, all `vm_size` entries must have the `rank` field set, `Standard_B1ls` is missing `rank`"),
 		},
 		{
 			Config:      r.skuProfilePrioritizedWithNonConsecutiveRanks(data),
@@ -134,6 +161,14 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_customizeDiffValidatio
 		{
 			Config:      r.skuProfileWithInvalidPlatformFaultDomainCount(data),
 			ExpectError: regexp.MustCompile("`sku_profile` can only be configured when `platform_fault_domain_count` is set to `1`, got `5`"),
+		},
+		{ // TODO: Remove in v5.0
+			Config:      r.skuProfileNeitherFieldProvided(data),
+			ExpectError: regexp.MustCompile("either `vm_sizes` or `vm_size` must be configured in `sku_profile`"),
+		},
+		{ // TODO: Remove in v5.0
+			Config:      r.skuProfileDeprecatedWithPrioritized(data),
+			ExpectError: regexp.MustCompile("when `allocation_strategy` is `Prioritized`, you must use `vm_size` instead of `vm_sizes` to specify rank values"),
 		},
 	})
 }
@@ -277,12 +312,12 @@ func (r OrchestratedVirtualMachineScaleSetResource) skuProfileRankWithoutPriorit
 	skuProfileBlock := `  sku_profile {
     allocation_strategy = "CapacityOptimized"
 
-    vm_sizes {
+    vm_size {
       name = "Standard_B1ls"
       rank = 0
     }
 
-    vm_sizes {
+    vm_size {
       name = "Standard_B1s"
       rank = 1
     }
@@ -294,11 +329,11 @@ func (r OrchestratedVirtualMachineScaleSetResource) skuProfileDuplicateVMSizes(d
 	skuProfileBlock := `  sku_profile {
     allocation_strategy = "CapacityOptimized"
 
-    vm_sizes {
+    vm_size {
       name = "Standard_B1ls"
     }
 
-    vm_sizes {
+    vm_size {
       name = "Standard_B1ls"
     }
   }`
@@ -309,11 +344,11 @@ func (r OrchestratedVirtualMachineScaleSetResource) skuProfilePrioritizedWithout
 	skuProfileBlock := `  sku_profile {
     allocation_strategy = "Prioritized"
 
-    vm_sizes {
+    vm_size {
       name = "Standard_B1ls"
     }
 
-    vm_sizes {
+    vm_size {
       name = "Standard_B1s"
     }
   }`
@@ -324,12 +359,12 @@ func (r OrchestratedVirtualMachineScaleSetResource) skuProfilePrioritizedWithNon
 	skuProfileBlock := `  sku_profile {
     allocation_strategy = "Prioritized"
 
-    vm_sizes {
+    vm_size {
       name = "Standard_B1ls"
       rank = 0
     }
 
-    vm_sizes {
+    vm_size {
       name = "Standard_B1s"
       rank = 2
     }
@@ -341,11 +376,11 @@ func (r OrchestratedVirtualMachineScaleSetResource) skuProfileWithInvalidPlatfor
 	skuProfileBlock := `  sku_profile {
     allocation_strategy = "CapacityOptimized"
 
-    vm_sizes {
+    vm_size {
       name = "Standard_B1ls"
     }
 
-    vm_sizes {
+    vm_size {
       name = "Standard_B1s"
     }
   }`
@@ -408,15 +443,15 @@ func skuProfileCapacityOptimized() string {
 	return `  sku_profile {
     allocation_strategy = "CapacityOptimized"
 
-    vm_sizes {
+    vm_size {
       name = "Standard_B1ls"
     }
 
-    vm_sizes {
+    vm_size {
       name = "Standard_B1s"
     }
 
-    vm_sizes {
+    vm_size {
       name = "Standard_B2s"
     }
   }`
@@ -426,11 +461,11 @@ func skuProfileLowestPrice() string {
 	return `  sku_profile {
     allocation_strategy = "LowestPrice"
 
-    vm_sizes {
+    vm_size {
       name = "Standard_B1s"
     }
 
-    vm_sizes {
+    vm_size {
       name = "Standard_B1ls"
     }
   }`
@@ -440,17 +475,17 @@ func skuProfilePrioritizedWithRank() string {
 	return `  sku_profile {
     allocation_strategy = "Prioritized"
 
-    vm_sizes {
+    vm_size {
       name = "Standard_B1ls"
       rank = 0
     }
 
-    vm_sizes {
+    vm_size {
       name = "Standard_B1s"
       rank = 1
     }
 
-    vm_sizes {
+    vm_size {
       name = "Standard_B2s"
       rank = 2
     }
@@ -459,4 +494,30 @@ func skuProfilePrioritizedWithRank() string {
 
 func (r OrchestratedVirtualMachineScaleSetResource) skuProfileForceNewTransition(data acceptance.TestData) string {
 	return r.skuProfileTemplate(data) + "\n" + r.skuProfileConfig(data, "Standard_B1s", "")
+}
+
+// TODO: Remove in v5.0
+func (r OrchestratedVirtualMachineScaleSetResource) skuProfileNeitherFieldProvided(data acceptance.TestData) string {
+	skuProfileBlock := `  sku_profile {
+    allocation_strategy = "CapacityOptimized"
+  }`
+	return r.skuProfileTemplate(data) + "\n" + r.skuProfileConfig(data, "Mix", skuProfileBlock)
+}
+
+// TODO: Remove in v5.0
+func (r OrchestratedVirtualMachineScaleSetResource) skuProfileDeprecatedWithPrioritized(data acceptance.TestData) string {
+	skuProfileBlock := `  sku_profile {
+    allocation_strategy = "Prioritized"
+    vm_sizes = ["Standard_B1ls", "Standard_B1s"]
+  }`
+	return r.skuProfileTemplate(data) + "\n" + r.skuProfileConfig(data, "Mix", skuProfileBlock)
+}
+
+// TODO: Remove in v5.0
+func (r OrchestratedVirtualMachineScaleSetResource) skuProfileDeprecatedSimple(data acceptance.TestData) string {
+	skuProfileBlock := `  sku_profile {
+    allocation_strategy = "LowestPrice"
+    vm_sizes = ["Standard_B1ls", "Standard_B1s"]
+  }`
+	return r.skuProfileTemplate(data) + "\n" + r.skuProfileConfig(data, "Mix", skuProfileBlock)
 }
