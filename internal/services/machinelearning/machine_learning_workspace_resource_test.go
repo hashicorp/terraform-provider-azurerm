@@ -537,6 +537,7 @@ resource "azurerm_machine_learning_workspace" "test" {
   high_business_impact          = true
   public_network_access_enabled = true
   image_build_compute_name      = "terraformCompute"
+	service_side_encryption_enabled = true
   v1_legacy_mode_enabled        = false
 
   identity {
@@ -615,6 +616,7 @@ resource "azurerm_machine_learning_workspace" "test" {
   sku_name                      = "Basic"
   high_business_impact          = true
   public_network_access_enabled = true
+	service_side_encryption_enabled = true
   image_build_compute_name      = "terraformComputeUpdate"
 
   identity {
@@ -705,6 +707,9 @@ resource "azurerm_storage_account" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
   account_replication_type = "LRS"
+	identity {
+		type = "SystemAssigned"
+	}
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomIntOfLength(15))
 }
