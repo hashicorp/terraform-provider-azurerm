@@ -199,32 +199,23 @@ func (r EventGridPartnerNamespaceResource) Update() sdk.ResourceFunc {
 
 			model := existing.Model
 
-			param := partnernamespaces.PartnerNamespace{
-				Location: model.Location,
-				Properties: &partnernamespaces.PartnerNamespaceProperties{
-					DisableLocalAuth:                    model.Properties.DisableLocalAuth,
-					InboundIPRules:                      model.Properties.InboundIPRules,
-					PartnerRegistrationFullyQualifiedId: model.Properties.PartnerRegistrationFullyQualifiedId,
-					PartnerTopicRoutingMode:             model.Properties.PartnerTopicRoutingMode,
-					PublicNetworkAccess:                 model.Properties.PublicNetworkAccess,
-				},
-				Tags: model.Tags,
-			}
-
 			if metadata.ResourceData.HasChange("local_authentication_enabled") {
-				param.Properties.DisableLocalAuth = pointer.To(!config.LocalAuthEnabled)
+				model.Properties.DisableLocalAuth = pointer.To(!config.LocalAuthEnabled)
 			}
 			if metadata.ResourceData.HasChange("inbound_ip_rule") {
-				param.Properties.InboundIPRules = expandPartnerInboundIPRules(config.InboundIPRules)
+				model.Properties.InboundIPRules = expandPartnerInboundIPRules(config.InboundIPRules)
 			}
 			if metadata.ResourceData.HasChange("public_network_access") {
-				param.Properties.PublicNetworkAccess = pointer.ToEnum[partnernamespaces.PublicNetworkAccess](config.PublicNetworkAccess)
+				model.Properties.PublicNetworkAccess = pointer.ToEnum[partnernamespaces.PublicNetworkAccess](config.PublicNetworkAccess)
 			}
 			if metadata.ResourceData.HasChange("tags") {
-				param.Tags = pointer.To(config.Tags)
+				model.Tags = pointer.To(config.Tags)
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, param); err != nil {
+			// endpoint is read-only and will throw an error if we keep it in the update
+			model.Properties.Endpoint = nil
+
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
