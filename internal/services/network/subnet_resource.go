@@ -176,9 +176,10 @@ func resourceSubnet() *pluginsdk.Resource {
 			},
 
 			"sharing_scope": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: validation.StringInSlice(subnets.PossibleValuesForSharingScope(), false),
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// now only "Tenant" is supported, "DelegatedServices" is not supported, https://github.com/Azure/azure-rest-api-specs/issues/36446
+				ValidateFunc: validation.StringInSlice([]string{"Tenant"}, false),
 			},
 
 			"delegation": {
