@@ -570,7 +570,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard_F2s_v2"
+  sku                 = "Standard_D2ads_v6"
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
@@ -580,7 +580,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   source_image_reference {
     publisher = "Canonical"
     offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
+    sku       = "22_04-lts-gen2"
     version   = "latest"
   }
 

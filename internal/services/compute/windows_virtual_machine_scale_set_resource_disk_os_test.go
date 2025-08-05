@@ -610,7 +610,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard_DS4_v2" # has to be this large for ephemeral disks on Windows
+  sku                 = "Standard_D2ads_v6"
   instances           = 1
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
@@ -618,7 +618,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
-    sku       = "2022-datacenter-smalldisk"
+    sku       = "2022-datacenter-azure-edition-smalldisk"
     version   = "latest"
   }
 
