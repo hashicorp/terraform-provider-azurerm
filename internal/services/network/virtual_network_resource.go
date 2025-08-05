@@ -7,6 +7,10 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-cty/cty/msgpack"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/hcl2shim"
 	"log"
 	"regexp"
 	"strings"
@@ -25,10 +29,15 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/subnets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/ipampools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworks"
+	"github.com/hashicorp/terraform-plugin-framework/list"
+	listschema "github.com/hashicorp/terraform-plugin-framework/list/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -37,6 +46,160 @@ import (
 )
 
 //go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_network -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
+var _ sdk.ListResource = &VirtualNetworkListResource{}
+
+type VirtualNetworkListResource struct {
+	sdk.ListResourceMetadata
+}
+
+func NewVirtualNetworkListResource() list.ListResource {
+	return &VirtualNetworkListResource{}
+}
+
+func (r *VirtualNetworkListResource) Metadata(ctx context.Context, _ list.MetadataRequest, resp *list.MetadataResponse) {
+	resp.TypeName = VirtualNetworkResourceName
+
+	// The List resource depends on a legacy resource so we supply the resource and identity schema here
+	vnet := resourceVirtualNetwork()
+	resp.ProtoV5Schema = func() *tfprotov5.Schema {
+		return vnet.ProtoSchema(ctx)
+	}
+
+	resp.ProtoV5IdentitySchema = func() *tfprotov5.ResourceIdentitySchema {
+		s, err := vnet.ProtoIdentitySchema(ctx)
+		if err != nil {
+			sdk.SetResponseErrorDiagnostic(resp, "getting identity schema", err)
+		}
+		return s
+	}
+}
+
+func (r *VirtualNetworkListResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+	r.Defaults(req, resp)
+}
+
+func (r *VirtualNetworkListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, resp *list.ListResourceSchemaResponse) {
+	resp.Schema = listschema.Schema{
+		Attributes: map[string]listschema.Attribute{
+			"resource_group_name": listschema.StringAttribute{
+				Required: true,
+			},
+		},
+	}
+}
+
+type VirtualNetworkListModel struct {
+	ResourceGroupName string `tfsdk:"resource_group_name"`
+}
+
+func (r *VirtualNetworkListResource) List(ctx context.Context, req list.ListRequest, stream *list.ListResultsStream) {
+	// TODO timeouts
+	client := r.Client.Network.VirtualNetworks
+	ctx, cancel := context.WithTimeout(ctx, time.Minute*5)
+	defer cancel()
+
+	var data VirtualNetworkListModel
+
+	diags := req.Config.Get(ctx, &data)
+	if diags.HasError() {
+		stream.Results = list.ListResultsStreamDiagnostics(diags)
+		return
+	}
+
+	virtualNetworks := make([]virtualnetworks.VirtualNetwork, 0)
+
+	resp, err := client.List(ctx, commonids.NewResourceGroupID(r.SubscriptionId, data.ResourceGroupName))
+	if err != nil {
+		sdk.SetResponseErrorDiagnostic(stream.Results, "", err)
+	}
+
+	if resp.Model != nil {
+		virtualNetworks = *resp.Model
+	}
+
+	stream.Proto5Results = func(push func(tfprotov5.ListResourceResult) bool) {
+		for _, vnet := range virtualNetworks {
+			result := req.NewListResultProtoV5()
+			result.DisplayName = pointer.From(vnet.Name)
+
+			id, err := commonids.ParseVirtualNetworkID(*vnet.Id)
+			if err != nil {
+				sdk.SetResponseErrorDiagnostic(stream.Results, "parsing Virtual Network ID", err)
+				return
+			}
+
+			// ++++++ Getting and setting Identity ++++++
+
+			// Notes:
+			// 	* We could potentially pass in the ProtoV5 schemas set in Metadata via the Request to reduce repetition here
+			// 	* The resource identity objects should typically be of a size that's manageable for provider devs to create
+
+			vNetResource := resourceVirtualNetwork()
+
+			identitySchema, err := vNetResource.ProtoIdentitySchema(ctx)
+			if err != nil {
+				sdk.SetResponseErrorDiagnostic(resp, "getting identity schema", err)
+			}
+
+			idValue := map[string]tftypes.Value{
+				"subscription_id":     tftypes.NewValue(tftypes.String, id.SubscriptionId),
+				"resource_group_name": tftypes.NewValue(tftypes.String, id.ResourceGroupName),
+				"name":                tftypes.NewValue(tftypes.String, id.VirtualNetworkName),
+			}
+
+			val, err := tfprotov5.NewDynamicValue(identitySchema.ValueType(), tftypes.NewValue(identitySchema.ValueType(), idValue))
+			if err != nil {
+				sdk.SetResponseErrorDiagnostic(stream.Results, "creating dynamic value", err)
+				return
+			}
+
+			result.Identity = &tfprotov5.ResourceIdentityData{
+				IdentityData: &val,
+			}
+			// ++++++++++++++++++++++++++++++++++++++++++
+
+			// ++++++ Getting and setting Resource ++++++
+
+			// Notes:
+			// 	* Ideally the same technique is used to prepare and encode the resource data like for identity above
+			//  * Can a similar helper like hcl2shim.HCL2ValueFromFlatmap be written that returns a tftypes.Value out of
+			//    a flat map of attributes with the ProtoV5 schema provided as guidance?
+			resourceSchema := vNetResource.CoreConfigSchema()
+
+			rd := vNetResource.Data(&terraform.InstanceState{ID: id.ID()})
+
+			err = resourceVirtualNetworkEncode(rd, *id, &vnet)
+			if err != nil {
+				sdk.SetResponseErrorDiagnostic(stream.Results, "encoding resource data", err)
+				return
+			}
+
+			state := rd.State()
+
+			newStateVal, err := hcl2shim.HCL2ValueFromFlatmap(state.Attributes, resourceSchema.ImpliedType())
+			if err != nil {
+				sdk.SetResponseErrorDiagnostic(stream.Results, "converting state to HCL2 value", err)
+				return
+			}
+
+			stateMP, err := msgpack.Marshal(newStateVal, resourceSchema.ImpliedType())
+			if err != nil {
+				sdk.SetResponseErrorDiagnostic(stream.Results, "marshalling state to msgpack", err)
+				return
+			}
+
+			result.Resource = &tfprotov5.DynamicValue{
+				MsgPack: stateMP,
+			}
+			// ++++++++++++++++++++++++++++++++++++++++++
+
+			if !push(result) {
+				return
+			}
+		}
+	}
+}
 
 var VirtualNetworkResourceName = "azurerm_virtual_network"
 
@@ -427,20 +590,28 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
+	if err := resourceVirtualNetworkEncode(d, *id, resp.Model); err != nil {
+		return fmt.Errorf("encoding %s: %+v", *id, err)
+	}
+
+	return nil
+}
+
+func resourceVirtualNetworkEncode(d *pluginsdk.ResourceData, id commonids.VirtualNetworkId, vnet *virtualnetworks.VirtualNetwork) error {
 	d.Set("name", id.VirtualNetworkName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
-		d.Set("edge_zone", flattenEdgeZoneModel(model.ExtendedLocation))
+	if vnet != nil {
+		d.Set("location", location.NormalizeNilable(vnet.Location))
+		d.Set("edge_zone", flattenEdgeZoneModel(vnet.ExtendedLocation))
 
-		if props := model.Properties; props != nil {
+		if props := vnet.Properties; props != nil {
 			d.Set("guid", props.ResourceGuid)
 			d.Set("flow_timeout_in_minutes", props.FlowTimeoutInMinutes)
 			d.Set("private_endpoint_vnet_policies", string(pointer.From(props.PrivateEndpointVNetPolicies)))
 
 			if space := props.AddressSpace; space != nil {
-				if err = d.Set("address_space", space.AddressPrefixes); err != nil {
+				if err := d.Set("address_space", space.AddressPrefixes); err != nil {
 					return fmt.Errorf("setting `address_space`: %+v", err)
 				}
 
@@ -476,14 +647,14 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 			if err := d.Set("bgp_community", bgpCommunity); err != nil {
 				return fmt.Errorf("setting `bgp_community`: %+v", err)
 			}
-		}
 
-		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
-			return fmt.Errorf("flattening `tags`: %+v", err)
+			if err := tags.FlattenAndSet(d, vnet.Tags); err != nil {
+				return fmt.Errorf("flattening `tags`: %+v", err)
+			}
 		}
 	}
 
-	if err := pluginsdk.SetResourceIdentityData(d, id); err != nil {
+	if err := pluginsdk.SetResourceIdentityData(d, &id); err != nil {
 		return err
 	}
 

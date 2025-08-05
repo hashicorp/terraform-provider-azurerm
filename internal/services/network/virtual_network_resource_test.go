@@ -6,6 +6,15 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/hashicorp/terraform-plugin-framework/providerserver"
+	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/hashicorp/terraform-plugin-mux/tf5muxserver"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"regexp"
 	"testing"
 
@@ -19,6 +28,110 @@ import (
 )
 
 type VirtualNetworkResource struct{}
+
+func TestVirtualNetwork_list(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	// Define configs and requests for list RPC
+	config, err := tfprotov5.NewDynamicValue(
+		tftypes.Object{
+			AttributeTypes: map[string]tftypes.Type{
+				"resource_group_name": tftypes.String,
+			},
+		},
+		tftypes.NewValue(
+			tftypes.Object{
+				AttributeTypes: map[string]tftypes.Type{
+					"resource_group_name": tftypes.String,
+				},
+			},
+			map[string]tftypes.Value{
+				"resource_group_name": tftypes.NewValue(tftypes.String, "acctestsw"),
+			},
+		),
+	)
+	if err != nil {
+		t.Fatalf("failed to create dynamic value: %+v", err)
+	}
+
+	listRequest := &tfprotov5.ListResourceRequest{
+		TypeName: "azurerm_virtual_network",
+		Config:   &config,
+	}
+
+	// Configure the provider servers
+	// NOTE: We can't use ProtoV5ProviderServerFactory here because we need to call Configure on the v2Provider before
+	// creating the mux server
+	v2Provider := provider.AzureProvider()
+	if diags := v2Provider.Configure(ctx, terraform.NewResourceConfigRaw(nil)); diags != nil && diags.HasError() {
+		t.Fatalf("provider failed to configure: %v", diags)
+	}
+
+	providers := []func() tfprotov5.ProviderServer{
+		v2Provider.GRPCProvider,
+		providerserver.NewProtocol5(framework.NewFrameworkProvider(v2Provider)),
+	}
+
+	muxServer, err := tf5muxserver.NewMuxServer(ctx, providers...)
+	if err != nil {
+		t.Errorf("configuring provider: %+v", err)
+	}
+
+	s, ok := muxServer.ProviderServer().(tfprotov5.ProviderServerWithListResource)
+	if !ok {
+		t.Errorf("type assertion failed: %+v", err)
+	}
+
+	_, err = s.GetProviderSchema(ctx, &tfprotov5.GetProviderSchemaRequest{})
+	if err != nil {
+		t.Errorf("configuring provider: %+v", err)
+	}
+
+	// Call ConfigureProvider to copy API clients over to the framework provider server
+	// Sending in a value for ConfigureProviderRequest prevents the framework provider server from attaining the API clients needed
+	// The Configure method for the SDKv2 (GRPCProvider), which is correctly configured above on line 67, gets re-configured but overwritten with nils
+	_, err = s.ConfigureProvider(ctx, &tfprotov5.ConfigureProviderRequest{})
+	if err != nil {
+		t.Errorf("configuring provider: %+v", err)
+	}
+
+	_, err = s.ValidateListResourceConfig(ctx, &tfprotov5.ValidateListResourceConfigRequest{
+		Config:   &config,
+		TypeName: "azurerm_virtual_network"},
+	)
+
+	stream, err := s.ListResource(ctx, listRequest)
+	if err != nil {
+		t.Errorf("failed to list resources: %+v", err)
+	}
+
+	got := []string{}
+	wanted := []string{"acctestvirtnetsw1", "acctestvirtnetsw2"}
+
+	res := make([]tfprotov5.ListResourceResult, 0)
+
+	for result := range stream.Results {
+		got = append(got, result.DisplayName)
+		res = append(res, result)
+
+		if len(result.Diagnostics) > 0 {
+			diags := []string{}
+
+			for _, d := range result.Diagnostics {
+				diags = append(diags, d.Detail)
+			}
+			t.Errorf("expected 0 diagnostics; got: %+v", diags)
+		}
+	}
+
+	opts := cmp.Options{
+		cmpopts.SortSlices(func(x, y string) bool { return x < y }),
+	}
+	if diff := cmp.Diff(got, wanted, opts); diff != "" {
+		t.Errorf("ListResource results mismatch (-got +wanted):\n%s", diff)
+	}
+}
 
 func TestAccVirtualNetwork_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
