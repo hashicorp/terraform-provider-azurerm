@@ -196,6 +196,7 @@ resource "azurerm_storage_container" "test" {
 resource "azurerm_subscription_cost_management_export" "test" {
   name                         = "accrg%d"
   subscription_id              = data.azurerm_subscription.test.id
+  location                     = azurerm_resource_group.test.location
   recurrence_type              = "Daily"
   recurrence_period_start_date = "%sT00:00:00Z"
   recurrence_period_end_date   = "%sT00:00:00Z"
@@ -204,6 +205,10 @@ resource "azurerm_subscription_cost_management_export" "test" {
   file_format      = "Parquet"
   compression_mode = "snappy"
   partition_data   = true
+
+  identity {
+    type = "SystemAssigned"
+  }
 
   export_data_storage_location {
     container_id     = azurerm_storage_container.test.resource_manager_id
