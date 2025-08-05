@@ -1,4 +1,5 @@
-// Copyright © 2024, Oracle and/or its affiliates. All rights reserved
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
 
 package oracle_test
 
@@ -33,6 +34,7 @@ provider "azurerm" {
 
 data "azurerm_oracle_db_system_shapes" "test" {
   location = "eastus"
+  zone     = "2"
 }
 `
 }

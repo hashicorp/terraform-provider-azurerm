@@ -159,4 +159,4 @@ terraform import azurerm_shared_image.image1 /subscriptions/00000000-0000-0000-0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Compute`: 2022-03-03
+* `Microsoft.Compute` - 2022-03-03

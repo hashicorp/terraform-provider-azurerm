@@ -133,6 +133,7 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 			Default: string(cdn.MinimumTLSVersionTLS12),
 		}
 	}
+
 	return &pluginsdk.Resource{
 		Create: resourceArmCdnEndpointCustomDomainCreate,
 		Read:   resourceArmCdnEndpointCustomDomainRead,
@@ -152,6 +153,18 @@ func resourceArmCdnEndpointCustomDomain() *pluginsdk.Resource {
 		},
 
 		Schema: schema,
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			if IsCdnFullyRetired() {
+				return fmt.Errorf("%s", FullyRetiredMessage)
+			}
+
+			if IsCdnDeprecatedForCreation() && d.HasChanges("name", "cdn_endpoint_id", "host_name") {
+				return fmt.Errorf("%s", CreateDeprecationMessage)
+			}
+
+			return nil
+		}),
 	}
 }
 

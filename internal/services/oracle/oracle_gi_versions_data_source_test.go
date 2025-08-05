@@ -1,4 +1,5 @@
-// Copyright © 2024, Oracle and/or its affiliates. All rights reserved
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
 
 package oracle_test
 
@@ -19,7 +20,7 @@ func TestGiVersionsDataSource_basic(t *testing.T) {
 		{
 			Config: r.basic(),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("versions.#").HasValue("2"),
+				check.That(data.ResourceName).Key("versions.#").HasValue("4"),
 			),
 		},
 	})

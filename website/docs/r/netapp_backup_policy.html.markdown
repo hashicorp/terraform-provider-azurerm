@@ -47,9 +47,9 @@ The following arguments are supported:
 
 * `daily_backups_to_keep` - (Optional) Provides the number of daily backups to keep, defaults to `2` which is the minimum, maximum is 1019.
 
-* `weekly_backups_to_keep` - (Optional) Provides the number of weekly backups to keep, defaults to `1` which is the minimum, maximum is 1019.
+* `weekly_backups_to_keep` - (Optional) Provides the number of weekly backups to keep, defaults to `1`. The minimum is `0` and the maximum is `1019`.
 
-* `monthly_backups_to_keep` - (Optional) Provides the number of monthly backups to keep, defaults to `1` which is the minimum, maximum is 1019.
+* `monthly_backups_to_keep` - (Optional) Provides the number of monthly backups to keep, defaults to `1`. The minimum is `0` and the maximum is `1019`.
 
 ~> **Note:** Currently, the combined (daily + weekly + monthy) retention counts cannot exceed 1019.
 
@@ -78,4 +78,4 @@ terraform import azurerm_netapp_backup_policy.example /subscriptions/00000000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.NetApp`: 2025-01-01
+* `Microsoft.NetApp` - 2025-01-01
