@@ -12,6 +12,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/costmanagement/2025-03-01/exports"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -28,6 +31,16 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 			Optional: true,
 			Default:  true,
 		},
+
+		"description": {
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  "",
+		},
+
+		"location": commonschema.LocationOptional(),
+
+		"identity": commonschema.SystemAssignedIdentityOptional(),
 
 		"recurrence_type": {
 			Type:         pluginsdk.TypeString,
@@ -52,6 +65,26 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 			Optional:     true,
 			Default:      string(exports.FormatTypeCsv),
 			ValidateFunc: validation.StringInSlice(exports.PossibleValuesForFormatType(), false),
+		},
+
+		"compression_mode": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(exports.CompressionModeTypeNone),
+			ValidateFunc: validation.StringInSlice(exports.PossibleValuesForCompressionModeType(), false),
+		},
+
+		"partition_data": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
+		},
+
+		"data_overwrite_behavior": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(exports.DataOverwriteBehaviorTypeCreateNewReport),
+			ValidateFunc: validation.StringInSlice(exports.PossibleValuesForDataOverwriteBehaviorType(), false),
 		},
 
 		"export_data_storage_location": {
@@ -200,32 +233,6 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 				},
 			},
 		},
-
-		"compression_mode": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      string(exports.CompressionModeTypeNone),
-			ValidateFunc: validation.StringInSlice(exports.PossibleValuesForCompressionModeType(), false),
-		},
-
-		"partition_data": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"data_overwrite_behavior": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Default:      string(exports.DataOverwriteBehaviorTypeCreateNewReport),
-			ValidateFunc: validation.StringInSlice(exports.PossibleValuesForDataOverwriteBehaviorType(), false),
-		},
-
-		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "",
-		},
 	}
 
 	for k, v := range fields {
@@ -320,6 +327,15 @@ func (br costManagementExportBaseResource) readFunc(scopeFieldName string) sdk.R
 					metadata.ResourceData.Set("partition_data", pointer.From(props.PartitionData))
 					metadata.ResourceData.Set("data_overwrite_behavior", string(pointer.From(props.DataOverwriteBehavior)))
 				}
+
+				if model.Location != nil && *model.Location != "" {
+					metadata.ResourceData.Set("location", location.Normalize(*model.Location))
+				}
+
+				identity := identity.FlattenSystemAssigned(model.Identity)
+				if err := metadata.ResourceData.Set("identity", identity); err != nil {
+					return fmt.Errorf("setting `identity`: %+v", err)
+				}
 			}
 
 			return nil
@@ -397,13 +413,28 @@ func createOrUpdateCostManagementExport(ctx context.Context, client *exports.Exp
 		partitionData = utils.Bool(true)
 	}
 
+	var location *string
+	if v, ok := metadata.ResourceData.Get("location").(string); ok && v != "" {
+		location = utils.String(v)
+	}
+
+	var exportIdentity *identity.SystemAssigned
+	if v, ok := metadata.ResourceData.Get("identity").([]interface{}); ok && len(v) > 0 {
+		exportIdentity, err = identity.ExpandSystemAssigned(metadata.ResourceData.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+	}
+
 	format := exports.FormatType(metadata.ResourceData.Get("file_format").(string))
 	compressionMode := exports.CompressionModeType(metadata.ResourceData.Get("compression_mode").(string))
 	dataOverwriteBehavior := exports.DataOverwriteBehaviorType(metadata.ResourceData.Get("data_overwrite_behavior").(string))
-
 	recurrenceType := exports.RecurrenceType(metadata.ResourceData.Get("recurrence_type").(string))
+
 	props := exports.Export{
-		ETag: etag,
+		ETag:     etag,
+		Location: location,
+		Identity: exportIdentity,
 		Properties: &exports.ExportProperties{
 			Schedule: &exports.ExportSchedule{
 				Recurrence: &recurrenceType,
