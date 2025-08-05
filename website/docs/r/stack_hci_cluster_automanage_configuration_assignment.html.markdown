@@ -3,7 +3,7 @@ subcategory: "Automanage"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_stack_hci_cluster_automanage_configuration_assignment"
 description: |-
-  Manages a Azure Stack HCI Cluster Automanage Configuration Profile Assignment.
+  Manages an Azure Stack HCI Cluster Automanage Configuration Profile Assignment.
 ---
 
 # azurerm_stack_hci_cluster_automanage_configuration_assignment
