@@ -498,7 +498,10 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	additionalCapabilitiesRaw := d.Get("additional_capabilities").([]interface{})
 	additionalCapabilities := expandVirtualMachineAdditionalCapabilities(additionalCapabilitiesRaw)
 
-	allowExtensionOperations := d.Get("allow_extension_operations").(bool)
+	allowExtensionOperations := true
+	if !d.GetRawConfig().AsValueMap()["allow_extension_operations"].IsNull() {
+		allowExtensionOperations = d.Get("allow_extension_operations").(bool)
+	}
 
 	bootDiagnosticsRaw := d.Get("boot_diagnostics").([]interface{})
 	bootDiagnostics := expandBootDiagnostics(bootDiagnosticsRaw)
