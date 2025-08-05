@@ -418,7 +418,9 @@ An `encryption` block supports the following:
 
 An `managed_network` block supports the following:
 
-* `isolation_mode` - (Optional) The isolation mode of the Machine Learning Workspace. Possible values are `Disabled`, `AllowOnlyApprovedOutbound`, and `AllowInternetOutbound`
+* `isolation_mode` - (Optional) The isolation mode of the Machine Learning Workspace. Possible values are `Disabled`, `AllowOnlyApprovedOutbound`, and `AllowInternetOutbound`.
+
+* `managed_network_provisioning_enabled` - (Optional) Set to trigger the provisioning of the managed VNet with the default options when creating a Machine Learning Workspace with the managed VNet enabled. Defaults to `false`. Changing this forces a new resource to be created.
 
 ---
 

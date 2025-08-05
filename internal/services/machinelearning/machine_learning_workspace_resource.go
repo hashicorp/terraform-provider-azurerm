@@ -195,6 +195,12 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 							Computed:     true,
 							ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForIsolationMode(), false),
 						},
+						"managed_network_provisioning_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							ForceNew: true,
+							Default:  false,
+						},
 					},
 				},
 			},
@@ -305,6 +311,7 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 			Encryption:          expandedEncryption,
 			KeyVault:            pointer.To(d.Get("key_vault_id").(string)),
 			ManagedNetwork:      expandMachineLearningWorkspaceManagedNetwork(d.Get("managed_network").([]interface{})),
+			ProvisionNetworkNow: pointer.To(d.Get("managed_network.0.managed_network_provisioning_enabled").(bool)),
 			PublicNetworkAccess: pointer.To(networkAccessBehindVnetEnabled),
 			StorageAccount:      pointer.To(d.Get("storage_account_id").(string)),
 			V1LegacyMode:        pointer.To(d.Get("v1_legacy_mode_enabled").(bool)),
@@ -546,7 +553,7 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("public_network_access_enabled", *props.PublicNetworkAccess == workspaces.PublicNetworkAccessEnabled)
 			d.Set("v1_legacy_mode_enabled", props.V1LegacyMode)
 			d.Set("workspace_id", props.WorkspaceId)
-			d.Set("managed_network", flattenMachineLearningWorkspaceManagedNetwork(props.ManagedNetwork))
+			d.Set("managed_network", flattenMachineLearningWorkspaceManagedNetwork(props.ManagedNetwork, pointer.From(props.ProvisionNetworkNow)))
 			d.Set("serverless_compute", flattenMachineLearningWorkspaceServerlessCompute(props.ServerlessComputeSettings))
 
 			kvId, err := commonids.ParseKeyVaultIDInsensitively(*props.KeyVault)
@@ -779,7 +786,7 @@ func expandMachineLearningWorkspaceManagedNetwork(i []interface{}) *workspaces.M
 	}
 }
 
-func flattenMachineLearningWorkspaceManagedNetwork(i *workspaces.ManagedNetworkSettings) *[]interface{} {
+func flattenMachineLearningWorkspaceManagedNetwork(i *workspaces.ManagedNetworkSettings, provisionNetworkNow bool) *[]interface{} {
 	if i == nil {
 		return &[]interface{}{}
 	}
@@ -789,6 +796,7 @@ func flattenMachineLearningWorkspaceManagedNetwork(i *workspaces.ManagedNetworkS
 	if i.IsolationMode != nil {
 		out["isolation_mode"] = *i.IsolationMode
 	}
+	out["managed_network_provisioning_enabled"] = provisionNetworkNow
 
 	return &[]interface{}{out}
 }
