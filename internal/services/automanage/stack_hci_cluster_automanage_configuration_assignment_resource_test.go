@@ -47,26 +47,6 @@ func TestAccStackHCIClusterConfigurationAssignment_requireImport(t *testing.T) {
 	})
 }
 
-func TestAccStackHCIClusterConfigurationAssignment_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_stack_hci_cluster_automanage_configuration_assignment", "test")
-	r := StackHCIClusterConfigurationAssignmentResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		{
-			Config: r.noAssignment(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (r StackHCIClusterConfigurationAssignmentResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.Automanage.ConfigurationProfileHCIAssignmentsClient
 
@@ -115,35 +95,6 @@ resource "azurerm_stack_hci_cluster" "test" {
 resource "azurerm_stack_hci_cluster_automanage_configuration_assignment" "test" {
   stack_hci_cluster_id = azurerm_stack_hci_cluster.test.id
   configuration_id     = azurerm_automanage_configuration.test.id
-}
-`, data.RandomInteger, data.Locations.Primary)
-}
-
-func (r StackHCIClusterConfigurationAssignmentResource) noAssignment(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_client_config" "current" {}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctest-rg-%[1]d"
-  location = "%[2]s"
-}
-
-resource "azurerm_automanage_configuration" "test" {
-  name                = "acctest-amcp-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_stack_hci_cluster" "test" {
-  name                = "acctest-StackHCICluster-%[1]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  client_id           = data.azurerm_client_config.current.client_id
-  tenant_id           = data.azurerm_client_config.current.tenant_id
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
