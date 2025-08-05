@@ -134,7 +134,7 @@ type TargetingFilterAudience struct {
 }
 
 type CustomFilter struct {
-	Name       string            `json:"name" tfschema:"name"`
+	Name       string            `json:"name"       tfschema:"name"`
 	Parameters map[string]string `json:"parameters" tfschema:"parameters"`
 }
 
