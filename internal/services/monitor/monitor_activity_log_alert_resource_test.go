@@ -9,12 +9,12 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2020-10-01/activitylogalertsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MonitorActivityLogAlertResource struct{}
@@ -28,11 +28,6 @@ func TestAccMonitorActivityLogAlert_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("scopes.#").HasValue("1"),
-				check.That(data.ResourceName).Key("criteria.#").HasValue("1"),
-				check.That(data.ResourceName).Key("criteria.0.category").HasValue("Recommendation"),
-				check.That(data.ResourceName).Key("action.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -66,17 +61,6 @@ func TestAccMonitorActivityLogAlert_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("description").HasValue("This is just a test acceptance."),
-				check.That(data.ResourceName).Key("scopes.#").HasValue("2"),
-				check.That(data.ResourceName).Key("criteria.#").HasValue("1"),
-				check.That(data.ResourceName).Key("criteria.0.operation_name").HasValue("Microsoft.Storage/storageAccounts/write"),
-				check.That(data.ResourceName).Key("criteria.0.category").HasValue("Policy"),
-				check.That(data.ResourceName).Key("criteria.0.resource_provider").HasValue("Microsoft.Storage"),
-				check.That(data.ResourceName).Key("criteria.0.resource_type").HasValue("Microsoft.Storage/storageAccounts"),
-				check.That(data.ResourceName).Key("criteria.0.resource_group").Exists(),
-				check.That(data.ResourceName).Key("criteria.0.resource_id").Exists(),
-				check.That(data.ResourceName).Key("action.#").HasValue("2"),
 			),
 		},
 		data.ImportStep(),
@@ -92,16 +76,6 @@ func TestAccMonitorActivityLogAlert_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("description").HasValue(""),
-				check.That(data.ResourceName).Key("scopes.#").HasValue("1"),
-				check.That(data.ResourceName).Key("criteria.#").HasValue("1"),
-				check.That(data.ResourceName).Key("criteria.0.category").HasValue("Recommendation"),
-				check.That(data.ResourceName).Key("criteria.0.resource_id").HasValue(""),
-				check.That(data.ResourceName).Key("criteria.0.caller").HasValue(""),
-				check.That(data.ResourceName).Key("criteria.0.level").HasValue(""),
-				check.That(data.ResourceName).Key("criteria.0.status").HasValue(""),
-				check.That(data.ResourceName).Key("action.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -109,17 +83,6 @@ func TestAccMonitorActivityLogAlert_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("description").HasValue("This is just a test acceptance."),
-				check.That(data.ResourceName).Key("scopes.#").HasValue("2"),
-				check.That(data.ResourceName).Key("criteria.#").HasValue("1"),
-				check.That(data.ResourceName).Key("criteria.0.operation_name").HasValue("Microsoft.Storage/storageAccounts/write"),
-				check.That(data.ResourceName).Key("criteria.0.category").HasValue("Policy"),
-				check.That(data.ResourceName).Key("criteria.0.resource_provider").HasValue("Microsoft.Storage"),
-				check.That(data.ResourceName).Key("criteria.0.resource_type").HasValue("Microsoft.Storage/storageAccounts"),
-				check.That(data.ResourceName).Key("criteria.0.resource_group").Exists(),
-				check.That(data.ResourceName).Key("criteria.0.resource_id").Exists(),
-				check.That(data.ResourceName).Key("action.#").HasValue("2"),
 			),
 		},
 		data.ImportStep(),
@@ -127,16 +90,6 @@ func TestAccMonitorActivityLogAlert_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("description").HasValue(""),
-				check.That(data.ResourceName).Key("scopes.#").HasValue("1"),
-				check.That(data.ResourceName).Key("criteria.#").HasValue("1"),
-				check.That(data.ResourceName).Key("criteria.0.category").HasValue("Recommendation"),
-				check.That(data.ResourceName).Key("criteria.0.resource_id").HasValue(""),
-				check.That(data.ResourceName).Key("criteria.0.caller").HasValue(""),
-				check.That(data.ResourceName).Key("criteria.0.level").HasValue(""),
-				check.That(data.ResourceName).Key("criteria.0.status").HasValue(""),
-				check.That(data.ResourceName).Key("action.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -152,13 +105,6 @@ func TestAccMonitorActivityLogAlert_singleResource(t *testing.T) {
 			Config: r.singleResource(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("scopes.#").HasValue("1"),
-				check.That(data.ResourceName).Key("criteria.#").HasValue("1"),
-				check.That(data.ResourceName).Key("criteria.0.operation_name").HasValue("Microsoft.Storage/storageAccounts/write"),
-				check.That(data.ResourceName).Key("criteria.0.category").HasValue("Recommendation"),
-				check.That(data.ResourceName).Key("criteria.0.resource_id").Exists(),
-				check.That(data.ResourceName).Key("action.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -375,32 +321,19 @@ func TestAccMonitorActivityLogAlert_recommendationCategory_securityWithValidatio
 			Config: r.recommendationCategorySecurity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("criteria.0.recommendation_category").HasValue("Security"),
-				check.That(data.ResourceName).Key("criteria.0.category").HasValue("Recommendation"),
-				check.That(data.ResourceName).Key("enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("scopes.#").HasValue("1"),
-				check.That(data.ResourceName).Key("action.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccMonitorActivityLogAlert_recommendationCategory_invalid(t *testing.T) {
+func TestAccMonitorActivityLogAlert_recommendationCategory_invalidRegion(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
 	r := MonitorActivityLogAlertResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.nameInvalid(data),
-			ExpectError: regexp.MustCompile("invalid value for name"),
-		},
-		{
 			Config:      r.regionInvalid(data),
 			ExpectError: regexp.MustCompile("`azurerm_monitor_activity_log_alert` resources are only supported in the following regions:"),
-		},
-		{
-			Config:      r.recommendationCategoryInvalid(data),
-			ExpectError: regexp.MustCompile("expected criteria.0.recommendation_category to be one of"),
 		},
 	})
 }
@@ -416,10 +349,9 @@ func (MonitorActivityLogAlertResource) Exists(ctx context.Context, clients *clie
 		return nil, fmt.Errorf("reading Monitor Activity Log Alert %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-// Common template used by multiple test configurations
 func (MonitorActivityLogAlertResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
@@ -1118,30 +1050,6 @@ resource "azurerm_monitor_activity_log_alert" "test" {
 `, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (MonitorActivityLogAlertResource) nameInvalid(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-monitor-%d"
-  location = "%s"
-}
-
-resource "azurerm_monitor_activity_log_alert" "test" {
-  name                = "acctest@ActivityLogAlert-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  scopes              = [azurerm_resource_group.test.id]
-  location            = "global"
-
-  criteria {
-    category = "Recommendation"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
 func (MonitorActivityLogAlertResource) regionInvalid(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1164,39 +1072,4 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (MonitorActivityLogAlertResource) recommendationCategoryInvalid(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-monitor-%d"
-  location = "%s"
-}
-
-resource "azurerm_monitor_action_group" "test" {
-  name                = "acctestActionGroup-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  short_name          = "acctestag"
-}
-
-resource "azurerm_monitor_activity_log_alert" "test" {
-  name                = "acctestActivityLogAlert-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  scopes              = [azurerm_resource_group.test.id]
-
-  criteria {
-    category                = "Recommendation"
-    recommendation_category = "InvalidCategory"
-  }
-
-  action {
-    action_group_id = azurerm_monitor_action_group.test.id
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

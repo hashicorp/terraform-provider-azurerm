@@ -85,7 +85,6 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 						"category": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
-							// NOTE: Azure Activity Log categories - no SDK enum available
 							ValidateFunc: validation.StringInSlice([]string{
 								"Administrative",
 								"Autoscale",
