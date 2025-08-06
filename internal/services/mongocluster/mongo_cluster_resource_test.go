@@ -41,7 +41,8 @@ func testAccMongoCluster_basic(t *testing.T) {
 						data.RandomInteger)),
 				check.That(data.ResourceName).Key("connection_strings.1.value").HasValue(
 					fmt.Sprintf(`mongodb+srv://adminTerraform:QAZwsx123basic@acctest-mc%d.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000`,
-						data.RandomInteger)),
+						data.RandomInteger),
+				),
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
@@ -150,7 +151,7 @@ resource "azurerm_mongo_cluster" "test" {
   compute_tier           = "Free"
   high_availability_mode = "Disabled"
   storage_size_in_gb     = "32"
-  version                = "6.0"
+  version                = "7.0"
 }
 `, r.template(data, data.Locations.Ternary), data.RandomInteger)
 }
@@ -170,7 +171,7 @@ resource "azurerm_mongo_cluster" "test" {
   high_availability_mode = "ZoneRedundantPreferred"
   public_network_access  = "Disabled"
   storage_size_in_gb     = "64"
-  version                = "7.0"
+  version                = "8.0"
 
   tags = {
     environment = "test"
@@ -193,7 +194,7 @@ resource "azurerm_mongo_cluster" "test" {
   shard_count            = "1"
   compute_tier           = "M30"
   storage_size_in_gb     = "64"
-  version                = "7.0"
+  version                = "8.0"
 }
 `, r.template(data, data.Locations.Primary), data.RandomInteger)
 }
@@ -232,7 +233,7 @@ resource "azurerm_mongo_cluster" "test" {
   high_availability_mode = "ZoneRedundantPreferred"
   storage_size_in_gb     = "64"
   preview_features       = ["GeoReplicas"]
-  version                = "7.0"
+  version                = "8.0"
 }
 `, r.template(data, data.Locations.Primary), data.RandomInteger)
 }

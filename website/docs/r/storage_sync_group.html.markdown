@@ -68,4 +68,4 @@ terraform import azurerm_storage_sync_group.example /subscriptions/00000000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.StorageSync`: 2020-03-01
+* `Microsoft.StorageSync` - 2020-03-01

@@ -81,4 +81,4 @@ terraform import azurerm_managed_disk_sas_token.example /subscriptions/00000000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Compute`: 2023-04-02
+* `Microsoft.Compute` - 2023-04-02

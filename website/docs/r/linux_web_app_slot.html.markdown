@@ -182,7 +182,7 @@ An `application_stack` block supports the following:
 
 ~> **Note:** 10.x versions have been/are being deprecated so may cease to work for new resources in the future and may be removed from the provider.
 
-* `php_version` - (Optional) The version of PHP to run. Possible values are `7.4`, `8.0`, `8.1`, `8.2` and `8.3`.
+* `php_version` - (Optional) The version of PHP to run. Possible values are `7.4`, `8.0`, `8.1`, `8.2`, `8.3` and `8.4`.
 
 ~> **Note:** version `7.4` is deprecated and will be removed from the provider in a future version.
 
@@ -897,4 +897,4 @@ terraform import azurerm_linux_web_app_slot.example /subscriptions/12345678-1234
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Web`: 2023-12-01
+* `Microsoft.Web` - 2023-12-01
