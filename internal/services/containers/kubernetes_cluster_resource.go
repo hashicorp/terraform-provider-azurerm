@@ -2470,6 +2470,7 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			"default_node_pool.0.kubelet_disk_type",
 			"default_node_pool.0.linux_os_config",
 			"default_node_pool.0.max_pods",
+			"default_node_pool.0.message_of_the_day",
 			"default_node_pool.0.only_critical_addons_enabled",
 			"default_node_pool.0.os_disk_size_gb",
 			"default_node_pool.0.os_disk_type",
