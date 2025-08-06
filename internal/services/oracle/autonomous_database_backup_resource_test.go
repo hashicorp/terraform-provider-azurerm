@@ -5,6 +5,7 @@ package oracle_test
 import (
 	"context"
 	"fmt"
+	"log"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -23,11 +24,47 @@ func (a AutonomousDatabaseBackupResource) Exists(ctx context.Context, client *cl
 	if err != nil {
 		return nil, err
 	}
-	resp, err := client.Oracle.OracleClient.AutonomousDatabaseBackups.Get(ctx, *id)
+
+	adbId := autonomousdatabasebackups.NewAutonomousDatabaseID(
+		id.SubscriptionId,
+		id.ResourceGroupName,
+		id.AutonomousDatabaseName,
+	)
+
+	// Use shared method to find the backup
+	backup, err := findBackupByName(ctx, client.Oracle.OracleClient.AutonomousDatabaseBackups, adbId, id.AutonomousDatabaseBackupName)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Autonomous Database Backup %s: %+v", id, err)
+		return nil, fmt.Errorf("checking backup existence: %+v", err)
 	}
-	return pointer.To(resp.Model != nil), nil
+
+	return pointer.To(backup != nil), nil
+}
+
+func findBackupByName(ctx context.Context, client *autonomousdatabasebackups.AutonomousDatabaseBackupsClient, adbId autonomousdatabasebackups.AutonomousDatabaseId, backupName string) (*autonomousdatabasebackups.AutonomousDatabaseBackup, error) {
+	log.Printf("[DEBUG] Looking for backup '%s' in database %s", backupName, adbId.ID())
+
+	resp, err := client.ListByParent(ctx, adbId)
+	if err != nil {
+		return nil, fmt.Errorf("listing backups for %s: %+v", adbId.ID(), err)
+	}
+
+	if resp.Model == nil {
+		log.Printf("[DEBUG] No backups found for database %s", adbId.ID())
+		return nil, nil
+	}
+
+	log.Printf("[DEBUG] Found %d backups for database %s", len(*resp.Model), adbId.ID())
+
+	for i := range *resp.Model {
+		backup := (*resp.Model)[i]
+
+		// Match by name
+		if backup.Name != nil && *backup.Name == backupName {
+			log.Printf("[DEBUG] Found matching backup: %s", *backup.Name)
+			return &(*resp.Model)[i], nil
+		}
+	}
+	return nil, nil
 }
 
 func TestAutonomousDatabaseBackupResource_basic(t *testing.T) {
@@ -121,10 +158,11 @@ provider "azurerm" {
 }
 
 resource "azurerm_oracle_autonomous_database_backup" "test" {
-  display_name             = "backup%[2]d"
+  name             = "backup%[2]d"
   autonomous_database_id = azurerm_oracle_autonomous_database.test.id
   retention_period_in_days = 120
   backup_type              = "LongTerm"
+  display_name             = "backup-display"
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }

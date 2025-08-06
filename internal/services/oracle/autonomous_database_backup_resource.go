@@ -115,11 +115,11 @@ func (r AutonomousDatabaseBackupResource) Create() sdk.ResourceFunc {
 				model.Name,
 			)
 
-			resp, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+			existingBackup, err := findBackupByName(ctx, client, autonomousdatabases.AutonomousDatabaseId(dbId), model.Name)
+			if err != nil {
+				return fmt.Errorf("checking for existing backup: %+v", err)
 			}
-			if !response.WasNotFound(resp.HttpResponse) {
+			if existingBackup != nil {
 				return metadata.ResourceRequiresImport(r.ResourceType(), &id)
 			}
 
@@ -150,69 +150,32 @@ func (r AutonomousDatabaseBackupResource) Read() sdk.ResourceFunc {
 
 			id, err := autonomousdatabasebackups.ParseAutonomousDatabaseBackupID(metadata.ResourceData.Id())
 			if err != nil {
-				fmt.Printf("[DEBUG] Error parsing ID: %s - %+v\n", metadata.ResourceData.Id(), err)
 				return fmt.Errorf("parsing ID: %+v", err)
 			}
-			fmt.Printf("[DEBUG] Reading ID: %s\n", metadata.ResourceData.Id())
-			fmt.Printf("[DEBUG] Parsed ID: %+v\n", *id)
 
-			adbId := autonomousdatabasebackups.NewAutonomousDatabaseID(
+			adbId := autonomousdatabases.NewAutonomousDatabaseID(
 				id.SubscriptionId,
 				id.ResourceGroupName,
 				id.AutonomousDatabaseName,
 			)
 
-			log.Printf("[DEBUG] Retrieving backups for Autonomous Database %s", adbId.ID())
-			resp, err := client.ListByParent(ctx, adbId)
+			// Use shared method to find the backup
+			backup, err := findBackupByName(ctx, client, adbId, id.AutonomousDatabaseBackupName)
 			if err != nil {
-				log.Printf("[ERROR] Failed to list backups: %+v", err)
-				return fmt.Errorf("retrieving Autonomous Database Backups: %+v", err)
+				return fmt.Errorf("retrieving backup: %+v", err)
 			}
-			log.Printf("[DEBUG] Looking for backup with name: %s", id.AutonomousDatabaseBackupName)
-			var backup *autonomousdatabasebackups.AutonomousDatabaseBackup
-			if resp.Model != nil {
-				log.Printf("[DEBUG] Found %d backups for database", len(*resp.Model))
 
-				for i := range *resp.Model {
-					item := (*resp.Model)[i]
-
-					// Log each backup's details
-					itemName := "nil"
-					if item.Id != nil {
-						itemName = *item.Id
-					}
-
-					log.Printf("[DEBUG] Backup %d: Name=%s", i, itemName)
-
-					// UPDATED: Only compare by Name field
-					if item.Id != nil && *item.Name == id.AutonomousDatabaseBackupName {
-						log.Printf("[DEBUG] Found matching backup by name: %s", itemName)
-						backup = &(*resp.Model)[i]
-						break
-					}
-				}
-			} else {
-				log.Printf("[DEBUG] No backups returned from API (resp.Model is nil)")
-			}
-			if backup == nil {
-				log.Printf("[DEBUG] Resource Autonomous Database Backup %s not found in any of the backups", id.AutonomousDatabaseBackupName)
-				metadata.ResourceData.SetId("")
-				return nil
-			}
-			log.Printf("[DEBUG] Successfully found backup %s", *backup.Name)
-
+			// Build state from found backup
 			state := AutonomousDatabaseBackupResourceModel{
-				DisplayName: id.AutonomousDatabaseBackupName,
+				Name:                 id.AutonomousDatabaseBackupName,
+				AutonomousDatabaseId: adbId.ID(),
 			}
 
-			fmt.Printf("[DEBUG] Initial State: %+v\n", state)
-			if model := backup.Properties; model != nil {
-				state.DisplayName = pointer.From(model.DisplayName)
-				state.RetentionPeriodInDays = pointer.From(model.RetentionPeriodInDays)
-				state.BackupType = string(pointer.From(model.BackupType))
+			if props := backup.Properties; props != nil {
+				state.DisplayName = pointer.From(props.DisplayName)
+				state.RetentionPeriodInDays = pointer.From(props.RetentionPeriodInDays)
+				state.BackupType = string(pointer.From(props.BackupType))
 			}
-
-			log.Printf("[DEBUG] Final state before encoding: %+v", state)
 
 			return metadata.Encode(&state)
 		},
@@ -276,6 +239,30 @@ func (r AutonomousDatabaseBackupResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
+}
+
+func findBackupByName(ctx context.Context, client *autonomousdatabasebackups.AutonomousDatabaseBackupsClient, adbId autonomousdatabases.AutonomousDatabaseId, backupName string) (*autonomousdatabasebackups.AutonomousDatabaseBackup, error) {
+	log.Printf("[DEBUG] Looking for backup '%s' in database %s", backupName, adbId.ID())
+
+	resp, err := client.ListByParent(ctx, autonomousdatabasebackups.AutonomousDatabaseId(adbId))
+	if err != nil {
+		return nil, fmt.Errorf("listing backups for %s: %+v", adbId.ID(), err)
+	}
+
+	if resp.Model == nil {
+		log.Printf("[DEBUG] No backups found for database %s", adbId.ID())
+		return nil, nil
+	}
+
+	for i := range *resp.Model {
+		backup := (*resp.Model)[i]
+		// Match by name
+		if backup.Name != nil && *backup.Name == backupName {
+			log.Printf("[DEBUG] Found matching backup: %s", *backup.Name)
+			return &(*resp.Model)[i], nil
+		}
+	}
+	return nil, nil
 }
 
 func (r AutonomousDatabaseBackupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
