@@ -10,6 +10,7 @@ ENHANCEMENTS:
 
 FEATURES:
 * **New Resource** : `azurerm_api_management_standalone_gateway` [GH-30226]
+* **New Resource** : `azurerm_postgresql_flexible_server_backup` [GH-29201]
 
 BUG FIXES:
 * `azurerm_container_app_environment` - fix an issue where `identity` was not set to the update request payload [GH-30311]
