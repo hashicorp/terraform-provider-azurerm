@@ -346,7 +346,7 @@ Example of proper Azure value validation:
 ## 📚 Related Implementation Guidance (On-Demand)
 
 ### **Schema & Testing**
-- 📐 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md) - Azure schema design and validation
+- 📐 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md) - Azure schema design, validation, and breaking change patterns (includes FivePointOh usage)
 
 ### **Quality & Evolution**
 - 📋 **Code Clarity**: [code-clarity-enforcement.instructions.md](./code-clarity-enforcement.instructions.md) - Code quality standards

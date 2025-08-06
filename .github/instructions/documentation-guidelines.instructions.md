@@ -521,6 +521,31 @@ Example of proper field documentation:
 - **Cross-reference validation**: When implementing similar features across resources, ensure consistent value documentation
 - **SDK alignment**: Match documentation values with Azure SDK enum constants where applicable
 
+### Deprecation and Breaking Change Documentation
+
+**Deprecated Field Documentation:**
+When fields are deprecated using the `FivePointOh` feature flag system, follow HashiCorp's standard practice:
+
+**Remove deprecated fields from documentation** - Users will receive deprecation warnings directly from the resource implementation when they use deprecated fields. Documentation should only show the current, supported fields.
+
+```markdown
+# Only document the new field - remove the deprecated field entirely
+* `new_field` - (Optional) New field description that replaces the deprecated `legacy_field`.
+```
+
+**Breaking Change Documentation Rules:**
+- **Remove deprecated fields**: Do not document deprecated fields - users get warnings from the resource itself
+- **Document replacement fields**: Focus documentation on the new, supported field patterns
+- **Upgrade guides**: Document migration paths in version-specific upgrade guides, not in resource documentation
+- **Clean documentation**: Keep resource documentation focused on current functionality
+
+**Documentation Updates During Breaking Changes:**
+- **Current version docs**: Remove deprecated fields, document only current supported fields
+- **Major version docs**: Clean up all legacy references and focus on current API
+- **Upgrade guides**: Migration instructions belong in upgrade guides, not resource docs
+
+**For complete deprecation patterns and FivePointOh usage, see:** [Schema Patterns - FivePointOh Feature Flag Patterns](./schema-patterns.instructions.md#🚀-fivepointoh-feature-flag-patterns)
+
 ### Cross-Implementation Documentation Consistency
 
 When documenting related Azure resources (like Linux and Windows VMSS), ensure consistency across implementations:
@@ -596,7 +621,7 @@ Use caution note blocks when providing critical information on potential irrever
 ## 📚 Related Implementation Guidance (On-Demand)
 
 ### **Advanced Patterns**
-- 📐 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md) - Schema design and validation
+- 📐 **Schema Patterns**: [schema-patterns.instructions.md](./schema-patterns.instructions.md) - Schema design and validation (includes deprecation patterns with FivePointOh)
 
 ### **Quality & Compliance**
 - 📋 **Code Clarity**: [code-clarity-enforcement.instructions.md](./code-clarity-enforcement.instructions.md) - Comment and code quality standards

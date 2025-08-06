@@ -7,7 +7,7 @@ description: Schema design patterns and validation standards for the Terraform A
 
 Schema design patterns and validation standards for the Terraform AzureRM provider including field types, validation patterns, and Azure-specific schema considerations.
 
-**Quick navigation:** [📋 Schema Types](#📋-schema-type-patterns) | [✅ Validation](#✅-validation-patterns) | [⚙️ Azure Specific](#⚙️-azure-specific-schema-patterns) | [🏗️ Complex Schemas](#🏗️-complex-schema-patterns) | [🔍 Field Naming](#🔍-field-naming-standards) | [🧪 Testing](#🧪-testing-schema-patterns) | [🔧 Test Helpers](#🔧-test-configuration-helpers)
+**Quick navigation:** [📋 Schema Types](#📋-schema-type-patterns) | [✅ Validation](#✅-validation-patterns) | [⚙️ Azure Specific](#⚙️-azure-specific-schema-patterns) | [🚀 Breaking Changes](#🚀-fivepointoh-feature-flag-patterns) | [🏗️ Complex Schemas](#🏗️-complex-schema-patterns) | [🔍 Field Naming](#🔍-field-naming-standards) | [🧪 Testing](#🧪-testing-schema-patterns) | [🔧 Test Helpers](#🔧-test-configuration-helpers)
 
 ## 📋 Schema Type Patterns
 
@@ -556,6 +556,210 @@ func ExpandMonitoringConfiguration(input []interface{}) *azureapi.MonitoringConf
     return config
 }
 ```
+
+### FivePointOh Feature Flag Patterns
+
+**Breaking Changes and Deprecation Management:**
+
+The `FivePointOh` feature flag system allows controlled introduction of breaking changes during development of major provider versions. This system is essential for managing deprecations and breaking changes in a controlled way.
+
+**Key Functions:**
+```go
+import "github.com/hashicorp/terraform-provider-azurerm/internal/features"
+
+// Check if running in 5.0 mode
+if features.FivePointOh() {
+    // Breaking change behavior for 5.0
+}
+```
+
+**Untyped Resource Schema Deprecation Pattern:**
+```go
+// Schema with conditional deprecated fields (untyped resources)
+func resourceServiceSchema() map[string]*pluginsdk.Schema {
+    schema := map[string]*pluginsdk.Schema{
+        "name": {
+            Type:     pluginsdk.TypeString,
+            Required: true,
+            ForceNew: true,
+        },
+        "new_field": {
+            Type:     pluginsdk.TypeString,
+            Optional: true,
+        },
+    }
+
+    // Add deprecated fields conditionally - placed after main schema
+    if !features.FivePointOh() {
+        schema["legacy_field"] = &pluginsdk.Schema{
+            Type:       pluginsdk.TypeString,
+            Optional:   true,
+            Deprecated: "This field will be removed in v5.0. Use `new_field` instead.",
+        }
+    }
+
+    return schema
+}
+```
+
+**Typed Resource Schema Deprecation Pattern:**
+```go
+// Schema with conditional deprecated fields (typed resources)
+func (r ServiceNameResource) Arguments() map[string]*pluginsdk.Schema {
+    arguments := map[string]*pluginsdk.Schema{
+        "name": {
+            Type:     pluginsdk.TypeString,
+            Required: true,
+            ForceNew: true,
+        },
+        "new_field": {
+            Type:     pluginsdk.TypeString,
+            Optional: true,
+        },
+    }
+
+    // Add deprecated fields conditionally - placed after main schema
+    if !features.FivePointOh() {
+        arguments["legacy_field"] = &pluginsdk.Schema{
+            Type:       pluginsdk.TypeString,
+            Optional:   true,
+            Deprecated: "This field will be removed in v5.0. Use `new_field` instead.",
+        }
+    }
+
+    return arguments
+}
+```
+
+**Untyped Resource Implementation Patterns:**
+```go
+// Conditional behavior in resource operations (untyped)
+func resourceServiceNameCreate(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
+    properties := &serviceapi.Properties{
+        Name: d.Get("name").(string),
+    }
+
+    // Use new field in 5.0, legacy field in 4.x
+    if features.FivePointOh() {
+        if newField := d.Get("new_field").(string); newField != "" {
+            properties.NewProperty = pointer.To(newField)
+        }
+    } else {
+        if legacyField := d.Get("legacy_field").(string); legacyField != "" {
+            properties.LegacyProperty = pointer.To(legacyField)
+        }
+    }
+
+    return nil
+}
+
+// Conditional state management (untyped)
+func resourceServiceNameRead(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) error {
+    resp, err := client.Get(ctx, id)
+    if err != nil {
+        return err
+    }
+
+    d.Set("name", resp.Properties.Name)
+    d.Set("new_field", pointer.From(resp.Properties.NewProperty))
+
+    // Only set legacy field in 4.x mode
+    if !features.FivePointOh() {
+        d.Set("legacy_field", pointer.From(resp.Properties.LegacyProperty))
+    }
+
+    return nil
+}
+```
+
+**Typed Resource Implementation Patterns:**
+```go
+// Typed resource model with conditional fields
+type ServiceNameResourceModel struct {
+    Name      string `tfschema:"name"`
+    NewField  string `tfschema:"new_field"`
+
+    // Legacy field handled conditionally in decode/encode
+    LegacyField string `tfschema:"legacy_field,removedInNextMajorVersion"`
+}
+
+// Conditional behavior in typed resource operations
+func (r ServiceNameResource) Create() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            var model ServiceNameResourceModel
+            if err := metadata.Decode(&model); err != nil {
+                return fmt.Errorf("decoding: %+v", err)
+            }
+
+            properties := &serviceapi.Properties{
+                Name: model.Name,
+            }
+
+            // Use new field in 5.0, legacy field in 4.x
+            if features.FivePointOh() {
+                if model.NewField != "" {
+                    properties.NewProperty = pointer.To(model.NewField)
+                }
+            } else {
+                if model.LegacyField != "" {
+                    properties.LegacyProperty = pointer.To(model.LegacyField)
+                }
+            }
+
+            return nil
+        },
+    }
+}
+```
+
+**Testing with FivePointOh:**
+```go
+// Test both 4.x and 5.0 behaviors
+func TestAccResource_deprecationBehavior(t *testing.T) {
+    // Skip test when using deprecated functionality in 5.0 mode
+    if features.FivePointOh() {
+        t.Skip("Test skipped in 5.0 mode: `legacy_field` was deprecated and removed in v5.0")
+    }
+
+    data := acceptance.BuildTestData(t, "azurerm_resource", "test")
+    r := ResourceResource{}
+
+    // Test current behavior (4.x mode)
+    data.ResourceTest(t, r, []acceptance.TestStep{
+        {
+            Config: r.withLegacyField(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+                check.That(data.ResourceName).Key("legacy_field").HasValue("test"),
+            ),
+        },
+        data.ImportStep(),
+    })
+}
+
+// Test configuration using legacy patterns
+func (r ResourceResource) withLegacyField(data acceptance.TestData) string {
+    return fmt.Sprintf(`
+resource "azurerm_resource" "test" {
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  # Legacy field - will show deprecation warning in 5.0 mode
+  legacy_field = "test"
+}
+`, data.RandomInteger)
+}
+```
+
+**Important Considerations:**
+- **Environment Variable**: The `ARM_FIVEPOINTZERO_BETA` environment variable enables 5.0 mode for testing
+- **Development Only**: This flag is for development and testing - NOT for production use
+- **State Changes**: Enabling 5.0 mode may cause irreversible state changes
+- **Documentation**: Always document the migration path in breaking change guides
+
+**For authoritative breaking change procedures, see:** [Contributing Guide - Breaking Changes](../../../contributing/topics/guide-breaking-changes.md)
 
 ### Advanced Schema Validation Patterns
 
