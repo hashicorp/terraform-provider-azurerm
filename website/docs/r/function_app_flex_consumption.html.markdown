@@ -77,6 +77,8 @@ The following arguments are supported:
 
 * `site_config` - (Required) A `site_config` block as defined below.
 
+* `storage_account` - (Optional) One or more `storage_account` blocks as defined below.
+
 * `storage_container_type` - (Required) The storage container type used for the Function App. The current supported type is `blobContainer`.
 
 * `storage_container_endpoint` - (Required) The backend storage container endpoint which will be used by this Function App.
@@ -672,6 +674,22 @@ A `sticky_settings` block supports the following:
 * `app_setting_names` - (Optional) A list of `app_setting` names that the Linux Function App will not swap between Slots when a swap operation is triggered.
 
 * `connection_string_names` - (Optional) A list of `connection_string` names that the Linux Function App will not swap between Slots when a swap operation is triggered.
+
+---
+
+A `storage_account` block supports the following:
+
+* `access_key` - (Required) The Access key for the storage account.
+
+* `account_name` - (Required) The Name of the Storage Account.
+
+* `name` - (Required) The name which should be used for this Storage Account.
+
+* `share_name` - (Required) The Name of the File Share or Container Name for Blob storage.
+
+* `type` - (Required) The Azure Storage Type. Possible values include `AzureFiles` and `AzureBlob`.
+
+* `mount_path` - (Optional) The path at which to mount the storage share.
 
 ---
 
