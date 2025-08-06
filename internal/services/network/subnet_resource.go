@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/serviceendpointpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/ipampools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networksecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/subnets"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -271,11 +272,17 @@ func resourceSubnet() *pluginsdk.Resource {
 				Optional: true,
 				Default:  true,
 			},
+
+			"network_security_group_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Computed:     true,
+				ValidateFunc: networksecuritygroups.ValidateNetworkSecurityGroupID,
+			},
 		},
 	}
 }
 
-// TODO: refactor the create/flatten functions
 func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.Client.Subnets
 	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
@@ -313,6 +320,16 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		properties.AddressPrefixes = nil
 	}
 
+	if nsg := d.Get("network_security_group_id").(string); nsg != "" {
+		nsgID, err := networksecuritygroups.ParseNetworkSecurityGroupID(nsg)
+		if err != nil {
+			return err
+		}
+		properties.NetworkSecurityGroup = &subnets.NetworkSecurityGroup{
+			Id: pointer.To(nsgID.ID()),
+		}
+	}
+
 	properties.IPamPoolPrefixAllocations = expandSubnetIPAddressPool(d.Get("ip_address_pool").([]interface{}))
 
 	// To enable private endpoints you must disable the network policies for the subnet because
@@ -341,7 +358,7 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	properties.Delegations = expandSubnetDelegation(delegationsRaw)
 
 	subnet := subnets.Subnet{
-		Name:       utils.String(id.SubnetName),
+		Name:       pointer.To(id.SubnetName),
 		Properties: &properties,
 	}
 
@@ -408,8 +425,6 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
 
-	// TODO: locking on the NSG/Route Table if applicable
-
 	props := *existing.Model.Properties
 
 	if d.HasChange("address_prefixes") {
@@ -421,7 +436,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			props.AddressPrefixes = nil
 		case 1:
 			// N->1: we shall insist on using the `AddressPrefix` and clear the `AddressPrefixes`.
-			props.AddressPrefix = utils.String(addressPrefixesRaw[0].(string))
+			props.AddressPrefix = pointer.To(addressPrefixesRaw[0].(string))
 			props.AddressPrefixes = nil
 		default:
 			// 1->N: we shall insist on using the `AddressPrefixes` and clear the `AddressPrefix`. If both are set, service be confused and (currently) will only
@@ -485,8 +500,41 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		props.ServiceEndpointPolicies = expandSubnetServiceEndpointPolicies(serviceEndpointPoliciesRaw)
 	}
 
+	if d.HasChange("network_security_group_id") {
+		// Is the value absent from config, if so we remove the value from the resource. If the
+		// azurerm_subnet_network_security_group_association is used, this will clobber the value and cause a Diff.
+		// For this reason, only one mechanism should be used to manage this value as there is no way to reconcile this
+		// in the graph.
+		configNSGID := new(string)
+
+		configNSGID, err = pluginsdk.GoValueFromTerraformValue[string](d.GetRawConfig().AsValueMap()["network_security_group_id"])
+		if err != nil {
+			return err
+		}
+
+		c := pointer.From(configNSGID)
+
+		_, nRaw := d.GetChange("network_security_group_id")
+		// o := oRaw.(string)
+		n := nRaw.(string)
+		switch {
+		case n != "" && c == "":
+			// Computed value, not configured, don't change anything
+		case c != "":
+			// explicitly configured, safe to assume we can set it as it's direct user input.
+			nsgID, err := networksecuritygroups.ParseNetworkSecurityGroupID(pointer.From(configNSGID))
+			if err != nil {
+				return err
+			}
+			props.NetworkSecurityGroup = &subnets.NetworkSecurityGroup{
+				Id: pointer.To(nsgID.ID()),
+			}
+		default:
+			props.NetworkSecurityGroup = &subnets.NetworkSecurityGroup{}
+		}
+	}
+
 	subnet := subnets.Subnet{
-		Name:       utils.String(id.SubnetName),
 		Properties: &props,
 	}
 
@@ -584,6 +632,16 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			serviceEndpointPolicies := flattenSubnetServiceEndpointPolicies(props.ServiceEndpointPolicies)
 			if err := d.Set("service_endpoint_policy_ids", serviceEndpointPolicies); err != nil {
 				return fmt.Errorf("setting `service_endpoint_policy_ids`: %+v", err)
+			}
+
+			if nsg := props.NetworkSecurityGroup; nsg != nil && nsg.Id != nil {
+				nsgID, err := networksecuritygroups.ParseNetworkSecurityGroupIDInsensitively(*nsg.Id)
+				if err != nil {
+					return err
+				}
+				d.Set("network_security_group_id", nsgID.ID())
+			} else {
+				d.Set("network_security_group_id", "")
 			}
 		}
 	}

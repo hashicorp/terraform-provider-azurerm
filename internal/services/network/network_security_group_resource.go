@@ -10,10 +10,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networksecuritygroups"
+	`github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/subnets`
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -327,6 +329,41 @@ func resourceNetworkSecurityGroupDelete(d *pluginsdk.ResourceData, meta interfac
 	id, err := networksecuritygroups.ParseNetworkSecurityGroupID(d.Id())
 	if err != nil {
 		return err
+	}
+
+	if meta.(*clients.Client).Features.Network.ForceDeleteNSGs {
+		subnetClient := meta.(*clients.Client).Network.Subnets
+		resp, err := client.Get(ctx, *id, networksecuritygroups.DefaultGetOperationOptions())
+		if err != nil {
+			return fmt.Errorf("attempting to remove %s from associated Subnets: %+v", *id, err)
+		}
+		if model := resp.Model; model != nil {
+			if props := model.Properties; props != nil {
+				if s := props.Subnets; s != nil {
+					for _, subnet := range *s {
+						sid := pointer.From(subnet.Id)
+						if sid != "" {
+							subnetId, err := commonids.ParseSubnetIDInsensitively(sid)
+							if err != nil {
+								return err // TODO - Wrap this
+							}
+							updateSubnet, err := subnetClient.Get(ctx, *subnetId, subnets.DefaultGetOperationOptions())
+							if err != nil {
+								return err // TODO - Wrap this
+							}
+							if model := updateSubnet.Model; model != nil {
+								if model.Properties != nil {
+									if model.Properties.NetworkSecurityGroup != nil {
+										model.Properties.NetworkSecurityGroup = nil
+										_ = subnetClient.CreateOrUpdateThenPoll(ctx, *subnetId, *model)
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {

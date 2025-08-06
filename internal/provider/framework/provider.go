@@ -495,6 +495,16 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 								},
 							},
 						},
+						"network": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"force_delete_network_security_groups": schema.BoolAttribute{
+										Description: "When enabled, deleting an NSG will attempt to remove it from any associated subnets.",
+										Optional:    true,
+									},
+								},
+							},
+						},
 						"databricks_workspace": schema.ListNestedBlock{
 							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{

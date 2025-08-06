@@ -348,6 +348,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 				},
 			},
 		},
+
 		"machine_learning": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -407,6 +408,22 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Type:        pluginsdk.TypeBool,
 						Optional:    true,
 						Default:     true,
+					},
+				},
+			},
+		},
+
+		"network": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"force_delete_network_security_groups": {
+						Description: "When enabled, deleting an NSG will attempt to remove it from any associated subnets.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
 					},
 				},
 			},
@@ -708,6 +725,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := netappRaw["prevent_volume_destruction"]; ok {
 				featuresMap.NetApp.PreventVolumeDestruction = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["network"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			networkRaw := items[0].(map[string]interface{})
+			if v, ok := networkRaw["force_delete_network_security_groups"]; ok {
+				featuresMap.Network.ForceDeleteNSGs = v.(bool)
 			}
 		}
 	}

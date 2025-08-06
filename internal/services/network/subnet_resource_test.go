@@ -67,6 +67,50 @@ func TestAccSubnet_complete_addressPrefixes(t *testing.T) {
 	})
 }
 
+func TestAccSubnet_complete_addressPrefixesWithNSG(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete_addressPrefixesNSG(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSubnet_complete_addressPrefixesWithNSGUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
+	r := SubnetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete_addressPrefixes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete_addressPrefixesNSG(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete_addressPrefixes(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSubnet_update_addressPrefixes(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}
@@ -490,7 +534,7 @@ func TestAccSubnet_updateServiceDelegation(t *testing.T) {
 	})
 }
 
-func (t SubnetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r SubnetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseSubnetID(state.ID)
 	if err != nil {
 		return nil, err
@@ -773,8 +817,13 @@ resource "azurerm_subnet" "test" {
 func (SubnetResource) complete_addressPrefixes(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
-  features {}
+  features {
+    network {
+      force_delete_network_security_groups = true
+    }
+  }
 }
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-n-%d"
   location = "%s"
@@ -792,6 +841,53 @@ resource "azurerm_subnet" "test" {
   address_prefixes     = ["10.0.0.0/24", "ace:cab:deca:deed::/64"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (SubnetResource) complete_addressPrefixesNSG(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-n-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_network_security_group" "test" {
+  name                = "acctestnsg%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  security_rule {
+    name                       = "test123"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "*"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  address_space       = ["10.0.0.0/16", "ace:cab:deca::/48"]
+  location            = "${azurerm_resource_group.test.location}"
+  resource_group_name = "${azurerm_resource_group.test.name}"
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsubnet%[1]d"
+  resource_group_name  = "${azurerm_resource_group.test.name}"
+  virtual_network_name = "${azurerm_virtual_network.test.name}"
+  address_prefixes     = ["10.0.0.0/24", "ace:cab:deca:deed::/64"]
+
+  network_security_group_id = azurerm_network_security_group.test.id
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (r SubnetResource) ipAddressPool(data acceptance.TestData) string {

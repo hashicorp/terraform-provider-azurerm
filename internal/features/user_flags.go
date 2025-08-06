@@ -22,6 +22,7 @@ type UserFeatures struct {
 	MachineLearning          MachineLearningFeatures
 	RecoveryService          RecoveryServiceFeatures
 	NetApp                   NetAppFeatures
+	Network                  NetworkFeatures
 	DatabricksWorkspace      DatabricksWorkspaceFeatures
 }
 
@@ -116,6 +117,10 @@ type RecoveryServiceFeatures struct {
 type NetAppFeatures struct {
 	DeleteBackupsOnBackupVaultDestroy bool
 	PreventVolumeDestruction          bool
+}
+
+type NetworkFeatures struct {
+	ForceDeleteNSGs bool
 }
 
 type DatabricksWorkspaceFeatures struct {

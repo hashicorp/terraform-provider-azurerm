@@ -83,6 +83,9 @@ func Default() UserFeatures {
 			DeleteBackupsOnBackupVaultDestroy: false,
 			PreventVolumeDestruction:          true,
 		},
+		Network: NetworkFeatures{
+			ForceDeleteNSGs: false,
+		},
 		DatabricksWorkspace: DatabricksWorkspaceFeatures{
 			ForceDelete: false,
 		},
