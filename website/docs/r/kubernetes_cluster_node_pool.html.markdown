@@ -102,6 +102,8 @@ The following arguments are supported:
 
 * `max_pods` - (Optional) The maximum number of pods that can run on each agent. Changing this property requires specifying `temporary_name_for_rotation`.
 
+* `message_of_the_day` - (Optional) A string which will be written to `/etc/motd` after base64 encoding. This allows customization of the message of the day for Linux nodes. It cannot be specified for Windows nodes and must be a static string (i.e. will be printed raw and not interpreted by the shell). Changing this forces a new resource to be created.
+
 * `mode` - (Optional) Should this Node Pool be used for System or User resources? Possible values are `System` and `User`. Defaults to `User`.
 
 * `node_network_profile` - (Optional) A `node_network_profile` block as documented below.

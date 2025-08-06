@@ -1174,6 +1174,28 @@ func TestAccKubernetesCluster_customCaTrustCerts(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_defaultNodePoolMessageOfTheDay(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.defaultNodePoolMessageOfTheDay(data, "Welcome to the initial AKS cluster!"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
+		{
+			Config: r.defaultNodePoolMessageOfTheDay(data, "Updated message for the AKS cluster!"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("default_node_pool.0.temporary_name_for_rotation"),
+	})
+}
+
 func (KubernetesClusterResource) sameSize(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3574,4 +3596,39 @@ resource "azurerm_kubernetes_cluster" "test" {
   custom_ca_trust_certificates_base64 = [%[3]s]
 }
 `, data.Locations.Primary, data.RandomInteger, certsString)
+}
+
+func (KubernetesClusterResource) defaultNodePoolMessageOfTheDay(data acceptance.TestData, message string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]s"
+  location = "%[2]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]s"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]s"
+
+  default_node_pool {
+    name                         = "default"
+    node_count                   = 1
+    vm_size                      = "Standard_DS2_v2"
+    message_of_the_day           = "%[3]s"
+    temporary_name_for_rotation  = "temp"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+  `, data.RandomString, data.Locations.Primary, message)
 }
