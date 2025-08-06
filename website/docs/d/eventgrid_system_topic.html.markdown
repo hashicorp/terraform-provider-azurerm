@@ -36,9 +36,11 @@ The following attributes are exported:
 
 * `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Event Grid System Topic.
 
-* `metric_arm_resource_id` - The Metric ARM Resource ID of the Event Grid System Topic.
+* `metric_resource_id` - The Metric Resource ID of the Event Grid System Topic.
 
-* `source_arm_resource_id` - The ID of the Event Grid System Topic ARM Source.
+-> **Note:** This is **not** an Azure RM ID ("/subscription/..."), but rather an Azure-internal identifier for this metric in the form of a GUID. For consumption in Azure Monitor resources, generally the system topic's Azure RM ID is used.
+
+* `source_resource_id` - The ID of the Event Grid System Topic ARM Source.
 
 * `topic_type` - The Topic Type of the Event Grid System Topic.
 
