@@ -88,8 +88,7 @@ func (rmd ResourceMetaData) IsWhollyKnownAt(key string) bool {
 		return false
 	}
 
-	res := val.IsWhollyKnown()
-	return res
+	return val.IsWhollyKnown()
 }
 
 // asValueMap is a convenience function that handles all the safety checks to prevent panics before calling `[cty.Value].AsValueMap()`
