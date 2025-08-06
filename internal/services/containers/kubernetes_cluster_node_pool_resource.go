@@ -1197,7 +1197,7 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 		d.Set("vm_size", props.VMSize)
 		d.Set("host_group_id", props.HostGroupID)
 		d.Set("capacity_reservation_group_id", props.CapacityReservationGroupID)
-		
+
 		messageOfTheDay := ""
 		if props.MessageOfTheDay != nil {
 			encoded := *props.MessageOfTheDay
