@@ -76,12 +76,12 @@ func (r WindowsVirtualMachineResource) authPasswordWriteOnly(data acceptance.Tes
 %s
 
 resource "azurerm_windows_virtual_machine" "test" {
-  name                = local.vm_name
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
-  admin_password_wo   = "%s"
+  name                      = local.vm_name
+  resource_group_name       = azurerm_resource_group.test.name
+  location                  = azurerm_resource_group.test.location
+  size                      = "Standard_F2"
+  admin_username            = "adminuser"
+  admin_password_wo         = "%s"
   admin_password_wo_version = %d
   network_interface_ids = [
     azurerm_network_interface.test.id,
