@@ -83,4 +83,4 @@ terraform import azurerm_postgresql_active_directory_administrator.administrator
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DBforPostgreSQL`: 2017-12-01
+* `Microsoft.DBforPostgreSQL` - 2017-12-01

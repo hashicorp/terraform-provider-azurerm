@@ -75,6 +75,14 @@ type MoveStateRequest struct {
 	// other request fields, to determine whether the request should be handled
 	// by this particular implementation.
 	SourceTypeName string
+
+	// SourceIdentity is the identity of the source resource.
+	//
+	// Only the underlying JSON field is populated.
+	SourceIdentity *tfprotov6.RawState
+
+	// SourceIdentitySchemaVersion is the version of the source resource identity.
+	SourceIdentitySchemaVersion int64
 }
 
 // MoveStateResponse represents a response to a MoveStateRequest.
@@ -107,4 +115,7 @@ type MoveStateResponse struct {
 	// operation. This field is not pre-populated as it is up to implementations
 	// whether the source private data is relevant for the target resource.
 	TargetPrivate *privatestate.ProviderData
+
+	// TargetIdentity is the identity of the target resource.
+	TargetIdentity *tfsdk.ResourceIdentity
 }

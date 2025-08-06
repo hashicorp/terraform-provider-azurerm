@@ -97,4 +97,4 @@ terraform import azurerm_static_web_app_function_app_registration.example /subsc
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Web`: 2023-12-01, 2023-01-01
+* `Microsoft.Web` - 2023-12-01, 2023-01-01

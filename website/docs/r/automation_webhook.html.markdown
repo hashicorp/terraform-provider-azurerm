@@ -105,4 +105,4 @@ terraform import azurerm_automation_webhook.TestRunbook_webhook /subscriptions/0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Automation`: 2015-10-31
+* `Microsoft.Automation` - 2015-10-31

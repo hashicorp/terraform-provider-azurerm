@@ -77,4 +77,4 @@ terraform import azurerm_sentinel_alert_rule_machine_learning_behavior_analytics
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.OperationalInsights`: 2023-12-01-preview
+* `Microsoft.OperationalInsights` - 2023-12-01-preview
