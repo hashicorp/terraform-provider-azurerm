@@ -162,9 +162,15 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 				Optional:    true,
 				Description: "Allow Managed Service Identity to be used for Authentication.",
 			},
+
 			"msi_endpoint": schema.StringAttribute{
 				Optional:    true,
-				Description: "The path to a custom endpoint for Managed Service Identity - in most circumstances this should be detected automatically. ",
+				Description: "The path to a custom endpoint for Managed Service Identity - in most circumstances this should be detected automatically.",
+			},
+
+			"msi_api_version": schema.StringAttribute{
+				Optional:    true,
+				Description: "The API version to use for Managed Service Identity (IMDS) - for cases where the default API version is not supported by the endpoint. e.g. for Azure Container Apps.",
 			},
 
 			// Azure CLI specific fields

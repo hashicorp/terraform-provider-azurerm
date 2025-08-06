@@ -141,7 +141,7 @@ func (r PrivateDNSResolverDnsForwardingRulesetResource) Update() sdk.ResourceFun
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
-			if metadata.ResourceData.HasChange("dns_resolver_outbound_endpoints") {
+			if metadata.ResourceData.HasChange("private_dns_resolver_outbound_endpoint_ids") {
 				dnsResolverOutboundEndpointsValue := expandDnsResolverOutboundEndpoints(model.DnsResolverOutboundEndpoints)
 
 				if dnsResolverOutboundEndpointsValue != nil {

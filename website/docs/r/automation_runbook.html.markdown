@@ -96,7 +96,7 @@ The following arguments are supported:
 
 * `publish_content_link` - (Optional) One `publish_content_link` block as defined below.
 
-* `description` - (Optional) A description for this credential.
+* `description` - (Optional) A description for the runbook.
 
 * `content` - (Optional) The desired content of the runbook.
 
@@ -203,4 +203,4 @@ terraform import azurerm_automation_runbook.Get-AzureVMTutorial /subscriptions/0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Automation`: 2023-11-01
+* `Microsoft.Automation` - 2023-11-01

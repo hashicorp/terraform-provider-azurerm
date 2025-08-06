@@ -83,6 +83,8 @@ The following arguments are supported:
 
 * `service_url` - (Optional) Absolute URL of the backend service implementing this API.
 
+-> **Note:** The `service_url` is required when `api_type` is specified as `websocket`.
+
 * `subscription_key_parameter_names` - (Optional) A `subscription_key_parameter_names` block as documented below.
 
 * `subscription_required` - (Optional) Should this API require a subscription key? Defaults to `true`.
@@ -196,4 +198,4 @@ terraform import azurerm_api_management_api.example /subscriptions/00000000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ApiManagement`: 2022-08-01
+* `Microsoft.ApiManagement` - 2022-08-01

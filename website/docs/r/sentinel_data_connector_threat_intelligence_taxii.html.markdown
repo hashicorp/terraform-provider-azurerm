@@ -93,4 +93,4 @@ terraform import azurerm_sentinel_data_connector_threat_intelligence_taxii.examp
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.OperationalInsights`: 2022-10-01
+* `Microsoft.OperationalInsights` - 2022-10-01

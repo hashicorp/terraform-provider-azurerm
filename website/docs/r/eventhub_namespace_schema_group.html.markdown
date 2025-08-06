@@ -41,7 +41,9 @@ The following arguments are supported:
 
 * `schema_compatibility` - (Required) Specifies the compatibility of this schema group. Possible values are `None`, `Backward`, `Forward`. Changing this forces a new resource to be created.
 
-* `schema_type` - (Required) Specifies the Type of this schema group. Possible values are `Avro`, `Unknown`. Changing this forces a new resource to be created.
+* `schema_type` - (Required) Specifies the Type of this schema group. Possible values are `Avro`, `Unknown` and `Json`. Changing this forces a new resource to be created.
+
+~> **Note:** When `schema_type` is specified as `Json`, `schema_compatibility` must be set to `None`.
 
 ## Attributes Reference
 
@@ -69,4 +71,4 @@ terraform import azurerm_eventhub_namespace_schema_group.example /subscriptions/
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.EventHub`: 2024-01-01
+* `Microsoft.EventHub` - 2024-01-01

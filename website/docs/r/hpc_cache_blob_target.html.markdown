@@ -10,6 +10,8 @@ description: |-
 
 Manages a Blob Target within a HPC Cache.
 
+!> **Note:** The `azurerm_hpc_cache_blob_target` resource has been deprecated because the service is retiring on 2025-09-30. This resource will be removed in v5.0 of the AzureRM Provider. See https://aka.ms/hpccacheretirement for more information.
+
 ~> **Note:** By request of the service team the provider no longer automatically registering the `Microsoft.StorageCache` Resource Provider for this resource. To register it you can run `az provider register --namespace 'Microsoft.StorageCache'`.
 
 ## Example Usage
@@ -126,4 +128,4 @@ terraform import azurerm_hpc_cache_blob_target.example /subscriptions/00000000-0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.StorageCache`: 2023-05-01
+* `Microsoft.StorageCache` - 2023-05-01

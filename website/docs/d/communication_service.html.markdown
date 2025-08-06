@@ -49,7 +49,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `tags` - A mapping of tags assigned to the Communication Service.
 
-* `hostname` - The hostname of the Communication Service
+* `hostname` - The hostname of the Communication Service.
+
+* `immutable_resource_id` - The immutable resource id of the Communication Service.
 
 ## Timeouts
 
@@ -61,4 +63,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Communication`: 2023-03-31
+* `Microsoft.Communication` - 2023-03-31

@@ -83,7 +83,7 @@ The `record` block supports:
 
 * `flags` - (Required) Extensible CAA flags, currently only 1 is implemented to set the issuer critical flag.
 
-* `tag` - (Required) A property tag, options are `issue`, `issuewild` and `iodef`.
+* `tag` - (Required) A property tag, options are `issue`, `issuewild`, `iodef`, and `contactemail`.
 
 * `value` - (Required) A property value such as a registrar domain.
 
@@ -119,4 +119,4 @@ terraform import azurerm_dns_caa_record.example /subscriptions/00000000-0000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2018-05-01
+* `Microsoft.Network` - 2018-05-01

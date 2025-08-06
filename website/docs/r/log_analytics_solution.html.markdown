@@ -97,4 +97,4 @@ terraform import azurerm_log_analytics_solution.solution1 /subscriptions/0000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.OperationsManagement`: 2015-11-01-preview
+* `Microsoft.OperationsManagement` - 2015-11-01-preview

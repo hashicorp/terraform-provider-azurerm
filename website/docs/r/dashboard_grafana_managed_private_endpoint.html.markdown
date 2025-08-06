@@ -69,6 +69,8 @@ The following arguments are supported:
 
 - `request_message` - (Optional) A message to provide in the request which will be seen by approvers.
 
+- `private_link_service_url` - (Optional) A domain name for this endpoint to be used within Grafana. Must be just a domain, without schema, and with at least three parts.
+
 - `tags` - (Optional) A mapping of tags which should be assigned to the Dashboard Grafana Managed Private Endpoint.
 
 ## Attributes Reference
@@ -98,4 +100,4 @@ terraform import azurerm_dashboard_grafana_managed_private_endpoint.example /sub
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Dashboard`: 2023-09-01
+* `Microsoft.Dashboard` - 2023-09-01

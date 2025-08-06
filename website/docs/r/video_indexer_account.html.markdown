@@ -59,6 +59,8 @@ The following arguments are supported:
 
 * `identity` - (Required) An `identity` block as defined below.
 
+* `public_network_access` - The public network access for the Video Indexer Account. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -106,4 +108,4 @@ terraform import azurerm_video_indexer_account.example /subscriptions/12345678-1
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.VideoIndexer`: 2024-01-01
+* `Microsoft.VideoIndexer` - 2025-04-01
