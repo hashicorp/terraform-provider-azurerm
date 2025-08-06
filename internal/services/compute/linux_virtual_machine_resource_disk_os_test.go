@@ -382,7 +382,7 @@ func TestAccLinuxVirtualMachine_diskOSImportManagedDisk(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		// data.ImportStep(),
+		data.ImportStep(),
 		{
 			Config: r.osDiskImportTemplateWithProvider(data), // Remove the initial VM
 		},
@@ -394,6 +394,7 @@ func TestAccLinuxVirtualMachine_diskOSImportManagedDisk(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			// This step does nothing except flip the delete OS disk with VM to true to avoid the RG preventing being deleted
 			Config: r.diskOSImportManagedDiskCleanup(data),
 		},
 	})
@@ -1249,7 +1250,7 @@ provider "azurerm" {
 %[1]s
 
 data "azurerm_managed_disks" "test" {
-	resource_group_name = azurerm_resource_group.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_linux_virtual_machine" "test" {
@@ -1262,7 +1263,7 @@ resource "azurerm_linux_virtual_machine" "test" {
     azurerm_network_interface.test.id,
   ]
 
-  os_managed_disk_id      = data.azurerm_managed_disks.test.disk.0.id
+  os_managed_disk_id = data.azurerm_managed_disks.test.disk.0.id
 
   os_disk {
     caching              = "ReadWrite"
@@ -1285,7 +1286,7 @@ provider "azurerm" {
 %[1]s
 
 data "azurerm_managed_disks" "test" {
-	resource_group_name = azurerm_resource_group.test.name
+  resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_linux_virtual_machine" "test" {
@@ -1298,7 +1299,7 @@ resource "azurerm_linux_virtual_machine" "test" {
     azurerm_network_interface.test.id,
   ]
 
-  os_managed_disk_id      = data.azurerm_managed_disks.test.disk.0.id
+  os_managed_disk_id = data.azurerm_managed_disks.test.disk.0.id
 
   os_disk {
     caching              = "ReadWrite"

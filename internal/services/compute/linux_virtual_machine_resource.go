@@ -107,6 +107,11 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 					"os_disk",
 					"os_managed_disk_id",
 				},
+				ExactlyOneOf: []string{
+					"os_managed_disk_id",
+					"source_image_id",
+					"source_image_reference",
+				},
 			},
 
 			"size": {
@@ -324,7 +329,6 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
-				// Default:  string(virtualmachines.LinuxPatchAssessmentModeImageDefault),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(virtualmachines.LinuxPatchAssessmentModeAutomaticByPlatform),
 					string(virtualmachines.LinuxPatchAssessmentModeImageDefault),
@@ -531,8 +535,8 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 	networkInterfaceIds := expandVirtualMachineNetworkInterfaceIDs(networkInterfaceIdsRaw)
 
 	managedDiskIdRaw := d.Get("os_managed_disk_id").(string)
-
-	securityEncryptionType := ""
+	// Note: The API fails if OsProfile is anything but nil with CreateOption = "Attach"
+	osDiskIsImported := managedDiskIdRaw != ""
 
 	params := virtualmachines.VirtualMachine{
 		Name:             pointer.To(id.VirtualMachineName),
@@ -565,14 +569,14 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		Tags: tags.Expand(t),
 	}
 
-	// Note: The API fails if OsProfile is anything but nil with CreateOption = "Attach"
-	osDiskIsImported := managedDiskIdRaw != ""
-
 	osDiskRaw := d.Get("os_disk").([]interface{})
 	osDisk, err := expandVirtualMachineOSDisk(osDiskRaw, virtualmachines.OperatingSystemTypesLinux)
 	if err != nil {
 		return fmt.Errorf("expanding `os_disk`: %+v", err)
 	}
+
+	securityEncryptionType := ""
+
 	if !osDiskIsImported {
 		securityEncryptionType = osDiskRaw[0].(map[string]interface{})["security_encryption_type"].(string)
 		var computerName string
@@ -605,7 +609,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 			},
 			Secrets: secrets,
 		}
-		//
+
 		patchMode := string(virtualmachines.LinuxVMGuestPatchModeImageDefault)
 		if patchModeRaw, ok := d.GetOk("patch_mode"); ok {
 			patchMode = patchModeRaw.(string)
@@ -676,6 +680,12 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 
 			params.Properties.OsProfile.AdminPassword = pointer.To(adminPassword)
 		}
+
+		sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
+		sourceImageId := d.Get("source_image_id").(string)
+		if len(sourceImageReferenceRaw) != 0 || sourceImageId != "" {
+			params.Properties.StorageProfile.ImageReference = expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
+		}
 	} else {
 		diskId, err := commonids.ParseManagedDiskID(managedDiskIdRaw)
 		if err != nil {
@@ -686,12 +696,6 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		osDisk.CreateOption = virtualmachines.DiskCreateOptionTypesAttach
 	}
 	params.Properties.StorageProfile.OsDisk = osDisk
-
-	sourceImageReferenceRaw := d.Get("source_image_reference").([]interface{})
-	sourceImageId := d.Get("source_image_id").(string)
-	if len(sourceImageReferenceRaw) != 0 || sourceImageId != "" {
-		params.Properties.StorageProfile.ImageReference = expandSourceImageReference(sourceImageReferenceRaw, sourceImageId)
-	}
 
 	if diskControllerType, ok := d.GetOk("disk_controller_type"); ok {
 		params.Properties.StorageProfile.DiskControllerType = pointer.To(virtualmachines.DiskControllerTypes(diskControllerType.(string)))
