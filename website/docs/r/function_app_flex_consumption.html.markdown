@@ -163,7 +163,7 @@ The following arguments are supported:
 
 * `maximum_instance_count` - (Optional) The number of workers this Function App can scale out to.
 
-* `instance_memory_in_mb` - (Optional) The memory size of the instances on which your app runs. The [currently supported values](https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan#instance-memory) are `2048` or `4096`.
+* `instance_memory_in_mb` - (Optional) The memory size of the instances on which your app runs. Reference the Microsoft Documentation for the [currently supported values](https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan#instance-memory). Defaults to `2048`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
 
@@ -776,4 +776,4 @@ terraform import azurerm_function_app_flex_consumption.example /subscriptions/12
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Web`: 2023-12-01, 2023-01-01
+* `Microsoft.Web` - 2023-12-01, 2023-01-01

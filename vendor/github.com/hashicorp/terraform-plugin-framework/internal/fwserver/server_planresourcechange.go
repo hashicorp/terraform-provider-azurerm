@@ -119,8 +119,6 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 	}
 
 	// If the resource supports identity and there is no prior identity data, pre-populate with a null value.
-	// TODO:ResourceIdentity: Is there any reason a provider WOULD NOT want to populate an identity when it supports one?
-	// TODO:ResourceIdentity: Should this be set to all unknowns?
 	if req.PriorIdentity == nil && req.IdentitySchema != nil {
 		nullIdentityTfValue := tftypes.NewValue(req.IdentitySchema.Type().TerraformType(ctx), nil)
 
@@ -327,19 +325,22 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 			modifyPlanReq.ProviderMeta = *req.ProviderMeta
 		}
 
+		modifyPlanResp := resource.ModifyPlanResponse{
+			Diagnostics:     resp.Diagnostics,
+			Plan:            modifyPlanReq.Plan,
+			RequiresReplace: path.Paths{},
+			Private:         modifyPlanReq.Private,
+		}
+
 		if resp.PlannedIdentity != nil {
 			modifyPlanReq.Identity = &tfsdk.ResourceIdentity{
 				Schema: resp.PlannedIdentity.Schema,
 				Raw:    resp.PlannedIdentity.Raw.Copy(),
 			}
-		}
-
-		modifyPlanResp := resource.ModifyPlanResponse{
-			Diagnostics:     resp.Diagnostics,
-			Plan:            modifyPlanReq.Plan,
-			Identity:        modifyPlanReq.Identity,
-			RequiresReplace: path.Paths{},
-			Private:         modifyPlanReq.Private,
+			modifyPlanResp.Identity = &tfsdk.ResourceIdentity{
+				Schema: resp.PlannedIdentity.Schema,
+				Raw:    resp.PlannedIdentity.Raw.Copy(),
+			}
 		}
 
 		logging.FrameworkTrace(ctx, "Calling provider defined Resource ModifyPlan")
@@ -370,14 +371,29 @@ func (s *Server) PlanResourceChange(ctx context.Context, req *PlanResourceChange
 		}
 	}
 
-	if resp.PlannedIdentity != nil && req.IdentitySchema == nil {
-		resp.Diagnostics.AddError(
-			"Unexpected Plan Response",
-			"An unexpected error was encountered when creating the plan response. New identity data was returned by the provider planning operation, but the resource does not indicate identity support.\n\n"+
-				"This is always a problem with the provider and should be reported to the provider developer.",
-		)
+	if resp.PlannedIdentity != nil {
+		if req.IdentitySchema == nil {
+			resp.Diagnostics.AddError(
+				"Unexpected Plan Response",
+				"An unexpected error was encountered when creating the plan response. New identity data was returned by the provider planning operation, but the resource does not indicate identity support.\n\n"+
+					"This is always a problem with the provider and should be reported to the provider developer.",
+			)
 
-		return
+			return
+		}
+
+		// If we're updating or deleting and we already have an identity stored, validate that the planned identity isn't changing
+		if !req.ResourceBehavior.MutableIdentity && !req.PriorState.Raw.IsNull() && !req.PriorIdentity.Raw.IsNull() && !req.PriorIdentity.Raw.Equal(resp.PlannedIdentity.Raw) {
+			resp.Diagnostics.AddError(
+				"Unexpected Identity Change",
+				"During the planning operation, the Terraform Provider unexpectedly returned a different identity then the previously stored one.\n\n"+
+					"This is always a problem with the provider and should be reported to the provider developer.\n\n"+
+					fmt.Sprintf("Prior Identity: %s\n\n", req.PriorIdentity.Raw.String())+
+					fmt.Sprintf("Planned Identity: %s", resp.PlannedIdentity.Raw.String()),
+			)
+
+			return
+		}
 	}
 
 	// Ensure deterministic RequiresReplace by sorting and deduplicating

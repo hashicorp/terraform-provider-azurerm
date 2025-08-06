@@ -78,4 +78,4 @@ terraform import azurerm_automation_credential.credential1 /subscriptions/000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Automation`: 2023-11-01
+* `Microsoft.Automation` - 2023-11-01

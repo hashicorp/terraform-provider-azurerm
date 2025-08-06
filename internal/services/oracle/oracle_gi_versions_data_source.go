@@ -1,4 +1,5 @@
-// Copyright © 2024, Oracle and/or its affiliates. All rights reserved
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
 
 package oracle
 
@@ -9,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/giversions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/giversions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -66,7 +67,7 @@ func (d GiVersionsDataSource) Read() sdk.ResourceFunc {
 			id := giversions.NewLocationID(subscriptionId,
 				state.Location)
 
-			resp, err := client.ListByLocation(ctx, id)
+			resp, err := client.ListByLocation(ctx, id, giversions.DefaultListByLocationOperationOptions())
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)

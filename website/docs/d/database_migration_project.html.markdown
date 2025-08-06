@@ -62,4 +62,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.DataMigration`: 2021-06-30
+* `Microsoft.DataMigration` - 2021-06-30

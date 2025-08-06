@@ -133,4 +133,4 @@ terraform import azurerm_dev_test_schedule.example /subscriptions/00000000-0000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DevTestLab`: 2018-09-15
+* `Microsoft.DevTestLab` - 2018-09-15

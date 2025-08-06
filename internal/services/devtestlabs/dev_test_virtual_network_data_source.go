@@ -121,19 +121,18 @@ func dataSourceArmDevTestVnetRead(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 		d.SetId(id.ID())
 
-		if props := model.Properties; props != nil {
-			if as := props.AllowedSubnets; as != nil {
-				if err := d.Set("allowed_subnets", flattenDevTestVirtualNetworkAllowedSubnets(as)); err != nil {
-					return fmt.Errorf("setting `allowed_subnets`: %v", err)
-				}
+		props := model.Properties
+		if as := props.AllowedSubnets; as != nil {
+			if err := d.Set("allowed_subnets", flattenDevTestVirtualNetworkAllowedSubnets(as)); err != nil {
+				return fmt.Errorf("setting `allowed_subnets`: %v", err)
 			}
-			if so := props.SubnetOverrides; so != nil {
-				if err := d.Set("subnet_overrides", flattenDevTestVirtualNetworkSubnetOverrides(so)); err != nil {
-					return fmt.Errorf("setting `subnet_overrides`: %v", err)
-				}
-			}
-			d.Set("unique_identifier", props.UniqueIdentifier)
 		}
+		if so := props.SubnetOverrides; so != nil {
+			if err := d.Set("subnet_overrides", flattenDevTestVirtualNetworkSubnetOverrides(so)); err != nil {
+				return fmt.Errorf("setting `subnet_overrides`: %v", err)
+			}
+		}
+		d.Set("unique_identifier", props.UniqueIdentifier)
 	}
 	return nil
 }

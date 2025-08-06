@@ -104,4 +104,4 @@ terraform import azurerm_data_share.example /subscriptions/00000000-0000-0000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DataShare`: 2019-11-01
+* `Microsoft.DataShare` - 2019-11-01

@@ -92,4 +92,4 @@ terraform import azurerm_dev_test_policy.policy1 /subscriptions/00000000-0000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DevTestLab`: 2018-09-15
+* `Microsoft.DevTestLab` - 2018-09-15

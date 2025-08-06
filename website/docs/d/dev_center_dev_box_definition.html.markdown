@@ -43,6 +43,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `sku_name` - The name of the SKU for the Dev Center Dev Box Definition.
 
+* `hibernate_support_enabled` - Whether Dev Boxes created with this definition are capable of hibernation.
+
+-> **Note:** Not all images are capable of supporting hibernation, for more information see https://aka.ms/devbox/hibernate.
+
 * `tags` - A mapping of tags assigned to the Dev Center Dev Box Definition.
 
 ## Timeouts
@@ -55,4 +59,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.DevCenter`: 2025-02-01
+* `Microsoft.DevCenter` - 2025-02-01
