@@ -113,7 +113,13 @@ func TestAccLoadTest_encryptionMissingIdentityID(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.encryptionMissingIdentityID(data),
+			Config: r.encryptionMissingIdentityID(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.encryptionMissingIdentityID2(data),
 			ExpectError: regexp.MustCompile("when `encryption.identity.type` is set to `UserAssigned`, the `encryption.identity.identity_id` provided must also be specified in the `identity.identity_ids` list"),
 		},
 	})
@@ -283,6 +289,109 @@ resource "azurerm_load_test" "test" {
 `, r.template(data), data.RandomInteger, data.RandomString)
 }
 
+func (r LoadTestTestResource) encryptionMissingIdentityID2(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
+}
+
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctestkv-%[3]s"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+  purge_protection_enabled   = true
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Create",
+      "Delete",
+      "Get",
+      "Purge",
+      "Recover",
+      "Update",
+      "SetRotationPolicy",
+      "GetRotationPolicy",
+      "Rotate",
+    ]
+
+    secret_permissions = [
+      "Delete",
+      "Get",
+      "Set",
+    ]
+  }
+
+  access_policy {
+    tenant_id = azurerm_user_assigned_identity.test.tenant_id
+    object_id = azurerm_user_assigned_identity.test.principal_id
+
+    key_permissions = ["Get", "WrapKey", "UnwrapKey"]
+  }
+
+  tags = {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%[2]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
+
+resource "azurerm_user_assigned_identity" "test2" {
+  name                = "acctest-${var.random_integer}2"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_load_test" "test" {
+  location            = azurerm_resource_group.test.location
+  name                = "acctestlt-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test2.id]
+  }
+
+  encryption {
+    key_url = azurerm_key_vault_key.test.id
+
+    identity {
+      type        = "UserAssigned"
+      identity_id = azurerm_user_assigned_identity.test.id
+    }
+  }
+}
+`, r.template(data), data.RandomInteger, data.RandomString)
+}
+
 func (r LoadTestTestResource) encryptionMissingIdentityID(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -380,6 +489,7 @@ resource "azurerm_load_test" "test" {
     identity {
       type        = "UserAssigned"
       identity_id = azurerm_user_assigned_identity.test.id
+      identity_ids = {"test" = azurerm_user_assigned_identity.test2.id}
     }
   }
 }

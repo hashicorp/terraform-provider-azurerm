@@ -136,23 +136,9 @@ func (r LoadTestResource) CustomizeDiff() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			if len(model.Encryption) == 1 && len(model.Encryption[0].Identity) == 1 && model.Encryption[0].Identity[0].Type == string(loadtests.TypeUserAssigned) {
-				msg := "when `encryption.identity.type` is set to `UserAssigned`, the `encryption.identity.identity_id` provided must also be specified in the `identity.identity_ids` list"
-				if len(model.Identity) == 0 {
-					return errors.New(msg)
-				}
-
-				existsInIdentity := false
-				for _, id := range model.Identity[0].IdentityIds {
-					if id == model.Encryption[0].Identity[0].IdentityID {
-						existsInIdentity = true
-						break
-					}
-				}
-
-				if !existsInIdentity {
-					return errors.New(msg)
-				}
+			// If these values are not yet known, we want to avoid returning an error and will instead handle it in the Create method
+			if metadata.IsKnownAt("encryption.0.identity.0.identity_id") && metadata.IsWhollyKnownAt("identity.0.identity_ids") {
+				return r.EnsureEncryptionIdentityIDExistsInIdentity(model)
 			}
 
 			return nil
@@ -285,6 +271,29 @@ func (r LoadTestResource) Update() sdk.ResourceFunc {
 	}
 }
 
+func (r LoadTestResource) EnsureEncryptionIdentityIDExistsInIdentity(model LoadTestResourceSchema) error {
+	if len(model.Encryption) == 1 && len(model.Encryption[0].Identity) == 1 && model.Encryption[0].Identity[0].Type == string(loadtests.TypeUserAssigned) {
+		msg := "when `encryption.identity.type` is set to `UserAssigned`, the `encryption.identity.identity_id` provided must also be specified in the `identity.identity_ids` list"
+		if len(model.Identity) == 0 {
+			return errors.New(msg)
+		}
+
+		existsInIdentity := false
+		for _, id := range model.Identity[0].IdentityIds {
+			if id == model.Encryption[0].Identity[0].IdentityID {
+				existsInIdentity = true
+				break
+			}
+		}
+
+		if !existsInIdentity {
+			return errors.New(msg)
+		}
+	}
+
+	return nil
+}
+
 // nolint unparam
 func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestProperties(input LoadTestResourceSchema, output *loadtests.LoadTestProperties) error {
 	output.Description = &input.Description
@@ -338,6 +347,10 @@ func (r LoadTestResource) mapLoadTestPropertiesToLoadTestResourceSchema(input lo
 }
 
 func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResource(input LoadTestResourceSchema, output *loadtests.LoadTestResource) error {
+	if err := r.EnsureEncryptionIdentityIDExistsInIdentity(input); err != nil {
+		return err
+	}
+
 	identity, err := identity.ExpandLegacySystemAndUserAssignedMapFromModel(input.Identity)
 	if err != nil {
 		return fmt.Errorf("expanding Legacy SystemAndUserAssigned Identity: %+v", err)
@@ -389,17 +402,5 @@ func (r LoadTestResource) mapLoadTestResourceSchemaToLoadTestResourceUpdate(inpu
 	output.Properties = &loadtests.LoadTestResourceUpdateProperties{
 		Description: pointer.To(input.Description),
 	}
-	return nil
-}
-
-// nolint: unused
-func (r LoadTestResource) mapLoadTestResourceUpdateToLoadTestResourceSchema(input loadtests.LoadTestResourceUpdate, output *LoadTestResourceSchema) error {
-	identity, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(input.Identity)
-	if err != nil {
-		return fmt.Errorf("flattening Legacy SystemAndUserAssigned Identity: %+v", err)
-	}
-	output.Identity = identity
-
-	output.Tags = tags.Flatten(input.Tags)
 	return nil
 }
