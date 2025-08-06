@@ -1527,10 +1527,12 @@ resource "azurerm_user_assigned_identity" "test2" {
 }
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name                       = "acctest-LFA-%[2]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   storage_container_type            = "blobContainer"
   storage_container_endpoint        = azurerm_storage_container.test.id
@@ -1568,10 +1570,12 @@ resource "azurerm_user_assigned_identity" "test2" {
 }
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name                       = "acctest-LFA-%[2]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   storage_container_type            = "blobContainer"
   storage_container_endpoint        = azurerm_storage_container.test.id
@@ -1609,10 +1613,12 @@ resource "azurerm_user_assigned_identity" "test2" {
 }
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name                       = "acctest-LFA-%[2]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   storage_container_type            = "blobContainer"
   storage_container_endpoint        = azurerm_storage_container.test.id
@@ -1651,10 +1657,12 @@ resource "azurerm_user_assigned_identity" "test2" {
 }
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                = "acctest-LFA-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  service_plan_id     = azurerm_service_plan.test.id
+  name                       = "acctest-LFA-%[2]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   storage_container_type            = "blobContainer"
   storage_container_endpoint        = azurerm_storage_container.test.id
@@ -1719,11 +1727,13 @@ resource "azurerm_subnet" "test1" {
 }
 
 resource "azurerm_function_app_flex_consumption" "test" {
-  name                      = "acctest-LFA-%d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  service_plan_id           = azurerm_service_plan.test.id
-  virtual_network_subnet_id = azurerm_subnet.test1.id
+  name                       = "acctest-LFA-%d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  service_plan_id            = azurerm_service_plan.test.id
+  virtual_network_subnet_id  = azurerm_subnet.test1.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   storage_container_type      = "blobContainer"
   storage_container_endpoint  = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
