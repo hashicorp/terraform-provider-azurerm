@@ -963,8 +963,18 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 			if err != nil {
 				return fmt.Errorf("parsing product ID: %+v", err)
 			}
+
+			getResp, err := productsClient.Get(ctx, *productId)
+			if err != nil {
+				return err
+			}
+
+			ifMatch := ""
+			if getResp.HttpResponse != nil {
+				ifMatch = getResp.HttpResponse.Header.Get("Etag")
+			}
 			log.Printf("[DEBUG] Deleting %s", productId)
-			if delResp, err := productsClient.Delete(ctx, *productId, product.DeleteOperationOptions{DeleteSubscriptions: pointer.To(true), IfMatch: pointer.To("*")}); err != nil {
+			if delResp, err := productsClient.Delete(ctx, *productId, product.DeleteOperationOptions{DeleteSubscriptions: pointer.To(true), IfMatch: pointer.To(ifMatch)}); err != nil {
 				if !response.WasNotFound(delResp.HttpResponse) {
 					return fmt.Errorf("deleting %s: %+v", *productId, err)
 				}
