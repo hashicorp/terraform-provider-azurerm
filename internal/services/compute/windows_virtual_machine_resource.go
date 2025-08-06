@@ -989,9 +989,7 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 				d.Set("allow_extension_operations", profile.AllowExtensionOperations)
 				d.Set("computer_name", profile.ComputerName)
 
-				if d.Get("admin_password_wo_version") != nil {
-					d.Set("admin_password_wo_version", d.Get("admin_password_wo_version"))
-				}
+				d.Set("admin_password_wo_version", d.Get("admin_password_wo_version"))
 
 				if config := profile.WindowsConfiguration; config != nil {
 					if err := d.Set("additional_unattend_content", flattenAdditionalUnattendContent(config.AdditionalUnattendContent, d)); err != nil {
@@ -1713,7 +1711,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 
 			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q) to %q.", diskName, id.DiskName, id.ResourceGroupName, diskEncryptionSetId)
 		} else {
-			return fmt.Errorf("once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
+			return fmt.Errorf("once a customer-managed key is used, you can't change the selection back to a platform-managed key")
 		}
 	}
 
