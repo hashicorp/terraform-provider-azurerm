@@ -64,6 +64,8 @@ The following arguments are supported:
 
 * `sku_name` - (Required) Specifies the SKU Name for this Synapse SQL Pool. Possible values are `DW100c`, `DW200c`, `DW300c`, `DW400c`, `DW500c`, `DW1000c`, `DW1500c`, `DW2000c`, `DW2500c`, `DW3000c`, `DW5000c`, `DW6000c`, `DW7500c`, `DW10000c`, `DW15000c` or `DW30000c`.
 
+* `storage_account_type` - (Required) The storage account type that will be used to store backups for this Synapse SQL Pool. Possible values are `LRS` or `GRS`. Changing this forces a new Synapse SQL Pool to be created.
+
 * `create_mode` - (Optional) Specifies how to create the SQL Pool. Valid values are: `Default`, `Recovery` or `PointInTimeRestore`. Must be `Default` to create a new database. Defaults to `Default`. Changing this forces a new Synapse SQL Pool to be created.
 
 * `collation` - (Optional) The name of the collation to use with this pool, only applicable when `create_mode` is set to `Default`. Azure default is `SQL_LATIN1_GENERAL_CP1_CI_AS`. Changing this forces a new Synapse SQL Pool to be created.
@@ -74,9 +76,7 @@ The following arguments are supported:
 
 * `restore` - (Optional) A `restore` block as defined below. Only applicable when `create_mode` is set to `PointInTimeRestore`. Changing this forces a new Synapse SQL Pool to be created.
 
-* `geo_backup_policy_enabled` - (Optional) Is geo-backup policy enabled? Possible values include `true` or `false`. Defaults to `true`.
-
-* `storage_account_type` - (Optional) The storage account type that will be used to store backups for this Synapse SQL Pool. Possible values are `LRS` or `GRS`. Changing this forces a new Synapse SQL Pool to be created. Defaults to `GRS`.
+* `geo_backup_policy_enabled` - (Optional) Is geo-backup policy enabled? Defaults to `true`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse SQL Pool.
 
@@ -84,9 +84,9 @@ The following arguments are supported:
 
 An `restore` block supports the following:
 
-* `source_database_id` - (Required) The ID of the Synapse SQL Pool or SQL Database which is to restore. Changing this forces a new Synapse SQL Pool to be created.
-
 * `point_in_time` - (Required) Specifies the Snapshot time to restore formatted as an RFC3339 date string. Changing this forces a new Synapse SQL Pool to be created.
+
+* `source_database_id` - (Required) The ID of the Synapse SQL Pool or SQL Database which is to restore. Changing this forces a new Synapse SQL Pool to be created.
 
 ## Attributes Reference
 

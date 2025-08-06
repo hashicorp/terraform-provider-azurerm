@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ProviderShareSubscriptionId{})
+}
 
 var _ resourceids.ResourceId = &ProviderShareSubscriptionId{}
 
@@ -41,7 +46,7 @@ func ParseProviderShareSubscriptionID(input string) (*ProviderShareSubscriptionI
 	}
 
 	id := ProviderShareSubscriptionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -58,7 +63,7 @@ func ParseProviderShareSubscriptionIDInsensitively(input string) (*ProviderShare
 	}
 
 	id := ProviderShareSubscriptionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -122,11 +127,11 @@ func (id ProviderShareSubscriptionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDataShare", "Microsoft.DataShare", "Microsoft.DataShare"),
 		resourceids.StaticSegment("staticAccounts", "accounts", "accounts"),
-		resourceids.UserSpecifiedSegment("accountName", "accountValue"),
+		resourceids.UserSpecifiedSegment("accountName", "accountName"),
 		resourceids.StaticSegment("staticShares", "shares", "shares"),
-		resourceids.UserSpecifiedSegment("shareName", "shareValue"),
+		resourceids.UserSpecifiedSegment("shareName", "shareName"),
 		resourceids.StaticSegment("staticProviderShareSubscriptions", "providerShareSubscriptions", "providerShareSubscriptions"),
-		resourceids.UserSpecifiedSegment("providerShareSubscriptionId", "providerShareSubscriptionIdValue"),
+		resourceids.UserSpecifiedSegment("providerShareSubscriptionId", "providerShareSubscriptionId"),
 	}
 }
 

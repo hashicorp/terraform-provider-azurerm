@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ContainerGroupId{})
+}
 
 var _ resourceids.ResourceId = &ContainerGroupId{}
 
@@ -37,7 +42,7 @@ func ParseContainerGroupID(input string) (*ContainerGroupId, error) {
 	}
 
 	id := ContainerGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +59,7 @@ func ParseContainerGroupIDInsensitively(input string) (*ContainerGroupId, error)
 	}
 
 	id := ContainerGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -110,7 +115,7 @@ func (id ContainerGroupId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftContainerInstance", "Microsoft.ContainerInstance", "Microsoft.ContainerInstance"),
 		resourceids.StaticSegment("staticContainerGroups", "containerGroups", "containerGroups"),
-		resourceids.UserSpecifiedSegment("containerGroupName", "containerGroupValue"),
+		resourceids.UserSpecifiedSegment("containerGroupName", "containerGroupName"),
 	}
 }
 

@@ -15,7 +15,7 @@ type VirtualMachineTemplatesClient struct {
 }
 
 func NewVirtualMachineTemplatesClientWithBaseURI(sdkApi sdkEnv.Api) (*VirtualMachineTemplatesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "virtualmachinetemplates", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "virtualmachinetemplates", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VirtualMachineTemplatesClient: %+v", err)
 	}

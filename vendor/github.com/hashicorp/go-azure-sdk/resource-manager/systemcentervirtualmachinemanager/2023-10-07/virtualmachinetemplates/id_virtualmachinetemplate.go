@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&VirtualMachineTemplateId{})
+}
 
 var _ resourceids.ResourceId = &VirtualMachineTemplateId{}
 
@@ -37,7 +42,7 @@ func ParseVirtualMachineTemplateID(input string) (*VirtualMachineTemplateId, err
 	}
 
 	id := VirtualMachineTemplateId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +59,7 @@ func ParseVirtualMachineTemplateIDInsensitively(input string) (*VirtualMachineTe
 	}
 
 	id := VirtualMachineTemplateId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -110,7 +115,7 @@ func (id VirtualMachineTemplateId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftScVmm", "Microsoft.ScVmm", "Microsoft.ScVmm"),
 		resourceids.StaticSegment("staticVirtualMachineTemplates", "virtualMachineTemplates", "virtualMachineTemplates"),
-		resourceids.UserSpecifiedSegment("virtualMachineTemplateName", "virtualMachineTemplateValue"),
+		resourceids.UserSpecifiedSegment("virtualMachineTemplateName", "virtualMachineTemplateName"),
 	}
 }
 

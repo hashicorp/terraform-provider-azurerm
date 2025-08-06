@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/registries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -31,7 +31,7 @@ func dataSourceContainerRegistry() *pluginsdk.Resource {
 }
 
 func dataSourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Containers.ContainerRegistryClient_v2021_08_01_preview.Registries
+	client := meta.(*clients.Client).Containers.ContainerRegistryClient.Registries
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -61,6 +61,7 @@ func dataSourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("admin_enabled", props.AdminUserEnabled)
 			d.Set("login_server", props.LoginServer)
 			d.Set("data_endpoint_enabled", props.DataEndpointEnabled)
+			d.Set("data_endpoint_host_names", props.DataEndpointHostNames)
 
 			if *props.AdminUserEnabled {
 				credsResp, err := client.ListCredentials(ctx, id)
@@ -115,6 +116,14 @@ func dataSourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 		"data_endpoint_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
+		},
+
+		"data_endpoint_host_names": {
+			Type:     pluginsdk.TypeSet,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
 		},
 
 		"login_server": {

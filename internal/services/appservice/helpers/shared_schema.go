@@ -5,11 +5,13 @@ package helpers
 
 import (
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -89,7 +91,7 @@ func IpRestrictionSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      65000,
-					ValidateFunc: validation.IntBetween(1, 2147483647),
+					ValidateFunc: validation.IntBetween(1, math.MaxInt32),
 					Description:  "The priority value of this `ip_restriction`.",
 				},
 
@@ -284,6 +286,36 @@ func CorsSettingsSchema() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 1,
+		DiffSuppressFunc: func(k, _, _ string, d *schema.ResourceData) bool {
+			stateCors, planCors := d.GetChange("site_config.0.cors")
+			if stateCors == nil || planCors == nil {
+				return false
+			}
+			stateAttrs := stateCors.([]interface{})
+			planAttrs := planCors.([]interface{})
+
+			// Fixes https://github.com/hashicorp/terraform-provider-azurerm/issues/22879
+			// If the plan wants to set default values and the state is empty; suppress diff
+			if len(stateAttrs) == 0 && len(planAttrs) > 0 && planAttrs[0] != nil {
+				planAttr := planAttrs[0].(map[string]interface{})
+
+				newAllowedOrigins, ok := planAttr["allowed_origins"].(*schema.Set)
+				if !ok {
+					return false
+				}
+
+				newSupportCreds, ok := planAttr["support_credentials"].(bool)
+				if !ok {
+					return false
+				}
+
+				if newAllowedOrigins.Len() == 0 && !newSupportCreds {
+					return true
+				}
+			}
+
+			return false
+		},
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"allowed_origins": {
@@ -401,7 +433,7 @@ func SiteCredentialSchema() *pluginsdk.Schema { // TODO - This can apparently be
 type AuthSettings struct {
 	Enabled                     bool                    `tfschema:"enabled"`
 	AdditionalLoginParameters   map[string]string       `tfschema:"additional_login_parameters"`
-	AllowedExternalRedirectUrls []string                `tfschema:"allowed_external_redirect_urls"`
+	AllowedExternalRedirectURLs []string                `tfschema:"allowed_external_redirect_urls"`
 	DefaultProvider             string                  `tfschema:"default_provider"`
 	Issuer                      string                  `tfschema:"issuer"`
 	RuntimeVersion              string                  `tfschema:"runtime_version"`
@@ -1229,7 +1261,7 @@ func ExpandAuthSettings(auth []AuthSettings) *webapps.SiteAuthSettings {
 		props.AdditionalLoginParams = &additionalLoginParams
 	}
 
-	props.AllowedExternalRedirectUrls = &v.AllowedExternalRedirectUrls
+	props.AllowedExternalRedirectURLs = &v.AllowedExternalRedirectURLs
 
 	props.DefaultProvider = pointer.To(webapps.BuiltInAuthenticationProvider(v.DefaultProvider))
 
@@ -1338,10 +1370,10 @@ func FlattenAuthSettings(auth *webapps.SiteAuthSettings) []AuthSettings {
 	}
 
 	var allowedRedirectUrls []string
-	if props.AllowedExternalRedirectUrls != nil {
-		allowedRedirectUrls = *props.AllowedExternalRedirectUrls
+	if props.AllowedExternalRedirectURLs != nil {
+		allowedRedirectUrls = *props.AllowedExternalRedirectURLs
 	}
-	result.AllowedExternalRedirectUrls = allowedRedirectUrls
+	result.AllowedExternalRedirectURLs = allowedRedirectUrls
 
 	if props.Issuer != nil {
 		result.Issuer = *props.Issuer
@@ -1478,7 +1510,7 @@ func FlattenIpRestrictions(ipRestrictionsList *[]webapps.IPSecurityRestriction) 
 		return []IpRestriction{}
 	}
 
-	var ipRestrictions []IpRestriction
+	ipRestrictions := make([]IpRestriction, 0, len(*ipRestrictionsList))
 	for _, v := range *ipRestrictionsList {
 		ipRestriction := IpRestriction{}
 

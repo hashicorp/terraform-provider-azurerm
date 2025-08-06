@@ -12,9 +12,9 @@ Manages a Virtual Desktop Scaling Plan.
 
 ## Disclaimers
 
--> **Note** Scaling Plans are currently in preview and are only supported in a limited number of regions. Both the Scaling Plan and any referenced Host Pools must be deployed in a supported region. [Autoscale (preview) for Azure Virtual Desktop host pools](https://docs.microsoft.com/azure/virtual-desktop/autoscale-scaling-plan).
+-> **Note:** Scaling Plans are currently in preview and are only supported in a limited number of regions. Both the Scaling Plan and any referenced Host Pools must be deployed in a supported region. [Autoscale (preview) for Azure Virtual Desktop host pools](https://docs.microsoft.com/azure/virtual-desktop/autoscale-scaling-plan).
 
--> **Note** Scaling Plans require specific permissions to be granted to the Windows Virtual Desktop application before a 'host_pool' can be configured. [Required Permissions for Scaling Plans](https://docs.microsoft.com/azure/virtual-desktop/autoscale-scaling-plan#create-a-custom-rbac-role).
+-> **Note:** Scaling Plans require specific permissions to be granted to the Windows Virtual Desktop application before a 'host_pool' can be configured. [Required Permissions for Scaling Plans](https://docs.microsoft.com/azure/virtual-desktop/autoscale-scaling-plan#create-a-custom-rbac-role).
 
 ## Example Usage
 
@@ -22,10 +22,12 @@ Manages a Virtual Desktop Scaling Plan.
 
 resource "random_uuid" "example" {
 }
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
 }
+
 resource "azurerm_role_definition" "example" {
   name        = "AVD-AutoScale"
   scope       = azurerm_resource_group.example.id
@@ -53,9 +55,11 @@ resource "azurerm_role_definition" "example" {
     azurerm_resource_group.example.id,
   ]
 }
+
 data "azuread_service_principal" "example" {
-  display_name = "Windows Virtual Desktop"
+  display_name = "Azure Virtual Desktop"
 }
+
 resource "azurerm_role_assignment" "example" {
   name                             = random_uuid.example.result
   scope                            = azurerm_resource_group.example.id
@@ -63,6 +67,7 @@ resource "azurerm_role_assignment" "example" {
   principal_id                     = data.azuread_service_principal.example.id
   skip_service_principal_aad_check = true
 }
+
 resource "azurerm_virtual_desktop_host_pool" "example" {
   name                 = "example-hostpool"
   location             = azurerm_resource_group.example.location
@@ -71,6 +76,7 @@ resource "azurerm_virtual_desktop_host_pool" "example" {
   validate_environment = true
   load_balancer_type   = "BreadthFirst"
 }
+
 resource "azurerm_virtual_desktop_scaling_plan" "example" {
   name                = "example-scaling-plan"
   location            = azurerm_resource_group.example.location
@@ -159,7 +165,7 @@ A `schedule` block supports the following:
 
 * `ramp_down_capacity_threshold_percent` - (Required) This is the value in percentage of used host pool capacity that will be considered to evaluate whether to turn on/off virtual machines during the ramp-down and off-peak hours. For example, if capacity threshold is specified as 60% and your total host pool capacity is 100 sessions, autoscale will turn on additional session hosts once the host pool exceeds a load of 60 sessions.
 
-* `ramp_down_force_logoff_users` - (Required) Whether users will be forced to log-off session hosts once the `ramp_down_wait_time_minutes` value has been exceeded during the Ramp-Down period. Possible
+* `ramp_down_force_logoff_users` - (Required) Whether users will be forced to log-off session hosts once the `ramp_down_wait_time_minutes` value has been exceeded during the Ramp-Down period. Possible values are `true` and `false`.
 
 * `ramp_down_load_balancing_algorithm` - (Required) The load Balancing Algorithm to use during the Ramp-Down period. Possible values are `DepthFirst` and `BreadthFirst`.
 
@@ -203,3 +209,9 @@ Virtual Desktop Scaling Plans can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_virtual_desktop_scaling_plan.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.DesktopVirtualization/scalingPlans/plan1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DesktopVirtualization` - 2024-04-03

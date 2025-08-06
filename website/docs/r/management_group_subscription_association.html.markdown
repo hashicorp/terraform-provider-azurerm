@@ -56,5 +56,11 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 Managements can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_management_group_subscription_association.example /managementGroup/MyManagementGroup/subscription/12345678-1234-1234-1234-123456789012
+terraform import azurerm_management_group_subscription_association.example /providers/Microsoft.Management/managementGroups/MyManagementGroup/subscriptions/12345678-1234-1234-1234-123456789012
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Management` - 2020-05-01

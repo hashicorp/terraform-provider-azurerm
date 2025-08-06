@@ -15,11 +15,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/images"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/ssh"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	networkParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -222,35 +224,35 @@ func (ImageResource) generalizeVirtualMachine(data acceptance.TestData) func(con
 
 		// first retrieve the Virtual Machine, since we need to find
 		nicIdRaw := state.Attributes["network_interface_ids.0"]
-		nicId, err := networkParse.NetworkInterfaceID(nicIdRaw)
+		nicId, err := commonids.ParseNetworkInterfaceID(nicIdRaw)
 		if err != nil {
 			return err
 		}
 
 		log.Printf("[DEBUG] Retrieving Network Interface..")
-		nic, err := client.Network.InterfacesClient.Get(ctx, nicId.ResourceGroup, nicId.Name, "")
+		nic, err := client.Network.NetworkInterfaces.Get(ctx, *nicId, networkinterfaces.DefaultGetOperationOptions())
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", *nicId, err)
 		}
 
 		publicIpRaw := ""
-		if props := nic.InterfacePropertiesFormat; props != nil {
-			if configs := props.IPConfigurations; configs != nil {
-				for _, config := range *props.IPConfigurations {
-					if config.InterfaceIPConfigurationPropertiesFormat == nil {
-						continue
-					}
+		if model := nic.Model; model != nil {
+			if props := model.Properties; props != nil {
+				if configs := props.IPConfigurations; configs != nil {
+					for _, config := range *props.IPConfigurations {
+						if configProps := config.Properties; configProps != nil {
+							if configProps.PublicIPAddress == nil {
+								continue
+							}
 
-					if config.InterfaceIPConfigurationPropertiesFormat.PublicIPAddress == nil {
-						continue
-					}
+							if configProps.PublicIPAddress.Id == nil {
+								continue
+							}
 
-					if config.InterfaceIPConfigurationPropertiesFormat.PublicIPAddress.ID == nil {
-						continue
+							publicIpRaw = *configProps.PublicIPAddress.Id
+							break
+						}
 					}
-
-					publicIpRaw = *config.InterfaceIPConfigurationPropertiesFormat.PublicIPAddress.ID
-					break
 				}
 			}
 		}
@@ -259,20 +261,23 @@ func (ImageResource) generalizeVirtualMachine(data acceptance.TestData) func(con
 		}
 
 		log.Printf("[DEBUG] Retrieving Public IP Address %q..", publicIpRaw)
-		publicIpId, err := networkParse.PublicIpAddressID(publicIpRaw)
+		publicIpId, err := commonids.ParsePublicIPAddressID(publicIpRaw)
 		if err != nil {
 			return err
 		}
 
-		publicIpAddress, err := client.Network.PublicIPsClient.Get(ctx, publicIpId.ResourceGroup, publicIpId.Name, "")
+		publicIpAddress, err := client.Network.PublicIPAddresses.Get(ctx, *publicIpId, publicipaddresses.DefaultGetOperationOptions())
 		if err != nil {
 			return fmt.Errorf("retrieving %s: %+v", *publicIpId, err)
 		}
 		fqdn := ""
-		if props := publicIpAddress.PublicIPAddressPropertiesFormat; props != nil {
-			if dns := props.DNSSettings; dns != nil {
-				if dns.Fqdn != nil {
-					fqdn = *dns.Fqdn
+
+		if model := publicIpAddress.Model; model != nil {
+			if props := model.Properties; props != nil {
+				if dns := props.DnsSettings; dns != nil {
+					if dns.Fqdn != nil {
+						fqdn = *dns.Fqdn
+					}
 				}
 			}
 		}
@@ -316,7 +321,7 @@ func (ImageResource) virtualMachineExists(ctx context.Context, client *clients.C
 
 	if _, ok := ctx.Deadline(); !ok {
 		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, 15*time.Minute)
+		ctx, cancel = context.WithTimeout(ctx, 5*time.Minute)
 		defer cancel()
 	}
 	resp, err := client.Compute.VirtualMachinesClient.Get(ctx, *id, virtualmachines.DefaultGetOperationOptions())
@@ -332,19 +337,22 @@ func (ImageResource) virtualMachineExists(ctx context.Context, client *clients.C
 }
 
 func (ImageResource) virtualMachineScaleSetExists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) error {
-	id, err := commonids.ParseVirtualMachineScaleSetID(state.ID)
+	id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(state.ID)
 	if err != nil {
 		return err
 	}
 
-	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	resp, err := client.Compute.VMScaleSetClient.Get(ctx, id.ResourceGroupName, id.VirtualMachineScaleSetName, "")
+	if _, ok := ctx.Deadline(); !ok {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, 5*time.Minute)
+		defer cancel()
+	}
+	resp, err := client.Compute.VirtualMachineScaleSetsClient.Get(ctx, *id, virtualmachinescalesets.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("%s does not exist", *id)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
 		}
-
-		return fmt.Errorf("Bad: Get on client: %+v", err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	return nil
@@ -506,76 +514,91 @@ func (r ImageResource) standaloneImageProvision(data acceptance.TestData, hyperV
 		hyperVGenAtt = fmt.Sprintf(`hyper_v_generation = "%s"`, hyperVGen)
 	}
 
+	osDisk := `
+  os_disk {
+    os_type      = "Linux"
+    os_state     = "Generalized"
+    blob_uri     = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+    size_gb      = 30
+    caching      = "None"
+    storage_type = "StandardSSD_LRS"
+  }`
+
 	template := r.setupUnmanagedDisks(data)
+
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_image" "test" {
   name                = "accteste"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  %s
+%[2]s
 
-  os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    size_gb  = 30
-    caching  = "None"
-  }
+%[3]s
 
   tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
 }
-`, template, hyperVGenAtt)
+`, template, hyperVGenAtt, osDisk)
 }
 
 func (r ImageResource) standaloneImageRequiresImport(data acceptance.TestData) string {
 	template := r.standaloneImageProvision(data, "")
+
+	osDisk := `
+  os_disk {
+    os_type      = "Linux"
+    os_state     = "Generalized"
+    blob_uri     = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+    size_gb      = 30
+    caching      = "None"
+    storage_type = "StandardSSD_LRS"
+  }`
+
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_image" "import" {
   name                = azurerm_image.test.name
   location            = azurerm_image.test.location
   resource_group_name = azurerm_image.test.resource_group_name
 
-  os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    size_gb  = 30
-    caching  = "None"
-  }
+%[2]s
 
   tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
 }
-`, template)
+`, template, osDisk)
 }
 
 func (r ImageResource) customImageFromVMWithUnmanagedDisksProvision(data acceptance.TestData) string {
 	template := r.setupUnmanagedDisks(data)
+
+	osDisk := `
+  os_disk {
+    os_type      = "Linux"
+    os_state     = "Generalized"
+    blob_uri     = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+    size_gb      = 30
+    caching      = "None"
+    storage_type = "StandardSSD_LRS"
+  }`
+
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_image" "testdestination" {
   name                = "accteste"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    size_gb  = 30
-    caching  = "None"
-  }
+%[2]s
 
   tags = {
     environment = "Dev"
@@ -629,7 +652,7 @@ resource "azurerm_virtual_machine" "testdestination" {
     cost-center = "Ops"
   }
 }
-`, template)
+`, template, osDisk)
 }
 
 func (r ImageResource) customImageFromManagedDiskVMProvision(data acceptance.TestData) string {
@@ -700,21 +723,26 @@ resource "azurerm_virtual_machine" "testdestination" {
 
 func (r ImageResource) customImageFromVMSSWithUnmanagedDisksProvision(data acceptance.TestData) string {
 	template := r.setupUnmanagedDisks(data)
+
+	osDisk := `
+  os_disk {
+    os_type      = "Linux"
+    os_state     = "Generalized"
+    blob_uri     = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+    size_gb      = 30
+    caching      = "None"
+    storage_type = "StandardSSD_LRS"
+  }`
+
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_image" "testdestination" {
   name                = "accteste"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  os_disk {
-    os_type  = "Linux"
-    os_state = "Generalized"
-    blob_uri = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    size_gb  = 30
-    caching  = "None"
-  }
+%[2]s
 
   tags = {
     environment = "Dev"
@@ -761,13 +789,34 @@ resource "azurerm_virtual_machine_scale_set" "testdestination" {
     id = azurerm_image.testdestination.id
   }
 }
-`, template)
+`, template, osDisk)
 }
 
 func (r ImageResource) standaloneImageEncrypt(data acceptance.TestData) string {
 	template := r.setupUnmanagedDisks(data)
+
+	osDisk := `
+  os_disk {
+    os_type                = "Linux"
+    os_state               = "Generalized"
+    blob_uri               = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+    size_gb                = 30
+    caching                = "None"
+    disk_encryption_set_id = azurerm_disk_encryption_set.test.id
+    storage_type           = "StandardSSD_LRS"
+    }`
+
+	dataDisk := `
+  data_disk {
+    blob_uri               = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
+    size_gb                = 30
+    caching                = "None"
+    disk_encryption_set_id = azurerm_disk_encryption_set.test.id
+    storage_type           = "StandardSSD_LRS"
+    }`
+
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 data "azurerm_client_config" "current" {}
 
@@ -779,7 +828,6 @@ resource "azurerm_key_vault" "test" {
   sku_name                    = "standard"
   purge_protection_enabled    = true
   enabled_for_disk_encryption = true
-
 }
 
 resource "azurerm_key_vault_access_policy" "service-principal" {
@@ -857,21 +905,16 @@ resource "azurerm_image" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 
-  os_disk {
-    os_type                = "Linux"
-    os_state               = "Generalized"
-    blob_uri               = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}/myosdisk1.vhd"
-    size_gb                = 30
-    caching                = "None"
-    disk_encryption_set_id = azurerm_disk_encryption_set.test.id
-  }
+  %[4]s
+
+  %[5]s
 
   tags = {
     environment = "Dev"
     cost-center = "Ops"
   }
 }
-`, template, data.RandomInteger, data.RandomString)
+`, template, data.RandomInteger, data.RandomString, osDisk, dataDisk)
 }
 
 func (ImageResource) template(data acceptance.TestData) string {
@@ -908,8 +951,9 @@ resource "azurerm_public_ip" "test" {
   name                = "acctpip-${local.number}"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
   domain_name_label   = local.domain_name_label
+  sku                 = "Basic"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
 }

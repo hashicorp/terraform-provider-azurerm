@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/securityadminconfigurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/securityadminconfigurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -245,7 +245,7 @@ func (r ManagerSecurityAdminConfigurationResource) Delete() sdk.ResourceFunc {
 }
 
 func expandNetworkIntentPolicyBasedServiceModel(inputList []string) *[]securityadminconfigurations.NetworkIntentPolicyBasedService {
-	var outputList []securityadminconfigurations.NetworkIntentPolicyBasedService
+	outputList := make([]securityadminconfigurations.NetworkIntentPolicyBasedService, 0, len(inputList))
 	for _, input := range inputList {
 		output := securityadminconfigurations.NetworkIntentPolicyBasedService(input)
 
@@ -256,11 +256,11 @@ func expandNetworkIntentPolicyBasedServiceModel(inputList []string) *[]securitya
 }
 
 func flattenNetworkIntentPolicyBasedServiceModel(inputList *[]securityadminconfigurations.NetworkIntentPolicyBasedService) []string {
-	var outputList []string
 	if inputList == nil {
-		return outputList
+		return []string{}
 	}
 
+	outputList := make([]string, 0, len(*inputList))
 	for _, input := range *inputList {
 		outputList = append(outputList, string(input))
 	}

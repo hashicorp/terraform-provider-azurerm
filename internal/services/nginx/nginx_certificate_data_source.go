@@ -10,19 +10,24 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-01-01-preview/nginxcertificate"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-01-01-preview/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxcertificate"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type CertificateDataSourceModel struct {
-	Name                   string `tfschema:"name"`
-	NginxDeploymentId      string `tfschema:"nginx_deployment_id"`
-	KeyVirtualPath         string `tfschema:"key_virtual_path"`
-	CertificateVirtualPath string `tfschema:"certificate_virtual_path"`
-	KeyVaultSecretId       string `tfschema:"key_vault_secret_id"`
+	Name                       string `tfschema:"name"`
+	NginxDeploymentId          string `tfschema:"nginx_deployment_id"`
+	CertificateVirtualPath     string `tfschema:"certificate_virtual_path"`
+	KeyVirtualPath             string `tfschema:"key_virtual_path"`
+	KeyVaultSecretId           string `tfschema:"key_vault_secret_id"`
+	SHA1Thumbprint             string `tfschema:"sha1_thumbprint"`
+	KeyVaultSecretVersion      string `tfschema:"key_vault_secret_version"`
+	KeyVaultSecretCreationDate string `tfschema:"key_vault_secret_creation_date"`
+	ErrorCode                  string `tfschema:"error_code"`
+	ErrorMessage               string `tfschema:"error_message"`
 }
 
 type CertificateDataSource struct{}
@@ -58,6 +63,31 @@ func (m CertificateDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"key_vault_secret_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"sha1_thumbprint": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"key_vault_secret_version": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"key_vault_secret_creation_date": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"error_code": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"error_message": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -109,6 +139,13 @@ func (m CertificateDataSource) Read() sdk.ResourceFunc {
 				output.KeyVirtualPath = pointer.From(prop.KeyVirtualPath)
 				output.KeyVaultSecretId = pointer.From(prop.KeyVaultSecretId)
 				output.CertificateVirtualPath = pointer.From(prop.CertificateVirtualPath)
+				output.SHA1Thumbprint = pointer.From(prop.Sha1Thumbprint)
+				output.KeyVaultSecretVersion = pointer.From(prop.KeyVaultSecretVersion)
+				output.KeyVaultSecretCreationDate = pointer.From(prop.KeyVaultSecretCreated)
+				if prop.CertificateError != nil {
+					output.ErrorCode = pointer.From(prop.CertificateError.Code)
+					output.ErrorMessage = pointer.From(prop.CertificateError.Message)
+				}
 			}
 
 			metadata.SetID(id)

@@ -111,7 +111,7 @@ A `data_sources` block exports the following:
 * `windows_event_log` - One or more `windows_event_log` blocks as defined below.
 
 * `windows_firewall_log` - One or more `windows_firewall_log` blocks as defined below.
- 
+
 ---
 
 A `destinations` block exports the following:
@@ -239,7 +239,7 @@ A `performance_counter` block exports the following:
 
 * `name` - The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.
 
-* `sampling_frequency_in_seconds` - The number of seconds between consecutive counter measurements (samples). The value should be integer between `1` and `300` inclusive.
+* `sampling_frequency_in_seconds` - The number of seconds between consecutive counter measurements (samples). The value should be integer between `1` and `1800` inclusive.
 
 * `streams` - Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible values include but not limited to `Microsoft-InsightsMetrics`,and `Microsoft-Perf`.
 
@@ -329,7 +329,7 @@ A `windows_event_log` block exports the following:
 
 * `name` - The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.
 
-* `streams` - Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible values include but not limited to `Microsoft-Event`,and `Microsoft-WindowsEvent`, `Microsoft-RomeDetectionEvent`, and `Microsoft-SecurityEvent`.
+* `streams` - Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible values include but not limited to `Microsoft-Event`,and `Microsoft-WindowsEvent`, and `Microsoft-SecurityEvent`.
 
 * `x_path_queries` - Specifies a list of Windows Event Log queries in XPath expression.
 
@@ -346,3 +346,9 @@ A `windows_firewall_log` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Collection Rule.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Insights` - 2023-03-11

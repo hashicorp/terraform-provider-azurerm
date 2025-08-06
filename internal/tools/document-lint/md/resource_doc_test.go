@@ -56,7 +56,7 @@ func TestExtractListItem(t *testing.T) {
 }
 
 func TestExtractBlockNames(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		line  string
 		names []string
 	}{
@@ -104,7 +104,7 @@ func TestScanOrSplit(t *testing.T) {
 }
 
 func TestDefaultValueReg(t *testing.T) {
-	var lines = []string{
+	lines := []string{
 		"* `load_balancing_mode` - (Optional) The Site load balancing. Possible values include: `WeightedRoundRobin`, `LeastRequests`, `LeastResponseTime`, `WeightedTotalTraffic`, `RequestHash`, `PerSiteRoundRobin`. Defaults to `LeastRequests` if omitted.",
 		"* `local_mysql_enabled` - (Optional) Use Local MySQL. Defaults to `false`.",
 		"* `local_mysql_enabled` - (Optional) Use Local MySQL. Defaults to `\"\"`.",

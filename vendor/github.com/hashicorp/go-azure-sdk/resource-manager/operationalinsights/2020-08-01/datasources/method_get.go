@@ -45,7 +45,6 @@ func (c DataSourcesClient) Get(ctx context.Context, id DataSourceId) (result Get
 
 	var model DataSource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

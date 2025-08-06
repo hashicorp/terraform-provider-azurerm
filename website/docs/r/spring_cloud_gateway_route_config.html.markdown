@@ -10,7 +10,9 @@ description: |-
 
 Manages a Spring Cloud Gateway Route Config.
 
--> **NOTE:** This resource is applicable only for Spring Cloud Service with enterprise tier.
+-> **Note:** This resource is applicable only for Spring Cloud Service with enterprise tier.
+
+!> **Note:** Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_gateway_route_config` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.
 
 ## Example Usage
 
@@ -69,6 +71,10 @@ The following arguments are supported:
 
 * `spring_cloud_gateway_id` - (Required) The ID of the Spring Cloud Gateway. Changing this forces a new Spring Cloud Gateway Route Config to be created.
 
+* `protocol` - (Required) Specifies the protocol of routed Spring Cloud App. Allowed values are `HTTP` and `HTTPS`.
+
+~> **Note:** You likely want to use `HTTPS` in a production environment, since `HTTP` offers no encryption.
+
 * `filters` - (Optional) Specifies a list of filters which are used to modify the request before sending it to the target endpoint, or the received response in app level.
 
 * `predicates` - (Optional) Specifies a list of conditions to evaluate a route for each request in app level. Each predicate may be evaluated against request headers and parameter values. All of the predicates associated with a route must evaluate to true for the route to be matched to the request.
@@ -80,10 +86,6 @@ The following arguments are supported:
 * `route` - (Optional) One or more `route` blocks as defined below.
 
 * `open_api` - (Optional) One or more `open_api` blocks as defined below.
-
-* `protocol` - (Optional) Specifies the protocol of routed Spring Cloud App. Allowed values are `HTTP` and `HTTPS`. Defaults to `HTTP`. 
-
-~> **Note:** You likely want to use `HTTPS` in a production environment, since `HTTP` offers no encryption.
 
 * `spring_cloud_app_id` - (Optional) The ID of the Spring Cloud App.
 

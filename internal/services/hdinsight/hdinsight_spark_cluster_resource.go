@@ -15,7 +15,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/clusters"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -85,7 +87,6 @@ func resourceHDInsightSparkCluster() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				ForceNew: true,
-				Computed: true,
 			},
 
 			"disk_encryption": SchemaHDInsightsDiskEncryptionProperties(),
@@ -119,6 +120,8 @@ func resourceHDInsightSparkCluster() *pluginsdk.Resource {
 
 			"storage_account_gen2": SchemaHDInsightsGen2StorageAccounts(),
 
+			"private_link_configuration": SchemaHDInsightPrivateLinkConfigurations(),
+
 			"roles": {
 				Type:     pluginsdk.TypeList,
 				Required: true,
@@ -149,6 +152,8 @@ func resourceHDInsightSparkCluster() *pluginsdk.Resource {
 			"monitor": SchemaHDInsightsMonitor(),
 
 			"extension": SchemaHDInsightsExtension(),
+
+			"zones": commonschema.ZonesMultipleOptionalForceNew(),
 		},
 	}
 }
@@ -190,6 +195,9 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 	networkPropertiesRaw := d.Get("network").([]interface{})
 	networkProperties := ExpandHDInsightsNetwork(networkPropertiesRaw)
 
+	privateLinkConfigurationsRaw := d.Get("private_link_configuration").([]interface{})
+	privateLinkConfigurations := ExpandHDInsightPrivateLinkConfigurations(privateLinkConfigurationsRaw)
+
 	sparkRoles := hdInsightRoleDefinition{
 		HeadNodeDef:      hdInsightSparkClusterHeadNodeDefinition,
 		WorkerNodeDef:    hdInsightSparkClusterWorkerNodeDefinition,
@@ -226,8 +234,9 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 			EncryptionInTransitProperties: &clusters.EncryptionInTransitProperties{
 				IsEncryptionInTransitEnabled: &encryptionInTransit,
 			},
-			MinSupportedTlsVersion: utils.String(tls),
-			NetworkProperties:      networkProperties,
+			MinSupportedTlsVersion:    utils.String(tls),
+			NetworkProperties:         networkProperties,
+			PrivateLinkConfigurations: privateLinkConfigurations,
 			ClusterDefinition: &clusters.ClusterDefinition{
 				Kind:             pointer.To(clusters.ClusterKindSpark),
 				ComponentVersion: pointer.To(componentVersions),
@@ -265,6 +274,10 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 				// intentionally empty
 			}
 		}
+	}
+
+	if _, ok := d.GetOk("zones"); ok {
+		payload.Zones = pointer.To(zones.ExpandUntyped(d.Get("zones").(*schema.Set).List()))
 	}
 
 	if err := client.CreateThenPoll(ctx, id, payload); err != nil {
@@ -379,8 +392,16 @@ func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface
 				return fmt.Errorf("flattening setting `disk_encryption`: %+v", err)
 			}
 
+			if model.Zones != nil {
+				d.Set("zones", zones.FlattenUntyped(model.Zones))
+			}
+
 			if err := d.Set("network", flattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
 				return fmt.Errorf("flattening `network`: %+v", err)
+			}
+
+			if err := d.Set("private_link_configuration", flattenHDInsightPrivateLinkConfigurations(props.PrivateLinkConfigurations)); err != nil {
+				return fmt.Errorf("flattening `private_link_configuration`: %+v", err)
 			}
 
 			flattenedRoles := flattenHDInsightRoles(d, props.ComputeProfile, sparkRoles)

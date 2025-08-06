@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&DeploymentSettingId{})
+}
 
 var _ resourceids.ResourceId = &DeploymentSettingId{}
 
@@ -39,7 +44,7 @@ func ParseDeploymentSettingID(input string) (*DeploymentSettingId, error) {
 	}
 
 	id := DeploymentSettingId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParseDeploymentSettingIDInsensitively(input string) (*DeploymentSettingId, 
 	}
 
 	id := DeploymentSettingId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -116,9 +121,9 @@ func (id DeploymentSettingId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAzureStackHCI", "Microsoft.AzureStackHCI", "Microsoft.AzureStackHCI"),
 		resourceids.StaticSegment("staticClusters", "clusters", "clusters"),
-		resourceids.UserSpecifiedSegment("clusterName", "clusterValue"),
+		resourceids.UserSpecifiedSegment("clusterName", "clusterName"),
 		resourceids.StaticSegment("staticDeploymentSettings", "deploymentSettings", "deploymentSettings"),
-		resourceids.UserSpecifiedSegment("deploymentSettingName", "deploymentSettingValue"),
+		resourceids.UserSpecifiedSegment("deploymentSettingName", "deploymentSettingName"),
 	}
 }
 

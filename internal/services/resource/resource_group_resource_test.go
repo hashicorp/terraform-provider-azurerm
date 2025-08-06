@@ -8,16 +8,17 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resourcegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type ResourceGroupResource struct{}
@@ -167,26 +168,29 @@ func (t ResourceGroupResource) Exists(ctx context.Context, client *clients.Clien
 
 func (t ResourceGroupResource) createNetworkOutsideTerraform(name string) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		client := clients.Network.VnetClient
-		resourceGroup := state.Attributes["name"]
-		location := state.Attributes["location"]
-		params := network.VirtualNetwork{
-			Location: utils.String(location),
-			VirtualNetworkPropertiesFormat: &network.VirtualNetworkPropertiesFormat{
-				AddressSpace: &network.AddressSpace{
+		client := clients.Network.VirtualNetworks
+
+		id, err := commonids.ParseResourceGroupID(state.ID)
+		if err != nil {
+			return err
+		}
+
+		params := virtualnetworks.VirtualNetwork{
+			Location: pointer.To(state.Attributes["location"]),
+			Properties: &virtualnetworks.VirtualNetworkPropertiesFormat{
+				AddressSpace: &virtualnetworks.AddressSpace{
 					AddressPrefixes: &[]string{
 						"10.0.0.0/16",
 					},
 				},
 			},
 		}
-		future, err := client.CreateOrUpdate(ctx, resourceGroup, name, params)
-		if err != nil {
-			return fmt.Errorf("creating nested virtual network: %+v", err)
-		}
+		vnetId := commonids.NewVirtualNetworkID(id.SubscriptionId, id.ResourceGroupName, name)
 
-		if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-			return fmt.Errorf("waiting for the creation of nested virtual network: %+v", err)
+		ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
+		defer cancel()
+		if err := client.CreateOrUpdateThenPoll(ctx2, vnetId, params); err != nil {
+			return fmt.Errorf("creating nested virtual network: %+v", err)
 		}
 
 		return nil

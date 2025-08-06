@@ -15,7 +15,7 @@ type GrafanaResourceClient struct {
 }
 
 func NewGrafanaResourceClientWithBaseURI(sdkApi sdkEnv.Api) (*GrafanaResourceClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "grafanaresource", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "grafanaresource", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating GrafanaResourceClient: %+v", err)
 	}

@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -85,6 +85,13 @@ func TestAccNetworkInterface_dnsServers(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.dnsServersUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.dnsServersRemoved(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -370,6 +377,28 @@ func TestAccNetworkInterface_pointToGatewayLB(t *testing.T) {
 	})
 }
 
+func TestAccNetworkInterface_tagsOfNicAttachedToPrivateEndpointCanBeUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_network_interface", "test")
+	r := NetworkInterfaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.privateEndpoint(data, false),
+		},
+		{
+			Config: r.privateEndpointNic(data, ""),
+		},
+		data.ImportStep(),
+		{
+			Config: r.privateEndpointNic(data, `
+  tags = {
+   someTagKey = "someTagValue"
+  }`),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t NetworkInterfaceResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseNetworkInterfaceID(state.ID)
 	if err != nil {
@@ -425,10 +454,10 @@ func (r NetworkInterfaceResource) auxiliaryNone(data acceptance.TestData) string
 %s
 
 resource "azurerm_network_interface" "test" {
-  name                          = "acctestni-%d"
-  location                      = "%s"
-  resource_group_name           = azurerm_resource_group.test.name
-  enable_accelerated_networking = true
+  name                           = "acctestni-%d"
+  location                       = "%s"
+  resource_group_name            = azurerm_resource_group.test.name
+  accelerated_networking_enabled = true
 
   ip_configuration {
     name                          = "primary"
@@ -452,12 +481,12 @@ func (r NetworkInterfaceResource) auxiliaryAcceleratedConnections(data acceptanc
 %s
 
 resource "azurerm_network_interface" "test" {
-  name                          = "acctestni-%d"
-  location                      = "%s"
-  resource_group_name           = azurerm_resource_group.test.name
-  auxiliary_mode                = "AcceleratedConnections"
-  auxiliary_sku                 = "A2"
-  enable_accelerated_networking = true
+  name                           = "acctestni-%d"
+  location                       = "%s"
+  resource_group_name            = azurerm_resource_group.test.name
+  auxiliary_mode                 = "AcceleratedConnections"
+  auxiliary_sku                  = "A2"
+  accelerated_networking_enabled = true
 
   ip_configuration {
     name                          = "primary"
@@ -477,11 +506,12 @@ func (r NetworkInterfaceResource) withMultipleParameters(data acceptance.TestDat
 %s
 
 resource "azurerm_network_interface" "test" {
-  name                    = "acctestni-%d"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  enable_ip_forwarding    = true
-  internal_dns_name_label = "acctestni-%s"
+  name                           = "acctestni-%d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+  ip_forwarding_enabled          = true
+  accelerated_networking_enabled = true
+  internal_dns_name_label        = "acctestni-%s"
 
   dns_servers = [
     "10.0.0.5",
@@ -506,11 +536,12 @@ func (r NetworkInterfaceResource) updateMultipleParameters(data acceptance.TestD
 %s
 
 resource "azurerm_network_interface" "test" {
-  name                    = "acctestni-%d"
-  location                = azurerm_resource_group.test.location
-  resource_group_name     = azurerm_resource_group.test.name
-  enable_ip_forwarding    = true
-  internal_dns_name_label = "acctestni-%s"
+  name                           = "acctestni-%d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+  ip_forwarding_enabled          = false
+  accelerated_networking_enabled = false
+  internal_dns_name_label        = "acctestni-%s"
 
   dns_servers = [
     "10.0.0.5",
@@ -576,6 +607,24 @@ resource "azurerm_network_interface" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r NetworkInterfaceResource) dnsServersRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_network_interface" "test" {
+  name                = "acctestni-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "primary"
+    subnet_id                     = azurerm_subnet.test.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r NetworkInterfaceResource) edgeZone(data acceptance.TestData) string {
 	// @tombuildsstuff: WestUS has an edge zone available - so hard-code to that for now
 	data.Locations.Primary = "westus"
@@ -603,10 +652,11 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
+  name                            = "internal"
+  resource_group_name             = azurerm_resource_group.test.name
+  virtual_network_name            = azurerm_virtual_network.test.name
+  address_prefixes                = ["10.0.2.0/24"]
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_network_interface" "test" {
@@ -629,10 +679,10 @@ func (r NetworkInterfaceResource) enableAcceleratedNetworking(data acceptance.Te
 %s
 
 resource "azurerm_network_interface" "test" {
-  name                          = "acctestni-%d"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  enable_accelerated_networking = %t
+  name                           = "acctestni-%d"
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+  accelerated_networking_enabled = %t
 
   ip_configuration {
     name                          = "primary"
@@ -648,10 +698,10 @@ func (r NetworkInterfaceResource) enableIPForwarding(data acceptance.TestData, e
 %s
 
 resource "azurerm_network_interface" "test" {
-  name                 = "acctestni-%d"
-  location             = azurerm_resource_group.test.location
-  resource_group_name  = azurerm_resource_group.test.name
-  enable_ip_forwarding = %t
+  name                  = "acctestni-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  ip_forwarding_enabled = %t
 
   ip_configuration {
     name                          = "primary"
@@ -953,6 +1003,80 @@ resource "azurerm_network_interface" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
+func (r NetworkInterfaceResource) privateEndpoint(data acceptance.TestData, peDependsOnNic bool) string {
+	peDependsOn := ""
+	if peDependsOnNic {
+		// Needed once NIC is imported, so Terraform destroy the private endpoint first
+		peDependsOn = "depends_on = [ azurerm_network_interface.test ]"
+	}
+
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "sa%[2]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "acctestpe-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  subnet_id                     = azurerm_subnet.test.id
+  custom_network_interface_name = "acctestnic-%[2]d"
+
+  private_service_connection {
+    name                           = "acctestpsc-%[2]d"
+    private_connection_resource_id = azurerm_storage_account.test.id
+    is_manual_connection           = false
+    subresource_names              = ["blob"]
+  }
+
+  %[3]s
+}
+
+`, r.template(data), data.RandomInteger, peDependsOn)
+}
+
+func (r NetworkInterfaceResource) privateEndpointNic(data acceptance.TestData, tags string) string {
+	return fmt.Sprintf(`
+%[1]s
+
+import {
+  id = "/subscriptions/%[2]s/resourceGroups/acctestRG-%[3]d/providers/Microsoft.Network/networkInterfaces/acctestnic-%[3]d"
+  to = azurerm_network_interface.test
+}
+
+resource "azurerm_network_interface" "test" {
+  accelerated_networking_enabled = false
+  ip_forwarding_enabled          = false
+  location                       = azurerm_resource_group.test.location
+  name                           = "acctestnic-%[3]d"
+  resource_group_name            = azurerm_resource_group.test.name
+
+  ip_configuration {
+    name                          = "test"
+    primary                       = true
+    private_ip_address            = "10.0.2.4"
+    private_ip_address_allocation = "Dynamic"
+    private_ip_address_version    = "IPv4"
+    subnet_id                     = azurerm_subnet.test.id
+  }
+
+  lifecycle {
+    # The real ip_configuration.name is difficult to get, opt-out instead since we only care about tags update
+    ignore_changes = [ip_configuration]
+  }
+
+%[4]s
+}
+`, r.privateEndpoint(data, true), data.Client().SubscriptionID, data.RandomInteger, tags)
+}
+
 func (NetworkInterfaceResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -969,6 +1093,7 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   address_space       = ["10.0.0.0/16"]
+
 }
 
 resource "azurerm_subnet" "test" {

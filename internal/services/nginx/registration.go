@@ -23,7 +23,7 @@ func (r Registration) Name() string {
 // WebsiteCategories returns a list of categories which can be used for the sidebar
 func (r Registration) WebsiteCategories() []string {
 	return []string{
-		"Nginx",
+		"NGINX",
 	}
 }
 
@@ -33,6 +33,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		DeploymentDataSource{},
 		CertificateDataSource{},
 		ConfigurationDataSource{},
+		APIKeyDataSource{},
 	}
 }
 
@@ -42,5 +43,6 @@ func (r Registration) Resources() []sdk.Resource {
 		CertificateResource{},
 		DeploymentResource{},
 		ConfigurationResource{},
+		APIKeyResource{},
 	}
 }

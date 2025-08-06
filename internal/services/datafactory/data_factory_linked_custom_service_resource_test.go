@@ -170,6 +170,13 @@ func (r LinkedCustomServiceResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
+  name            = "managed-integration-runtime"
+  data_factory_id = azurerm_data_factory.test.id
+  location        = azurerm_resource_group.test.location
+  node_size       = "Standard_D8_v3"
+}
+
 resource "azurerm_data_factory_linked_custom_service" "test" {
   name                 = "acctestls%d"
   data_factory_id      = azurerm_data_factory.test.id
@@ -182,7 +189,7 @@ resource "azurerm_data_factory_linked_custom_service" "test" {
 JSON
 
   integration_runtime {
-    name = azurerm_data_factory_integration_runtime_managed.test.name
+    name = azurerm_data_factory_integration_runtime_azure_ssis.test.name
     parameters = {
       "Key" : "value"
     }
@@ -310,17 +317,5 @@ resource "azurerm_storage_account" "test" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
-
-resource "azurerm_data_factory_integration_runtime_managed" "test" {
-  name            = "acctest-irm%d"
-  data_factory_id = azurerm_data_factory.test.id
-  location        = azurerm_resource_group.test.location
-
-  node_size                        = "Standard_D8_v3"
-  number_of_nodes                  = 2
-  max_parallel_executions_per_node = 8
-  edition                          = "Standard"
-  license_type                     = "LicenseIncluded"
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString)
 }

@@ -8,32 +8,38 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/serviceendpointpolicies"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	mgValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managementgroup/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name subnet_service_endpoint_storage_policy -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSubnetServiceEndpointStoragePolicyCreateUpdate,
+		Create: resourceSubnetServiceEndpointStoragePolicyCreate,
 		Read:   resourceSubnetServiceEndpointStoragePolicyRead,
-		Update: resourceSubnetServiceEndpointStoragePolicyCreateUpdate,
+		Update: resourceSubnetServiceEndpointStoragePolicyUpdate,
 		Delete: resourceSubnetServiceEndpointStoragePolicyDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SubnetServiceEndpointStoragePolicyID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&serviceendpointpolicies.ServiceEndpointPolicyId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&serviceendpointpolicies.ServiceEndpointPolicyId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -106,123 +112,158 @@ func resourceSubnetServiceEndpointStoragePolicy() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
-func resourceSubnetServiceEndpointStoragePolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ServiceEndpointPoliciesClient
+func resourceSubnetServiceEndpointStoragePolicyCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.ServiceEndpointPolicies
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	resourceId := parse.NewSubnetServiceEndpointStoragePolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		resp, err := client.Get(ctx, resourceId.ResourceGroup, resourceId.ServiceEndpointPolicyName, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(resp.Response) {
-				return fmt.Errorf("checking for existing %s: %+v", resourceId, err)
-			}
-		}
+	id := serviceendpointpolicies.NewServiceEndpointPolicyID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-		if !utils.ResponseWasNotFound(resp.Response) {
-			return tf.ImportAsExistsError("azurerm_subnet_service_endpoint_storage_policy", resourceId.ID())
+	resp, err := client.Get(ctx, id, serviceendpointpolicies.DefaultGetOperationOptions())
+	if err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	param := network.ServiceEndpointPolicy{
-		Location: &location,
-		ServiceEndpointPolicyPropertiesFormat: &network.ServiceEndpointPolicyPropertiesFormat{
+	if !response.WasNotFound(resp.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_subnet_service_endpoint_storage_policy", id.ID())
+	}
+
+	param := serviceendpointpolicies.ServiceEndpointPolicy{
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
+		Properties: &serviceendpointpolicies.ServiceEndpointPolicyPropertiesFormat{
 			ServiceEndpointPolicyDefinitions: expandServiceEndpointPolicyDefinitions(d.Get("definition").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, resourceId.ResourceGroup, resourceId.ServiceEndpointPolicyName, param)
+	if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceSubnetServiceEndpointStoragePolicyRead(d, meta)
+}
+
+func resourceSubnetServiceEndpointStoragePolicyUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.ServiceEndpointPolicies
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := serviceendpointpolicies.ParseServiceEndpointPolicyID(d.Id())
 	if err != nil {
-		return fmt.Errorf("creating Subnet Service Endpoint Storage Policy %q (Resource Group %q): %+v", resourceId.ServiceEndpointPolicyName, resourceId.ResourceGroup, err)
+		return err
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of Subnet Service Endpoint Storage Policy %q (Resource Group %q): %+v", resourceId.ServiceEndpointPolicyName, resourceId.ResourceGroup, err)
+	existing, err := client.Get(ctx, *id, serviceendpointpolicies.DefaultGetOperationOptions())
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.SetId(resourceId.ID())
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("definition") {
+		payload.Properties = &serviceendpointpolicies.ServiceEndpointPolicyPropertiesFormat{
+			ServiceEndpointPolicyDefinitions: expandServiceEndpointPolicyDefinitions(d.Get("definition").([]interface{})),
+		}
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
 
 	return resourceSubnetServiceEndpointStoragePolicyRead(d, meta)
 }
 
 func resourceSubnetServiceEndpointStoragePolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ServiceEndpointPoliciesClient
+	client := meta.(*clients.Client).Network.ServiceEndpointPolicies
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-	id, err := parse.SubnetServiceEndpointStoragePolicyID(d.Id())
+
+	id, err := serviceendpointpolicies.ParseServiceEndpointPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServiceEndpointPolicyName, "")
+	resp, err := client.Get(ctx, *id, serviceendpointpolicies.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[DEBUG] Subnet Service Endpoint Storage Policy %q was not found in Resource Group %q - removing from state!", id.ServiceEndpointPolicyName, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
 		}
-
-		return fmt.Errorf("retrieving Subnet Service Endpoint Storage Policy %q (Resource Group %q): %+v", id.ServiceEndpointPolicyName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.Set("name", id.ServiceEndpointPolicyName)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-	if prop := resp.ServiceEndpointPolicyPropertiesFormat; prop != nil {
-		if err := d.Set("definition", flattenServiceEndpointPolicyDefinitions(prop.ServiceEndpointPolicyDefinitions)); err != nil {
-			return fmt.Errorf("setting `definition`: %v", err)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+		if props := model.Properties; props != nil {
+			if err := d.Set("definition", flattenServiceEndpointPolicyDefinitions(props.ServiceEndpointPolicyDefinitions)); err != nil {
+				return fmt.Errorf("setting `definition`: %v", err)
+			}
+		}
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceSubnetServiceEndpointStoragePolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ServiceEndpointPoliciesClient
+	client := meta.(*clients.Client).Network.ServiceEndpointPolicies
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SubnetServiceEndpointStoragePolicyID(d.Id())
+	id, err := serviceendpointpolicies.ParseServiceEndpointPolicyID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ServiceEndpointPolicyName)
-	if err != nil {
-		return fmt.Errorf("deleting Subnet Service Endpoint Storage Policy %q (Resource Group %q): %+v", id.ServiceEndpointPolicyName, id.ResourceGroup, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func expandServiceEndpointPolicyDefinitions(input []interface{}) *[]network.ServiceEndpointPolicyDefinition {
+func expandServiceEndpointPolicyDefinitions(input []interface{}) *[]serviceendpointpolicies.ServiceEndpointPolicyDefinition {
 	if len(input) == 0 {
 		return nil
 	}
 
-	output := make([]network.ServiceEndpointPolicyDefinition, 0)
+	output := make([]serviceendpointpolicies.ServiceEndpointPolicyDefinition, 0)
 	for _, e := range input {
 		e := e.(map[string]interface{})
-		output = append(output, network.ServiceEndpointPolicyDefinition{
-			Name: utils.String(e["name"].(string)),
-			ServiceEndpointPolicyDefinitionPropertiesFormat: &network.ServiceEndpointPolicyDefinitionPropertiesFormat{
-				Description:      utils.String(e["description"].(string)),
-				Service:          utils.String(e["service"].(string)),
+		output = append(output, serviceendpointpolicies.ServiceEndpointPolicyDefinition{
+			Name: pointer.To(e["name"].(string)),
+			Properties: &serviceendpointpolicies.ServiceEndpointPolicyDefinitionPropertiesFormat{
+				Description:      pointer.To(e["description"].(string)),
+				Service:          pointer.To(e["service"].(string)),
 				ServiceResources: utils.ExpandStringSlice(e["service_resources"].(*pluginsdk.Set).List()),
 			},
 		})
@@ -231,7 +272,7 @@ func expandServiceEndpointPolicyDefinitions(input []interface{}) *[]network.Serv
 	return &output
 }
 
-func flattenServiceEndpointPolicyDefinitions(input *[]network.ServiceEndpointPolicyDefinition) []interface{} {
+func flattenServiceEndpointPolicyDefinitions(input *[]serviceendpointpolicies.ServiceEndpointPolicyDefinition) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -248,7 +289,7 @@ func flattenServiceEndpointPolicyDefinitions(input *[]network.ServiceEndpointPol
 			service         = ""
 			serviceResource = []interface{}{}
 		)
-		if b := e.ServiceEndpointPolicyDefinitionPropertiesFormat; b != nil {
+		if b := e.Properties; b != nil {
 			if b.Description != nil {
 				description = *b.Description
 			}

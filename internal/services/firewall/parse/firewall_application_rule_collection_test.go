@@ -27,7 +27,6 @@ func TestFirewallApplicationRuleCollectionID(t *testing.T) {
 		Error    bool
 		Expected *FirewallApplicationRuleCollectionId
 	}{
-
 		{
 			// empty
 			Input: "",

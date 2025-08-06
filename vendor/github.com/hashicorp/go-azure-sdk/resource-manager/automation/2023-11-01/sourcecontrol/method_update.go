@@ -49,7 +49,6 @@ func (c SourceControlClient) Update(ctx context.Context, id SourceControlId, inp
 
 	var model SourceControl
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -31,20 +31,20 @@ jobs:
           fi
 
   provider-tests:
-    runs-on: [custom, linux, large]
+    runs-on: custom-linux-large
     needs: [secrets-check]
     if: needs.secrets-check.outputs.available == 'true'
     steps:
       - name: Checkout
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Install Go
-        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
         with:
           go-version-file: ./.go-version
 
-      - name: Azure CLI login
-        run: az login --output none --username="${{ secrets.AZCLI_USERNAME }}" --password="${{ secrets.AZCLI_PASSWORD }}"
+#      - name: Azure CLI login
+#        run: az login --output none --username="${{ secrets.AZCLI_USERNAME }}" --password="${{ secrets.AZCLI_PASSWORD }}"
 
       - name: Set OIDC Token
         run: |

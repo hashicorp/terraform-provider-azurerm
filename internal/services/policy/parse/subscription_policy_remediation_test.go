@@ -27,7 +27,6 @@ func TestSubscriptionPolicyRemediationID(t *testing.T) {
 		Error    bool
 		Expected *SubscriptionPolicyRemediationId
 	}{
-
 		{
 			// empty
 			Input: "",

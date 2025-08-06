@@ -4,6 +4,7 @@
 package schema
 
 import (
+	"fmt"
 	"log"
 	"reflect"
 	"strings"
@@ -13,6 +14,8 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/go-cty/cty/gocty"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
@@ -25,18 +28,20 @@ import (
 // The most relevant methods to take a look at are Get and Set.
 type ResourceData struct {
 	// Settable (internally)
-	schema       map[string]*Schema
-	config       *terraform.ResourceConfig
-	state        *terraform.InstanceState
-	diff         *terraform.InstanceDiff
-	meta         map[string]interface{}
-	timeouts     *ResourceTimeout
-	providerMeta cty.Value
+	schema         map[string]*Schema
+	identitySchema map[string]*Schema
+	config         *terraform.ResourceConfig
+	state          *terraform.InstanceState
+	diff           *terraform.InstanceDiff
+	meta           map[string]interface{}
+	timeouts       *ResourceTimeout
+	providerMeta   cty.Value
 
 	// Don't set
 	multiReader *MultiLevelFieldReader
 	setWriter   *MapFieldWriter
 	newState    *terraform.InstanceState
+	newIdentity *IdentityData
 	partial     bool
 	once        sync.Once
 	isNew       bool
@@ -82,7 +87,7 @@ func (d *ResourceData) GetChange(key string) (interface{}, interface{}) {
 // GetOk returns the data for the given key and whether or not the key
 // has been set to a non-zero value at some point.
 //
-// The first result will not necessarilly be nil if the value doesn't exist.
+// The first result will not necessarily be nil if the value doesn't exist.
 // The second result should be checked to determine this information.
 func (d *ResourceData) GetOk(key string) (interface{}, bool) {
 	r := d.getRaw(key, getSourceSet)
@@ -406,6 +411,36 @@ func (d *ResourceData) State() *terraform.InstanceState {
 		result.Tainted = d.state.Tainted
 	}
 
+	// If the ResourceData has an identitySchema:
+	// copy over identity data (by getting it so we also include changes)
+	// In order to build the final state attributes, we read the full
+	// attribute set as a map[string]interface{}, write it to a MapFieldWriter,
+	// and then use that map.
+	if d.identitySchema != nil {
+		rawMapIdentity := make(map[string]interface{})
+		identityData, err := d.Identity()
+		// This error shouldn't happen, as we check for the identity schema first
+		if err == nil {
+			for k := range d.identitySchema {
+				raw := identityData.get([]string{k})
+				if raw.Exists {
+					rawMapIdentity[k] = raw.Value
+					if raw.ValueProcessed != nil {
+						rawMapIdentity[k] = raw.ValueProcessed
+					}
+				}
+			}
+
+			mapWIdentity := &MapFieldWriter{Schema: d.identitySchema}
+			if err := mapWIdentity.WriteField(nil, rawMapIdentity); err != nil {
+				log.Printf("[ERR] Error writing identity fields: %s", err)
+				return nil
+			}
+
+			result.Identity = mapWIdentity.Map()
+		}
+	}
+
 	return &result
 }
 
@@ -591,13 +626,78 @@ func (d *ResourceData) GetProviderMeta(dst interface{}) error {
 // GetRawConfig is considered experimental and advanced functionality, and
 // familiarity with the Terraform protocol is suggested when using it.
 func (d *ResourceData) GetRawConfig() cty.Value {
+	// These methods follow the field readers preference order.
 	if d.diff != nil && !d.diff.RawConfig.IsNull() {
 		return d.diff.RawConfig
+	}
+	if d.config != nil && !d.config.CtyValue.IsNull() {
+		return d.config.CtyValue
 	}
 	if d.state != nil && !d.state.RawConfig.IsNull() {
 		return d.state.RawConfig
 	}
 	return cty.NullVal(schemaMap(d.schema).CoreConfigSchema().ImpliedType())
+}
+
+// GetRawConfigAt is a helper method for retrieving specific values
+// from the RawConfig returned from GetRawConfig. It returns the cty.Value
+// for a given cty.Path or an error diagnostic if the value at the given path does not exist.
+//
+// GetRawConfigAt is considered advanced functionality, and
+// familiarity with the Terraform protocol is suggested when using it.
+func (d *ResourceData) GetRawConfigAt(valPath cty.Path) (cty.Value, diag.Diagnostics) {
+	rawConfig := d.GetRawConfig()
+	configVal := cty.DynamicVal
+
+	if rawConfig.IsNull() {
+		return configVal, diag.Diagnostics{
+			{
+				Severity: diag.Error,
+				Summary:  "Empty Raw Config",
+				Detail: "The Terraform Provider unexpectedly received an empty configuration. " +
+					"This is almost always an issue with the Terraform Plugin SDK used to create providers. " +
+					"Please report this to the provider developers. \n\n" +
+					"The RawConfig is empty.",
+				AttributePath: valPath,
+			},
+		}
+	}
+	err := cty.Walk(rawConfig, func(path cty.Path, value cty.Value) (bool, error) {
+		if path.Equals(valPath) {
+			configVal = value
+			return false, nil
+		}
+		return true, nil
+	})
+	if err != nil {
+		return configVal, diag.Diagnostics{
+			{
+				Severity: diag.Error,
+				Summary:  "Invalid config path",
+				Detail: "The Terraform Provider unexpectedly provided a path that does not match the current schema. " +
+					"This can happen if the path does not correctly follow the schema in structure or types. " +
+					"Please report this to the provider developers. \n\n" +
+					fmt.Sprintf("Encountered error while retrieving config value %s", err.Error()),
+				AttributePath: valPath,
+			},
+		}
+	}
+
+	if configVal.RawEquals(cty.DynamicVal) {
+		return configVal, diag.Diagnostics{
+			{
+				Severity: diag.Error,
+				Summary:  "Invalid config path",
+				Detail: "The Terraform Provider unexpectedly provided a path that does not match the current schema. " +
+					"This can happen if the path does not correctly follow the schema in structure or types. " +
+					"Please report this to the provider developers. \n\n" +
+					"Cannot find config value for given path.",
+				AttributePath: valPath,
+			},
+		}
+	}
+
+	return configVal, nil
 }
 
 // GetRawState returns the cty.Value that Terraform sent the SDK for the state.
@@ -607,6 +707,7 @@ func (d *ResourceData) GetRawConfig() cty.Value {
 // GetRawState is considered experimental and advanced functionality, and
 // familiarity with the Terraform protocol is suggested when using it.
 func (d *ResourceData) GetRawState() cty.Value {
+	// These methods follow the field readers preference order.
 	if d.diff != nil && !d.diff.RawState.IsNull() {
 		return d.diff.RawState
 	}
@@ -623,6 +724,7 @@ func (d *ResourceData) GetRawState() cty.Value {
 // GetRawPlan is considered experimental and advanced functionality, and
 // familiarity with the Terraform protocol is suggested when using it.
 func (d *ResourceData) GetRawPlan() cty.Value {
+	// These methods follow the field readers preference order.
 	if d.diff != nil && !d.diff.RawPlan.IsNull() {
 		return d.diff.RawPlan
 	}
@@ -630,4 +732,33 @@ func (d *ResourceData) GetRawPlan() cty.Value {
 		return d.state.RawPlan
 	}
 	return cty.NullVal(schemaMap(d.schema).CoreConfigSchema().ImpliedType())
+}
+
+// IdentityData is only available for managed resources, data sources
+// will return an error. // TODO: return error in case of data sources
+func (d *ResourceData) Identity() (*IdentityData, error) {
+	// return memoized value if available
+	if d.newIdentity != nil {
+		return d.newIdentity, nil
+	}
+
+	if d.identitySchema == nil {
+		return nil, fmt.Errorf("Resource does not have Identity schema. Please set one in order to use Identity(). This is always a problem in the provider code.")
+	}
+
+	var identityData map[string]string
+	if d.state != nil && d.state.Identity != nil {
+		identityData = d.state.Identity
+	}
+	if d.diff != nil && d.diff.Identity != nil {
+		identityData = d.diff.Identity
+	}
+
+	d.newIdentity = &IdentityData{
+		schema:       d.identitySchema,
+		raw:          identityData,
+		panicOnError: d.panicOnError,
+	}
+
+	return d.newIdentity, nil
 }

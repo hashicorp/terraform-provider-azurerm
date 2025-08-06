@@ -7,16 +7,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/privateendpoints"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/privatelinkservices"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func dataSourcePrivateLinkServiceEndpointConnections() *pluginsdk.Resource {
@@ -30,7 +28,7 @@ func dataSourcePrivateLinkServiceEndpointConnections() *pluginsdk.Resource {
 			"service_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				ValidateFunc: privatelinkservices.ValidatePrivateLinkServiceID,
 			},
 
 			"service_name": {
@@ -83,46 +81,47 @@ func dataSourcePrivateLinkServiceEndpointConnections() *pluginsdk.Resource {
 }
 
 func dataSourcePrivateLinkServiceEndpointConnectionsRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.PrivateLinkServiceClient
+	client := meta.(*clients.Client).Network.PrivateLinkServices
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	serviceId := d.Get("service_id").(string)
 
-	id, err := parse.PrivateLinkServiceID(serviceId)
+	id, err := privatelinkservices.ParsePrivateLinkServiceID(serviceId)
 	if err != nil {
-		return fmt.Errorf("parsing %q: %s", serviceId, err)
+		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Get(ctx, *id, privatelinkservices.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: %s was not found", *id)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("reading %s: %+v", *id, err)
-	}
-	if resp.ID == nil || *resp.ID == "" {
-		return fmt.Errorf("API returns a nil/empty id on %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("service_id", serviceId)
-	d.Set("service_name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("service_id", id.ID())
+	d.Set("service_name", id.PrivateLinkServiceName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
 
-	if props := resp.PrivateLinkServiceProperties; props != nil {
-		if err := d.Set("private_endpoint_connections", dataSourceflattenPrivateLinkServicePrivateEndpointConnections(props.PrivateEndpointConnections)); err != nil {
-			return fmt.Errorf("setting `private_endpoint_connections`: %+v", err)
+		if props := model.Properties; props != nil {
+			if err := d.Set("private_endpoint_connections", dataSourceflattenPrivateLinkServicePrivateEndpointConnections(props.PrivateEndpointConnections)); err != nil {
+				return fmt.Errorf("setting `private_endpoint_connections`: %+v", err)
+			}
 		}
 	}
 
-	d.SetId(fmt.Sprintf("%s/privateLinkServiceEndpointConnections/%s", *resp.ID, id.Name))
+	privateEndpointId := privatelinkservices.NewPrivateEndpointConnectionID(id.SubscriptionId, id.ResourceGroupName, id.PrivateLinkServiceName, id.PrivateLinkServiceName)
+
+	d.SetId(privateEndpointId.ID())
 
 	return nil
 }
 
-func dataSourceflattenPrivateLinkServicePrivateEndpointConnections(input *[]network.PrivateEndpointConnection) []interface{} {
+func dataSourceflattenPrivateLinkServicePrivateEndpointConnections(input *[]privatelinkservices.PrivateEndpointConnection) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -130,16 +129,16 @@ func dataSourceflattenPrivateLinkServicePrivateEndpointConnections(input *[]netw
 
 	for _, item := range *input {
 		v := make(map[string]interface{})
-		if id := item.ID; id != nil {
+		if id := item.Id; id != nil {
 			v["connection_id"] = *id
 		}
 		if name := item.Name; name != nil {
 			v["connection_name"] = *name
 		}
 
-		if props := item.PrivateEndpointConnectionProperties; props != nil {
+		if props := item.Properties; props != nil {
 			if p := props.PrivateEndpoint; p != nil {
-				if id := p.ID; id != nil {
+				if id := p.Id; id != nil {
 					v["private_endpoint_id"] = *id
 
 					id, _ := privateendpoints.ParsePrivateEndpointID(*id)

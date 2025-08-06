@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/registeredserverresource"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storagesync/2020-03-01/storagesyncservicesresource"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -63,6 +64,14 @@ func resourceStorageSync() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"registered_servers": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Schema{
+					Type: pluginsdk.TypeString,
+				},
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
@@ -103,6 +112,7 @@ func resourceStorageSyncCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 
 func resourceStorageSyncRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Storage.SyncServiceClient
+	registeredServerClient := meta.(*clients.Client).Storage.SyncRegisteredServerClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -131,6 +141,26 @@ func resourceStorageSyncRead(d *pluginsdk.ResourceData, meta interface{}) error 
 
 		if err = tags.FlattenAndSet(d, model.Tags); err != nil {
 			return fmt.Errorf("setting `tags`: %+v", err)
+		}
+	}
+
+	storageSyncId := registeredserverresource.NewStorageSyncServiceID(id.SubscriptionId, id.ResourceGroupName, id.StorageSyncServiceName)
+	registeredServersResp, err := registeredServerClient.RegisteredServersListByStorageSyncService(ctx, storageSyncId)
+	if err != nil {
+		if !response.WasNotFound(registeredServersResp.HttpResponse) {
+			return fmt.Errorf("retrieving registered servers for %s: %+v", id, err)
+		}
+	}
+
+	if model := registeredServersResp.Model; model != nil && model.Value != nil {
+		registeredServers := make([]interface{}, 0)
+		for _, registeredServer := range *model.Value {
+			if registeredServer.Id != nil {
+				registeredServers = append(registeredServers, *registeredServer.Id)
+			}
+		}
+		if err = d.Set("registered_servers", registeredServers); err != nil {
+			return fmt.Errorf("setting `registered_servers`: %+v", err)
 		}
 	}
 

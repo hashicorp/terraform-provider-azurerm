@@ -7,15 +7,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/expressroutecircuitauthorizations"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceExpressRouteCircuitAuthorization() *pluginsdk.Resource {
@@ -24,7 +24,7 @@ func resourceExpressRouteCircuitAuthorization() *pluginsdk.Resource {
 		Read:   resourceExpressRouteCircuitAuthorizationRead,
 		Delete: resourceExpressRouteCircuitAuthorizationDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ExpressRouteCircuitAuthorizationID(id)
+			_, err := expressroutecircuitauthorizations.ParseAuthorizationID(id)
 			return err
 		}),
 
@@ -64,40 +64,35 @@ func resourceExpressRouteCircuitAuthorization() *pluginsdk.Resource {
 }
 
 func resourceExpressRouteCircuitAuthorizationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ExpressRouteAuthsClient
+	client := meta.(*clients.Client).Network.ExpressRouteCircuitAuthorizations
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
-	id := parse.NewExpressRouteCircuitAuthorizationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("express_route_circuit_name").(string), d.Get("name").(string))
+	id := expressroutecircuitauthorizations.NewAuthorizationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("express_route_circuit_name").(string), d.Get("name").(string))
 
 	locks.ByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
 	defer locks.UnlockByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.AuthorizationName)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_express_route_circuit_authorization", id.ID())
 		}
 	}
 
-	properties := network.ExpressRouteCircuitAuthorization{
-		AuthorizationPropertiesFormat: &network.AuthorizationPropertiesFormat{},
+	properties := expressroutecircuitauthorizations.ExpressRouteCircuitAuthorization{
+		Properties: &expressroutecircuitauthorizations.AuthorizationPropertiesFormat{},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.AuthorizationName, properties)
-	if err != nil {
-		return fmt.Errorf("Creating/Updating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for  %s to finish creating/updating: %+v", id, err)
+	if err := client.CreateOrUpdateThenPoll(ctx, id, properties); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -106,18 +101,18 @@ func resourceExpressRouteCircuitAuthorizationCreate(d *pluginsdk.ResourceData, m
 }
 
 func resourceExpressRouteCircuitAuthorizationRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ExpressRouteAuthsClient
+	client := meta.(*clients.Client).Network.ExpressRouteCircuitAuthorizations
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ExpressRouteCircuitAuthorizationID(d.Id())
+	id, err := expressroutecircuitauthorizations.ParseAuthorizationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.AuthorizationName)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -125,23 +120,25 @@ func resourceExpressRouteCircuitAuthorizationRead(d *pluginsdk.ResourceData, met
 	}
 
 	d.Set("name", id.AuthorizationName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("express_route_circuit_name", id.ExpressRouteCircuitName)
 
-	if props := resp.AuthorizationPropertiesFormat; props != nil {
-		d.Set("authorization_key", props.AuthorizationKey)
-		d.Set("authorization_use_status", string(props.AuthorizationUseStatus))
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("authorization_key", props.AuthorizationKey)
+			d.Set("authorization_use_status", string(pointer.From(props.AuthorizationUseStatus)))
+		}
 	}
 
 	return nil
 }
 
 func resourceExpressRouteCircuitAuthorizationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ExpressRouteAuthsClient
+	client := meta.(*clients.Client).Network.ExpressRouteCircuitAuthorizations
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ExpressRouteCircuitAuthorizationID(d.Id())
+	id, err := expressroutecircuitauthorizations.ParseAuthorizationID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -149,13 +146,8 @@ func resourceExpressRouteCircuitAuthorizationDelete(d *pluginsdk.ResourceData, m
 	locks.ByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
 	defer locks.UnlockByName(id.ExpressRouteCircuitName, expressRouteCircuitResourceName)
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.AuthorizationName)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for %s to be deleted: %+v", *id, err)
 	}
 
 	return nil

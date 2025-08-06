@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&Python3PackageId{})
+}
 
 var _ resourceids.ResourceId = &Python3PackageId{}
 
@@ -39,7 +44,7 @@ func ParsePython3PackageID(input string) (*Python3PackageId, error) {
 	}
 
 	id := Python3PackageId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParsePython3PackageIDInsensitively(input string) (*Python3PackageId, error)
 	}
 
 	id := Python3PackageId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -116,9 +121,9 @@ func (id Python3PackageId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAutomation", "Microsoft.Automation", "Microsoft.Automation"),
 		resourceids.StaticSegment("staticAutomationAccounts", "automationAccounts", "automationAccounts"),
-		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountValue"),
+		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountName"),
 		resourceids.StaticSegment("staticPython3Packages", "python3Packages", "python3Packages"),
-		resourceids.UserSpecifiedSegment("python3PackageName", "python3PackageValue"),
+		resourceids.UserSpecifiedSegment("python3PackageName", "python3PackageName"),
 	}
 }
 

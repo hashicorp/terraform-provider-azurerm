@@ -27,7 +27,6 @@ func TestDatabasePrincipalID(t *testing.T) {
 		Error    bool
 		Expected *DatabasePrincipalId
 	}{
-
 		{
 			// empty
 			Input: "",

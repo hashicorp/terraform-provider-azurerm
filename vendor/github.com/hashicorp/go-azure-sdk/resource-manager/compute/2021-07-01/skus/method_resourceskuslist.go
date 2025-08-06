@@ -41,6 +41,7 @@ func (o ResourceSkusListOperationOptions) ToHeaders() *client.Headers {
 
 func (o ResourceSkusListOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -55,6 +56,18 @@ func (o ResourceSkusListOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ResourceSkusListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ResourceSkusListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ResourceSkusList ...
 func (c SkusClient) ResourceSkusList(ctx context.Context, id commonids.SubscriptionId, options ResourceSkusListOperationOptions) (result ResourceSkusListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -63,8 +76,9 @@ func (c SkusClient) ResourceSkusList(ctx context.Context, id commonids.Subscript
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.Compute/skus", id.ID()),
 		OptionsObject: options,
+		Pager:         &ResourceSkusListCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.Compute/skus", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -105,6 +119,7 @@ func (c SkusClient) ResourceSkusListCompleteMatchingPredicate(ctx context.Contex
 
 	resp, err := c.ResourceSkusList(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -45,7 +45,6 @@ func (c RoleEligibilitySchedulesClient) Get(ctx context.Context, id ScopedRoleEl
 
 	var model RoleEligibilitySchedule
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

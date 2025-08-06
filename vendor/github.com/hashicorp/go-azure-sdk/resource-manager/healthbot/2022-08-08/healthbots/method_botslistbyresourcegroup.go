@@ -24,6 +24,18 @@ type BotsListByResourceGroupCompleteResult struct {
 	Items              []HealthBot
 }
 
+type BotsListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *BotsListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // BotsListByResourceGroup ...
 func (c HealthbotsClient) BotsListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result BotsListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c HealthbotsClient) BotsListByResourceGroup(ctx context.Context, id common
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &BotsListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.HealthBot/healthBots", id.ID()),
 	}
 
@@ -73,6 +86,7 @@ func (c HealthbotsClient) BotsListByResourceGroupCompleteMatchingPredicate(ctx c
 
 	resp, err := c.BotsListByResourceGroup(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

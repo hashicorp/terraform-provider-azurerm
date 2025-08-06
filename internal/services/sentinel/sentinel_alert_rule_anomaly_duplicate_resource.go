@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
+	securityinsight "github.com/jackofallops/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type AlertRuleAnomalyDuplicateModel struct {
@@ -30,7 +30,7 @@ type AlertRuleAnomalyDuplicateModel struct {
 	Enabled                      bool                                    `tfschema:"enabled"`
 	Mode                         string                                  `tfschema:"mode"`
 	AnomalyVersion               string                                  `tfschema:"anomaly_version"`
-	AnomalySettingsVersion       int32                                   `tfschema:"anomaly_settings_version"`
+	AnomalySettingsVersion       int64                                   `tfschema:"anomaly_settings_version"`
 	Description                  string                                  `tfschema:"description"`
 	Frequency                    string                                  `tfschema:"frequency"`
 	IsDefaultSettings            bool                                    `tfschema:"is_default_settings"`
@@ -334,7 +334,6 @@ func (r AlertRuleAnomalyDuplicateResource) Create() sdk.ResourceFunc {
 
 				return false
 			})
-
 			if err != nil {
 				return fmt.Errorf("reading built-in anomaly rule: %+v", err)
 			}
@@ -458,7 +457,7 @@ func (r AlertRuleAnomalyDuplicateResource) Read() sdk.ResourceFunc {
 				state.AnomalyVersion = *resp.AnomalyVersion
 			}
 			if resp.AnomalySettingsVersion != nil {
-				state.AnomalySettingsVersion = *resp.AnomalySettingsVersion
+				state.AnomalySettingsVersion = int64(*resp.AnomalySettingsVersion)
 			}
 			if resp.Description != nil {
 				state.Description = *resp.Description
@@ -521,7 +520,6 @@ func (r AlertRuleAnomalyDuplicateResource) Update() sdk.ResourceFunc {
 
 				return false
 			})
-
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}

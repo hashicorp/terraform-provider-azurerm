@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/firewallpolicies"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/firewallpolicyrulecollectiongroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/firewallpolicyrulecollectiongroups"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -652,7 +652,7 @@ func expandFirewallPolicyRuleApplication(input []interface{}) *[]firewallpolicyr
 			SourceIPGroups:       utils.ExpandStringSlice(condition["source_ip_groups"].([]interface{})),
 			DestinationAddresses: utils.ExpandStringSlice(condition["destination_addresses"].([]interface{})),
 			TargetFqdns:          utils.ExpandStringSlice(condition["destination_fqdns"].([]interface{})),
-			TargetUrls:           utils.ExpandStringSlice(condition["destination_urls"].([]interface{})),
+			TargetURLs:           utils.ExpandStringSlice(condition["destination_urls"].([]interface{})),
 			FqdnTags:             utils.ExpandStringSlice(condition["destination_fqdn_tags"].([]interface{})),
 			TerminateTLS:         utils.Bool(condition["terminate_tls"].(bool)),
 			WebCategories:        utils.ExpandStringSlice(condition["web_categories"].([]interface{})),
@@ -883,7 +883,7 @@ func flattenFirewallPolicyRuleApplication(input *[]firewallpolicyrulecollectiong
 			"source_addresses":      utils.FlattenStringSlice(rule.SourceAddresses),
 			"source_ip_groups":      utils.FlattenStringSlice(rule.SourceIPGroups),
 			"destination_addresses": utils.FlattenStringSlice(rule.DestinationAddresses),
-			"destination_urls":      utils.FlattenStringSlice(rule.TargetUrls),
+			"destination_urls":      utils.FlattenStringSlice(rule.TargetURLs),
 			"destination_fqdns":     utils.FlattenStringSlice(rule.TargetFqdns),
 			"destination_fqdn_tags": utils.FlattenStringSlice(rule.FqdnTags),
 			"terminate_tls":         terminate_tls,

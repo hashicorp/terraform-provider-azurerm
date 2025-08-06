@@ -10,13 +10,14 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appconfiguration/1.0/appconfiguration"
+	"github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
 type KeysDataSource struct{}
@@ -164,15 +165,15 @@ func (k KeysDataSource) Read() sdk.ResourceFunc {
 			for iter.NotDone() {
 				kv := iter.Value()
 				var krmodel KeyDataSourceModel
-				krmodel.Key = utils.NormalizeNilableString(kv.Key)
-				krmodel.Label = utils.NormalizeNilableString(kv.Label)
-				if contentType := utils.NormalizeNilableString(kv.ContentType); contentType != VaultKeyContentType {
+				krmodel.Key = pointer.From(kv.Key)
+				krmodel.Label = pointer.From(kv.Label)
+				if contentType := pointer.From(kv.ContentType); contentType != VaultKeyContentType {
 					krmodel.Type = KeyTypeKV
 					krmodel.ContentType = contentType
-					krmodel.Value = utils.NormalizeNilableString(kv.Value)
+					krmodel.Value = pointer.From(kv.Value)
 				} else {
 					var ref VaultKeyReference
-					refBytes := []byte(utils.NormalizeNilableString(kv.Value))
+					refBytes := []byte(pointer.From(kv.Value))
 					err := json.Unmarshal(refBytes, &ref)
 					if err != nil {
 						return fmt.Errorf("while unmarshalling vault reference: %+v", err)
@@ -187,7 +188,7 @@ func (k KeysDataSource) Read() sdk.ResourceFunc {
 				if kv.Locked != nil {
 					krmodel.Locked = *kv.Locked
 				}
-				krmodel.Etag = utils.NormalizeNilableString(kv.Etag)
+				krmodel.Etag = pointer.From(kv.Etag)
 
 				model.Items = append(model.Items, krmodel)
 				if err := iter.NextWithContext(ctx); err != nil {

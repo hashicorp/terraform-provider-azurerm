@@ -6,7 +6,7 @@ package validate
 import (
 	"fmt"
 
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
 )
 
 func OrchestratedVirtualMachineScaleSetPublicIPSku(input interface{}, key string) (warnings []string, errors []error) {
@@ -17,10 +17,10 @@ func OrchestratedVirtualMachineScaleSetPublicIPSku(input interface{}, key string
 	}
 
 	publicIpSkus := []string{
-		fmt.Sprintf("%s_%s", string(compute.PublicIPAddressSkuNameBasic), string(compute.PublicIPAddressSkuTierRegional)),
-		fmt.Sprintf("%s_%s", string(compute.PublicIPAddressSkuNameStandard), string(compute.PublicIPAddressSkuTierRegional)),
-		fmt.Sprintf("%s_%s", string(compute.PublicIPAddressSkuNameBasic), string(compute.PublicIPAddressSkuTierGlobal)),
-		fmt.Sprintf("%s_%s", string(compute.PublicIPAddressSkuNameStandard), string(compute.PublicIPAddressSkuTierGlobal)),
+		fmt.Sprintf("%s_%s", string(virtualmachinescalesets.PublicIPAddressSkuNameBasic), string(virtualmachinescalesets.PublicIPAddressSkuTierRegional)),
+		fmt.Sprintf("%s_%s", string(virtualmachinescalesets.PublicIPAddressSkuNameStandard), string(virtualmachinescalesets.PublicIPAddressSkuTierRegional)),
+		fmt.Sprintf("%s_%s", string(virtualmachinescalesets.PublicIPAddressSkuNameBasic), string(virtualmachinescalesets.PublicIPAddressSkuTierGlobal)),
+		fmt.Sprintf("%s_%s", string(virtualmachinescalesets.PublicIPAddressSkuNameStandard), string(virtualmachinescalesets.PublicIPAddressSkuTierGlobal)),
 	}
 
 	for _, sku := range publicIpSkus {

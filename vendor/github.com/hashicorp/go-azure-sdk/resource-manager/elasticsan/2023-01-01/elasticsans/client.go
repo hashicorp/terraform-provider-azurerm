@@ -15,7 +15,7 @@ type ElasticSansClient struct {
 }
 
 func NewElasticSansClientWithBaseURI(sdkApi sdkEnv.Api) (*ElasticSansClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "elasticsans", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "elasticsans", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ElasticSansClient: %+v", err)
 	}

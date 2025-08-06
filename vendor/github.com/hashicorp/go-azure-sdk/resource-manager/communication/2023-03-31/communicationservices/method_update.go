@@ -49,7 +49,6 @@ func (c CommunicationServicesClient) Update(ctx context.Context, id Communicatio
 
 	var model CommunicationServiceResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

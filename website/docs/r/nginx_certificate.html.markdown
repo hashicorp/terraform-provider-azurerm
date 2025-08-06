@@ -1,14 +1,14 @@
 ---
-subcategory: "Nginx"
+subcategory: "NGINX"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_nginx_certificate"
 description: |-
-  Manages a Certificate for an Nginx Deployment.
+  Manages a Certificate for an NGINX Deployment.
 ---
 
 # azurerm_nginx_certificate
 
-Manages a Certificate for an NGinx Deployment.
+Manages a Certificate for an NGINX Deployment.
 
 ## Example Usage
 
@@ -123,9 +123,9 @@ resource "azurerm_nginx_certificate" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this Nginx Certificate. Changing this forces a new Nginx Certificate to be created.
+* `name` - (Required) The name which should be used for this NGINX Certificate. Changing this forces a new NGINX Certificate to be created.
 
-* `nginx_deployment_id` - (Required) The ID of the Nginx Deployment that this Certificate should be associated with. Changing this forces a new Nginx Certificate to be created.
+* `nginx_deployment_id` - (Required) The ID of the NGINX Deployment that this Certificate should be associated with. Changing this forces a new NGINX Certificate to be created.
 
 * `certificate_virtual_path` - (Required) Specify the path to the certificate file of this certificate.
 
@@ -137,21 +137,27 @@ The following arguments are supported:
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of this Nginx Certificate.
+* `id` - The ID of this NGINX Certificate.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Nginx Certificate.
-* `update` - (Defaults to 30 minutes) Used when updating the Nginx Certificate.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Nginx Certificate.
-* `delete` - (Defaults to 10 minutes) Used when deleting the Nginx Certificate.
+* `create` - (Defaults to 30 minutes) Used when creating the NGINX Certificate.
+* `read` - (Defaults to 5 minutes) Used when retrieving the NGINX Certificate.
+* `update` - (Defaults to 30 minutes) Used when updating the NGINX Certificate.
+* `delete` - (Defaults to 10 minutes) Used when deleting the NGINX Certificate.
 
 ## Import
 
-An Nginx Certificate can be imported using the `resource id`, e.g.
+An NGINX Certificate can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_nginx_certificate.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Nginx.NginxPlus/nginxDeployments/deploy1/certificates/cer1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Nginx.NginxPlus` - 2024-11-01-preview

@@ -6,6 +6,7 @@ package parse
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -62,11 +63,11 @@ func SpringCloudBuildPackBindingID(input string) (*SpringCloudBuildPackBindingId
 	}
 
 	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+		return nil, errors.New("ID was missing the 'subscriptions' element")
 	}
 
 	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+		return nil, errors.New("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.SpringName, err = id.PopSegment("spring"); err != nil {
@@ -107,11 +108,11 @@ func SpringCloudBuildPackBindingIDInsensitively(input string) (*SpringCloudBuild
 	}
 
 	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+		return nil, errors.New("ID was missing the 'subscriptions' element")
 	}
 
 	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+		return nil, errors.New("ID was missing the 'resourceGroups' element")
 	}
 
 	// find the correct casing for the 'spring' segment

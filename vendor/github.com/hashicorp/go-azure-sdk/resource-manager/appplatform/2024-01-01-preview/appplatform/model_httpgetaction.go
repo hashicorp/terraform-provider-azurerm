@@ -15,6 +15,14 @@ type HTTPGetAction struct {
 	Scheme *HTTPSchemeType `json:"scheme,omitempty"`
 
 	// Fields inherited from ProbeAction
+
+	Type ProbeActionType `json:"type"`
+}
+
+func (s HTTPGetAction) ProbeAction() BaseProbeActionImpl {
+	return BaseProbeActionImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = HTTPGetAction{}
@@ -28,9 +36,10 @@ func (s HTTPGetAction) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling HTTPGetAction: %+v", err)
 	}
+
 	decoded["type"] = "HTTPGetAction"
 
 	encoded, err = json.Marshal(decoded)

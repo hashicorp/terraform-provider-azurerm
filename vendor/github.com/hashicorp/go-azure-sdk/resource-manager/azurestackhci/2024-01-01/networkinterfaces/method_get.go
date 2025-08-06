@@ -45,7 +45,6 @@ func (c NetworkInterfacesClient) Get(ctx context.Context, id NetworkInterfaceId)
 
 	var model NetworkInterfaces
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

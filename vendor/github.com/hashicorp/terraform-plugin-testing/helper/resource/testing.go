@@ -15,7 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-multierror"
 	"github.com/mitchellh/go-testing-interface"
 
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
@@ -25,6 +24,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/config"
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
+	"github.com/hashicorp/terraform-plugin-testing/statecheck"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 
@@ -109,7 +109,7 @@ func AddTestSweepers(name string, s *Sweeper) {
 // Sweeper flags added to the "go test" command:
 //
 //	-sweep: Comma-separated list of locations/regions to run available sweepers.
-//	-sweep-allow-failues: Enable to allow other sweepers to run after failures.
+//	-sweep-allow-failures: Enable to allow other sweepers to run after failures.
 //	-sweep-run: Comma-separated list of resource type sweepers to run. Defaults
 //	        to all sweepers.
 //
@@ -408,6 +408,11 @@ type TestCase struct {
 
 	// ErrorCheck allows providers the option to handle errors such as skipping
 	// tests based on certain errors.
+	//
+	// This functionality is only intended for provider-controlled error
+	// messaging. While in certain scenarios this can also catch testing logic
+	// error messages, those messages are not protected by compatibility
+	// promises.
 	ErrorCheck ErrorCheckFunc
 
 	// Steps are the apply sequences done within the context of the
@@ -436,6 +441,10 @@ type TestCase struct {
 	// set to "1", to persist any working directory files. Otherwise, this directory is
 	// automatically cleaned up at the end of the TestCase.
 	WorkingDir string
+
+	// AdditionalCLIOptions allows an intentionally limited set of options to be passed
+	// to the Terraform CLI when executing test steps.
+	AdditionalCLIOptions *AdditionalCLIOptions
 }
 
 // ExternalProvider holds information about third-party providers that should
@@ -443,6 +452,37 @@ type TestCase struct {
 type ExternalProvider struct {
 	VersionConstraint string // the version constraint for the provider
 	Source            string // the provider source
+}
+
+type ImportStateKind byte
+
+const (
+	// ImportCommandWithID tests import by using the ID string with the `terraform import` command
+	ImportCommandWithID ImportStateKind = iota
+
+	// ImportBlockWithID tests import by using the ID string in an import configuration block with the `terraform plan` command
+	ImportBlockWithID
+
+	// ImportBlockWithResourceIdentity imports the state using an import block with a resource identity
+	ImportBlockWithResourceIdentity
+)
+
+// plannable reports whether this kind indicates the use of plannable import blocks
+func (kind ImportStateKind) plannable() bool {
+	return kind == ImportBlockWithID || kind == ImportBlockWithResourceIdentity
+}
+
+// resourceIdentity reports whether this kind indicates the use of resource identity in import blocks
+func (kind ImportStateKind) resourceIdentity() bool {
+	return kind == ImportBlockWithResourceIdentity
+}
+
+func (kind ImportStateKind) String() string {
+	return map[ImportStateKind]string{
+		ImportCommandWithID:             "ImportCommandWithID",
+		ImportBlockWithID:               "ImportBlockWithID",
+		ImportBlockWithResourceIdentity: "ImportBlockWithResourceIdentity",
+	}[kind]
 }
 
 // TestStep is a single apply sequence of a test, done within the
@@ -536,6 +576,16 @@ type TestStep struct {
 	// otherwise an error will be returned.
 	ConfigFile config.TestStepConfigFunc
 
+	// ImportStateConfigExact indicates that the test framework should use the exact
+	// content of the Config, ConfigFile, or ConfigDirectory inputs and should
+	// not modify it at test run time.
+	//
+	// The default is false. At test run time, the test framework will generate
+	// specific kinds of configuration, such as import blocks, and append them
+	// to the given Config, ConfigFile, or ConfigDirectory inputs. Using this
+	// default improves test readability and removes duplication of setup.
+	ImportStateConfigExact bool
+
 	// ConfigVariables is a map defining variables for use in conjunction
 	// with Terraform configuration. If this map is populated then it
 	// will be used to assemble an *.auto.tfvars.json which will be
@@ -565,6 +615,11 @@ type TestStep struct {
 	// ExpectError allows the construction of test cases that we expect to fail
 	// with an error. The specified regexp must match against the error for the
 	// test to pass.
+	//
+	// This functionality is only intended for provider-controlled error
+	// messaging. While in certain scenarios this can also catch testing logic
+	// error messages, those messages are not protected by compatibility
+	// promises.
 	ExpectError *regexp.Regexp
 
 	// ConfigPlanChecks allows assertions to be made against the plan file at different points of a Config (apply) test using a plan check.
@@ -580,6 +635,10 @@ type TestStep struct {
 	// [PlanCheck]: https://pkg.go.dev/github.com/hashicorp/terraform-plugin-testing/plancheck#PlanCheck
 	// [plancheck]: https://pkg.go.dev/github.com/hashicorp/terraform-plugin-testing/plancheck
 	RefreshPlanChecks RefreshPlanChecks
+
+	// ConfigStateChecks allow assertions to be made against the state file during a Config (apply) test using a state check.
+	// Custom state checks can be created by implementing the [statecheck.StateCheck] interface, or by using a StateCheck implementation from the provided [statecheck] package.
+	ConfigStateChecks []statecheck.StateCheck
 
 	// PlanOnly can be set to only run `plan` with this configuration, and not
 	// actually apply it. This is useful for ensuring config changes result in
@@ -615,6 +674,8 @@ type TestStep struct {
 	// ID of that resource.
 	ImportState bool
 
+	ImportStateKind ImportStateKind
+
 	// ImportStateId is the ID to perform an ImportState operation with.
 	// This is optional. If it isn't set, then the resource ID is automatically
 	// determined by inspecting the state for ResourceName's ID.
@@ -647,6 +708,13 @@ type TestStep struct {
 	// import, which the testing framework will skip to prevent the need for
 	// Terraform version specific logic in provider testing.
 	ImportStateCheck ImportStateCheckFunc
+
+	// ImportPlanChecks allows assertions to be made against the plan file at different points of a plannable import test using a plan check.
+	// Custom plan checks can be created by implementing the [PlanCheck] interface, or by using a PlanCheck implementation from the provided [plancheck] package
+	//
+	// [PlanCheck]: https://pkg.go.dev/github.com/hashicorp/terraform-plugin-testing/plancheck#PlanCheck
+	// [plancheck]: https://pkg.go.dev/github.com/hashicorp/terraform-plugin-testing/plancheck
+	ImportPlanChecks ImportPlanChecks
 
 	// ImportStateVerify, if true, will also check that the state values
 	// that are finally put into the state after import match for all the
@@ -779,6 +847,13 @@ type ConfigPlanChecks struct {
 	PostApplyPostRefresh []plancheck.PlanCheck
 }
 
+// ImportPlanChecks defines the different points in an Import TestStep when plan checks can be run.
+type ImportPlanChecks struct {
+	// PreApply runs all plan checks in the slice. This occurs after the plan of an Import test is computed. This slice cannot be populated
+	// with TestStep.PlanOnly, as there is no PreApply plan run with that flag set. All errors by plan checks in this slice are aggregated, reported, and will result in a test failure.
+	PreApply []plancheck.PlanCheck
+}
+
 // RefreshPlanChecks defines the different points in a Refresh TestStep when plan checks can be run.
 type RefreshPlanChecks struct {
 	// PostRefresh runs all plan checks in the slice. This occurs after the refresh of the Refresh test is run.
@@ -805,11 +880,6 @@ func ParallelTest(t testing.T, c TestCase) {
 // Tests are not run unless an environmental variable "TF_ACC" is
 // set to some non-empty value. This is to avoid test cases surprising
 // a user by creating real resources.
-//
-// Tests will fail unless the verbose flag (`go test -v`, or explicitly
-// the "-test.v" flag) is set. Because some acceptance tests take quite
-// long, we require the verbose flag so users are able to see progress
-// output.
 //
 // Use the ParallelTest() function to automatically set (*testing.T).Parallel()
 // to enable testing concurrency. Use the UnitTest() function to automatically
@@ -898,11 +968,7 @@ func Test(t testing.T, c TestCase) {
 	// This is done after creating the helper because a working directory is required
 	// to retrieve the Terraform version.
 	if c.TerraformVersionChecks != nil {
-		logging.HelperResourceDebug(ctx, "Calling TestCase Terraform version checks")
-
 		runTFVersionChecks(ctx, t, helper.TerraformVersion(), c.TerraformVersionChecks)
-
-		logging.HelperResourceDebug(ctx, "Called TestCase Terraform version checks")
 	}
 
 	runNewTest(ctx, t, c, helper)
@@ -922,17 +988,17 @@ func UnitTest(t testing.T, c TestCase) {
 	Test(t, c)
 }
 
-func testResource(c TestStep, state *terraform.State) (*terraform.ResourceState, error) {
+func testResource(name string, state *terraform.State) (*terraform.ResourceState, error) {
 	for _, m := range state.Modules {
 		if len(m.Resources) > 0 {
-			if v, ok := m.Resources[c.ResourceName]; ok {
+			if v, ok := m.Resources[name]; ok {
 				return v, nil
 			}
 		}
 	}
 
 	return nil, fmt.Errorf(
-		"Resource specified by ResourceName couldn't be found: %s", c.ResourceName)
+		"Resource specified by ResourceName couldn't be found: %s", name)
 }
 
 // ComposeTestCheckFunc lets you compose multiple TestCheckFuncs into
@@ -947,7 +1013,7 @@ func ComposeTestCheckFunc(fs ...TestCheckFunc) TestCheckFunc {
 	return func(s *terraform.State) error {
 		for i, f := range fs {
 			if err := f(s); err != nil {
-				return fmt.Errorf("Check %d/%d error: %s", i+1, len(fs), err)
+				return fmt.Errorf("Check %d/%d error: %w", i+1, len(fs), err)
 			}
 		}
 
@@ -965,15 +1031,15 @@ func ComposeTestCheckFunc(fs ...TestCheckFunc) TestCheckFunc {
 // TestCheckFuncs and aggregates failures.
 func ComposeAggregateTestCheckFunc(fs ...TestCheckFunc) TestCheckFunc {
 	return func(s *terraform.State) error {
-		var result *multierror.Error
+		var result []error
 
 		for i, f := range fs {
 			if err := f(s); err != nil {
-				result = multierror.Append(result, fmt.Errorf("Check %d/%d error: %s", i+1, len(fs), err))
+				result = append(result, fmt.Errorf("Check %d/%d error: %w", i+1, len(fs), err))
 			}
 		}
 
-		return result.ErrorOrNil()
+		return errors.Join(result...)
 	}
 }
 
@@ -1019,6 +1085,44 @@ func ComposeAggregateTestCheckFunc(fs ...TestCheckFunc) TestCheckFunc {
 // attributes using the special key syntax, checking a list, map, or set
 // attribute directly is not supported. Use TestCheckResourceAttr with
 // the special .# or .% key syntax for those situations instead.
+//
+// An experimental interface exists to potentially replace the
+// TestCheckResourceAttrSet functionality in the future and feedback
+// would be appreciated. This example performs the same check as
+// TestCheckResourceAttrSet with that experimental interface, by
+// using [ExpectKnownValue] with [knownvalue.NotNull]:
+//
+//	package example_test
+//
+//	import (
+//		"testing"
+//
+//		"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+//		"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+//		"github.com/hashicorp/terraform-plugin-testing/statecheck"
+//		"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+//	)
+//
+//	func TestExpectKnownValue_CheckState_AttributeFound(t *testing.T) {
+//		t.Parallel()
+//
+//		resource.Test(t, resource.TestCase{
+//			// Provider definition omitted.
+//			Steps: []resource.TestStep{
+//				{
+//					// Example resource containing a computed attribute named "computed_attribute"
+//					Config: `resource "test_resource" "one" {}`,
+//					ConfigStateChecks: []statecheck.StateCheck{
+//						statecheck.ExpectKnownValue(
+//							"test_resource.one",
+//							tfjsonpath.New("computed_attribute"),
+//							knownvalue.NotNull(),
+//						),
+//					},
+//				},
+//			},
+//		})
+//	}
 func TestCheckResourceAttrSet(name, key string) TestCheckFunc {
 	return checkIfIndexesIntoTypeSet(key, func(s *terraform.State) error {
 		is, err := primaryInstanceState(s, name)
@@ -1118,6 +1222,44 @@ func testCheckResourceAttrSet(is *terraform.InstanceState, name string, key stri
 //   - Boolean: "false" or "true".
 //   - Float/Integer: Stringified number, such as "1.2" or "123".
 //   - String: No conversion necessary.
+//
+// An experimental interface exists to potentially replace the
+// TestCheckResourceAttr functionality in the future and feedback
+// would be appreciated. This example performs the same check as
+// TestCheckResourceAttr with that experimental interface, by
+// using [statecheck.ExpectKnownValue]:
+//
+//	package example_test
+//
+//	import (
+//		"testing"
+//
+//		"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+//		"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+//		"github.com/hashicorp/terraform-plugin-testing/statecheck"
+//		"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+//	)
+//
+//	func TestExpectKnownValue_CheckState_Bool(t *testing.T) {
+//		t.Parallel()
+//
+//		resource.Test(t, resource.TestCase{
+//			// Provider definition omitted.
+//			Steps: []resource.TestStep{
+//				{
+//					// Example resource containing a computed boolean attribute named "computed_attribute"
+//					Config: `resource "test_resource" "one" {}`,
+//					ConfigStateChecks: []statecheck.StateCheck{
+//						statecheck.ExpectKnownValue(
+//							"test_resource.one",
+//							tfjsonpath.New("computed_attribute"),
+//							knownvalue.Bool(true),
+//						),
+//					},
+//				},
+//			},
+//		})
+//	}
 func TestCheckResourceAttr(name, key, value string) TestCheckFunc {
 	return checkIfIndexesIntoTypeSet(key, func(s *terraform.State) error {
 		is, err := primaryInstanceState(s, name)
@@ -1201,6 +1343,43 @@ func testCheckResourceAttr(is *terraform.InstanceState, name string, key string,
 // when using TestCheckResourceAttrWith and a value is found for the given name and key.
 //
 // When this function returns an error, TestCheckResourceAttrWith will fail the check.
+//
+// An experimental interface exists to potentially replace the
+// CheckResourceAttrWithFunc functionality in the future and feedback
+// would be appreciated. This example performs the same check as
+// TestCheckResourceAttrWith with that experimental interface, by
+// using [statecheck.ExpectKnownValue] in combination with
+// [knownvalue.StringRegexp]:
+//
+//	package example_test
+//
+//	import (
+//		"testing"
+//
+//		"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+//		"github.com/hashicorp/terraform-plugin-testing/statecheck"
+//		"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+//	)
+//
+//	func TestExpectKnownValue_CheckState_String_Custom(t *testing.T) {
+//		t.Parallel()
+//
+//		resource.Test(t, resource.TestCase{
+//			// Provider definition omitted.
+//			Steps: []resource.TestStep{
+//				{
+//					// Example resource containing a computed string attribute named "computed_attribute"
+//					Config: `resource "test_resource" "one" {}`,
+//					ConfigStateChecks: []statecheck.StateCheck{
+//						statecheck.ExpectKnownValue(
+//							"test_resource.one",
+//							tfjsonpath.New("computed_attribute"),
+//							knownvalue.StringRegexp(regexp.MustCompile("str")),
+//					},
+//				},
+//			},
+//		})
+//	}
 type CheckResourceAttrWithFunc func(value string) error
 
 // TestCheckResourceAttrWith ensures a value stored in state for the
@@ -1238,6 +1417,43 @@ type CheckResourceAttrWithFunc func(value string) error
 // and it's provided with the attribute value to apply a custom checking logic,
 // if it was found in the state. The function must return an error for the
 // check to fail, or `nil` to succeed.
+//
+// An experimental interface exists to potentially replace the
+// TestCheckResourceAttrWith functionality in the future and feedback
+// would be appreciated. This example performs the same check as
+// TestCheckResourceAttrWith with that experimental interface, by
+// using [statecheck.ExpectKnownValue] in combination with
+// [knownvalue.StringRegexp]:
+//
+//	package example_test
+//
+//	import (
+//		"testing"
+//
+//		"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+//		"github.com/hashicorp/terraform-plugin-testing/statecheck"
+//		"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+//	)
+//
+//	func TestExpectKnownValue_CheckState_String_Custom(t *testing.T) {
+//		t.Parallel()
+//
+//		resource.Test(t, resource.TestCase{
+//			// Provider definition omitted.
+//			Steps: []resource.TestStep{
+//				{
+//					// Example resource containing a computed string attribute named "computed_attribute"
+//					Config: `resource "test_resource" "one" {}`,
+//					ConfigStateChecks: []statecheck.StateCheck{
+//						statecheck.ExpectKnownValue(
+//							"test_resource.one",
+//							tfjsonpath.New("computed_attribute"),
+//							knownvalue.StringRegexp(regexp.MustCompile("str")),
+//					},
+//				},
+//			},
+//		})
+//	}
 func TestCheckResourceAttrWith(name, key string, checkValueFunc CheckResourceAttrWithFunc) TestCheckFunc {
 	return checkIfIndexesIntoTypeSet(key, func(s *terraform.State) error {
 		is, err := primaryInstanceState(s, name)
@@ -1290,6 +1506,43 @@ func TestCheckResourceAttrWith(name, key string, checkValueFunc CheckResourceAtt
 // attributes using the special key syntax, checking a list, map, or set
 // attribute directly is not supported. Use TestCheckResourceAttr with
 // the special .# or .% key syntax for those situations instead.
+//
+// An experimental interface exists to potentially replace the
+// TestCheckNoResourceAttr functionality in the future and feedback
+// would be appreciated. This example performs the same check as
+// TestCheckNoResourceAttr with that experimental interface, by
+// using [statecheck.ExpectKnownValue] with [knownvalue.Null]:
+//
+//	package example_test
+//
+//	import (
+//		"testing"
+//
+//		"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+//		"github.com/hashicorp/terraform-plugin-testing/statecheck"
+//		"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+//	)
+//
+//	func TestExpectKnownValue_CheckState_AttributeNull(t *testing.T) {
+//		t.Parallel()
+//
+//		resource.Test(t, resource.TestCase{
+//			// Provider definition omitted.
+//			Steps: []resource.TestStep{
+//				{
+//					// Example resource containing a computed attribute named "computed_attribute" that has a null value
+//					Config: `resource "test_resource" "one" {}`,
+//					ConfigStateChecks: []statecheck.StateCheck{
+//						statecheck.ExpectKnownValue(
+//							"test_resource.one",
+//							tfjsonpath.New("computed_attribute"),
+//							knownvalue.Null(),
+//						),
+//					},
+//				},
+//			},
+//		})
+//	}
 func TestCheckNoResourceAttr(name, key string) TestCheckFunc {
 	return checkIfIndexesIntoTypeSet(key, func(s *terraform.State) error {
 		is, err := primaryInstanceState(s, name)
@@ -1394,6 +1647,43 @@ func testCheckNoResourceAttr(is *terraform.InstanceState, name string, key strin
 // using the regexp.MustCompile() function, which will automatically ensure the
 // regular expression is supported by the Go regular expression handlers during
 // compilation.
+//
+// An experimental interface exists to potentially replace the
+// TestMatchResourceAttr functionality in the future and feedback
+// would be appreciated. This example performs the same check as
+// TestMatchResourceAttr with that experimental interface, by
+// using [statecheck.ExpectKnownValue] in combination with
+// [knownvalue.StringRegexp]:
+//
+//	package example_test
+//
+//	import (
+//		"testing"
+//
+//		"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+//		"github.com/hashicorp/terraform-plugin-testing/statecheck"
+//		"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+//	)
+//
+//	func TestExpectKnownValue_CheckState_String_Custom(t *testing.T) {
+//		t.Parallel()
+//
+//		resource.Test(t, resource.TestCase{
+//			// Provider definition omitted.
+//			Steps: []resource.TestStep{
+//				{
+//					// Example resource containing a computed string attribute named "computed_attribute"
+//					Config: `resource "test_resource" "one" {}`,
+//					ConfigStateChecks: []statecheck.StateCheck{
+//						statecheck.ExpectKnownValue(
+//							"test_resource.one",
+//							tfjsonpath.New("computed_attribute"),
+//							knownvalue.StringRegexp(regexp.MustCompile("str")),
+//					},
+//				},
+//			},
+//		})
+//	}
 func TestMatchResourceAttr(name, key string, r *regexp.Regexp) TestCheckFunc {
 	return checkIfIndexesIntoTypeSet(key, func(s *terraform.State) error {
 		is, err := primaryInstanceState(s, name)
@@ -1595,6 +1885,100 @@ func testCheckResourceAttrPair(isFirst *terraform.InstanceState, nameFirst strin
 }
 
 // TestCheckOutput checks an output in the Terraform configuration
+//
+// An experimental interface exists to potentially replace the
+// TestCheckOutput functionality in the future and feedback
+// would be appreciated. This example performs the same check as
+// TestCheckOutput with that experimental interface, by
+// using [statecheck.ExpectKnownOutputValue]:
+//
+//	package example_test
+//
+//	import (
+//		"testing"
+//
+//		"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+//		"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+//		"github.com/hashicorp/terraform-plugin-testing/statecheck"
+//		"github.com/hashicorp/terraform-plugin-testing/tfversion"
+//	)
+//
+//	func TestExpectKnownOutputValue_CheckState_Bool(t *testing.T) {
+//		t.Parallel()
+//
+//		resource.Test(t, resource.TestCase{
+//			TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+//				tfversion.SkipBelow(tfversion.Version1_8_0),
+//			},
+//			// Provider definition omitted.
+//			Steps: []resource.TestStep{
+//				{
+//					// Example provider containing a provider-defined function named "bool"
+//					Config: `output "test" {
+//						value = provider::example::bool(true)
+//					}`,
+//					ConfigStateChecks: []statecheck.StateCheck{
+//						statecheck.ExpectKnownOutputValue("test", knownvalue.Bool(true)),
+//					},
+//				},
+//			},
+//		})
+//	}
+//
+// An experimental interface exists to potentially replace the
+// TestCheckOutput functionality in the future and feedback
+// would be appreciated. This example performs the same check as
+// TestCheckOutput with that experimental interface, by using
+// [statecheck.ExpectKnownOutputValueAtPath]:
+//
+//	package example_test
+//
+//	import (
+//		"testing"
+//
+//		"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+//		"github.com/hashicorp/terraform-plugin-testing/knownvalue"
+//		"github.com/hashicorp/terraform-plugin-testing/statecheck"
+//		"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+//	)
+//
+//	func TestExpectKnownOutputValueAtPath_CheckState_Bool(t *testing.T) {
+//		t.Parallel()
+//
+//		resource.Test(t, resource.TestCase{
+//			// Provider definition omitted.
+//			Steps: []resource.TestStep{
+//				{
+//					// Example resource containing a computed boolean attribute named "computed_attribute"
+//					Config: `resource "test_resource" "one" {}
+//
+//					// Generally, it is not necessary to use an output to test a resource attribute,
+//					// the resource attribute should be tested directly instead, by inspecting the
+//					// value of the resource attribute. For instance:
+//					//
+//					// 		ConfigStateChecks: []statecheck.StateCheck{
+//					//			statecheck.ExpectKnownValue(
+//					//				"test_resource.one",
+//					//				tfjsonpath.New("computed_attribute"),
+//					//				knownvalue.Bool(true),
+//					//			),
+//					//		},
+//					//
+//					// This is only shown as an example.
+//					output test_resource_one_output {
+//						value = test_resource.one
+//					}`,
+//					ConfigStateChecks: []statecheck.StateCheck{
+//						statecheck.ExpectKnownOutputValueAtPath(
+//							"test_resource_one_output",
+//							tfjsonpath.New("computed_attribute"),
+//							knownvalue.Bool(true),
+//						),
+//					},
+//				},
+//			},
+//		})
+//	}
 func TestCheckOutput(name, value string) TestCheckFunc {
 	return func(s *terraform.State) error {
 		ms := s.RootModule()
@@ -1615,6 +1999,64 @@ func TestCheckOutput(name, value string) TestCheckFunc {
 	}
 }
 
+// TestMatchOutput ensures a value matching a regular expression is
+// stored in state for the given name. State value checking is only
+// recommended for testing Computed attributes and attribute defaults.
+//
+// An experimental interface exists to potentially replace the
+// TestMatchOutput functionality in the future and feedback
+// would be appreciated. This example performs the same check as
+// TestMatchOutput with that experimental interface, by using
+// [statecheck.ExpectKnownOutputValueAtPath] in combination with
+// [knownvalue.StringRegexp]:
+//
+//	package example_test
+//
+//	import (
+//		"testing"
+//
+//		"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+//		"github.com/hashicorp/terraform-plugin-testing/statecheck"
+//		"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
+//	)
+//
+//	func TestExpectKnownOutputValueAtPath_CheckState_String_Custom(t *testing.T) {
+//		t.Parallel()
+//
+//		resource.Test(t, resource.TestCase{
+//			// Provider definition omitted.
+//			Steps: []resource.TestStep{
+//				{
+//					// Example resource containing a computed string attribute named "computed_attribute"
+//					Config: `resource "test_resource" "one" {}
+//
+//					// Generally, it is not necessary to use an output to test a resource attribute,
+//					// the resource attribute should be tested directly instead, by inspecting the
+//					// value of the resource attribute. For instance:
+//					//
+//					// 		ConfigStateChecks: []statecheck.StateCheck{
+//					//			statecheck.ExpectKnownValue(
+//					//				"test_resource.one",
+//					//				tfjsonpath.New("computed_attribute"),
+//					//				knownvalue.StringRegexp(regexp.MustCompile("str")),
+//					//			),
+//					//		},
+//					//
+//					// This is only shown as an example.
+//					output test_resource_one_output {
+//						value = test_resource.one
+//					}`,
+//					ConfigStateChecks: []statecheck.StateCheck{
+//						statecheck.ExpectKnownOutputValueAtPath(
+//							"test_resource_one_output",
+//							tfjsonpath.New("computed_attribute"),
+//							knownvalue.StringRegexp(regexp.MustCompile("str"),
+//						),
+//					},
+//				},
+//			},
+//		})
+//	}
 func TestMatchOutput(name string, r *regexp.Regexp) TestCheckFunc {
 	return func(s *terraform.State) error {
 		ms := s.RootModule()

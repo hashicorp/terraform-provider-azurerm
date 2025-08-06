@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ProviderAssessmentMetadataId{})
+}
 
 var _ resourceids.ResourceId = &ProviderAssessmentMetadataId{}
 
@@ -35,7 +40,7 @@ func ParseProviderAssessmentMetadataID(input string) (*ProviderAssessmentMetadat
 	}
 
 	id := ProviderAssessmentMetadataId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -52,7 +57,7 @@ func ParseProviderAssessmentMetadataIDInsensitively(input string) (*ProviderAsse
 	}
 
 	id := ProviderAssessmentMetadataId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -102,7 +107,7 @@ func (id ProviderAssessmentMetadataId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftSecurity", "Microsoft.Security", "Microsoft.Security"),
 		resourceids.StaticSegment("staticAssessmentMetadata", "assessmentMetadata", "assessmentMetadata"),
-		resourceids.UserSpecifiedSegment("assessmentMetadataName", "assessmentMetadataValue"),
+		resourceids.UserSpecifiedSegment("assessmentMetadataName", "assessmentMetadataName"),
 	}
 }
 

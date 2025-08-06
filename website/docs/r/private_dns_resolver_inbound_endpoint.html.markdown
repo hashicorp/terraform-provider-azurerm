@@ -69,7 +69,7 @@ The following arguments are supported:
 
 * `private_dns_resolver_id` - (Required) Specifies the ID of the Private DNS Resolver Inbound Endpoint. Changing this forces a new Private DNS Resolver Inbound Endpoint to be created.
 
-* `ip_configurations` - (Required) Can be specified multiple times to define multiple IP configurations. Each `ip_configurations` block as defined below.
+* `ip_configurations` - (Required) One `ip_configurations` block as defined below. Changing this forces a new Private DNS Resolver Inbound Endpoint to be created.
 
 * `location` - (Required) Specifies the Azure Region where the Private DNS Resolver Inbound Endpoint should exist. Changing this forces a new Private DNS Resolver Inbound Endpoint to be created.
 
@@ -107,3 +107,9 @@ Private DNS Resolver Inbound Endpoint can be imported using the `resource id`, e
 ```shell
 terraform import azurerm_private_dns_resolver_inbound_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/dnsResolvers/dnsResolver1/inboundEndpoints/inboundEndpoint1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2022-07-01

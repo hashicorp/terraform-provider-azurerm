@@ -45,7 +45,6 @@ func (c EventSubscriptionsClient) PartnerTopicEventSubscriptionsGet(ctx context.
 
 	var model EventSubscription
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

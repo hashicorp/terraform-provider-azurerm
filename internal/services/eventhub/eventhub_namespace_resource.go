@@ -18,10 +18,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubsclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/networkrulesets"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/authorizationrulesnamespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/eventhubsclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/networkrulesets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -95,14 +95,6 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			// for premium namespace, zone redundant is computed by service based on the availability of availability zone feature.
-			"zone_redundant": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Computed: true,
-				ForceNew: true,
-			},
-
 			"dedicated_cluster_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -115,7 +107,6 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 			"maximum_throughput_units": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
 				ValidateFunc: validation.IntBetween(0, 40),
 			},
 
@@ -147,13 +138,11 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 							Optional: true,
 						},
 
-						// 128 limit per https://docs.microsoft.com/azure/event-hubs/event-hubs-quotas
 						// Returned value of the `virtual_network_rule` array does not honor the input order,
 						// possibly a service design, thus changed to TypeSet
 						"virtual_network_rule": {
 							Type:       pluginsdk.TypeSet,
 							Optional:   true,
-							MaxItems:   128,
 							ConfigMode: pluginsdk.SchemaConfigModeAttr,
 							Set:        resourceVnetRuleHash,
 							Elem: &pluginsdk.Resource{
@@ -175,11 +164,9 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 							},
 						},
 
-						// 128 limit per https://docs.microsoft.com/azure/event-hubs/event-hubs-quotas
 						"ip_rule": {
 							Type:       pluginsdk.TypeList,
 							Optional:   true,
-							MaxItems:   128,
 							ConfigMode: pluginsdk.SchemaConfigModeAttr,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
@@ -212,10 +199,8 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 			"minimum_tls_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
+				Default:  string(namespaces.TlsVersionOnePointTwo),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(namespaces.TlsVersionOnePointZero),
-					string(namespaces.TlsVersionOnePointOne),
 					string(namespaces.TlsVersionOnePointTwo),
 				}, false),
 			},
@@ -279,12 +264,17 @@ func resourceEventHubNamespace() *pluginsdk.Resource {
 			pluginsdk.CustomizeDiffShim(eventhubTLSVersionDiff),
 		),
 	}
-	if !features.FourPointOhBeta() {
-		resource.Schema["zone_redundant"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
+
+	if !features.FivePointOh() {
+		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Default:  false,
-			ForceNew: true,
+			Default:  string(namespaces.TlsVersionOnePointTwo),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(namespaces.TlsVersionOnePointZero),
+				string(namespaces.TlsVersionOnePointOne),
+				string(namespaces.TlsVersionOnePointTwo),
+			}, false),
 		}
 	}
 	return resource
@@ -350,11 +340,6 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 			PublicNetworkAccess:  &publicNetworkEnabled,
 		},
 		Tags: tags.Expand(t),
-	}
-
-	// for premium namespace, the zone_redundant is computed based on the region, user's input will be overridden
-	if sku != string(namespaces.SkuNamePremium) {
-		parameters.Properties.ZoneRedundant = utils.Bool(d.Get("zone_redundant").(bool))
 	}
 
 	if v := d.Get("dedicated_cluster_id").(string); v != "" {
@@ -451,10 +436,6 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 			PublicNetworkAccess:  &publicNetworkEnabled,
 		},
 		Tags: tags.Expand(t),
-	}
-
-	if !features.FourPointOhBeta() {
-		parameters.Properties.ZoneRedundant = utils.Bool(d.Get("zone_redundant").(bool))
 	}
 
 	if v := d.Get("dedicated_cluster_id").(string); v != "" {
@@ -565,7 +546,6 @@ func resourceEventHubNamespaceRead(d *pluginsdk.ResourceData, meta interface{}) 
 		if props := model.Properties; props != nil {
 			d.Set("auto_inflate_enabled", props.IsAutoInflateEnabled)
 			d.Set("maximum_throughput_units", int(*props.MaximumThroughputUnits))
-			d.Set("zone_redundant", props.ZoneRedundant)
 			d.Set("dedicated_cluster_id", props.ClusterArmId)
 
 			localAuthDisabled := false

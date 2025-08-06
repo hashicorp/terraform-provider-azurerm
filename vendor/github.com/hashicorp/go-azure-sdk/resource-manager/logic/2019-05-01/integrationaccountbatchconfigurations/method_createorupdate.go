@@ -50,7 +50,6 @@ func (c IntegrationAccountBatchConfigurationsClient) CreateOrUpdate(ctx context.
 
 	var model BatchConfiguration
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -35,6 +35,7 @@ func (o UpdateOperationOptions) ToHeaders() *client.Headers {
 
 func (o UpdateOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -52,8 +53,8 @@ func (c SignUpSettingsClient) Update(ctx context.Context, id ServiceId, input Po
 			http.StatusNoContent,
 		},
 		HttpMethod:    http.MethodPatch,
-		Path:          fmt.Sprintf("%s/portalsettings/signup", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/portalsettings/signup", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

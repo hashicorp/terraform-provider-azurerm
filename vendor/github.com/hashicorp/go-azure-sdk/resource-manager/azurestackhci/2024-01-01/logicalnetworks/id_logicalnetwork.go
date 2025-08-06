@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&LogicalNetworkId{})
+}
 
 var _ resourceids.ResourceId = &LogicalNetworkId{}
 
@@ -37,7 +42,7 @@ func ParseLogicalNetworkID(input string) (*LogicalNetworkId, error) {
 	}
 
 	id := LogicalNetworkId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +59,7 @@ func ParseLogicalNetworkIDInsensitively(input string) (*LogicalNetworkId, error)
 	}
 
 	id := LogicalNetworkId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -110,7 +115,7 @@ func (id LogicalNetworkId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAzureStackHCI", "Microsoft.AzureStackHCI", "Microsoft.AzureStackHCI"),
 		resourceids.StaticSegment("staticLogicalNetworks", "logicalNetworks", "logicalNetworks"),
-		resourceids.UserSpecifiedSegment("logicalNetworkName", "logicalNetworkValue"),
+		resourceids.UserSpecifiedSegment("logicalNetworkName", "logicalNetworkName"),
 	}
 }
 

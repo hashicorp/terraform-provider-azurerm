@@ -9,12 +9,12 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineextensions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type VirtualMachineExtensionResource struct{}
@@ -141,17 +141,17 @@ func TestAccVirtualMachineExtension_protectedSettingsFromKeyVault(t *testing.T) 
 }
 
 func (t VirtualMachineExtensionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VirtualMachineExtensionID(state.ID)
+	id, err := virtualmachineextensions.ParseExtensionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Compute.VMExtensionClient.Get(ctx, id.ResourceGroup, id.VirtualMachineName, id.ExtensionName, "")
+	resp, err := clients.Compute.VirtualMachineExtensionsClient.Get(ctx, *id, virtualmachineextensions.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Compute Virtual Machine Extension %q", id.String())
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (VirtualMachineExtensionResource) basic(data acceptance.TestData) string {
@@ -817,5 +817,5 @@ resource "azurerm_virtual_machine_extension" "test" {
     source_vault_id = azurerm_key_vault.test[%[4]d].id
   }
 }
-`, LinuxVirtualMachineResource{}.template(data), data.RandomInteger, data.RandomString, index)
+`, LinuxVirtualMachineResource{}.templateWithOutProvider(data), data.RandomInteger, data.RandomString, index)
 }

@@ -235,7 +235,7 @@ The following arguments are supported:
 
 * `kind` - (Optional) The kind of the Data Collection Rule. Possible values are `Linux`, `Windows`, `AgentDirectToStore` and `WorkspaceTransforms`. A rule of kind `Linux` does not allow for `windows_event_log` data sources. And a rule of kind `Windows` does not allow for `syslog` data sources. If kind is not specified, all kinds of data sources are allowed.
 
-~> **NOTE** Once `kind` has been set, changing it forces a new Data Collection Rule to be created.
+~> **Note:** Once `kind` has been set, changing it forces a new Data Collection Rule to be created.
 
 * `stream_declaration` - (Optional) A `stream_declaration` block as defined below.
 
@@ -284,7 +284,7 @@ A `data_sources` block supports the following:
 * `extension` - (Optional) One or more `extension` blocks as defined below.
 
 * `iis_log` - (Optional) One or more `iis_log` blocks as defined below.
- 
+
 * `log_file` - (Optional) One or more `log_file` blocks as defined below.
 
 * `performance_counter` - (Optional) One or more `performance_counter` blocks as defined below.
@@ -319,9 +319,9 @@ A `destinations` block supports the following:
 
 * `storage_table_direct` - (Optional) One or more `storage_table_direct` blocks as defined below.
 
--> **NOTE** `event_hub_direct`, `storage_blob_direct`, and `storage_table_direct` are only available for rules of kind `AgentDirectToStore`.
+-> **Note:** `event_hub_direct`, `storage_blob_direct`, and `storage_table_direct` are only available for rules of kind `AgentDirectToStore`.
 
--> **NOTE** At least one of `azure_monitor_metrics`, `event_hub`, `event_hub_direct`, `log_analytics`, `monitor_account`, `storage_blob`, `storage_blob_direct`,and `storage_table_direct` blocks must be specified.
+-> **Note:** At least one of `azure_monitor_metrics`, `event_hub`, `event_hub_direct`, `log_analytics`, `monitor_account`, `storage_blob`, `storage_blob_direct`,and `storage_table_direct` blocks must be specified.
 
 ---
 
@@ -368,7 +368,7 @@ An `extension` block supports the following:
 An `iis_log` block supports the following:
 
 * `name` - (Required) The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.
- 
+
 * `streams` - (Required) Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible value is `Microsoft-W3CIISLog`.
 
 * `log_directories` - (Optional) Specifies a list of absolute paths where the log files are located.
@@ -381,7 +381,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Data Collection Rule. Currently, up to 1 identity is supported.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned`.
 
 ---
 
@@ -409,7 +409,7 @@ An `log_file` block supports the following:
 
 * `file_patterns` - (Required) Specifies a list of file patterns where the log files are located. For example, `C:\\JavaLogs\\*.log`.
 
-* `format` - (Required) The data format of the log files. possible value is `text`.
+* `format` - (Required) The data format of the log files. Possible values are `text` and `json`.
 
 * `settings` - (Optional) A `settings` block as defined below.
 
@@ -429,7 +429,7 @@ A `performance_counter` block supports the following:
 
 * `name` - (Required) The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.
 
-* `sampling_frequency_in_seconds` - (Required) The number of seconds between consecutive counter measurements (samples). The value should be integer between `1` and `300` inclusive. `sampling_frequency_in_seconds` must be equal to `60` seconds for counters collected with `Microsoft-InsightsMetrics` stream.
+* `sampling_frequency_in_seconds` - (Required) The number of seconds between consecutive counter measurements (samples). The value should be integer between `1` and `1800` inclusive. `sampling_frequency_in_seconds` must be equal to `60` seconds for counters collected with `Microsoft-InsightsMetrics` stream.
 
 * `streams` - (Required) Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible values include but not limited to `Microsoft-InsightsMetrics`,and `Microsoft-Perf`.
 
@@ -448,7 +448,7 @@ A `prometheus_forwarder` block supports the following:
 * `name` - (Required) The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.
 
 * `streams` - (Required) Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible value is `Microsoft-PrometheusMetrics`.
- 
+
 * `label_include_filter` - (Optional) One or more `label_include_filter` blocks as defined above.
 
 ---
@@ -479,7 +479,6 @@ A `storage_blob_direct` block supports the following:
 
 ---
 
-
 ---
 
 A `storage_table_direct` block supports the following:
@@ -494,7 +493,7 @@ A `storage_table_direct` block supports the following:
 
 A `stream_declaration` block supports the following:
 
-* `stream_name` - (Required) The name of the custom stream. This name should be unique across all `stream_declaration` blocks.
+* `stream_name` - (Required) The name of the custom stream. This name should be unique across all `stream_declaration` blocks and must begin with a prefix of `Custom-`.
 
 * `column` - (Required) One or more `column` blocks as defined above.
 
@@ -504,13 +503,11 @@ A `syslog` block supports the following:
 
 * `facility_names` - (Required) Specifies a list of facility names. Use a wildcard `*` to collect logs for all facility names. Possible values are `alert`, `*`, `audit`, `auth`, `authpriv`, `clock`, `cron`, `daemon`, `ftp`, `kern`, `local5`, `local4`, `local1`, `local7`, `local6`, `local3`, `local2`, `local0`, `lpr`, `mail`, `mark`, `news`, `nopri`, `ntp`, `syslog`, `user` and `uucp`.
 
+* `streams` - (Required) Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible values include but not limited to `Microsoft-Syslog`,and `Microsoft-CiscoAsa`, and `Microsoft-CommonSecurityLog`.
+
 * `log_levels` - (Required) Specifies a list of log levels. Use a wildcard `*` to collect logs for all log levels. Possible values are `Debug`, `Info`, `Notice`, `Warning`, `Error`, `Critical`, `Alert`, `Emergency`,and `*`.
 
 * `name` - (Required) The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.
-
-* `streams` - (Optional) Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible values include but not limited to `Microsoft-Syslog`,and `Microsoft-CiscoAsa`, and `Microsoft-CommonSecurityLog`.
-
--> **Note:** In 4.0 or later version of the provider, `streams` will be required. In 3.x version of provider, if `streams` is not specified in creation, it is default to `["Microsoft-Syslog"]`. if `streams` need to be modified (include change other value to the default value), it must be explicitly specified.
 
 ---
 
@@ -524,7 +521,7 @@ A `windows_event_log` block supports the following:
 
 * `name` - (Required) The name which should be used for this data source. This name should be unique across all data sources regardless of type within the Data Collection Rule.
 
-* `streams` - (Required) Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible values include but not limited to `Microsoft-Event`,and `Microsoft-WindowsEvent`, `Microsoft-RomeDetectionEvent`, and `Microsoft-SecurityEvent`.
+* `streams` - (Required) Specifies a list of streams that this data source will be sent to. A stream indicates what schema will be used for this data and usually what table in Log Analytics the data will be sent to. Possible values include but not limited to `Microsoft-Event`,and `Microsoft-WindowsEvent` and `Microsoft-SecurityEvent`.
 
 * `x_path_queries` - (Required) Specifies a list of Windows Event Log queries in XPath expression. Please see [this document](https://learn.microsoft.com/en-us/azure/azure-monitor/agents/data-collection-rule-azure-monitor-agent?tabs=cli#filter-events-using-xpath-queries) for more information.
 
@@ -568,3 +565,9 @@ Data Collection Rules can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_monitor_data_collection_rule.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/dataCollectionRules/rule1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Insights` - 2023-03-11

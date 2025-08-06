@@ -278,7 +278,7 @@ func resourceDataFactoryCreateUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 
 		payload.Properties.Encryption = &factories.EncryptionConfiguration{
-			VaultBaseUrl: keyVaultKey.KeyVaultBaseUrl,
+			VaultBaseURL: keyVaultKey.KeyVaultBaseUrl,
 			KeyName:      keyVaultKey.Name,
 			KeyVersion:   &keyVaultKey.Version,
 			Identity: &factories.CMKIdentityDefinition{
@@ -373,12 +373,12 @@ func resourceDataFactoryRead(d *pluginsdk.ResourceData, meta interface{}) error 
 			customerManagedKeyId := ""
 			customerManagedKeyIdentityId := ""
 			if enc := props.Encryption; enc != nil {
-				if enc.VaultBaseUrl != "" && enc.KeyName != "" && enc.KeyVersion != nil {
+				if enc.VaultBaseURL != "" && enc.KeyName != "" && enc.KeyVersion != nil {
 					version := ""
 					if enc.KeyVersion != nil && *enc.KeyVersion != "" {
 						version = *enc.KeyVersion
 					}
-					keyId, err := keyVaultParse.NewNestedKeyID(enc.VaultBaseUrl, enc.KeyName, version)
+					keyId, err := keyVaultParse.NewNestedKeyID(enc.VaultBaseURL, enc.KeyName, version)
 					if err != nil {
 						return fmt.Errorf("parsing Nested Item ID: %+v", err)
 					}

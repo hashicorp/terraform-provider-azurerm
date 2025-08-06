@@ -15,7 +15,7 @@ type PostRulesClient struct {
 }
 
 func NewPostRulesClientWithBaseURI(sdkApi sdkEnv.Api) (*PostRulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "postrules", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "postrules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PostRulesClient: %+v", err)
 	}

@@ -27,7 +27,6 @@ func TestSubscriptionPolicyExemptionID(t *testing.T) {
 		Error    bool
 		Expected *SubscriptionPolicyExemptionId
 	}{
-
 		{
 			// empty
 			Input: "",

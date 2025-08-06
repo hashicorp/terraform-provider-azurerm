@@ -6,21 +6,19 @@ package network
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/loadbalancers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	loadBalancerParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/parse"
-	loadBalancerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/loadbalancer/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceNetworkInterfaceNatRuleAssociation() *pluginsdk.Resource {
@@ -29,14 +27,8 @@ func resourceNetworkInterfaceNatRuleAssociation() *pluginsdk.Resource {
 		Read:   resourceNetworkInterfaceNatRuleAssociationRead,
 		Delete: resourceNetworkInterfaceNatRuleAssociationDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			splitId := strings.Split(id, "|")
-			if _, err := parse.NetworkInterfaceIpConfigurationID(splitId[0]); err != nil {
-				return err
-			}
-			if _, err := loadBalancerParse.LoadBalancerInboundNatRuleID(splitId[1]); err != nil {
-				return err
-			}
-			return nil
+			_, err := commonids.ParseCompositeResourceID(id, &commonids.NetworkInterfaceIPConfigurationId{}, &loadbalancers.InboundNatRuleId{})
+			return err
 		}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -50,7 +42,7 @@ func resourceNetworkInterfaceNatRuleAssociation() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NetworkInterfaceID,
+				ValidateFunc: commonids.ValidateNetworkInterfaceID,
 			},
 
 			"ip_configuration_name": {
@@ -64,70 +56,72 @@ func resourceNetworkInterfaceNatRuleAssociation() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: loadBalancerValidate.LoadBalancerInboundNatRuleID,
+				ValidateFunc: loadbalancers.ValidateInboundNatRuleID,
 			},
 		},
 	}
 }
 
 func resourceNetworkInterfaceNatRuleAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.InterfacesClient
+	client := meta.(*clients.Client).Network.Client.NetworkInterfaces
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Network Interface <-> Load Balancer NAT Rule Association creation.")
-
-	networkInterfaceId := d.Get("network_interface_id").(string)
-	ipConfigurationName := d.Get("ip_configuration_name").(string)
-	natRuleId := d.Get("nat_rule_id").(string)
-
-	id, err := parse.NetworkInterfaceID(networkInterfaceId)
+	networkInterfaceId, err := commonids.ParseNetworkInterfaceID(d.Get("network_interface_id").(string))
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(id.Name, networkInterfaceResourceName)
-	defer locks.UnlockByName(id.Name, networkInterfaceResourceName)
-
-	read, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	natRuleId, err := loadbalancers.ParseInboundNatRuleID(d.Get("nat_rule_id").(string))
 	if err != nil {
-		if utils.ResponseWasNotFound(read.Response) {
-			return fmt.Errorf(" %s was not found!", *id)
+		return err
+	}
+
+	ipConfigId := commonids.NewNetworkInterfaceIPConfigurationID(networkInterfaceId.SubscriptionId, networkInterfaceId.ResourceGroupName, networkInterfaceId.NetworkInterfaceName, d.Get("ip_configuration_name").(string))
+
+	locks.ByName(networkInterfaceId.NetworkInterfaceName, networkInterfaceResourceName)
+	defer locks.UnlockByName(networkInterfaceId.NetworkInterfaceName, networkInterfaceResourceName)
+
+	read, err := client.Get(ctx, *networkInterfaceId, networkinterfaces.DefaultGetOperationOptions())
+	if err != nil {
+		if response.WasNotFound(read.HttpResponse) {
+			return fmt.Errorf(" %s was not found!", networkInterfaceId)
 		}
 
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", networkInterfaceId, err)
 	}
 
-	props := read.InterfacePropertiesFormat
-	if props == nil {
-		return fmt.Errorf("Error: `properties` was nil for %s", *id)
+	if read.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", networkInterfaceId)
+	}
+	if read.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", networkInterfaceId)
+	}
+	if read.Model.Properties.IPConfigurations == nil {
+		return fmt.Errorf("retrieving %s: `properties.ipConfigurations` was nil", networkInterfaceId)
 	}
 
-	ipConfigs := props.IPConfigurations
-	if ipConfigs == nil {
-		return fmt.Errorf("Error: `properties.IPConfigurations` was nil for %s", *id)
+	props := read.Model.Properties
+
+	config := FindNetworkInterfaceIPConfiguration(props.IPConfigurations, ipConfigId.IpConfigurationName)
+	if config == nil {
+		return fmt.Errorf("IP Configuration %q was not found for %s", ipConfigId.IpConfigurationName, networkInterfaceId)
 	}
 
-	c := FindNetworkInterfaceIPConfiguration(props.IPConfigurations, ipConfigurationName)
-	if c == nil {
-		return fmt.Errorf("Error: IP Configuration %q was not found on %s", ipConfigurationName, *id)
+	ipConfigProps := config.Properties
+	if ipConfigProps == nil {
+		return fmt.Errorf("retrieving %s: `ipConfiguration.properties` was nil", networkInterfaceId)
 	}
 
-	config := *c
-	p := config.InterfaceIPConfigurationPropertiesFormat
-	if p == nil {
-		return fmt.Errorf("Error: `IPConfiguration.properties` was nil for %s", *id)
-	}
-
-	rules := make([]network.InboundNatRule, 0)
+	id := commonids.NewCompositeResourceID(&ipConfigId, natRuleId)
+	rules := make([]networkinterfaces.InboundNatRule, 0)
 
 	// first double-check it doesn't exist
-	resourceId := fmt.Sprintf("%s/ipConfigurations/%s|%s", networkInterfaceId, ipConfigurationName, natRuleId)
-	if p.LoadBalancerInboundNatRules != nil {
-		for _, existingRule := range *p.LoadBalancerInboundNatRules {
-			if id := existingRule.ID; id != nil {
-				if *id == natRuleId {
-					return tf.ImportAsExistsError("azurerm_network_interface_nat_rule_association", resourceId)
+	if ipConfigProps.LoadBalancerInboundNatRules != nil {
+		for _, existingRule := range *ipConfigProps.LoadBalancerInboundNatRules {
+			if ruleId := existingRule.Id; ruleId != nil {
+				if *ruleId == natRuleId.ID() {
+					return tf.ImportAsExistsError("azurerm_network_interface_nat_rule_association", id.ID())
 				}
 
 				rules = append(rules, existingRule)
@@ -135,175 +129,153 @@ func resourceNetworkInterfaceNatRuleAssociationCreate(d *pluginsdk.ResourceData,
 		}
 	}
 
-	rule := network.InboundNatRule{
-		ID: utils.String(natRuleId),
+	rule := networkinterfaces.InboundNatRule{
+		Id: pointer.To(natRuleId.ID()),
 	}
 	rules = append(rules, rule)
-	p.LoadBalancerInboundNatRules = &rules
+	ipConfigProps.LoadBalancerInboundNatRules = &rules
 
-	props.IPConfigurations = updateNetworkInterfaceIPConfiguration(config, props.IPConfigurations)
+	props.IPConfigurations = updateNetworkInterfaceIPConfiguration(*config, props.IPConfigurations)
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, read)
-	if err != nil {
-		return fmt.Errorf("updating NAT Rule Association for %s: %+v", *id, err)
+	if err := client.CreateOrUpdateThenPoll(ctx, *networkInterfaceId, *read.Model); err != nil {
+		return fmt.Errorf("updating NAT Rule Association for %s: %+v", networkInterfaceId, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of NAT Rule Association for %s: %+v", *id, err)
-	}
-
-	d.SetId(resourceId)
+	d.SetId(id.ID())
 
 	return resourceNetworkInterfaceNatRuleAssociationRead(d, meta)
 }
 
 func resourceNetworkInterfaceNatRuleAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.InterfacesClient
+	client := meta.(*clients.Client).Network.Client.NetworkInterfaces
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	splitId := strings.Split(d.Id(), "|")
-	if len(splitId) != 2 {
-		return fmt.Errorf("Expected ID to be in the format {networkInterfaceId}/ipConfigurations/{ipConfigurationName}|{natRuleId} but got %q", d.Id())
-	}
-
-	nicID, err := parse.NetworkInterfaceIpConfigurationID(splitId[0])
+	id, err := commonids.ParseCompositeResourceID(d.Id(), &commonids.NetworkInterfaceIPConfigurationId{}, &loadbalancers.InboundNatRuleId{})
 	if err != nil {
 		return err
 	}
 
-	natRuleId := splitId[1]
+	networkInterfaceId := commonids.NewNetworkInterfaceID(id.First.SubscriptionId, id.First.ResourceGroupName, id.First.NetworkInterfaceName)
 
-	read, err := client.Get(ctx, nicID.ResourceGroup, nicID.NetworkInterfaceName, "")
+	read, err := client.Get(ctx, networkInterfaceId, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(read.Response) {
-			log.Printf("Network Interface %q (Resource Group %q) was not found - removing from state!", nicID.NetworkInterfaceName, nicID.ResourceGroup)
+		if response.WasNotFound(read.HttpResponse) {
+			log.Printf("%s was not found - removing from state!", networkInterfaceId)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Network Interface %q (Resource Group %q): %+v", nicID.NetworkInterfaceName, nicID.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", networkInterfaceId, err)
 	}
 
-	nicProps := read.InterfacePropertiesFormat
-	if nicProps == nil {
-		return fmt.Errorf("Error: `properties` was nil for Network Interface %q (Resource Group %q)", nicID.NetworkInterfaceName, nicID.ResourceGroup)
-	}
+	if model := read.Model; model != nil {
+		if props := model.Properties; props != nil {
+			ipConfigs := props.IPConfigurations
+			if ipConfigs == nil {
+				return fmt.Errorf("`properties.ipConfigurations` was nil for %s", networkInterfaceId)
+			}
 
-	ipConfigs := nicProps.IPConfigurations
-	if ipConfigs == nil {
-		return fmt.Errorf("Error: `properties.IPConfigurations` was nil for Network Interface %q (Resource Group %q)", nicID.NetworkInterfaceName, nicID.ResourceGroup)
-	}
+			config := FindNetworkInterfaceIPConfiguration(props.IPConfigurations, id.First.IpConfigurationName)
+			if config == nil {
+				log.Printf("IP Configuration %q was not found in %s - removing from state!", id.First.IpConfigurationName, networkInterfaceId)
+				d.SetId("")
+				return nil
+			}
 
-	c := FindNetworkInterfaceIPConfiguration(nicProps.IPConfigurations, nicID.IpConfigurationName)
-	if c == nil {
-		log.Printf("IP Configuration %q was not found in Network Interface %q (Resource Group %q) - removing from state!", nicID.IpConfigurationName, nicID.NetworkInterfaceName, nicID.ResourceGroup)
-		d.SetId("")
-		return nil
-	}
-	config := *c
+			found := false
+			if ipConfigProps := config.Properties; ipConfigProps != nil {
+				if rules := ipConfigProps.LoadBalancerInboundNatRules; rules != nil {
+					for _, rule := range *rules {
+						if rule.Id == nil {
+							continue
+						}
 
-	found := false
-	if props := config.InterfaceIPConfigurationPropertiesFormat; props != nil {
-		if rules := props.LoadBalancerInboundNatRules; rules != nil {
-			for _, rule := range *rules {
-				if rule.ID == nil {
-					continue
+						if *rule.Id == id.Second.ID() {
+							found = true
+							break
+						}
+					}
 				}
-
-				if *rule.ID == natRuleId {
-					found = true
-					break
-				}
+			}
+			if !found {
+				log.Printf("[DEBUG] Association between %s and %s was not found - removing from state!", id.First, id.Second)
+				d.SetId("")
+				return nil
 			}
 		}
 	}
 
-	if !found {
-		log.Printf("[DEBUG] Association between Network Interface %q (Resource Group %q) and Load Balancer NAT Rule %q was not found - removing from state!", nicID.NetworkInterfaceName, nicID.ResourceGroup, natRuleId)
-		d.SetId("")
-		return nil
-	}
-
-	d.Set("ip_configuration_name", nicID.IpConfigurationName)
-	d.Set("nat_rule_id", natRuleId)
-	d.Set("network_interface_id", read.ID)
+	d.Set("ip_configuration_name", id.First.IpConfigurationName)
+	d.Set("nat_rule_id", id.Second.ID())
+	d.Set("network_interface_id", networkInterfaceId.ID())
 
 	return nil
 }
 
 func resourceNetworkInterfaceNatRuleAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.InterfacesClient
+	client := meta.(*clients.Client).Network.Client.NetworkInterfaces
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	splitId := strings.Split(d.Id(), "|")
-	if len(splitId) != 2 {
-		return fmt.Errorf("Expected ID to be in the format {networkInterfaceId}/ipConfigurations/{ipConfigurationName}|{natRuleId} but got %q", d.Id())
-	}
-
-	nicID, err := parse.NetworkInterfaceIpConfigurationID(splitId[0])
+	id, err := commonids.ParseCompositeResourceID(d.Id(), &commonids.NetworkInterfaceIPConfigurationId{}, &loadbalancers.InboundNatRuleId{})
 	if err != nil {
 		return err
 	}
 
-	natRuleId := splitId[1]
+	networkInterfaceId := commonids.NewNetworkInterfaceID(id.First.SubscriptionId, id.First.ResourceGroupName, id.First.NetworkInterfaceName)
 
-	locks.ByName(nicID.NetworkInterfaceName, networkInterfaceResourceName)
-	defer locks.UnlockByName(nicID.NetworkInterfaceName, networkInterfaceResourceName)
+	locks.ByName(id.First.NetworkInterfaceName, networkInterfaceResourceName)
+	defer locks.UnlockByName(id.First.NetworkInterfaceName, networkInterfaceResourceName)
 
-	read, err := client.Get(ctx, nicID.ResourceGroup, nicID.NetworkInterfaceName, "")
+	read, err := client.Get(ctx, networkInterfaceId, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(read.Response) {
-			return fmt.Errorf("Network Interface %q (Resource Group %q) was not found!", nicID.NetworkInterfaceName, nicID.ResourceGroup)
+		if response.WasNotFound(read.HttpResponse) {
+			return fmt.Errorf("%s was not found", networkInterfaceId)
 		}
 
-		return fmt.Errorf("retrieving Network Interface %q (Resource Group %q): %+v", nicID.NetworkInterfaceName, nicID.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", networkInterfaceId, err)
 	}
 
-	nicProps := read.InterfacePropertiesFormat
-	if nicProps == nil {
-		return fmt.Errorf("Error: `properties` was nil for Network Interface %q (Resource Group %q)", nicID.NetworkInterfaceName, nicID.ResourceGroup)
+	if read.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", networkInterfaceId)
+	}
+	if read.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", networkInterfaceId)
+	}
+	if read.Model.Properties.IPConfigurations == nil {
+		return fmt.Errorf("retrieving %s: `properties.ipConfigurations` was nil", networkInterfaceId)
 	}
 
-	ipConfigs := nicProps.IPConfigurations
-	if ipConfigs == nil {
-		return fmt.Errorf("Error: `properties.IPConfigurations` was nil for Network Interface %q (Resource Group %q)", nicID.NetworkInterfaceName, nicID.ResourceGroup)
+	props := read.Model.Properties
+
+	config := FindNetworkInterfaceIPConfiguration(props.IPConfigurations, id.First.IpConfigurationName)
+	if config == nil {
+		return fmt.Errorf("IP Configuration %q was not found for %s", id.First.IpConfigurationName, networkInterfaceId)
 	}
 
-	c := FindNetworkInterfaceIPConfiguration(nicProps.IPConfigurations, nicID.IpConfigurationName)
-	if c == nil {
-		return fmt.Errorf("Error: IP Configuration %q was not found on Network Interface %q (Resource Group %q)", nicID.IpConfigurationName, nicID.NetworkInterfaceName, nicID.ResourceGroup)
-	}
-	config := *c
-
-	props := config.InterfaceIPConfigurationPropertiesFormat
-	if props == nil {
-		return fmt.Errorf("Error: Properties for IPConfiguration %q was nil for Network Interface %q (Resource Group %q)", nicID.IpConfigurationName, nicID.NetworkInterfaceName, nicID.ResourceGroup)
+	ipConfigProps := config.Properties
+	if ipConfigProps == nil {
+		return fmt.Errorf("retrieving %s: `ipConfiguration.Properties` was nil", networkInterfaceId)
 	}
 
-	updatedRules := make([]network.InboundNatRule, 0)
-	if existingRules := props.LoadBalancerInboundNatRules; existingRules != nil {
+	updatedRules := make([]networkinterfaces.InboundNatRule, 0)
+	if existingRules := ipConfigProps.LoadBalancerInboundNatRules; existingRules != nil {
 		for _, rule := range *existingRules {
-			if rule.ID == nil {
+			if rule.Id == nil {
 				continue
 			}
 
-			if *rule.ID != natRuleId {
+			if *rule.Id != id.Second.ID() {
 				updatedRules = append(updatedRules, rule)
 			}
 		}
 	}
-	props.LoadBalancerInboundNatRules = &updatedRules
-	nicProps.IPConfigurations = updateNetworkInterfaceIPConfiguration(config, nicProps.IPConfigurations)
+	ipConfigProps.LoadBalancerInboundNatRules = &updatedRules
+	props.IPConfigurations = updateNetworkInterfaceIPConfiguration(*config, props.IPConfigurations)
 
-	future, err := client.CreateOrUpdate(ctx, nicID.ResourceGroup, nicID.NetworkInterfaceName, read)
-	if err != nil {
-		return fmt.Errorf("removing NAT Rule Association for Network Interface %q (Resource Group %q): %+v", nicID.NetworkInterfaceName, nicID.ResourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for removal of NAT Rule Association for NIC %q (Resource Group %q): %+v", nicID.NetworkInterfaceName, nicID.ResourceGroup, err)
+	if err := client.CreateOrUpdateThenPoll(ctx, networkInterfaceId, *read.Model); err != nil {
+		return fmt.Errorf("removing NAT Rule Association for %s: %+v", networkInterfaceId, err)
 	}
 
 	return nil

@@ -16,6 +16,14 @@ type WebtestLocationAvailabilityCriteria struct {
 	WebTestId           string  `json:"webTestId"`
 
 	// Fields inherited from MetricAlertCriteria
+
+	OdataType Odatatype `json:"odata.type"`
+}
+
+func (s WebtestLocationAvailabilityCriteria) MetricAlertCriteria() BaseMetricAlertCriteriaImpl {
+	return BaseMetricAlertCriteriaImpl{
+		OdataType: s.OdataType,
+	}
 }
 
 var _ json.Marshaler = WebtestLocationAvailabilityCriteria{}
@@ -29,9 +37,10 @@ func (s WebtestLocationAvailabilityCriteria) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling WebtestLocationAvailabilityCriteria: %+v", err)
 	}
+
 	decoded["odata.type"] = "Microsoft.Azure.Monitor.WebtestLocationAvailabilityCriteria"
 
 	encoded, err = json.Marshal(decoded)

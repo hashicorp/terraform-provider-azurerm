@@ -27,7 +27,6 @@ func TestGlobalSchemaID(t *testing.T) {
 		Error    bool
 		Expected *GlobalSchemaId
 	}{
-
 		{
 			// empty
 			Input: "",

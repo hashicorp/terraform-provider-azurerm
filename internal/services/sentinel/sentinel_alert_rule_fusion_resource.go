@@ -8,20 +8,23 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+const SentinelAlertRuleFusionName = "BuiltInFusion"
+
 func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Create: resourceSentinelAlertRuleFusionCreateUpdate,
+	resource := &pluginsdk.Resource{
+		Create: resourceSentinelAlertRuleFusionCreate,
 		Read:   resourceSentinelAlertRuleFusionRead,
-		Update: resourceSentinelAlertRuleFusionCreateUpdate,
+		Update: resourceSentinelAlertRuleFusionUpdate,
 		Delete: resourceSentinelAlertRuleFusionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
@@ -37,13 +40,6 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
 			"log_analytics_workspace_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -67,7 +63,8 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 			"source": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				// Service will auto-fill this if not given in request, based on the "alert_rule_template_guid".
+				// NOTE: O+C The API creates a source if omitted based on the `alert_rule_template_guid`
+				// but overwriting this/reverting to the default can be done without issue so this can remain
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
@@ -121,14 +118,29 @@ func resourceSentinelAlertRuleFusion() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["name"] = &pluginsdk.Schema{
+			Deprecated:   "the `name` is deprecated and will be removed in v5.0 version of the provider.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      SentinelAlertRuleFusionName,
+			ValidateFunc: validation.StringIsNotEmpty,
+		}
+	}
+	return resource
 }
 
-func resourceSentinelAlertRuleFusionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceSentinelAlertRuleFusionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Sentinel.AlertRulesClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
+	name := SentinelAlertRuleFusionName
+	if !features.FivePointOh() {
+		name = d.Get("name").(string)
+	}
 
 	workspaceID, err := alertrules.ParseWorkspaceID(d.Get("log_analytics_workspace_id").(string))
 	if err != nil {
@@ -136,19 +148,8 @@ func resourceSentinelAlertRuleFusionCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 	id := alertrules.NewAlertRuleID(workspaceID.SubscriptionId, workspaceID.ResourceGroupName, workspaceID.WorkspaceName, name)
 
-	if d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for existing %q: %+v", id, err)
-			}
-		}
-
-		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_sentinel_alert_rule_fusion", id.ID())
-		}
-	}
-
+	// The only one fusion alert is enabled by default, so we do not do exisiting check here.
+	// https://learn.microsoft.com/en-us/azure/sentinel/configure-fusion-rules#configure-scheduled-analytics-rules-for-fusion-detections
 	params := alertrules.FusionAlertRule{
 		Properties: &alertrules.FusionAlertRuleProperties{
 			AlertRuleTemplateName: d.Get("alert_rule_template_guid").(string),
@@ -157,25 +158,65 @@ func resourceSentinelAlertRuleFusionCreateUpdate(d *pluginsdk.ResourceData, meta
 		},
 	}
 
-	if !d.IsNewResource() {
-		resp, err := client.Get(ctx, id)
-		if err != nil {
-			return fmt.Errorf("retrieving %q: %+v", id, err)
-		}
-
-		if resp.Model == nil {
-			return fmt.Errorf("retrieving %q: model was nil", id)
-		}
-		if err = assertAlertRuleKind(resp.Model, alertrules.AlertRuleKindFusion); err != nil {
-			return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
-		}
-	}
-
 	if _, err := client.CreateOrUpdate(ctx, id, params); err != nil {
-		return fmt.Errorf("creating Sentinel Alert Rule Fusion %q: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+
+	return resourceSentinelAlertRuleFusionRead(d, meta)
+}
+
+func resourceSentinelAlertRuleFusionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Sentinel.AlertRulesClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := alertrules.ParseAlertRuleID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	resp, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if resp.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	payload, ok := resp.Model.(alertrules.FusionAlertRule)
+	if !ok {
+		return fmt.Errorf("retrieving %s: expected an alert rule of type `Fusion`, got %q", id, pointer.From(resp.Model.AlertRule().Type))
+	}
+
+	if payload.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	if d.HasChange("alert_rule_template_guid") {
+		payload.Properties.AlertRuleTemplateName = d.Get("alert_rule_template_guid").(string)
+	}
+
+	if d.HasChange("enabled") {
+		payload.Properties.Enabled = d.Get("enabled").(bool)
+	}
+
+	if d.HasChange("source") {
+		payload.Properties.SourceSettings = expandFusionSourceSettings(d.Get("source").([]interface{}))
+	}
+
+	// The `Description` is read-only but not specified on the Swagger, tracked on: https://github.com/Azure/azure-rest-api-specs/issues/31330
+	payload.Properties.Description = nil
+	payload.Properties.DisplayName = nil
+	payload.Properties.LastModifiedUtc = nil
+	payload.Properties.Severity = nil
+	payload.Properties.Tactics = nil
+
+	if _, err := client.CreateOrUpdate(ctx, *id, payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
 
 	return resourceSentinelAlertRuleFusionRead(d, meta)
 }
@@ -193,31 +234,33 @@ func resourceSentinelAlertRuleFusionRead(d *pluginsdk.ResourceData, meta interfa
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			log.Printf("[DEBUG] %q was not found - removing from state!", id)
+			log.Printf("[DEBUG] %s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Sentinel Alert Rule Fusion %q: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
+
+	workspaceId := alertrules.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
+
+	if !features.FivePointOh() {
+		d.Set("name", id.RuleId)
+	}
+	d.Set("log_analytics_workspace_id", workspaceId.ID())
 
 	if model := resp.Model; model != nil {
 		if err := assertAlertRuleKind(resp.Model, alertrules.AlertRuleKindFusion); err != nil {
-			return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
+			return fmt.Errorf("asserting alert rule of %s: %+v", id, err)
 		}
-		modelPtr := *model
-		rule := modelPtr.(alertrules.FusionAlertRule)
 
-		d.Set("name", id.RuleId)
-
-		workspaceId := alertrules.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
-		d.Set("log_analytics_workspace_id", workspaceId.ID())
-
-		if prop := rule.Properties; prop != nil {
-			d.Set("enabled", prop.Enabled)
-			d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
-			if err := d.Set("source", flattenFusionSourceSettings(prop.SourceSettings)); err != nil {
-				return fmt.Errorf("setting `source`: %v", err)
+		if rule, ok := model.(alertrules.FusionAlertRule); ok {
+			if prop := rule.Properties; prop != nil {
+				d.Set("enabled", prop.Enabled)
+				d.Set("alert_rule_template_guid", prop.AlertRuleTemplateName)
+				if err := d.Set("source", flattenFusionSourceSettings(prop.SourceSettings)); err != nil {
+					return fmt.Errorf("setting `source`: %v", err)
+				}
 			}
 		}
 	}
@@ -236,7 +279,7 @@ func resourceSentinelAlertRuleFusionDelete(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if _, err := client.Delete(ctx, *id); err != nil {
-		return fmt.Errorf("deleting Sentinel Alert Rule Fusion %q: %+v", id, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil

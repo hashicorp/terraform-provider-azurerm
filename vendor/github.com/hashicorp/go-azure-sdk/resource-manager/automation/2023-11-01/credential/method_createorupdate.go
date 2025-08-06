@@ -50,7 +50,6 @@ func (c CredentialClient) CreateOrUpdate(ctx context.Context, id CredentialId, i
 
 	var model Credential
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

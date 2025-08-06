@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&PostRuleId{})
+}
 
 var _ resourceids.ResourceId = &PostRuleId{}
 
@@ -35,7 +40,7 @@ func ParsePostRuleID(input string) (*PostRuleId, error) {
 	}
 
 	id := PostRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -52,7 +57,7 @@ func ParsePostRuleIDInsensitively(input string) (*PostRuleId, error) {
 	}
 
 	id := PostRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -100,9 +105,9 @@ func (id PostRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticPaloAltoNetworksCloudngfw", "PaloAltoNetworks.Cloudngfw", "PaloAltoNetworks.Cloudngfw"),
 		resourceids.StaticSegment("staticGlobalRulestacks", "globalRulestacks", "globalRulestacks"),
-		resourceids.UserSpecifiedSegment("globalRulestackName", "globalRulestackValue"),
+		resourceids.UserSpecifiedSegment("globalRulestackName", "globalRulestackName"),
 		resourceids.StaticSegment("staticPostRules", "postRules", "postRules"),
-		resourceids.UserSpecifiedSegment("postRuleName", "postRuleValue"),
+		resourceids.UserSpecifiedSegment("postRuleName", "postRuleName"),
 	}
 }
 

@@ -39,6 +39,7 @@ func (o ListAtTenantScopeOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListAtTenantScopeOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -50,6 +51,18 @@ func (o ListAtTenantScopeOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListAtTenantScopeCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListAtTenantScopeCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListAtTenantScope ...
 func (c ProvidersClient) ListAtTenantScope(ctx context.Context, options ListAtTenantScopeOperationOptions) (result ListAtTenantScopeOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +71,9 @@ func (c ProvidersClient) ListAtTenantScope(ctx context.Context, options ListAtTe
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          "/providers",
 		OptionsObject: options,
+		Pager:         &ListAtTenantScopeCustomPager{},
+		Path:          "/providers",
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -100,6 +114,7 @@ func (c ProvidersClient) ListAtTenantScopeCompleteMatchingPredicate(ctx context.
 
 	resp, err := c.ListAtTenantScope(ctx, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

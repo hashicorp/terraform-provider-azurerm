@@ -86,13 +86,14 @@ func resourceLogAnalyticsSavedSearch() *pluginsdk.Resource {
 			},
 
 			"function_parameters": {
-				Type:     pluginsdk.TypeSet,
+				Type:     pluginsdk.TypeList,
 				Optional: true,
 				ForceNew: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
+					// https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/functions/user-defined-functions
 					ValidateFunc: validation.StringMatch(
-						regexp.MustCompile(`^[a-zA-Z0-9!-_]*:[a-zA-Z0-9!_-]+=[a-zA-Z0-9!_-]+|^[a-zA-Z0-9!-_]*:[a-zA-Z0-9!_-]+`),
+						regexp.MustCompile(`^[a-zA-Z_][a-zA-Z0-9-_]*:([a-z]+(=[^,\n]+)?|\(\*\)|(\([a-zA-Z_][a-zA-Z0-9-_]*:[a-z]+(,[a-zA-Z_][a-zA-Z0-9-_]*:([a-z]+))*\)))(,\s*[a-zA-Z_][a-zA-Z0-9-_]*:([a-z]+(=[^,\n]+)?|\(\*\)|(\([a-zA-Z_][a-zA-Z0-9-_]*:[a-z]+(,\s*[a-zA-Z_][a-zA-Z0-9-_]*:([a-z]+))*\))))*$`),
 						"Log Analytics Saved Search Function Parameters must be in the following format: param-name1:type1=default_value1 OR param-name1:type1 OR param-name1:string='string goes here'",
 					),
 				},
@@ -138,7 +139,7 @@ func resourceLogAnalyticsSavedSearchCreate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if v, ok := d.GetOk("function_parameters"); ok {
-		attrs := v.(*pluginsdk.Set).List()
+		attrs := v.([]interface{})
 		result := make([]string, 0)
 		for _, item := range attrs {
 			if item != nil {

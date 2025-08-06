@@ -9,12 +9,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/applicationgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	containerValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
-	applicationGatewayValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -163,7 +163,7 @@ func schemaKubernetesAddOns() map[string]*pluginsdk.Schema {
 							"ingress_application_gateway.0.subnet_cidr",
 							"ingress_application_gateway.0.subnet_id",
 						},
-						ValidateFunc: applicationGatewayValidate.ApplicationGatewayID,
+						ValidateFunc: applicationgateways.ValidateApplicationGatewayID,
 					},
 					"gateway_name": {
 						Type:         pluginsdk.TypeString,
@@ -503,7 +503,7 @@ func flattenKubernetesAddOns(profile map[string]managedclusters.ManagedClusterAd
 		useAADAuth := false
 
 		if v := kubernetesAddonProfilelocateInConfig(omsAgent.Config, "logAnalyticsWorkspaceResourceID"); v != "" {
-			if lawid, err := workspaces.ParseWorkspaceID(v); err == nil {
+			if lawid, err := workspaces.ParseWorkspaceIDInsensitively(v); err == nil {
 				workspaceID = lawid.ID()
 			}
 		}

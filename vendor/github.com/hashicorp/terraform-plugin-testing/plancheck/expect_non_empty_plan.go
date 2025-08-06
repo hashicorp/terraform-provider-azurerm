@@ -14,6 +14,12 @@ type expectNonEmptyPlan struct{}
 
 // CheckPlan implements the plan check logic.
 func (e expectNonEmptyPlan) CheckPlan(ctx context.Context, req CheckPlanRequest, resp *CheckPlanResponse) {
+	for _, change := range req.Plan.OutputChanges {
+		if !change.Actions.NoOp() {
+			return
+		}
+	}
+
 	for _, rc := range req.Plan.ResourceChanges {
 		if !rc.Change.Actions.NoOp() {
 			return
@@ -23,7 +29,7 @@ func (e expectNonEmptyPlan) CheckPlan(ctx context.Context, req CheckPlanRequest,
 	resp.Error = errors.New("expected a non-empty plan, but got an empty plan")
 }
 
-// ExpectNonEmptyPlan returns a plan check that asserts there is at least one resource change in the plan.
+// ExpectNonEmptyPlan returns a plan check that asserts there is at least one output or resource change in the plan.
 func ExpectNonEmptyPlan() PlanCheck {
 	return expectNonEmptyPlan{}
 }

@@ -46,7 +46,6 @@ func (c VirtualMachineScaleSetRollingUpgradesClient) GetLatest(ctx context.Conte
 
 	var model RollingUpgradeStatusInfo
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -40,6 +40,7 @@ func (o FederatedIdentityCredentialsListOperationOptions) ToHeaders() *client.He
 
 func (o FederatedIdentityCredentialsListOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -51,6 +52,18 @@ func (o FederatedIdentityCredentialsListOperationOptions) ToQuery() *client.Quer
 	return &out
 }
 
+type FederatedIdentityCredentialsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *FederatedIdentityCredentialsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // FederatedIdentityCredentialsList ...
 func (c ManagedIdentitiesClient) FederatedIdentityCredentialsList(ctx context.Context, id commonids.UserAssignedIdentityId, options FederatedIdentityCredentialsListOperationOptions) (result FederatedIdentityCredentialsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -59,8 +72,9 @@ func (c ManagedIdentitiesClient) FederatedIdentityCredentialsList(ctx context.Co
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/federatedIdentityCredentials", id.ID()),
 		OptionsObject: options,
+		Pager:         &FederatedIdentityCredentialsListCustomPager{},
+		Path:          fmt.Sprintf("%s/federatedIdentityCredentials", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -101,6 +115,7 @@ func (c ManagedIdentitiesClient) FederatedIdentityCredentialsListCompleteMatchin
 
 	resp, err := c.FederatedIdentityCredentialsList(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

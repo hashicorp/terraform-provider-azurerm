@@ -11,16 +11,16 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	arckubernetes "github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2021-10-01/connectedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2022-11-01/fluxconfiguration"
+	arckubernetes "github.com/hashicorp/go-azure-sdk/resource-manager/hybridkubernetes/2024-01-01/connectedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kubernetesconfiguration/2024-11-01/fluxconfiguration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/containers"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/containers"
 )
 
 const (
@@ -99,9 +99,7 @@ type KustomizationDefinitionModel struct {
 
 type ArcKubernetesFluxConfigurationResource struct{}
 
-var (
-	_ sdk.ResourceWithUpdate = ArcKubernetesFluxConfigurationResource{}
-)
+var _ sdk.ResourceWithUpdate = ArcKubernetesFluxConfigurationResource{}
 
 func (r ArcKubernetesFluxConfigurationResource) ResourceType() string {
 	return "azurerm_arc_kubernetes_flux_configuration"
@@ -887,7 +885,7 @@ func expandBucketDefinitionModel(inputList []BucketDefinitionModel) (*fluxconfig
 		output.Url = &input.Url
 	}
 
-	var configSettings = make(map[string]string)
+	configSettings := make(map[string]string)
 	if input.SecretKey != "" {
 		configSettings["bucketSecretKey"] = input.SecretKey
 	}
@@ -938,7 +936,7 @@ func expandGitRepositoryDefinitionModel(inputList []GitRepositoryDefinitionModel
 		output.Url = &input.Url
 	}
 
-	var configSettings = make(map[string]string)
+	configSettings := make(map[string]string)
 	if input.HttpsKey != "" {
 		configSettings["httpsKey"] = input.HttpsKey
 	}

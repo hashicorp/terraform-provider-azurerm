@@ -41,21 +41,27 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
+* `custom_ip_prefix_id` - (Optional) The Custom IP Prefix ID associated with the Public IP Prefix. Changing this forces a new resource to be created.
+
+-> **Note:** When `ip_version` is set to `IPv6`, `custom_ip_prefix_id` must reference a regional (child) range rather than a global (parent) range. For more details on creating a Public IP Prefix from a custom IP prefix, see [here](https://learn.microsoft.com/en-us/azure/virtual-network/ip-services/manage-custom-ip-address-prefix#create-a-public-ip-prefix-from-a-custom-ip-prefix).
+
 * `sku` - (Optional) The SKU of the Public IP Prefix. Accepted values are `Standard`. Defaults to `Standard`. Changing this forces a new resource to be created.
 
 -> **Note:** Public IP Prefix can only be created with Standard SKUs at this time.
+
+* `sku_tier` - (Optional) The SKU Tier that should be used for the Public IP. Possible values are `Regional` and `Global`. Defaults to `Regional`. Changing this forces a new resource to be created.
 
 * `ip_version` - (Optional) The IP Version to use, `IPv6` or `IPv4`. Changing this forces a new resource to be created. Default is `IPv4`.
 
 * `prefix_length` - (Optional) Specifies the number of bits of the prefix. The value can be set between 0 (4,294,967,296 addresses) and 31 (2 addresses). Defaults to `28`(16 addresses). Changing this forces a new resource to be created.
 
--> **Please Note:** There may be Public IP address limits on the subscription . [More information available here](https://docs.microsoft.com/azure/azure-subscription-service-limits?toc=%2fazure%2fvirtual-network%2ftoc.json#publicip-address)
+-> **Note:** There may be Public IP address limits on the subscription . [More information available here](https://docs.microsoft.com/azure/azure-subscription-service-limits?toc=%2fazure%2fvirtual-network%2ftoc.json#publicip-address)
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Public IP Prefix should be located. Changing this forces a new Public IP Prefix to be created.
 
--> **Please Note:** Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview).
+-> **Note:** Availability Zones are [only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview).
 
 ## Attributes Reference
 
@@ -69,8 +75,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Public IP Prefix.
-* `update` - (Defaults to 30 minutes) Used when updating the Public IP Prefix.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Public IP Prefix.
+* `update` - (Defaults to 30 minutes) Used when updating the Public IP Prefix.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Public IP Prefix.
 
 ## Import
@@ -80,3 +86,9 @@ Public IP Prefixes can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_public_ip_prefix.myPublicIpPrefix /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/publicIPPrefixes/myPublicIpPrefix1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

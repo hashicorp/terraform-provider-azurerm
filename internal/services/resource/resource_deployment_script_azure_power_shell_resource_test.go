@@ -110,7 +110,7 @@ func (r ResourceDeploymentScriptAzurePowerShellResource) Exists(ctx context.Cont
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil && *resp.Model != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r ResourceDeploymentScriptAzurePowerShellResource) template(data acceptance.TestData) string {

@@ -15,7 +15,7 @@ type WorkflowsClient struct {
 }
 
 func NewWorkflowsClientWithBaseURI(sdkApi sdkEnv.Api) (*WorkflowsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "workflows", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "workflows", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating WorkflowsClient: %+v", err)
 	}

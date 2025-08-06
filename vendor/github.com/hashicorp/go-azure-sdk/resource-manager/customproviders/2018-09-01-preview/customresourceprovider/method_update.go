@@ -49,7 +49,6 @@ func (c CustomResourceProviderClient) Update(ctx context.Context, id ResourcePro
 
 	var model CustomRPManifest
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

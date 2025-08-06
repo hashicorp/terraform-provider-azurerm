@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&FunctionId{})
+}
 
 var _ resourceids.ResourceId = &FunctionId{}
 
@@ -39,7 +44,7 @@ func ParseFunctionID(input string) (*FunctionId, error) {
 	}
 
 	id := FunctionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParseFunctionIDInsensitively(input string) (*FunctionId, error) {
 	}
 
 	id := FunctionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -116,9 +121,9 @@ func (id FunctionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftStreamAnalytics", "Microsoft.StreamAnalytics", "Microsoft.StreamAnalytics"),
 		resourceids.StaticSegment("staticStreamingJobs", "streamingJobs", "streamingJobs"),
-		resourceids.UserSpecifiedSegment("streamingJobName", "streamingJobValue"),
+		resourceids.UserSpecifiedSegment("streamingJobName", "streamingJobName"),
 		resourceids.StaticSegment("staticFunctions", "functions", "functions"),
-		resourceids.UserSpecifiedSegment("functionName", "functionValue"),
+		resourceids.UserSpecifiedSegment("functionName", "functionName"),
 	}
 }
 

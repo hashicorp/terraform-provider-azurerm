@@ -137,10 +137,12 @@ func schemaAppServiceFunctionAppSiteConfig() *pluginsdk.Schema {
 				},
 
 				"elastic_instance_minimum": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Computed:     true,
-					ValidateFunc: validation.IntBetween(0, 20),
+					Type:     pluginsdk.TypeInt,
+					Optional: true,
+					Computed: true,
+					ValidateFunc: func() pluginsdk.SchemaValidateFunc {
+						return validation.IntBetween(1, 20)
+					}(),
 				},
 
 				"app_scale_limit": {
@@ -478,7 +480,7 @@ func expandFunctionAppSiteConfig(d *pluginsdk.ResourceData) (web.SiteConfig, err
 		siteConfig.JavaVersion = utils.String(v.(string))
 	}
 
-	if v, ok := config["elastic_instance_minimum"]; ok {
+	if v, ok := config["elastic_instance_minimum"]; ok && v.(int) > 0 {
 		siteConfig.MinimumElasticInstanceCount = utils.Int32(int32(v.(int)))
 	}
 

@@ -33,6 +33,7 @@ func (o RefreshCountersOperationOptions) ToHeaders() *client.Headers {
 
 func (o RefreshCountersOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -52,8 +53,8 @@ func (c LocalRulesClient) RefreshCounters(ctx context.Context, id LocalRuleId, o
 			http.StatusNoContent,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/refreshCounters", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/refreshCounters", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

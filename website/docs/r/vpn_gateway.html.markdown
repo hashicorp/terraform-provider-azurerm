@@ -65,7 +65,7 @@ The following arguments are supported:
 
 * `bgp_settings` - (Optional) A `bgp_settings` block as defined below.
 
-* `routing_preference` - (Optional) Azure routing preference lets you to choose how your traffic routes between Azure and the internet. You can choose to route traffic either via the Microsoft network (default value, `Microsoft Network`), or via the ISP network (public internet, set to `Internet`). More context of the configuration can be found in the [Microsoft Docs](https://docs.microsoft.com/azure/virtual-wan/virtual-wan-site-to-site-portal#gateway) to create a VPN Gateway. Changing this forces a new resource to be created.
+* `routing_preference` - (Optional) Azure routing preference lets you to choose how your traffic routes between Azure and the internet. You can choose to route traffic either via the Microsoft network (default value, `Microsoft Network`), or via the ISP network (public internet, set to `Internet`). More context of the configuration can be found in the [Microsoft Docs](https://docs.microsoft.com/azure/virtual-wan/virtual-wan-site-to-site-portal#gateway) to create a VPN Gateway. Defaults to `Microsoft Network`. Changing this forces a new resource to be created.
 
 * `scale_unit` - (Optional) The Scale Unit for this VPN Gateway. Defaults to `1`.
 
@@ -97,6 +97,8 @@ In addition to the arguments above, the following attributes are exported:
 
 * `bgp_settings` - A `bgp_settings` block as defined below.
 
+* `ip_configuration` - An `ip_configuration` block as defined below.
+
 ---
 
 A `bgp_settings` block exports the following:
@@ -117,13 +119,23 @@ A `instance_bgp_peering_address` block exports the following:
 
 * `tunnel_ips` - The list of tunnel public IP addresses which belong to the pre-defined VPN Gateway IP configuration.
 
+---
+
+An `ip_configuration` block exports the following:
+
+* `id` - The identifier of the IP configuration for the VPN Gateway.
+
+* `private_ip_address` - The private IP address of this IP configuration.
+
+* `public_ip_address` - The public IP address of this IP configuration.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the VPN Gateway.
-* `update` - (Defaults to 90 minutes) Used when updating the VPN Gateway.
 * `read` - (Defaults to 5 minutes) Used when retrieving the VPN Gateway.
+* `update` - (Defaults to 90 minutes) Used when updating the VPN Gateway.
 * `delete` - (Defaults to 90 minutes) Used when deleting the VPN Gateway.
 
 ## Import
@@ -133,3 +145,9 @@ VPN Gateways can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_vpn_gateway.gateway1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/vpnGateways/gateway1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

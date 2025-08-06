@@ -6,10 +6,11 @@ package compute
 import (
 	"context"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 // nolint: deadcode unused
@@ -29,7 +30,7 @@ type connectionInfo struct {
 
 // retrieveConnectionInformation retrieves all of the Public and Private IP Addresses assigned to a Virtual Machine
 // nolint: deadcode unused
-func retrieveConnectionInformation(ctx context.Context, nicsClient *network.InterfacesClient, pipsClient *network.PublicIPAddressesClient, input *virtualmachines.VirtualMachineProperties) connectionInfo {
+func retrieveConnectionInformation(ctx context.Context, nicsClient *networkinterfaces.NetworkInterfacesClient, pipsClient *publicipaddresses.PublicIPAddressesClient, input *virtualmachines.VirtualMachineProperties) connectionInfo {
 	if input == nil || input.NetworkProfile == nil || input.NetworkProfile.NetworkInterfaces == nil {
 		return connectionInfo{}
 	}
@@ -37,20 +38,18 @@ func retrieveConnectionInformation(ctx context.Context, nicsClient *network.Inte
 	privateIPAddresses := make([]string, 0)
 	publicIPAddresses := make([]string, 0)
 
-	if input != nil && input.NetworkProfile != nil && input.NetworkProfile.NetworkInterfaces != nil {
-		for _, v := range *input.NetworkProfile.NetworkInterfaces {
-			if v.Id == nil {
-				continue
-			}
-
-			nic := retrieveIPAddressesForNIC(ctx, nicsClient, pipsClient, *v.Id)
-			if nic == nil {
-				continue
-			}
-
-			privateIPAddresses = append(privateIPAddresses, nic.privateIPAddresses...)
-			publicIPAddresses = append(publicIPAddresses, nic.publicIPAddresses...)
+	for _, v := range *input.NetworkProfile.NetworkInterfaces {
+		if v.Id == nil {
+			continue
 		}
+
+		nic := retrieveIPAddressesForNIC(ctx, nicsClient, pipsClient, *v.Id)
+		if nic == nil {
+			continue
+		}
+
+		privateIPAddresses = append(privateIPAddresses, nic.privateIPAddresses...)
+		publicIPAddresses = append(publicIPAddresses, nic.publicIPAddresses...)
 	}
 
 	primaryPrivateAddress := ""
@@ -82,32 +81,32 @@ type interfaceDetails struct {
 // retrieveIPAddressesForNIC returns the Public and Private IP Addresses associated
 // with the specified Network Interface
 // nolint: deadcode unused
-func retrieveIPAddressesForNIC(ctx context.Context, nicClient *network.InterfacesClient, pipClient *network.PublicIPAddressesClient, nicID string) *interfaceDetails {
-	id, err := parse.NetworkInterfaceID(nicID)
+func retrieveIPAddressesForNIC(ctx context.Context, nicClient *networkinterfaces.NetworkInterfacesClient, pipClient *publicipaddresses.PublicIPAddressesClient, nicID string) *interfaceDetails {
+	id, err := commonids.ParseNetworkInterfaceID(nicID)
 	if err != nil {
 		return nil
 	}
 
-	nic, err := nicClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	nic, err := nicClient.Get(ctx, *id, networkinterfaces.DefaultGetOperationOptions())
 	if err != nil {
 		return nil
 	}
 
-	if nic.InterfacePropertiesFormat == nil || nic.InterfacePropertiesFormat.IPConfigurations == nil {
+	if nic.Model == nil || nic.Model.Properties == nil || nic.Model.Properties.IPConfigurations == nil {
 		return nil
 	}
 
 	privateIPAddresses := make([]string, 0)
 	publicIPAddresses := make([]string, 0)
-	for _, config := range *nic.InterfacePropertiesFormat.IPConfigurations {
-		if props := config.InterfaceIPConfigurationPropertiesFormat; props != nil {
+	for _, config := range *nic.Model.Properties.IPConfigurations {
+		if props := config.Properties; props != nil {
 			if props.PrivateIPAddress != nil {
 				privateIPAddresses = append(privateIPAddresses, *props.PrivateIPAddress)
 			}
 
 			if pip := props.PublicIPAddress; pip != nil {
-				if pip.ID != nil {
-					publicIPAddress, err := retrievePublicIPAddress(ctx, pipClient, *pip.ID)
+				if pip.Id != nil {
+					publicIPAddress, err := retrievePublicIPAddress(ctx, pipClient, *pip.Id)
 					if err != nil {
 						continue
 					}
@@ -128,22 +127,24 @@ func retrieveIPAddressesForNIC(ctx context.Context, nicClient *network.Interface
 
 // retrievePublicIPAddress returns the Public IP Address associated with an Azure Public IP
 // nolint: deadcode unused
-func retrievePublicIPAddress(ctx context.Context, client *network.PublicIPAddressesClient, publicIPAddressID string) (*string, error) {
-	id, err := parse.PublicIpAddressID(publicIPAddressID)
+func retrievePublicIPAddress(ctx context.Context, client *publicipaddresses.PublicIPAddressesClient, publicIPAddressID string) (*string, error) {
+	id, err := commonids.ParsePublicIPAddressID(publicIPAddressID)
 	if err != nil {
 		return nil, err
 	}
 
-	pip, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	pip, err := client.Get(ctx, *id, publicipaddresses.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, err
 	}
 
-	if props := pip.PublicIPAddressPropertiesFormat; props != nil {
-		// if it's Static it'll always have an IP Address assigned
-		// however there's a bug here where Dynamic IP's can take some time until it's assigned after attachment
-		// TODO: fix the bug with Dynamic IP's here
-		return props.IPAddress, nil
+	if model := pip.Model; model != nil {
+		if props := model.Properties; props != nil {
+			// if it's Static it'll always have an IP Address assigned
+			// however there's a bug here where Dynamic IP's can take some time until it's assigned after attachment
+			// TODO: fix the bug with Dynamic IP's here
+			return props.IPAddress, nil
+		}
 	}
 
 	return nil, nil

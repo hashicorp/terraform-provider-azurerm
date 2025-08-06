@@ -50,7 +50,6 @@ func (c RemediationsClient) CreateOrUpdateAtResource(ctx context.Context, id Sco
 
 	var model Remediation
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&LocalRulestackFqdnListId{})
+}
 
 var _ resourceids.ResourceId = &LocalRulestackFqdnListId{}
 
@@ -39,7 +44,7 @@ func ParseLocalRulestackFqdnListID(input string) (*LocalRulestackFqdnListId, err
 	}
 
 	id := LocalRulestackFqdnListId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParseLocalRulestackFqdnListIDInsensitively(input string) (*LocalRulestackFq
 	}
 
 	id := LocalRulestackFqdnListId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -116,9 +121,9 @@ func (id LocalRulestackFqdnListId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticPaloAltoNetworksCloudngfw", "PaloAltoNetworks.Cloudngfw", "PaloAltoNetworks.Cloudngfw"),
 		resourceids.StaticSegment("staticLocalRulestacks", "localRulestacks", "localRulestacks"),
-		resourceids.UserSpecifiedSegment("localRulestackName", "localRulestackValue"),
+		resourceids.UserSpecifiedSegment("localRulestackName", "localRulestackName"),
 		resourceids.StaticSegment("staticFqdnLists", "fqdnLists", "fqdnLists"),
-		resourceids.UserSpecifiedSegment("fqdnListName", "fqdnListValue"),
+		resourceids.UserSpecifiedSegment("fqdnListName", "fqdnListName"),
 	}
 }
 

@@ -46,7 +46,6 @@ func (c VirtualMachinesClient) GetRdpFileContents(ctx context.Context, id Virtua
 
 	var model RdpConnection
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

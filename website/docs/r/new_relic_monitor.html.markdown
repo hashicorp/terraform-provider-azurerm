@@ -33,6 +33,10 @@ resource "azurerm_new_relic_monitor" "example" {
     last_name    = "User"
     phone_number = "+12313803556"
   }
+
+  identity {
+    type = "SystemAssigned"
+  }
 }
 ```
 
@@ -54,13 +58,15 @@ The following arguments are supported:
 
 * `account_id` - (Optional) Specifies the account id. Changing this forces a new Azure Native New Relic Monitor to be created.
 
--> **NOTE:** The value of `account_id` must come from an Azure Native New Relic Monitor instance of another different subscription.
+-> **Note:** The value of `account_id` must come from an Azure Native New Relic Monitor instance of another different subscription.
+
+* `identity` - (Optional) An `identity` block as defined below. Changing this forces a new Azure Native New Relic Monitor to be created.
 
 * `ingestion_key` - (Optional) Specifies the ingestion key of account. Changing this forces a new Azure Native New Relic Monitor to be created.
 
 * `organization_id` - (Optional) Specifies the organization id. Changing this forces a new Azure Native New Relic Monitor to be created.
 
--> **NOTE:** The value of `organization_id` must come from an Azure Native New Relic Monitor instance of another different subscription.
+-> **Note:** The value of `organization_id` must come from an Azure Native New Relic Monitor instance of another different subscription.
 
 * `org_creation_source` - (Optional) Specifies the source of org creation. Possible values are `LIFTR` and `NEWRELIC`. Defaults to `LIFTR`. Changing this forces a new Azure Native New Relic Monitor to be created.
 
@@ -90,11 +96,45 @@ A `user` block supports the following:
 
 * `phone_number` - (Required) Specifies the contact phone number. Changing this forces a new Azure Native New Relic Monitor to be created.
 
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) Specifies the identity type of the Azure Native New Relic Monitor. The only possible value is `SystemAssigned`. Changing this forces a new Azure Native New Relic Monitor to be created.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Azure Native New Relic Monitor.
+
+---
+
+An `identity` block exports the following:
+
+* `principal_id` - The Principal ID for the Service Principal associated with the Identity of this Azure Native New Relic Monitor.
+
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Identity of this Azure Native New Relic Monitor.
+
+## Role Assignment
+
+To enable metrics flow, perform role assignment on the identity created above. `Monitoring reader(43d0d8ad-25c7-4714-9337-8ba259a9fe05)` role is required .
+
+### Role assignment on the monitor created
+
+```hcl
+data "azurerm_subscription" "primary" {}
+
+data "azurerm_role_definition" "monitoring_reader" {
+  name = "Monitoring Reader"
+}
+
+resource "azurerm_role_assignment" "example" {
+  scope              = data.azurerm_subscription.primary.id
+  role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.monitoring_reader.id}"
+  principal_id       = azurerm_new_relic_monitor.example.identity[0].principal_id
+}
+```
 
 ## Timeouts
 
@@ -102,7 +142,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 
 * `create` - (Defaults to 30 minutes) Used when creating the Azure Native New Relic Monitor.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Azure Native New Relic Monitor.
-* `update` - (Defaults to 30 minutes) Used when updating the Azure Native New Relic Monitor.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Azure Native New Relic Monitor.
 
 ## Import
@@ -112,3 +151,9 @@ Azure Native New Relic Monitor can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_new_relic_monitor.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/NewRelic.Observability/monitors/monitor1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `NewRelic.Observability` - 2024-03-01

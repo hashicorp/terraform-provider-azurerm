@@ -39,6 +39,7 @@ func (o ListByTestJobOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByTestJobOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -50,6 +51,18 @@ func (o ListByTestJobOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByTestJobCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByTestJobCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByTestJob ...
 func (c TestJobStreamClient) ListByTestJob(ctx context.Context, id RunbookId, options ListByTestJobOperationOptions) (result ListByTestJobOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +71,9 @@ func (c TestJobStreamClient) ListByTestJob(ctx context.Context, id RunbookId, op
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/draft/testJob/streams", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByTestJobCustomPager{},
+		Path:          fmt.Sprintf("%s/draft/testJob/streams", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -100,6 +114,7 @@ func (c TestJobStreamClient) ListByTestJobCompleteMatchingPredicate(ctx context.
 
 	resp, err := c.ListByTestJob(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

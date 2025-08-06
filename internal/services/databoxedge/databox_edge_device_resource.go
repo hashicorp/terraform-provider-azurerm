@@ -28,7 +28,7 @@ type DevicePropertiesModel struct {
 	Culture             string   `tfschema:"culture"`
 	HcsVersion          string   `tfschema:"hcs_version"`
 	Model               string   `tfschema:"model"`
-	NodeCount           int32    `tfschema:"node_count"`
+	NodeCount           int64    `tfschema:"node_count"`
 	SerialNumber        string   `tfschema:"serial_number"`
 	SoftwareVersion     string   `tfschema:"software_version"`
 	Status              string   `tfschema:"status"`
@@ -315,7 +315,6 @@ func flattenDeviceProperties(input *devices.DataBoxEdgeDeviceProperties) []Devic
 	var model string
 	var softwareVersion string
 	var deviceType string
-	var nodeCount int32
 	var serialNumber string
 	var timeZone string
 
@@ -364,8 +363,7 @@ func flattenDeviceProperties(input *devices.DataBoxEdgeDeviceProperties) []Devic
 		}
 
 		if input.NodeCount != nil {
-			nodeCount = int32(*input.NodeCount)
-			o.NodeCount = nodeCount
+			o.NodeCount = *input.NodeCount
 		}
 
 		if input.SerialNumber != nil {

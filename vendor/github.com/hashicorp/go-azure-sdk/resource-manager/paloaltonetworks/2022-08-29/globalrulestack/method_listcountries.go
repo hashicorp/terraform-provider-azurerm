@@ -40,6 +40,7 @@ func (o ListCountriesOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListCountriesOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -54,6 +55,18 @@ func (o ListCountriesOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListCountriesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListCountriesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListCountries ...
 func (c GlobalRulestackClient) ListCountries(ctx context.Context, id GlobalRulestackId, options ListCountriesOperationOptions) (result ListCountriesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +75,9 @@ func (c GlobalRulestackClient) ListCountries(ctx context.Context, id GlobalRules
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/listCountries", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListCountriesCustomPager{},
+		Path:          fmt.Sprintf("%s/listCountries", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -104,6 +118,7 @@ func (c GlobalRulestackClient) ListCountriesCompleteMatchingPredicate(ctx contex
 
 	resp, err := c.ListCountries(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

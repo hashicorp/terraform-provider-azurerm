@@ -49,7 +49,6 @@ func (c AzureMonitorWorkspacesClient) Update(ctx context.Context, id AccountId, 
 
 	var model AzureMonitorWorkspaceResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

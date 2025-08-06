@@ -10,10 +10,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2022-02-01/sqlvirtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -107,6 +108,36 @@ func TestAccMsSqlVirtualMachine_autoBackup(t *testing.T) {
 	})
 }
 
+func TestAccMsSqlVirtualMachine_autoBackup_AndDeprecatedEncryptionEnabled(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping since `encryption_enabled` is deprecated and will be removed in 5.0")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
+	r := MsSqlVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withAutoBackupAutoSchedule_AndDeprecatedEncryptionEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("auto_backup.0.encryption_password",
+			"auto_backup.0.storage_account_access_key",
+			"auto_backup.0.storage_blob_endpoint"),
+		{
+			Config: r.withAutoBackupManualSchedule_AndDeprecatedEncryptionEnabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("auto_backup.0.encryption_password",
+			"auto_backup.0.storage_account_access_key",
+			"auto_backup.0.storage_blob_endpoint"),
+	})
+}
+
 func TestAccMsSqlVirtualMachine_autoBackupDaysOfWeek(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
 	r := MsSqlVirtualMachineResource{}
@@ -129,7 +160,7 @@ func TestAccMsSqlVirtualMachine_autoBackupDaysOfWeek(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlVirtualMachine_autoPatching(t *testing.T) {
+func TestAccMsSqlVirtualMachine_toggleAutoPatching(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
 	r := MsSqlVirtualMachineResource{}
 
@@ -143,6 +174,13 @@ func TestAccMsSqlVirtualMachine_autoPatching(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.withAutoPatchingUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -409,6 +447,7 @@ resource "azurerm_public_ip" "vm" {
   name                = "acctest-PIP-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+  sku                 = "Basic"
   allocation_method   = "Dynamic"
 }
 
@@ -588,7 +627,6 @@ resource "azurerm_mssql_virtual_machine" "test" {
   sql_license_type   = "PAYG"
 
   auto_backup {
-    encryption_enabled              = true
     encryption_password             = "P@55w0rD!!%[2]s"
     retention_period_in_days        = 23
     storage_blob_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
@@ -616,7 +654,6 @@ resource "azurerm_mssql_virtual_machine" "test" {
   sql_license_type   = "PAYG"
 
   auto_backup {
-    encryption_enabled              = true
     encryption_password             = "P@55w0rD!!%[2]s"
     retention_period_in_days        = 14
     storage_blob_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
@@ -696,6 +733,69 @@ resource "azurerm_mssql_virtual_machine" "test" {
       full_backup_window_in_hours     = 4
       log_backup_frequency_in_minutes = 60
       days_of_week                    = ["Friday", "Monday", "Tuesday"]
+    }
+  }
+}
+`, r.template(data), data.RandomString)
+}
+
+func (r MsSqlVirtualMachineResource) withAutoBackupAutoSchedule_AndDeprecatedEncryptionEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%[2]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_mssql_virtual_machine" "test" {
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  sql_license_type   = "PAYG"
+
+  auto_backup {
+    encryption_enabled              = true # <--- This property is deprecated
+    encryption_password             = "P@55w0rD!!%[2]s"
+    retention_period_in_days        = 23
+    storage_blob_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+    storage_account_access_key      = azurerm_storage_account.test.primary_access_key
+    system_databases_backup_enabled = false
+  }
+}
+`, r.template(data), data.RandomString)
+}
+
+func (r MsSqlVirtualMachineResource) withAutoBackupManualSchedule_AndDeprecatedEncryptionEnabled(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_storage_account" "test" {
+  name                     = "unlikely23exst2acct%[2]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_mssql_virtual_machine" "test" {
+  virtual_machine_id = azurerm_virtual_machine.test.id
+  sql_license_type   = "PAYG"
+
+  auto_backup {
+    encryption_enabled              = true # <--- This property is deprecated
+    encryption_password             = "P@55w0rD!!%[2]s"
+    retention_period_in_days        = 14
+    storage_blob_endpoint           = azurerm_storage_account.test.primary_blob_endpoint
+    storage_account_access_key      = azurerm_storage_account.test.primary_access_key
+    system_databases_backup_enabled = true
+
+    manual_schedule {
+      full_backup_frequency           = "Daily"
+      full_backup_start_hour          = 3
+      full_backup_window_in_hours     = 4
+      log_backup_frequency_in_minutes = 60
     }
   }
 }
@@ -1134,6 +1234,7 @@ resource "azurerm_mssql_virtual_machine" "test" {
 }
 `, r.sqlVirtualMachineGroupDependencies(data))
 }
+
 func (r MsSqlVirtualMachineResource) sqlVirtualMachineGroupRemoved(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s

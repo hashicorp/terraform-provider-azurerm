@@ -40,6 +40,7 @@ func (o ListByTypeOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByTypeOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -54,6 +55,18 @@ func (o ListByTypeOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByTypeCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByTypeCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByType ...
 func (c RecordSetsClient) ListByType(ctx context.Context, id ZoneId, options ListByTypeOperationOptions) (result ListByTypeOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +75,9 @@ func (c RecordSetsClient) ListByType(ctx context.Context, id ZoneId, options Lis
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Pager:         &ListByTypeCustomPager{},
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -104,6 +118,7 @@ func (c RecordSetsClient) ListByTypeCompleteMatchingPredicate(ctx context.Contex
 
 	resp, err := c.ListByType(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

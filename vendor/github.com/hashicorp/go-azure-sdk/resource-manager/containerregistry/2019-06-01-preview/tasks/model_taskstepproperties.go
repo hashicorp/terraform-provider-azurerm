@@ -10,18 +10,38 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type TaskStepProperties interface {
+	TaskStepProperties() BaseTaskStepPropertiesImpl
 }
 
-// RawTaskStepPropertiesImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ TaskStepProperties = BaseTaskStepPropertiesImpl{}
+
+type BaseTaskStepPropertiesImpl struct {
+	BaseImageDependencies *[]BaseImageDependency `json:"baseImageDependencies,omitempty"`
+	ContextAccessToken    *string                `json:"contextAccessToken,omitempty"`
+	ContextPath           *string                `json:"contextPath,omitempty"`
+	Type                  StepType               `json:"type"`
+}
+
+func (s BaseTaskStepPropertiesImpl) TaskStepProperties() BaseTaskStepPropertiesImpl {
+	return s
+}
+
+var _ TaskStepProperties = RawTaskStepPropertiesImpl{}
+
+// RawTaskStepPropertiesImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawTaskStepPropertiesImpl struct {
-	Type   string
-	Values map[string]interface{}
+	taskStepProperties BaseTaskStepPropertiesImpl
+	Type               string
+	Values             map[string]interface{}
 }
 
-func unmarshalTaskStepPropertiesImplementation(input []byte) (TaskStepProperties, error) {
+func (s RawTaskStepPropertiesImpl) TaskStepProperties() BaseTaskStepPropertiesImpl {
+	return s.taskStepProperties
+}
+
+func UnmarshalTaskStepPropertiesImplementation(input []byte) (TaskStepProperties, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +51,9 @@ func unmarshalTaskStepPropertiesImplementation(input []byte) (TaskStepProperties
 		return nil, fmt.Errorf("unmarshaling TaskStepProperties into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["type"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["type"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "Docker") {
@@ -60,10 +80,15 @@ func unmarshalTaskStepPropertiesImplementation(input []byte) (TaskStepProperties
 		return out, nil
 	}
 
-	out := RawTaskStepPropertiesImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseTaskStepPropertiesImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseTaskStepPropertiesImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawTaskStepPropertiesImpl{
+		taskStepProperties: parent,
+		Type:               value,
+		Values:             temp,
+	}, nil
 
 }

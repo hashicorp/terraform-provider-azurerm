@@ -4,6 +4,7 @@
 package resource
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"sort"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -93,6 +95,50 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 		return fmt.Errorf("creating Resource Group %q: %+v", name, err)
 	}
 
+	// TODO: remove this once ARM team confirms the issue is fixed on their end
+	//
+	// @favoretti: Working around a race condition in ARM eventually consistent backend data storage
+	// Sporadically, the ARM api will return successful creation response, following by a 404 to a
+	// subsequent `Get()`. Usually, seconds later, the storage is reconciled and following terraform
+	// run fails with `RequiresImport`.
+	//
+	// Snippet from MSFT support:
+	// The issue is related to replication of ARM data among regions. For example, another customer
+	// has some requests going to East US and other requests to East US 2, and during the time it takes
+	// to replicate between the two, they get 404's. The database account is a multi-master account with
+	// session consistency - so, write operations will be replicated across regions asynchronously.
+	// Session consistency only guarantees read-you-write guarantees within the scope of a session which
+	// is either defined by the application (ARM) or by the SDK (in which case the session spans only
+	// a single CosmosClient instance) - and given that several of the reads returning 404 after the
+	// creation of the resource group were done not only from a different ARM FD machine but even from
+	// a different region, they were made outside of the session scope - so, effectively eventually
+	// consistent. ARM team has worked in the past to make the multi-master model work transparently,
+	// and I assume they will continue this work as will our other teams working on the problem.
+	if d.IsNewResource() {
+		stateConf := &pluginsdk.StateChangeConf{ //nolint:staticcheck
+			Pending:                   []string{"Waiting"},
+			Target:                    []string{"Done"},
+			Timeout:                   10 * time.Minute,
+			MinTimeout:                4 * time.Second,
+			ContinuousTargetOccurence: 3,
+			Refresh: func() (interface{}, string, error) {
+				rg, err := client.Get(ctx, name)
+				if err != nil {
+					if utils.ResponseWasNotFound(rg.Response) {
+						return false, "Waiting", nil
+					}
+					return nil, "Error", fmt.Errorf("retrieving Resource Group: %+v", err)
+				}
+
+				return true, "Done", nil
+			},
+		}
+
+		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("waiting for Resource Group %s to become available: %+v", name, err)
+		}
+	}
+
 	resp, err := client.Get(ctx, name)
 	if err != nil {
 		return fmt.Errorf("retrieving Resource Group %q: %+v", name, err)
@@ -101,7 +147,12 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	// @tombuildsstuff: intentionally leaving this for now, since this'll need
 	// details in the upgrade notes given how the Resource Group ID is cased incorrectly
 	// but needs to be fixed (resourcegroups -> resourceGroups)
-	d.SetId(*resp.ID)
+	id, err := parse.ResourceGroupIDInsensitively(*resp.ID)
+	if err != nil {
+		return err
+	}
+
+	d.SetId(id.ID())
 
 	return resourceResourceGroupRead(d, meta)
 }
@@ -145,16 +196,19 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 
 	// conditionally check for nested resources and error if they exist
 	if meta.(*clients.Client).Features.ResourceGroup.PreventDeletionIfContainsResources {
-		resourceClient := meta.(*clients.Client).Resource.ResourcesClient
+		resourceClient := meta.(*clients.Client).Resource.LegacyResourcesClient
 		// Resource groups sometimes hold on to resource information after the resources have been deleted. We'll retry this check to account for that eventual consistency.
 		err = pluginsdk.Retry(10*time.Minute, func() *pluginsdk.RetryError {
-			results, err := resourceClient.ListByResourceGroupComplete(ctx, id.ResourceGroup, "", "provisioningState", utils.Int32(500))
+			results, err := resourceClient.ListByResourceGroup(ctx, id.ResourceGroup, "", "provisioningState", utils.Int32(500))
 			if err != nil {
+				if response.WasNotFound(results.Response().Response.Response) {
+					return nil
+				}
 				return pluginsdk.NonRetryableError(fmt.Errorf("listing resources in %s: %v", *id, err))
 			}
 			nestedResourceIds := make([]string, 0)
-			for results.NotDone() {
-				val := results.Value()
+			for _, value := range results.Values() {
+				val := value
 				if val.ID != nil {
 					nestedResourceIds = append(nestedResourceIds, *val.ID)
 				}
@@ -177,6 +231,9 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 
 	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, "")
 	if err != nil {
+		if response.WasNotFound(deleteFuture.Response()) {
+			return nil
+		}
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
@@ -223,5 +280,5 @@ delete this using the Azure API directly (which will clear up any nested resourc
 More information on the 'features' block can be found in the documentation:
 https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block
 `, name, strings.Join(formattedResourceUris, "\n"))
-	return fmt.Errorf(strings.ReplaceAll(message, "'", "`"))
+	return errors.New(strings.ReplaceAll(message, "'", "`"))
 }

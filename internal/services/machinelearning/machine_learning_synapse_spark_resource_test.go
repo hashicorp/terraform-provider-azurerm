@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/machinelearningcomputes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/machinelearningcomputes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -319,6 +319,7 @@ resource "azurerm_synapse_spark_pool" "test" {
   node_size_family     = "MemoryOptimized"
   node_size            = "Small"
   node_count           = 3
+  spark_version        = "3.4"
 }
 `, data.RandomInteger, data.Locations.Primary,
 		data.RandomInteger, data.RandomIntOfLength(15), data.RandomIntOfLength(16),

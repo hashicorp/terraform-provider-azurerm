@@ -8,19 +8,19 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/ipgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type IPGroupResource struct{}
+type IpGroupResource struct{}
 
 func TestAccIpGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ip_group", "test")
-	r := IPGroupResource{}
+	r := IpGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -34,7 +34,7 @@ func TestAccIpGroup_basic(t *testing.T) {
 
 func TestAccIpGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ip_group", "test")
-	r := IPGroupResource{}
+	r := IpGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -51,7 +51,7 @@ func TestAccIpGroup_requiresImport(t *testing.T) {
 
 func TestAccIpGroup_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ip_group", "test")
-	r := IPGroupResource{}
+	r := IpGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
@@ -65,7 +65,7 @@ func TestAccIpGroup_complete(t *testing.T) {
 
 func TestAccIpGroup_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ip_group", "test")
-	r := IPGroupResource{}
+	r := IpGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -117,7 +117,7 @@ func TestAccIpGroup_update(t *testing.T) {
 
 func TestAccIpGroup_updateWithAttachedPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_ip_group", "test1")
-	r := IPGroupResource{}
+	r := IpGroupResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withAzurePolicy(data),
@@ -140,21 +140,21 @@ func TestAccIpGroup_updateWithAttachedPolicy(t *testing.T) {
 	})
 }
 
-func (t IPGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.IpGroupID(state.ID)
+func (t IpGroupResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := ipgroups.ParseIPGroupID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.IPGroupsClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := clients.Network.Client.IPGroups.Get(ctx, *id, ipgroups.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("reading IP Group (%s): %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func (IPGroupResource) basic(data acceptance.TestData) string {
+func (IpGroupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -173,7 +173,7 @@ resource "azurerm_ip_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r IPGroupResource) requiresImport(data acceptance.TestData) string {
+func (r IpGroupResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -185,7 +185,7 @@ resource "azurerm_ip_group" "import" {
 `, r.basic(data))
 }
 
-func (IPGroupResource) complete(data acceptance.TestData) string {
+func (IpGroupResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -237,7 +237,7 @@ resource "azurerm_ip_group" "test3" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (IPGroupResource) completeUpdate(data acceptance.TestData) string {
+func (IpGroupResource) completeUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -263,7 +263,7 @@ resource "azurerm_ip_group" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (IPGroupResource) withAzurePolicy(data acceptance.TestData) string {
+func (IpGroupResource) withAzurePolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -378,7 +378,7 @@ resource "azurerm_firewall" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (IPGroupResource) withAzurePolicyUpdate(data acceptance.TestData) string {
+func (IpGroupResource) withAzurePolicyUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -490,6 +490,8 @@ resource "azurerm_firewall" "test" {
     public_ip_address_id = azurerm_public_ip.test.id
   }
 }
+
+
 
 
 `, data.RandomInteger, data.Locations.Primary)

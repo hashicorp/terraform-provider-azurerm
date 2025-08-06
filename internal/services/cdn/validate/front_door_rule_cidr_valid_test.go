@@ -10,7 +10,6 @@ func TestFrontDoorRuleCidrIsValid(t *testing.T) {
 		Input interface{}
 		Valid bool
 	}{
-
 		{
 			// IPv6 IPv4 literal
 			Input: "::FFFF:192.168.0.1/24",

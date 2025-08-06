@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/redis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/redis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -73,13 +73,13 @@ resource "azurerm_resource_group" "pri" {
 }
 
 resource "azurerm_redis_cache" "pri" {
-  name                = "acctestRedispri%d"
-  location            = azurerm_resource_group.pri.location
-  resource_group_name = azurerm_resource_group.pri.name
-  capacity            = 1
-  family              = "P"
-  sku_name            = "Premium"
-  enable_non_ssl_port = false
+  name                 = "acctestRedispri%d"
+  location             = azurerm_resource_group.pri.location
+  resource_group_name  = azurerm_resource_group.pri.name
+  capacity             = 1
+  family               = "P"
+  sku_name             = "Premium"
+  non_ssl_port_enabled = false
 
   redis_configuration {
     maxmemory_reserved = 642
@@ -94,13 +94,13 @@ resource "azurerm_resource_group" "sec" {
 }
 
 resource "azurerm_redis_cache" "sec" {
-  name                = "acctestRedissec%d"
-  location            = azurerm_resource_group.sec.location
-  resource_group_name = azurerm_resource_group.sec.name
-  capacity            = 1
-  family              = "P"
-  sku_name            = "Premium"
-  enable_non_ssl_port = false
+  name                 = "acctestRedissec%d"
+  location             = azurerm_resource_group.sec.location
+  resource_group_name  = azurerm_resource_group.sec.name
+  capacity             = 1
+  family               = "P"
+  sku_name             = "Premium"
+  non_ssl_port_enabled = false
 
   redis_configuration {
     maxmemory_reserved = 642

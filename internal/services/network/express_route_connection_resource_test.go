@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/expressrouteconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ExpressRouteConnectionResource struct{}
@@ -99,22 +99,17 @@ func testAccExpressRouteConnection_update(t *testing.T) {
 }
 
 func (r ExpressRouteConnectionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	expressRouteConnectionClient := client.Network.ExpressRouteConnectionsClient
-	id, err := parse.ExpressRouteConnectionID(state.ID)
+	id, err := expressrouteconnections.ParseExpressRouteConnectionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := expressRouteConnectionClient.Get(ctx, id.ResourceGroup, id.ExpressRouteGatewayName, id.Name)
+	resp, err := client.Network.ExpressRouteConnections.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
-		}
-
-		return nil, fmt.Errorf("retrieving Express Route Connection %q: %+v", state.ID, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ExpressRouteConnectionProperties != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ExpressRouteConnectionResource) basic(data acceptance.TestData) string {
@@ -147,12 +142,13 @@ func (r ExpressRouteConnectionResource) complete(data acceptance.TestData) strin
 %s
 
 resource "azurerm_express_route_connection" "test" {
-  name                             = "acctest-ExpressRouteConnection-%d"
-  express_route_gateway_id         = azurerm_express_route_gateway.test.id
-  express_route_circuit_peering_id = azurerm_express_route_circuit_peering.test.id
-  routing_weight                   = 2
-  authorization_key                = "90f8db47-e25b-4b65-a68b-7743ced2a16b"
-  enable_internet_security         = true
+  name                                 = "acctest-ExpressRouteConnection-%d"
+  express_route_gateway_id             = azurerm_express_route_gateway.test.id
+  express_route_circuit_peering_id     = azurerm_express_route_circuit_peering.test.id
+  routing_weight                       = 2
+  authorization_key                    = "90f8db47-e25b-4b65-a68b-7743ced2a16b"
+  enable_internet_security             = true
+  express_route_gateway_bypass_enabled = true
 
   routing {
     associated_route_table_id = azurerm_virtual_hub.test.default_route_table_id
@@ -256,7 +252,7 @@ resource "azurerm_express_route_port" "test" {
   name                = "acctest-erp-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "CDC-Canberra"
+  peering_location    = "Airtel-Chennai2-CLS"
   bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
 }

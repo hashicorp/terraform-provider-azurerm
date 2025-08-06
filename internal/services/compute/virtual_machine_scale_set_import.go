@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -78,7 +78,7 @@ func importVirtualMachineScaleSet(osType virtualmachinescalesets.OperatingSystem
 		}
 
 		if !isCorrectOS {
-			return []*pluginsdk.ResourceData{}, fmt.Errorf("The %q resource only supports %s Virtual Machine Scale Sets", resourceType, string(osType))
+			return []*pluginsdk.ResourceData{}, fmt.Errorf("the %q resource only supports %s Virtual Machine Scale Sets", resourceType, string(osType))
 		}
 
 		if !hasSshKeys {

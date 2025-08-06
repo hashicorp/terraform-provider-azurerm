@@ -39,7 +39,6 @@ func resourceApiManagementApiTagDescription() *pluginsdk.Resource {
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
-
 			"api_tag_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -100,7 +99,7 @@ func resourceApiManagementApiTagDescriptionCreateUpdate(d *pluginsdk.ResourceDat
 	}
 
 	if v, ok := d.GetOk("external_documentation_url"); ok {
-		tagDescParameter.Properties.ExternalDocsUrl = pointer.To(v.(string))
+		tagDescParameter.Properties.ExternalDocsURL = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("external_documentation_description"); ok {
@@ -145,7 +144,7 @@ func resourceApiManagementApiTagDescriptionRead(d *pluginsdk.ResourceData, meta 
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("description", pointer.From(props.Description))
-			d.Set("external_documentation_url", pointer.From(props.ExternalDocsUrl))
+			d.Set("external_documentation_url", pointer.From(props.ExternalDocsURL))
 			d.Set("external_documentation_description", pointer.From(props.ExternalDocsDescription))
 		}
 	}

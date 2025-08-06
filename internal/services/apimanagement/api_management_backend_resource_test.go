@@ -328,7 +328,8 @@ resource "azurerm_api_management_backend" "test" {
 }
 
 func (r ApiManagementAuthorizationBackendResource) serviceFabric(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	// nolint: dupword
+	return fmt.Sprintf(` 
 %s
 
 resource "azurerm_api_management_certificate" "test" {
@@ -394,6 +395,7 @@ resource "azurerm_api_management_backend" "test" {
 }
 
 func (r ApiManagementAuthorizationBackendResource) serviceFabricClientCertificateId(data acceptance.TestData) string {
+	// nolint: dupword
 	return fmt.Sprintf(`
 %s
 

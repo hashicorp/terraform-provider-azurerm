@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/batchaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -193,7 +193,7 @@ resource "azurerm_batch_pool" "test" {
   resource_group_name = azurerm_resource_group.test.name
   account_name        = azurerm_batch_account.test.name
   node_agent_sku_id   = "batch.node.ubuntu 22.04"
-  vm_size             = "Standard_A1"
+  vm_size             = "STANDARD_A1_V2"
 
   fixed_scale {
     target_dedicated_nodes = 1

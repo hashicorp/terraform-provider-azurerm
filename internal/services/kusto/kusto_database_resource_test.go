@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/databases"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/databases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -346,7 +346,7 @@ func (KustoDatabaseResource) Exists(ctx context.Context, clients *clients.Client
 	}
 
 	if resp.Model != nil {
-		value, ok := (*resp.Model).(databases.ReadWriteDatabase)
+		value, ok := resp.Model.(databases.ReadWriteDatabase)
 		if !ok {
 			return nil, fmt.Errorf("%s is not a ReadWriteDatabase", id.String())
 		}

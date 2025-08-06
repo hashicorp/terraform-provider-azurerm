@@ -198,8 +198,7 @@ func resourceDataShareDataSetBlobStorageRead(d *pluginsdk.ResourceData, meta int
 	d.Set("data_share_id", shareId.ID())
 
 	if model := resp.Model; model != nil {
-		m := *model
-		if ds, ok := m.(dataset.BlobDataSet); ok {
+		if ds, ok := model.(dataset.BlobDataSet); ok {
 			props := ds.Properties
 			d.Set("container_name", props.ContainerName)
 			if err := d.Set("storage_account", flattenAzureRmDataShareDataSetBlobStorageAccount(props.StorageAccountName, props.ResourceGroup, props.SubscriptionId)); err != nil {
@@ -207,8 +206,7 @@ func resourceDataShareDataSetBlobStorageRead(d *pluginsdk.ResourceData, meta int
 			}
 			d.Set("file_path", props.FilePath)
 			d.Set("display_name", props.DataSetId)
-
-		} else if ds, ok := m.(dataset.BlobFolderDataSet); ok {
+		} else if ds, ok := model.(dataset.BlobFolderDataSet); ok {
 			props := ds.Properties
 			d.Set("container_name", props.ContainerName)
 			if err := d.Set("storage_account", flattenAzureRmDataShareDataSetBlobStorageAccount(props.StorageAccountName, props.ResourceGroup, props.SubscriptionId)); err != nil {
@@ -216,7 +214,7 @@ func resourceDataShareDataSetBlobStorageRead(d *pluginsdk.ResourceData, meta int
 			}
 			d.Set("folder_path", props.Prefix)
 			d.Set("display_name", props.DataSetId)
-		} else if ds, ok := m.(dataset.BlobContainerDataSet); ok {
+		} else if ds, ok := model.(dataset.BlobContainerDataSet); ok {
 			props := ds.Properties
 			d.Set("container_name", props.ContainerName)
 			if err := d.Set("storage_account", flattenAzureRmDataShareDataSetBlobStorageAccount(props.StorageAccountName, props.ResourceGroup, props.SubscriptionId)); err != nil {

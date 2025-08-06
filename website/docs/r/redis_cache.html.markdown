@@ -25,14 +25,14 @@ resource "azurerm_resource_group" "example" {
 
 # NOTE: the Name used for Redis needs to be globally unique
 resource "azurerm_redis_cache" "example" {
-  name                = "example-cache"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  capacity            = 2
-  family              = "C"
-  sku_name            = "Standard"
-  enable_non_ssl_port = false
-  minimum_tls_version = "1.2"
+  name                 = "example-cache"
+  location             = azurerm_resource_group.example.location
+  resource_group_name  = azurerm_resource_group.example.name
+  capacity             = 2
+  family               = "C"
+  sku_name             = "Standard"
+  non_ssl_port_enabled = false
+  minimum_tls_version  = "1.2"
 
   redis_configuration {
   }
@@ -55,15 +55,19 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The SKU of Redis to use. Possible values are `Basic`, `Standard` and `Premium`.
 
-~> **Note** Downgrading the SKU will force a new resource to be created.
+~> **Note:** Downgrading the SKU will force a new resource to be created.
 
 ---
 
-* `enable_non_ssl_port` - (Optional) Enable the non-SSL port (6379) - disabled by default.
+* `access_keys_authentication_enabled` - (Optional) Whether access key authentication is enabled? Defaults to `true`. `active_directory_authentication_enabled` must be set to `true` to disable access key authentication.
+
+* `non_ssl_port_enabled` - (Optional) Enable the non-SSL port (6379) - disabled by default.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `minimum_tls_version` - (Optional) The minimum TLS version. Possible values are `1.0`, `1.1` and `1.2`. Defaults to `1.0`.
+
+~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
 
 * `patch_schedule` - (Optional) A list of `patch_schedule` blocks as defined below.
 
@@ -79,7 +83,7 @@ The following arguments are supported:
 
 * `replicas_per_primary` - (Optional) Amount of replicas to create per primary for this Redis Cache. If both `replicas_per_primary` and `replicas_per_master` are set, they need to be equal.
 
-* `redis_version` - (Optional) Redis version. Only major version needed. Valid values: `4`, `6`.
+* `redis_version` - (Optional) Redis version. Only major version needed. Possible values are `4` and `6`. Defaults to `6`.
 
 * `tenant_settings` - (Optional) A mapping of tenant settings to assign to the resource.
 
@@ -91,7 +95,7 @@ The following arguments are supported:
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Redis Cache should be located. Changing this forces a new Redis Cache to be created.
 
--> **Please Note**: Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](https://aka.ms/azenroll).
+-> **Note:** Availability Zones are [in Preview and only supported in several regions at this time](https://docs.microsoft.com/azure/availability-zones/az-overview) - as such you must be opted into the Preview to use this functionality. You can [opt into the Availability Zones Preview in the Azure Portal](https://aka.ms/azenroll).
 
 ---
 
@@ -101,7 +105,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) A list of User Assigned Managed Identity IDs to be assigned to this Redis Cluster.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -121,7 +125,7 @@ A `redis_configuration` block supports the following:
 
 * `aof_backup_enabled` - (Optional) Enable or disable AOF persistence for this Redis Cache. Defaults to `false`.
 
-~> **NOTE:** `aof_backup_enabled` can only be set when SKU is `Premium`.
+~> **Note:** `aof_backup_enabled` can only be set when SKU is `Premium`.
 
 * `aof_storage_connection_string_0` - (Optional) First Storage Account connection string for AOF persistence.
 * `aof_storage_connection_string_1` - (Optional) Second Storage Account connection string for AOF persistence.
@@ -136,9 +140,9 @@ redis_configuration {
 }
 ```
 
-* `enable_authentication` - (Optional) If set to `false`, the Redis instance will be accessible without authentication. Defaults to `true`.
+* `authentication_enabled` - (Optional) If set to `false`, the Redis instance will be accessible without authentication. Defaults to `true`.
 
--> **NOTE:** `enable_authentication` can only be set to `false` if a `subnet_id` is specified; and only works if there aren't existing instances within the subnet with `enable_authentication` set to `true`.
+-> **Note:** `authentication_enabled` can only be set to `false` if a `subnet_id` is specified; and only works if there aren't existing instances within the subnet with `authentication_enabled` set to `true`.
 
 * `active_directory_authentication_enabled` - (Optional) Enable Microsoft Entra (AAD) authentication. Defaults to `false`.
 
@@ -146,19 +150,19 @@ redis_configuration {
 * `maxmemory_delta` - (Optional) The max-memory delta for this Redis instance. Defaults are shown below.
 * `maxmemory_policy` - (Optional) How Redis will select what to remove when `maxmemory` is reached. Defaults to `volatile-lru`.
 
-* `data_persistence_authentication_method` - (Optional) Preferred auth method to communicate to storage account used for data persistence. Possible values are `SAS` and `ManagedIdentity`. Defaults to `SAS`.
+* `data_persistence_authentication_method` - (Optional) Preferred auth method to communicate to storage account used for data persistence. Possible values are `SAS` and `ManagedIdentity`.
 
 * `maxfragmentationmemory_reserved` - (Optional) Value in megabytes reserved to accommodate for memory fragmentation. Defaults are shown below.
 
 * `rdb_backup_enabled` - (Optional) Is Backup Enabled? Only supported on Premium SKUs. Defaults to `false`.
 
--> **NOTE:** If `rdb_backup_enabled` set to `true`, `rdb_storage_connection_string` must also be set.
+-> **Note:** If `rdb_backup_enabled` set to `true`, `rdb_storage_connection_string` must also be set.
 
 * `rdb_backup_frequency` - (Optional) The Backup Frequency in Minutes. Only supported on Premium SKUs. Possible values are: `15`, `30`, `60`, `360`, `720` and `1440`.
 * `rdb_backup_max_snapshot_count` - (Optional) The maximum number of snapshots to create as a backup. Only supported for Premium SKUs.
 * `rdb_storage_connection_string` - (Optional) The Connection String to the Storage Account. Only supported for Premium SKUs. In the format: `DefaultEndpointsProtocol=https;BlobEndpoint=${azurerm_storage_account.example.primary_blob_endpoint};AccountName=${azurerm_storage_account.example.name};AccountKey=${azurerm_storage_account.example.primary_access_key}`.
 
-~> **NOTE:** There's a bug in the Redis API where the original storage connection string isn't being returned, which [is being tracked in this issue](https://github.com/Azure/azure-rest-api-specs/issues/3037). In the interim you can use [the `ignore_changes` attribute to ignore changes to this field](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) e.g.:
+~> **Note:** There's a bug in the Redis API where the original storage connection string isn't being returned, which [is being tracked in this issue](https://github.com/Azure/azure-rest-api-specs/issues/3037). In the interim you can use [the `ignore_changes` attribute to ignore changes to this field](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) e.g.:
 
 * `storage_account_subscription_id` - (Optional) The ID of the Subscription containing the Storage Account.
 
@@ -182,14 +186,14 @@ redis_configuration {
 ### Default Redis Configuration Values
 
 | Redis Value                     | Basic        | Standard     | Premium      |
-| ------------------------------- | ------------ | ------------ | ------------ |
-| enable_authentication           | true         | true         | true         |
+|---------------------------------| ------------ | ------------ | ------------ |
+| authentication_enabled          | true         | true         | true         |
 | maxmemory_reserved              | 2            | 50           | 200          |
 | maxfragmentationmemory_reserved | 2            | 50           | 200          |
 | maxmemory_delta                 | 2            | 50           | 200          |
 | maxmemory_policy                | volatile-lru | volatile-lru | volatile-lru |
 
-~> **NOTE:** The `maxmemory_reserved`, `maxmemory_delta` and `maxfragmentationmemory_reserved` settings are only available for Standard and Premium caches. More details are available in the Relevant Links section below.
+~> **Note:** The `maxmemory_reserved`, `maxmemory_delta` and `maxfragmentationmemory_reserved` settings are only available for Standard and Premium caches. More details are available in the Relevant Links section below.
 
 ## Attributes Reference
 
@@ -228,10 +232,10 @@ A `redis_configuration` block exports the following:
 
  The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 180 minutes) Used when creating the Redis Cache.
-* `update` - (Defaults to 180 minutes) Used when updating the Redis Cache.
+* `create` - (Defaults to 3 hours) Used when creating the Redis Cache.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Redis Cache.
-* `delete` - (Defaults to 180 minutes) Used when deleting the Redis Cache.
+* `update` - (Defaults to 3 hours) Used when updating the Redis Cache.
+* `delete` - (Defaults to 3 hours) Used when deleting the Redis Cache.
 
 ## Import
 
@@ -240,3 +244,9 @@ Redis Cache's can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_redis_cache.cache1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Cache/redis/cache1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Cache` - 2024-11-01

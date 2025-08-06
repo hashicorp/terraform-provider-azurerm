@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ScopedPrivateEndpointConnectionId{})
+}
 
 var _ resourceids.ResourceId = &ScopedPrivateEndpointConnectionId{}
 
@@ -35,7 +40,7 @@ func ParseScopedPrivateEndpointConnectionID(input string) (*ScopedPrivateEndpoin
 	}
 
 	id := ScopedPrivateEndpointConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -52,7 +57,7 @@ func ParseScopedPrivateEndpointConnectionIDInsensitively(input string) (*ScopedP
 	}
 
 	id := ScopedPrivateEndpointConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -99,7 +104,7 @@ func (id ScopedPrivateEndpointConnectionId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.ScopeSegment("scope", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group"),
 		resourceids.StaticSegment("staticPrivateEndpointConnections", "privateEndpointConnections", "privateEndpointConnections"),
-		resourceids.UserSpecifiedSegment("privateEndpointConnectionName", "privateEndpointConnectionValue"),
+		resourceids.UserSpecifiedSegment("privateEndpointConnectionName", "privateEndpointConnectionName"),
 	}
 }
 

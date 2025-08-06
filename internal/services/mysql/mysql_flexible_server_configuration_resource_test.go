@@ -10,9 +10,10 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/configurations"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/configurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/servers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -108,6 +109,21 @@ func TestAccMySQLFlexibleServerConfiguration_update(t *testing.T) {
 	})
 }
 
+func TestAccMySQLFlexibleServerConfiguration_multipleServerConfigurations(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server_configuration", "test")
+	r := MySQLFlexibleServerConfigurationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.multipleServerConfigurations(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t MySQLFlexibleServerConfigurationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := configurations.ParseConfigurationID(state.ID)
 	if err != nil {
@@ -195,6 +211,46 @@ func (r MySQLFlexibleServerConfigurationResource) slowQueryLog(data acceptance.T
 	return r.template(data, "slow_query_log", value)
 }
 
+func (r MySQLFlexibleServerConfigurationResource) multipleServerConfigurations(data acceptance.TestData) string {
+	config := `
+resource "azurerm_mysql_flexible_server_configuration" "test" {
+  name                = "disconnect_on_expired_password"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_flexible_server.test.name
+  value               = "on"
+}
+
+resource "azurerm_mysql_flexible_server_configuration" "test2" {
+  name                = "character_set_server"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_flexible_server.test.name
+  value               = "hebrew"
+}
+
+resource "azurerm_mysql_flexible_server_configuration" "test3" {
+  name                = "interactive_timeout"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_flexible_server.test.name
+  value               = "30"
+}
+
+resource "azurerm_mysql_flexible_server_configuration" "test4" {
+  name                = "log_slow_admin_statements"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_flexible_server.test.name
+  value               = "on"
+}
+
+resource "azurerm_mysql_flexible_server_configuration" "test5" {
+  name                = "slow_query_log"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_flexible_server.test.name
+  value               = "on"
+}
+`
+	return r.empty(data) + config
+}
+
 func (r MySQLFlexibleServerConfigurationResource) template(data acceptance.TestData, name string, value string) string {
 	config := fmt.Sprintf(`
 resource "azurerm_mysql_flexible_server_configuration" "test" {
@@ -224,7 +280,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
-  sku_name               = "B_Standard_B1s"
+  sku_name               = "B_Standard_B1ms"
   zone                   = "1"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)

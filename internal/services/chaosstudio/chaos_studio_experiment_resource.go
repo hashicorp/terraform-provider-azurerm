@@ -22,8 +22,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-var _ sdk.Resource = ChaosStudioExperimentResource{}
-var _ sdk.ResourceWithUpdate = ChaosStudioExperimentResource{}
+var (
+	_ sdk.Resource           = ChaosStudioExperimentResource{}
+	_ sdk.ResourceWithUpdate = ChaosStudioExperimentResource{}
+)
 
 const (
 	continuousActionType = "continuous"

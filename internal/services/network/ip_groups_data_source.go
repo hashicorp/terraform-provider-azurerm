@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -47,67 +46,50 @@ func dataSourceIpGroups() *pluginsdk.Resource {
 				Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
 
-// Find IDs and names of multiple IP Groups, filtered by name substring
 func dataSourceIpGroupsRead(d *pluginsdk.ResourceData, meta interface{}) error {
-
-	// Establish a client to handle i/o operations against the API
-	client := meta.(*clients.Client).Network.IPGroupsClient
-
-	// Create a context for the request and defer cancellation
+	client := meta.(*clients.Client).Network.Client.IPGroups
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	// Get resource group name from data source
-	resourceGroupName := d.Get("resource_group_name").(string)
+	id := commonids.NewResourceGroupID(subscriptionId, d.Get("resource_group_name").(string))
 
-	// Make the request to the API to download all IP groups in the resource group
-	allGroups, err := client.ListByResourceGroup(ctx, resourceGroupName)
+	resp, err := client.ListByResourceGroup(ctx, id)
 	if err != nil {
-		return fmt.Errorf("error listing IP groups: %+v", err)
+		return fmt.Errorf("listing IP groups: %+v", err)
 	}
 
-	// Establish lists of strings to append to, set equal to empty set to start
-	// If no IP groups are found, an empty set will be returned
 	names := []string{}
 	ids := []string{}
 
-	// Filter IDs list by substring
-	for _, ipGroup := range allGroups.Values() {
-		if ipGroup.Name != nil && strings.Contains(*ipGroup.Name, d.Get("name").(string)) {
-			names = append(names, *ipGroup.Name)
-			ids = append(ids, *ipGroup.ID)
+	if model := resp.Model; model != nil {
+		for _, group := range *model {
+			if group.Name != nil && strings.Contains(*group.Name, d.Get("name").(string)) {
+				names = append(names, *group.Name)
+				ids = append(ids, *group.Id)
+			}
 		}
 	}
 
-	// Sort lists of strings alphabetically
 	slices.Sort(names)
 	slices.Sort(ids)
 
-	// Set resource ID, required for Terraform state
-	// Since this is a multi-resource data source, we need to create a unique ID
-	// Using the ID of the resource group
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	id := commonids.NewResourceGroupID(subscriptionId, resourceGroupName)
 	d.SetId(id.ID())
 
-	// Set names
 	err = d.Set("names", names)
 	if err != nil {
 		return fmt.Errorf("error setting names: %+v", err)
 	}
 
-	// Set IDs
 	err = d.Set("ids", ids)
 	if err != nil {
 		return fmt.Errorf("error setting ids: %+v", err)
 	}
 
-	// Return nil error
 	return nil
-
 }

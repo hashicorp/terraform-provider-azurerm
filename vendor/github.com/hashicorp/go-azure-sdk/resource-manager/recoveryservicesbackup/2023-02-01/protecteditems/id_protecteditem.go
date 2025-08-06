@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ProtectedItemId{})
+}
 
 var _ resourceids.ResourceId = &ProtectedItemId{}
 
@@ -43,7 +48,7 @@ func ParseProtectedItemID(input string) (*ProtectedItemId, error) {
 	}
 
 	id := ProtectedItemId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -60,7 +65,7 @@ func ParseProtectedItemIDInsensitively(input string) (*ProtectedItemId, error) {
 	}
 
 	id := ProtectedItemId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -128,13 +133,13 @@ func (id ProtectedItemId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftRecoveryServices", "Microsoft.RecoveryServices", "Microsoft.RecoveryServices"),
 		resourceids.StaticSegment("staticVaults", "vaults", "vaults"),
-		resourceids.UserSpecifiedSegment("vaultName", "vaultValue"),
+		resourceids.UserSpecifiedSegment("vaultName", "vaultName"),
 		resourceids.StaticSegment("staticBackupFabrics", "backupFabrics", "backupFabrics"),
-		resourceids.UserSpecifiedSegment("backupFabricName", "backupFabricValue"),
+		resourceids.UserSpecifiedSegment("backupFabricName", "backupFabricName"),
 		resourceids.StaticSegment("staticProtectionContainers", "protectionContainers", "protectionContainers"),
-		resourceids.UserSpecifiedSegment("protectionContainerName", "protectionContainerValue"),
+		resourceids.UserSpecifiedSegment("protectionContainerName", "protectionContainerName"),
 		resourceids.StaticSegment("staticProtectedItems", "protectedItems", "protectedItems"),
-		resourceids.UserSpecifiedSegment("protectedItemName", "protectedItemValue"),
+		resourceids.UserSpecifiedSegment("protectedItemName", "protectedItemName"),
 	}
 }
 

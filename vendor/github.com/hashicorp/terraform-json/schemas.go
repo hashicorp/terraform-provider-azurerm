@@ -86,6 +86,15 @@ type ProviderSchema struct {
 
 	// The schemas for any data sources in this provider.
 	DataSourceSchemas map[string]*Schema `json:"data_source_schemas,omitempty"`
+
+	// The schemas for any ephemeral resources in this provider.
+	EphemeralResourceSchemas map[string]*Schema `json:"ephemeral_resource_schemas,omitempty"`
+
+	// The definitions for any functions in this provider.
+	Functions map[string]*FunctionSignature `json:"functions,omitempty"`
+
+	// The schemas for resources identities in this provider.
+	ResourceIdentitySchemas map[string]*IdentitySchema `json:"resource_identity_schemas,omitempty"`
 }
 
 // Schema is the JSON representation of a particular schema
@@ -224,6 +233,10 @@ type SchemaAttribute struct {
 	// in logs. Future versions of Terraform may encrypt or otherwise
 	// treat these values with greater care than non-sensitive fields.
 	Sensitive bool `json:"sensitive,omitempty"`
+
+	// If true, this attribute is write only and its value will not be
+	// persisted in artifacts such as plan files or state.
+	WriteOnly bool `json:"write_only,omitempty"`
 }
 
 // jsonSchemaAttribute describes an attribute within a schema block
@@ -243,6 +256,7 @@ type jsonSchemaAttribute struct {
 	Optional            bool                       `json:"optional,omitempty"`
 	Computed            bool                       `json:"computed,omitempty"`
 	Sensitive           bool                       `json:"sensitive,omitempty"`
+	WriteOnly           bool                       `json:"write_only,omitempty"`
 }
 
 func (as *SchemaAttribute) MarshalJSON() ([]byte, error) {
@@ -255,6 +269,7 @@ func (as *SchemaAttribute) MarshalJSON() ([]byte, error) {
 		Optional:            as.Optional,
 		Computed:            as.Computed,
 		Sensitive:           as.Sensitive,
+		WriteOnly:           as.WriteOnly,
 	}
 	if as.AttributeType != cty.NilType {
 		attrTy, _ := as.AttributeType.MarshalJSON()
@@ -281,4 +296,32 @@ type SchemaNestedAttributeType struct {
 	// The upper limit on number of items that can be declared
 	// of this attribute type (not applicable to single nesting mode).
 	MaxItems uint64 `json:"max_items,omitempty"`
+}
+
+// IdentitySchema is the JSON representation of a particular
+// resource identity schema
+type IdentitySchema struct {
+	// The version of the particular resource identity schema.
+	Version uint64 `json:"version"`
+
+	// Map of identity attributes
+	Attributes map[string]*IdentityAttribute `json:"attributes,omitempty"`
+}
+
+// IdentityAttribute describes an identity attribute
+type IdentityAttribute struct {
+	// The identity attribute type
+	IdentityType cty.Type `json:"type,omitempty"`
+
+	// The description of the identity attribute
+	Description string `json:"description,omitempty"`
+
+	// RequiredForImport when enabled signifies that this attribute must be
+	// specified in the configuration during import
+	RequiredForImport bool `json:"required_for_import,omitempty"`
+
+	// OptionalForImport when enabled signifies that this attribute is not
+	// required to be specified during import, because it can be supplied by the
+	// provider
+	OptionalForImport bool `json:"optional_for_import,omitempty"`
 }

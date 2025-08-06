@@ -47,7 +47,6 @@ func (c MetricAlertsClient) ListBySubscription(ctx context.Context, id commonids
 
 	var model MetricAlertResourceCollection
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

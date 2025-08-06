@@ -400,8 +400,7 @@ func expandLighthouseDefinitionEligibleAuthorization(input []interface{}) *[]reg
 		return nil
 	}
 
-	var results []registrationdefinitions.EligibleAuthorization
-
+	results := make([]registrationdefinitions.EligibleAuthorization, 0, len(input))
 	for _, item := range input {
 		v := item.(map[string]interface{})
 
@@ -447,8 +446,7 @@ func expandLighthouseDefinitionApprover(input []interface{}) *[]registrationdefi
 		return nil
 	}
 
-	var results []registrationdefinitions.EligibleApprover
-
+	results := make([]registrationdefinitions.EligibleApprover, 0)
 	for _, v := range input {
 		eligibleApprover := v.(map[string]interface{})
 
@@ -471,8 +469,7 @@ func flattenLighthouseDefinitionEligibleAuthorization(input *[]registrationdefin
 		return nil
 	}
 
-	var results []interface{}
-
+	results := make([]interface{}, 0, len(*input))
 	for _, item := range *input {
 		result := map[string]interface{}{
 			"principal_id":       item.PrincipalId,
@@ -524,8 +521,7 @@ func flattenLighthouseDefinitionApprover(input *[]registrationdefinitions.Eligib
 		return nil
 	}
 
-	var results []interface{}
-
+	results := make([]interface{}, 0, len(*input))
 	for _, item := range *input {
 		result := map[string]interface{}{
 			"principal_id": item.PrincipalId,

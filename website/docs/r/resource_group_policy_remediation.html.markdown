@@ -76,10 +76,6 @@ The following arguments are supported:
 
 * `policy_assignment_id` - (Required) The ID of the Policy Assignment that should be remediated.
 
-* `policy_definition_id` - (Optional) The unique ID for the policy definition within the policy set definition that should be remediated. Required when the policy assignment being remediated assigns a policy set definition.
-
-~> **Note:** This property has been deprecated and will be removed in version 4.0 of the provider in favour of `policy_definition_reference_id`.
-
 * `policy_definition_reference_id` - (Optional) The unique ID for the policy definition reference within the policy set definition that should be remediated. Required when the policy assignment being remediated assigns a policy set definition.
 
 * `location_filters` - (Optional) A list of the resource locations that will be remediated.
@@ -103,8 +99,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Policy Remediation.
-* `update` - (Defaults to 30 minutes) Used when updating the Policy Remediation.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Policy Remediation.
+* `update` - (Defaults to 30 minutes) Used when updating the Policy Remediation.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Policy Remediation.
 
 ## Import
@@ -114,3 +110,9 @@ Policy Remediations can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_resource_group_policy_remediation.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.PolicyInsights/remediations/remediation1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.PolicyInsights` - 2021-10-01

@@ -5,7 +5,7 @@ package containerinstance
 
 type ImageRegistryCredential struct {
 	Identity    *string `json:"identity,omitempty"`
-	IdentityUrl *string `json:"identityUrl,omitempty"`
+	IdentityURL *string `json:"identityUrl,omitempty"`
 	Password    *string `json:"password,omitempty"`
 	Server      string  `json:"server"`
 	Username    *string `json:"username,omitempty"`

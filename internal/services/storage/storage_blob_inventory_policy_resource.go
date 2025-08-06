@@ -4,7 +4,6 @@
 package storage
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
@@ -12,7 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/blobinventorypolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/blobinventorypolicies"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/migration"
@@ -22,6 +22,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_blob_inventory_policy -service-package-name storage -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id"
 
 func resourceStorageBlobInventoryPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -37,10 +39,11 @@ func resourceStorageBlobInventoryPolicy() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseStorageAccountID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.StorageAccountId{}, pluginsdk.ResourceTypeForIdentityVirtual),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.StorageAccountId{}, pluginsdk.ResourceTypeForIdentityVirtual),
+		},
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -166,18 +169,6 @@ func resourceStorageBlobInventoryPolicy() *pluginsdk.Resource {
 				},
 			},
 		},
-
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
-			rules := diff.Get("rules").(*pluginsdk.Set).List()
-			for _, rule := range rules {
-				v := rule.(map[string]interface{})
-				if v["scope"] != string(blobinventorypolicies.ObjectTypeBlob) && len(v["filter"].([]interface{})) != 0 {
-					return fmt.Errorf("the `filter` can only be set when the `scope` is `%s`", blobinventorypolicies.ObjectTypeBlob)
-				}
-			}
-
-			return nil
-		}),
 	}
 }
 
@@ -207,12 +198,17 @@ func resourceStorageBlobInventoryPolicyCreateUpdate(d *pluginsdk.ResourceData, m
 		}
 	}
 
+	rules, err := expandBlobInventoryPolicyRules(d.Get("rules").(*pluginsdk.Set).List())
+	if err != nil {
+		return err
+	}
+
 	payload := blobinventorypolicies.BlobInventoryPolicy{
 		Properties: &blobinventorypolicies.BlobInventoryPolicyProperties{
 			Policy: blobinventorypolicies.BlobInventoryPolicySchema{
 				Enabled: true,
 				Type:    blobinventorypolicies.InventoryRuleTypeInventory,
-				Rules:   expandBlobInventoryPolicyRules(d.Get("rules").(*pluginsdk.Set).List()),
+				Rules:   rules,
 			},
 		},
 	}
@@ -257,7 +253,7 @@ func resourceStorageBlobInventoryPolicyRead(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id, pluginsdk.ResourceTypeForIdentityVirtual)
 }
 
 func resourceStorageBlobInventoryPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -276,10 +272,16 @@ func resourceStorageBlobInventoryPolicyDelete(d *pluginsdk.ResourceData, meta in
 	return nil
 }
 
-func expandBlobInventoryPolicyRules(input []interface{}) []blobinventorypolicies.BlobInventoryPolicyRule {
+func expandBlobInventoryPolicyRules(input []interface{}) ([]blobinventorypolicies.BlobInventoryPolicyRule, error) {
 	results := make([]blobinventorypolicies.BlobInventoryPolicyRule, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
+
+		filters, err := expandBlobInventoryPolicyFilter(v["filter"].([]interface{}), v["scope"].(string))
+		if err != nil {
+			return nil, fmt.Errorf("%s rule is invalid: %+v", v["name"].(string), err)
+		}
+
 		results = append(results, blobinventorypolicies.BlobInventoryPolicyRule{
 			Enabled:     true,
 			Name:        v["name"].(string),
@@ -289,19 +291,19 @@ func expandBlobInventoryPolicyRules(input []interface{}) []blobinventorypolicies
 				Schedule:     blobinventorypolicies.Schedule(v["schedule"].(string)),
 				ObjectType:   blobinventorypolicies.ObjectType(v["scope"].(string)),
 				SchemaFields: *utils.ExpandStringSlice(v["schema_fields"].([]interface{})),
-				Filters:      expandBlobInventoryPolicyFilter(v["filter"].([]interface{})),
+				Filters:      filters,
 			},
 		})
 	}
-	return results
+	return results, nil
 }
 
-func expandBlobInventoryPolicyFilter(input []interface{}) *blobinventorypolicies.BlobInventoryPolicyFilter {
+func expandBlobInventoryPolicyFilter(input []interface{}, objectType string) (*blobinventorypolicies.BlobInventoryPolicyFilter, error) {
 	if len(input) == 0 {
-		return nil
+		return nil, nil
 	}
 	v := input[0].(map[string]interface{})
-	return &blobinventorypolicies.BlobInventoryPolicyFilter{
+	policyFilter := &blobinventorypolicies.BlobInventoryPolicyFilter{
 		PrefixMatch:         utils.ExpandStringSlice(v["prefix_match"].(*pluginsdk.Set).List()),
 		ExcludePrefix:       utils.ExpandStringSlice(v["exclude_prefixes"].(*pluginsdk.Set).List()),
 		BlobTypes:           utils.ExpandStringSlice(v["blob_types"].(*pluginsdk.Set).List()),
@@ -309,6 +311,18 @@ func expandBlobInventoryPolicyFilter(input []interface{}) *blobinventorypolicies
 		IncludeDeleted:      utils.Bool(v["include_deleted"].(bool)),
 		IncludeSnapshots:    utils.Bool(v["include_snapshots"].(bool)),
 	}
+
+	// If the objectType is Container, the following values must be nil when passed to the API
+	if objectType == string(blobinventorypolicies.ObjectTypeContainer) {
+		if len(*policyFilter.BlobTypes) > 0 || *policyFilter.IncludeBlobVersions || *policyFilter.IncludeSnapshots {
+			return nil, fmt.Errorf("`blobTypes`, `includeBlobVersions`, `includeSnapshots` cannot be used with objectType `Container`")
+		}
+		policyFilter.BlobTypes = nil
+		policyFilter.IncludeBlobVersions = nil
+		policyFilter.IncludeSnapshots = nil
+	}
+
+	return policyFilter, nil
 }
 
 func flattenBlobInventoryPolicyRules(input []blobinventorypolicies.BlobInventoryPolicyRule) []interface{} {

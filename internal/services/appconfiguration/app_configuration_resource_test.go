@@ -9,12 +9,12 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type AppConfigurationResource struct{}
@@ -41,6 +41,50 @@ func TestAccAppConfiguration_standard(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.standard(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAppConfiguration_skuUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
+	r := AppConfigurationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.standard(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.premium(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.standard(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccAppConfiguration_premium(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_app_configuration", "test")
+	r := AppConfigurationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.premium(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -256,7 +300,7 @@ func TestAccAppConfiguration_replicaUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.complete(data),
+			Config: r.standard(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -279,6 +323,13 @@ func TestAccAppConfiguration_encryptionUpdated(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.encryption(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.standard(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -456,7 +507,7 @@ func (AppConfigurationResource) Exists(ctx context.Context, clients *clients.Cli
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (AppConfigurationResource) free(data acceptance.TestData) string {
@@ -495,6 +546,26 @@ resource "azurerm_app_configuration" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "standard"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (AppConfigurationResource) premium(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appconfig-%d"
+  location = "%s"
+}
+
+resource "azurerm_app_configuration" "test" {
+  name                = "testaccappconf%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "premium"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -671,14 +742,16 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_app_configuration" "test" {
-  name                       = "testaccappconf%[1]d"
-  resource_group_name        = azurerm_resource_group.test.name
-  location                   = azurerm_resource_group.test.location
-  sku                        = "standard"
-  local_auth_enabled         = true
-  public_network_access      = "Enabled"
-  purge_protection_enabled   = false
-  soft_delete_retention_days = 1
+  name                                             = "testaccappconf%[1]d"
+  resource_group_name                              = azurerm_resource_group.test.name
+  location                                         = azurerm_resource_group.test.location
+  data_plane_proxy_authentication_mode             = "Pass-through"
+  data_plane_proxy_private_link_delegation_enabled = true
+  sku                                              = "standard"
+  local_auth_enabled                               = true
+  public_network_access                            = "Enabled"
+  purge_protection_enabled                         = false
+  soft_delete_retention_days                       = 7
 
   identity {
     type = "UserAssigned"
@@ -860,7 +933,7 @@ resource "azurerm_app_configuration" "test" {
   local_auth_enabled         = true
   public_network_access      = "Enabled"
   purge_protection_enabled   = true
-  soft_delete_retention_days = 1
+  soft_delete_retention_days = 7
 
   identity {
     type = "UserAssigned"
@@ -897,7 +970,6 @@ provider "azurerm" {
     }
   }
 }
-
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-appconfig-%[1]d"

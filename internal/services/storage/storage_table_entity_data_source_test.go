@@ -53,8 +53,7 @@ resource "azurerm_storage_table" "test" {
 }
 
 resource "azurerm_storage_table_entity" "test" {
-  storage_account_name = azurerm_storage_account.test.name
-  table_name           = azurerm_storage_table.test.name
+  storage_table_id = azurerm_storage_table.test.id
 
   partition_key = "testpartition"
   row_key       = "testrow"
@@ -72,10 +71,9 @@ func (d StorageTableEntityDataSource) basicWithDataSource(data acceptance.TestDa
 %s
 
 data "azurerm_storage_table_entity" "test" {
-  table_name           = azurerm_storage_table_entity.test.table_name
-  storage_account_name = azurerm_storage_table_entity.test.storage_account_name
-  partition_key        = azurerm_storage_table_entity.test.partition_key
-  row_key              = azurerm_storage_table_entity.test.row_key
+  storage_table_id = azurerm_storage_table.test.id
+  partition_key    = azurerm_storage_table_entity.test.partition_key
+  row_key          = azurerm_storage_table_entity.test.row_key
 }
 `, config)
 }

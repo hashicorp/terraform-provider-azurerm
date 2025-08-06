@@ -279,33 +279,55 @@ func TestAccKubernetesCluster_upgradeSettings(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.upgradeSettingsConfig(data, "2"),
+			Config: r.upgradeSettings(data, 35, 18),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.#").HasValue("1"),
-				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.max_surge").HasValue("2"),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettingsConfig(data, "10%"),
+			Config: r.upgradeSettings(data, 5, 0),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.#").HasValue("1"),
-				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.max_surge").HasValue("10%"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.upgradeSettingsConfig(data, "2"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.#").HasValue("1"),
-				check.That(data.ResourceName).Key("default_node_pool.0.upgrade_settings.0.max_surge").HasValue("2"),
 			),
 		},
 		data.ImportStep(),
 	})
+}
+
+func (r KubernetesClusterResource) upgradeSettings(data acceptance.TestData, drainTimeout int, nodeSoakDuration int) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge                     = "10%%"
+      drain_timeout_in_minutes      = %d
+      node_soak_duration_in_minutes = %d
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, drainTimeout, nodeSoakDuration)
 }
 
 func (KubernetesClusterResource) upgradeControlPlaneConfig(data acceptance.TestData, controlPlaneVersion string) string {
@@ -433,11 +455,11 @@ resource "azurerm_kubernetes_cluster" "test" {
   kubernetes_version  = %q
 
   default_node_pool {
-    name                = "default"
-    vm_size             = "Standard_DS2_v2"
-    enable_auto_scaling = true
-    min_count           = %d
-    max_count           = %d
+    name                 = "default"
+    vm_size              = "Standard_DS2_v2"
+    auto_scaling_enabled = true
+    min_count            = %d
+    max_count            = %d
     upgrade_settings {
       max_surge = "10%%"
     }

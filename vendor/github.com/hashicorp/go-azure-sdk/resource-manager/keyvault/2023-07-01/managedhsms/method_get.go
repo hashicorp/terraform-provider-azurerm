@@ -46,7 +46,6 @@ func (c ManagedHsmsClient) Get(ctx context.Context, id ManagedHSMId) (result Get
 
 	var model ManagedHsm
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

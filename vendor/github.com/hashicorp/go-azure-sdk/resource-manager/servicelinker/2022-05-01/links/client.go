@@ -15,7 +15,7 @@ type LinksClient struct {
 }
 
 func NewLinksClientWithBaseURI(sdkApi sdkEnv.Api) (*LinksClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "links", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "links", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating LinksClient: %+v", err)
 	}

@@ -47,7 +47,6 @@ func (c ConfigurationAssignmentsClient) ListParent(ctx context.Context, id commo
 
 	var model ListConfigurationAssignmentsResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

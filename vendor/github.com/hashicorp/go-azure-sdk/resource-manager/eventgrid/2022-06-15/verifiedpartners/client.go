@@ -15,7 +15,7 @@ type VerifiedPartnersClient struct {
 }
 
 func NewVerifiedPartnersClientWithBaseURI(sdkApi sdkEnv.Api) (*VerifiedPartnersClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "verifiedpartners", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "verifiedpartners", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VerifiedPartnersClient: %+v", err)
 	}

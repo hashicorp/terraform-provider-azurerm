@@ -68,6 +68,8 @@ output "hostname" {
 
 * `secondary_connection_string` - The secondary connection string of the Redis Instance.
 
+* `access_keys_authentication_enabled` - Specifies if access key authentication is enabled.
+
 * `redis_configuration` - A `redis_configuration` block as defined below.
 
 * `zones` - A list of Availability Zones in which this Redis Cache is located.
@@ -117,3 +119,9 @@ A `redis_configuration` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Redis Cache.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Cache` - 2024-11-01

@@ -6,10 +6,12 @@ package web
 import (
 	"fmt"
 	"log"
+	"math"
 	"strings"
 
 	"github.com/Azure/azure-sdk-for-go/services/web/mgmt/2021-02-01/web" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -228,7 +230,7 @@ func schemaAppServiceAuthSettings() *pluginsdk.Schema {
 }
 
 func schemaAppServiceSiteConfig() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		Computed: true,
@@ -351,8 +353,7 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"VS2017",
-						"VS2019",
+						"VS2022",
 					}, false),
 				},
 
@@ -461,6 +462,16 @@ func schemaAppServiceSiteConfig() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		s.Elem.(*pluginsdk.Resource).Schema["remote_debugging_version"].ValidateFunc = validation.StringInSlice([]string{
+			"VS2017",
+			"VS2019",
+			"VS2022",
+		}, false)
+	}
+
+	return s
 }
 
 func schemaAppServiceLogsConfig() *pluginsdk.Schema {
@@ -843,7 +854,7 @@ func schemaAppServiceIpRestriction() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
 					Default:      65000,
-					ValidateFunc: validation.IntBetween(1, 2147483647),
+					ValidateFunc: validation.IntBetween(1, math.MaxInt32),
 				},
 
 				"action": {

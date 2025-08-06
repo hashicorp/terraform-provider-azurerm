@@ -18,19 +18,20 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2021-06-01/serverrestart"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2020-06-01/privatezones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/serverrestart"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const (
@@ -79,10 +80,26 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			},
 
 			"administrator_password": {
-				Type:         pluginsdk.TypeString,
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				Sensitive:     true,
+				ValidateFunc:  validation.StringIsNotEmpty,
+				ConflictsWith: []string{"administrator_password_wo"},
+			},
+
+			"administrator_password_wo": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				WriteOnly:     true,
+				ValidateFunc:  validation.StringIsNotEmpty,
+				ConflictsWith: []string{"administrator_password"},
+				RequiredWith:  []string{"administrator_password_wo_version"},
+			},
+
+			"administrator_password_wo_version": {
+				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Sensitive:    true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				RequiredWith: []string{"administrator_password_wo"},
 			},
 
 			"authentication": {
@@ -169,6 +186,8 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 					string(servers.CreateModeDefault),
 					string(servers.CreateModePointInTimeRestore),
 					string(servers.CreateModeReplica),
+					string(servers.CreateModeReviveDropped),
+					string(servers.CreateModeGeoRestore),
 					string(servers.CreateModeUpdate),
 				}, false),
 			},
@@ -277,7 +296,8 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 			"public_network_access_enabled": {
 				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Optional: true,
+				Default:  true,
 			},
 
 			"replication_role": {
@@ -288,7 +308,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"identity": commonschema.UserAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"customer_managed_key": {
 				Type:     pluginsdk.TypeList,
@@ -314,7 +334,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 						"geo_backup_key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+							ValidateFunc: keyVaultValidate.NestedItemId,
 							RequiredWith: []string{
 								"identity",
 								"customer_managed_key.0.geo_backup_user_assigned_identity_id",
@@ -333,31 +353,17 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-			createModeVal := d.Get("create_mode").(string)
-
-			if createModeVal == string(servers.CreateModeUpdate) {
+			if d.HasChange("version") {
 				oldVersionVal, newVersionVal := d.GetChange("version")
+				// `version` value has been validated already, ignore the parse errors is safe
+				oldVersion, _ := strconv.ParseInt(oldVersionVal.(string), 10, 32)
+				newVersion, _ := strconv.ParseInt(newVersionVal.(string), 10, 32)
 
-				if oldVersionVal != "" && newVersionVal != "" {
-					oldVersion, err := strconv.ParseInt(oldVersionVal.(string), 10, 32)
-					if err != nil {
-						return err
-					}
-
-					newVersion, err := strconv.ParseInt(newVersionVal.(string), 10, 32)
-					if err != nil {
-						return err
-					}
-
-					if oldVersion < newVersion {
-						return nil
-					}
+				if oldVersion > newVersion {
+					d.ForceNew("version")
 				}
+				return nil
 			}
-
-			d.ForceNew("create_mode")
-			d.ForceNew("version")
-
 			return nil
 		}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 			oldLoginName, _ := diff.GetChange("administrator_login")
@@ -383,9 +389,9 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			newMb = newStorageMbRaw.(int)
 			newTier = newTierRaw.(string)
 
-			// storage_mb can only be scaled up...
-			if newMb < oldStorageMbRaw.(int) {
-				return fmt.Errorf("'storage_mb' can only be scaled up, expected the new 'storage_mb' value (%d) to be larger than the previous 'storage_mb' value (%d)", newMb, oldStorageMbRaw.(int))
+			// if newMb is smaller than oldStorageMb, it's a downgrade need to trigger a force new
+			if newMb > 0 && oldStorageMbRaw.(int) > newMb {
+				diff.ForceNew("storage_mb")
 			}
 
 			// if newMb or newTier values are empty,
@@ -413,7 +419,42 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 			}
 
 			if !isValid {
+				if strings.EqualFold(oldTierRaw.(string), newTier) {
+					// The tier value did not change, so we need to determin if they are
+					// using the default value for the tier, or they actually defined the
+					// tier in the config or not... If they did not define
+					// the tier in the config we need to assign a new valid default
+					// tier for the newMb value. However, if the tier is in the config
+					// this is a valid error and should be returned...
+					if v := diff.GetRawConfig().AsValueMap()["storage_tier"]; v.IsNull() {
+						diff.SetNew("storage_tier", string(storageTiers.DefaultTier))
+						log.Printf("[DEBUG]: 'storage_tier' was not valid and was not in the config assigning new default 'storage_tier' %q -> %q\n", newTier, storageTiers.DefaultTier)
+						return nil
+					}
+				}
+
 				return fmt.Errorf("invalid 'storage_tier' %q for defined 'storage_mb' size '%d', expected one of [%s]", newTier, newMb, azure.QuotedStringSlice(*storageTiers.ValidTiers))
+			}
+
+			return nil
+		}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			oldIdentityRaw, newIdentityRaw := diff.GetChange("identity")
+			oldIdentity := oldIdentityRaw.([]interface{})
+			oldIdentityType := string(identity.TypeNone)
+			if len(oldIdentity) > 0 {
+				oldIdentityBlock := oldIdentity[0].(map[string]interface{})
+				oldIdentityType = oldIdentityBlock["type"].(string)
+			}
+
+			newIdentity := newIdentityRaw.([]interface{})
+			newIdentityType := string(identity.TypeNone)
+			if len(newIdentity) > 0 {
+				newIdentityBlock := newIdentity[0].(map[string]interface{})
+				newIdentityType = newIdentityBlock["type"].(string)
+			}
+
+			if (oldIdentityType == string(identity.TypeUserAssigned) && newIdentityType == string(identity.TypeSystemAssigned)) || (oldIdentityType == string(identity.TypeUserAssigned) && newIdentityType == string(identity.TypeNone)) || (oldIdentityType == string(identity.TypeSystemAssignedUserAssigned) && newIdentityType == string(identity.TypeSystemAssigned)) || (oldIdentityType == string(identity.TypeSystemAssignedUserAssigned) && newIdentityType == string(identity.TypeNone)) {
+				diff.ForceNew("identity.0.type")
 			}
 
 			return nil
@@ -428,10 +469,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	resourceGroup := d.Get("resource_group_name").(string)
-
-	id := servers.NewFlexibleServerID(subscriptionId, resourceGroup, name)
+	id := servers.NewFlexibleServerID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
 	existing, err := client.Get(ctx, id)
 	if err != nil {
@@ -449,12 +487,12 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("`replication_role` cannot be set while creating")
 	}
 
-	if servers.CreateMode(createMode) == servers.CreateModePointInTimeRestore {
+	if servers.CreateMode(createMode) == servers.CreateModePointInTimeRestore || servers.CreateMode(createMode) == servers.CreateModeGeoRestore {
 		if _, ok := d.GetOk("source_server_id"); !ok {
-			return fmt.Errorf("`source_server_id` is required when `create_mode` is `PointInTimeRestore`")
+			return fmt.Errorf("`source_server_id` is required when `create_mode` is  %s", createMode)
 		}
 		if _, ok := d.GetOk("point_in_time_restore_time_in_utc"); !ok {
-			return fmt.Errorf("`point_in_time_restore_time_in_utc` is required when `create_mode` is `PointInTimeRestore`")
+			return fmt.Errorf("`point_in_time_restore_time_in_utc` is required when `create_mode` is  %s", createMode)
 		}
 	}
 
@@ -462,6 +500,11 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		if _, ok := d.GetOk("source_server_id"); !ok {
 			return fmt.Errorf("`source_server_id` is required when `create_mode` is `Replica`")
 		}
+	}
+
+	woPassword, err := pluginsdk.GetWriteOnly(d, "administrator_password_wo", cty.String)
+	if err != nil {
+		return err
 	}
 
 	if createMode == "" || servers.CreateMode(createMode) == servers.CreateModeDefault {
@@ -481,11 +524,11 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 				return fmt.Errorf("`administrator_login` is required when `create_mode` is `Default` and `authentication.password_auth_enabled` is set to `true`")
 			}
 
-			if !adminPwdSet {
-				return fmt.Errorf("`administrator_password` is required when `create_mode` is `Default` and `authentication.password_auth_enabled` is set to `true`")
+			if !adminPwdSet && woPassword.IsNull() {
+				return fmt.Errorf("`administrator_password` or `administrator_password_wo` is required when `create_mode` is `Default` and `authentication.password_auth_enabled` is set to `true`")
 			}
-		} else if adminLoginSet || adminPwdSet {
-			return fmt.Errorf("`administrator_login` and `administrator_password` cannot be set during creation when `authentication.password_auth_enabled` is set to `false`")
+		} else if adminLoginSet || adminPwdSet || !woPassword.IsNull() {
+			return fmt.Errorf("`administrator_login`, `administrator_password` and `administrator_password_wo` cannot be set during creation when `authentication.password_auth_enabled` is set to `false`")
 		}
 
 		if _, ok := d.GetOk("sku_name"); !ok {
@@ -537,11 +580,15 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if v, ok := d.GetOk("administrator_login"); ok && v.(string) != "" {
-		parameters.Properties.AdministratorLogin = utils.String(v.(string))
+		parameters.Properties.AdministratorLogin = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("administrator_password"); ok && v.(string) != "" {
-		parameters.Properties.AdministratorLoginPassword = utils.String(v.(string))
+		parameters.Properties.AdministratorLoginPassword = pointer.To(v.(string))
+	}
+
+	if !woPassword.IsNull() {
+		parameters.Properties.AdministratorLoginPassword = pointer.To(woPassword.AsString())
 	}
 
 	if createMode != "" {
@@ -555,11 +602,16 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if v, ok := d.GetOk("zone"); ok && v.(string) != "" {
-		parameters.Properties.AvailabilityZone = utils.String(v.(string))
+		parameters.Properties.AvailabilityZone = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("source_server_id"); ok && v.(string) != "" {
-		parameters.Properties.SourceServerResourceId = utils.String(v.(string))
+		// The source server will be Updating status when creating a replica
+		sourceServerId, _ := servers.ParseFlexibleServerID(v.(string))
+		locks.ByName(sourceServerId.FlexibleServerName, postgresqlFlexibleServerResourceName)
+		defer locks.UnlockByName(sourceServerId.FlexibleServerName, postgresqlFlexibleServerResourceName)
+
+		parameters.Properties.SourceServerResourceId = pointer.To(v.(string))
 	}
 
 	pointInTimeUTC := d.Get("point_in_time_restore_time_in_utc").(string)
@@ -576,7 +628,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		parameters.Properties.AuthConfig = authConfig
 	}
 
-	identity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
+	identity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`")
 	}
@@ -630,9 +682,10 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 
 	d.Set("name", id.FlexibleServerName)
 	d.Set("resource_group_name", id.ResourceGroupName)
+	d.Set("administrator_password_wo_version", d.Get("administrator_password_wo_version").(int))
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(&model.Location))
+		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
 			d.Set("administrator_login", props.AdministratorLogin) // if pwdEnabled is set to false, then the service does not return the value of AdministratorLogin
@@ -697,7 +750,7 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 				return fmt.Errorf("setting `customer_managed_key`: %+v", err)
 			}
 
-			identity, err := identity.FlattenUserAssignedMap(model.Identity)
+			identity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
 			if err != nil {
 				return fmt.Errorf("flattening `identity`: %+v", err)
 			}
@@ -735,9 +788,13 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 
 	requireUpdateOnLogin := false // it's required to call Create with `createMode` set to `Update` to update login name.
 
+	woPassword, err := pluginsdk.GetWriteOnly(d, "administrator_password_wo", cty.String)
+	if err != nil {
+		return err
+	}
+
 	createMode := d.Get("create_mode").(string)
 	if createMode == "" || servers.CreateMode(createMode) == servers.CreateModeDefault {
-
 		_, adminLoginSet := d.GetOk("administrator_login")
 		_, adminPwdSet := d.GetOk("administrator_password")
 
@@ -753,8 +810,8 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 			if !adminLoginSet {
 				return fmt.Errorf("`administrator_login` is required when `authentication.password_auth_enabled` is set to `true`")
 			}
-			if !adminPwdSet {
-				return fmt.Errorf("`administrator_password` is required when `authentication.password_auth_enabled` is set to `true`")
+			if !adminPwdSet && woPassword.IsNull() {
+				return fmt.Errorf("`administrator_password` or `administrator_password_wo` is required when `authentication.password_auth_enabled` is set to `true`")
 			}
 		}
 
@@ -766,7 +823,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		}
 	}
 
-	if d.HasChange("private_dns_zone_id") {
+	if d.HasChange("private_dns_zone_id") || d.HasChange("public_network_access_enabled") {
 		parameters.Properties.Network = expandArmServerNetwork(d)
 	}
 
@@ -830,7 +887,13 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("administrator_password") {
-		parameters.Properties.AdministratorLoginPassword = utils.String(d.Get("administrator_password").(string))
+		parameters.Properties.AdministratorLoginPassword = pointer.To(d.Get("administrator_password").(string))
+	}
+
+	if d.HasChange("administrator_password_wo_version") {
+		if !woPassword.IsNull() {
+			parameters.Properties.AdministratorLoginPassword = pointer.To(woPassword.AsString())
+		}
 	}
 
 	if d.HasChange("authentication") {
@@ -839,9 +902,11 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if d.HasChange("auto_grow_enabled") || d.HasChange("storage_mb") || d.HasChange("storage_tier") {
 		// TODO remove the additional update after https://github.com/Azure/azure-rest-api-specs/issues/22867 is fixed
+		storage := expandArmServerStorage(d)
+
 		storageUpdateParameters := servers.ServerForUpdate{
 			Properties: &servers.ServerPropertiesForUpdate{
-				Storage: expandArmServerStorage(d),
+				Storage: storage,
 			},
 		}
 
@@ -879,7 +944,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("identity") {
-		identity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
+		identity, err := identity.ExpandLegacySystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity` for %s: %+v", *id, err)
 		}
@@ -903,8 +968,8 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 			Properties: &servers.ServerProperties{
 				CreateMode:                 &updateMode,
 				AuthConfig:                 expandFlexibleServerAuthConfig(d.Get("authentication").([]interface{})),
-				AdministratorLogin:         utils.String(d.Get("administrator_login").(string)),
-				AdministratorLoginPassword: utils.String(d.Get("administrator_password").(string)),
+				AdministratorLogin:         pointer.To(d.Get("administrator_login").(string)),
+				AdministratorLoginPassword: pointer.To(d.Get("administrator_password").(string)),
 				Network:                    expandArmServerNetwork(d),
 			},
 		}
@@ -923,7 +988,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 		restartServerId := serverrestart.NewFlexibleServerID(id.SubscriptionId, id.ResourceGroupName, id.FlexibleServerName)
 		failoverMode := serverrestart.FailoverModePlannedFailover
 		restartParameters := serverrestart.RestartParameter{
-			RestartWithFailover: utils.Bool(true),
+			RestartWithFailover: pointer.To(true),
 			FailoverMode:        &failoverMode,
 		}
 
@@ -956,12 +1021,18 @@ func expandArmServerNetwork(d *pluginsdk.ResourceData) *servers.Network {
 	network := servers.Network{}
 
 	if v, ok := d.GetOk("delegated_subnet_id"); ok {
-		network.DelegatedSubnetResourceId = utils.String(v.(string))
+		network.DelegatedSubnetResourceId = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("private_dns_zone_id"); ok {
-		network.PrivateDnsZoneArmResourceId = utils.String(v.(string))
+		network.PrivateDnsZoneArmResourceId = pointer.To(v.(string))
 	}
+
+	publicNetworkAccessEnabled := servers.ServerPublicNetworkAccessStateEnabled
+	if !d.Get("public_network_access_enabled").(bool) {
+		publicNetworkAccessEnabled = servers.ServerPublicNetworkAccessStateDisabled
+	}
+	network.PublicNetworkAccess = pointer.To(publicNetworkAccessEnabled)
 
 	return &network
 }
@@ -969,16 +1040,16 @@ func expandArmServerNetwork(d *pluginsdk.ResourceData) *servers.Network {
 func expandArmServerMaintenanceWindow(input []interface{}) *servers.MaintenanceWindow {
 	if len(input) == 0 {
 		return &servers.MaintenanceWindow{
-			CustomWindow: utils.String(ServerMaintenanceWindowDisabled),
+			CustomWindow: pointer.To(ServerMaintenanceWindowDisabled),
 		}
 	}
 	v := input[0].(map[string]interface{})
 
 	maintenanceWindow := servers.MaintenanceWindow{
-		CustomWindow: utils.String(ServerMaintenanceWindowEnabled),
-		StartHour:    utils.Int64(int64(v["start_hour"].(int))),
-		StartMinute:  utils.Int64(int64(v["start_minute"].(int))),
-		DayOfWeek:    utils.Int64(int64(v["day_of_week"].(int))),
+		CustomWindow: pointer.To(ServerMaintenanceWindowEnabled),
+		StartHour:    pointer.To(int64(v["start_hour"].(int))),
+		StartMinute:  pointer.To(int64(v["start_minute"].(int))),
+		DayOfWeek:    pointer.To(int64(v["day_of_week"].(int))),
 	}
 
 	return &maintenanceWindow
@@ -1008,7 +1079,7 @@ func expandArmServerBackup(d *pluginsdk.ResourceData) *servers.Backup {
 	backup := servers.Backup{}
 
 	if v, ok := d.GetOk("backup_retention_days"); ok {
-		backup.BackupRetentionDays = utils.Int64(int64(v.(int)))
+		backup.BackupRetentionDays = pointer.To(int64(v.(int)))
 	}
 
 	geoRedundantEnabled := servers.GeoRedundantBackupEnumDisabled
@@ -1109,7 +1180,7 @@ func expandFlexibleServerHighAvailability(inputs []interface{}, isCreate bool) *
 	// service team confirmed it doesn't support to update `high_availability.0.standby_availability_zone` after the PostgreSQL Flexible Server resource is created
 	if isCreate {
 		if v, ok := input["standby_availability_zone"]; ok && v.(string) != "" {
-			result.StandbyAvailabilityZone = utils.String(v.(string))
+			result.StandbyAvailabilityZone = pointer.To(v.(string))
 		}
 	}
 
@@ -1202,19 +1273,19 @@ func expandFlexibleServerDataEncryption(input []interface{}) *servers.DataEncryp
 	}
 
 	if keyVaultKeyId := v["key_vault_key_id"].(string); keyVaultKeyId != "" {
-		dataEncryption.PrimaryKeyURI = utils.String(keyVaultKeyId)
+		dataEncryption.PrimaryKeyURI = pointer.To(keyVaultKeyId)
 	}
 
 	if primaryUserAssignedIdentityId := v["primary_user_assigned_identity_id"].(string); primaryUserAssignedIdentityId != "" {
-		dataEncryption.PrimaryUserAssignedIdentityId = utils.String(primaryUserAssignedIdentityId)
+		dataEncryption.PrimaryUserAssignedIdentityId = pointer.To(primaryUserAssignedIdentityId)
 	}
 
 	if geoBackupKeyVaultKeyId := v["geo_backup_key_vault_key_id"].(string); geoBackupKeyVaultKeyId != "" {
-		dataEncryption.GeoBackupKeyURI = utils.String(geoBackupKeyVaultKeyId)
+		dataEncryption.GeoBackupKeyURI = pointer.To(geoBackupKeyVaultKeyId)
 	}
 
 	if geoBackupUserAssignedIdentityId := v["geo_backup_user_assigned_identity_id"].(string); geoBackupUserAssignedIdentityId != "" {
-		dataEncryption.GeoBackupUserAssignedIdentityId = utils.String(geoBackupUserAssignedIdentityId)
+		dataEncryption.GeoBackupUserAssignedIdentityId = pointer.To(geoBackupUserAssignedIdentityId)
 	}
 
 	return &dataEncryption

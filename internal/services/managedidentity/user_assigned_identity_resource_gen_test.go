@@ -91,6 +91,7 @@ func TestAccUserAssignedIdentity_update(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func (r UserAssignedIdentityTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := commonids.ParseUserAssignedIdentityID(state.ID)
 	if err != nil {
@@ -104,6 +105,7 @@ func (r UserAssignedIdentityTestResource) Exists(ctx context.Context, clients *c
 
 	return utils.Bool(resp.Model != nil), nil
 }
+
 func (r UserAssignedIdentityTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

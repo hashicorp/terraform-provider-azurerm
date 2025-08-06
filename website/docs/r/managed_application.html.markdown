@@ -81,10 +81,6 @@ The following arguments are supported:
 
 * `application_definition_id` - (Optional) The application definition ID to deploy.
 
-* `parameters` - (Optional) A mapping of name and value pairs to pass to the managed application as parameters.
-
-~> **NOTE:** `parameters` only supports values with `string` or `secureString` type and will be deprecated in version 4.0 of the provider - please use `parameter_values` instead which supports more parameter types.
-
 * `parameter_values` - (Optional) The parameter values to pass to the Managed Application. This field is a JSON object that allows you to assign parameters to this Managed Application.
 
 * `plan` - (Optional) One `plan` block as defined below. Changing this forces a new resource to be created.
@@ -105,7 +101,7 @@ The `plan` block exports the following:
 
 * `promotion_code` - (Optional) Specifies the promotion code to use with the plan. Changing this forces a new resource to be created.
 
-~> **NOTE:** When `plan` is specified, legal terms must be accepted for this item on this subscription before creating the Managed Application. The `azurerm_marketplace_agreement` resource or AZ CLI tool can be used to do this.
+~> **Note:** When `plan` is specified, legal terms must be accepted for this item on this subscription before creating the Managed Application. The `azurerm_marketplace_agreement` resource or AZ CLI tool can be used to do this.
 
 ## Attributes Reference
 
@@ -120,8 +116,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Managed Application.
-* `update` - (Defaults to 30 minutes) Used when updating the Managed Application.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Managed Application.
+* `update` - (Defaults to 30 minutes) Used when updating the Managed Application.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Managed Application.
 
 ## Import
@@ -131,3 +127,9 @@ Managed Application can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_managed_application.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Solutions/applications/app1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Solutions` - 2021-07-01

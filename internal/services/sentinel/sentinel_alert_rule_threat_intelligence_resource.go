@@ -11,7 +11,7 @@ import (
 	alertruletemplates "github.com/Azure/azure-sdk-for-go/services/preview/securityinsight/mgmt/2021-09-01-preview/securityinsight" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -29,8 +29,10 @@ type AlertRuleThreatIntelligenceModel struct {
 
 type AlertRuleThreatIntelligenceResource struct{}
 
-var _ sdk.ResourceWithCustomImporter = AlertRuleThreatIntelligenceResource{}
-var _ sdk.ResourceWithUpdate = AlertRuleThreatIntelligenceResource{}
+var (
+	_ sdk.ResourceWithCustomImporter = AlertRuleThreatIntelligenceResource{}
+	_ sdk.ResourceWithUpdate         = AlertRuleThreatIntelligenceResource{}
+)
 
 func (a AlertRuleThreatIntelligenceResource) ModelObject() interface{} {
 	return &AlertRuleThreatIntelligenceModel{}
@@ -168,7 +170,6 @@ func (a AlertRuleThreatIntelligenceResource) Read() sdk.ResourceFunc {
 			if err := assertAlertRuleKind(resp.Model, alertrules.AlertRuleKindThreatIntelligence); err != nil {
 				return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
 			}
-			rule := (*resp.Model).(alertrules.ThreatIntelligenceAlertRule)
 
 			workspaceId := workspaces.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName)
 
@@ -177,9 +178,11 @@ func (a AlertRuleThreatIntelligenceResource) Read() sdk.ResourceFunc {
 				WorkspaceId: workspaceId.ID(),
 			}
 
-			if prop := rule.Properties; prop != nil {
-				state.Enabled = prop.Enabled
-				state.TemplateName = prop.AlertRuleTemplateName
+			if rule, ok := resp.Model.(alertrules.ThreatIntelligenceAlertRule); ok {
+				if prop := rule.Properties; prop != nil {
+					state.Enabled = prop.Enabled
+					state.TemplateName = prop.AlertRuleTemplateName
+				}
 			}
 
 			return metadata.Encode(&state)
@@ -229,13 +232,11 @@ func (a AlertRuleThreatIntelligenceResource) Update() sdk.ResourceFunc {
 			if err := assertAlertRuleKind(resp.Model, alertrules.AlertRuleKindThreatIntelligence); err != nil {
 				return fmt.Errorf("asserting alert rule of %q: %+v", id, err)
 			}
-			rule := (*resp.Model).(alertrules.ThreatIntelligenceAlertRule)
+
+			rule := resp.Model.(alertrules.ThreatIntelligenceAlertRule)
 
 			if metadata.ResourceData.HasChange("enabled") {
 				rule.Properties.Enabled = metaModel.Enabled
-			}
-			if metadata.ResourceData.HasChange("template_name") {
-				rule.Properties.AlertRuleTemplateName = metaModel.TemplateName
 			}
 
 			param := alertrules.ThreatIntelligenceAlertRule{

@@ -34,6 +34,7 @@ func (o RetrieveBootDiagnosticsDataOperationOptions) ToHeaders() *client.Headers
 
 func (o RetrieveBootDiagnosticsDataOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,8 +54,8 @@ func (c VirtualMachineScaleSetVMsClient) RetrieveBootDiagnosticsData(ctx context
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/retrieveBootDiagnosticsData", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/retrieveBootDiagnosticsData", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -74,7 +75,6 @@ func (c VirtualMachineScaleSetVMsClient) RetrieveBootDiagnosticsData(ctx context
 
 	var model RetrieveBootDiagnosticsDataResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

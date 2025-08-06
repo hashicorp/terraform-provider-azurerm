@@ -4,7 +4,7 @@ package channel
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ChannelSettings struct {
-	BotIconUrl            *string `json:"botIconUrl,omitempty"`
+	BotIconURL            *string `json:"botIconUrl,omitempty"`
 	BotId                 *string `json:"botId,omitempty"`
 	ChannelDisplayName    *string `json:"channelDisplayName,omitempty"`
 	ChannelId             *string `json:"channelId,omitempty"`

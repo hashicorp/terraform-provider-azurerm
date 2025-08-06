@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/dataconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/dataconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -26,15 +26,15 @@ func importDataConnection(kind string) pluginsdk.ImporterFunc {
 		}
 
 		if dataConnection.Model != nil {
-			if dataCon, ok := (*dataConnection.Model).(dataconnections.EventHubDataConnection); ok && kind != "EventHub" {
+			if dataCon, ok := dataConnection.Model.(dataconnections.EventHubDataConnection); ok && kind != "EventHub" {
 				return nil, fmt.Errorf(`kusto data connection "kind" mismatch, expected "%T", got "%T"`, kind, dataCon)
 			}
 
-			if dataCon, ok := (*dataConnection.Model).(dataconnections.IotHubDataConnection); ok && kind != "IotHub" {
+			if dataCon, ok := dataConnection.Model.(dataconnections.IotHubDataConnection); ok && kind != "IotHub" {
 				return nil, fmt.Errorf(`kusto data connection "kind" mismatch, expected "%T", got "%T"`, kind, dataCon)
 			}
 
-			if dataCon, ok := (*dataConnection.Model).(dataconnections.EventGridDataConnection); ok && kind != "EventGrid" {
+			if dataCon, ok := dataConnection.Model.(dataconnections.EventGridDataConnection); ok && kind != "EventGrid" {
 				return nil, fmt.Errorf(`kusto data connection "kind" mismatch, expected "%T", got "%T"`, kind, dataCon)
 			}
 		}

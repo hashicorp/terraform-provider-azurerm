@@ -46,8 +46,8 @@ func SecretName(i interface{}, k string) (warnings []string, errors []error) {
 		return
 	}
 
-	if matched := regexp.MustCompile(`^[a-z0-9][a-z0-9-]*[a-z0-9]?$`).Match([]byte(v)); !matched || strings.HasSuffix(v, "-") || strings.HasSuffix(v, ".") {
-		errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters, '-' or '.', and must start and end with an alphanumeric character", k))
+	if matched := regexp.MustCompile(`^[a-z0-9][a-z0-9-]{0,251}[a-z0-9]?$`).Match([]byte(v)); !matched || strings.HasSuffix(v, "-") {
+		errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters, '-', and must start and end with an alphanumeric character. The length must not be more than 253 characters", k))
 	}
 	return
 }
@@ -74,7 +74,7 @@ func ContainerAppName(i interface{}, k string) (warnings []string, errors []erro
 		return
 	}
 
-	if matched := regexp.MustCompile(`^([a-z])[a-z0-9-]{0,58}[a-z0-9]?$`).Match([]byte(v)); !matched || strings.HasSuffix(v, "-") || strings.Contains(v, "--") {
+	if matched := regexp.MustCompile(`^([a-z]\z)|(^([a-z0-9])([a-z0-9-.]{0,30})([^A-Z\W]))$`).Match([]byte(v)); !matched || strings.Contains(v, "--") {
 		errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters or '-', start with an alphabetic character, and end with an alphanumeric character and cannot have '--'. The length must not be more than 32 characters", k))
 		return
 	}
@@ -106,8 +106,8 @@ func ManagedEnvironmentName(i interface{}, k string) (warnings []string, errors 
 
 	if matched := regexp.MustCompile(`^([a-zA-Z])[a-zA-Z0-9-]{0,58}[a-z]?$`).Match([]byte(v)); !matched || strings.HasSuffix(v, "-") {
 		errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters or '-', start with an alphabetic character, and end with an alphanumeric character. The length must not be more than 60 characters", k))
-		return
 	}
+
 	return
 }
 
@@ -118,10 +118,58 @@ func ContainerAppContainerName(i interface{}, k string) (warnings []string, erro
 		return
 	}
 
-	if matched := regexp.MustCompile(`^([a-zA-Z0-9])[a-zA-Z0-9-.]{0,254}[a-z]?$`).Match([]byte(v)); !matched || strings.HasSuffix(v, "-") {
-		errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters, '-', or '.', start with an alphabetic character, and end with an alphanumeric character. The length must not be more than 60 characters", k))
+	if matched := regexp.MustCompile(`^([a-z0-9]\z)|(^([a-z0-9])([a-z0-9-.]{0,44})([^A-Z\W])$)`).Match([]byte(v)); !matched {
+		errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters, '-', or '.', start with an alphabetic character, and end with an alphanumeric character. The length must not be more than 46 characters", k))
+	}
+
+	return
+}
+
+func ContainerAppJobName(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
 		return
 	}
+
+	if len(v) == 1 {
+		if matched := regexp.MustCompile(`^[a-z0-9]$`).Match([]byte(v)); !matched {
+			errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters, '-', or '.', start and end with an alphanumeric character", k))
+		}
+	} else {
+		if matched := regexp.MustCompile(`^([a-z0-9])[a-z0-9-]*[a-z0-9]$`).Match([]byte(v)); !matched || strings.HasSuffix(v, "-") {
+			errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters, or '-', start and end with an alphanumeric character", k))
+		}
+	}
+
+	if len(v) > 32 {
+		errors = append(errors, fmt.Errorf("%q must not exceed 32 characters", k))
+	}
+
+	if strings.Contains(v, "--") {
+		errors = append(errors, fmt.Errorf("%q must not contain --", k))
+	}
+
+	return
+}
+
+func LowerCaseAlphaNumericWithHyphensAndPeriods(i interface{}, k string) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+		return
+	}
+
+	if len(v) == 1 {
+		if matched := regexp.MustCompile(`^[a-z0-9]$`).Match([]byte(v)); !matched {
+			errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters, '-', or '.', start and end with an alphanumeric character", k))
+		}
+	} else {
+		if matched := regexp.MustCompile(`^([a-z0-9])[a-z0-9-.]*[a-z0-9]$`).Match([]byte(v)); !matched || strings.HasSuffix(v, "-") {
+			errors = append(errors, fmt.Errorf("%q must consist of lower case alphanumeric characters, '-', or '.', start and end with an alphanumeric character", k))
+		}
+	}
+
 	return
 }
 

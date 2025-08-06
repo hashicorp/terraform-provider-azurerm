@@ -27,7 +27,6 @@ func TestManagedDatabaseID(t *testing.T) {
 		Error    bool
 		Expected *ManagedDatabaseId
 	}{
-
 		{
 			// empty
 			Input: "",

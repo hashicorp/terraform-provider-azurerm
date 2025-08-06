@@ -38,6 +38,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_storage_container":                  dataSourceStorageContainer(),
 		"azurerm_storage_encryption_scope":           dataSourceStorageEncryptionScope(),
 		"azurerm_storage_management_policy":          dataSourceStorageManagementPolicy(),
+		"azurerm_storage_queue":                      dataSourceStorageQueue(),
 		"azurerm_storage_share":                      dataSourceStorageShare(),
 		"azurerm_storage_sync":                       dataSourceStorageSync(),
 		"azurerm_storage_sync_group":                 dataSourceStorageSyncGroup(),
@@ -73,6 +74,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
+		storageTableDataSource{},
 		storageTableEntitiesDataSource{},
 		storageContainersDataSource{},
 	}
@@ -80,6 +82,10 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		AccountQueuePropertiesResource{},
+		AccountStaticWebsiteResource{},
 		LocalUserResource{},
+		StorageContainerImmutabilityPolicyResource{},
+		SyncServerEndpointResource{},
 	}
 }

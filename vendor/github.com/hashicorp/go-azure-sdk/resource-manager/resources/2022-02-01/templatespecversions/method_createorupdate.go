@@ -50,7 +50,6 @@ func (c TemplateSpecVersionsClient) CreateOrUpdate(ctx context.Context, id Templ
 
 	var model TemplateSpecVersion
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

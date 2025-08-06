@@ -30,7 +30,7 @@ resource "azurerm_databricks_workspace" "example" {
 }
 ```
 
--> You can use [the Databricks Terraform Provider](https://registry.terraform.io/providers/databrickslabs/databricks/latest/docs) to manage resources within the Databricks Workspace.
+-> **Note:** You can use [the Databricks Terraform Provider](https://registry.terraform.io/providers/databrickslabs/databricks/latest/docs) to manage resources within the Databricks Workspace.
 
 ## Argument Reference
 
@@ -42,7 +42,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource has to be created. Changing this forces a new resource to be created.
 
-* `load_balancer_backend_address_pool_id` - (Optional) Resource ID of the Outbound Load balancer Backend Address Pool for Secure Cluster Connectivity (No Public IP) workspace. Changing this forces a new resource to be created.
+* `load_balancer_backend_address_pool_id` - (Optional) Resource ID of the Outbound Load balancer Backend Address Pool for Secure Cluster Connectivity (No Public IP) workspace with managed virtual network. Changing this forces a new resource to be created.
 
 * `sku` - (Required) The `sku` to use for the Databricks Workspace. Possible values are `standard`, `premium`, or `trial`.
 
@@ -76,9 +76,17 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Allow public access for accessing workspace. Set value to `false` to access workspace only via private link endpoint. Possible values include `true` or `false`. Defaults to `true`.
 
+* `default_storage_firewall_enabled` - (Optional) Disallow public access to default storage account. Defaults to `false`.
+
+* `access_connector_id` - (Optional) Access Connector ID to use when default storage account firewall is enabled. 
+
+-> **Note:** The `access_connector_id` field is only required if `default_storage_firewall_enabled` is set to `true`.
+
 * `network_security_group_rules_required` - (Optional) Does the data plane (clusters) to control plane communication happen over private link endpoint only or publicly? Possible values `AllRules`, `NoAzureDatabricksRules` or `NoAzureServiceRules`. Required when `public_network_access_enabled` is set to `false`.
 
 * `custom_parameters` - (Optional) A `custom_parameters` block as documented below.
+
+* `enhanced_security_compliance` - (Optional) An `enhanced_security_compliance` block as documented below. This feature is only valid if `sku` is set to `premium`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -88,13 +96,15 @@ A `custom_parameters` block supports the following:
 
 * `machine_learning_workspace_id` - (Optional) The ID of a Azure Machine Learning workspace to link with Databricks workspace. Changing this forces a new resource to be created.
 
-* `nat_gateway_name` - (Optional) Name of the NAT gateway for Secure Cluster Connectivity (No Public IP) workspace subnets. Defaults to `nat-gateway`. Changing this forces a new resource to be created.
+* `nat_gateway_name` - (Optional) Name of the NAT gateway for Secure Cluster Connectivity (No Public IP) workspace subnets (only for workspace with managed virtual network). Defaults to `nat-gateway`. Changing this forces a new resource to be created.
 
-* `public_ip_name` - (Optional) Name of the Public IP for No Public IP workspace with managed vNet. Defaults to `nat-gw-public-ip`. Changing this forces a new resource to be created.
+* `public_ip_name` - (Optional) Name of the Public IP for No Public IP workspace with managed virtual network. Defaults to `nat-gw-public-ip`. Changing this forces a new resource to be created.
 
-* `no_public_ip` - (Optional) Are public IP Addresses not allowed? Possible values are `true` or `false`. Defaults to `false`.
+* `no_public_ip` - (Optional) Are public IP Addresses not allowed? Possible values are `true` or `false`. Defaults to `true`.
 
-~> **Note:** Updating `no_public_ip` parameter is only allowed if the value is changing from `false` to `true` and and only for VNet-injected workspaces.
+~> **Note:** Updating `no_public_ip` parameter is only allowed if the value is changing from `false` to `true` and only for VNet-injected workspaces.
+
+~> **Note:** In `v3.104.0` and higher of the provider the `no_public_ip` parameter will now default to `true` instead of `false`.
 
 * `public_subnet_name` - (Optional) The name of the Public Subnet within the Virtual Network. Required if `virtual_network_id` is set. Changing this forces a new resource to be created.
 
@@ -106,13 +116,33 @@ A `custom_parameters` block supports the following:
 
 * `storage_account_name` - (Optional) Default Databricks File Storage account name. Defaults to a randomized name(e.g. `dbstoragel6mfeghoe5kxu`). Changing this forces a new resource to be created.
 
-* `storage_account_sku_name` - (Optional) Storage account SKU name. Possible values include `Standard_LRS`, `Standard_GRS`, `Standard_RAGRS`, `Standard_GZRS`, `Standard_RAGZRS`, `Standard_ZRS`, `Premium_LRS` or `Premium_ZRS`. Defaults to `Standard_GRS`. Changing this forces a new resource to be created.
+* `storage_account_sku_name` - (Optional) Storage account SKU name. Possible values include `Standard_LRS`, `Standard_GRS`, `Standard_RAGRS`, `Standard_GZRS`, `Standard_RAGZRS`, `Standard_ZRS`, `Premium_LRS` or `Premium_ZRS`. Defaults to `Standard_GRS`.
 
 * `virtual_network_id` - (Optional) The ID of a Virtual Network where this Databricks Cluster should be created. Changing this forces a new resource to be created.
 
 * `vnet_address_prefix` - (Optional) Address prefix for Managed virtual network. Defaults to `10.139`. Changing this forces a new resource to be created.
 
 ~> **Note:** Databricks requires that a network security group is associated with the `public` and `private` subnets when a `virtual_network_id` has been defined. Both `public` and `private` subnets must be delegated to `Microsoft.Databricks/workspaces`. For more information about subnet delegation see the [product documentation](https://docs.microsoft.com/azure/virtual-network/subnet-delegation-overview).
+
+---
+
+An `enhanced_security_compliance` block supports the following:
+
+* `automatic_cluster_update_enabled` - (Optional) Enables automatic cluster updates for this workspace. Defaults to `false`.
+
+* `compliance_security_profile_enabled` - (Optional) Enables compliance security profile for this workspace. Defaults to `false`.
+
+~> **Note:** Changing the value of `compliance_security_profile_enabled` from `true` to `false` forces a replacement of the Databricks workspace.
+
+~> **Note:** The attributes `automatic_cluster_update_enabled` and `enhanced_security_monitoring_enabled` must be set to `true` in order to set `compliance_security_profile_enabled` to `true`.
+
+* `compliance_security_profile_standards` - (Optional) A list of standards to enforce on this workspace. Possible values include `HIPAA` and `PCI_DSS`.
+
+~> **Note:** `compliance_security_profile_enabled` must be set to `true` in order to use `compliance_security_profile_standards`.
+
+~> **Note:** Removing a standard from the `compliance_security_profile_standards` list forces a replacement of the Databricks workspace.
+
+* `enhanced_security_monitoring_enabled` - (Optional) Enables enhanced security monitoring for this workspace. Defaults to `false`.
 
 ## Example HCL Configurations
 
@@ -168,8 +198,8 @@ A `storage_account_identity` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Databricks Workspace.
-* `update` - (Defaults to 30 minutes) Used when updating the Databricks Workspace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Databricks Workspace.
+* `update` - (Defaults to 30 minutes) Used when updating the Databricks Workspace.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Databricks Workspace.
 
 ## Import
@@ -179,3 +209,11 @@ Databrick Workspaces can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_databricks_workspace.workspace1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Databricks/workspaces/workspace1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Databricks` - 2024-05-01, 2022-10-01-preview
+
+* `Microsoft.Network` - 2024-05-01, 2023-09-01

@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&AssemblyId{})
+}
 
 var _ resourceids.ResourceId = &AssemblyId{}
 
@@ -39,7 +44,7 @@ func ParseAssemblyID(input string) (*AssemblyId, error) {
 	}
 
 	id := AssemblyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParseAssemblyIDInsensitively(input string) (*AssemblyId, error) {
 	}
 
 	id := AssemblyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -116,9 +121,9 @@ func (id AssemblyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftLogic", "Microsoft.Logic", "Microsoft.Logic"),
 		resourceids.StaticSegment("staticIntegrationAccounts", "integrationAccounts", "integrationAccounts"),
-		resourceids.UserSpecifiedSegment("integrationAccountName", "integrationAccountValue"),
+		resourceids.UserSpecifiedSegment("integrationAccountName", "integrationAccountName"),
 		resourceids.StaticSegment("staticAssemblies", "assemblies", "assemblies"),
-		resourceids.UserSpecifiedSegment("assemblyName", "assemblyValue"),
+		resourceids.UserSpecifiedSegment("assemblyName", "assemblyName"),
 	}
 }
 

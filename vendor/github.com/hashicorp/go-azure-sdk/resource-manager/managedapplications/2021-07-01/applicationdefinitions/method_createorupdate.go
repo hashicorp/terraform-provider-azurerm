@@ -50,7 +50,6 @@ func (c ApplicationDefinitionsClient) CreateOrUpdate(ctx context.Context, id App
 
 	var model ApplicationDefinition
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

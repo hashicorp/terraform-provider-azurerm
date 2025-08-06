@@ -34,6 +34,7 @@ func (o ListByAutomationAccountOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByAutomationAccountOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,8 +54,8 @@ func (c StatisticsClient) ListByAutomationAccount(ctx context.Context, id Automa
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/statistics", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/statistics", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -74,7 +75,6 @@ func (c StatisticsClient) ListByAutomationAccount(ctx context.Context, id Automa
 
 	var model StatisticsListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

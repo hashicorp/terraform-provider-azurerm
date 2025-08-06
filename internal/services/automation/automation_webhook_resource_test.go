@@ -6,7 +6,6 @@ package automation_test
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"testing"
 	"time"
 
@@ -26,17 +25,46 @@ func TestAccAutomationWebhook_basic(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.SimpleWebhook(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("name").Exists(),
-				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-				check.That(data.ResourceName).Key("automation_account_name").Exists(),
-				check.That(data.ResourceName).Key("expiry_time").Exists(),
-				check.That(data.ResourceName).Key("enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("runbook_name").HasValue("Get-AzureVMTutorial"),
-				check.That(data.ResourceName).Key("parameters").DoesNotExist(),
-				check.That(data.ResourceName).Key("uri").Exists(),
+			),
+		},
+		data.ImportStep("uri"),
+	})
+}
+
+func TestAccAutomationWebhook_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_webhook", "test")
+	r := AutomationWebhookResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("uri"),
+	})
+}
+
+func TestAccAutomationWebhook_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_automation_webhook", "test")
+	r := AutomationWebhookResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("uri"),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("uri"),
@@ -49,7 +77,7 @@ func TestAccAutomationWebhook_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.SimpleWebhook(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -57,35 +85,6 @@ func TestAccAutomationWebhook_requiresImport(t *testing.T) {
 		{
 			Config:      r.requiresImport(data),
 			ExpectError: acceptance.RequiresImportError("azurerm_automation_webhook"),
-		},
-	})
-}
-
-func TestAccAutomationWebhook_WithParameters(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automation_webhook", "test")
-	r := AutomationWebhookResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.WebhookWithParameters(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("parameters.input").HasValue("parameter"),
-				check.That(data.ResourceName).Key("uri").Exists(),
-			),
-		},
-		data.ImportStep("uri"),
-	})
-}
-
-func TestAccAutomationWebhook_WithWorkerGroup(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_automation_webhook", "test")
-	r := AutomationWebhookResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.WebhookOnWorkerGroup(data),
-			ExpectError: regexp.MustCompile("The Hybrid Runbook Worker Group given in RunOn parameter does not exist"),
 		},
 	})
 }
@@ -104,7 +103,7 @@ func (t AutomationWebhookResource) Exists(ctx context.Context, clients *clients.
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (AutomationWebhookResource) ParentResources(data acceptance.TestData) string {
+func (AutomationWebhookResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -141,8 +140,8 @@ CONTENT
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (AutomationWebhookResource) SimpleWebhook(data acceptance.TestData) string {
-	template := AutomationWebhookResource{}.ParentResources(data)
+func (AutomationWebhookResource) basic(data acceptance.TestData) string {
+	template := AutomationWebhookResource{}.template(data)
 	return fmt.Sprintf(`
 %s
 
@@ -151,14 +150,48 @@ resource "azurerm_automation_webhook" "test" {
   resource_group_name     = azurerm_resource_group.test.name
   automation_account_name = azurerm_automation_account.test.name
   expiry_time             = "%s"
-  enabled                 = true
   runbook_name            = azurerm_automation_runbook.test.name
 }
 `, template, time.Now().UTC().Add(time.Hour).Format(time.RFC3339))
 }
 
+func (AutomationWebhookResource) complete(data acceptance.TestData) string {
+	template := AutomationWebhookResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_automation_credential" "test" {
+  name                    = "acctest-%[2]d"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  username                = "test_user"
+  password                = "test_pwd"
+}
+
+resource "azurerm_automation_hybrid_runbook_worker_group" "test" {
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  name                    = "acctest-%[2]d"
+  credential_name         = azurerm_automation_credential.test.name
+}
+
+resource "azurerm_automation_webhook" "test" {
+  name                    = "TestRunbook_webhook"
+  resource_group_name     = azurerm_resource_group.test.name
+  automation_account_name = azurerm_automation_account.test.name
+  expiry_time             = "%[3]s"
+  enabled                 = false
+  runbook_name            = azurerm_automation_runbook.test.name
+  run_on_worker_group     = azurerm_automation_hybrid_runbook_worker_group.test.name
+  parameters = {
+    input = "parameter"
+  }
+}
+`, template, data.RandomInteger, time.Now().UTC().Add(time.Hour).Format(time.RFC3339))
+}
+
 func (AutomationWebhookResource) requiresImport(data acceptance.TestData) string {
-	template := AutomationWebhookResource{}.SimpleWebhook(data)
+	template := AutomationWebhookResource{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
@@ -167,45 +200,7 @@ resource "azurerm_automation_webhook" "import" {
   resource_group_name     = azurerm_automation_webhook.test.resource_group_name
   automation_account_name = azurerm_automation_webhook.test.automation_account_name
   expiry_time             = azurerm_automation_webhook.test.expiry_time
-  enabled                 = azurerm_automation_webhook.test.enabled
   runbook_name            = azurerm_automation_webhook.test.runbook_name
-}
-`, template)
-}
-
-func (AutomationWebhookResource) WebhookWithParameters(data acceptance.TestData) string {
-	template := AutomationWebhookResource{}.ParentResources(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_automation_webhook" "test" {
-  name                    = "TestRunbook_webhook"
-  resource_group_name     = azurerm_resource_group.test.name
-  automation_account_name = azurerm_automation_account.test.name
-  expiry_time             = "%s"
-  enabled                 = true
-  runbook_name            = azurerm_automation_runbook.test.name
-  parameters = {
-    input = "parameter"
-  }
-}
-`, template, time.Now().UTC().Add(time.Hour).Format(time.RFC3339))
-}
-
-// requires creation of worker group
-func (AutomationWebhookResource) WebhookOnWorkerGroup(data acceptance.TestData) string {
-	template := AutomationWebhookResource{}.ParentResources(data)
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_automation_webhook" "test" {
-  name                    = "TestRunbook_webhook"
-  resource_group_name     = azurerm_resource_group.test.name
-  automation_account_name = azurerm_automation_account.test.name
-  expiry_time             = timeadd(timestamp(), "10h")
-  enabled                 = true
-  runbook_name            = azurerm_automation_runbook.test.name
-  run_on_worker_group     = "workergroup"
 }
 `, template)
 }

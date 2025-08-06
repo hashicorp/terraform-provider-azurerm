@@ -45,7 +45,6 @@ func (c ResourceClient) RemoteRenderingAccountsGet(ctx context.Context, id Remot
 
 	var model RemoteRenderingAccount
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

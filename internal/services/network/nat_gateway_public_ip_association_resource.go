@@ -9,15 +9,15 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/natgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceNATGatewayPublicIpAssociation() *pluginsdk.Resource {
@@ -27,7 +27,7 @@ func resourceNATGatewayPublicIpAssociation() *pluginsdk.Resource {
 		Delete: resourceNATGatewayPublicIpAssociationDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.NatGatewayPublicIPAddressAssociationID(id)
+			_, err := commonids.ParseCompositeResourceID(id, &natgateways.NatGatewayId{}, &commonids.PublicIPAddressId{})
 			return err
 		}),
 
@@ -42,179 +42,181 @@ func resourceNATGatewayPublicIpAssociation() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.NatGatewayID,
+				ValidateFunc: natgateways.ValidateNatGatewayID,
 			},
 
 			"public_ip_address_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.PublicIpAddressID,
+				ValidateFunc: commonids.ValidatePublicIPAddressID,
 			},
 		},
 	}
 }
 
 func resourceNATGatewayPublicIpAssociationCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.NatGatewayClient
+	client := meta.(*clients.Client).Network.Client.NatGateways
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for NAT Gateway <-> Public IP Association creation.")
-	natGatewayId := d.Get("nat_gateway_id").(string)
-	publicIpAddressId := d.Get("public_ip_address_id").(string)
-	parsedNatGatewayId, err := parse.NatGatewayID(natGatewayId)
+	publicIpAddressId, err := commonids.ParsePublicIPAddressID(d.Get("public_ip_address_id").(string))
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(parsedNatGatewayId.Name, natGatewayResourceName)
-	defer locks.UnlockByName(parsedNatGatewayId.Name, natGatewayResourceName)
-
-	natGateway, err := client.Get(ctx, parsedNatGatewayId.ResourceGroup, parsedNatGatewayId.Name, "")
+	natGatewayId, err := natgateways.ParseNatGatewayID(d.Get("nat_gateway_id").(string))
 	if err != nil {
-		if utils.ResponseWasNotFound(natGateway.Response) {
-			return fmt.Errorf("NAT Gateway %q (Resource Group %q) was not found.", parsedNatGatewayId.Name, parsedNatGatewayId.ResourceGroup)
-		}
-		return fmt.Errorf("failed to retrieve NAT Gateway %q (Resource Group %q): %+v", parsedNatGatewayId.Name, parsedNatGatewayId.ResourceGroup, err)
+		return err
 	}
 
-	id := fmt.Sprintf("%s|%s", *natGateway.ID, publicIpAddressId)
-	publicIpAddresses := make([]network.SubResource, 0)
-	if natGateway.PublicIPAddresses != nil {
-		for _, existingPublicIPAddress := range *natGateway.PublicIPAddresses {
-			if existingPublicIPAddress.ID == nil {
+	locks.ByName(natGatewayId.NatGatewayName, natGatewayResourceName)
+	defer locks.UnlockByName(natGatewayId.NatGatewayName, natGatewayResourceName)
+
+	natGateway, err := client.Get(ctx, *natGatewayId, natgateways.DefaultGetOperationOptions())
+	if err != nil {
+		if response.WasNotFound(natGateway.HttpResponse) {
+			return fmt.Errorf("%s was not found", natGatewayId)
+		}
+		return fmt.Errorf("retrieving %s: %+v", natGatewayId, err)
+	}
+
+	if natGateway.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", natGatewayId)
+	}
+	if natGateway.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", natGatewayId)
+	}
+
+	id := commonids.NewCompositeResourceID(natGatewayId, publicIpAddressId)
+
+	publicIpAddresses := make([]natgateways.SubResource, 0)
+	if natGateway.Model.Properties.PublicIPAddresses != nil {
+		for _, existingPublicIPAddress := range *natGateway.Model.Properties.PublicIPAddresses {
+			if existingPublicIPAddress.Id == nil {
 				continue
 			}
 
-			if strings.EqualFold(*existingPublicIPAddress.ID, publicIpAddressId) {
-				return tf.ImportAsExistsError("azurerm_nat_gateway_public_ip_association", id)
+			if strings.EqualFold(*existingPublicIPAddress.Id, publicIpAddressId.ID()) {
+				return tf.ImportAsExistsError("azurerm_nat_gateway_public_ip_association", id.ID())
 			}
 
 			publicIpAddresses = append(publicIpAddresses, existingPublicIPAddress)
 		}
 	}
 
-	publicIpAddresses = append(publicIpAddresses, network.SubResource{
-		ID: utils.String(publicIpAddressId),
+	publicIpAddresses = append(publicIpAddresses, natgateways.SubResource{
+		Id: pointer.To(publicIpAddressId.ID()),
 	})
-	natGateway.PublicIPAddresses = &publicIpAddresses
+	natGateway.Model.Properties.PublicIPAddresses = &publicIpAddresses
 
-	future, err := client.CreateOrUpdate(ctx, parsedNatGatewayId.ResourceGroup, parsedNatGatewayId.Name, natGateway)
-	if err != nil {
-		return fmt.Errorf("failed to update Public IP Association for NAT Gateway %q (Resource Group %q): %+v", parsedNatGatewayId.Name, parsedNatGatewayId.ResourceGroup, err)
+	if err := client.CreateOrUpdateThenPoll(ctx, *natGatewayId, *natGateway.Model); err != nil {
+		return fmt.Errorf("updating %s: %+v", natGatewayId, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("failed to wait for completion of Public IP Association for NAT Gateway %q (Resource Group %q): %+v", parsedNatGatewayId.Name, parsedNatGatewayId.ResourceGroup, err)
-	}
-
-	d.SetId(id)
+	d.SetId(id.ID())
 
 	return resourceNATGatewayPublicIpAssociationRead(d, meta)
 }
 
 func resourceNATGatewayPublicIpAssociationRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.NatGatewayClient
+	client := meta.(*clients.Client).Network.Client.NatGateways
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NatGatewayPublicIPAddressAssociationID(d.Id())
+	id, err := commonids.ParseCompositeResourceID(d.Id(), &natgateways.NatGatewayId{}, &commonids.PublicIPAddressId{})
 	if err != nil {
 		return err
 	}
 
-	natGateway, err := client.Get(ctx, id.NatGateway.ResourceGroup, id.NatGateway.Name, "")
+	natGateway, err := client.Get(ctx, *id.First, natgateways.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(natGateway.Response) {
-			log.Printf("[DEBUG] NAT Gateway %q (Resource Group %q) could not be found - removing from state!", id.NatGateway.Name, id.NatGateway.ResourceGroup)
+		if response.WasNotFound(natGateway.HttpResponse) {
+			log.Printf("[DEBUG] %s was not found - removing from state!", id.First)
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("failed to retrieve NAT Gateway %q (Resource Group %q): %+v", id.NatGateway.Name, id.NatGateway.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id.First, err)
 	}
 
-	if natGateway.NatGatewayPropertiesFormat == nil {
-		return fmt.Errorf("`properties` was nil for NAT Gateway %q (Resource Group %q)", id.NatGateway.Name, id.NatGateway.ResourceGroup)
-	}
-	props := *natGateway.NatGatewayPropertiesFormat
+	if model := natGateway.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if props.PublicIPAddresses == nil {
+				log.Printf("[DEBUG] %s doesn't have any Public IP's - removing from state!", id.First)
+				d.SetId("")
+				return nil
+			}
 
-	if props.PublicIPAddresses == nil {
-		log.Printf("[DEBUG] NAT Gateway %q (Resource Group %q) doesn't have any Public IP's - removing from state!", id.NatGateway.Name, id.NatGateway.ResourceGroup)
-		d.SetId("")
-		return nil
-	}
+			publicIPAddressId := ""
+			for _, pip := range *props.PublicIPAddresses {
+				if pip.Id == nil {
+					continue
+				}
 
-	publicIPAddressId := ""
-	for _, pip := range *props.PublicIPAddresses {
-		if pip.ID == nil {
-			continue
+				if strings.EqualFold(*pip.Id, id.Second.ID()) {
+					publicIPAddressId = *pip.Id
+					break
+				}
+			}
+
+			if publicIPAddressId == "" {
+				log.Printf("[DEBUG] Association between %s and %s was not found - removing from state", id.First, id.Second)
+				d.SetId("")
+				return nil
+			}
 		}
-
-		if strings.EqualFold(*pip.ID, id.PublicIPAddressID) {
-			publicIPAddressId = *pip.ID
-			break
-		}
 	}
 
-	if publicIPAddressId == "" {
-		log.Printf("[DEBUG] Association between NAT Gateway %q (Resource Group %q) and Public IP Address %q was not found - removing from state", id.NatGateway.Name, id.NatGateway.ResourceGroup, id.PublicIPAddressID)
-		d.SetId("")
-		return nil
-	}
-
-	d.Set("nat_gateway_id", natGateway.ID)
-	d.Set("public_ip_address_id", publicIPAddressId)
+	d.Set("nat_gateway_id", id.First.ID())
+	d.Set("public_ip_address_id", id.Second.ID())
 
 	return nil
 }
 
 func resourceNATGatewayPublicIpAssociationDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.NatGatewayClient
+	client := meta.(*clients.Client).Network.Client.NatGateways
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.NatGatewayPublicIPAddressAssociationID(d.Id())
+	id, err := commonids.ParseCompositeResourceID(d.Id(), &natgateways.NatGatewayId{}, &commonids.PublicIPAddressId{})
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(id.NatGateway.Name, natGatewayResourceName)
-	defer locks.UnlockByName(id.NatGateway.Name, natGatewayResourceName)
+	locks.ByName(id.First.NatGatewayName, natGatewayResourceName)
+	defer locks.UnlockByName(id.First.NatGatewayName, natGatewayResourceName)
 
-	natGateway, err := client.Get(ctx, id.NatGateway.ResourceGroup, id.NatGateway.Name, "")
+	natGateway, err := client.Get(ctx, *id.First, natgateways.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(natGateway.Response) {
-			return fmt.Errorf("NAT Gateway %q (Resource Group %q) was not found", id.NatGateway.Name, id.NatGateway.ResourceGroup)
+		if response.WasNotFound(natGateway.HttpResponse) {
+			return fmt.Errorf("%s was not found", id.First)
 		}
-
-		return fmt.Errorf("retrieving NAT Gateway %q (Resource Group %q): %+v", id.NatGateway.Name, id.NatGateway.ResourceGroup, err)
-	}
-	if natGateway.NatGatewayPropertiesFormat == nil {
-		return fmt.Errorf("retrieving NAT Gateway %q (Resource Group %q): `properties` was nil", id.NatGateway.Name, id.NatGateway.ResourceGroup)
+		return fmt.Errorf("retrieving %s: %+v", id.First, err)
 	}
 
-	publicIpAddresses := make([]network.SubResource, 0)
-	if publicIPAddresses := natGateway.NatGatewayPropertiesFormat.PublicIPAddresses; publicIPAddresses != nil {
+	if natGateway.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id.First)
+	}
+	if natGateway.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id.First)
+	}
+
+	publicIpAddresses := make([]natgateways.SubResource, 0)
+	if publicIPAddresses := natGateway.Model.Properties.PublicIPAddresses; publicIPAddresses != nil {
 		for _, publicIPAddress := range *publicIPAddresses {
-			if publicIPAddress.ID == nil {
+			if publicIPAddress.Id == nil {
 				continue
 			}
 
-			if !strings.EqualFold(*publicIPAddress.ID, id.PublicIPAddressID) {
+			if !strings.EqualFold(*publicIPAddress.Id, id.Second.ID()) {
 				publicIpAddresses = append(publicIpAddresses, publicIPAddress)
 			}
 		}
 	}
-	natGateway.NatGatewayPropertiesFormat.PublicIPAddresses = &publicIpAddresses
+	natGateway.Model.Properties.PublicIPAddresses = &publicIpAddresses
 
-	future, err := client.CreateOrUpdate(ctx, id.NatGateway.ResourceGroup, id.NatGateway.Name, natGateway)
-	if err != nil {
-		return fmt.Errorf("removing association between NAT Gateway %q (Resource Group %q) and Public IP Address %q: %+v", id.NatGateway.Name, id.NatGateway.ResourceGroup, id.PublicIPAddressID, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for association between Public IP ID %q for NAT Gateway %q (Resource Group %q) to be removed: %+v", id.PublicIPAddressID, id.NatGateway.Name, id.NatGateway.ResourceGroup, err)
+	if err := client.CreateOrUpdateThenPoll(ctx, *id.First, *natGateway.Model); err != nil {
+		return fmt.Errorf("removing association between %s and %s: %+v", id.First, id.Second, err)
 	}
 
 	return nil

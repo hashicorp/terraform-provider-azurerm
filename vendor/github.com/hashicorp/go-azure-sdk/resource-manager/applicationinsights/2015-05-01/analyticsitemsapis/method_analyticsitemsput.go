@@ -34,6 +34,7 @@ func (o AnalyticsItemsPutOperationOptions) ToHeaders() *client.Headers {
 
 func (o AnalyticsItemsPutOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,8 +54,8 @@ func (c AnalyticsItemsAPIsClient) AnalyticsItemsPut(ctx context.Context, id Prov
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          fmt.Sprintf("%s/item", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/item", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -78,7 +79,6 @@ func (c AnalyticsItemsAPIsClient) AnalyticsItemsPut(ctx context.Context, id Prov
 
 	var model ApplicationInsightsComponentAnalyticsItem
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -11,8 +11,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetrollingupgrades"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetvms"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/client"
 )
 
@@ -134,7 +134,7 @@ func (metadata virtualMachineScaleSetUpdateMetaData) upgradeInstancesForManualUp
 		props := item.Properties
 		if props != nil && item.InstanceId != nil {
 			latestModel := props.LatestModelApplied
-			if latestModel != nil || !*latestModel {
+			if !*latestModel {
 				instanceIdsToRoll = append(instanceIdsToRoll, *item.InstanceId)
 			}
 		}

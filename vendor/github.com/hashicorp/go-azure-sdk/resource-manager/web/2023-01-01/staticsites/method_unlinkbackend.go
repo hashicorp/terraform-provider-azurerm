@@ -33,6 +33,7 @@ func (o UnlinkBackendOperationOptions) ToHeaders() *client.Headers {
 
 func (o UnlinkBackendOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,8 +54,8 @@ func (c StaticSitesClient) UnlinkBackend(ctx context.Context, id LinkedBackendId
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodDelete,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

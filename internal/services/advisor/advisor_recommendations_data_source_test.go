@@ -84,12 +84,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                      = "accteststr%s"
-  resource_group_name       = azurerm_resource_group.test.name
-  location                  = azurerm_resource_group.test.location
-  enable_https_traffic_only = false
-  account_tier              = "Standard"
-  account_replication_type  = "LRS"
+  name                       = "accteststr%s"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  https_traffic_only_enabled = false
+  account_tier               = "Standard"
+  account_replication_type   = "LRS"
 }
 
 data "azurerm_advisor_recommendations" "test" {

@@ -19,7 +19,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_log_analytics_workspace" "example" {
-  name                = "acctest-01"
+  name                = "example-workspace"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "PerGB2018"
@@ -30,6 +30,7 @@ resource "azurerm_container_app_environment" "example" {
   name                       = "my-environment"
   location                   = azurerm_resource_group.example.location
   resource_group_name        = azurerm_resource_group.example.name
+  logs_destination           = "log-analytics"
   log_analytics_workspace_id = azurerm_log_analytics_workspace.example.id
 }
 ```
@@ -54,19 +55,29 @@ The following arguments are supported:
 
 * `infrastructure_subnet_id` - (Optional) The existing Subnet to use for the Container Apps Control Plane. Changing this forces a new resource to be created. 
 
-~> **NOTE:** The Subnet must have a `/21` or larger address space. 
+~> **Note:** The Subnet must have a `/21` or larger address space.
 
 * `internal_load_balancer_enabled` - (Optional) Should the Container Environment operate in Internal Load Balancing Mode? Defaults to `false`. Changing this forces a new resource to be created.
 
-~> **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified. 
+~> **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified.
+
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `zone_redundancy_enabled` - (Optional) Should the Container App Environment be created with Zone Redundancy enabled? Defaults to `false`. Changing this forces a new resource to be created.
 
-~> **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified. 
+~> **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified.
 
-* `log_analytics_workspace_id` - (Optional) The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to. Changing this forces a new resource to be created.
+* `log_analytics_workspace_id` - (Optional) The ID for the Log Analytics Workspace to link this Container Apps Managed Environment to. 
 
-* `workload_profile` - (Optional) The profile of the workload to scope the container app execution. A `workload_profile` block as defined below.
+~> **Note:** required if `logs_destination` is set to `log-analytics`. Cannot be set if `logs_destination` is set to `azure-monitor`.
+
+* `logs_destination` - (Optional) Where the application logs will be saved for this Container Apps Managed Environment. Possible values include `log-analytics` and `azure-monitor`. Omitting this value will result in logs being streamed only.
+
+* `workload_profile` - (Optional) One or more `workload_profile` blocks as defined below.
+
+* `mutual_tls_enabled` - (Optional) Should mutual transport layer security (mTLS) be enabled? Defaults to `false`.
+
+~> **Note:** This feature is in public preview. Enabling mTLS for your applications may increase response latency and reduce maximum throughput in high-load scenarios.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -78,13 +89,21 @@ A `workload_profile` block supports the following:
 
 * `workload_profile_type` - (Required) Workload profile type for the workloads to run on. Possible values include `Consumption`, `D4`, `D8`, `D16`, `D32`, `E4`, `E8`, `E16` and `E32`.
 
-~> **NOTE:** A `Consumption` type must have a name of `Consumption` and an environment may only have one `Consumption` Workload Profile.  
+~> **Note:** A `Consumption` type must have a name of `Consumption` and an environment may only have one `Consumption` Workload Profile.
 
-~> **NOTE:** Defining a `Consumption` profile is optional, however, Environments created without an initial Workload Profile cannot have them added at a later time and must be recreated. Similarly, an environment created with Profiles must always have at least one defined Profile, removing all profiles will force a recreation of the resource. 
+~> **Note:** Defining a `Consumption` profile is optional, however, Environments created without an initial Workload Profile cannot have them added at a later time and must be recreated. Similarly, an environment created with Profiles must always have at least one defined Profile, removing all profiles will force a recreation of the resource.
 
 * `maximum_count` - (Required) The maximum number of instances of workload profile that can be deployed in the Container App Environment.
 
 * `minimum_count` - (Required) The minimum number of instances of workload profile that can be deployed in the Container App Environment.
+
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) The type of managed identity to assign. Possible values are `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned` (to enable both).
+
+* `identity_ids` - (Optional) - A list of one or more Resource IDs for User Assigned Managed identities to assign. Required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ## Attributes Reference
 
@@ -92,25 +111,27 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Container App Environment
 
+* `custom_domain_verification_id` - The ID of the Custom Domain Verification for this Container App Environment.
+
 * `default_domain` - The default, publicly resolvable, name of this Container App Environment.
 
-~> **NOTE:** This value is generated by the service to be globally unique. 
+~> **Note:** This value is generated by the service to be globally unique.
 
 * `docker_bridge_cidr` - The network addressing in which the Container Apps in this Container App Environment will reside in CIDR notation.
 
-~> **NOTE:** This property only has a value when `infrastructure_subnet_id` is configured and will be a range within the CIDR of the Subnet.
+~> **Note:** This property only has a value when `infrastructure_subnet_id` is configured and will be a range within the CIDR of the Subnet.
 
 * `platform_reserved_cidr` - The IP range, in CIDR notation, that is reserved for environment infrastructure IP addresses.
 
-~> **NOTE:** This property only has a value when `infrastructure_subnet_id` is configured and will be a range within the CIDR of the Subnet.
+~> **Note:** This property only has a value when `infrastructure_subnet_id` is configured and will be a range within the CIDR of the Subnet.
 
 * `platform_reserved_dns_ip_address` - The IP address from the IP range defined by `platform_reserved_cidr` that is reserved for the internal DNS server.
 
-~> **NOTE:** This property only has a value when `infrastructure_subnet_id` is configured and will be a value within the CIDR of the Subnet.
+~> **Note:** This property only has a value when `infrastructure_subnet_id` is configured and will be a value within the CIDR of the Subnet.
 
 * `static_ip_address` - The Static IP address of the Environment.
 
-~> **NOTE:** This will be a Public IP unless `internal_load_balancer_enabled` is set to `true`, in which case an IP in the Internal Subnet will be reserved. 
+~> **Note:** This will be a Public IP unless `internal_load_balancer_enabled` is set to `true`, in which case an IP in the Internal Subnet will be reserved.
 
 
 ## Timeouts
@@ -118,8 +139,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container App Environment.
-* `update` - (Defaults to 30 minutes) Used when updating the Container App Environment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container App Environment.
+* `update` - (Defaults to 30 minutes) Used when updating the Container App Environment.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Container App Environment.
 
 ## Import
@@ -129,3 +150,11 @@ A Container App Environment can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_container_app_environment.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.App/managedEnvironments/myEnvironment"
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.App` - 2025-01-01
+
+* `Microsoft.OperationalInsights` - 2020-08-01

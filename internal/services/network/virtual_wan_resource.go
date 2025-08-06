@@ -8,28 +8,27 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceVirtualWan() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualWanCreateUpdate,
+		Create: resourceVirtualWanCreate,
 		Read:   resourceVirtualWanRead,
-		Update: resourceVirtualWanCreateUpdate,
+		Update: resourceVirtualWanUpdate,
 		Delete: resourceVirtualWanDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.VirtualWanID(id)
+			_, err := virtualwans.ParseVirtualWANID(id)
 			return err
 		}),
 
@@ -40,105 +39,138 @@ func resourceVirtualWan() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Schema: resourceVirtualWanSchema(),
+		Schema: map[string]*pluginsdk.Schema{
+			"name": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+
+			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"location": commonschema.Location(),
+
+			"disable_vpn_encryption": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
+			"allow_branch_to_branch_traffic": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"office365_local_breakout_category": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(virtualwans.OfficeTrafficCategoryAll),
+					string(virtualwans.OfficeTrafficCategoryNone),
+					string(virtualwans.OfficeTrafficCategoryOptimize),
+					string(virtualwans.OfficeTrafficCategoryOptimizeAndAllow),
+				}, false),
+				Default: string(virtualwans.OfficeTrafficCategoryNone),
+			},
+
+			"type": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  "Standard",
+			},
+
+			"tags": commonschema.Tags(),
+		},
 	}
 }
 
-func resourceVirtualWanSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"resource_group_name": commonschema.ResourceGroupName(),
-
-		"location": commonschema.Location(),
-
-		"disable_vpn_encryption": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"allow_branch_to_branch_traffic": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		},
-
-		"office365_local_breakout_category": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(network.OfficeTrafficCategoryAll),
-				string(network.OfficeTrafficCategoryNone),
-				string(network.OfficeTrafficCategoryOptimize),
-				string(network.OfficeTrafficCategoryOptimizeAndAllow),
-			}, false),
-			Default: string(network.OfficeTrafficCategoryNone),
-		},
-
-		"type": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  "Standard",
-		},
-
-		"tags": tags.Schema(),
-	}
-}
-
-func resourceVirtualWanCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VirtualWanClient
+func resourceVirtualWanCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.VirtualWANs
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Virtual WAN creation.")
+	id := virtualwans.NewVirtualWANID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	id := parse.NewVirtualWanID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	disableVpnEncryption := d.Get("disable_vpn_encryption").(bool)
-	allowBranchToBranchTraffic := d.Get("allow_branch_to_branch_traffic").(bool)
-	office365LocalBreakoutCategory := d.Get("office365_local_breakout_category").(string)
-	virtualWanType := d.Get("type").(string)
-	t := d.Get("tags").(map[string]interface{})
-
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
-
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_virtual_wan", id.ID())
+	existing, err := client.VirtualWansGet(ctx, id)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	wan := network.VirtualWAN{
-		Location: utils.String(location),
-		Tags:     tags.Expand(t),
-		VirtualWanProperties: &network.VirtualWanProperties{
-			DisableVpnEncryption:           utils.Bool(disableVpnEncryption),
-			AllowBranchToBranchTraffic:     utils.Bool(allowBranchToBranchTraffic),
-			Office365LocalBreakoutCategory: network.OfficeTrafficCategory(office365LocalBreakoutCategory),
-			Type:                           utils.String(virtualWanType),
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_virtual_wan", id.ID())
+	}
+
+	wan := virtualwans.VirtualWAN{
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
+		Properties: &virtualwans.VirtualWanProperties{
+			DisableVpnEncryption:           pointer.To(d.Get("disable_vpn_encryption").(bool)),
+			AllowBranchToBranchTraffic:     pointer.To(d.Get("allow_branch_to_branch_traffic").(bool)),
+			Office365LocalBreakoutCategory: pointer.To(virtualwans.OfficeTrafficCategory(d.Get("office365_local_breakout_category").(string))),
+			Type:                           pointer.To(d.Get("type").(string)),
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, wan)
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if err := client.VirtualWansCreateOrUpdateThenPoll(ctx, id, wan); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
+	d.SetId(id.ID())
+
+	return resourceVirtualWanRead(d, meta)
+}
+
+func resourceVirtualWanUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.VirtualWANs
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := virtualwans.ParseVirtualWANID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.VirtualWansGet(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("disable_vpn_encryption") {
+		payload.Properties.DisableVpnEncryption = pointer.To(d.Get("disable_vpn_encryption").(bool))
+	}
+
+	if d.HasChange("allow_branch_to_branch_traffic") {
+		payload.Properties.AllowBranchToBranchTraffic = pointer.To(d.Get("allow_branch_to_branch_traffic").(bool))
+	}
+
+	if d.HasChange("office365_local_breakout_category") {
+		payload.Properties.Office365LocalBreakoutCategory = pointer.To(virtualwans.OfficeTrafficCategory(d.Get("office365_local_breakout_category").(string)))
+	}
+
+	if d.HasChange("type") {
+		payload.Properties.Type = pointer.To(d.Get("type").(string))
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.VirtualWansCreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -147,63 +179,54 @@ func resourceVirtualWanCreateUpdate(d *pluginsdk.ResourceData, meta interface{})
 }
 
 func resourceVirtualWanRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VirtualWanClient
+	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualWanID(d.Id())
+	id, err := virtualwans.ParseVirtualWANID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.VirtualWansGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[DEBUG] %s was not found - removing from state", *id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("name", id.VirtualWanName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.VirtualWanProperties; props != nil {
-		d.Set("disable_vpn_encryption", props.DisableVpnEncryption)
-		d.Set("allow_branch_to_branch_traffic", props.AllowBranchToBranchTraffic)
-		d.Set("office365_local_breakout_category", props.Office365LocalBreakoutCategory)
-		d.Set("type", props.Type)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+		if props := model.Properties; props != nil {
+			d.Set("disable_vpn_encryption", props.DisableVpnEncryption)
+			d.Set("allow_branch_to_branch_traffic", props.AllowBranchToBranchTraffic)
+			d.Set("office365_local_breakout_category", pointer.From(props.Office365LocalBreakoutCategory))
+			d.Set("type", props.Type)
+		}
+		return tags.FlattenAndSet(d, model.Tags)
 	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceVirtualWanDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VirtualWanClient
+	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualWanID(d.Id())
+	id, err := virtualwans.ParseVirtualWANID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		// deleted outside of Terraform
-
+	if err := client.VirtualWansDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
-		}
 	}
 
 	return nil

@@ -35,6 +35,7 @@ func (o ListLocationsOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListLocationsOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -54,8 +55,8 @@ func (c SubscriptionsClient) ListLocations(ctx context.Context, id commonids.Sub
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/locations", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/locations", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -75,7 +76,6 @@ func (c SubscriptionsClient) ListLocations(ctx context.Context, id commonids.Sub
 
 	var model LocationListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

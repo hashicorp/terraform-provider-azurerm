@@ -15,7 +15,7 @@ type GallerySharingUpdateClient struct {
 }
 
 func NewGallerySharingUpdateClientWithBaseURI(sdkApi sdkEnv.Api) (*GallerySharingUpdateClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "gallerysharingupdate", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "gallerysharingupdate", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating GallerySharingUpdateClient: %+v", err)
 	}

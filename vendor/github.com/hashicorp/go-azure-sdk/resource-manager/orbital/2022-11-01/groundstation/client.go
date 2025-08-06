@@ -15,7 +15,7 @@ type GroundStationClient struct {
 }
 
 func NewGroundStationClientWithBaseURI(sdkApi sdkEnv.Api) (*GroundStationClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "groundstation", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "groundstation", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating GroundStationClient: %+v", err)
 	}

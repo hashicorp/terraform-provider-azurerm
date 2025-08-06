@@ -6,9 +6,10 @@ package nginx_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-01-01-preview/nginxdeployment"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/nginx/2024-11-01-preview/nginxdeployment"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -41,6 +42,7 @@ func TestAccNginxDeployment_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("capacity").HasValue("10"),
 				check.That(data.ResourceName).Key("email").HasValue("test@test.com"),
+				check.That(data.ResourceName).Key("dataplane_api_endpoint").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -68,35 +70,51 @@ func TestAccNginxDeployment_update(t *testing.T) {
 	})
 }
 
-func TestAccNginxDeployment_systemAssignedIdentity(t *testing.T) {
+func TestAccNginxDeployment_updateNetworkInterface(t *testing.T) {
 	data := acceptance.BuildTestData(t, nginx.DeploymentResource{}.ResourceType(), "test")
 	r := DeploymentResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.systemAssignedIdentity(data),
+			Config: r.basicPrivate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateNetworkInterface(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("network_interface.0.subnet_id").MatchesRegex(regexp.MustCompile(`^/subscriptions/[\w-]+/resourceGroups/[\w-]+/providers/Microsoft.Network/virtualNetworks/[\w-]+/subnets/subnet2-[\w-]+$`)),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccNginxDeployment_withConfiguration(t *testing.T) {
+func TestAccNginxDeployment_updateFrontendPrivate(t *testing.T) {
 	data := acceptance.BuildTestData(t, nginx.DeploymentResource{}.ResourceType(), "test")
 	r := DeploymentResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withConfiguration(data),
+			Config: r.basicPrivate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateFrontendPrivate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("frontend_private.0.ip_address").HasValue("10.0.2.11"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccNginxDeployment_updateWithConfiguration(t *testing.T) {
+func TestAccNginxDeployment_updateFrontendPublic(t *testing.T) {
 	data := acceptance.BuildTestData(t, nginx.DeploymentResource{}.ResourceType(), "test")
 	r := DeploymentResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -108,7 +126,22 @@ func TestAccNginxDeployment_updateWithConfiguration(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.withConfiguration(data),
+			Config: r.updateFrontendPublic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("frontend_public.0.ip_address.0").MatchesRegex(regexp.MustCompile(`^/subscriptions/[\w-]+/resourceGroups/[\w-]+/providers/Microsoft.Network/publicIPAddresses/acctest2-[\w-]+$`)),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNginxDeployment_systemAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, nginx.DeploymentResource{}.ResourceType(), "test")
+	r := DeploymentResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.systemAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -140,13 +173,48 @@ func (a DeploymentResource) basic(data acceptance.TestData) string {
 resource "azurerm_nginx_deployment" "test" {
   name                      = "acctest-%[2]d"
   resource_group_name       = azurerm_resource_group.test.name
-  sku                       = "standard_Monthly"
+  sku                       = "standardv2_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = true
+  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
 
   frontend_public {
     ip_address = [azurerm_public_ip.test.id]
+  }
+
+  network_interface {
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  capacity = 10
+
+  email = "test@test.com"
+
+  tags = {
+    foo = "bar"
+  }
+}
+`, a.template(data), data.RandomInteger, data.Locations.Primary)
+}
+
+func (a DeploymentResource) basicPrivate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+%s
+
+resource "azurerm_nginx_deployment" "test" {
+  name                      = "acctest-%[2]d"
+  resource_group_name       = azurerm_resource_group.test.name
+  sku                       = "standardv2_Monthly"
+  location                  = azurerm_resource_group.test.location
+  diagnose_support_enabled  = false
+  automatic_upgrade_channel = "stable"
+
+  frontend_private {
+    allocation_method = "Static"
+    ip_address        = "10.0.2.10"
+    subnet_id         = azurerm_subnet.test.id
   }
 
   network_interface {
@@ -173,9 +241,9 @@ func (a DeploymentResource) basicAutoscaling(data acceptance.TestData) string {
 resource "azurerm_nginx_deployment" "test" {
   name                      = "acctest-%[2]d"
   resource_group_name       = azurerm_resource_group.test.name
-  sku                       = "standard_Monthly"
+  sku                       = "standardv2_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = true
+  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
 
   frontend_public {
@@ -216,9 +284,9 @@ func (a DeploymentResource) basicAutoscaling_update(data acceptance.TestData) st
 resource "azurerm_nginx_deployment" "test" {
   name                      = "acctest-%[2]d"
   resource_group_name       = azurerm_resource_group.test.name
-  sku                       = "standard_Monthly"
+  sku                       = "standardv2_Monthly"
   location                  = azurerm_resource_group.test.location
-  diagnose_support_enabled  = true
+  diagnose_support_enabled  = false
   automatic_upgrade_channel = "stable"
 
   frontend_public {
@@ -250,97 +318,6 @@ resource "azurerm_nginx_deployment" "test" {
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
-func (a DeploymentResource) withConfiguration(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-
-
-%s
-
-locals {
-  config_content = base64encode(<<-EOT
-http {
-    server {
-        listen 80;
-        location / {
-            auth_basic "Protected Area";
-            auth_basic_user_file /opt/.htpasswd;
-            default_type text/html;
-            return 200 '<!doctype html><html lang="en"><head></head><body>
-                <div>this one will be updated</div>
-                <div>at 10:38 am</div>
-            </body></html>';
-        }
-        include site/*.conf;
-    }
-}
-EOT
-  )
-
-  protected_content = base64encode(<<-EOT
-user:$apr1$VeUA5kt.$IjjRk//8miRxDsZvD4daF1
-EOT
-  )
-
-  sub_config_content = base64encode(<<-EOT
-location /bbb {
-	default_type text/html;
-	return 200 '<!doctype html><html lang="en"><head></head><body>
-		<div>this one will be updated</div>
-		<div>at 10:38 am</div>
-	</body></html>';
-}
-EOT
-  )
-}
-
-resource "azurerm_nginx_deployment" "test" {
-  name                     = "acctest-%[2]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  sku                      = "standard_Monthly"
-  location                 = azurerm_resource_group.test.location
-  diagnose_support_enabled = true
-
-  frontend_public {
-    ip_address = [azurerm_public_ip.test.id]
-  }
-
-  network_interface {
-    subnet_id = azurerm_subnet.test.id
-  }
-
-  capacity = 10
-
-  email = "test@test.com"
-
-  configuration {
-    root_file = "/etc/nginx/nginx.conf"
-
-    config_file {
-      content      = local.config_content
-      virtual_path = "/etc/nginx/nginx.conf"
-    }
-
-    config_file {
-      content      = local.sub_config_content
-      virtual_path = "/etc/nginx/site/b.conf"
-    }
-
-    protected_file {
-      content      = local.protected_content
-      virtual_path = "/opt/.htpasswd"
-    }
-  }
-
-  tags = {
-    foo = "bar"
-  }
-
-  lifecycle {
-    ignore_changes = [configuration.0.protected_file]
-  }
-}
-`, a.template(data), data.RandomInteger, data.Locations.Primary)
-}
 func (a DeploymentResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
@@ -350,7 +327,7 @@ func (a DeploymentResource) update(data acceptance.TestData) string {
 resource "azurerm_nginx_deployment" "test" {
   name                     = "acctest-%[2]d"
   resource_group_name      = azurerm_resource_group.test.name
-  sku                      = "standard_Monthly"
+  sku                      = "standardv2_Monthly"
   location                 = azurerm_resource_group.test.location
   diagnose_support_enabled = false
 
@@ -373,6 +350,109 @@ resource "azurerm_nginx_deployment" "test" {
 `, a.template(data), data.RandomInteger)
 }
 
+func (a DeploymentResource) updateNetworkInterface(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+%s
+
+resource "azurerm_nginx_deployment" "test" {
+  name                      = "acctest-%[2]d"
+  resource_group_name       = azurerm_resource_group.test.name
+  sku                       = "standardv2_Monthly"
+  location                  = azurerm_resource_group.test.location
+  diagnose_support_enabled  = false
+  automatic_upgrade_channel = "stable"
+
+  frontend_private {
+    allocation_method = "Static"
+    ip_address        = "10.0.2.10"
+    subnet_id         = azurerm_subnet.test.id
+  }
+
+  network_interface {
+    subnet_id = azurerm_subnet.test2.id
+  }
+
+  capacity = 10
+
+  email = "testing@test.com"
+
+  tags = {
+    foo = "bar2"
+  }
+}
+`, a.template(data), data.RandomInteger)
+}
+
+func (a DeploymentResource) updateFrontendPrivate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+%s
+
+resource "azurerm_nginx_deployment" "test" {
+  name                      = "acctest-%[2]d"
+  resource_group_name       = azurerm_resource_group.test.name
+  sku                       = "standardv2_Monthly"
+  location                  = azurerm_resource_group.test.location
+  diagnose_support_enabled  = false
+  automatic_upgrade_channel = "stable"
+
+  frontend_private {
+    allocation_method = "Static"
+    ip_address        = "10.0.2.11"
+    subnet_id         = azurerm_subnet.test.id
+  }
+
+  network_interface {
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  capacity = 10
+
+  email = "test@test.com"
+
+  tags = {
+    foo = "bar"
+  }
+}
+`, a.template(data), data.RandomInteger)
+}
+
+func (a DeploymentResource) updateFrontendPublic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+
+
+%s
+
+resource "azurerm_nginx_deployment" "test" {
+  name                      = "acctest-%[2]d"
+  resource_group_name       = azurerm_resource_group.test.name
+  sku                       = "standardv2_Monthly"
+  location                  = azurerm_resource_group.test.location
+  diagnose_support_enabled  = false
+  automatic_upgrade_channel = "stable"
+
+  frontend_public {
+    ip_address = [azurerm_public_ip.test2.id]
+  }
+
+  network_interface {
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  capacity = 10
+
+  email = "testing@test.com"
+
+  tags = {
+    foo = "bar2"
+  }
+}
+`, a.template(data), data.RandomInteger)
+}
+
 func (a DeploymentResource) systemAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
@@ -382,7 +462,7 @@ func (a DeploymentResource) systemAssignedIdentity(data acceptance.TestData) str
 resource "azurerm_nginx_deployment" "test" {
   name                = "acctest-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "standard_Monthly"
+  sku                 = "standardv2_Monthly"
   location            = azurerm_resource_group.test.location
 
   identity {
@@ -419,7 +499,7 @@ resource "azurerm_user_assigned_identity" "test" {
 resource "azurerm_nginx_deployment" "test" {
   name                = "acctest-%[2]d"
   resource_group_name = azurerm_resource_group.test.name
-  sku                 = "standard_Monthly"
+  sku                 = "standardv2_Monthly"
   location            = azurerm_resource_group.test.location
 
   identity {
@@ -440,6 +520,36 @@ resource "azurerm_nginx_deployment" "test" {
   email = "test@test.com"
 }
 `, a.template(data), data.RandomInteger)
+}
+
+func (a DeploymentResource) basicNginxAppProtect(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_nginx_deployment" "test" {
+  name                      = "acctest-%[2]d"
+  resource_group_name       = azurerm_resource_group.test.name
+  sku                       = "standardv2_Monthly"
+  location                  = azurerm_resource_group.test.location
+  diagnose_support_enabled  = false
+  automatic_upgrade_channel = "stable"
+
+  frontend_public {
+    ip_address = [azurerm_public_ip.test.id]
+  }
+
+  network_interface {
+    subnet_id = azurerm_subnet.test.id
+  }
+
+  web_application_firewall {
+    activation_state_enabled = true
+  }
+
+  capacity = 20
+
+  email = "test@test.com"
+}
+`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (a DeploymentResource) template(data acceptance.TestData) string {
@@ -466,6 +576,18 @@ resource "azurerm_public_ip" "test" {
   }
 }
 
+resource "azurerm_public_ip" "test2" {
+  name                = "acctest2-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+
+  tags = {
+    environment = "Production"
+  }
+}
+
 resource "azurerm_virtual_network" "test" {
   name                = "acctestvirtnet%[1]d"
   address_space       = ["10.0.0.0/16"]
@@ -474,10 +596,27 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "subbet%[1]d"
+  name                 = "subnet-%[1]d"
   resource_group_name  = azurerm_resource_group.test.name
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.2.0/24"]
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name = "NGINX.NGINXPLUS/nginxDeployments"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+      ]
+    }
+  }
+}
+
+resource "azurerm_subnet" "test2" {
+  name                 = "subnet2-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.3.0/24"]
   delegation {
     name = "delegation"
 

@@ -50,7 +50,6 @@ func (c RunbookClient) CreateOrUpdate(ctx context.Context, id RunbookId, input R
 
 	var model Runbook
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

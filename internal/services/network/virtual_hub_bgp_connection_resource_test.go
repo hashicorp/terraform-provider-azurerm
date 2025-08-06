@@ -8,19 +8,19 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type VirtualHubBGPConnectionResource struct{}
+type VirtualHubBgpConnectionResource struct{}
 
 func TestAccVirtualHubBgpConnection_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_bgp_connection", "test")
-	r := VirtualHubBGPConnectionResource{}
+	r := VirtualHubBgpConnectionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -34,7 +34,7 @@ func TestAccVirtualHubBgpConnection_basic(t *testing.T) {
 
 func TestAccVirtualHubBgpConnection_virtualWan(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_bgp_connection", "test")
-	r := VirtualHubBGPConnectionResource{}
+	r := VirtualHubBgpConnectionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.virtualWan(data),
@@ -62,7 +62,7 @@ func TestAccVirtualHubBgpConnection_virtualWan(t *testing.T) {
 
 func TestAccVirtualHubBgpConnection_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_bgp_connection", "test")
-	r := VirtualHubBGPConnectionResource{}
+	r := VirtualHubBgpConnectionResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
@@ -74,21 +74,21 @@ func TestAccVirtualHubBgpConnection_requiresImport(t *testing.T) {
 	})
 }
 
-func (t VirtualHubBGPConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.BgpConnectionID(state.ID)
+func (t VirtualHubBgpConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := commonids.ParseVirtualHubBGPConnectionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.VirtualHubBgpConnectionClient.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.Name)
+	resp, err := clients.Network.VirtualWANs.VirtualHubBgpConnectionGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Virtual Hub BGP Connectionn (%s): %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func (VirtualHubBGPConnectionResource) template(data acceptance.TestData) string {
+func (VirtualHubBgpConnectionResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -139,7 +139,7 @@ resource "azurerm_virtual_hub_ip" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
 
-func (r VirtualHubBGPConnectionResource) basic(data acceptance.TestData) string {
+func (r VirtualHubBgpConnectionResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -154,7 +154,7 @@ resource "azurerm_virtual_hub_bgp_connection" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r VirtualHubBGPConnectionResource) virtualWanTemplate(data acceptance.TestData) string {
+func (r VirtualHubBgpConnectionResource) virtualWanTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -206,7 +206,7 @@ resource "azurerm_virtual_hub" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (r VirtualHubBGPConnectionResource) virtualWan(data acceptance.TestData) string {
+func (r VirtualHubBgpConnectionResource) virtualWan(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -226,7 +226,7 @@ resource "azurerm_virtual_hub_bgp_connection" "test" {
 `, r.virtualWanTemplate(data), data.RandomInteger)
 }
 
-func (r VirtualHubBGPConnectionResource) update(data acceptance.TestData) string {
+func (r VirtualHubBgpConnectionResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -285,7 +285,7 @@ resource "azurerm_virtual_hub_bgp_connection" "test" {
 `, r.virtualWanTemplate(data), data.RandomInteger)
 }
 
-func (r VirtualHubBGPConnectionResource) requiresImport(data acceptance.TestData) string {
+func (r VirtualHubBgpConnectionResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 

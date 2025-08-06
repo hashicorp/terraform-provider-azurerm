@@ -49,7 +49,6 @@ func (c DashboardClient) Update(ctx context.Context, id DashboardId, input Patch
 
 	var model Dashboard
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

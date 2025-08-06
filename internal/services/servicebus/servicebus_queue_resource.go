@@ -11,8 +11,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queues"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-10-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/queues"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -63,10 +63,10 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: namespaces.ValidateNamespaceID,
 		},
 
-		// Optional
 		"auto_delete_on_idle": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C this gets a default except when using basic sku and can be updated without issues
 			Computed:     true,
 			ValidateFunc: validate.ISO8601Duration,
 		},
@@ -78,8 +78,9 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"default_message_ttl": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C this gets a default of "P10675199DT2H48M5.4775807S" (Unbounded) and "P14D" in Basic sku and can be updated without issues
 			Computed:     true,
 			ValidateFunc: validate.ISO8601Duration,
 		},
@@ -87,26 +88,23 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 		"duplicate_detection_history_time_window": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Default:      "PT10M", // 10 minutes
 			ValidateFunc: validate.ISO8601Duration,
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
-		"enable_batched_operations": {
+		"batched_operations_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  true,
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
-		"enable_express": {
+		"express_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
-		"enable_partitioning": {
+		"partitioning_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			Default:  false,
@@ -128,7 +126,7 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 		"lock_duration": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Default:  "PT1M", // 1 minute
 		},
 
 		"max_delivery_count": {
@@ -139,15 +137,17 @@ func resourceServicebusQueueSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"max_message_size_in_kilobytes": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			// NOTE: O+C this gets a variable default based on the sku and can be updated without issues
 			Computed:     true,
 			ValidateFunc: azValidate.ServiceBusMaxMessageSizeInKilobytes(),
 		},
 
 		"max_size_in_megabytes": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			// NOTE: O+C this gets a variable default based on the sku and can be updated without issues
 			Computed:     true,
 			ValidateFunc: azValidate.ServiceBusMaxSizeInMegabytes(),
 		},
@@ -231,15 +231,9 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	userConfig["maxDeliveryCount"] = maxDeliveryCount
 	deadLetteringOnMesExp := d.Get("dead_lettering_on_message_expiration").(bool)
 	userConfig["deadLetteringOnMesExp"] = deadLetteringOnMesExp
-	enableExpress := d.Get("enable_express").(bool)
-	userConfig["enableExpress"] = enableExpress
-	enablePartitioning := d.Get("enable_partitioning").(bool)
-	userConfig["enablePartitioning"] = enablePartitioning
 	maxSizeInMB := d.Get("max_size_in_megabytes").(int)
 	requireDuplicateDetection := d.Get("requires_duplicate_detection").(bool)
 	requireSession := d.Get("requires_session").(bool)
-	enableBatchOps := d.Get("enable_batched_operations").(bool)
-	userConfig["enableBatchOps"] = enableBatchOps
 	forwardDeadLetteredMessagesTo := d.Get("forward_dead_lettered_messages_to").(string)
 	userConfig["forwardDeadLetteredMessagesTo"] = forwardDeadLetteredMessagesTo
 	forwardTo := d.Get("forward_to").(string)
@@ -252,11 +246,19 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 	userConfig["autoDeleteOnIdle"] = autoDeleteOnIdle
 	duplicateDetectionHistoryTimeWindow := d.Get("duplicate_detection_history_time_window").(string)
 
+	enableExpress := d.Get("express_enabled").(bool)
+	enablePartitioning := d.Get("partitioning_enabled").(bool)
+	enableBatchedOperations := d.Get("batched_operations_enabled").(bool)
+
+	userConfig["enableExpress"] = enableExpress
+	userConfig["enablePartitioning"] = enablePartitioning
+	userConfig["enableBatchOps"] = enableBatchedOperations
+
 	parameters := queues.SBQueue{
 		Name: utils.String(id.QueueName),
 		Properties: &queues.SBQueueProperties{
 			DeadLetteringOnMessageExpiration: utils.Bool(deadLetteringOnMesExp),
-			EnableBatchedOperations:          utils.Bool(enableBatchOps),
+			EnableBatchedOperations:          utils.Bool(enableBatchedOperations),
 			EnableExpress:                    utils.Bool(enableExpress),
 			EnablePartitioning:               utils.Bool(enablePartitioning),
 			MaxDeliveryCount:                 utils.Int64(int64(maxDeliveryCount)),
@@ -329,23 +331,25 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	// wait for property update, api issue is being tracked:https://github.com/Azure/azure-rest-api-specs/issues/21445
-	log.Printf("[DEBUG] Waiting for %s status to become ready", id)
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
-	}
-	statusPropertyChangeConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"Updating"},
-		Target:                    []string{"Succeeded"},
-		Refresh:                   serviceBusQueueStatusRefreshFunc(ctx, client, id, userConfig),
-		ContinuousTargetOccurence: 5,
-		Timeout:                   time.Until(deadline),
-		MinTimeout:                1 * time.Minute,
-	}
+	if !d.IsNewResource() {
+		// wait for property update, api issue is being tracked:https://github.com/Azure/azure-rest-api-specs/issues/21445
+		log.Printf("[DEBUG] Waiting for %s status to become ready", id)
+		deadline, ok := ctx.Deadline()
+		if !ok {
+			return fmt.Errorf("internal-error: context had no deadline")
+		}
+		statusPropertyChangeConf := &pluginsdk.StateChangeConf{
+			Pending:                   []string{"Updating"},
+			Target:                    []string{"Succeeded"},
+			Refresh:                   serviceBusQueueStatusRefreshFunc(ctx, client, id, userConfig),
+			ContinuousTargetOccurence: 5,
+			Timeout:                   time.Until(deadline),
+			MinTimeout:                1 * time.Minute,
+		}
 
-	if _, err = statusPropertyChangeConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for status of %s to become ready: %+v", id, err)
+		if _, err = statusPropertyChangeConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("waiting for status of %s to become ready: %+v", id, err)
+		}
 	}
 
 	d.SetId(id.ID())
@@ -382,9 +386,6 @@ func resourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) er
 			d.Set("dead_lettering_on_message_expiration", props.DeadLetteringOnMessageExpiration)
 			d.Set("default_message_ttl", props.DefaultMessageTimeToLive)
 			d.Set("duplicate_detection_history_time_window", props.DuplicateDetectionHistoryTimeWindow)
-			d.Set("enable_batched_operations", props.EnableBatchedOperations)
-			d.Set("enable_express", props.EnableExpress)
-			d.Set("enable_partitioning", props.EnablePartitioning)
 			d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
 			d.Set("forward_to", props.ForwardTo)
 			d.Set("lock_duration", props.LockDuration)
@@ -393,6 +394,10 @@ func resourceServiceBusQueueRead(d *pluginsdk.ResourceData, meta interface{}) er
 			d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 			d.Set("requires_session", props.RequiresSession)
 			d.Set("status", string(pointer.From(props.Status)))
+
+			d.Set("batched_operations_enabled", props.EnableBatchedOperations)
+			d.Set("express_enabled", props.EnableExpress)
+			d.Set("partitioning_enabled", props.EnablePartitioning)
 
 			if apiMaxSizeInMegabytes := props.MaxSizeInMegabytes; apiMaxSizeInMegabytes != nil {
 				maxSizeInMegabytes := int(*apiMaxSizeInMegabytes)

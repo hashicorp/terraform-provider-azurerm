@@ -27,7 +27,6 @@ func TestApiSchemaID(t *testing.T) {
 		Error    bool
 		Expected *ApiSchemaId
 	}{
-
 		{
 			// empty
 			Input: "",

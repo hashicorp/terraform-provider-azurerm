@@ -18,9 +18,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/files"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/shares"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/file/files"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/file/shares"
 )
 
 func resourceStorageShareFile() *pluginsdk.Resource {
@@ -159,7 +159,12 @@ func resourceStorageShareFileCreate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if v, ok := d.GetOk("content_md5"); ok {
-		input.ContentMD5 = utils.String(v.(string))
+		// Azure uses a Base64 encoded representation of the standard MD5 sum of the file
+		contentMD5, err := convertHexToBase64Encoding(v.(string))
+		if err != nil {
+			return fmt.Errorf("failed to hex decode then base64 encode `content_md5` value: %s", err)
+		}
+		input.ContentMD5 = &contentMD5
 	}
 
 	var file *os.File
@@ -237,7 +242,12 @@ func resourceStorageShareFileUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		if v, ok := d.GetOk("content_md5"); ok {
-			input.ContentMD5 = utils.String(v.(string))
+			// Azure uses a Base64 encoded representation of the standard MD5 sum of the file
+			contentMD5, err := convertHexToBase64Encoding(v.(string))
+			if err != nil {
+				return fmt.Errorf("failed to hex decode then base64 encode `content_md5` value: %s", err)
+			}
+			input.ContentMD5 = &contentMD5
 		}
 
 		if _, err = client.SetProperties(ctx, id.ShareName, id.DirectoryPath, id.FileName, input); err != nil {
@@ -290,7 +300,17 @@ func resourceStorageShareFileRead(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 	d.Set("content_type", props.ContentType)
 	d.Set("content_encoding", props.ContentEncoding)
-	d.Set("content_md5", props.ContentMD5)
+
+	// Set the ContentMD5 value to md5 hash in hex
+	contentMD5 := ""
+	if props.ContentMD5 != "" {
+		contentMD5, err = convertBase64ToHexEncoding(props.ContentMD5)
+		if err != nil {
+			return fmt.Errorf("converting hex to base64 encoding for content_md5: %v", err)
+		}
+	}
+	d.Set("content_md5", contentMD5)
+
 	d.Set("content_disposition", props.ContentDisposition)
 
 	if props.ContentLength == nil {

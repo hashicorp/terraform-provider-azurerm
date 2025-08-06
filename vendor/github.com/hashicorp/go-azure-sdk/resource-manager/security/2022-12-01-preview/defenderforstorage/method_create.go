@@ -52,7 +52,6 @@ func (c DefenderForStorageClient) Create(ctx context.Context, id commonids.Scope
 
 	var model DefenderForStorageSetting
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

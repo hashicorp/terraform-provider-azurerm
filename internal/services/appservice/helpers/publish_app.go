@@ -14,7 +14,9 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/custompollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -114,6 +116,12 @@ func PublishZipDeployLocalFileKuduPush(ctx context.Context, host string, user st
 	publishEndpoint := fmt.Sprintf("%s/api/zipdeploy?isAsync=true", host)
 	statusEndpoint := fmt.Sprintf("%s/api/deployments/latest", host)
 
+	// The deployment service can be unavailable if the app is recycling. This could take a while to come back up and timeout so instead we
+	// poll the deployment service status endpoint until it is available.
+	if err := pollDeploymentServiceStatus(ctx, host, user, passwd); err != nil {
+		return fmt.Errorf("checking deployment service status: %+v", err)
+	}
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, publishEndpoint, f)
 	if err != nil {
 		return fmt.Errorf("preparing publish request: %+v", err)
@@ -199,4 +207,24 @@ func checkZipDeploymentStatusRefresh(r *http.Request) pluginsdk.StateRefreshFunc
 
 		return nil, "", fmt.Errorf("could not determine status from deployment response")
 	}
+}
+
+func pollDeploymentServiceStatus(ctx context.Context, host string, user string, passwd string) error {
+	warmupEndpoint := fmt.Sprintf("%s/deployments?warmup=true", host)
+
+	statusReq, err := http.NewRequestWithContext(ctx, http.MethodGet, warmupEndpoint, http.NoBody)
+	if err != nil {
+		return err
+	}
+
+	statusReq.SetBasicAuth(user, passwd)
+
+	pollerType := custompollers.NewAppServiceDeploymentServicePoller(statusReq)
+	poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+
+	if err = poller.PollUntilDone(ctx); err != nil {
+		return fmt.Errorf("waiting for deployment service to be ready: %+v", err)
+	}
+
+	return nil
 }

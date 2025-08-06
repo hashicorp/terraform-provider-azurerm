@@ -12,8 +12,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerapps"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/containerapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
@@ -28,10 +28,11 @@ type ContainerAppCustomDomainResource struct{}
 var _ sdk.Resource = ContainerAppCustomDomainResource{}
 
 type ContainerAppCustomDomainResourceModel struct {
-	Name           string `tfschema:"name"`
-	ContainerAppId string `tfschema:"container_app_id"`
-	CertificateId  string `tfschema:"container_app_environment_certificate_id"`
-	BindingType    string `tfschema:"certificate_binding_type"`
+	Name                 string `tfschema:"name"`
+	ContainerAppId       string `tfschema:"container_app_id"`
+	CertificateId        string `tfschema:"container_app_environment_certificate_id"`
+	BindingType          string `tfschema:"certificate_binding_type"`
+	ManagedCertificateId string `tfschema:"container_app_environment_managed_certificate_id"`
 }
 
 func (a ContainerAppCustomDomainResource) Arguments() map[string]*pluginsdk.Schema {
@@ -53,14 +54,15 @@ func (a ContainerAppCustomDomainResource) Arguments() map[string]*pluginsdk.Sche
 
 		"container_app_environment_certificate_id": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ForceNew:     true,
+			RequiredWith: []string{"certificate_binding_type"},
 			ValidateFunc: managedenvironments.ValidateCertificateID,
 		},
 
 		"certificate_binding_type": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(containerapps.PossibleValuesForBindingType(), false),
 			Description:  "The Binding type. Possible values include `Disabled` and `SniEnabled`.",
@@ -69,7 +71,12 @@ func (a ContainerAppCustomDomainResource) Arguments() map[string]*pluginsdk.Sche
 }
 
 func (a ContainerAppCustomDomainResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"container_app_environment_managed_certificate_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }
 
 func (a ContainerAppCustomDomainResource) ModelObject() interface{} {
@@ -106,9 +113,12 @@ func (a ContainerAppCustomDomainResource) Create() sdk.ResourceFunc {
 
 			id := parse.NewContainerAppCustomDomainId(containerAppId.SubscriptionId, containerAppId.ResourceGroupName, containerAppId.ContainerAppName, model.Name)
 
-			certificateId, err := managedenvironments.ParseCertificateID(model.CertificateId)
-			if err != nil {
-				return err
+			var certificateId *managedenvironments.CertificateId
+			if model.CertificateId != "" {
+				certificateId, err = managedenvironments.ParseCertificateID(model.CertificateId)
+				if err != nil {
+					return err
+				}
 			}
 
 			containerApp, err := client.Get(ctx, *containerAppId)
@@ -134,7 +144,7 @@ func (a ContainerAppCustomDomainResource) Create() sdk.ResourceFunc {
 					return fmt.Errorf("retrieving secrets for update for %s: %+v", *containerAppId, err)
 				}
 			}
-			config.Secrets = helpers.UnpackContainerSecretsCollection(secretsResp.Model)
+			props.Configuration.Secrets = helpers.UnpackContainerSecretsCollection(secretsResp.Model)
 
 			ingress := *config.Ingress
 
@@ -149,11 +159,17 @@ func (a ContainerAppCustomDomainResource) Create() sdk.ResourceFunc {
 				customDomains = *existingCustomDomains
 			}
 
-			customDomains = append(customDomains, containerapps.CustomDomain{
-				BindingType:   pointer.To(containerapps.BindingType(model.BindingType)),
-				CertificateId: pointer.To(certificateId.ID()),
-				Name:          model.Name,
-			})
+			customDomain := containerapps.CustomDomain{
+				Name:        model.Name,
+				BindingType: pointer.To(containerapps.BindingTypeDisabled),
+			}
+
+			if certificateId != nil {
+				customDomain.CertificateId = pointer.To(certificateId.ID())
+				customDomain.BindingType = pointer.To(containerapps.BindingType(model.BindingType))
+			}
+
+			customDomains = append(customDomains, customDomain)
 
 			containerApp.Model.Properties.Configuration.Ingress.CustomDomains = pointer.To(customDomains)
 
@@ -200,11 +216,23 @@ func (a ContainerAppCustomDomainResource) Read() sdk.ResourceFunc {
 						found = true
 						state.Name = id.CustomDomainName
 						state.ContainerAppId = containerAppId.ID()
-						certId, err := managedenvironments.ParseCertificateIDInsensitively(pointer.From(v.CertificateId))
-						if err != nil {
-							return err
+						if pointer.From(v.CertificateId) != "" {
+							// The `v.CertificateId` returned from API has two possible values. when using an Azure created Managed Certificate,
+							// its format is "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.App/managedEnvironments/%s/managedCertificates/%s",
+							// another format is "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.App/managedEnvironments/%s/certificates/%s",
+							// both cases are handled here to avoid parsing error.
+							certId, err1 := managedenvironments.ParseCertificateIDInsensitively(pointer.From(v.CertificateId))
+							if err1 != nil {
+								managedCertId, err2 := managedenvironments.ParseManagedCertificateID(pointer.From(v.CertificateId))
+								if err2 != nil {
+									return err1
+								}
+								state.ManagedCertificateId = managedCertId.ID()
+							} else {
+								state.CertificateId = certId.ID()
+							}
 						}
-						state.CertificateId = certId.ID()
+
 						state.BindingType = string(pointer.From(v.BindingType))
 					}
 				}
@@ -230,14 +258,6 @@ func (a ContainerAppCustomDomainResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			// attempt to lock the cert if we have the ID
-			if certIdRaw := metadata.ResourceData.Get("container_app_environment_certificate_id").(string); certIdRaw != "" {
-				if certId, err := managedenvironments.ParseCertificateID(certIdRaw); err == nil {
-					locks.ByID(certId.ID())
-					defer locks.UnlockByID(certId.ID())
-				}
-			}
-
 			containerAppId := containerapps.NewContainerAppID(id.SubscriptionId, id.ResourceGroupName, id.ContainerAppName)
 
 			containerApp, err := client.Get(ctx, containerAppId)
@@ -257,11 +277,27 @@ func (a ContainerAppCustomDomainResource) Delete() sdk.ResourceFunc {
 				for _, v := range *customDomains {
 					if !strings.EqualFold(v.Name, id.CustomDomainName) {
 						updatedCustomDomains = append(updatedCustomDomains, v)
+					} else {
+						// attempt to lock the cert if we have the ID
+						certificateId := pointer.From(v.CertificateId)
+						if certificateId != "" {
+							locks.ByID(certificateId)
+							defer locks.UnlockByID(certificateId)
+						}
 					}
 				}
 			}
 
 			model.Properties.Configuration.Ingress.CustomDomains = pointer.To(updatedCustomDomains)
+
+			// Delta-updates need the secrets back from the list API, or we'll end up removing them or erroring out.
+			secretsResp, err := client.ListSecrets(ctx, containerAppId)
+			if err != nil || secretsResp.Model == nil {
+				if !response.WasStatusCode(secretsResp.HttpResponse, http.StatusNoContent) {
+					return fmt.Errorf("retrieving secrets for update for %s: %+v", containerAppId, err)
+				}
+			}
+			model.Properties.Configuration.Secrets = helpers.UnpackContainerSecretsCollection(secretsResp.Model)
 
 			if err := client.CreateOrUpdateThenPoll(ctx, containerAppId, *model); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)

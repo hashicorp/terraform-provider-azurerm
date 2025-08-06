@@ -388,9 +388,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   target_resource_id         = azurerm_synapse_sql_pool.test.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 
-  log {
+  enabled_log {
     category = "SQLSecurityAuditEvents"
-    enabled  = true
 
     retention_policy {
       enabled = false
@@ -399,15 +398,11 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   metric {
     category = "AllMetrics"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  // log, metric will return all disabled categories
+  // metric will return all disabled categories
   lifecycle {
-    ignore_changes = [log, metric]
+    ignore_changes = [metric]
   }
 }
 
@@ -427,9 +422,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   target_resource_id         = azurerm_synapse_sql_pool.test.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 
-  log {
+  enabled_log {
     category = "SQLSecurityAuditEvents"
-    enabled  = true
 
     retention_policy {
       enabled = false
@@ -438,15 +432,11 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   metric {
     category = "AllMetrics"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  // log, metric will return all disabled categories
+  // metric will return all disabled categories
   lifecycle {
-    ignore_changes = [log, metric]
+    ignore_changes = [metric]
   }
 }
 
@@ -470,9 +460,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   eventhub_name                  = azurerm_eventhub.test.name
 
 
-  log {
+  enabled_log {
     category = "SQLSecurityAuditEvents"
-    enabled  = true
 
     retention_policy {
       enabled = false
@@ -481,15 +470,11 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   metric {
     category = "AllMetrics"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  // log, metric will return all disabled categories
+  // metric will return all disabled categories
   lifecycle {
-    ignore_changes = [log, metric]
+    ignore_changes = [metric]
   }
 
 }
@@ -512,9 +497,8 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   eventhub_name                  = azurerm_eventhub.test.name
 
 
-  log {
+  enabled_log {
     category = "SQLSecurityAuditEvents"
-    enabled  = true
 
     retention_policy {
       enabled = false
@@ -523,15 +507,11 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   metric {
     category = "AllMetrics"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
-  // log, metric will return all disabled categories
+  // metric will return all disabled categories
   lifecycle {
-    ignore_changes = [log, metric]
+    ignore_changes = [metric]
   }
 
 }

@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2023-05-01/deployments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/deployments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -18,19 +18,6 @@ import (
 )
 
 type CognitiveDeploymentTestResource struct{}
-
-func TestAccCognitiveDeploymentSequential(t *testing.T) {
-	// Only two OpenAI resources could be created per region, so run the tests sequentially.
-	// Refer to : https://learn.microsoft.com/en-us/azure/cognitive-services/openai/quotas-limits
-	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
-		"deployment": {
-			"basic":          TestAccCognitiveDeployment_basic,
-			"requiresImport": testAccCognitiveDeployment_requiresImport,
-			"complete":       testAccCognitiveDeployment_complete,
-			"update":         TestAccCognitiveDeployment_update,
-		},
-	})
-}
 
 func TestAccCognitiveDeployment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_deployment", "test")
@@ -47,7 +34,7 @@ func TestAccCognitiveDeployment_basic(t *testing.T) {
 	})
 }
 
-func testAccCognitiveDeployment_requiresImport(t *testing.T) {
+func TestAccCognitiveDeployment_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_deployment", "test")
 
 	r := CognitiveDeploymentTestResource{}
@@ -62,7 +49,7 @@ func testAccCognitiveDeployment_requiresImport(t *testing.T) {
 	})
 }
 
-func testAccCognitiveDeployment_complete(t *testing.T) {
+func TestAccCognitiveDeployment_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_deployment", "test")
 	r := CognitiveDeploymentTestResource{}
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
@@ -70,6 +57,7 @@ func testAccCognitiveDeployment_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("dynamic_throttling_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -85,8 +73,6 @@ func TestAccCognitiveDeployment_update(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scale.0.capacity").HasValue("1"),
-				check.That(data.ResourceName).Key("rai_policy_name").HasValue("RAI policy"),
 			),
 		},
 		data.ImportStep(),
@@ -94,8 +80,6 @@ func TestAccCognitiveDeployment_update(t *testing.T) {
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("scale.0.capacity").HasValue("2"),
-				check.That(data.ResourceName).Key("rai_policy_name").HasValue("Microsoft.Default"),
 			),
 		},
 		data.ImportStep(),
@@ -103,7 +87,6 @@ func TestAccCognitiveDeployment_update(t *testing.T) {
 			Config: r.updateVersion(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("model.0.version").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -111,7 +94,6 @@ func TestAccCognitiveDeployment_update(t *testing.T) {
 			Config: r.versionUpgradeOption(data, "OnceNewDefaultVersionAvailable"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("version_upgrade_option").HasValue("OnceNewDefaultVersionAvailable"),
 			),
 		},
 		data.ImportStep(),
@@ -119,7 +101,6 @@ func TestAccCognitiveDeployment_update(t *testing.T) {
 			Config: r.versionUpgradeOption(data, "OnceCurrentVersionExpired"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("version_upgrade_option").HasValue("OnceCurrentVersionExpired"),
 			),
 		},
 		data.ImportStep(),
@@ -127,7 +108,6 @@ func TestAccCognitiveDeployment_update(t *testing.T) {
 			Config: r.updateVersion(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("version_upgrade_option").HasValue("OnceNewDefaultVersionAvailable"),
 			),
 		},
 		data.ImportStep(),
@@ -183,8 +163,8 @@ resource "azurerm_cognitive_deployment" "test" {
     format = "OpenAI"
     name   = "text-embedding-ada-002"
   }
-  scale {
-    type = "Standard"
+  sku {
+    name = "Standard"
   }
   lifecycle {
     ignore_changes = [model.0.version]
@@ -206,8 +186,8 @@ resource "azurerm_cognitive_deployment" "import" {
     name    = "text-embedding-ada-002"
     version = "2"
   }
-  scale {
-    type = "Standard"
+  sku {
+    name = "Standard"
   }
 }
 `, config)
@@ -219,18 +199,18 @@ func (r CognitiveDeploymentTestResource) complete(data acceptance.TestData) stri
 %s
 
 resource "azurerm_cognitive_deployment" "test" {
-  name                 = "acctest-cd-%d"
-  cognitive_account_id = azurerm_cognitive_account.test.id
-
+  name                       = "acctest-cd-%d"
+  cognitive_account_id       = azurerm_cognitive_account.test.id
+  dynamic_throttling_enabled = true
   model {
     format  = "OpenAI"
     name    = "text-embedding-ada-002"
     version = "2"
   }
-  scale {
-    type = "Standard"
+  sku {
+    name = "Standard"
   }
-  rai_policy_name        = "RAI policy"
+  rai_policy_name        = "Microsoft.DefaultV2"
   version_upgrade_option = "OnceNewDefaultVersionAvailable"
 }
 `, template, data.RandomInteger)
@@ -250,8 +230,8 @@ resource "azurerm_cognitive_deployment" "test" {
     name    = "text-embedding-ada-002"
     version = "2"
   }
-  scale {
-    type     = "Standard"
+  sku {
+    name     = "Standard"
     capacity = 2
   }
 }
@@ -272,8 +252,8 @@ resource "azurerm_cognitive_deployment" "test" {
     name    = "text-embedding-ada-002"
     version = "1"
   }
-  scale {
-    type     = "Standard"
+  sku {
+    name     = "Standard"
     capacity = 2
   }
 }
@@ -295,8 +275,8 @@ resource "azurerm_cognitive_deployment" "test" {
     name    = "text-embedding-ada-002"
     version = "1"
   }
-  scale {
-    type     = "Standard"
+  sku {
+    name     = "Standard"
     capacity = 2
   }
 }

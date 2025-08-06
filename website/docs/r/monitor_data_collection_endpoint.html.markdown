@@ -63,7 +63,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `configuration_access_endpoint` - The endpoint used for accessing configuration, e.g., `https://mydce-abcd.eastus-1.control.monitor.azure.com`.
 
+* `immutable_id` - The immutable ID of the Data Collection Endpoint.
+
 * `logs_ingestion_endpoint` - The endpoint used for ingesting logs, e.g., `https://mydce-abcd.eastus-1.ingest.monitor.azure.com`.
+
+* `metrics_ingestion_endpoint` - The endpoint used for ingesting metrics, e.g., `https://mydce-abcd.eastus-1.metrics.ingest.monitor.azure.com`.
 
 ## Timeouts
 
@@ -81,3 +85,9 @@ Data Collection Endpoints can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_monitor_data_collection_endpoint.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Insights/dataCollectionEndpoints/endpoint1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Insights` - 2023-03-11

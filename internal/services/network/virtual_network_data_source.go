@@ -7,16 +7,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func dataSourceVirtualNetwork() *pluginsdk.Resource {
@@ -38,7 +39,7 @@ func dataSourceVirtualNetwork() *pluginsdk.Resource {
 
 			"location": commonschema.LocationComputed(),
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 
 			"address_space": {
 				Type:     pluginsdk.TypeList,
@@ -88,16 +89,16 @@ func dataSourceVirtualNetwork() *pluginsdk.Resource {
 }
 
 func dataSourceVnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VnetClient
+	client := meta.(*clients.Client).Network.VirtualNetworks
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := commonids.NewVirtualNetworkID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, "")
+	resp, err := client.Get(ctx, id, virtualnetworks.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return fmt.Errorf("Error: %s was not found", id)
+		if response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("%s was not found", id)
 		}
 
 		return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -105,42 +106,43 @@ func dataSourceVnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 	d.SetId(id.ID())
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
 
-	if props := resp.VirtualNetworkPropertiesFormat; props != nil {
-		d.Set("guid", props.ResourceGUID)
+		if props := model.Properties; props != nil {
+			d.Set("guid", props.ResourceGuid)
 
-		if as := props.AddressSpace; as != nil {
-			if err := d.Set("address_space", utils.FlattenStringSlice(as.AddressPrefixes)); err != nil {
-				return fmt.Errorf("setting `address_space`: %v", err)
+			if as := props.AddressSpace; as != nil {
+				if err := d.Set("address_space", utils.FlattenStringSlice(as.AddressPrefixes)); err != nil {
+					return fmt.Errorf("setting `address_space`: %v", err)
+				}
+			}
+
+			if options := props.DhcpOptions; options != nil {
+				if err := d.Set("dns_servers", utils.FlattenStringSlice(options.DnsServers)); err != nil {
+					return fmt.Errorf("setting `dns_servers`: %v", err)
+				}
+			}
+
+			if err := d.Set("subnets", flattenVnetSubnetsNames(props.Subnets)); err != nil {
+				return fmt.Errorf("setting `subnets`: %v", err)
+			}
+
+			if err := d.Set("vnet_peerings", flattenVnetPeerings(props.VirtualNetworkPeerings)); err != nil {
+				return fmt.Errorf("setting `vnet_peerings`: %v", err)
+			}
+
+			if err := d.Set("vnet_peerings_addresses", flattenVnetPeeringsdAddressList(props.VirtualNetworkPeerings)); err != nil {
+				return fmt.Errorf("setting `vnet_peerings_addresses`: %v", err)
 			}
 		}
-
-		if options := props.DhcpOptions; options != nil {
-			if err := d.Set("dns_servers", utils.FlattenStringSlice(options.DNSServers)); err != nil {
-				return fmt.Errorf("setting `dns_servers`: %v", err)
-			}
-		}
-
-		if err := d.Set("subnets", flattenVnetSubnetsNames(props.Subnets)); err != nil {
-			return fmt.Errorf("setting `subnets`: %v", err)
-		}
-
-		if err := d.Set("vnet_peerings", flattenVnetPeerings(props.VirtualNetworkPeerings)); err != nil {
-			return fmt.Errorf("setting `vnet_peerings`: %v", err)
-		}
-
-		if err := d.Set("vnet_peerings_addresses", flattenVnetPeeringsdAddressList(props.VirtualNetworkPeerings)); err != nil {
-			return fmt.Errorf("setting `vnet_peerings_addresses`: %v", err)
-		}
-
-		return tags.FlattenAndSet(d, resp.Tags)
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
 	return nil
 }
 
-func flattenVnetSubnetsNames(input *[]network.Subnet) []interface{} {
+func flattenVnetSubnetsNames(input *[]virtualnetworks.Subnet) []interface{} {
 	subnets := make([]interface{}, 0)
 
 	if mysubnets := input; mysubnets != nil {
@@ -153,18 +155,23 @@ func flattenVnetSubnetsNames(input *[]network.Subnet) []interface{} {
 	return subnets
 }
 
-func flattenVnetPeerings(input *[]network.VirtualNetworkPeering) map[string]interface{} {
+func flattenVnetPeerings(input *[]virtualnetworks.VirtualNetworkPeering) map[string]interface{} {
 	output := make(map[string]interface{})
 
 	if peerings := input; peerings != nil {
-		for _, vnetpeering := range *peerings {
-			if vnetpeering.Name == nil || vnetpeering.RemoteVirtualNetwork == nil || vnetpeering.RemoteVirtualNetwork.ID == nil {
+		for _, vnetPeering := range *peerings {
+			if vnetPeering.Name == nil {
 				continue
 			}
 
-			key := *vnetpeering.Name
-			value := *vnetpeering.RemoteVirtualNetwork.ID
-
+			value := ""
+			if props := vnetPeering.Properties; props != nil {
+				if props.RemoteVirtualNetwork == nil || props.RemoteVirtualNetwork.Id == nil {
+					continue
+				}
+				value = *props.RemoteVirtualNetwork.Id
+			}
+			key := *vnetPeering.Name
 			output[key] = value
 		}
 	}
@@ -172,13 +179,15 @@ func flattenVnetPeerings(input *[]network.VirtualNetworkPeering) map[string]inte
 	return output
 }
 
-func flattenVnetPeeringsdAddressList(input *[]network.VirtualNetworkPeering) []string {
+func flattenVnetPeeringsdAddressList(input *[]virtualnetworks.VirtualNetworkPeering) []string {
 	var output []string
 	if peerings := input; peerings != nil {
-		for _, vnetpeering := range *peerings {
-			for _, addresses := range *vnetpeering.RemoteVirtualNetworkAddressSpace.AddressPrefixes {
-				if addresses != "" {
-					output = append(output, addresses)
+		for _, vnetPeering := range *peerings {
+			if props := vnetPeering.Properties; props != nil {
+				for _, addresses := range *props.RemoteVirtualNetworkAddressSpace.AddressPrefixes {
+					if addresses != "" {
+						output = append(output, addresses)
+					}
 				}
 			}
 		}

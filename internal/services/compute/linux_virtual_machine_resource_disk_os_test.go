@@ -578,7 +578,6 @@ resource "azurerm_key_vault" "test" {
   sku_name                    = "standard"
   purge_protection_enabled    = true
   enabled_for_disk_encryption = true
-
 }
 
 resource "azurerm_key_vault_access_policy" "service-principal" {
@@ -1198,5 +1197,5 @@ resource "azurerm_key_vault_access_policy" "disk-encryption" {
   tenant_id = azurerm_disk_encryption_set.test.identity.0.tenant_id
   object_id = azurerm_disk_encryption_set.test.identity.0.principal_id
 }
-`, r.template(data), data.RandomInteger, data.RandomString)
+`, r.templateWithOutProvider(data), data.RandomInteger, data.RandomString)
 }

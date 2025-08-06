@@ -46,7 +46,6 @@ func (c CapacitiesClient) ListSkusForCapacity(ctx context.Context, id CapacityId
 
 	var model SkuEnumerationForExistingResourceResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

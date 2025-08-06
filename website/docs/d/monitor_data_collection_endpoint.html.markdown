@@ -38,11 +38,15 @@ output "endpoint_id" {
 
 * `description` - Specifies a description for the Data Collection Endpoint.
 
+* `immutable_id` - The immutable ID of the Data Collection Endpoint.
+
 * `kind` - The kind of the Data Collection Endpoint. Possible values are `Linux` and `Windows`.
 
 * `location` - The Azure Region where the Data Collection Endpoint should exist.
 
 * `logs_ingestion_endpoint` - The endpoint used for ingesting logs, e.g., `https://mydce-abcd.eastus-1.ingest.monitor.azure.com`.
+
+* `metrics_ingestion_endpoint` - The endpoint used for ingesting metrics, e.g., `https://mydce-abcd.eastus-1.metrics.ingest.monitor.azure.com`.
 
 * `public_network_access_enabled` - Whether network access from public internet to the Data Collection Endpoint are allowed. Possible values are `true` and `false`.
 
@@ -53,3 +57,9 @@ output "endpoint_id" {
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Collection Endpoint.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Insights` - 2023-03-11

@@ -10,17 +10,19 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 type KeyVaultMHSMRoleDefinitionDataSourceModel struct {
+	ManagedHSMID      string       `tfschema:"managed_hsm_id"`
 	Name              string       `tfschema:"name"`
 	RoleName          string       `tfschema:"role_name"`
-	VaultBaseUrl      string       `tfschema:"vault_base_url"`
 	Description       string       `tfschema:"description"`
 	AssignableScopes  []string     `tfschema:"assignable_scopes"`
 	Permission        []Permission `tfschema:"permission"`
@@ -40,10 +42,10 @@ func (k KeyvaultMHSMRoleDefinitionDataSource) Arguments() map[string]*pluginsdk.
 			ValidateFunc: validation.IsUUID,
 		},
 
-		"vault_base_url": {
+		"managed_hsm_id": {
 			Type:         pluginsdk.TypeString,
+			ValidateFunc: managedhsms.ValidateManagedHSMID,
 			Required:     true,
-			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 		},
 	}
 }
@@ -131,48 +133,75 @@ func (k KeyvaultMHSMRoleDefinitionDataSource) ResourceType() string {
 func (k KeyvaultMHSMRoleDefinitionDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
-		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			var model KeyVaultMHSMRoleDefinitionDataSourceModel
-			if err := meta.Decode(&model); err != nil {
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ManagedHSMs.DataPlaneRoleDefinitionsClient
+			domainSuffix, ok := metadata.Client.Account.Environment.ManagedHSM.DomainSuffix()
+			if !ok {
+				return fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+			}
+
+			var config KeyVaultMHSMRoleDefinitionDataSourceModel
+			if err := metadata.Decode(&config); err != nil {
 				return err
 			}
 
-			id, err := parse.NewManagedHSMRoleDefinitionID(model.VaultBaseUrl, roleDefinitionScope, model.Name)
-			if err != nil {
-				return err
+			var managedHsmId *managedhsms.ManagedHSMId
+			var endpoint *parse.ManagedHSMDataPlaneEndpoint
+			var err error
+			if config.ManagedHSMID != "" {
+				managedHsmId, err = managedhsms.ParseManagedHSMID(config.ManagedHSMID)
+				if err != nil {
+					return err
+				}
+				baseUri, err := metadata.Client.ManagedHSMs.BaseUriForManagedHSM(ctx, *managedHsmId)
+				if err != nil {
+					return fmt.Errorf("determining the Data Plane Endpoint for %s: %+v", *managedHsmId, err)
+				}
+				if baseUri == nil {
+					return fmt.Errorf("unable to determine the Data Plane Endpoint for %q", *managedHsmId)
+				}
+				endpoint, err = parse.ManagedHSMEndpoint(*baseUri, domainSuffix)
+				if err != nil {
+					return fmt.Errorf("parsing the Data Plane Endpoint %q: %+v", *endpoint, err)
+				}
 			}
 
-			client := meta.Client.ManagedHSMs.DataPlaneRoleDefinitionsClient
-			result, err := client.Get(ctx, id.VaultBaseUrl, roleDefinitionScope, id.Name)
+			scope := keyvault.RoleScopeGlobal
+			id := parse.NewManagedHSMDataPlaneRoleDefinitionID(endpoint.ManagedHSMName, endpoint.DomainSuffix, string(scope), config.Name)
+
+			result, err := client.Get(ctx, id.BaseURI(), id.Scope, id.RoleDefinitionName)
 			if err != nil {
 				if utils.ResponseWasNotFound(result.Response) {
-					return fmt.Errorf("%s does not exist", id)
+					return fmt.Errorf("%s was not found", id)
 				}
-				return err
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			roleID, err := roledefinitions.ParseScopedRoleDefinitionIDInsensitively(pointer.From(result.ID))
-			if err != nil {
-				return fmt.Errorf("paring role definition id %s: %v", pointer.From(result.ID), err)
+			if v := pointer.From(result.ID); v != "" {
+				roleID, err := roledefinitions.ParseScopedRoleDefinitionIDInsensitively(v)
+				if err != nil {
+					return fmt.Errorf("paring role definition id %q: %v", v, err)
+				}
+				config.ResourceManagerId = roleID.ID()
 			}
-			model.ResourceManagerId = roleID.ID()
 
 			if prop := result.RoleDefinitionProperties; prop != nil {
-				model.Description = pointer.ToString(prop.Description)
-				model.RoleType = string(prop.RoleType)
-				model.RoleName = pointer.From(prop.RoleName)
+				config.Description = pointer.ToString(prop.Description)
+				config.RoleType = string(prop.RoleType)
+				config.RoleName = pointer.From(prop.RoleName)
 
 				if prop.AssignableScopes != nil {
+					config.AssignableScopes = make([]string, 0)
 					for _, r := range *prop.AssignableScopes {
-						model.AssignableScopes = append(model.AssignableScopes, string(r))
+						config.AssignableScopes = append(config.AssignableScopes, string(r))
 					}
 				}
 
-				model.Permission = flattenKeyVaultMHSMRolePermission(prop.Permissions)
+				config.Permission = flattenKeyVaultMHSMRolePermission(prop.Permissions)
 			}
 
-			meta.SetID(id)
-			return meta.Encode(&model)
+			metadata.SetID(id)
+			return metadata.Encode(&config)
 		},
 	}
 }

@@ -15,22 +15,22 @@ import (
 )
 
 func TestAccPluginSDKAndDecoder(t *testing.T) {
-	os.Setenv("TF_ACC", "1")
+	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
 
 	type NestedType struct {
 		Key string `tfschema:"key"`
 	}
 	type MyType struct {
 		Hello         string             `tfschema:"hello"`
-		RandomNumber  int                `tfschema:"random_number"`
+		RandomNumber  int64              `tfschema:"random_number"`
 		Enabled       bool               `tfschema:"enabled"`
 		ListOfStrings []string           `tfschema:"list_of_strings"`
-		ListOfNumbers []int              `tfschema:"list_of_numbers"`
+		ListOfNumbers []int64            `tfschema:"list_of_numbers"`
 		ListOfBools   []bool             `tfschema:"list_of_bools"`
 		ListOfFloats  []float64          `tfschema:"list_of_floats"`
 		NestedObject  []NestedType       `tfschema:"nested_object"`
 		MapOfStrings  map[string]string  `tfschema:"map_of_strings"`
-		MapOfNumbers  map[string]int     `tfschema:"map_of_numbers"`
+		MapOfNumbers  map[string]int64   `tfschema:"map_of_numbers"`
 		MapOfBools    map[string]bool    `tfschema:"map_of_bools"`
 		MapOfFloats   map[string]float64 `tfschema:"map_of_floats"`
 		// Sets are handled in a separate test, since the orders can be different
@@ -41,7 +41,7 @@ func TestAccPluginSDKAndDecoder(t *testing.T) {
 		RandomNumber:  42,
 		Enabled:       true,
 		ListOfStrings: []string{"hello", "there"},
-		ListOfNumbers: []int{1, 2, 4},
+		ListOfNumbers: []int64{1, 2, 4},
 		ListOfBools:   []bool{true, false},
 		ListOfFloats:  []float64{-1.234567894321, 2.3456789},
 		NestedObject: []NestedType{
@@ -52,7 +52,7 @@ func TestAccPluginSDKAndDecoder(t *testing.T) {
 		MapOfStrings: map[string]string{
 			"bingo": "bango",
 		},
-		MapOfNumbers: map[string]int{
+		MapOfNumbers: map[string]int64{
 			"lucky": 21,
 		},
 		MapOfBools: map[string]bool{
@@ -64,7 +64,7 @@ func TestAccPluginSDKAndDecoder(t *testing.T) {
 	}
 
 	// lintignore:AT001
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam
 				return &schema.Provider{
@@ -216,7 +216,7 @@ func TestAccPluginSDKAndDecoder(t *testing.T) {
 }
 
 func TestAccPluginSDKAndDecoderOptionalComputed(t *testing.T) {
-	os.Setenv("TF_ACC", "1")
+	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
 
 	type MyType struct {
 		Hello   string `tfschema:"hello"`
@@ -264,7 +264,7 @@ func TestAccPluginSDKAndDecoderOptionalComputed(t *testing.T) {
 	}
 
 	// lintignore:AT001
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam
 				return &schema.Provider{
@@ -340,7 +340,7 @@ resource "validator_decoder_unspecified" "test" {}
 }
 
 func TestAccPluginSDKAndDecoderOptionalComputedOverride(t *testing.T) {
-	os.Setenv("TF_ACC", "1")
+	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
 
 	type MyType struct {
 		Hello   string `tfschema:"hello"`
@@ -350,7 +350,7 @@ func TestAccPluginSDKAndDecoderOptionalComputedOverride(t *testing.T) {
 	}
 
 	// lintignore:AT001
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam
 				return &schema.Provider{
@@ -444,11 +444,11 @@ resource "validator_decoder_override" "test" {
 }
 
 func TestAccPluginSDKAndDecoderSets(t *testing.T) {
-	os.Setenv("TF_ACC", "1")
+	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
 
 	type MyType struct {
 		SetOfStrings []string  `tfschema:"set_of_strings"`
-		SetOfNumbers []int     `tfschema:"set_of_numbers"`
+		SetOfNumbers []int64   `tfschema:"set_of_numbers"`
 		SetOfBools   []bool    `tfschema:"set_of_bools"`
 		SetOfFloats  []float64 `tfschema:"set_of_floats"`
 		// we could arguably extend this with nested Sets, but they're tested in the Decode function
@@ -456,7 +456,7 @@ func TestAccPluginSDKAndDecoderSets(t *testing.T) {
 	}
 
 	// lintignore:AT001
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam
 				return &schema.Provider{
@@ -545,7 +545,7 @@ func TestAccPluginSDKAndDecoderSets(t *testing.T) {
 									}
 								}
 
-								expectedNumbers := []int{
+								expectedNumbers := []int64{
 									1,
 									2,
 								}
@@ -624,17 +624,17 @@ func TestAccPluginSDKAndDecoderSets(t *testing.T) {
 }
 
 func TestAccPluginSDKAndEncoder(t *testing.T) {
-	os.Setenv("TF_ACC", "1")
+	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin testing harness prevents this
 
 	type NestedType struct {
 		Key string `tfschema:"key"`
 	}
 	type MyType struct {
 		Hello         string             `tfschema:"hello"`
-		RandomNumber  int                `tfschema:"random_number"`
+		RandomNumber  int64              `tfschema:"random_number"`
 		Enabled       bool               `tfschema:"enabled"`
 		ListOfStrings []string           `tfschema:"list_of_strings"`
-		ListOfNumbers []int              `tfschema:"list_of_numbers"`
+		ListOfNumbers []int64            `tfschema:"list_of_numbers"`
 		ListOfBools   []bool             `tfschema:"list_of_bools"`
 		ListOfFloats  []float64          `tfschema:"list_of_floats"`
 		NestedObject  []NestedType       `tfschema:"nested_object"`
@@ -643,13 +643,13 @@ func TestAccPluginSDKAndEncoder(t *testing.T) {
 		MapOfBools    map[string]bool    `tfschema:"map_of_bools"`
 		MapOfFloats   map[string]float64 `tfschema:"map_of_floats"`
 		SetOfStrings  []string           `tfschema:"set_of_strings"`
-		SetOfNumbers  []int              `tfschema:"set_of_numbers"`
+		SetOfNumbers  []int64            `tfschema:"set_of_numbers"`
 		SetOfBools    []bool             `tfschema:"set_of_bools"`
 		SetOfFloats   []float64          `tfschema:"set_of_floats"`
 	}
 
 	// lintignore:AT001
-	resource.ParallelTest(t, resource.TestCase{
+	resource.Test(t, resource.TestCase{
 		ProviderFactories: map[string]func() (*schema.Provider, error){
 			"validator": func() (*schema.Provider, error) { //nolint:unparam
 				return &schema.Provider{
@@ -778,7 +778,7 @@ func TestAccPluginSDKAndEncoder(t *testing.T) {
 									RandomNumber:  42,
 									Enabled:       true,
 									ListOfStrings: []string{"hello", "there"},
-									ListOfNumbers: []int{1, 2, 4},
+									ListOfNumbers: []int64{1, 2, 4},
 									ListOfBools:   []bool{true, false},
 									ListOfFloats:  []float64{-1.234567894321, 2.3456789},
 									NestedObject: []NestedType{
@@ -863,7 +863,7 @@ func TestAccPluginSDKAndEncoder(t *testing.T) {
 }
 
 func TestAccPluginSDKReturnsComputedFields(t *testing.T) {
-	os.Setenv("TF_ACC", "1")
+	os.Setenv("TF_ACC", "1") // nolint:tenv // plugin sdk always is
 
 	resourceName := "validator_computed.test"
 	// lintignore:AT001

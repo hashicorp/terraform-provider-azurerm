@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/netappaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/netappaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
@@ -36,50 +36,43 @@ func (r NetAppAccountEncryptionDataSource) IDValidationFunc() pluginsdk.SchemaVa
 
 func (r NetAppAccountEncryptionDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-
 		"netapp_account_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Description:  "The ID of the NetApp Account where encryption will be set.",
 			ValidateFunc: netAppValidate.ValidateNetAppAccountID,
 		},
-
-		"user_assigned_identity_id": {
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Description:   "The resource ID of the User Assigned Identity to use for encryption.",
-			ConflictsWith: []string{"system_assigned_identity_principal_id"},
-		},
-
-		"system_assigned_identity_principal_id": {
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Description:   "The Principal ID of the System Assigned Identity to use for encryption.",
-			ConflictsWith: []string{"user_assigned_identity_id"},
-		},
-
-		"encryption_key": {
-			Type:        pluginsdk.TypeString,
-			Optional:    true,
-			Description: "The versionless encryption key url.",
-		},
 	}
 }
 
 func (r NetAppAccountEncryptionDataSource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"user_assigned_identity_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"system_assigned_identity_principal_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"encryption_key": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+	}
 }
 
 func (r NetAppAccountEncryptionDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.NetApp.AccountClient
 
 			var state netAppModels.NetAppAccountEncryptionDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			id, err := netappaccounts.ParseNetAppAccountID(state.NetAppAccountID)
@@ -96,32 +89,41 @@ func (r NetAppAccountEncryptionDataSource) Read() sdk.ResourceFunc {
 			}
 
 			model := resp.Model
-			if model.Properties.Encryption == nil {
+			if model == nil {
+				return fmt.Errorf("model is nil for %s", id)
+			}
+
+			if model.Properties == nil || model.Properties.Encryption == nil {
 				return fmt.Errorf("encryption information does not exist for %s", id)
 			}
 
-			anfAccountIdentityFlattened, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(model.Identity)
-			if err != nil {
-				return err
-			}
-
-			state.EncryptionKey, err = flattenEncryption(model.Properties.Encryption)
-			if err != nil {
-				return err
-			}
-
-			if len(anfAccountIdentityFlattened) > 0 {
-
-				if anfAccountIdentityFlattened[0].Type == identity.TypeSystemAssigned {
-					state.SystemAssignedIdentityPrincipalID = anfAccountIdentityFlattened[0].PrincipalId
+			if model.Identity != nil {
+				expanded, err := identity.FlattenLegacySystemAndUserAssignedMapToModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening identity: %+v", err)
 				}
 
-				if anfAccountIdentityFlattened[0].Type == identity.TypeUserAssigned {
+				for _, identityInfo := range expanded {
+					if identityInfo.Type == identity.TypeSystemAssigned {
+						if identityInfo.PrincipalId != "" {
+							state.SystemAssignedIdentityPrincipalID = identityInfo.PrincipalId
+						}
+					}
 
-					if len(anfAccountIdentityFlattened[0].IdentityIds) > 0 {
-						state.UserAssignedIdentityID = anfAccountIdentityFlattened[0].IdentityIds[0]
+					if identityInfo.Type == identity.TypeUserAssigned {
+						if len(identityInfo.IdentityIds) > 0 {
+							state.UserAssignedIdentityID = identityInfo.IdentityIds[0]
+						}
 					}
 				}
+			}
+
+			if model.Properties.Encryption != nil {
+				encryptionKey, err := flattenEncryption(model.Properties.Encryption)
+				if err != nil {
+					return fmt.Errorf("flattening encryption: %+v", err)
+				}
+				state.EncryptionKey = encryptionKey
 			}
 
 			metadata.SetID(id)

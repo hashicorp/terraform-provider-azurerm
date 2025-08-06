@@ -8,28 +8,33 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/factories"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/integrationruntimes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
 func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceDataFactoryIntegrationRuntimeAzureCreateUpdate,
 		Read:   resourceDataFactoryIntegrationRuntimeAzureRead,
 		Update: resourceDataFactoryIntegrationRuntimeAzureCreateUpdate,
 		Delete: resourceDataFactoryIntegrationRuntimeAzureDelete,
 
+		SchemaVersion: 1,
+		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
+			0: migration.DataFactoryIntegrationRuntimeAzureV0ToV1{},
+		}),
+
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.IntegrationRuntimeID(id)
+			_, err := integrationruntimes.ParseIntegrationRuntimeID(id)
 			return err
 		}),
 
@@ -78,17 +83,17 @@ func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
 			"cleanup_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Computed: true, // Defaults to true
+				Default:  true,
 			},
 
 			"compute_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(datafactory.DataFlowComputeTypeGeneral),
+				Default:  string(integrationruntimes.DataFlowComputeTypeGeneral),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(datafactory.DataFlowComputeTypeGeneral),
-					string(datafactory.DataFlowComputeTypeComputeOptimized),
-					string(datafactory.DataFlowComputeTypeMemoryOptimized),
+					string(integrationruntimes.DataFlowComputeTypeGeneral),
+					string(integrationruntimes.DataFlowComputeTypeComputeOptimized),
+					string(integrationruntimes.DataFlowComputeTypeMemoryOptimized),
 				}, false),
 			},
 
@@ -114,12 +119,13 @@ func resourceDataFactoryIntegrationRuntimeAzure() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	return resource
 }
 
 func resourceDataFactoryIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient
 	managedVirtualNetworksClient := meta.(*clients.Client).DataFactory.ManagedVirtualNetworks
-	subscriptionId := meta.(*clients.Client).DataFactory.IntegrationRuntimesClient.SubscriptionID
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -128,53 +134,49 @@ func resourceDataFactoryIntegrationRuntimeAzureCreateUpdate(d *pluginsdk.Resourc
 		return err
 	}
 
-	id := parse.NewIntegrationRuntimeID(subscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
+	id := integrationruntimes.NewIntegrationRuntimeID(dataFactoryId.SubscriptionId, dataFactoryId.ResourceGroupName, dataFactoryId.FactoryName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+		existing, err := client.Get(ctx, id, integrationruntimes.DefaultGetOperationOptions())
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_data_factory_integration_runtime_azure", id.ID())
 		}
 	}
 
-	description := d.Get("description").(string)
-
-	managedIntegrationRuntime := datafactory.ManagedIntegrationRuntime{
-		Description: &description,
-		Type:        datafactory.TypeBasicIntegrationRuntimeTypeManaged,
-		ManagedIntegrationRuntimeTypeProperties: &datafactory.ManagedIntegrationRuntimeTypeProperties{
+	managedIntegrationRuntime := integrationruntimes.ManagedIntegrationRuntime{
+		Description: pointer.To(d.Get("description").(string)),
+		Type:        integrationruntimes.IntegrationRuntimeTypeManaged,
+		TypeProperties: integrationruntimes.ManagedIntegrationRuntimeTypeProperties{
 			ComputeProperties: expandDataFactoryIntegrationRuntimeAzureComputeProperties(d),
 		},
 	}
 
 	if d.Get("virtual_network_enabled").(bool) {
-		virtualNetworkName, err := getManagedVirtualNetworkName(ctx, managedVirtualNetworksClient, id.SubscriptionId, id.ResourceGroup, id.FactoryName)
+		virtualNetworkName, err := getManagedVirtualNetworkName(ctx, managedVirtualNetworksClient, id.SubscriptionId, id.ResourceGroupName, id.FactoryName)
 		if err != nil {
 			return err
 		}
 		if virtualNetworkName == nil {
 			return fmt.Errorf("virtual network feature for azure integration runtime is only available after managed virtual network for this data factory is enabled")
 		}
-		managedIntegrationRuntime.ManagedVirtualNetwork = &datafactory.ManagedVirtualNetworkReference{
-			Type:          utils.String("ManagedVirtualNetworkReference"),
-			ReferenceName: virtualNetworkName,
+		managedIntegrationRuntime.ManagedVirtualNetwork = &integrationruntimes.ManagedVirtualNetworkReference{
+			Type:          integrationruntimes.ManagedVirtualNetworkReferenceTypeManagedVirtualNetworkReference,
+			ReferenceName: *virtualNetworkName,
 		}
 	}
 
-	basicIntegrationRuntime, _ := managedIntegrationRuntime.AsBasicIntegrationRuntime()
-
-	integrationRuntime := datafactory.IntegrationRuntimeResource{
-		Name:       &id.Name,
-		Properties: basicIntegrationRuntime,
+	integrationRuntime := integrationruntimes.IntegrationRuntimeResource{
+		Name:       &id.IntegrationRuntimeName,
+		Properties: managedIntegrationRuntime,
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.FactoryName, id.Name, integrationRuntime, ""); err != nil {
+	if _, err := client.CreateOrUpdate(ctx, id, integrationRuntime, integrationruntimes.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -188,16 +190,16 @@ func resourceDataFactoryIntegrationRuntimeAzureRead(d *pluginsdk.ResourceData, m
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IntegrationRuntimeID(d.Id())
+	id, err := integrationruntimes.ParseIntegrationRuntimeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	dataFactoryId := factories.NewFactoryID(id.SubscriptionId, id.ResourceGroup, id.FactoryName)
+	dataFactoryId := factories.NewFactoryID(id.SubscriptionId, id.ResourceGroupName, id.FactoryName)
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+	resp, err := client.Get(ctx, *id, integrationruntimes.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
@@ -205,43 +207,27 @@ func resourceDataFactoryIntegrationRuntimeAzureRead(d *pluginsdk.ResourceData, m
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.IntegrationRuntimeName)
 	d.Set("data_factory_id", dataFactoryId.ID())
 
-	managedIntegrationRuntime, convertSuccess := resp.Properties.AsManagedIntegrationRuntime()
-	if !convertSuccess {
-		return fmt.Errorf("converting managed integration runtime to Azure integration runtime %s", *id)
-	}
-
-	if managedIntegrationRuntime.Description != nil {
-		d.Set("description", managedIntegrationRuntime.Description)
-	}
-
-	virtualNetworkEnabled := false
-	if managedIntegrationRuntime.ManagedVirtualNetwork != nil && managedIntegrationRuntime.ManagedVirtualNetwork.ReferenceName != nil {
-		virtualNetworkEnabled = true
-	}
-	d.Set("virtual_network_enabled", virtualNetworkEnabled)
-
-	if computeProps := managedIntegrationRuntime.ComputeProperties; computeProps != nil {
-		if location := computeProps.Location; location != nil {
-			d.Set("location", location)
+	if model := resp.Model; model != nil {
+		runTime, ok := model.Properties.(integrationruntimes.ManagedIntegrationRuntime)
+		if !ok {
+			return fmt.Errorf("asserting `IntegrationRuntime` as `ManagedIntegrationRuntime` for %s", *id)
 		}
 
-		if dataFlowProps := computeProps.DataFlowProperties; dataFlowProps != nil {
-			if computeType := &dataFlowProps.ComputeType; computeType != nil {
-				d.Set("compute_type", string(*computeType))
-			}
+		d.Set("description", pointer.From(runTime.Description))
+		d.Set("virtual_network_enabled", runTime.ManagedVirtualNetwork != nil && runTime.ManagedVirtualNetwork.ReferenceName != "")
 
-			if coreCount := dataFlowProps.CoreCount; coreCount != nil {
-				d.Set("core_count", coreCount)
-			}
+		if computeProps := runTime.TypeProperties.ComputeProperties; computeProps != nil {
+			d.Set("location", location.NormalizeNilable(computeProps.Location))
 
-			if timeToLive := dataFlowProps.TimeToLive; timeToLive != nil {
-				d.Set("time_to_live_min", timeToLive)
+			if dataFlowProps := computeProps.DataFlowProperties; dataFlowProps != nil {
+				d.Set("compute_type", string(pointer.From(dataFlowProps.ComputeType)))
+				d.Set("core_count", dataFlowProps.CoreCount)
+				d.Set("time_to_live_min", dataFlowProps.TimeToLive)
+				d.Set("cleanup_enabled", dataFlowProps.Cleanup)
 			}
-
-			d.Set("cleanup_enabled", dataFlowProps.Cleanup)
 		}
 	}
 
@@ -253,14 +239,14 @@ func resourceDataFactoryIntegrationRuntimeAzureDelete(d *pluginsdk.ResourceData,
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.IntegrationRuntimeID(d.Id())
+	id, err := integrationruntimes.ParseIntegrationRuntimeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	response, err := client.Delete(ctx, id.ResourceGroup, id.FactoryName, id.Name)
+	resp, err := client.Delete(ctx, *id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(response) {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
 	}
@@ -268,22 +254,14 @@ func resourceDataFactoryIntegrationRuntimeAzureDelete(d *pluginsdk.ResourceData,
 	return nil
 }
 
-func expandDataFactoryIntegrationRuntimeAzureComputeProperties(d *pluginsdk.ResourceData) *datafactory.IntegrationRuntimeComputeProperties {
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	coreCount := int32(d.Get("core_count").(int))
-	timeToLiveMin := int32(d.Get("time_to_live_min").(int))
-	cleanup := true
-	// nolint staticcheck
-	if v, ok := d.GetOkExists("cleanup_enabled"); ok {
-		cleanup = v.(bool)
-	}
-	return &datafactory.IntegrationRuntimeComputeProperties{
-		Location: &location,
-		DataFlowProperties: &datafactory.IntegrationRuntimeDataFlowProperties{
-			ComputeType: datafactory.DataFlowComputeType(d.Get("compute_type").(string)),
-			CoreCount:   &coreCount,
-			TimeToLive:  &timeToLiveMin,
-			Cleanup:     utils.Bool(cleanup),
+func expandDataFactoryIntegrationRuntimeAzureComputeProperties(d *pluginsdk.ResourceData) *integrationruntimes.IntegrationRuntimeComputeProperties {
+	return &integrationruntimes.IntegrationRuntimeComputeProperties{
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
+		DataFlowProperties: &integrationruntimes.IntegrationRuntimeDataFlowProperties{
+			ComputeType: pointer.To(integrationruntimes.DataFlowComputeType(d.Get("compute_type").(string))),
+			CoreCount:   pointer.To(int64(d.Get("core_count").(int))),
+			TimeToLive:  pointer.To(int64(d.Get("time_to_live_min").(int))),
+			Cleanup:     pointer.To(d.Get("cleanup_enabled").(bool)),
 		},
 	}
 }

@@ -24,6 +24,18 @@ type ListByGalleryCompleteResult struct {
 	Items              []GalleryImage
 }
 
+type ListByGalleryCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByGalleryCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByGallery ...
 func (c GalleryImagesClient) ListByGallery(ctx context.Context, id commonids.SharedImageGalleryId) (result ListByGalleryOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c GalleryImagesClient) ListByGallery(ctx context.Context, id commonids.Sha
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByGalleryCustomPager{},
 		Path:       fmt.Sprintf("%s/images", id.ID()),
 	}
 
@@ -73,6 +86,7 @@ func (c GalleryImagesClient) ListByGalleryCompleteMatchingPredicate(ctx context.
 
 	resp, err := c.ListByGallery(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

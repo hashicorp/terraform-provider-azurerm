@@ -61,10 +61,6 @@ The following arguments are supported:
 
 * `parameters` - (Optional) A map of additional parameters to apply to the connection.
 
-* `tags` - (Optional) A mapping of tags to assign to the resource.
-
--> **Note:** `tags` has been deprecated as the API no longer supports it and will be removed in version 4.0 of the provider.
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -76,8 +72,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Bot Connection.
-* `update` - (Defaults to 30 minutes) Used when updating the Bot Connection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Bot Connection.
+* `update` - (Defaults to 30 minutes) Used when updating the Bot Connection.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Bot Connection.
 
 ## Import

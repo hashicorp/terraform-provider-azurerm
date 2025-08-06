@@ -50,7 +50,6 @@ func (c ManagementLocksClient) CreateOrUpdateByScope(ctx context.Context, id Sco
 
 	var model ManagementLockObject
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

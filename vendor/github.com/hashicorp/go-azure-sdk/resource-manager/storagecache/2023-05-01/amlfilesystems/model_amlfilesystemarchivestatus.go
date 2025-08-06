@@ -14,7 +14,7 @@ type AmlFilesystemArchiveStatus struct {
 	ErrorMessage       *string            `json:"errorMessage,omitempty"`
 	LastCompletionTime *string            `json:"lastCompletionTime,omitempty"`
 	LastStartedTime    *string            `json:"lastStartedTime,omitempty"`
-	PercentComplete    *int64             `json:"percentComplete,omitempty"`
+	PercentComplete    *float64           `json:"percentComplete,omitempty"`
 	State              *ArchiveStatusType `json:"state,omitempty"`
 }
 

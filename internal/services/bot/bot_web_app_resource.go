@@ -20,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/botservice/2021-05-01-preview/botservice"
+	"github.com/jackofallops/kermit/sdk/botservice/2021-05-01-preview/botservice"
 )
 
 func resourceBotWebApp() *pluginsdk.Resource {
@@ -107,14 +107,12 @@ func resourceBotWebApp() *pluginsdk.Resource {
 			"developer_app_insights_key": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
 				ValidateFunc: validation.IsUUID,
 			},
 
 			"developer_app_insights_api_key": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
@@ -122,7 +120,6 @@ func resourceBotWebApp() *pluginsdk.Resource {
 			"developer_app_insights_application_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 

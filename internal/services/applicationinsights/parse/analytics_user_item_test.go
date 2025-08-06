@@ -27,7 +27,6 @@ func TestAnalyticsUserItemID(t *testing.T) {
 		Error    bool
 		Expected *AnalyticsUserItemId
 	}{
-
 		{
 			// empty
 			Input: "",

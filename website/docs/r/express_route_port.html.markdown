@@ -48,7 +48,7 @@ The following arguments are supported:
 
 * `link2` - (Optional) A list of `link` blocks as defined below.
 
-* `billing_type` - (Optional) The billing type of the Express Route Port. Possible values are `MeteredData` and `UnlimitedData`.
+* `billing_type` - (Optional) The billing type of the Express Route Port. Possible values are `MeteredData` and `UnlimitedData`. Defaults to `MeteredData`.
 
 ---
 
@@ -78,7 +78,7 @@ A `link` block supports the following:
 
 * `macsec_sci_enabled` - (Optional) Should Secure Channel Identifier on the Express Route Port Link be enabled? Defaults to `false`.
 
-~> **NOTE** `macsec_ckn_keyvault_secret_id` and `macsec_cak_keyvault_secret_id` should be used together with `identity`, so that the Express Route Port instance have the right permission to access the Key Vault.
+~> **Note:** `macsec_ckn_keyvault_secret_id` and `macsec_cak_keyvault_secret_id` should be used together with `identity`, so that the Express Route Port instance have the right permission to access the Key Vault.
 
 ## Attributes Reference
 
@@ -130,3 +130,9 @@ Express Route Ports can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_express_route_port.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/expressRoutePorts/port1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

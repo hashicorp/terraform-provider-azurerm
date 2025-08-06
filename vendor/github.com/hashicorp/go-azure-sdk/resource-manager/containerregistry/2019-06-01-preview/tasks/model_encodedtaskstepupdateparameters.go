@@ -16,8 +16,18 @@ type EncodedTaskStepUpdateParameters struct {
 	Values               *[]SetValue `json:"values,omitempty"`
 
 	// Fields inherited from TaskStepUpdateParameters
-	ContextAccessToken *string `json:"contextAccessToken,omitempty"`
-	ContextPath        *string `json:"contextPath,omitempty"`
+
+	ContextAccessToken *string  `json:"contextAccessToken,omitempty"`
+	ContextPath        *string  `json:"contextPath,omitempty"`
+	Type               StepType `json:"type"`
+}
+
+func (s EncodedTaskStepUpdateParameters) TaskStepUpdateParameters() BaseTaskStepUpdateParametersImpl {
+	return BaseTaskStepUpdateParametersImpl{
+		ContextAccessToken: s.ContextAccessToken,
+		ContextPath:        s.ContextPath,
+		Type:               s.Type,
+	}
 }
 
 var _ json.Marshaler = EncodedTaskStepUpdateParameters{}
@@ -31,9 +41,10 @@ func (s EncodedTaskStepUpdateParameters) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling EncodedTaskStepUpdateParameters: %+v", err)
 	}
+
 	decoded["type"] = "EncodedTask"
 
 	encoded, err = json.Marshal(decoded)

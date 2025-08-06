@@ -46,7 +46,6 @@ func (c ComponentApiKeysAPIsClient) APIKeysList(ctx context.Context, id Componen
 
 	var model ApplicationInsightsComponentAPIKeyListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

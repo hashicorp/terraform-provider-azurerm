@@ -49,7 +49,6 @@ func (c StaticSitesClient) CreateOrUpdateDatabaseConnection(ctx context.Context,
 
 	var model DatabaseConnection
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

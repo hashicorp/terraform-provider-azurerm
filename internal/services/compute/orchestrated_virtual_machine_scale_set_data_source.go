@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -55,7 +55,7 @@ type VirtualMachineScaleSetNetworkInterfaceIPConfiguration struct {
 type VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddress struct {
 	Name                 string                                                                      `tfschema:"name"`
 	DomainNameLabel      string                                                                      `tfschema:"domain_name_label"`
-	IdleTimeoutInMinutes int                                                                         `tfschema:"idle_timeout_in_minutes"`
+	IdleTimeoutInMinutes int64                                                                       `tfschema:"idle_timeout_in_minutes"`
 	IPTag                []VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddressIPTag `tfschema:"ip_tag"`
 	PublicIpPrefixId     string                                                                      `tfschema:"public_ip_prefix_id"`
 	Version              string                                                                      `tfschema:"version"`
@@ -175,7 +175,6 @@ func (r OrchestratedVirtualMachineScaleSetDataSource) Read() sdk.ResourceFunc {
 							orchestratedVMSS.NetworkInterface = flattenVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
 						}
 					}
-
 				}
 			}
 
@@ -270,7 +269,7 @@ func flattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input *virtualmach
 
 	ipTags := make([]VirtualMachineScaleSetNetworkInterfaceIPConfigurationPublicIPAddressIPTag, 0)
 	var domainNameLabel, publicIPPrefixId, version string
-	var idleTimeoutInMinutes int
+	var idleTimeoutInMinutes int64
 	if props := input.Properties; props != nil && props.IPTags != nil {
 		for _, rawTag := range *props.IPTags {
 			var tag, tagType string
@@ -302,7 +301,7 @@ func flattenOrchestratedVirtualMachineScaleSetPublicIPAddress(input *virtualmach
 		}
 
 		if props.IdleTimeoutInMinutes != nil {
-			idleTimeoutInMinutes = int(*props.IdleTimeoutInMinutes)
+			idleTimeoutInMinutes = *props.IdleTimeoutInMinutes
 		}
 	}
 

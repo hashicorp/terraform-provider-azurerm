@@ -64,6 +64,22 @@ A `subnet` block supports the following:
 
 * `use_in_virtual_machine_creation` - (Optional) Can this subnet be used for creating Virtual Machines? Possible values are `Allow`, `Default` and `Deny`. Defaults to `Allow`.
 
+* `shared_public_ip_address` - (Optional) A `shared_public_ip_address` block as defined below.
+
+---
+
+A `shared_public_ip_address` block supports the following:
+
+* `allowed_ports` - (Optional) A list of `allowed_ports` blocks as defined below.
+
+---
+
+An `allowed_ports` block supports the following:
+
+* `backend_port` - (Optional) The port on the Virtual Machine that the traffic will be sent to.
+
+* `transport_protocol` - (Optional) The transport protocol that the traffic will use. Possible values are `TCP` and `UDP`.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -85,8 +101,8 @@ A `subnet` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the DevTest Virtual Network.
-* `update` - (Defaults to 30 minutes) Used when updating the DevTest Virtual Network.
 * `read` - (Defaults to 5 minutes) Used when retrieving the DevTest Virtual Network.
+* `update` - (Defaults to 30 minutes) Used when updating the DevTest Virtual Network.
 * `delete` - (Defaults to 30 minutes) Used when deleting the DevTest Virtual Network.
 
 ## Import
@@ -96,3 +112,9 @@ DevTest Virtual Networks can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_dev_test_virtual_network.network1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevTestLab/labs/lab1/virtualNetworks/network1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DevTestLab` - 2018-09-15

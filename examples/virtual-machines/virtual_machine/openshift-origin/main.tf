@@ -296,7 +296,6 @@ resource "azurerm_lb" "primary_lb" {
 }
 
 resource "azurerm_lb_backend_address_pool" "primary_lb" {
-  resource_group_name = azurerm_resource_group.rg.name
   name                = "loadBalancerBackEnd"
   loadbalancer_id     = azurerm_lb.primary_lb.id
   depends_on          = ["azurerm_lb.primary_lb"]
@@ -356,7 +355,6 @@ resource "azurerm_lb" "infra_lb" {
 }
 
 resource "azurerm_lb_backend_address_pool" "infra_lb" {
-  resource_group_name = azurerm_resource_group.rg.name
   name                = "loadBalancerBackEnd"
   loadbalancer_id     = azurerm_lb.infra_lb.id
   depends_on          = ["azurerm_lb.infra_lb"]

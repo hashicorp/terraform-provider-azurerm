@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ProviderTopicTypeId{})
+}
 
 var _ resourceids.ResourceId = &ProviderTopicTypeId{}
 
@@ -35,7 +40,7 @@ func ParseProviderTopicTypeID(input string) (*ProviderTopicTypeId, error) {
 	}
 
 	id := ProviderTopicTypeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -52,7 +57,7 @@ func ParseProviderTopicTypeIDInsensitively(input string) (*ProviderTopicTypeId, 
 	}
 
 	id := ProviderTopicTypeId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -102,7 +107,7 @@ func (id ProviderTopicTypeId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftEventGrid", "Microsoft.EventGrid", "Microsoft.EventGrid"),
 		resourceids.StaticSegment("staticTopicTypes", "topicTypes", "topicTypes"),
-		resourceids.UserSpecifiedSegment("topicTypeName", "topicTypeValue"),
+		resourceids.UserSpecifiedSegment("topicTypeName", "topicTypeName"),
 	}
 }
 

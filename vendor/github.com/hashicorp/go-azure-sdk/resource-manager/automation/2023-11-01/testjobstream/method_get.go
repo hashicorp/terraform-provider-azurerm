@@ -45,7 +45,6 @@ func (c TestJobStreamClient) Get(ctx context.Context, id TestJobStreamId) (resul
 
 	var model JobStream
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

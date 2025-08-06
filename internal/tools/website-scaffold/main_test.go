@@ -25,7 +25,7 @@ The following arguments are supported:
 
 * 'block2' - (Required) One or more 'block2' blocks as defined below.
 
-* 'foo_enabled' - (Required) Should the TODO be enabled?
+* 'foo_enabled' - (Required) Whether to enable the TODO.
 
 * 'foo_id' - (Required) The ID of the TODO.
 
@@ -101,7 +101,7 @@ A 'block3' block supports the following:
 							Type:     schema.TypeString,
 							Optional: true,
 						},
-						//lintignore:XS003
+						// lintignore:XS003
 						"block1": {
 							Type:     schema.TypeList,
 							MaxItems: 1,
@@ -115,7 +115,7 @@ A 'block3' block supports the following:
 								},
 							},
 						},
-						//lintignore:XS003
+						// lintignore:XS003
 						"block3": {
 							Type:     schema.TypeList,
 							MinItems: 1,

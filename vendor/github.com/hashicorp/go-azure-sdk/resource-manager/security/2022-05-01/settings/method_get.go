@@ -15,7 +15,7 @@ import (
 type GetOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *Setting
+	Model        Setting
 }
 
 // Get ...
@@ -48,11 +48,11 @@ func (c SettingsClient) Get(ctx context.Context, id SettingId) (result GetOperat
 	if err = resp.Unmarshal(&respObj); err != nil {
 		return
 	}
-	model, err := unmarshalSettingImplementation(respObj)
+	model, err := UnmarshalSettingImplementation(respObj)
 	if err != nil {
 		return
 	}
-	result.Model = &model
+	result.Model = model
 
 	return
 }

@@ -15,7 +15,7 @@ type OutputsClient struct {
 }
 
 func NewOutputsClientWithBaseURI(sdkApi sdkEnv.Api) (*OutputsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "outputs", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "outputs", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating OutputsClient: %+v", err)
 	}

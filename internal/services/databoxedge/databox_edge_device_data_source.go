@@ -37,7 +37,6 @@ func (d EdgeDeviceDataSource) Arguments() map[string]*schema.Schema {
 
 func (d EdgeDeviceDataSource) Attributes() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-
 		"location": commonschema.LocationComputed(),
 
 		"sku_name": {

@@ -113,7 +113,7 @@ func updateImportsWithinDirectory(serviceName string, oldApiVersion string, newA
 			if err = format.Node(&buf, fileSet, file); err != nil {
 				return fmt.Errorf("error formatting new code: %w", err)
 			}
-			_ = os.WriteFile(fileName, buf.Bytes(), 0644)
+			_ = os.WriteFile(fileName, buf.Bytes(), 0o600)
 		}
 	}
 	return nil

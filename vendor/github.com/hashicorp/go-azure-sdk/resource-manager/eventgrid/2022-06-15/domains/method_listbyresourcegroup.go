@@ -41,6 +41,7 @@ func (o ListByResourceGroupOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByResourceGroupOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -55,6 +56,18 @@ func (o ListByResourceGroupOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByResourceGroup ...
 func (c DomainsClient) ListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId, options ListByResourceGroupOperationOptions) (result ListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -63,8 +76,9 @@ func (c DomainsClient) ListByResourceGroup(ctx context.Context, id commonids.Res
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.EventGrid/domains", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByResourceGroupCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.EventGrid/domains", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -105,6 +119,7 @@ func (c DomainsClient) ListByResourceGroupCompleteMatchingPredicate(ctx context.
 
 	resp, err := c.ListByResourceGroup(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

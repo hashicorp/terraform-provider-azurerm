@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/workspace"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/workspace"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -113,7 +113,7 @@ func resourceArmDesktopVirtualizationWorkspaceCreateUpdate(d *pluginsdk.Resource
 	t := d.Get("tags").(map[string]interface{})
 
 	payload := workspace.Workspace{
-		Location: &location,
+		Location: location,
 		Tags:     tags.Expand(t),
 		Properties: &workspace.WorkspaceProperties{
 			Description:  utils.String(d.Get("description").(string)),
@@ -163,7 +163,7 @@ func resourceArmDesktopVirtualizationWorkspaceRead(d *pluginsdk.ResourceData, me
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
-		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
 			d.Set("description", props.Description)

@@ -51,11 +51,11 @@ The following arguments are supported:
 
 * `value` - (Optional) The value of this API Management Named Value.
 
-* `value_from_key_vault` - (Optional) A `value_from_key_vault` block as defined below.
+* `value_from_key_vault` - (Optional) A `value_from_key_vault` block as defined below. If specified, `secret` must also be set to `true`.
 
 * `secret` - (Optional) Specifies whether the API Management Named Value is secret. Valid values are `true` or `false`. The default value is `false`.
 
-~> **NOTE:** setting the field `secret` to `true` doesn't make this field sensitive in Terraform, instead it marks the value as secret and encrypts the value in Azure.
+~> **Note:** setting the field `secret` to `true` doesn't make this field sensitive in Terraform, instead it marks the value as secret and encrypts the value in Azure.
 
 * `tags` - (Optional) A list of tags to be applied to the API Management Named Value.
 
@@ -78,8 +78,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management Named Value.
-* `update` - (Defaults to 30 minutes) Used when updating the API Management Named Value.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management Named Value.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management Named Value.
 * `delete` - (Defaults to 30 minutes) Used when deleting the API Management Named Value.
 
 ## Import
@@ -89,3 +89,9 @@ API Management Properties can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_api_management_named_value.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.ApiManagement/service/example-apim/namedValues/example-apimp
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ApiManagement` - 2022-08-01

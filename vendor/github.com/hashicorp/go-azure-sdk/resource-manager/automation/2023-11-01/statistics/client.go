@@ -15,7 +15,7 @@ type StatisticsClient struct {
 }
 
 func NewStatisticsClientWithBaseURI(sdkApi sdkEnv.Api) (*StatisticsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "statistics", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "statistics", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating StatisticsClient: %+v", err)
 	}

@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/customipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CustomIpPrefixResource struct{}
@@ -125,21 +126,21 @@ func testAccCustomIpPrefix_ipv6(t *testing.T) {
 }
 
 func (CustomIpPrefixResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.CustomIpPrefixID(state.ID)
+	id, err := customipprefixes.ParseCustomIPPrefixID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Network.CustomIPPrefixesClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Network.Client.CustomIPPrefixes.Get(ctx, *id, customipprefixes.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
+		if response.WasNotFound(resp.HttpResponse) {
+			return pointer.To(false), nil
 		}
 
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r CustomIpPrefixResource) ipv4Provisioned(data acceptance.TestData) string {

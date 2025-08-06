@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -25,6 +25,50 @@ func TestAccSentinelAlertRuleScheduled_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSentinelAlertRuleScheduled_entityMapping(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")
+	r := SentinelAlertRuleScheduledResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.tenEntityMapping(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.tenSentinelEntityMapping(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSentinelAlertRuleScheduled_upgrade(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_alert_rule_scheduled", "test")
+	r := SentinelAlertRuleScheduledResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.upgradeVersion(data, "1.0.4"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.upgradeVersion(data, "1.0.5"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -141,8 +185,7 @@ func (t SentinelAlertRuleScheduledResource) Exists(ctx context.Context, clients 
 	}
 
 	if model := resp.Model; model != nil {
-		modelPtr := *model
-		rule, ok := modelPtr.(alertrules.ScheduledAlertRule)
+		rule, ok := model.(alertrules.ScheduledAlertRule)
 		if !ok {
 			return nil, fmt.Errorf("the Alert Rule %q is not a Fusion Alert Rule", id)
 		}
@@ -172,6 +215,158 @@ QUERY
 `, r.template(data), data.RandomInteger)
 }
 
+func (r SentinelAlertRuleScheduledResource) tenEntityMapping(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sentinel_alert_rule_scheduled" "test" {
+  name                       = "acctest-SentinelAlertRule-Sche-%d"
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
+  display_name               = "Some Rule"
+  severity                   = "High"
+  query                      = <<QUERY
+Heartbeat
+QUERY
+
+  entity_mapping {
+    entity_type = "IP"
+    field_mapping {
+      identifier  = "Address"
+      column_name = "TenantId"
+    }
+  }
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "SourceSystem"
+    }
+  }
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "TimeGenerated"
+    }
+  }
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "MG"
+    }
+  }
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "ManagementGroupName"
+    }
+  }
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "SourceComputerId"
+    }
+  }
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "ComputerIP"
+    }
+  }
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "Computer"
+    }
+  }
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "Category"
+    }
+  }
+
+  entity_mapping {
+    entity_type = "Account"
+    field_mapping {
+      identifier  = "Name"
+      column_name = "OSType"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r SentinelAlertRuleScheduledResource) tenSentinelEntityMapping(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sentinel_alert_rule_scheduled" "test" {
+  name                       = "acctest-SentinelAlertRule-Sche-%d"
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
+  display_name               = "Some Rule"
+  severity                   = "High"
+  query                      = <<QUERY
+Heartbeat
+QUERY
+
+  sentinel_entity_mapping {
+    column_name = "VMUUID"
+  }
+
+  sentinel_entity_mapping {
+    column_name = "SourceSystem"
+  }
+
+  sentinel_entity_mapping {
+    column_name = "TimeGenerated"
+  }
+
+  sentinel_entity_mapping {
+    column_name = "MG"
+  }
+
+  sentinel_entity_mapping {
+    column_name = "ManagementGroupName"
+  }
+
+  sentinel_entity_mapping {
+    column_name = "SourceComputerId"
+  }
+
+  sentinel_entity_mapping {
+    column_name = "ComputerIP"
+  }
+
+  sentinel_entity_mapping {
+    column_name = "Computer"
+  }
+
+  sentinel_entity_mapping {
+    column_name = "Category"
+  }
+
+  sentinel_entity_mapping {
+    column_name = "OSType"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
 func (r SentinelAlertRuleScheduledResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -185,16 +380,16 @@ resource "azurerm_sentinel_alert_rule_scheduled" "test" {
   techniques                 = ["T1560", "T1123"]
   severity                   = "Low"
   enabled                    = false
-  incident_configuration {
-    create_incident = true
+  incident {
+    create_incident_enabled = true
     grouping {
       enabled                 = true
       lookback_duration       = "P7D"
       reopen_closed_incidents = true
       entity_matching_method  = "Selected"
-      group_by_entities       = ["Host"]
-      group_by_alert_details  = ["DisplayName"]
-      group_by_custom_details = ["OperatingSystemType", "OperatingSystemName"]
+      by_entities             = ["Host"]
+      by_alert_details        = ["DisplayName"]
+      by_custom_details       = ["OperatingSystemType", "OperatingSystemName"]
     }
   }
   query                = "Heartbeat"
@@ -339,6 +534,28 @@ QUERY
 `, r.template(data), data.RandomInteger)
 }
 
+func (r SentinelAlertRuleScheduledResource) upgradeVersion(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_sentinel_alert_rule_scheduled" "test" {
+  name                        = "acctest-SentinelAlertRule-Sche-%d"
+  log_analytics_workspace_id  = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
+  display_name                = "Some Rule"
+  alert_rule_template_guid    = "173f8699-6af5-484a-8b06-8c47ba89b380"
+  alert_rule_template_version = "%[3]s"
+  severity                    = "Medium"
+  query                       = <<QUERY
+AzureActivity |
+  where OperationName == "Create or Update Virtual Machine" or OperationName =="Create Deployment" |
+  where ActivityStatus == "Succeeded" |
+  make-series dcount(ResourceId) default=0 on EventSubmissionTimestamp in range(ago(7d), now(), 1d) by Caller
+QUERY
+
+}
+`, r.template(data), data.RandomInteger, version)
+}
+
 func (SentinelAlertRuleScheduledResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -355,19 +572,6 @@ resource "azurerm_log_analytics_workspace" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "PerGB2018"
-}
-
-resource "azurerm_log_analytics_solution" "test" {
-  solution_name         = "SecurityInsights"
-  location              = azurerm_resource_group.test.location
-  resource_group_name   = azurerm_resource_group.test.name
-  workspace_resource_id = azurerm_log_analytics_workspace.test.id
-  workspace_name        = azurerm_log_analytics_workspace.test.name
-
-  plan {
-    publisher = "Microsoft"
-    product   = "OMSGallery/SecurityInsights"
-  }
 }
 
 resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {

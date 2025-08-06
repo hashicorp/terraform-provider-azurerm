@@ -38,6 +38,7 @@ func TestParseStructTags_WithValue(t *testing.T) {
 			input: `tfschema:"hello"`,
 			expected: &decodedStructTags{
 				hclPath:                   "hello",
+				addedInNextMajorVersion:   false,
 				removedInNextMajorVersion: false,
 			},
 		},
@@ -46,6 +47,7 @@ func TestParseStructTags_WithValue(t *testing.T) {
 			input: `tfschema:"hello,removedInNextMajorVersion"`,
 			expected: &decodedStructTags{
 				hclPath:                   "hello",
+				addedInNextMajorVersion:   false,
 				removedInNextMajorVersion: true,
 			},
 		},
@@ -54,6 +56,7 @@ func TestParseStructTags_WithValue(t *testing.T) {
 			input: `tfschema:"hello, removedInNextMajorVersion"`,
 			expected: &decodedStructTags{
 				hclPath:                   "hello",
+				addedInNextMajorVersion:   false,
 				removedInNextMajorVersion: true,
 			},
 		},
@@ -65,6 +68,7 @@ func TestParseStructTags_WithValue(t *testing.T) {
 			input: `tfschema:"hello ,removedInNextMajorVersion"`,
 			expected: &decodedStructTags{
 				hclPath:                   "hello",
+				addedInNextMajorVersion:   false,
 				removedInNextMajorVersion: true,
 			},
 		},
@@ -76,8 +80,30 @@ func TestParseStructTags_WithValue(t *testing.T) {
 			input: `tfschema:"hello , removedInNextMajorVersion"`,
 			expected: &decodedStructTags{
 				hclPath:                   "hello",
+				addedInNextMajorVersion:   false,
 				removedInNextMajorVersion: true,
 			},
+		},
+		{
+			// valid, with addedInNextMajorVersion and a space before the comma
+			input: `tfschema:"hello, addedInNextMajorVersion"`,
+			expected: &decodedStructTags{
+				hclPath:                   "hello",
+				addedInNextMajorVersion:   true,
+				removedInNextMajorVersion: false,
+			},
+		},
+		{
+			// valid, with addedInNextMajorVersion and a space before the comma
+			input:    `tfschema:"hello, removedInNextMajorVersion, addedInNextMajorVersion"`,
+			expected: nil,
+			error:    pointer.To("the struct-tags `removedInNextMajorVersion` and `addedInNextMajorVersion` cannot be set together"),
+		},
+		{
+			// valid, with addedInNextMajorVersion and a space before the comma
+			input:    `tfschema:"hello, addedInNextMajorVersion, removedInNextMajorVersion"`,
+			expected: nil,
+			error:    pointer.To("the struct-tags `removedInNextMajorVersion` and `addedInNextMajorVersion` cannot be set together"),
 		},
 		{
 			// invalid, unknown struct tags
@@ -106,8 +132,7 @@ func TestParseStructTags_WithValue(t *testing.T) {
 
 		if actual == nil {
 			t.Fatalf("expected actual to have a value but got nil")
-		}
-		if !reflect.DeepEqual(*data.expected, *actual) {
+		} else if !reflect.DeepEqual(*data.expected, *actual) {
 			t.Fatalf("expected [%+v] and actual [%+v] didn't match", *data.expected, *actual)
 		}
 	}

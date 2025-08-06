@@ -130,7 +130,6 @@ func resourceArmMaintenanceAssignmentVirtualMachineScaleSetRead(d *pluginsdk.Res
 	}
 
 	resp, err := client.Get(ctx, *id)
-
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")

@@ -188,13 +188,9 @@ The `email_receiver` block supports the following:
 The `event_hub_receiver` block supports the following:
 
 * `name` - (Required) The name of the EventHub Receiver, must be unique within action group.
-* `event_hub_id` - (Optional) The resource ID of the respective Event Hub.
 * `event_hub_name` - (Optional) The name of the specific Event Hub queue.
 * `event_hub_namespace` - (Optional) The namespace name of the Event Hub.
 * `subscription_id` - (Optional) The ID for the subscription containing this Event Hub. Default to the subscription ID of the Action Group.
-
-~> **NOTE:** `event_hub_id` is deprecated in version 3.0 and will be removed in version 4.0 of the AzureRM Provider. Please use `event_hub_name`, `event_hub_name`,and `subscription_id` instead. And `event_hub_name`, `event_hub_name` will be required properties in version 4.0.
-
 * `tenant_id` - (Optional) The Tenant ID for the subscription containing this Event Hub.
 * `use_common_alert_schema` - (Optional) Indicates whether to use common alert schema.
 
@@ -208,7 +204,7 @@ The `itsm_receiver` block supports the following:
 * `ticket_configuration` - (Required) A JSON blob for the configurations of the ITSM action. CreateMultipleWorkItems option will be part of this blob as well.
 * `region` - (Required) The region of the workspace.
 
--> **NOTE** `ticket_configuration` should be JSON blob with `PayloadRevision` and `WorkItemType` keys (e.g., `ticket_configuration="{\"PayloadRevision\":0,\"WorkItemType\":\"Incident\"}"`), and `ticket_configuration="{}"` will return an error, see more at this [REST API issue](https://github.com/Azure/azure-rest-api-specs/issues/20488)
+-> **Note:** `ticket_configuration` should be JSON blob with `PayloadRevision` and `WorkItemType` keys (e.g., `ticket_configuration="{\"PayloadRevision\":0,\"WorkItemType\":\"Incident\"}"`), and `ticket_configuration="{}"` will return an error, see more at this [REST API issue](https://github.com/Azure/azure-rest-api-specs/issues/20488)
 
 ---
 
@@ -244,7 +240,7 @@ The `webhook_receiver` block supports the following:
 * `use_common_alert_schema` - (Optional) Enables or disables the common alert schema.
 * `aad_auth` - (Optional) The `aad_auth` block as defined below.
 
-~> **NOTE:** Before adding a secure webhook receiver by setting `aad_auth`, please read [the configuration instruction of the AAD application](https://docs.microsoft.com/azure/azure-monitor/platform/action-groups#secure-webhook).
+~> **Note:** Before adding a secure webhook receiver by setting `aad_auth`, please read [the configuration instruction of the AAD application](https://docs.microsoft.com/azure/azure-monitor/platform/action-groups#secure-webhook).
 
 ---
 
@@ -265,8 +261,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Action Group.
-* `update` - (Defaults to 30 minutes) Used when updating the Action Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Action Group.
+* `update` - (Defaults to 30 minutes) Used when updating the Action Group.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Action Group.
 
 ## Import
@@ -276,3 +272,9 @@ Action Groups can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_monitor_action_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Insights/actionGroups/myagname
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Insights` - 2023-01-01

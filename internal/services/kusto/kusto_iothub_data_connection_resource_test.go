@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2023-08-15/dataconnections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/kusto/2024-04-13/dataconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -60,7 +60,7 @@ func (KustoIotHubDataConnectionResource) Exists(ctx context.Context, clients *cl
 	}
 
 	if resp.Model != nil {
-		value, ok := (*resp.Model).(dataconnections.IotHubDataConnection)
+		value, ok := resp.Model.(dataconnections.IotHubDataConnection)
 		if !ok {
 			return nil, fmt.Errorf("%s is not an IotHub Data Connection", id.String())
 		}
@@ -103,7 +103,7 @@ resource "azurerm_kusto_iothub_data_connection" "test" {
   iothub_id                 = azurerm_iothub.test.id
   consumer_group            = azurerm_iothub_consumer_group.test.name
   shared_access_policy_name = azurerm_iothub_shared_access_policy.test.name
-  event_system_properties   = ["message-id", "sequence-number", "to"]
+  event_system_properties   = ["message-id", "user-id", "to"]
   mapping_rule_name         = "Json_Mapping"
   data_format               = "MULTIJSON"
   database_routing_type     = "Multi"

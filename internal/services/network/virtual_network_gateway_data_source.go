@@ -8,16 +8,16 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func dataSourceVirtualNetworkGateway() *pluginsdk.Resource {
@@ -242,102 +242,104 @@ func dataSourceVirtualNetworkGateway() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
 
 func dataSourceVirtualNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VnetGatewayClient
+	client := meta.(*clients.Client).Network.VirtualNetworkGateways
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewVirtualNetworkGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := virtualnetworkgateways.NewVirtualNetworkGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
-		return fmt.Errorf("making Read request on %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.VirtualNetworkGatewayName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
 
-	if gw := resp.VirtualNetworkGatewayPropertiesFormat; gw != nil {
-		d.Set("type", string(gw.GatewayType))
-		d.Set("enable_bgp", gw.EnableBgp)
-		d.Set("private_ip_address_enabled", gw.EnablePrivateIPAddress)
-		d.Set("active_active", gw.ActiveActive)
-		d.Set("generation", string(gw.VpnGatewayGeneration))
+		props := model.Properties
+		d.Set("type", string(pointer.From(props.GatewayType)))
+		d.Set("enable_bgp", props.EnableBgp)
+		d.Set("private_ip_address_enabled", props.EnablePrivateIPAddress)
+		d.Set("active_active", props.ActiveActive)
+		d.Set("generation", string(pointer.From(props.VpnGatewayGeneration)))
 
-		if string(gw.VpnType) != "" {
-			d.Set("vpn_type", string(gw.VpnType))
+		if props.VpnType != nil {
+			d.Set("vpn_type", string(pointer.From(props.VpnType)))
 		}
 
-		if gw.GatewayDefaultSite != nil {
-			d.Set("default_local_network_gateway_id", gw.GatewayDefaultSite.ID)
+		if props.GatewayDefaultSite != nil {
+			d.Set("default_local_network_gateway_id", props.GatewayDefaultSite.Id)
 		}
 
-		if gw.Sku != nil {
-			d.Set("sku", string(gw.Sku.Name))
+		if props.Sku != nil {
+			d.Set("sku", string(pointer.From(props.Sku.Name)))
 		}
 
-		if err := d.Set("ip_configuration", flattenVirtualNetworkGatewayDataSourceIPConfigurations(gw.IPConfigurations)); err != nil {
+		if err := d.Set("ip_configuration", flattenVirtualNetworkGatewayDataSourceIPConfigurations(props.IPConfigurations)); err != nil {
 			return fmt.Errorf("setting `ip_configuration`: %+v", err)
 		}
 
-		vpnConfigFlat := flattenVirtualNetworkGatewayDataSourceVpnClientConfig(gw.VpnClientConfiguration)
+		vpnConfigFlat := flattenVirtualNetworkGatewayDataSourceVpnClientConfig(props.VpnClientConfiguration)
 		if err := d.Set("vpn_client_configuration", vpnConfigFlat); err != nil {
 			return fmt.Errorf("setting `vpn_client_configuration`: %+v", err)
 		}
 
-		bgpSettingsFlat := flattenVirtualNetworkGatewayDataSourceBgpSettings(gw.BgpSettings)
+		bgpSettingsFlat := flattenVirtualNetworkGatewayDataSourceBgpSettings(props.BgpSettings)
 		if err := d.Set("bgp_settings", bgpSettingsFlat); err != nil {
 			return fmt.Errorf("setting `bgp_settings`: %+v", err)
 		}
 
-		if err := d.Set("custom_route", flattenVirtualNetworkGatewayAddressSpace(gw.CustomRoutes)); err != nil {
+		if err := d.Set("custom_route", flattenVirtualNetworkGatewayAddressSpace(props.CustomRoutes)); err != nil {
 			return fmt.Errorf("setting `custom_route`: %+v", err)
 		}
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
-func flattenVirtualNetworkGatewayDataSourceIPConfigurations(ipConfigs *[]network.VirtualNetworkGatewayIPConfiguration) []interface{} {
+func flattenVirtualNetworkGatewayDataSourceIPConfigurations(ipConfigs *[]virtualnetworkgateways.VirtualNetworkGatewayIPConfiguration) []interface{} {
 	flat := make([]interface{}, 0)
 
 	if ipConfigs != nil {
 		for _, cfg := range *ipConfigs {
-			props := cfg.VirtualNetworkGatewayIPConfigurationPropertiesFormat
+			props := cfg.Properties
 			v := make(map[string]interface{})
 			v["private_ip_address"] = pointer.From(props.PrivateIPAddress)
 
-			if id := cfg.ID; id != nil {
+			if id := cfg.Id; id != nil {
 				v["id"] = *id
 			}
 
 			if name := cfg.Name; name != nil {
 				v["name"] = *name
 			}
-			v["private_ip_address_allocation"] = string(props.PrivateIPAllocationMethod)
+			v["private_ip_address_allocation"] = string(pointer.From(props.PrivateIPAllocationMethod))
 
 			if subnet := props.Subnet; subnet != nil {
-				if id := subnet.ID; id != nil {
+				if id := subnet.Id; id != nil {
 					v["subnet_id"] = *id
 				}
 			}
 
 			if pip := props.PublicIPAddress; pip != nil {
-				if id := pip.ID; id != nil {
+				if id := pip.Id; id != nil {
 					v["public_ip_address_id"] = *id
 				}
 			}
@@ -349,7 +351,7 @@ func flattenVirtualNetworkGatewayDataSourceIPConfigurations(ipConfigs *[]network
 	return flat
 }
 
-func flattenVirtualNetworkGatewayDataSourceVpnClientConfig(cfg *network.VpnClientConfiguration) []interface{} {
+func flattenVirtualNetworkGatewayDataSourceVpnClientConfig(cfg *virtualnetworkgateways.VpnClientConfiguration) []interface{} {
 	if cfg == nil {
 		return []interface{}{}
 	}
@@ -365,12 +367,12 @@ func flattenVirtualNetworkGatewayDataSourceVpnClientConfig(cfg *network.VpnClien
 	rootCerts := make([]interface{}, 0)
 	if certs := cfg.VpnClientRootCertificates; certs != nil {
 		for _, cert := range *certs {
-			if cert.Name == nil || cert.VpnClientRootCertificatePropertiesFormat == nil || cert.VpnClientRootCertificatePropertiesFormat.PublicCertData == nil {
+			if cert.Name == nil {
 				continue
 			}
 			v := map[string]interface{}{
 				"name":             *cert.Name,
-				"public_cert_data": *cert.VpnClientRootCertificatePropertiesFormat.PublicCertData,
+				"public_cert_data": cert.Properties.PublicCertData,
 			}
 			rootCerts = append(rootCerts, v)
 		}
@@ -380,12 +382,12 @@ func flattenVirtualNetworkGatewayDataSourceVpnClientConfig(cfg *network.VpnClien
 	revokedCerts := make([]interface{}, 0)
 	if certs := cfg.VpnClientRevokedCertificates; certs != nil {
 		for _, cert := range *certs {
-			if cert.Name == nil || cert.VpnClientRevokedCertificatePropertiesFormat == nil || cert.VpnClientRevokedCertificatePropertiesFormat.Thumbprint == nil {
+			if cert.Name == nil || cert.Properties == nil || cert.Properties.Thumbprint == nil {
 				continue
 			}
 			v := map[string]interface{}{
 				"name":       *cert.Name,
-				"thumbprint": *cert.VpnClientRevokedCertificatePropertiesFormat.Thumbprint,
+				"thumbprint": *cert.Properties.Thumbprint,
 			}
 			revokedCerts = append(revokedCerts, v)
 		}
@@ -411,7 +413,7 @@ func flattenVirtualNetworkGatewayDataSourceVpnClientConfig(cfg *network.VpnClien
 	return []interface{}{flat}
 }
 
-func flattenVirtualNetworkGatewayDataSourceBgpSettings(settings *network.BgpSettings) []interface{} {
+func flattenVirtualNetworkGatewayDataSourceBgpSettings(settings *virtualnetworkgateways.BgpSettings) []interface{} {
 	output := make([]interface{}, 0)
 
 	if settings != nil {

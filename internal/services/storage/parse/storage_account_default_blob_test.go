@@ -27,7 +27,6 @@ func TestStorageAccountDefaultBlobID(t *testing.T) {
 		Error    bool
 		Expected *StorageAccountDefaultBlobId
 	}{
-
 		{
 			// empty
 			Input: "",

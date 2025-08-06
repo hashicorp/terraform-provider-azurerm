@@ -15,7 +15,7 @@ type VariableClient struct {
 }
 
 func NewVariableClientWithBaseURI(sdkApi sdkEnv.Api) (*VariableClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "variable", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "variable", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating VariableClient: %+v", err)
 	}

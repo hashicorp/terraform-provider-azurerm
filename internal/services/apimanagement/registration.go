@@ -10,7 +10,10 @@ import (
 
 type Registration struct{}
 
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.TypedServiceRegistration                   = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/api-management"
@@ -80,6 +83,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_api_management_named_value":                     resourceApiManagementNamedValue(),
 		"azurerm_api_management_openid_connect_provider":         resourceApiManagementOpenIDConnectProvider(),
 		"azurerm_api_management_policy":                          resourceApiManagementPolicy(),
+		"azurerm_api_management_policy_fragment":                 resourceApiManagementPolicyFragment(),
 		"azurerm_api_management_product":                         resourceApiManagementProduct(),
 		"azurerm_api_management_product_api":                     resourceApiManagementProductApi(),
 		"azurerm_api_management_product_group":                   resourceApiManagementProductGroup(),
@@ -92,13 +96,18 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	}
 }
 
+// DataSources returns a list of Data Sources supported by this Service
 func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
+	return []sdk.DataSource{
+		ApiManagementSubscriptionDataSource{},
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		ApiManagementNotificationRecipientEmailResource{},
 		ApiManagementNotificationRecipientUserResource{},
+		ApiManagementWorkspaceResource{},
+		ApiManagementStandaloneGatewayResource{},
 	}
 }

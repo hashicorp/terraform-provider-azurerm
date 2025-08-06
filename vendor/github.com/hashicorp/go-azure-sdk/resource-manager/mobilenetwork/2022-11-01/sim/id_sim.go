@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&SimId{})
+}
 
 var _ resourceids.ResourceId = &SimId{}
 
@@ -39,7 +44,7 @@ func ParseSimID(input string) (*SimId, error) {
 	}
 
 	id := SimId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParseSimIDInsensitively(input string) (*SimId, error) {
 	}
 
 	id := SimId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -116,9 +121,9 @@ func (id SimId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMobileNetwork", "Microsoft.MobileNetwork", "Microsoft.MobileNetwork"),
 		resourceids.StaticSegment("staticSimGroups", "simGroups", "simGroups"),
-		resourceids.UserSpecifiedSegment("simGroupName", "simGroupValue"),
+		resourceids.UserSpecifiedSegment("simGroupName", "simGroupName"),
 		resourceids.StaticSegment("staticSims", "sims", "sims"),
-		resourceids.UserSpecifiedSegment("simName", "simValue"),
+		resourceids.UserSpecifiedSegment("simName", "simName"),
 	}
 }
 

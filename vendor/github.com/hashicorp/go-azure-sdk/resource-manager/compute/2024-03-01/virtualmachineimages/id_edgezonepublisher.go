@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&EdgeZonePublisherId{})
+}
 
 var _ resourceids.ResourceId = &EdgeZonePublisherId{}
 
@@ -39,7 +44,7 @@ func ParseEdgeZonePublisherID(input string) (*EdgeZonePublisherId, error) {
 	}
 
 	id := EdgeZonePublisherId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParseEdgeZonePublisherIDInsensitively(input string) (*EdgeZonePublisherId, 
 	}
 
 	id := EdgeZonePublisherId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -114,11 +119,11 @@ func (id EdgeZonePublisherId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCompute", "Microsoft.Compute", "Microsoft.Compute"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "locationValue"),
+		resourceids.UserSpecifiedSegment("locationName", "locationName"),
 		resourceids.StaticSegment("staticEdgeZones", "edgeZones", "edgeZones"),
-		resourceids.UserSpecifiedSegment("edgeZoneName", "edgeZoneValue"),
+		resourceids.UserSpecifiedSegment("edgeZoneName", "edgeZoneName"),
 		resourceids.StaticSegment("staticPublishers", "publishers", "publishers"),
-		resourceids.UserSpecifiedSegment("publisherName", "publisherValue"),
+		resourceids.UserSpecifiedSegment("publisherName", "publisherName"),
 	}
 }
 

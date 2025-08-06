@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/subscriptions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/topics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/subscriptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/servicebus/migration"
@@ -51,7 +51,7 @@ func resourceServiceBusSubscription() *pluginsdk.Resource {
 }
 
 func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -59,7 +59,7 @@ func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.SubscriptionName(),
 		},
 
-		//lintignore: S013
+		// lintignore: S013
 		"topic_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -70,19 +70,19 @@ func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
 		"auto_delete_on_idle": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Default:  "P10675199DT2H48M5.4775807S", // Never
 		},
 
 		"default_message_ttl": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Default:  "P10675199DT2H48M5.4775807S", // Unbounded
 		},
 
 		"lock_duration": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			Computed: true,
+			Default:  "PT1M", // 1 minute
 		},
 
 		"dead_lettering_on_message_expiration": {
@@ -96,8 +96,7 @@ func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
 			Default:  true,
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
-		"enable_batched_operations": {
+		"batched_operations_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
@@ -110,7 +109,6 @@ func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
 		"requires_session": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			// cannot be modified
 			ForceNew: true,
 		},
 
@@ -168,6 +166,8 @@ func resourceServicebusSubscriptionSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 	}
+
+	return schema
 }
 
 func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -213,12 +213,14 @@ func resourceServiceBusSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta 
 		}
 	}
 
+	enableBatchedOperations := d.Get("batched_operations_enabled").(bool)
+
 	status := subscriptions.EntityStatus(d.Get("status").(string))
 	parameters := subscriptions.SBSubscription{
 		Properties: &subscriptions.SBSubscriptionProperties{
 			DeadLetteringOnMessageExpiration:          utils.Bool(d.Get("dead_lettering_on_message_expiration").(bool)),
 			DeadLetteringOnFilterEvaluationExceptions: utils.Bool(d.Get("dead_lettering_on_filter_evaluation_error").(bool)),
-			EnableBatchedOperations:                   utils.Bool(d.Get("enable_batched_operations").(bool)),
+			EnableBatchedOperations:                   utils.Bool(enableBatchedOperations),
 			MaxDeliveryCount:                          utils.Int64(int64(d.Get("max_delivery_count").(int))),
 			RequiresSession:                           utils.Bool(d.Get("requires_session").(bool)),
 			Status:                                    &status,
@@ -292,12 +294,12 @@ func resourceServiceBusSubscriptionRead(d *pluginsdk.ResourceData, meta interfac
 			d.Set("lock_duration", props.LockDuration)
 			d.Set("dead_lettering_on_message_expiration", props.DeadLetteringOnMessageExpiration)
 			d.Set("dead_lettering_on_filter_evaluation_error", props.DeadLetteringOnFilterEvaluationExceptions)
-			d.Set("enable_batched_operations", props.EnableBatchedOperations)
 			d.Set("requires_session", props.RequiresSession)
 			d.Set("forward_to", props.ForwardTo)
 			d.Set("forward_dead_lettered_messages_to", props.ForwardDeadLetteredMessagesTo)
 			d.Set("status", utils.String(string(*props.Status)))
 			d.Set("client_scoped_subscription_enabled", props.IsClientAffine)
+			d.Set("batched_operations_enabled", props.EnableBatchedOperations)
 
 			if count := props.MaxDeliveryCount; count != nil {
 				d.Set("max_delivery_count", int(*count))

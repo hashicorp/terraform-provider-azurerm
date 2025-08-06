@@ -20,10 +20,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/accounts"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/datalakestore/filesystems"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/datalakestore/paths"
-	"github.com/tombuildsstuff/giovanni/storage/accesscontrol"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/datalakestore/filesystems"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/datalakestore/paths"
+	"github.com/jackofallops/giovanni/storage/accesscontrol"
 )
 
 func resourceStorageDataLakeGen2FileSystem() *pluginsdk.Resource {
@@ -39,6 +39,8 @@ func resourceStorageDataLakeGen2FileSystem() *pluginsdk.Resource {
 		}, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
 			storageClient := meta.(*clients.Client).Storage
 			subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+			ctx, cancel := context.WithTimeout(ctx, d.Timeout(pluginsdk.TimeoutRead))
+			defer cancel()
 
 			id, err := filesystems.ParseFileSystemID(d.Id(), storageClient.StorageDomainSuffix)
 			if err != nil {

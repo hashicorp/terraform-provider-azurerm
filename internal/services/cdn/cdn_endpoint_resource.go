@@ -4,6 +4,7 @@
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -119,7 +120,6 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 			"origin_path": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
 			},
 
 			"querystring_caching_behaviour": {
@@ -137,7 +137,6 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 			"content_types_to_compress": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: true,
 				Elem: &pluginsdk.Schema{
 					Type: pluginsdk.TypeString,
 				},
@@ -152,7 +151,6 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 			"probe_path": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Computed: true,
 			},
 
 			"geo_filter": {
@@ -206,6 +204,18 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			if IsCdnFullyRetired() {
+				return fmt.Errorf("%s", FullyRetiredMessage)
+			}
+
+			if IsCdnDeprecatedForCreation() && d.HasChanges("name", "profile_name", "origin") {
+				return fmt.Errorf("%s", CreateDeprecationMessage)
+			}
+
+			return nil
+		}),
 	}
 }
 

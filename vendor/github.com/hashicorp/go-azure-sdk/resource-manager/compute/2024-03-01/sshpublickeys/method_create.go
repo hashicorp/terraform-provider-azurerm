@@ -50,7 +50,6 @@ func (c SshPublicKeysClient) Create(ctx context.Context, id SshPublicKeyId, inpu
 
 	var model SshPublicKeyResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

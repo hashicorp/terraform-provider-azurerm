@@ -15,7 +15,7 @@ type OpenidConnectProviderClient struct {
 }
 
 func NewOpenidConnectProviderClientWithBaseURI(sdkApi sdkEnv.Api) (*OpenidConnectProviderClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "openidconnectprovider", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "openidconnectprovider", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating OpenidConnectProviderClient: %+v", err)
 	}

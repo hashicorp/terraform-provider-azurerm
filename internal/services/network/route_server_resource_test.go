@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type RouteServerResource struct{}
@@ -26,7 +26,8 @@ func TestAccRouteServer_basic(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
@@ -71,37 +72,47 @@ func TestAccRouteServer_update(t *testing.T) {
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r)),
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
 		},
 		data.ImportStep(),
 	})
 }
+
 func (r RouteServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	routeServerId, err := parse.VirtualHubID(state.ID)
+	id, err := virtualwans.ParseVirtualHubID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.VirtualHubClient.Get(ctx, routeServerId.ResourceGroup, routeServerId.Name)
+	resp, err := clients.Network.VirtualWANs.VirtualHubsGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Route Server %s: %+v", routeServerId, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	ipConfig, err := clients.Network.VirtualHubIPClient.List(ctx, routeServerId.ResourceGroup, routeServerId.Name)
+	ipConfig, err := clients.Network.VirtualWANs.VirtualHubIPConfigurationList(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving Ip Config for Route Server %s: %+v", routeServerId, err)
+		return nil, fmt.Errorf("retrieving Ip Config for %s: %+v", id, err)
 	}
-	if ipConfig.Values() == nil {
-		return nil, fmt.Errorf("no IP Config is set for the Route Server %s: %+v", routeServerId, err)
+	if ipConfig.Model == nil {
+		return nil, fmt.Errorf("no IP Config is set for %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r RouteServerResource) basic(data acceptance.TestData) string {
@@ -146,6 +157,7 @@ resource "azurerm_route_server" "test" {
   public_ip_address_id             = azurerm_public_ip.test.id
   subnet_id                        = azurerm_subnet.test.id
   branch_to_branch_traffic_enabled = true
+  hub_routing_preference           = "VpnGateway"
 }
 `, r.template(data), data.RandomInteger)
 }

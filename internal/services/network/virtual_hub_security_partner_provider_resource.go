@@ -8,18 +8,18 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/securitypartnerproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceVirtualHubSecurityPartnerProvider() *pluginsdk.Resource {
@@ -37,7 +37,7 @@ func resourceVirtualHubSecurityPartnerProvider() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.SecurityPartnerProviderID(id)
+			_, err := securitypartnerproviders.ParseSecurityPartnerProviderID(id)
 			return err
 		}),
 
@@ -57,9 +57,9 @@ func resourceVirtualHubSecurityPartnerProvider() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.SecurityProviderNameZScaler),
-					string(network.SecurityProviderNameIBoss),
-					string(network.SecurityProviderNameCheckpoint),
+					string(securitypartnerproviders.SecurityProviderNameZScaler),
+					string(securitypartnerproviders.SecurityProviderNameIBoss),
+					string(securitypartnerproviders.SecurityProviderNameCheckpoint),
 				}, false),
 			},
 
@@ -67,54 +67,49 @@ func resourceVirtualHubSecurityPartnerProvider() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.VirtualHubID,
+				ValidateFunc: virtualwans.ValidateVirtualHubID,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
 func resourceVirtualHubSecurityPartnerProviderCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.SecurityPartnerProviderClient
+	client := meta.(*clients.Client).Network.SecurityPartnerProviders
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewSecurityPartnerProviderID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := securitypartnerproviders.NewSecurityPartnerProviderID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	existing, err := client.Get(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for present of existing %s: %+v", id, err)
 		}
 	}
 
-	if !utils.ResponseWasNotFound(existing.Response) {
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_virtual_hub_security_partner_provider", id.ID())
 	}
 
-	parameters := network.SecurityPartnerProvider{
-		Location: utils.String(location.Normalize(d.Get("location").(string))),
-		SecurityPartnerProviderPropertiesFormat: &network.SecurityPartnerProviderPropertiesFormat{
-			SecurityProviderName: network.SecurityProviderName(d.Get("security_provider_name").(string)),
+	parameters := securitypartnerproviders.SecurityPartnerProvider{
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
+		Properties: &securitypartnerproviders.SecurityPartnerProviderPropertiesFormat{
+			SecurityProviderName: pointer.To(securitypartnerproviders.SecurityProviderName(d.Get("security_provider_name").(string))),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v, ok := d.GetOk("virtual_hub_id"); ok {
-		parameters.SecurityPartnerProviderPropertiesFormat.VirtualHub = &network.SubResource{
-			ID: utils.String(v.(string)),
+		parameters.Properties.VirtualHub = &securitypartnerproviders.SubResource{
+			Id: pointer.To(v.(string)),
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creating future for %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -123,80 +118,78 @@ func resourceVirtualHubSecurityPartnerProviderCreate(d *pluginsdk.ResourceData, 
 }
 
 func resourceVirtualHubSecurityPartnerProviderRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.SecurityPartnerProviderClient
+	client := meta.(*clients.Client).Network.SecurityPartnerProviders
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SecurityPartnerProviderID(d.Id())
+	id, err := securitypartnerproviders.ParseSecurityPartnerProviderID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] security partner provider %q does not exist - removing from state", d.Id())
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] %s does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("retrieving Security Partner Provider %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
+	d.Set("name", id.SecurityPartnerProviderName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.SecurityPartnerProviderPropertiesFormat; props != nil {
-		d.Set("security_provider_name", props.SecurityProviderName)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
 
-		if props.VirtualHub != nil && props.VirtualHub.ID != nil {
-			d.Set("virtual_hub_id", props.VirtualHub.ID)
+		if props := model.Properties; props != nil {
+			d.Set("security_provider_name", string(pointer.From(props.SecurityProviderName)))
+
+			if props.VirtualHub != nil && props.VirtualHub.Id != nil {
+				d.Set("virtual_hub_id", props.VirtualHub.Id)
+			}
 		}
+		return tags.FlattenAndSet(d, model.Tags)
 	}
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceVirtualHubSecurityPartnerProviderUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.SecurityPartnerProviderClient
+	client := meta.(*clients.Client).Network.SecurityPartnerProviders
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SecurityPartnerProviderID(d.Id())
+	id, err := securitypartnerproviders.ParseSecurityPartnerProviderID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	parameters := network.TagsObject{}
+	parameters := securitypartnerproviders.TagsObject{}
 
 	if d.HasChange("tags") {
 		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
-	if _, err := client.UpdateTags(ctx, id.ResourceGroup, id.Name, parameters); err != nil {
-		return fmt.Errorf("updating Security Partner Provider %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if _, err := client.UpdateTags(ctx, *id, parameters); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	return resourceVirtualHubSecurityPartnerProviderRead(d, meta)
 }
 
 func resourceVirtualHubSecurityPartnerProviderDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.SecurityPartnerProviderClient
+	client := meta.(*clients.Client).Network.SecurityPartnerProviders
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.SecurityPartnerProviderID(d.Id())
+	id, err := securitypartnerproviders.ParseSecurityPartnerProviderID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return fmt.Errorf("deleting Security Partner Provider %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on deleting future for Security Partner Provider %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil

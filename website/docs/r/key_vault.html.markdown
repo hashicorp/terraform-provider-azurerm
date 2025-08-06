@@ -12,10 +12,7 @@ Manages a Key Vault.
 
 ## Disclaimers
 
-~> **Note:** It's possible to define Key Vault Access Policies both within [the `azurerm_key_vault` resource](key_vault.html) via the `access_policy` block and by using [the `azurerm_key_vault_access_policy` resource](key_vault_access_policy.html). However it's not possible to use both methods to manage Access Policies within a KeyVault, since there'll be conflicts.
-
-<!-- TODO: Remove Note in 4.0 -->
-~> **Note:** It's possible to define Key Vault Certificate Contacts both within [the `azurerm_key_vault` resource](key_vault.html) via the `contact` block and by using [the `azurerm_key_vault_certificate_contacts` resource](key_vault_certificate_contacts.html). However it's not possible to use both methods to manage Certificate Contacts within a KeyVault, since there'll be conflicts.
+~> **Note:** It's possible to define Key Vault Access Policies both within [the `azurerm_key_vault` resource](key_vault.html) via the `access_policy` block and by using [the `azurerm_key_vault_access_policy` resource](key_vault_access_policy.html). However, it's not possible to use both methods to manage Access Policies within a KeyVault, since there will be conflicts.
 
 ~> **Note:** Terraform will automatically recover a soft-deleted Key Vault during Creation if one is found - you can opt out of this using the `features` block within the Provider block.
 
@@ -86,7 +83,7 @@ The following arguments are supported:
 
 * `access_policy` - (Optional) [A list](/docs/configuration/attr-as-blocks.html) of `access_policy` objects (up to 1024) describing access policies, as described below.
 
--> **NOTE** Since `access_policy` can be configured both inline and via the separate `azurerm_key_vault_access_policy` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
+-> **Note:** Since `access_policy` can be configured both inline and via the separate `azurerm_key_vault_access_policy` resource, we have to explicitly set it to empty slice (`[]`) to remove it.
 
 * `enabled_for_deployment` - (Optional) Boolean flag to specify whether Azure Virtual Machines are permitted to retrieve certificates stored as secrets from the key vault.
 
@@ -95,6 +92,8 @@ The following arguments are supported:
 * `enabled_for_template_deployment` - (Optional) Boolean flag to specify whether Azure Resource Manager is permitted to retrieve secrets from the key vault.
 
 * `enable_rbac_authorization` - (Optional) Boolean flag to specify whether Azure Key Vault uses Role Based Access Control (RBAC) for authorization of data actions.
+
+-> **Note:** Changing the permission model requires unrestricted (no conditions on the role assignment) `Microsoft.Authorization/roleAssignments/write` permission, which is part of the `Owner` and `User Access Administrator` roles. Classic subscription administrator roles like `Service Administrator` and `Co-Administrator`, or restricted `Key Vault Data Access Administrator` cannot be used to change the permission model. For more information, please see the [product documentation](https://learn.microsoft.com/azure/key-vault/general/rbac-guide?tabs=azure-cli#using-azure-rbac-secret-key-and-certificate-permissions-with-key-vault:~:text=Enable%20Azure%20RBAC,change%20permission%20model).
 
 * `network_acls` - (Optional) A `network_acls` block as defined below.
 
@@ -108,12 +107,6 @@ The following arguments are supported:
 
 ~> **Note:** This field can only be configured one time and cannot be updated.
 
-<!-- TODO: Remove `contact` and Notes in 4.0 -->
-* `contact` - (Optional) One or more `contact` block as defined below.
-
-~> **Note:** This field can only be set once user has `managecontacts` certificate permission.
-
-~> **Note:** This field can only be set when `public_network_access_enabled` is set to `true`. To manage the `contact` with `public_network_access_enabled` set to `false`, please use [the `azurerm_key_vault_certificate_contacts` resource](key_vault_certificate_contacts.html) instead of this property, and remove this property from the configuration. Especially for existing `azurerm_key_vault`, this means you'll need to import the `azurerm_key_vault_certificate_contacts` manually.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -170,8 +163,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Key Vault.
-* `update` - (Defaults to 30 minutes) Used when updating the Key Vault.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault.
+* `update` - (Defaults to 30 minutes) Used when updating the Key Vault.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault.
 
 ## Import

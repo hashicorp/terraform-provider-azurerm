@@ -15,7 +15,7 @@ type IdentityProviderClient struct {
 }
 
 func NewIdentityProviderClientWithBaseURI(sdkApi sdkEnv.Api) (*IdentityProviderClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "identityprovider", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "identityprovider", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating IdentityProviderClient: %+v", err)
 	}

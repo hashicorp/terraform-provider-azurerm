@@ -46,7 +46,6 @@ func (c ConfigurationAssignmentsClient) DeleteParent(ctx context.Context, id Sco
 
 	var model ConfigurationAssignment
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 	"testing"
 	"time"
 
@@ -18,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 )
 
 func TestProvider(t *testing.T) {
@@ -115,13 +117,201 @@ func TestProvider_impl(t *testing.T) {
 func TestProvider_counts(t *testing.T) {
 	// @tombuildsstuff: this is less a unit test and more a useful placeholder tbh
 	provider := TestAzureProvider()
+
 	log.Printf("Data Sources: %d", len(provider.DataSourcesMap))
 	log.Printf("Resources:    %d", len(provider.ResourcesMap))
 	log.Printf("-----------------")
 	log.Printf("Total:        %d", len(provider.ResourcesMap)+len(provider.DataSourcesMap))
 }
 
+func TestAccProvider_resourceProviders_legacy(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+
+	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil)); diags != nil && diags.HasError() {
+		t.Fatalf("provider failed to configure: %v", diags)
+	}
+
+	expectedResourceProviders := resourceproviders.Legacy()
+	registeredResourceProviders := provider.Meta().(*clients.Client).Account.RegisteredResourceProviders
+
+	if !reflect.DeepEqual(registeredResourceProviders, expectedResourceProviders) {
+		t.Fatalf("unexpected value for RegisteredResourceProviders: %#v", registeredResourceProviders)
+	}
+}
+
+// TODO: Remove this test in v5.0
+func TestAccProvider_resourceProviders_deprecatedSkip(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+	config := map[string]interface{}{
+		"skip_provider_registration": "true",
+	}
+
+	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(config)); diags != nil && diags.HasError() {
+		t.Fatalf("provider failed to configure: %v", diags)
+	}
+
+	expectedResourceProviders := make(resourceproviders.ResourceProviders)
+	registeredResourceProviders := provider.Meta().(*clients.Client).Account.RegisteredResourceProviders
+
+	if !reflect.DeepEqual(registeredResourceProviders, expectedResourceProviders) {
+		t.Fatalf("unexpected value for RegisteredResourceProviders: %#v", registeredResourceProviders)
+	}
+}
+
+func TestAccProvider_resourceProviders_legacyWithAdditional(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+	config := map[string]interface{}{
+		"resource_providers_to_register": []interface{}{
+			"Microsoft.ApiManagement",
+			"Microsoft.ContainerService",
+			"Microsoft.KeyVault",
+			"Microsoft.Kubernetes",
+		},
+	}
+
+	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(config)); diags != nil && diags.HasError() {
+		t.Fatalf("provider failed to configure: %v", diags)
+	}
+
+	expectedResourceProviders := resourceproviders.Legacy().Merge(resourceproviders.ResourceProviders{
+		"Microsoft.ApiManagement":    {},
+		"Microsoft.ContainerService": {},
+		"Microsoft.KeyVault":         {},
+		"Microsoft.Kubernetes":       {},
+	})
+	registeredResourceProviders := provider.Meta().(*clients.Client).Account.RegisteredResourceProviders
+
+	if !reflect.DeepEqual(registeredResourceProviders, expectedResourceProviders) {
+		t.Fatalf("unexpected value for RegisteredResourceProviders: %#v", registeredResourceProviders)
+	}
+}
+
+func TestAccProvider_resourceProviders_core(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+	config := map[string]interface{}{
+		"resource_provider_registrations": "core",
+	}
+
+	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(config)); diags != nil && diags.HasError() {
+		t.Fatalf("provider failed to configure: %v", diags)
+	}
+
+	expectedResourceProviders := resourceproviders.Core()
+	registeredResourceProviders := provider.Meta().(*clients.Client).Account.RegisteredResourceProviders
+
+	if !reflect.DeepEqual(registeredResourceProviders, expectedResourceProviders) {
+		t.Fatalf("unexpected value for RegisteredResourceProviders: %#v", registeredResourceProviders)
+	}
+}
+
+func TestAccProvider_resourceProviders_coreWithAdditional(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+	config := map[string]interface{}{
+		"resource_provider_registrations": "core",
+		"resource_providers_to_register": []interface{}{
+			"Microsoft.ApiManagement",
+			"Microsoft.KeyVault",
+		},
+	}
+
+	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(config)); diags != nil && diags.HasError() {
+		t.Fatalf("provider failed to configure: %v", diags)
+	}
+
+	expectedResourceProviders := resourceproviders.Core().Merge(resourceproviders.ResourceProviders{
+		"Microsoft.ApiManagement": {},
+		"Microsoft.KeyVault":      {},
+	})
+	registeredResourceProviders := provider.Meta().(*clients.Client).Account.RegisteredResourceProviders
+
+	if !reflect.DeepEqual(registeredResourceProviders, expectedResourceProviders) {
+		t.Fatalf("unexpected value for RegisteredResourceProviders: %#v", registeredResourceProviders)
+	}
+}
+
+func TestAccProvider_resourceProviders_explicit(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+	config := map[string]interface{}{
+		"resource_provider_registrations": "none",
+		"resource_providers_to_register": []interface{}{
+			"Microsoft.Compute",
+			"Microsoft.Network",
+			"Microsoft.Storage",
+		},
+	}
+
+	if diags := provider.Configure(ctx, terraform.NewResourceConfigRaw(config)); diags != nil && diags.HasError() {
+		t.Fatalf("provider failed to configure: %v", diags)
+	}
+
+	expectedResourceProviders := resourceproviders.ResourceProviders{
+		"Microsoft.Compute": {},
+		"Microsoft.Network": {},
+		"Microsoft.Storage": {},
+	}
+	registeredResourceProviders := provider.Meta().(*clients.Client).Account.RegisteredResourceProviders
+
+	if !reflect.DeepEqual(registeredResourceProviders, expectedResourceProviders) {
+		t.Fatalf("unexpected value for RegisteredResourceProviders: %#v", registeredResourceProviders)
+	}
+}
+
 func TestAccProvider_cliAuth(t *testing.T) {
+	t.Skip("skipping test for now, as it requires Azure CLI authentication to be set up in the environment which is not compatible with MFA Requirement")
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
 	}
@@ -143,6 +333,7 @@ func TestAccProvider_cliAuth(t *testing.T) {
 		authConfig := &auth.Credentials{
 			Environment:                       *env,
 			EnableAuthenticatingUsingAzureCLI: true,
+			AzureCliSubscriptionIDHint:        d.Get("subscription_id").(string),
 		}
 
 		return buildClient(ctx, provider, d, authConfig)
@@ -472,9 +663,72 @@ func TestAccProvider_githubOidcAuth(t *testing.T) {
 			Environment:                         *env,
 			TenantID:                            *tenantId,
 			ClientID:                            *clientId,
-			GitHubOIDCTokenRequestToken:         d.Get("oidc_request_token").(string),
-			GitHubOIDCTokenRequestURL:           d.Get("oidc_request_url").(string),
+			OIDCTokenRequestToken:               d.Get("oidc_request_token").(string),
+			OIDCTokenRequestURL:                 d.Get("oidc_request_url").(string),
 			EnableAuthenticationUsingGitHubOIDC: true,
+		}
+
+		return buildClient(ctx, provider, d, authConfig)
+	}
+
+	d := provider.Configure(ctx, terraform.NewResourceConfigRaw(nil))
+	if d != nil && d.HasError() {
+		t.Fatalf("err: %+v", d)
+	}
+
+	if errs := testCheckProvider(provider); len(errs) > 0 {
+		for _, err := range errs {
+			t.Error(err)
+		}
+	}
+}
+
+func TestAccProvider_adoOidcAuth(t *testing.T) {
+	if os.Getenv("TF_ACC") == "" {
+		t.Skip("TF_ACC not set")
+	}
+	if os.Getenv("SYSTEM_ACCESSTOKEN") == "" {
+		t.Skip("SYSTEM_ACCESSTOKEN not set")
+	}
+	if os.Getenv("SYSTEM_OIDCREQUESTURI") == "" {
+		t.Skip("SYSTEM_OIDCREQUESTURI not set")
+	}
+	if os.Getenv("ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID") == "" {
+		t.Skip("ARM_ADO_PIPELINE_SERVICE_CONNECTION_ID")
+	}
+
+	logging.SetOutput(t)
+
+	provider := TestAzureProvider()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	// Support only ADO OIDC authentication
+	provider.ConfigureContextFunc = func(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+		envName := d.Get("environment").(string)
+		env, err := environments.FromName(envName)
+		if err != nil {
+			t.Fatalf("configuring environment %q: %v", envName, err)
+		}
+
+		clientId, err := getClientId(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
+		tenantId, err := getTenantId(d)
+		if err != nil {
+			return nil, diag.FromErr(err)
+		}
+
+		authConfig := &auth.Credentials{
+			Environment:                              *env,
+			TenantID:                                 *tenantId,
+			ClientID:                                 *clientId,
+			OIDCTokenRequestToken:                    d.Get("oidc_request_token").(string),
+			OIDCTokenRequestURL:                      d.Get("oidc_request_url").(string),
+			ADOPipelineServiceConnectionID:           d.Get("ado_pipeline_service_connection_id").(string),
+			EnableAuthenticationUsingADOPipelineOIDC: true,
 		}
 
 		return buildClient(ctx, provider, d, authConfig)

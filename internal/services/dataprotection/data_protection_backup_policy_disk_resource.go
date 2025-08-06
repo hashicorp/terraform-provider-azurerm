@@ -12,7 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2023-05-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	helperValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -103,13 +103,10 @@ func resourceDataProtectionBackupPolicyDisk() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"absolute_criteria": {
-										Type:     schema.TypeString,
-										Optional: true,
-										ForceNew: true,
-										ValidateFunc: validation.StringInSlice([]string{
-											string(backuppolicies.AbsoluteMarkerFirstOfDay),
-											string(backuppolicies.AbsoluteMarkerFirstOfWeek),
-										}, false),
+										Type:         schema.TypeString,
+										Optional:     true,
+										ForceNew:     true,
+										ValidateFunc: validation.StringInSlice(backuppolicies.PossibleValuesForAbsoluteMarker(), false),
 									},
 								},
 							},
@@ -382,7 +379,7 @@ func flattenBackupPolicyDiskDefaultRetentionRuleDuration(input *[]backuppolicies
 
 	for _, item := range *input {
 		if retentionRule, ok := item.(backuppolicies.AzureRetentionRule); ok && retentionRule.IsDefault != nil && *retentionRule.IsDefault {
-			if retentionRule.Lifecycles != nil && len(retentionRule.Lifecycles) > 0 {
+			if len(retentionRule.Lifecycles) > 0 {
 				if deleteOption, ok := (retentionRule.Lifecycles)[0].DeleteAfter.(backuppolicies.AbsoluteDeleteOption); ok {
 					return deleteOption.Duration
 				}
@@ -421,7 +418,7 @@ func flattenBackupPolicyDiskRetentionRuleArray(input *[]backuppolicies.BasePolic
 				}
 			}
 			var duration string
-			if retentionRule.Lifecycles != nil && len(retentionRule.Lifecycles) > 0 {
+			if len(retentionRule.Lifecycles) > 0 {
 				if deleteOption, ok := (retentionRule.Lifecycles)[0].DeleteAfter.(backuppolicies.AbsoluteDeleteOption); ok {
 					duration = deleteOption.Duration
 				}

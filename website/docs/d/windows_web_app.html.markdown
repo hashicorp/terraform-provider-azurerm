@@ -257,7 +257,7 @@ An `active_directory_v2` block supports the following:
 
 * `client_id` - The ID of the Client used to authenticate with Azure Active Directory.
 
-* `tenant_auth_endpoint` - The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/v2.0/{tenant-guid}/`
+* `tenant_auth_endpoint` - The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/{tenant-guid}/v2.0/`
 
 * `client_secret_setting_name` - The App Setting name that contains the client secret of the Client.
 
@@ -293,7 +293,7 @@ A `custom_oidc_v2` block supports the following:
 
 * `client_id` - The ID of the Client to use to authenticate with the Custom OIDC.
 
-* `openid_configuration_endpoint` - The app setting name that contains the `client_secret` value used for the Custom OIDC Login.
+* `openid_configuration_endpoint`- The endpoint used for OpenID Connect Discovery. For example `https://example.com/.well-known/openid-configuration`.
 
 * `name_claim_type` - The name of the claim that contains the users name.
 
@@ -327,7 +327,7 @@ A `facebook_v2` block supports the following:
 
 A `github_v2` block supports the following:
 
-* `client_id` - The ID of the GitHub app used for login..
+* `client_id` - The ID of the GitHub app used for login.
 
 * `client_secret_setting_name` - The app setting name that contains the `client_secret` value used for GitHub Login.
 
@@ -573,8 +573,6 @@ A `site_config` block exports the following:
 
 * `application_stack` - A `application_stack` block as defined above.
 
-* `auto_heal_enabled` - Are Auto heal rules to be enabled.
-
 * `auto_heal_setting` - A `auto_heal_setting` block as defined above.
 
 * `auto_swap_slot_name` - The Windows Web App Slot Name to automatically swap to when deployment to that slot is successfully completed.
@@ -625,6 +623,8 @@ A `site_config` block exports the following:
 
 * `use_32_bit_worker` - Does the Windows Web App use a 32-bit worker.
 
+* `handler_mapping` - A `handler_mapping` block as defined below.
+
 * `virtual_application` - A `virtual_application` block as defined below.
 
 * `vnet_route_all_enabled` - Are all outbound traffic to NAT Gateways, Network Security Groups and User Defined Routes applied?
@@ -651,9 +651,19 @@ A `slow_request` block exports the following:
 
 * `interval` - The time interval.
 
-* `path` - The App Path for which this rule applies.
-
 * `time_taken` - The amount of time that qualifies as slow for this rule.
+
+---
+
+A `slow_request_with_path` block supports the following:
+
+* `count` - (Required) The number of Slow Requests in the time `interval` to trigger this rule.
+
+* `interval` - (Required) The time interval in the form `hh:mm:ss`.
+
+* `time_taken` - (Required) The threshold of time passed to qualify as a Slow Request in `hh:mm:ss`.
+
+* `path` - (Optional) The path for which this slow request rule applies.
 
 ---
 
@@ -705,6 +715,8 @@ A `trigger` block exports the following:
 
 * `slow_request` - A `slow_request` block as defined above.
 
+* `slow_request_with_path` - (Optional) One or more `slow_request_with_path` blocks as defined above.
+
 * `status_code` - A `status_code` block as defined above.
 
 ---
@@ -716,6 +728,16 @@ A `twitter` block exports the following:
 * `consumer_secret` - The OAuth 1.0a consumer secret of the Twitter application used for sign-in.
 
 * `consumer_secret_setting_name` - The app setting name that contains the OAuth 1.0a consumer secret of the Twitter application used for sign-in.
+
+---
+
+A `handler_mapping` block supports the following:
+
+* `extension` - The extension to be handled by the specified FastCGI application.
+
+* `script_processor_path` - The absolute path to the FastCGI application.
+
+* `arguments` - The command-line arguments to be passed to the script processor.
 
 ---
 
@@ -742,3 +764,9 @@ A `virtual_directory` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 10 minutes) Used when retrieving the Windows Web App.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Web` - 2023-12-01

@@ -4,6 +4,7 @@
 package maintenance
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -114,7 +115,7 @@ func resourceArmMaintenanceAssignmentDedicatedHostCreate(d *pluginsdk.ResourceDa
 	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
 		if _, err := client.CreateOrUpdateParent(ctx, id, configurationAssignment); err != nil {
 			if strings.Contains(err.Error(), "It may take a few minutes after starting a VM for it to become available to assign to a configuration") {
-				return pluginsdk.RetryableError(fmt.Errorf("expected VM is available to assign to a configuration but was in pending state, retrying"))
+				return pluginsdk.RetryableError(errors.New("expected VM is available to assign to a configuration but was in pending state, retrying"))
 			}
 			return pluginsdk.NonRetryableError(fmt.Errorf("issuing creating request for %s: %+v", id, err))
 		}

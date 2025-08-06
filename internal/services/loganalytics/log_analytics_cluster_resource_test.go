@@ -9,7 +9,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -31,6 +31,26 @@ func TestAccLogAnalyticsCluster_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLogAnalyticsCluster_userAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_log_analytics_cluster", "test")
+	r := LogAnalyticsClusterResource{}
+
+	if os.Getenv("ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS") == "" {
+		t.Skip("Skipping as ARM_RUN_TEST_LOG_ANALYTICS_CLUSTERS is not specified")
+		return
+	}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.userAssignedIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -160,4 +180,29 @@ resource "azurerm_log_analytics_cluster" "import" {
   }
 }
 `, r.basic(data))
+}
+
+func (r LogAnalyticsClusterResource) userAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestuai-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_log_analytics_cluster" "test" {
+  name                = "acctest-LA-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id,
+    ]
+  }
+}
+`, r.template(data), data.RandomInteger)
 }

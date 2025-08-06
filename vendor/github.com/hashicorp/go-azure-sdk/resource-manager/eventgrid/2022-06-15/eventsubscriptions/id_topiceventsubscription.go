@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&TopicEventSubscriptionId{})
+}
 
 var _ resourceids.ResourceId = &TopicEventSubscriptionId{}
 
@@ -41,7 +46,7 @@ func ParseTopicEventSubscriptionID(input string) (*TopicEventSubscriptionId, err
 	}
 
 	id := TopicEventSubscriptionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -58,7 +63,7 @@ func ParseTopicEventSubscriptionIDInsensitively(input string) (*TopicEventSubscr
 	}
 
 	id := TopicEventSubscriptionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -122,11 +127,11 @@ func (id TopicEventSubscriptionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftEventGrid", "Microsoft.EventGrid", "Microsoft.EventGrid"),
 		resourceids.StaticSegment("staticDomains", "domains", "domains"),
-		resourceids.UserSpecifiedSegment("domainName", "domainValue"),
+		resourceids.UserSpecifiedSegment("domainName", "domainName"),
 		resourceids.StaticSegment("staticTopics", "topics", "topics"),
-		resourceids.UserSpecifiedSegment("topicName", "topicValue"),
+		resourceids.UserSpecifiedSegment("topicName", "topicName"),
 		resourceids.StaticSegment("staticEventSubscriptions", "eventSubscriptions", "eventSubscriptions"),
-		resourceids.UserSpecifiedSegment("eventSubscriptionName", "eventSubscriptionValue"),
+		resourceids.UserSpecifiedSegment("eventSubscriptionName", "eventSubscriptionName"),
 	}
 }
 

@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&FirewallId{})
+}
 
 var _ resourceids.ResourceId = &FirewallId{}
 
@@ -37,7 +42,7 @@ func ParseFirewallID(input string) (*FirewallId, error) {
 	}
 
 	id := FirewallId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +59,7 @@ func ParseFirewallIDInsensitively(input string) (*FirewallId, error) {
 	}
 
 	id := FirewallId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -110,7 +115,7 @@ func (id FirewallId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticPaloAltoNetworksCloudngfw", "PaloAltoNetworks.Cloudngfw", "PaloAltoNetworks.Cloudngfw"),
 		resourceids.StaticSegment("staticFirewalls", "firewalls", "firewalls"),
-		resourceids.UserSpecifiedSegment("firewallName", "firewallValue"),
+		resourceids.UserSpecifiedSegment("firewallName", "firewallName"),
 	}
 }
 

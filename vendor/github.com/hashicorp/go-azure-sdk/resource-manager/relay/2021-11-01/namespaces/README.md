@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces` Documentation
 
-The `namespaces` SDK allows for interaction with the Azure Resource Manager Service `relay` (API Version `2021-11-01`).
+The `namespaces` SDK allows for interaction with Azure Resource Manager `relay` (API Version `2021-11-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := namespaces.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue")
+id := namespaces.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName")
 
 payload := namespaces.RelayNamespace{
 	// ...
@@ -63,7 +63,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := namespaces.NewAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "authorizationRuleValue")
+id := namespaces.NewAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "authorizationRuleName")
 
 payload := namespaces.AuthorizationRule{
 	// ...
@@ -84,7 +84,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := namespaces.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue")
+id := namespaces.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName")
 
 payload := namespaces.NetworkRuleSet{
 	// ...
@@ -105,7 +105,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := namespaces.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue")
+id := namespaces.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -117,7 +117,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := namespaces.NewAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "authorizationRuleValue")
+id := namespaces.NewAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "authorizationRuleName")
 
 read, err := client.DeleteAuthorizationRule(ctx, id)
 if err != nil {
@@ -133,7 +133,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := namespaces.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue")
+id := namespaces.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -149,7 +149,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := namespaces.NewAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "authorizationRuleValue")
+id := namespaces.NewAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "authorizationRuleName")
 
 read, err := client.GetAuthorizationRule(ctx, id)
 if err != nil {
@@ -165,7 +165,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := namespaces.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue")
+id := namespaces.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName")
 
 read, err := client.GetNetworkRuleSet(ctx, id)
 if err != nil {
@@ -198,7 +198,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := namespaces.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue")
+id := namespaces.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName")
 
 // alternatively `client.ListAuthorizationRules(ctx, id)` can be used to do batched pagination
 items, err := client.ListAuthorizationRulesComplete(ctx, id)
@@ -232,7 +232,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := namespaces.NewAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "authorizationRuleValue")
+id := namespaces.NewAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "authorizationRuleName")
 
 read, err := client.ListKeys(ctx, id)
 if err != nil {
@@ -248,7 +248,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := namespaces.NewAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue", "authorizationRuleValue")
+id := namespaces.NewAuthorizationRuleID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName", "authorizationRuleName")
 
 payload := namespaces.RegenerateAccessKeyParameters{
 	// ...
@@ -269,7 +269,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := namespaces.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceValue")
+id := namespaces.NewNamespaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "namespaceName")
 
 payload := namespaces.RelayUpdateParameters{
 	// ...

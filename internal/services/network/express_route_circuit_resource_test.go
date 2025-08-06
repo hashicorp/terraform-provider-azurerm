@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/expressroutecircuits"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ExpressRouteCircuitResource struct{}
@@ -33,7 +33,8 @@ func TestAccExpressRouteCircuit(t *testing.T) {
 			"allowClassicOperationsUpdate": testAccExpressRouteCircuit_allowClassicOperationsUpdate,
 			"requiresImport":               testAccExpressRouteCircuit_requiresImport,
 			"data_basic":                   testAccDataSourceExpressRoute_basicMetered,
-			"bandwidthReduction":           testAccExpressRouteCircuit_bandwidthReduction,
+			"bandwidthReduction":           testAccExpressRouteCircuit_bandwidthMbpsReduction,
+			"bandwidthUpdate":              testAccExpressRouteCircuit_bandwidthMbpsUpdate,
 			"port":                         testAccExpressRouteCircuit_withExpressRoutePort,
 			"updatePort":                   testAccExpressRouteCircuit_updateExpressRoutePort,
 			"authorizationKey":             testAccExpressRouteCircuit_authorizationKey,
@@ -242,23 +243,23 @@ func testAccExpressRouteCircuit_allowClassicOperationsUpdate(t *testing.T) {
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.allowClassicOperations(data, "false"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("allow_classic_operations").HasValue("false"),
-			),
-		},
-		{
 			Config: r.allowClassicOperations(data, "true"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("allow_classic_operations").HasValue("true"),
 			),
 		},
+		{
+			Config: r.allowClassicOperations(data, "false"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("allow_classic_operations").HasValue("false"),
+			),
+		},
 	})
 }
 
-func testAccExpressRouteCircuit_bandwidthReduction(t *testing.T) {
+func testAccExpressRouteCircuit_bandwidthMbpsReduction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
 	r := ExpressRouteCircuitResource{}
 
@@ -275,6 +276,28 @@ func testAccExpressRouteCircuit_bandwidthReduction(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("bandwidth_in_mbps").HasValue("50"),
+			),
+		},
+	})
+}
+
+func testAccExpressRouteCircuit_bandwidthMbpsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
+	r := ExpressRouteCircuitResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.bandwidthReductionConfig(data, "2000"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("bandwidth_in_mbps").HasValue("2000"),
+			),
+		},
+		{
+			Config: r.bandwidthReductionConfig(data, "5000"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("bandwidth_in_mbps").HasValue("5000"),
 			),
 		},
 	})
@@ -318,17 +341,17 @@ func testAccExpressRouteCircuit_updateExpressRoutePort(t *testing.T) {
 }
 
 func (t ExpressRouteCircuitResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ExpressRouteCircuitID(state.ID)
+	id, err := expressroutecircuits.ParseExpressRouteCircuitID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.ExpressRouteCircuitsClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Network.ExpressRouteCircuits.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (ExpressRouteCircuitResource) basicMeteredConfig(data acceptance.TestData) string {
@@ -589,6 +612,7 @@ resource "azurerm_express_route_circuit" "test" {
   resource_group_name   = azurerm_resource_group.test.name
   express_route_port_id = azurerm_express_route_port.test.id
   bandwidth_in_gbps     = 5
+  rate_limiting_enabled = true
 
   sku {
     tier   = "Standard"
@@ -624,6 +648,7 @@ resource "azurerm_express_route_circuit" "test" {
   resource_group_name   = azurerm_resource_group.test.name
   express_route_port_id = azurerm_express_route_port.test.id
   bandwidth_in_gbps     = 5
+  rate_limiting_enabled = false
 
   sku {
     tier   = "Standard"

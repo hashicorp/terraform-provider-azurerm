@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&RepetitionId{})
+}
 
 var _ resourceids.ResourceId = &RepetitionId{}
 
@@ -43,7 +48,7 @@ func ParseRepetitionID(input string) (*RepetitionId, error) {
 	}
 
 	id := RepetitionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -60,7 +65,7 @@ func ParseRepetitionIDInsensitively(input string) (*RepetitionId, error) {
 	}
 
 	id := RepetitionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -128,13 +133,13 @@ func (id RepetitionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftLogic", "Microsoft.Logic", "Microsoft.Logic"),
 		resourceids.StaticSegment("staticWorkflows", "workflows", "workflows"),
-		resourceids.UserSpecifiedSegment("workflowName", "workflowValue"),
+		resourceids.UserSpecifiedSegment("workflowName", "workflowName"),
 		resourceids.StaticSegment("staticRuns", "runs", "runs"),
-		resourceids.UserSpecifiedSegment("runName", "runValue"),
+		resourceids.UserSpecifiedSegment("runName", "runName"),
 		resourceids.StaticSegment("staticActions", "actions", "actions"),
-		resourceids.UserSpecifiedSegment("actionName", "actionValue"),
+		resourceids.UserSpecifiedSegment("actionName", "actionName"),
 		resourceids.StaticSegment("staticRepetitions", "repetitions", "repetitions"),
-		resourceids.UserSpecifiedSegment("repetitionName", "repetitionValue"),
+		resourceids.UserSpecifiedSegment("repetitionName", "repetitionName"),
 	}
 }
 

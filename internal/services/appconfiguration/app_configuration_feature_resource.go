@@ -6,6 +6,7 @@ package appconfiguration
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -15,7 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -24,9 +25,10 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appconfiguration/1.0/appconfiguration"
+	"github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
 const (
@@ -57,10 +59,13 @@ type FeatureResourceModel struct {
 func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"configuration_store_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: configurationstores.ValidateConfigurationStoreID,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			// User-specified segments are lowercased in the API response
+			// tracked in https://github.com/Azure/azure-rest-api-specs/issues/24337
+			DiffSuppressFunc: suppress.CaseDifference,
+			ValidateFunc:     configurationstores.ValidateConfigurationStoreID,
 		},
 		"description": {
 			Type:     pluginsdk.TypeString,
@@ -71,8 +76,9 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 		"key": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C We generate a value for this if it's omitted so this should be kept
 			Computed:     true,
 			ForceNew:     true,
 			ValidateFunc: validate.AppConfigurationFeatureKey,
@@ -84,7 +90,8 @@ func (k FeatureResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validate.AppConfigurationFeatureName,
 		},
 		"etag": {
-			Type:     pluginsdk.TypeString,
+			Type: pluginsdk.TypeString,
+			// NOTE: O+C The value of this is updated anytime the resource changes so this should remain Computed
 			Computed: true,
 			Optional: true,
 		},
@@ -213,7 +220,7 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 
 			deadline, ok := ctx.Deadline()
 			if !ok {
-				return fmt.Errorf("internal-error: context had no deadline")
+				return errors.New("internal-error: context had no deadline")
 			}
 
 			// from https://learn.microsoft.com/en-us/azure/azure-app-configuration/concept-enable-rbac#azure-built-in-roles-for-azure-app-configuration
@@ -311,8 +318,8 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 				Pending:                   []string{"NotFound", "Forbidden"},
 				Target:                    []string{"Exists"},
 				Refresh:                   appConfigurationGetKeyRefreshFunc(ctx, client, featureKey, model.Label),
-				PollInterval:              10 * time.Second,
-				ContinuousTargetOccurence: 2,
+				PollInterval:              5 * time.Second,
+				ContinuousTargetOccurence: 4,
 				Timeout:                   time.Until(deadline),
 			}
 
@@ -381,7 +388,7 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 			}
 
 			var fv FeatureValue
-			err = json.Unmarshal([]byte(utils.NormalizeNilableString(kv.Value)), &fv)
+			err = json.Unmarshal([]byte(pointer.From(kv.Value)), &fv)
 			if err != nil {
 				return fmt.Errorf("while unmarshalling underlying key's value: %+v", err)
 			}
@@ -390,9 +397,9 @@ func (k FeatureResource) Read() sdk.ResourceFunc {
 				ConfigurationStoreId: configurationStoreId.ID(),
 				Description:          fv.Description,
 				Enabled:              fv.Enabled,
-				Key:                  strings.TrimPrefix(utils.NormalizeNilableString(kv.Key), fmt.Sprintf("%s/", FeatureKeyPrefix)),
+				Key:                  strings.TrimPrefix(pointer.From(kv.Key), FeatureKeyPrefix+"/"),
 				Name:                 fv.ID,
-				Label:                utils.NormalizeNilableString(kv.Label),
+				Label:                pointer.From(kv.Label),
 				Tags:                 tags.Flatten(kv.Tags),
 			}
 
@@ -442,7 +449,7 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 			}
 
 			var fv FeatureValue
-			err = json.Unmarshal([]byte(utils.NormalizeNilableString(kv.Value)), &fv)
+			err = json.Unmarshal([]byte(pointer.From(kv.Value)), &fv)
 			if err != nil {
 				return fmt.Errorf("while unmarshalling underlying key's value: %+v", err)
 			}
@@ -509,7 +516,7 @@ func (k FeatureResource) Update() sdk.ResourceFunc {
 					Parameters: PercentageFilterParameters{Value: model.PercentageFilter},
 				})
 				filterChanged = true
-			} else {
+			} else if percentageFilter.Name != "" {
 				filters = append(filters, percentageFilter)
 			}
 

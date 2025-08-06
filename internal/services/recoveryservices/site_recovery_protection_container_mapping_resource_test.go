@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationprotectioncontainermappings"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationprotectioncontainermappings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -32,6 +32,7 @@ func TestAccSiteRecoveryProtectionContainerMapping_basic(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccSiteRecoveryProtectionContainerMapping_withSystemAssignedAutoUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_protection_container_mapping", "test")
 	r := SiteRecoveryProtectionContainerMappingResource{}

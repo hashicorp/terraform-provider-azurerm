@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -583,13 +583,6 @@ resource "azurerm_monitor_data_collection_rule" "test" {
     destinations = ["test-destination-log"]
   }
 
-  data_flow {
-    streams       = ["Custom-MyTableRawData"]
-    destinations  = ["test-destination-log"]
-    output_stream = "Microsoft-Syslog"
-    transform_kql = "source | project TimeGenerated = Time, Computer, Message = AdditionalContext"
-  }
-
   data_sources {
     data_import {
       event_hub_data_source {
@@ -666,6 +659,19 @@ resource "azurerm_monitor_data_collection_rule" "test" {
       name = "test-datasource-perfcounter2"
     }
 
+    performance_counter {
+      streams                       = ["Microsoft-Perf"]
+      sampling_frequency_in_seconds = 1800
+      counter_specifiers = [
+        "Memory(*)\\Available MBytes Memory",
+        "Memory(*)\\%% Available Memory",
+        "Memory(*)\\Used Memory MBytes",
+        "Memory(*)\\%% Used Memory",
+        "Memory(*)\\Pages/sec"
+      ]
+      name = "test-datasource-perfcounter3"
+    }
+
     prometheus_forwarder {
       label_include_filter {
         label = "microsoft_metrics_include_label"
@@ -673,11 +679,6 @@ resource "azurerm_monitor_data_collection_rule" "test" {
       }
       streams = ["Microsoft-PrometheusMetrics"]
       name    = "test-datasource-prometheus"
-    }
-
-    platform_telemetry {
-      streams = ["Microsoft.Cache/redis:Metrics-Group-All"]
-      name    = "test-datasource-telemetry"
     }
 
     windows_event_log {

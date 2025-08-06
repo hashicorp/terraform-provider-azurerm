@@ -45,7 +45,6 @@ func (c RunsClient) Get(ctx context.Context, id RunId) (result GetOperationRespo
 
 	var model Run
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -12,8 +12,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/datastore"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/datastore"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -52,7 +52,10 @@ func (r MachineLearningDataStoreBlobStorage) IDValidationFunc() pluginsdk.Schema
 	return datastore.ValidateDataStoreID
 }
 
-var _ sdk.ResourceWithUpdate = MachineLearningDataStoreBlobStorage{}
+var (
+	_ sdk.ResourceWithUpdate        = MachineLearningDataStoreBlobStorage{}
+	_ sdk.ResourceWithCustomizeDiff = MachineLearningDataStoreBlobStorage{}
+)
 
 func (r MachineLearningDataStoreBlobStorage) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
@@ -106,7 +109,6 @@ func (r MachineLearningDataStoreBlobStorage) Arguments() map[string]*pluginsdk.S
 			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			ExactlyOneOf: []string{"account_key", "shared_access_signature"},
 		},
 
 		"shared_access_signature": {
@@ -114,10 +116,27 @@ func (r MachineLearningDataStoreBlobStorage) Arguments() map[string]*pluginsdk.S
 			Optional:     true,
 			Sensitive:    true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			AtLeastOneOf: []string{"account_key", "shared_access_signature"},
 		},
 
 		"tags": commonschema.TagsForceNew(),
+	}
+}
+
+func (r MachineLearningDataStoreBlobStorage) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 10 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			accountKey := metadata.ResourceDiff.GetRawConfig().AsValueMap()["account_key"]
+			sharedAccessSignature := metadata.ResourceDiff.GetRawConfig().AsValueMap()["shared_access_signature"]
+
+			if metadata.ResourceDiff.Get("service_data_auth_identity").(string) == string(datastore.ServiceDataAccessAuthIdentityNone) {
+				if accountKey.IsNull() && sharedAccessSignature.IsNull() {
+					return fmt.Errorf("one of `account_key` or `shared_access_signature` must be specified")
+				}
+			}
+
+			return nil
+		},
 	}
 }
 
@@ -172,25 +191,33 @@ func (r MachineLearningDataStoreBlobStorage) Create() sdk.ResourceFunc {
 
 			accountKey := model.AccountKey
 			if accountKey != "" {
-				props.Credentials = map[string]interface{}{
-					"credentialsType": string(datastore.CredentialsTypeAccountKey),
-					"secrets": map[string]interface{}{
-						"secretsType": "AccountKey",
-						"key":         accountKey,
+				props.Credentials = datastore.AccountKeyDatastoreCredentials{
+					Secrets: datastore.AccountKeyDatastoreSecrets{
+						Key: pointer.To(accountKey),
 					},
 				}
 			}
 
 			sasToken := model.SharedAccessSignature
 			if sasToken != "" {
-				props.Credentials = map[string]interface{}{
-					"credentialsType": string(datastore.CredentialsTypeSas),
-					"secrets": map[string]interface{}{
-						"secretsType": "Sas",
-						"sasToken":    sasToken,
+				props.Credentials = datastore.SasDatastoreCredentials{
+					Secrets: datastore.SasDatastoreSecrets{
+						SasToken: pointer.To(sasToken),
 					},
 				}
 			}
+
+			// If `service_data_auth_identity` is set to `WorkspaceSystemAssignedIdentity` or `WorkspaceUserAssignedIdentity`,
+			// explicit credentials such as `account_key` or `shared_access_signature` must not be provided.
+			// Only when `service_data_auth_identity` is set to `None`, one of `account_key` or `shared_access_signature` must be specified.
+			// In addition, when `service_data_auth_identity` is set to either `WorkspaceSystemAssignedIdentity` or `WorkspaceUserAssignedIdentity`,
+			// the `Credentials` field must include "CredentialsType": "None". Omitting this will result in a validation error.
+			if accountKey == "" && sasToken == "" {
+				props.Credentials = datastore.BaseDatastoreCredentialsImpl{
+					CredentialsType: datastore.CredentialsTypeNone,
+				}
+			}
+
 			datastoreRaw.Properties = props
 
 			_, err = client.CreateOrUpdate(ctx, id, datastoreRaw, datastore.CreateOrUpdateOperationOptions{SkipValidation: pointer.To(true)})
@@ -241,23 +268,30 @@ func (r MachineLearningDataStoreBlobStorage) Update() sdk.ResourceFunc {
 
 			accountKey := state.AccountKey
 			if accountKey != "" {
-				props.Credentials = map[string]interface{}{
-					"credentialsType": string(datastore.CredentialsTypeAccountKey),
-					"secrets": map[string]interface{}{
-						"secretsType": "AccountKey",
-						"key":         accountKey,
+				props.Credentials = datastore.AccountKeyDatastoreCredentials{
+					Secrets: datastore.AccountKeyDatastoreSecrets{
+						Key: pointer.To(accountKey),
 					},
 				}
 			}
 
 			sasToken := state.SharedAccessSignature
 			if sasToken != "" {
-				props.Credentials = map[string]interface{}{
-					"credentialsType": string(datastore.CredentialsTypeSas),
-					"secrets": map[string]interface{}{
-						"secretsType": "Sas",
-						"sasToken":    sasToken,
+				props.Credentials = datastore.SasDatastoreCredentials{
+					Secrets: datastore.SasDatastoreSecrets{
+						SasToken: pointer.To(sasToken),
 					},
+				}
+			}
+
+			// If `service_data_auth_identity` is set to `WorkspaceSystemAssignedIdentity` or `WorkspaceUserAssignedIdentity`,
+			// explicit credentials such as `account_key` or `shared_access_signature` must not be provided.
+			// Only when `service_data_auth_identity` is set to `None`, one of `account_key` or `shared_access_signature` must be specified.
+			// In addition, when `service_data_auth_identity` is set to either `WorkspaceSystemAssignedIdentity` or `WorkspaceUserAssignedIdentity`,
+			// the `Credentials` field must include "CredentialsType": "None". Omitting this will result in a validation error.
+			if accountKey == "" && sasToken == "" {
+				props.Credentials = datastore.BaseDatastoreCredentialsImpl{
+					CredentialsType: datastore.CredentialsTypeNone,
 				}
 			}
 			datastoreRaw.Properties = props

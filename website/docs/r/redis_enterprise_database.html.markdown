@@ -35,8 +35,7 @@ resource "azurerm_redis_enterprise_cluster" "example1" {
 }
 
 resource "azurerm_redis_enterprise_database" "example" {
-  name                = "default"
-  resource_group_name = azurerm_resource_group.example.name
+  name = "default"
 
   cluster_id        = azurerm_redis_enterprise_cluster.example.id
   client_protocol   = "Encrypted"
@@ -59,8 +58,6 @@ The following arguments are supported:
 
 * `name` - (Optional) The name which should be used for this Redis Enterprise Database. Currently the acceptable value for this argument is `default`. Defaults to `default`. Changing this forces a new Redis Enterprise Database to be created.
 
-* `resource_group_name` - (Optional) The name of the Resource Group where the Redis Enterprise Database should exist. Changing this forces a new Redis Enterprise Database to be created.
-
 * `cluster_id` - (Required) The resource id of the Redis Enterprise Cluster to deploy this Redis Enterprise Database. Changing this forces a new Redis Enterprise Database to be created.
 
 * `client_protocol` - (Optional) Specifies whether redis clients can connect using TLS-encrypted or plaintext redis protocols. Possible values are `Encrypted` and `Plaintext`. Defaults to `Encrypted`. Changing this forces a new Redis Enterprise Database to be created.
@@ -71,11 +68,11 @@ The following arguments are supported:
 
 * `module` - (Optional) A `module` block as defined below. Changing this forces a new resource to be created.
 
--> **NOTE:** Only `RediSearch` and `RedisJSON` modules are allowed with geo-replication
+-> **Note:** Only `RediSearch` and `RedisJSON` modules are allowed with geo-replication
 
 * `linked_database_id` - (Optional) A list of database resources to link with this database with a maximum of 5.
 
--> **NOTE:** Only the newly created databases can be added to an existing geo-replication group. Existing regular databases or recreated databases cannot be added to the existing geo-replication group. Any linked database be removed from the list will be forcefully unlinked.The only recommended operation is to delete after force-unlink and the recommended scenario of force-unlink is region outrage. The database cannot be linked again after force-unlink.
+-> **Note:** Only the newly created databases can be added to an existing geo-replication group. Existing regular databases or recreated databases cannot be added to the existing geo-replication group. Any linked database be removed from the list will be forcefully unlinked.The only recommended operation is to delete after force-unlink and the recommended scenario of force-unlink is region outrage. The database cannot be linked again after force-unlink.
 
 * `linked_database_group_nickname` - (Optional) Nickname of the group of linked databases. Changing this force a new Redis Enterprise Geo Database to be created.
 
@@ -117,3 +114,9 @@ Redis Enterprise Databases can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_redis_enterprise_database.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Cache/redisEnterprise/cluster1/databases/database1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Cache` - 2024-10-01

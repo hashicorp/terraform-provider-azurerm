@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&SoftwareUpdateConfigurationMachineRunId{})
+}
 
 var _ resourceids.ResourceId = &SoftwareUpdateConfigurationMachineRunId{}
 
@@ -39,7 +44,7 @@ func ParseSoftwareUpdateConfigurationMachineRunID(input string) (*SoftwareUpdate
 	}
 
 	id := SoftwareUpdateConfigurationMachineRunId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParseSoftwareUpdateConfigurationMachineRunIDInsensitively(input string) (*S
 	}
 
 	id := SoftwareUpdateConfigurationMachineRunId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -116,9 +121,9 @@ func (id SoftwareUpdateConfigurationMachineRunId) Segments() []resourceids.Segme
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAutomation", "Microsoft.Automation", "Microsoft.Automation"),
 		resourceids.StaticSegment("staticAutomationAccounts", "automationAccounts", "automationAccounts"),
-		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountValue"),
+		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountName"),
 		resourceids.StaticSegment("staticSoftwareUpdateConfigurationMachineRuns", "softwareUpdateConfigurationMachineRuns", "softwareUpdateConfigurationMachineRuns"),
-		resourceids.UserSpecifiedSegment("softwareUpdateConfigurationMachineRunId", "softwareUpdateConfigurationMachineRunIdValue"),
+		resourceids.UserSpecifiedSegment("softwareUpdateConfigurationMachineRunId", "softwareUpdateConfigurationMachineRunId"),
 	}
 }
 

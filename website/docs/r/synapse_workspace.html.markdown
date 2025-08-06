@@ -41,12 +41,6 @@ resource "azurerm_synapse_workspace" "example" {
   sql_administrator_login              = "sqladminuser"
   sql_administrator_login_password     = "H@Sh1CoR3!"
 
-  aad_admin {
-    login     = "AzureAD Admin"
-    object_id = "00000000-0000-0000-0000-000000000000"
-    tenant_id = "00000000-0000-0000-0000-000000000000"
-  }
-
   identity {
     type = "SystemAssigned"
   }
@@ -179,15 +173,13 @@ The following arguments are supported:
 
 * `storage_data_lake_gen2_filesystem_id` - (Required) Specifies the ID of storage data lake gen2 filesystem resource. Changing this forces a new resource to be created.
 
-* `sql_administrator_login` - (Optional) Specifies The login name of the SQL administrator. Changing this forces a new resource to be created. If this is not provided `aad_admin` or `customer_managed_key` must be provided.
+* `sql_administrator_login` - (Optional) Specifies The login name of the SQL administrator. Changing this forces a new resource to be created. If this is not provided `customer_managed_key` must be provided.
 
-* `sql_administrator_login_password` - (Optional) The Password associated with the `sql_administrator_login` for the SQL administrator. If this is not provided `aad_admin` or `customer_managed_key` must be provided.
+* `sql_administrator_login_password` - (Optional) The Password associated with the `sql_administrator_login` for the SQL administrator. If this is not provided `customer_managed_key` must be provided.
 
 * `azuread_authentication_only` - (Optional) Is Azure Active Directory Authentication the only way to authenticate with resources inside this synapse Workspace. Defaults to `false`.
 
 ---
-
-* `aad_admin` - (Optional) An `aad_admin` block as defined below.
 
 * `compute_subnet_id` - (Optional) Subnet ID used for computes in workspace Changing this forces a new resource to be created.
 
@@ -209,21 +201,9 @@ The following arguments are supported:
 
 * `purview_id` - (Optional) The ID of purview account.
 
-* `sql_aad_admin` - (Optional) An `sql_aad_admin` block as defined below.
-
 * `sql_identity_control_enabled` - (Optional) Are pipelines (running as workspace's system assigned identity) allowed to access SQL pools?
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Synapse Workspace.
-
----
-
-An `aad_admin` block supports the following:
-
-* `login` - (Required) The login name of the Azure AD Administrator of this Synapse Workspace.
-
-* `object_id` - (Required) The object id of the Azure AD Administrator of this Synapse Workspace.
-
-* `tenant_id` - (Required) The tenant id of the Azure AD Administrator of this Synapse Workspace.
 
 ---
 
@@ -261,7 +241,7 @@ The `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Synapse Workspace.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -281,23 +261,13 @@ A `github_repo` block supports the following:
 
 -> **Note:** You must log in to the Synapse UI to complete the authentication to the GitHub repository.
 
----
-
-An `sql_aad_admin` block supports the following:
-
-* `login` - (Required) The login name of the Azure AD Administrator of this Synapse Workspace SQL.
-
-* `object_id` - (Required) The object id of the Azure AD Administrator of this Synapse Workspace SQL.
-
-* `tenant_id` - (Required) The tenant id of the Azure AD Administrator of this Synapse Workspace SQL.
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the synapse Workspace.
 
-* `connectivity_endpoints` - A list of Connectivity endpoints for this Synapse Workspace.
+* `connectivity_endpoints` - A map of Connectivity endpoints for this Synapse Workspace. Possible key values are `dev`, `sql`, `sqlOnDemand`, and `web`.
 
 ---
 

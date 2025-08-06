@@ -21,7 +21,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
+	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func dataSourceKeyVaultKey() *pluginsdk.Resource {

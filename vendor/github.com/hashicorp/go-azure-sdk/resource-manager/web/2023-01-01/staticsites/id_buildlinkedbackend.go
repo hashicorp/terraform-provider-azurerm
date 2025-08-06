@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&BuildLinkedBackendId{})
+}
 
 var _ resourceids.ResourceId = &BuildLinkedBackendId{}
 
@@ -41,7 +46,7 @@ func ParseBuildLinkedBackendID(input string) (*BuildLinkedBackendId, error) {
 	}
 
 	id := BuildLinkedBackendId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -58,7 +63,7 @@ func ParseBuildLinkedBackendIDInsensitively(input string) (*BuildLinkedBackendId
 	}
 
 	id := BuildLinkedBackendId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -122,11 +127,11 @@ func (id BuildLinkedBackendId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticStaticSites", "staticSites", "staticSites"),
-		resourceids.UserSpecifiedSegment("staticSiteName", "staticSiteValue"),
+		resourceids.UserSpecifiedSegment("staticSiteName", "staticSiteName"),
 		resourceids.StaticSegment("staticBuilds", "builds", "builds"),
-		resourceids.UserSpecifiedSegment("buildName", "buildValue"),
+		resourceids.UserSpecifiedSegment("buildName", "buildName"),
 		resourceids.StaticSegment("staticLinkedBackends", "linkedBackends", "linkedBackends"),
-		resourceids.UserSpecifiedSegment("linkedBackendName", "linkedBackendValue"),
+		resourceids.UserSpecifiedSegment("linkedBackendName", "linkedBackendName"),
 	}
 }
 

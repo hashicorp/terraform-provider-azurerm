@@ -15,7 +15,7 @@ import (
 type UpdateOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *Setting
+	Model        Setting
 }
 
 // Update ...
@@ -52,11 +52,11 @@ func (c SettingsClient) Update(ctx context.Context, id SettingId, input Setting)
 	if err = resp.Unmarshal(&respObj); err != nil {
 		return
 	}
-	model, err := unmarshalSettingImplementation(respObj)
+	model, err := UnmarshalSettingImplementation(respObj)
 	if err != nil {
 		return
 	}
-	result.Model = &model
+	result.Model = model
 
 	return
 }

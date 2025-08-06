@@ -3,10 +3,10 @@ subcategory: "Synapse"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_synapse_workspace_sql_aad_admin"
 description: |-
-  Manages Synapse Workspace AAD Admin
+  Manages Synapse Workspace SQL AAD Admin
 ---
 
-# azurerm_synapse_workspace_aad_admin
+# azurerm_synapse_workspace_sql_aad_admin
 
 Manages an Azure Active Directory SQL Administrator setting for a Synapse Workspace
 

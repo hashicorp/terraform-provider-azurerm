@@ -11,19 +11,23 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/authorization/2022-04-01/roledefinitions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-07-01/managedhsms"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
+	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 type KeyVaultManagedHSMRoleAssignmentModel struct {
-	VaultBaseUrl     string `tfschema:"vault_base_url"`
+	ManagedHSMID     string `tfschema:"managed_hsm_id"`
 	Name             string `tfschema:"name"`
 	Scope            string `tfschema:"scope"`
 	RoleDefinitionId string `tfschema:"role_definition_id"`
@@ -31,17 +35,17 @@ type KeyVaultManagedHSMRoleAssignmentModel struct {
 	ResourceId       string `tfschema:"resource_id"`
 }
 
+var _ sdk.ResourceWithStateMigration = KeyVaultManagedHSMRoleAssignmentResource{}
+
 type KeyVaultManagedHSMRoleAssignmentResource struct{}
 
-var _ sdk.Resource = KeyVaultManagedHSMRoleAssignmentResource{}
-
-func (m KeyVaultManagedHSMRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"vault_base_url": {
+func (r KeyVaultManagedHSMRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schema {
+	s := map[string]*pluginsdk.Schema{
+		"managed_hsm_id": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: managedhsms.ValidateManagedHSMID,
+			Required:     true,
 		},
 
 		"name": {
@@ -72,9 +76,11 @@ func (m KeyVaultManagedHSMRoleAssignmentResource) Arguments() map[string]*plugin
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 	}
+
+	return s
 }
 
-func (m KeyVaultManagedHSMRoleAssignmentResource) Attributes() map[string]*pluginsdk.Schema {
+func (r KeyVaultManagedHSMRoleAssignmentResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"resource_id": {
 			Type:     pluginsdk.TypeString,
@@ -83,119 +89,213 @@ func (m KeyVaultManagedHSMRoleAssignmentResource) Attributes() map[string]*plugi
 	}
 }
 
-func (m KeyVaultManagedHSMRoleAssignmentResource) ModelObject() interface{} {
+func (r KeyVaultManagedHSMRoleAssignmentResource) StateUpgraders() sdk.StateUpgradeData {
+	return sdk.StateUpgradeData{
+		SchemaVersion: 1,
+		Upgraders: map[int]pluginsdk.StateUpgrade{
+			0: migration.ManagedHSMRoleAssignmentV0ToV1{},
+		},
+	}
+}
+
+func (r KeyVaultManagedHSMRoleAssignmentResource) ModelObject() interface{} {
 	return &KeyVaultManagedHSMRoleAssignmentModel{}
 }
 
-func (m KeyVaultManagedHSMRoleAssignmentResource) ResourceType() string {
+func (r KeyVaultManagedHSMRoleAssignmentResource) ResourceType() string {
 	return "azurerm_key_vault_managed_hardware_security_module_role_assignment"
 }
 
-func (m KeyVaultManagedHSMRoleAssignmentResource) Create() sdk.ResourceFunc {
+func (r KeyVaultManagedHSMRoleAssignmentResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, meta sdk.ResourceMetaData) (err error) {
-			client := meta.Client.ManagedHSMs.DataPlaneRoleAssignmentsClient
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ManagedHSMs.DataPlaneRoleAssignmentsClient
+			domainSuffix, ok := metadata.Client.Account.Environment.ManagedHSM.DomainSuffix()
+			if !ok {
+				return fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+			}
 
-			var model KeyVaultManagedHSMRoleAssignmentModel
-			if err := meta.Decode(&model); err != nil {
+			var config KeyVaultManagedHSMRoleAssignmentModel
+			if err := metadata.Decode(&config); err != nil {
 				return err
 			}
 
-			locks.ByName(model.VaultBaseUrl, "azurerm_key_vault_managed_hardware_security_module")
-			defer locks.UnlockByName(model.VaultBaseUrl, "azurerm_key_vault_managed_hardware_security_module")
-
-			id, err := parse.NewManagedHSMRoleAssignmentID(model.VaultBaseUrl, model.Scope, model.Name)
-			if err != nil {
-				return err
+			var managedHsmId *managedhsms.ManagedHSMId
+			var endpoint *parse.ManagedHSMDataPlaneEndpoint
+			var err error
+			if config.ManagedHSMID != "" {
+				managedHsmId, err = managedhsms.ParseManagedHSMID(config.ManagedHSMID)
+				if err != nil {
+					return err
+				}
+				baseUri, err := metadata.Client.ManagedHSMs.BaseUriForManagedHSM(ctx, *managedHsmId)
+				if err != nil {
+					return fmt.Errorf("determining the Data Plane Endpoint for %s: %+v", *managedHsmId, err)
+				}
+				if baseUri == nil {
+					return fmt.Errorf("unable to determine the Data Plane Endpoint for %q", *managedHsmId)
+				}
+				endpoint, err = parse.ManagedHSMEndpoint(*baseUri, domainSuffix)
+				if err != nil {
+					return fmt.Errorf("parsing the Data Plane Endpoint %q: %+v", pointer.From(endpoint), err)
+				}
 			}
 
-			existing, err := client.Get(ctx, model.VaultBaseUrl, model.Scope, model.Name)
+			locks.ByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
+			defer locks.UnlockByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
+
+			id := parse.NewManagedHSMDataPlaneRoleAssignmentID(endpoint.ManagedHSMName, endpoint.DomainSuffix, config.Scope, config.Name)
+			existing, err := client.Get(ctx, endpoint.BaseURI(), config.Scope, config.Name)
 			if !utils.ResponseWasNotFound(existing.Response) {
 				if err != nil {
 					return fmt.Errorf("retrieving %s: %v", id.ID(), err)
 				}
-				return meta.ResourceRequiresImport(m.ResourceType(), id)
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
 			var param keyvault.RoleAssignmentCreateParameters
 			param.Properties = &keyvault.RoleAssignmentProperties{
-				PrincipalID: pointer.FromString(model.PrincipalId),
-				// the role definition id may has '/' prefix, but the api doesn't accept it
-				RoleDefinitionID: pointer.FromString(strings.TrimPrefix(model.RoleDefinitionId, "/")),
+				PrincipalID: pointer.To(config.PrincipalId),
+				// the role definition id may have '/' prefix, but the api doesn't accept it
+				RoleDefinitionID: pointer.To(strings.TrimPrefix(config.RoleDefinitionId, "/")),
 			}
-			if _, err = client.Create(ctx, model.VaultBaseUrl, model.Scope, model.Name, param); err != nil {
+
+			//nolint:misspell
+			// TODO: @manicminer: when migrating to go-azure-sdk, the SDK should auto-retry on 400 responses with code "BadParameter" and message "Unkown role definition" (note the misspelling)
+
+			if _, err = client.Create(ctx, endpoint.BaseURI(), config.Scope, config.Name, param); err != nil {
 				return fmt.Errorf("creating %s: %v", id.ID(), err)
 			}
 
-			meta.SetID(id)
+			metadata.SetID(id)
 			return nil
 		},
 	}
 }
 
-func (m KeyVaultManagedHSMRoleAssignmentResource) Read() sdk.ResourceFunc {
+func (r KeyVaultManagedHSMRoleAssignmentResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
-		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			client := meta.Client.ManagedHSMs.DataPlaneRoleAssignmentsClient
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ManagedHSMs.DataPlaneRoleAssignmentsClient
+			domainSuffix, ok := metadata.Client.Account.Environment.ManagedHSM.DomainSuffix()
+			if !ok {
+				return fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+			}
 
-			id, err := parse.ManagedHSMRoleAssignmentID(meta.ResourceData.Id())
+			id, err := parse.ManagedHSMDataPlaneRoleAssignmentID(metadata.ResourceData.Id(), domainSuffix)
 			if err != nil {
 				return err
 			}
 
-			result, err := client.Get(ctx, id.VaultBaseUrl, id.Scope, id.Name)
+			subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
+			resourceManagerId, err := metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseURI(), domainSuffix)
 			if err != nil {
-				if utils.ResponseWasNotFound(result.Response) {
-					return meta.MarkAsGone(id)
+				return fmt.Errorf("determining Resource Manager ID for %q: %+v", id, err)
+			}
+			if resourceManagerId == nil {
+				return fmt.Errorf("unable to determine the Resource Manager ID for %s", id)
+			}
+
+			resp, err := client.Get(ctx, id.BaseURI(), id.Scope, id.RoleAssignmentName)
+			if err != nil {
+				if utils.ResponseWasNotFound(resp.Response) {
+					return metadata.MarkAsGone(id)
 				}
-				return err
+
+				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			var model KeyVaultManagedHSMRoleAssignmentModel
-			if err := meta.Decode(&model); err != nil {
-				return err
+			model := KeyVaultManagedHSMRoleAssignmentModel{
+				ManagedHSMID: resourceManagerId.ID(),
+				Name:         id.RoleAssignmentName,
+				Scope:        id.Scope,
 			}
 
-			prop := result.Properties
-			model.Name = pointer.From(result.Name)
-			model.VaultBaseUrl = id.VaultBaseUrl
-			model.Scope = id.Scope
-			model.PrincipalId = pointer.ToString(prop.PrincipalID)
-			model.ResourceId = pointer.ToString(result.ID)
-			if roleID, err := roledefinitions.ParseScopedRoleDefinitionIDInsensitively(pointer.ToString(prop.RoleDefinitionID)); err != nil {
-				return fmt.Errorf("parsing role definition id: %v", err)
-			} else {
-				model.RoleDefinitionId = roleID.ID()
+			if props := resp.Properties; props != nil {
+				model.PrincipalId = pointer.From(props.PrincipalID)
+				model.ResourceId = pointer.From(resp.ID) // TODO: verify if we should deprecate this
+
+				if roleDefinitionId := pointer.From(props.RoleDefinitionID); roleDefinitionId != "" {
+					parsed, err := roledefinitions.ParseScopedRoleDefinitionIDInsensitively(roleDefinitionId)
+					if err != nil {
+						return fmt.Errorf("parsing role definition id %q: %v", roleDefinitionId, err)
+					}
+
+					model.RoleDefinitionId = parsed.ID()
+				}
 			}
 
-			return meta.Encode(&model)
+			return metadata.Encode(&model)
 		},
 	}
 }
 
-func (m KeyVaultManagedHSMRoleAssignmentResource) Delete() sdk.ResourceFunc {
+func (r KeyVaultManagedHSMRoleAssignmentResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
-		Func: func(ctx context.Context, meta sdk.ResourceMetaData) error {
-			id, err := parse.ManagedHSMRoleAssignmentID(meta.ResourceData.Id())
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.ManagedHSMs.DataPlaneRoleAssignmentsClient
+
+			domainSuffix, ok := metadata.Client.Account.Environment.ManagedHSM.DomainSuffix()
+			if !ok {
+				return fmt.Errorf("could not determine Managed HSM domain suffix for environment %q", metadata.Client.Account.Environment.Name)
+			}
+
+			id, err := parse.ManagedHSMDataPlaneRoleAssignmentID(metadata.ResourceData.Id(), domainSuffix)
 			if err != nil {
 				return err
 			}
 
-			meta.Logger.Infof("deleting %s", id)
+			subscriptionId := commonids.NewSubscriptionID(metadata.Client.Account.SubscriptionId)
+			managedHsmId, err := metadata.Client.ManagedHSMs.ManagedHSMIDFromBaseUrl(ctx, subscriptionId, id.BaseURI(), domainSuffix)
+			if err != nil {
+				return fmt.Errorf("determining the Managed HSM ID from the Base URI %q: %+v", id.BaseURI(), err)
+			}
+			if managedHsmId == nil {
+				return fmt.Errorf("unable to determine the Managed HSM ID from the Base URI %q: %+v", id.BaseURI(), err)
+			}
 
-			locks.ByName(id.VaultBaseUrl, "azurerm_key_vault_managed_hardware_security_module")
-			defer locks.UnlockByName(id.VaultBaseUrl, "azurerm_key_vault_managed_hardware_security_module")
-			if _, err := meta.Client.ManagedHSMs.DataPlaneRoleAssignmentsClient.Delete(ctx, id.VaultBaseUrl, id.Scope, id.Name); err != nil {
+			locks.ByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
+			defer locks.UnlockByName(managedHsmId.ID(), "azurerm_key_vault_managed_hardware_security_module")
+
+			if _, err := client.Delete(ctx, id.BaseURI(), id.Scope, id.RoleAssignmentName); err != nil {
 				return fmt.Errorf("deleting %s: %v", id.ID(), err)
 			}
+
+			deadline, ok := ctx.Deadline()
+			if !ok {
+				return fmt.Errorf("internal-error: context has no deadline")
+			}
+			stateConf := &pluginsdk.StateChangeConf{
+				Pending: []string{"InProgress"},
+				Target:  []string{"NotFound"},
+				Refresh: func() (interface{}, string, error) {
+					result, err := client.Get(ctx, id.BaseURI(), id.Scope, id.RoleAssignmentName)
+					if err != nil {
+						if response.WasNotFound(result.Response.Response) {
+							return result, "NotFound", nil
+						}
+
+						return nil, "Error", err
+					}
+
+					return result, "InProgress", nil
+				},
+				ContinuousTargetOccurence: 5,
+				PollInterval:              5 * time.Second,
+				Timeout:                   time.Until(deadline),
+			}
+			if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+				return fmt.Errorf("waiting for deletion of %s: %+v", id, err)
+			}
+
 			return nil
 		},
 	}
 }
 
-func (m KeyVaultManagedHSMRoleAssignmentResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.ManagedHSMRoleAssignmentId
+func (r KeyVaultManagedHSMRoleAssignmentResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return validate.ManagedHSMDataPlaneRoleAssignmentID
 }

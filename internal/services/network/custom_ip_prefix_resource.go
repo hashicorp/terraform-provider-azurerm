@@ -12,38 +12,36 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/customipprefixes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type CustomIpPrefixModel struct {
-	CIDR                        string            `tfschema:"cidr"`
-	CommissioningEnabled        bool              `tfschema:"commissioning_enabled"`
-	InternetAdvertisingDisabled bool              `tfschema:"internet_advertising_disabled"`
-	Location                    string            `tfschema:"location"`
-	Name                        string            `tfschema:"name"`
-	ParentCustomIPPrefixID      string            `tfschema:"parent_custom_ip_prefix_id"`
-	ROAValidityEndDate          string            `tfschema:"roa_validity_end_date"`
-	ResourceGroupName           string            `tfschema:"resource_group_name"`
-	Tags                        map[string]string `tfschema:"tags"`
-	WANValidationSignedMessage  string            `tfschema:"wan_validation_signed_message"`
-	Zones                       []string          `tfschema:"zones"`
+	CIDR                        string                 `tfschema:"cidr"`
+	CommissioningEnabled        bool                   `tfschema:"commissioning_enabled"`
+	InternetAdvertisingDisabled bool                   `tfschema:"internet_advertising_disabled"`
+	Location                    string                 `tfschema:"location"`
+	Name                        string                 `tfschema:"name"`
+	ParentCustomIPPrefixID      string                 `tfschema:"parent_custom_ip_prefix_id"`
+	ROAValidityEndDate          string                 `tfschema:"roa_validity_end_date"`
+	ResourceGroupName           string                 `tfschema:"resource_group_name"`
+	Tags                        map[string]interface{} `tfschema:"tags"`
+	WANValidationSignedMessage  string                 `tfschema:"wan_validation_signed_message"`
+	Zones                       []string               `tfschema:"zones"`
 }
 
-var (
-	_ sdk.ResourceWithUpdate = CustomIpPrefixResource{}
-)
+var _ sdk.ResourceWithUpdate = CustomIpPrefixResource{}
 
 type CustomIpPrefixResource struct {
-	client *network.CustomIPPrefixesClient
+	client *customipprefixes.CustomIPPrefixesClient
 }
 
 func (CustomIpPrefixResource) ResourceType() string {
@@ -55,8 +53,9 @@ func (CustomIpPrefixResource) ModelObject() interface{} {
 }
 
 func (CustomIpPrefixResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.CustomIpPrefixID
+	return customipprefixes.ValidateCustomIPPrefixID
 }
+
 func (r CustomIpPrefixResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -93,7 +92,7 @@ func (r CustomIpPrefixResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.CustomIpPrefixID,
+			ValidateFunc: customipprefixes.ValidateCustomIPPrefixID,
 		},
 
 		"roa_validity_end_date": {
@@ -149,7 +148,7 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 		Timeout: 9 * time.Hour,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			r.client = metadata.Client.Network.CustomIPPrefixesClient
+			r.client = metadata.Client.Network.Client.CustomIPPrefixes
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			deadline, ok := ctx.Deadline()
@@ -162,16 +161,16 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := parse.NewCustomIpPrefixID(subscriptionId, model.ResourceGroupName, model.Name)
+			id := customipprefixes.NewCustomIPPrefixID(subscriptionId, model.ResourceGroupName, model.Name)
 
-			existing, err := r.client.Get(ctx, id.ResourceGroup, id.Name, "")
+			existing, err := r.client.Get(ctx, id, customipprefixes.DefaultGetOperationOptions())
 			if err != nil {
-				if !utils.ResponseWasNotFound(existing.Response) {
+				if !response.WasNotFound(existing.HttpResponse) {
 					return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 				}
 			}
 
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
@@ -180,16 +179,15 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("parsing `cidr`: %+v", err)
 			}
 
-			results, err := r.client.ListAll(ctx)
+			results, err := r.client.ListAll(ctx, commonids.NewSubscriptionID(subscriptionId))
 			if err != nil {
 				return fmt.Errorf("listing existing %s: %+v", id, err)
 			}
 
-			// Check for an existing CIDR
-			for results.NotDone() {
-				for _, prefix := range results.Values() {
-					if prefix.CustomIPPrefixPropertiesFormat != nil && prefix.CustomIPPrefixPropertiesFormat.Cidr != nil {
-						_, netw, err := net.ParseCIDR(*prefix.CustomIPPrefixPropertiesFormat.Cidr)
+			if prefixes := results.Model; prefixes != nil {
+				for _, prefix := range *prefixes {
+					if prefix.Properties != nil && prefix.Properties.Cidr != nil {
+						_, netw, err := net.ParseCIDR(*prefix.Properties.Cidr)
 						if err != nil {
 							// couldn't parse the existing custom prefix, so skip it
 							continue
@@ -199,31 +197,27 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 						}
 					}
 				}
-
-				if err = results.NextWithContext(ctx); err != nil {
-					return fmt.Errorf("listing next page of %s: %+v", id, err)
-				}
 			}
 
-			properties := network.CustomIPPrefix{
+			payload := customipprefixes.CustomIPPrefix{
 				Name:             &model.Name,
 				Location:         pointer.To(location.Normalize(model.Location)),
-				Tags:             tags.FromTypedObject(model.Tags),
+				Tags:             tags.Expand(model.Tags),
 				ExtendedLocation: nil,
-				CustomIPPrefixPropertiesFormat: &network.CustomIPPrefixPropertiesFormat{
+				Properties: &customipprefixes.CustomIPPrefixPropertiesFormat{
 					Cidr:              &model.CIDR,
-					CommissionedState: network.CommissionedStateProvisioning,
+					CommissionedState: pointer.To(customipprefixes.CommissionedStateProvisioning),
 				},
 			}
 
 			if model.ParentCustomIPPrefixID != "" {
-				properties.CustomIPPrefixPropertiesFormat.CustomIPPrefixParent = &network.SubResource{
-					ID: &model.ParentCustomIPPrefixID,
+				payload.Properties.CustomIPPrefixParent = &customipprefixes.SubResource{
+					Id: &model.ParentCustomIPPrefixID,
 				}
 			}
 
 			if model.WANValidationSignedMessage != "" {
-				properties.CustomIPPrefixPropertiesFormat.SignedMessage = &model.WANValidationSignedMessage
+				payload.Properties.SignedMessage = &model.WANValidationSignedMessage
 			}
 
 			if model.ROAValidityEndDate != "" {
@@ -232,25 +226,20 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 					return err
 				}
 				authorizationMessage := fmt.Sprintf("%s|%s|%s", subscriptionId, model.CIDR, roaValidityEndDate.Format("20060102"))
-				properties.CustomIPPrefixPropertiesFormat.AuthorizationMessage = &authorizationMessage
+				payload.Properties.AuthorizationMessage = &authorizationMessage
 			}
 
 			if len(model.Zones) > 0 {
-				properties.Zones = &model.Zones
+				payload.Zones = &model.Zones
 			}
 
-			future, err := r.client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, properties)
-			if err != nil {
+			if err := r.client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
-			if err = future.WaitForCompletionRef(ctx, r.client.Client); err != nil {
-				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
-			}
-
 			stateConf := &pluginsdk.StateChangeConf{
-				Pending:    []string{string(network.ProvisioningStateUpdating)},
-				Target:     []string{string(network.ProvisioningStateSucceeded)},
+				Pending:    []string{string(customipprefixes.ProvisioningStateUpdating)},
+				Target:     []string{string(customipprefixes.ProvisioningStateSucceeded)},
 				Refresh:    r.provisioningStateRefreshFunc(ctx, id),
 				MinTimeout: 2 * time.Minute,
 				Timeout:    time.Until(deadline),
@@ -259,12 +248,12 @@ func (r CustomIpPrefixResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("waiting for ProvisioningState of %s: %+v", id, err)
 			}
 
-			desiredState := network.CommissionedStateProvisioned
+			desiredState := customipprefixes.CommissionedStateProvisioned
 			if model.CommissioningEnabled {
 				if model.InternetAdvertisingDisabled {
-					desiredState = network.CommissionedStateCommissionedNoInternetAdvertise
+					desiredState = customipprefixes.CommissionedStateCommissionedNoInternetAdvertise
 				} else {
-					desiredState = network.CommissionedStateCommissioned
+					desiredState = customipprefixes.CommissionedStateCommissioned
 				}
 			}
 
@@ -288,9 +277,9 @@ func (r CustomIpPrefixResource) Update() sdk.ResourceFunc {
 		Timeout: 17 * time.Hour,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			r.client = metadata.Client.Network.CustomIPPrefixesClient
+			r.client = metadata.Client.Network.Client.CustomIPPrefixes
 
-			id, err := parse.CustomIpPrefixID(metadata.ResourceData.Id())
+			id, err := customipprefixes.ParseCustomIPPrefixID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -301,12 +290,12 @@ func (r CustomIpPrefixResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			desiredState := network.CommissionedStateProvisioned
+			desiredState := customipprefixes.CommissionedStateProvisioned
 			if state.CommissioningEnabled {
 				if state.InternetAdvertisingDisabled {
-					desiredState = network.CommissionedStateCommissionedNoInternetAdvertise
+					desiredState = customipprefixes.CommissionedStateCommissionedNoInternetAdvertise
 				} else {
-					desiredState = network.CommissionedStateCommissioned
+					desiredState = customipprefixes.CommissionedStateCommissioned
 				}
 			}
 
@@ -329,56 +318,59 @@ func (r CustomIpPrefixResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			r.client = metadata.Client.Network.CustomIPPrefixesClient
+			r.client = metadata.Client.Network.Client.CustomIPPrefixes
 
-			id, err := parse.CustomIpPrefixID(metadata.ResourceData.Id())
+			id, err := customipprefixes.ParseCustomIPPrefixID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			existing, err := r.client.Get(ctx, id.ResourceGroup, id.Name, "")
+			existing, err := r.client.Get(ctx, *id, customipprefixes.DefaultGetOperationOptions())
 			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			model := CustomIpPrefixModel{
-				Name:              id.Name,
-				ResourceGroupName: id.ResourceGroup,
-				Location:          location.NormalizeNilable(existing.Location),
-				Tags:              tags.ToTypedObject(existing.Tags),
-				Zones:             pointer.From(existing.Zones),
+			state := CustomIpPrefixModel{
+				Name:              id.CustomIPPrefixName,
+				ResourceGroupName: id.ResourceGroupName,
 			}
 
-			if props := existing.CustomIPPrefixPropertiesFormat; props != nil {
-				model.CIDR = pointer.From(props.Cidr)
-				model.InternetAdvertisingDisabled = pointer.From(props.NoInternetAdvertise)
-				model.WANValidationSignedMessage = pointer.From(props.SignedMessage)
+			if model := existing.Model; model != nil {
+				state.Location = location.NormalizeNilable(model.Location)
+				state.Tags = tags.Flatten(model.Tags)
+				state.Zones = pointer.From(model.Zones)
 
-				if parent := props.CustomIPPrefixParent; parent != nil {
-					model.ParentCustomIPPrefixID = pointer.From(parent.ID)
-				}
+				if props := model.Properties; props != nil {
+					state.CIDR = pointer.From(props.Cidr)
+					state.InternetAdvertisingDisabled = pointer.From(props.NoInternetAdvertise)
+					state.WANValidationSignedMessage = pointer.From(props.SignedMessage)
 
-				if props.AuthorizationMessage != nil {
-					authMessage := strings.Split(*props.AuthorizationMessage, "|")
-					if len(authMessage) == 3 {
-						if roaValidityEndDate, err := time.Parse("20060102", authMessage[2]); err == nil {
-							model.ROAValidityEndDate = roaValidityEndDate.Format("2006-01-02")
+					if parent := props.CustomIPPrefixParent; parent != nil {
+						state.ParentCustomIPPrefixID = pointer.From(parent.Id)
+					}
+
+					if props.AuthorizationMessage != nil {
+						authMessage := strings.Split(*props.AuthorizationMessage, "|")
+						if len(authMessage) == 3 {
+							if roaValidityEndDate, err := time.Parse("20060102", authMessage[2]); err == nil {
+								state.ROAValidityEndDate = roaValidityEndDate.Format("2006-01-02")
+							}
 						}
 					}
-				}
 
-				switch props.CommissionedState {
-				case network.CommissionedStateCommissioning, network.CommissionedStateCommissioned, network.CommissionedStateCommissionedNoInternetAdvertise:
-					model.CommissioningEnabled = true
-				default:
-					model.CommissioningEnabled = false
+					switch pointer.From(props.CommissionedState) {
+					case customipprefixes.CommissionedStateCommissioning, customipprefixes.CommissionedStateCommissioned, customipprefixes.CommissionedStateCommissionedNoInternetAdvertise:
+						state.CommissioningEnabled = true
+					default:
+						state.CommissioningEnabled = false
+					}
 				}
 			}
 
-			return metadata.Encode(&model)
+			return metadata.Encode(&state)
 		},
 	}
 }
@@ -388,25 +380,20 @@ func (r CustomIpPrefixResource) Delete() sdk.ResourceFunc {
 		Timeout: 17 * time.Hour,
 
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			r.client = metadata.Client.Network.CustomIPPrefixesClient
+			r.client = metadata.Client.Network.Client.CustomIPPrefixes
 
-			id, err := parse.CustomIpPrefixID(metadata.ResourceData.Id())
+			id, err := customipprefixes.ParseCustomIPPrefixID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
 			// Must be de-provisioned before deleting
-			if _, err = r.updateCommissionedState(ctx, *id, network.CommissionedStateDeprovisioned); err != nil {
+			if _, err = r.updateCommissionedState(ctx, *id, customipprefixes.CommissionedStateDeprovisioned); err != nil {
 				return err
 			}
 
-			future, err := r.client.Delete(ctx, id.ResourceGroup, id.Name)
-			if err != nil {
+			if err := r.client.DeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", id, err)
-			}
-
-			if err = future.WaitForCompletionRef(ctx, r.client.Client); err != nil {
-				return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 			}
 
 			return nil
@@ -414,9 +401,9 @@ func (r CustomIpPrefixResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-type commissionedStates []network.CommissionedState
+type commissionedStates []customipprefixes.CommissionedState
 
-func (t commissionedStates) contains(i network.CommissionedState) bool {
+func (t commissionedStates) contains(i customipprefixes.CommissionedState) bool {
 	for _, s := range t {
 		if i == s {
 			return true
@@ -434,78 +421,81 @@ func (t commissionedStates) strings() (out []string) {
 
 // updateCommissionedState implements a state machine to coordinate transitions between different values of CommissionedState for both v4 and v6 prefixes.
 // The provided desiredState should be the sought after end state, and the method will work out a path to achieving that state and walk the resource to get there.
-func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id parse.CustomIpPrefixId, desiredState network.CommissionedState) (*network.CommissionedState, error) {
-	existing, err := r.client.Get(ctx, id.ResourceGroup, id.Name, "")
+func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id customipprefixes.CustomIPPrefixId, desiredState customipprefixes.CommissionedState) (*customipprefixes.CommissionedState, error) {
+	existing, err := r.client.Get(ctx, id, customipprefixes.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving existing %s: %+v", id, err)
 	}
-	if existing.CustomIPPrefixPropertiesFormat == nil {
+	if existing.Model == nil {
+		return nil, fmt.Errorf("retrieving existing %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
 		return nil, fmt.Errorf("retrieving existing %s: `properties` was nil", id)
 	}
 
-	initialState := existing.CustomIPPrefixPropertiesFormat.CommissionedState
+	initialState := existing.Model.Properties.CommissionedState
 
-	log.Printf("[DEBUG] Updating CommissionedState for %s from current value %q to desired value %q..", id, initialState, desiredState)
+	log.Printf("[DEBUG] Updating CommissionedState for %s from current value %q to desired value %q..", id, *initialState, desiredState)
 
 	// stateTree is a map of desired state, to a map of current state, to the list of transition states needed to get there
-	stateTree := map[network.CommissionedState]map[network.CommissionedState][]network.CommissionedState{
-		network.CommissionedStateDeprovisioned: {
-			network.CommissionedStateProvisioned:                     {network.CommissionedStateDeprovisioning},
-			network.CommissionedStateCommissioned:                    {network.CommissionedStateDecommissioning, network.CommissionedStateDeprovisioning},
-			network.CommissionedStateCommissionedNoInternetAdvertise: {network.CommissionedStateDecommissioning, network.CommissionedStateDeprovisioning},
+	stateTree := map[customipprefixes.CommissionedState]map[customipprefixes.CommissionedState][]customipprefixes.CommissionedState{
+		customipprefixes.CommissionedStateDeprovisioned: {
+			customipprefixes.CommissionedStateProvisioned:                     {customipprefixes.CommissionedStateDeprovisioning},
+			customipprefixes.CommissionedStateCommissioned:                    {customipprefixes.CommissionedStateDecommissioning, customipprefixes.CommissionedStateDeprovisioning},
+			customipprefixes.CommissionedStateCommissionedNoInternetAdvertise: {customipprefixes.CommissionedStateDecommissioning, customipprefixes.CommissionedStateDeprovisioning},
 		},
-		network.CommissionedStateProvisioned: {
-			network.CommissionedStateDeprovisioned:                   {network.CommissionedStateProvisioning},
-			network.CommissionedStateCommissioned:                    {network.CommissionedStateDecommissioning},
-			network.CommissionedStateCommissionedNoInternetAdvertise: {network.CommissionedStateDecommissioning},
+		customipprefixes.CommissionedStateProvisioned: {
+			customipprefixes.CommissionedStateDeprovisioned:                   {customipprefixes.CommissionedStateProvisioning},
+			customipprefixes.CommissionedStateCommissioned:                    {customipprefixes.CommissionedStateDecommissioning},
+			customipprefixes.CommissionedStateCommissionedNoInternetAdvertise: {customipprefixes.CommissionedStateDecommissioning},
 		},
-		network.CommissionedStateCommissioned: {
-			network.CommissionedStateDeprovisioned:                   {network.CommissionedStateProvisioning, network.CommissionedStateCommissioning},
-			network.CommissionedStateProvisioned:                     {network.CommissionedStateCommissioning},
-			network.CommissionedStateCommissionedNoInternetAdvertise: {network.CommissionedStateCommissioning},
+		customipprefixes.CommissionedStateCommissioned: {
+			customipprefixes.CommissionedStateDeprovisioned:                   {customipprefixes.CommissionedStateProvisioning, customipprefixes.CommissionedStateCommissioning},
+			customipprefixes.CommissionedStateProvisioned:                     {customipprefixes.CommissionedStateCommissioning},
+			customipprefixes.CommissionedStateCommissionedNoInternetAdvertise: {customipprefixes.CommissionedStateCommissioning},
 		},
-		network.CommissionedStateCommissionedNoInternetAdvertise: {
-			network.CommissionedStateDeprovisioned: {network.CommissionedStateProvisioning, network.CommissionedStateCommissioning},
-			network.CommissionedStateProvisioned:   {network.CommissionedStateCommissioning},
-			network.CommissionedStateCommissioned:  {network.CommissionedStateDecommissioning, network.CommissionedStateCommissioning},
+		customipprefixes.CommissionedStateCommissionedNoInternetAdvertise: {
+			customipprefixes.CommissionedStateDeprovisioned: {customipprefixes.CommissionedStateProvisioning, customipprefixes.CommissionedStateCommissioning},
+			customipprefixes.CommissionedStateProvisioned:   {customipprefixes.CommissionedStateCommissioning},
+			customipprefixes.CommissionedStateCommissioned:  {customipprefixes.CommissionedStateDecommissioning, customipprefixes.CommissionedStateCommissioning},
 		},
 	}
 
 	// transitioningStatesFor returns the known transitioning states for the desired goal state
-	transitioningStatesFor := func(finalState network.CommissionedState) (out commissionedStates) {
+	transitioningStatesFor := func(finalState customipprefixes.CommissionedState) (out commissionedStates) {
 		switch finalState {
-		case network.CommissionedStateProvisioned:
-			out = commissionedStates{network.CommissionedStateProvisioning, network.CommissionedStateDecommissioning}
-		case network.CommissionedStateDeprovisioned:
-			out = commissionedStates{network.CommissionedStateDeprovisioning}
-		case network.CommissionedStateCommissioned:
-			out = commissionedStates{network.CommissionedStateCommissioning}
+		case customipprefixes.CommissionedStateProvisioned:
+			out = commissionedStates{customipprefixes.CommissionedStateProvisioning, customipprefixes.CommissionedStateDecommissioning}
+		case customipprefixes.CommissionedStateDeprovisioned:
+			out = commissionedStates{customipprefixes.CommissionedStateDeprovisioning}
+		case customipprefixes.CommissionedStateCommissioned:
+			out = commissionedStates{customipprefixes.CommissionedStateCommissioning}
 		}
 		return
 	}
 
 	// finalStatesFor returns the known final states for the current transitioning state
-	finalStatesFor := func(transitioningState network.CommissionedState) (out commissionedStates) {
+	finalStatesFor := func(transitioningState customipprefixes.CommissionedState) (out commissionedStates) {
 		switch transitioningState {
-		case network.CommissionedStateProvisioning:
-			out = commissionedStates{network.CommissionedStateProvisioned}
-		case network.CommissionedStateDeprovisioning:
-			out = commissionedStates{network.CommissionedStateDeprovisioned}
-		case network.CommissionedStateCommissioning:
-			out = commissionedStates{network.CommissionedStateCommissioned, network.CommissionedStateCommissionedNoInternetAdvertise}
-		case network.CommissionedStateDecommissioning:
-			out = commissionedStates{network.CommissionedStateProvisioned}
+		case customipprefixes.CommissionedStateProvisioning:
+			out = commissionedStates{customipprefixes.CommissionedStateProvisioned}
+		case customipprefixes.CommissionedStateDeprovisioning:
+			out = commissionedStates{customipprefixes.CommissionedStateDeprovisioned}
+		case customipprefixes.CommissionedStateCommissioning:
+			out = commissionedStates{customipprefixes.CommissionedStateCommissioned, customipprefixes.CommissionedStateCommissionedNoInternetAdvertise}
+		case customipprefixes.CommissionedStateDecommissioning:
+			out = commissionedStates{customipprefixes.CommissionedStateProvisioned}
 		}
 		return
 	}
 
 	// shouldNotAdvertise determines whether to set the noInternetAdvertise flag, which can only be set at the point of transitioning to `Commissioning`
-	shouldNotAdvertise := func(steppingState network.CommissionedState) *bool {
-		if steppingState == network.CommissionedStateCommissioning {
+	shouldNotAdvertise := func(steppingState customipprefixes.CommissionedState) *bool {
+		if steppingState == customipprefixes.CommissionedStateCommissioning {
 			switch desiredState {
-			case network.CommissionedStateCommissioned:
+			case customipprefixes.CommissionedStateCommissioned:
 				return pointer.To(false)
-			case network.CommissionedStateCommissionedNoInternetAdvertise:
+			case customipprefixes.CommissionedStateCommissionedNoInternetAdvertise:
 				return pointer.To(true)
 			}
 		}
@@ -513,10 +503,10 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 	}
 
 	if plan, ok := stateTree[desiredState]; ok {
-		lastKnownState := pointer.To(initialState)
+		lastKnownState := initialState
 
 		// If we're already transitioning to the desiredState, wait for this to complete
-		if transitioningStatesFor(desiredState).contains(initialState) {
+		if transitioningStatesFor(desiredState).contains(pointer.From(initialState)) {
 			if lastKnownState, err = r.waitForCommissionedState(ctx, id, transitioningStatesFor(desiredState), commissionedStates{desiredState}); err != nil {
 				return lastKnownState, err
 			}
@@ -530,7 +520,6 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 		for startingState, path := range plan {
 			// Look for a plan that works from our lastKnownState
 			if *lastKnownState == startingState || transitioningStatesFor(startingState).contains(*lastKnownState) {
-
 				// If we're currently transitioning to the startingState for this plan, wait for this to complete before proceeding
 				if lastKnownState, err = r.waitForCommissionedState(ctx, id, transitioningStatesFor(startingState), commissionedStates{startingState}); err != nil {
 					return lastKnownState, err
@@ -578,26 +567,24 @@ func (r CustomIpPrefixResource) updateCommissionedState(ctx context.Context, id 
 
 // setCommissionedState sends a PUT request to effect a transition to a different CommissionedState. The provided
 // desiredState should always be a contextual transition state rather than the desired end state (i.e. procedural).
-func (r CustomIpPrefixResource) setCommissionedState(ctx context.Context, id parse.CustomIpPrefixId, desiredState network.CommissionedState, noInternetAdvertise *bool) error {
-	existing, err := r.client.Get(ctx, id.ResourceGroup, id.Name, "")
+func (r CustomIpPrefixResource) setCommissionedState(ctx context.Context, id customipprefixes.CustomIPPrefixId, desiredState customipprefixes.CommissionedState, noInternetAdvertise *bool) error {
+	existing, err := r.client.Get(ctx, id, customipprefixes.DefaultGetOperationOptions())
 	if err != nil {
 		return fmt.Errorf("retrieving existing %s: %+v", id, err)
 	}
-	if existing.CustomIPPrefixPropertiesFormat == nil {
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving existing %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
 		return fmt.Errorf("retrieving existing %s: `properties` was nil", id)
 	}
 
-	existing.CustomIPPrefixPropertiesFormat.CommissionedState = desiredState
-	existing.CustomIPPrefixPropertiesFormat.NoInternetAdvertise = noInternetAdvertise
+	existing.Model.Properties.CommissionedState = pointer.To(desiredState)
+	existing.Model.Properties.NoInternetAdvertise = noInternetAdvertise
 
 	log.Printf("[DEBUG] Updating the CommissionedState field to %q for %s..", desiredState, id)
-	future, err := r.client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, existing)
-	if err != nil {
+	if err := r.client.CreateOrUpdateThenPoll(ctx, id, *existing.Model); err != nil {
 		return fmt.Errorf("updating CommissionedState to %q for %s: %+v", desiredState, id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, r.client.Client); err != nil {
-		return fmt.Errorf("waiting for the update of CommissionedState to %q for %s: %+v", desiredState, id, err)
 	}
 
 	return nil
@@ -607,7 +594,7 @@ func (r CustomIpPrefixResource) setCommissionedState(ctx context.Context, id par
 // consecutive polls, also returning an error if a state is reached that isn't in pendingStates or targetStates. Waits
 // for 10 minutes before polling to account for delays in the service reporting the actual latest state, since this
 // method is usually called soon after setting a new CommissionedState (known service bug).
-func (r CustomIpPrefixResource) waitForCommissionedState(ctx context.Context, id parse.CustomIpPrefixId, pendingStates, targetStates commissionedStates) (*network.CommissionedState, error) {
+func (r CustomIpPrefixResource) waitForCommissionedState(ctx context.Context, id customipprefixes.CustomIPPrefixId, pendingStates, targetStates commissionedStates) (*customipprefixes.CommissionedState, error) {
 	log.Printf("[DEBUG] Polling for the CommissionedState field for %s..", id)
 	timeout, ok := ctx.Deadline()
 	if !ok {
@@ -632,40 +619,54 @@ func (r CustomIpPrefixResource) waitForCommissionedState(ctx context.Context, id
 		return nil, fmt.Errorf("retrieving %s: response was nil", id)
 	}
 
-	prefix, ok := result.(network.CustomIPPrefix)
+	prefix, ok := result.(customipprefixes.CustomIPPrefix)
 	if !ok {
 		return nil, fmt.Errorf("retrieving %s: response was not a valid Custom IP Prefix", id)
 	}
 
-	if prefix.CustomIPPrefixPropertiesFormat == nil {
-		return &prefix.CustomIPPrefixPropertiesFormat.CommissionedState, fmt.Errorf("retrieving %s: `properties` was nil", id)
+	if prefix.Properties == nil {
+		return prefix.Properties.CommissionedState, fmt.Errorf("retrieving %s: `properties` was nil", id)
 	}
 
 	if err != nil {
-		return &prefix.CustomIPPrefixPropertiesFormat.CommissionedState, fmt.Errorf("waiting for CommissionedState of %s: %+v", id, err)
+		return prefix.Properties.CommissionedState, fmt.Errorf("waiting for CommissionedState of %s: %+v", id, err)
 	}
 
-	return &prefix.CustomIPPrefixPropertiesFormat.CommissionedState, nil
+	return prefix.Properties.CommissionedState, nil
 }
 
-func (r CustomIpPrefixResource) commissionedStateRefreshFunc(ctx context.Context, id parse.CustomIpPrefixId) pluginsdk.StateRefreshFunc {
+func (r CustomIpPrefixResource) commissionedStateRefreshFunc(ctx context.Context, id customipprefixes.CustomIPPrefixId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := r.client.Get(ctx, id.ResourceGroup, id.Name, "")
+		res, err := r.client.Get(ctx, id, customipprefixes.DefaultGetOperationOptions())
 		if err != nil {
-			return nil, "", fmt.Errorf("polling for %s: %+v", id.String(), err)
+			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
 		}
 
-		return res, string(res.CommissionedState), nil
+		if res.Model == nil {
+			return nil, "", fmt.Errorf("polling for %s: `model` was nil", id)
+		}
+		if res.Model.Properties == nil {
+			return nil, "", fmt.Errorf("polling for %s: `properties` was nil", id)
+		}
+
+		return res, string(pointer.From(res.Model.Properties.CommissionedState)), nil
 	}
 }
 
-func (r CustomIpPrefixResource) provisioningStateRefreshFunc(ctx context.Context, id parse.CustomIpPrefixId) pluginsdk.StateRefreshFunc {
+func (r CustomIpPrefixResource) provisioningStateRefreshFunc(ctx context.Context, id customipprefixes.CustomIPPrefixId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := r.client.Get(ctx, id.ResourceGroup, id.Name, "")
+		res, err := r.client.Get(ctx, id, customipprefixes.DefaultGetOperationOptions())
 		if err != nil {
-			return nil, "", fmt.Errorf("polling for %s: %+v", id.String(), err)
+			return nil, "", fmt.Errorf("polling for %s: %+v", id, err)
 		}
 
-		return res, string(res.ProvisioningState), nil
+		if res.Model == nil {
+			return nil, "", fmt.Errorf("polling for %s: `model` was nil", id)
+		}
+		if res.Model.Properties == nil {
+			return nil, "", fmt.Errorf("polling for %s: `properties` was nil", id)
+		}
+
+		return res, string(pointer.From(res.Model.Properties.ProvisioningState)), nil
 	}
 }

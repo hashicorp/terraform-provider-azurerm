@@ -27,7 +27,6 @@ func TestMLAnalyticsSettingsID(t *testing.T) {
 		Error    bool
 		Expected *MLAnalyticsSettingsId
 	}{
-
 		{
 			// empty
 			Input: "",

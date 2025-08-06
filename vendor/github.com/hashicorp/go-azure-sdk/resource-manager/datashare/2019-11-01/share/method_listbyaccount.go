@@ -40,6 +40,7 @@ func (o ListByAccountOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByAccountOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -54,6 +55,18 @@ func (o ListByAccountOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByAccountCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByAccountCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByAccount ...
 func (c ShareClient) ListByAccount(ctx context.Context, id AccountId, options ListByAccountOperationOptions) (result ListByAccountOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +75,9 @@ func (c ShareClient) ListByAccount(ctx context.Context, id AccountId, options Li
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/shares", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByAccountCustomPager{},
+		Path:          fmt.Sprintf("%s/shares", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -104,6 +118,7 @@ func (c ShareClient) ListByAccountCompleteMatchingPredicate(ctx context.Context,
 
 	resp, err := c.ListByAccount(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

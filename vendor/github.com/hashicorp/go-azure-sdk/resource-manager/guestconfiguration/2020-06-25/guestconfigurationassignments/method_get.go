@@ -45,7 +45,6 @@ func (c GuestConfigurationAssignmentsClient) Get(ctx context.Context, id Provide
 
 	var model GuestConfigurationAssignment
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

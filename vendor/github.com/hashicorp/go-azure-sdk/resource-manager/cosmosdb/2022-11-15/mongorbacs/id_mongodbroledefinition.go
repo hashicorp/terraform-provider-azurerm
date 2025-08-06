@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&MongodbRoleDefinitionId{})
+}
 
 var _ resourceids.ResourceId = &MongodbRoleDefinitionId{}
 
@@ -39,7 +44,7 @@ func ParseMongodbRoleDefinitionID(input string) (*MongodbRoleDefinitionId, error
 	}
 
 	id := MongodbRoleDefinitionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParseMongodbRoleDefinitionIDInsensitively(input string) (*MongodbRoleDefini
 	}
 
 	id := MongodbRoleDefinitionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -116,9 +121,9 @@ func (id MongodbRoleDefinitionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftDocumentDB", "Microsoft.DocumentDB", "Microsoft.DocumentDB"),
 		resourceids.StaticSegment("staticDatabaseAccounts", "databaseAccounts", "databaseAccounts"),
-		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountValue"),
+		resourceids.UserSpecifiedSegment("databaseAccountName", "databaseAccountName"),
 		resourceids.StaticSegment("staticMongodbRoleDefinitions", "mongodbRoleDefinitions", "mongodbRoleDefinitions"),
-		resourceids.UserSpecifiedSegment("mongoRoleDefinitionId", "mongoRoleDefinitionIdValue"),
+		resourceids.UserSpecifiedSegment("mongoRoleDefinitionId", "mongoRoleDefinitionId"),
 	}
 }
 

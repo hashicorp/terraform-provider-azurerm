@@ -15,7 +15,7 @@ type MongorbacsClient struct {
 }
 
 func NewMongorbacsClientWithBaseURI(sdkApi sdkEnv.Api) (*MongorbacsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "mongorbacs", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "mongorbacs", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating MongorbacsClient: %+v", err)
 	}

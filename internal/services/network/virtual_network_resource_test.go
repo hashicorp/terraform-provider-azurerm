@@ -6,14 +6,16 @@ package network_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type VirtualNetworkResource struct{}
@@ -268,6 +270,157 @@ func TestAccVirtualNetwork_edgeZone(t *testing.T) {
 	})
 }
 
+func TestAccVirtualNetwork_ipAddressPool(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
+	r := VirtualNetworkResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipAddressPool(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccVirtualNetwork_ipAddressPoolIPv6(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
+	r := VirtualNetworkResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipAddressPoolIPv6(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccVirtualNetwork_ipAddressPoolMultiple(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
+	r := VirtualNetworkResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipAddressPoolMultiple(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccVirtualNetwork_ipAddressPoolUpdateBasic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
+	r := VirtualNetworkResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ipAddressPool(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccVirtualNetwork_ipAddressPoolUpdateNumber(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
+	r := VirtualNetworkResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.ipAddressPool(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.ipAddressPoolNumberUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config:      r.ipAddressPool(data),
+			ExpectError: regexp.MustCompile("`number_of_ip_addresses` cannot be decreased"),
+		},
+	})
+}
+
+func TestAccVirtualNetwork_subnet(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
+	r := VirtualNetworkResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.subnet(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.subnetUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.noSubnet(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccVirtualNetwork_subnetRouteTable(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
+	r := VirtualNetworkResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.subnetRouteTable(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.subnetRouteTableRemoved(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestVirtualNetworkResource_tagCount(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 	r := VirtualNetworkResource{}
@@ -289,12 +442,12 @@ func (t VirtualNetworkResource) Exists(ctx context.Context, clients *clients.Cli
 		return nil, err
 	}
 
-	resp, err := clients.Network.VnetClient.Get(ctx, id.ResourceGroupName, id.VirtualNetworkName, "")
+	resp, err := clients.Network.VirtualNetworks.Get(ctx, *id, virtualnetworks.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r VirtualNetworkResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -303,16 +456,11 @@ func (r VirtualNetworkResource) Destroy(ctx context.Context, client *clients.Cli
 		return nil, err
 	}
 
-	future, err := client.Network.VnetClient.Delete(ctx, id.ResourceGroupName, id.VirtualNetworkName)
-	if err != nil {
-		return nil, fmt.Errorf("deleting on Virtual Network: %+v", err)
+	if err := client.Network.VirtualNetworks.DeleteThenPoll(ctx, *id); err != nil {
+		return nil, fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Network.VnetClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for deletion of Virtual Network %q: %+v", id, err)
-	}
-
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (VirtualNetworkResource) basic(data acceptance.TestData) string {
@@ -333,8 +481,8 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
   }
   tags = {
     environment = "Production"
@@ -366,8 +514,8 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
   }
   tags = {
                                     %s
@@ -388,24 +536,25 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
-  address_space       = ["10.0.0.0/16", "10.10.0.0/16"]
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  dns_servers         = ["10.7.7.2", "10.7.7.7", "10.7.7.1", ]
+  name                           = "acctestvirtnet%d"
+  address_space                  = ["10.0.0.0/16", "10.10.0.0/16"]
+  location                       = azurerm_resource_group.test.location
+  resource_group_name            = azurerm_resource_group.test.name
+  dns_servers                    = ["10.7.7.2", "10.7.7.7", "10.7.7.1", ]
+  private_endpoint_vnet_policies = "Basic"
 
   encryption {
     enforcement = "AllowUnencrypted"
   }
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
   }
 
   subnet {
-    name           = "subnet2"
-    address_prefix = "10.10.1.0/24"
+    name             = "subnet2"
+    address_prefixes = ["10.10.1.0/24"]
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
@@ -422,8 +571,8 @@ resource "azurerm_virtual_network" "import" {
   address_space       = ["10.0.0.0/16"]
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
   }
 }
 `, r.basic(data))
@@ -458,8 +607,8 @@ resource "azurerm_virtual_network" "test" {
   }
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
   }
   tags = {
     environment = "Production"
@@ -486,8 +635,8 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
   }
 
   tags = {
@@ -496,6 +645,203 @@ resource "azurerm_virtual_network" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (VirtualNetworkResource) ipAddressPool(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_network_manager" "test" {
+  name                = "acctest-nm-ipam-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  scope {
+    subscription_ids = [data.azurerm_subscription.current.id]
+  }
+}
+
+resource "azurerm_network_manager_ipam_pool" "test" {
+  name               = "acctest-ipampool-%[1]d"
+  network_manager_id = azurerm_network_manager.test.id
+  location           = azurerm_resource_group.test.location
+  display_name       = "ipampool1"
+  address_prefixes   = ["10.0.0.0/16"]
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_address_pool {
+    id                     = azurerm_network_manager_ipam_pool.test.id
+    number_of_ip_addresses = "100"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (VirtualNetworkResource) ipAddressPoolMultiple(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_network_manager" "test" {
+  name                = "acctest-nm-ipam-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  scope {
+    subscription_ids = [data.azurerm_subscription.current.id]
+  }
+}
+
+resource "azurerm_network_manager_ipam_pool" "test" {
+  name               = "acctest-ipampool-%[1]d"
+  network_manager_id = azurerm_network_manager.test.id
+  location           = azurerm_resource_group.test.location
+  display_name       = "ipampool1"
+  address_prefixes   = ["10.0.0.0/16"]
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "azurerm_network_manager_ipam_pool" "test2" {
+  name               = "acctest-ipampool-2-%[1]d"
+  network_manager_id = azurerm_network_manager.test.id
+  location           = azurerm_resource_group.test.location
+  display_name       = "ipampool2"
+  address_prefixes   = ["2001::/16"]
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_address_pool {
+    id                     = azurerm_network_manager_ipam_pool.test.id
+    number_of_ip_addresses = "100"
+  }
+
+  ip_address_pool {
+    id                     = azurerm_network_manager_ipam_pool.test2.id
+    number_of_ip_addresses = "200"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (VirtualNetworkResource) ipAddressPoolNumberUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_network_manager" "test" {
+  name                = "acctest-nm-ipam-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  scope {
+    subscription_ids = [data.azurerm_subscription.current.id]
+  }
+}
+
+resource "azurerm_network_manager_ipam_pool" "test" {
+  name               = "acctest-ipampool-%[1]d"
+  network_manager_id = azurerm_network_manager.test.id
+  location           = azurerm_resource_group.test.location
+  display_name       = "ipampool1"
+  address_prefixes   = ["10.0.0.0/16"]
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_address_pool {
+    id                     = azurerm_network_manager_ipam_pool.test.id
+    number_of_ip_addresses = "300"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (VirtualNetworkResource) ipAddressPoolIPv6(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_network_manager" "test" {
+  name                = "acctest-nm-ipam-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  scope {
+    subscription_ids = [data.azurerm_subscription.current.id]
+  }
+}
+
+resource "azurerm_network_manager_ipam_pool" "test" {
+  name               = "acctest-ipampool-%[1]d"
+  network_manager_id = azurerm_network_manager.test.id
+  location           = azurerm_resource_group.test.location
+  display_name       = "ipampool1"
+  address_prefixes   = ["2001::/16"]
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  ip_address_pool {
+    id                     = azurerm_network_manager_ipam_pool.test.id
+    number_of_ip_addresses = "5192296858534827628530496329220096"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (VirtualNetworkResource) withTagsUpdated(data acceptance.TestData) string {
@@ -516,8 +862,8 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
   }
 
   tags = {
@@ -534,12 +880,18 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_subnet_service_endpoint_storage_policy" "test" {
+  name                = "acctestSEP-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
 
 resource "azurerm_virtual_network" "test" {
-  name                = "acctestvirtnet%d"
+  name                = "acctestvirtnet%[1]d"
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
@@ -566,8 +918,8 @@ resource "azurerm_virtual_network" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   subnet {
-    name           = "subnet1"
-    address_prefix = "10.0.1.0/24"
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
   }
 
   bgp_community = "12076:20000"
@@ -622,4 +974,205 @@ resource "azurerm_virtual_network" "test" {
   edge_zone           = data.azurerm_extended_locations.test.extended_locations[0]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (VirtualNetworkResource) subnet(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_subnet_service_endpoint_storage_policy" "test" {
+  name                = "acctestSEP-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  address_space       = ["10.0.0.0/16", "ace:cab:deca::/48"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  subnet {
+    name                                          = "subnet1"
+    address_prefixes                              = ["10.0.1.0/24", "ace:cab:deca::/64"]
+    private_link_service_network_policies_enabled = false
+    private_endpoint_network_policies             = "Enabled"
+    service_endpoints                             = ["Microsoft.Sql", "Microsoft.Storage"]
+    service_endpoint_policy_ids                   = [azurerm_subnet_service_endpoint_storage_policy.test.id]
+
+    delegation {
+      name = "nginx"
+      service_delegation {
+        name = "NGINX.NGINXPLUS/nginxDeployments"
+        actions = [
+          "Microsoft.Network/virtualNetworks/subnets/join/action",
+        ]
+      }
+    }
+  }
+
+  subnet {
+    name                                          = "subnet2"
+    address_prefixes                              = ["10.0.2.0/24"]
+    private_link_service_network_policies_enabled = false
+    service_endpoints                             = ["Microsoft.Storage"]
+    service_endpoint_policy_ids                   = [azurerm_subnet_service_endpoint_storage_policy.test.id]
+
+    delegation {
+      name = "containers"
+      service_delegation {
+        name = "Microsoft.ContainerInstance/containerGroups"
+        actions = [
+          "Microsoft.Network/virtualNetworks/subnets/action",
+        ]
+      }
+    }
+  }
+
+  tags = {
+    environment = "Production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (VirtualNetworkResource) subnetUpdated(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_subnet_service_endpoint_storage_policy" "test" {
+  name                = "acctestSEP-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  subnet {
+    name                                          = "subnet1"
+    address_prefixes                              = ["10.0.1.0/24"]
+    default_outbound_access_enabled               = false
+    private_link_service_network_policies_enabled = true
+    private_endpoint_network_policies             = "Enabled"
+    service_endpoints                             = ["Microsoft.Storage"]
+
+    delegation {
+      name = "first"
+      service_delegation {
+        name = "Microsoft.ContainerInstance/containerGroups"
+        actions = [
+          "Microsoft.Network/virtualNetworks/subnets/action",
+        ]
+      }
+    }
+  }
+
+  tags = {
+    environment = "Production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (VirtualNetworkResource) subnetRouteTable(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_route_table" "test" {
+  name                = "acctest-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  route {
+    name                   = "first"
+    address_prefix         = "10.100.0.0/14"
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = "10.10.1.1"
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  subnet {
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
+    route_table_id   = azurerm_route_table.test.id
+  }
+
+  tags = {
+    environment = "Production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (VirtualNetworkResource) subnetRouteTableRemoved(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_route_table" "test" {
+  name                = "acctest-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  route {
+    name                   = "first"
+    address_prefix         = "10.100.0.0/14"
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = "10.10.1.1"
+  }
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  subnet {
+    name             = "subnet1"
+    address_prefixes = ["10.0.1.0/24"]
+  }
+
+  tags = {
+    environment = "Production"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

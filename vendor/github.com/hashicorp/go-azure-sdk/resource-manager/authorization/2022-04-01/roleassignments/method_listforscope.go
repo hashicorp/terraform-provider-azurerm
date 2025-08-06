@@ -41,6 +41,7 @@ func (o ListForScopeOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListForScopeOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -55,6 +56,18 @@ func (o ListForScopeOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListForScopeCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListForScopeCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListForScope ...
 func (c RoleAssignmentsClient) ListForScope(ctx context.Context, id commonids.ScopeId, options ListForScopeOperationOptions) (result ListForScopeOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -63,8 +76,9 @@ func (c RoleAssignmentsClient) ListForScope(ctx context.Context, id commonids.Sc
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.Authorization/roleAssignments", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListForScopeCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.Authorization/roleAssignments", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -105,6 +119,7 @@ func (c RoleAssignmentsClient) ListForScopeCompleteMatchingPredicate(ctx context
 
 	resp, err := c.ListForScope(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -45,7 +45,6 @@ func (c GeographicHierarchiesClient) GetDefault(ctx context.Context) (result Get
 
 	var model TrafficManagerGeographicHierarchy
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

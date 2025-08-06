@@ -34,6 +34,7 @@ func (o GetCountersOperationOptions) ToHeaders() *client.Headers {
 
 func (o GetCountersOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,8 +54,8 @@ func (c PostRulesClient) GetCounters(ctx context.Context, id PostRuleId, options
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/getCounters", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/getCounters", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -74,7 +75,6 @@ func (c PostRulesClient) GetCounters(ctx context.Context, id PostRuleId, options
 
 	var model RuleCounter
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

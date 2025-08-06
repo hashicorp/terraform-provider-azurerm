@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2023-02-01/protectionpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2024-10-01/protectionpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -578,6 +578,43 @@ func TestAccBackupProtectionPolicyVM_completeDays(t *testing.T) {
 	})
 }
 
+func TestAccBackupProtectionPolicyVM_tieringPolicy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	r := BackupProtectionPolicyVMResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.tieringPolicy(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccBackupProtectionPolicyVM_updateBackupTime(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_policy_vm", "test")
+	r := BackupProtectionPolicyVMResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.policyTypeDefault(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateBackupTime(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t BackupProtectionPolicyVMResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := protectionpolicies.ParseBackupPolicyID(state.ID)
 	if err != nil {
@@ -1004,6 +1041,71 @@ resource "azurerm_backup_policy_vm" "test" {
     include_last_days = true
   }
 
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r BackupProtectionPolicyVMResource) tieringPolicy(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_policy_vm" "test" {
+  name                = "acctest-bpvm-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+
+  backup {
+    frequency = "Weekly"
+    time      = "23:00"
+    weekdays  = ["Sunday", "Wednesday", "Friday", "Saturday"]
+  }
+
+  retention_weekly {
+    count    = 42
+    weekdays = ["Sunday", "Wednesday", "Friday", "Saturday"]
+  }
+
+  retention_monthly {
+    count    = 7
+    weekdays = ["Sunday", "Wednesday", "Friday", "Saturday"]
+    weeks    = ["First", "Last"]
+  }
+
+  retention_yearly {
+    count    = 77
+    weekdays = ["Sunday", "Wednesday", "Friday", "Saturday"]
+    weeks    = ["First", "Last"]
+    months   = ["January", "July"]
+  }
+
+  tiering_policy {
+    archived_restore_point {
+      duration      = 5
+      duration_type = "Months"
+      mode          = "TierAfter"
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r BackupProtectionPolicyVMResource) updateBackupTime(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_backup_policy_vm" "test" {
+  name                = "acctest-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  recovery_vault_name = azurerm_recovery_services_vault.test.name
+
+  backup {
+    frequency = "Daily"
+    time      = "20:00"
+  }
+
+  retention_daily {
+    count = 10
+  }
 }
 `, r.template(data), data.RandomInteger)
 }

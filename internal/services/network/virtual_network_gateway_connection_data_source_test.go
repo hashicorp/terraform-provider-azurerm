@@ -7,30 +7,30 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualnetworkgatewayconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 type VirtualNetworkGatewayConnectionDataSource struct{}
 
-func TestAccDataSourceVirtualNetworkGatewayConnection_sitetosite(t *testing.T) {
+func TestAccDataSourceVirtualNetworkGatewayConnection_siteToSite(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_network_gateway_connection", "test")
 	r := VirtualNetworkGatewayConnectionDataSource{}
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.sitetosite(data),
+			Config: r.siteToSite(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("shared_key").HasValue(sharedKey),
-				check.That(data.ResourceName).Key("type").HasValue(string(network.VirtualNetworkGatewayConnectionTypeIPsec)),
+				check.That(data.ResourceName).Key("type").HasValue(string(virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionTypeIPsec)),
 			),
 		},
 	})
 }
 
-func TestAccDataSourceVirtualNetworkGatewayConnection_vnettovnet(t *testing.T) {
+func TestAccDataSourceVirtualNetworkGatewayConnection_vnetToVnet(t *testing.T) {
 	data1 := acceptance.BuildTestData(t, "data.azurerm_virtual_network_gateway_connection", "test_1")
 	data2 := acceptance.BuildTestData(t, "data.azurerm_virtual_network_gateway_connection", "test_2")
 	r := VirtualNetworkGatewayConnectionDataSource{}
@@ -39,35 +39,35 @@ func TestAccDataSourceVirtualNetworkGatewayConnection_vnettovnet(t *testing.T) {
 
 	data1.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.vnettovnet(data1, data2.RandomInteger, sharedKey),
+			Config: r.vnetToVnet(data1, data2.RandomInteger, sharedKey),
 			Check: acceptance.ComposeTestCheckFunc(
 				acceptance.TestCheckResourceAttr(data1.ResourceName, "shared_key", sharedKey),
 				acceptance.TestCheckResourceAttr(data2.ResourceName, "shared_key", sharedKey),
-				acceptance.TestCheckResourceAttr(data1.ResourceName, "type", string(network.VirtualNetworkGatewayConnectionTypeVnet2Vnet)),
-				acceptance.TestCheckResourceAttr(data2.ResourceName, "type", string(network.VirtualNetworkGatewayConnectionTypeVnet2Vnet)),
+				acceptance.TestCheckResourceAttr(data1.ResourceName, "type", string(virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionTypeVnetTwoVnet)),
+				acceptance.TestCheckResourceAttr(data2.ResourceName, "type", string(virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionTypeVnetTwoVnet)),
 			),
 		},
 	})
 }
 
-func TestAccDataSourceVirtualNetworkGatewayConnection_ipsecpolicy(t *testing.T) {
+func TestAccDataSourceVirtualNetworkGatewayConnection_ipsecPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_virtual_network_gateway_connection", "test")
 	r := VirtualNetworkGatewayConnectionDataSource{}
 	sharedKey := "4-v3ry-53cr37-1p53c-5h4r3d-k3y"
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.ipsecpolicy(data),
+			Config: r.ipsecPolicy(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("shared_key").HasValue(sharedKey),
-				check.That(data.ResourceName).Key("type").HasValue(string(network.VirtualNetworkGatewayConnectionTypeIPsec)),
+				check.That(data.ResourceName).Key("type").HasValue(string(virtualnetworkgatewayconnections.VirtualNetworkGatewayConnectionTypeIPsec)),
 				check.That(data.ResourceName).Key("routing_weight").HasValue("20"),
-				check.That(data.ResourceName).Key("ipsec_policy.0.dh_group").HasValue(string(network.DhGroupDHGroup14)),
-				check.That(data.ResourceName).Key("ipsec_policy.0.ike_encryption").HasValue(string(network.IkeEncryptionAES256)),
-				check.That(data.ResourceName).Key("ipsec_policy.0.ike_integrity").HasValue(string(network.IkeIntegritySHA256)),
-				check.That(data.ResourceName).Key("ipsec_policy.0.ipsec_encryption").HasValue(string(network.IpsecEncryptionAES256)),
-				check.That(data.ResourceName).Key("ipsec_policy.0.ipsec_integrity").HasValue(string(network.IpsecIntegritySHA256)),
-				check.That(data.ResourceName).Key("ipsec_policy.0.pfs_group").HasValue(string(network.PfsGroupPFS2048)),
+				check.That(data.ResourceName).Key("ipsec_policy.0.dh_group").HasValue(string(virtualnetworkgatewayconnections.DhGroupDHGroupOneFour)),
+				check.That(data.ResourceName).Key("ipsec_policy.0.ike_encryption").HasValue(string(virtualnetworkgatewayconnections.IkeEncryptionAESTwoFiveSix)),
+				check.That(data.ResourceName).Key("ipsec_policy.0.ike_integrity").HasValue(string(virtualnetworkgatewayconnections.IkeIntegritySHATwoFiveSix)),
+				check.That(data.ResourceName).Key("ipsec_policy.0.ipsec_encryption").HasValue(string(virtualnetworkgatewayconnections.IPsecEncryptionAESTwoFiveSix)),
+				check.That(data.ResourceName).Key("ipsec_policy.0.ipsec_integrity").HasValue(string(virtualnetworkgatewayconnections.IPsecIntegritySHATwoFiveSix)),
+				check.That(data.ResourceName).Key("ipsec_policy.0.pfs_group").HasValue(string(virtualnetworkgatewayconnections.PfsGroupPFSTwoZeroFourEight)),
 				check.That(data.ResourceName).Key("ipsec_policy.0.sa_datasize").HasValue("102400000"),
 				check.That(data.ResourceName).Key("ipsec_policy.0.sa_lifetime").HasValue("27000"),
 			),
@@ -75,10 +75,14 @@ func TestAccDataSourceVirtualNetworkGatewayConnection_ipsecpolicy(t *testing.T) 
 	})
 }
 
-func (VirtualNetworkGatewayConnectionDataSource) sitetosite(data acceptance.TestData) string {
+func (VirtualNetworkGatewayConnectionDataSource) siteToSite(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
+}
+
+provider "azurerm" {
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
@@ -105,6 +109,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
+  sku                 = "Basic"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {
@@ -148,7 +153,7 @@ data "azurerm_virtual_network_gateway_connection" "test" {
 `, data.RandomInteger, data.Locations.Primary)
 }
 
-func (VirtualNetworkGatewayConnectionDataSource) vnettovnet(data acceptance.TestData, rInt2 int, sharedKey string) string {
+func (VirtualNetworkGatewayConnectionDataSource) vnetToVnet(data acceptance.TestData, rInt2 int, sharedKey string) string {
 	return fmt.Sprintf(`
 variable "random1" {
   default = "%d"
@@ -160,6 +165,10 @@ variable "random2" {
 
 variable "shared_key" {
   default = "%s"
+}
+
+provider "azurerm" {
+  features {}
 }
 
 resource "azurerm_resource_group" "test_1" {
@@ -186,6 +195,7 @@ resource "azurerm_public_ip" "test_1" {
   location            = azurerm_resource_group.test_1.location
   resource_group_name = azurerm_resource_group.test_1.name
   allocation_method   = "Dynamic"
+  sku                 = "Basic"
 }
 
 resource "azurerm_virtual_network_gateway" "test_1" {
@@ -241,6 +251,7 @@ resource "azurerm_public_ip" "test_2" {
   location            = azurerm_resource_group.test_2.location
   resource_group_name = azurerm_resource_group.test_2.name
   allocation_method   = "Dynamic"
+  sku                 = "Basic"
 }
 
 resource "azurerm_virtual_network_gateway" "test_2" {
@@ -284,10 +295,14 @@ data "azurerm_virtual_network_gateway_connection" "test_2" {
 `, data.RandomInteger, rInt2, sharedKey, data.Locations.Primary, data.Locations.Secondary)
 }
 
-func (VirtualNetworkGatewayConnectionDataSource) ipsecpolicy(data acceptance.TestData) string {
+func (VirtualNetworkGatewayConnectionDataSource) ipsecPolicy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 variable "random" {
   default = "%d"
+}
+
+provider "azurerm" {
+  features {}
 }
 
 resource "azurerm_resource_group" "test" {
@@ -313,7 +328,8 @@ resource "azurerm_public_ip" "test" {
   name                = "acctest-${var.random}"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
 }
 
 resource "azurerm_virtual_network_gateway" "test" {

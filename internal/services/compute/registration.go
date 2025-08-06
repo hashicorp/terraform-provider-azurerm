@@ -88,8 +88,14 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
+		VirtualMachineImplicitDataDiskFromSourceResource{},
 		VirtualMachineRunCommandResource{},
 		GalleryApplicationResource{},
 		GalleryApplicationVersionResource{},
+		RestorePointCollectionResource{},
+		VirtualMachineRestorePointCollectionResource{},
+		VirtualMachineRestorePointResource{},
+		VirtualMachineGalleryApplicationAssignmentResource{},
+		VirtualMachineScaleSetStandbyPoolResource{},
 	}
 }

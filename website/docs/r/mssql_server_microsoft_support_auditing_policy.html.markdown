@@ -162,7 +162,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Whether to enable the extended auditing policy. Possible values are `true` and `false`. Defaults to `true`.
 
-->**NOTE:**  If `enabled` is `true`, `blob_storage_endpoint` or `log_monitoring_enabled` are required.
+-> **Note:** If `enabled` is `true`, `blob_storage_endpoint` or `log_monitoring_enabled` are required.
 
 * `blob_storage_endpoint` - (Optional) The blob storage endpoint (e.g. https://example.blob.core.windows.net). This blob storage will hold all Microsoft support auditing logs.
 
@@ -194,3 +194,9 @@ MS SQL Server Microsoft Support Auditing Policies can be imported using the `res
 ```shell
 terraform import azurerm_mssql_server_microsoft_support_auditing_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Sql/servers/sqlServer1/devOpsAuditingSettings/default
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Sql` - 2023-08-01-preview

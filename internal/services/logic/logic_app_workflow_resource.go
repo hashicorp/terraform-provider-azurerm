@@ -130,7 +130,7 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 									"allowed_caller_ip_address_range": {
 										Type:     pluginsdk.TypeSet,
-										Required: true,
+										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.Any(
@@ -931,7 +931,7 @@ func flattenIPAddresses(input *[]workflows.IPAddress) []interface{} {
 		return []interface{}{}
 	}
 
-	var addresses []interface{}
+	addresses := make([]interface{}, 0, len(*input))
 	for _, addr := range *input {
 		addresses = append(addresses, *addr.Address)
 	}

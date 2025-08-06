@@ -50,7 +50,6 @@ func (c HybridConnectionsClient) RegenerateKeys(ctx context.Context, id HybridCo
 
 	var model AccessKeys
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

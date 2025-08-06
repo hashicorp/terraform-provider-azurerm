@@ -25,9 +25,10 @@ func RedisEnterpriseClusterLocationZoneSupport(input string) error {
 }
 
 func invalidRedisEnterpriseClusterZoneLocations() []string {
-	var invalidZone []string
+	locations := friendlyInvalidRedisEnterpriseClusterZoneLocations()
+	invalidZone := make([]string, 0, len(locations))
 
-	for _, v := range friendlyInvalidRedisEnterpriseClusterZoneLocations() {
+	for _, v := range locations {
 		invalidZone = append(invalidZone, location.Normalize(v))
 	}
 
@@ -41,7 +42,6 @@ func friendlyInvalidRedisEnterpriseClusterZoneLocations() []string {
 		"Australia Southeast",
 		"East Asia",
 		"UK West",
-		"Central India",
 		"South India",
 	}
 }

@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	eventhubValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/eventhub/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/migration"
@@ -33,7 +32,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	devices "github.com/tombuildsstuff/kermit/sdk/iothub/2022-04-30-preview/iothub"
+	devices "github.com/jackofallops/kermit/sdk/iothub/2022-04-30-preview/iothub"
 )
 
 // TODO: outside of this pr make this private
@@ -165,13 +164,13 @@ func resourceIotHub() *pluginsdk.Resource {
 			"event_hub_partition_count": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Default:      4,
 				ValidateFunc: validation.IntBetween(2, 128),
 			},
 			"event_hub_retention_in_days": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
-				Computed:     true,
+				Default:      1,
 				ValidateFunc: validation.IntBetween(1, 7),
 			},
 
@@ -219,38 +218,20 @@ func resourceIotHub() *pluginsdk.Resource {
 						"sas_ttl": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     !features.FourPointOhBeta(),
 							ValidateFunc: validate.ISO8601Duration,
-							Default: func() interface{} {
-								if !features.FourPointOhBeta() {
-									return nil
-								}
-								return "PT1H"
-							}(),
+							Default:      "PT1H",
 						},
 						"default_ttl": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     !features.FourPointOhBeta(),
 							ValidateFunc: validate.ISO8601Duration,
-							Default: func() interface{} {
-								if !features.FourPointOhBeta() {
-									return nil
-								}
-								return "PT1H"
-							}(),
+							Default:      "PT1H",
 						},
 						"lock_duration": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							Computed:     !features.FourPointOhBeta(),
 							ValidateFunc: validate.ISO8601Duration,
-							Default: func() interface{} {
-								if !features.FourPointOhBeta() {
-									return nil
-								}
-								return "PT1M"
-							}(),
+							Default:      "PT1M",
 						},
 					},
 				},
@@ -491,7 +472,7 @@ func resourceIotHub() *pluginsdk.Resource {
 						"enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
-							Computed: true,
+							Default:  true,
 						},
 					},
 				},

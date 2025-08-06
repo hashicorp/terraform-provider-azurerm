@@ -258,6 +258,7 @@ resource "azurerm_windows_function_app" "test" {
       client_id                  = data.azurerm_client_config.current.client_id
       client_secret_setting_name = "%[3]s"
       tenant_auth_endpoint       = "https://sts.windows.net/%[5]s/v2.0"
+      allowed_applications       = ["WhoopsMissedThisOne"]
     }
     login {}
   }
@@ -890,7 +891,7 @@ resource "azurerm_windows_function_app" "test" {
     load_balancing_mode       = "LeastResponseTime"
     pre_warmed_instance_count = 2
     remote_debugging_enabled  = true
-    remote_debugging_version  = "VS2017"
+    remote_debugging_version  = "VS2022"
 
     scm_ip_restriction {
       ip_address = "10.20.20.20/32"
@@ -918,11 +919,12 @@ resource "azurerm_windows_function_app" "test" {
       }
     }
 
-    use_32_bit_worker  = true
-    websockets_enabled = true
-    ftps_state         = "FtpsOnly"
-    health_check_path  = "/health-check"
-    worker_count       = 3
+    use_32_bit_worker                 = true
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health-check"
+    health_check_eviction_time_in_min = 7
+    worker_count                      = 3
 
     minimum_tls_version     = "1.1"
     scm_minimum_tls_version = "1.1"

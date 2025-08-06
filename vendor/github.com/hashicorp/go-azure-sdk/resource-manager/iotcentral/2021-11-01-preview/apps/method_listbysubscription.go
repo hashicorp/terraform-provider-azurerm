@@ -24,6 +24,18 @@ type ListBySubscriptionCompleteResult struct {
 	Items              []App
 }
 
+type ListBySubscriptionCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListBySubscriptionCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListBySubscription ...
 func (c AppsClient) ListBySubscription(ctx context.Context, id commonids.SubscriptionId) (result ListBySubscriptionOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppsClient) ListBySubscription(ctx context.Context, id commonids.Subscri
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListBySubscriptionCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.IoTCentral/iotApps", id.ID()),
 	}
 
@@ -73,6 +86,7 @@ func (c AppsClient) ListBySubscriptionCompleteMatchingPredicate(ctx context.Cont
 
 	resp, err := c.ListBySubscription(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

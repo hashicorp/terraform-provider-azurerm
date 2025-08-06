@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkprofiles"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkprofiles"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -25,18 +25,21 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name network_profile -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 const azureNetworkProfileResourceName = "azurerm_network_profile"
 
 func resourceNetworkProfile() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetworkProfileCreateUpdate,
-		Read:   resourceNetworkProfileRead,
-		Update: resourceNetworkProfileCreateUpdate,
-		Delete: resourceNetworkProfileDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := networkprofiles.ParseNetworkProfileID(id)
-			return err
-		}),
+		Create:   resourceNetworkProfileCreate,
+		Read:     resourceNetworkProfileRead,
+		Update:   resourceNetworkProfileUpdate,
+		Delete:   resourceNetworkProfileDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&networkprofiles.NetworkProfileId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&networkprofiles.NetworkProfileId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -103,34 +106,26 @@ func resourceNetworkProfile() *pluginsdk.Resource {
 	}
 }
 
-func resourceNetworkProfileCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkProfileCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.NetworkProfiles
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
-	log.Printf("[INFO] preparing arguments for Network Profile creation")
-
 	id := networkprofiles.NewNetworkProfileID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id, networkprofiles.DefaultGetOperationOptions())
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id, networkprofiles.DefaultGetOperationOptions())
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_network_profile", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_network_profile", id.ID())
+	}
 
-	containerNetworkInterfacesRaw := d.Get("container_network_interface").([]interface{})
-	containerNetworkInterfaceConfigurations := expandNetworkProfileContainerNetworkInterface(containerNetworkInterfacesRaw)
+	containerNetworkInterfaceConfigurations := expandNetworkProfileContainerNetworkInterface(d.Get("container_network_interface").([]interface{}))
 	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetNames(containerNetworkInterfaceConfigurations)
 	if err != nil {
 		return fmt.Errorf("extracting names of Subnet and Virtual Network: %+v", err)
@@ -146,15 +141,71 @@ func resourceNetworkProfileCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	defer locks.UnlockMultipleByName(subnetsToLock, SubnetResourceName)
 
 	payload := networkprofiles.NetworkProfile{
-		Location: &location,
-		Tags:     tags.Expand(t),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 		Properties: &networkprofiles.NetworkProfilePropertiesFormat{
 			ContainerNetworkInterfaceConfigurations: containerNetworkInterfaceConfigurations,
 		},
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, payload); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceNetworkProfileRead(d, meta)
+}
+
+func resourceNetworkProfileUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.NetworkProfiles
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := networkprofiles.ParseNetworkProfileID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id, networkprofiles.DefaultGetOperationOptions())
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	payload := existing.Model
+
+	containerNetworkInterfaceConfigurations := expandNetworkProfileContainerNetworkInterface(d.Get("container_network_interface").([]interface{}))
+	subnetsToLock, vnetsToLock, err := expandNetworkProfileVirtualNetworkSubnetNames(containerNetworkInterfaceConfigurations)
+	if err != nil {
+		return fmt.Errorf("extracting names of Subnet and Virtual Network: %+v", err)
+	}
+
+	locks.ByName(id.NetworkProfileName, azureNetworkProfileResourceName)
+	defer locks.UnlockByName(id.NetworkProfileName, azureNetworkProfileResourceName)
+
+	locks.MultipleByName(vnetsToLock, VirtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(vnetsToLock, VirtualNetworkResourceName)
+
+	locks.MultipleByName(subnetsToLock, SubnetResourceName)
+	defer locks.UnlockMultipleByName(subnetsToLock, SubnetResourceName)
+
+	if d.HasChange("container_network_interface") {
+		payload.Properties.ContainerNetworkInterfaceConfigurations = containerNetworkInterfaceConfigurations
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if _, err := client.CreateOrUpdate(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -206,7 +257,7 @@ func resourceNetworkProfileRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceNetworkProfileDelete(d *pluginsdk.ResourceData, meta interface{}) error {

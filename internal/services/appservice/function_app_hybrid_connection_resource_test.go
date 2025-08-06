@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -85,6 +85,7 @@ func TestAccFunctionAppHybridConnection_sendRule(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func TestAccFunctionAppHybridConnection_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_hybrid_connection", "test")
 	r := FunctionAppHybridConnectionResource{}
@@ -254,6 +255,63 @@ resource "azurerm_windows_function_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, SkuBasicPlan, data.RandomString)
 }
 
+func (r FunctionAppHybridConnectionResource) templateRelayInOtherResourceGroup(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_service_plan" "test" {
+  name                = "acctestASP-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  os_type             = "Windows"
+  sku_name            = "%[3]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%[4]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_resource_group" "rg-test-relay" {
+  name     = "acctestRG-relay-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_relay_namespace" "test" {
+  name                = "acctest-RN-%[1]d"
+  location            = azurerm_resource_group.rg-test-relay.location
+  resource_group_name = azurerm_resource_group.rg-test-relay.name
+
+  sku_name = "Standard"
+}
+
+resource "azurerm_relay_hybrid_connection" "test" {
+  name                 = "acctest-RHC-%[1]d"
+  resource_group_name  = azurerm_resource_group.rg-test-relay.name
+  relay_namespace_name = azurerm_relay_namespace.test.name
+  user_metadata        = "metadatatest"
+}
+
+resource "azurerm_windows_function_app" "test" {
+  name                = "acctest-WFA-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {}
+}
+`, data.RandomInteger, data.Locations.Primary, SkuBasicPlan, data.RandomString)
+}
+
 func (r FunctionAppHybridConnectionResource) authRuleTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -276,14 +334,9 @@ func (r FunctionAppHybridConnectionResource) authRuleInRemoteResourceGroupTempla
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_resource_group" "relay" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
 resource "azurerm_relay_hybrid_connection_authorization_rule" "test" {
   name                   = "sendKey"
-  resource_group_name    = azurerm_resource_group.relay.name
+  resource_group_name    = azurerm_resource_group.rg-test-relay.name
   hybrid_connection_name = azurerm_relay_hybrid_connection.test.name
   namespace_name         = azurerm_relay_namespace.test.name
 
@@ -292,5 +345,5 @@ resource "azurerm_relay_hybrid_connection_authorization_rule" "test" {
   manage = false
 }
 
-`, r.template(data), data.RandomInteger, data.Locations.Primary)
+`, r.templateRelayInOtherResourceGroup(data))
 }

@@ -4,6 +4,7 @@
 package frontdoor
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -230,8 +231,8 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 												string(webapplicationfirewallpolicies.TransformTypeRemoveNulls),
 												string(webapplicationfirewallpolicies.TransformTypeTrim),
 												string(webapplicationfirewallpolicies.TransformTypeUppercase),
-												string(webapplicationfirewallpolicies.TransformTypeUrlDecode),
-												string(webapplicationfirewallpolicies.TransformTypeUrlEncode),
+												string(webapplicationfirewallpolicies.TransformTypeURLDecode),
+												string(webapplicationfirewallpolicies.TransformTypeURLEncode),
 											}, false),
 										},
 									},
@@ -428,6 +429,20 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			if IsFrontDoorFullyRetired() {
+				return fmt.Errorf("%s", FullyRetiredMessage)
+			}
+
+			// New resources are not supported, and since these fields are 'ForceNew' we also need to block changing them as
+			// the re-create would fail with the create error from the service API...
+			if IsFrontDoorDeprecatedForCreation() && d.HasChanges("name", "resource_group_name") {
+				return fmt.Errorf("%s", CreateDeprecationMessage)
+			}
+
+			return nil
+		}),
 	}
 }
 
@@ -484,7 +499,7 @@ func resourceFrontDoorFirewallPolicyCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if redirectUrl != "" {
-		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.RedirectUrl = utils.String(redirectUrl)
+		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.RedirectURL = utils.String(redirectUrl)
 	}
 	if customBlockResponseBody != "" {
 		frontdoorWebApplicationFirewallPolicy.Properties.PolicySettings.CustomBlockResponseBody = utils.String(customBlockResponseBody)
@@ -536,7 +551,7 @@ func resourceFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta interfa
 				if policy.Mode != nil {
 					d.Set("mode", string(*policy.Mode))
 				}
-				d.Set("redirect_url", policy.RedirectUrl)
+				d.Set("redirect_url", policy.RedirectURL)
 				d.Set("custom_block_response_status_code", policy.CustomBlockResponseStatusCode)
 				d.Set("custom_block_response_body", policy.CustomBlockResponseBody)
 			}

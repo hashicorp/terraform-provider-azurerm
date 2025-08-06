@@ -178,7 +178,6 @@ func resourceLogicAppIntegrationAccountCertificateRead(d *pluginsdk.ResourceData
 		}
 
 		d.Set("public_certificate", props.PublicCertificate)
-
 	}
 
 	return nil

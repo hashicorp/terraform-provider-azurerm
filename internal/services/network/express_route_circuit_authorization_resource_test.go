@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/expressroutecircuitauthorizations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ExpressRouteCircuitAuthorizationResource struct{}
@@ -71,17 +71,17 @@ func testAccExpressRouteCircuitAuthorization_multiple(t *testing.T) {
 }
 
 func (t ExpressRouteCircuitAuthorizationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ExpressRouteCircuitAuthorizationID(state.ID)
+	id, err := expressroutecircuitauthorizations.ParseAuthorizationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.ExpressRouteAuthsClient.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.AuthorizationName)
+	resp, err := clients.Network.ExpressRouteCircuitAuthorizations.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (ExpressRouteCircuitAuthorizationResource) basicConfig(data acceptance.TestData) string {

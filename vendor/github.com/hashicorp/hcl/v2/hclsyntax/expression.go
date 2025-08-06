@@ -6,6 +6,7 @@ package hclsyntax
 import (
 	"fmt"
 	"sort"
+	"strings"
 	"sync"
 
 	"github.com/hashicorp/hcl/v2"
@@ -251,6 +252,76 @@ func (e *FunctionCallExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnosti
 			}
 		}
 
+		extraUnknown := &functionCallUnknown{
+			name: e.Name,
+		}
+
+		// For historical reasons, we represent namespaced function names
+		// as strings with :: separating the names. If this was an attempt
+		// to call a namespaced function then we'll try to distinguish
+		// between an invalid namespace or an invalid name within a valid
+		// namespace in order to give the user better feedback about what
+		// is wrong.
+		//
+		// The parser guarantees that a function name will always
+		// be a series of valid identifiers separated by "::" with no
+		// other content, so we can be relatively unforgiving in our processing
+		// here.
+		if sepIdx := strings.LastIndex(e.Name, "::"); sepIdx != -1 {
+			namespace := e.Name[:sepIdx+2]
+			name := e.Name[sepIdx+2:]
+
+			avail := make([]string, 0, len(ctx.Functions))
+			for availName := range ctx.Functions {
+				if strings.HasPrefix(availName, namespace) {
+					avail = append(avail, availName)
+				}
+			}
+
+			extraUnknown.name = name
+			extraUnknown.namespace = namespace
+
+			if len(avail) == 0 {
+				// TODO: Maybe use nameSuggestion for the other available
+				// namespaces? But that'd require us to go scan the function
+				// table again, so we'll wait to see if it's really warranted.
+				// For now, we're assuming people are more likely to misremember
+				// the function names than the namespaces, because in many
+				// applications there will be relatively few namespaces compared
+				// to the number of distinct functions.
+				return cty.DynamicVal, hcl.Diagnostics{
+					{
+						Severity:    hcl.DiagError,
+						Summary:     "Call to unknown function",
+						Detail:      fmt.Sprintf("There are no functions in namespace %q.", namespace),
+						Subject:     &e.NameRange,
+						Context:     e.Range().Ptr(),
+						Expression:  e,
+						EvalContext: ctx,
+						Extra:       extraUnknown,
+					},
+				}
+			} else {
+				suggestion := nameSuggestion(name, avail)
+				if suggestion != "" {
+					suggestion = fmt.Sprintf(" Did you mean %s%s?", namespace, suggestion)
+				}
+
+				return cty.DynamicVal, hcl.Diagnostics{
+					{
+						Severity:    hcl.DiagError,
+						Summary:     "Call to unknown function",
+						Detail:      fmt.Sprintf("There is no function named %q in namespace %s.%s", name, namespace, suggestion),
+						Subject:     &e.NameRange,
+						Context:     e.Range().Ptr(),
+						Expression:  e,
+						EvalContext: ctx,
+						Extra:       extraUnknown,
+					},
+				}
+			}
+		}
+
 		avail := make([]string, 0, len(ctx.Functions))
 		for name := range ctx.Functions {
 			avail = append(avail, name)
@@ -269,6 +340,7 @@ func (e *FunctionCallExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnosti
 				Context:     e.Range().Ptr(),
 				Expression:  e,
 				EvalContext: ctx,
+				Extra:       extraUnknown,
 			},
 		}
 	}
@@ -616,6 +688,27 @@ func (e *functionCallDiagExtra) FunctionCallError() error {
 	return e.functionCallError
 }
 
+// FunctionCallUnknownDiagExtra is an interface implemented by a value in the Extra
+// field of some diagnostics to indicate when the error was caused by a call to
+// an unknown function.
+type FunctionCallUnknownDiagExtra interface {
+	CalledFunctionName() string
+	CalledFunctionNamespace() string
+}
+
+type functionCallUnknown struct {
+	name      string
+	namespace string
+}
+
+func (e *functionCallUnknown) CalledFunctionName() string {
+	return e.name
+}
+
+func (e *functionCallUnknown) CalledFunctionNamespace() string {
+	return e.namespace
+}
+
 type ConditionalExpr struct {
 	Condition   Expression
 	TrueResult  Expression
@@ -695,61 +788,99 @@ func (e *ConditionalExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostic
 		})
 		return cty.UnknownVal(resultType), diags
 	}
+
+	// Now that we have all three values, collect all the marks for the result.
+	// Since it's possible that a condition value could be unknown, and the
+	// consumer needs to deal with any marks from either branch anyway, we must
+	// always combine them for consistent results.
+	condResult, condResultMarks := condResult.Unmark()
+	trueResult, trueResultMarks := trueResult.Unmark()
+	falseResult, falseResultMarks := falseResult.Unmark()
+	var resMarks []cty.ValueMarks
+	resMarks = append(resMarks, condResultMarks, trueResultMarks, falseResultMarks)
+
 	if !condResult.IsKnown() {
+		trueRange := trueResult.Range()
+		falseRange := falseResult.Range()
+
+		// if both branches are known to be null, then the result must still be null
+		if trueResult.IsNull() && falseResult.IsNull() {
+			return cty.NullVal(resultType).WithMarks(resMarks...), diags
+		}
+
 		// We might be able to offer a refined range for the result based on
 		// the two possible outcomes.
 		if trueResult.Type() == cty.Number && falseResult.Type() == cty.Number {
-			// This case deals with the common case of (predicate ? 1 : 0) and
-			// significantly decreases the range of the result in that case.
-			if !(trueResult.IsNull() || falseResult.IsNull()) {
-				if gt := trueResult.GreaterThan(falseResult); gt.IsKnown() {
-					b := cty.UnknownVal(cty.Number).Refine()
-					if gt.True() {
-						b = b.
-							NumberRangeLowerBound(falseResult, true).
-							NumberRangeUpperBound(trueResult, true)
-					} else {
-						b = b.
-							NumberRangeLowerBound(trueResult, true).
-							NumberRangeUpperBound(falseResult, true)
-					}
-					b = b.NotNull() // If neither of the results is null then the result can't be either
-					return b.NewValue().WithSameMarks(condResult).WithSameMarks(trueResult).WithSameMarks(falseResult), diags
-				}
+			ref := cty.UnknownVal(cty.Number).Refine()
+			if trueRange.DefinitelyNotNull() && falseRange.DefinitelyNotNull() {
+				ref = ref.NotNull()
 			}
+
+			falseLo, falseLoInc := falseRange.NumberLowerBound()
+			falseHi, falseHiInc := falseRange.NumberUpperBound()
+			trueLo, trueLoInc := trueRange.NumberLowerBound()
+			trueHi, trueHiInc := trueRange.NumberUpperBound()
+
+			if falseLo.IsKnown() && trueLo.IsKnown() {
+				lo, loInc := falseLo, falseLoInc
+				switch {
+				case trueLo.LessThan(falseLo).True():
+					lo, loInc = trueLo, trueLoInc
+				case trueLo.Equals(falseLo).True():
+					loInc = trueLoInc || falseLoInc
+				}
+
+				ref = ref.NumberRangeLowerBound(lo, loInc)
+			}
+
+			if falseHi.IsKnown() && trueHi.IsKnown() {
+				hi, hiInc := falseHi, falseHiInc
+				switch {
+				case trueHi.GreaterThan(falseHi).True():
+					hi, hiInc = trueHi, trueHiInc
+				case trueHi.Equals(falseHi).True():
+					hiInc = trueHiInc || falseHiInc
+				}
+				ref = ref.NumberRangeUpperBound(hi, hiInc)
+			}
+
+			return ref.NewValue().WithMarks(resMarks...), diags
 		}
+
 		if trueResult.Type().IsCollectionType() && falseResult.Type().IsCollectionType() {
 			if trueResult.Type().Equals(falseResult.Type()) {
-				if !(trueResult.IsNull() || falseResult.IsNull()) {
-					trueLen := trueResult.Length()
-					falseLen := falseResult.Length()
-					if gt := trueLen.GreaterThan(falseLen); gt.IsKnown() {
-						b := cty.UnknownVal(resultType).Refine()
-						trueLen, _ := trueLen.AsBigFloat().Int64()
-						falseLen, _ := falseLen.AsBigFloat().Int64()
-						if gt.True() {
-							b = b.
-								CollectionLengthLowerBound(int(falseLen)).
-								CollectionLengthUpperBound(int(trueLen))
-						} else {
-							b = b.
-								CollectionLengthLowerBound(int(trueLen)).
-								CollectionLengthUpperBound(int(falseLen))
-						}
-						b = b.NotNull() // If neither of the results is null then the result can't be either
-						return b.NewValue().WithSameMarks(condResult).WithSameMarks(trueResult).WithSameMarks(falseResult), diags
-					}
+				ref := cty.UnknownVal(resultType).Refine()
+				if trueRange.DefinitelyNotNull() && falseRange.DefinitelyNotNull() {
+					ref = ref.NotNull()
 				}
+
+				falseLo := falseRange.LengthLowerBound()
+				falseHi := falseRange.LengthUpperBound()
+				trueLo := trueRange.LengthLowerBound()
+				trueHi := trueRange.LengthUpperBound()
+
+				lo := falseLo
+				if trueLo < falseLo {
+					lo = trueLo
+				}
+
+				hi := falseHi
+				if trueHi > falseHi {
+					hi = trueHi
+				}
+
+				ref = ref.CollectionLengthLowerBound(lo).CollectionLengthUpperBound(hi)
+				return ref.NewValue().WithMarks(resMarks...), diags
 			}
 		}
-		trueRng := trueResult.Range()
-		falseRng := falseResult.Range()
+
 		ret := cty.UnknownVal(resultType)
-		if trueRng.DefinitelyNotNull() && falseRng.DefinitelyNotNull() {
+		if trueRange.DefinitelyNotNull() && falseRange.DefinitelyNotNull() {
 			ret = ret.RefineNotNull()
 		}
-		return ret.WithSameMarks(condResult).WithSameMarks(trueResult).WithSameMarks(falseResult), diags
+		return ret.WithMarks(resMarks...), diags
 	}
+
 	condResult, err := convert.Convert(condResult, cty.Bool)
 	if err != nil {
 		diags = append(diags, &hcl.Diagnostic{
@@ -764,8 +895,6 @@ func (e *ConditionalExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostic
 		return cty.UnknownVal(resultType), diags
 	}
 
-	// Unmark result before testing for truthiness
-	condResult, _ = condResult.UnmarkDeep()
 	if condResult.True() {
 		diags = append(diags, trueDiags...)
 		if convs[0] != nil {
@@ -788,7 +917,7 @@ func (e *ConditionalExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostic
 				trueResult = cty.UnknownVal(resultType)
 			}
 		}
-		return trueResult, diags
+		return trueResult.WithMarks(resMarks...), diags
 	} else {
 		diags = append(diags, falseDiags...)
 		if convs[1] != nil {
@@ -811,7 +940,7 @@ func (e *ConditionalExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostic
 				falseResult = cty.UnknownVal(resultType)
 			}
 		}
-		return falseResult, diags
+		return falseResult.WithMarks(resMarks...), diags
 	}
 }
 
@@ -1240,9 +1369,9 @@ func (e *ObjectConsKeyExpr) UnwrapExpression() Expression {
 
 // ForExpr represents iteration constructs:
 //
-//     tuple = [for i, v in list: upper(v) if i > 2]
-//     object = {for k, v in map: k => upper(v)}
-//     object_of_tuples = {for v in list: v.key: v...}
+//	tuple = [for i, v in list: upper(v) if i > 2]
+//	object = {for k, v in map: k => upper(v)}
+//	object_of_tuples = {for v in list: v.key: v...}
 type ForExpr struct {
 	KeyVar string // empty if ignoring the key
 	ValVar string
@@ -1301,9 +1430,9 @@ func (e *ForExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 		})
 		return cty.DynamicVal, diags
 	}
-	if !collVal.IsKnown() {
-		return cty.DynamicVal, diags
-	}
+
+	// Grab the CondExpr marks when we're returning early with an unknown
+	var condMarks cty.ValueMarks
 
 	// Before we start we'll do an early check to see if any CondExpr we've
 	// been given is of the wrong type. This isn't 100% reliable (it may
@@ -1331,6 +1460,9 @@ func (e *ForExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 			})
 			return cty.DynamicVal, diags
 		}
+
+		_, condMarks = result.Unmark()
+
 		_, err := convert.Convert(result, cty.Bool)
 		if err != nil {
 			diags = append(diags, &hcl.Diagnostic{
@@ -1347,6 +1479,10 @@ func (e *ForExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 		if condDiags.HasErrors() {
 			return cty.DynamicVal, diags
 		}
+	}
+
+	if !collVal.IsKnown() {
+		return cty.DynamicVal.WithMarks(append(marks, condMarks)...), diags
 	}
 
 	if e.KeyExpr != nil {
@@ -1389,6 +1525,12 @@ func (e *ForExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 					known = false
 					continue
 				}
+
+				// Extract and merge marks from the include expression into the
+				// main set of marks
+				_, includeMarks := includeRaw.Unmark()
+				marks = append(marks, includeMarks)
+
 				include, err := convert.Convert(includeRaw, cty.Bool)
 				if err != nil {
 					if known {
@@ -1412,7 +1554,7 @@ func (e *ForExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 
 				// Extract and merge marks from the include expression into the
 				// main set of marks
-				includeUnmarked, includeMarks := include.Unmark()
+				includeUnmarked, _ := include.Unmark()
 				marks = append(marks, includeMarks)
 				if includeUnmarked.False() {
 					// Skip this element
@@ -1437,6 +1579,10 @@ func (e *ForExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 				known = false
 				continue
 			}
+
+			_, keyMarks := keyRaw.Unmark()
+			marks = append(marks, keyMarks)
+
 			if !keyRaw.IsKnown() {
 				known = false
 				continue
@@ -1459,8 +1605,7 @@ func (e *ForExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 				continue
 			}
 
-			key, keyMarks := key.Unmark()
-			marks = append(marks, keyMarks)
+			key, _ = key.Unmark()
 
 			val, valDiags := e.ValExpr.Value(childCtx)
 			diags = append(diags, valDiags...)
@@ -1490,7 +1635,7 @@ func (e *ForExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 		}
 
 		if !known {
-			return cty.DynamicVal, diags
+			return cty.DynamicVal.WithMarks(marks...), diags
 		}
 
 		if e.Group {
@@ -1536,6 +1681,12 @@ func (e *ForExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 					known = false
 					continue
 				}
+
+				// Extract and merge marks from the include expression into the
+				// main set of marks
+				_, includeMarks := includeRaw.Unmark()
+				marks = append(marks, includeMarks)
+
 				if !includeRaw.IsKnown() {
 					// We will eventually return DynamicVal, but we'll continue
 					// iterating in case there are other diagnostics to gather
@@ -1561,10 +1712,7 @@ func (e *ForExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 					continue
 				}
 
-				// Extract and merge marks from the include expression into the
-				// main set of marks
-				includeUnmarked, includeMarks := include.Unmark()
-				marks = append(marks, includeMarks)
+				includeUnmarked, _ := include.Unmark()
 				if includeUnmarked.False() {
 					// Skip this element
 					continue
@@ -1577,7 +1725,7 @@ func (e *ForExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 		}
 
 		if !known {
-			return cty.DynamicVal, diags
+			return cty.DynamicVal.WithMarks(marks...), diags
 		}
 
 		return cty.TupleVal(vals).WithMarks(marks...), diags
@@ -1652,7 +1800,7 @@ func (e *SplatExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 
 	if sourceVal.IsNull() {
 		if autoUpgrade {
-			return cty.EmptyTupleVal, diags
+			return cty.EmptyTupleVal.WithSameMarks(sourceVal), diags
 		}
 		diags = append(diags, &hcl.Diagnostic{
 			Severity:    hcl.DiagError,
@@ -1670,7 +1818,7 @@ func (e *SplatExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 		// If we don't even know the _type_ of our source value yet then
 		// we'll need to defer all processing, since we can't decide our
 		// result type either.
-		return cty.DynamicVal, diags
+		return cty.DynamicVal.WithSameMarks(sourceVal), diags
 	}
 
 	upgradedUnknown := false
@@ -1685,13 +1833,14 @@ func (e *SplatExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 		// list of a single attribute, but we still need to check if that
 		// attribute actually exists.
 		if !sourceVal.IsKnown() {
-			sourceRng := sourceVal.Range()
+			unmarkedVal, _ := sourceVal.Unmark()
+			sourceRng := unmarkedVal.Range()
 			if sourceRng.CouldBeNull() {
 				upgradedUnknown = true
 			}
 		}
 
-		sourceVal = cty.TupleVal([]cty.Value{sourceVal})
+		sourceVal = cty.TupleVal([]cty.Value{sourceVal}).WithSameMarks(sourceVal)
 		sourceTy = sourceVal.Type()
 	}
 
@@ -1738,7 +1887,8 @@ func (e *SplatExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 		if ty.IsListType() && sourceVal.Type().IsCollectionType() {
 			// We can refine the length of an unknown list result based on
 			// the source collection's own length.
-			sourceRng := sourceVal.Range()
+			sv, _ := sourceVal.Unmark()
+			sourceRng := sv.Range()
 			ret = ret.Refine().
 				CollectionLengthLowerBound(sourceRng.LengthLowerBound()).
 				CollectionLengthUpperBound(sourceRng.LengthUpperBound()).
@@ -1771,14 +1921,14 @@ func (e *SplatExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 	e.Item.clearValue(ctx) // clean up our temporary value
 
 	if upgradedUnknown {
-		return cty.DynamicVal, diags
+		return cty.DynamicVal.WithMarks(marks), diags
 	}
 
 	if !isKnown {
 		// We'll ingore the resultTy diagnostics in this case since they
 		// will just be the same errors we saw while iterating above.
 		ty, _ := resultTy()
-		return cty.UnknownVal(ty), diags
+		return cty.UnknownVal(ty).WithMarks(marks), diags
 	}
 
 	switch {
@@ -1786,7 +1936,7 @@ func (e *SplatExpr) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
 		if len(vals) == 0 {
 			ty, tyDiags := resultTy()
 			diags = append(diags, tyDiags...)
-			return cty.ListValEmpty(ty.ElementType()), diags
+			return cty.ListValEmpty(ty.ElementType()).WithMarks(marks), diags
 		}
 		return cty.ListVal(vals).WithMarks(marks), diags
 	default:
@@ -1882,5 +2032,29 @@ func (e *AnonSymbolExpr) Range() hcl.Range {
 }
 
 func (e *AnonSymbolExpr) StartRange() hcl.Range {
+	return e.SrcRange
+}
+
+// ExprSyntaxError is a placeholder for an invalid expression that could not
+// be parsed due to syntax errors.
+type ExprSyntaxError struct {
+	Placeholder cty.Value
+	ParseDiags  hcl.Diagnostics
+	SrcRange    hcl.Range
+}
+
+func (e *ExprSyntaxError) Value(ctx *hcl.EvalContext) (cty.Value, hcl.Diagnostics) {
+	return e.Placeholder, e.ParseDiags
+}
+
+func (e *ExprSyntaxError) walkChildNodes(w internalWalkFunc) {
+	// ExprSyntaxError is a leaf node in the tree
+}
+
+func (e *ExprSyntaxError) Range() hcl.Range {
+	return e.SrcRange
+}
+
+func (e *ExprSyntaxError) StartRange() hcl.Range {
 	return e.SrcRange
 }

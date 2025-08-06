@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/routes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/routes"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -17,20 +19,22 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name route -service-package-name network -properties "name,route_table_name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceRoute() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceRouteCreateUpdate,
+		Create: resourceRouteCreate,
 		Read:   resourceRouteRead,
-		Update: resourceRouteCreateUpdate,
+		Update: resourceRouteUpdate,
 		Delete: resourceRouteDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := routes.ParseRouteID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&routes.RouteId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&routes.RouteId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -83,34 +87,33 @@ func resourceRoute() *pluginsdk.Resource {
 	}
 }
 
-func resourceRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceRouteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.Routes
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	addressPrefix := d.Get("address_prefix").(string)
 	nextHopType := d.Get("next_hop_type").(string)
 
 	id := routes.NewRouteID(subscriptionId, d.Get("resource_group_name").(string), d.Get("route_table_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-		}
 
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_route", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_route", id.ID())
 	}
 
 	locks.ByName(id.RouteTableName, routeTableResourceName)
 	defer locks.UnlockByName(id.RouteTableName, routeTableResourceName)
 
 	route := routes.Route{
-		Name: utils.String(id.RouteName),
+		Name: pointer.To(id.RouteName),
 		Properties: &routes.RoutePropertiesFormat{
 			AddressPrefix: &addressPrefix,
 			NextHopType:   routes.RouteNextHopType(nextHopType),
@@ -118,14 +121,60 @@ func resourceRouteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	if v, ok := d.GetOk("next_hop_in_ip_address"); ok {
-		route.Properties.NextHopIPAddress = utils.String(v.(string))
+		route.Properties.NextHopIPAddress = pointer.To(v.(string))
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, route); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
+	return resourceRouteRead(d, meta)
+}
+
+func resourceRouteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.Routes
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := routes.ParseRouteID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	payload := existing.Model
+
+	locks.ByName(id.RouteTableName, routeTableResourceName)
+	defer locks.UnlockByName(id.RouteTableName, routeTableResourceName)
+
+	if d.HasChange("address_prefix") {
+		payload.Properties.AddressPrefix = pointer.To(d.Get("address_prefix").(string))
+	}
+
+	if d.HasChange("next_hop_type") {
+		payload.Properties.NextHopType = routes.RouteNextHopType(d.Get("next_hop_type").(string))
+	}
+
+	if d.HasChange("next_hop_in_ip_address") {
+		payload.Properties.NextHopIPAddress = pointer.To(d.Get("next_hop_in_ip_address").(string))
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
 	return resourceRouteRead(d, meta)
 }
 
@@ -160,7 +209,7 @@ func resourceRouteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceRouteDelete(d *pluginsdk.ResourceData, meta interface{}) error {

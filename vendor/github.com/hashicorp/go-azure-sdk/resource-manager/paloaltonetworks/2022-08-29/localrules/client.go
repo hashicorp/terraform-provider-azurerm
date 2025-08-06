@@ -15,7 +15,7 @@ type LocalRulesClient struct {
 }
 
 func NewLocalRulesClientWithBaseURI(sdkApi sdkEnv.Api) (*LocalRulesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "localrules", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "localrules", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating LocalRulesClient: %+v", err)
 	}

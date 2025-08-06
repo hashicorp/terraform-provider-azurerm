@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/azurestackhci/2024-01-01/edgedevices` Documentation
 
-The `edgedevices` SDK allows for interaction with the Azure Resource Manager Service `azurestackhci` (API Version `2024-01-01`).
+The `edgedevices` SDK allows for interaction with Azure Resource Manager `azurestackhci` (API Version `2024-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := edgedevices.NewScopedEdgeDeviceID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "edgeDeviceValue")
+id := edgedevices.NewScopedEdgeDeviceID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "edgeDeviceName")
 
 payload := edgedevices.EdgeDevice{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := edgedevices.NewScopedEdgeDeviceID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "edgeDeviceValue")
+id := edgedevices.NewScopedEdgeDeviceID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "edgeDeviceName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := edgedevices.NewScopedEdgeDeviceID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "edgeDeviceValue")
+id := edgedevices.NewScopedEdgeDeviceID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "edgeDeviceName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -87,7 +87,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := edgedevices.NewScopedEdgeDeviceID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "edgeDeviceValue")
+id := edgedevices.NewScopedEdgeDeviceID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "edgeDeviceName")
 
 payload := edgedevices.ValidateRequest{
 	// ...

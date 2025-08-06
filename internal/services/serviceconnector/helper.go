@@ -6,8 +6,10 @@ package serviceconnector
 import (
 	"fmt"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2022-05-01/servicelinker"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2022-05-01/links"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2024-04-01/servicelinker"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -108,6 +110,192 @@ func authInfoSchema() *pluginsdk.Schema {
 	}
 }
 
+func expandServiceConnectorAuthInfoForCreate(input []AuthInfoModel) (servicelinker.AuthInfoBase, error) {
+	if err := validateServiceConnectorAuthInfo(input); err != nil {
+		return nil, err
+	}
+
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	in := input[0]
+	switch servicelinker.AuthType(in.Type) {
+	case servicelinker.AuthTypeSecret:
+		return servicelinker.SecretAuthInfo{
+			Name: pointer.To(in.Name),
+			SecretInfo: servicelinker.ValueSecretInfo{
+				Value: pointer.To(in.Secret),
+			},
+		}, nil
+
+	case servicelinker.AuthTypeServicePrincipalSecret:
+		return servicelinker.ServicePrincipalSecretAuthInfo{
+			ClientId:    in.ClientId,
+			PrincipalId: in.PrincipalId,
+			Secret:      in.Secret,
+		}, nil
+
+	case servicelinker.AuthTypeServicePrincipalCertificate:
+		return servicelinker.ServicePrincipalCertificateAuthInfo{
+			Certificate: in.Certificate,
+			ClientId:    in.ClientId,
+			PrincipalId: in.PrincipalId,
+		}, nil
+
+	case servicelinker.AuthTypeSystemAssignedIdentity:
+		return servicelinker.SystemAssignedIdentityAuthInfo{}, nil
+
+	case servicelinker.AuthTypeUserAssignedIdentity:
+		return servicelinker.UserAssignedIdentityAuthInfo{
+			ClientId:       pointer.To(in.ClientId),
+			SubscriptionId: pointer.To(in.SubscriptionId),
+		}, nil
+	}
+
+	return nil, fmt.Errorf("unrecognised authentication type: %q", in.Type)
+}
+
+func expandServiceConnectorAuthInfoForUpdate(input []AuthInfoModel) (links.AuthInfoBase, error) {
+	if err := validateServiceConnectorAuthInfo(input); err != nil {
+		return nil, err
+	}
+
+	if len(input) == 0 {
+		return nil, nil
+	}
+
+	in := input[0]
+	switch links.AuthType(in.Type) {
+	case links.AuthTypeSecret:
+		return links.SecretAuthInfo{
+			Name: pointer.To(in.Name),
+			SecretInfo: links.ValueSecretInfo{
+				Value: pointer.To(in.Secret),
+			},
+		}, nil
+
+	case links.AuthTypeServicePrincipalSecret:
+		return links.ServicePrincipalSecretAuthInfo{
+			ClientId:    in.ClientId,
+			PrincipalId: in.PrincipalId,
+			Secret:      in.Secret,
+		}, nil
+
+	case links.AuthTypeServicePrincipalCertificate:
+		return links.ServicePrincipalCertificateAuthInfo{
+			Certificate: in.Certificate,
+			ClientId:    in.ClientId,
+			PrincipalId: in.PrincipalId,
+		}, nil
+
+	case links.AuthTypeSystemAssignedIdentity:
+		return links.SystemAssignedIdentityAuthInfo{}, nil
+
+	case links.AuthTypeUserAssignedIdentity:
+		return links.UserAssignedIdentityAuthInfo{
+			ClientId:       pointer.To(in.ClientId),
+			SubscriptionId: pointer.To(in.SubscriptionId),
+		}, nil
+	}
+
+	return nil, fmt.Errorf("unrecognised authentication type: %q", in.Type)
+}
+
+func validateServiceConnectorAuthInfo(input []AuthInfoModel) error {
+	if len(input) > 0 {
+		authInfo := input[0]
+		switch servicelinker.AuthType(authInfo.Type) {
+		case servicelinker.AuthTypeSecret:
+			if authInfo.ClientId != "" {
+				return fmt.Errorf("`client_id` cannot be set when `type` is set to `Secret`")
+			}
+			if authInfo.SubscriptionId != "" {
+				return fmt.Errorf("`subscription_id` cannot be set when `type` is set to `Secret`")
+			}
+			if authInfo.PrincipalId != "" {
+				return fmt.Errorf("`principal_id` cannot be set when `type` is set to `Secret`")
+			}
+			if authInfo.Certificate != "" {
+				return fmt.Errorf("`certificate` cannot be set when `type` is set to `Secret`")
+			}
+			if authInfo.Name != "" && authInfo.Secret == "" {
+				return fmt.Errorf("`name` cannot be set when `secret` is empty")
+			}
+			if authInfo.Name == "" && authInfo.Secret != "" {
+				return fmt.Errorf("`secret` cannot be set when `name` is empty")
+			}
+
+		case servicelinker.AuthTypeSystemAssignedIdentity:
+			if authInfo.Name != "" || authInfo.Secret != "" || authInfo.ClientId != "" || authInfo.SubscriptionId != "" || authInfo.PrincipalId != "" || authInfo.Certificate != "" {
+				return fmt.Errorf("no other authentication parameters should be set when `type` is set to `SystemIdentity`")
+			}
+
+		case servicelinker.AuthTypeServicePrincipalSecret:
+			if authInfo.ClientId == "" {
+				return fmt.Errorf("`client_id` must be specified when `type` is set to `ServicePrincipal`")
+			}
+			if authInfo.PrincipalId == "" {
+				return fmt.Errorf("`principal_id` must be specified when `type` is set to `ServicePrincipal`")
+			}
+			if authInfo.Secret == "" {
+				return fmt.Errorf("`secret` must be specified when `type` is set to `ServicePrincipal`")
+			}
+			if authInfo.SubscriptionId != "" {
+				return fmt.Errorf("`subscription_id` cannot be set when `type` is set to `ServicePrincipal`")
+			}
+			if authInfo.Name != "" {
+				return fmt.Errorf("`name` cannot be set when `type` is set to `ServicePrincipal`")
+			}
+			if authInfo.Certificate != "" {
+				return fmt.Errorf("`certificate` cannot be set when `type` is set to `ServicePrincipal`")
+			}
+
+		case servicelinker.AuthTypeServicePrincipalCertificate:
+			if authInfo.ClientId == "" {
+				return fmt.Errorf("`client_id` must be specified when `type` is set to `ServicePrincipalCertificate`")
+			}
+			if authInfo.PrincipalId == "" {
+				return fmt.Errorf("`principal_id` must be specified when `type` is set to `ServicePrincipalCertificate`")
+			}
+			if authInfo.Certificate == "" {
+				return fmt.Errorf("`certificate` must be specified when `type` is set to `ServicePrincipalCertificate`")
+			}
+			if authInfo.SubscriptionId != "" {
+				return fmt.Errorf("`subscription_id` cannot be set when `type` is set to `ServicePrincipalCertificate`")
+			}
+			if authInfo.Name != "" {
+				return fmt.Errorf("`name` cannot be set when `type` is set to `ServicePrincipalCertificate`")
+			}
+			if authInfo.Secret != "" {
+				return fmt.Errorf("`secret` cannot be set when `type` is set to `ServicePrincipalCertificate`")
+			}
+
+		case servicelinker.AuthTypeUserAssignedIdentity:
+			if authInfo.PrincipalId != "" {
+				return fmt.Errorf("`principal_id` cannot be set when `type` is set to `UserIdentity`")
+			}
+			if authInfo.Certificate != "" {
+				return fmt.Errorf("`certificate` cannot be set when `type` is set to `UserIdentity`")
+			}
+			if authInfo.Name != "" {
+				return fmt.Errorf("`name` cannot be set when `type` is set to `UserIdentity`")
+			}
+			if authInfo.Secret != "" {
+				return fmt.Errorf("`secret` cannot be set when `type` is set to `UserIdentity`")
+			}
+			if authInfo.ClientId == "" && authInfo.SubscriptionId != "" {
+				return fmt.Errorf("`subscription_id` cannot be set when `client_id` is empty")
+			}
+			if authInfo.ClientId != "" && authInfo.SubscriptionId == "" {
+				return fmt.Errorf("`client_id` cannot be set when `subscription_id` is empty")
+			}
+		}
+	}
+
+	return nil
+}
+
 func expandSecretStore(input []SecretStoreModel) *servicelinker.SecretStore {
 	if len(input) == 0 {
 		return nil
@@ -118,131 +306,6 @@ func expandSecretStore(input []SecretStoreModel) *servicelinker.SecretStore {
 	return &servicelinker.SecretStore{
 		KeyVaultId: utils.String(keyVaultId),
 	}
-}
-
-func expandServiceConnectorAuthInfo(input []AuthInfoModel) (servicelinker.AuthInfoBase, error) {
-	if len(input) == 0 {
-		return nil, fmt.Errorf("authentication should be defined")
-	}
-	v := input[0]
-
-	authType := servicelinker.AuthType(v.Type)
-	name := v.Name
-	secret := v.Secret
-	clientId := v.ClientId
-	subscriptionId := v.SubscriptionId
-	principalId := v.PrincipalId
-	certificate := v.Certificate
-
-	switch authType {
-	case servicelinker.AuthTypeSecret:
-		if clientId != "" {
-			return nil, fmt.Errorf("`client_id` cannot be set when `type` is set to `Secret`")
-		}
-		if subscriptionId != "" {
-			return nil, fmt.Errorf("`subscription_id` cannot be set when `type` is set to `Secret`")
-		}
-		if principalId != "" {
-			return nil, fmt.Errorf("`principal_id` cannot be set when `type` is set to `Secret`")
-		}
-		if certificate != "" {
-			return nil, fmt.Errorf("`certificate` cannot be set when `type` is set to `Secret`")
-		}
-		if name != "" && secret == "" {
-			return nil, fmt.Errorf("`name` cannot be set when `secret` is empty")
-		}
-		if name == "" && secret != "" {
-			return nil, fmt.Errorf("`secret` cannot be set when `name` is empty")
-		}
-		return servicelinker.SecretAuthInfo{
-			Name: utils.String(name),
-			SecretInfo: servicelinker.ValueSecretInfo{
-				Value: utils.String(secret),
-			},
-		}, nil
-
-	case servicelinker.AuthTypeSystemAssignedIdentity:
-		if name != "" || secret != "" || clientId != "" || subscriptionId != "" || principalId != "" || certificate != "" {
-			return nil, fmt.Errorf("no other parameters should be set when `type` is set to `SystemIdentity`")
-		}
-		return servicelinker.SystemAssignedIdentityAuthInfo{}, nil
-
-	case servicelinker.AuthTypeServicePrincipalSecret:
-		if clientId == "" {
-			return nil, fmt.Errorf("`client_id` must be specified when `type` is set to `ServicePrincipal`")
-		}
-		if principalId == "" {
-			return nil, fmt.Errorf("`principal_id` must be specified when `type` is set to `ServicePrincipal`")
-		}
-		if secret == "" {
-			return nil, fmt.Errorf("`secret` must be specified when `type` is set to `ServicePrincipal`")
-		}
-		if subscriptionId != "" {
-			return nil, fmt.Errorf("`subscription_id` cannot be set when `type` is set to `ServicePrincipal`")
-		}
-		if name != "" {
-			return nil, fmt.Errorf("`name` cannot be set when `type` is set to `ServicePrincipal`")
-		}
-		if certificate != "" {
-			return nil, fmt.Errorf("`certificate` cannot be set when `type` is set to `ServicePrincipal`")
-		}
-		return servicelinker.ServicePrincipalSecretAuthInfo{
-			ClientId:    clientId,
-			PrincipalId: principalId,
-			Secret:      secret,
-		}, nil
-
-	case servicelinker.AuthTypeServicePrincipalCertificate:
-		if clientId == "" {
-			return nil, fmt.Errorf("`client_id` must be specified when `type` is set to `ServicePrincipalCertificate`")
-		}
-		if principalId == "" {
-			return nil, fmt.Errorf("`principal_id` must be specified when `type` is set to `ServicePrincipalCertificate`")
-		}
-		if certificate == "" {
-			return nil, fmt.Errorf("`certificate` must be specified when `type` is set to `ServicePrincipalCertificate`")
-		}
-		if subscriptionId != "" {
-			return nil, fmt.Errorf("`subscription_id` cannot be set when `type` is set to `ServicePrincipalCertificate`")
-		}
-		if name != "" {
-			return nil, fmt.Errorf("`name` cannot be set when `type` is set to `ServicePrincipalCertificate`")
-		}
-		if secret != "" {
-			return nil, fmt.Errorf("`secret` cannot be set when `type` is set to `ServicePrincipalCertificate`")
-		}
-		return servicelinker.ServicePrincipalCertificateAuthInfo{
-			Certificate: certificate,
-			ClientId:    clientId,
-			PrincipalId: principalId,
-		}, nil
-
-	case servicelinker.AuthTypeUserAssignedIdentity:
-		if principalId != "" {
-			return nil, fmt.Errorf("`principal_id` cannot be set when `type` is set to `UserIdentity`")
-		}
-		if certificate != "" {
-			return nil, fmt.Errorf("`certificate` cannot be set when `type` is set to `UserIdentity`")
-		}
-		if name != "" {
-			return nil, fmt.Errorf("`name` cannot be set when `type` is set to `UserIdentity`")
-		}
-		if secret != "" {
-			return nil, fmt.Errorf("`secret` cannot be set when `type` is set to `UserIdentity`")
-		}
-		if clientId == "" && subscriptionId != "" {
-			return nil, fmt.Errorf("`subscription_id` cannot be set when `client_id` is empty")
-		}
-		if clientId != "" && subscriptionId == "" {
-			return nil, fmt.Errorf("`client_id` cannot be set when `subscription_id` is empty")
-		}
-		return servicelinker.UserAssignedIdentityAuthInfo{
-			ClientId:       utils.String(clientId),
-			SubscriptionId: utils.String(subscriptionId),
-		}, nil
-	}
-
-	return nil, fmt.Errorf("unsupported authentication type %q", authType)
 }
 
 func flattenServiceConnectorAuthInfo(input servicelinker.AuthInfoBase, pwd string) []AuthInfoModel {

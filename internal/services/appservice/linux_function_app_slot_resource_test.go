@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -128,12 +129,22 @@ func TestAccLinuxFunctionAppSlot_withCustomContentShareElasticPremiumPla(t *test
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.appSettingsCustomContentShare(data, SkuElasticPremiumPlan),
+			Config: r.appSettingsCustomContentShare(data, SkuElasticPremiumPlan, "test-acc-custom-content-share"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 				check.That(data.ResourceName).Key("app_settings.%").HasValue("3"),
 				check.That(data.ResourceName).Key("app_settings.WEBSITE_CONTENTSHARE").HasValue("test-acc-custom-content-share"),
+			),
+		},
+		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.%", "site_credential.0.password"),
+		{
+			Config: r.appSettingsCustomContentShare(data, SkuElasticPremiumPlan, "test-acc-custom-content-updated"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("app_settings.%").HasValue("3"),
+				check.That(data.ResourceName).Key("app_settings.WEBSITE_CONTENTSHARE").HasValue("test-acc-custom-content-updated"),
 			),
 		},
 		data.ImportStep("app_settings.WEBSITE_CONTENTSHARE", "app_settings.%", "site_credential.0.password"),
@@ -290,6 +301,28 @@ func TestAccLinuxFunctionAppSlot_withBackupStandardPlan(t *testing.T) {
 	})
 }
 
+func TestAccLinuxFunctionAppSlot_withBackupVnetIntegration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.backupVnetIntegration(data, SkuStandardPlan, "true"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.backupVnetIntegration(data, SkuStandardPlan, "false"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 // Completes by plan type
 
 func TestAccLinuxFunctionAppSlot_consumptionComplete(t *testing.T) {
@@ -337,28 +370,29 @@ func TestAccLinuxFunctionAppSlot_consumptionCompleteUpdate(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionAppSlot_elasticPremiumComplete(t *testing.T) {
+func TestAccLinuxFunctionAppSlot_elasticPremiumCompleteWithVnetProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.elasticComplete(data),
+			Config: r.elasticCompleteWithVnetProperties(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.elastic_instance_minimum").HasValue("2"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
 	})
 }
 
-func TestAccLinuxFunctionAppSlot_standardComplete(t *testing.T) {
+func TestAccLinuxFunctionAppSlot_standardCompleteWithVnetProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.standardComplete(data),
+			Config: r.standardCompleteWithVnetProperties(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -385,13 +419,13 @@ func TestAccLinuxFunctionAppSlot_withAuthSettingsStandard(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionAppSlot_scmIpRestrictionSubnet(t *testing.T) {
+func TestAccLinuxFunctionAppSlot_scmIpRestrictionSubnetWithVnetProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.scmIpRestrictionSubnet(data, SkuStandardPlan),
+			Config: r.scmIpRestrictionSubnetWithVnetProperties(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -808,6 +842,23 @@ func TestAccLinuxFunctionAppSlot_appStackDotNet6Isolated(t *testing.T) {
 	})
 }
 
+func TestAccLinuxFunctionAppSlot_appStackDotNet9Isolated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.appStackDotNetIsolated(data, SkuStandardPlan, "9.0"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOTNET-ISOLATED|9.0"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccLinuxFunctionAppSlot_appStackPython(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
@@ -845,6 +896,15 @@ func TestAccLinuxFunctionAppSlot_appStackPythonUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("PYTHON|3.11"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.appStackPython(data, SkuStandardPlan, "3.13"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("PYTHON|3.13"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -906,6 +966,15 @@ func TestAccLinuxFunctionAppSlot_appStackNodeUpdate(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
 				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("NODE|20"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.appStackNode(data, SkuStandardPlan, "22"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("NODE|22"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -1176,7 +1245,7 @@ func TestAccLinuxFunctionAppSlot_vNetIntegration(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.vNetIntegration_subnet1(data, SkuStandardPlan),
+			Config: r.vNetIntegration_subnet1WithVnetProperties(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
@@ -1188,20 +1257,20 @@ func TestAccLinuxFunctionAppSlot_vNetIntegration(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionAppSlot_vNetIntegrationUpdate(t *testing.T) {
+func TestAccLinuxFunctionAppSlot_vNetIntegrationUpdateWithVnetProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.vNetIntegration_basic(data, SkuStandardPlan),
+			Config: r.vNetIntegration_basicWithVnetProperties(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.vNetIntegration_subnet1(data, SkuStandardPlan),
+			Config: r.vNetIntegration_subnet1WithVnetProperties(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
@@ -1211,7 +1280,7 @@ func TestAccLinuxFunctionAppSlot_vNetIntegrationUpdate(t *testing.T) {
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.vNetIntegration_subnet2(data, SkuStandardPlan),
+			Config: r.vNetIntegration_subnet2WithVnetProperties(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
@@ -1221,7 +1290,7 @@ func TestAccLinuxFunctionAppSlot_vNetIntegrationUpdate(t *testing.T) {
 		},
 		data.ImportStep("site_credential.0.password"),
 		{
-			Config: r.vNetIntegration_basic(data, SkuStandardPlan),
+			Config: r.vNetIntegration_basicWithVnetProperties(data, SkuStandardPlan),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1230,13 +1299,13 @@ func TestAccLinuxFunctionAppSlot_vNetIntegrationUpdate(t *testing.T) {
 	})
 }
 
-func TestAccLinuxFunctionAppSlotASEv3_basic(t *testing.T) {
+func TestAccLinuxFunctionAppSlotASEv3_basicWithVnetProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
 	r := LinuxFunctionAppSlotResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withASEV3(data),
+			Config: r.withASEV3WithVnetProperties(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1366,6 +1435,22 @@ func TestAccLinuxFunctionAppSlot_publicNetworkAccessUpdate(t *testing.T) {
 	})
 }
 
+func TestAccLinuxFunctionAppSlot_basicWithTlsOnePointThree(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_function_app_slot", "test")
+	r := LinuxFunctionAppSlotResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withTlsVersion(data, SkuConsumptionPlan, "1.3"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 // Configs
 
 func (r LinuxFunctionAppSlotResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -1421,7 +1506,8 @@ resource "azurerm_linux_function_app_slot" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {
-    health_check_path = "/health"
+    health_check_path                 = "/health"
+    health_check_eviction_time_in_min = 3
   }
 }
 `, r.template(data, planSku), data.RandomInteger)
@@ -1515,7 +1601,7 @@ resource "azurerm_linux_function_app_slot" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
-func (r LinuxFunctionAppSlotResource) appSettingsCustomContentShare(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppSlotResource) appSettingsCustomContentShare(data acceptance.TestData, planSku string, customShareName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1532,12 +1618,12 @@ resource "azurerm_linux_function_app_slot" "test" {
   app_settings = {
     foo                  = "bar"
     secret               = "sauce"
-    WEBSITE_CONTENTSHARE = "test-acc-custom-content-share"
+    WEBSITE_CONTENTSHARE = "%s"
   }
 
   site_config {}
 }
-`, r.template(data, planSku), data.RandomInteger)
+`, r.template(data, planSku), data.RandomInteger, customShareName)
 }
 
 func (r LinuxFunctionAppSlotResource) appSettingsUserSettings(data acceptance.TestData, planSku string) string {
@@ -1800,6 +1886,7 @@ resource "azurerm_linux_function_app_slot" "test" {
 `, r.template(data, planSku), data.RandomInteger, version)
 }
 
+// nolint: unparam // Can be removed when we test different `planSku`s
 func (r LinuxFunctionAppSlotResource) appStackPython(data acceptance.TestData, planSku string, pythonVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1911,6 +1998,7 @@ resource "azurerm_linux_function_app_slot" "test" {
 }
 `, r.template(data, planSku), data.RandomInteger)
 }
+
 func (r LinuxFunctionAppSlotResource) withIPRestrictionsDefaultActionDeny(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2108,6 +2196,37 @@ resource "azurerm_linux_function_app_slot" "test" {
 `, r.storageContainerTemplate(data, planSku), data.RandomInteger)
 }
 
+func (r LinuxFunctionAppSlotResource) backupVnetIntegration(data acceptance.TestData, planSku string, enabled string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_id            = azurerm_linux_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  virtual_network_subnet_id              = azurerm_subnet.test.id
+  virtual_network_backup_restore_enabled = %s
+
+  backup {
+    name                = "acctest"
+    storage_account_url = "https://${azurerm_storage_account.test.name}.blob.core.windows.net/${azurerm_storage_container.test.name}${data.azurerm_storage_account_sas.test.sas}&sr=b"
+    schedule {
+      frequency_interval = 7
+      frequency_unit     = "Day"
+    }
+  }
+
+  site_config {}
+}
+`, r.storageWithVnetIntegrationTemplate(data, planSku), data.RandomInteger, enabled)
+}
+
 func (r LinuxFunctionAppSlotResource) consumptionComplete(data acceptance.TestData) string {
 	planSku := "Y1"
 	return fmt.Sprintf(`
@@ -2249,10 +2368,11 @@ resource "azurerm_linux_function_app_slot" "test" {
       }
     }
 
-    use_32_bit_worker  = true
-    websockets_enabled = true
-    ftps_state         = "FtpsOnly"
-    health_check_path  = "/health-check"
+    use_32_bit_worker                 = true
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health-check"
+    health_check_eviction_time_in_min = 3
 
     application_stack {
       python_version = "3.9"
@@ -2282,7 +2402,7 @@ resource "azurerm_linux_function_app_slot" "test" {
 `, r.template(data, planSku), data.RandomInteger, data.Client().TenantID)
 }
 
-func (r LinuxFunctionAppSlotResource) standardComplete(data acceptance.TestData) string {
+func (r LinuxFunctionAppSlotResource) standardCompleteWithVnetProperties(data acceptance.TestData) string {
 	planSku := "S1"
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2412,7 +2532,7 @@ resource "azurerm_linux_function_app_slot" "test" {
     load_balancing_mode       = "LeastResponseTime"
     pre_warmed_instance_count = 2
     remote_debugging_enabled  = true
-    remote_debugging_version  = "VS2017"
+    remote_debugging_version  = "VS2022"
 
     scm_ip_restriction {
       ip_address = "10.20.20.20/32"
@@ -2440,11 +2560,12 @@ resource "azurerm_linux_function_app_slot" "test" {
       }
     }
 
-    use_32_bit_worker  = true
-    websockets_enabled = true
-    ftps_state         = "FtpsOnly"
-    health_check_path  = "/health-check"
-    worker_count       = 3
+    use_32_bit_worker                 = true
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health-check"
+    health_check_eviction_time_in_min = 3
+    worker_count                      = 3
 
     minimum_tls_version     = "1.1"
     scm_minimum_tls_version = "1.1"
@@ -2461,6 +2582,8 @@ resource "azurerm_linux_function_app_slot" "test" {
     vnet_route_all_enabled = true
   }
 
+  vnet_image_pull_enabled = true
+
   tags = {
     terraform = "true"
     Env       = "AccTest"
@@ -2469,7 +2592,7 @@ resource "azurerm_linux_function_app_slot" "test" {
 `, r.storageContainerTemplate(data, planSku), data.RandomInteger, data.Client().TenantID)
 }
 
-func (r LinuxFunctionAppSlotResource) scmIpRestrictionSubnet(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppSlotResource) scmIpRestrictionSubnetWithVnetProperties(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2502,11 +2625,13 @@ resource "azurerm_linux_function_app_slot" "test" {
       virtual_network_subnet_id = azurerm_subnet.test.id
     }
   }
+
+  vnet_image_pull_enabled = true
 }
 `, r.template(data, planSku), data.RandomInteger)
 }
 
-func (r LinuxFunctionAppSlotResource) elasticComplete(data acceptance.TestData) string {
+func (r LinuxFunctionAppSlotResource) elasticCompleteWithVnetProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -2574,6 +2699,8 @@ resource "azurerm_linux_function_app_slot" "test" {
       "hostingstart.html",
     ]
 
+    elastic_instance_minimum = 2
+
     http2_enabled = true
 
     ip_restriction {
@@ -2592,7 +2719,7 @@ resource "azurerm_linux_function_app_slot" "test" {
     load_balancing_mode       = "LeastResponseTime"
     pre_warmed_instance_count = 2
     remote_debugging_enabled  = true
-    remote_debugging_version  = "VS2017"
+    remote_debugging_version  = "VS2022"
 
     scm_ip_restriction {
       ip_address = "10.20.20.20/32"
@@ -2620,11 +2747,12 @@ resource "azurerm_linux_function_app_slot" "test" {
       }
     }
 
-    use_32_bit_worker  = true
-    websockets_enabled = true
-    ftps_state         = "FtpsOnly"
-    health_check_path  = "/health-check"
-    worker_count       = 3
+    use_32_bit_worker                 = true
+    websockets_enabled                = true
+    ftps_state                        = "FtpsOnly"
+    health_check_path                 = "/health-check"
+    health_check_eviction_time_in_min = 3
+    worker_count                      = 3
 
     minimum_tls_version     = "1.1"
     scm_minimum_tls_version = "1.1"
@@ -2640,6 +2768,7 @@ resource "azurerm_linux_function_app_slot" "test" {
 
     vnet_route_all_enabled = true
   }
+  vnet_image_pull_enabled = true
 }
 `, r.storageContainerTemplate(data, SkuElasticPremiumPlan), data.RandomInteger)
 }
@@ -3120,7 +3249,7 @@ func (r LinuxFunctionAppSlotResource) storageContainerTemplate(data acceptance.T
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -3160,6 +3289,87 @@ data "azurerm_storage_account_sas" "test" {
 `, r.template(data, planSku))
 }
 
+func (r LinuxFunctionAppSlotResource) storageWithVnetIntegrationTemplate(data acceptance.TestData, planSku string) string {
+	timeFormat := "2006-01-02"
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_virtual_network" "test" {
+  name                = "vnet-%[2]d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "subnet-%[2]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+
+  delegation {
+    name = "delegation"
+
+    service_delegation {
+      name    = "Microsoft.Web/serverFarms"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+    }
+  }
+
+  service_endpoints = [
+    "Microsoft.Storage"
+  ]
+}
+
+resource "azurerm_storage_account_network_rules" "test" {
+  storage_account_id = azurerm_storage_account.test.id
+
+  default_action             = "Deny"
+  virtual_network_subnet_ids = [azurerm_subnet.test.id]
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "test"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+data "azurerm_storage_account_sas" "test" {
+  connection_string = azurerm_storage_account.test.primary_connection_string
+  https_only        = true
+
+  resource_types {
+    service   = false
+    container = false
+    object    = true
+  }
+
+  services {
+    blob  = true
+    queue = false
+    table = false
+    file  = false
+  }
+
+  start  = "%[3]s"
+  expiry = "%[4]s"
+
+  permissions {
+    read    = false
+    write   = true
+    delete  = false
+    list    = false
+    add     = false
+    create  = false
+    update  = false
+    process = false
+    tag     = false
+    filter  = false
+  }
+}
+`, r.template(data, planSku), data.RandomInteger, time.Now().Format(timeFormat), time.Now().AddDate(0, 0, 1).Format(timeFormat))
+}
+
 func (r LinuxFunctionAppSlotResource) identityTemplate(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 %s
@@ -3172,7 +3382,7 @@ resource "azurerm_user_assigned_identity" "test" {
 `, r.template(data, planSku), data.RandomInteger)
 }
 
-func (r LinuxFunctionAppSlotResource) vNetIntegration_basic(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppSlotResource) vNetIntegration_basicWithVnetProperties(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3226,12 +3436,14 @@ resource "azurerm_linux_function_app_slot" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
   site_config {}
+
+  vnet_image_pull_enabled = true
 }
 
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
 
-func (r LinuxFunctionAppSlotResource) vNetIntegration_subnet1(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppSlotResource) vNetIntegration_subnet1WithVnetProperties(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3285,12 +3497,13 @@ resource "azurerm_linux_function_app_slot" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   virtual_network_subnet_id  = azurerm_subnet.test1.id
 
+  vnet_image_pull_enabled = true
   site_config {}
 }
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
 
-func (r LinuxFunctionAppSlotResource) vNetIntegration_subnet2(data acceptance.TestData, planSku string) string {
+func (r LinuxFunctionAppSlotResource) vNetIntegration_subnet2WithVnetProperties(data acceptance.TestData, planSku string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -3344,12 +3557,13 @@ resource "azurerm_linux_function_app_slot" "test" {
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
   virtual_network_subnet_id  = azurerm_subnet.test2.id
 
+  vnet_image_pull_enabled = true
   site_config {}
 }
 `, r.template(data, planSku), data.RandomInteger, data.RandomInteger)
 }
 
-func (r LinuxFunctionAppSlotResource) withASEV3(data acceptance.TestData) string {
+func (r LinuxFunctionAppSlotResource) withASEV3WithVnetProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %[1]s
 
@@ -3370,6 +3584,8 @@ resource "azurerm_linux_function_app" "test" {
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
+  vnet_image_pull_enabled = true
+
   site_config {
     vnet_route_all_enabled = true
   }
@@ -3381,6 +3597,7 @@ resource "azurerm_linux_function_app_slot" "test" {
   storage_account_name       = azurerm_storage_account.test.name
   storage_account_access_key = azurerm_storage_account.test.primary_access_key
 
+  vnet_image_pull_enabled = true
   site_config {
     vnet_route_all_enabled = true
   }
@@ -3478,6 +3695,7 @@ resource "azurerm_linux_function_app_slot" "test" {
 func (r LinuxFunctionAppSlotResource) templateWithStorageAccountExtras(data acceptance.TestData, planSKU string) string {
 	return fmt.Sprintf(`
 
+
 %s
 
 resource "azurerm_user_assigned_identity" "test" {
@@ -3488,14 +3706,14 @@ resource "azurerm_user_assigned_identity" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_share" "test" {
-  name                 = "test"
-  storage_account_name = azurerm_storage_account.test.name
-  quota                = 1
+  name               = "test"
+  storage_account_id = azurerm_storage_account.test.id
+  quota              = 1
 }
 
 data "azurerm_storage_account_sas" "test" {
@@ -3532,4 +3750,25 @@ data "azurerm_storage_account_sas" "test" {
   }
 }
 `, r.template(data, planSKU), data.RandomInteger)
+}
+
+func (r LinuxFunctionAppSlotResource) withTlsVersion(data acceptance.TestData, planSku string, tlsVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_linux_function_app_slot" "test" {
+  name                       = "acctest-LFAS-%d"
+  function_app_id            = azurerm_linux_function_app.test.id
+  storage_account_name       = azurerm_storage_account.test.name
+  storage_account_access_key = azurerm_storage_account.test.primary_access_key
+
+  site_config {
+    minimum_tls_version = "%s"
+  }
+}
+`, r.template(data, planSku), data.RandomInteger, tlsVersion)
 }

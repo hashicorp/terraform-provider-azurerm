@@ -27,7 +27,6 @@ func TestGremlinGraphID(t *testing.T) {
 		Error    bool
 		Expected *GremlinGraphId
 	}{
-
 		{
 			// empty
 			Input: "",

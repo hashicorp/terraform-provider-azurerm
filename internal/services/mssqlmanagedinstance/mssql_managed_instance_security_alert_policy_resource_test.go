@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -61,15 +63,17 @@ func (MsSqlManagedInstanceSecurityAlertPolicyResource) Exists(ctx context.Contex
 		return nil, err
 	}
 
-	resp, err := client.MSSQLManagedInstance.ManagedInstanceServerSecurityAlertPoliciesClient.Get(ctx, id.ResourceGroup, id.ManagedInstanceName)
+	instanceId := commonids.NewSqlManagedInstanceID(id.SubscriptionId, id.ResourceGroup, id.ManagedInstanceName)
+
+	resp, err := client.MSSQLManagedInstance.ManagedInstanceServerSecurityAlertPoliciesClient.Get(ctx, instanceId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return nil, fmt.Errorf("SQL Managed Instance Security Alert Policy for server %q (Resource Group %q) does not exist", id.ManagedInstanceName, id.ResourceGroup)
 		}
 		return nil, fmt.Errorf("reading SQL Managed Instance Security Alert Policy for server %q (Resource Group %q): %v", id.ManagedInstanceName, id.ResourceGroup, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (r MsSqlManagedInstanceSecurityAlertPolicyResource) basic(data acceptance.TestData) string {

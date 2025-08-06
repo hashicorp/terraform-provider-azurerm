@@ -61,6 +61,11 @@ func TestRedisEnterpriseClusterSkuName(t *testing.T) {
 			input:    "EnterpriseFlash_F1500-15",
 			expected: true,
 		},
+		{
+			name:     "Valid sku and capacity",
+			input:    "Enterprise_E1-2",
+			expected: true,
+		},
 	}
 
 	for _, v := range testData {

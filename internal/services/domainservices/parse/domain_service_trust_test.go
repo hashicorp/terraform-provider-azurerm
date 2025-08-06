@@ -27,7 +27,6 @@ func TestDomainServiceTrustID(t *testing.T) {
 		Error    bool
 		Expected *DomainServiceTrustId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -31,7 +31,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
+	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func resourceKeyVaultCertificate() *pluginsdk.Resource {
@@ -188,7 +188,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 											},
 										},
 									},
-									//lintignore:XS003
+									// lintignore:XS003
 									"trigger": {
 										Type:     pluginsdk.TypeList,
 										Required: true,
@@ -597,6 +597,9 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 
 	meta.(*clients.Client).KeyVault.AddToCache(*keyVaultId, id.KeyVaultBaseUrl)
 
+	// Because certificate content is not returned from the api, we need to set partial as true in case
+	// the update fails and state is updated incorrectly causing subsequent refreshes to not update `certificate`.
+	d.Partial(true)
 	if d.HasChange("certificate") {
 		if v, ok := d.GetOk("certificate"); ok {
 			// Import new version of certificate
@@ -672,6 +675,7 @@ func resourceKeyVaultCertificateUpdate(d *schema.ResourceData, meta interface{})
 			return err
 		}
 	}
+	d.Partial(false)
 	return resourceKeyVaultCertificateRead(d, meta)
 }
 
@@ -842,7 +846,7 @@ func resourceKeyVaultCertificateDelete(d *pluginsdk.ResourceData, meta interface
 	}
 
 	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedCertsOnDestroy
-	if shouldPurge && kv.Model != nil && utils.NormaliseNilableBool(kv.Model.Properties.EnablePurgeProtection) {
+	if shouldPurge && kv.Model != nil && pointer.From(kv.Model.Properties.EnablePurgeProtection) {
 		log.Printf("[DEBUG] cannot purge certificate %q because vault %q has purge protection enabled", id.Name, keyVaultId.String())
 		shouldPurge = false
 	}

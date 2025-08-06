@@ -7,12 +7,13 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"math"
 	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2023-04-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/common"
@@ -77,7 +78,7 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
 				ValidateFunc: validation.All(
-					validation.IntBetween(-1, 2147483647),
+					validation.IntBetween(-1, math.MaxInt32),
 					validation.IntNotInSlice([]int{0}),
 				),
 			},
@@ -85,7 +86,6 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 			"default_ttl": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
-				Computed: true,
 			},
 
 			"throughput": {
@@ -189,7 +189,7 @@ func resourceCosmosDbGremlinGraph() *pluginsdk.Resource {
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(
 			// `analytical_storage_ttl` can't be disabled once it's enabled
 			pluginsdk.ForceNewIfChange("analytical_storage_ttl", func(ctx context.Context, old, new, _ interface{}) bool {
-				return (old.(int) == -1 || (old.(int) >= 1 && old.(int) <= 2147483647)) && new.(int) == 0
+				return (old.(int) == -1 || (old.(int) >= 1 && old.(int) <= math.MaxInt32)) && new.(int) == 0
 			}),
 		),
 	}
@@ -337,7 +337,6 @@ func resourceCosmosDbGremlinGraphUpdate(d *pluginsdk.ResourceData, meta interfac
 			return fmt.Errorf("setting Throughput for Cosmos Gremlin Graph %q (Account: %q, Database: %q): %+v - "+
 				"If the graph has not been created with an initial throughput, you cannot configure it later", id.GraphName, id.DatabaseAccountName, id.GremlinDatabaseName, err)
 		}
-
 	}
 
 	return resourceCosmosDbGremlinGraphRead(d, meta)

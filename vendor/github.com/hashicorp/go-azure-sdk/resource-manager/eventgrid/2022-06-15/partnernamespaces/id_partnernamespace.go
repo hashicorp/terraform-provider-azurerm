@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&PartnerNamespaceId{})
+}
 
 var _ resourceids.ResourceId = &PartnerNamespaceId{}
 
@@ -37,7 +42,7 @@ func ParsePartnerNamespaceID(input string) (*PartnerNamespaceId, error) {
 	}
 
 	id := PartnerNamespaceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +59,7 @@ func ParsePartnerNamespaceIDInsensitively(input string) (*PartnerNamespaceId, er
 	}
 
 	id := PartnerNamespaceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -110,7 +115,7 @@ func (id PartnerNamespaceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftEventGrid", "Microsoft.EventGrid", "Microsoft.EventGrid"),
 		resourceids.StaticSegment("staticPartnerNamespaces", "partnerNamespaces", "partnerNamespaces"),
-		resourceids.UserSpecifiedSegment("partnerNamespaceName", "partnerNamespaceValue"),
+		resourceids.UserSpecifiedSegment("partnerNamespaceName", "partnerNamespaceName"),
 	}
 }
 

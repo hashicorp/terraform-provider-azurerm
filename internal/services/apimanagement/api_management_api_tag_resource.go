@@ -66,9 +66,7 @@ func resourceApiManagementApiTagCreate(d *pluginsdk.ResourceData, meta interface
 
 	tagId := tag.NewTagID(subscriptionId, apiId.ResourceGroupName, apiId.ServiceName, d.Get("name").(string))
 
-	apiName := getApiName(apiId.ApiId)
-
-	id := apitag.NewApiTagID(subscriptionId, apiId.ResourceGroupName, apiId.ServiceName, apiName, d.Get("name").(string))
+	id := apitag.NewApiTagID(subscriptionId, apiId.ResourceGroupName, apiId.ServiceName, apiId.ApiId, d.Get("name").(string))
 
 	tagExists, err := tagClient.Get(ctx, tagId)
 	if err != nil {
@@ -108,10 +106,8 @@ func resourceApiManagementApiTagRead(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	apiName := getApiName(id.ApiId)
-
-	apiId := api.NewApiID(subscriptionId, id.ResourceGroupName, id.ServiceName, apiName)
-	tagId := apitag.NewApiTagID(subscriptionId, id.ResourceGroupName, id.ServiceName, apiName, id.TagId)
+	apiId := api.NewApiID(subscriptionId, id.ResourceGroupName, id.ServiceName, id.ApiId)
+	tagId := apitag.NewApiTagID(subscriptionId, id.ResourceGroupName, id.ServiceName, id.ApiId, id.TagId)
 
 	resp, err := client.TagGetByApi(ctx, tagId)
 	if err != nil {
@@ -140,9 +136,8 @@ func resourceApiManagementApiTagDelete(d *pluginsdk.ResourceData, meta interface
 		return err
 	}
 
-	name := getApiName(id.ApiId)
+	newId := apitag.NewApiTagID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, id.ApiId, id.TagId)
 
-	newId := apitag.NewApiTagID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, name, id.TagId)
 	if _, err = client.TagDetachFromApi(ctx, newId); err != nil {
 		return fmt.Errorf("detaching api tag %q: %+v", newId, err)
 	}

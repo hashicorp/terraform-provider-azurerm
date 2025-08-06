@@ -15,7 +15,7 @@ type SourceControlClient struct {
 }
 
 func NewSourceControlClientWithBaseURI(sdkApi sdkEnv.Api) (*SourceControlClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "sourcecontrol", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "sourcecontrol", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SourceControlClient: %+v", err)
 	}

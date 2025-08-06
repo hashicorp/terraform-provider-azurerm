@@ -40,6 +40,7 @@ func (o ListAllByDnsZoneOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListAllByDnsZoneOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -54,6 +55,18 @@ func (o ListAllByDnsZoneOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListAllByDnsZoneCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListAllByDnsZoneCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListAllByDnsZone ...
 func (c RecordSetsClient) ListAllByDnsZone(ctx context.Context, id DnsZoneId, options ListAllByDnsZoneOperationOptions) (result ListAllByDnsZoneOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +75,9 @@ func (c RecordSetsClient) ListAllByDnsZone(ctx context.Context, id DnsZoneId, op
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/all", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListAllByDnsZoneCustomPager{},
+		Path:          fmt.Sprintf("%s/all", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -104,6 +118,7 @@ func (c RecordSetsClient) ListAllByDnsZoneCompleteMatchingPredicate(ctx context.
 
 	resp, err := c.ListAllByDnsZone(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

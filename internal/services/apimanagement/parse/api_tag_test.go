@@ -27,7 +27,6 @@ func TestApiTagID(t *testing.T) {
 		Error    bool
 		Expected *ApiTagId
 	}{
-
 		{
 			// empty
 			Input: "",

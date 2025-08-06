@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ManagedApiId{})
+}
 
 var _ resourceids.ResourceId = &ManagedApiId{}
 
@@ -37,7 +42,7 @@ func ParseManagedApiID(input string) (*ManagedApiId, error) {
 	}
 
 	id := ManagedApiId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +59,7 @@ func ParseManagedApiIDInsensitively(input string) (*ManagedApiId, error) {
 	}
 
 	id := ManagedApiId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -108,9 +113,9 @@ func (id ManagedApiId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "locationValue"),
+		resourceids.UserSpecifiedSegment("locationName", "locationName"),
 		resourceids.StaticSegment("staticManagedApis", "managedApis", "managedApis"),
-		resourceids.UserSpecifiedSegment("managedApiName", "managedApiValue"),
+		resourceids.UserSpecifiedSegment("managedApiName", "managedApiName"),
 	}
 }
 

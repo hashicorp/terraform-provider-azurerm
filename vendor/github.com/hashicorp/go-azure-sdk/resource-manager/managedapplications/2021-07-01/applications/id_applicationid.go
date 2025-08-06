@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ApplicationIdId{})
+}
 
 var _ resourceids.ResourceId = &ApplicationIdId{}
 
@@ -33,7 +38,7 @@ func ParseApplicationIdID(input string) (*ApplicationIdId, error) {
 	}
 
 	id := ApplicationIdId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -50,7 +55,7 @@ func ParseApplicationIdIDInsensitively(input string) (*ApplicationIdId, error) {
 	}
 
 	id := ApplicationIdId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -91,7 +96,7 @@ func (id ApplicationIdId) ID() string {
 // Segments returns a slice of Resource ID Segments which comprise this Application Id ID
 func (id ApplicationIdId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
-		resourceids.UserSpecifiedSegment("applicationId", "applicationIdValue"),
+		resourceids.UserSpecifiedSegment("applicationId", "applicationId"),
 	}
 }
 

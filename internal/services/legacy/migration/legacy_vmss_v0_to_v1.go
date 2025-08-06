@@ -10,6 +10,7 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -241,7 +242,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		//lintignore:S018
+		// lintignore:S018
 		"os_profile_windows_config": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
@@ -303,7 +304,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Set: resourceArmVirtualMachineScaleSetOsProfileWindowsConfigHash,
 		},
 
-		//lintignore:S018
+		// lintignore:S018
 		"os_profile_linux_config": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
@@ -489,7 +490,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		//lintignore:S018
+		// lintignore:S018
 		"storage_profile_os_disk": {
 			Type:     pluginsdk.TypeSet,
 			Required: true,
@@ -576,7 +577,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		//lintignore:S018
+		// lintignore:S018
 		"storage_profile_image_reference": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
@@ -613,7 +614,7 @@ func (LegacyVMSSV0ToV1) Schema() map[string]*pluginsdk.Schema {
 			Set: resourceArmVirtualMachineScaleSetStorageProfileImageReferenceHash,
 		},
 
-		//lintignore:S018
+		// lintignore:S018
 		"plan": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
@@ -699,17 +700,22 @@ func (LegacyVMSSV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 		// however it existed in the legacy migration so even though this is
 		//  essentially a noop there's no reason this shouldn't be the same I guess
 
-		client := meta.(*clients.Client).Compute.VMScaleSetClient
+		client := meta.(*clients.Client).Compute.VirtualMachineScaleSetsClient
 
-		resGroup := rawState["resource_group_name"].(string)
-		name := rawState["name"].(string)
-
-		read, err := client.Get(ctx, resGroup, name, "")
+		id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetIDInsensitively(rawState["id"].(string))
 		if err != nil {
 			return rawState, err
 		}
 
-		rawState["id"] = *read.ID
+		read, err := client.Get(ctx, *id, virtualmachinescalesets.DefaultGetOperationOptions())
+		if err != nil {
+			return rawState, err
+		}
+
+		if read.Model != nil && read.Model.Id != nil {
+			rawState["id"] = *read.Model.Id
+		}
+
 		return rawState, nil
 	}
 }

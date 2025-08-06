@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	mssqlValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/synapse/validate"
@@ -32,7 +31,7 @@ const (
 )
 
 func resourceSynapseSqlPool() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceSynapseSqlPoolCreate,
 		Read:   resourceSynapseSqlPoolRead,
 		Update: resourceSynapseSqlPoolUpdate,
@@ -95,6 +94,16 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"storage_account_type": {
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.StringInSlice([]string{
+					string(synapse.StorageAccountTypeLRS),
+					string(synapse.StorageAccountTypeGRS),
+				}, false),
+			},
+
 			"create_mode": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -108,8 +117,9 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 			},
 
 			"collation": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				// NOTE: O+C The default of this is configurable by the user, so this should remain
 				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: mssqlValidate.DatabaseCollation(),
@@ -172,34 +182,6 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(synapseSqlPoolCustomizeDiff),
 	}
-
-	if !features.FourPointOhBeta() {
-		// NOTE: In v3.0 providers this will be an Optional field with a 'Default'
-		// of 'GRS' to match existing v3.0 behavior, the 'ForceNew' logic will be
-		// applied in the CustomizeDiff function...
-		resource.Schema["storage_account_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Default:  string(synapse.StorageAccountTypeGRS),
-			Optional: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(synapse.StorageAccountTypeLRS),
-				string(synapse.StorageAccountTypeGRS),
-			}, false),
-		}
-	} else {
-		resource.Schema["storage_account_type"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(synapse.StorageAccountTypeLRS),
-				string(synapse.StorageAccountTypeGRS),
-			}, false),
-		}
-	}
-
-	return resource
 }
 
 func synapseSqlPoolCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {

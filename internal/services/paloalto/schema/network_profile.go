@@ -5,9 +5,10 @@ package schema
 
 import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkvirtualappliances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/virtualwans"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2023-09-01/firewalls"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -56,7 +57,7 @@ func VnetNetworkProfileSchema() *pluginsdk.Schema {
 					MinItems: 1,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: networkValidate.PublicIpAddressID,
+						ValidateFunc: commonids.ValidatePublicIPAddressID,
 					},
 				},
 
@@ -66,7 +67,7 @@ func VnetNetworkProfileSchema() *pluginsdk.Schema {
 					MinItems: 1,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: networkValidate.PublicIpAddressID,
+						ValidateFunc: commonids.ValidatePublicIPAddressID,
 					},
 				},
 
@@ -225,7 +226,7 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Required:     true,
 					ForceNew:     true,
-					ValidateFunc: networkValidate.VirtualHubID,
+					ValidateFunc: virtualwans.ValidateVirtualHubID,
 				},
 
 				"network_virtual_appliance_id": {
@@ -241,7 +242,7 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 					MinItems: 1,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: networkValidate.PublicIpAddressID,
+						ValidateFunc: commonids.ValidatePublicIPAddressID,
 					},
 				},
 
@@ -251,7 +252,7 @@ func VHubNetworkProfileSchema() *pluginsdk.Schema {
 					MinItems: 1,
 					Elem: &pluginsdk.Schema{
 						Type:         pluginsdk.TypeString,
-						ValidateFunc: networkValidate.PublicIpAddressID,
+						ValidateFunc: commonids.ValidatePublicIPAddressID,
 					},
 				},
 
@@ -390,7 +391,6 @@ func FlattenNetworkProfileVHub(input firewalls.NetworkProfile) (*NetworkProfileV
 	result.TrustedRanges = trustedRanges
 
 	if v := input.VwanConfiguration; v != nil {
-
 		result.VHubID = pointer.From(v.VHub.ResourceId)
 		applianceID, err := networkvirtualappliances.ParseNetworkVirtualApplianceID(pointer.From(v.NetworkVirtualApplianceId))
 		if err != nil {

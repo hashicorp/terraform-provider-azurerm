@@ -10,18 +10,36 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type UserSourceInfo interface {
+	UserSourceInfo() BaseUserSourceInfoImpl
 }
 
-// RawUserSourceInfoImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ UserSourceInfo = BaseUserSourceInfoImpl{}
+
+type BaseUserSourceInfoImpl struct {
+	Type    string  `json:"type"`
+	Version *string `json:"version,omitempty"`
+}
+
+func (s BaseUserSourceInfoImpl) UserSourceInfo() BaseUserSourceInfoImpl {
+	return s
+}
+
+var _ UserSourceInfo = RawUserSourceInfoImpl{}
+
+// RawUserSourceInfoImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawUserSourceInfoImpl struct {
-	Type   string
-	Values map[string]interface{}
+	userSourceInfo BaseUserSourceInfoImpl
+	Type           string
+	Values         map[string]interface{}
 }
 
-func unmarshalUserSourceInfoImplementation(input []byte) (UserSourceInfo, error) {
+func (s RawUserSourceInfoImpl) UserSourceInfo() BaseUserSourceInfoImpl {
+	return s.userSourceInfo
+}
+
+func UnmarshalUserSourceInfoImplementation(input []byte) (UserSourceInfo, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +49,9 @@ func unmarshalUserSourceInfoImplementation(input []byte) (UserSourceInfo, error)
 		return nil, fmt.Errorf("unmarshaling UserSourceInfo into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["type"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["type"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "BuildResult") {
@@ -76,6 +94,14 @@ func unmarshalUserSourceInfoImplementation(input []byte) (UserSourceInfo, error)
 		return out, nil
 	}
 
+	if strings.EqualFold(value, "UploadedUserSourceInfo") {
+		var out UploadedUserSourceInfo
+		if err := json.Unmarshal(input, &out); err != nil {
+			return nil, fmt.Errorf("unmarshaling into UploadedUserSourceInfo: %+v", err)
+		}
+		return out, nil
+	}
+
 	if strings.EqualFold(value, "War") {
 		var out WarUploadedUserSourceInfo
 		if err := json.Unmarshal(input, &out); err != nil {
@@ -84,10 +110,15 @@ func unmarshalUserSourceInfoImplementation(input []byte) (UserSourceInfo, error)
 		return out, nil
 	}
 
-	out := RawUserSourceInfoImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseUserSourceInfoImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseUserSourceInfoImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawUserSourceInfoImpl{
+		userSourceInfo: parent,
+		Type:           value,
+		Values:         temp,
+	}, nil
 
 }

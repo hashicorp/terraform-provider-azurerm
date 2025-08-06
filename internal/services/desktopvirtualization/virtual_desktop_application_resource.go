@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/application"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2022-02-10-preview/applicationgroup"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/application"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/desktopvirtualization/2024-04-03/applicationgroup"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -69,7 +69,8 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				ValidateFunc: validation.StringLenBetween(1, 64),
-				Computed:     true,
+				// NOTE: O+C The API will use the value in `name` as the default
+				Computed: true,
 			},
 
 			"description": {
@@ -106,6 +107,7 @@ func resourceVirtualDesktopApplication() *pluginsdk.Resource {
 			"icon_path": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				// NOTE: O+C The API will use the value in `path` as the default
 				Computed: true,
 			},
 

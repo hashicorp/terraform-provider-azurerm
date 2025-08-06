@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/dataflows"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DataFlowResource struct{}
@@ -92,21 +92,22 @@ func TestAccDataFactoryDataFlow_update(t *testing.T) {
 	})
 }
 
-func (t DataFlowResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.DataFlowID(state.ID)
+func (r DataFlowResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := dataflows.ParseDataflowID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DataFactory.DataFlowClient.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+	resp, err := clients.DataFactory.DataFlowClient.Get(ctx, *id, dataflows.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r DataFlowResource) basic(data acceptance.TestData) string {
+	// nolint: dupword
 	return fmt.Sprintf(`
 %s
 
@@ -173,11 +174,12 @@ resource "azurerm_data_factory_data_flow" "import" {
 }
 
 func (r DataFlowResource) complete(data acceptance.TestData) string {
+	// nolint: dupword
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_data_factory_data_flow" "test" {
-  name            = "acctestdf3%[2]d"
+  name            = "acctestdf%d"
   data_factory_id = azurerm_data_factory.test.id
   description     = "description for data flow"
   annotations     = ["anno1", "anno2"]
@@ -327,64 +329,11 @@ Filter1 sink(allowSchemaDrift: true,
 	partitionBy('roundRobin', 3)) ~> sink1
 EOT
 }
-
-resource "azurerm_data_factory_flowlet_data_flow" "test1" {
-  name            = "acctest1fdf%[2]d"
-  data_factory_id = azurerm_data_factory.test.id
-
-  source {
-    name = "source1"
-  }
-
-  sink {
-    name = "sink1"
-  }
-
-  script = <<EOT
-source(
-  allowSchemaDrift: true, 
-  validateSchema: false, 
-  limit: 100, 
-  ignoreNoFilesFound: false, 
-  documentForm: 'documentPerLine') ~> source1 
-source1 sink(
-  allowSchemaDrift: true, 
-  validateSchema: false, 
-  skipDuplicateMapInputs: true, 
-  skipDuplicateMapOutputs: true) ~> sink1
-EOT
-}
-
-resource "azurerm_data_factory_flowlet_data_flow" "test2" {
-  name            = "acctest2fdf%[2]d"
-  data_factory_id = azurerm_data_factory.test.id
-
-  source {
-    name = "source1"
-  }
-
-  sink {
-    name = "sink1"
-  }
-
-  script = <<EOT
-source(
-  allowSchemaDrift: true, 
-  validateSchema: false, 
-  limit: 100, 
-  ignoreNoFilesFound: false, 
-  documentForm: 'documentPerLine') ~> source1 
-source1 sink(
-  allowSchemaDrift: true, 
-  validateSchema: false, 
-  skipDuplicateMapInputs: true, 
-  skipDuplicateMapOutputs: true) ~> sink1
-EOT
-}
 `, r.template(data), data.RandomInteger)
 }
 
 func (DataFlowResource) template(data acceptance.TestData) string {
+	// nolint: dupword
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -447,5 +396,60 @@ resource "azurerm_data_factory_dataset_json" "test2" {
 
   encoding = "UTF-8"
 }
+
+resource "azurerm_data_factory_flowlet_data_flow" "test1" {
+  name            = "acctest1fdf%[1]d"
+  data_factory_id = azurerm_data_factory.test.id
+
+  source {
+    name = "source1"
+  }
+
+  sink {
+    name = "sink1"
+  }
+
+  script = <<EOT
+source(
+  allowSchemaDrift: true, 
+  validateSchema: false, 
+  limit: 100, 
+  ignoreNoFilesFound: false, 
+  documentForm: 'documentPerLine') ~> source1 
+source1 sink(
+  allowSchemaDrift: true, 
+  validateSchema: false, 
+  skipDuplicateMapInputs: true, 
+  skipDuplicateMapOutputs: true) ~> sink1
+EOT
+}
+
+resource "azurerm_data_factory_flowlet_data_flow" "test2" {
+  name            = "acctest2fdf%[1]d"
+  data_factory_id = azurerm_data_factory.test.id
+
+  source {
+    name = "source1"
+  }
+
+  sink {
+    name = "sink1"
+  }
+
+  script = <<EOT
+source(
+  allowSchemaDrift: true, 
+  validateSchema: false, 
+  limit: 100, 
+  ignoreNoFilesFound: false, 
+  documentForm: 'documentPerLine') ~> source1 
+source1 sink(
+  allowSchemaDrift: true, 
+  validateSchema: false, 
+  skipDuplicateMapInputs: true, 
+  skipDuplicateMapOutputs: true) ~> sink1
+EOT
+}
+
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

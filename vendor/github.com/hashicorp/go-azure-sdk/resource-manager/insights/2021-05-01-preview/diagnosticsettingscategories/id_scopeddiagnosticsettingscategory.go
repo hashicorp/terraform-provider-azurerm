@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ScopedDiagnosticSettingsCategoryId{})
+}
 
 var _ resourceids.ResourceId = &ScopedDiagnosticSettingsCategoryId{}
 
@@ -35,7 +40,7 @@ func ParseScopedDiagnosticSettingsCategoryID(input string) (*ScopedDiagnosticSet
 	}
 
 	id := ScopedDiagnosticSettingsCategoryId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -52,7 +57,7 @@ func ParseScopedDiagnosticSettingsCategoryIDInsensitively(input string) (*Scoped
 	}
 
 	id := ScopedDiagnosticSettingsCategoryId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -101,7 +106,7 @@ func (id ScopedDiagnosticSettingsCategoryId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticDiagnosticSettingsCategories", "diagnosticSettingsCategories", "diagnosticSettingsCategories"),
-		resourceids.UserSpecifiedSegment("diagnosticSettingsCategoryName", "diagnosticSettingsCategoryValue"),
+		resourceids.UserSpecifiedSegment("diagnosticSettingsCategoryName", "diagnosticSettingsCategoryName"),
 	}
 }
 

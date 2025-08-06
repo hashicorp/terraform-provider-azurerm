@@ -40,6 +40,7 @@ func (o ListSynchronizationsOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListSynchronizationsOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -54,6 +55,18 @@ func (o ListSynchronizationsOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListSynchronizationsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListSynchronizationsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListSynchronizations ...
 func (c ShareClient) ListSynchronizations(ctx context.Context, id ShareId, options ListSynchronizationsOperationOptions) (result ListSynchronizationsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +75,9 @@ func (c ShareClient) ListSynchronizations(ctx context.Context, id ShareId, optio
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPost,
-		Path:          fmt.Sprintf("%s/listSynchronizations", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListSynchronizationsCustomPager{},
+		Path:          fmt.Sprintf("%s/listSynchronizations", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -104,6 +118,7 @@ func (c ShareClient) ListSynchronizationsCompleteMatchingPredicate(ctx context.C
 
 	resp, err := c.ListSynchronizations(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

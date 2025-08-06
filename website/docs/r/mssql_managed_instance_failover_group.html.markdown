@@ -15,103 +15,214 @@ Manages an Azure SQL Managed Instance Failover Group.
 -> **Note:** For a more complete example, see the [`./examples/sql-azure/managed_instance_failover_group` directory](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/sql-azure/managed_instance_failover_group) within the GitHub Repository.
 
 ```hcl
-resource "azurerm_resource_group" "example" {
-  name     = "example-resources"
-  location = "West Europe"
-}
-
-resource "azurerm_virtual_network" "example" {
-  name                = "example"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-  address_space       = ["10.0.0.0/16"]
-}
-
-resource "azurerm_subnet" "example" {
-  name                 = "example"
-  resource_group_name  = azurerm_resource_group.example.name
-  virtual_network_name = azurerm_virtual_network.example.name
-  address_prefixes     = ["10.0.2.0/24"]
-}
-
-resource "azurerm_network_security_group" "example" {
-  name                = "example"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-}
-
-resource "azurerm_subnet_network_security_group_association" "example" {
-  subnet_id                 = azurerm_subnet.example.id
-  network_security_group_id = azurerm_network_security_group.example.id
-}
-
-resource "azurerm_route_table" "example" {
-  name                = "example"
-  location            = azurerm_resource_group.example.location
-  resource_group_name = azurerm_resource_group.example.name
-}
-
-resource "azurerm_subnet_route_table_association" "example" {
-  subnet_id      = azurerm_subnet.example.id
-  route_table_id = azurerm_route_table.example.id
-}
-
-resource "azurerm_mssql_managed_instance" "primary" {
-  name                         = "example-primary"
-  resource_group_name          = azurerm_resource_group.example.name
-  location                     = azurerm_resource_group.example.location
-  administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsDog11"
-  license_type                 = "BasePrice"
-  subnet_id                    = azurerm_subnet.example.id
-  sku_name                     = "GP_Gen5"
-  vcores                       = 4
-  storage_size_in_gb           = 32
-
-  depends_on = [
-    azurerm_subnet_network_security_group_association.example,
-    azurerm_subnet_route_table_association.example,
-  ]
-
-  tags = {
-    environment = "prod"
-  }
-}
-
-resource "azurerm_mssql_managed_instance" "secondary" {
-  name                         = "example-secondary"
-  resource_group_name          = azurerm_resource_group.example.name
-  location                     = azurerm_resource_group.example.location
-  administrator_login          = "mradministrator"
-  administrator_login_password = "thisIsDog11"
-  license_type                 = "BasePrice"
-  subnet_id                    = azurerm_subnet.example.id
-  sku_name                     = "GP_Gen5"
-  vcores                       = 4
-  storage_size_in_gb           = 32
-
-  depends_on = [
-    azurerm_subnet_network_security_group_association.example,
-    azurerm_subnet_route_table_association.example,
-  ]
-
-  tags = {
-    environment = "prod"
-  }
+locals {
+  name              = "mymssqlmitest"
+  primary_name      = "${local.name}-primary"
+  primary_location  = "West Europe"
+  failover_name     = "${local.name}-failover"
+  failover_location = "North Europe"
 }
 
 resource "azurerm_mssql_managed_instance_failover_group" "example" {
   name                        = "example-failover-group"
   location                    = azurerm_mssql_managed_instance.primary.location
   managed_instance_id         = azurerm_mssql_managed_instance.primary.id
-  partner_managed_instance_id = azurerm_mssql_managed_instance.secondary.id
-
+  partner_managed_instance_id = azurerm_mssql_managed_instance.failover.id
+  secondary_type              = "Geo"
   read_write_endpoint_failover_policy {
     mode          = "Automatic"
     grace_minutes = 60
   }
+  depends_on = [
+    azurerm_private_dns_zone_virtual_network_link.primary,
+    azurerm_private_dns_zone_virtual_network_link.failover,
+  ]
+}
+
+resource "azurerm_private_dns_zone" "example" {
+  name                = "${local.name}.private"
+  resource_group_name = azurerm_resource_group.primary.name
+}
+
+## Primary SQL Managed Instance
+resource "azurerm_resource_group" "primary" {
+  name     = local.primary_name
+  location = local.primary_location
+}
+
+resource "azurerm_virtual_network" "primary" {
+  name                = local.primary_name
+  location            = azurerm_resource_group.primary.location
+  resource_group_name = azurerm_resource_group.primary.name
+  address_space       = ["10.0.0.0/16"]
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "primary" {
+  name                  = "primary-link"
+  resource_group_name   = azurerm_resource_group.primary.name
+  private_dns_zone_name = azurerm_private_dns_zone.example.name
+  virtual_network_id    = azurerm_virtual_network.primary.id
+}
+
+resource "azurerm_subnet" "primary" {
+  name                 = local.primary_name
+  resource_group_name  = azurerm_resource_group.primary.name
+  virtual_network_name = azurerm_virtual_network.primary.name
+  address_prefixes     = ["10.0.1.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
+      ]
+      name = "Microsoft.Sql/managedInstances"
+    }
+  }
+}
+
+resource "azurerm_network_security_group" "primary" {
+  name                = local.primary_name
+  location            = azurerm_resource_group.primary.location
+  resource_group_name = azurerm_resource_group.primary.name
+}
+
+resource "azurerm_subnet_network_security_group_association" "primary" {
+  subnet_id                 = azurerm_subnet.primary.id
+  network_security_group_id = azurerm_network_security_group.primary.id
+}
+
+resource "azurerm_route_table" "primary" {
+  name                = local.primary_name
+  location            = azurerm_resource_group.primary.location
+  resource_group_name = azurerm_resource_group.primary.name
+}
+
+resource "azurerm_subnet_route_table_association" "primary" {
+  subnet_id      = azurerm_subnet.primary.id
+  route_table_id = azurerm_route_table.primary.id
+}
+
+resource "azurerm_mssql_managed_instance" "primary" {
+  name                         = local.primary_name
+  resource_group_name          = azurerm_resource_group.primary.name
+  location                     = azurerm_resource_group.primary.location
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+  license_type                 = "BasePrice"
+  subnet_id                    = azurerm_subnet.primary.id
+  sku_name                     = "GP_Gen5"
+  vcores                       = 4
+  storage_size_in_gb           = 32
+  depends_on = [
+    azurerm_subnet_network_security_group_association.primary,
+    azurerm_subnet_route_table_association.primary,
+  ]
+}
+
+resource "azurerm_virtual_network_peering" "primary_to_failover" {
+  name                      = "primary-to-failover"
+  remote_virtual_network_id = azurerm_virtual_network.failover.id
+  resource_group_name       = azurerm_resource_group.primary.name
+  virtual_network_name      = azurerm_virtual_network.primary.name
+}
+
+## Secondary (Fail-over) SQL Managed Instance
+resource "azurerm_resource_group" "failover" {
+  name     = local.failover_name
+  location = local.failover_location
+}
+
+resource "azurerm_virtual_network" "failover" {
+  name                = local.failover_name
+  location            = azurerm_resource_group.failover.location
+  resource_group_name = azurerm_resource_group.failover.name
+  address_space       = ["10.1.0.0/16"]
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "failover" {
+  name                  = "failover-link"
+  resource_group_name   = azurerm_private_dns_zone.example.resource_group_name
+  private_dns_zone_name = azurerm_private_dns_zone.example.name
+  virtual_network_id    = azurerm_virtual_network.failover.id
+}
+
+resource "azurerm_subnet" "default" {
+  name                 = "default"
+  resource_group_name  = azurerm_resource_group.failover.name
+  virtual_network_name = azurerm_virtual_network.failover.name
+  address_prefixes     = ["10.1.0.0/24"]
+}
+
+resource "azurerm_subnet" "failover" {
+  name                 = "ManagedInstance"
+  resource_group_name  = azurerm_resource_group.failover.name
+  virtual_network_name = azurerm_virtual_network.failover.name
+  address_prefixes     = ["10.1.1.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action",
+        "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action",
+        "Microsoft.Network/virtualNetworks/subnets/unprepareNetworkPolicies/action",
+      ]
+      name = "Microsoft.Sql/managedInstances"
+    }
+  }
+}
+
+resource "azurerm_network_security_group" "failover" {
+  name                = local.failover_name
+  location            = azurerm_resource_group.failover.location
+  resource_group_name = azurerm_resource_group.failover.name
+}
+
+resource "azurerm_subnet_network_security_group_association" "failover" {
+  subnet_id                 = azurerm_subnet.failover.id
+  network_security_group_id = azurerm_network_security_group.failover.id
+}
+
+resource "azurerm_route_table" "failover" {
+  name                = local.failover_name
+  location            = azurerm_resource_group.failover.location
+  resource_group_name = azurerm_resource_group.failover.name
+}
+
+resource "azurerm_subnet_route_table_association" "failover" {
+  subnet_id      = azurerm_subnet.failover.id
+  route_table_id = azurerm_route_table.failover.id
+}
+
+resource "azurerm_mssql_managed_instance" "failover" {
+  name                         = local.failover_name
+  resource_group_name          = azurerm_resource_group.failover.name
+  location                     = azurerm_resource_group.failover.location
+  administrator_login          = "mradministrator"
+  administrator_login_password = "thisIsDog11"
+  license_type                 = "BasePrice"
+  subnet_id                    = azurerm_subnet.failover.id
+  sku_name                     = "GP_Gen5"
+  vcores                       = 4
+  storage_size_in_gb           = 32
+  dns_zone_partner_id          = azurerm_mssql_managed_instance.primary.id
+
+  depends_on = [
+    azurerm_subnet_network_security_group_association.failover,
+    azurerm_subnet_route_table_association.failover,
+  ]
+}
+
+resource "azurerm_virtual_network_peering" "failover_to_primary" {
+  name                      = "failover-to-primary"
+  remote_virtual_network_id = azurerm_virtual_network.primary.id
+  resource_group_name       = azurerm_resource_group.failover.name
+  virtual_network_name      = azurerm_virtual_network.failover.name
 }
 ```
+
+-> **Note:** There are many prerequisites that must be in place before creating the failover group. To see them all, refer to [Configure a failover group for Azure SQL Managed Instance](https://learn.microsoft.com/en-us/azure/azure-sql/managed-instance/failover-group-configure-sql-mi).
 
 ## Arguments Reference
 
@@ -128,6 +239,8 @@ The following arguments are supported:
 * `read_write_endpoint_failover_policy` - (Required) A `read_write_endpoint_failover_policy` block as defined below.
 
 * `readonly_endpoint_failover_policy_enabled` - (Optional) Failover policy for the read-only endpoint. Defaults to `true`.
+
+* `secondary_type` - (Optional) The type of the secondary Managed Instance. Possible values are `Geo`, `Standby`. Defaults to `Geo`.
 
 ---
 
@@ -171,3 +284,9 @@ SQL Instance Failover Groups can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_mssql_managed_instance_failover_group.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Sql/locations/Location/instanceFailoverGroups/failoverGroup1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Sql` - 2023-08-01-preview

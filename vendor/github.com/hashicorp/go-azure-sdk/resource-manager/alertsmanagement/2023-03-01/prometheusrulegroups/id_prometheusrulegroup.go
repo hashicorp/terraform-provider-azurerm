@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&PrometheusRuleGroupId{})
+}
 
 var _ resourceids.ResourceId = &PrometheusRuleGroupId{}
 
@@ -37,7 +42,7 @@ func ParsePrometheusRuleGroupID(input string) (*PrometheusRuleGroupId, error) {
 	}
 
 	id := PrometheusRuleGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +59,7 @@ func ParsePrometheusRuleGroupIDInsensitively(input string) (*PrometheusRuleGroup
 	}
 
 	id := PrometheusRuleGroupId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -110,7 +115,7 @@ func (id PrometheusRuleGroupId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAlertsManagement", "Microsoft.AlertsManagement", "Microsoft.AlertsManagement"),
 		resourceids.StaticSegment("staticPrometheusRuleGroups", "prometheusRuleGroups", "prometheusRuleGroups"),
-		resourceids.UserSpecifiedSegment("prometheusRuleGroupName", "prometheusRuleGroupValue"),
+		resourceids.UserSpecifiedSegment("prometheusRuleGroupName", "prometheusRuleGroupName"),
 	}
 }
 

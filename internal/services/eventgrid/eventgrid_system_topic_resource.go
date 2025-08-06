@@ -71,7 +71,7 @@ func resourceEventGridSystemTopic() *pluginsdk.Resource {
 				ForceNew: true,
 				ValidateFunc: validation.Any(
 					azure.ValidateResourceID,
-					mgmtGroupValidate.ManagementGroupID,
+					mgmtGroupValidate.TenantScopedManagementGroupID,
 				),
 			},
 

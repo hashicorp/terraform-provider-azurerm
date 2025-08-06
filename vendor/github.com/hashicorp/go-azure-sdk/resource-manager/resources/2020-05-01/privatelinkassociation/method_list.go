@@ -47,7 +47,6 @@ func (c PrivateLinkAssociationClient) List(ctx context.Context, id commonids.Man
 
 	var model PrivateLinkAssociationGetResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

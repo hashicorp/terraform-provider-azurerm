@@ -8,8 +8,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/clusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/clusters"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -18,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceLogAnalyticsClusterCustomerManagedKey() *pluginsdk.Resource {
@@ -86,12 +86,12 @@ func resourceLogAnalyticsClusterCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 
 	model := resp.Model
 	if model == nil {
-		return fmt.Errorf("retiring `azurerm_log_analytics_cluster` %s: `model` is nil", *id)
+		return fmt.Errorf("retrieving `azurerm_log_analytics_cluster` %s: `model` is nil", *id)
 	}
 
 	props := model.Properties
 	if props == nil {
-		return fmt.Errorf("retiring `azurerm_log_analytics_cluster` %s: `Properties` is nil", *id)
+		return fmt.Errorf("retrieving `azurerm_log_analytics_cluster` %s: `Properties` is nil", *id)
 	}
 
 	if props.KeyVaultProperties != nil {
@@ -100,19 +100,26 @@ func resourceLogAnalyticsClusterCustomerManagedKeyCreate(d *pluginsdk.ResourceDa
 		}
 	}
 
+	// Ensure `associatedWorkspaces` is not present in request, this is a read only property and cannot be sent to the API
+	// Error: updating Customer Managed Key for Cluster
+	//		performing CreateOrUpdate: unexpected status 400 (400 Bad Request) with error:
+	//		InvalidParameter: 'properties.associatedWorkspaces' is a read only property and cannot be set.
+	//		Please refer to https://docs.microsoft.com/en-us/azure/azure-monitor/log-query/logs-dedicated-clusters#link-a-workspace-to-the-cluster for more information on how to associate a workspace to the cluster.
+	props.AssociatedWorkspaces = nil
+
 	keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(d.Get("key_vault_key_id").(string))
 	if err != nil {
 		return fmt.Errorf("parsing Key Vault Key ID: %+v", err)
 	}
 
 	model.Properties.KeyVaultProperties = &clusters.KeyVaultProperties{
-		KeyVaultUri: utils.String(keyId.KeyVaultBaseUrl),
-		KeyName:     utils.String(keyId.Name),
-		KeyVersion:  utils.String(keyId.Version),
+		KeyVaultUri: pointer.To(keyId.KeyVaultBaseUrl),
+		KeyName:     pointer.To(keyId.Name),
+		KeyVersion:  pointer.To(keyId.Version),
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
-		return fmt.Errorf("updating Customer Managed Key for %s: %+v", *id, err)
+		return fmt.Errorf("creating Customer Managed Key for %s: %+v", *id, err)
 	}
 
 	updateWait, err := logAnalyticsClusterWaitForState(ctx, client, *id)
@@ -156,17 +163,20 @@ func resourceLogAnalyticsClusterCustomerManagedKeyUpdate(d *pluginsdk.ResourceDa
 
 	model := resp.Model
 	if model == nil {
-		return fmt.Errorf("retiring `azurerm_log_analytics_cluster` %s: `model` is nil", *id)
+		return fmt.Errorf("retrieving `azurerm_log_analytics_cluster` %s: `model` is nil", *id)
 	}
 
 	if props := model.Properties; props == nil {
-		return fmt.Errorf("retiring `azurerm_log_analytics_cluster` %s: `Properties` is nil", *id)
+		return fmt.Errorf("retrieving `azurerm_log_analytics_cluster` %s: `Properties` is nil", *id)
 	}
 
+	// This is a read only property, please see comment in the create function.
+	model.Properties.AssociatedWorkspaces = nil
+
 	model.Properties.KeyVaultProperties = &clusters.KeyVaultProperties{
-		KeyVaultUri: utils.String(keyId.KeyVaultBaseUrl),
-		KeyName:     utils.String(keyId.Name),
-		KeyVersion:  utils.String(keyId.Version),
+		KeyVaultUri: pointer.To(keyId.KeyVaultBaseUrl),
+		KeyName:     pointer.To(keyId.Name),
+		KeyVersion:  pointer.To(keyId.Version),
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
@@ -200,31 +210,24 @@ func resourceLogAnalyticsClusterCustomerManagedKeyRead(d *pluginsdk.ResourceData
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			if kvProps := props.KeyVaultProperties; kvProps != nil {
-				var keyVaultUri, keyName, keyVersion string
-				if kvProps.KeyVaultUri != nil && *kvProps.KeyVaultUri != "" {
-					keyVaultUri = *kvProps.KeyVaultUri
-				} else {
-					return fmt.Errorf("empty value returned for Key Vault URI")
+				keyVaultUri := pointer.From(kvProps.KeyVaultUri)
+				keyName := pointer.From(kvProps.KeyName)
+				keyVersion := pointer.From(kvProps.KeyVersion)
+
+				if keyVaultUri != "" && keyName != "" {
+					keyId, err := keyVaultParse.NewNestedItemID(keyVaultUri, keyVaultParse.NestedItemTypeKey, keyName, keyVersion)
+					if err != nil {
+						return err
+					}
+					keyVaultKeyId = keyId.ID()
 				}
-				if kvProps.KeyName != nil && *kvProps.KeyName != "" {
-					keyName = *kvProps.KeyName
-				} else {
-					return fmt.Errorf("empty value returned for Key Vault Key Name")
-				}
-				if kvProps.KeyVersion != nil {
-					keyVersion = *kvProps.KeyVersion
-				}
-				keyId, err := keyVaultParse.NewNestedItemID(keyVaultUri, keyVaultParse.NestedItemTypeKey, keyName, keyVersion)
-				if err != nil {
-					return err
-				}
-				keyVaultKeyId = keyId.ID()
 			}
 		}
 	}
 
 	if keyVaultKeyId == "" {
 		log.Printf("[DEBUG] %s has no Customer Managed Key - removing from state", *id)
+		d.SetId("")
 		return nil
 	}
 
@@ -258,12 +261,12 @@ func resourceLogAnalyticsClusterCustomerManagedKeyDelete(d *pluginsdk.ResourceDa
 
 	model := resp.Model
 	if model == nil {
-		return fmt.Errorf("retiring `azurerm_log_analytics_cluster` %s: `model` is nil", *id)
+		return fmt.Errorf("retrieving `azurerm_log_analytics_cluster` %s: `model` is nil", *id)
 	}
 
 	props := model.Properties
 	if props == nil {
-		return fmt.Errorf("retiring `azurerm_log_analytics_cluster` %s: `Properties` is nil", *id)
+		return fmt.Errorf("retrieving `azurerm_log_analytics_cluster` %s: `Properties` is nil", *id)
 	}
 
 	if props.KeyVaultProperties == nil {
@@ -274,14 +277,18 @@ func resourceLogAnalyticsClusterCustomerManagedKeyDelete(d *pluginsdk.ResourceDa
 		return fmt.Errorf("deleting `azurerm_log_analytics_cluster_customer_managed_key` %s: `customer managed key does not exist!`", *id)
 	}
 
+	// This is a read only property, please see comment in the create function.
+	props.AssociatedWorkspaces = nil
+
+	// The API only removes the CMK when it is sent empty string values, sending nil for each property or an empty object does not work.
 	model.Properties.KeyVaultProperties = &clusters.KeyVaultProperties{
-		KeyVaultUri: nil,
-		KeyName:     nil,
-		KeyVersion:  nil,
+		KeyVaultUri: pointer.To(""),
+		KeyName:     pointer.To(""),
+		KeyVersion:  pointer.To(""),
 	}
 
 	if err = client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
-		return fmt.Errorf("updating Customer Managed Key for %s: %+v", *id, err)
+		return fmt.Errorf("deleting Customer Managed Key from %s: %+v", *id, err)
 	}
 
 	return nil

@@ -15,7 +15,7 @@ type SourceControlSyncJobStreamsClient struct {
 }
 
 func NewSourceControlSyncJobStreamsClientWithBaseURI(sdkApi sdkEnv.Api) (*SourceControlSyncJobStreamsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "sourcecontrolsyncjobstreams", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "sourcecontrolsyncjobstreams", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SourceControlSyncJobStreamsClient: %+v", err)
 	}

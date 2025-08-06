@@ -45,7 +45,6 @@ func (c MongorbacsClient) MongoDBResourcesGetMongoUserDefinition(ctx context.Con
 
 	var model MongoUserDefinitionGetResults
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

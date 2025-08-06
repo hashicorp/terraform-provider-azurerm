@@ -184,7 +184,7 @@ export ARM_SUBSCRIPTION_ID="20000000-0000-0000-0000-000000000000"
 > $env:ARM_TENANT_ID = "10000000-0000-0000-0000-000000000000"
 > $env:ARM_SUBSCRIPTION_ID = "20000000-0000-0000-0000-000000000000"
 ```
-The following Terraform and Provider blocks can be specified - where `3.0.0` is the version of the Azure Provider that you'd like to use:
+The following Terraform and Provider blocks can be specified - where `4.1.0` is the version of the Azure Provider that you'd like to use:
 
 ```hcl
 # We strongly recommend using the required_providers block to set the
@@ -193,7 +193,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.0.0"
+      version = "=4.1.0"
     }
   }
 }
@@ -212,7 +212,7 @@ At this point running either `terraform plan` or `terraform apply` should allow 
 
 It's also possible to configure these variables either in-line or from using variables in Terraform (as the `client_secret` is in this example), like so:
 
-~> **Caution** We recommend not defining these variables in-line since they could easily be checked into Source Control.
+!> **Note:** We recommend not defining these variables in-line since they could easily be checked into Source Control.
 
 ```hcl
 variable "client_secret" {
@@ -224,7 +224,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.0.0"
+      version = "=4.1.0"
     }
   }
 }

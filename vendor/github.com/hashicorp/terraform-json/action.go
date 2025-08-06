@@ -26,6 +26,9 @@ const (
 
 	// ActionDelete denotes a delete operation.
 	ActionDelete Action = "delete"
+
+	// ActionForget denotes a forget operation.
+	ActionForget Action = "forget"
 )
 
 // Actions denotes a valid change type.
@@ -104,4 +107,13 @@ func (a Actions) CreateBeforeDestroy() bool {
 // operation.
 func (a Actions) Replace() bool {
 	return a.DestroyBeforeCreate() || a.CreateBeforeDestroy()
+}
+
+// Forget is true if this set of Actions denotes a forget operation.
+func (a Actions) Forget() bool {
+	if len(a) != 1 {
+		return false
+	}
+
+	return a[0] == ActionForget
 }

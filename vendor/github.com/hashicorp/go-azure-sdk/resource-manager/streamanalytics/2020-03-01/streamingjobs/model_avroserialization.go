@@ -14,6 +14,14 @@ type AvroSerialization struct {
 	Properties *interface{} `json:"properties,omitempty"`
 
 	// Fields inherited from Serialization
+
+	Type EventSerializationType `json:"type"`
+}
+
+func (s AvroSerialization) Serialization() BaseSerializationImpl {
+	return BaseSerializationImpl{
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = AvroSerialization{}
@@ -27,9 +35,10 @@ func (s AvroSerialization) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AvroSerialization: %+v", err)
 	}
+
 	decoded["type"] = "Avro"
 
 	encoded, err = json.Marshal(decoded)

@@ -49,7 +49,6 @@ func (c SyncGroupResourceClient) SyncGroupsCreate(ctx context.Context, id SyncGr
 
 	var model SyncGroup
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

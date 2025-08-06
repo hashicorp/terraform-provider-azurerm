@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&RouteConfigId{})
+}
 
 var _ resourceids.ResourceId = &RouteConfigId{}
 
@@ -41,7 +46,7 @@ func ParseRouteConfigID(input string) (*RouteConfigId, error) {
 	}
 
 	id := RouteConfigId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -58,7 +63,7 @@ func ParseRouteConfigIDInsensitively(input string) (*RouteConfigId, error) {
 	}
 
 	id := RouteConfigId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -122,11 +127,11 @@ func (id RouteConfigId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppPlatform", "Microsoft.AppPlatform", "Microsoft.AppPlatform"),
 		resourceids.StaticSegment("staticSpring", "spring", "spring"),
-		resourceids.UserSpecifiedSegment("springName", "springValue"),
+		resourceids.UserSpecifiedSegment("springName", "springName"),
 		resourceids.StaticSegment("staticGateways", "gateways", "gateways"),
-		resourceids.UserSpecifiedSegment("gatewayName", "gatewayValue"),
+		resourceids.UserSpecifiedSegment("gatewayName", "gatewayName"),
 		resourceids.StaticSegment("staticRouteConfigs", "routeConfigs", "routeConfigs"),
-		resourceids.UserSpecifiedSegment("routeConfigName", "routeConfigValue"),
+		resourceids.UserSpecifiedSegment("routeConfigName", "routeConfigName"),
 	}
 }
 

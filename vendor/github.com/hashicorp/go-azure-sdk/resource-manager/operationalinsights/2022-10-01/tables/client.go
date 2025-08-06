@@ -15,7 +15,7 @@ type TablesClient struct {
 }
 
 func NewTablesClientWithBaseURI(sdkApi sdkEnv.Api) (*TablesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "tables", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "tables", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating TablesClient: %+v", err)
 	}

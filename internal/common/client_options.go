@@ -9,12 +9,10 @@ import (
 	"strings"
 
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/Azure/go-autorest/autorest/azure"
 	"github.com/hashicorp/go-azure-helpers/sender"
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/meta"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/version"
 )
@@ -48,11 +46,8 @@ type ClientOptions struct {
 	DisableCorrelationRequestID bool
 
 	DisableTerraformPartnerID bool
-	SkipProviderReg           bool
 	StorageUseAzureAD         bool
 
-	// Keep these around for convenience with Autorest based clients, remove when we are no longer using autorest
-	AzureEnvironment        azure.Environment
 	ResourceManagerEndpoint string
 
 	// Legacy authorizers for go-autorest
@@ -61,6 +56,9 @@ type ClientOptions struct {
 	ManagedHSMAuthorizer      autorest.Authorizer
 	ResourceManagerAuthorizer autorest.Authorizer
 	SynapseAuthorizer         autorest.Authorizer
+
+	// TODO: Remove when all go-autorest clients are gone
+	SkipProviderReg bool
 }
 
 // Configure set up a resourcemanager.Client using an auth.Authorizer from hashicorp/go-azure-sdk
@@ -97,12 +95,9 @@ func (o ClientOptions) ConfigureClient(c *autorest.Client, authorizer autorest.A
 }
 
 func userAgent(userAgent, tfVersion, partnerID string, disableTerraformPartnerID bool) string {
-	tfUserAgent := fmt.Sprintf("HashiCorp Terraform/%s (+https://www.terraform.io) Terraform Plugin SDK/%s", tfVersion, meta.SDKVersionString())
+	tfUserAgent := fmt.Sprintf("HashiCorp Terraform/%s (+https://www.terraform.io)", tfVersion)
 
 	providerUserAgent := fmt.Sprintf("%s terraform-provider-azurerm/%s", tfUserAgent, version.ProviderVersion)
-	if features.FourPointOhBeta() {
-		providerUserAgent = fmt.Sprintf("%s terraform-provider-azurerm/%s+4.0-beta", tfUserAgent, version.ProviderVersion)
-	}
 	userAgent = strings.TrimSpace(fmt.Sprintf("%s %s", userAgent, providerUserAgent))
 
 	// append the CloudShell version to the user agent if it exists

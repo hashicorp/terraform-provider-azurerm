@@ -10,5 +10,5 @@ type FirewallPacketCaptureParametersFormat struct {
 	Flags                    *[]AzureFirewallPacketCaptureFlags `json:"flags,omitempty"`
 	NumberOfPacketsToCapture *int64                             `json:"numberOfPacketsToCapture,omitempty"`
 	Protocol                 *AzureFirewallNetworkRuleProtocol  `json:"protocol,omitempty"`
-	SasUrl                   *string                            `json:"sasUrl,omitempty"`
+	SasURL                   *string                            `json:"sasUrl,omitempty"`
 }

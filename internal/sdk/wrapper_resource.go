@@ -5,6 +5,7 @@ package sdk
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -79,18 +80,19 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 		},
 		Importer: pluginsdk.ImporterValidatingResourceIdThen(func(id string) error {
 			fn := rw.resource.IDValidationFunc()
-			warnings, errors := fn(id, "id")
+
+			warnings, errs := fn(id, "id")
 			if len(warnings) > 0 {
 				for _, warning := range warnings {
 					rw.logger.Warn(warning)
 				}
 			}
-			if len(errors) > 0 {
+			if len(errs) > 0 {
 				out := ""
-				for _, err := range errors {
+				for _, err := range errs {
 					out += err.Error()
 				}
-				return fmt.Errorf(out)
+				return errors.New(out)
 			}
 
 			return nil
@@ -147,12 +149,7 @@ func (rw *ResourceWrapper) Resource() (*schema.Resource, error) {
 	}
 
 	if v, ok := rw.resource.(ResourceWithDeprecationAndNoReplacement); ok {
-		message := v.DeprecationMessage()
-		if message == "" {
-			return nil, fmt.Errorf("Resource %q must return a non-empty DeprecationMessage if implementing ResourceWithDeprecationAndNoReplacement", rw.resource.ResourceType())
-		}
-
-		resource.DeprecationMessage = message
+		resource.DeprecationMessage = v.DeprecationMessage()
 	}
 	if v, ok := rw.resource.(ResourceWithDeprecationReplacedBy); ok {
 		if resource.DeprecationMessage != "" {
@@ -178,6 +175,35 @@ and we recommend using the %[2]q resource instead.
 		resource.StateUpgraders = pluginsdk.StateUpgrades(stateUpgradeData.Upgraders)
 	}
 	// TODO: State Migrations
+
+	if v, ok := rw.resource.(ResourceWithIdentity); ok {
+		var idType pluginsdk.ResourceTypeForIdentity = pluginsdk.ResourceTypeForIdentityDefault
+		if v, ok := rw.resource.(ResourceWithIdentityTypeOverride); ok {
+			idType = v.IdentityType()
+		}
+
+		resourceId := v.Identity()
+		resource.Identity = &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(resourceId, idType),
+		}
+
+		resource.Importer = pluginsdk.ImporterValidatingIdentityThen(resourceId, func(ctx context.Context, d *pluginsdk.ResourceData, meta interface{}) ([]*pluginsdk.ResourceData, error) {
+			if v, ok := rw.resource.(ResourceWithCustomImporter); ok {
+				metaData := runArgs(d, meta, rw.logger)
+
+				ctx, cancel := context.WithTimeout(ctx, rw.resource.Read().Timeout)
+				defer cancel()
+				err := v.CustomImporter()(ctx, metaData)
+				if err != nil {
+					return nil, err
+				}
+
+				return []*pluginsdk.ResourceData{metaData.ResourceData}, nil
+			}
+
+			return schema.ImportStatePassthroughContext(ctx, d, meta)
+		}, idType)
+	}
 
 	return &resource, nil
 }

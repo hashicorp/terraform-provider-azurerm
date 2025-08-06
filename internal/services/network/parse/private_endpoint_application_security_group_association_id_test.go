@@ -6,8 +6,8 @@ package parse
 import (
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/privateendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/privateendpoints"
 )
 
 func TestPrivateEndpointApplicationSecurityGroupAssociationID(t *testing.T) {
@@ -52,16 +52,8 @@ func TestPrivateEndpointApplicationSecurityGroupAssociationID(t *testing.T) {
 			Input: "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/privateEndpoints/endpoints1|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/applicationSecurityGroups/securityGroup1",
 			Error: false,
 			Expect: &PrivateEndpointApplicationSecurityGroupAssociationId{
-				ApplicationSecurityGroupId: applicationsecuritygroups.ApplicationSecurityGroupId{
-					ResourceGroupName:            "mygroup1",
-					SubscriptionId:               "00000000-0000-0000-0000-000000000000",
-					ApplicationSecurityGroupName: "securityGroup1",
-				},
-				PrivateEndpointId: privateendpoints.PrivateEndpointId{
-					ResourceGroupName:   "group1",
-					SubscriptionId:      "00000000-0000-0000-0000-000000000000",
-					PrivateEndpointName: "endpoints1",
-				},
+				ApplicationSecurityGroupId: applicationsecuritygroups.NewApplicationSecurityGroupID("00000000-0000-0000-0000-000000000000", "mygroup1", "securityGroup1"),
+				PrivateEndpointId:          privateendpoints.NewPrivateEndpointID("00000000-0000-0000-0000-000000000000", "group1", "endpoints1"),
 			},
 		},
 	}

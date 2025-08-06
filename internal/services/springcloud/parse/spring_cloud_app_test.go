@@ -27,7 +27,6 @@ func TestSpringCloudAppID(t *testing.T) {
 		Error    bool
 		Expected *SpringCloudAppId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -136,7 +135,6 @@ func TestSpringCloudAppIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *SpringCloudAppId
 	}{
-
 		{
 			// empty
 			Input: "",

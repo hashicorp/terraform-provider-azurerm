@@ -8,11 +8,11 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/tombuildsstuff/kermit/sdk/web/2022-09-01/web"
+	"github.com/jackofallops/kermit/sdk/web/2022-09-01/web"
 )
 
 type AuthV2Settings struct {
@@ -172,6 +172,7 @@ func AuthV2SettingsSchema() *pluginsdk.Schema {
 		},
 	}
 }
+
 func AuthV2SettingsComputedSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
@@ -483,7 +484,7 @@ func expandAuthV2LoginSettings(input []AuthV2Login) *webapps.Login {
 			FileSystem:       &webapps.FileSystemTokenStore{},
 			AzureBlobStorage: &webapps.BlobStorageTokenStore{},
 		},
-		PreserveUrlFragmentsForLogins: pointer.To(login.PreserveURLFragmentsForLogins),
+		PreserveURLFragmentsForLogins: pointer.To(login.PreserveURLFragmentsForLogins),
 		Nonce: &webapps.Nonce{
 			ValidateNonce:           pointer.To(login.ValidateNonce),
 			NonceExpirationInterval: pointer.To(login.NonceExpirationTime),
@@ -503,7 +504,7 @@ func expandAuthV2LoginSettings(input []AuthV2Login) *webapps.Login {
 		}
 		if login.TokenBlobStorageSAS != "" {
 			result.TokenStore.AzureBlobStorage = &webapps.BlobStorageTokenStore{
-				SasUrlSettingName: pointer.To(login.TokenBlobStorageSAS),
+				SasURLSettingName: pointer.To(login.TokenBlobStorageSAS),
 			}
 		}
 	}
@@ -521,10 +522,10 @@ func expandAuthV2LoginSettings(input []AuthV2Login) *webapps.Login {
 	}
 	if login.TokenBlobStorageSAS != "" {
 		result.TokenStore.AzureBlobStorage = &webapps.BlobStorageTokenStore{
-			SasUrlSettingName: pointer.To(login.TokenBlobStorageSAS),
+			SasURLSettingName: pointer.To(login.TokenBlobStorageSAS),
 		}
 	}
-	result.AllowedExternalRedirectUrls = pointer.To(login.AllowedExternalRedirectURLs)
+	result.AllowedExternalRedirectURLs = pointer.To(login.AllowedExternalRedirectURLs)
 
 	return result
 }
@@ -534,8 +535,8 @@ func flattenAuthV2LoginSettings(input *webapps.Login) []AuthV2Login {
 		return []AuthV2Login{}
 	}
 	result := AuthV2Login{
-		PreserveURLFragmentsForLogins: pointer.From(input.PreserveUrlFragmentsForLogins),
-		AllowedExternalRedirectURLs:   pointer.From(input.AllowedExternalRedirectUrls),
+		PreserveURLFragmentsForLogins: pointer.From(input.PreserveURLFragmentsForLogins),
+		AllowedExternalRedirectURLs:   pointer.From(input.AllowedExternalRedirectURLs),
 	}
 	if routes := input.Routes; routes != nil {
 		result.LogoutEndpoint = pointer.From(routes.LogoutEndpoint)
@@ -547,7 +548,7 @@ func flattenAuthV2LoginSettings(input *webapps.Login) []AuthV2Login {
 			result.TokenFilesystemPath = pointer.From(fs.Directory)
 		}
 		if bs := token.AzureBlobStorage; bs != nil {
-			result.TokenBlobStorageSAS = pointer.From(bs.SasUrlSettingName)
+			result.TokenBlobStorageSAS = pointer.From(bs.SasURLSettingName)
 		}
 	}
 
@@ -994,6 +995,16 @@ func expandAadAuthV2Settings(input []AadAuthV2Settings) *webapps.AzureActiveDire
 			}
 			result.Validation.AllowedAudiences = pointer.To(aad.AllowedAudiences)
 		}
+
+		if len(aad.AllowedApplications) > 0 {
+			if result.Validation == nil {
+				result.Validation = &webapps.AzureActiveDirectoryValidation{}
+			}
+			if result.Validation.DefaultAuthorizationPolicy == nil {
+				result.Validation.DefaultAuthorizationPolicy = &webapps.DefaultAuthorizationPolicy{}
+			}
+			result.Validation.DefaultAuthorizationPolicy.AllowedApplications = pointer.To(aad.AllowedApplications)
+		}
 	}
 
 	return result
@@ -1025,7 +1036,6 @@ func flattenAadAuthV2Settings(input *webapps.AzureActiveDirectory) []AadAuthV2Se
 			}
 			result.LoginParameters = loginParams
 		}
-
 	}
 
 	if validation := input.Validation; validation != nil {
@@ -1772,7 +1782,6 @@ func expandGoogleAuthV2Settings(input []GoogleAuthV2Settings) *webapps.Google {
 				Scopes: pointer.To(google.LoginScopes),
 			},
 		}
-
 	}
 
 	return &webapps.Google{

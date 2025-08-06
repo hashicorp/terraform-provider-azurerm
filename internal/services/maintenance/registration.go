@@ -10,7 +10,10 @@ import (
 
 type Registration struct{}
 
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.TypedServiceRegistration                   = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/maintenance"
@@ -23,6 +26,16 @@ func (r Registration) Name() string {
 func (r Registration) WebsiteCategories() []string {
 	return []string{
 		"Maintenance",
+	}
+}
+
+func (r Registration) DataSources() []sdk.DataSource {
+	return []sdk.DataSource{}
+}
+
+func (r Registration) Resources() []sdk.Resource {
+	return []sdk.Resource{
+		MaintenanceDynamicScopeResource{},
 	}
 }
 

@@ -31,11 +31,10 @@ resource "azurerm_eventhub_namespace" "example" {
 }
 
 resource "azurerm_eventhub" "example" {
-  name                = "acceptanceTestEventHub"
-  namespace_name      = azurerm_eventhub_namespace.example.name
-  resource_group_name = azurerm_resource_group.example.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "acceptanceTestEventHub"
+  namespace_id      = azurerm_eventhub_namespace.example.id
+  partition_count   = 2
+  message_retention = 1
 }
 ```
 
@@ -45,9 +44,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the EventHub resource. Changing this forces a new resource to be created.
 
-* `namespace_name` - (Required) Specifies the name of the EventHub Namespace. Changing this forces a new resource to be created.
-
-* `resource_group_name` - (Required) The name of the resource group in which the EventHub's parent Namespace exists. Changing this forces a new resource to be created.
+* `namespace_id` - (Optional) Specifies the ID of the EventHub Namespace. Changing this forces a new resource to be created.
 
 * `partition_count` - (Required) Specifies the current number of shards on the Event Hub.
 
@@ -55,9 +52,11 @@ The following arguments are supported:
 
 ~> **Note:** When using a dedicated Event Hubs cluster, maximum value of `partition_count` is 1024. When using a shared parent EventHub Namespace, maximum value is 32.
 
-* `message_retention` - (Required) Specifies the number of days to retain the events for this Event Hub.
+* `message_retention` - (Optional) Specifies the number of days to retain the events for this Event Hub.
 
 ~> **Note:** When using a dedicated Event Hubs cluster, maximum value of `message_retention` is 90 days. When using a shared parent EventHub Namespace, maximum value is 7 days; or 1 day when using a Basic SKU for the shared parent EventHub Namespace.
+
+* `retention_description` - (Optional) A `retention_description` block as defined below.
 
 * `capture_description` - (Optional) A `capture_description` block as defined below.
 
@@ -81,11 +80,21 @@ A `capture_description` block supports the following:
 
 ---
 
+A `retention_description` block supports the following:
+
+* `cleanup_policy` - (Required) Specifies the Cleanup Policy for the EventHub. Possible values are `Delete` and `Compact`.
+
+* `retention_time_in_hours` - (Optional) Specifies the number of hours to retain the events for this Event Hub. The value is only used when `cleanup_policy` is `Delete`.
+
+* `tombstone_retention_time_in_hours` - (Optional) Specifies the number of hours to retain the tombstones markers of a compacted Event Hub. The value is only used when `cleanup_policy` is `Compact`.
+
+---
+
 A `destination` block supports the following:
 
 * `name` - (Required) The Name of the Destination where the capture should take place. At this time the only supported value is `EventHubArchive.AzureBlockBlob`.
 
--> At this time it's only possible to Capture EventHub messages to Blob Storage. There's [a Feature Request for the Azure SDK to add support for Capturing messages to Azure Data Lake here](https://github.com/Azure/azure-rest-api-specs/issues/2255).
+-> **Note:** At this time it's only possible to Capture EventHub messages to Blob Storage. There's [a Feature Request for the Azure SDK to add support for Capturing messages to Azure Data Lake here](https://github.com/Azure/azure-rest-api-specs/issues/2255).
 
 * `archive_name_format` - (Required) The Blob naming convention for archiving. e.g. `{Namespace}/{EventHub}/{PartitionId}/{Year}/{Month}/{Day}/{Hour}/{Minute}/{Second}`. Here all the parameters (Namespace,EventHub .. etc) are mandatory irrespective of order
 
@@ -106,8 +115,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the EventHub.
-* `update` - (Defaults to 30 minutes) Used when updating the EventHub.
 * `read` - (Defaults to 5 minutes) Used when retrieving the EventHub.
+* `update` - (Defaults to 30 minutes) Used when updating the EventHub.
 * `delete` - (Defaults to 30 minutes) Used when deleting the EventHub.
 
 ## Import
@@ -117,3 +126,9 @@ EventHubs can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_eventhub.eventhub1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.EventHub/namespaces/namespace1/eventhubs/eventhub1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.EventHub` - 2024-01-01

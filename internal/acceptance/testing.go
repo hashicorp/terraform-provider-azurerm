@@ -10,8 +10,6 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/hashicorp/go-azure-helpers/authentication"
 	"github.com/hashicorp/go-azure-sdk/sdk/auth"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -43,12 +41,6 @@ func EnvironmentName() string {
 	}
 
 	return envName
-}
-
-func Environment() (*azure.Environment, error) {
-	envName := EnvironmentName()
-	metadataURL := os.Getenv("ARM_METADATA_HOSTNAME")
-	return authentication.AzureEnvironmentByNameFromEndpoint(context.TODO(), metadataURL, envName)
 }
 
 func GetAuthConfig(t *testing.T) *auth.Credentials {
@@ -97,5 +89,10 @@ func GetAuthConfig(t *testing.T) *auth.Credentials {
 
 func RequiresImportError(resourceName string) *regexp.Regexp {
 	message := "to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information."
+	return regexp.MustCompile(fmt.Sprintf(message, resourceName))
+}
+
+func RequiresImportAssociationError(resourceName string) *regexp.Regexp {
+	message := "to be managed via Terraform this association needs to be imported into the State. Please see the resource documentation for %q for more information."
 	return regexp.MustCompile(fmt.Sprintf(message, resourceName))
 }

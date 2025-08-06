@@ -11,8 +11,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/datastore"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/datastore"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -170,22 +170,18 @@ func (r MachineLearningDataStoreFileShare) Create() sdk.ResourceFunc {
 
 			accountKey := model.AccountKey
 			if accountKey != "" {
-				props.Credentials = map[string]interface{}{
-					"credentialsType": string(datastore.CredentialsTypeAccountKey),
-					"secrets": map[string]interface{}{
-						"secretsType": "AccountKey",
-						"key":         accountKey,
+				props.Credentials = datastore.AccountKeyDatastoreCredentials{
+					Secrets: datastore.AccountKeyDatastoreSecrets{
+						Key: pointer.To(accountKey),
 					},
 				}
 			}
 
 			sasToken := model.SharedAccessSignature
 			if sasToken != "" {
-				props.Credentials = map[string]interface{}{
-					"credentialsType": string(datastore.CredentialsTypeSas),
-					"secrets": map[string]interface{}{
-						"secretsType": "Sas",
-						"sasToken":    sasToken,
+				props.Credentials = datastore.SasDatastoreCredentials{
+					Secrets: datastore.SasDatastoreSecrets{
+						SasToken: pointer.To(sasToken),
 					},
 				}
 			}
@@ -238,22 +234,18 @@ func (r MachineLearningDataStoreFileShare) Update() sdk.ResourceFunc {
 
 			accountKey := state.AccountKey
 			if accountKey != "" {
-				props.Credentials = map[string]interface{}{
-					"credentialsType": string(datastore.CredentialsTypeAccountKey),
-					"secrets": map[string]interface{}{
-						"secretsType": "AccountKey",
-						"key":         accountKey,
+				props.Credentials = datastore.AccountKeyDatastoreCredentials{
+					Secrets: datastore.AccountKeyDatastoreSecrets{
+						Key: pointer.To(accountKey),
 					},
 				}
 			}
 
 			sasToken := state.SharedAccessSignature
 			if sasToken != "" {
-				props.Credentials = map[string]interface{}{
-					"credentialsType": string(datastore.CredentialsTypeSas),
-					"secrets": map[string]interface{}{
-						"secretsType": "Sas",
-						"sasToken":    sasToken,
+				props.Credentials = datastore.SasDatastoreCredentials{
+					Secrets: datastore.SasDatastoreSecrets{
+						SasToken: pointer.To(sasToken),
 					},
 				}
 			}

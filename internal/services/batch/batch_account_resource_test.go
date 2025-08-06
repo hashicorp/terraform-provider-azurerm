@@ -9,42 +9,15 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/batchaccount"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/batchaccount"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/batch/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type BatchAccountResource struct{}
-
-func TestValidateBatchAccountName(t *testing.T) {
-	testCases := []struct {
-		input       string
-		shouldError bool
-	}{
-		{"ab", true},
-		{"ABC", true},
-		{"abc", false},
-		{"123456789012345678901234", false},
-		{"1234567890123456789012345", true},
-		{"abc12345", false},
-	}
-
-	for _, test := range testCases {
-		_, es := validate.AccountName(test.input, "name")
-
-		if test.shouldError && len(es) == 0 {
-			t.Fatalf("Expected validating name %q to fail", test.input)
-		}
-
-		if !test.shouldError && len(es) > 1 {
-			t.Fatalf("Expected validating name %q to fail", test.input)
-		}
-	}
-}
 
 func TestAccBatchAccount_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
@@ -161,7 +134,7 @@ func TestAccBatchAccount_identity(t *testing.T) {
 	})
 }
 
-func TestAccBatchAccount_cmkVersionedKey(t *testing.T) {
+func TestAccBatchAccount_encryption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
 	r := BatchAccountResource{}
 	tenantID := os.Getenv("ARM_TENANT_ID")
@@ -174,20 +147,17 @@ func TestAccBatchAccount_cmkVersionedKey(t *testing.T) {
 				check.That(data.ResourceName).Key("encryption.0.key_vault_key_id").IsSet(),
 			),
 		},
-	})
-}
-
-func TestAccBatchAccount_cmkVersionlessKey(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_batch_account", "test")
-	r := BatchAccountResource{}
-	tenantID := os.Getenv("ARM_TENANT_ID")
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.cmkVersionlessKey(data, tenantID),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("encryption.0.key_vault_key_id").IsSet(),
+			),
+		},
+		{
+			Config: r.removeEncryption(data, tenantID),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 	})
@@ -781,6 +751,111 @@ resource "azurerm_batch_account" "test" {
   encryption {
     key_vault_key_id = azurerm_key_vault_key.test.versionless_id
   }
+}
+
+resource "azurerm_key_vault" "test" {
+  name                            = "batchkv%[3]s"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
+  enabled_for_disk_encryption     = true
+  enabled_for_deployment          = true
+  enabled_for_template_deployment = true
+  purge_protection_enabled        = true
+  tenant_id                       = "%[4]s"
+
+  sku_name = "standard"
+
+  access_policy {
+    tenant_id = "%[4]s"
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = [
+      "Get",
+      "Create",
+      "Delete",
+      "WrapKey",
+      "UnwrapKey",
+      "GetRotationPolicy",
+      "SetRotationPolicy",
+    ]
+  }
+
+  access_policy {
+    tenant_id = "%[4]s"
+    object_id = azurerm_user_assigned_identity.test.principal_id
+
+    key_permissions = [
+      "Get",
+      "WrapKey",
+      "UnwrapKey"
+    ]
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "enckey%[1]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+}
+
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, tenantID)
+}
+
+func (BatchAccountResource) removeEncryption(data acceptance.TestData, tenantID string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+  }
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-batch-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "testaccsa%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_batch_account" "test" {
+  name                                = "testaccbatch%[3]s"
+  resource_group_name                 = azurerm_resource_group.test.name
+  location                            = azurerm_resource_group.test.location
+  pool_allocation_mode                = "BatchService"
+  storage_account_id                  = azurerm_storage_account.test.id
+  storage_account_authentication_mode = "StorageKeys"
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+  encryption = []
 }
 
 resource "azurerm_key_vault" "test" {

@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ServicePlanDataSource struct{}
@@ -34,8 +33,8 @@ type ServicePlanDataSourceModel struct {
 	AppServiceEnvironmentId   string            `tfschema:"app_service_environment_id"`
 	PerSiteScaling            bool              `tfschema:"per_site_scaling_enabled"`
 	Reserved                  bool              `tfschema:"reserved"`
-	WorkerCount               int               `tfschema:"worker_count"`
-	MaximumElasticWorkerCount int               `tfschema:"maximum_elastic_worker_count"`
+	WorkerCount               int64             `tfschema:"worker_count"`
+	MaximumElasticWorkerCount int64             `tfschema:"maximum_elastic_worker_count"`
 	ZoneBalancing             bool              `tfschema:"zone_balancing_enabled"`
 	Tags                      map[string]string `tfschema:"tags"`
 }
@@ -143,7 +142,7 @@ func (r ServicePlanDataSource) Read() sdk.ResourceFunc {
 					if sku.Name != nil {
 						servicePlan.Sku = *sku.Name
 						if sku.Capacity != nil {
-							servicePlan.WorkerCount = int(*sku.Capacity)
+							servicePlan.WorkerCount = *sku.Capacity
 						}
 					}
 				}
@@ -158,16 +157,13 @@ func (r ServicePlanDataSource) Read() sdk.ResourceFunc {
 					}
 
 					if props.HostingEnvironmentProfile != nil && props.HostingEnvironmentProfile.Id != nil {
-						servicePlan.AppServiceEnvironmentId = utils.NormalizeNilableString(props.HostingEnvironmentProfile.Id)
+						servicePlan.AppServiceEnvironmentId = pointer.From(props.HostingEnvironmentProfile.Id)
 					}
 
-					servicePlan.PerSiteScaling = utils.NormaliseNilableBool(props.PerSiteScaling)
-
-					servicePlan.Reserved = utils.NormaliseNilableBool(props.Reserved)
-
-					servicePlan.ZoneBalancing = utils.NormaliseNilableBool(props.ZoneRedundant)
-
-					servicePlan.MaximumElasticWorkerCount = int(pointer.From(props.MaximumElasticWorkerCount))
+					servicePlan.PerSiteScaling = pointer.From(props.PerSiteScaling)
+					servicePlan.Reserved = pointer.From(props.Reserved)
+					servicePlan.ZoneBalancing = pointer.From(props.ZoneRedundant)
+					servicePlan.MaximumElasticWorkerCount = pointer.From(props.MaximumElasticWorkerCount)
 				}
 				servicePlan.Tags = pointer.From(model.Tags)
 			}

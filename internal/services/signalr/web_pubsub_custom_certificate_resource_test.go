@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2023-02-01/webpubsub"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/webpubsub/2024-03-01/webpubsub"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -148,7 +148,7 @@ resource "azurerm_key_vault_certificate" "test" {
   key_vault_id = azurerm_key_vault.test.id
 
   certificate {
-    contents = filebase64("testdata/wpstftestzone.pfx")
+    contents = filebase64("testdata/updated-cert-to-import.pfx")
     password = ""
   }
 }

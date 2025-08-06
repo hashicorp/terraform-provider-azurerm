@@ -27,7 +27,6 @@ func TestAppServiceEnvironmentID(t *testing.T) {
 		Error    bool
 		Expected *AppServiceEnvironmentId
 	}{
-
 		{
 			// empty
 			Input: "",

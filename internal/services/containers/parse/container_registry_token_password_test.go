@@ -27,7 +27,6 @@ func TestContainerRegistryTokenPasswordID(t *testing.T) {
 		Error    bool
 		Expected *ContainerRegistryTokenPasswordId
 	}{
-
 		{
 			// empty
 			Input: "",

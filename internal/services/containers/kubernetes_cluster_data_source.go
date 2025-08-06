@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/kubernetes"
@@ -87,8 +87,7 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						// TODO 4.0: change this from enable_* to *_enabled
-						"enable_auto_scaling": {
+						"auto_scaling_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
@@ -139,8 +138,7 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
 						},
 
-						// TODO 4.0: change this from enable_* to *_enabled
-						"enable_node_public_ip": {
+						"node_public_ip_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
@@ -162,23 +160,8 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"client_app_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"server_app_id": {
-							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
 						"tenant_id": {
 							Type:     pluginsdk.TypeString,
-							Computed: true,
-						},
-
-						"managed": {
-							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
 
@@ -337,14 +320,6 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 							Computed: true,
 						},
 					},
-				},
-			},
-
-			"custom_ca_trust_certificates_base64": {
-				Type:     pluginsdk.TypeList,
-				Computed: true,
-				Elem: &pluginsdk.Schema{
-					Type: pluginsdk.TypeString,
 				},
 			},
 
@@ -662,17 +637,12 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Computed: true,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-
 						"blob_driver_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
 						},
 						"disk_driver_enabled": {
 							Type:     pluginsdk.TypeBool,
-							Computed: true,
-						},
-						"disk_driver_version": {
-							Type:     pluginsdk.TypeString,
 							Computed: true,
 						},
 						"file_driver_enabled": {
@@ -703,6 +673,41 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 						"external_ingress_gateway_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Computed: true,
+						},
+						"certificate_authority": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"key_vault_id": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"root_cert_object_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"cert_chain_object_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"cert_object_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+									"key_object_name": {
+										Type:     pluginsdk.TypeString,
+										Computed: true,
+									},
+								},
+							},
+						},
+						"revisions": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
+							},
 						},
 					},
 				},
@@ -789,11 +794,6 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			azureKeyVaultKms := flattenKubernetesClusterDataSourceKeyVaultKms(props.SecurityProfile)
 			if err := d.Set("key_management_service", azureKeyVaultKms); err != nil {
 				return fmt.Errorf("setting `key_management_service`: %+v", err)
-			}
-
-			customCaTrustCertList := flattenCustomCaTrustCerts(props.SecurityProfile)
-			if err := d.Set("custom_ca_trust_certificates_base64", customCaTrustCertList); err != nil {
-				return fmt.Errorf("setting `custom_ca_trust_certificates_base64`: %+v", err)
 			}
 
 			serviceMeshProfile := flattenKubernetesClusterAzureServiceMeshProfile(props.ServiceMeshProfile)
@@ -944,11 +944,6 @@ func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.Man
 			diskEnabled = *input.DiskCSIDriver.Enabled
 		}
 
-		diskVersion := ""
-		if input.DiskCSIDriver != nil && input.DiskCSIDriver.Version != nil {
-			diskVersion = *input.DiskCSIDriver.Version
-		}
-
 		fileEnabled := true
 		if input.FileCSIDriver != nil && input.FileCSIDriver.Enabled != nil {
 			fileEnabled = *input.FileCSIDriver.Enabled
@@ -962,7 +957,6 @@ func flattenKubernetesClusterDataSourceStorageProfile(input *managedclusters.Man
 		storageProfile = append(storageProfile, map[string]interface{}{
 			"blob_driver_enabled":         blobEnabled,
 			"disk_driver_enabled":         diskEnabled,
-			"disk_driver_version":         diskVersion,
 			"file_driver_enabled":         fileEnabled,
 			"snapshot_controller_enabled": snapshotController,
 		})
@@ -1224,8 +1218,8 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]managedcluster
 
 		out := map[string]interface{}{
 			"count":                    count,
-			"enable_auto_scaling":      enableAutoScaling,
-			"enable_node_public_ip":    enableNodePublicIP,
+			"auto_scaling_enabled":     enableAutoScaling,
+			"node_public_ip_enabled":   enableNodePublicIP,
 			"max_count":                maxCount,
 			"max_pods":                 maxPods,
 			"min_count":                minCount,
@@ -1243,6 +1237,7 @@ func flattenKubernetesClusterDataSourceAgentPoolProfiles(input *[]managedcluster
 			"vnet_subnet_id":           vnetSubnetId,
 			"zones":                    zones.FlattenUntyped(profile.AvailabilityZones),
 		}
+
 		agentPoolProfiles = append(agentPoolProfiles, out)
 	}
 
@@ -1254,24 +1249,9 @@ func flattenKubernetesClusterDataSourceAzureActiveDirectoryRoleBasedAccessContro
 	if profile := input.AadProfile; profile != nil {
 		adminGroupObjectIds := utils.FlattenStringSlice(profile.AdminGroupObjectIDs)
 
-		clientAppId := ""
-		if profile.ClientAppID != nil {
-			clientAppId = *profile.ClientAppID
-		}
-
-		managed := false
-		if profile.Managed != nil {
-			managed = *profile.Managed
-		}
-
 		azureRbacEnabled := false
 		if profile.EnableAzureRBAC != nil {
 			azureRbacEnabled = *profile.EnableAzureRBAC
-		}
-
-		serverAppId := ""
-		if profile.ServerAppID != nil {
-			serverAppId = *profile.ServerAppID
 		}
 
 		tenantId := ""
@@ -1279,14 +1259,13 @@ func flattenKubernetesClusterDataSourceAzureActiveDirectoryRoleBasedAccessContro
 			tenantId = *profile.TenantID
 		}
 
-		results = append(results, map[string]interface{}{
+		result := map[string]interface{}{
 			"admin_group_object_ids": adminGroupObjectIds,
-			"client_app_id":          clientAppId,
-			"managed":                managed,
-			"server_app_id":          serverAppId,
 			"tenant_id":              tenantId,
 			"azure_rbac_enabled":     azureRbacEnabled,
-		})
+		}
+
+		results = append(results, result)
 	}
 
 	return results
@@ -1465,32 +1444,23 @@ func flattenKubernetesClusterDataSourceMicrosoftDefender(input *managedclusters.
 }
 
 func flattenKubernetesClusterDataSourceUpgradeSettings(input *managedclusters.AgentPoolUpgradeSettings) []interface{} {
-	maxSurge := ""
-	if input != nil && input.MaxSurge != nil {
-		maxSurge = *input.MaxSurge
-	}
-
-	if maxSurge == "" {
+	if input == nil {
 		return []interface{}{}
 	}
 
-	return []interface{}{
-		map[string]interface{}{
-			"max_surge": maxSurge,
-		},
-	}
-}
+	values := make(map[string]interface{})
 
-func flattenCustomCaTrustCerts(input *managedclusters.ManagedClusterSecurityProfile) []interface{} {
-	if input == nil || input.CustomCATrustCertificates == nil {
-		return make([]interface{}, 0)
+	if input.MaxSurge != nil {
+		values["max_surge"] = *input.MaxSurge
 	}
 
-	customCaTrustCertInterface := make([]interface{}, len(*input.CustomCATrustCertificates))
-
-	for index, value := range *input.CustomCATrustCertificates {
-		customCaTrustCertInterface[index] = value
+	if input.DrainTimeoutInMinutes != nil {
+		values["drain_timeout_in_minutes"] = *input.DrainTimeoutInMinutes
 	}
 
-	return customCaTrustCertInterface
+	if input.NodeSoakDurationInMinutes != nil {
+		values["node_soak_duration_in_minutes"] = *input.NodeSoakDurationInMinutes
+	}
+
+	return []interface{}{values}
 }

@@ -13,7 +13,7 @@ import (
 	authWrapper "github.com/hashicorp/go-azure-sdk/sdk/auth/autorest"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/tombuildsstuff/kermit/sdk/attestation/2022-08-01/attestation"
+	"github.com/jackofallops/kermit/sdk/attestation/2022-08-01/attestation"
 )
 
 type Client struct {

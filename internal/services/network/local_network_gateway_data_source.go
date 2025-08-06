@@ -7,15 +7,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/localnetworkgateways"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func dataSourceLocalNetworkGateway() *pluginsdk.Resource {
@@ -77,22 +76,22 @@ func dataSourceLocalNetworkGateway() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }
 
 func dataSourceLocalNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.LocalNetworkGatewaysClient
+	client := meta.(*clients.Client).Network.Client.LocalNetworkGateways
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewLocalNetworkGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := localnetworkgateways.NewLocalNetworkGatewayID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
@@ -101,13 +100,13 @@ func dataSourceLocalNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 
 	d.SetId(id.ID())
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
+	d.Set("name", id.LocalNetworkGatewayName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.LocalNetworkGatewayPropertiesFormat; props != nil {
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+
+		props := model.Properties
 		d.Set("gateway_address", props.GatewayIPAddress)
 		d.Set("gateway_fqdn", props.Fqdn)
 
@@ -118,12 +117,14 @@ func dataSourceLocalNetworkGatewayRead(d *pluginsdk.ResourceData, meta interface
 		if err := d.Set("bgp_settings", flattenedSettings); err != nil {
 			return err
 		}
+
+		return tags.FlattenAndSet(d, model.Tags)
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
-func flattenLocalNetworkGatewayDataSourceBGPSettings(input *network.BgpSettings) []interface{} {
+func flattenLocalNetworkGatewayDataSourceBGPSettings(input *localnetworkgateways.BgpSettings) []interface{} {
 	output := make(map[string]interface{})
 
 	if input == nil {

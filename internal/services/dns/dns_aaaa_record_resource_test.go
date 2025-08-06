@@ -97,7 +97,7 @@ func TestAccDnsAAAARecord_withTags(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsAAAARecord_withAlias(t *testing.T) {
+func TestAccDnsAAAARecord_withAlias(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_aaaa_record", "test")
 	r := DnsAAAARecordResource{}
 	targetResourceName := "azurerm_public_ip.test"
@@ -122,7 +122,7 @@ func TestAccAzureRMDnsAAAARecord_withAlias(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsAAAARecord_RecordsToAlias(t *testing.T) {
+func TestAccDnsAAAARecord_RecordsToAlias(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_aaaa_record", "test")
 	r := DnsAAAARecordResource{}
 	targetResourceName := "azurerm_public_ip.test"
@@ -149,7 +149,7 @@ func TestAccAzureRMDnsAAAARecord_RecordsToAlias(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsAaaaRecord_AliasToRecords(t *testing.T) {
+func TestAccDnsAaaaRecord_AliasToRecords(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_aaaa_record", "test")
 	r := DnsAAAARecordResource{}
 	targetResourceName := "azurerm_public_ip.test"
@@ -174,7 +174,7 @@ func TestAccAzureRMDnsAaaaRecord_AliasToRecords(t *testing.T) {
 	})
 }
 
-func TestAccAzureRMDnsAAAARecord_uncompressed(t *testing.T) {
+func TestAccDnsAAAARecord_uncompressed(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dns_aaaa_record", "test")
 	r := DnsAAAARecordResource{}
 
@@ -361,6 +361,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
   ip_version          = "IPv6"
+  sku                 = "Basic"
 }
 
 resource "azurerm_dns_aaaa_record" "test" {
@@ -395,6 +396,7 @@ resource "azurerm_public_ip" "test2" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
   ip_version          = "IPv6"
+  sku                 = "Basic"
 }
 
 resource "azurerm_dns_aaaa_record" "test" {
@@ -429,6 +431,7 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
   ip_version          = "IPv6"
+  sku                 = "Basic"
 }
 
 resource "azurerm_dns_aaaa_record" "test" {

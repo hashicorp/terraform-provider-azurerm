@@ -12,7 +12,6 @@ func TestSslCertificateID(t *testing.T) {
 		Input string
 		Valid bool
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -45,7 +45,6 @@ func (c NamespacesClient) GetAuthorizationRule(ctx context.Context, id Authoriza
 
 	var model AuthorizationRule
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

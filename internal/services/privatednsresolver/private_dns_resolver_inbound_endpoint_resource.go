@@ -69,6 +69,8 @@ func (r PrivateDNSResolverInboundEndpointResource) Arguments() map[string]*plugi
 		"ip_configurations": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
+			MaxItems: 1,
+			ForceNew: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"subnet_id": {
@@ -179,17 +181,6 @@ func (r PrivateDNSResolverInboundEndpointResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: properties was nil", id)
 			}
 
-			if metadata.ResourceData.HasChange("ip_configurations") {
-				iPConfigurationsValue, err := expandIPConfigurationModel(model.IPConfigurations)
-				if err != nil {
-					return err
-				}
-
-				if iPConfigurationsValue != nil {
-					properties.Properties.IPConfigurations = *iPConfigurationsValue
-				}
-			}
-
 			if metadata.ResourceData.HasChange("tags") {
 				properties.Tags = &model.Tags
 			}
@@ -297,7 +288,7 @@ func dnsResolverInboundEndpointDeleteRefreshFunc(ctx context.Context, client *in
 }
 
 func expandIPConfigurationModel(inputList []IPConfigurationModel) (*[]inboundendpoints.IPConfiguration, error) {
-	var outputList []inboundendpoints.IPConfiguration
+	outputList := make([]inboundendpoints.IPConfiguration, 0, len(inputList))
 	for _, v := range inputList {
 		input := v
 		output := inboundendpoints.IPConfiguration{}
@@ -329,11 +320,11 @@ func expandIPConfigurationModel(inputList []IPConfigurationModel) (*[]inboundend
 }
 
 func flattenIPConfigurationModel(inputList *[]inboundendpoints.IPConfiguration) []IPConfigurationModel {
-	var outputList []IPConfigurationModel
 	if inputList == nil {
-		return outputList
+		return []IPConfigurationModel{}
 	}
 
+	outputList := make([]IPConfigurationModel, 0, len(*inputList))
 	for _, input := range *inputList {
 		output := IPConfigurationModel{}
 

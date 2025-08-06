@@ -8,8 +8,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/virtualnetworkrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -78,7 +79,7 @@ func resourceMsSqlVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, meta
 		return fmt.Errorf("parsing server ID %q: %+v", d.Get("server_id"), err)
 	}
 
-	id := parse.NewVirtualNetworkRuleID(serverId.SubscriptionId, serverId.ResourceGroup, serverId.Name, d.Get("name").(string))
+	id := virtualnetworkrules.NewVirtualNetworkRuleID(serverId.SubscriptionId, serverId.ResourceGroup, serverId.Name, d.Get("name").(string))
 
 	subnetId, err := commonids.ParseSubnetID(d.Get("subnet_id").(string))
 	if err != nil {
@@ -86,32 +87,28 @@ func resourceMsSqlVirtualNetworkRuleCreateUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing MSSQL %s: %+v", id.String(), err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_mssql_virtual_network_rule", id.ID())
 		}
 	}
 
-	parameters := sql.VirtualNetworkRule{
-		VirtualNetworkRuleProperties: &sql.VirtualNetworkRuleProperties{
-			VirtualNetworkSubnetID:           utils.String(subnetId.ID()),
+	parameters := virtualnetworkrules.VirtualNetworkRule{
+		Properties: &virtualnetworkrules.VirtualNetworkRuleProperties{
+			VirtualNetworkSubnetId:           subnetId.ID(),
 			IgnoreMissingVnetServiceEndpoint: utils.Bool(d.Get("ignore_missing_vnet_service_endpoint").(bool)),
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, parameters)
+	err = client.CreateOrUpdateThenPoll(ctx, id, parameters)
 	if err != nil {
 		return fmt.Errorf("creating MSSQL %s: %+v", id.String(), err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %q: %+v", id, err)
 	}
 
 	// Wait for the provisioning state to become ready
@@ -127,14 +124,14 @@ func resourceMsSqlVirtualNetworkRuleRead(d *pluginsdk.ResourceData, meta interfa
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualNetworkRuleID(d.Id())
+	id, err := virtualnetworkrules.ParseVirtualNetworkRuleID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing ID %q: %+v", d.Id(), err)
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] MSSQL %s was not found - removing from state", id.String())
 			d.SetId("")
 			return nil
@@ -143,23 +140,22 @@ func resourceMsSqlVirtualNetworkRuleRead(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving MSSQL %s: %+v", id.String(), err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.VirtualNetworkRuleName)
 
-	serverId := parse.NewServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
+	serverId := parse.NewServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName)
 	d.Set("server_id", serverId.ID())
 
-	if props := resp.VirtualNetworkRuleProperties; props != nil {
-		d.Set("ignore_missing_vnet_service_endpoint", props.IgnoreMissingVnetServiceEndpoint)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("ignore_missing_vnet_service_endpoint", props.IgnoreMissingVnetServiceEndpoint)
 
-		subnetId := ""
-		if sid := props.VirtualNetworkSubnetID; sid != nil {
-			id, err := commonids.ParseSubnetIDInsensitively(*props.VirtualNetworkSubnetID)
+			subnetId, err := commonids.ParseSubnetIDInsensitively(props.VirtualNetworkSubnetId)
 			if err != nil {
-				return fmt.Errorf("parsing subnet ID returned by API %q: %+v", *sid, err)
+				return fmt.Errorf("parsing subnet ID returned by API %q: %+v", props.VirtualNetworkSubnetId, err)
 			}
-			subnetId = id.ID()
+
+			d.Set("subnet_id", subnetId.ID())
 		}
-		d.Set("subnet_id", subnetId)
 	}
 
 	return nil
@@ -170,18 +166,14 @@ func resourceMsSqlVirtualNetworkRuleDelete(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualNetworkRuleID(d.Id())
+	id, err := virtualnetworkrules.ParseVirtualNetworkRuleID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing ID %q: %+v", d.Id(), err)
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("deleting MSSQL %s: %+v", id.String(), err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of MSSQL %s: %+v", id.String(), err)
 	}
 
 	return nil

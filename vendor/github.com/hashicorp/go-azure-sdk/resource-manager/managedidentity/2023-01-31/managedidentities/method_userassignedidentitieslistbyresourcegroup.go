@@ -24,6 +24,18 @@ type UserAssignedIdentitiesListByResourceGroupCompleteResult struct {
 	Items              []Identity
 }
 
+type UserAssignedIdentitiesListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *UserAssignedIdentitiesListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // UserAssignedIdentitiesListByResourceGroup ...
 func (c ManagedIdentitiesClient) UserAssignedIdentitiesListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result UserAssignedIdentitiesListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c ManagedIdentitiesClient) UserAssignedIdentitiesListByResourceGroup(ctx c
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &UserAssignedIdentitiesListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.ManagedIdentity/userAssignedIdentities", id.ID()),
 	}
 
@@ -73,6 +86,7 @@ func (c ManagedIdentitiesClient) UserAssignedIdentitiesListByResourceGroupComple
 
 	resp, err := c.UserAssignedIdentitiesListByResourceGroup(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

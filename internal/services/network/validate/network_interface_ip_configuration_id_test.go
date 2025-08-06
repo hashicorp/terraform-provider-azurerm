@@ -12,7 +12,6 @@ func TestNetworkInterfaceIpConfigurationID(t *testing.T) {
 		Input string
 		Valid bool
 	}{
-
 		{
 			// empty
 			Input: "",

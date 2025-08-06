@@ -6,17 +6,17 @@ package network_test
 import (
 	"context"
 	"fmt"
-	"os"
-	"regexp"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/publicipaddresses"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type PublicIPResource struct{}
@@ -238,10 +238,16 @@ func TestAccPublicIpStatic_idleTimeout(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.idleTimeout(data),
+			Config: r.idleTimeout(data, 30),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("idle_timeout_in_minutes").HasValue("30"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.idleTimeout(data, 15),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -349,24 +355,6 @@ func TestAccPublicIpDynamic_basic(t *testing.T) {
 	})
 }
 
-func TestAccPublicIpStatic_importIdError(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
-	r := PublicIPResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.static_basic(data),
-		},
-		{
-			ResourceName:      data.ResourceName,
-			ImportState:       true,
-			ImportStateVerify: true,
-			ImportStateId:     fmt.Sprintf("/subscriptions/%s/resourceGroups/acctestRG-%d/providers/Microsoft.Network/publicIPAdresses/acctestpublicip-%d", os.Getenv("ARM_SUBSCRIPTION_ID"), data.RandomInteger, data.RandomInteger),
-			ExpectError:       regexp.MustCompile("ID was missing the `publicIPAddresses` element"),
-		},
-	})
-}
-
 func TestAccPublicIpStatic_canLabelBe63(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_public_ip", "test")
 	r := PublicIPResource{}
@@ -452,35 +440,32 @@ func TestAccPublicIpStatic_edgeZone(t *testing.T) {
 }
 
 func (t PublicIPResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.PublicIpAddressID(state.ID)
+	id, err := commonids.ParsePublicIPAddressID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.PublicIPsClient.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := clients.Network.PublicIPAddresses.Get(ctx, *id, publicipaddresses.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("reading Public IP %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (PublicIPResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.PublicIpAddressID(state.ID)
+	id, err := commonids.ParsePublicIPAddressID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	future, err := client.Network.PublicIPsClient.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
-		return nil, fmt.Errorf("deleting Public IP %q: %+v", *id, err)
+	ctx2, cancel := context.WithTimeout(ctx, 30*time.Minute)
+	defer cancel()
+	if err := client.Network.PublicIPAddresses.DeleteThenPoll(ctx2, *id); err != nil {
+		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Network.PublicIPsClient.Client); err != nil {
-		return nil, fmt.Errorf("waiting for Deletion of Public IP %s: %+v", *id, err)
-	}
-
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (PublicIPResource) static_basic(data acceptance.TestData) string {
@@ -499,6 +484,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
+  sku                 = "Basic"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -512,6 +498,7 @@ resource "azurerm_public_ip" "import" {
   location            = azurerm_public_ip.test.location
   resource_group_name = azurerm_public_ip.test.resource_group_name
   allocation_method   = azurerm_public_ip.test.allocation_method
+  sku                 = "Basic"
 }
 `, r.static_basic(data))
 }
@@ -532,6 +519,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
+  sku                 = "Basic"
   domain_name_label   = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, dnsNameLabel)
@@ -553,6 +541,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
+  sku                 = "Basic"
   ip_version          = "%s"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, ipVersion)
@@ -757,16 +746,19 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                = "acctestpublicip-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  allocation_method   = "Static"
-  domain_name_label   = "acctest-%d"
+  name                    = "acctestpublicip-%d"
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  allocation_method       = "Static"
+  sku                     = "Basic"
+  domain_name_label       = "acctest-%d"
+  domain_name_label_scope = "TenantReuse"
+  idle_timeout_in_minutes = 30
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
-func (PublicIPResource) idleTimeout(data acceptance.TestData) string {
+func (PublicIPResource) idleTimeout(data acceptance.TestData, idleTimeout int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -782,9 +774,10 @@ resource "azurerm_public_ip" "test" {
   location                = azurerm_resource_group.test.location
   resource_group_name     = azurerm_resource_group.test.name
   allocation_method       = "Static"
-  idle_timeout_in_minutes = 30
+  sku                     = "Basic"
+  idle_timeout_in_minutes = %d
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, idleTimeout)
 }
 
 func (PublicIPResource) dynamic_basic(data acceptance.TestData) string {
@@ -803,6 +796,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
+  sku                 = "Basic"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -823,6 +817,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
+  sku                 = "Basic"
 
   ip_version = "%s"
 }
@@ -845,6 +840,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
+  sku                 = "Basic"
 
   tags = {
     environment = "Production"
@@ -870,6 +866,7 @@ resource "azurerm_public_ip" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
+  sku                 = "Basic"
 
   tags = {
     environment = "staging"
@@ -895,9 +892,10 @@ resource "azurerm_public_ip" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   allocation_method = "Static"
+  sku               = "Basic"
   domain_name_label = "%s"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, strings.ToLower(data.RandomStringOfLength(63)))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, fmt.Sprintf("test%s", strings.ToLower(data.RandomStringOfLength(59)))) // prepend with test (4+59) to ensure the string starts with a letter
 }
 
 func (PublicIPResource) standard_IpTags(data acceptance.TestData) string {

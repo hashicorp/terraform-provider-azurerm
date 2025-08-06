@@ -46,7 +46,6 @@ func (c DatabasesClient) ListByServer(ctx context.Context, id ServerId) (result 
 
 	var model DatabaseListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

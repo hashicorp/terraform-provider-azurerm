@@ -4,6 +4,7 @@
 package apimanagement
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -134,26 +135,26 @@ func resourceApiManagementApiVersionSetCreateUpdate(d *pluginsdk.ResourceData, m
 	switch schema := versioningScheme; schema {
 	case apiversionset.VersioningSchemeHeader:
 		if !headerSet {
-			return fmt.Errorf("`version_header_name` must be set if `versioning_schema` is `Header`")
+			return errors.New("`version_header_name` must be set if `versioning_schema` is `Header`")
 		}
 		if querySet {
-			return fmt.Errorf("`version_query_name` can not be set if `versioning_schema` is `Header`")
+			return errors.New("`version_query_name` can not be set if `versioning_schema` is `Header`")
 		}
 
 	case apiversionset.VersioningSchemeQuery:
 		if headerSet {
-			return fmt.Errorf("`version_header_name` can not be set if `versioning_schema` is `Query`")
+			return errors.New("`version_header_name` can not be set if `versioning_schema` is `Query`")
 		}
 		if !querySet {
-			return fmt.Errorf("`version_query_name` must be set if `versioning_schema` is `Query`")
+			return errors.New("`version_query_name` must be set if `versioning_schema` is `Query`")
 		}
 
 	case apiversionset.VersioningSchemeSegment:
 		if headerSet {
-			return fmt.Errorf("`version_header_name` can not be set if `versioning_schema` is `Segment`")
+			return errors.New("`version_header_name` can not be set if `versioning_schema` is `Segment`")
 		}
 		if querySet {
-			return fmt.Errorf("`version_query_name` can not be set if `versioning_schema` is `Segment`")
+			return errors.New("`version_query_name` can not be set if `versioning_schema` is `Segment`")
 		}
 	}
 

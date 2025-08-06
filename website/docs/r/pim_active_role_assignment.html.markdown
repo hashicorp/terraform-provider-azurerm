@@ -3,12 +3,12 @@ subcategory: "Authorization"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_pim_active_role_assignment"
 description: |-
-  Manages a Pim Active Role Assignment.
+  Manages a PIM Active Role Assignment.
 ---
 
 # azurerm_pim_active_role_assignment
 
-Manages a Pim Active Role Assignment.
+Manages a PIM Active Role Assignment.
 
 ## Example Usage (Subscription)
 
@@ -84,67 +84,75 @@ resource "azurerm_pim_active_role_assignment" "example" {
 
 The following arguments are supported:
 
-* `principal_id` - (Required) The principal id. Changing this forces a new Pim Active Role Assignment to be created.
+* `principal_id` - (Required) Object ID of the principal for this role assignment. Changing this forces a new resource to be created.
 
-* `role_definition_id` - (Required) The role definition id. Changing this forces a new Pim Active Role Assignment to be created.
+* `role_definition_id` - (Required) The role definition ID for this role assignment. Changing this forces a new resource to be created.
 
-* `scope` - (Required) The scope. Changing this forces a new Pim Active Role Assignment to be created.
-
----
-
-* `justification` - (Optional) The justification of the role assignment. Changing this forces a new Pim Active Role Assignment to be created.
-
-* `schedule` - (Optional) A `schedule` block as defined below. Changing this forces a new Pim Active Role Assignment to be created.
-
-* `ticket` - (Optional) A `ticket` block as defined below. Changing this forces a new Pim Active Role Assignment to be created.
+* `scope` - (Required) The scope for this role assignment, should be a valid resource ID. Changing this forces a new resource to be created.
 
 ---
 
-A `expiration` block supports the following:
+* `justification` - (Optional) The justification for the role assignment. Changing this forces a new resource to be created.
 
-* `duration_days` - (Optional) The duration of the role assignment in days. Conflicts with `schedule[0].expiration[0].duration_hours`,`schedule[0].expiration[0].end_date_time` Changing this forces a new Pim Active Role Assignment to be created.
+* `schedule` - (Optional) A `schedule` block as defined below. Changing this forces a new resource to be created.
 
-* `duration_hours` - (Optional) The duration of the role assignment in hours. Conflicts with `schedule[0].expiration[0].duration_days`,`schedule[0].expiration[0].end_date_time` Changing this forces a new Pim Active Role Assignment to be created.
+* `ticket` - (Optional) A `ticket` block as defined below. Changing this forces a new resource to be created.
 
-* `end_date_time` - (Optional) The end date time of the role assignment. Conflicts with `schedule[0].expiration[0].duration_days`,`schedule[0].expiration[0].duration_hours` Changing this forces a new Pim Active Role Assignment to be created.
+---
+
+An `expiration` block supports the following:
+
+* `duration_days` - (Optional) The duration of the role assignment in days. Changing this forces a new resource to be created.
+
+* `duration_hours` - (Optional) The duration of the role assignment in hours. Changing this forces a new resource to be created.
+
+* `end_date_time` - (Optional) The end date/time of the role assignment. Changing this forces a new resource to be created.
+
+~> **Note:** Only one of `duration_days`, `duration_hours` or `end_date_time` should be specified.
 
 ---
 
 A `schedule` block supports the following:
 
-* `expiration` - (Optional) A `expiration` block as defined above.
+* `expiration` - (Optional) An `expiration` block as defined above.
 
-* `start_date_time` - (Optional) The start date time of the role assignment. Changing this forces a new Pim Active Role Assignment to be created.
+* `start_date_time` - (Optional) The start date/time of the role assignment. Changing this forces a new resource to be created.
 
 ---
 
 A `ticket` block supports the following:
 
-* `number` - (Optional) The ticket number.
+* `number` - (Optional) User-supplied ticket number to be included with the request. Changing this forces a new resource to be created.
 
-* `system` - (Optional) The ticket system.
+* `system` - (Optional) User-supplied ticket system name to be included with the request. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the Pim Active Role Assignment.
-* `principal_type` - The type of principal.
+* `id` - The ID of the PIM Active Role Assignment.
+* `principal_type` - Type of principal to which the role will be assigned.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Pim Active Role Assignment.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Pim Active Role Assignment.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Pim Active Role Assignment.
+* `create` - (Defaults to 10 minutes) Used when creating the PIM Active Role Assignment.
+* `read` - (Defaults to 5 minutes) Used when retrieving the PIM Active Role Assignment.
+* `delete` - (Defaults to 10 minutes) Used when deleting the PIM Active Role Assignment.
 
 ## Import
 
-Pim Active Role Assignments can be imported using the `resource id`, e.g.
+PIM Active Role Assignments can be imported using the following composite resource ID, e.g.
 
 ```shell
 terraform import azurerm_pim_active_role_assignment.example /subscriptions/00000000-0000-0000-0000-000000000000|/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleDefinitions/00000000-0000-0000-0000-000000000000|00000000-0000-0000-0000-000000000000
 ```
 
--> **NOTE:** This ID is specific to Terraform - and is of the format `{scope}|{roleDefinitionId}|{principalId}`.
+-> **Note:** This ID is specific to Terraform - and is of the format `{scope}|{roleDefinitionId}|{principalId}`, where the first segment is the scope of the role assignment, the second segment is the role definition ID, and the last segment is the principal object ID.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Authorization` - 2020-10-01

@@ -376,6 +376,7 @@ resource "azurerm_public_ip" "source" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
+  sku                 = "Basic"
 }
 
 resource "azurerm_network_interface" "source" {
@@ -600,7 +601,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     }
   }
 }
-`, r.template(data), version)
+`, r.templateWithOutProvider(data), version)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) imagesRollingUpdate(data acceptance.TestData, version string) string {

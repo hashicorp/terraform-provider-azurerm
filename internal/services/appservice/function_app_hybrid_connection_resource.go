@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/namespaces"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -162,7 +162,7 @@ func (r FunctionAppHybridConnectionResource) Create() sdk.ResourceFunc {
 				return tf.ImportAsExistsError(r.ResourceType(), id.ID())
 			}
 
-			sendKeyValue, err := helpers.GetSendKeyValue(ctx, metadata, id, appHybridConn.SendKeyName)
+			sendKeyValue, err := helpers.GetSendKeyValue(ctx, metadata, *relayId, appHybridConn.SendKeyName)
 			if err != nil {
 				return err
 			}
@@ -216,7 +216,6 @@ func (r FunctionAppHybridConnectionResource) Read() sdk.ResourceFunc {
 			}
 
 			if model := existing.Model; model != nil {
-
 				if props := model.Properties; props != nil {
 					appHybridConn.RelayId = pointer.From(props.RelayArmUri)
 					appHybridConn.HostName = pointer.From(props.Hostname)
@@ -312,7 +311,12 @@ func (r FunctionAppHybridConnectionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("send_key_name") {
-				key, err := helpers.GetSendKeyValue(ctx, metadata, *id, appHybridConn.SendKeyName)
+				relayId, err := hybridconnections.ParseHybridConnectionID(appHybridConn.RelayId)
+				if err != nil {
+					return err
+				}
+
+				key, err := helpers.GetSendKeyValue(ctx, metadata, *relayId, appHybridConn.SendKeyName)
 				if err != nil {
 					return err
 				}

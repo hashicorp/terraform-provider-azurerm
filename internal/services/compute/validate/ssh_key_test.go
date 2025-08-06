@@ -24,7 +24,7 @@ func TestSSHKey(t *testing.T) {
 		},
 		{
 			input:    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOwlR9xtbM69hWLJbB5nHi0a65TuRvtaldgTJQ4ClL1W",
-			expected: false,
+			expected: true,
 		},
 		{
 			input:    "ssh-rsa",

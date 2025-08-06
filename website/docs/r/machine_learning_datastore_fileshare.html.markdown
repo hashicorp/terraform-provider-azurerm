@@ -67,10 +67,10 @@ resource "azurerm_storage_share" "example" {
 }
 
 resource "azurerm_machine_learning_datastore_fileshare" "example" {
-  name                  = "example-datastore"
-  workspace_id          = azurerm_machine_learning_workspace.example.id
-  storage_filesahare_id = azurerm_storage_share.test.resource_manager_id
-  account_key           = azurerm_storage_account.example.primary_access_key
+  name                 = "example-datastore"
+  workspace_id         = azurerm_machine_learning_workspace.example.id
+  storage_fileshare_id = azurerm_storage_share.example.resource_manager_id
+  account_key          = azurerm_storage_account.example.primary_access_key
 }
 ```
 
@@ -119,3 +119,9 @@ Machine Learning DataStores can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_machine_learning_datastore_fileshare.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.MachineLearningServices/workspaces/mlw1/dataStores/datastore1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.MachineLearningServices` - 2025-06-01

@@ -12,8 +12,8 @@ type WebHookEventSubscriptionDestinationProperties struct {
 	AzureActiveDirectoryApplicationIdOrUri *string                     `json:"azureActiveDirectoryApplicationIdOrUri,omitempty"`
 	AzureActiveDirectoryTenantId           *string                     `json:"azureActiveDirectoryTenantId,omitempty"`
 	DeliveryAttributeMappings              *[]DeliveryAttributeMapping `json:"deliveryAttributeMappings,omitempty"`
-	EndpointBaseUrl                        *string                     `json:"endpointBaseUrl,omitempty"`
-	EndpointUrl                            *string                     `json:"endpointUrl,omitempty"`
+	EndpointBaseURL                        *string                     `json:"endpointBaseUrl,omitempty"`
+	EndpointURL                            *string                     `json:"endpointUrl,omitempty"`
 	MaxEventsPerBatch                      *int64                      `json:"maxEventsPerBatch,omitempty"`
 	PreferredBatchSizeInKilobytes          *int64                      `json:"preferredBatchSizeInKilobytes,omitempty"`
 }
@@ -21,16 +21,22 @@ type WebHookEventSubscriptionDestinationProperties struct {
 var _ json.Unmarshaler = &WebHookEventSubscriptionDestinationProperties{}
 
 func (s *WebHookEventSubscriptionDestinationProperties) UnmarshalJSON(bytes []byte) error {
-	type alias WebHookEventSubscriptionDestinationProperties
-	var decoded alias
+	var decoded struct {
+		AzureActiveDirectoryApplicationIdOrUri *string `json:"azureActiveDirectoryApplicationIdOrUri,omitempty"`
+		AzureActiveDirectoryTenantId           *string `json:"azureActiveDirectoryTenantId,omitempty"`
+		EndpointBaseURL                        *string `json:"endpointBaseUrl,omitempty"`
+		EndpointURL                            *string `json:"endpointUrl,omitempty"`
+		MaxEventsPerBatch                      *int64  `json:"maxEventsPerBatch,omitempty"`
+		PreferredBatchSizeInKilobytes          *int64  `json:"preferredBatchSizeInKilobytes,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into WebHookEventSubscriptionDestinationProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.AzureActiveDirectoryApplicationIdOrUri = decoded.AzureActiveDirectoryApplicationIdOrUri
 	s.AzureActiveDirectoryTenantId = decoded.AzureActiveDirectoryTenantId
-	s.EndpointBaseUrl = decoded.EndpointBaseUrl
-	s.EndpointUrl = decoded.EndpointUrl
+	s.EndpointBaseURL = decoded.EndpointBaseURL
+	s.EndpointURL = decoded.EndpointURL
 	s.MaxEventsPerBatch = decoded.MaxEventsPerBatch
 	s.PreferredBatchSizeInKilobytes = decoded.PreferredBatchSizeInKilobytes
 
@@ -47,7 +53,7 @@ func (s *WebHookEventSubscriptionDestinationProperties) UnmarshalJSON(bytes []by
 
 		output := make([]DeliveryAttributeMapping, 0)
 		for i, val := range listTemp {
-			impl, err := unmarshalDeliveryAttributeMappingImplementation(val)
+			impl, err := UnmarshalDeliveryAttributeMappingImplementation(val)
 			if err != nil {
 				return fmt.Errorf("unmarshaling index %d field 'DeliveryAttributeMappings' for 'WebHookEventSubscriptionDestinationProperties': %+v", i, err)
 			}
@@ -55,5 +61,6 @@ func (s *WebHookEventSubscriptionDestinationProperties) UnmarshalJSON(bytes []by
 		}
 		s.DeliveryAttributeMappings = &output
 	}
+
 	return nil
 }

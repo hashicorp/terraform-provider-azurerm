@@ -8,24 +8,26 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_hub_ip -service-package-name network -properties "name" -compare-values "subscription_id:virtual_hub_id,resource_group_name:virtual_hub_id,virtual_hub_name:virtual_hub_id"
 
 func resourceVirtualHubIP() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualHubIPCreateUpdate,
+		Create: resourceVirtualHubIPCreate,
 		Read:   resourceVirtualHubIPRead,
-		Update: resourceVirtualHubIPCreateUpdate,
+		Update: resourceVirtualHubIPUpdate,
 		Delete: resourceVirtualHubIPDelete,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -35,10 +37,11 @@ func resourceVirtualHubIP() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(60 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.VirtualHubIpConfigurationID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.VirtualHubIPConfigurationId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.VirtualHubIPConfigurationId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -52,7 +55,14 @@ func resourceVirtualHubIP() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: networkValidate.VirtualHubID,
+				ValidateFunc: virtualwans.ValidateVirtualHubID,
+			},
+
+			"public_ip_address_id": {
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ForceNew:     true,
+				ValidateFunc: commonids.ValidatePublicIPAddressID,
 			},
 
 			"subnet_id": {
@@ -71,86 +81,115 @@ func resourceVirtualHubIP() *pluginsdk.Resource {
 			"private_ip_allocation_method": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  network.IPAllocationMethodDynamic,
+				Default:  virtualwans.IPAllocationMethodDynamic,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.IPAllocationMethodDynamic),
-					string(network.IPAllocationMethodStatic),
+					string(virtualwans.IPAllocationMethodDynamic),
+					string(virtualwans.IPAllocationMethodStatic),
 				}, false),
-			},
-
-			//lintignore: S013
-			"public_ip_address_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: networkValidate.PublicIpAddressID,
 			},
 		},
 	}
 }
 
-func resourceVirtualHubIPCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VirtualHubIPClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+func resourceVirtualHubIPCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.VirtualWANs
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	virtHubId, err := parse.VirtualHubID(d.Get("virtual_hub_id").(string))
+	virtualHubId, err := virtualwans.ParseVirtualHubID(d.Get("virtual_hub_id").(string))
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(virtHubId.Name, virtualHubResourceName)
-	defer locks.UnlockByName(virtHubId.Name, virtualHubResourceName)
+	locks.ByName(virtualHubId.VirtualHubName, virtualHubResourceName)
+	defer locks.UnlockByName(virtualHubId.VirtualHubName, virtualHubResourceName)
 
-	id := parse.NewVirtualHubIpConfigurationID(virtHubId.SubscriptionId, virtHubId.ResourceGroup, virtHubId.Name, d.Get("name").(string))
+	id := commonids.NewVirtualHubIPConfigurationID(virtualHubId.SubscriptionId, virtualHubId.ResourceGroupName, virtualHubId.VirtualHubName, d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.IpConfigurationName)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of %s: %+v", id, err)
-			}
-		}
-
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_virtual_hub_ip", id.ID())
-		}
-
-		if d.Get("public_ip_address_id").(string) == "" {
-			return fmt.Errorf("`public_ip_address_id` is required for new resources, created after September 1st 2021")
+	existing, err := client.VirtualHubIPConfigurationGet(ctx, id)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of %s: %+v", id, err)
 		}
 	}
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_virtual_hub_ip", id.ID())
+	}
 
-	parameters := network.HubIPConfiguration{
-		Name: utils.String(id.IpConfigurationName),
-		HubIPConfigurationPropertiesFormat: &network.HubIPConfigurationPropertiesFormat{
-			Subnet: &network.Subnet{
-				ID: utils.String(d.Get("subnet_id").(string)),
+	parameters := virtualwans.HubIPConfiguration{
+		Name: pointer.To(id.IpConfigName),
+		Properties: &virtualwans.HubIPConfigurationPropertiesFormat{
+			Subnet: &virtualwans.Subnet{
+				Id: pointer.To(d.Get("subnet_id").(string)),
 			},
 		},
 	}
 
 	if v, ok := d.GetOk("private_ip_address"); ok {
-		parameters.HubIPConfigurationPropertiesFormat.PrivateIPAddress = utils.String(v.(string))
+		parameters.Properties.PrivateIPAddress = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("private_ip_allocation_method"); ok {
-		parameters.HubIPConfigurationPropertiesFormat.PrivateIPAllocationMethod = network.IPAllocationMethod(v.(string))
+		parameters.Properties.PrivateIPAllocationMethod = pointer.To(virtualwans.IPAllocationMethod(v.(string)))
 	}
 
 	if v, ok := d.GetOk("public_ip_address_id"); ok {
-		parameters.HubIPConfigurationPropertiesFormat.PublicIPAddress = &network.PublicIPAddress{
-			ID: utils.String(v.(string)),
+		parameters.Properties.PublicIPAddress = &virtualwans.PublicIPAddress{
+			Id: pointer.To(v.(string)),
 		}
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualHubName, id.IpConfigurationName, parameters)
-	if err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+	if err := client.VirtualHubIPConfigurationCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creating/updating future for %s: %+v", id, err)
+	d.SetId(id.ID())
+
+	return resourceVirtualHubIPRead(d, meta)
+}
+
+func resourceVirtualHubIPUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.VirtualWANs
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	virtualHubId, err := virtualwans.ParseVirtualHubID(d.Get("virtual_hub_id").(string))
+	if err != nil {
+		return err
+	}
+
+	locks.ByName(virtualHubId.VirtualHubName, virtualHubResourceName)
+	defer locks.UnlockByName(virtualHubId.VirtualHubName, virtualHubResourceName)
+
+	id, err := commonids.ParseVirtualHubIPConfigurationID(d.Id())
+	if err != nil {
+		return err
+	}
+
+	existing, err := client.VirtualHubIPConfigurationGet(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("private_ip_address") {
+		payload.Properties.PrivateIPAddress = pointer.To(d.Get("private_ip_address").(string))
+	}
+
+	if d.HasChange("private_ip_allocation_method") {
+		payload.Properties.PrivateIPAllocationMethod = pointer.To(virtualwans.IPAllocationMethod(d.Get("private_ip_allocation_method").(string)))
+	}
+
+	if err := client.VirtualHubIPConfigurationCreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -159,51 +198,52 @@ func resourceVirtualHubIPCreateUpdate(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceVirtualHubIPRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VirtualHubIPClient
+	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualHubIpConfigurationID(d.Id())
+	id, err := commonids.ParseVirtualHubIPConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.IpConfigurationName)
+	resp, err := client.VirtualHubIPConfigurationGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] Virtual Hub IP %q does not exist - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-
-		return fmt.Errorf("retrieving Virtual Hub IP %q (Resource Group %q / Virtual Hub %q): %+v", id.IpConfigurationName, id.ResourceGroup, id.VirtualHubName, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.IpConfigurationName)
-	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID())
+	d.Set("name", id.IpConfigName)
+	d.Set("virtual_hub_id", virtualwans.NewVirtualHubID(id.SubscriptionId, id.ResourceGroupName, id.VirtualHubName).ID())
 
-	if props := resp.HubIPConfigurationPropertiesFormat; props != nil {
-		d.Set("private_ip_address", props.PrivateIPAddress)
-		d.Set("private_ip_allocation_method", props.PrivateIPAllocationMethod)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("private_ip_address", props.PrivateIPAddress)
+			d.Set("private_ip_allocation_method", string(pointer.From(props.PrivateIPAllocationMethod)))
 
-		if v := props.PublicIPAddress; v != nil {
-			d.Set("public_ip_address_id", v.ID)
-		}
+			if v := props.PublicIPAddress; v != nil {
+				d.Set("public_ip_address_id", v.Id)
+			}
 
-		if v := props.Subnet; v != nil {
-			d.Set("subnet_id", v.ID)
+			if v := props.Subnet; v != nil {
+				d.Set("subnet_id", v.Id)
+			}
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceVirtualHubIPDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VirtualHubIPClient
+	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualHubIpConfigurationID(d.Id())
+	id, err := commonids.ParseVirtualHubIPConfigurationID(d.Id())
 	if err != nil {
 		return err
 	}
@@ -211,13 +251,8 @@ func resourceVirtualHubIPDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	locks.ByName(id.VirtualHubName, virtualHubResourceName)
 	defer locks.UnlockByName(id.VirtualHubName, virtualHubResourceName)
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualHubName, id.IpConfigurationName)
-	if err != nil {
-		return fmt.Errorf("deleting Virtual Hub IP %q (Resource Group %q / virtualHubName %q): %+v", id.IpConfigurationName, id.ResourceGroup, id.VirtualHubName, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on deleting future for Virtual Hub IP %q (Resource Group %q / virtualHubName %q): %+v", id.IpConfigurationName, id.ResourceGroup, id.VirtualHubName, err)
+	if err := client.VirtualHubIPConfigurationDeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil

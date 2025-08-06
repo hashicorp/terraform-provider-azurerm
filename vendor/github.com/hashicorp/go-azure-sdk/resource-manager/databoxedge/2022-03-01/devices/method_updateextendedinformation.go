@@ -50,7 +50,6 @@ func (c DevicesClient) UpdateExtendedInformation(ctx context.Context, id DataBox
 
 	var model DataBoxEdgeDeviceExtendedInfo
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

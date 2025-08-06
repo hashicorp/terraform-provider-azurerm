@@ -8,10 +8,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
-	"github.com/gofrs/uuid"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/blobauditing"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -116,7 +116,7 @@ func resourceMsSqlServerExtendedAuditingPolicy() *pluginsdk.Resource {
 }
 
 func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
+	client := meta.(*clients.Client).MSSQL.BlobAuditingPoliciesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -129,61 +129,53 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, serverId.ResourceGroupName, serverId.ServerName)
+		existing, err := client.ExtendedServerBlobAuditingPoliciesGet(ctx, *serverId)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("retrieving MsSql Server Extended Auditing Policy %s: %+v", serverId, err)
 			}
 		}
 
 		// if state is not disabled, we should import it.
-		if existing.ID != nil && *existing.ID != "" && existing.ExtendedServerBlobAuditingPolicyProperties != nil && existing.ExtendedServerBlobAuditingPolicyProperties.State != sql.BlobAuditingPolicyStateDisabled {
-			return tf.ImportAsExistsError("azurerm_mssql_server_extended_auditing_policy", *existing.ID)
+		if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" && existing.Model.Properties != nil && existing.Model.Properties.State != blobauditing.BlobAuditingPolicyStateDisabled {
+			return tf.ImportAsExistsError("azurerm_mssql_server_extended_auditing_policy", *existing.Model.Id)
 		}
 	}
 
-	params := sql.ExtendedServerBlobAuditingPolicy{
-		ExtendedServerBlobAuditingPolicyProperties: &sql.ExtendedServerBlobAuditingPolicyProperties{
+	params := blobauditing.ExtendedServerBlobAuditingPolicy{
+		Properties: &blobauditing.ExtendedServerBlobAuditingPolicyProperties{
 			StorageEndpoint:             utils.String(d.Get("storage_endpoint").(string)),
 			IsStorageSecondaryKeyInUse:  utils.Bool(d.Get("storage_account_access_key_is_secondary").(bool)),
-			RetentionDays:               utils.Int32(int32(d.Get("retention_in_days").(int))),
+			RetentionDays:               utils.Int64(int64(d.Get("retention_in_days").(int))),
 			IsAzureMonitorTargetEnabled: utils.Bool(d.Get("log_monitoring_enabled").(bool)),
 		},
 	}
 
 	if d.Get("enabled").(bool) {
-		params.ExtendedServerBlobAuditingPolicyProperties.State = sql.BlobAuditingPolicyStateEnabled
+		params.Properties.State = blobauditing.BlobAuditingPolicyStateEnabled
 	} else {
-		params.ExtendedServerBlobAuditingPolicyProperties.State = sql.BlobAuditingPolicyStateDisabled
+		params.Properties.State = blobauditing.BlobAuditingPolicyStateDisabled
 	}
 
 	if v, ok := d.GetOk("storage_account_subscription_id"); ok {
-		u, err := uuid.FromString(v.(string))
-		if err != nil {
-			return fmt.Errorf("while parsing storage_account_subscrption_id value %q as UUID: %+v", v.(string), err)
-		}
-		params.ExtendedServerBlobAuditingPolicyProperties.StorageAccountSubscriptionID = &u
+		params.Properties.StorageAccountSubscriptionId = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("storage_account_access_key"); ok {
-		params.ExtendedServerBlobAuditingPolicyProperties.StorageAccountAccessKey = utils.String(v.(string))
+		params.Properties.StorageAccountAccessKey = utils.String(v.(string))
 	}
 
 	if v, ok := d.GetOk("predicate_expression"); ok {
-		params.ExtendedServerBlobAuditingPolicyProperties.PredicateExpression = pointer.To(v.(string))
+		params.Properties.PredicateExpression = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("audit_actions_and_groups"); ok && len(v.([]interface{})) > 0 {
-		params.ExtendedServerBlobAuditingPolicyProperties.AuditActionsAndGroups = utils.ExpandStringSlice(v.([]interface{}))
+		params.Properties.AuditActionsAndGroups = utils.ExpandStringSlice(v.([]interface{}))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, serverId.ResourceGroupName, serverId.ServerName, params)
+	err = client.ExtendedServerBlobAuditingPoliciesCreateOrUpdateThenPoll(ctx, *serverId, params)
 	if err != nil {
 		return fmt.Errorf("creating MsSql Server Extended Auditing Policy %s: %+v", serverId, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of MsSql Server Extended Auditing Policy %s: %+v", serverId, err)
 	}
 
 	id := parse.NewServerExtendedAuditingPolicyID(subscriptionId, serverId.ResourceGroupName, serverId.ServerName, "default")
@@ -194,7 +186,7 @@ func resourceMsSqlServerExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resource
 }
 
 func resourceMsSqlServerExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
+	client := meta.(*clients.Client).MSSQL.BlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -203,29 +195,32 @@ func resourceMsSqlServerExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, me
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName)
+	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
+
+	resp, err := client.ExtendedServerBlobAuditingPoliciesGet(ctx, serverId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 		return fmt.Errorf("reading MsSql Server Extended Auditing Policy %s: %+v", id, err)
 	}
 
-	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
 	d.Set("server_id", serverId.ID())
 
-	if props := resp.ExtendedServerBlobAuditingPolicyProperties; props != nil {
-		d.Set("storage_endpoint", props.StorageEndpoint)
-		d.Set("storage_account_access_key_is_secondary", props.IsStorageSecondaryKeyInUse)
-		d.Set("retention_in_days", props.RetentionDays)
-		d.Set("log_monitoring_enabled", props.IsAzureMonitorTargetEnabled)
-		d.Set("enabled", props.State == sql.BlobAuditingPolicyStateEnabled)
-		d.Set("predicate_expression", props.PredicateExpression)
-		d.Set("audit_actions_and_groups", utils.FlattenStringSlice(props.AuditActionsAndGroups))
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("storage_endpoint", props.StorageEndpoint)
+			d.Set("storage_account_access_key_is_secondary", props.IsStorageSecondaryKeyInUse)
+			d.Set("retention_in_days", props.RetentionDays)
+			d.Set("log_monitoring_enabled", props.IsAzureMonitorTargetEnabled)
+			d.Set("enabled", props.State == blobauditing.BlobAuditingPolicyStateEnabled)
+			d.Set("predicate_expression", props.PredicateExpression)
+			d.Set("audit_actions_and_groups", utils.FlattenStringSlice(props.AuditActionsAndGroups))
 
-		if props.StorageAccountSubscriptionID.String() != "00000000-0000-0000-0000-000000000000" {
-			d.Set("storage_account_subscription_id", props.StorageAccountSubscriptionID.String())
+			if pointer.From(props.StorageAccountSubscriptionId) != "00000000-0000-0000-0000-000000000000" {
+				d.Set("storage_account_subscription_id", props.StorageAccountSubscriptionId)
+			}
 		}
 	}
 
@@ -233,7 +228,7 @@ func resourceMsSqlServerExtendedAuditingPolicyRead(d *pluginsdk.ResourceData, me
 }
 
 func resourceMsSqlServerExtendedAuditingPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).MSSQL.ServerExtendedBlobAuditingPoliciesClient
+	client := meta.(*clients.Client).MSSQL.BlobAuditingPoliciesClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -242,20 +237,17 @@ func resourceMsSqlServerExtendedAuditingPolicyDelete(d *pluginsdk.ResourceData, 
 		return err
 	}
 
-	params := sql.ExtendedServerBlobAuditingPolicy{
-		ExtendedServerBlobAuditingPolicyProperties: &sql.ExtendedServerBlobAuditingPolicyProperties{
-			State: sql.BlobAuditingPolicyStateDisabled,
+	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
+
+	params := blobauditing.ExtendedServerBlobAuditingPolicy{
+		Properties: &blobauditing.ExtendedServerBlobAuditingPolicyProperties{
+			State: blobauditing.BlobAuditingPolicyStateDisabled,
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, params)
+	err = client.ExtendedServerBlobAuditingPoliciesCreateOrUpdateThenPoll(ctx, serverId, params)
 	if err != nil {
-		return fmt.Errorf("deleting MsSql Server %q Extended Auditing Policy(Resource Group %q): %+v", id.ServerName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", serverId, err)
 	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of MsSql Server %q Extended Auditing Policy (Resource Group %q): %+v", id.ServerName, id.ResourceGroup, err)
-	}
-
 	return nil
 }

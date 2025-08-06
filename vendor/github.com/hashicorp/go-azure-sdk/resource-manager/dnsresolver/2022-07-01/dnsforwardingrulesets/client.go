@@ -15,7 +15,7 @@ type DnsForwardingRulesetsClient struct {
 }
 
 func NewDnsForwardingRulesetsClientWithBaseURI(sdkApi sdkEnv.Api) (*DnsForwardingRulesetsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "dnsforwardingrulesets", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "dnsforwardingrulesets", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DnsForwardingRulesetsClient: %+v", err)
 	}

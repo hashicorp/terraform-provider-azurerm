@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkinterfaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkinterfaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -149,14 +149,12 @@ func dataSourceNetworkInterface() *pluginsdk.Resource {
 				Set:      pluginsdk.HashString,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_accelerated_networking": {
+			"accelerated_networking_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_ip_forwarding": {
+			"ip_forwarding_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -267,8 +265,8 @@ func dataSourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{})
 
 		d.Set("applied_dns_servers", appliedDNSServers)
 		d.Set("dns_servers", dnsServers)
-		d.Set("enable_ip_forwarding", props.EnableIPForwarding)
-		d.Set("enable_accelerated_networking", props.EnableAcceleratedNetworking)
+		d.Set("ip_forwarding_enabled", props.EnableIPForwarding)
+		d.Set("accelerated_networking_enabled", props.EnableAcceleratedNetworking)
 	}
 
 	return tags.FlattenAndSet(d, model.Tags)

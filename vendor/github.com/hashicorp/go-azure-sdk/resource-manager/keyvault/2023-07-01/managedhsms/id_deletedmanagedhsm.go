@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&DeletedManagedHSMId{})
+}
 
 var _ resourceids.ResourceId = &DeletedManagedHSMId{}
 
@@ -37,7 +42,7 @@ func ParseDeletedManagedHSMID(input string) (*DeletedManagedHSMId, error) {
 	}
 
 	id := DeletedManagedHSMId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +59,7 @@ func ParseDeletedManagedHSMIDInsensitively(input string) (*DeletedManagedHSMId, 
 	}
 
 	id := DeletedManagedHSMId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -108,9 +113,9 @@ func (id DeletedManagedHSMId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftKeyVault", "Microsoft.KeyVault", "Microsoft.KeyVault"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "locationValue"),
+		resourceids.UserSpecifiedSegment("locationName", "locationName"),
 		resourceids.StaticSegment("staticDeletedManagedHSMs", "deletedManagedHSMs", "deletedManagedHSMs"),
-		resourceids.UserSpecifiedSegment("deletedManagedHSMName", "deletedManagedHSMValue"),
+		resourceids.UserSpecifiedSegment("deletedManagedHSMName", "deletedManagedHSMName"),
 	}
 }
 

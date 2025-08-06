@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2019-09-01/querypacks` Documentation
 
-The `querypacks` SDK allows for interaction with the Azure Resource Manager Service `operationalinsights` (API Version `2019-09-01`).
+The `querypacks` SDK allows for interaction with Azure Resource Manager `operationalinsights` (API Version `2019-09-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := querypacks.NewQueryPackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackValue")
+id := querypacks.NewQueryPackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackName")
 
 payload := querypacks.LogAnalyticsQueryPack{
 	// ...
@@ -67,7 +67,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := querypacks.NewQueryPackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackValue")
+id := querypacks.NewQueryPackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -83,7 +83,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := querypacks.NewQueryPackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackValue")
+id := querypacks.NewQueryPackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -133,7 +133,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := querypacks.NewQueryPackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackValue")
+id := querypacks.NewQueryPackID("12345678-1234-9876-4563-123456789012", "example-resource-group", "queryPackName")
 
 payload := querypacks.TagsResource{
 	// ...

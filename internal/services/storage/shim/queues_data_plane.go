@@ -8,7 +8,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/queue/queues"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/queue/queues"
 )
 
 type DataPlaneStorageQueueWrapper struct {
@@ -62,6 +63,11 @@ func (w DataPlaneStorageQueueWrapper) Get(ctx context.Context, queueName string)
 func (w DataPlaneStorageQueueWrapper) GetServiceProperties(ctx context.Context) (*queues.StorageServiceProperties, error) {
 	serviceProps, err := w.client.GetServiceProperties(ctx)
 	if err != nil {
+		if serviceProps.HttpResponse == nil {
+			return nil, pollers.PollingDroppedConnectionError{
+				Message: err.Error(),
+			}
+		}
 		if response.WasNotFound(serviceProps.HttpResponse) {
 			return nil, nil
 		}

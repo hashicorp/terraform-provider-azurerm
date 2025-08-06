@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ConfigurationAssignmentId{})
+}
 
 var _ resourceids.ResourceId = &ConfigurationAssignmentId{}
 
@@ -35,7 +40,7 @@ func ParseConfigurationAssignmentID(input string) (*ConfigurationAssignmentId, e
 	}
 
 	id := ConfigurationAssignmentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -52,7 +57,7 @@ func ParseConfigurationAssignmentIDInsensitively(input string) (*ConfigurationAs
 	}
 
 	id := ConfigurationAssignmentId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -102,7 +107,7 @@ func (id ConfigurationAssignmentId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMaintenance", "Microsoft.Maintenance", "Microsoft.Maintenance"),
 		resourceids.StaticSegment("staticConfigurationAssignments", "configurationAssignments", "configurationAssignments"),
-		resourceids.UserSpecifiedSegment("configurationAssignmentName", "configurationAssignmentValue"),
+		resourceids.UserSpecifiedSegment("configurationAssignmentName", "configurationAssignmentName"),
 	}
 }
 

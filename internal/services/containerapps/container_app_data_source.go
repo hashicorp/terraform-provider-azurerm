@@ -14,8 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerapps"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/containerapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -30,6 +30,7 @@ type ContainerAppDataSourceModel struct {
 	ManagedEnvironmentId       string                                     `tfschema:"container_app_environment_id"`
 	Location                   string                                     `tfschema:"location"`
 	RevisionMode               string                                     `tfschema:"revision_mode"`
+	MaxInactiveRevisions       int64                                      `tfschema:"max_inactive_revisions"`
 	Ingress                    []helpers.Ingress                          `tfschema:"ingress"`
 	Registries                 []helpers.Registry                         `tfschema:"registry"`
 	Secrets                    []helpers.Secret                           `tfschema:"secret"`
@@ -117,6 +118,11 @@ func (r ContainerAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
+		"max_inactive_revisions": {
+			Type:     pluginsdk.TypeInt,
+			Computed: true,
+		},
 	}
 }
 
@@ -172,6 +178,7 @@ func (r ContainerAppDataSource) Read() sdk.ResourceFunc {
 							containerApp.Ingress = helpers.FlattenContainerAppIngress(config.Ingress, id.ContainerAppName)
 							containerApp.Registries = helpers.FlattenContainerAppRegistries(config.Registries)
 							containerApp.Dapr = helpers.FlattenContainerAppDapr(config.Dapr)
+							containerApp.MaxInactiveRevisions = pointer.ToInt64(config.MaxInactiveRevisions)
 						}
 					}
 					containerApp.LatestRevisionName = pointer.From(props.LatestRevisionName)

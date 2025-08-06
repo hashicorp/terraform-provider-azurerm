@@ -40,9 +40,8 @@ resource "azurerm_vpn_gateway" "example" {
 }
 
 resource "azurerm_vpn_gateway_nat_rule" "example" {
-  name                = "example-vpngatewaynatrule"
-  resource_group_name = azurerm_resource_group.example.name
-  vpn_gateway_id      = azurerm_vpn_gateway.example.id
+  name           = "example-vpngatewaynatrule"
+  vpn_gateway_id = azurerm_vpn_gateway.example.id
 
   external_mapping {
     address_space = "192.168.21.0/26"
@@ -60,8 +59,6 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this VPN Gateway NAT Rule. Changing this forces a new resource to be created.
 
-* `resource_group_name` - (Required) The Name of the Resource Group in which this VPN Gateway NAT Rule should be created. Changing this forces a new resource to be created.
-
 * `vpn_gateway_id` - (Required) The ID of the VPN Gateway that this VPN Gateway NAT Rule belongs to. Changing this forces a new resource to be created.
 
 * `external_mapping` - (Optional) One or more `external_mapping` blocks as documented below.
@@ -74,13 +71,9 @@ The following arguments are supported:
 
 * `type` - (Optional) The type of the VPN Gateway NAT Rule. Possible values are `Dynamic` and `Static`. Defaults to `Static`. Changing this forces a new resource to be created.
 
-* `external_address_space_mappings` - (Optional) (Deprecated) A list of CIDR Ranges which are used for external mapping of the VPN Gateway NAT Rule.
+* `external_mapping` - (Optional) One of more `external_mapping` blocks as defined below.
 
-~> **NOTE:** `external_address_space_mappings` is deprecated and will be removed in favour of the property `external_mapping` in version 4.0 of the AzureRM Provider.
-
-* `internal_address_space_mappings` - (Optional) (Deprecated) A list of CIDR Ranges which are used for internal mapping of the VPN Gateway NAT Rule.
-
-~> **NOTE:** `internal_address_space_mappings` is deprecated and will be removed in favour of the property `internal_mapping` in version 4.0 of the AzureRM Provider.
+* `internal_mapping` - (Optional) One of more `internal_mapping` blocks as defined below.
 
 ---
 
@@ -120,3 +113,9 @@ VPN Gateway NAT Rules can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_vpn_gateway_nat_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.Network/vpnGateways/vpnGateway1/natRules/natRule1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

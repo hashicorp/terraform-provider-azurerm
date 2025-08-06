@@ -8,7 +8,7 @@ type SlackChannelProperties struct {
 	ClientSecret            *string `json:"clientSecret,omitempty"`
 	IsEnabled               bool    `json:"isEnabled"`
 	IsValidated             *bool   `json:"IsValidated,omitempty"`
-	LandingPageUrl          *string `json:"landingPageUrl,omitempty"`
+	LandingPageURL          *string `json:"landingPageUrl,omitempty"`
 	LastSubmissionId        *string `json:"lastSubmissionId,omitempty"`
 	RedirectAction          *string `json:"redirectAction,omitempty"`
 	RegisterBeforeOAuthFlow *bool   `json:"registerBeforeOAuthFlow,omitempty"`

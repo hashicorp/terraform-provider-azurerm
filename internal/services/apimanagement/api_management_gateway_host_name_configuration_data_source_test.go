@@ -11,8 +11,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type ApiManagementGatewayHostnameConfigurationDataSource struct {
-}
+type ApiManagementGatewayHostnameConfigurationDataSource struct{}
 
 func TestAccDataSourceApiManagementGatewayHostnameConfiguration_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_api_management_gateway_host_name_configuration", "test")

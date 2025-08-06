@@ -136,7 +136,7 @@ The following arguments are supported:
 
 * `eventhub_consumer_group_name` - (Optional) Name of the Event Hub Consumer Group. Changing this forces a new resource to be created. Defaults to `$Default`.
 
-* `kusto_table_name` - (Optional) Name of the Kusto Table. Changing this forces a new resource to be created.
+* `kusto_table_name` - (Optional) Name of the Kusto Table. Defaults to `AdtPropertyEvents`. Changing this forces a new resource to be created.
 
 ## Attributes Reference
 
@@ -159,3 +159,9 @@ Digital Twins Time Series Database Connections can be imported using the `resour
 ```shell
 terraform import azurerm_digital_twins_time_series_database_connection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DigitalTwins/digitalTwinsInstances/dt1/timeSeriesDatabaseConnections/connection1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DigitalTwins` - 2023-01-31

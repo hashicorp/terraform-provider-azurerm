@@ -5,6 +5,7 @@ package resourcemanager
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -27,6 +28,9 @@ type provisioningStatePoller struct {
 	initialRetryDuration time.Duration
 	originalUri          string
 	resourcePath         string
+
+	droppedConnectionCount int
+	maxDroppedConnections  int
 }
 
 func provisioningStatePollerFromResponse(response *client.Response, lroIsSelfReference bool, client *Client, pollingInterval time.Duration) (*provisioningStatePoller, error) {
@@ -58,11 +62,12 @@ func provisioningStatePollerFromResponse(response *client.Response, lroIsSelfRef
 	}
 
 	return &provisioningStatePoller{
-		apiVersion:           apiVersion,
-		client:               client,
-		initialRetryDuration: pollingInterval,
-		originalUri:          originalUri,
-		resourcePath:         resourcePath,
+		apiVersion:            apiVersion,
+		client:                client,
+		initialRetryDuration:  pollingInterval,
+		originalUri:           originalUri,
+		resourcePath:          resourcePath,
+		maxDroppedConnections: 3,
 	}, nil
 }
 
@@ -84,8 +89,22 @@ func (p *provisioningStatePoller) Poll(ctx context.Context) (*pollers.PollResult
 	}
 	resp, err := p.client.Execute(ctx, req)
 	if err != nil {
+		var e *url.Error
+		if errors.As(err, &e) {
+			p.droppedConnectionCount++
+			if p.droppedConnectionCount < p.maxDroppedConnections {
+				return &pollers.PollResult{
+					PollInterval: p.initialRetryDuration,
+					Status:       pollers.PollingStatusUnknown,
+				}, nil
+			}
+		}
+
 		return nil, fmt.Errorf("executing request: %+v", err)
 	}
+
+	p.droppedConnectionCount = 0
+
 	if resp == nil {
 		return nil, pollers.PollingDroppedConnectionError{}
 	}
@@ -95,47 +114,45 @@ func (p *provisioningStatePoller) Poll(ctx context.Context) (*pollers.PollResult
 		return nil, fmt.Errorf("unmarshaling result: %+v", err)
 	}
 
-	status := ""
-	if string(result.Status) != "" {
-		status = string(result.Status)
+	s := string(result.Status)
+
+	// if the result has a provisioningState field, we should prioritise that
+	if result.Properties.ProvisioningState != "" {
+		s = string(result.Properties.ProvisioningState)
 	}
-	if string(result.Properties.ProvisioningState) != "" {
-		status = string(result.Properties.ProvisioningState)
-	}
-	if status == "" {
+
+	if s == "" {
 		// Some Operations support both an LRO and immediate completion, but _don't_ return a provisioningState field
 		// since we're checking for a 200 OK, if we didn't get a provisioningState field, for the moment we have to
 		// assume that we're done.
-		// Examples: `APIManagement` API Versions `2021-08-01` and `2022-08-01` - `Services.GlobalSchemaCreateOrUpdate`.
-		// Examples: `Automation` API Versions `2020-01-13-preview` - `DscNodeConfiguration.CreateOrUpdate`.
-		// https://github.com/hashicorp/go-azure-sdk/issues/542
 		return &pollers.PollResult{
 			PollInterval: p.initialRetryDuration,
 			Status:       pollers.PollingStatusSucceeded,
 		}, nil
 	}
 
-	if strings.EqualFold(status, string(statusCanceled)) || strings.EqualFold(status, string(statusCancelled)) {
+	if strings.EqualFold(s, string(statusCanceled)) || strings.EqualFold(s, string(statusCancelled)) {
 		return nil, pollers.PollingCancelledError{
 			HttpResponse: resp,
 		}
 	}
 
-	if strings.EqualFold(status, string(statusFailed)) {
+	if strings.EqualFold(s, string(statusFailed)) {
 		return nil, pollers.PollingFailedError{
 			HttpResponse: resp,
 		}
 	}
 
-	if strings.EqualFold(status, string(statusSucceeded)) {
+	if strings.EqualFold(s, string(statusSucceeded)) {
 		return &pollers.PollResult{
 			PollInterval: p.initialRetryDuration,
 			Status:       pollers.PollingStatusSucceeded,
 		}, nil
 	}
 
-	// some API's have unique provisioningStates (e.g. Storage Accounts has `ResolvingDns`)
-	// if we don't recognise it, treat it as a polling status
+	// any other condition for polling should be considered in-progress
+	// Note: Some APIs return a polling URL, but complete immediately. These should be considered on a case by case basis
+	// when deciding if the operation should be polled. e.g. taking the HTTP code into account.
 	return &pollers.PollResult{
 		PollInterval: p.initialRetryDuration,
 		Status:       pollers.PollingStatusInProgress,
@@ -143,13 +160,15 @@ func (p *provisioningStatePoller) Poll(ctx context.Context) (*pollers.PollResult
 }
 
 type provisioningStateResult struct {
-	Properties struct {
-		// Some API's (such as Storage) return the Resource Representation from the LRO API, as such we need to check provisioningState
-		ProvisioningState status `json:"provisioningState"`
-	} `json:"properties"`
+	Properties provisioningStateResultProperties `json:"properties"`
 
 	// others return Status, so we check that too
 	Status status `json:"status"`
+}
+
+type provisioningStateResultProperties struct {
+	// Some API's (such as Storage) return the Resource Representation from the LRO API, as such we need to check provisioningState
+	ProvisioningState status `json:"provisioningState"`
 }
 
 func resourceManagerResourcePathFromUri(input string) (*string, error) {

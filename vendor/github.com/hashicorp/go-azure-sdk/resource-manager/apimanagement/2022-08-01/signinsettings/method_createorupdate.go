@@ -36,6 +36,7 @@ func (o CreateOrUpdateOperationOptions) ToHeaders() *client.Headers {
 
 func (o CreateOrUpdateOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,8 +54,8 @@ func (c SignInSettingsClient) CreateOrUpdate(ctx context.Context, id ServiceId, 
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          fmt.Sprintf("%s/portalsettings/signin", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/portalsettings/signin", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -78,7 +79,6 @@ func (c SignInSettingsClient) CreateOrUpdate(ctx context.Context, id ServiceId, 
 
 	var model PortalSigninSettings
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

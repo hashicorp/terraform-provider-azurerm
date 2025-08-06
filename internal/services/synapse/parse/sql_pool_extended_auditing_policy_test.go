@@ -27,7 +27,6 @@ func TestSqlPoolExtendedAuditingPolicyID(t *testing.T) {
 		Error    bool
 		Expected *SqlPoolExtendedAuditingPolicyId
 	}{
-
 		{
 			// empty
 			Input: "",

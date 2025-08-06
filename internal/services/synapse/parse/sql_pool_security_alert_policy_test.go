@@ -27,7 +27,6 @@ func TestSqlPoolSecurityAlertPolicyID(t *testing.T) {
 		Error    bool
 		Expected *SqlPoolSecurityAlertPolicyId
 	}{
-
 		{
 			// empty
 			Input: "",

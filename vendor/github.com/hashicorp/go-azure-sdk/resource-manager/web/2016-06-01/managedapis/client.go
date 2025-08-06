@@ -15,7 +15,7 @@ type ManagedAPIsClient struct {
 }
 
 func NewManagedAPIsClientWithBaseURI(sdkApi sdkEnv.Api) (*ManagedAPIsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "managedapis", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "managedapis", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ManagedAPIsClient: %+v", err)
 	}

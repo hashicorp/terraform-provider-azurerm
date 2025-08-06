@@ -8,9 +8,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/topics"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-10-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -18,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceServiceBusTopic() *pluginsdk.Resource {
@@ -53,7 +53,7 @@ func resourceServiceBusTopicSchema() map[string]*pluginsdk.Schema {
 			ValidateFunc: azValidate.TopicName(),
 		},
 
-		//lintignore: S013
+		// lintignore: S013
 		"namespace_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -74,53 +74,52 @@ func resourceServiceBusTopicSchema() map[string]*pluginsdk.Schema {
 		"auto_delete_on_idle": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Default:      "P10675199DT2H48M5.4775807S", // Never
 			ValidateFunc: validate.ISO8601Duration,
 		},
 
 		"default_message_ttl": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Default:      "P10675199DT2H48M5.4775807S", // Unbounded
 			ValidateFunc: validate.ISO8601Duration,
 		},
 
 		"duplicate_detection_history_time_window": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			Computed:     true,
+			Default:      "PT10M", // 10 minutes
 			ValidateFunc: validate.ISO8601Duration,
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
-		"enable_batched_operations": {
+		"batched_operations_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
-		"enable_express": {
+		"express_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 		},
 
-		// TODO 4.0: change this from enable_* to *_enabled
-		"enable_partitioning": {
+		"partitioning_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			ForceNew: true,
 		},
 
 		"max_message_size_in_kilobytes": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			// NOTE: O+C this gets a variable default based on the sku and can be updated without issues
 			Computed:     true,
 			ValidateFunc: azValidate.ServiceBusMaxMessageSizeInKilobytes(),
 		},
 
 		"max_size_in_megabytes": {
-			Type:         pluginsdk.TypeInt,
-			Optional:     true,
+			Type:     pluginsdk.TypeInt,
+			Optional: true,
+			// NOTE: O+C this gets a variable default based on the sku and can be updated without issues
 			Computed:     true,
 			ValidateFunc: azValidate.ServiceBusMaxSizeInMegabytes(),
 		},
@@ -166,30 +165,34 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
+	enableBatchedOperations := d.Get("batched_operations_enabled").(bool)
+	enableExpress := d.Get("express_enabled").(bool)
+	enablePartitioning := d.Get("partitioning_enabled").(bool)
+
 	status := topics.EntityStatus(d.Get("status").(string))
 	parameters := topics.SBTopic{
-		Name: utils.String(id.TopicName),
+		Name: pointer.To(id.TopicName),
 		Properties: &topics.SBTopicProperties{
 			Status:                     &status,
-			EnableBatchedOperations:    utils.Bool(d.Get("enable_batched_operations").(bool)),
-			EnableExpress:              utils.Bool(d.Get("enable_express").(bool)),
-			EnablePartitioning:         utils.Bool(d.Get("enable_partitioning").(bool)),
-			MaxSizeInMegabytes:         utils.Int64(int64(d.Get("max_size_in_megabytes").(int))),
-			RequiresDuplicateDetection: utils.Bool(d.Get("requires_duplicate_detection").(bool)),
-			SupportOrdering:            utils.Bool(d.Get("support_ordering").(bool)),
+			EnableBatchedOperations:    pointer.To(enableBatchedOperations),
+			EnableExpress:              pointer.To(enableExpress),
+			EnablePartitioning:         pointer.To(enablePartitioning),
+			MaxSizeInMegabytes:         pointer.To(int64(d.Get("max_size_in_megabytes").(int))),
+			RequiresDuplicateDetection: pointer.To(d.Get("requires_duplicate_detection").(bool)),
+			SupportOrdering:            pointer.To(d.Get("support_ordering").(bool)),
 		},
 	}
 
 	if autoDeleteOnIdle := d.Get("auto_delete_on_idle").(string); autoDeleteOnIdle != "" {
-		parameters.Properties.AutoDeleteOnIdle = utils.String(autoDeleteOnIdle)
+		parameters.Properties.AutoDeleteOnIdle = pointer.To(autoDeleteOnIdle)
 	}
 
 	if defaultTTL := d.Get("default_message_ttl").(string); defaultTTL != "" {
-		parameters.Properties.DefaultMessageTimeToLive = utils.String(defaultTTL)
+		parameters.Properties.DefaultMessageTimeToLive = pointer.To(defaultTTL)
 	}
 
 	if duplicateWindow := d.Get("duplicate_detection_history_time_window").(string); duplicateWindow != "" {
-		parameters.Properties.DuplicateDetectionHistoryTimeWindow = utils.String(duplicateWindow)
+		parameters.Properties.DuplicateDetectionHistoryTimeWindow = pointer.To(duplicateWindow)
 	}
 
 	// We need to retrieve the namespace because Premium namespace works differently from Basic and Standard
@@ -200,13 +203,30 @@ func resourceServiceBusTopicCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		return fmt.Errorf("retrieving ServiceBus Namespace %q (Resource Group %q): %+v", id.NamespaceName, id.ResourceGroupName, err)
 	}
 
+	isPremiumNamespacePartitioned := true
+	var sku namespaces.SkuName
+	if nsModel := resp.Model; nsModel != nil {
+		sku = nsModel.Sku.Name
+		if props := nsModel.Properties; props != nil && props.PremiumMessagingPartitions != nil && *props.PremiumMessagingPartitions == 1 {
+			isPremiumNamespacePartitioned = false
+		}
+	}
+
+	if sku == namespaces.SkuNamePremium {
+		if isPremiumNamespacePartitioned && !enablePartitioning {
+			return fmt.Errorf("topic must have `partitioning_enabled` set to `true` when the parent namespace is partitioned")
+		} else if !isPremiumNamespacePartitioned && enablePartitioning {
+			return fmt.Errorf("topic partitioning is only available if the parent namespace is partitioned")
+		}
+	}
+
 	// output of `max_message_size_in_kilobytes` is also set in non-Premium namespaces, with a value of 256
 	if v, ok := d.GetOk("max_message_size_in_kilobytes"); ok && v.(int) != 256 {
 		if model := resp.Model; model != nil {
 			if model.Sku.Name != namespaces.SkuNamePremium {
 				return fmt.Errorf("%s does not support input on `max_message_size_in_kilobytes` in %s SKU and should be removed", id, model.Sku.Name)
 			}
-			parameters.Properties.MaxMessageSizeInKilobytes = utils.Int64(int64(v.(int)))
+			parameters.Properties.MaxMessageSizeInKilobytes = pointer.To(int64(v.(int)))
 		}
 	}
 
@@ -254,9 +274,10 @@ func resourceServiceBusTopicRead(d *pluginsdk.ResourceData, meta interface{}) er
 				d.Set("duplicate_detection_history_time_window", window)
 			}
 
-			d.Set("enable_batched_operations", props.EnableBatchedOperations)
-			d.Set("enable_express", props.EnableExpress)
-			d.Set("enable_partitioning", props.EnablePartitioning)
+			d.Set("batched_operations_enabled", props.EnableBatchedOperations)
+			d.Set("express_enabled", props.EnableExpress)
+			d.Set("partitioning_enabled", props.EnablePartitioning)
+
 			d.Set("max_message_size_in_kilobytes", props.MaxMessageSizeInKilobytes)
 			d.Set("requires_duplicate_detection", props.RequiresDuplicateDetection)
 			d.Set("support_ordering", props.SupportOrdering)

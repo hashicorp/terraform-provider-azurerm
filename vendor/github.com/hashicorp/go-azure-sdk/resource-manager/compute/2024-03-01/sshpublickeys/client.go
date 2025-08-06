@@ -15,7 +15,7 @@ type SshPublicKeysClient struct {
 }
 
 func NewSshPublicKeysClientWithBaseURI(sdkApi sdkEnv.Api) (*SshPublicKeysClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "sshpublickeys", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "sshpublickeys", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SshPublicKeysClient: %+v", err)
 	}

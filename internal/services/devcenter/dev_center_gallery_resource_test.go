@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2023-04-01/galleries"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/galleries"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -91,19 +91,21 @@ func TestAccDevCenterGallery_update(t *testing.T) {
 		data.ImportStep(),
 	})
 }
+
 func (r DevCenterGalleryTestResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := galleries.ParseGalleryID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DevCenter.V20230401.Galleries.Get(ctx, *id)
+	resp, err := clients.DevCenter.V20250201.Galleries.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
 	return utils.Bool(resp.Model != nil), nil
 }
+
 func (r DevCenterGalleryTestResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s

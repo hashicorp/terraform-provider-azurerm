@@ -11,8 +11,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2022-01-01/configurations"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/mysql/2023-12-30/configurations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mysql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -79,6 +80,10 @@ func resourceMySQLFlexibleServerConfigurationCreate(d *pluginsdk.ResourceData, m
 	//       since a fallback route is created by default
 
 	id := configurations.NewConfigurationID(subscriptionId, d.Get("resource_group_name").(string), d.Get("server_name").(string), d.Get("name").(string))
+
+	locks.ByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
+	defer locks.UnlockByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
+
 	if err := client.UpdateThenPoll(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating %s: %v", id, err)
 	}
@@ -98,6 +103,9 @@ func resourceMySQLFlexibleServerConfigurationUpdate(d *pluginsdk.ResourceData, m
 	if err != nil {
 		return err
 	}
+
+	locks.ByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
+	defer locks.UnlockByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
 
 	payload := configurations.Configuration{
 		Properties: &configurations.ConfigurationProperties{
@@ -157,6 +165,10 @@ func resourceMySQLFlexibleServerConfigurationDelete(d *pluginsdk.ResourceData, m
 	if err != nil {
 		return err
 	}
+
+	locks.ByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
+	defer locks.UnlockByName(id.FlexibleServerName, mysqlFlexibleServerResourceName)
+
 	// "delete" = resetting this to the default value
 	resp, err := client.Get(ctx, *id)
 	if err != nil {

@@ -182,7 +182,6 @@ func (r WatchlistResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-
 					watchList.DisplayName = props.DisplayName
 					watchList.ItemSearchKey = props.ItemsSearchKey
 					watchList.Description = pointer.From(props.Description)

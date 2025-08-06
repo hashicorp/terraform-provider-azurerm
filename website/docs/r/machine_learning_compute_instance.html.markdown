@@ -78,7 +78,6 @@ variable "ssh_key" {
 
 resource "azurerm_machine_learning_compute_instance" "example" {
   name                          = "example"
-  location                      = azurerm_resource_group.example.location
   machine_learning_workspace_id = azurerm_machine_learning_workspace.example.id
   virtual_machine_size          = "STANDARD_DS2_V2"
   authorization_type            = "personal"
@@ -98,8 +97,6 @@ resource "azurerm_machine_learning_compute_instance" "example" {
 The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Machine Learning Compute Instance. Changing this forces a new Machine Learning Compute Instance to be created.
-
-* `location` - (Required) The Azure Region where the Machine Learning Compute Instance should exist. Changing this forces a new Machine Learning Compute Instance to be created.
 
 * `machine_learning_workspace_id` - (Required) The ID of the Machine Learning Workspace. Changing this forces a new Machine Learning Compute Instance to be created.
 
@@ -133,7 +130,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Machine Learning Compute Instance. Changing this forces a new resource to be created.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -189,3 +186,9 @@ Machine Learning Compute Instances can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_machine_learning_compute_instance.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.MachineLearningServices/workspaces/workspace1/computes/compute1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.MachineLearningServices` - 2025-06-01

@@ -45,7 +45,6 @@ func (c StaticSitesClient) GetPrivateEndpointConnection(ctx context.Context, id 
 
 	var model RemotePrivateEndpointConnectionARMResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

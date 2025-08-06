@@ -8,21 +8,18 @@ import (
 	"log"
 	"time"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/virtualwans"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func resourceVPNGatewayNatRule() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Create: resourceVPNGatewayNatRuleCreate,
 		Read:   resourceVPNGatewayNatRuleRead,
 		Update: resourceVPNGatewayNatRuleUpdate,
@@ -36,7 +33,7 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 		},
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.VpnGatewayNatRuleID(id)
+			_, err := virtualwans.ParseNatRuleID(id)
 			return err
 		}),
 
@@ -48,9 +45,6 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			// TODO: we should be able to remove this in 4.0 since it can be inferred from `vpn_gateway_id`?
-			"resource_group_name": commonschema.ResourceGroupName(),
-
 			"vpn_gateway_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -61,16 +55,6 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 			"external_mapping": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: !features.FourPointOhBeta(),
-				ExactlyOneOf: func() []string {
-					out := []string{
-						"external_mapping",
-					}
-					if !features.FourPointOhBeta() {
-						out = append(out, "external_address_space_mappings")
-					}
-					return out
-				}(),
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"address_space": {
@@ -91,16 +75,6 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 			"internal_mapping": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
-				Computed: !features.FourPointOhBeta(),
-				ExactlyOneOf: func() []string {
-					out := []string{
-						"internal_mapping",
-					}
-					if !features.FourPointOhBeta() {
-						out = append(out, "internal_address_space_mappings")
-					}
-					return out
-				}(),
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"address_space": {
@@ -131,10 +105,10 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(network.VpnNatRuleModeEgressSnat),
+				Default:  string(virtualwans.VpnNatRuleModeEgressSnat),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.VpnNatRuleModeEgressSnat),
-					string(network.VpnNatRuleModeIngressSnat),
+					string(virtualwans.VpnNatRuleModeEgressSnat),
+					string(virtualwans.VpnNatRuleModeIngressSnat),
 				}, false),
 			},
 
@@ -142,63 +116,19 @@ func resourceVPNGatewayNatRule() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(network.VpnNatRuleTypeStatic),
+				Default:  string(virtualwans.VpnNatRuleTypeStatic),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.VpnNatRuleTypeStatic),
-					string(network.VpnNatRuleTypeDynamic),
+					string(virtualwans.VpnNatRuleTypeStatic),
+					string(virtualwans.VpnNatRuleTypeDynamic),
 				}, false),
 			},
 		},
 	}
-
-	if !features.FourPointOhBeta() {
-		resource.Schema["external_address_space_mappings"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "`external_address_space_mappings` will be removed in favour of the property `external_mapping` in version 4.0 of the AzureRM Provider.",
-			ExactlyOneOf: func() []string {
-				out := []string{
-					"external_mapping",
-				}
-				if !features.FourPointOhBeta() {
-					out = append(out, "external_address_space_mappings")
-				}
-				return out
-			}(),
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.IsCIDR,
-			},
-		}
-
-		resource.Schema["internal_address_space_mappings"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeList,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "`internal_address_space_mappings` will be removed in favour of the property `internal_mapping` in version 4.0 of the AzureRM Provider.",
-			ExactlyOneOf: func() []string {
-				out := []string{
-					"internal_mapping",
-				}
-				if !features.FourPointOhBeta() {
-					out = append(out, "internal_address_space_mappings")
-				}
-				return out
-			}(),
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.IsCIDR,
-			},
-		}
-	}
-
-	return resource
 }
 
 func resourceVPNGatewayNatRuleCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).Network.NatRuleClient
+	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -207,74 +137,60 @@ func resourceVPNGatewayNatRuleCreate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
-	id := parse.NewVpnGatewayNatRuleID(subscriptionId, d.Get("resource_group_name").(string), vpnGatewayId.VpnGatewayName, d.Get("name").(string))
+	id := virtualwans.NewNatRuleID(subscriptionId, vpnGatewayId.ResourceGroupName, vpnGatewayId.VpnGatewayName, d.Get("name").(string))
 
-	existing, err := client.Get(ctx, id.ResourceGroup, id.VpnGatewayName, id.NatRuleName)
+	existing, err := client.NatRulesGet(ctx, id)
 	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
 	}
-	if !utils.ResponseWasNotFound(existing.Response) {
+	if !response.WasNotFound(existing.HttpResponse) {
 		return tf.ImportAsExistsError("azurerm_vpn_gateway_nat_rule", id.ID())
 	}
 
-	props := network.VpnGatewayNatRule{
-		Name: utils.String(d.Get("name").(string)),
-		VpnGatewayNatRuleProperties: &network.VpnGatewayNatRuleProperties{
-			Mode: network.VpnNatRuleMode(d.Get("mode").(string)),
-			Type: network.VpnNatRuleType(d.Get("type").(string)),
+	props := virtualwans.VpnGatewayNatRule{
+		Name: pointer.To(d.Get("name").(string)),
+		Properties: &virtualwans.VpnGatewayNatRuleProperties{
+			Mode: pointer.To(virtualwans.VpnNatRuleMode(d.Get("mode").(string))),
+			Type: pointer.To(virtualwans.VpnNatRuleType(d.Get("type").(string))),
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		if v, ok := d.GetOk("external_address_space_mappings"); ok {
-			props.VpnGatewayNatRuleProperties.ExternalMappings = expandVpnGatewayNatRuleAddressSpaceMappings(v.([]interface{}))
-		}
-
-		if v, ok := d.GetOk("internal_address_space_mappings"); ok {
-			props.VpnGatewayNatRuleProperties.InternalMappings = expandVpnGatewayNatRuleAddressSpaceMappings(v.([]interface{}))
-		}
-	}
-
 	if v, ok := d.GetOk("external_mapping"); ok {
-		props.VpnGatewayNatRuleProperties.ExternalMappings = expandVpnGatewayNatRuleMappings(v.([]interface{}))
+		props.Properties.ExternalMappings = expandVpnGatewayNatRuleMappings(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("internal_mapping"); ok {
-		props.VpnGatewayNatRuleProperties.InternalMappings = expandVpnGatewayNatRuleMappings(v.([]interface{}))
+		props.Properties.InternalMappings = expandVpnGatewayNatRuleMappings(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("ip_configuration_id"); ok {
-		props.VpnGatewayNatRuleProperties.IPConfigurationID = utils.String(v.(string))
+		props.Properties.IPConfigurationId = pointer.To(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VpnGatewayName, id.NatRuleName, props)
-	if err != nil {
+	if err := client.NatRulesCreateOrUpdateThenPoll(ctx, id, props); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of the %s: %+v", id, err)
-	}
-
 	d.SetId(id.ID())
+
 	return resourceVPNGatewayNatRuleRead(d, meta)
 }
 
 func resourceVPNGatewayNatRuleRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.NatRuleClient
+	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VpnGatewayNatRuleID(d.Id())
+	id, err := virtualwans.ParseNatRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.VpnGatewayName, id.NatRuleName)
+	resp, err := client.NatRulesGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] %s was not found - removing from state", id)
 			d.SetId("")
 			return nil
@@ -283,32 +199,23 @@ func resourceVPNGatewayNatRuleRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	d.Set("name", id.NatRuleName)
-	d.Set("resource_group_name", id.ResourceGroup)
 
-	gatewayId := virtualwans.NewVpnGatewayID(id.SubscriptionId, id.ResourceGroup, id.VpnGatewayName)
+	gatewayId := virtualwans.NewVpnGatewayID(id.SubscriptionId, id.ResourceGroupName, id.VpnGatewayName)
 	d.Set("vpn_gateway_id", gatewayId.ID())
 
-	if props := resp.VpnGatewayNatRuleProperties; props != nil {
-		d.Set("ip_configuration_id", props.IPConfigurationID)
-		d.Set("mode", props.Mode)
-		d.Set("type", props.Type)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("ip_configuration_id", props.IPConfigurationId)
+			d.Set("mode", pointer.From(props.Mode))
+			d.Set("type", pointer.From(props.Type))
 
-		if !features.FourPointOhBeta() {
-			if err := d.Set("external_address_space_mappings", flattenVpnGatewayNatRuleAddressSpaceMappings(props.ExternalMappings)); err != nil {
-				return fmt.Errorf("setting `external_address_space_mappings`: %+v", err)
+			if err := d.Set("external_mapping", flattenVpnGatewayNatRuleMappings(props.ExternalMappings)); err != nil {
+				return fmt.Errorf("setting `external_mapping`: %+v", err)
 			}
 
-			if err := d.Set("internal_address_space_mappings", flattenVpnGatewayNatRuleAddressSpaceMappings(props.InternalMappings)); err != nil {
-				return fmt.Errorf("setting `internal_address_space_mappings`: %+v", err)
+			if err := d.Set("internal_mapping", flattenVpnGatewayNatRuleMappings(props.InternalMappings)); err != nil {
+				return fmt.Errorf("setting `internal_mapping`: %+v", err)
 			}
-		}
-
-		if err := d.Set("external_mapping", flattenVpnGatewayNatRuleMappings(props.ExternalMappings)); err != nil {
-			return fmt.Errorf("setting `external_mapping`: %+v", err)
-		}
-
-		if err := d.Set("internal_mapping", flattenVpnGatewayNatRuleMappings(props.InternalMappings)); err != nil {
-			return fmt.Errorf("setting `internal_mapping`: %+v", err)
 		}
 	}
 
@@ -316,114 +223,85 @@ func resourceVPNGatewayNatRuleRead(d *pluginsdk.ResourceData, meta interface{}) 
 }
 
 func resourceVPNGatewayNatRuleUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	client := meta.(*clients.Client).Network.NatRuleClient
+	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	vpnGatewayId, err := virtualwans.ParseVpnGatewayID(d.Get("vpn_gateway_id").(string))
+	id, err := virtualwans.ParseNatRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	id := parse.NewVpnGatewayNatRuleID(subscriptionId, d.Get("resource_group_name").(string), vpnGatewayId.VpnGatewayName, d.Get("name").(string))
-
-	existing, err := client.Get(ctx, id.ResourceGroup, id.VpnGatewayName, id.NatRuleName)
+	existing, err := client.NatRulesGet(ctx, *id)
 	if err != nil {
-		return err
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	props := network.VpnGatewayNatRule{
-		Name: utils.String(d.Get("name").(string)),
-		VpnGatewayNatRuleProperties: &network.VpnGatewayNatRuleProperties{
-			Mode:             network.VpnNatRuleMode(d.Get("mode").(string)),
-			Type:             network.VpnNatRuleType(d.Get("type").(string)),
-			ExternalMappings: existing.VpnGatewayNatRuleProperties.ExternalMappings,
-			InternalMappings: existing.VpnGatewayNatRuleProperties.InternalMappings,
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	props := virtualwans.VpnGatewayNatRule{
+		Name: pointer.To(d.Get("name").(string)),
+		Properties: &virtualwans.VpnGatewayNatRuleProperties{
+			Mode:             pointer.To(virtualwans.VpnNatRuleMode(d.Get("mode").(string))),
+			Type:             pointer.To(virtualwans.VpnNatRuleType(d.Get("type").(string))),
+			ExternalMappings: existing.Model.Properties.ExternalMappings,
+			InternalMappings: existing.Model.Properties.InternalMappings,
 		},
 	}
 
-	// d.GetOk always returns true and the value that is set in the previous apply when the property has the attribute `Computed: true`. Hence, at this time d.GetOk cannot identify whether user sets the property in tf config so that it has to identify it via splitting create and update method and using d.HasChange
-	if !features.FourPointOhBeta() {
-		if ok := d.HasChange("external_address_space_mappings"); ok {
-			props.VpnGatewayNatRuleProperties.ExternalMappings = expandVpnGatewayNatRuleAddressSpaceMappings(d.Get("external_address_space_mappings").([]interface{}))
-		}
-
-		if ok := d.HasChange("internal_address_space_mappings"); ok {
-			props.VpnGatewayNatRuleProperties.InternalMappings = expandVpnGatewayNatRuleAddressSpaceMappings(d.Get("internal_address_space_mappings").([]interface{}))
-		}
-	}
-
 	if ok := d.HasChange("external_mapping"); ok {
-		props.VpnGatewayNatRuleProperties.ExternalMappings = expandVpnGatewayNatRuleMappings(d.Get("external_mapping").([]interface{}))
+		props.Properties.ExternalMappings = expandVpnGatewayNatRuleMappings(d.Get("external_mapping").([]interface{}))
 	}
 
 	if ok := d.HasChange("internal_mapping"); ok {
-		props.VpnGatewayNatRuleProperties.InternalMappings = expandVpnGatewayNatRuleMappings(d.Get("internal_mapping").([]interface{}))
+		props.Properties.InternalMappings = expandVpnGatewayNatRuleMappings(d.Get("internal_mapping").([]interface{}))
 	}
 
 	if v, ok := d.GetOk("ip_configuration_id"); ok {
-		props.VpnGatewayNatRuleProperties.IPConfigurationID = utils.String(v.(string))
+		props.Properties.IPConfigurationId = pointer.To(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VpnGatewayName, id.NatRuleName, props)
-	if err != nil {
+	if err := client.NatRulesCreateOrUpdateThenPoll(ctx, *id, props); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of the %s: %+v", id, err)
 	}
 
 	return resourceVPNGatewayNatRuleRead(d, meta)
 }
 
 func resourceVPNGatewayNatRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.NatRuleClient
+	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VpnGatewayNatRuleID(d.Id())
+	id, err := virtualwans.ParseNatRuleID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.VpnGatewayName, id.NatRuleName)
-	if err != nil {
+	if err := client.NatRulesDeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of the %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func expandVpnGatewayNatRuleAddressSpaceMappings(input []interface{}) *[]network.VpnNatRuleMapping {
-	results := make([]network.VpnNatRuleMapping, 0)
-
-	for _, v := range input {
-		results = append(results, network.VpnNatRuleMapping{
-			AddressSpace: utils.String(v.(string)),
-		})
-	}
-
-	return &results
-}
-
-func expandVpnGatewayNatRuleMappings(input []interface{}) *[]network.VpnNatRuleMapping {
-	results := make([]network.VpnNatRuleMapping, 0)
+func expandVpnGatewayNatRuleMappings(input []interface{}) *[]virtualwans.VpnNatRuleMapping {
+	results := make([]virtualwans.VpnNatRuleMapping, 0)
 
 	for _, item := range input {
 		v := item.(map[string]interface{})
 
-		result := network.VpnNatRuleMapping{
-			AddressSpace: utils.String(v["address_space"].(string)),
+		result := virtualwans.VpnNatRuleMapping{
+			AddressSpace: pointer.To(v["address_space"].(string)),
 		}
 
 		if portRange := v["port_range"].(string); portRange != "" {
-			result.PortRange = utils.String(portRange)
+			result.PortRange = pointer.To(portRange)
 		}
 
 		results = append(results, result)
@@ -432,7 +310,7 @@ func expandVpnGatewayNatRuleMappings(input []interface{}) *[]network.VpnNatRuleM
 	return &results
 }
 
-func flattenVpnGatewayNatRuleMappings(input *[]network.VpnNatRuleMapping) []interface{} {
+func flattenVpnGatewayNatRuleMappings(input *[]virtualwans.VpnNatRuleMapping) []interface{} {
 	results := make([]interface{}, 0)
 	if input == nil {
 		return results
@@ -453,21 +331,6 @@ func flattenVpnGatewayNatRuleMappings(input *[]network.VpnNatRuleMapping) []inte
 			"address_space": addressSpace,
 			"port_range":    portRange,
 		})
-	}
-
-	return results
-}
-
-func flattenVpnGatewayNatRuleAddressSpaceMappings(input *[]network.VpnNatRuleMapping) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
-
-	for _, item := range *input {
-		if item.AddressSpace != nil {
-			results = append(results, *item.AddressSpace)
-		}
 	}
 
 	return results

@@ -16,9 +16,7 @@ import (
 func lookupDirs(extraDirs []string) []string {
 	pathVar := os.Getenv("PATH")
 	dirs := filepath.SplitList(pathVar)
-	for _, ep := range extraDirs {
-		dirs = append(dirs, ep)
-	}
+	dirs = append(dirs, extraDirs...)
 	return dirs
 }
 

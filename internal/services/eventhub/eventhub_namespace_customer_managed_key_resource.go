@@ -11,7 +11,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2024-01-01/namespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -135,6 +136,10 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 
 	userAssignedIdentity := d.Get("user_assigned_identity_id").(string)
 	if userAssignedIdentity != "" && keyVaultProps != nil {
+		userAssignedIdentityId, err := commonids.ParseUserAssignedIdentityID(userAssignedIdentity)
+		if err != nil {
+			return err
+		}
 
 		// this provides a more helpful error message than the API response
 		if namespace.Identity == nil {
@@ -143,7 +148,11 @@ func resourceEventHubNamespaceCustomerManagedKeyCreateUpdate(d *pluginsdk.Resour
 
 		isIdentityAssignedToParent := false
 		for item := range namespace.Identity.IdentityIds {
-			if item == userAssignedIdentity {
+			parentEhnUaiId, err := commonids.ParseUserAssignedIdentityIDInsensitively(item)
+			if err != nil {
+				return fmt.Errorf("parsing %q as a User Assigned Identity ID: %+v", item, err)
+			}
+			if resourceids.Match(parentEhnUaiId, userAssignedIdentityId) {
 				isIdentityAssignedToParent = true
 			}
 		}

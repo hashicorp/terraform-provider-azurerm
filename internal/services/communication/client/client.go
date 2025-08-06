@@ -7,17 +7,27 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/domains"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/emailservices"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/senderusernames"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
-	ServiceClient *communicationservices.CommunicationServicesClient
+	SenderUsernamesClient *senderusernames.SenderUsernamesClient
+	ServiceClient         *communicationservices.CommunicationServicesClient
 
 	EmailServicesClient *emailservices.EmailServicesClient
+	DomainClient        *domains.DomainsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
+	senderUsernamesClient, err := senderusernames.NewSenderUsernamesClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Sender Username client: %+v", err)
+	}
+	o.Configure(senderUsernamesClient.Client, o.Authorizers.ResourceManager)
+
 	servicesClient, err := communicationservices.NewCommunicationServicesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Service client: %+v", err)
@@ -30,8 +40,16 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(emailServicesClient.Client, o.Authorizers.ResourceManager)
 
+	domainsClient, err := domains.NewDomainsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Domais client: %+v", err)
+	}
+	o.Configure(domainsClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
-		ServiceClient:       servicesClient,
-		EmailServicesClient: emailServicesClient,
+		SenderUsernamesClient: senderUsernamesClient,
+		ServiceClient:         servicesClient,
+		EmailServicesClient:   emailServicesClient,
+		DomainClient:          domainsClient,
 	}, nil
 }

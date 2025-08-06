@@ -10,8 +10,10 @@ import (
 
 type Registration struct{}
 
-var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
-var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+var (
+	_ sdk.TypedServiceRegistrationWithAGitHubLabel   = Registration{}
+	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
+)
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/data-factory"
@@ -39,6 +41,7 @@ func (Registration) DataSources() []sdk.DataSource {
 func (Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		DataFactoryDatasetAzureSQLTableResource{},
+		DataFactoryCredentialServicePrincipalResource{},
 		DataFactoryCredentialUserAssignedManagedIdentityResource{},
 	}
 }
@@ -52,7 +55,7 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{
+	resources := map[string]*pluginsdk.Resource{
 		"azurerm_data_factory":                                       resourceDataFactory(),
 		"azurerm_data_factory_data_flow":                             resourceDataFactoryDataFlow(),
 		"azurerm_data_factory_flowlet_data_flow":                     resourceDataFactoryFlowletDataFlow(),
@@ -68,7 +71,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_data_factory_dataset_snowflake":                     resourceDataFactoryDatasetSnowflake(),
 		"azurerm_data_factory_dataset_sql_server_table":              resourceDataFactoryDatasetSQLServerTable(),
 		"azurerm_data_factory_custom_dataset":                        resourceDataFactoryCustomDataset(),
-		"azurerm_data_factory_integration_runtime_managed":           resourceDataFactoryIntegrationRuntimeManaged(),
 		"azurerm_data_factory_integration_runtime_azure":             resourceDataFactoryIntegrationRuntimeAzure(),
 		"azurerm_data_factory_integration_runtime_azure_ssis":        resourceDataFactoryIntegrationRuntimeAzureSsis(),
 		"azurerm_data_factory_integration_runtime_self_hosted":       resourceDataFactoryIntegrationRuntimeSelfHosted(),
@@ -101,4 +103,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_data_factory_trigger_schedule":                      resourceDataFactoryTriggerSchedule(),
 		"azurerm_data_factory_trigger_tumbling_window":               resourceDataFactoryTriggerTumblingWindow(),
 	}
+
+	return resources
 }

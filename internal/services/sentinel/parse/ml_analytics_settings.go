@@ -6,6 +6,7 @@ package parse
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -30,12 +31,12 @@ func NewMLAnalyticsSettingsID(subscriptionId, resourceGroup, workspaceName, secu
 
 func (id MLAnalyticsSettingsId) String() string {
 	segments := []string{
-		fmt.Sprintf("Security M L Analytics Setting Name %q", id.SecurityMLAnalyticsSettingName),
+		fmt.Sprintf("SecurityML Analytics Setting Name %q", id.SecurityMLAnalyticsSettingName),
 		fmt.Sprintf("Workspace Name %q", id.WorkspaceName),
 		fmt.Sprintf("Resource Group %q", id.ResourceGroup),
 	}
 	segmentsStr := strings.Join(segments, " / ")
-	return fmt.Sprintf("%s: (%s)", "M L Analytics Settings", segmentsStr)
+	return fmt.Sprintf("%s: (%s)", "ML Analytics Settings", segmentsStr)
 }
 
 func (id MLAnalyticsSettingsId) ID() string {
@@ -56,11 +57,11 @@ func MLAnalyticsSettingsID(input string) (*MLAnalyticsSettingsId, error) {
 	}
 
 	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+		return nil, errors.New("ID was missing the 'subscriptions' element")
 	}
 
 	if resourceId.ResourceGroup == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+		return nil, errors.New("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.WorkspaceName, err = id.PopSegment("workspaces"); err != nil {

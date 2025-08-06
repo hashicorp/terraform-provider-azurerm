@@ -1,7 +1,7 @@
 ## Developer Requirements
 
 * [Terraform (Core)](https://www.terraform.io/downloads.html) - version 1.x (0.12.x and above are compatible however 1.x is recommended)
-* [Go](https://golang.org/doc/install) version 1.18.x (to build the provider plugin)
+* [Go](https://golang.org/doc/install) version 1.22.x (to build the provider plugin)
 
 ## Contributor Guides
 
@@ -10,6 +10,7 @@ A Collection of guides geared towards contributors can be found in the [`/contri
 ### On Windows
 
 If you're on Windows you'll also need:
+
 * [Git Bash for Windows](https://git-scm.com/download/win)
 * [Make for Windows](http://gnuwin32.sourceforge.net/packages/make.htm)
 
@@ -32,14 +33,14 @@ You may get errors when cloning the repository on Windows that end with `Filenam
 
 ## Developing the Provider
 
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine. You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.
+If you wish to work on the provider, you'll first need [Go](https://go.dev/) installed on your machine. You'll also need to correctly setup a [GOPATH](https://pkg.go.dev/cmd/go#hdr-GOPATH_environment_variable), as well as adding `$GOPATH/bin` to your `$PATH`.
 
 First clone the repository to: `$GOPATH/src/github.com/hashicorp/terraform-provider-azurerm`
 
 ```sh
-$ mkdir -p $GOPATH/src/github.com/hashicorp; cd $GOPATH/src/github.com/hashicorp
-$ git clone git@github.com:hashicorp/terraform-provider-azurerm
-$ cd $GOPATH/src/github.com/hashicorp/terraform-provider-azurerm
+mkdir -p $GOPATH/src/github.com/hashicorp; cd $GOPATH/src/github.com/hashicorp
+git clone git@github.com:hashicorp/terraform-provider-azurerm
+cd $GOPATH/src/github.com/hashicorp/terraform-provider-azurerm
 ```
 
 Once inside the provider directory, you can run `make tools` to install the dependent tooling required to compile the provider.
@@ -47,10 +48,11 @@ Once inside the provider directory, you can run `make tools` to install the depe
 At this point you can compile the provider by running `make build`, which will build the provider and put the provider binary in the `$GOPATH/bin` directory.
 
 ```sh
-$ make build
-...
-$ $GOPATH/bin/terraform-provider-azurerm
-...
+make build
+# ... make output omitted ...
+# The provider binary will be output to:
+#   $GOPATH/bin/terraform-provider-azurerm
+# ...
 ```
 
 You can also cross-compile if necessary:
@@ -62,7 +64,7 @@ GOOS=windows GOARCH=amd64 make build
 In order to run the `Unit Tests` for the provider, you can run:
 
 ```sh
-$ make test
+make test
 ```
 
 The majority of tests in the provider are `Acceptance Tests` - which provisions real resources in Azure. It's possible to run the entire acceptance test suite by running `make testacc` - however it's likely you'll want to run a subset, which you can do using a prefix, by running:
@@ -76,15 +78,17 @@ make acctests SERVICE='<service>' TESTARGS='-run=<nameOfTheTest>' TESTTIMEOUT='6
 
 The following Environment Variables must be set in your shell prior to running acceptance tests:
 
-- `ARM_CLIENT_ID`
-- `ARM_CLIENT_SECRET`
-- `ARM_SUBSCRIPTION_ID`
-- `ARM_TENANT_ID`
-- `ARM_ENVIRONMENT`
-- `ARM_METADATA_HOST`
-- `ARM_TEST_LOCATION`
-- `ARM_TEST_LOCATION_ALT`
-- `ARM_TEST_LOCATION_ALT2`
+* `ARM_CLIENT_ID`
+* `ARM_CLIENT_SECRET`
+* `ARM_SUBSCRIPTION_ID`
+* `ARM_TENANT_ID`
+
+For more information on the environment variables above, see [Azure Provider: Authenticating using a Service Principal with a Client Secret](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret)
+
+* `ARM_ENVIRONMENT`: This defaults to `public`. See [from_name.go](https://github.com/hashicorp/go-azure-sdk/blob/e69969765468264aac1f33333f6d93887c816327/sdk/environments/from_name.go) for other possible values.
+* `ARM_TEST_LOCATION`: The primary location where test resources can be created, use `az account list-locations` CLI command to see list of available locations.
+* `ARM_TEST_LOCATION_ALT`: The secondary location where test resources can be created. Some acceptance tests require the use of multiple locations.
+* `ARM_TEST_LOCATION_ALT2`: The tertiary location where test resources can be created. Some acceptance tests require the use of multiple locations.
 
 **Note:** Acceptance tests create real resources in Azure which often cost money to run.
 
@@ -92,7 +96,7 @@ The following Environment Variables must be set in your shell prior to running a
 
 ## Developer: Using the locally compiled Azure Provider binary
 
-After successfully compiling the Azure Provider, you must [instruct Terraform to use your locally compiled provider binary](https://www.terraform.io/docs/commands/cli-config.html#development-overrides-for-provider-developers) instead of the official binary from the Terraform Registry.
+After successfully compiling the Azure Provider, you must [instruct Terraform to use your locally compiled provider binary](https://developer.hashicorp.com/terraform/cli/config/config-file#development-overrides-for-provider-developers) instead of the official binary from the Terraform Registry.
 
 For example, add the following to `~/.terraformrc` for a provider binary located in `/home/developer/go/bin`:
 
@@ -139,11 +143,11 @@ When `make generate` is run, this will then generate the following for this Reso
 You can scaffold the documentation for a Data Source by running:
 
 ```sh
-$ make scaffold-website BRAND_NAME="Resource Group" RESOURCE_NAME="azurerm_resource_group" RESOURCE_TYPE="data"
+make scaffold-website BRAND_NAME="Resource Group" RESOURCE_NAME="azurerm_resource_group" RESOURCE_TYPE="data"
 ```
 
 You can scaffold the documentation for a Resource by running:
 
 ```sh
-$ make scaffold-website BRAND_NAME="Resource Group" RESOURCE_NAME="azurerm_resource_group" RESOURCE_TYPE="resource" RESOURCE_ID="/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1"
+make scaffold-website BRAND_NAME="Resource Group" RESOURCE_NAME="azurerm_resource_group" RESOURCE_TYPE="resource" RESOURCE_ID="/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1"
 ```

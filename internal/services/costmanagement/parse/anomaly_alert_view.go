@@ -6,6 +6,7 @@ package parse
 // NOTE: this file is generated via 'go:generate' - manual changes will be overwritten
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -49,7 +50,7 @@ func AnomalyAlertViewID(input string) (*AnomalyAlertViewId, error) {
 	}
 
 	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+		return nil, errors.New("ID was missing the 'subscriptions' element")
 	}
 
 	if resourceId.ViewName, err = id.PopSegment("views"); err != nil {

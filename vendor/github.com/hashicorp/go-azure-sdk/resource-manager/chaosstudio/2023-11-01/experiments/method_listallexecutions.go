@@ -23,6 +23,18 @@ type ListAllExecutionsCompleteResult struct {
 	Items              []ExperimentExecution
 }
 
+type ListAllExecutionsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListAllExecutionsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListAllExecutions ...
 func (c ExperimentsClient) ListAllExecutions(ctx context.Context, id ExperimentId) (result ListAllExecutionsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c ExperimentsClient) ListAllExecutions(ctx context.Context, id ExperimentI
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListAllExecutionsCustomPager{},
 		Path:       fmt.Sprintf("%s/executions", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c ExperimentsClient) ListAllExecutionsCompleteMatchingPredicate(ctx contex
 
 	resp, err := c.ListAllExecutions(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

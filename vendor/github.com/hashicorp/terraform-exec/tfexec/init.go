@@ -6,6 +6,7 @@ package tfexec
 import (
 	"context"
 	"fmt"
+	"io"
 	"os/exec"
 )
 
@@ -99,6 +100,21 @@ func (opt *VerifyPluginsOption) configureInit(conf *initConfig) {
 	conf.verifyPlugins = opt.verifyPlugins
 }
 
+func (tf *Terraform) configureInitOptions(ctx context.Context, c *initConfig, opts ...InitOption) error {
+	for _, o := range opts {
+		switch o.(type) {
+		case *LockOption, *LockTimeoutOption, *VerifyPluginsOption, *GetPluginsOption:
+			err := tf.compatible(ctx, nil, tf0_15_0)
+			if err != nil {
+				return fmt.Errorf("-lock, -lock-timeout, -verify-plugins, and -get-plugins options are no longer available as of Terraform 0.15: %w", err)
+			}
+		}
+
+		o.configureInit(c)
+	}
+	return nil
+}
+
 // Init represents the terraform init subcommand.
 func (tf *Terraform) Init(ctx context.Context, opts ...InitOption) error {
 	cmd, err := tf.initCmd(ctx, opts...)
@@ -108,21 +124,71 @@ func (tf *Terraform) Init(ctx context.Context, opts ...InitOption) error {
 	return tf.runTerraformCmd(ctx, cmd)
 }
 
+// InitJSON represents the terraform init subcommand with the `-json` flag.
+// Using the `-json` flag will result in
+// [machine-readable](https://developer.hashicorp.com/terraform/internals/machine-readable-ui)
+// JSON being written to the supplied `io.Writer`.
+func (tf *Terraform) InitJSON(ctx context.Context, w io.Writer, opts ...InitOption) error {
+	err := tf.compatible(ctx, tf1_9_0, nil)
+	if err != nil {
+		return fmt.Errorf("terraform init -json was added in 1.9.0: %w", err)
+	}
+
+	tf.SetStdout(w)
+
+	cmd, err := tf.initJSONCmd(ctx, opts...)
+	if err != nil {
+		return err
+	}
+
+	return tf.runTerraformCmd(ctx, cmd)
+}
+
 func (tf *Terraform) initCmd(ctx context.Context, opts ...InitOption) (*exec.Cmd, error) {
 	c := defaultInitOptions
 
-	for _, o := range opts {
-		switch o.(type) {
-		case *LockOption, *LockTimeoutOption, *VerifyPluginsOption, *GetPluginsOption:
-			err := tf.compatible(ctx, nil, tf0_15_0)
-			if err != nil {
-				return nil, fmt.Errorf("-lock, -lock-timeout, -verify-plugins, and -get-plugins options are no longer available as of Terraform 0.15: %w", err)
-			}
-		}
-
-		o.configureInit(&c)
+	err := tf.configureInitOptions(ctx, &c, opts...)
+	if err != nil {
+		return nil, err
 	}
 
+	args, err := tf.buildInitArgs(ctx, c)
+	if err != nil {
+		return nil, err
+	}
+
+	// Optional positional argument; must be last as flags precede positional arguments.
+	if c.dir != "" {
+		args = append(args, c.dir)
+	}
+
+	return tf.buildInitCmd(ctx, c, args)
+}
+
+func (tf *Terraform) initJSONCmd(ctx context.Context, opts ...InitOption) (*exec.Cmd, error) {
+	c := defaultInitOptions
+
+	err := tf.configureInitOptions(ctx, &c, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	args, err := tf.buildInitArgs(ctx, c)
+	if err != nil {
+		return nil, err
+	}
+
+	args = append(args, "-json")
+
+	// Optional positional argument; must be last as flags precede positional arguments.
+	if c.dir != "" {
+		args = append(args, c.dir)
+	}
+
+	return tf.buildInitCmd(ctx, c, args)
+}
+
+func (tf *Terraform) buildInitArgs(ctx context.Context, c initConfig) ([]string, error) {
 	args := []string{"init", "-no-color", "-input=false"}
 
 	// string opts: only pass if set
@@ -172,11 +238,10 @@ func (tf *Terraform) initCmd(ctx context.Context, opts ...InitOption) (*exec.Cmd
 		}
 	}
 
-	// optional positional argument
-	if c.dir != "" {
-		args = append(args, c.dir)
-	}
+	return args, nil
+}
 
+func (tf *Terraform) buildInitCmd(ctx context.Context, c initConfig, args []string) (*exec.Cmd, error) {
 	mergeEnv := map[string]string{}
 	if c.reattachInfo != nil {
 		reattachStr, err := c.reattachInfo.marshalString()

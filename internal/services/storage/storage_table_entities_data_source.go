@@ -12,10 +12,11 @@ import (
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
+	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/table/entities"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/table/entities"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/table/tables"
 )
 
 type storageTableEntitiesDataSource struct{}
@@ -23,11 +24,10 @@ type storageTableEntitiesDataSource struct{}
 var _ sdk.DataSource = storageTableEntitiesDataSource{}
 
 type TableEntitiesDataSourceModel struct {
-	TableName          string                       `tfschema:"table_name"`
-	StorageAccountName string                       `tfschema:"storage_account_name"`
-	Filter             string                       `tfschema:"filter"`
-	Select             []string                     `tfschema:"select"`
-	Items              []TableEntityDataSourceModel `tfschema:"items"`
+	StorageTableId string                       `tfschema:"storage_table_id"`
+	Filter         string                       `tfschema:"filter"`
+	Select         []string                     `tfschema:"select"`
+	Items          []TableEntityDataSourceModel `tfschema:"items"`
 }
 
 type TableEntityDataSourceModel struct {
@@ -37,17 +37,11 @@ type TableEntityDataSourceModel struct {
 }
 
 func (k storageTableEntitiesDataSource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"table_name": {
+	s := map[string]*pluginsdk.Schema{
+		"storage_table_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validate.StorageTableName,
-		},
-
-		"storage_account_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validate.StorageAccountName,
+			ValidateFunc: storageValidate.StorageTableDataPlaneID,
 		},
 
 		"filter": {
@@ -64,6 +58,8 @@ func (k storageTableEntitiesDataSource) Arguments() map[string]*pluginsdk.Schema
 			},
 		},
 	}
+
+	return s
 }
 
 func (k storageTableEntitiesDataSource) Attributes() map[string]*pluginsdk.Schema {
@@ -114,13 +110,27 @@ func (k storageTableEntitiesDataSource) Read() sdk.ResourceFunc {
 			}
 
 			storageClient := metadata.Client.Storage
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			account, err := storageClient.FindAccount(ctx, metadata.Client.Account.SubscriptionId, model.StorageAccountName)
+			var storageTableId *tables.TableId
+			var err error
+			if model.StorageTableId != "" {
+				storageTableId, err = tables.ParseTableID(model.StorageTableId, storageClient.StorageDomainSuffix)
+				if err != nil {
+					return err
+				}
+			}
+
+			if storageTableId == nil {
+				return fmt.Errorf("determining storage table ID")
+			}
+
+			account, err := storageClient.FindAccount(ctx, subscriptionId, storageTableId.AccountId.AccountName)
 			if err != nil {
-				return fmt.Errorf("retrieving Account %q for Table %q: %s", model.StorageAccountName, model.TableName, err)
+				return fmt.Errorf("retrieving Account %q for Table %q: %v", storageTableId.AccountId.AccountName, storageTableId.TableName, err)
 			}
 			if account == nil {
-				return fmt.Errorf("the parent Storage Account %s was not found", model.StorageAccountName)
+				return fmt.Errorf("the parent Storage Account %s was not found", storageTableId.AccountId.AccountName)
 			}
 
 			client, err := storageClient.TableEntityDataPlaneClient(ctx, *account, storageClient.DataPlaneOperationSupportingAnyAuthMethod())
@@ -138,11 +148,11 @@ func (k storageTableEntitiesDataSource) Read() sdk.ResourceFunc {
 				input.PropertyNamesToSelect = &model.Select
 			}
 
-			id := parse.NewStorageTableEntitiesId(model.StorageAccountName, storageClient.StorageDomainSuffix, model.TableName, model.Filter)
+			id := parse.NewStorageTableEntitiesId(storageTableId.AccountId.AccountName, storageClient.StorageDomainSuffix, storageTableId.TableName, model.Filter)
 
-			result, err := client.Query(ctx, model.TableName, input)
+			result, err := client.Query(ctx, storageTableId.TableName, input)
 			if err != nil {
-				return fmt.Errorf("retrieving Entities (Filter %q) (Table %q in %s): %+v", model.Filter, model.TableName, account.StorageAccountId, err)
+				return fmt.Errorf("retrieving Entities (Filter %q) (Table %q in %s): %+v", model.Filter, storageTableId.TableName, account.StorageAccountId, err)
 			}
 
 			var flattenedEntities []TableEntityDataSourceModel

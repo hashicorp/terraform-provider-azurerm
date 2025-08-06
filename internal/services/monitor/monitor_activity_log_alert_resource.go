@@ -9,8 +9,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2020-10-01/activitylogalertsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -56,6 +58,8 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"location": commonschema.Location(),
 
 			"scopes": {
 				Type:     pluginsdk.TypeSet,
@@ -422,7 +426,7 @@ func resourceMonitorActivityLogAlertCreateUpdate(d *pluginsdk.ResourceData, meta
 
 	t := d.Get("tags").(map[string]interface{})
 	parameters := activitylogalertsapis.ActivityLogAlertResource{
-		Location: utils.String(azure.NormalizeLocation("Global")),
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &activitylogalertsapis.AlertRuleProperties{
 			Enabled:     utils.Bool(enabled),
 			Description: utils.String(description),
@@ -466,6 +470,7 @@ func resourceMonitorActivityLogAlertRead(d *pluginsdk.ResourceData, meta interfa
 	d.Set("resource_group_name", id.ResourceGroupName)
 
 	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
 		if props := model.Properties; props != nil {
 			d.Set("enabled", props.Enabled)
 			d.Set("description", props.Description)

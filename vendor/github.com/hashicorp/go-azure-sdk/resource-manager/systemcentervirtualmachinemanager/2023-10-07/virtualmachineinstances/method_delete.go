@@ -23,7 +23,7 @@ type DeleteOperationResponse struct {
 
 type DeleteOperationOptions struct {
 	DeleteFromHost *DeleteFromHost
-	Force          *Force
+	Force          *ForceDelete
 }
 
 func DefaultDeleteOperationOptions() DeleteOperationOptions {
@@ -38,6 +38,7 @@ func (o DeleteOperationOptions) ToHeaders() *client.Headers {
 
 func (o DeleteOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -61,8 +62,8 @@ func (c VirtualMachineInstancesClient) Delete(ctx context.Context, id commonids.
 			http.StatusNoContent,
 		},
 		HttpMethod:    http.MethodDelete,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.ScVmm/virtualMachineInstances/default", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/providers/Microsoft.ScVmm/virtualMachineInstances/default", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

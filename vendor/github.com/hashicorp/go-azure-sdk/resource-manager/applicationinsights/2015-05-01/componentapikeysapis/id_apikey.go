@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ApiKeyId{})
+}
 
 var _ resourceids.ResourceId = &ApiKeyId{}
 
@@ -39,7 +44,7 @@ func ParseApiKeyID(input string) (*ApiKeyId, error) {
 	}
 
 	id := ApiKeyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParseApiKeyIDInsensitively(input string) (*ApiKeyId, error) {
 	}
 
 	id := ApiKeyId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -116,9 +121,9 @@ func (id ApiKeyId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftInsights", "Microsoft.Insights", "Microsoft.Insights"),
 		resourceids.StaticSegment("staticComponents", "components", "components"),
-		resourceids.UserSpecifiedSegment("componentName", "componentValue"),
+		resourceids.UserSpecifiedSegment("componentName", "componentName"),
 		resourceids.StaticSegment("staticApiKeys", "apiKeys", "apiKeys"),
-		resourceids.UserSpecifiedSegment("keyId", "keyIdValue"),
+		resourceids.UserSpecifiedSegment("keyId", "keyId"),
 	}
 }
 

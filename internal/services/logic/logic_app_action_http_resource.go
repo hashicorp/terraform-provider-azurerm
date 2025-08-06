@@ -303,6 +303,12 @@ func expandLogicAppActionHttpHeaders(headersRaw map[string]interface{}) (*map[st
 }
 
 func expandLogicAppActionHttpQueries(queriesRaw map[string]interface{}) (*map[string]string, error) {
+	// per the issue https://github.com/hashicorp/terraform-provider-azurerm/issues/28429
+	// empty map and nil are different on the service side.
+	if len(queriesRaw) == 0 {
+		return nil, nil
+	}
+
 	queries := make(map[string]string)
 
 	for i, v := range queriesRaw {

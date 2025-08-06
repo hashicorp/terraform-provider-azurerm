@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/parse"
@@ -29,7 +30,7 @@ type SpringCloudCustomizedAcceleratorModel struct {
 	Description              string               `tfschema:"description"`
 	DisplayName              string               `tfschema:"display_name"`
 	GitRepository            []GitRepositoryModel `tfschema:"git_repository"`
-	IconUrl                  string               `tfschema:"icon_url"`
+	IconURL                  string               `tfschema:"icon_url"`
 }
 
 type GitRepositoryModel struct {
@@ -57,8 +58,15 @@ type SshAuthModel struct {
 
 type SpringCloudCustomizedAcceleratorResource struct{}
 
-var _ sdk.ResourceWithUpdate = SpringCloudCustomizedAcceleratorResource{}
-var _ sdk.ResourceWithStateMigration = SpringCloudCustomizedAcceleratorResource{}
+func (s SpringCloudCustomizedAcceleratorResource) DeprecationMessage() string {
+	return features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_customized_accelerator` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.")
+}
+
+var (
+	_ sdk.ResourceWithUpdate                      = SpringCloudCustomizedAcceleratorResource{}
+	_ sdk.ResourceWithStateMigration              = SpringCloudCustomizedAcceleratorResource{}
+	_ sdk.ResourceWithDeprecationAndNoReplacement = SpringCloudCustomizedAcceleratorResource{}
+)
 
 func (s SpringCloudCustomizedAcceleratorResource) ResourceType() string {
 	return "azurerm_spring_cloud_customized_accelerator"
@@ -273,7 +281,7 @@ func (s SpringCloudCustomizedAcceleratorResource) Create() sdk.ResourceFunc {
 					AcceleratorType: pointer.To(appplatform.CustomizedAcceleratorType(model.AcceleratorType)),
 					DisplayName:     pointer.To(model.DisplayName),
 					Description:     pointer.To(model.Description),
-					IconUrl:         pointer.To(model.IconUrl),
+					IconURL:         pointer.To(model.IconURL),
 					AcceleratorTags: pointer.To(model.AcceleratorTags),
 					GitRepository:   expandSpringCloudCustomizedAcceleratorGitRepository(model.GitRepository),
 				},
@@ -336,7 +344,7 @@ func (s SpringCloudCustomizedAcceleratorResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("icon_url") {
-				properties.IconUrl = &model.IconUrl
+				properties.IconURL = &model.IconURL
 			}
 
 			CustomizedAcceleratorResource := appplatform.CustomizedAcceleratorResource{
@@ -396,8 +404,8 @@ func (s SpringCloudCustomizedAcceleratorResource) Read() sdk.ResourceFunc {
 				}
 				state.GitRepository = flattenSpringCloudCustomizedAcceleratorGitRepository(model.GitRepository, props.GitRepository)
 
-				if props.IconUrl != nil {
-					state.IconUrl = *props.IconUrl
+				if props.IconURL != nil {
+					state.IconURL = *props.IconURL
 				}
 			}
 

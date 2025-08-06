@@ -45,19 +45,12 @@ func TestAccPython3Package_basic(t *testing.T) {
 	})
 }
 
-func TestAccPython3Package_update(t *testing.T) {
+func TestAccPython3Package_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, automation.Python3PackageResource{}.ResourceType(), "test")
 	r := Python3PackageResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("content_uri", "content_version"),
-		{
-			Config: r.update(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -75,7 +68,7 @@ resource "azurerm_automation_python3_package" "test" {
   name                    = "acctest-%[2]d"
   resource_group_name     = azurerm_resource_group.test.name
   automation_account_name = azurerm_automation_account.test.name
-  content_uri             = "https://pypi.org/packages/source/r/requests/requests-2.31.0.tar.gz"
+  content_uri             = "https://files.pythonhosted.org/packages/py3/r/requests/requests-2.31.0-py3-none-any.whl"
   content_version         = "2.31.0"
   tags = {
     key = "foo"
@@ -84,7 +77,7 @@ resource "azurerm_automation_python3_package" "test" {
 `, a.template(data), data.RandomInteger)
 }
 
-func (a Python3PackageResource) update(data acceptance.TestData) string {
+func (a Python3PackageResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
 %s
@@ -93,7 +86,7 @@ resource "azurerm_automation_python3_package" "test" {
   name                    = "acctest-%[2]d"
   resource_group_name     = azurerm_resource_group.test.name
   automation_account_name = azurerm_automation_account.test.name
-  content_uri             = "https://pypi.org/packages/source/r/requests/requests-2.31.0.tar.gz"
+  content_uri             = "https://files.pythonhosted.org/packages/py3/r/requests/requests-2.31.0-py3-none-any.whl"
   content_version         = "2.31.0"
   hash_algorithm          = "sha256"
   hash_value              = "942c5a758f98d790eaed1a29cb6eefc7ffb0d1cf7af05c3d2791656dbd6ad1e1"

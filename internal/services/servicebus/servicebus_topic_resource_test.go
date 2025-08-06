@@ -6,9 +6,10 @@ package servicebus_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/topics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -125,8 +126,8 @@ func TestAccServiceBusTopic_update(t *testing.T) {
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("enable_batched_operations").HasValue("true"),
-				check.That(data.ResourceName).Key("enable_express").HasValue("true"),
+				check.That(data.ResourceName).Key("batched_operations_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("express_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
@@ -139,16 +140,9 @@ func TestAccServiceBusTopic_enablePartitioningStandard(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
 			Config: r.enablePartitioningStandard(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("enable_partitioning").HasValue("true"),
+				check.That(data.ResourceName).Key("partitioning_enabled").HasValue("true"),
 				// Ensure size is read back in its original value and not the x16 value returned by Azure
 				check.That(data.ResourceName).Key("max_size_in_megabytes").HasValue("5120"),
 			),
@@ -187,7 +181,7 @@ func TestAccServiceBusTopic_enablePartitioningPremium(t *testing.T) {
 		{
 			Config: r.enablePartitioningPremium(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("enable_partitioning").HasValue("false"),
+				check.That(data.ResourceName).Key("partitioning_enabled").HasValue("false"),
 				check.That(data.ResourceName).Key("max_size_in_megabytes").HasValue("81920"),
 			),
 		},
@@ -200,13 +194,6 @@ func TestAccServiceBusTopic_enableDuplicateDetection(t *testing.T) {
 	r := ServiceBusTopicResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 		{
 			Config: r.enableDuplicateDetection(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -230,6 +217,37 @@ func TestAccServiceBusTopic_isoTimeSpanAttributes(t *testing.T) {
 				check.That(data.ResourceName).Key("default_message_ttl").HasValue("PT30M"),
 				check.That(data.ResourceName).Key("requires_duplicate_detection").HasValue("true"),
 				check.That(data.ResourceName).Key("duplicate_detection_history_time_window").HasValue("PT15M"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccServiceBusTopic_nonPartitionedPremiumNamespaceError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
+	r := ServiceBusTopicResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.nonPartitionedPremiumNamespaceError(data),
+			ExpectError: regexp.MustCompile("topic partitioning is only available if the parent namespace is partitioned"),
+		},
+	})
+}
+
+func TestAccServiceBusTopic_partitionedPremiumNamespace(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_servicebus_topic", "test")
+	r := ServiceBusTopicResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.PremiumNamespacePartitioned(data, false),
+			ExpectError: regexp.MustCompile("topic must have `partitioning_enabled` set to `true` when the parent namespace is partitioned"),
+		},
+		{
+			Config: r.PremiumNamespacePartitioned(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -357,10 +375,10 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                      = "acctestservicebustopic-%d"
-  namespace_id              = azurerm_servicebus_namespace.test.id
-  enable_batched_operations = true
-  enable_express            = true
+  name                       = "acctestservicebustopic-%d"
+  namespace_id               = azurerm_servicebus_namespace.test.id
+  batched_operations_enabled = true
+  express_enabled            = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -386,9 +404,9 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_topic" "test" {
-  name                = "acctestservicebustopic-%d"
-  namespace_id        = azurerm_servicebus_namespace.test.id
-  enable_partitioning = false
+  name                 = "acctestservicebustopic-%d"
+  namespace_id         = azurerm_servicebus_namespace.test.id
+  partitioning_enabled = false
 
   max_message_size_in_kilobytes = 102400
 }
@@ -416,7 +434,7 @@ resource "azurerm_servicebus_namespace" "test" {
 resource "azurerm_servicebus_topic" "test" {
   name                  = "acctestservicebustopic-%d"
   namespace_id          = azurerm_servicebus_namespace.test.id
-  enable_partitioning   = true
+  partitioning_enabled  = true
   max_size_in_megabytes = 5120
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -445,7 +463,7 @@ resource "azurerm_servicebus_namespace" "test" {
 resource "azurerm_servicebus_topic" "test" {
   name                  = "acctestservicebustopic-%d"
   namespace_id          = azurerm_servicebus_namespace.test.id
-  enable_partitioning   = false
+  partitioning_enabled  = false
   max_size_in_megabytes = 81920
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -502,6 +520,64 @@ resource "azurerm_servicebus_topic" "test" {
   default_message_ttl                     = "PT30M"
   requires_duplicate_detection            = true
   duplicate_detection_history_time_window = "PT15M"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (ServiceBusTopicResource) PremiumNamespacePartitioned(data acceptance.TestData, enabled bool) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                         = "acctestservicebusnamespace-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  sku                          = "Premium"
+  premium_messaging_partitions = 2
+  capacity                     = 2
+}
+
+resource "azurerm_servicebus_topic" "test" {
+  name         = "acctestservicebustopic-%d"
+  namespace_id = azurerm_servicebus_namespace.test.id
+
+  partitioning_enabled = %t
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, enabled)
+}
+
+func (ServiceBusTopicResource) nonPartitionedPremiumNamespaceError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_servicebus_namespace" "test" {
+  name                         = "acctestservicebusnamespace-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  sku                          = "Premium"
+  premium_messaging_partitions = 1
+  capacity                     = 1
+}
+
+resource "azurerm_servicebus_topic" "test" {
+  name         = "acctestservicebustopic-%d"
+  namespace_id = azurerm_servicebus_namespace.test.id
+
+  partitioning_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2023-05-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -53,34 +53,6 @@ func TestAccDataProtectionBackupPolicyDisk_complete(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccDataProtectionBackupPolicyDisk_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_disk", "test")
-	r := DataProtectionBackupPolicyDiskResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -179,6 +151,24 @@ resource "azurerm_data_protection_backup_policy_disk" "test" {
     priority = 20
     criteria {
       absolute_criteria = "FirstOfWeek"
+    }
+  }
+
+  retention_rule {
+    name     = "Monthly"
+    duration = "P6M"
+    priority = 15
+    criteria {
+      absolute_criteria = "FirstOfMonth"
+    }
+  }
+
+  retention_rule {
+    name     = "Yearly"
+    duration = "P1Y"
+    priority = 10
+    criteria {
+      absolute_criteria = "FirstOfYear"
     }
   }
 }

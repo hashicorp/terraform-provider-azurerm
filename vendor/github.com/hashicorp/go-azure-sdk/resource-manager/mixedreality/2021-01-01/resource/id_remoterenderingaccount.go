@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&RemoteRenderingAccountId{})
+}
 
 var _ resourceids.ResourceId = &RemoteRenderingAccountId{}
 
@@ -37,7 +42,7 @@ func ParseRemoteRenderingAccountID(input string) (*RemoteRenderingAccountId, err
 	}
 
 	id := RemoteRenderingAccountId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +59,7 @@ func ParseRemoteRenderingAccountIDInsensitively(input string) (*RemoteRenderingA
 	}
 
 	id := RemoteRenderingAccountId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -110,7 +115,7 @@ func (id RemoteRenderingAccountId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMixedReality", "Microsoft.MixedReality", "Microsoft.MixedReality"),
 		resourceids.StaticSegment("staticRemoteRenderingAccounts", "remoteRenderingAccounts", "remoteRenderingAccounts"),
-		resourceids.UserSpecifiedSegment("remoteRenderingAccountName", "remoteRenderingAccountValue"),
+		resourceids.UserSpecifiedSegment("remoteRenderingAccountName", "remoteRenderingAccountName"),
 	}
 }
 

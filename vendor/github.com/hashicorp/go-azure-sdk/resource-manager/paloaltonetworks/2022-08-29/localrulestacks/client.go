@@ -15,7 +15,7 @@ type LocalRulestacksClient struct {
 }
 
 func NewLocalRulestacksClientWithBaseURI(sdkApi sdkEnv.Api) (*LocalRulestacksClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "localrulestacks", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "localrulestacks", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating LocalRulestacksClient: %+v", err)
 	}

@@ -27,7 +27,6 @@ func TestNotificationRecipientUserID(t *testing.T) {
 		Error    bool
 		Expected *NotificationRecipientUserId
 	}{
-
 		{
 			// empty
 			Input: "",

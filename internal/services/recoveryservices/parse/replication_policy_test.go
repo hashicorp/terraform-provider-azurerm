@@ -27,7 +27,6 @@ func TestReplicationPolicyID(t *testing.T) {
 		Error    bool
 		Expected *ReplicationPolicyId
 	}{
-
 		{
 			// empty
 			Input: "",

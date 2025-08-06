@@ -10,34 +10,36 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name route_server -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceRouteServer() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceRouteServerCreateUpdate,
-		Read:   resourceRouteServerRead,
-		Update: resourceRouteServerCreateUpdate,
-		Delete: resourceRouteServerDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.VirtualHubID(id)
-			return err
-		}),
+		Create:   resourceRouteServerCreate,
+		Read:     resourceRouteServerRead,
+		Update:   resourceRouteServerUpdate,
+		Delete:   resourceRouteServerDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&virtualwans.VirtualHubId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&virtualwans.VirtualHubId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -69,7 +71,7 @@ func resourceRouteServer() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.PublicIpAddressID,
+				ValidateFunc: commonids.ValidatePublicIPAddressID,
 			},
 
 			"subnet_id": {
@@ -83,6 +85,17 @@ func resourceRouteServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Default:  false,
+			},
+
+			"hub_routing_preference": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Default:  string(virtualwans.HubRoutingPreferenceExpressRoute),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(virtualwans.HubRoutingPreferenceASPath),
+					string(virtualwans.HubRoutingPreferenceExpressRoute),
+					string(virtualwans.HubRoutingPreferenceVpnGateway),
+				}, false),
 			},
 
 			"virtual_router_ips": {
@@ -108,205 +121,252 @@ func resourceRouteServer() *pluginsdk.Resource {
 	}
 }
 
-func resourceRouteServerCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	serverClient := meta.(*clients.Client).Network.VirtualHubClient
-	ipClient := meta.(*clients.Client).Network.VirtualHubIPClient
+func resourceRouteServerCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.VirtualWANs
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewVirtualHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := virtualwans.NewVirtualHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	locks.ByName(id.Name, "azurerm_route_server")
-	defer locks.UnlockByName(id.Name, "azurerm_route_server")
+	locks.ByName(id.VirtualHubName, "azurerm_route_server")
+	defer locks.UnlockByName(id.VirtualHubName, "azurerm_route_server")
 
-	if d.IsNewResource() {
-		existing, err := serverClient.Get(ctx, id.ResourceGroup, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for present of existing Route Server %q (Resource Group Name %q): %+v", id.Name, id.ResourceGroup, err)
-			}
-		}
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_route_server", id.ID())
-		}
-	}
-
-	location := location.Normalize(d.Get("location").(string))
-	t := tags.Expand(d.Get("tags").(map[string]interface{}))
-
-	parameters := network.VirtualHub{
-		Location: utils.String(location),
-		VirtualHubProperties: &network.VirtualHubProperties{
-			Sku:                        utils.String(d.Get("sku").(string)),
-			AllowBranchToBranchTraffic: utils.Bool(d.Get("branch_to_branch_traffic_enabled").(bool)),
-		},
-		Tags: t,
-	}
-
-	serverFuture, err := serverClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, parameters)
+	existing, err := client.VirtualHubsGet(ctx, id)
 	if err != nil {
-		return fmt.Errorf("creating Route Server %q (Resource Group Name %q): %+v", id.Name, id.ResourceGroup, err)
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+		}
+	}
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_route_server", id.ID())
 	}
 
-	if err := serverFuture.WaitForCompletionRef(ctx, serverClient.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
+	parameters := virtualwans.VirtualHub{
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
+		Properties: &virtualwans.VirtualHubProperties{
+			Sku:                        pointer.To(d.Get("sku").(string)),
+			AllowBranchToBranchTraffic: pointer.To(d.Get("branch_to_branch_traffic_enabled").(bool)),
+			HubRoutingPreference:       pointer.To(virtualwans.HubRoutingPreference(d.Get("hub_routing_preference").(string))),
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
+
+	if err := client.VirtualHubsCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	timeout, _ := ctx.Deadline()
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending:                   []string{"Provisioning", "Updating"},
 		Target:                    []string{"Succeeded", "Provisioned"},
-		Refresh:                   routeServerCreateRefreshFunc(ctx, serverClient, id),
+		Refresh:                   routeServerCreateRefreshFunc(ctx, client, id),
 		PollInterval:              15 * time.Second,
 		ContinuousTargetOccurence: 5,
 		Timeout:                   time.Until(timeout),
 	}
 	_, err = stateConf.WaitForStateContext(ctx)
 	if err != nil {
-		return fmt.Errorf("waiting for creation/update of Route Server %q (Resource Group Name %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	ipConfigName := "ipConfig1"
-	ipConfigs := network.HubIPConfiguration{
-		Name: utils.String(ipConfigName),
-		HubIPConfigurationPropertiesFormat: &network.HubIPConfigurationPropertiesFormat{
-			PublicIPAddress: &network.PublicIPAddress{
-				ID: utils.String(d.Get("public_ip_address_id").(string)),
+	ipConfigs := virtualwans.HubIPConfiguration{
+		Name: pointer.To(ipConfigName),
+		Properties: &virtualwans.HubIPConfigurationPropertiesFormat{
+			PublicIPAddress: &virtualwans.PublicIPAddress{
+				Id: pointer.To(d.Get("public_ip_address_id").(string)),
 			},
-			Subnet: &network.Subnet{
-				ID: utils.String(d.Get("subnet_id").(string)),
+			Subnet: &virtualwans.Subnet{
+				Id: pointer.To(d.Get("subnet_id").(string)),
 			},
 		},
 	}
 
-	future, err := ipClient.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, ipConfigName, ipConfigs)
-	if err != nil {
-		return fmt.Errorf("creating/updating IP Configuration %q of Route Server %q (Resource Group Name %q): %+v", ipConfigName, id.Name, id.ResourceGroup, err)
+	ipConfigId := commonids.NewVirtualHubIPConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.VirtualHubName, ipConfigName)
+
+	if err := client.VirtualHubIPConfigurationCreateOrUpdateThenPoll(ctx, ipConfigId, ipConfigs); err != nil {
+		return fmt.Errorf("creating %s: %+v", ipConfigId, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, ipClient.Client); err != nil {
-		return fmt.Errorf("waiting on creation/update for IP Configuration %q of Route Server %q (Resource Group Name %q): %+v", ipConfigName, id.Name, id.ResourceGroup, err)
+	d.SetId(id.ID())
+
+	return resourceRouteServerRead(d, meta)
+}
+
+func resourceRouteServerUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.VirtualWANs
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := virtualwans.ParseVirtualHubID(d.Id())
+	if err != nil {
+		return err
 	}
+
+	locks.ByName(id.VirtualHubName, "azurerm_route_server")
+	defer locks.UnlockByName(id.VirtualHubName, "azurerm_route_server")
+
+	existing, err := client.VirtualHubsGet(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
+	}
+
+	payload := existing.Model
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+	}
+
+	if d.HasChange("branch_to_branch_traffic_enabled") {
+		payload.Properties.AllowBranchToBranchTraffic = pointer.To(d.Get("branch_to_branch_traffic_enabled").(bool))
+	}
+
+	if d.HasChange("hub_routing_preference") {
+		payload.Properties.HubRoutingPreference = pointer.To(virtualwans.HubRoutingPreference(d.Get("hub_routing_preference").(string)))
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.VirtualHubsCreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	timeout, _ := ctx.Deadline()
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:                   []string{"Provisioning", "Updating"},
+		Target:                    []string{"Succeeded", "Provisioned"},
+		Refresh:                   routeServerCreateRefreshFunc(ctx, client, *id),
+		PollInterval:              15 * time.Second,
+		ContinuousTargetOccurence: 5,
+		Timeout:                   time.Until(timeout),
+	}
+	_, err = stateConf.WaitForStateContext(ctx)
+	if err != nil {
+		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
+	}
+
 	d.SetId(id.ID())
 
 	return resourceRouteServerRead(d, meta)
 }
 
 func resourceRouteServerRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VirtualHubClient
-	ipClient := meta.(*clients.Client).Network.VirtualHubIPClient
+	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualHubID(d.Id())
+	id, err := virtualwans.ParseVirtualHubID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	routeServer, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	routeServer, err := client.VirtualHubsGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(routeServer.Response) {
-			log.Printf("[INFO] Route Server %s does not exists - removing from state", d.Id())
+		if response.WasNotFound(routeServer.HttpResponse) {
+			log.Printf("[INFO] %s does not exists - removing from state", d.Id())
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading Route Server %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	if location := routeServer.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
-	}
-	if props := routeServer.VirtualHubProperties; props != nil {
-		d.Set("sku", props.Sku)
-		var virtualRouterIps *[]string
-		if props.VirtualRouterIps != nil {
-			virtualRouterIps = props.VirtualRouterIps
+	d.Set("name", id.VirtualHubName)
+	d.Set("resource_group_name", id.ResourceGroupName)
+
+	if model := routeServer.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+
+		if props := model.Properties; props != nil {
+			d.Set("sku", props.Sku)
+			var virtualRouterIps *[]string
+			if props.VirtualRouterIPs != nil {
+				virtualRouterIps = props.VirtualRouterIPs
+			}
+			d.Set("virtual_router_ips", virtualRouterIps)
+			if props.AllowBranchToBranchTraffic != nil {
+				d.Set("branch_to_branch_traffic_enabled", props.AllowBranchToBranchTraffic)
+			}
+			d.Set("hub_routing_preference", pointer.From(props.HubRoutingPreference))
+			if props.VirtualRouterAsn != nil {
+				d.Set("virtual_router_asn", props.VirtualRouterAsn)
+			}
+			d.Set("routing_state", string(pointer.From(props.RoutingState)))
 		}
-		d.Set("virtual_router_ips", virtualRouterIps)
-		if props.AllowBranchToBranchTraffic != nil {
-			d.Set("branch_to_branch_traffic_enabled", props.AllowBranchToBranchTraffic)
+
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("flattening `tags`: %+v", err)
 		}
-		if props.VirtualRouterAsn != nil {
-			d.Set("virtual_router_asn", props.VirtualRouterAsn)
-		}
-		d.Set("routing_state", string(props.RoutingState))
 	}
 
-	ipConfig, err := ipClient.List(ctx, id.ResourceGroup, id.Name)
+	ipConfig, err := client.VirtualHubIPConfigurationList(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("retrieving IP Config for Router Server %q (Resource Group Name %q): %+v", id.Name, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving IP Config for %s: %+v", id, err)
 	}
 
-	for _, setting := range ipConfig.Values() {
-		if ipProps := setting.HubIPConfigurationPropertiesFormat; ipProps != nil {
-			if ipProps.PublicIPAddress != nil {
-				d.Set("public_ip_address_id", ipProps.PublicIPAddress.ID)
-			}
-			if ipProps.Subnet != nil {
-				d.Set("subnet_id", ipProps.Subnet.ID)
+	if model := ipConfig.Model; model != nil {
+		for _, config := range *model {
+			if props := config.Properties; props != nil {
+				if props.PublicIPAddress != nil {
+					d.Set("public_ip_address_id", pointer.From(props.PublicIPAddress.Id))
+				}
+				if props.Subnet != nil {
+					d.Set("subnet_id", pointer.From(props.Subnet.Id))
+				}
 			}
 		}
 	}
-	return tags.FlattenAndSet(d, routeServer.Tags)
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceRouteServerDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VirtualHubClient
-	ipClient := meta.(*clients.Client).Network.VirtualHubIPClient
+	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	routeServerId, err := parse.VirtualHubID(d.Id())
+	id, err := virtualwans.ParseVirtualHubID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	ipConfig, err := ipClient.List(ctx, routeServerId.ResourceGroup, routeServerId.Name)
+	ipConfig, err := client.VirtualHubIPConfigurationList(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("retrieving IP Config for Router Server %q (Resource Group Name %q): %+v", routeServerId.Name, routeServerId.ResourceGroup, err)
+		return fmt.Errorf("retrieving IP Config for %s: %+v", id, err)
 	}
-	var ipName string
-	for _, setting := range ipConfig.Values() {
-		if setting.Name != nil {
-			ipName = *setting.Name
-		}
-	}
-	ipConfigId := parse.NewVirtualHubIpConfigurationID(routeServerId.SubscriptionId, routeServerId.ResourceGroup, routeServerId.Name, ipName)
 
-	if ipConfig.Values() != nil {
-		if err := deleteRouteServerIpConfiguration(ctx, ipClient, ipConfigId); err != nil {
+	if ipConfig.Model != nil {
+		var ipName string
+		for _, config := range *ipConfig.Model {
+			if config.Name != nil {
+				ipName = *config.Name
+			}
+		}
+
+		ipConfigId := commonids.NewVirtualHubIPConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.VirtualHubName, ipName)
+
+		if err := deleteRouteServerIpConfiguration(ctx, client, ipConfigId); err != nil {
 			return err
 		}
 	}
 
-	future, err := client.Delete(ctx, routeServerId.ResourceGroup, routeServerId.Name)
-	if err != nil {
-		return fmt.Errorf("deleting Route Server %q (Resource Group Name %q): %+v", routeServerId.Name, routeServerId.ResourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for Route Server %q (Resource Group Name %q): %+v", routeServerId.Name, routeServerId.ResourceGroup, err)
-		}
+	if err := client.VirtualHubsDeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func deleteRouteServerIpConfiguration(ctx context.Context, client *network.VirtualHubIPConfigurationClient, id parse.VirtualHubIpConfigurationId) error {
-	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualHubName, id.IpConfigurationName)
-	if err != nil {
-		return fmt.Errorf("deleting Router Server IP Config %s for Route Server %q (Resource Group Name %q): %+v", id.IpConfigurationName, id.VirtualHubName, id.ResourceGroup, err)
+func deleteRouteServerIpConfiguration(ctx context.Context, client *virtualwans.VirtualWANsClient, id commonids.VirtualHubIPConfigurationId) error {
+	if err := client.VirtualHubIPConfigurationDeleteThenPoll(ctx, id); err != nil {
+		return fmt.Errorf("deleting IP Config %s: %+v", id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		if !response.WasNotFound(future.Response()) {
-			return fmt.Errorf("waiting for deletion of Route Server IP Config %s: %+v", id.IpConfigurationName, err)
-		}
-	}
 	timeout, _ := ctx.Deadline()
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{"200"},
@@ -316,37 +376,37 @@ func deleteRouteServerIpConfiguration(ctx context.Context, client *network.Virtu
 	}
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for Router Server IP Config %s for Route Server %q (Resource Group Name %q): %+v", id.IpConfigurationName, id.VirtualHubName, id.ResourceGroup, err)
+		return fmt.Errorf("waiting for %s: %+v", id, err)
 	}
 	return nil
 }
 
-func routeServerCreateRefreshFunc(ctx context.Context, client *network.VirtualHubsClient, id parse.VirtualHubId) pluginsdk.StateRefreshFunc {
+func routeServerCreateRefreshFunc(ctx context.Context, client *virtualwans.VirtualWANsClient, id virtualwans.VirtualHubId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id.ResourceGroup, id.Name)
+		resp, err := client.VirtualHubsGet(ctx, id)
 		if err != nil {
-			if utils.ResponseWasNotFound(res.Response) {
-				return nil, "", fmt.Errorf("Route Server %q (Resource Group Name %q) does not exists", id.Name, id.ResourceGroup)
+			if response.WasNotFound(resp.HttpResponse) {
+				return nil, "", fmt.Errorf("%s does not exists", id)
 			}
-			return nil, "", fmt.Errorf("retrieving Route Server %q (Resource Group Name %q) error", id.Name, id.ResourceGroup)
+			return nil, "", fmt.Errorf("retrieving %s: %+v", id, err)
 		}
 
-		if res.VirtualHubProperties != nil {
-			return res, string(res.VirtualHubProperties.ProvisioningState), nil
+		if resp.Model != nil && resp.Model.Properties != nil {
+			return resp, string(pointer.From(resp.Model.Properties.ProvisioningState)), nil
 		}
-		return nil, "", fmt.Errorf("unable to read the provisioning state of this Route Server %q (Resource Group Name %q)", id.Name, id.ResourceGroup)
+		return nil, "", fmt.Errorf("unable to read the provisioning state of this %s", id)
 	}
 }
 
-func ipConfigStateRefreshFunc(ctx context.Context, client *network.VirtualHubIPConfigurationClient, id parse.VirtualHubIpConfigurationId) pluginsdk.StateRefreshFunc {
+func ipConfigStateRefreshFunc(ctx context.Context, client *virtualwans.VirtualWANsClient, id commonids.VirtualHubIPConfigurationId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
-		res, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.IpConfigurationName)
+		resp, err := client.VirtualHubIPConfigurationGet(ctx, id)
 		if err != nil {
-			if utils.ResponseWasNotFound(res.Response) {
-				return res, strconv.Itoa(res.StatusCode), nil
+			if response.WasNotFound(resp.HttpResponse) {
+				return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil
 			}
-			return nil, "", fmt.Errorf("polling for the status of route server ip config %s: %+v", id, err)
+			return nil, "", fmt.Errorf("polling for the status of %s: %+v", id, err)
 		}
-		return res, strconv.Itoa(res.StatusCode), nil
+		return resp, strconv.Itoa(resp.HttpResponse.StatusCode), nil
 	}
 }

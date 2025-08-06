@@ -49,7 +49,6 @@ func (c RulesClient) TagRulesCreateOrUpdate(ctx context.Context, id TagRuleId, i
 
 	var model MonitoringTagRules
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

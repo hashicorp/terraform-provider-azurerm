@@ -8,32 +8,35 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/customipprefixes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name public_ip_prefix -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourcePublicIpPrefix() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourcePublicIpPrefixCreateUpdate,
-		Read:   resourcePublicIpPrefixRead,
-		Update: resourcePublicIpPrefixCreateUpdate,
-		Delete: resourcePublicIpPrefixDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.PublicIpPrefixID(id)
-			return err
-		}),
+		Create:   resourcePublicIpPrefixCreate,
+		Read:     resourcePublicIpPrefixRead,
+		Update:   resourcePublicIpPrefixUpdate,
+		Delete:   resourcePublicIpPrefixDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&publicipprefixes.PublicIPPrefixId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&publicipprefixes.PublicIPPrefixId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -54,14 +57,29 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
+			"custom_ip_prefix_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: customipprefixes.ValidateCustomIPPrefixID,
+			},
+
 			"sku": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				ForceNew: true,
-				Default:  string(network.PublicIPPrefixSkuNameStandard),
+				Default:  string(publicipprefixes.PublicIPPrefixSkuNameStandard),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.PublicIPPrefixSkuNameStandard),
+					string(publicipprefixes.PublicIPPrefixSkuNameStandard),
 				}, false),
+			},
+
+			"sku_tier": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(publicipprefixes.PublicIPPrefixSkuTierRegional),
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(publicipprefixes.PossibleValuesForPublicIPPrefixSkuTier(), false),
 			},
 
 			"prefix_length": {
@@ -75,11 +93,11 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 			"ip_version": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				Default:  string(network.IPVersionIPv4),
+				Default:  string(publicipprefixes.IPVersionIPvFour),
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.IPVersionIPv4),
-					string(network.IPVersionIPv6),
+					string(publicipprefixes.IPVersionIPvFour),
+					string(publicipprefixes.IPVersionIPvSix),
 				}, false),
 			},
 
@@ -90,49 +108,48 @@ func resourcePublicIpPrefix() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
-func resourcePublicIpPrefixCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.PublicIPPrefixesClient
+func resourcePublicIpPrefixCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.PublicIPPrefixes
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for AzureRM Public IP Prefix creation.")
 
-	id := parse.NewPublicIpPrefixID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
+	id := publicipprefixes.NewPublicIPPrefixID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_public_ip_prefix", id.ID())
+	existing, err := client.Get(ctx, id, publicipprefixes.DefaultGetOperationOptions())
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
 	}
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_public_ip_prefix", id.ID())
+	}
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
-	sku := d.Get("sku").(string)
-	prefixLength := d.Get("prefix_length").(int)
-	ipVersion := d.Get("ip_version").(string)
-	t := d.Get("tags").(map[string]interface{})
+	publicIpPrefix := publicipprefixes.PublicIPPrefix{
+		Location: pointer.To(location.Normalize(d.Get("location").(string))),
+		Sku: &publicipprefixes.PublicIPPrefixSku{
+			Name: pointer.To(publicipprefixes.PublicIPPrefixSkuName(d.Get("sku").(string))),
+			Tier: pointer.To(publicipprefixes.PublicIPPrefixSkuTier(d.Get("sku_tier").(string))),
+		},
+		Properties: &publicipprefixes.PublicIPPrefixPropertiesFormat{
+			PrefixLength:           pointer.To(int64(d.Get("prefix_length").(int))),
+			PublicIPAddressVersion: pointer.To(publicipprefixes.IPVersion(d.Get("ip_version").(string))),
+		},
+		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+	}
 
-	publicIpPrefix := network.PublicIPPrefix{
-		Location: &location,
-		Sku: &network.PublicIPPrefixSku{
-			Name: network.PublicIPPrefixSkuName(sku),
-		},
-		PublicIPPrefixPropertiesFormat: &network.PublicIPPrefixPropertiesFormat{
-			PrefixLength:           utils.Int32(int32(prefixLength)),
-			PublicIPAddressVersion: network.IPVersion(ipVersion),
-		},
-		Tags: tags.Expand(t),
+	if customIpPrefixId := d.Get("custom_ip_prefix_id").(string); customIpPrefixId != "" {
+		publicIpPrefix.Properties.CustomIPPrefix = &publicipprefixes.SubResource{
+			Id: pointer.To(customIpPrefixId),
+		}
 	}
 
 	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
@@ -140,13 +157,8 @@ func resourcePublicIpPrefixCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		publicIpPrefix.Zones = &zones
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, publicIpPrefix)
-	if err != nil {
-		return fmt.Errorf("creating/Updating %s: %+v", id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for completion of %s: %+v", id, err)
+	if err := client.CreateOrUpdateThenPoll(ctx, id, publicIpPrefix); err != nil {
+		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -154,66 +166,96 @@ func resourcePublicIpPrefixCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	return resourcePublicIpPrefixRead(d, meta)
 }
 
+func resourcePublicIpPrefixUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.PublicIPPrefixes
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	if d.HasChange("tags") {
+		id, err := publicipprefixes.ParsePublicIPPrefixID(d.Id())
+		if err != nil {
+			return err
+		}
+
+		payload := publicipprefixes.TagsObject{
+			Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		}
+
+		if _, err = client.UpdateTags(ctx, *id, payload); err != nil {
+			return fmt.Errorf("updating %s: %+v", id, err)
+		}
+	}
+
+	return resourcePublicIpPrefixRead(d, meta)
+}
+
 func resourcePublicIpPrefixRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.PublicIPPrefixesClient
+	client := meta.(*clients.Client).Network.PublicIPPrefixes
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PublicIpPrefixID(d.Id())
+	id, err := publicipprefixes.ParsePublicIPPrefixID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name, "")
+	resp, err := client.Get(ctx, *id, publicipprefixes.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("making Read request on %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("zones", zones.FlattenUntyped(resp.Zones))
+	d.Set("name", id.PublicIPPrefixName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	skuName := ""
-	if sku := resp.Sku; sku != nil {
-		skuName = string(sku.Name)
-	}
-	d.Set("sku", skuName)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+		d.Set("zones", zones.FlattenUntyped(model.Zones))
+		if sku := model.Sku; sku != nil {
+			d.Set("sku", string(pointer.From(sku.Name)))
+			d.Set("sku_tier", string(pointer.From(sku.Tier)))
+		}
+		if props := model.Properties; props != nil {
+			d.Set("prefix_length", props.PrefixLength)
+			d.Set("ip_prefix", props.IPPrefix)
+			if version := props.PublicIPAddressVersion; version != nil {
+				d.Set("ip_version", string(*version))
+			}
 
-	if props := resp.PublicIPPrefixPropertiesFormat; props != nil {
-		d.Set("prefix_length", props.PrefixLength)
-		d.Set("ip_prefix", props.IPPrefix)
-
-		if version := props.PublicIPAddressVersion; version != "" {
-			d.Set("ip_version", string(props.PublicIPAddressVersion))
+			customIpPrefixId := ""
+			if props.CustomIPPrefix != nil {
+				id, err := customipprefixes.ParseCustomIPPrefixID(pointer.From(props.CustomIPPrefix.Id))
+				if err != nil {
+					return err
+				}
+				customIpPrefixId = id.ID()
+			}
+			d.Set("custom_ip_prefix_id", customIpPrefixId)
+		}
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourcePublicIpPrefixDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.PublicIPPrefixesClient
+	client := meta.(*clients.Client).Network.PublicIPPrefixes
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.PublicIpPrefixID(d.Id())
+	id, err := publicipprefixes.ParsePublicIPPrefixID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.Name)
-	if err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of %s: %+v", *id, err)
 	}
 
 	return nil

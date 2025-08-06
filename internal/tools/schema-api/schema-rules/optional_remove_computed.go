@@ -12,8 +12,7 @@ import (
 
 var _ BreakingChangeRule = optionalRemoveComputed{}
 
-type optionalRemoveComputed struct {
-}
+type optionalRemoveComputed struct{}
 
 // Check - Checks that Computed is not removed from Optional properties as user configs may not supply the value, but the state will contain one, causing a diff./
 func (optionalRemoveComputed) Check(base providerjson.SchemaJSON, current providerjson.SchemaJSON, propertyName string) *string {

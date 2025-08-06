@@ -18,7 +18,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	securityinsight "github.com/tombuildsstuff/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
+	securityinsight "github.com/jackofallops/kermit/sdk/securityinsights/2022-10-01-preview/securityinsights"
 )
 
 type AlertRuleAnomalyBuiltInModel struct {
@@ -28,7 +28,7 @@ type AlertRuleAnomalyBuiltInModel struct {
 	Enabled                      bool                                    `tfschema:"enabled"`
 	Mode                         string                                  `tfschema:"mode"`
 	AnomalyVersion               string                                  `tfschema:"anomaly_version"`
-	AnomalySettingsVersion       int32                                   `tfschema:"anomaly_settings_version"`
+	AnomalySettingsVersion       int64                                   `tfschema:"anomaly_settings_version"`
 	Description                  string                                  `tfschema:"description"`
 	Frequency                    string                                  `tfschema:"frequency"`
 	RequiredDataConnectors       []AnomalyRuleRequiredDataConnectorModel `tfschema:"required_data_connector"`
@@ -199,7 +199,6 @@ func (r AlertRuleAnomalyBuiltInResource) Create() sdk.ResourceFunc {
 
 				return false
 			})
-
 			if err != nil {
 				return fmt.Errorf("reading: %+v", err)
 			}
@@ -288,7 +287,7 @@ func (r AlertRuleAnomalyBuiltInResource) Read() sdk.ResourceFunc {
 			}
 
 			if resp.AnomalySettingsVersion != nil {
-				state.AnomalySettingsVersion = *resp.AnomalySettingsVersion
+				state.AnomalySettingsVersion = int64(*resp.AnomalySettingsVersion)
 			}
 
 			if resp.Description != nil {
@@ -354,7 +353,6 @@ func (r AlertRuleAnomalyBuiltInResource) Update() sdk.ResourceFunc {
 				}
 				return false
 			})
-
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
@@ -419,7 +417,6 @@ func (r AlertRuleAnomalyBuiltInResource) Delete() sdk.ResourceFunc {
 				}
 				return false
 			})
-
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}

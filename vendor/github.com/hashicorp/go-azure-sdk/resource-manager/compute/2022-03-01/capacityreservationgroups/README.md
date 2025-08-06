@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups` Documentation
 
-The `capacityreservationgroups` SDK allows for interaction with the Azure Resource Manager Service `compute` (API Version `2022-03-01`).
+The `capacityreservationgroups` SDK allows for interaction with Azure Resource Manager `compute` (API Version `2022-03-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := capacityreservationgroups.NewCapacityReservationGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "capacityReservationGroupValue")
+id := capacityreservationgroups.NewCapacityReservationGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "capacityReservationGroupName")
 
 payload := capacityreservationgroups.CapacityReservationGroup{
 	// ...
@@ -46,7 +46,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := capacityreservationgroups.NewCapacityReservationGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "capacityReservationGroupValue")
+id := capacityreservationgroups.NewCapacityReservationGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "capacityReservationGroupName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -62,7 +62,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := capacityreservationgroups.NewCapacityReservationGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "capacityReservationGroupValue")
+id := capacityreservationgroups.NewCapacityReservationGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "capacityReservationGroupName")
 
 read, err := client.Get(ctx, id, capacityreservationgroups.DefaultGetOperationOptions())
 if err != nil {
@@ -112,7 +112,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := capacityreservationgroups.NewCapacityReservationGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "capacityReservationGroupValue")
+id := capacityreservationgroups.NewCapacityReservationGroupID("12345678-1234-9876-4563-123456789012", "example-resource-group", "capacityReservationGroupName")
 
 payload := capacityreservationgroups.CapacityReservationGroupUpdate{
 	// ...

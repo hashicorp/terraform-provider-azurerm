@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -54,7 +55,12 @@ func dataSourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) er
 	// @tombuildsstuff: intentionally leaving this for now, since this'll need
 	// details in the upgrade notes given how the Resource Group ID is cased incorrectly
 	// but needs to be fixed (resourcegroups -> resourceGroups)
-	d.SetId(*resp.ID)
+	id, err := parse.ResourceGroupIDInsensitively(*resp.ID)
+	if err != nil {
+		return err
+	}
+
+	d.SetId(id.ID())
 
 	d.Set("name", resp.Name)
 	d.Set("location", location.NormalizeNilable(resp.Location))

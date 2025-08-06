@@ -10,7 +10,7 @@ description: |-
 
 Manages a Network Connection Monitor.
 
-~> **NOTE:** Any Network Connection Monitor resource created with API versions 2019-06-01 or earlier (v1) are now incompatible with Terraform, which now only supports v2.
+~> **Note:** Any Network Connection Monitor resource created with API versions 2019-06-01 or earlier (v1) are now incompatible with Terraform, which now only supports v2.
 
 ## Example Usage
 
@@ -191,7 +191,7 @@ A `endpoint` block supports the following:
 
 * `filter` - (Optional) A `filter` block as defined below.
 
-* `target_resource_type` - (Optional) The endpoint type of the Network Connection Monitor. Possible values are `AzureSubnet`, `AzureVM`, `AzureVNet`, `ExternalAddress`, `MMAWorkspaceMachine` and `MMAWorkspaceNetwork`.
+* `target_resource_type` - (Optional) The endpoint type of the Network Connection Monitor. Possible values are `AzureArcVM`, `AzureSubnet`, `AzureVM`, `AzureVNet`, `ExternalAddress`, `MMAWorkspaceMachine` and `MMAWorkspaceNetwork`.
 
 ---
 
@@ -313,3 +313,9 @@ Network Connection Monitors can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_network_connection_monitor.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/networkWatchers/watcher1/connectionMonitors/connectionMonitor1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

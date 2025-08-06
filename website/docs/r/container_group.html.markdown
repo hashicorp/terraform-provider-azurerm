@@ -10,8 +10,6 @@ description: |-
 
 Manages as an Azure Container Group instance.
 
-~> **Note** `network_profile_id` is [deprecated](https://docs.microsoft.com/en-us/azure/container-instances/container-instances-vnet) by Azure. For users who want to continue to manage existing `azurerm_container_group` that rely on `network_profile_id`, please stay on provider versions prior to v3.16.0. Otherwise, use `subnet_ids` instead.
-
 ## Example Usage
 
 This example provisions a Basic Container. Other examples of the `azurerm_container_group` resource can be found in [the `./examples/container-instance` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/container-instance).
@@ -87,7 +85,7 @@ The following arguments are supported:
 
 ~> **Note:** DNS label/name is not supported when deploying to virtual networks.
 
-* `dns_name_label_reuse_policy` - (Optional) The value representing the security enum. `Noreuse`, `ResourceGroupReuse`, `SubscriptionReuse`, `TenantReuse` or `Unsecure`. Defaults to `Unsecure`. 
+* `dns_name_label_reuse_policy` - (Optional) The value representing the security enum. `Noreuse`, `ResourceGroupReuse`, `SubscriptionReuse`, `TenantReuse` or `Unsecure`. Defaults to `Unsecure`. Changing this forces a new resource to be created.
 
 * `exposed_port` - (Optional) Zero or more `exposed_port` blocks as defined below. Changing this forces a new resource to be created.
 
@@ -107,7 +105,7 @@ The following arguments are supported:
 
 * `priority` - (Optional) The priority of the Container Group. Possible values are `Regular` and `Spot`. Changing this forces a new resource to be created.
 
-~> **NOTE:** When `priority` is set to `Spot`, the `ip_address_type` has to be `None`.
+~> **Note:** When `priority` is set to `Spot`, the `ip_address_type` has to be `None`.
 
 * `restart_policy` - (Optional) Restart policy for the container group. Allowed values are `Always`, `Never`, `OnFailure`. Defaults to `Always`. Changing this forces a new resource to be created.
 
@@ -121,13 +119,13 @@ An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Container Group. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-~> **NOTE:** When `type` is set to `SystemAssigned`, the identity of the Principal ID can be retrieved after the container group has been created. See [documentation](https://docs.microsoft.com/azure/active-directory/managed-service-identity/overview) for more information.
+~> **Note:** When `type` is set to `SystemAssigned`, the identity of the Principal ID can be retrieved after the container group has been created. See [documentation](https://docs.microsoft.com/azure/active-directory/managed-service-identity/overview) for more information.
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Container Group.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
-~> **NOTE:** Currently you can't use a managed identity in a container group deployed to a virtual network.
+~> **Note:** Currently you can't use a managed identity in a container group deployed to a virtual network.
 
 ---
 
@@ -159,15 +157,9 @@ A `container` block supports:
 
 * `memory` - (Required) The required memory of the containers in GB. Changing this forces a new resource to be created.
 
-* `gpu` - (Optional) A `gpu` block as defined below. Changing this forces a new resource to be created.
-
-~> **Note:** Gpu resources are currently only supported in Linux containers.
-
 * `cpu_limit` - (Optional) The upper limit of the number of CPU cores of the containers.
 
 * `memory_limit` - (Optional) The upper limit of the memory of the containers in GB.
-
-* `gpu_limit` - (Optional) A `gpu_limit` block as defined below.
 
 * `ports` - (Optional) A set of public ports for the container. Changing this forces a new resource to be created. Set as documented in the `ports` block below.
 
@@ -237,22 +229,6 @@ A `ports` block supports:
 
 ---
 
-A `gpu` block supports:
-
-* `count` - (Optional) The number of GPUs which should be assigned to this container. Allowed values are `1`, `2`, or `4`. Changing this forces a new resource to be created.
-
-* `sku` - (Optional) The SKU which should be used for the GPU. Possible values are `K80`, `P100`, or `V100`. Changing this forces a new resource to be created.
-
----
-
-A `gpu_limit` block supports:
-
-* `count` - (Optional) The upper limit of the number of GPUs which should be assigned to this container.
-
-* `sku` - (Optional) The allowed SKU which should be used for the GPU. Possible values are `K80`, `P100`, or `V100`.
-
----
-
 A `volume` block supports:
 
 * `name` - (Required) The name of the volume mount. Changing this forces a new resource to be created.
@@ -275,7 +251,7 @@ A `volume` block supports:
 
 ~> **Note:** Exactly one of `empty_dir` volume, `git_repo` volume, `secret` volume or storage account volume (`share_name`, `storage_account_name`, and `storage_account_key`) must be specified.
 
-~> **Note** when using a storage account volume, all of `share_name`, `storage_account_name`, and `storage_account_key` must be specified.
+~> **Note:** when using a storage account volume, all of `share_name`, `storage_account_name`, and `storage_account_key` must be specified.
 
 ~> **Note:** The secret values must be supplied as Base64 encoded strings, such as by using the Terraform [base64encode function](https://www.terraform.io/docs/configuration/functions/base64encode.html). The secret values are decoded to their original values when mounted in the volume on the container.
 
@@ -353,7 +329,7 @@ The `security` block supports:
 
 * `privilege_enabled` - (Required) Whether the container's permission is elevated to privileged? Changing this forces a new resource to be created.
 
-~> **NOTE:** Currently, this only applies when the `os_type` is `Linux` and the `sku` is `Confidential`. 
+~> **Note:** Currently, this only applies when the `os_type` is `Linux` and the `sku` is `Confidential`.
 
 ## Attributes Reference
 
@@ -379,11 +355,11 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Container Group.
-
-* `update` - (Defaults to 30 minutes) Used when updating the Container Group.
+* `create` - (Defaults to 1 hour) Used when creating the Container Group.
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container Group.
+
+* `update` - (Defaults to 30 minutes) Used when updating the Container Group.
 
 * `delete` - (Defaults to 30 minutes) Used when deleting the Container Group.
 
@@ -394,3 +370,9 @@ Container Group's can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_container_group.containerGroup1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ContainerInstance/containerGroups/myContainerGroup1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ContainerInstance` - 2023-05-01

@@ -61,11 +61,9 @@ The following arguments are supported:
 
 * `target` - (Required) The FQDN DNS name of the target.
 
-* `weight` - (Optional) Specifies how much traffic should be distributed to this endpoint, this must be specified for Profiles using the Weighted traffic routing method. Valid values are between `1` and `1000`.
+* `weight` - (Optional) Specifies how much traffic should be distributed to this endpoint, this must be specified for Profiles using the Weighted traffic routing method. Valid values are between `1` and `1000`. Defaults to `1`.
 
 * `endpoint_location` - (Optional) Specifies the Azure location of the Endpoint, this must be specified for Profiles using the `Performance` routing method.
-
----
 
 * `always_serve_enabled` - (Optional) If Always Serve is enabled, probing for endpoint health will be disabled and endpoints will be included in the traffic routing method. Defaults to `false`.
 
@@ -108,8 +106,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the External Endpoint.
-* `update` - (Defaults to 30 minutes) Used when updating the External Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the External Endpoint.
+* `update` - (Defaults to 30 minutes) Used when updating the External Endpoint.
 * `delete` - (Defaults to 30 minutes) Used when deleting the External Endpoint.
 
 ## Import
@@ -119,3 +117,9 @@ External Endpoints can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_traffic_manager_external_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-group/providers/Microsoft.Network/trafficManagerProfiles/example-profile/ExternalEndpoints/example-endpoint
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2022-04-01

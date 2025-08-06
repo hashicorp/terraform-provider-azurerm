@@ -35,7 +35,7 @@ The following arguments are supported:
 
 ---
 
-* `data_location` - (Optional) The location where the Communication service stores its data at rest. Possible values are `Africa`, `Asia Pacific`, `Australia`, `Brazil`, `Canada`, `Europe`, `France`, `Germany`, `India`, `Japan`, `Korea`, `Norway`, `Switzerland`, `UAE`, `UK` and `United States`. Defaults to `United States`. Changing this forces a new Communication Service to be created.
+* `data_location` - (Optional) The location where the Communication service stores its data at rest. Possible values are `Africa`, `Asia Pacific`, `Australia`, `Brazil`, `Canada`, `Europe`, `France`, `Germany`, `India`, `Japan`, `Korea`, `Norway`, `Switzerland`, `UAE`, `UK`, `usgov` and `United States`. Defaults to `United States`. Changing this forces a new Communication Service to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Communication Service.
 
@@ -48,6 +48,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `secondary_connection_string` - The secondary connection string of the Communication Service.
 * `primary_key` - The primary key of the Communication Service.
 * `secondary_key` - The secondary key of the Communication Service.
+* `hostname` - The hostname of the Communication Service
 
 ## Timeouts
 
@@ -65,3 +66,9 @@ Communication Services can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_communication_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Communication/communicationServices/communicationService1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Communication` - 2023-03-31

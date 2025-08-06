@@ -27,7 +27,6 @@ func TestEmailTemplateID(t *testing.T) {
 		Error    bool
 		Expected *EmailTemplateId
 	}{
-
 		{
 			// empty
 			Input: "",

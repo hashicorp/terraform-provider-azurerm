@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&JobDefinitionId{})
+}
 
 var _ resourceids.ResourceId = &JobDefinitionId{}
 
@@ -41,7 +46,7 @@ func ParseJobDefinitionID(input string) (*JobDefinitionId, error) {
 	}
 
 	id := JobDefinitionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -58,7 +63,7 @@ func ParseJobDefinitionIDInsensitively(input string) (*JobDefinitionId, error) {
 	}
 
 	id := JobDefinitionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -122,11 +127,11 @@ func (id JobDefinitionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftStorageMover", "Microsoft.StorageMover", "Microsoft.StorageMover"),
 		resourceids.StaticSegment("staticStorageMovers", "storageMovers", "storageMovers"),
-		resourceids.UserSpecifiedSegment("storageMoverName", "storageMoverValue"),
+		resourceids.UserSpecifiedSegment("storageMoverName", "storageMoverName"),
 		resourceids.StaticSegment("staticProjects", "projects", "projects"),
-		resourceids.UserSpecifiedSegment("projectName", "projectValue"),
+		resourceids.UserSpecifiedSegment("projectName", "projectName"),
 		resourceids.StaticSegment("staticJobDefinitions", "jobDefinitions", "jobDefinitions"),
-		resourceids.UserSpecifiedSegment("jobDefinitionName", "jobDefinitionValue"),
+		resourceids.UserSpecifiedSegment("jobDefinitionName", "jobDefinitionName"),
 	}
 }
 

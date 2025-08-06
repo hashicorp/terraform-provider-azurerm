@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -32,6 +32,8 @@ type ContainerAppEnvironmentDataSourceModel struct {
 	InfrastructureSubnetId      string                 `tfschema:"infrastructure_subnet_id"`
 	InternalLoadBalancerEnabled bool                   `tfschema:"internal_load_balancer_enabled"`
 	Tags                        map[string]interface{} `tfschema:"tags"`
+
+	CustomDomainVerificationId string `tfschema:"custom_domain_verification_id"`
 
 	DefaultDomain         string `tfschema:"default_domain"`
 	DockerBridgeCidr      string `tfschema:"docker_bridge_cidr"`
@@ -86,6 +88,12 @@ func (r ContainerAppEnvironmentDataSource) Attributes() map[string]*pluginsdk.Sc
 		},
 
 		"tags": commonschema.TagsDataSource(),
+
+		"custom_domain_verification_id": {
+			Type:        pluginsdk.TypeString,
+			Computed:    true,
+			Description: "The ID of the Custom Domain Verification for this Container App Environment.",
+		},
 
 		"default_domain": {
 			Type:        pluginsdk.TypeString,
@@ -167,6 +175,7 @@ func (r ContainerAppEnvironmentDataSource) Read() sdk.ResourceFunc {
 
 					environment.StaticIP = pointer.From(props.StaticIP)
 					environment.DefaultDomain = pointer.From(props.DefaultDomain)
+					environment.CustomDomainVerificationId = pointer.From(props.CustomDomainConfiguration.CustomDomainVerificationId)
 				}
 			}
 
@@ -199,5 +208,5 @@ func findLogAnalyticsWorkspaceName(ctx context.Context, client *workspaces.Works
 		}
 	}
 
-	return "", fmt.Errorf("no matching workspace found")
+	return "", nil
 }

@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&StaticSitePrivateEndpointConnectionId{})
+}
 
 var _ resourceids.ResourceId = &StaticSitePrivateEndpointConnectionId{}
 
@@ -39,7 +44,7 @@ func ParseStaticSitePrivateEndpointConnectionID(input string) (*StaticSitePrivat
 	}
 
 	id := StaticSitePrivateEndpointConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParseStaticSitePrivateEndpointConnectionIDInsensitively(input string) (*Sta
 	}
 
 	id := StaticSitePrivateEndpointConnectionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -116,9 +121,9 @@ func (id StaticSitePrivateEndpointConnectionId) Segments() []resourceids.Segment
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticStaticSites", "staticSites", "staticSites"),
-		resourceids.UserSpecifiedSegment("staticSiteName", "staticSiteValue"),
+		resourceids.UserSpecifiedSegment("staticSiteName", "staticSiteName"),
 		resourceids.StaticSegment("staticPrivateEndpointConnections", "privateEndpointConnections", "privateEndpointConnections"),
-		resourceids.UserSpecifiedSegment("privateEndpointConnectionName", "privateEndpointConnectionValue"),
+		resourceids.UserSpecifiedSegment("privateEndpointConnectionName", "privateEndpointConnectionName"),
 	}
 }
 

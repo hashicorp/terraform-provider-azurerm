@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -19,12 +20,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/patchschedules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/redis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/patchschedules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/redis"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/redis/migration"
@@ -33,7 +35,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var skuWeight = map[string]int8{
@@ -43,7 +44,7 @@ var skuWeight = map[string]int8{
 }
 
 func resourceRedisCache() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceRedisCacheCreate,
 		Read:   resourceRedisCacheRead,
 		Update: resourceRedisCacheUpdate,
@@ -84,11 +85,9 @@ func resourceRedisCache() *pluginsdk.Resource {
 			},
 
 			"family": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-				// TODO: this should become case-sensitive in v4.0 (true -> false and remove DiffSupressFunc)
-				ValidateFunc:     validation.StringInSlice(redis.PossibleValuesForSkuFamily(), true),
-				DiffSuppressFunc: suppress.CaseDifference,
+				Type:         pluginsdk.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringInSlice(redis.PossibleValuesForSkuFamily(), false),
 			},
 
 			"sku_name": {
@@ -106,8 +105,6 @@ func resourceRedisCache() *pluginsdk.Resource {
 				Optional: true,
 				Default:  string(redis.TlsVersionOnePointTwo),
 				ValidateFunc: validation.StringInSlice([]string{
-					string(redis.TlsVersionOnePointZero),
-					string(redis.TlsVersionOnePointOne),
 					string(redis.TlsVersionOnePointTwo),
 				}, false),
 			},
@@ -117,8 +114,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_non_ssl_port": {
+			"non_ssl_port_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Default:  false,
 				Optional: true,
@@ -134,6 +130,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 			"private_static_ip_address": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				// NOTE O+C: in some cases this gets a default value if omitted. This can remain o+c as it is ForceNew and cannot be updated
 				Computed: true,
 				ForceNew: true,
 			},
@@ -157,12 +154,14 @@ func resourceRedisCache() *pluginsdk.Resource {
 						"maxmemory_delta": {
 							Type:     pluginsdk.TypeInt,
 							Optional: true,
+							// Note: O+C this gets a variable default based on the cache's total memory. This can remain O+C as it can be updated without issue
 							Computed: true,
 						},
 
 						"maxmemory_reserved": {
 							Type:     pluginsdk.TypeInt,
 							Optional: true,
+							// Note: O+C this gets a variable default based on the cache's total memory. This can remain O+C as it can be updated without issue
 							Computed: true,
 						},
 
@@ -176,13 +175,13 @@ func resourceRedisCache() *pluginsdk.Resource {
 						"maxfragmentationmemory_reserved": {
 							Type:     pluginsdk.TypeInt,
 							Optional: true,
+							// Note: O+C this gets a variable default based on the cache's total memory. This can remain O+C as it can be updated without issue
 							Computed: true,
 						},
 
 						"data_persistence_authentication_method": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  "SAS",
 							ValidateFunc: validation.StringInSlice([]string{
 								"SAS",
 								"ManagedIdentity",
@@ -232,8 +231,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 							Optional:  true,
 							Sensitive: true,
 						},
-						// TODO 4.0: change this from enable_* to *_enabled
-						"enable_authentication": {
+						"authentication_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							Default:  true,
@@ -325,6 +323,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 			"replicas_per_master": {
 				Type:     pluginsdk.TypeInt,
 				Optional: true,
+				// NOTE: O+C returns a value when `replicas_per_primary` is set - this can remain as there is no issue updating it
 				Computed: true,
 				// Can't make more than 3 replicas in portal, assuming it's a limitation
 				ValidateFunc: validation.IntBetween(1, 3),
@@ -333,8 +332,9 @@ func resourceRedisCache() *pluginsdk.Resource {
 			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"replicas_per_primary": {
-				Type:         pluginsdk.TypeInt,
-				Optional:     true,
+				Type:     pluginsdk.TypeInt,
+				Optional: true,
+				// NOTE: O+C returns a value when `replicas_per_master` is set - this can remain as there is no issue updating it
 				Computed:     true,
 				ValidateFunc: validation.IntBetween(1, 3),
 			},
@@ -350,7 +350,7 @@ func resourceRedisCache() *pluginsdk.Resource {
 			"redis_version": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Default:      "6",
 				ValidateFunc: validation.StringInSlice([]string{"4", "6"}, false),
 				DiffSuppressFunc: func(_, old, new string, _ *pluginsdk.ResourceData) bool {
 					n := strings.Split(old, ".")
@@ -360,6 +360,12 @@ func resourceRedisCache() *pluginsdk.Resource {
 					}
 					return false
 				},
+			},
+
+			"access_keys_authentication_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
 			},
 
 			"tags": commonschema.Tags(),
@@ -373,8 +379,57 @@ func resourceRedisCache() *pluginsdk.Resource {
 				}
 				return false
 			}),
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				// Entra (AD) auth has to be set to disable access keys auth
+				// https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-azure-active-directory-for-authentication
+
+				accessKeysAuthenticationEnabled := diff.Get("access_keys_authentication_enabled").(bool)
+				activeDirectoryAuthenticationEnabled := diff.Get("redis_configuration.0.active_directory_authentication_enabled").(bool)
+
+				log.Printf("[DEBUG] CustomizeDiff: access_keys_authentication_enabled: %v, active_directory_authentication_enabled: %v", accessKeysAuthenticationEnabled, activeDirectoryAuthenticationEnabled)
+
+				if !accessKeysAuthenticationEnabled && !activeDirectoryAuthenticationEnabled {
+					return fmt.Errorf("`active_directory_authentication_enabled` must be enabled in order to disable `access_keys_authentication_enabled`")
+				}
+
+				return nil
+			}),
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				// Replicates validation rules from Azure CLI
+				// https://github.com/Azure/azure-cli/blob/131634d374fe704920862a2e5b0745e61af9bc89/src/azure-cli/azure/cli/command_modules/redis/custom.py#L13
+				skuName := diff.Get("sku_name").(string)
+				family := diff.Get("family").(string)
+				capacity := diff.Get("capacity").(int)
+				validCombinations := map[string][]string{
+					string(redis.SkuNameBasic):    {"C0", "C1", "C2", "C3", "C4", "C5", "C6"},
+					string(redis.SkuNameStandard): {"C0", "C1", "C2", "C3", "C4", "C5", "C6"},
+					string(redis.SkuNamePremium):  {"P1", "P2", "P3", "P4", "P5"},
+				}
+
+				familyCapacity := fmt.Sprintf("%s%d", strings.ToUpper(family), capacity)
+				if !slices.Contains(validCombinations[skuName], familyCapacity) {
+					return fmt.Errorf("invalid combination of `sku_name`, `family`, and `capacity`: '%[1]s: %[2]s'. Valid combinations for '%[1]s' are: %[3]v", skuName, familyCapacity, validCombinations[skuName])
+				}
+
+				return nil
+			}),
 		),
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["minimum_tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(redis.TlsVersionOnePointTwo),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(redis.TlsVersionOnePointZero),
+				string(redis.TlsVersionOnePointOne),
+				string(redis.TlsVersionOnePointTwo),
+			}, false),
+		}
+	}
+
+	return resource
 }
 
 func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -411,10 +466,13 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		return fmt.Errorf(`expanding "identity": %v`, err)
 	}
 
+	enableNonSslPort := d.Get("non_ssl_port_enabled")
+
 	parameters := redis.RedisCreateParameters{
 		Location: location.Normalize(d.Get("location").(string)),
 		Properties: redis.RedisCreateProperties{
-			EnableNonSslPort: pointer.To(d.Get("enable_non_ssl_port").(bool)),
+			DisableAccessKeyAuthentication: pointer.To(!(d.Get("access_keys_authentication_enabled").(bool))),
+			EnableNonSslPort:               pointer.To(enableNonSslPort.(bool)),
 			Sku: redis.Sku{
 				Capacity: int64(d.Get("capacity").(int)),
 				Family:   redis.SkuFamily(d.Get("family").(string)),
@@ -429,20 +487,19 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if v, ok := d.GetOk("shard_count"); ok {
-		shardCount := int64(v.(int))
-		parameters.Properties.ShardCount = &shardCount
+		parameters.Properties.ShardCount = pointer.To(int64(v.(int)))
 	}
 
 	if v, ok := d.GetOk("replicas_per_master"); ok {
-		parameters.Properties.ReplicasPerMaster = utils.Int64(int64(v.(int)))
+		parameters.Properties.ReplicasPerMaster = pointer.To(int64(v.(int)))
 	}
 
 	if v, ok := d.GetOk("replicas_per_primary"); ok {
-		parameters.Properties.ReplicasPerPrimary = utils.Int64(int64(v.(int)))
+		parameters.Properties.ReplicasPerPrimary = pointer.To(int64(v.(int)))
 	}
 
 	if v, ok := d.GetOk("redis_version"); ok {
-		parameters.Properties.RedisVersion = utils.String(v.(string))
+		parameters.Properties.RedisVersion = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("tenant_settings"); ok {
@@ -450,7 +507,7 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if v, ok := d.GetOk("private_static_ip_address"); ok {
-		parameters.Properties.StaticIP = utils.String(v.(string))
+		parameters.Properties.StaticIP = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("subnet_id"); ok {
@@ -465,7 +522,7 @@ func resourceRedisCacheCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		locks.ByName(parsed.SubnetName, network.SubnetResourceName)
 		defer locks.UnlockByName(parsed.SubnetName, network.SubnetResourceName)
 
-		parameters.Properties.SubnetId = utils.String(v.(string))
+		parameters.Properties.SubnetId = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("zones"); ok {
@@ -518,15 +575,16 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		return err
 	}
 
-	enableNonSSLPort := d.Get("enable_non_ssl_port").(bool)
+	enableNonSslPort := d.Get("non_ssl_port_enabled")
 
 	t := d.Get("tags").(map[string]interface{})
 	expandedTags := tags.Expand(t)
 
 	parameters := redis.RedisUpdateParameters{
 		Properties: &redis.RedisUpdateProperties{
-			MinimumTlsVersion: pointer.To(redis.TlsVersion(d.Get("minimum_tls_version").(string))),
-			EnableNonSslPort:  utils.Bool(enableNonSSLPort),
+			DisableAccessKeyAuthentication: pointer.To(!(d.Get("access_keys_authentication_enabled").(bool))),
+			MinimumTlsVersion:              pointer.To(redis.TlsVersion(d.Get("minimum_tls_version").(string))),
+			EnableNonSslPort:               pointer.To(enableNonSslPort.(bool)),
 			Sku: &redis.Sku{
 				Capacity: int64(d.Get("capacity").(int)),
 				Family:   redis.SkuFamily(d.Get("family").(string)),
@@ -536,43 +594,31 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		Tags: expandedTags,
 	}
 
-	if v, ok := d.GetOk("shard_count"); ok {
-		if d.HasChange("shard_count") {
-			shardCount := int64(v.(int))
-			parameters.Properties.ShardCount = &shardCount
-		}
+	if d.HasChange("shard_count") {
+		parameters.Properties.ShardCount = pointer.To(int64(d.Get("shard_count").(int)))
 	}
 
-	if v, ok := d.GetOk("replicas_per_master"); ok {
-		if d.HasChange("replicas_per_master") {
-			parameters.Properties.ReplicasPerMaster = utils.Int64(int64(v.(int)))
-		}
+	if d.HasChange("replicas_per_master") {
+		parameters.Properties.ReplicasPerMaster = pointer.To(int64(d.Get("replicas_per_master").(int)))
 	}
 
-	if v, ok := d.GetOk("replicas_per_primary"); ok {
-		if d.HasChange("replicas_per_primary") {
-			parameters.Properties.ReplicasPerPrimary = utils.Int64(int64(v.(int)))
-		}
+	if d.HasChange("replicas_per_primary") {
+		parameters.Properties.ReplicasPerPrimary = pointer.To(int64(d.Get("replicas_per_primary").(int)))
 	}
 
-	if v, ok := d.GetOk("redis_version"); ok {
-		if d.HasChange("redis_version") {
-			parameters.Properties.RedisVersion = utils.String(v.(string))
-		}
+	if d.HasChange("redis_version") {
+		parameters.Properties.RedisVersion = pointer.To(d.Get("redis_version").(string))
 	}
 
-	if v, ok := d.GetOk("tenant_settings"); ok {
-		if d.HasChange("tenant_settings") {
-			parameters.Properties.TenantSettings = expandTenantSettings(v.(map[string]interface{}))
-		}
+	if d.HasChange("tenant_settings") {
+		parameters.Properties.TenantSettings = expandTenantSettings(d.Get("tenant_settings").(map[string]interface{}))
 	}
 
 	if d.HasChange("public_network_access_enabled") {
-		publicNetworkAccess := redis.PublicNetworkAccessEnabled
-		if !d.Get("public_network_access_enabled").(bool) {
-			publicNetworkAccess = redis.PublicNetworkAccessDisabled
+		parameters.Properties.PublicNetworkAccess = pointer.To(redis.PublicNetworkAccessDisabled)
+		if d.Get("public_network_access_enabled").(bool) {
+			parameters.Properties.PublicNetworkAccess = pointer.To(redis.PublicNetworkAccessEnabled)
 		}
-		parameters.Properties.PublicNetworkAccess = pointer.To(publicNetworkAccess)
 	}
 
 	if d.HasChange("redis_configuration") {
@@ -589,7 +635,7 @@ func resourceRedisCacheUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	log.Printf("[DEBUG] Waiting for %s to become available", *id)
 	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{"Scaling", "Updating", "Creating", "UpgradingRedisServerVersion", "ConfiguringAAD"},
+		Pending:    []string{"Scaling", "Updating", "Creating", "UpgradingRedisServerVersion", "ConfiguringAAD", "UpdatingManagedIdentity"},
 		Target:     []string{"Succeeded"},
 		Refresh:    redisStateRefreshFunc(ctx, client, *id),
 		MinTimeout: 15 * time.Second,
@@ -693,16 +739,17 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("capacity", int(props.Sku.Capacity))
 		d.Set("family", string(props.Sku.Family))
 		d.Set("sku_name", string(props.Sku.Name))
-
 		d.Set("ssl_port", props.SslPort)
 		d.Set("hostname", props.HostName)
+		d.Set("port", props.Port)
+		d.Set("non_ssl_port_enabled", props.EnableNonSslPort)
+
 		minimumTlsVersion := string(redis.TlsVersionOnePointTwo)
 		if props.MinimumTlsVersion != nil {
 			minimumTlsVersion = string(*props.MinimumTlsVersion)
 		}
 		d.Set("minimum_tls_version", minimumTlsVersion)
-		d.Set("port", props.Port)
-		d.Set("enable_non_ssl_port", props.EnableNonSslPort)
+
 		shardCount := 0
 		if props.ShardCount != nil {
 			shardCount = int(*props.ShardCount)
@@ -731,7 +778,7 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("redis_version", props.RedisVersion)
 		d.Set("tenant_settings", flattenTenantSettings(props.TenantSettings))
 
-		redisConfiguration, err := flattenRedisConfiguration(props.RedisConfiguration)
+		redisConfiguration, err := flattenRedisConfiguration(d, props.RedisConfiguration)
 		if err != nil {
 			return fmt.Errorf("flattening `redis_configuration`: %+v", err)
 		}
@@ -743,6 +790,7 @@ func resourceRedisCacheRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("secondary_connection_string", getRedisConnectionString(*props.HostName, *props.SslPort, *keysResp.Model.SecondaryKey, true))
 		d.Set("primary_access_key", keysResp.Model.PrimaryKey)
 		d.Set("secondary_access_key", keysResp.Model.SecondaryKey)
+		d.Set("access_keys_authentication_enabled", !pointer.From(props.DisableAccessKeyAuthentication))
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
 			return fmt.Errorf("setting `tags`: %+v", err)
@@ -819,37 +867,35 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	skuName := d.Get("sku_name").(string)
 
 	if v := raw["maxclients"].(int); v > 0 {
-		output.Maxclients = utils.String(strconv.Itoa(v))
+		output.Maxclients = pointer.To(strconv.Itoa(v))
 	}
 
 	if d.Get("sku_name").(string) != string(redis.SkuNameBasic) {
 		if v := raw["maxmemory_delta"].(int); v > 0 {
-			output.MaxmemoryDelta = utils.String(strconv.Itoa(v))
+			output.MaxmemoryDelta = pointer.To(strconv.Itoa(v))
 		}
 
 		if v := raw["maxmemory_reserved"].(int); v > 0 {
-			output.MaxmemoryReserved = utils.String(strconv.Itoa(v))
+			output.MaxmemoryReserved = pointer.To(strconv.Itoa(v))
 		}
 
 		if v := raw["maxfragmentationmemory_reserved"].(int); v > 0 {
-			output.MaxfragmentationmemoryReserved = utils.String(strconv.Itoa(v))
+			output.MaxfragmentationmemoryReserved = pointer.To(strconv.Itoa(v))
 		}
 	}
 
 	if v := raw["maxmemory_policy"].(string); v != "" {
-		output.MaxmemoryPolicy = utils.String(v)
+		output.MaxmemoryPolicy = pointer.To(v)
 	}
 
-	if v := raw["data_persistence_authentication_method"].(string); v != "" {
-		output.PreferredDataPersistenceAuthMethod = utils.String(v)
-	}
+	output.PreferredDataPersistenceAuthMethod = pointer.To(raw["data_persistence_authentication_method"].(string))
 
 	// AAD/Entra support
 	// nolint : staticcheck
 	v, valExists := d.GetOkExists("redis_configuration.0.active_directory_authentication_enabled")
 	if valExists {
 		entraEnabled := v.(bool)
-		output.AadEnabled = utils.String(strconv.FormatBool(entraEnabled))
+		output.AadEnabled = pointer.To(strconv.FormatBool(entraEnabled))
 	}
 
 	// RDB Backup
@@ -862,29 +908,29 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 		if strings.EqualFold(skuName, string(redis.SkuNamePremium)) {
 			if rdbBackupEnabled {
 				if connStr := raw["rdb_storage_connection_string"].(string); connStr == "" {
-					return nil, fmt.Errorf("The rdb_storage_connection_string property must be set when rdb_backup_enabled is true")
+					return nil, fmt.Errorf("the rdb_storage_connection_string property must be set when rdb_backup_enabled is true")
 				}
 			}
-			output.RdbBackupEnabled = utils.String(strconv.FormatBool(rdbBackupEnabled))
+			output.RdbBackupEnabled = pointer.To(strconv.FormatBool(rdbBackupEnabled))
 		} else if rdbBackupEnabled && !strings.EqualFold(skuName, string(redis.SkuNamePremium)) {
-			return nil, fmt.Errorf("The `rdb_backup_enabled` property requires a `Premium` sku to be set")
+			return nil, fmt.Errorf("the `rdb_backup_enabled` property requires a `Premium` sku to be set")
 		}
 	}
 
 	if v := raw["rdb_backup_frequency"].(int); v > 0 {
-		output.RdbBackupFrequency = utils.String(strconv.Itoa(v))
+		output.RdbBackupFrequency = pointer.To(strconv.Itoa(v))
 	}
 
 	if v := raw["rdb_backup_max_snapshot_count"].(int); v > 0 {
-		output.RdbBackupMaxSnapshotCount = utils.String(strconv.Itoa(v))
+		output.RdbBackupMaxSnapshotCount = pointer.To(strconv.Itoa(v))
 	}
 
 	if v := raw["rdb_storage_connection_string"].(string); v != "" {
-		output.RdbStorageConnectionString = utils.String(v)
+		output.RdbStorageConnectionString = pointer.To(v)
 	}
 
 	if v := raw["notify_keyspace_events"].(string); v != "" {
-		output.NotifyKeyspaceEvents = v
+		output.NotifyKeyspaceEvents = pointer.To(v)
 	}
 
 	// AOF Backup
@@ -893,26 +939,28 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redis.RedisCommonProp
 	if valExists {
 		// aof_backup_enabled is available when SKU is Premium
 		if strings.EqualFold(skuName, string(redis.SkuNamePremium)) {
-			output.AofBackupEnabled = utils.String(strconv.FormatBool(v.(bool)))
+			output.AofBackupEnabled = pointer.To(strconv.FormatBool(v.(bool)))
 		}
 	}
 
 	if v := raw["aof_storage_connection_string_0"].(string); v != "" {
-		output.AofStorageConnectionString0 = utils.String(v)
+		output.AofStorageConnectionString0 = pointer.To(v)
 	}
 
 	if v := raw["aof_storage_connection_string_1"].(string); v != "" {
-		output.AofStorageConnectionString1 = utils.String(v)
+		output.AofStorageConnectionString1 = pointer.To(v)
 	}
-	authEnabled := raw["enable_authentication"].(bool)
+
+	authEnabled := raw["authentication_enabled"].(bool)
+
 	// Redis authentication can only be disabled if it is launched inside a VNET.
 	if _, isPrivate := d.GetOk("subnet_id"); !isPrivate {
 		if !authEnabled {
-			return nil, fmt.Errorf("Cannot set `enable_authentication` to `false` when `subnet_id` is not set")
+			return nil, fmt.Errorf("cannot set `authentication_enabled` or `enable_authentication` to `false` when `subnet_id` is not set")
 		}
 	} else {
 		value := isAuthNotRequiredAsString(authEnabled)
-		output.Authnotrequired = utils.String(value)
+		output.Authnotrequired = pointer.To(value)
 	}
 
 	if v := raw["storage_account_subscription_id"].(string); v != "" {
@@ -937,7 +985,7 @@ func expandRedisPatchSchedule(d *pluginsdk.ResourceData) *patchschedules.RedisPa
 
 		entries = append(entries, patchschedules.ScheduleEntry{
 			DayOfWeek:         patchschedules.DayOfWeek(dayOfWeek),
-			MaintenanceWindow: utils.String(maintenanceWindow),
+			MaintenanceWindow: pointer.To(maintenanceWindow),
 			StartHourUtc:      int64(startHourUtc),
 		})
 	}
@@ -971,7 +1019,7 @@ func flattenTenantSettings(input *map[string]string) map[string]string {
 	return output
 }
 
-func flattenRedisConfiguration(input *redis.RedisCommonPropertiesRedisConfiguration) ([]interface{}, error) {
+func flattenRedisConfiguration(d *pluginsdk.ResourceData, input *redis.RedisCommonPropertiesRedisConfiguration) ([]interface{}, error) {
 	outputs := make(map[string]interface{})
 
 	if input.AadEnabled != nil {
@@ -1042,9 +1090,14 @@ func flattenRedisConfiguration(input *redis.RedisCommonPropertiesRedisConfigurat
 		outputs["rdb_backup_max_snapshot_count"] = i
 	}
 	if input.RdbStorageConnectionString != nil {
-		outputs["rdb_storage_connection_string"] = *input.RdbStorageConnectionString
+		// The API returns AccountKey=[key hidden] instead of the value being passed in so we'll just set that value to what Terraform thinks the value is
+		if len(strings.Split(*input.RdbStorageConnectionString, "AccountKey=[key hidden]")) > 1 {
+			outputs["rdb_storage_connection_string"] = d.Get("redis_configuration.0.rdb_storage_connection_string")
+		} else {
+			outputs["rdb_storage_connection_string"] = *input.RdbStorageConnectionString
+		}
 	}
-	outputs["notify_keyspace_events"] = input.NotifyKeyspaceEvents
+	outputs["notify_keyspace_events"] = pointer.From(input.NotifyKeyspaceEvents)
 
 	if v := input.AofBackupEnabled; v != nil {
 		b, err := strconv.ParseBool(*v)
@@ -1054,16 +1107,26 @@ func flattenRedisConfiguration(input *redis.RedisCommonPropertiesRedisConfigurat
 		outputs["aof_backup_enabled"] = b
 	}
 	if input.AofStorageConnectionString0 != nil {
-		outputs["aof_storage_connection_string_0"] = *input.AofStorageConnectionString0
+		// The API returns AccountKey=[key hidden] instead of the value being passed in so we'll just set that value to what Terraform thinks the value is
+		if len(strings.Split(*input.AofStorageConnectionString0, "AccountKey=[key hidden]")) > 1 {
+			outputs["aof_storage_connection_string_0"] = d.Get("redis_configuration.0.aof_storage_connection_string_0")
+		} else {
+			outputs["aof_storage_connection_string_0"] = *input.AofStorageConnectionString0
+		}
 	}
 	if input.AofStorageConnectionString1 != nil {
-		outputs["aof_storage_connection_string_1"] = *input.AofStorageConnectionString1
+		// The API returns AccountKey=[key hidden] instead of the value being passed in so we'll just set that value to what Terraform thinks the value is
+		if len(strings.Split(*input.AofStorageConnectionString1, "AccountKey=[key hidden]")) > 1 {
+			outputs["aof_storage_connection_string_1"] = d.Get("redis_configuration.0.aof_storage_connection_string_1")
+		} else {
+			outputs["aof_storage_connection_string_1"] = *input.AofStorageConnectionString1
+		}
 	}
 
 	// `authnotrequired` is not set for instances launched outside a VNET
-	outputs["enable_authentication"] = true
+	outputs["authentication_enabled"] = true
 	if v := input.Authnotrequired; v != nil {
-		outputs["enable_authentication"] = isAuthRequiredAsBool(*v)
+		outputs["authentication_enabled"] = isAuthRequiredAsBool(*v)
 	}
 
 	outputs["storage_account_subscription_id"] = pointer.From(input.StorageSubscriptionId)

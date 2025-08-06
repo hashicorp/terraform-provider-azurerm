@@ -41,6 +41,7 @@ func (o ListByShareOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByShareOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -55,6 +56,18 @@ func (o ListByShareOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByShareCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByShareCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByShare ...
 func (c DataSetClient) ListByShare(ctx context.Context, id ShareId, options ListByShareOperationOptions) (result ListByShareOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -63,8 +76,9 @@ func (c DataSetClient) ListByShare(ctx context.Context, id ShareId, options List
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/dataSets", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByShareCustomPager{},
+		Path:          fmt.Sprintf("%s/dataSets", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -92,7 +106,7 @@ func (c DataSetClient) ListByShare(ctx context.Context, id ShareId, options List
 	temp := make([]DataSet, 0)
 	if values.Values != nil {
 		for i, v := range *values.Values {
-			val, err := unmarshalDataSetImplementation(v)
+			val, err := UnmarshalDataSetImplementation(v)
 			if err != nil {
 				err = fmt.Errorf("unmarshalling item %d for DataSet (%q): %+v", i, v, err)
 				return result, err
@@ -116,6 +130,7 @@ func (c DataSetClient) ListByShareCompleteMatchingPredicate(ctx context.Context,
 
 	resp, err := c.ListByShare(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

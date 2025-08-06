@@ -9,6 +9,6 @@ type ApiOAuthSettings struct {
 	CustomParameters *map[string]ApiOAuthSettingsParameter `json:"customParameters,omitempty"`
 	IdentityProvider *string                               `json:"identityProvider,omitempty"`
 	Properties       *interface{}                          `json:"properties,omitempty"`
-	RedirectUrl      *string                               `json:"redirectUrl,omitempty"`
+	RedirectURL      *string                               `json:"redirectUrl,omitempty"`
 	Scopes           *[]string                             `json:"scopes,omitempty"`
 }

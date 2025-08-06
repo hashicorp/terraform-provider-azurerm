@@ -15,7 +15,7 @@ type ActionGroupsAPIsClient struct {
 }
 
 func NewActionGroupsAPIsClientWithBaseURI(sdkApi sdkEnv.Api) (*ActionGroupsAPIsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "actiongroupsapis", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "actiongroupsapis", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ActionGroupsAPIsClient: %+v", err)
 	}

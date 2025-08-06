@@ -98,23 +98,6 @@ func TestAccLogicAppIntegrationAccount_update(t *testing.T) {
 	})
 }
 
-func TestAccLogicAppIntegrationAccount_integrationServiceEnvironment(t *testing.T) {
-	t.Skip("skip as Integration Service Environment is being deprecated")
-
-	data := acceptance.BuildTestData(t, "azurerm_logic_app_integration_account", "test")
-	r := LogicAppIntegrationAccountResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.integrationServiceEnvironment(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (LogicAppIntegrationAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := integrationaccounts.ParseIntegrationAccountID(state.ID)
 	if err != nil {
@@ -198,18 +181,4 @@ resource "azurerm_logic_app_integration_account" "test" {
   }
 }
 `, r.template(data), data.RandomInteger)
-}
-
-func (r LogicAppIntegrationAccountResource) integrationServiceEnvironment(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_logic_app_integration_account" "test" {
-  name                               = "acctest-IA-%d"
-  location                           = azurerm_resource_group.test.location
-  resource_group_name                = azurerm_resource_group.test.name
-  sku_name                           = "Standard"
-  integration_service_environment_id = azurerm_integration_service_environment.test.id
-}
-`, IntegrationServiceEnvironmentResource{}.basic(data), data.RandomInteger)
 }

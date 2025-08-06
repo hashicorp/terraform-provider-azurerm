@@ -35,6 +35,7 @@ output "public_ip_prefix" {
 * `ip_prefix` - The Public IP address range, in CIDR notation.
 * `location` - The supported Azure location where the resource exists.
 * `sku` - The SKU of the Public IP Prefix.
+* `sku_tier` - The SKU Tier of the Public IP.
 * `prefix_length` - The number of bits of the prefix.
 * `tags` - A mapping of tags to assigned to the resource.
 * `zones` - A list of Availability Zones in which this Public IP Prefix is located.
@@ -44,3 +45,9 @@ output "public_ip_prefix" {
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Public IP Prefix.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

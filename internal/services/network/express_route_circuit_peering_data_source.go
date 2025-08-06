@@ -7,14 +7,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/expressroutecircuitpeerings"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
 
 func dataSourceExpressRouteCircuitPeering() *pluginsdk.Resource {
@@ -30,9 +31,9 @@ func dataSourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
-					string(network.ExpressRoutePeeringTypeAzurePrivatePeering),
-					string(network.ExpressRoutePeeringTypeAzurePublicPeering),
-					string(network.ExpressRoutePeeringTypeMicrosoftPeering),
+					string(expressroutecircuitpeerings.ExpressRoutePeeringTypeAzurePrivatePeering),
+					string(expressroutecircuitpeerings.ExpressRoutePeeringTypeAzurePublicPeering),
+					string(expressroutecircuitpeerings.ExpressRoutePeeringTypeMicrosoftPeering),
 				}, false),
 			},
 
@@ -103,43 +104,45 @@ func dataSourceExpressRouteCircuitPeering() *pluginsdk.Resource {
 }
 
 func dataSourceExpressRouteCircuitPeeringRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.ExpressRoutePeeringsClient
+	client := meta.(*clients.Client).Network.ExpressRouteCircuitPeerings
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	defer cancel()
 
-	id, err := parse.ExpressRouteCircuitPeeringID(d.Id())
-	if err != nil {
-		return err
-	}
+	id := commonids.NewExpressRouteCircuitPeeringID(subscriptionId, d.Get("resource_group_name").(string), d.Get("express_route_circuit_name").(string), d.Get("peering_type").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.PeeringName)
+	resp, err := client.Get(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
+	d.SetId(id.ID())
+
 	d.Set("peering_type", id.PeeringName)
-	d.Set("express_route_circuit_name", id.ExpressRouteCircuitName)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("express_route_circuit_name", id.CircuitName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if props := resp.ExpressRouteCircuitPeeringPropertiesFormat; props != nil {
-		d.Set("azure_asn", props.AzureASN)
-		d.Set("peer_asn", props.PeerASN)
-		d.Set("primary_azure_port", props.PrimaryAzurePort)
-		d.Set("secondary_azure_port", props.SecondaryAzurePort)
-		d.Set("primary_peer_address_prefix", props.PrimaryPeerAddressPrefix)
-		d.Set("secondary_peer_address_prefix", props.SecondaryPeerAddressPrefix)
-		d.Set("vlan_id", props.VlanID)
-		d.Set("gateway_manager_etag", props.GatewayManagerEtag)
-		d.Set("ipv4_enabled", props.State == network.ExpressRoutePeeringStateEnabled)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("azure_asn", props.AzureASN)
+			d.Set("peer_asn", props.PeerASN)
+			d.Set("primary_azure_port", props.PrimaryAzurePort)
+			d.Set("secondary_azure_port", props.SecondaryAzurePort)
+			d.Set("primary_peer_address_prefix", props.PrimaryPeerAddressPrefix)
+			d.Set("secondary_peer_address_prefix", props.SecondaryPeerAddressPrefix)
+			d.Set("vlan_id", props.VlanId)
+			d.Set("gateway_manager_etag", props.GatewayManagerEtag)
+			d.Set("ipv4_enabled", pointer.From(props.State) == expressroutecircuitpeerings.ExpressRoutePeeringStateEnabled)
 
-		routeFilterId := ""
-		if props.RouteFilter != nil && props.RouteFilter.ID != nil {
-			routeFilterId = *props.RouteFilter.ID
+			routeFilterId := ""
+			if props.RouteFilter != nil && props.RouteFilter.Id != nil {
+				routeFilterId = *props.RouteFilter.Id
+			}
+			d.Set("route_filter_id", routeFilterId)
 		}
-		d.Set("route_filter_id", routeFilterId)
 	}
 
 	return nil

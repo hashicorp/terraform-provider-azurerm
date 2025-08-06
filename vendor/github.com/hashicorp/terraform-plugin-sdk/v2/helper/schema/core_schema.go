@@ -123,7 +123,7 @@ func (m schemaMap) CoreConfigSchema() *configschema.Block {
 // whose elem is a whole resource.
 func (s *Schema) coreConfigSchemaAttribute() *configschema.Attribute {
 	// The Schema.DefaultFunc capability adds some extra weirdness here since
-	// it can be combined with "Required: true" to create a sitution where
+	// it can be combined with "Required: true" to create a situation where
 	// required-ness is conditional. Terraform Core doesn't share this concept,
 	// so we must sniff for this possibility here and conditionally turn
 	// off the "Required" flag if it looks like the DefaultFunc is going
@@ -167,6 +167,10 @@ func (s *Schema) coreConfigSchemaAttribute() *configschema.Attribute {
 		Description:     desc,
 		DescriptionKind: descKind,
 		Deprecated:      s.Deprecated != "",
+		WriteOnly:       s.WriteOnly,
+		// For Identity Attributes only
+		OptionalForImport: s.OptionalForImport,
+		RequiredForImport: s.RequiredForImport,
 	}
 }
 
@@ -368,4 +372,28 @@ func (r *Resource) CoreConfigSchema() *configschema.Block {
 
 func (r *Resource) coreConfigSchema() *configschema.Block {
 	return schemaMap(r.SchemaMap()).CoreConfigSchema()
+}
+
+func (r *Resource) CoreIdentitySchema() (*configschema.Block, error) {
+	block, err := r.coreIdentitySchema()
+
+	if err != nil {
+		return nil, err
+	}
+
+	if block.Attributes == nil {
+		return nil, fmt.Errorf("identity schema must have at least one attribute")
+	}
+
+	return block, nil
+}
+
+func (r *Resource) coreIdentitySchema() (*configschema.Block, error) {
+	if r.Identity.SchemaMap() == nil {
+		return nil, fmt.Errorf("resource does not have an identity schema")
+	}
+	// while there is schemaMapWithIdentity, we don't need to use it here
+	// as we're only interested in the existing CoreConfigSchema() method
+	// to convert our schema
+	return schemaMap(r.Identity.SchemaMap()).CoreConfigSchema(), nil
 }

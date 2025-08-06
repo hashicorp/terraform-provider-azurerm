@@ -34,6 +34,7 @@ func (o GetOperationOptions) ToHeaders() *client.Headers {
 
 func (o GetOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -53,8 +54,8 @@ func (c ProductPolicyClient) Get(ctx context.Context, id ProductId, options GetO
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/policies/policy", id.ID()),
 		OptionsObject: options,
+		Path:          fmt.Sprintf("%s/policies/policy", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -74,7 +75,6 @@ func (c ProductPolicyClient) Get(ctx context.Context, id ProductId, options GetO
 
 	var model PolicyContract
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

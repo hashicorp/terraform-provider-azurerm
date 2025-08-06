@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/networkmanagers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/networkmanagers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -103,12 +103,13 @@ func (r ManagerResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"scope_accesses": {
 			Type:     pluginsdk.TypeList,
-			Required: true,
+			Optional: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(networkmanagers.ConfigurationTypeConnectivity),
+					string(networkmanagers.ConfigurationTypeRouting),
 					string(networkmanagers.ConfigurationTypeSecurityAdmin),
 				}, false),
 			},
@@ -334,12 +335,12 @@ func expandNetworkManagerScope(input []ManagerScopeModel) networkmanagers.Networ
 	}
 }
 
-func expandNetworkManagerScopeAccesses(input []string) []networkmanagers.ConfigurationType {
+func expandNetworkManagerScopeAccesses(input []string) *[]networkmanagers.ConfigurationType {
 	result := make([]networkmanagers.ConfigurationType, 0)
 	for _, v := range input {
 		result = append(result, networkmanagers.ConfigurationType(v))
 	}
-	return result
+	return &result
 }
 
 func flattenStringSlicePtr(input *[]string) []string {
@@ -356,9 +357,13 @@ func flattenNetworkManagerScope(input networkmanagers.NetworkManagerPropertiesNe
 	}}
 }
 
-func flattenNetworkManagerScopeAccesses(input []networkmanagers.ConfigurationType) []string {
-	var result []string
-	for _, v := range input {
+func flattenNetworkManagerScopeAccesses(input *[]networkmanagers.ConfigurationType) []string {
+	result := make([]string, 0)
+	if input == nil {
+		return result
+	}
+
+	for _, v := range *input {
 		result = append(result, string(v))
 	}
 	return result
@@ -369,7 +374,7 @@ func flattenNetworkManagerCrossTenantScopes(input *[]networkmanagers.CrossTenant
 		return make([]ManagerCrossTenantScopeModel, 0)
 	}
 
-	var results []ManagerCrossTenantScopeModel
+	results := make([]ManagerCrossTenantScopeModel, 0, len(*input))
 	for _, v := range *input {
 		results = append(results, ManagerCrossTenantScopeModel{
 			TenantId:         pointer.From(v.TenantId),

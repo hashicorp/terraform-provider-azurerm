@@ -60,6 +60,8 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	dataSources := []sdk.DataSource{
+		ContainerRegistryCacheRuleDataSource{},
+		KubernetesFleetManagerDataSource{},
 		KubernetesNodePoolSnapshotDataSource{},
 	}
 	dataSources = append(dataSources, r.autoRegistration.DataSources()...)
@@ -68,15 +70,17 @@ func (r Registration) DataSources() []sdk.DataSource {
 
 func (r Registration) Resources() []sdk.Resource {
 	resources := []sdk.Resource{
+		ContainerConnectedRegistryResource{},
+		ContainerRegistryCacheRule{},
 		ContainerRegistryTaskResource{},
+		ContainerRegistryCredentialSetResource{},
 		ContainerRegistryTaskScheduleResource{},
 		ContainerRegistryTokenPasswordResource{},
-		ContainerConnectedRegistryResource{},
 		KubernetesClusterExtensionResource{},
-		KubernetesFluxConfigurationResource{},
 		KubernetesFleetManagerResource{},
 		KubernetesFleetUpdateRunResource{},
 		KubernetesFleetUpdateStrategyResource{},
+		KubernetesFluxConfigurationResource{},
 	}
 	resources = append(resources, r.autoRegistration.Resources()...)
 	return resources

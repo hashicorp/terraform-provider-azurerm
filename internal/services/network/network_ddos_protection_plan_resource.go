@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/ddosprotectionplans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/ddosprotectionplans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -27,9 +27,9 @@ const ddosProtectionPlanResourceName = "azurerm_network_ddos_protection_plan"
 
 func resourceNetworkDDoSProtectionPlan() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceNetworkDDoSProtectionPlanCreateUpdate,
+		Create: resourceNetworkDDoSProtectionPlanCreate,
 		Read:   resourceNetworkDDoSProtectionPlanRead,
-		Update: resourceNetworkDDoSProtectionPlanCreateUpdate,
+		Update: resourceNetworkDDoSProtectionPlanUpdate,
 		Delete: resourceNetworkDDoSProtectionPlanDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -68,10 +68,10 @@ func resourceNetworkDDoSProtectionPlan() *pluginsdk.Resource {
 	}
 }
 
-func resourceNetworkDDoSProtectionPlanCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceNetworkDDoSProtectionPlanCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.DdosProtectionPlans
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	vnetsToLock, err := expandNetworkDDoSProtectionPlanVnetNames(d.Get("virtual_network_ids").([]interface{}))
@@ -86,17 +86,15 @@ func resourceNetworkDDoSProtectionPlanCreateUpdate(d *pluginsdk.ResourceData, me
 	locks.MultipleByName(vnetsToLock, VirtualNetworkResourceName)
 	defer locks.UnlockMultipleByName(vnetsToLock, VirtualNetworkResourceName)
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
-			}
-		}
-
+	existing, err := client.Get(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_network_ddos_protection_plan", id.ID())
+			return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 		}
+	}
+
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_network_ddos_protection_plan", id.ID())
 	}
 
 	payload := ddosprotectionplans.DdosProtectionPlan{
@@ -105,7 +103,54 @@ func resourceNetworkDDoSProtectionPlanCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
-		return fmt.Errorf("creating/updating %s: %+v", id, err)
+		return fmt.Errorf("creating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+
+	return resourceNetworkDDoSProtectionPlanRead(d, meta)
+}
+
+func resourceNetworkDDoSProtectionPlanUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.DdosProtectionPlans
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	vnetsToLock, err := expandNetworkDDoSProtectionPlanVnetNames(d.Get("virtual_network_ids").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("extracting names of Virtual Network: %+v", err)
+	}
+
+	id, err := ddosprotectionplans.ParseDdosProtectionPlanID(d.Id())
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	locks.ByName(id.DdosProtectionPlanName, ddosProtectionPlanResourceName)
+	defer locks.UnlockByName(id.DdosProtectionPlanName, ddosProtectionPlanResourceName)
+	locks.MultipleByName(vnetsToLock, VirtualNetworkResourceName)
+	defer locks.UnlockMultipleByName(vnetsToLock, VirtualNetworkResourceName)
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())

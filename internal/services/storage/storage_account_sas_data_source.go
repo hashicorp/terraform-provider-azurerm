@@ -17,12 +17,12 @@ import (
 const (
 	connStringAccountKeyKey  = "AccountKey"
 	connStringAccountNameKey = "AccountName"
-	sasSignedVersion         = "2017-07-29"
 )
 
 // This is an ACCOUNT SAS : https://docs.microsoft.com/en-us/rest/api/storageservices/Constructing-an-Account-SAS
 // not Service SAS
 func dataSourceStorageAccountSharedAccessSignature() *pluginsdk.Resource {
+	const sasSignedVersion = "2022-11-02"
 	return &pluginsdk.Resource{
 		Read: dataSourceStorageAccountSasRead,
 

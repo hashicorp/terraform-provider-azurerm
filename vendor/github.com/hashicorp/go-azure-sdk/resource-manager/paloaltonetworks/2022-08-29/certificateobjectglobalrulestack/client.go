@@ -15,7 +15,7 @@ type CertificateObjectGlobalRulestackClient struct {
 }
 
 func NewCertificateObjectGlobalRulestackClientWithBaseURI(sdkApi sdkEnv.Api) (*CertificateObjectGlobalRulestackClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "certificateobjectglobalrulestack", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "certificateobjectglobalrulestack", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating CertificateObjectGlobalRulestackClient: %+v", err)
 	}

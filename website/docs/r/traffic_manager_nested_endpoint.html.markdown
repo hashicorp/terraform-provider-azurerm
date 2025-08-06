@@ -84,7 +84,7 @@ The following arguments are supported:
 
 * `minimum_child_endpoints` - (Required) This argument specifies the minimum number of endpoints that must be ‘online’ in the child profile in order for the parent profile to direct traffic to any of the endpoints in that child profile. This value must be larger than `0`.
 
-~>**NOTE:** If `min_child_endpoints` is less than either `minimum_required_child_endpoints_ipv4` or `minimum_required_child_endpoints_ipv6`, then it won't have any effect.
+~> **Note:** If `min_child_endpoints` is less than either `minimum_required_child_endpoints_ipv4` or `minimum_required_child_endpoints_ipv6`, then it won't have any effect.
 
 * `name` - (Required) The name of the External Endpoint. Changing this forces a new resource to be created.
 
@@ -92,7 +92,7 @@ The following arguments are supported:
 
 * `target_resource_id` - (Required) The resource id of an Azure resource to target.
 
-* `weight` - (Optional) Specifies how much traffic should be distributed to this endpoint, this must be specified for Profiles using the Weighted traffic routing method. Valid values are between `1` and `1000`.
+* `weight` - (Optional) Specifies how much traffic should be distributed to this endpoint, this must be specified for Profiles using the Weighted traffic routing method. Valid values are between `1` and `1000`. Defaults to `1`.
 
 ---
 
@@ -141,8 +141,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Nested Endpoint.
-* `update` - (Defaults to 30 minutes) Used when updating the Nested Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Nested Endpoint.
+* `update` - (Defaults to 30 minutes) Used when updating the Nested Endpoint.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Nested Endpoint.
 
 ## Import
@@ -152,3 +152,9 @@ Nested Endpoints can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_traffic_manager_nested_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.Network/trafficManagerProfiles/example-profile/NestedEndpoints/example-endpoint
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2022-04-01

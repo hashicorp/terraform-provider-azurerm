@@ -27,7 +27,6 @@ func TestSqlPoolWorkloadClassifierID(t *testing.T) {
 		Error    bool
 		Expected *SqlPoolWorkloadClassifierId
 	}{
-
 		{
 			// empty
 			Input: "",

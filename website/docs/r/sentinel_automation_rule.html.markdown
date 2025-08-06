@@ -65,12 +65,7 @@ The following arguments are supported:
 
 ~> **Note:** Either one `action_incident` block or `action_playbook` block has to be specified.
 
-* `condition` - (Optional / **Deprecated** ) One or more `condition` blocks as defined below.
-
-~> **Note:** `condition` only supports the [`Property` condition type](https://learn.microsoft.com/en-us/rest/api/securityinsights/preview/automation-rules/create-or-update?tabs=HTTP#propertyconditionproperties). Please use `condition_json` if you want other condition types.
-
 * `condition_json` - (Optional) A JSON array of one or more condition JSON objects as is defined [here](https://learn.microsoft.com/en-us/rest/api/securityinsights/preview/automation-rules/create-or-update?tabs=HTTP#automationruletriggeringlogic).
-
 
 * `enabled` - (Optional) Whether this Sentinel Automation Rule is enabled? Defaults to `true`.
 
@@ -90,11 +85,11 @@ A `action_incident` block supports the following:
   
 * `classification` - (Optional) The classification of the incident, when closing it. Possible values are: `BenignPositive_SuspiciousButExpected`, `FalsePositive_InaccurateData`, `FalsePositive_IncorrectAlertLogic`, `TruePositive_SuspiciousActivity` and `Undetermined`.
   
-  ~> **Note:** The `classification` is required when `status` is `Closed`.
+~> **Note:** The `classification` is required when `status` is `Closed`.
 
 * `classification_comment` - (Optional) The comment why the incident is to be closed.
 
-  ~> **Note:** The `classification_comment` is allowed to set only when `status` is `Closed`.
+~> **Note:** The `classification_comment` is allowed to set only when `status` is `Closed`.
 
 * `labels` - (Optional) Specifies a list of labels to add to the incident.
 
@@ -102,7 +97,7 @@ A `action_incident` block supports the following:
 
 * `severity` - (Optional) The severity to add to the incident. Possible values are `High`, `Informational`, `Low` and `Medium`.
 
-~> **Note:**: At least one of `status`, `labels`, `owner_id` and `severity` has to be set.
+~> **Note:** At least one of `status`, `labels`, `owner_id` and `severity` has to be set.
 
 ---
 
@@ -113,16 +108,6 @@ A `action_playbook` block supports the following:
 * `order` - (Required) The execution order of this action.
 
 * `tenant_id` - (Optional) The ID of the Tenant that owns the playbook.
-
----
-
-A `condition` block supports the following:
-
-* `operator` - (Required) The operator to use for evaluate the condition. Possible values include: `Equals`, `NotEquals`, `Contains`, `NotContains`, `StartsWith`, `NotStartsWith`, `EndsWith`, `NotEndsWith`.
-
-* `property` - (Required) The property to use for evaluate the condition. Possible values are `AccountAadTenantId`, `AccountAadUserId`, `AccountNTDomain`, `AccountName`, `AccountObjectGuid`, `AccountPUID`, `AccountSid`, `AccountUPNSuffix`, `AlertAnalyticRuleIds`, `AlertProductNames`, `AzureResourceResourceId`, `AzureResourceSubscriptionId`, `CloudApplicationAppId`, `CloudApplicationAppName`, `DNSDomainName`, `FileDirectory`, `FileHashValue`, `FileName`, `HostAzureID`, `HostNTDomain`, `HostName`, `HostNetBiosName`, `HostOSVersion`, `IPAddress`, `IncidentCustomDetailsKey`, `IncidentCustomDetailsValue`, `IncidentDescription`, `IncidentLabel`, `IncidentProviderName`, `IncidentRelatedAnalyticRuleIds`, `IncidentSeverity`, `IncidentStatus`, `IncidentTactics`, `IncidentTitle`, `IncidentUpdatedBySource`, `IoTDeviceId`, `IoTDeviceModel`, `IoTDeviceName`, `IoTDeviceOperatingSystem`, `IoTDeviceType`, `IoTDeviceVendor`, `MailMessageDeliveryAction`, `MailMessageDeliveryLocation`, `MailMessageP1Sender`, `MailMessageP2Sender`, `MailMessageRecipient`, `MailMessageSenderIP`, `MailMessageSubject`, `MailboxDisplayName`, `MailboxPrimaryAddress`, `MailboxUPN`, `MalwareCategory`, `MalwareName`, `ProcessCommandLine`, `ProcessId`, `RegistryKey`, `RegistryValueData` and `Url`.
-
-* `values` - (Required) Specifies a list of values to use for evaluate the condition.
 
 ## Attributes Reference
 
@@ -146,3 +131,9 @@ Sentinel Automation Rules can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_sentinel_automation_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.OperationalInsights/workspaces/workspace1/providers/Microsoft.SecurityInsights/automationRules/rule1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.OperationalInsights` - 2024-09-01

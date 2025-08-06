@@ -27,7 +27,6 @@ func TestSpringCloudAPIPortalID(t *testing.T) {
 		Error    bool
 		Expected *SpringCloudAPIPortalId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -136,7 +135,6 @@ func TestSpringCloudAPIPortalIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *SpringCloudAPIPortalId
 	}{
-
 		{
 			// empty
 			Input: "",

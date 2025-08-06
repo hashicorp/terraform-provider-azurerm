@@ -15,7 +15,7 @@ type PacketCoreDataPlaneClient struct {
 }
 
 func NewPacketCoreDataPlaneClientWithBaseURI(sdkApi sdkEnv.Api) (*PacketCoreDataPlaneClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "packetcoredataplane", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "packetcoredataplane", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PacketCoreDataPlaneClient: %+v", err)
 	}

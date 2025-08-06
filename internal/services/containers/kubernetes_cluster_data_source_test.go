@@ -102,8 +102,6 @@ func TestAccDataSourceKubernetesCluster_roleBasedAccessControlAAD(t *testing.T) 
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("role_based_access_control_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.#").HasValue("1"),
-				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.0.client_app_id").Exists(),
-				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.0.server_app_id").Exists(),
 				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.0.tenant_id").Exists(),
 				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("1"),
 				check.That(data.ResourceName).Key("kube_admin_config_raw").Exists(),
@@ -123,7 +121,6 @@ func TestAccDataSourceKubernetesCluster_localAccountDisabled(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("role_based_access_control_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.#").HasValue("1"),
-				check.That(data.ResourceName).Key("azure_active_directory_role_based_access_control.0.managed").HasValue("true"),
 				check.That(data.ResourceName).Key("kube_config.#").HasValue("1"),
 				check.That(data.ResourceName).Key("kube_config_raw").Exists(),
 				check.That(data.ResourceName).Key("kube_admin_config.#").HasValue("0"),
@@ -459,7 +456,7 @@ func TestAccDataSourceKubernetesCluster_autoscalingNoAvailabilityZones(t *testin
 				check.That(data.ResourceName).Key("agent_pool_profile.0.min_count").HasValue("1"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.max_count").HasValue("2"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.type").HasValue("VirtualMachineScaleSets"),
-				check.That(data.ResourceName).Key("agent_pool_profile.0.enable_auto_scaling").HasValue("true"),
+				check.That(data.ResourceName).Key("agent_pool_profile.0.auto_scaling_enabled").HasValue("true"),
 			),
 		},
 	})
@@ -476,7 +473,7 @@ func TestAccDataSourceKubernetesCluster_autoscalingWithAvailabilityZones(t *test
 				check.That(data.ResourceName).Key("agent_pool_profile.0.min_count").HasValue("1"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.max_count").HasValue("2"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.type").HasValue("VirtualMachineScaleSets"),
-				check.That(data.ResourceName).Key("agent_pool_profile.0.enable_auto_scaling").HasValue("true"),
+				check.That(data.ResourceName).Key("agent_pool_profile.0.auto_scaling_enabled").HasValue("true"),
 			),
 		},
 	})
@@ -505,7 +502,7 @@ func TestAccDataSourceKubernetesCluster_nodePublicIP(t *testing.T) {
 		{
 			Config: r.nodePublicIPConfig(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("agent_pool_profile.0.enable_node_public_ip").HasValue("true"),
+				check.That(data.ResourceName).Key("agent_pool_profile.0.node_public_ip_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("agent_pool_profile.0.node_public_ip_prefix_id").Exists(),
 			),
 		},
@@ -556,26 +553,6 @@ func TestAccDataSourceKubernetesCluster_microsoftDefender(t *testing.T) {
 	})
 }
 
-func TestAccDataSourceKubernetesCluster_customCaTrustCerts(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
-	r := KubernetesClusterDataSource{}
-
-	fakeCertList := []string{
-		"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURjRENDQWxpZ0F3SUJBZ0lFU1QwSUhEQU5CZ2txaGtpRzl3MEJBUXNGQURCUk1Rc3dDUVlEVlFRR0V3SlEKVERFTk1Bc0dBMVVFQXd3RVZHVnpkREVWTUJNR0ExVUVCd3dNUkdWbVlYVnNkQ0JEYVhSNU1Sd3dHZ1lEVlFRSwpEQk5FWldaaGRXeDBJRU52YlhCaGJua2dUSFJrTUI0WERUSXpNRFV5T0RFeE1qY3dNMW9YRFRNek1EVXlOVEV4Ck1qY3dNMW93VVRFTE1Ba0dBMVVFQmhNQ1VFd3hEVEFMQmdOVkJBTU1CRlJsYzNReEZUQVRCZ05WQkFjTURFUmwKWm1GMWJIUWdRMmwwZVRFY01Cb0dBMVVFQ2d3VFJHVm1ZWFZzZENCRGIyMXdZVzU1SUV4MFpEQ0NBU0l3RFFZSgpLb1pJaHZjTkFRRUJCUUFEZ2dFUEFEQ0NBUW9DZ2dFQkFLN2JIYWtxSkdRMWVBOUFHUmlhNGl2anNDRXlGMDhDCjNpSzJZeWthNkREeldmTk1tRWpOUjJiQVZOMEhlLy9pWTd1VjJ2dXl6V1UxMzZGVkdMZkdyeTZGOHNQQUZaSzYKSE4vcWk1QVp6MUpoOGdWSTRwS1pjZEFxQS81clF3VVlvWVN3Q245dGVOYytsbU1ZUk5OcTVwdlV2NjcrNEM3MgpPc3BOSUxSclhBbWNUb1YveVRZVzFKWDBOeEJJSHZZaFZXUE9LQXpRZDQ5UEpSeFpqMUgydCszMEFsazgzTDFwClFzTGx2SzV3MjJpeXdkYVpRN1lmV0xXd1hPQzVPWXdRTUw1R3BHUFNQaEdxdjhqSUhpcHBVeTdrRDlNWFFZOFoKdDl2QkczMzVWSEdlUjI2QnNQQXRFbTJjR05ocjA5cmRvdWJGd2tDR05OYXNVamFoVW9CKzhPY0NBd0VBQWFOUQpNRTR3SFFZRFZSME9CQllFRk9CNmNpTGtUL21Cc2xXSm5Na2phQzZqbjd4ek1COEdBMVVkSXdRWU1CYUFGT0I2CmNpTGtUL21Cc2xXSm5Na2phQzZqbjd4ek1Bd0dBMVVkRXdRRk1BTUJBZjh3RFFZSktvWklodmNOQVFFTEJRQUQKZ2dFQkFKTklHdHJpeFlCRUc1Yy9iQWdOMHlMOEJvOW9nN29ha0hVMUc5TjBxOUNWWXhjOVhma2ZUaEhYOVBUeApMbVNGcHJEQlAyYnVGTzVIUDFpbnNFT1E2N1lGanAvRjVJWGdaQ2twZUpGdDBTL0R3N2ZRbFJJN2RCNGQzNmIzCmE1R2txU0M4aFlZemxLUm9DRGNhalp4QmdoVUFxK0tnTnV4RmNsM1Fnd1Uyam1QbkU4a1A4TmgyM3hlVUJ3WEkKL3pqbU1rdjV4SFhKdHBpdlpzTlpSSUttQW56RU9TWGlRK2JMTStTdlhtSkhYd29YYTZyTXg4YmkySzV4WkhIRwpkUHA1TnQ3L2dxOUdXcm95SkVjSFpEclBiSnR2WGFibTZYUXpxTTFYUzA3SDlaSFBXc0dENGlBM1k0T3JUUlRCClZ5blRPUDl5U3cwbklaVEk4YjZuR2RHTzBOOD0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQ==",
-		"LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURmakNDQW1hZ0F3SUJBZ0lFZnlWdk56QU5CZ2txaGtpRzl3MEJBUXNGQURCWU1Rc3dDUVlEVlFRR0V3SlEKVERFVU1CSUdBMVVFQXd3TFJtRnJaU0JEWlhKMElESXhGVEFUQmdOVkJBY01ERVJsWm1GMWJIUWdRMmwwZVRFYwpNQm9HQTFVRUNnd1RSR1ZtWVhWc2RDQkRiMjF3WVc1NUlFeDBaREFlRncweU16QTJNRFF3TnpJME1qZGFGdzB5Ck5UQTJNRE13TnpJME1qZGFNRmd4Q3pBSkJnTlZCQVlUQWxCTU1SUXdFZ1lEVlFRRERBdEdZV3RsSUVObGNuUWcKTWpFVk1CTUdBMVVFQnd3TVJHVm1ZWFZzZENCRGFYUjVNUnd3R2dZRFZRUUtEQk5FWldaaGRXeDBJRU52YlhCaApibmtnVEhSa01JSUJJakFOQmdrcWhraUc5dzBCQVFFRkFBT0NBUThBTUlJQkNnS0NBUUVBMENTdVdUaGNjSG5MCkhFdjk4SUVNc2JLY3h4YVh4YTZiRXl1Yy9sUjRackpVN2p6eVlWNGVscTV5WTgwdDFCM0MyV3E2SXFoajErSGYKYW0xaStsU1FTejM1eWNnTWlwSWp2cUxKOVIzMVF0Wi9TRURkdGV2b2JqbytEa1dCOE55cG9Ia0pVbEIyQnR6ZgpOK09KeVFSdXU1b1cya2c5OE5Bd3JuTGpmQ0lremVWcFh5d0l4Tkx2ZmFrVGxpNWpYdG9WWG5pOTU5bmtINWVwClkrRnVoSEQwaU5CS25XYVkxR2QwVGhhSHNwTERmNFUycmo2WE5SZHd6QVZoVkdhUm02cndvSHRZeDVrYys1ZWMKQ0F4UEdRWFRzTzJUTHVrQzJ2YXI0M3RUM0ZjSC9taDRST2JaaThZS2xSQ3Fldm1QU1RmZ293RUFkTjlvSmxyRApXN2lzN2NnQjhRSURBUUFCbzFBd1RqQWRCZ05WSFE0RUZnUVVuRkRqN0pBQW9WZ2NzQkgyNzdMOHZlM0Q4U293Ckh3WURWUjBqQkJnd0ZvQVVuRkRqN0pBQW9WZ2NzQkgyNzdMOHZlM0Q4U293REFZRFZSMFRCQVV3QXdFQi96QU4KQmdrcWhraUc5dzBCQVFzRkFBT0NBUUVBT0diT0Zyek4rN2YxbzhJSDNtMXZxT3IyTUtvNEZMWExGRjBVbEhkNApwZXRhL05aQjArUmQ3TnUrOCtnUnlUbEJWZU9EZjN5SXU0TlFCUU92MlNqdS9Jakd0MUtmaUF3WkUwT1RUQXc3CnhIWStsMVBJWEFFVWNqNk00cjFKQzc4ZVZrc2pycTZoV1RPZ0RrSVZuRjY3bXlReXduR25EY1k0d0Fqc2pUajgKKzR4NTIrRi9QaVNQVGtjUFNuN0s2UjQzaEt5QUs2Z0poOHE5cVNhME5RQ2U2czhwTGU2SVY5SElWVVFFVERVOQpsM1VWWHNBMGx4dlB0blU1TXo2QWQ5cDA5L2w4d3o0cUdBdGFCUEd3K0R2cTNlaHdTd2VZZ3VHSktDQjhjb01JCjJRVUo0Zi9mNkFNVWtMeWxYZ3RSUEt1QjA3d3YwTmk1eWI5MjlFY1FJQ0l2dFE9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0t",
-	}
-
-	data.DataSourceTest(t, []acceptance.TestStep{
-		{
-			Config: r.customCaTrustCertificates(data, fakeCertList),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("custom_ca_trust_certificates_base64.0").Exists(),
-				check.That(data.ResourceName).Key("custom_ca_trust_certificates_base64.1").Exists(),
-			),
-		},
-	})
-}
-
 func TestAccDataSourceKubernetesCluster_serviceMesh(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterDataSource{}
@@ -587,6 +564,87 @@ func TestAccDataSourceKubernetesCluster_serviceMesh(t *testing.T) {
 				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
 				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("true"),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceKubernetesCluster_serviceMeshCertificateAuthority(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.serviceMeshCertificateAuthority(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.certificate_authority.0.key_vault_id").Exists(),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.certificate_authority.0.root_cert_object_name").Exists(),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.certificate_authority.0.cert_chain_object_name").Exists(),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.certificate_authority.0.cert_object_name").Exists(),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.certificate_authority.0.key_object_name").Exists(),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceKubernetesCluster_serviceMeshRevisions(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			// create a cluster with an istio revision with revision currently at asm-1-20
+			Config: r.serviceMeshRevisions(data, `["asm-1-20"]`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-20"),
+			),
+		},
+		{
+			// start istio revision canary upgrade to asm-1-21
+			Config: r.serviceMeshRevisions(data, `["asm-1-20", "asm-1-21"]`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-20"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.1").HasValue("asm-1-21"),
+			),
+		},
+		{
+			// rollback the istio revision back to asm-1-20
+			Config: r.serviceMeshRevisions(data, `["asm-1-20"]`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-20"),
+			),
+		},
+		{
+			// start istio revision canary upgrade to asm-1-21
+			Config: r.serviceMeshRevisions(data, `["asm-1-20", "asm-1-21"]`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-20"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.1").HasValue("asm-1-21"),
+			),
+		},
+		{
+			// complete the istio revision upgrade to asm-1-21
+			Config: r.serviceMeshRevisions(data, `["asm-1-21"]`),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("service_mesh_profile.0.mode").HasValue("Istio"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.internal_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.external_ingress_gateway_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("service_mesh_profile.0.revisions.0").HasValue("asm-1-21"),
 			),
 		},
 	})
@@ -710,7 +768,7 @@ data "azurerm_kubernetes_cluster" "test" {
   name                = azurerm_kubernetes_cluster.test.name
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
-`, KubernetesClusterResource{}.advancedNetworkingCompleteConfig(data, "azure", true))
+`, KubernetesClusterResource{}.advancedNetworkingCompleteConfig(data, "azure"))
 }
 
 func (KubernetesClusterDataSource) advancedNetworkingAzureCalicoPolicyCompleteConfig(data acceptance.TestData) string {
@@ -754,7 +812,7 @@ data "azurerm_kubernetes_cluster" "test" {
   name                = azurerm_kubernetes_cluster.test.name
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
-`, KubernetesClusterResource{}.advancedNetworkingCompleteConfig(data, "kubenet", true))
+`, KubernetesClusterResource{}.advancedNetworkingCompleteConfig(data, "kubenet"))
 }
 
 func (KubernetesClusterDataSource) addOnProfileOMSConfig(data acceptance.TestData) string {
@@ -909,16 +967,6 @@ data "azurerm_kubernetes_cluster" "test" {
 `, KubernetesClusterResource{}.microsoftDefender(data))
 }
 
-func (KubernetesClusterDataSource) customCaTrustCertificates(data acceptance.TestData, fakeCertsList []string) string {
-	return fmt.Sprintf(`
-%s
-data "azurerm_kubernetes_cluster" "test" {
-  name                = azurerm_kubernetes_cluster.test.name
-  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
-}
-`, KubernetesClusterResource{}.customCATrustCertificates(data, fakeCertsList))
-}
-
 func (KubernetesClusterDataSource) serviceMesh(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -927,4 +975,24 @@ data "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, KubernetesClusterResource{}.serviceMeshProfile(data, true, true))
+}
+
+func (s KubernetesClusterDataSource) serviceMeshCertificateAuthority(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.addonProfileServiceMeshProfileCertificateAuthorityConfig(data))
+}
+
+func (KubernetesClusterDataSource) serviceMeshRevisions(data acceptance.TestData, revisions string) string {
+	return fmt.Sprintf(`
+%s
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.addonProfileServiceMeshProfileRevisionsConfig(data, revisions))
 }

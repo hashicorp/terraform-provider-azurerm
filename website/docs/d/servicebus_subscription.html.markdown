@@ -27,21 +27,13 @@ output "servicebus_subscription" {
 
 * `name` - (Required) Specifies the name of the ServiceBus Subscription.
 
-* `resource_group_name` - (Required) Specifies the name of the Resource Group where the ServiceBus Namespace exists.
-
-* `namespace_name` - (Required) The name of the ServiceBus Namespace.
-
-* `topic_name` - (Required) The name of the ServiceBus Topic.
-
-~> **Note:** `namespace_name`，`resource_group_name` and `topic_name` has been deprecated and will be removed in version 4.0 of the provider in favour of `topic_id`.
-
 * `topic_id` - (Required) The ID of the ServiceBus Topic where the Service Bus Subscription exists.
 
 ## Attributes Reference
 
 * `max_delivery_count` - The maximum number of deliveries.
 
-* `auto_delete_on_idle` - The idle interval after which the topic is automatically deleted.
+* `auto_delete_on_idle` - The idle interval after which the Subscription is automatically deleted.
 
 * `default_message_ttl` - The Default message timespan to live. This is the duration after which the message expires, starting from when the message is sent to Service Bus. This is the default value used when TimeToLive is not set on a message itself.
 
@@ -51,9 +43,9 @@ output "servicebus_subscription" {
 
 * `dead_lettering_on_filter_evaluation_error` - Does the ServiceBus Subscription have dead letter support on filter evaluation exceptions?
 
-* `enable_batched_operations` - Are batched operations enabled on this ServiceBus Subscription?
+* `batched_operations_enabled` - Whether batched operations are enabled.
 
-* `requires_session` - Whether or not this ServiceBus Subscription supports session.
+* `requires_session` - Whether this ServiceBus Subscription supports session.
 
 * `forward_to` - The name of a ServiceBus Queue or ServiceBus Topic where messages are automatically forwarded.
 
@@ -76,3 +68,9 @@ output "servicebus_subscription" {
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Subscription.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.ServiceBus` - 2024-01-01

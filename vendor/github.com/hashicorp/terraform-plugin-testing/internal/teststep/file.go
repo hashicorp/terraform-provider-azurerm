@@ -12,7 +12,8 @@ import (
 var _ Config = configurationFile{}
 
 type configurationFile struct {
-	file string
+	file           string
+	appendedConfig string
 }
 
 // HasConfigurationFiles is used during validation to ensure that
@@ -84,11 +85,24 @@ func (c configurationFile) Write(ctx context.Context, dest string) error {
 		configFile = filepath.Join(pwd, configFile)
 	}
 
-	err := copyFile(configFile, dest)
-
+	destPath, err := copyFile(configFile, dest)
 	if err != nil {
 		return err
 	}
 
+	if len(c.appendedConfig) > 0 {
+		err := appendToFile(destPath, c.appendedConfig)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
+}
+
+func (c configurationFile) Append(config string) Config {
+	return configurationFile{
+		file:           c.file,
+		appendedConfig: config,
+	}
 }

@@ -15,7 +15,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 	// NOTE: if there's only one nested field these want to be Required (since there's no point
 	//       specifying the block otherwise) - however for 2+ they should be optional
 	featuresMap := map[string]*pluginsdk.Schema{
-		//lintignore:XS003
+		// lintignore:XS003
 		"api_management": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -129,6 +129,13 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Default:     true,
 					},
 
+					"purge_soft_deleted_hardware_security_module_keys_on_destroy": {
+						Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module_key` resources will be permanently deleted (e.g purged), when destroyed",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
+					},
+
 					"recover_soft_deleted_certificates": {
 						Description: "When enabled soft-deleted `azurerm_key_vault_certificate` resources will be restored, instead of creating new ones",
 						Type:        pluginsdk.TypeBool,
@@ -156,6 +163,13 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Optional:    true,
 						Default:     true,
 					},
+
+					"recover_soft_deleted_hardware_security_module_keys": {
+						Description: "When enabled soft-deleted `azurerm_key_vault_managed_hardware_security_module_key` resources will be restored, instead of creating new ones",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
+					},
 				},
 			},
 		},
@@ -169,7 +183,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 					"permanently_delete_on_destroy": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Default:  !features.FourPointOhBeta(),
+						Default:  false,
 					},
 				},
 			},
@@ -189,19 +203,19 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			},
 		},
 
-		//lintignore:XS003
+		// lintignore:XS003
 		"virtual_machine": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"delete_os_disk_on_deletion": {
+					"detach_implicit_data_disk_on_deletion": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
 					},
-					"graceful_shutdown": {
+					"delete_os_disk_on_deletion": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
@@ -260,6 +274,21 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			},
 		},
 
+		"recovery_services_vaults": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"recover_soft_deleted_backup_protected_vm": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		},
+
 		"managed_disk": {
 			Type:     pluginsdk.TypeList,
 			Optional: true,
@@ -267,6 +296,21 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"expand_without_downtime": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  true,
+					},
+				},
+			},
+		},
+
+		"storage": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*schema.Schema{
+					"data_plane_available": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  true,
@@ -304,6 +348,20 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 				},
 			},
 		},
+		"machine_learning": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"purge_soft_deleted_workspace_on_destroy": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
+					},
+				},
+			},
+		},
 
 		"recovery_service": {
 			Type:     pluginsdk.TypeList,
@@ -312,9 +370,16 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"vm_backup_stop_protection_and_retain_data_on_destroy": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
+						Type:         pluginsdk.TypeBool,
+						Optional:     true,
+						Default:      false,
+						ExactlyOneOf: []string{"features.0.recovery_service.0.vm_backup_stop_protection_and_retain_data_on_destroy", "features.0.recovery_service.0.vm_backup_suspend_protection_and_retain_data_on_destroy"},
+					},
+					"vm_backup_suspend_protection_and_retain_data_on_destroy": {
+						Type:         pluginsdk.TypeBool,
+						Optional:     true,
+						Default:      false,
+						ExactlyOneOf: []string{"features.0.recovery_service.0.vm_backup_stop_protection_and_retain_data_on_destroy", "features.0.recovery_service.0.vm_backup_suspend_protection_and_retain_data_on_destroy"},
 					},
 					"purge_protected_items_from_vault_on_destroy": {
 						Type:     pluginsdk.TypeBool,
@@ -324,6 +389,53 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 				},
 			},
 		},
+
+		"netapp": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"delete_backups_on_backup_vault_destroy": {
+						Description: "When enabled, backups will be deleted when the `azurerm_netapp_backup_vault` resource is destroyed",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
+					},
+					"prevent_volume_destruction": {
+						Description: "When enabled, the volume will not be destroyed, safeguarding from severe data loss",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     true,
+					},
+				},
+			},
+		},
+
+		"databricks_workspace": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			MaxItems: 1,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"force_delete": {
+						Description: "When enabled, the managed resource group that contains the Unity Catalog data will be forcibly deleted when the workspace is destroyed, regardless of contents.",
+						Type:        pluginsdk.TypeBool,
+						Optional:    true,
+						Default:     false,
+					},
+				},
+			},
+		},
+	}
+
+	if !features.FivePointOh() {
+		featuresMap["virtual_machine"].Elem.(*pluginsdk.Resource).Schema["graceful_shutdown"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Default:    false,
+			Deprecated: "'graceful_shutdown' has been deprecated and will be removed from v5.0 of the AzureRM provider.",
+		}
 	}
 
 	// this is a temporary hack to enable us to gradually add provider blocks to test configurations
@@ -332,6 +444,8 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 		return &pluginsdk.Schema{
 			Type:     pluginsdk.TypeList,
 			Optional: true,
+			MaxItems: 1,
+			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: featuresMap,
 			},
@@ -424,6 +538,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			if v, ok := keyVaultRaw["purge_soft_deleted_hardware_security_modules_on_destroy"]; ok {
 				featuresMap.KeyVault.PurgeSoftDeletedHSMsOnDestroy = v.(bool)
 			}
+			if v, ok := keyVaultRaw["purge_soft_deleted_hardware_security_module_keys_on_destroy"]; ok {
+				featuresMap.KeyVault.PurgeSoftDeletedHSMKeysOnDestroy = v.(bool)
+			}
 			if v, ok := keyVaultRaw["recover_soft_deleted_certificates"]; ok {
 				featuresMap.KeyVault.RecoverSoftDeletedCerts = v.(bool)
 			}
@@ -435,6 +552,9 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			}
 			if v, ok := keyVaultRaw["recover_soft_deleted_secrets"]; ok {
 				featuresMap.KeyVault.RecoverSoftDeletedSecrets = v.(bool)
+			}
+			if v, ok := keyVaultRaw["recover_soft_deleted_hardware_security_module_keys"]; ok {
+				featuresMap.KeyVault.RecoverSoftDeletedHSMKeys = v.(bool)
 			}
 		}
 	}
@@ -463,11 +583,11 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		items := raw.([]interface{})
 		if len(items) > 0 && items[0] != nil {
 			virtualMachinesRaw := items[0].(map[string]interface{})
+			if v, ok := virtualMachinesRaw["detach_implicit_data_disk_on_deletion"]; ok {
+				featuresMap.VirtualMachine.DetachImplicitDataDiskOnDeletion = v.(bool)
+			}
 			if v, ok := virtualMachinesRaw["delete_os_disk_on_deletion"]; ok {
 				featuresMap.VirtualMachine.DeleteOSDiskOnDeletion = v.(bool)
-			}
-			if v, ok := virtualMachinesRaw["graceful_shutdown"]; ok {
-				featuresMap.VirtualMachine.GracefulShutdown = v.(bool)
 			}
 			if v, ok := virtualMachinesRaw["skip_shutdown_and_force_delete"]; ok {
 				featuresMap.VirtualMachine.SkipShutdownAndForceDelete = v.(bool)
@@ -504,12 +624,31 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		}
 	}
 
+	if raw, ok := val["recovery_services_vaults"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 && items[0] != nil {
+			appConfRaw := items[0].(map[string]interface{})
+			if v, ok := appConfRaw["recover_soft_deleted_backup_protected_vm"]; ok {
+				featuresMap.RecoveryServicesVault.RecoverSoftDeletedBackupProtectedVM = v.(bool)
+			}
+		}
+	}
+
 	if raw, ok := val["managed_disk"]; ok {
 		items := raw.([]interface{})
 		if len(items) > 0 {
 			managedDiskRaw := items[0].(map[string]interface{})
 			if v, ok := managedDiskRaw["expand_without_downtime"]; ok {
 				featuresMap.ManagedDisk.ExpandWithoutDowntime = v.(bool)
+			}
+		}
+	}
+	if raw, ok := val["storage"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			storageRaw := items[0].(map[string]interface{})
+			if v, ok := storageRaw["data_plane_available"]; ok {
+				featuresMap.Storage.DataPlaneAvailable = v.(bool)
 			}
 		}
 	}
@@ -534,6 +673,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 		}
 	}
 
+	if raw, ok := val["machine_learning"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			subscriptionRaw := items[0].(map[string]interface{})
+			if v, ok := subscriptionRaw["purge_soft_deleted_workspace_on_destroy"]; ok {
+				featuresMap.MachineLearning.PurgeSoftDeletedWorkspaceOnDestroy = v.(bool)
+			}
+		}
+	}
+
 	if raw, ok := val["recovery_service"]; ok {
 		items := raw.([]interface{})
 		if len(items) > 0 {
@@ -541,8 +690,34 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			if v, ok := recoveryServicesRaw["vm_backup_stop_protection_and_retain_data_on_destroy"]; ok {
 				featuresMap.RecoveryService.VMBackupStopProtectionAndRetainDataOnDestroy = v.(bool)
 			}
+			if v, ok := recoveryServicesRaw["vm_backup_suspend_protection_and_retain_data_on_destroy"]; ok {
+				featuresMap.RecoveryService.VMBackupSuspendProtectionAndRetainDataOnDestroy = v.(bool)
+			}
 			if v, ok := recoveryServicesRaw["purge_protected_items_from_vault_on_destroy"]; ok {
 				featuresMap.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["netapp"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			netappRaw := items[0].(map[string]interface{})
+			if v, ok := netappRaw["delete_backups_on_backup_vault_destroy"]; ok {
+				featuresMap.NetApp.DeleteBackupsOnBackupVaultDestroy = v.(bool)
+			}
+			if v, ok := netappRaw["prevent_volume_destruction"]; ok {
+				featuresMap.NetApp.PreventVolumeDestruction = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["databricks_workspace"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			databricksRaw := items[0].(map[string]interface{})
+			if v, ok := databricksRaw["force_delete"]; ok {
+				featuresMap.DatabricksWorkspace.ForceDelete = v.(bool)
 			}
 		}
 	}

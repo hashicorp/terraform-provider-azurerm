@@ -138,6 +138,10 @@ func TestAzureRMApiManagementApiPath_validation(t *testing.T) {
 			ErrCount: 0,
 		},
 		{
+			Value:    "a",
+			ErrCount: 0,
+		},
+		{
 			Value:    s.Repeat("x", 401),
 			ErrCount: 1,
 		},

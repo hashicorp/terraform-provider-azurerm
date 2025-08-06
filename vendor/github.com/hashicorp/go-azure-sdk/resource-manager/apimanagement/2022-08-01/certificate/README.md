@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/certificate` Documentation
 
-The `certificate` SDK allows for interaction with the Azure Resource Manager Service `apimanagement` (API Version `2022-08-01`).
+The `certificate` SDK allows for interaction with Azure Resource Manager `apimanagement` (API Version `2022-08-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "certificateIdValue")
+id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "certificateId")
 
 payload := certificate.CertificateCreateOrUpdateParameters{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "certificateIdValue")
+id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "certificateId")
 
 read, err := client.Delete(ctx, id, certificate.DefaultDeleteOperationOptions())
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "certificateIdValue")
+id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "certificateId")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "certificateIdValue")
+id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "certificateId")
 
 read, err := client.GetEntityTag(ctx, id)
 if err != nil {
@@ -93,7 +93,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := certificate.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue")
+id := certificate.NewServiceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName")
 
 // alternatively `client.ListByService(ctx, id, certificate.DefaultListByServiceOperationOptions())` can be used to do batched pagination
 items, err := client.ListByServiceComplete(ctx, id, certificate.DefaultListByServiceOperationOptions())
@@ -110,7 +110,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceValue", "certificateIdValue")
+id := certificate.NewCertificateID("12345678-1234-9876-4563-123456789012", "example-resource-group", "serviceName", "certificateId")
 
 read, err := client.RefreshSecret(ctx, id)
 if err != nil {

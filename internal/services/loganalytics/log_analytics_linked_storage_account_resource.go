@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -58,13 +57,12 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 					string(linkedstorageaccounts.DataSourceTypeQuery),
 					string(linkedstorageaccounts.DataSourceTypeAlerts),
 					string(linkedstorageaccounts.DataSourceTypeIngestion),
-				}, !features.FourPointOhBeta()),
+				}, false),
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
-			// TODO: rename to `workspace_id` in 4.0
-			"workspace_resource_id": {
+			"workspace_id": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
@@ -83,8 +81,23 @@ func resourceLogAnalyticsLinkedStorageAccount() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FourPointOh() {
-		resource.Schema["data_source_type"].DiffSuppressFunc = suppress.CaseDifference
+	if !features.FivePointOh() {
+		resource.Schema["workspace_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ExactlyOneOf: []string{"workspace_id", "workspace_resource_id"},
+			ValidateFunc: linkedstorageaccounts.ValidateWorkspaceID,
+		}
+		resource.Schema["workspace_resource_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			ExactlyOneOf: []string{"workspace_id", "workspace_resource_id"},
+			ValidateFunc: linkedstorageaccounts.ValidateWorkspaceID,
+		}
 	}
 
 	return resource
@@ -95,7 +108,13 @@ func resourceLogAnalyticsLinkedStorageAccountCreateUpdate(d *pluginsdk.ResourceD
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	workspace, err := linkedstorageaccounts.ParseWorkspaceID(d.Get("workspace_resource_id").(string))
+	workspaceId := d.Get("workspace_id").(string)
+	if !features.FivePointOh() {
+		if v, ok := d.GetOk("workspace_resource_id"); ok {
+			workspaceId = v.(string)
+		}
+	}
+	workspace, err := linkedstorageaccounts.ParseWorkspaceID(workspaceId)
 	if err != nil {
 		return fmt.Errorf("%v", err)
 	}
@@ -147,7 +166,10 @@ func resourceLogAnalyticsLinkedStorageAccountRead(d *pluginsdk.ResourceData, met
 	}
 
 	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("workspace_resource_id", linkedstorageaccounts.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName).ID())
+	d.Set("workspace_id", linkedstorageaccounts.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName).ID())
+	if !features.FivePointOh() {
+		d.Set("workspace_resource_id", linkedstorageaccounts.NewWorkspaceID(id.SubscriptionId, id.ResourceGroupName, id.WorkspaceName).ID())
+	}
 	d.Set("data_source_type", string(id.DataSourceType))
 
 	if model := resp.Model; model != nil {

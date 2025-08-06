@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2021-06-01/cdn" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cdn/2024-09-01/rules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 )
 
@@ -54,13 +54,8 @@ func CdnFrontDoorCacheDuration(i interface{}, k string) (_ []string, errors []er
 }
 
 func CdnFrontDoorUrlPathConditionMatchValue(i interface{}, k string) (_ []string, errors []error) {
-	v, ok := i.(string)
-	if !ok {
+	if _, ok := i.(string); !ok {
 		return nil, []error{fmt.Errorf("expected type of %q to be string", k)}
-	}
-
-	if strings.HasPrefix(v, "/") && len(v) != 1 {
-		return nil, []error{fmt.Errorf(`%q must not begin with the URLs leading slash(e.g. /), got %q`, k, v)}
 	}
 
 	return nil, nil
@@ -92,37 +87,22 @@ func CdnFrontDoorSecretName(i interface{}, k string) (_ []string, errors []error
 	return nil, nil
 }
 
-func CdnFrontDoorActionsBlock(actions []cdn.BasicDeliveryRuleAction) error {
-	routeConfigurationOverride := false
-	responseHeader := false
-	requestHeader := false
+func CdnFrontDoorActionsBlock(actions []rules.DeliveryRuleAction) error {
 	urlRewrite := false
 	urlRedirect := false
 
 	for _, rule := range actions {
-		if !routeConfigurationOverride {
-			_, routeConfigurationOverride = rule.AsDeliveryRuleRouteConfigurationOverrideAction()
+		if rule.DeliveryRuleAction().Name == rules.DeliveryRuleActionNameURLRewrite {
+			urlRewrite = true
 		}
 
-		if !responseHeader {
-			_, responseHeader = rule.AsDeliveryRuleResponseHeaderAction()
-		}
-
-		if !requestHeader {
-			_, requestHeader = rule.AsDeliveryRuleRequestHeaderAction()
-		}
-
-		if !urlRewrite {
-			_, urlRewrite = rule.AsURLRewriteAction()
-		}
-
-		if !urlRedirect {
-			_, urlRedirect = rule.AsURLRedirectAction()
+		if rule.DeliveryRuleAction().Name == rules.DeliveryRuleActionNameURLRedirect {
+			urlRedirect = true
 		}
 	}
 
 	if urlRedirect && urlRewrite {
-		return fmt.Errorf("the %q and the %q are both present in the %q match block", "url_redirect_action", "url_rewrite_action", "actions")
+		return fmt.Errorf("the %q and the %q are both present in the %q block which is invalid", "url_redirect_action", "url_rewrite_action", "actions")
 	}
 
 	return nil

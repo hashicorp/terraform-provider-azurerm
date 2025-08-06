@@ -19,7 +19,7 @@ import (
 )
 
 func resourceAutomationCertificate() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceAutomationCertificateCreateUpdate,
 		Read:   resourceAutomationCertificateRead,
 		Update: resourceAutomationCertificateCreateUpdate,
@@ -69,7 +69,7 @@ func resourceAutomationCertificate() *pluginsdk.Resource {
 
 			"exportable": {
 				Type:     pluginsdk.TypeBool,
-				Computed: true,
+				Default:  false,
 				Optional: true,
 			},
 
@@ -79,6 +79,8 @@ func resourceAutomationCertificate() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	return resource
 }
 
 func resourceAutomationCertificateCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {

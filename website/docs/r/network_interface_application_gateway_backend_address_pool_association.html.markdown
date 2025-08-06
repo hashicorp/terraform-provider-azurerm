@@ -44,7 +44,7 @@ resource "azurerm_public_ip" "example" {
   name                = "example-pip"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
 }
 
 # since these variables are re-used - a locals block makes this more maintainable
@@ -63,14 +63,14 @@ resource "azurerm_application_gateway" "network" {
   location            = azurerm_resource_group.example.location
 
   sku {
-    name     = "Standard_Small"
-    tier     = "Standard"
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
     capacity = 2
   }
 
   gateway_ip_configuration {
     name      = "my-gateway-ip-configuration"
-    subnet_id = azurerm_subnet.frontend.id
+    subnet_id = azurerm_subnet.backend.id
   }
 
   frontend_port {
@@ -163,4 +163,10 @@ Associations between Network Interfaces and Application Gateway Backend Address 
 terraform import azurerm_network_interface_application_gateway_backend_address_pool_association.association1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/networkInterfaces/nic1/ipConfigurations/example|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/applicationGateways/gateway1/backendAddressPools/pool1
 ```
 
--> **NOTE:** This ID is specific to Terraform - and is of the format `{networkInterfaceId}/ipConfigurations/{ipConfigurationName}|{backendAddressPoolId}`.
+-> **Note:** This ID is specific to Terraform - and is of the format `{networkInterfaceId}/ipConfigurations/{ipConfigurationName}|{backendAddressPoolId}`.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

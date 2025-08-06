@@ -15,7 +15,7 @@ type WatchlistItemsClient struct {
 }
 
 func NewWatchlistItemsClientWithBaseURI(sdkApi sdkEnv.Api) (*WatchlistItemsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "watchlistitems", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "watchlistitems", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating WatchlistItemsClient: %+v", err)
 	}

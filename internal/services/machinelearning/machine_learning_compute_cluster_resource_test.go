@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/machinelearningcomputes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/machinelearningcomputes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -65,11 +65,26 @@ func TestAccComputeCluster_complete(t *testing.T) {
 	})
 }
 
-func TestAccComputeCluster_recreateVmSize(t *testing.T) {
+func TestAccComputeCluster_subnetResourceId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_cluster", "test")
 	r := ComputeClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.noSubnetResourceId(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccComputeCluster_recreateVmSize(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_cluster", "test")
+	r := ComputeClusterResource{}
+
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -150,6 +165,46 @@ func TestAccComputeCluster_identity(t *testing.T) {
 	})
 }
 
+func TestAccComputeCluster_basicUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_compute_cluster", "test")
+	r := ComputeClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
+				check.That(data.ResourceName).Key("scale_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("scale_settings.0.max_node_count").HasValue("1"),
+				check.That(data.ResourceName).Key("scale_settings.0.min_node_count").HasValue("0"),
+				check.That(data.ResourceName).Key("scale_settings.0.scale_down_nodes_after_idle_duration").HasValue("PT30S"),
+				check.That(data.ResourceName).Key("tags").DoesNotExist(),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basicUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").Exists(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").Exists(),
+				check.That(data.ResourceName).Key("scale_settings.#").HasValue("1"),
+				check.That(data.ResourceName).Key("scale_settings.0.max_node_count").HasValue("2"),
+				check.That(data.ResourceName).Key("scale_settings.0.min_node_count").HasValue("1"),
+				check.That(data.ResourceName).Key("scale_settings.0.scale_down_nodes_after_idle_duration").HasValue("PT1M"),
+				check.That(data.ResourceName).Key("tags.foo").HasValue("bar"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (r ComputeClusterResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	computeClusterClient := client.MachineLearning.MachineLearningComputes
 	id, err := machinelearningcomputes.ParseComputeID(state.ID)
@@ -178,7 +233,6 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
   vm_priority                   = "LowPriority"
   vm_size                       = "STANDARD_DS2_V2"
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
-  local_auth_enabled            = false
 
   scale_settings {
     min_node_count                       = 0
@@ -188,6 +242,33 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
 
   identity {
     type = "SystemAssigned"
+  }
+}
+`, template, data.RandomIntOfLength(8))
+}
+
+func (r ComputeClusterResource) basicUpdate(data acceptance.TestData) string {
+	template := r.template_basic(data)
+	return fmt.Sprintf(`
+%s
+resource "azurerm_machine_learning_compute_cluster" "test" {
+  name                          = "CC-%d"
+  location                      = azurerm_resource_group.test.location
+  vm_priority                   = "LowPriority"
+  vm_size                       = "STANDARD_DS2_V2"
+  machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
+  scale_settings {
+    min_node_count                       = 1
+    max_node_count                       = 2
+    scale_down_nodes_after_idle_duration = "PT1M" # 1 minute
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  tags = {
+    foo = "bar"
   }
 }
 `, template, data.RandomIntOfLength(8))
@@ -208,6 +289,48 @@ resource "azurerm_machine_learning_compute_cluster" "test" {
   vm_size                       = "STANDARD_DS2_V2"
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   subnet_resource_id            = azurerm_subnet.test.id
+  node_public_ip_enabled        = false
+  description                   = "Machine Learning"
+  tags = {
+    environment = "test"
+  }
+  scale_settings {
+    min_node_count                       = 0
+    max_node_count                       = 1
+    scale_down_nodes_after_idle_duration = "PT30S" # 30 seconds
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  ssh_public_access_enabled = false
+  ssh {
+    admin_username = "adminuser"
+    key_value      = var.ssh_key
+  }
+  depends_on = [
+    azurerm_subnet_network_security_group_association.test,
+    azurerm_private_endpoint.test,
+  ]
+}
+`, template, data.RandomIntOfLength(8))
+}
+
+func (r ComputeClusterResource) noSubnetResourceId(data acceptance.TestData) string {
+	template := r.template_complete(data)
+	return fmt.Sprintf(`
+%s
+variable "ssh_key" {
+  default = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCqaZoyiz1qbdOQ8xEf6uEu1cCwYowo5FHtsBhqLoDnnp7KUTEBN+L2NxRIfQ781rxV6Iq5jSav6b2Q8z5KiseOlvKA/RF2wqU0UPYqQviQhLmW6THTpmrv/YkUCuzxDpsH7DUDhZcwySLKVVe0Qm3+5N2Ta6UYH3lsDf9R9wTP2K/+vAnflKebuypNlmocIvakFWoZda18FOmsOoIVXQ8HWFNCuw9ZCunMSN62QGamCe3dL5cXlkgHYv7ekJE15IA9aOJcM7e90oeTqo+7HTcWfdu0qQqPWY5ujyMw/llas8tsXY85LFqRnr3gJ02bAscjc477+X+j/gkpFoN1QEmt terraform@demo.tld"
+}
+
+resource "azurerm_machine_learning_compute_cluster" "test" {
+  name                          = "CC-%d"
+  location                      = azurerm_resource_group.test.location
+  vm_priority                   = "LowPriority"
+  vm_size                       = "STANDARD_DS2_V2"
+  machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   node_public_ip_enabled        = false
   description                   = "Machine Learning"
   tags = {
@@ -318,6 +441,7 @@ resource "azurerm_user_assigned_identity" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
+
 resource "azurerm_machine_learning_compute_cluster" "test" {
   name                          = "CC-%d"
   location                      = azurerm_resource_group.test.location
@@ -343,22 +467,26 @@ func (r ComputeClusterResource) identitySystemAssignedUserAssigned(data acceptan
 	template := r.template_basic(data)
 	return fmt.Sprintf(`
 %s
+
 resource "azurerm_user_assigned_identity" "test" {
   name                = "acctestUAI-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
+
 resource "azurerm_machine_learning_compute_cluster" "test" {
-  name                          = "CC-%d"
-  location                      = azurerm_resource_group.test.location
-  vm_priority                   = "LowPriority"
-  vm_size                       = "STANDARD_DS2_V2"
+  name        = "CC-%d"
+  location    = azurerm_resource_group.test.location
+  vm_priority = "LowPriority"
+  vm_size     = "STANDARD_DS2_V2"
+
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   scale_settings {
     min_node_count                       = 0
     max_node_count                       = 1
     scale_down_nodes_after_idle_duration = "PT30S" # 30 seconds
   }
+
   identity {
     type = "SystemAssigned, UserAssigned"
     identity_ids = [

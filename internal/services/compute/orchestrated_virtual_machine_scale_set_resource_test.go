@@ -6,11 +6,12 @@ package compute_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -131,6 +132,35 @@ func TestAccOrchestratedVirtualMachineScaleSet_verify_key_data_changed(t *testin
 		data.ImportStep("os_profile.0.linux_configuration.0.admin_password", "os_profile.0.custom_data"),
 		{
 			Config: r.linuxKeyDataUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password", "os_profile.0.custom_data"),
+	})
+}
+
+func TestAccOrchestratedVirtualMachineScaleSet_linux_ed25119_ssh_key(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.linuxEd25119SshKey(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password", "os_profile.0.custom_data"),
+		{
+			Config: r.linux(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("os_profile.0.linux_configuration.0.admin_password", "os_profile.0.custom_data"),
+		{
+			Config: r.linuxEd25119SshKey(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -384,6 +414,58 @@ func TestAccOrchestratedVirtualMachineScaleSet_importLinux(t *testing.T) {
 	})
 }
 
+func TestAccOrchestratedVirtualMachineScaleSet_skuProfileErrorConfiguration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
+
+	// TODO - Remove this override when Preview is rolled out to westeurope - currently only supported in EastUS, WestUS, EastUS2, and WestUS2
+	data.Locations.Primary = "eastus2"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.skuProfileWithoutSkuName(data),
+			ExpectError: regexp.MustCompile("`sku_profile` can only be configured when `sku_name` is set"),
+		},
+		{
+			Config:      r.skuProfileSkuNameIsNotMix(data),
+			ExpectError: regexp.MustCompile("`sku_profile` can only be configured when `sku_name` is set"),
+		},
+		{
+			Config:      r.skuProfileNotExist(data),
+			ExpectError: regexp.MustCompile("`sku_profile` must be configured when `sku_name` is set"),
+		},
+	})
+}
+
+func TestAccOrchestratedVirtualMachineScaleSet_skuProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
+
+	// TODO - Remove this override when Preview is rolled out to westeurope - currently only supported in EastUS, WestUS, EastUS2, and WestUS2
+	data.Locations.Primary = "eastus2"
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.skuProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.skuProfileUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.skuProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func TestAccOrchestratedVirtualMachineScaleSet_priorityMixPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
@@ -501,6 +583,20 @@ func TestAccOrchestratedVirtualMachineScaleSet_updatePriorityMixPolicy(t *testin
 // 	})
 // }
 
+func TestAccOrchestratedVirtualMachineScaleSet_regression29748(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.osProfile_empty(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
+
 func (t OrchestratedVirtualMachineScaleSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(state.ID)
 	if err != nil {
@@ -569,7 +665,6 @@ func (OrchestratedVirtualMachineScaleSetResource) hasApplicationGateway(ctx cont
 				}
 			}
 		}
-
 	}
 
 	return fmt.Errorf("application gateway configuration was missing")
@@ -1772,6 +1867,109 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
+func (OrchestratedVirtualMachineScaleSetResource) linuxEd25119SshKey(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-OVMSS-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvn-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  address_space       = ["10.0.0.0/8"]
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "acctestsn-%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_lb" "test" {
+  name                = "acctestlb-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku = "Standard"
+
+  frontend_ip_configuration {
+    name                 = "ip-address"
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "test" {
+  name            = "acctestbap-%[1]d"
+  loadbalancer_id = azurerm_lb.test.id
+}
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                = "acctestOVMSS-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  sku_name  = "Standard_F2"
+  instances = 1
+
+  platform_fault_domain_count = 2
+
+  os_profile {
+    custom_data = "Y3VzdG9tIGRhdGEh"
+
+    linux_configuration {
+      computer_name_prefix = "prefix"
+      admin_username       = "ubuntu"
+
+      admin_ssh_key {
+        username   = "ubuntu"
+        public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDqzSi9IHoYnbE3YQ+B2fQEVT8iGFemyPovpEtPziIVB hello@world.com"
+      }
+    }
+  }
+
+  network_interface {
+    name    = "TestNetworkProfile"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
+    }
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
 func (OrchestratedVirtualMachineScaleSetResource) linuxKeyDataUpdated(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -1948,6 +2146,7 @@ resource "azurerm_public_ip" "gwtest" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Dynamic"
+  sku                 = "Basic"
 }
 
 resource "azurerm_application_gateway" "test" {
@@ -1956,8 +2155,8 @@ resource "azurerm_application_gateway" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku {
-    name     = "Standard_Medium"
-    tier     = "Standard"
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
     capacity = 1
   }
 
@@ -2020,6 +2219,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = "listener-1"
     backend_address_pool_name  = "pool-1"
     backend_http_settings_name = "backend-http-1"
+    priority                   = 10 # required field since API version 2021-08-01
   }
 
   tags = {
@@ -2030,13 +2230,15 @@ resource "azurerm_application_gateway" "test" {
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) natgateway_template(data acceptance.TestData) string {
+	publicIpSku := "Standard"
+
 	return fmt.Sprintf(`
 resource "azurerm_public_ip" "test" {
   name                = "acctpip-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
-  sku                 = "Standard"
+  sku                 = "%[2]s"
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -2070,7 +2272,466 @@ resource "azurerm_subnet_nat_gateway_association" "example" {
   subnet_id      = azurerm_subnet.test.id
   nat_gateway_id = azurerm_nat_gateway.test.id
 }
-`, data.RandomInteger)
+`, data.RandomInteger, publicIpSku)
+}
+
+func (OrchestratedVirtualMachineScaleSetResource) skuProfileWithoutSkuName(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-OVMSS-%[1]d"
+  location = "%[2]s"
+}
+
+%[3]s
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                = "acctestOVMSS-spotPriorityMixVMSS-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  priority                    = "Spot"
+  eviction_policy             = "Delete"
+  instances                   = 3
+  platform_fault_domain_count = 1
+
+  sku_profile {
+    allocation_strategy = "CapacityOptimized"
+    vm_sizes            = ["Standard_D8s_v5", "Standard_D2s_v5", "Standard_D4s_v5"]
+  }
+
+  tags = {
+    "SkipASMAzSecPack"                                                         = "true",
+    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true",
+    "prevent_deletion_if_contains_resources"                                   = "false"
+  }
+
+  os_profile {
+    windows_configuration {
+      computer_name_prefix = "testvm"
+      admin_username       = "myadmin"
+      admin_password       = "Passwword1234"
+
+      enable_automatic_updates = true
+      provision_vm_agent       = true
+      timezone                 = "W. Europe Standard Time"
+
+      winrm_listener {
+        protocol = "Http"
+      }
+    }
+  }
+
+  network_interface {
+    name    = "TestNetworkProfile-%[1]d"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label"
+        idle_timeout_in_minutes = 4
+      }
+    }
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter-Server-Core"
+    version   = "latest"
+  }
+
+  priority_mix {
+    base_regular_count            = 4
+    regular_percentage_above_base = 50
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+}
+
+func (OrchestratedVirtualMachineScaleSetResource) skuProfileSkuNameIsNotMix(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-OVMSS-%[1]d"
+  location = "%[2]s"
+}
+
+%[3]s
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                = "acctestOVMSS-spotPriorityMixVMSS-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  priority                    = "Spot"
+  eviction_policy             = "Delete"
+  sku_name                    = "Standard_D1_v2"
+  instances                   = 3
+  platform_fault_domain_count = 1
+
+  sku_profile {
+    allocation_strategy = "CapacityOptimized"
+    vm_sizes            = ["Standard_D8s_v5", "Standard_D2s_v5", "Standard_D4s_v5"]
+  }
+
+  tags = {
+    "SkipASMAzSecPack"                                                         = "true",
+    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true",
+    "prevent_deletion_if_contains_resources"                                   = "false"
+  }
+
+  os_profile {
+    windows_configuration {
+      computer_name_prefix = "testvm"
+      admin_username       = "myadmin"
+      admin_password       = "Passwword1234"
+
+      enable_automatic_updates = true
+      provision_vm_agent       = true
+      timezone                 = "W. Europe Standard Time"
+
+      winrm_listener {
+        protocol = "Http"
+      }
+    }
+  }
+
+  network_interface {
+    name    = "TestNetworkProfile-%[1]d"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label"
+        idle_timeout_in_minutes = 4
+      }
+    }
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter-Server-Core"
+    version   = "latest"
+  }
+
+  priority_mix {
+    base_regular_count            = 4
+    regular_percentage_above_base = 50
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+}
+
+func (OrchestratedVirtualMachineScaleSetResource) skuProfileNotExist(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-OVMSS-%[1]d"
+  location = "%[2]s"
+}
+
+%[3]s
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                = "acctestOVMSS-spotPriorityMixVMSS-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  priority                    = "Spot"
+  eviction_policy             = "Delete"
+  sku_name                    = "Mix"
+  instances                   = 3
+  platform_fault_domain_count = 1
+
+  tags = {
+    "SkipASMAzSecPack"                                                         = "true",
+    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true",
+    "prevent_deletion_if_contains_resources"                                   = "false"
+  }
+
+  os_profile {
+    windows_configuration {
+      computer_name_prefix = "testvm"
+      admin_username       = "myadmin"
+      admin_password       = "Passwword1234"
+
+      enable_automatic_updates = true
+      provision_vm_agent       = true
+      timezone                 = "W. Europe Standard Time"
+
+      winrm_listener {
+        protocol = "Http"
+      }
+    }
+  }
+
+  network_interface {
+    name    = "TestNetworkProfile-%[1]d"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label"
+        idle_timeout_in_minutes = 4
+      }
+    }
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter-Server-Core"
+    version   = "latest"
+  }
+
+  priority_mix {
+    base_regular_count            = 4
+    regular_percentage_above_base = 50
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+}
+
+func (OrchestratedVirtualMachineScaleSetResource) skuProfile(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-OVMSS-%[1]d"
+  location = "%[2]s"
+}
+
+%[3]s
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                = "acctestOVMSS-spotPriorityMixVMSS-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  priority                    = "Spot"
+  eviction_policy             = "Delete"
+  sku_name                    = "Mix"
+  instances                   = 3
+  platform_fault_domain_count = 1
+
+  sku_profile {
+    allocation_strategy = "CapacityOptimized"
+    vm_sizes            = ["Standard_D8s_v5", "Standard_D2s_v5", "Standard_D4s_v5"]
+  }
+
+  tags = {
+    "SkipASMAzSecPack"                                                         = "true",
+    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true",
+    "prevent_deletion_if_contains_resources"                                   = "false"
+  }
+
+  os_profile {
+    windows_configuration {
+      computer_name_prefix = "testvm"
+      admin_username       = "myadmin"
+      admin_password       = "Passwword1234"
+
+      enable_automatic_updates = true
+      provision_vm_agent       = true
+      timezone                 = "W. Europe Standard Time"
+
+      winrm_listener {
+        protocol = "Http"
+      }
+    }
+  }
+
+  network_interface {
+    name    = "TestNetworkProfile-%[1]d"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label"
+        idle_timeout_in_minutes = 4
+      }
+    }
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter-Server-Core"
+    version   = "latest"
+  }
+
+  priority_mix {
+    base_regular_count            = 4
+    regular_percentage_above_base = 50
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+}
+
+func (OrchestratedVirtualMachineScaleSetResource) skuProfileUpdate(data acceptance.TestData) string {
+	r := OrchestratedVirtualMachineScaleSetResource{}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-OVMSS-%[1]d"
+  location = "%[2]s"
+}
+
+%[3]s
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                = "acctestOVMSS-spotPriorityMixVMSS-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  priority                    = "Spot"
+  eviction_policy             = "Delete"
+  sku_name                    = "Mix"
+  instances                   = 3
+  platform_fault_domain_count = 1
+
+  sku_profile {
+    allocation_strategy = "LowestPrice"
+    vm_sizes            = ["Standard_D4s_v5", "Standard_D2s_v5"]
+  }
+
+  tags = {
+    "SkipASMAzSecPack"                                                         = "true",
+    "platformsettings.host_environment.service.platform_optedin_for_rootcerts" = "true",
+    "prevent_deletion_if_contains_resources"                                   = "false"
+  }
+
+  os_profile {
+    windows_configuration {
+      computer_name_prefix = "testvm"
+      admin_username       = "myadmin"
+      admin_password       = "Passwword1234"
+
+      enable_automatic_updates = true
+      provision_vm_agent       = true
+      timezone                 = "W. Europe Standard Time"
+
+      winrm_listener {
+        protocol = "Http"
+      }
+    }
+  }
+
+  network_interface {
+    name    = "TestNetworkProfile-%[1]d"
+    primary = true
+
+    ip_configuration {
+      name      = "TestIPConfiguration"
+      primary   = true
+      subnet_id = azurerm_subnet.test.id
+
+      public_ip_address {
+        name                    = "TestPublicIPConfiguration"
+        domain_name_label       = "test-domain-label"
+        idle_timeout_in_minutes = 4
+      }
+    }
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  source_image_reference {
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2016-Datacenter-Server-Core"
+    version   = "latest"
+  }
+
+  priority_mix {
+    base_regular_count            = 4
+    regular_percentage_above_base = 50
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
 }
 
 func (OrchestratedVirtualMachineScaleSetResource) priorityMixPolicy(data acceptance.TestData) string {
@@ -2251,4 +2912,28 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+}
+
+func (OrchestratedVirtualMachineScaleSetResource) osProfile_empty(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-OVMSS-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                = "acctestOVMSS-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  platform_fault_domain_count = 1
+  zones                       = ["1"]
+
+  os_profile {}
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

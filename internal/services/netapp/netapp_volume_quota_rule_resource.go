@@ -6,15 +6,14 @@ package netapp
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumequotarules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumequotarules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
@@ -129,9 +128,13 @@ func (r NetAppVolumeQuotaRuleResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			err = client.CreateThenPoll(ctx, id, parameters)
-			if err != nil {
+			if err = client.CreateThenPoll(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			// Waiting for quota rule to be created
+			if err := waitForQuotaRuleCreateOrUpdate(ctx, client, id); err != nil {
+				return fmt.Errorf("waiting create %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -155,21 +158,27 @@ func (r NetAppVolumeQuotaRuleResource) Update() sdk.ResourceFunc {
 			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppVolumeQuotaRuleModel
 			if err := metadata.Decode(&state); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			metadata.Logger.Infof("Updating %s", id)
+			if metadata.ResourceData.HasChange("quota_size_in_kib") {
+				metadata.Logger.Infof("Updating %s", id)
 
-			update := volumequotarules.VolumeQuotaRulePatch{
-				Properties: &volumequotarules.VolumeQuotaRulesProperties{},
+				update := volumequotarules.VolumeQuotaRulePatch{
+					Properties: &volumequotarules.VolumeQuotaRulesProperties{},
+				}
+
+				update.Properties.QuotaSizeInKiBs = utils.Int64(state.QuotaSizeInKiB)
+
+				if err := client.UpdateThenPoll(ctx, pointer.From(id), update); err != nil {
+					return fmt.Errorf("updating %s: %+v", id, err)
+				}
+
+				// Waiting for quota rule to be updated
+				if err := waitForQuotaRuleCreateOrUpdate(ctx, client, pointer.From(id)); err != nil {
+					return fmt.Errorf("waiting update %s: %+v", id, err)
+				}
 			}
-
-			update.Properties.QuotaSizeInKiBs = utils.Int64(state.QuotaSizeInKiB)
-			if err := client.UpdateThenPoll(ctx, pointer.From(id), update); err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
-			}
-
-			metadata.SetID(id)
 
 			return nil
 		},
@@ -180,7 +189,6 @@ func (r NetAppVolumeQuotaRuleResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.NetApp.VolumeQuotaRules
 
 			id, err := volumequotarules.ParseVolumeQuotaRuleID(metadata.ResourceData.Id())
@@ -191,12 +199,12 @@ func (r NetAppVolumeQuotaRuleResource) Read() sdk.ResourceFunc {
 			metadata.Logger.Infof("Decoding state for %s", id)
 			var state netAppModels.NetAppVolumeQuotaRuleModel
 			if err := metadata.Decode(&state); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			existing, err := client.Get(ctx, pointer.From(id))
 			if err != nil {
-				if existing.HttpResponse.StatusCode == http.StatusNotFound {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
@@ -207,7 +215,7 @@ func (r NetAppVolumeQuotaRuleResource) Read() sdk.ResourceFunc {
 			model := netAppModels.NetAppVolumeQuotaRuleModel{
 				Name:           id.VolumeQuotaRuleName,
 				VolumeID:       volumeID.ID(),
-				Location:       location.NormalizeNilable(pointer.To(existing.Model.Location)),
+				Location:       location.Normalize(existing.Model.Location),
 				QuotaTarget:    pointer.From(existing.Model.Properties.QuotaTarget),
 				QuotaSizeInKiB: pointer.From(existing.Model.Properties.QuotaSizeInKiBs),
 				QuotaType:      string(pointer.From(existing.Model.Properties.QuotaType)),
@@ -224,7 +232,6 @@ func (r NetAppVolumeQuotaRuleResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			client := metadata.Client.NetApp.VolumeQuotaRules
 
 			id, err := volumequotarules.ParseVolumeQuotaRuleID(metadata.ResourceData.Id())
@@ -234,7 +241,7 @@ func (r NetAppVolumeQuotaRuleResource) Delete() sdk.ResourceFunc {
 
 			existing, err := client.Get(ctx, pointer.From(id))
 			if err != nil {
-				if existing.HttpResponse.StatusCode == http.StatusNotFound {
+				if response.WasNotFound(existing.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 				return fmt.Errorf("retrieving %s: %v", id, err)
@@ -244,7 +251,73 @@ func (r NetAppVolumeQuotaRuleResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", pointer.From(id), err)
 			}
 
+			// Waiting for quota rule to be deleted
+			if err := waitForQuotaRuleDelete(ctx, client, pointer.From(id)); err != nil {
+				return fmt.Errorf("waiting delete %s: %+v", id, err)
+			}
+
 			return nil
 		},
 	}
+}
+
+func waitForQuotaRuleCreateOrUpdate(ctx context.Context, client *volumequotarules.VolumeQuotaRulesClient, id volumequotarules.VolumeQuotaRuleId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		ContinuousTargetOccurence: 5,
+		Delay:                     10 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"204", "404"},
+		Target:                    []string{"200", "202"},
+		Refresh:                   netAppVolumeQuotaRuleStateRefreshFunc(ctx, client, id),
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to finish creating/updating: %+v", id, err)
+	}
+
+	return nil
+}
+
+func netAppVolumeQuotaRuleStateRefreshFunc(ctx context.Context, client *volumequotarules.VolumeQuotaRulesClient, id volumequotarules.VolumeQuotaRuleId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		res, err := client.Get(ctx, id)
+		if err != nil {
+			if !response.WasNotFound(res.HttpResponse) {
+				return nil, "", fmt.Errorf("retrieving %s: %s", id, err)
+			}
+		}
+
+		statusCode := "dropped connection"
+		if res.HttpResponse != nil {
+			statusCode = fmt.Sprintf("%d", res.HttpResponse.StatusCode)
+		}
+		return res, statusCode, nil
+	}
+}
+
+func waitForQuotaRuleDelete(ctx context.Context, client *volumequotarules.VolumeQuotaRulesClient, id volumequotarules.VolumeQuotaRuleId) error {
+	deadline, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+	stateConf := &pluginsdk.StateChangeConf{
+		ContinuousTargetOccurence: 5,
+		Delay:                     10 * time.Second,
+		MinTimeout:                10 * time.Second,
+		Pending:                   []string{"200", "202"},
+		Target:                    []string{"204", "404"},
+		Refresh:                   netAppVolumeQuotaRuleStateRefreshFunc(ctx, client, id),
+		Timeout:                   time.Until(deadline),
+	}
+
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for %s to finish deleting: %+v", id, err)
+	}
+
+	return nil
 }

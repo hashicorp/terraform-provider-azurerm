@@ -47,25 +47,26 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 
 // SupportedResources returns the supported Resources supported by this Service
 func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
-	return map[string]*pluginsdk.Resource{
+	resources := map[string]*pluginsdk.Resource{
 		// CDN
 		"azurerm_cdn_endpoint":               resourceCdnEndpoint(),
 		"azurerm_cdn_endpoint_custom_domain": resourceArmCdnEndpointCustomDomain(),
 		"azurerm_cdn_profile":                resourceCdnProfile(),
 
 		// FrontDoor
-		"azurerm_cdn_frontdoor_custom_domain":                        resourceCdnFrontDoorCustomDomain(),
-		"azurerm_cdn_frontdoor_custom_domain_association":            resourceCdnFrontDoorCustomDomainAssociation(),
-		"azurerm_cdn_frontdoor_endpoint":                             resourceCdnFrontDoorEndpoint(),
-		"azurerm_cdn_frontdoor_firewall_policy":                      resourceCdnFrontDoorFirewallPolicy(),
-		"azurerm_cdn_frontdoor_origin":                               resourceCdnFrontDoorOrigin(),
-		"azurerm_cdn_frontdoor_origin_group":                         resourceCdnFrontDoorOriginGroup(),
-		"azurerm_cdn_frontdoor_profile":                              resourceCdnFrontDoorProfile(),
-		"azurerm_cdn_frontdoor_route":                                resourceCdnFrontDoorRoute(),
-		"azurerm_cdn_frontdoor_route_disable_link_to_default_domain": resourceCdnFrontDoorRouteDisableLinkToDefaultDomain(),
-		"azurerm_cdn_frontdoor_rule":                                 resourceCdnFrontDoorRule(),
-		"azurerm_cdn_frontdoor_rule_set":                             resourceCdnFrontDoorRuleSet(),
-		"azurerm_cdn_frontdoor_secret":                               resourceCdnFrontDoorSecret(),
-		"azurerm_cdn_frontdoor_security_policy":                      resourceCdnFrontDoorSecurityPolicy(),
+		"azurerm_cdn_frontdoor_custom_domain":             resourceCdnFrontDoorCustomDomain(),
+		"azurerm_cdn_frontdoor_custom_domain_association": resourceCdnFrontDoorCustomDomainAssociation(),
+		"azurerm_cdn_frontdoor_endpoint":                  resourceCdnFrontDoorEndpoint(),
+		"azurerm_cdn_frontdoor_firewall_policy":           resourceCdnFrontDoorFirewallPolicy(),
+		"azurerm_cdn_frontdoor_origin":                    resourceCdnFrontDoorOrigin(),
+		"azurerm_cdn_frontdoor_origin_group":              resourceCdnFrontDoorOriginGroup(),
+		"azurerm_cdn_frontdoor_profile":                   resourceCdnFrontDoorProfile(),
+		"azurerm_cdn_frontdoor_route":                     resourceCdnFrontDoorRoute(),
+		"azurerm_cdn_frontdoor_rule":                      resourceCdnFrontDoorRule(),
+		"azurerm_cdn_frontdoor_rule_set":                  resourceCdnFrontDoorRuleSet(),
+		"azurerm_cdn_frontdoor_secret":                    resourceCdnFrontDoorSecret(),
+		"azurerm_cdn_frontdoor_security_policy":           resourceCdnFrontDoorSecurityPolicy(),
 	}
+
+	return resources
 }

@@ -7,15 +7,15 @@ dependencies:
     - vendor/**/*
 documentation:
 - changed-files:
-  - any-glob-to-any-file: 
+  - any-glob-to-any-file:
     - website/**/*
 tooling:
 - changed-files:
-  - any-glob-to-any-file: 
+  - any-glob-to-any-file:
     - internal/tools/**/*
 state-migration:
 - changed-files:
-  - any-glob-to-any-file: 
+  - any-glob-to-any-file:
     - internal/services/**/migration/**/*
 service/aadb2c:
 - changed-files:
@@ -51,6 +51,11 @@ service/application-insights:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/applicationinsights/**/*
+
+service/arc-kubernetes:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/arckubernetes/**/*
 
 service/arc-resource-bridge:
 - changed-files:
@@ -203,11 +208,6 @@ service/digital-twins:
   - any-glob-to-any-file:
     - internal/services/digitaltwins/**/*
 
-service/disks:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/disks/**/*
-
 service/dns:
 - changed-files:
   - any-glob-to-any-file:
@@ -218,6 +218,11 @@ service/domain-services:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/domainservices/**/*
+
+service/dynatrace:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/dynatrace/**/*
 
 service/elastic:
 - changed-files:
@@ -238,6 +243,16 @@ service/event-hubs:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/eventhub/**/*
+
+service/extended-location:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/extendedlocation/**/*
+
+service/fabric:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/fabric/**/*
 
 service/firewall:
 - changed-files:
@@ -289,11 +304,6 @@ service/iot-hub:
   - any-glob-to-any-file:
     - internal/services/iothub/**/*
 
-service/iot-time-series:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/iottimeseriesinsights/**/*
-
 service/key-vault:
 - changed-files:
   - any-glob-to-any-file:
@@ -303,11 +313,6 @@ service/kusto:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/kusto/**/*
-
-service/labservice:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/labservice/**/*
 
 service/lighthouse:
 - changed-files:
@@ -333,11 +338,6 @@ service/logic:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/logic/**/*
-
-service/logz:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/logz/**/*
 
 service/machine-learning:
 - changed-files:
@@ -369,16 +369,6 @@ service/maps:
   - any-glob-to-any-file:
     - internal/services/maps/**/*
 
-service/maria-db:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/mariadb/**/*
-
-service/media:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/media/**/*
-
 service/mixed-reality:
 - changed-files:
   - any-glob-to-any-file:
@@ -388,6 +378,11 @@ service/mobile-network:
 - changed-files:
   - any-glob-to-any-file:
     - internal/services/mobilenetwork/**/*
+
+service/mongo-cluster:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/mongocluster/**/*
 
 service/monitor:
 - changed-files:
@@ -474,6 +469,11 @@ service/purview:
   - any-glob-to-any-file:
     - internal/services/purview/**/*
 
+service/qumulo:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/qumulo/**/*
+
 service/recovery-services:
 - changed-files:
   - any-glob-to-any-file:
@@ -545,11 +545,6 @@ service/spring:
   - any-glob-to-any-file:
     - internal/services/springcloud/**/*
 
-service/sql:
-- changed-files:
-  - any-glob-to-any-file:
-    - internal/services/sql/**/*
-
 service/storage:
 - changed-files:
   - any-glob-to-any-file:
@@ -585,10 +580,15 @@ service/traffic-manager:
   - any-glob-to-any-file:
     - internal/services/trafficmanager/**/*
 
-service/video-analyzer:
+service/trustedsigning:
 - changed-files:
   - any-glob-to-any-file:
-    - internal/services/videoanalyzer/**/*
+    - internal/services/codesigning/**/*
+
+service/video-indexer:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/videoindexer/**/*
 
 service/virtual-desktops:
 - changed-files:

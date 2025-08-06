@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/virtualwans"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -25,9 +25,9 @@ import (
 
 func resourceVpnSite() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVpnSiteCreateUpdate,
+		Create: resourceVpnSiteCreate,
 		Read:   resourceVpnSiteRead,
-		Update: resourceVpnSiteCreateUpdate,
+		Update: resourceVpnSiteUpdate,
 		Delete: resourceVpnSiteDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -183,24 +183,23 @@ func resourceVpnSite() *pluginsdk.Resource {
 	}
 }
 
-func resourceVpnSiteCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceVpnSiteCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Network.VirtualWANs
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := virtualwans.NewVpnSiteID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	if d.IsNewResource() {
-		resp, err := client.VpnSitesGet(ctx, id)
-		if err != nil {
-			if !response.WasNotFound(resp.HttpResponse) {
-				return fmt.Errorf("checking for existing %s: %+v", id, err)
-			}
-		}
 
+	resp, err := client.VpnSitesGet(ctx, id)
+	if err != nil {
 		if !response.WasNotFound(resp.HttpResponse) {
-			return tf.ImportAsExistsError("azurerm_vpn_site", id.ID())
+			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
+	}
+
+	if !response.WasNotFound(resp.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_vpn_site", id.ID())
 	}
 
 	payload := virtualwans.VpnSite{
@@ -288,6 +287,58 @@ func resourceVpnSiteRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	return nil
+}
+
+func resourceVpnSiteUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Network.VirtualWANs
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := virtualwans.ParseVpnSiteID(d.Id())
+	if err != nil {
+		return err
+	}
+	existing, err := client.VpnSitesGet(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", id)
+	}
+
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", id)
+	}
+
+	payload := existing.Model
+
+	if d.HasChange("address_cidrs") {
+		payload.Properties.AddressSpace = expandVpnSiteAddressSpace(d.Get("address_cidrs").(*pluginsdk.Set).List())
+	}
+
+	if d.HasChange("device_vendor") || d.HasChange("device_model") {
+		payload.Properties.DeviceProperties = expandVpnSiteDeviceProperties(d.Get("device_vendor").(string), d.Get("device_model").(string))
+	}
+
+	if d.HasChange("link") {
+		payload.Properties.VpnSiteLinks = expandVpnSiteLinks(d.Get("link").([]interface{}))
+	}
+
+	if d.HasChange("o365_policy") {
+		payload.Properties.O365Policy = expandVpnSiteO365Policy(d.Get("o365_policy").([]interface{}))
+	}
+
+	if d.HasChange("tags") {
+		payload.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if err := client.VpnSitesCreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
+
+	d.SetId(id.ID())
+	return resourceVpnSiteRead(d, meta)
 }
 
 func resourceVpnSiteDelete(d *pluginsdk.ResourceData, meta interface{}) error {

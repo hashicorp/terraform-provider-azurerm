@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/dnsforwardingrulesets` Documentation
 
-The `dnsforwardingrulesets` SDK allows for interaction with the Azure Resource Manager Service `dnsresolver` (API Version `2022-07-01`).
+The `dnsforwardingrulesets` SDK allows for interaction with Azure Resource Manager `dnsresolver` (API Version `2022-07-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := dnsforwardingrulesets.NewDnsForwardingRulesetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsForwardingRulesetValue")
+id := dnsforwardingrulesets.NewDnsForwardingRulesetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsForwardingRulesetName")
 
 payload := dnsforwardingrulesets.DnsForwardingRuleset{
 	// ...
@@ -42,7 +42,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload, dnsforwardingrulesets.
 
 ```go
 ctx := context.TODO()
-id := dnsforwardingrulesets.NewDnsForwardingRulesetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsForwardingRulesetValue")
+id := dnsforwardingrulesets.NewDnsForwardingRulesetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsForwardingRulesetName")
 
 if err := client.DeleteThenPoll(ctx, id, dnsforwardingrulesets.DefaultDeleteOperationOptions()); err != nil {
 	// handle the error
@@ -54,7 +54,7 @@ if err := client.DeleteThenPoll(ctx, id, dnsforwardingrulesets.DefaultDeleteOper
 
 ```go
 ctx := context.TODO()
-id := dnsforwardingrulesets.NewDnsForwardingRulesetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsForwardingRulesetValue")
+id := dnsforwardingrulesets.NewDnsForwardingRulesetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsForwardingRulesetName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -104,7 +104,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := commonids.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkValue")
+id := commonids.NewVirtualNetworkID("12345678-1234-9876-4563-123456789012", "example-resource-group", "virtualNetworkName")
 
 // alternatively `client.ListByVirtualNetwork(ctx, id, dnsforwardingrulesets.DefaultListByVirtualNetworkOperationOptions())` can be used to do batched pagination
 items, err := client.ListByVirtualNetworkComplete(ctx, id, dnsforwardingrulesets.DefaultListByVirtualNetworkOperationOptions())
@@ -121,7 +121,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := dnsforwardingrulesets.NewDnsForwardingRulesetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsForwardingRulesetValue")
+id := dnsforwardingrulesets.NewDnsForwardingRulesetID("12345678-1234-9876-4563-123456789012", "example-resource-group", "dnsForwardingRulesetName")
 
 payload := dnsforwardingrulesets.DnsForwardingRulesetPatch{
 	// ...

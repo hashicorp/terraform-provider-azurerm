@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&FederatedIdentityCredentialId{})
+}
 
 var _ resourceids.ResourceId = &FederatedIdentityCredentialId{}
 
@@ -39,7 +44,7 @@ func ParseFederatedIdentityCredentialID(input string) (*FederatedIdentityCredent
 	}
 
 	id := FederatedIdentityCredentialId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParseFederatedIdentityCredentialIDInsensitively(input string) (*FederatedId
 	}
 
 	id := FederatedIdentityCredentialId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -116,9 +121,9 @@ func (id FederatedIdentityCredentialId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftManagedIdentity", "Microsoft.ManagedIdentity", "Microsoft.ManagedIdentity"),
 		resourceids.StaticSegment("staticUserAssignedIdentities", "userAssignedIdentities", "userAssignedIdentities"),
-		resourceids.UserSpecifiedSegment("userAssignedIdentityName", "userAssignedIdentityValue"),
+		resourceids.UserSpecifiedSegment("userAssignedIdentityName", "userAssignedIdentityName"),
 		resourceids.StaticSegment("staticFederatedIdentityCredentials", "federatedIdentityCredentials", "federatedIdentityCredentials"),
-		resourceids.UserSpecifiedSegment("federatedIdentityCredentialName", "federatedIdentityCredentialValue"),
+		resourceids.UserSpecifiedSegment("federatedIdentityCredentialName", "federatedIdentityCredentialName"),
 	}
 }
 

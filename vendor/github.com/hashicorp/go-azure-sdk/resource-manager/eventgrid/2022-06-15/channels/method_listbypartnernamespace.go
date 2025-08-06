@@ -40,6 +40,7 @@ func (o ListByPartnerNamespaceOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByPartnerNamespaceOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -54,6 +55,18 @@ func (o ListByPartnerNamespaceOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByPartnerNamespaceCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByPartnerNamespaceCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByPartnerNamespace ...
 func (c ChannelsClient) ListByPartnerNamespace(ctx context.Context, id PartnerNamespaceId, options ListByPartnerNamespaceOperationOptions) (result ListByPartnerNamespaceOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +75,9 @@ func (c ChannelsClient) ListByPartnerNamespace(ctx context.Context, id PartnerNa
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/channels", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByPartnerNamespaceCustomPager{},
+		Path:          fmt.Sprintf("%s/channels", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -104,6 +118,7 @@ func (c ChannelsClient) ListByPartnerNamespaceCompleteMatchingPredicate(ctx cont
 
 	resp, err := c.ListByPartnerNamespace(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -23,6 +23,18 @@ type GetAllRunAsAccountsInSiteCompleteResult struct {
 	Items              []VMwareRunAsAccount
 }
 
+type GetAllRunAsAccountsInSiteCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GetAllRunAsAccountsInSiteCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GetAllRunAsAccountsInSite ...
 func (c RunAsAccountsClient) GetAllRunAsAccountsInSite(ctx context.Context, id VMwareSiteId) (result GetAllRunAsAccountsInSiteOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c RunAsAccountsClient) GetAllRunAsAccountsInSite(ctx context.Context, id V
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &GetAllRunAsAccountsInSiteCustomPager{},
 		Path:       fmt.Sprintf("%s/runAsAccounts", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c RunAsAccountsClient) GetAllRunAsAccountsInSiteCompleteMatchingPredicate(
 
 	resp, err := c.GetAllRunAsAccountsInSite(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

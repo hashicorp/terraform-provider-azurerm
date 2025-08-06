@@ -46,7 +46,6 @@ func (c PartnerNamespacesClient) ListSharedAccessKeys(ctx context.Context, id Pa
 
 	var model PartnerNamespaceSharedAccessKeys
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -6,12 +6,13 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/certificates"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerapps"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerappsrevisions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/daprcomponents"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironments"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/managedenvironmentsstorages"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/certificates"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/containerapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/containerappsrevisions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/daprcomponents"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/jobs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/managedenvironmentsstorages"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
@@ -22,6 +23,7 @@ type Client struct {
 	DaprComponentsClient       *daprcomponents.DaprComponentsClient
 	ManagedEnvironmentClient   *managedenvironments.ManagedEnvironmentsClient
 	StorageClient              *managedenvironmentsstorages.ManagedEnvironmentsStoragesClient
+	JobClient                  *jobs.JobsClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -61,6 +63,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(daprComponentClient.Client, o.Authorizers.ResourceManager)
 
+	jobsClient, err := jobs.NewJobsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Jobs client : %+v", err)
+	}
+	o.Configure(jobsClient.Client, o.Authorizers.ResourceManager)
+
 	return &Client{
 		CertificatesClient:         certificatesClient,
 		ContainerAppClient:         containerAppsClient,
@@ -68,5 +76,6 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		DaprComponentsClient:       daprComponentClient,
 		ManagedEnvironmentClient:   managedEnvironmentClient,
 		StorageClient:              managedEnvironmentStoragesClient,
+		JobClient:                  jobsClient,
 	}, nil
 }

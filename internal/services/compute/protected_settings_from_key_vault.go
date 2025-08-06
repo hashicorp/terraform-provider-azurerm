@@ -7,11 +7,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineextensions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetextensions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func protectedSettingsFromKeyVaultSchema(conflictsWithProtectedSettings bool) *pluginsdk.Schema {
@@ -39,22 +39,22 @@ func protectedSettingsFromKeyVaultSchema(conflictsWithProtectedSettings bool) *p
 	}
 }
 
-func expandProtectedSettingsFromKeyVaultOld(input []interface{}) *compute.KeyVaultSecretReference {
+func expandProtectedSettingsFromKeyVault(input []interface{}) *virtualmachineextensions.KeyVaultSecretReference {
 	if len(input) == 0 {
 		return nil
 	}
 
 	v := input[0].(map[string]interface{})
 
-	return &compute.KeyVaultSecretReference{
-		SecretURL: pointer.To(v["secret_url"].(string)),
-		SourceVault: &compute.SubResource{
-			ID: utils.String(v["source_vault_id"].(string)),
+	return &virtualmachineextensions.KeyVaultSecretReference{
+		SecretURL: v["secret_url"].(string),
+		SourceVault: virtualmachineextensions.SubResource{
+			Id: pointer.To(v["source_vault_id"].(string)),
 		},
 	}
 }
 
-func expandProtectedSettingsFromKeyVault(input []interface{}) *virtualmachinescalesets.KeyVaultSecretReference {
+func expandProtectedSettingsFromKeyVaultVMSS(input []interface{}) *virtualmachinescalesets.KeyVaultSecretReference {
 	if len(input) == 0 {
 		return nil
 	}
@@ -62,32 +62,29 @@ func expandProtectedSettingsFromKeyVault(input []interface{}) *virtualmachinesca
 	v := input[0].(map[string]interface{})
 
 	return &virtualmachinescalesets.KeyVaultSecretReference{
-		SecretUrl: v["secret_url"].(string),
+		SecretURL: v["secret_url"].(string),
 		SourceVault: virtualmachinescalesets.SubResource{
-			Id: utils.String(v["source_vault_id"].(string)),
+			Id: pointer.To(v["source_vault_id"].(string)),
 		},
 	}
 }
 
-func flattenProtectedSettingsFromKeyVaultOld(input *compute.KeyVaultSecretReference) []interface{} {
-	if input == nil {
+func expandProtectedSettingsFromKeyVaultOldVMSSExtension(input []interface{}) *virtualmachinescalesetextensions.KeyVaultSecretReference {
+	if len(input) == 0 {
 		return nil
 	}
 
-	sourceVaultId := ""
-	if input.SourceVault.ID != nil {
-		sourceVaultId = *input.SourceVault.ID
-	}
+	v := input[0].(map[string]interface{})
 
-	return []interface{}{
-		map[string]interface{}{
-			"secret_url":      input.SecretURL,
-			"source_vault_id": sourceVaultId,
+	return &virtualmachinescalesetextensions.KeyVaultSecretReference{
+		SecretURL: v["secret_url"].(string),
+		SourceVault: virtualmachinescalesetextensions.SubResource{
+			Id: pointer.To(v["source_vault_id"].(string)),
 		},
 	}
 }
 
-func flattenProtectedSettingsFromKeyVault(input *virtualmachinescalesets.KeyVaultSecretReference) []interface{} {
+func flattenProtectedSettingsFromKeyVault(input *virtualmachineextensions.KeyVaultSecretReference) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
@@ -99,7 +96,43 @@ func flattenProtectedSettingsFromKeyVault(input *virtualmachinescalesets.KeyVaul
 
 	return []interface{}{
 		map[string]interface{}{
-			"secret_url":      input.SecretUrl,
+			"secret_url":      input.SecretURL,
+			"source_vault_id": sourceVaultId,
+		},
+	}
+}
+
+func flattenProtectedSettingsFromKeyVaultVMSS(input *virtualmachinescalesets.KeyVaultSecretReference) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	sourceVaultId := ""
+	if input.SourceVault.Id != nil {
+		sourceVaultId = *input.SourceVault.Id
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"secret_url":      input.SecretURL,
+			"source_vault_id": sourceVaultId,
+		},
+	}
+}
+
+func flattenProtectedSettingsFromKeyVaultOldVMSSExtension(input *virtualmachinescalesetextensions.KeyVaultSecretReference) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	sourceVaultId := ""
+	if input.SourceVault.Id != nil {
+		sourceVaultId = *input.SourceVault.Id
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"secret_url":      input.SecretURL,
 			"source_vault_id": sourceVaultId,
 		},
 	}

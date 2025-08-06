@@ -15,7 +15,7 @@ type SIMPolicyClient struct {
 }
 
 func NewSIMPolicyClientWithBaseURI(sdkApi sdkEnv.Api) (*SIMPolicyClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "simpolicy", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "simpolicy", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SIMPolicyClient: %+v", err)
 	}

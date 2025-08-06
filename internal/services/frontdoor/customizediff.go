@@ -5,6 +5,7 @@ package frontdoor
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -14,6 +15,16 @@ import (
 )
 
 func customizeHttpsConfigurationCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+	if IsFrontDoorFullyRetired() {
+		return fmt.Errorf("%s", FullyRetiredMessage)
+	}
+
+	// New resources are not supported, and since this is a ForceNew field, we also need to block changing the field as
+	// the re-create would fail with the create error from the service API...
+	if IsFrontDoorDeprecatedForCreation() && d.HasChange("frontend_endpoint_id") {
+		return fmt.Errorf("%s", CreateDeprecationMessage)
+	}
+
 	if v, ok := d.GetOk("frontend_endpoint_id"); ok && v.(string) != "" {
 		id, err := parse.FrontendEndpointID(v.(string))
 		if err != nil {
@@ -34,7 +45,7 @@ func customHttpsSettings(d *pluginsdk.ResourceDiff) error {
 
 	if len(frontendEndpointCustomHttpsConfig) > 0 {
 		if !customHttpsEnabled {
-			return fmt.Errorf(`"custom_https_provisioning_enabled" is set to "false". please remove the "custom_https_configuration" block from the configuration file`)
+			return errors.New(`"custom_https_provisioning_enabled" is set to "false". please remove the "custom_https_configuration" block from the configuration file`)
 		}
 
 		// Verify frontend endpoints custom https configuration is valid if defined
@@ -42,7 +53,7 @@ func customHttpsSettings(d *pluginsdk.ResourceDiff) error {
 			return err
 		}
 	} else if customHttpsEnabled {
-		return fmt.Errorf(`"custom_https_provisioning_enabled" is set to "true". please add a "custom_https_configuration" block to the configuration file`)
+		return errors.New(`"custom_https_provisioning_enabled" is set to "true". please add a "custom_https_configuration" block to the configuration file`)
 	}
 
 	return nil
@@ -56,21 +67,21 @@ func verifyCustomHttpsConfiguration(frontendEndpointCustomHttpsConfig []interfac
 
 		if certificateSource == string(frontdoors.FrontDoorCertificateSourceFrontDoor) {
 			if azureKeyVaultCertificateHasValues(customHttpsConfiguration, true) {
-				return fmt.Errorf(`a Front Door managed "custom_https_configuration" block does not support the following keys. Please remove the following keys from your configuration file: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`)
+				return errors.New(`a Front Door managed "custom_https_configuration" block does not support the following keys. Please remove the following keys from your configuration file: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`)
 			}
 		} else {
 			// The latest secret version is no longer valid for key vaults
 			if strings.EqualFold(certificateVersion, "latest") {
-				return fmt.Errorf(`"azure_key_vault_certificate_secret_version" can not be set to "latest" please remove this attribute from the configuration file. Removing the value has the same functionality as setting it to "latest"`)
+				return errors.New(`"azure_key_vault_certificate_secret_version" can not be set to "latest" please remove this attribute from the configuration file. Removing the value has the same functionality as setting it to "latest"`)
 			}
 
 			if !azureKeyVaultCertificateHasValues(customHttpsConfiguration, false) {
 				if certificateVersion == "" {
 					// If using latest, empty string is now equivalent to using the keyword latest
-					return fmt.Errorf(`a "AzureKeyVault" managed "custom_https_configuration" block must have values in the following fileds: "azure_key_vault_certificate_secret_name" and "azure_key_vault_certificate_vault_id"`)
+					return errors.New(`a "AzureKeyVault" managed "custom_https_configuration" block must have values in the following fileds: "azure_key_vault_certificate_secret_name" and "azure_key_vault_certificate_vault_id"`)
 				} else {
 					// If using a specific version of the secret
-					return fmt.Errorf(`a "AzureKeyVault" managed "custom_https_configuration" block must have values in the following fileds: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`)
+					return errors.New(`a "AzureKeyVault" managed "custom_https_configuration" block must have values in the following fileds: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`)
 				}
 			}
 		}
@@ -107,6 +118,16 @@ func azureKeyVaultCertificateHasValues(customHttpsConfiguration map[string]inter
 }
 
 func frontDoorCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+	if IsFrontDoorFullyRetired() {
+		return fmt.Errorf("%s", FullyRetiredMessage)
+	}
+
+	// New resources are not supported, and since these fields are 'ForceNew' we also need to block changing them as
+	// the re-create would fail with the create error from the service API...
+	if IsFrontDoorDeprecatedForCreation() && d.HasChanges("name", "resource_group_name") {
+		return fmt.Errorf("%s", CreateDeprecationMessage)
+	}
+
 	if err := frontDoorSettings(d); err != nil {
 		return fmt.Errorf("validating Front Door %q (Resource Group %q): %+v", d.Get("name").(string), d.Get("resource_group_name").(string), err)
 	}
@@ -122,7 +143,7 @@ func frontDoorSettings(d *pluginsdk.ResourceDiff) error {
 	healthProbeSettings := d.Get("backend_pool_health_probe").([]interface{})
 
 	if len(configFrontendEndpoints) == 0 {
-		return fmt.Errorf(`"frontend_endpoint": must have at least one "frontend_endpoint" defined, found 0`)
+		return errors.New(`"frontend_endpoint": must have at least one "frontend_endpoint" defined, found 0`)
 	}
 
 	// Loop over all of the Routing Rules and validate that only one type of configuration is defined per Routing Rule

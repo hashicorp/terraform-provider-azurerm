@@ -30,7 +30,7 @@ resource "azurerm_cosmosdb_account" "db" {
   offer_type          = "Standard"
   kind                = "MongoDB"
 
-  enable_automatic_failover = true
+  automatic_failover_enabled = true
 
   capabilities {
     name = "EnableAggregationPipeline"
@@ -116,6 +116,8 @@ The following arguments are supported:
 
 * `minimal_tls_version` - (Optional) Specifies the minimal TLS version for the CosmosDB account. Possible values are: `Tls`, `Tls11`, and `Tls12`. Defaults to `Tls12`.
 
+~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more details.
+
 * `offer_type` - (Required) Specifies the Offer Type to use for this CosmosDB Account; currently, this can only be set to `Standard`.
 
 * `analytical_storage` - (Optional) An `analytical_storage` block as defined below.
@@ -136,7 +138,7 @@ The following arguments are supported:
 
 * `geo_location` - (Required) Specifies a `geo_location` resource, used to define where data should be replicated with the `failover_priority` 0 specifying the primary location. Value is a `geo_location` block as defined below.
 
-* `ip_range_filter` - (Optional) CosmosDB Firewall Support: This value specifies the set of IP addresses or IP address ranges in CIDR form to be included as the allowed list of client IPs for a given database account. IP addresses/ranges must be comma separated and must not contain any spaces.
+* `ip_range_filter` - (Optional) A set of IP addresses or IP address ranges in CIDR form to be included as the allowed list of client IPs for a given database account. For example `["55.0.1.0/24", "55.0.2.0/24"]`.
 
 ~> **Note:** To enable the "Allow access from the Azure portal" behavior, you should add the IP addresses provided by the [documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-configure-firewall#allow-requests-from-the-azure-portal) to this list.
 
@@ -150,6 +152,8 @@ The following arguments are supported:
 
 * `partition_merge_enabled` - (Optional) Is partition merge on the Cosmos DB account enabled? Defaults to `false`.
 
+* `burst_capacity_enabled` - (Optional) Enable burst capacity for this Cosmos DB account. Defaults to `false`.
+
 * `public_network_access_enabled` - (Optional) Whether or not public network access is allowed for this CosmosDB account. Defaults to `true`.
 
 * `capabilities` - (Optional) The capabilities which should be enabled for this Cosmos DB account. Value is a `capabilities` block as defined below.
@@ -162,13 +166,19 @@ The following arguments are supported:
 
 ~> **Note:** In order to use a `Custom Key` from Key Vault for encryption you must grant Azure Cosmos DB Service access to your key vault. For instructions on how to configure your Key Vault correctly please refer to the [product documentation](https://docs.microsoft.com/azure/cosmos-db/how-to-setup-cmk#add-an-access-policy-to-your-azure-key-vault-instance)
 
+* `managed_hsm_key_id` - (Optional) A versionless Managed HSM Key ID for CMK encryption. Changing this forces a new resource to be created.
+
+~> **Note:** When referencing an `azurerm_key_vault_managed_hardware_security_module_key` resource, use `id` instead of `versioned_id`
+
+~> **Note:** In order to use a `Custom Key` from Managed HSM for encryption you must grant Azure Cosmos DB Service access to your Managed HSM. For instructions on how to configure your Key Vault correctly please refer to the [product documentation](https://learn.microsoft.com/en-us/azure/cosmos-db/how-to-setup-customer-managed-keys-mhsm)
+
 * `virtual_network_rule` - (Optional) Specifies a `virtual_network_rule` block as defined below, used to define which subnets are allowed to access this CosmosDB account.
 
 * `multiple_write_locations_enabled` - (Optional) Enable multiple write locations for this Cosmos DB account.
 
 * `access_key_metadata_writes_enabled` - (Optional) Is write operations on metadata resources (databases, containers, throughput) via account keys enabled? Defaults to `true`.
 
-* `mongo_server_version` - (Optional) The Server Version of a MongoDB account. Possible values are `4.2`, `4.0`, `3.6`, and `3.2`.
+* `mongo_server_version` - (Optional) The Server Version of a MongoDB account. Possible values are `7.0`, `6.0`, `5.0`, `4.2`, `4.0`, `3.6`, and `3.2`.
 
 * `network_acl_bypass_for_azure_services` - (Optional) If Azure services can bypass ACLs. Defaults to `false`.
 
@@ -191,9 +201,9 @@ The following arguments are supported:
 The `consistency_policy` block Configures the database consistency and supports the following:
 
 * `consistency_level` - (Required) The Consistency Level to use for this CosmosDB Account - can be either `BoundedStaleness`, `Eventual`, `Session`, `Strong` or `ConsistentPrefix`.
-  
+
 * `max_interval_in_seconds` - (Optional) When used with the Bounded Staleness consistency level, this value represents the time amount of staleness (in seconds) tolerated. The accepted range for this value is `5` - `86400` (1 day). Defaults to `5`. Required when `consistency_level` is set to `BoundedStaleness`.
-  
+
 * `max_staleness_prefix` - (Optional) When used with the Bounded Staleness consistency level, this value represents the number of stale requests tolerated. The accepted range for this value is `10` – `2147483647`. Defaults to `100`. Required when `consistency_level` is set to `BoundedStaleness`.
 
 ~> **Note:** `max_interval_in_seconds` and `max_staleness_prefix` can only be set to values other than default when the `consistency_level` is set to `BoundedStaleness`.
@@ -203,20 +213,20 @@ The `consistency_policy` block Configures the database consistency and supports 
 The `geo_location` block Configures the geographic locations the data is replicated to and supports the following:
 
 * `location` - (Required) The name of the Azure region to host replicated data.
-  
+
 * `failover_priority` - (Required) The failover priority of the region. A failover priority of `0` indicates a write region. The maximum value for a failover priority = (total number of regions - 1). Failover priority values must be unique for each of the regions in which the database account exists. Changing this causes the location to be re-provisioned and cannot be changed for the location with failover priority `0`.
-  
+
 * `zone_redundant` - (Optional) Should zone redundancy be enabled for this region? Defaults to `false`.
 
 ---
 
 A `capabilities` block Configures the capabilities to be enabled for this Cosmos DB account:
 
-* `name` - (Required) The capability to enable - Possible values are `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`, `EnableMongo`, `EnableMongo16MBDocumentSupport`, `EnableMongoRetryableWrites`, `EnableMongoRoleBasedAccessControl`, `EnablePartialUniqueIndex`, `EnableServerless`, `EnableTable`, `EnableTtlOnCustomPath`, `EnableUniqueCompoundNestedDocs`, `MongoDBv3.4` and `mongoEnableDocLevelTTL`.
+* `name` - (Required) The capability to enable - Possible values are `AllowSelfServeUpgradeToMongo36`, `DeleteAllItemsByPartitionKey`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `EnableCassandra`, `EnableGremlin`, `EnableMongo`, `EnableMongo16MBDocumentSupport`, `EnableMongoRetryableWrites`, `EnableMongoRoleBasedAccessControl`, `EnableNoSQLVectorSearch`, `EnableNoSQLFullTextSearch`, `EnablePartialUniqueIndex`,  `EnableServerless`, `EnableTable`, `EnableTtlOnCustomPath`, `EnableUniqueCompoundNestedDocs`, `MongoDBv3.4` and `mongoEnableDocLevelTTL`.
 
-~> **Note:** Setting `MongoDBv3.4` also requires setting `EnableMongo`. 
+~> **Note:** Setting `MongoDBv3.4` also requires setting `EnableMongo`.
 
-~> **Note:** Only `AllowSelfServeUpgradeToMongo36`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `MongoDBv3.4`, `EnableMongoRetryableWrites`, `EnableMongoRoleBasedAccessControl`, `EnableUniqueCompoundNestedDocs`, `EnableMongo16MBDocumentSupport`, `mongoEnableDocLevelTTL`, `EnableTtlOnCustomPath` and `EnablePartialUniqueIndex` can be added to an existing Cosmos DB account.
+~> **Note:** Only `AllowSelfServeUpgradeToMongo36`, `DeleteAllItemsByPartitionKey`, `DisableRateLimitingResponses`, `EnableAggregationPipeline`, `MongoDBv3.4`, `EnableMongoRetryableWrites`, `EnableMongoRoleBasedAccessControl`, `EnableUniqueCompoundNestedDocs`, `EnableMongo16MBDocumentSupport`, `mongoEnableDocLevelTTL`, `EnableTtlOnCustomPath` and `EnablePartialUniqueIndex` can be added to an existing Cosmos DB account.
 
 ~> **Note:** Only `DisableRateLimitingResponses` and `EnableMongoRetryableWrites` can be removed from an existing Cosmos DB account.
 
@@ -243,7 +253,7 @@ A `capacity` block supports the following:
 
 A `backup` block supports the following:
 
-* `type` - (Required) The type of the `backup`. Possible values are `Continuous` and `Periodic`. 
+* `type` - (Required) The type of the `backup`. Possible values are `Continuous` and `Periodic`.
 
 ~> **Note:** Migration of `Periodic` to `Continuous` is one-way, changing `Continuous` to `Periodic` forces a new resource to be created.
 
@@ -337,7 +347,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `primary_readonly_sql_connection_string` - Primary readonly SQL connection string for the CosmosDB Account.
 
-* `secondary_readonly_sql_connection_string` - Secondary readonly SQL connection string for the CosmosDB Account. 
+* `secondary_readonly_sql_connection_string` - Secondary readonly SQL connection string for the CosmosDB Account.
 
 * `primary_mongodb_connection_string` - Primary Mongodb connection string for the CosmosDB Account.
 
@@ -359,10 +369,10 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 180 minutes) Used when creating the CosmosDB Account.
-* `update` - (Defaults to 180 minutes) Used when updating the CosmosDB Account.
+* `create` - (Defaults to 3 hours) Used when creating the CosmosDB Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the CosmosDB Account.
-* `delete` - (Defaults to 180 minutes) Used when deleting the CosmosDB Account.
+* `update` - (Defaults to 3 hours) Used when updating the CosmosDB Account.
+* `delete` - (Defaults to 3 hours) Used when deleting the CosmosDB Account.
 
 ## Import
 
@@ -371,3 +381,9 @@ CosmosDB Accounts can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_cosmosdb_account.account1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DocumentDB/databaseAccounts/account1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DocumentDB` - 2024-08-15

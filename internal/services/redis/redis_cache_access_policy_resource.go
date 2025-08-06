@@ -9,15 +9,15 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2023-08-01/redis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-11-01/redis"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type RedisCacheAccessPolicyResource struct {
-}
+type RedisCacheAccessPolicyResource struct{}
 
-var _ sdk.Resource = RedisCacheAccessPolicyResource{}
+var _ sdk.ResourceWithUpdate = RedisCacheAccessPolicyResource{}
 
 type RedisCacheAccessPolicyResourceModel struct {
 	Name         string `tfschema:"name"`
@@ -41,7 +41,6 @@ func (r RedisCacheAccessPolicyResource) Arguments() map[string]*pluginsdk.Schema
 		"permissions": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
-			ForceNew: true,
 		},
 	}
 }
@@ -97,11 +96,61 @@ func (r RedisCacheAccessPolicyResource) Create() sdk.ResourceFunc {
 					Type:        &policyTypeCustom,
 				},
 			}
+
+			locks.ByID(model.RedisCacheID)
+			defer locks.UnlockByID(model.RedisCacheID)
+
 			if err := client.AccessPolicyCreateUpdateThenPoll(ctx, id, createInput); err != nil {
 				return fmt.Errorf("failed to create Redis Cache Access Policy %s in Redis Cache %s in resource group %s: %s", model.Name, redisId.RedisName, redisId.ResourceGroupName, err)
 			}
 
 			metadata.SetID(id)
+			return nil
+		},
+	}
+}
+
+func (r RedisCacheAccessPolicyResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Redis.Redis
+
+			var state RedisCacheAccessPolicyResourceModel
+			if err := metadata.Decode(&state); err != nil {
+				return fmt.Errorf("decoding %+v", err)
+			}
+
+			id, err := redis.ParseAccessPolicyID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			existing, err := client.AccessPolicyGet(ctx, *id)
+			if err != nil {
+				return fmt.Errorf("retrieving %s: %+v", *id, err)
+			}
+
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", *id)
+			}
+
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
+			}
+
+			model := *existing.Model
+			if metadata.ResourceData.HasChange("permissions") {
+				model.Properties.Permissions = state.Permissions
+			}
+
+			locks.ByID(state.RedisCacheID)
+			defer locks.UnlockByID(state.RedisCacheID)
+
+			if err := client.AccessPolicyCreateUpdateThenPoll(ctx, *id, model); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
+			}
+
 			return nil
 		},
 	}
@@ -157,7 +206,10 @@ func (r RedisCacheAccessPolicyResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
 
-			if _, err := client.AccessPolicyDelete(ctx, *id); err != nil {
+			locks.ByID(model.RedisCacheID)
+			defer locks.UnlockByID(model.RedisCacheID)
+
+			if err := client.AccessPolicyDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting Redis Cache Access Policy %s in Redis Cache %s in resource group %s: %s", id.AccessPolicyName, id.RedisName, id.ResourceGroupName, err)
 			}
 

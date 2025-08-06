@@ -7,13 +7,15 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type VirtualHubConnectionResource struct{}
@@ -130,9 +132,13 @@ func TestAccVirtualHubConnection_recreateWithSameConnectionName(t *testing.T) {
 
 	vhubData := data
 	vhubData.ResourceName = "azurerm_virtual_hub.test"
-	resourceGroupName := fmt.Sprintf("acctestRG-vhub-%d", data.RandomInteger)
-	vhubName := fmt.Sprintf("acctest-VHUB-%d", data.RandomInteger)
-	vhubConnectionName := fmt.Sprintf("acctestbasicvhubconn-%d", data.RandomInteger)
+
+	id := virtualwans.NewHubVirtualNetworkConnectionID(
+		data.Subscriptions.Primary,
+		fmt.Sprintf("acctestRG-vhub-%d", data.RandomInteger),
+		fmt.Sprintf("acctest-VHUB-%d", data.RandomInteger),
+		fmt.Sprintf("acctestbasicvhubconn-%d", data.RandomInteger),
+	)
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -145,7 +151,7 @@ func TestAccVirtualHubConnection_recreateWithSameConnectionName(t *testing.T) {
 		{
 			Config: r.template(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				vhubData.CheckWithClient(checkVirtualHubConnectionDoesNotExist(resourceGroupName, vhubName, vhubConnectionName)),
+				vhubData.CheckWithClient(checkVirtualHubConnectionDoesNotExist(id)),
 			),
 		},
 		{
@@ -273,30 +279,55 @@ func TestAccVirtualHubConnection_routeMapAndStaticVnetLocalRouteOverrideCriteria
 	})
 }
 
+func TestAccVirtualHubConnection_routeMapAndStaticVnetPropagateStaticRoutes(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_hub_connection", "test")
+	r := VirtualHubConnectionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			// Apply the non-default configuration
+			Config: r.routeMapAndStaticVnetPropagateStaticRoutes(data, false),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Apply the default configuration
+			Config: r.routeMapAndStaticVnetPropagateStaticRoutes(data, true),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t VirtualHubConnectionResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.HubVirtualNetworkConnectionID(state.ID)
+	id, err := virtualwans.ParseHubVirtualNetworkConnectionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.HubVirtualNetworkConnectionClient.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.Name)
+	resp, err := clients.Network.VirtualWANs.HubVirtualNetworkConnectionsGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Virtual Hub Network Connection (%s): %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func checkVirtualHubConnectionDoesNotExist(resourceGroupName, vhubName, vhubConnectionName string) acceptance.ClientCheckFunc {
+func checkVirtualHubConnectionDoesNotExist(id virtualwans.HubVirtualNetworkConnectionId) acceptance.ClientCheckFunc {
 	return func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {
-		if resp, err := clients.Network.HubVirtualNetworkConnectionClient.Get(ctx, resourceGroupName, vhubName, vhubConnectionName); err != nil {
-			if utils.ResponseWasNotFound(resp.Response) {
+		ctx2, cancel := context.WithTimeout(ctx, 5*time.Minute)
+		defer cancel()
+		if resp, err := clients.Network.VirtualWANs.HubVirtualNetworkConnectionsGet(ctx2, id); err != nil {
+			if response.WasNotFound(resp.HttpResponse) {
 				return nil
 			}
-			return fmt.Errorf("Bad: Get on network.HubVirtualNetworkConnectionClient: %+v", err)
+			return fmt.Errorf("retrieving %s: %+v", id, err)
 		}
-
-		return fmt.Errorf("Bad: Virtual Hub Connection %q (Resource Group %q) still exists", vhubConnectionName, resourceGroupName)
+		return fmt.Errorf("%s still exists", id)
 	}
 }
 
@@ -463,8 +494,8 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = [cidrsubnet("10.5.1.0/24", 4, count.index)]
 
-  enforce_private_link_endpoint_network_policies = true
-  enforce_private_link_service_network_policies  = true
+  private_endpoint_network_policies             = "Disabled"
+  private_link_service_network_policies_enabled = true
 
   service_endpoints = [
     "Microsoft.AzureActiveDirectory",
@@ -665,4 +696,26 @@ resource "azurerm_virtual_hub_connection" "test" {
   }
 }
 `, r.template(data), nameSuffix, data.RandomInteger)
+}
+
+func (r VirtualHubConnectionResource) routeMapAndStaticVnetPropagateStaticRoutes(data acceptance.TestData, isPropagateStaticRoutesEnabled bool) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_virtual_hub_connection" "test" {
+  name                      = "acctest-vhubconn-%[3]d"
+  virtual_hub_id            = azurerm_virtual_hub.test.id
+  remote_virtual_network_id = azurerm_virtual_network.test.id
+
+  routing {
+    static_vnet_propagate_static_routes_enabled = %[2]t
+
+    static_vnet_route {
+      name                = "testvnetroute6"
+      address_prefixes    = ["10.0.6.0/24", "10.0.7.0/24"]
+      next_hop_ip_address = "10.0.6.5"
+    }
+  }
+}
+`, r.template(data), isPropagateStaticRoutesEnabled, data.RandomInteger)
 }

@@ -45,7 +45,6 @@ func (c WebhookClient) Get(ctx context.Context, id WebHookId) (result GetOperati
 
 	var model Webhook
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

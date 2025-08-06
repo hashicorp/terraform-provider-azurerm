@@ -51,7 +51,6 @@ func (c AppServiceEnvironmentsClient) UpdateAseCustomDnsSuffixConfiguration(ctx 
 
 	var model CustomDnsSuffixConfiguration
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

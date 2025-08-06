@@ -41,6 +41,7 @@ func (o ListAllOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListAllOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -55,6 +56,18 @@ func (o ListAllOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListAllCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListAllCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListAll ...
 func (c ExperimentsClient) ListAll(ctx context.Context, id commonids.SubscriptionId, options ListAllOperationOptions) (result ListAllOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -63,8 +76,9 @@ func (c ExperimentsClient) ListAll(ctx context.Context, id commonids.Subscriptio
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.Chaos/experiments", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListAllCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.Chaos/experiments", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -105,6 +119,7 @@ func (c ExperimentsClient) ListAllCompleteMatchingPredicate(ctx context.Context,
 
 	resp, err := c.ListAll(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

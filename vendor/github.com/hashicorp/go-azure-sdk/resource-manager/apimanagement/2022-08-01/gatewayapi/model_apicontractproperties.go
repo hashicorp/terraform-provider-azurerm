@@ -19,10 +19,10 @@ type ApiContractProperties struct {
 	License                       *ApiLicenseInformation                 `json:"license,omitempty"`
 	Path                          string                                 `json:"path"`
 	Protocols                     *[]Protocol                            `json:"protocols,omitempty"`
-	ServiceUrl                    *string                                `json:"serviceUrl,omitempty"`
+	ServiceURL                    *string                                `json:"serviceUrl,omitempty"`
 	SourceApiId                   *string                                `json:"sourceApiId,omitempty"`
 	SubscriptionKeyParameterNames *SubscriptionKeyParameterNamesContract `json:"subscriptionKeyParameterNames,omitempty"`
 	SubscriptionRequired          *bool                                  `json:"subscriptionRequired,omitempty"`
-	TermsOfServiceUrl             *string                                `json:"termsOfServiceUrl,omitempty"`
+	TermsOfServiceURL             *string                                `json:"termsOfServiceUrl,omitempty"`
 	Type                          *ApiType                               `json:"type,omitempty"`
 }

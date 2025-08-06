@@ -40,6 +40,8 @@ func TestAccDataSourceAzureRMContainerRegistry_dataEndpointPremium(t *testing.T)
 			Config: r.dataEndpointPremium(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("data_endpoint_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("data_endpoint_host_names.#").HasValue("1"),
+				check.That(data.ResourceName).Key("data_endpoint_host_names.0").Exists(),
 			),
 		},
 	})

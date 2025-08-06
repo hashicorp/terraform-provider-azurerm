@@ -4,33 +4,39 @@
 package compute
 
 import (
+	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineextensions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_machine_extension -service-package-name compute -properties "name" -compare-values "virtual_machine_name:virtual_machine_id,resource_group_name:virtual_machine_id,subscription_id:virtual_machine_id"
 
 func resourceVirtualMachineExtension() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualMachineExtensionsCreateUpdate,
-		Read:   resourceVirtualMachineExtensionsRead,
-		Update: resourceVirtualMachineExtensionsCreateUpdate,
-		Delete: resourceVirtualMachineExtensionsDelete,
+		Create:   resourceVirtualMachineExtensionsCreateUpdate,
+		Read:     resourceVirtualMachineExtensionsRead,
+		Update:   resourceVirtualMachineExtensionsCreateUpdate,
+		Delete:   resourceVirtualMachineExtensionsDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&virtualmachineextensions.ExtensionId{}),
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.VirtualMachineExtensionID(id)
-			return err
-		}),
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&virtualmachineextensions.ExtensionId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -117,42 +123,46 @@ func resourceVirtualMachineExtension() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
 func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	vmExtensionClient := meta.(*clients.Client).Compute.VMExtensionClient
-	vmClient := meta.(*clients.Client).Compute.VMClient
+	client := meta.(*clients.Client).Compute.VirtualMachineExtensionsClient
+	vmClient := meta.(*clients.Client).Compute.VirtualMachinesClient
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	virtualMachineId, err := commonids.ParseVirtualMachineID(d.Get("virtual_machine_id").(string))
+	virtualMachineId, err := virtualmachines.ParseVirtualMachineID(d.Get("virtual_machine_id").(string))
 	if err != nil {
-		return fmt.Errorf("parsing Virtual Machine ID %q: %+v", virtualMachineId, err)
+		return err
 	}
-	id := parse.NewVirtualMachineExtensionID(virtualMachineId.SubscriptionId, virtualMachineId.ResourceGroupName, virtualMachineId.VirtualMachineName, d.Get("name").(string))
+	id := virtualmachineextensions.NewExtensionID(virtualMachineId.SubscriptionId, virtualMachineId.ResourceGroupName, virtualMachineId.VirtualMachineName, d.Get("name").(string))
 
-	virtualMachine, err := vmClient.Get(ctx, id.ResourceGroup, id.VirtualMachineName, "")
+	virtualMachine, err := vmClient.Get(ctx, *virtualMachineId, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {
-		return fmt.Errorf("getting %s: %+v", virtualMachineId, err)
+		return fmt.Errorf("retrieving %s: %+v", virtualMachineId, err)
 	}
 
-	location := *virtualMachine.Location
+	if virtualMachine.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", virtualMachineId)
+	}
+
+	location := virtualMachine.Model.Location
 	if location == "" {
 		return fmt.Errorf("reading location of %s", virtualMachineId)
 	}
 
 	if d.IsNewResource() {
-		existing, err := vmExtensionClient.Get(ctx, id.ResourceGroup, id.VirtualMachineName, id.ExtensionName, "")
+		existing, err := client.Get(ctx, id, virtualmachineextensions.DefaultGetOperationOptions())
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %s", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_virtual_machine_extension", id.ID())
 		}
 	}
@@ -165,47 +175,44 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 	suppressFailure := d.Get("failure_suppression_enabled").(bool)
 	t := d.Get("tags").(map[string]interface{})
 
-	extension := compute.VirtualMachineExtension{
+	extension := virtualmachineextensions.VirtualMachineExtension{
 		Location: &location,
-		VirtualMachineExtensionProperties: &compute.VirtualMachineExtensionProperties{
+		Properties: &virtualmachineextensions.VirtualMachineExtensionProperties{
 			Publisher:                     &publisher,
 			Type:                          &extensionType,
 			TypeHandlerVersion:            &typeHandlerVersion,
 			AutoUpgradeMinorVersion:       &autoUpgradeMinor,
 			EnableAutomaticUpgrade:        &enableAutomaticUpgrade,
-			ProtectedSettingsFromKeyVault: expandProtectedSettingsFromKeyVaultOld(d.Get("protected_settings_from_key_vault").([]interface{})),
+			ProtectedSettingsFromKeyVault: expandProtectedSettingsFromKeyVault(d.Get("protected_settings_from_key_vault").([]interface{})),
 			SuppressFailures:              &suppressFailure,
 		},
 		Tags: tags.Expand(t),
 	}
 
 	if settingsString := d.Get("settings").(string); settingsString != "" {
-		settings, err := pluginsdk.ExpandJsonFromString(settingsString)
+		var result interface{}
+		err := json.Unmarshal([]byte(settingsString), &result)
 		if err != nil {
-			return fmt.Errorf("unable to parse settings: %s", err)
+			return fmt.Errorf("unmarshaling `settings`: %+v", err)
 		}
-		extension.VirtualMachineExtensionProperties.Settings = &settings
+		extension.Properties.Settings = pointer.To(result)
 	}
 
 	if protectedSettingsString := d.Get("protected_settings").(string); protectedSettingsString != "" {
-		protectedSettings, err := pluginsdk.ExpandJsonFromString(protectedSettingsString)
+		var result interface{}
+		err := json.Unmarshal([]byte(protectedSettingsString), &result)
 		if err != nil {
-			return fmt.Errorf("unable to parse protected_settings: %s", err)
+			return fmt.Errorf("unmarshaling `protected_settings`: %+v", err)
 		}
-		extension.VirtualMachineExtensionProperties.ProtectedSettings = &protectedSettings
+		extension.Properties.ProtectedSettings = pointer.To(result)
 	}
 
 	if provisionAfterExtensionsValue, exists := d.GetOk("provision_after_extensions"); exists {
-		extension.ProvisionAfterExtensions = utils.ExpandStringSlice(provisionAfterExtensionsValue.([]interface{}))
+		extension.Properties.ProvisionAfterExtensions = utils.ExpandStringSlice(provisionAfterExtensionsValue.([]interface{}))
 	}
 
-	future, err := vmExtensionClient.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualMachineName, id.ExtensionName, extension)
-	if err != nil {
-		return err
-	}
-
-	if err = future.WaitForCompletionRef(ctx, vmExtensionClient.Client); err != nil {
-		return err
+	if err := client.CreateOrUpdateThenPoll(ctx, id, extension); err != nil {
+		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -214,80 +221,85 @@ func resourceVirtualMachineExtensionsCreateUpdate(d *pluginsdk.ResourceData, met
 }
 
 func resourceVirtualMachineExtensionsRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	vmExtensionClient := meta.(*clients.Client).Compute.VMExtensionClient
-	vmClient := meta.(*clients.Client).Compute.VMClient
+	client := meta.(*clients.Client).Compute.VirtualMachineExtensionsClient
+	vmClient := meta.(*clients.Client).Compute.VirtualMachinesClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualMachineExtensionID(d.Id())
+	id, err := virtualmachineextensions.ParseExtensionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	virtualMachine, err := vmClient.Get(ctx, id.ResourceGroup, id.VirtualMachineName, "")
+	virtualMachineId := virtualmachines.NewVirtualMachineID(id.SubscriptionId, id.ResourceGroupName, id.VirtualMachineName)
+
+	virtualMachine, err := vmClient.Get(ctx, virtualMachineId, virtualmachines.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(virtualMachine.Response) {
+		if response.WasNotFound(virtualMachine.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Virtual Machine %s: %s", id.ExtensionName, err)
+		return fmt.Errorf("retrieving %s: %+v", virtualMachineId, err)
 	}
 
-	d.Set("virtual_machine_id", virtualMachine.ID)
+	d.Set("virtual_machine_id", virtualMachineId.ID())
 
-	resp, err := vmExtensionClient.Get(ctx, id.ResourceGroup, id.VirtualMachineName, id.ExtensionName, "")
+	resp, err := client.Get(ctx, *id, virtualmachineextensions.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("making Read request on Virtual Machine Extension %s: %s", id.ExtensionName, err)
+		return fmt.Errorf("retrieving %s: %s", id.ExtensionName, err)
 	}
 
-	d.Set("name", resp.Name)
+	d.Set("name", id.ExtensionName)
 
-	if props := resp.VirtualMachineExtensionProperties; props != nil {
-		d.Set("publisher", props.Publisher)
-		d.Set("type", props.Type)
-		d.Set("type_handler_version", props.TypeHandlerVersion)
-		d.Set("auto_upgrade_minor_version", props.AutoUpgradeMinorVersion)
-		d.Set("automatic_upgrade_enabled", props.EnableAutomaticUpgrade)
-		d.Set("protected_settings_from_key_vault", flattenProtectedSettingsFromKeyVaultOld(props.ProtectedSettingsFromKeyVault))
-		d.Set("provision_after_extensions", pointer.From(props.ProvisionAfterExtensions))
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("publisher", props.Publisher)
+			d.Set("type", props.Type)
+			d.Set("type_handler_version", props.TypeHandlerVersion)
+			d.Set("auto_upgrade_minor_version", props.AutoUpgradeMinorVersion)
+			d.Set("automatic_upgrade_enabled", props.EnableAutomaticUpgrade)
+			d.Set("protected_settings_from_key_vault", flattenProtectedSettingsFromKeyVault(props.ProtectedSettingsFromKeyVault))
+			d.Set("provision_after_extensions", pointer.From(props.ProvisionAfterExtensions))
 
-		suppressFailure := false
-		if props.SuppressFailures != nil {
-			suppressFailure = *props.SuppressFailures
-		}
-		d.Set("failure_suppression_enabled", suppressFailure)
-
-		if settings := props.Settings; settings != nil {
-			settingsVal := settings.(map[string]interface{})
-			settingsJson, err := pluginsdk.FlattenJsonToString(settingsVal)
-			if err != nil {
-				return fmt.Errorf("unable to parse settings from response: %s", err)
+			suppressFailure := false
+			if props.SuppressFailures != nil {
+				suppressFailure = *props.SuppressFailures
 			}
-			d.Set("settings", settingsJson)
+			d.Set("failure_suppression_enabled", suppressFailure)
+
+			if props.Settings != nil {
+				settings, err := json.Marshal(props.Settings)
+				if err != nil {
+					return fmt.Errorf("unmarshaling `settings`: %+v", err)
+				}
+				d.Set("settings", string(settings))
+			}
+		}
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
 		}
 	}
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceVirtualMachineExtensionsDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Compute.VMExtensionClient
+	client := meta.(*clients.Client).Compute.VirtualMachineExtensionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualMachineExtensionID(d.Id())
+	id, err := virtualmachineextensions.ParseExtensionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualMachineName, id.ExtensionName)
-	if err != nil {
-		return err
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
-	return future.WaitForCompletionRef(ctx, client.Client)
+	return nil
 }

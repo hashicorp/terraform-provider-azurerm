@@ -40,6 +40,7 @@ func (o ListByResourceGroupOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListByResourceGroupOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -51,6 +52,18 @@ func (o ListByResourceGroupOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByResourceGroup ...
 func (c StreamingJobsClient) ListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId, options ListByResourceGroupOperationOptions) (result ListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -59,8 +72,9 @@ func (c StreamingJobsClient) ListByResourceGroup(ctx context.Context, id commoni
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/providers/Microsoft.StreamAnalytics/streamingJobs", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListByResourceGroupCustomPager{},
+		Path:          fmt.Sprintf("%s/providers/Microsoft.StreamAnalytics/streamingJobs", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -101,6 +115,7 @@ func (c StreamingJobsClient) ListByResourceGroupCompleteMatchingPredicate(ctx co
 
 	resp, err := c.ListByResourceGroup(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

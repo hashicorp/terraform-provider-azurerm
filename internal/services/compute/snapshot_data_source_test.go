@@ -38,7 +38,6 @@ func TestAccDataSourceSnapshot_encryption(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
-				check.That(data.ResourceName).Key("encryption_settings.0.enabled").HasValue("true"),
 			),
 		},
 	})
@@ -177,8 +176,6 @@ resource "azurerm_snapshot" "test" {
   disk_size_gb        = "20"
 
   encryption_settings {
-    enabled = true
-
     disk_encryption_key {
       secret_url      = azurerm_key_vault_secret.test.id
       source_vault_id = azurerm_key_vault.test.id

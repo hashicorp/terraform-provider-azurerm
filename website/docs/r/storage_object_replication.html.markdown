@@ -83,9 +83,9 @@ The following arguments are supported:
 
 A `rules` block supports the following:
 
-* `source_container_name` - (Required) The source storage container name. Changing this forces a new Storage Object Replication to be created.
+* `source_container_name` - (Required) The source storage container name.
 
-* `destination_container_name` - (Required) The destination storage container name. Changing this forces a new Storage Object Replication to be created.
+* `destination_container_name` - (Required) The destination storage container name.
 
 * `copy_blobs_created_after` - (Optional) The time after which the Block Blobs created will be copies to the destination. Possible values are `OnlyNewObjects`, `Everything` and time in RFC3339 format: `2006-01-02T15:04:00Z`. Defaults to `OnlyNewObjects`.
 
@@ -117,3 +117,9 @@ Storage Object Replication Policies can be imported using the `resource id`, e.g
 ```shell
 terraform import azurerm_storage_object_replication.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Storage/storageAccounts/storageAccount1/objectReplicationPolicies/objectReplicationPolicy1;/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group2/providers/Microsoft.Storage/storageAccounts/storageAccount2/objectReplicationPolicies/objectReplicationPolicy2
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Storage` - 2023-05-01

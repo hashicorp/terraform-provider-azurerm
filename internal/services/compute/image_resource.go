@@ -54,10 +54,11 @@ func resourceImage() *pluginsdk.Resource {
 			"resource_group_name": commonschema.ResourceGroupName(),
 
 			"zone_resilient": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				Default:  false,
-				ForceNew: true,
+				Type:          pluginsdk.TypeBool,
+				Optional:      true,
+				Default:       false,
+				ForceNew:      true,
+				ConflictsWith: []string{"source_virtual_machine_id"},
 			},
 
 			"hyper_v_generation": {
@@ -78,10 +79,11 @@ func resourceImage() *pluginsdk.Resource {
 			},
 
 			"os_disk": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				ForceNew: true,
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				MaxItems:      1,
+				ForceNew:      true,
+				ConflictsWith: []string{"source_virtual_machine_id"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"os_type": {
@@ -143,13 +145,22 @@ func resourceImage() *pluginsdk.Resource {
 							ForceNew:     true,
 							ValidateFunc: validate.DiskEncryptionSetID,
 						},
+
+						"storage_type": {
+							Type:         pluginsdk.TypeString,
+							Description:  "The type of storage disk",
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(images.PossibleValuesForStorageAccountTypes(), false),
+						},
 					},
 				},
 			},
 
 			"data_disk": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
+				Type:          pluginsdk.TypeList,
+				Optional:      true,
+				ConflictsWith: []string{"source_virtual_machine_id"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"lun": {
@@ -187,6 +198,21 @@ func resourceImage() *pluginsdk.Resource {
 							Optional:     true,
 							Computed:     true,
 							ValidateFunc: validation.NoZeroValues,
+						},
+
+						"disk_encryption_set_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validate.DiskEncryptionSetID,
+						},
+
+						"storage_type": {
+							Type:         pluginsdk.TypeString,
+							Description:  "The type of storage disk",
+							Required:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(images.PossibleValuesForStorageAccountTypes(), false),
 						},
 					},
 				},
@@ -368,9 +394,11 @@ func expandImageOSDisk(input []interface{}) *images.ImageOSDisk {
 
 		if id := config["disk_encryption_set_id"].(string); id != "" {
 			out.DiskEncryptionSet = &images.SubResource{
-				Id: utils.String(id),
+				Id: pointer.To(id),
 			}
 		}
+
+		out.StorageAccountType = pointer.To(images.StorageAccountTypes(config["storage_type"].(string)))
 
 		return out
 	}
@@ -403,6 +431,14 @@ func expandImageDataDisks(disks []interface{}) *[]images.ImageDataDisk {
 			item.ManagedDisk = managedDisk
 		}
 
+		if id := config["disk_encryption_set_id"].(string); id != "" {
+			item.DiskEncryptionSet = &images.SubResource{
+				Id: pointer.To(id),
+			}
+		}
+
+		item.StorageAccountType = pointer.To(images.StorageAccountTypes(config["storage_type"].(string)))
+
 		output = append(output, item)
 	}
 
@@ -432,9 +468,11 @@ func flattenImageOSDisk(input *images.ImageStorageProfile) []interface{} {
 			}
 			diskEncryptionSetId := ""
 			if set := v.DiskEncryptionSet; set != nil && set.Id != nil {
-				diskEncryptionSetId = *set.Id
+				encryptionId, _ := commonids.ParseDiskEncryptionSetIDInsensitively(*set.Id)
+				diskEncryptionSetId = encryptionId.ID()
 			}
-			output = append(output, map[string]interface{}{
+
+			properties := map[string]interface{}{
 				"blob_uri":               blobUri,
 				"caching":                caching,
 				"managed_disk_id":        managedDiskId,
@@ -442,7 +480,15 @@ func flattenImageOSDisk(input *images.ImageStorageProfile) []interface{} {
 				"os_state":               string(v.OsState),
 				"size_gb":                diskSizeGB,
 				"disk_encryption_set_id": diskEncryptionSetId,
-			})
+			}
+
+			storageType := ""
+			if v.StorageAccountType != nil {
+				storageType = string(*v.StorageAccountType)
+			}
+			properties["storage_type"] = storageType
+
+			output = append(output, properties)
 		}
 	}
 
@@ -471,13 +517,28 @@ func flattenImageDataDisks(input *images.ImageStorageProfile) []interface{} {
 				if disk.ManagedDisk != nil && disk.ManagedDisk.Id != nil {
 					managedDiskId = *disk.ManagedDisk.Id
 				}
-				output = append(output, map[string]interface{}{
-					"blob_uri":        blobUri,
-					"caching":         caching,
-					"lun":             int(disk.Lun),
-					"managed_disk_id": managedDiskId,
-					"size_gb":         diskSizeGb,
-				})
+				diskEncryptionSetId := ""
+				if set := disk.DiskEncryptionSet; set != nil && set.Id != nil {
+					encryptionId, _ := commonids.ParseDiskEncryptionSetIDInsensitively(*set.Id)
+					diskEncryptionSetId = encryptionId.ID()
+				}
+
+				properties := map[string]interface{}{
+					"blob_uri":               blobUri,
+					"caching":                caching,
+					"lun":                    int(disk.Lun),
+					"managed_disk_id":        managedDiskId,
+					"size_gb":                diskSizeGb,
+					"disk_encryption_set_id": diskEncryptionSetId,
+				}
+
+				storageType := ""
+				if disk.StorageAccountType != nil {
+					storageType = string(*disk.StorageAccountType)
+				}
+				properties["storage_type"] = storageType
+
+				output = append(output, properties)
 			}
 		}
 	}

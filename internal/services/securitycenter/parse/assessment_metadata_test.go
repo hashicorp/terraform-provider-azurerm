@@ -27,7 +27,6 @@ func TestAssessmentMetadataID(t *testing.T) {
 		Error    bool
 		Expected *AssessmentMetadataId
 	}{
-
 		{
 			// empty
 			Input: "",

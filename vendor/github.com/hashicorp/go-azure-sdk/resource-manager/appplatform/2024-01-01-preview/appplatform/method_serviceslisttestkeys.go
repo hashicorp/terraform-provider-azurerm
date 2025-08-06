@@ -47,7 +47,6 @@ func (c AppPlatformClient) ServicesListTestKeys(ctx context.Context, id commonid
 
 	var model TestKeys
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -27,7 +27,6 @@ func TestWebApplicationFirewallPolicyID(t *testing.T) {
 		Error    bool
 		Expected *WebApplicationFirewallPolicyId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -120,7 +119,6 @@ func TestWebApplicationFirewallPolicyIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *WebApplicationFirewallPolicyId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -9,8 +9,8 @@ import (
 	"net/http"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumequotarules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2023-05-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumequotarules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 )
@@ -35,7 +35,6 @@ func ValidateNetAppVolumeQuotaRule(ctx context.Context, volumeID volumes.VolumeI
 	// NFS Volume must not have Windows SIDs
 	if len(pointer.From(volume.Model.Properties.ProtocolTypes)) == 1 &&
 		(findStringInSlice(pointer.From(volume.Model.Properties.ProtocolTypes), "nfsv3") || findStringInSlice(pointer.From(volume.Model.Properties.ProtocolTypes), "nfsv4.1")) {
-
 		if pointer.To(rule.QuotaTarget) != nil && rule.QuotaTarget != "" {
 			_, errList := ValidateWindowsSID(&rule.QuotaTarget, rule.QuotaTarget)
 			if len(errList) == 0 {
@@ -46,7 +45,6 @@ func ValidateNetAppVolumeQuotaRule(ctx context.Context, volumeID volumes.VolumeI
 
 	// CIFS Volume must not have Windows SIDs
 	if len(pointer.From(volume.Model.Properties.ProtocolTypes)) == 1 && findStringInSlice(pointer.From(volume.Model.Properties.ProtocolTypes), "cifs") {
-
 		if pointer.To(rule.QuotaTarget) != nil && rule.QuotaTarget != "" {
 			_, errList := ValidateUnixUserIDOrGroupID(&rule.QuotaTarget, rule.QuotaTarget)
 			if len(errList) == 0 {

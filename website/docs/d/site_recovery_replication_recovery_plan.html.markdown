@@ -44,6 +44,7 @@ In addition to the arguments above, the following attributes are exported:
 * `target_recovery_fabric_id` - The ID of target fabric to recover. 
 
 * `recovery_group` - `recovery_group` block defined as below.
+
 ---
 
 A `recovery_groups` block supports the following:
@@ -82,3 +83,9 @@ An `action` block supports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Site Recovery Replication Plan.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.RecoveryServices` - 2024-04-01

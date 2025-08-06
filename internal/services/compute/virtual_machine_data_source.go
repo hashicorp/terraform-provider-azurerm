@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
@@ -77,15 +78,17 @@ func dataSourceVirtualMachine() *pluginsdk.Resource {
 func dataSourceVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Compute.VirtualMachinesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	networkInterfacesClient := meta.(*clients.Client).Network.InterfacesClient
-	publicIPAddressesClient := meta.(*clients.Client).Network.PublicIPsClient
+	networkInterfacesClient := meta.(*clients.Client).Network.NetworkInterfacesClient
+	publicIPAddressesClient := meta.(*clients.Client).Network.PublicIPAddresses
 
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id := virtualmachines.NewVirtualMachineID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id, virtualmachines.DefaultGetOperationOptions())
+	options := virtualmachines.DefaultGetOperationOptions()
+	options.Expand = pointer.To(virtualmachines.InstanceViewTypesInstanceView)
+	resp, err := client.Get(ctx, id, options)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)

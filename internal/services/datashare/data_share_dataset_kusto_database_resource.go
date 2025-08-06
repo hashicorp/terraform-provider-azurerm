@@ -133,8 +133,7 @@ func resourceDataShareDataSetKustoDatabaseRead(d *pluginsdk.ResourceData, meta i
 	d.Set("share_id", shareId.ID())
 
 	if model := resp.Model; model != nil {
-		m := *model
-		if ds, ok := m.(dataset.KustoDatabaseDataSet); ok {
+		if ds, ok := model.(dataset.KustoDatabaseDataSet); ok {
 			props := ds.Properties
 			d.Set("kusto_database_id", props.KustoDatabaseResourceId)
 			d.Set("display_name", props.DataSetId)

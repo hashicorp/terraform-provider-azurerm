@@ -27,7 +27,7 @@ func (rmd ResourceMetaData) Encode(input interface{}) error {
 	}
 
 	for k, v := range serialized {
-		//lintignore:R001
+		// lintignore:R001
 		if err := rmd.ResourceData.Set(k, v); err != nil {
 			return fmt.Errorf("setting %q: %+v", k, err)
 		}
@@ -60,18 +60,23 @@ func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (ou
 		}
 
 		if structTags != nil {
-			if structTags.removedInNextMajorVersion && features.FourPointOh() {
+			if structTags.removedInNextMajorVersion && features.FivePointOh() {
 				debugLogger.Infof("The HCL Path %q is marked as removed - skipping", structTags.hclPath)
 				continue
 			}
 
+			if structTags.addedInNextMajorVersion && !features.FivePointOh() {
+				debugLogger.Infof("The HCL Path %q is marked as not yet present - skipping", structTags.hclPath)
+				continue
+			}
+
 			switch field.Type.Kind() {
-			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			case reflect.Int64:
 				iv := fieldVal.Int()
 				debugLogger.Infof("Setting %q to %d", structTags.hclPath, iv)
 				output[structTags.hclPath] = iv
 
-			case reflect.Float32, reflect.Float64:
+			case reflect.Float64:
 				fv := fieldVal.Float()
 				debugLogger.Infof("Setting %q to %f", structTags.hclPath, fv)
 				output[structTags.hclPath] = fv
@@ -97,8 +102,8 @@ func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (ou
 			case reflect.Slice:
 				sv := fieldVal.Slice(0, fieldVal.Len())
 				attr := make([]interface{}, sv.Len())
-				switch sv.Type() {
-				case reflect.TypeOf([]string{}):
+				switch sv.Type().Elem().Kind() {
+				case reflect.String:
 					debugLogger.Infof("Setting %q to []string", structTags.hclPath)
 					if sv.Len() > 0 {
 						output[structTags.hclPath] = sv.Interface()
@@ -106,15 +111,15 @@ func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (ou
 						output[structTags.hclPath] = make([]string, 0)
 					}
 
-				case reflect.TypeOf([]int{}):
+				case reflect.Int64:
 					debugLogger.Infof("Setting %q to []int", structTags.hclPath)
 					if sv.Len() > 0 {
 						output[structTags.hclPath] = sv.Interface()
 					} else {
-						output[structTags.hclPath] = make([]int, 0)
+						output[structTags.hclPath] = make([]int64, 0)
 					}
 
-				case reflect.TypeOf([]float64{}):
+				case reflect.Float64:
 					debugLogger.Infof("Setting %q to []float64", structTags.hclPath)
 					if sv.Len() > 0 {
 						output[structTags.hclPath] = sv.Interface()
@@ -122,7 +127,7 @@ func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (ou
 						output[structTags.hclPath] = make([]float64, 0)
 					}
 
-				case reflect.TypeOf([]bool{}):
+				case reflect.Bool:
 					debugLogger.Infof("Setting %q to []bool", structTags.hclPath)
 					if sv.Len() > 0 {
 						output[structTags.hclPath] = sv.Interface()
@@ -151,12 +156,12 @@ func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (ou
 				if !fieldVal.IsNil() {
 					pv := fieldVal.Elem()
 					switch pv.Kind() {
-					case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+					case reflect.Int, reflect.Int64:
 						iv := pv.Int()
 						debugLogger.Infof("Setting %q to %d", structTags.hclPath, iv)
 						output[structTags.hclPath] = iv
 
-					case reflect.Float32, reflect.Float64:
+					case reflect.Float64:
 						fv := pv.Float()
 						debugLogger.Infof("Setting %q to %f", structTags.hclPath, fv)
 						output[structTags.hclPath] = fv
@@ -182,8 +187,8 @@ func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (ou
 					case reflect.Slice:
 						sv := pv.Slice(0, pv.Len())
 						attr := make([]interface{}, sv.Len())
-						switch sv.Type() {
-						case reflect.TypeOf([]string{}):
+						switch sv.Type().Elem().Kind() {
+						case reflect.String:
 							debugLogger.Infof("Setting %q to []string", structTags.hclPath)
 							if sv.Len() > 0 {
 								output[structTags.hclPath] = sv.Interface()
@@ -191,15 +196,15 @@ func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (ou
 								output[structTags.hclPath] = make([]string, 0)
 							}
 
-						case reflect.TypeOf([]int{}):
+						case reflect.Int64:
 							debugLogger.Infof("Setting %q to []int", structTags.hclPath)
 							if sv.Len() > 0 {
 								output[structTags.hclPath] = sv.Interface()
 							} else {
-								output[structTags.hclPath] = make([]int, 0)
+								output[structTags.hclPath] = make([]int64, 0)
 							}
 
-						case reflect.TypeOf([]float64{}):
+						case reflect.Float64:
 							debugLogger.Infof("Setting %q to []float64", structTags.hclPath)
 							if sv.Len() > 0 {
 								output[structTags.hclPath] = sv.Interface()
@@ -207,7 +212,7 @@ func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (ou
 								output[structTags.hclPath] = make([]float64, 0)
 							}
 
-						case reflect.TypeOf([]bool{}):
+						case reflect.Bool:
 							debugLogger.Infof("Setting %q to []bool", structTags.hclPath)
 							if sv.Len() > 0 {
 								output[structTags.hclPath] = sv.Interface()
@@ -231,7 +236,6 @@ func recurse(objType reflect.Type, objVal reflect.Value, debugLogger Logger) (ou
 							debugLogger.Infof("[SLICE] Setting %q to %+v", structTags.hclPath, attr)
 							output[structTags.hclPath] = attr
 						}
-
 					}
 				} else {
 					debugLogger.Infof("Setting %q to nil", structTags.hclPath)

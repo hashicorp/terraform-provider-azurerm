@@ -16,10 +16,22 @@ type AzureIaaSClassicComputeVMProtectableItem struct {
 	VirtualMachineVersion *string `json:"virtualMachineVersion,omitempty"`
 
 	// Fields inherited from WorkloadProtectableItem
+
 	BackupManagementType *string           `json:"backupManagementType,omitempty"`
 	FriendlyName         *string           `json:"friendlyName,omitempty"`
+	ProtectableItemType  string            `json:"protectableItemType"`
 	ProtectionState      *ProtectionStatus `json:"protectionState,omitempty"`
 	WorkloadType         *string           `json:"workloadType,omitempty"`
+}
+
+func (s AzureIaaSClassicComputeVMProtectableItem) WorkloadProtectableItem() BaseWorkloadProtectableItemImpl {
+	return BaseWorkloadProtectableItemImpl{
+		BackupManagementType: s.BackupManagementType,
+		FriendlyName:         s.FriendlyName,
+		ProtectableItemType:  s.ProtectableItemType,
+		ProtectionState:      s.ProtectionState,
+		WorkloadType:         s.WorkloadType,
+	}
 }
 
 var _ json.Marshaler = AzureIaaSClassicComputeVMProtectableItem{}
@@ -33,9 +45,10 @@ func (s AzureIaaSClassicComputeVMProtectableItem) MarshalJSON() ([]byte, error) 
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling AzureIaaSClassicComputeVMProtectableItem: %+v", err)
 	}
+
 	decoded["protectableItemType"] = "Microsoft.ClassicCompute/virtualMachines"
 
 	encoded, err = json.Marshal(decoded)

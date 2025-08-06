@@ -46,7 +46,6 @@ func (c RemediationsClient) CancelAtSubscription(ctx context.Context, id Remedia
 
 	var model Remediation
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

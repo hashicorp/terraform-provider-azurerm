@@ -27,7 +27,6 @@ func TestServerMicrosoftSupportAuditingPolicyID(t *testing.T) {
 		Error    bool
 		Expected *ServerMicrosoftSupportAuditingPolicyId
 	}{
-
 		{
 			// empty
 			Input: "",

@@ -15,10 +15,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/apimanagementservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tenantaccess"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -269,12 +270,12 @@ func dataSourceApiManagementRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("publisher_email", model.Properties.PublisherEmail)
 		d.Set("publisher_name", model.Properties.PublisherName)
 		d.Set("notification_sender_email", pointer.From(model.Properties.NotificationSenderEmail))
-		d.Set("gateway_url", pointer.From(model.Properties.GatewayUrl))
-		d.Set("gateway_regional_url", pointer.From(model.Properties.GatewayRegionalUrl))
-		d.Set("portal_url", pointer.From(model.Properties.PortalUrl))
-		d.Set("developer_portal_url", pointer.From(model.Properties.DeveloperPortalUrl))
-		d.Set("management_api_url", pointer.From(model.Properties.ManagementApiUrl))
-		d.Set("scm_url", pointer.From(model.Properties.ScmUrl))
+		d.Set("gateway_url", pointer.From(model.Properties.GatewayURL))
+		d.Set("gateway_regional_url", pointer.From(model.Properties.GatewayRegionalURL))
+		d.Set("portal_url", pointer.From(model.Properties.PortalURL))
+		d.Set("developer_portal_url", pointer.From(model.Properties.DeveloperPortalURL))
+		d.Set("management_api_url", pointer.From(model.Properties.ManagementApiURL))
+		d.Set("scm_url", pointer.From(model.Properties.ScmURL))
 		d.Set("public_ip_addresses", pointer.From(model.Properties.PublicIPAddresses))
 		d.Set("public_ip_address_id", pointer.From(model.Properties.PublicIPAddressId))
 		d.Set("private_ip_addresses", pointer.From(model.Properties.PrivateIPAddresses))
@@ -290,7 +291,7 @@ func dataSourceApiManagementRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("sku_name", flattenApiManagementServiceSkuName(&model.Sku))
 
 		tenantAccess := make([]interface{}, 0)
-		if model.Sku.Name != apimanagementservice.SkuTypeConsumption {
+		if model.Sku.Name != apimanagementservice.SkuTypeConsumption && !strings.Contains(string(model.Sku.Name), "V2") {
 			tenantAccessServiceId := tenantaccess.NewAccessID(id.SubscriptionId, id.ResourceGroupName, id.ServiceName, "access")
 			tenantAccessInformationContract, err := tenantAccessClient.ListSecrets(ctx, tenantAccessServiceId)
 			if err != nil {
@@ -332,7 +333,10 @@ func flattenDataSourceApiManagementHostnameConfigurations(input *[]apimanagement
 
 		output["negotiate_client_certificate"] = pointer.From(config.NegotiateClientCertificate)
 
-		output["key_vault_id"] = pointer.From(config.KeyVaultId)
+		output["key_vault_certificate_id"] = pointer.From(config.KeyVaultId)
+		if !features.FivePointOh() {
+			output["key_vault_id"] = pointer.From(config.KeyVaultId)
+		}
 
 		switch strings.ToLower(string(config.Type)) {
 		case strings.ToLower(string(apimanagementservice.HostnameTypeProxy)):
@@ -376,7 +380,7 @@ func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagementser
 	for _, prop := range *input {
 		results = append(results, map[string]interface{}{
 			"capacity":             int32(prop.Sku.Capacity),
-			"gateway_regional_url": pointer.From(prop.GatewayRegionalUrl),
+			"gateway_regional_url": pointer.From(prop.GatewayRegionalURL),
 			"location":             location.NormalizeNilable(pointer.To(prop.Location)),
 			"private_ip_addresses": pointer.From(prop.PrivateIPAddresses),
 			"public_ip_address_id": pointer.From(prop.PublicIPAddressId),
@@ -389,13 +393,13 @@ func flattenDataSourceApiManagementAdditionalLocations(input *[]apimanagementser
 }
 
 func apiManagementDataSourceHostnameSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	s := map[string]*pluginsdk.Schema{
 		"host_name": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"key_vault_id": {
+		"key_vault_certificate_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -405,6 +409,15 @@ func apiManagementDataSourceHostnameSchema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 	}
+
+	if !features.FivePointOh() {
+		s["key_vault_id"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		}
+	}
+
+	return s
 }
 
 func apiManagementDataSourceHostnameProxySchema() map[string]*pluginsdk.Schema {

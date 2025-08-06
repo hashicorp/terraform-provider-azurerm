@@ -45,7 +45,6 @@ func (c LinkedServicesClient) Get(ctx context.Context, id LinkedServiceId) (resu
 
 	var model LinkedService
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -179,7 +179,6 @@ func resourceLogicAppIntegrationAccountAssemblyRead(d *pluginsdk.ResourceData, m
 		if props.Metadata != nil {
 			d.Set("metadata", props.Metadata)
 		}
-
 	}
 
 	return nil

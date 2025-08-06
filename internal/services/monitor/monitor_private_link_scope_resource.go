@@ -10,12 +10,13 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2019-10-17-preview/privatelinkscopesapis"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2021-07-01-preview/privatelinkscopesapis"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -45,6 +46,20 @@ func resourceMonitorPrivateLinkScope() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validate.PrivateLinkScopeName,
+			},
+
+			"ingestion_access_mode": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(privatelinkscopesapis.AccessModeOpen),
+				ValidateFunc: validation.StringInSlice(privatelinkscopesapis.PossibleValuesForAccessMode(), false),
+			},
+
+			"query_access_mode": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(privatelinkscopesapis.AccessModeOpen),
+				ValidateFunc: validation.StringInSlice(privatelinkscopesapis.PossibleValuesForAccessMode(), false),
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -78,9 +93,19 @@ func resourceMonitorPrivateLinkScopeCreateUpdate(d *pluginsdk.ResourceData, meta
 		}
 	}
 
+	ingestionAccessMode := privatelinkscopesapis.AccessMode(d.Get("ingestion_access_mode").(string))
+	queryaccessMode := privatelinkscopesapis.AccessMode(d.Get("query_access_mode").(string))
+
 	parameters := privatelinkscopesapis.AzureMonitorPrivateLinkScope{
+		Name:     &name,
 		Location: "Global",
 		Tags:     utils.ExpandPtrMapStringString(d.Get("tags").(map[string]interface{})),
+		Properties: privatelinkscopesapis.AzureMonitorPrivateLinkScopeProperties{
+			AccessModeSettings: privatelinkscopesapis.AccessModeSettings{
+				IngestionAccessMode: ingestionAccessMode,
+				QueryAccessMode:     queryaccessMode,
+			},
+		},
 	}
 
 	if _, err := client.PrivateLinkScopesCreateOrUpdate(ctx, id, parameters); err != nil {
@@ -119,6 +144,10 @@ func resourceMonitorPrivateLinkScopeRead(d *pluginsdk.ResourceData, meta interfa
 		if err = d.Set("tags", utils.FlattenPtrMapStringString(model.Tags)); err != nil {
 			return err
 		}
+
+		props := model.Properties
+		d.Set("ingestion_access_mode", string(props.AccessModeSettings.IngestionAccessMode))
+		d.Set("query_access_mode", string(props.AccessModeSettings.QueryAccessMode))
 	}
 
 	return nil

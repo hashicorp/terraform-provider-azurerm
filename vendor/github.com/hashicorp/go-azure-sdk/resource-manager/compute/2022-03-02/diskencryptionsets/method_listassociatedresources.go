@@ -24,6 +24,18 @@ type ListAssociatedResourcesCompleteResult struct {
 	Items              []string
 }
 
+type ListAssociatedResourcesCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListAssociatedResourcesCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListAssociatedResources ...
 func (c DiskEncryptionSetsClient) ListAssociatedResources(ctx context.Context, id commonids.DiskEncryptionSetId) (result ListAssociatedResourcesOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c DiskEncryptionSetsClient) ListAssociatedResources(ctx context.Context, i
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListAssociatedResourcesCustomPager{},
 		Path:       fmt.Sprintf("%s/associatedResources", id.ID()),
 	}
 
@@ -68,6 +81,7 @@ func (c DiskEncryptionSetsClient) ListAssociatedResourcesComplete(ctx context.Co
 
 	resp, err := c.ListAssociatedResources(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

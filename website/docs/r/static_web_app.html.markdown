@@ -41,6 +41,8 @@ The following arguments are supported:
 
 * `preview_environments_enabled` - (Optional) Are Preview (Staging) environments enabled. Defaults to `true`.
 
+* `public_network_access_enabled` - (Optional) Should public network access be enabled for the Static Web App. Defaults to `true`.
+
 * `sku_tier` - (Optional) Specifies the SKU tier of the Static Web App. Possible values are `Free` or `Standard`. Defaults to `Free`.
 
 * `sku_size` - (Optional) Specifies the SKU size of the Static Web App. Possible values are `Free` or `Standard`. Defaults to `Free`.
@@ -48,6 +50,12 @@ The following arguments are supported:
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `app_settings` - (Optional) A key-value pair of App Settings.
+
+* `repository_branch` - (Optional) Repository branch to use for the Static Web App. `repository_url` and `repository_token` must also be set.
+
+* `repository_url` - (Optional) Repository URL to use for the Static Web App. `repository_branch` and `repository_token` must also be set.
+
+* `repository_token` - (Optional) Repository Token with `admin` privileges to use for the Static Web App. `repository_branch` and `repository_url` must also be set.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -94,3 +102,9 @@ Static Web Apps can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_static_web_app.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Web/staticSites/my-static-site1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Web` - 2023-01-01

@@ -24,6 +24,18 @@ type ListByResourceGroupCompleteResult struct {
 	Items              []LocalRulestackResource
 }
 
+type ListByResourceGroupCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByResourceGroupCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByResourceGroup ...
 func (c LocalRulestacksClient) ListByResourceGroup(ctx context.Context, id commonids.ResourceGroupId) (result ListByResourceGroupOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c LocalRulestacksClient) ListByResourceGroup(ctx context.Context, id commo
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByResourceGroupCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/PaloAltoNetworks.Cloudngfw/localRulestacks", id.ID()),
 	}
 
@@ -73,6 +86,7 @@ func (c LocalRulestacksClient) ListByResourceGroupCompleteMatchingPredicate(ctx 
 
 	resp, err := c.ListByResourceGroup(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

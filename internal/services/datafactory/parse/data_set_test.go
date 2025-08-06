@@ -27,7 +27,6 @@ func TestDataSetID(t *testing.T) {
 		Error    bool
 		Expected *DataSetId
 	}{
-
 		{
 			// empty
 			Input: "",

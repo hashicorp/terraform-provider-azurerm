@@ -26,7 +26,7 @@ type WorkspaceProperties struct {
 	UiDefinitionUri            *string                           `json:"uiDefinitionUri,omitempty"`
 	UpdatedBy                  *CreatedBy                        `json:"updatedBy,omitempty"`
 	WorkspaceId                *string                           `json:"workspaceId,omitempty"`
-	WorkspaceUrl               *string                           `json:"workspaceUrl,omitempty"`
+	WorkspaceURL               *string                           `json:"workspaceUrl,omitempty"`
 }
 
 func (o *WorkspaceProperties) GetCreatedDateTimeAsTime() (*time.Time, error) {

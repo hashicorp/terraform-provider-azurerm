@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/packetcaptures"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/packetcaptures"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/migration"
@@ -26,7 +26,7 @@ func resourceNetworkPacketCapture() *pluginsdk.Resource {
 		Create:             resourceNetworkPacketCaptureCreate,
 		Read:               resourceNetworkPacketCaptureRead,
 		Delete:             resourceNetworkPacketCaptureDelete,
-		DeprecationMessage: "The \"azurerm_network_packet_capture\" resource is deprecated and will be removed in favour of the `azurerm_virtual_machine_packet_capture` and `azurerm_virtual_machine_scale_set_packet_capture` resources in version 4.0 of the AzureRM Provider.",
+		DeprecationMessage: "The `azurerm_network_packet_capture` resource is deprecated and will be removed in favour of the `azurerm_virtual_machine_packet_capture` and `azurerm_virtual_machine_scale_set_packet_capture` resources in version 5.0 of the AzureRM Provider.",
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := packetcaptures.ParsePacketCaptureID(id)

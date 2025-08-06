@@ -14,14 +14,13 @@ Manages a Managed Hardware Security Module Role Assignment.
 
 ```hcl
 data "azurerm_key_vault_managed_hardware_security_module_role_definition" "user" {
-  vault_base_url = azurerm_key_vault_managed_hardware_security_module.test.hsm_uri
+  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.example.id
   name           = "21dbd100-6940-42c2-9190-5d6cb909625b"
-  scope          = "/"
 }
 
 resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "example" {
   name               = "a9dbe818-56e7-5878-c0ce-a1477692c1d6"
-  vault_base_url     = azurerm_key_vault_managed_hardware_security_module.example.hsm_uri
+  managed_hsm_id     = azurerm_key_vault_managed_hardware_security_module.example.id
   scope              = "${data.azurerm_key_vault_managed_hardware_security_module_role_definition.user.scope}"
   role_definition_id = "${data.azurerm_key_vault_managed_hardware_security_module_role_definition.user.resource_id}"
   principal_id       = "${data.azurerm_client_config.current.object_id}"
@@ -32,6 +31,8 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_assignment" "e
 
 The following arguments are supported:
 
+* `managed_hsm_id` - (Required) The ID of a Managed Hardware Security Module resource. Changing this forces a new Managed Hardware Security Module to be created.
+*
 * `name` - (Required) The name in GUID notation which should be used for this Managed Hardware Security Module Role Assignment. Changing this forces a new Managed Hardware Security Module to be created.
 
 * `principal_id` - (Required) The principal ID to be assigned to this role. It can point to a user, service principal, or security group. Changing this forces a new Managed Hardware Security Module to be created.
@@ -40,7 +41,6 @@ The following arguments are supported:
 
 * `scope` - (Required) Specifies the scope to create the role assignment. Changing this forces a new Managed Hardware Security Module to be created.
 
-* `vault_base_url` - (Required) The HSM URI of a Managed Hardware Security Module resource. Changing this forces a new Managed Hardware Security Module to be created.
 
 ## Attributes Reference
 
@@ -48,7 +48,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Managed Hardware Security Module Role Assignment with HSM Base URL.
 
-* `resource_id` - The resource id of created assignment resource.
+* `resource_id` - (Deprecated) The resource id of created assignment resource.
 
 ## Timeouts
 

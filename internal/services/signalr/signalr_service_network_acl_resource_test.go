@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -171,7 +171,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.2.0/24"]
 
-  enforce_private_link_endpoint_network_policies = true
+  private_link_service_network_policies_enabled = true
 }
 
 resource "azurerm_private_endpoint" "test" {
@@ -221,7 +221,7 @@ resource "azurerm_subnet" "test" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.5.2.0/24"]
 
-  enforce_private_link_endpoint_network_policies = true
+  private_link_service_network_policies_enabled = true
 }
 
 resource "azurerm_private_endpoint" "test" {
@@ -251,7 +251,7 @@ resource "azurerm_subnet" "test2" {
   virtual_network_name = azurerm_virtual_network.test2.name
   address_prefixes     = ["10.5.2.0/24"]
 
-  enforce_private_link_endpoint_network_policies = true
+  private_link_service_network_policies_enabled = true
 }
 
 resource "azurerm_private_endpoint" "test2" {

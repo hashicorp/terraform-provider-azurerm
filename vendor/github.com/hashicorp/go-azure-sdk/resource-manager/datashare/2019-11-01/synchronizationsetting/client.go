@@ -15,7 +15,7 @@ type SynchronizationSettingClient struct {
 }
 
 func NewSynchronizationSettingClientWithBaseURI(sdkApi sdkEnv.Api) (*SynchronizationSettingClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "synchronizationsetting", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "synchronizationsetting", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating SynchronizationSettingClient: %+v", err)
 	}

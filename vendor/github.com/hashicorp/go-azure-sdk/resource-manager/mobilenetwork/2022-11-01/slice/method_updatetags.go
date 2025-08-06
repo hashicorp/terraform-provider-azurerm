@@ -49,7 +49,6 @@ func (c SliceClient) UpdateTags(ctx context.Context, id SliceId, input TagsObjec
 
 	var model Slice
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

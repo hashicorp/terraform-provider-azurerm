@@ -8,14 +8,14 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/outboundfirewallrules"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMsSqlOutboundFirewallRule() *pluginsdk.Resource {
@@ -62,31 +62,24 @@ func resourceMsSqlOutboundFirewallRuleCreate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("parsing server ID %q: %+v", d.Get("server_id"), err)
 	}
 
-	id := parse.NewOutboundFirewallRuleID(serverId.SubscriptionId, serverId.ResourceGroup, serverId.Name, d.Get("name").(string))
+	id := outboundfirewallrules.NewOutboundFirewallRuleID(serverId.SubscriptionId, serverId.ResourceGroup, serverId.Name, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+		existing, err := client.Get(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing MSSQL %s: %+v", id.String(), err)
+			if !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if existing.ID != nil && *existing.ID != "" {
+		if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" {
 			return tf.ImportAsExistsError("azurerm_mssql_outbound_firewall_rule", id.ID())
 		}
 	}
 
-	parameters := sql.OutboundFirewallRule{
-		OutboundFirewallRuleProperties: &sql.OutboundFirewallRuleProperties{},
-	}
-
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, parameters)
+	err = client.CreateOrUpdateThenPoll(ctx, id)
 	if err != nil {
 		return fmt.Errorf("creating MSSQL %s: %+v", id.String(), err)
-	}
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation/update of %s: %+v", id.String(), err)
 	}
 
 	d.SetId(id.ID())
@@ -99,14 +92,14 @@ func resourceMsSqlOutboundFirewallRuleRead(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.OutboundFirewallRuleID(d.Id())
+	id, err := outboundfirewallrules.ParseOutboundFirewallRuleID(d.Id())
 	if err != nil {
-		return fmt.Errorf("parsing ID %q: %+v", d.Id(), err)
+		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] MSSQL %s was not found - removing from state", id.String())
 			d.SetId("")
 			return nil
@@ -115,9 +108,9 @@ func resourceMsSqlOutboundFirewallRuleRead(d *pluginsdk.ResourceData, meta inter
 		return fmt.Errorf("retrieving MSSQL %s: %+v", id.String(), err)
 	}
 
-	d.Set("name", id.Name)
+	d.Set("name", id.OutboundFirewallRuleName)
 
-	serverId := parse.NewServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
+	serverId := parse.NewServerID(id.SubscriptionId, id.ResourceGroupName, id.ServerName)
 	d.Set("server_id", serverId.ID())
 
 	return nil
@@ -128,18 +121,14 @@ func resourceMsSqlOutboundFirewallRuleDelete(d *pluginsdk.ResourceData, meta int
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.OutboundFirewallRuleID(d.Id())
+	id, err := outboundfirewallrules.ParseOutboundFirewallRuleID(d.Id())
 	if err != nil {
 		return fmt.Errorf("parsing ID %q: %+v", d.Id(), err)
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
 		return fmt.Errorf("deleting MSSQL %s: %+v", id.String(), err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for delete of %s: %+v", id.String(), err)
 	}
 
 	return nil

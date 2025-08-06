@@ -41,6 +41,7 @@ func (o GlobalSchemaListByServiceOperationOptions) ToHeaders() *client.Headers {
 
 func (o GlobalSchemaListByServiceOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -58,6 +59,18 @@ func (o GlobalSchemaListByServiceOperationOptions) ToQuery() *client.QueryParams
 	return &out
 }
 
+type GlobalSchemaListByServiceCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *GlobalSchemaListByServiceCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // GlobalSchemaListByService ...
 func (c SchemaClient) GlobalSchemaListByService(ctx context.Context, id ServiceId, options GlobalSchemaListByServiceOperationOptions) (result GlobalSchemaListByServiceOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -66,8 +79,9 @@ func (c SchemaClient) GlobalSchemaListByService(ctx context.Context, id ServiceI
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/schemas", id.ID()),
 		OptionsObject: options,
+		Pager:         &GlobalSchemaListByServiceCustomPager{},
+		Path:          fmt.Sprintf("%s/schemas", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -108,6 +122,7 @@ func (c SchemaClient) GlobalSchemaListByServiceCompleteMatchingPredicate(ctx con
 
 	resp, err := c.GlobalSchemaListByService(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

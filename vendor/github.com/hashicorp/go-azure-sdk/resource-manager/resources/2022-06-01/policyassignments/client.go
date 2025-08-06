@@ -15,7 +15,7 @@ type PolicyAssignmentsClient struct {
 }
 
 func NewPolicyAssignmentsClientWithBaseURI(sdkApi sdkEnv.Api) (*PolicyAssignmentsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "policyassignments", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "policyassignments", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating PolicyAssignmentsClient: %+v", err)
 	}

@@ -63,6 +63,13 @@ func resourceApiManagementIdentityProviderAAD() *pluginsdk.Resource {
 					ValidateFunc: validation.IsUUID,
 				},
 			},
+
+			"client_library": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringLenBetween(0, 16),
+			},
+
 			"signin_tenant": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -80,6 +87,7 @@ func resourceApiManagementIdentityProviderAADCreateUpdate(d *pluginsdk.ResourceD
 
 	clientID := d.Get("client_id").(string)
 	clientSecret := d.Get("client_secret").(string)
+	clientLibrary := d.Get("client_library").(string)
 	allowedTenants := d.Get("allowed_tenants").([]interface{})
 	signinTenant := d.Get("signin_tenant").(string)
 	id := identityprovider.NewIdentityProviderID(subscriptionId, d.Get("resource_group_name").(string), d.Get("api_management_name").(string), identityprovider.IdentityProviderTypeAad)
@@ -100,6 +108,7 @@ func resourceApiManagementIdentityProviderAADCreateUpdate(d *pluginsdk.ResourceD
 	parameters := identityprovider.IdentityProviderCreateContract{
 		Properties: &identityprovider.IdentityProviderCreateContractProperties{
 			ClientId:       clientID,
+			ClientLibrary:  pointer.To(clientLibrary),
 			ClientSecret:   clientSecret,
 			Type:           pointer.To(identityprovider.IdentityProviderTypeAad),
 			AllowedTenants: utils.ExpandStringSlice(allowedTenants),
@@ -145,6 +154,7 @@ func resourceApiManagementIdentityProviderAADRead(d *pluginsdk.ResourceData, met
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("client_id", props.ClientId)
+			d.Set("client_library", props.ClientLibrary)
 			d.Set("allowed_tenants", pointer.From(props.AllowedTenants))
 			d.Set("signin_tenant", pointer.From(props.SigninTenant))
 		}

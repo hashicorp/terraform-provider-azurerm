@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queues"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/queues"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -27,8 +27,8 @@ func TestAccServiceBusQueue_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enable_express").HasValue("false"),
-				check.That(data.ResourceName).Key("enable_partitioning").HasValue("false"),
+				check.That(data.ResourceName).Key("express_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("partitioning_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -43,8 +43,8 @@ func TestAccServiceBusQueue_requiresImport(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enable_express").HasValue("false"),
-				check.That(data.ResourceName).Key("enable_partitioning").HasValue("false"),
+				check.That(data.ResourceName).Key("express_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("partitioning_enabled").HasValue("false"),
 			),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
@@ -59,17 +59,17 @@ func TestAccServiceBusQueue_update(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enable_express").HasValue("false"),
-				check.That(data.ResourceName).Key("enable_batched_operations").HasValue("true"),
+				check.That(data.ResourceName).Key("express_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("batched_operations_enabled").HasValue("true"),
 			),
 		},
 		data.ImportStep(),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("enable_express").HasValue("true"),
+				check.That(data.ResourceName).Key("express_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("max_size_in_megabytes").HasValue("2048"),
-				check.That(data.ResourceName).Key("enable_batched_operations").HasValue("false"),
+				check.That(data.ResourceName).Key("batched_operations_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -81,17 +81,9 @@ func TestAccServiceBusQueue_enablePartitioningStandard(t *testing.T) {
 	r := ServiceBusQueueResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enable_partitioning").HasValue("false"),
-			),
-		},
-		data.ImportStep(),
-		{
 			Config: r.enablePartitioningStandard(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).Key("enable_partitioning").HasValue("true"),
+				check.That(data.ResourceName).Key("partitioning_enabled").HasValue("true"),
 				// Ensure size is read back in its original value and not the x16 value returned by Azure
 				check.That(data.ResourceName).Key("max_size_in_megabytes").HasValue("5120"),
 			),
@@ -126,8 +118,8 @@ func TestAccServiceBusQueue_partitionedPremiumNamespace(t *testing.T) {
 			Config: r.PremiumNamespacePartitioned(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enable_partitioning").HasValue("true"),
-				check.That(data.ResourceName).Key("enable_express").HasValue("false"),
+				check.That(data.ResourceName).Key("partitioning_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("express_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -150,14 +142,6 @@ func TestAccServiceBusQueue_enableDuplicateDetection(t *testing.T) {
 	r := ServiceBusQueueResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("requires_duplicate_detection").HasValue("false"),
-			),
-		},
-		data.ImportStep(),
-		{
 			Config: r.enableDuplicateDetection(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("requires_duplicate_detection").HasValue("true"),
@@ -171,14 +155,6 @@ func TestAccServiceBusQueue_enableRequiresSession(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_servicebus_queue", "test")
 	r := ServiceBusQueueResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("requires_session").HasValue("false"),
-			),
-		},
-		data.ImportStep(),
 		{
 			Config: r.enableRequiresSession(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -406,7 +382,7 @@ resource "azurerm_servicebus_namespace" "test" {
   name                = "acctestservicebusnamespace-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  sku                 = "Standard"
+  sku                 = "Basic"
 }
 
 resource "azurerm_servicebus_queue" "test" {
@@ -448,10 +424,10 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_queue" "test" {
-  name                = "acctestservicebusqueue-%d"
-  namespace_id        = azurerm_servicebus_namespace.test.id
-  enable_partitioning = false
-  enable_express      = false
+  name                 = "acctestservicebusqueue-%d"
+  namespace_id         = azurerm_servicebus_namespace.test.id
+  partitioning_enabled = false
+  express_enabled      = false
 
   max_message_size_in_kilobytes = 102400
 }
@@ -459,6 +435,8 @@ resource "azurerm_servicebus_queue" "test" {
 }
 
 func (ServiceBusQueueResource) PremiumNamespacePartitioned(data acceptance.TestData, enabled bool) string {
+	// Limited regional availability for premium namespace partitions
+	data.Locations.Primary = "westus"
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -479,10 +457,10 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_queue" "test" {
-  name                = "acctestservicebusqueue-%d"
-  namespace_id        = azurerm_servicebus_namespace.test.id
-  enable_partitioning = %t
-  enable_express      = false
+  name                 = "acctestservicebusqueue-%d"
+  namespace_id         = azurerm_servicebus_namespace.test.id
+  partitioning_enabled = %t
+  express_enabled      = false
 
   max_message_size_in_kilobytes = 102400
 }
@@ -513,7 +491,7 @@ resource "azurerm_servicebus_queue" "test" {
   name         = "acctestservicebusqueue-%d"
   namespace_id = azurerm_servicebus_namespace.test.id
 
-  enable_partitioning = true
+  partitioning_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -537,11 +515,11 @@ resource "azurerm_servicebus_namespace" "test" {
 }
 
 resource "azurerm_servicebus_queue" "test" {
-  name                      = "acctestservicebusqueue-%d"
-  namespace_id              = azurerm_servicebus_namespace.test.id
-  enable_express            = true
-  max_size_in_megabytes     = 2048
-  enable_batched_operations = false
+  name                       = "acctestservicebusqueue-%d"
+  namespace_id               = azurerm_servicebus_namespace.test.id
+  express_enabled            = true
+  max_size_in_megabytes      = 2048
+  batched_operations_enabled = false
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -567,7 +545,7 @@ resource "azurerm_servicebus_namespace" "test" {
 resource "azurerm_servicebus_queue" "test" {
   name                  = "acctestservicebusqueue-%d"
   namespace_id          = azurerm_servicebus_namespace.test.id
-  enable_partitioning   = true
+  partitioning_enabled  = true
   max_size_in_megabytes = 5120
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

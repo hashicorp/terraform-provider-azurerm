@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package commonids
 
 import (
@@ -5,7 +8,6 @@ import (
 )
 
 func CommonIds() []resourceids.ResourceId {
-
 	return []resourceids.ResourceId{
 		&AppServiceId{},
 		&AppServiceEnvironmentId{},

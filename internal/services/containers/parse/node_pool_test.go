@@ -27,7 +27,6 @@ func TestNodePoolID(t *testing.T) {
 		Error    bool
 		Expected *NodePoolId
 	}{
-
 		{
 			// empty
 			Input: "",

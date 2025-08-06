@@ -9,9 +9,7 @@ import (
 
 type Registration struct{}
 
-var (
-	_ sdk.TypedServiceRegistration = Registration{}
-)
+var _ sdk.TypedServiceRegistration = Registration{}
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/storagemover"

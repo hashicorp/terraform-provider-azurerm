@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type VirtualWanResource struct{}
@@ -67,17 +67,17 @@ func TestAccAzureRMVirtualWan_complete(t *testing.T) {
 }
 
 func (t VirtualWanResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.VirtualWanID(state.ID)
+	id, err := virtualwans.ParseVirtualWANID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.VirtualWanClient.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := clients.Network.VirtualWANs.VirtualWansGet(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading Virtual WAN (%s): %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (VirtualWanResource) basic(data acceptance.TestData) string {

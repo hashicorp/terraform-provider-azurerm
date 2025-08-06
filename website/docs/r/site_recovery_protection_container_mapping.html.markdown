@@ -109,11 +109,9 @@ An `automatic_update` block supports the following:
 
 ~> **Note:** `automation_account_id` is required when `enabled` is specified.
 
-* `authentication_type` - (Optional) The authentication type used for automation account. Possible values are `RunAsAccount` and `SystemAssignedIdentity`.
+* `authentication_type` - (Optional) The authentication type used for automation account. Possible values are `RunAsAccount` and `SystemAssignedIdentity`. Defaults to `SystemAssignedIdentity`.
 
 ~> **Note:** `RunAsAccount` of `authentication_type` is deprecated and will retire on September 30, 2023. Details could be found [here](https://learn.microsoft.com/en-us/azure/automation/whats-new#support-for-run-as-accounts).
-
-~> **Note:**: `authentication_type` will default to `SystemAssignedIdentity` in version 4.0.
 
 ## Attributes Reference
 
@@ -126,8 +124,8 @@ In addition to the arguments above, the following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Site Recovery Protection Container Mapping.
-* `update` - (Defaults to 30 minutes) Used when updating the Site Recovery Protection Container Mapping.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Site Recovery Protection Container Mapping.
+* `update` - (Defaults to 30 minutes) Used when updating the Site Recovery Protection Container Mapping.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Site Recovery Protection Container Mapping.
 
 ## Import
@@ -137,3 +135,9 @@ Site Recovery Protection Container Mappings can be imported using the `resource 
 ```shell
 terraform import azurerm_site_recovery_protection_container_mapping.mymapping /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resource-group-name/providers/Microsoft.RecoveryServices/vaults/recovery-vault-name/replicationFabrics/fabric1/replicationProtectionContainers/container1/replicationProtectionContainerMappings/mapping1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.RecoveryServices` - 2024-04-01

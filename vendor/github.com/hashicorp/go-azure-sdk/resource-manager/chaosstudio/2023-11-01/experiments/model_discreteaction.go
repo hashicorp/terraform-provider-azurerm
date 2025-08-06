@@ -15,7 +15,16 @@ type DiscreteAction struct {
 	SelectorId string         `json:"selectorId"`
 
 	// Fields inherited from Action
+
 	Name string `json:"name"`
+	Type string `json:"type"`
+}
+
+func (s DiscreteAction) Action() BaseActionImpl {
+	return BaseActionImpl{
+		Name: s.Name,
+		Type: s.Type,
+	}
 }
 
 var _ json.Marshaler = DiscreteAction{}
@@ -29,9 +38,10 @@ func (s DiscreteAction) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling DiscreteAction: %+v", err)
 	}
+
 	decoded["type"] = "discrete"
 
 	encoded, err = json.Marshal(decoded)

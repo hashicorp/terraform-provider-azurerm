@@ -20,8 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ArcMachineExtensionResource struct {
-}
+type ArcMachineExtensionResource struct{}
 
 func TestAccArcMachineExtension_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_arc_machine_extension", "test")

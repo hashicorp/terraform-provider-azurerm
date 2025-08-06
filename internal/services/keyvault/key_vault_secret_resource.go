@@ -11,9 +11,11 @@ import (
 
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-cty/cty"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -23,7 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
+	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func resourceKeyVaultSecret() *pluginsdk.Resource {
@@ -56,9 +58,25 @@ func resourceKeyVaultSecret() *pluginsdk.Resource {
 			"key_vault_id": commonschema.ResourceIDReferenceRequiredForceNew(&commonids.KeyVaultId{}),
 
 			"value": {
-				Type:      pluginsdk.TypeString,
-				Required:  true,
-				Sensitive: true,
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Sensitive:    true,
+				ExactlyOneOf: []string{"value", "value_wo"},
+			},
+
+			"value_wo": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				WriteOnly:    true,
+				RequiredWith: []string{"value_wo_version"},
+				ExactlyOneOf: []string{"value", "value_wo"},
+			},
+
+			"value_wo_version": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				RequiredWith: []string{"value_wo"},
+				ValidateFunc: validation.IntAtLeast(1),
 			},
 
 			"content_type": {
@@ -134,6 +152,15 @@ func resourceKeyVaultSecretCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	value := d.Get("value").(string)
+
+	valueWo, err := pluginsdk.GetWriteOnly(d, "value_wo", cty.String)
+	if err != nil {
+		return err
+	}
+	if !valueWo.IsNull() {
+		value = valueWo.AsString()
+	}
+
 	contentType := d.Get("content_type").(string)
 	t := d.Get("tags").(map[string]interface{})
 
@@ -260,7 +287,14 @@ func resourceKeyVaultSecretUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		secretAttributes.Expires = &expirationUnixTime
 	}
 
-	if d.HasChange("value") {
+	if d.HasChanges("value", "value_wo_version") {
+		valueWo, err := pluginsdk.GetWriteOnly(d, "value_wo", cty.String)
+		if err != nil {
+			return err
+		}
+		if !valueWo.IsNull() {
+			value = valueWo.AsString()
+		}
 		// for changing the value of the secret we need to create a new version
 		parameters := keyvault.SecretSetParameters{
 			Value:            utils.String(value),
@@ -357,9 +391,14 @@ func resourceKeyVaultSecretRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 	d.Set("name", respID.Name)
 	d.Set("value", resp.Value)
+	// Unset value if is a write-only value
+	if _, ok := d.GetOk("value_wo_version"); ok {
+		d.Set("value", nil)
+	}
 	d.Set("version", respID.Version)
 	d.Set("content_type", resp.ContentType)
 	d.Set("versionless_id", id.VersionlessID())
+	d.Set("value_wo_version", d.Get("value_wo_version").(int))
 
 	if attributes := resp.Attributes; attributes != nil {
 		if v := attributes.NotBefore; v != nil {
@@ -413,7 +452,7 @@ func resourceKeyVaultSecretDelete(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 
 	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedSecretsOnDestroy
-	if shouldPurge && kv.Model != nil && utils.NormaliseNilableBool(kv.Model.Properties.EnablePurgeProtection) {
+	if shouldPurge && kv.Model != nil && pointer.From(kv.Model.Properties.EnablePurgeProtection) {
 		log.Printf("[DEBUG] cannot purge secret %q because %s has purge protection enabled", id.Name, *keyVaultId)
 		shouldPurge = false
 	}

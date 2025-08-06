@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/expressroutecircuitconnections"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ExpressRouteCircuitConnectionResource struct{}
@@ -107,21 +107,17 @@ func testAccExpressRouteCircuitConnection_update(t *testing.T) {
 }
 
 func (r ExpressRouteCircuitConnectionResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ExpressRouteCircuitConnectionID(state.ID)
+	id, err := expressroutecircuitconnections.ParsePeeringConnectionID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := client.Network.ExpressRouteCircuitConnectionClient.Get(ctx, id.ResourceGroup, id.ExpressRouteCircuitName, id.PeeringName, id.ConnectionName)
+	resp, err := client.Network.ExpressRouteCircuitConnections.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
-		}
-
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ExpressRouteCircuitConnectionResource) basic(data acceptance.TestData) string {
@@ -179,7 +175,7 @@ resource "azurerm_express_route_port" "test" {
   name                = "acctest-erp-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "Airtel-Chennai2-CLS"
+  peering_location    = "Equinix-Osaka-OS1"
   bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
 }
@@ -201,7 +197,7 @@ resource "azurerm_express_route_port" "peer_test" {
   name                = "acctest-erp2-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  peering_location    = "CDC-Canberra"
+  peering_location    = "Equinix-Sydney-SY2"
   bandwidth_in_gbps   = 10
   encapsulation       = "Dot1Q"
 }

@@ -12,7 +12,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/containerapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/containerapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -67,6 +67,25 @@ func TestAccContainerAppCustomDomainResource_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppCustomDomainResource_managedCertificate(t *testing.T) {
+	if os.Getenv("ARM_TEST_DNS_ZONE") == "" || os.Getenv("ARM_TEST_DATA_RESOURCE_GROUP") == "" {
+		t.Skipf("Skipping as either ARM_TEST_DNS_ZONE or ARM_TEST_DATA_RESOURCE_GROUP is not set")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_container_app_custom_domain", "test")
+	r := ContainerAppCustomDomainResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.managedCertificate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -141,6 +160,27 @@ resource "azurerm_container_app_custom_domain" "test" {
   container_app_environment_certificate_id = azurerm_container_app_environment_certificate.test.id
   certificate_binding_type                 = "SniEnabled"
 }
+
+`, r.template(data))
+}
+
+func (r ContainerAppCustomDomainResource) managedCertificate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider azurerm {
+  features {}
+}
+
+%s
+
+resource "azurerm_container_app_custom_domain" "test" {
+  name             = trimprefix(azurerm_dns_txt_record.test.fqdn, "asuid.")
+  container_app_id = azurerm_container_app.test.id
+
+  lifecycle {
+    ignore_changes = [certificate_binding_type, container_app_environment_certificate_id]
+  }
+}
+
 
 `, r.template(data))
 }
@@ -248,6 +288,11 @@ resource "azurerm_container_app" "test" {
       cpu    = 0.25
       memory = "0.5Gi"
     }
+  }
+
+  secret {
+    name  = "rick"
+    value = "morty"
   }
 
   ingress {

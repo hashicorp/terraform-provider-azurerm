@@ -5,6 +5,7 @@ package migration
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
@@ -266,11 +267,11 @@ func parseLegacyResourceID(input string) (*legacyResourceId, error) {
 	}
 
 	if resourceId.SubscriptionId == "" {
-		return nil, fmt.Errorf("ID was missing the 'subscriptions' element")
+		return nil, errors.New("ID was missing the 'subscriptions' element")
 	}
 
 	if resourceId.ResourceGroupName == "" {
-		return nil, fmt.Errorf("ID was missing the 'resourceGroups' element")
+		return nil, errors.New("ID was missing the 'resourceGroups' element")
 	}
 
 	if resourceId.DataBoxEdgeDeviceName, err = id.PopSegment("dataBoxEdgeDevices"); err != nil {

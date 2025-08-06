@@ -19,17 +19,36 @@ import (
 type KeyVaultManagedHardwareSecurityModuleResource struct{}
 
 func TestAccKeyVaultManagedHardwareSecurityModule(t *testing.T) {
-	// NOTE: this is a combined test rather than separate split out tests due to
-	// Azure only being able provision against one instance at a time
+	// @manicminer: these tests are sequential due to low service limits for Managed HSM
+	// (max 5 instances per subscription as of 2024-04-23)
+	// and to try and maintain a little headroom for cleanup after failed tests
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
+		"dataSource": {
+			"basic": testAccDataSourceKeyVaultManagedHardwareSecurityModule_basic,
+		},
 		"resource": {
-			"data_source": testAccDataSourceKeyVaultManagedHardwareSecurityModule_basic,
-			"basic":       testAccKeyVaultManagedHardwareSecurityModule_basic,
-			"update":      testAccKeyVaultManagedHardwareSecurityModule_updateAndRequiresImport,
-			"complete":    testAccKeyVaultManagedHardwareSecurityModule_complete,
-			"download":    testAccKeyVaultManagedHardwareSecurityModule_download,
-			"role_define": testAccKeyVaultManagedHardwareSecurityModule_roleDefinition,
-			"role_assign": testAccKeyVaultManagedHardwareSecurityModule_roleAssignment,
+			"basic":    testAccKeyVaultManagedHardwareSecurityModule_basic,
+			"update":   testAccKeyVaultManagedHardwareSecurityModule_updateAndRequiresImport,
+			"complete": testAccKeyVaultManagedHardwareSecurityModule_complete,
+			"download": testAccKeyVaultManagedHardwareSecurityModule_download,
+		},
+		"roleAssignments": {
+			"builtInRole": testAccKeyVaultManagedHardwareSecurityModuleRoleAssignment_builtInRole,
+			"customRole":  testAccKeyVaultManagedHardwareSecurityModuleRoleAssignment_customRole,
+		},
+		"roleDefinitions": {
+			"basic": testAccKeyVaultManagedHardwareSecurityModuleRoleDefinition_basic,
+		},
+		"roleDefinitionDataSource": {
+			"basic": testAccDataSourceKeyVaultManagedHardwareSecurityModuleRoleDefinition_basic,
+		},
+		"keys": {
+			"basic":              testAccKeyVaultMHSMKey_basic,
+			"complete":           testAccKeyVaultMHSMKey_complete,
+			"purge":              testAccKeyVaultHSMKey_purge,
+			"softDeleteRecovery": testAccKeyVaultHSMKey_softDeleteRecovery,
+			"rotationPolicy":     testAccMHSMKeyRotationPolicy_all,
+			"data_source":        testAccKeyVaultMHSMKeyDataSource_basic,
 		},
 	})
 }
@@ -75,50 +94,6 @@ func testAccKeyVaultManagedHardwareSecurityModule_download(t *testing.T) {
 			),
 		},
 		data.ImportStep("security_domain_quorum", "security_domain_key_vault_certificate_ids", "security_domain_encrypted_data"),
-	})
-}
-
-func testAccKeyVaultManagedHardwareSecurityModule_roleDefinition(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_role_definition", "test")
-	r := KeyVaultMHSMRoleDefinitionResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.withRoleDefinition(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.withRoleDefinitionUpdate(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func testAccKeyVaultManagedHardwareSecurityModule_roleAssignment(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_managed_hardware_security_module_role_assignment", "test")
-	r := KeyVaultManagedHSMRoleAssignmentResource{}
-
-	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.withRoleAssignment(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.withBuiltInRoleAssignment(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -205,13 +180,14 @@ provider "azurerm" {
 %s
 
 resource "azurerm_key_vault_managed_hardware_security_module" "test" {
-  name                     = "kvHsm%d"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  sku_name                 = "Standard_B1"
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  admin_object_ids         = [data.azurerm_client_config.current.object_id]
-  purge_protection_enabled = false
+  name                          = "kvHsm%d"
+  resource_group_name           = azurerm_resource_group.test.name
+  location                      = azurerm_resource_group.test.location
+  sku_name                      = "Standard_B1"
+  tenant_id                     = data.azurerm_client_config.current.tenant_id
+  admin_object_ids              = [data.azurerm_client_config.current.object_id]
+  purge_protection_enabled      = false
+  public_network_access_enabled = false
 
   network_acls {
     default_action = "Deny"

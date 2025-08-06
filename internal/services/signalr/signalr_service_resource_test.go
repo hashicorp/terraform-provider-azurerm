@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -967,7 +967,6 @@ resource "azurerm_signalr_service" "test" {
   messaging_logs_enabled    = true
   live_trace_enabled        = true
   service_mode              = "Serverless"
-
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -997,7 +996,6 @@ resource "azurerm_signalr_service" "test" {
   messaging_logs_enabled    = false
   live_trace_enabled        = false
   service_mode              = "Classic"
-
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

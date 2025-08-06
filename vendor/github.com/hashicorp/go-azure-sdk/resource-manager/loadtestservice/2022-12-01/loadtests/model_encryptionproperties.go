@@ -5,5 +5,5 @@ package loadtests
 
 type EncryptionProperties struct {
 	Identity *EncryptionPropertiesIdentity `json:"identity,omitempty"`
-	KeyUrl   *string                       `json:"keyUrl,omitempty"`
+	KeyURL   *string                       `json:"keyUrl,omitempty"`
 }

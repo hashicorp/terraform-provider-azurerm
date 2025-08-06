@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2022-10-01-preview/alertrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/securityinsights/2023-12-01-preview/alertrules"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -141,8 +141,7 @@ func (t SentinelAlertRuleNrtResource) Exists(ctx context.Context, clients *clien
 	}
 
 	if model := resp.Model; model != nil {
-		modelPtr := *model
-		rule, ok := modelPtr.(alertrules.NrtAlertRule)
+		rule, ok := model.(alertrules.NrtAlertRule)
 		if !ok {
 			return nil, fmt.Errorf("the Alert Rule %q is not a Fusion Alert Rule", id)
 		}
@@ -161,7 +160,11 @@ resource "azurerm_sentinel_alert_rule_nrt" "test" {
   log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
   display_name               = "Some Rule"
   severity                   = "High"
-  query                      = <<QUERY
+  event_grouping {
+    aggregation_method = "SingleAlert"
+  }
+
+  query = <<QUERY
 AzureActivity |
   where OperationName == "Create or Update Virtual Machine" or OperationName =="Create Deployment" |
   where ActivityStatus == "Succeeded" |
@@ -195,6 +198,9 @@ resource "azurerm_sentinel_alert_rule_nrt" "test" {
       by_alert_details        = ["DisplayName"]
       by_custom_details       = ["OperatingSystemType", "OperatingSystemName"]
     }
+  }
+  event_grouping {
+    aggregation_method = "SingleAlert"
   }
   query                = "Heartbeat"
   suppression_enabled  = true
@@ -250,6 +256,9 @@ resource "azurerm_sentinel_alert_rule_nrt" "test" {
     OperatingSystemType = "OSType"
   }
 
+  event_grouping {
+    aggregation_method = "SingleAlert"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -264,6 +273,9 @@ resource "azurerm_sentinel_alert_rule_nrt" "import" {
   display_name               = azurerm_sentinel_alert_rule_nrt.test.display_name
   severity                   = azurerm_sentinel_alert_rule_nrt.test.severity
   query                      = azurerm_sentinel_alert_rule_nrt.test.query
+  event_grouping {
+    aggregation_method = "SingleAlert"
+  }
 }
 `, r.basic(data))
 }
@@ -284,6 +296,9 @@ resource "azurerm_sentinel_alert_rule_nrt" "test" {
   severity                   = "Low"
   alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.test.name
   query                      = "Heartbeat"
+  event_grouping {
+    aggregation_method = "SingleAlert"
+  }
 }
 `, r.template(data), data.RandomInteger)
 }

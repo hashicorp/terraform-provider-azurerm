@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ApiSchemaId{})
+}
 
 var _ resourceids.ResourceId = &ApiSchemaId{}
 
@@ -41,7 +46,7 @@ func ParseApiSchemaID(input string) (*ApiSchemaId, error) {
 	}
 
 	id := ApiSchemaId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -58,7 +63,7 @@ func ParseApiSchemaIDInsensitively(input string) (*ApiSchemaId, error) {
 	}
 
 	id := ApiSchemaId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -122,11 +127,11 @@ func (id ApiSchemaId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftApiManagement", "Microsoft.ApiManagement", "Microsoft.ApiManagement"),
 		resourceids.StaticSegment("staticService", "service", "service"),
-		resourceids.UserSpecifiedSegment("serviceName", "serviceValue"),
+		resourceids.UserSpecifiedSegment("serviceName", "serviceName"),
 		resourceids.StaticSegment("staticApis", "apis", "apis"),
-		resourceids.UserSpecifiedSegment("apiId", "apiIdValue"),
+		resourceids.UserSpecifiedSegment("apiId", "apiId"),
 		resourceids.StaticSegment("staticSchemas", "schemas", "schemas"),
-		resourceids.UserSpecifiedSegment("schemaId", "schemaIdValue"),
+		resourceids.UserSpecifiedSegment("schemaId", "schemaId"),
 	}
 }
 

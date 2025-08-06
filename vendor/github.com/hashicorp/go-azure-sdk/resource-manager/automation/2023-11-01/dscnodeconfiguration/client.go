@@ -15,7 +15,7 @@ type DscNodeConfigurationClient struct {
 }
 
 func NewDscNodeConfigurationClientWithBaseURI(sdkApi sdkEnv.Api) (*DscNodeConfigurationClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "dscnodeconfiguration", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "dscnodeconfiguration", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DscNodeConfigurationClient: %+v", err)
 	}

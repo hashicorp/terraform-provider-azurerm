@@ -46,7 +46,6 @@ func (c GuestConfigurationAssignmentsClient) List(ctx context.Context, id Virtua
 
 	var model GuestConfigurationAssignmentList
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

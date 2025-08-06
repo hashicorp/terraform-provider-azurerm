@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/healthcareapis/2022-12-01/iotconnectors` Documentation
 
-The `iotconnectors` SDK allows for interaction with the Azure Resource Manager Service `healthcareapis` (API Version `2022-12-01`).
+The `iotconnectors` SDK allows for interaction with Azure Resource Manager `healthcareapis` (API Version `2022-12-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := iotconnectors.NewIotConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "iotConnectorValue")
+id := iotconnectors.NewIotConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "iotConnectorName")
 
 payload := iotconnectors.IotConnector{
 	// ...
@@ -41,7 +41,7 @@ if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 
 ```go
 ctx := context.TODO()
-id := iotconnectors.NewIotConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "iotConnectorValue")
+id := iotconnectors.NewIotConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "iotConnectorName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -53,7 +53,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := iotconnectors.NewIotConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "iotConnectorValue")
+id := iotconnectors.NewIotConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "iotConnectorName")
 
 // alternatively `client.FhirDestinationsListByIotConnector(ctx, id)` can be used to do batched pagination
 items, err := client.FhirDestinationsListByIotConnectorComplete(ctx, id)
@@ -70,7 +70,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := iotconnectors.NewIotConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "iotConnectorValue")
+id := iotconnectors.NewIotConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "iotConnectorName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -86,7 +86,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := iotconnectors.NewFhirDestinationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "iotConnectorValue", "fhirDestinationValue")
+id := iotconnectors.NewFhirDestinationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "iotConnectorName", "fhirDestinationName")
 
 payload := iotconnectors.IotFhirDestination{
 	// ...
@@ -103,7 +103,7 @@ if err := client.IotConnectorFhirDestinationCreateOrUpdateThenPoll(ctx, id, payl
 
 ```go
 ctx := context.TODO()
-id := iotconnectors.NewFhirDestinationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "iotConnectorValue", "fhirDestinationValue")
+id := iotconnectors.NewFhirDestinationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "iotConnectorName", "fhirDestinationName")
 
 if err := client.IotConnectorFhirDestinationDeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -115,7 +115,7 @@ if err := client.IotConnectorFhirDestinationDeleteThenPoll(ctx, id); err != nil 
 
 ```go
 ctx := context.TODO()
-id := iotconnectors.NewFhirDestinationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "iotConnectorValue", "fhirDestinationValue")
+id := iotconnectors.NewFhirDestinationID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "iotConnectorName", "fhirDestinationName")
 
 read, err := client.IotConnectorFhirDestinationGet(ctx, id)
 if err != nil {
@@ -131,7 +131,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := iotconnectors.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := iotconnectors.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 // alternatively `client.ListByWorkspace(ctx, id)` can be used to do batched pagination
 items, err := client.ListByWorkspaceComplete(ctx, id)
@@ -148,7 +148,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := iotconnectors.NewIotConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "iotConnectorValue")
+id := iotconnectors.NewIotConnectorID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "iotConnectorName")
 
 payload := iotconnectors.IotConnectorPatchResource{
 	// ...

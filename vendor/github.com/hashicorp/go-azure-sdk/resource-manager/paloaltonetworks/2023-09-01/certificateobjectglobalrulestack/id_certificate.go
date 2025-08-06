@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&CertificateId{})
+}
 
 var _ resourceids.ResourceId = &CertificateId{}
 
@@ -35,7 +40,7 @@ func ParseCertificateID(input string) (*CertificateId, error) {
 	}
 
 	id := CertificateId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -52,7 +57,7 @@ func ParseCertificateIDInsensitively(input string) (*CertificateId, error) {
 	}
 
 	id := CertificateId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -100,9 +105,9 @@ func (id CertificateId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticPaloAltoNetworksCloudngfw", "PaloAltoNetworks.Cloudngfw", "PaloAltoNetworks.Cloudngfw"),
 		resourceids.StaticSegment("staticGlobalRulestacks", "globalRulestacks", "globalRulestacks"),
-		resourceids.UserSpecifiedSegment("globalRulestackName", "globalRulestackValue"),
+		resourceids.UserSpecifiedSegment("globalRulestackName", "globalRulestackName"),
 		resourceids.StaticSegment("staticCertificates", "certificates", "certificates"),
-		resourceids.UserSpecifiedSegment("certificateName", "certificateValue"),
+		resourceids.UserSpecifiedSegment("certificateName", "certificateName"),
 	}
 }
 

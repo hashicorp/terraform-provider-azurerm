@@ -45,7 +45,6 @@ func (c ManagementLocksClient) GetByScope(ctx context.Context, id ScopedLockId) 
 
 	var model ManagementLockObject
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

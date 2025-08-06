@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ZoneId{})
+}
 
 var _ resourceids.ResourceId = &ZoneId{}
 
@@ -39,7 +44,7 @@ func ParseZoneID(input string) (*ZoneId, error) {
 	}
 
 	id := ZoneId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParseZoneIDInsensitively(input string) (*ZoneId, error) {
 	}
 
 	id := ZoneId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -124,7 +129,7 @@ func (id ZoneId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftNetwork", "Microsoft.Network", "Microsoft.Network"),
 		resourceids.StaticSegment("staticDnsZones", "dnsZones", "dnsZones"),
-		resourceids.UserSpecifiedSegment("dnsZoneName", "dnsZoneValue"),
+		resourceids.UserSpecifiedSegment("dnsZoneName", "dnsZoneName"),
 		resourceids.ConstantSegment("recordType", PossibleValuesForRecordType(), "A"),
 	}
 }

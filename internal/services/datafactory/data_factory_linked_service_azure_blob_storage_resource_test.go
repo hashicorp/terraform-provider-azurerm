@@ -286,13 +286,13 @@ data "azurerm_client_config" "current" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                      = "accsa%[1]d"
-  location                  = azurerm_resource_group.test.location
-  resource_group_name       = azurerm_resource_group.test.name
-  account_tier              = "Standard"
-  account_kind              = "StorageV2"
-  account_replication_type  = "LRS"
-  enable_https_traffic_only = true
+  name                       = "accsa%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  account_tier               = "Standard"
+  account_kind               = "StorageV2"
+  account_replication_type   = "LRS"
+  https_traffic_only_enabled = true
 }
 
 resource "azurerm_role_assignment" "test" {

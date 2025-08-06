@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&SourceControlSyncJobStreamId{})
+}
 
 var _ resourceids.ResourceId = &SourceControlSyncJobStreamId{}
 
@@ -43,7 +48,7 @@ func ParseSourceControlSyncJobStreamID(input string) (*SourceControlSyncJobStrea
 	}
 
 	id := SourceControlSyncJobStreamId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -60,7 +65,7 @@ func ParseSourceControlSyncJobStreamIDInsensitively(input string) (*SourceContro
 	}
 
 	id := SourceControlSyncJobStreamId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -128,13 +133,13 @@ func (id SourceControlSyncJobStreamId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAutomation", "Microsoft.Automation", "Microsoft.Automation"),
 		resourceids.StaticSegment("staticAutomationAccounts", "automationAccounts", "automationAccounts"),
-		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountValue"),
+		resourceids.UserSpecifiedSegment("automationAccountName", "automationAccountName"),
 		resourceids.StaticSegment("staticSourceControls", "sourceControls", "sourceControls"),
-		resourceids.UserSpecifiedSegment("sourceControlName", "sourceControlValue"),
+		resourceids.UserSpecifiedSegment("sourceControlName", "sourceControlName"),
 		resourceids.StaticSegment("staticSourceControlSyncJobs", "sourceControlSyncJobs", "sourceControlSyncJobs"),
-		resourceids.UserSpecifiedSegment("sourceControlSyncJobId", "sourceControlSyncJobIdValue"),
+		resourceids.UserSpecifiedSegment("sourceControlSyncJobId", "sourceControlSyncJobId"),
 		resourceids.StaticSegment("staticStreams", "streams", "streams"),
-		resourceids.UserSpecifiedSegment("streamId", "streamIdValue"),
+		resourceids.UserSpecifiedSegment("streamId", "streamId"),
 	}
 }
 

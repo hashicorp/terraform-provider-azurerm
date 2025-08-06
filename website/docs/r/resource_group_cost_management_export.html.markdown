@@ -38,6 +38,7 @@ resource "azurerm_resource_group_cost_management_export" "example" {
   recurrence_type              = "Monthly"
   recurrence_period_start_date = "2020-08-18T00:00:00Z"
   recurrence_period_end_date   = "2020-09-18T00:00:00Z"
+  file_format                  = "Csv"
 
   export_data_storage_location {
     container_id     = azurerm_storage_container.example.resource_manager_id
@@ -70,6 +71,8 @@ The following arguments are supported:
 * `export_data_options` - (Required) A `export_data_options` block as defined below.
 
 * `active` - (Optional) Is the cost management export active? Default is `true`.
+
+* `file_format` - (Optional) Format for export. Valid values are `Csv` only. Default is `Csv`.
 
 ---
 
@@ -111,3 +114,9 @@ Cost Management Export for a Resource Group can be imported using the `resource 
 ```shell
 terraform import azurerm_resource_group_cost_management_export.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.CostManagement/exports/export1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.CostManagement` - 2023-08-01

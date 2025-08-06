@@ -15,7 +15,7 @@ type WorkbookTemplatesAPIsClient struct {
 }
 
 func NewWorkbookTemplatesAPIsClientWithBaseURI(sdkApi sdkEnv.Api) (*WorkbookTemplatesAPIsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "workbooktemplatesapis", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "workbooktemplatesapis", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating WorkbookTemplatesAPIsClient: %+v", err)
 	}

@@ -5,6 +5,7 @@ package client
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/Azure/go-autorest/autorest"
@@ -12,7 +13,7 @@ import (
 	authWrapper "github.com/hashicorp/go-azure-sdk/sdk/auth/autorest"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	dataplane "github.com/tombuildsstuff/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral"
+	dataplane "github.com/jackofallops/kermit/sdk/iotcentral/2022-10-31-preview/iotcentral"
 )
 
 type Client struct {
@@ -40,7 +41,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 func (c *Client) OrganizationsClient(ctx context.Context, subdomain string) (*dataplane.OrganizationsClient, error) {
 	if !c.Endpoint.Available() {
-		return nil, fmt.Errorf("unable to build SDK Client since IoTCentral is not available in this Azure Environment")
+		return nil, errors.New("unable to build SDK Client since IoTCentral is not available in this Azure Environment")
 	}
 
 	iotCentralAuth, err := c.authorizerFunc(c.Endpoint)

@@ -19,6 +19,9 @@ import (
 type HPCCacheBlobNFSTargetResource struct{}
 
 func TestAccHPCCacheBlobNFSTarget_basic(t *testing.T) {
+	// https://azure.microsoft.com/en-us/updates?id=hpccacheretirement
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_blob_nfs_target", "test")
 	r := HPCCacheBlobNFSTargetResource{}
 
@@ -34,6 +37,8 @@ func TestAccHPCCacheBlobNFSTarget_basic(t *testing.T) {
 }
 
 func TestAccHPCCacheBlobNFSTarget_accessPolicy(t *testing.T) {
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_blob_nfs_target", "test")
 	r := HPCCacheBlobNFSTargetResource{}
 
@@ -70,6 +75,8 @@ func TestAccHPCCacheBlobNFSTarget_accessPolicy(t *testing.T) {
 }
 
 func TestAccHPCCacheBlobNFSTarget_update(t *testing.T) {
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_blob_nfs_target", "test")
 	r := HPCCacheBlobNFSTargetResource{}
 
@@ -92,6 +99,8 @@ func TestAccHPCCacheBlobNFSTarget_update(t *testing.T) {
 }
 
 func TestAccHPCCacheBlobNFSTarget_requiresImport(t *testing.T) {
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_blob_nfs_target", "test")
 	r := HPCCacheBlobNFSTargetResource{}
 
@@ -107,6 +116,8 @@ func TestAccHPCCacheBlobNFSTarget_requiresImport(t *testing.T) {
 }
 
 func TestAccHPCCacheBlobNFSTarget_usageModel(t *testing.T) {
+	t.Skip("The HPC Cache service is being retired, these test are no longer functional. Skipping...")
+
 	data := acceptance.BuildTestData(t, "azurerm_hpc_cache_blob_nfs_target", "test")
 	r := HPCCacheBlobNFSTargetResource{}
 
@@ -134,7 +145,7 @@ func (HPCCacheBlobNFSTargetResource) Exists(ctx context.Context, clients *client
 		return nil, err
 	}
 
-	resp, err := clients.StorageCache.StorageTargets.Get(ctx, *id)
+	resp, err := clients.StorageCache_2023_05_01.StorageTargets.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving HPC Cache Blob Target (%s): %+v", id.String(), err)
 	}
@@ -283,15 +294,15 @@ data "azuread_service_principal" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                      = "accteststorgacc%[3]s"
-  resource_group_name       = azurerm_resource_group.test.name
-  location                  = azurerm_resource_group.test.location
-  account_tier              = "Standard"
-  account_kind              = "StorageV2"
-  account_replication_type  = "LRS"
-  is_hns_enabled            = true
-  nfsv3_enabled             = true
-  enable_https_traffic_only = false
+  name                       = "accteststorgacc%[3]s"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  account_tier               = "Standard"
+  account_kind               = "StorageV2"
+  account_replication_type   = "LRS"
+  is_hns_enabled             = true
+  nfsv3_enabled              = true
+  https_traffic_only_enabled = false
   network_rules {
     default_action             = "Deny"
     virtual_network_subnet_ids = [azurerm_subnet.test.id]

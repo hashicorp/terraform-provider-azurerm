@@ -46,7 +46,6 @@ func (c ContainerInstanceClient) ContainersAttach(ctx context.Context, id Contai
 
 	var model ContainerAttachResponse
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -9,11 +9,13 @@ v/2.x (legacy):
   - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)2\.\d+'
 v/3.x:
   - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)3\.\d+'
+v/4.x:
+  - '### AzureRM Provider Version\s+(|azurerm |AzureRM )(|v|V)4\.\d+'
 service/aadb2c:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_aadb2c_directory((.|\n)*)###'
 
 service/advisor:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_advisor_recommendations((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_advisor_((.|\n)*)###'
 
 service/analysis:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_analysis_services_server((.|\n)*)###'
@@ -25,10 +27,13 @@ service/app-configuration:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_app_configuration((.|\n)*)###'
 
 service/app-service:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(app_service_environment_v3\W+|app_service_environment_v3\W+|app_service_source_control\W+|app_service_source_control_slot\W+|function_app_active_slot\W+|function_app_function\W+|function_app_hybrid_connection\W+|linux_function_app\W+|linux_function_app\W+|linux_function_app_slot\W+|linux_web_app\W+|linux_web_app\W+|linux_web_app_slot\W+|service_plan|source_control_token|static_web_app|web_app_|windows_function_app\W+|windows_function_app\W+|windows_function_app_slot\W+|windows_web_app\W+|windows_web_app\W+|windows_web_app_slot\W+)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(app_service_environment_v3\W+|app_service_source_control\W+|app_service_source_control_slot\W+|function_app_active_slot\W+|function_app_flex_consumption\W+|function_app_function\W+|function_app_hybrid_connection\W+|linux_function_app\W+|linux_function_app_slot\W+|linux_web_app\W+|linux_web_app_slot\W+|service_plan|source_control_token|static_web_app|web_app_|windows_function_app\W+|windows_function_app_slot\W+|windows_web_app\W+|windows_web_app_slot\W+)((.|\n)*)###'
 
 service/application-insights:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_application_insights((.|\n)*)###'
+
+service/arc-kubernetes:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_arc_kubernetes_((.|\n)*)###'
 
 service/arc-resource-bridge:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_arc_resource_bridge_appliance((.|\n)*)###'
@@ -40,13 +45,13 @@ service/authorization:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(client_config|federated_identity_credential|marketplace_role_assignment|pim_|role_|user_assigned_identity)((.|\n)*)###'
 
 service/automanage:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_automanage_configuration((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(arc_machine_automanage_configuration_assignment|automanage_configuration|virtual_machine_automanage_configuration_assignment)((.|\n)*)###'
 
 service/automation:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_automation_((.|\n)*)###'
 
 service/azure-stack-hci:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_stack_hci_cluster((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_stack_hci_((.|\n)*)###'
 
 service/batch:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_batch_((.|\n)*)###'
@@ -64,10 +69,10 @@ service/cdn:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_cdn_((.|\n)*)###'
 
 service/cognitive-services:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_cognitive_((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(ai_services|cognitive_)((.|\n)*)###'
 
 service/communication:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(communication_service|email_communication_service)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(communication_service|email_communication_service|gallery_application|orchestrated_virtual_machine_scale_set\W+|restore_point_collection|virtual_machine_gallery_application_assignment\W+|virtual_machine_implicit_data_disk_from_source\W+|virtual_machine_restore_point\W+|virtual_machine_restore_point_collection\W+|virtual_machine_run_command\W+|virtual_machine_scale_set_standby_pool\W+)((.|\n)*)###'
 
 service/connections:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(api_connection|managed_api)((.|\n)*)###'
@@ -103,7 +108,7 @@ service/database-migration:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_database_migration_((.|\n)*)###'
 
 service/databox-edge:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_databox_edge_((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_databox_edge_device((.|\n)*)###'
 
 service/databricks:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_databricks_((.|\n)*)###'
@@ -120,14 +125,14 @@ service/devtestlabs:
 service/digital-twins:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_digital_twins_((.|\n)*)###'
 
-service/disks:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_disk_pool((.|\n)*)###'
-
 service/dns:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(dns_|private_dns_a_record\W+|private_dns_aaaa_record\W+|private_dns_cname_record\W+|private_dns_mx_record\W+|private_dns_ptr_record\W+|private_dns_soa_record\W+|private_dns_srv_record\W+|private_dns_txt_record\W+|private_dns_zone\W+|private_dns_zone_virtual_network_link\W+)((.|\n)*)###'
 
 service/domain-services:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_active_directory_domain_service((.|\n)*)###'
+
+service/dynatrace:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_dynatrace_((.|\n)*)###'
 
 service/elastic:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_elastic_cloud_elasticsearch((.|\n)*)###'
@@ -141,6 +146,12 @@ service/event-grid:
 service/event-hubs:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_eventhub((.|\n)*)###'
 
+service/extended-location:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(extended_custom_location\W+|extended_location_custom_location\W+)((.|\n)*)###'
+
+service/fabric:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_fabric_capacity((.|\n)*)###'
+
 service/firewall:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_firewall((.|\n)*)###'
 
@@ -151,7 +162,7 @@ service/frontdoor:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_frontdoor((.|\n)*)###'
 
 service/graph:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_graph_((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_graph_services_account((.|\n)*)###'
 
 service/hdinsight:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_hdinsight_((.|\n)*)###'
@@ -163,7 +174,7 @@ service/hsm:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_dedicated_hardware_security_module((.|\n)*)###'
 
 service/hybrid-compute:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(arc_machine\W+|arc_machine_extension\W+|arc_private_link_scope\W+|hybrid_compute_machine)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(arc_machine\W+|arc_machine_extension\W+|arc_private_link_scope\W+)((.|\n)*)###'
 
 service/iot-central:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_iotcentral_((.|\n)*)###'
@@ -171,17 +182,11 @@ service/iot-central:
 service/iot-hub:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_iothub((.|\n)*)###'
 
-service/iot-time-series:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_iot_time_series_insights_((.|\n)*)###'
-
 service/key-vault:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(key_vault\W+|key_vault_access_policy\W+|key_vault_certificate\W+|key_vault_certificate_contacts\W+|key_vault_certificate_data\W+|key_vault_certificate_issuer\W+|key_vault_certificates\W+|key_vault_encrypted_value\W+|key_vault_key\W+|key_vault_managed_storage_account\W+|key_vault_managed_storage_account_sas_token_definition\W+|key_vault_secret\W+|key_vault_secrets\W+)((.|\n)*)###'
 
 service/kusto:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_kusto_((.|\n)*)###'
-
-service/labservice:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_lab_service_((.|\n)*)###'
 
 service/lighthouse:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_lighthouse_((.|\n)*)###'
@@ -196,13 +201,10 @@ service/log-analytics:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_log_analytics_((.|\n)*)###'
 
 service/logic:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(integration_service_environment|logic_app_)((.|\n)*)###'
-
-service/logz:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_logz_((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_logic_app_((.|\n)*)###'
 
 service/machine-learning:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_machine_learning_((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(ai_foundry|machine_learning_)((.|\n)*)###'
 
 service/maintenance:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(maintenance_|public_maintenance_configurations)((.|\n)*)###'
@@ -219,41 +221,38 @@ service/management-groups:
 service/maps:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_maps_((.|\n)*)###'
 
-service/maria-db:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_mariadb_((.|\n)*)###'
-
-service/media:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_media_((.|\n)*)###'
-
 service/mixed-reality:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_spatial_anchors_account((.|\n)*)###'
 
 service/mobile-network:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_mobile_network((.|\n)*)###'
 
+service/mongo-cluster:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_mongo_cluster((.|\n)*)###'
+
 service/monitor:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_monitor_((.|\n)*)###'
 
 service/mssql:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(mssql_database\W+|mssql_database_extended_auditing_policy\W+|mssql_database_vulnerability_assessment_rule_baseline\W+|mssql_elasticpool\W+|mssql_failover_group\W+|mssql_firewall_rule\W+|mssql_job_agent\W+|mssql_job_credential\W+|mssql_outbound_firewall_rule\W+|mssql_server\W+|mssql_server_dns_alias\W+|mssql_server_extended_auditing_policy\W+|mssql_server_microsoft_support_auditing_policy\W+|mssql_server_security_alert_policy\W+|mssql_server_transparent_data_encryption\W+|mssql_server_vulnerability_assessment\W+|mssql_virtual_machine\W+|mssql_virtual_machine_availability_group_listener\W+|mssql_virtual_machine_group\W+|mssql_virtual_network_rule\W+)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(mssql_database\W+|mssql_database_extended_auditing_policy\W+|mssql_database_vulnerability_assessment_rule_baseline\W+|mssql_elasticpool\W+|mssql_failover_group\W+|mssql_firewall_rule\W+|mssql_job\W+|mssql_job_agent\W+|mssql_job_credential\W+|mssql_job_schedule\W+|mssql_job_step\W+|mssql_job_target_group\W+|mssql_outbound_firewall_rule\W+|mssql_server\W+|mssql_server_dns_alias\W+|mssql_server_extended_auditing_policy\W+|mssql_server_microsoft_support_auditing_policy\W+|mssql_server_security_alert_policy\W+|mssql_server_transparent_data_encryption\W+|mssql_server_vulnerability_assessment\W+|mssql_virtual_machine\W+|mssql_virtual_machine_availability_group_listener\W+|mssql_virtual_machine_group\W+|mssql_virtual_network_rule\W+)((.|\n)*)###'
 
 service/mssqlmanagedinstance:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_mssql_managed_((.|\n)*)###'
 
 service/mysql:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_mysql_((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_mysql_flexible_((.|\n)*)###'
 
 service/netapp:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_netapp_((.|\n)*)###'
 
 service/network:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(application_gateway\W+|application_security_group\W+|bastion_host|custom_ip_prefix|express_route_|ip_group|local_network_gateway|nat_gateway|network_connection_monitor\W+|network_ddos_protection_plan\W+|network_interface\W+|network_interface_application_gateway_backend_address_pool_association\W+|network_interface_application_security_group_association\W+|network_interface_backend_address_pool_association\W+|network_interface_nat_rule_association\W+|network_interface_security_group_association\W+|network_manager\W+|network_manager\W+|network_manager_admin_rule\W+|network_manager_admin_rule_collection\W+|network_manager_connectivity_configuration\W+|network_manager_deployment\W+|network_manager_management_group_connection\W+|network_manager_network_group\W+|network_manager_network_group\W+|network_manager_scope_connection\W+|network_manager_security_admin_configuration\W+|network_manager_static_member\W+|network_manager_subscription_connection\W+|network_packet_capture\W+|network_profile\W+|network_security_group\W+|network_security_rule\W+|network_service_tags\W+|network_watcher\W+|network_watcher_flow_log\W+|point_to_site_vpn_gateway|private_endpoint\W+|private_endpoint_application_security_group_association\W+|private_endpoint_connection\W+|private_link_service\W+|private_link_service_endpoint_connections\W+|public_ip|route|subnet|virtual_hub\W+|virtual_hub_bgp_connection\W+|virtual_hub_connection\W+|virtual_hub_ip\W+|virtual_hub_route_table\W+|virtual_hub_route_table_route\W+|virtual_hub_routing_intent\W+|virtual_hub_security_partner_provider\W+|virtual_machine_packet_capture\W+|virtual_machine_scale_set_packet_capture\W+|virtual_network\W+|virtual_network_dns_servers\W+|virtual_network_gateway\W+|virtual_network_gateway_connection\W+|virtual_network_gateway_nat_rule\W+|virtual_network_peering\W+|virtual_wan\W+|vpn_|web_application_firewall_policy)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(application_gateway\W+|application_security_group\W+|bastion_host|custom_ip_prefix|express_route_|ip_group|local_network_gateway|nat_gateway|network_|point_to_site_vpn_gateway|private_endpoint\W+|private_endpoint_application_security_group_association\W+|private_endpoint_connection\W+|private_link_service\W+|private_link_service_endpoint_connections\W+|public_ip|route|subnet|virtual_hub\W+|virtual_hub_bgp_connection\W+|virtual_hub_connection\W+|virtual_hub_ip\W+|virtual_hub_route_table\W+|virtual_hub_route_table_route\W+|virtual_hub_routing_intent\W+|virtual_hub_security_partner_provider\W+|virtual_machine_packet_capture\W+|virtual_machine_scale_set_packet_capture\W+|virtual_network\W+|virtual_network_dns_servers\W+|virtual_network_gateway\W+|virtual_network_gateway_connection\W+|virtual_network_gateway_nat_rule\W+|virtual_network_peering\W+|virtual_network_peering\W+|virtual_wan\W+|vpn_|web_application_firewall_policy)((.|\n)*)###'
 
 service/network-function:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_network_function_((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(network_function_azure_traffic_collector\W+|network_function_collector_policy\W+|new_relic_monitor\W+|new_relic_tag_rule\W+)((.|\n)*)###'
 
 service/nginx:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_nginx_((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(nginx_|oracle_)((.|\n)*)###'
 
 service/notifications:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_notification_hub((.|\n)*)###'
@@ -268,7 +267,7 @@ service/policy:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(management_group_policy_|policy_|resource_group_policy_assignment\W+|resource_group_policy_exemption\W+|resource_group_policy_remediation\W+|resource_policy_assignment\W+|resource_policy_exemption\W+|resource_policy_remediation\W+|subscription_policy_)((.|\n)*)###'
 
 service/portal:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(dashboard\W+|portal_)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_portal_((.|\n)*)###'
 
 service/postgresql:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_postgresql_((.|\n)*)###'
@@ -282,6 +281,9 @@ service/private-dns-resolver:
 service/purview:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_purview_account((.|\n)*)###'
 
+service/qumulo:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_qumulo_file_system((.|\n)*)###'
+
 service/recovery-services:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(backup_|recovery_services_vault|site_recovery_)((.|\n)*)###'
 
@@ -289,7 +291,7 @@ service/redhatopenshift:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_redhat_openshift_cluster((.|\n)*)###'
 
 service/redis:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_redis_((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(redis_cache\W+|redis_cache_access_policy\W+|redis_cache_access_policy_assignment\W+|redis_enterprise_cluster\W+|redis_enterprise_database\W+|redis_firewall_rule\W+|redis_linked_server\W+|resource_deployment_script_azure_cli\W+|resource_deployment_script_azure_power_shell\W+|resource_management_private_link\W+|resource_management_private_link_association\W+|resource_provider_registration\W+)((.|\n)*)###'
 
 service/relay:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_relay_((.|\n)*)###'
@@ -324,11 +326,8 @@ service/signalr:
 service/spring:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(spring_cloud_accelerator\W+|spring_cloud_active_deployment\W+|spring_cloud_api_portal\W+|spring_cloud_api_portal_custom_domain\W+|spring_cloud_app\W+|spring_cloud_app_cosmosdb_association\W+|spring_cloud_app_dynamics_application_performance_monitoring\W+|spring_cloud_app_mysql_association\W+|spring_cloud_app_redis_association\W+|spring_cloud_application_insights_application_performance_monitoring\W+|spring_cloud_application_live_view\W+|spring_cloud_build_deployment\W+|spring_cloud_build_pack_binding\W+|spring_cloud_builder\W+|spring_cloud_certificate\W+|spring_cloud_configuration_service\W+|spring_cloud_container_deployment\W+|spring_cloud_custom_domain\W+|spring_cloud_customized_accelerator\W+|spring_cloud_dev_tool_portal\W+|spring_cloud_dynatrace_application_performance_monitoring\W+|spring_cloud_elastic_application_performance_monitoring\W+|spring_cloud_gateway\W+|spring_cloud_gateway_custom_domain\W+|spring_cloud_gateway_route_config\W+|spring_cloud_java_deployment\W+|spring_cloud_new_relic_application_performance_monitoring\W+|spring_cloud_service\W+|spring_cloud_storage\W+)((.|\n)*)###'
 
-service/sql:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_sql_((.|\n)*)###'
-
 service/storage:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(storage_account\W+|storage_account_blob_container_sas\W+|storage_account_customer_managed_key\W+|storage_account_local_user\W+|storage_account_network_rules\W+|storage_account_sas\W+|storage_blob\W+|storage_blob_inventory_policy\W+|storage_container\W+|storage_containers\W+|storage_data_lake_gen2_filesystem\W+|storage_data_lake_gen2_path\W+|storage_encryption_scope\W+|storage_management_policy\W+|storage_object_replication\W+|storage_queue\W+|storage_share\W+|storage_share_directory\W+|storage_share_file\W+|storage_sync\W+|storage_sync_cloud_endpoint\W+|storage_sync_group\W+|storage_table\W+|storage_table_entities\W+|storage_table_entity\W+)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(managed_lustre_file_system|storage_account\W+|storage_account_blob_container_sas\W+|storage_account_customer_managed_key\W+|storage_account_local_user\W+|storage_account_network_rules\W+|storage_account_queue_properties\W+|storage_account_sas\W+|storage_account_static_website\W+|storage_blob\W+|storage_blob_inventory_policy\W+|storage_container\W+|storage_container_immutability_policy\W+|storage_containers\W+|storage_data_lake_gen2_filesystem\W+|storage_data_lake_gen2_path\W+|storage_encryption_scope\W+|storage_management_policy\W+|storage_object_replication\W+|storage_queue\W+|storage_share\W+|storage_share_directory\W+|storage_share_file\W+|storage_sync\W+|storage_sync_cloud_endpoint\W+|storage_sync_group\W+|storage_sync_server_endpoint\W+|storage_table\W+|storage_table\W+|storage_table_entities\W+|storage_table_entity\W+)((.|\n)*)###'
 
 service/storagemover:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_storage_mover((.|\n)*)###'
@@ -348,14 +347,17 @@ service/systemcentervirtualmachinemanager:
 service/traffic-manager:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_traffic_manager_((.|\n)*)###'
 
-service/video-analyzer:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_video_analyzer((.|\n)*)###'
+service/trustedsigning:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_trusted_signing_account((.|\n)*)###'
+
+service/video-indexer:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_video_indexer_account((.|\n)*)###'
 
 service/virtual-desktops:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_virtual_desktop_((.|\n)*)###'
 
 service/vmware:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_vmware_((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(vmware_cluster\W+|vmware_express_route_authorization\W+|vmware_netapp_volume_attachment\W+|vmware_private_cloud\W+|voice_services_communications_gateway\W+|voice_services_communications_gateway_test_line\W+)((.|\n)*)###'
 
 service/workloads:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_workloads_sap_((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(chaos_studio_|container_connected_registry\W+|container_registry_cache_rule\W+|container_registry_credential_set\W+|container_registry_task\W+|container_registry_task_schedule_run_now\W+|container_registry_token_password\W+|kubernetes_cluster_extension\W+|kubernetes_cluster_trusted_access_role_binding\W+|kubernetes_fleet_manager\W+|kubernetes_fleet_member\W+|kubernetes_fleet_update_run\W+|kubernetes_fleet_update_strategy\W+|kubernetes_flux_configuration\W+|kubernetes_node_pool_snapshot\W+|workloads_sap_)((.|\n)*)###'

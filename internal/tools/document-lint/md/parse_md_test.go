@@ -35,6 +35,5 @@ func Test_unmarshalFile(t *testing.T) {
 		if gotArgs := len(doc.Args); gotArgs != arg.argsNum {
 			t.Fatalf("`%s` expect arg num: %d, got: %d", arg.file, gotArgs, arg.argsNum)
 		}
-
 	}
 }

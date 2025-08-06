@@ -91,7 +91,7 @@ func TestAccLogicAppTriggerHttpRequest_callbackUrl(t *testing.T) {
 			Config: r.method(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("callback_url").Exists(),
+				check.That(data.ResourceName).Key("callback_url").IsNotEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -135,24 +135,6 @@ func TestAccLogicAppTriggerHttpRequest_disappears(t *testing.T) {
 			PlanOnly:           true,
 			ExpectNonEmptyPlan: true,
 		},
-	})
-}
-
-func TestAccLogicAppTriggerHttpRequest_workflowWithISE(t *testing.T) {
-	t.Skip("skip as Integration Service Environment is being deprecated")
-
-	data := acceptance.BuildTestData(t, "azurerm_logic_app_trigger_http_request", "test")
-	r := LogicAppTriggerHttpRequestResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.workflowWithISE(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("schema").HasValue("{}"),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -251,16 +233,4 @@ resource "azurerm_logic_app_workflow" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-}
-
-func (r LogicAppTriggerHttpRequestResource) workflowWithISE(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_logic_app_trigger_http_request" "test" {
-  name         = "some-http-trigger"
-  logic_app_id = azurerm_logic_app_workflow.test.id
-  schema       = "{}"
-}
-`, LogicAppWorkflowResource{}.integrationServiceEnvironment(data))
 }

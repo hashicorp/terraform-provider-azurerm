@@ -45,7 +45,6 @@ func (c PrivateLinkScopedResourcesClient) Get(ctx context.Context, id ScopedReso
 
 	var model ScopedResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

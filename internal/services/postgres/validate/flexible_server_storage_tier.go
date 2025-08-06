@@ -4,7 +4,7 @@
 package validate
 
 import (
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/servers"
 )
 
 type StorageTiers struct {
@@ -15,7 +15,6 @@ type StorageTiers struct {
 
 // Creates a map of valid StorageTiers based on the storage_mb for the PostgreSQL Flexible Server
 func InitializeFlexibleServerStorageTierDefaults() map[int]StorageTiers {
-
 	storageTiersMappings := map[int]StorageTiers{
 		32768: {servers.AzureManagedDiskPerformanceTiersPFour, &[]string{
 			string(servers.AzureManagedDiskPerformanceTiersPFour),

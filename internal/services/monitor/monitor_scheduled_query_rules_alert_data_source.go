@@ -214,7 +214,6 @@ func dataSourceMonitorScheduledQueryRulesAlertRead(d *pluginsdk.ResourceData, me
 		if err = d.Set("tags", utils.FlattenPtrMapStringString(model.Tags)); err != nil {
 			return err
 		}
-
 	}
 
 	return nil

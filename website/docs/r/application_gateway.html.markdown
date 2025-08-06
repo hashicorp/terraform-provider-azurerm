@@ -10,7 +10,7 @@ description: |-
 
 Manages an Application Gateway.
 
-~> **NOTE:** The `backend_address_pool`, `backend_http_settings`, `http_listener`, `private_link_configuration`, `request_routing_rule`, `redirect_configuration`, `probe`, `ssl_certificate`,
+~> **Note:** The `backend_address_pool`, `backend_http_settings`, `http_listener`, `private_link_configuration`, `request_routing_rule`, `redirect_configuration`, `probe`, `ssl_certificate`,
 and `frontend_port` properties are Sets as the service API returns these lists of objects in a different order from how the provider sends them. As Sets are stored using a hash, if one 
 value is added or removed from the Set, Terraform considers the entire list of objects changed and the plan shows that it is removing every value in the list and re-adding it with the 
 new information. Though Terraform is showing all the values being removed and re-added, we are not actually removing anything unless the user specifies a removal in the configfile.
@@ -41,7 +41,7 @@ resource "azurerm_public_ip" "example" {
   name                = "example-pip"
   resource_group_name = azurerm_resource_group.example.name
   location            = azurerm_resource_group.example.location
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
 }
 
 # since these variables are re-used - a locals block makes this more maintainable
@@ -150,7 +150,7 @@ The following arguments are supported:
 
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Application Gateway should be located. Changing this forces a new Application Gateway to be created.
 
--> **Please Note**: Availability Zones are not supported in all regions at this time, please check the [official documentation](https://docs.microsoft.com/azure/availability-zones/az-overview) for more information. They are also only supported for [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/application-gateway-autoscaling-zone-redundant)
+-> **Note:** Availability Zones are not supported in all regions at this time, please check the [official documentation](https://docs.microsoft.com/azure/availability-zones/az-overview) for more information. They are also only supported for [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/application-gateway-autoscaling-zone-redundant)
 
 * `trusted_client_certificate` - (Optional) One or more `trusted_client_certificate` blocks as defined below.
 
@@ -184,7 +184,7 @@ The following arguments are supported:
 
 * `autoscale_configuration` - (Optional) An `autoscale_configuration` block as defined below.
 
-* `rewrite_rule_set` - (Optional) One or more `rewrite_rule_set` blocks as defined below. Only valid for v2 SKUs.
+* `rewrite_rule_set` - (Optional) One or more `rewrite_rule_set` blocks as defined below. Only valid for v2 WAF and Standard SKUs.
 
 ---
 
@@ -202,11 +202,13 @@ A `trusted_root_certificate` block supports the following:
 
 * `data` - (Optional) The contents of the Trusted Root Certificate which should be used. Required if `key_vault_secret_id` is not set.
 
-* `key_vault_secret_id` - (Optional) The Secret ID of (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for the Key Vault to use this feature. Required if `data` is not set.
+* `key_vault_secret_id` - (Optional) The Secret ID of the (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for the Key Vault to use this feature. Required if `data` is not set.
 
--> **NOTE:** TLS termination with Key Vault certificates is limited to the [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/key-vault-certs).
+-> **Note:** To implement certificate rotation, `versionless_secret_id` should be used, although `secret_id` is also supported.
 
--> **NOTE:** For TLS termination with Key Vault certificates to work properly existing user-assigned managed identity, which Application Gateway uses to retrieve certificates from Key Vault, should be defined via `identity` block. Additionally, access policies in the Key Vault to allow the identity to be granted *get* access to the secret should be defined.
+-> **Note:** TLS termination with Key Vault certificates is limited to the [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/key-vault-certs).
+
+-> **Note:** For TLS termination with Key Vault certificates to work properly, an existing user-assigned managed identity, which Application Gateway uses to retrieve certificates from Key Vault, should be defined via `identity` block. Additionally, access policies in the Key Vault to allow the identity to be granted *get* access to the secret should be defined.
 
 ---
 
@@ -308,7 +310,7 @@ A `http_listener` block supports the following:
 
 * `host_names` - (Optional) A list of Hostname(s) should be used for this HTTP Listener. It allows special wildcard characters.
 
--> **NOTE** The `host_names` and `host_name` are mutually exclusive and cannot both be set.
+-> **Note:** The `host_names` and `host_name` are mutually exclusive and cannot both be set.
 
 * `protocol` - (Required) The Protocol to use for this HTTP Listener. Possible values are `Http` and `Https`.
 
@@ -328,7 +330,7 @@ An `identity` block supports the following:
 
 * `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Application Gateway. Only possible value is `UserAssigned`.
 
-* `identity_ids` - (Required) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Application Gateway.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Application Gateway.
 
 ---
 
@@ -338,7 +340,7 @@ A `private_link_configuration` block supports the following:
 
 * `ip_configuration` - (Required) One or more `ip_configuration` blocks as defined below.
 
--> **Please Note**: The `AllowApplicationGatewayPrivateLink` feature must be registered on the subscription before enabling private link
+-> **Note:** The `AllowApplicationGatewayPrivateLink` feature must be registered on the subscription before enabling private link
 
 ```bash
 az feature register --name AllowApplicationGatewayPrivateLink --namespace Microsoft.Network
@@ -402,7 +404,7 @@ A `probe` block supports the following:
 
 * `unhealthy_threshold` - (Required) The Unhealthy Threshold for this Probe, which indicates the amount of retries which should be attempted before a node is deemed unhealthy. Possible values are from 1 to 20.
 
-* `port` - (Optional) Custom port which will be used for probing the backend servers. The valid value ranges from 1 to 65535. In case not set, port from HTTP settings will be used. This property is valid for Standard_v2 and WAF_v2 only.
+* `port` - (Optional) Custom port which will be used for probing the backend servers. The valid value ranges from 1 to 65535. In case not set, port from HTTP settings will be used. This property is valid for Basic, Standard_v2 and WAF_v2 only.
 
 * `pick_host_name_from_backend_http_settings` - (Optional) Whether the host header should be picked from the backend HTTP settings. Defaults to `false`.
 
@@ -428,13 +430,13 @@ A `request_routing_rule` block supports the following:
 
 * `rewrite_rule_set_name` - (Optional) The Name of the Rewrite Rule Set which should be used for this Routing Rule. Only valid for v2 SKUs.
 
--> **NOTE:** `backend_address_pool_name`, `backend_http_settings_name`, `redirect_configuration_name`, and `rewrite_rule_set_name` are applicable only when `rule_type` is `Basic`.
+-> **Note:** `backend_address_pool_name`, `backend_http_settings_name`, `redirect_configuration_name`, and `rewrite_rule_set_name` are applicable only when `rule_type` is `Basic`.
 
 * `url_path_map_name` - (Optional) The Name of the URL Path Map which should be associated with this Routing Rule.
 
 * `priority` - (Optional) Rule evaluation order can be dictated by specifying an integer value from `1` to `20000` with `1` being the highest priority and `20000` being the lowest priority.
 
--> **NOTE:** `priority` is required when `sku[0].tier` is set to `*_v2`.
+-> **Note:** `priority` is required when `sku[0].tier` is set to `*_v2`.
 
 ---
 
@@ -448,13 +450,11 @@ A `global` block supports the following:
 
 A `sku` block supports the following:
 
-* `name` - (Required) The Name of the SKU to use for this Application Gateway. Possible values are `Standard_Small`, `Standard_Medium`, `Standard_Large`, `Standard_v2`, `WAF_Medium`, `WAF_Large`, and `WAF_v2`.
+* `name` - (Required) The Name of the SKU to use for this Application Gateway. Possible values are `Basic`, `Standard_v2`, and `WAF_v2`.
 
-* `tier` - (Required) The Tier of the SKU to use for this Application Gateway. Possible values are `Standard`, `Standard_v2`, `WAF` and `WAF_v2`.
+* `tier` - (Required) The Tier of the SKU to use for this Application Gateway. Possible values are `Basic`, `Standard_v2`, and `WAF_v2`.
 
-!> **NOTE:** The `Standard` and `WAF` SKU have been deprecated in favour of the `Standard_v2` and `WAF_v2` SKU. Please see the [Azure documentation](https://aka.ms/V1retirement) for more details.
-
-* `capacity` - (Optional) The Capacity of the SKU to use for this Application Gateway. When using a V1 SKU this value must be between `1` and `32`, and `1` to `125` for a V2 SKU. This property is optional if `autoscale_configuration` is set.
+* `capacity` - (Optional) The Capacity of the SKU to use for this Application Gateway. When using a V1 SKU this value must be between `1` and `32`, and `1` to `125` for a V2 SKU. When using a `Basic` SKU this property must be between `1` and `2`. This property is optional if `autoscale_configuration` is set.
 
 ---
 
@@ -464,15 +464,17 @@ A `ssl_certificate` block supports the following:
 
 * `data` - (Optional) The base64-encoded PFX certificate data. Required if `key_vault_secret_id` is not set.
 
--> **NOTE:** When specifying a file, use `data = filebase64("path/to/file")` to encode the contents of that file.
+-> **Note:** When specifying a file, use `data = filebase64("path/to/file")` to encode the contents of that file.
 
 * `password` - (Optional) Password for the pfx file specified in data. Required if `data` is set.
 
-* `key_vault_secret_id` - (Optional) The Secret ID of (base-64 encoded unencrypted pfx) the `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for Key Vault to use this feature. Required if `data` is not set.
+* `key_vault_secret_id` - (Optional) The Secret ID of the (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for Key Vault to use this feature. Required if `data` is not set.
 
--> **NOTE:** TLS termination with Key Vault certificates is limited to the [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/key-vault-certs).
+-> **Note:** To implement certificate rotation, the `azurerm_key_vault_secret` attribute `versionless_id` should be used, although `id` is also supported.
 
--> **NOTE:** For TLS termination with Key Vault certificates to work properly existing user-assigned managed identity, which Application Gateway uses to retrieve certificates from Key Vault, should be defined via `identity` block. Additionally, access policies in the Key Vault to allow the identity to be granted *get* access to the secret should be defined.
+-> **Note:** TLS termination with Key Vault certificates is limited to the [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/key-vault-certs).
+
+-> **Note:** For TLS termination with Key Vault certificates to work properly, an existing user-assigned managed identity, which Application Gateway uses to retrieve certificates from Key Vault, should be defined via `identity` block. Additionally, access policies in the Key Vault to allow the identity to be granted *get* access to the secret should be defined.
 
 ---
 
@@ -486,7 +488,7 @@ A `url_path_map` block supports the following:
 
 * `default_redirect_configuration_name` - (Optional) The Name of the Default Redirect Configuration which should be used for this URL Path Map. Cannot be set if either `default_backend_address_pool_name` or `default_backend_http_settings_name` is set.
 
--> **NOTE:** Both `default_backend_address_pool_name` and `default_backend_http_settings_name` or `default_redirect_configuration_name` should be specified.
+-> **Note:** Both `default_backend_address_pool_name` and `default_backend_http_settings_name` or `default_redirect_configuration_name` should be specified.
 
 * `default_rewrite_rule_set_name` - (Optional) The Name of the Default Rewrite Rule Set which should be used for this URL Path Map. Only valid for v2 SKUs.
 
@@ -519,11 +521,11 @@ A `ssl_policy` block supports the following:
 
 * `disabled_protocols` - (Optional) A list of SSL Protocols which should be disabled on this Application Gateway. Possible values are `TLSv1_0`, `TLSv1_1`, `TLSv1_2` and `TLSv1_3`.
 
-~> **NOTE:** `disabled_protocols` cannot be set when `policy_name` or `policy_type` are set.
+~> **Note:** `disabled_protocols` cannot be set when `policy_name` or `policy_type` are set.
 
 * `policy_type` - (Optional) The Type of the Policy. Possible values are `Predefined`, `Custom` and `CustomV2`.
 
-~> **NOTE:** `policy_type` is Required when `policy_name` is set - cannot be set if `disabled_protocols` is set.
+~> **Note:** `policy_type` is Required when `policy_name` is set - cannot be set if `disabled_protocols` is set.
 
 When using a `policy_type` of `Predefined` the following fields are supported:
 
@@ -545,7 +547,7 @@ A `waf_configuration` block supports the following:
 
 * `rule_set_type` - (Optional) The Type of the Rule Set used for this Web Application Firewall. Possible values are `OWASP`, `Microsoft_BotManagerRuleSet` and `Microsoft_DefaultRuleSet`. Defaults to `OWASP`.
 
-* `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall. Possible values are `0.1`, `1.0`, `2.1`, `2.2.9`, `3.0`, `3.1` and `3.2`.
+* `rule_set_version` - (Required) The Version of the Rule Set used for this Web Application Firewall. Possible values are `0.1`, `1.0`, `1.1`, `2.1`, `2.2.9`, `3.0`, `3.1` and `3.2`.
 
 * `disabled_rule_group` - (Optional) One or more `disabled_rule_group` blocks as defined below.
 
@@ -579,7 +581,7 @@ A `exclusion` block supports the following:
 
 A `custom_error_configuration` block supports the following:
 
-* `status_code` - (Required) Status code of the application gateway customer error. Possible values are `HttpStatus403` and `HttpStatus502`
+* `status_code` - (Required) Status code of the application gateway customer error. Possible values are `HttpStatus400`, `HttpStatus403`, `HttpStatus404`, `HttpStatus405`, `HttpStatus408`, `HttpStatus500`, `HttpStatus502`, `HttpStatus503` and `HttpStatus504`
 
 * `custom_error_page_url` - (Required) Error page URL of the application gateway customer error.
 
@@ -866,8 +868,8 @@ A `rewrite_rule_set` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the Application Gateway.
-* `update` - (Defaults to 90 minutes) Used when updating the Application Gateway.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Application Gateway.
+* `update` - (Defaults to 90 minutes) Used when updating the Application Gateway.
 * `delete` - (Defaults to 90 minutes) Used when deleting the Application Gateway.
 
 ## Import
@@ -877,3 +879,9 @@ Application Gateway's can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_application_gateway.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/applicationGateways/myGateway1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

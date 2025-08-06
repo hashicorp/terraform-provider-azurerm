@@ -46,7 +46,6 @@ func (c TaskRunsClient) GetDetails(ctx context.Context, id TaskRunId) (result Ge
 
 	var model TaskRun
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

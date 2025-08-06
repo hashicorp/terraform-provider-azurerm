@@ -27,7 +27,6 @@ func TestIpGroupCidrID(t *testing.T) {
 		Error    bool
 		Expected *IpGroupCidrId
 	}{
-
 		{
 			// empty
 			Input: "",

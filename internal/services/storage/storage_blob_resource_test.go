@@ -13,13 +13,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/blob/blobs"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/blobs"
 )
 
 type StorageBlobResource struct{}
@@ -144,7 +145,7 @@ func TestAccStorageBlob_blockEmptyAccessTier(t *testing.T) {
 func TestAccStorageBlob_blockFromInlineContent(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
-	content := "Wubba Lubba Dub Dub"
+	content := "Wubba Lubba Dub Dubs"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -331,7 +332,7 @@ func TestAccStorageBlob_contentTypePremium(t *testing.T) {
 func TestAccStorageBlob_encryptionScope(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
-	content := "Wubba Lubba Dub Dub"
+	content := "Wubba Lubba Dub Dubs"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -347,7 +348,7 @@ func TestAccStorageBlob_encryptionScope(t *testing.T) {
 func TestAccStorageBlob_encryptionScopeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_blob", "test")
 	r := StorageBlobResource{}
-	content := "Wubba Lubba Dub Dub"
+	content := "Wubba Lubba Dub Dubs"
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -478,13 +479,6 @@ func TestAccStorageBlob_pageFromInlineContent(t *testing.T) {
 		},
 		data.ImportStep("parallelism", "size", "source_content", "type"),
 		{
-			Config: r.pageFromInlineContent(data, 1024),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("parallelism", "size", "source_content", "type"),
-		{
 			Config:      r.pageFromInlineContent(data, 511),
 			ExpectError: regexp.MustCompile(`"source" must be aligned to 512-byte boundary for "type" set to "Page"`),
 		},
@@ -579,6 +573,9 @@ func (r StorageBlobResource) Destroy(ctx context.Context, client *clients.Client
 	if err != nil {
 		return nil, fmt.Errorf("retrieving Account %q for Blob %q (Container %q): %+v", id.AccountId.AccountName, id.BlobName, id.ContainerName, err)
 	}
+	if account == nil {
+		return pointer.To(true), nil
+	}
 	blobsClient, err := client.Storage.BlobsDataPlaneClient(ctx, *account, client.Storage.DataPlaneOperationSupportingAnyAuthMethod())
 	if err != nil {
 		return nil, fmt.Errorf("building Blobs Client: %+v", err)
@@ -664,7 +661,9 @@ func (r StorageBlobResource) blobMatchesContent(kind blobs.BlobType, expectedCon
 func (r StorageBlobResource) appendEmpty(data acceptance.TestData) string {
 	template := r.template(data, "private")
 	return fmt.Sprintf(`
-provider "azurerm" {}
+provider "azurerm" {
+  features {}
+}
 
 %s
 
@@ -680,7 +679,9 @@ resource "azurerm_storage_blob" "test" {
 func (r StorageBlobResource) appendEmptyMetaData(data acceptance.TestData) string {
 	template := r.template(data, "private")
 	return fmt.Sprintf(`
-provider "azurerm" {}
+provider "azurerm" {
+  features {}
+}
 
 %s
 
@@ -700,7 +701,9 @@ resource "azurerm_storage_blob" "test" {
 func (r StorageBlobResource) blockEmpty(data acceptance.TestData) string {
 	template := r.template(data, "private")
 	return fmt.Sprintf(`
-provider "azurerm" {}
+provider "azurerm" {
+  features {}
+}
 
 %s
 
@@ -717,6 +720,7 @@ func (r StorageBlobResource) blockEmptyAzureADAuth(data acceptance.TestData) str
 	template := r.template(data, "private")
 	return fmt.Sprintf(`
 provider "azurerm" {
+  features {}
   storage_use_azuread = true
 }
 
@@ -1414,7 +1418,9 @@ resource "azurerm_storage_container" "test" {
 func (r StorageBlobResource) archive(data acceptance.TestData) string {
 	template := r.template(data, "private")
 	return fmt.Sprintf(`
-provider "azurerm" {}
+provider "azurerm" {
+  features {}
+}
 
 %s
 

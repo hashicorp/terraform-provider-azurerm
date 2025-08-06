@@ -170,13 +170,13 @@ resource "azurerm_spring_cloud_app" "test" {
 }
 
 resource "azurerm_redis_cache" "test" {
-  name                = "acctestredis-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  capacity            = 0
-  family              = "C"
-  sku_name            = "Basic"
-  enable_non_ssl_port = true
+  name                 = "acctestredis-%d"
+  location             = azurerm_resource_group.test.location
+  resource_group_name  = azurerm_resource_group.test.name
+  capacity             = 0
+  family               = "C"
+  sku_name             = "Basic"
+  non_ssl_port_enabled = true
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }

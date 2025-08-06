@@ -469,7 +469,7 @@ A `capacity` block supports the following:
 
 * `maximum` - (Required) The maximum number of instances for this resource. Valid values are between `0` and `1000`.
 
--> **NOTE:** The maximum number of instances is also limited by the amount of Cores available in the subscription.
+-> **Note:** The maximum number of instances is also limited by the amount of Cores available in the subscription.
 
 * `minimum` - (Required) The minimum number of instances for this resource. Valid values are between `0` and `1000`.
 
@@ -487,7 +487,7 @@ A `metric_trigger` block supports the following:
 
 * `metric_name` - (Required) The name of the metric that defines what the rule monitors, such as `Percentage CPU` for `Virtual Machine Scale Sets` and `CpuPercentage` for `App Service Plan`.
 
--> **NOTE:** The allowed value of `metric_name` highly depends on the targeting resource type, please visit [Supported metrics with Azure Monitor](https://docs.microsoft.com/azure/azure-monitor/platform/metrics-supported) for more details.
+-> **Note:** The allowed value of `metric_name` highly depends on the targeting resource type, please visit [Supported metrics with Azure Monitor](https://docs.microsoft.com/azure/azure-monitor/platform/metrics-supported) for more details.
 
 * `metric_resource_id` - (Required) The ID of the Resource which the Rule monitors.
 
@@ -529,13 +529,13 @@ A `fixed_date` block supports the following:
 
 * `start` - (Required) Specifies the start date for the profile, formatted as an RFC3339 date string.
 
-* `timezone` - (Optional) The Time Zone of the `start` and `end` times. A list of [possible values can be found here](https://msdn.microsoft.com/en-us/library/azure/dn931928.aspx). Defaults to `UTC`.
+* `timezone` - (Optional) The Time Zone of the `start` and `end` times. A list of [possible values can be found here](https://learn.microsoft.com/en-us/rest/api/monitor/autoscale-settings/create-or-update?view=rest-monitor-2022-10-01&tabs=HTTP#recurrentschedule). Defaults to `UTC`.
 
 ---
 
 A `recurrence` block supports the following:
 
-* `timezone` - (Optional) The Time Zone used for the `hours` field. A list of [possible values can be found here](https://msdn.microsoft.com/en-us/library/azure/dn931928.aspx). Defaults to `UTC`.
+* `timezone` - (Optional) The Time Zone used for the `hours` field. A list of [possible values can be found here]([https://msdn.microsoft.com/en-us/library/azure/dn931928.aspx](https://learn.microsoft.com/en-us/rest/api/monitor/autoscale-settings/create-or-update?view=rest-monitor-2022-10-01&tabs=HTTP#recurrentschedule)). Defaults to `UTC`.
 
 * `days` - (Required) A list of days that this profile takes effect on. Possible values include `Monday`, `Tuesday`, `Wednesday`, `Thursday`, `Friday`, `Saturday` and `Sunday`.
 
@@ -598,8 +598,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the AutoScale Setting.
-* `update` - (Defaults to 30 minutes) Used when updating the AutoScale Setting.
 * `read` - (Defaults to 5 minutes) Used when retrieving the AutoScale Setting.
+* `update` - (Defaults to 30 minutes) Used when updating the AutoScale Setting.
 * `delete` - (Defaults to 30 minutes) Used when deleting the AutoScale Setting.
 
 ## Import
@@ -609,3 +609,9 @@ AutoScale Setting can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_monitor_autoscale_setting.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Insights/autoScaleSettings/setting1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Insights` - 2022-10-01

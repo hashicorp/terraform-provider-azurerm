@@ -23,6 +23,18 @@ type ListByElasticSanCompleteResult struct {
 	Items              []VolumeGroup
 }
 
+type ListByElasticSanCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListByElasticSanCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListByElasticSan ...
 func (c VolumeGroupsClient) ListByElasticSan(ctx context.Context, id ElasticSanId) (result ListByElasticSanOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -31,6 +43,7 @@ func (c VolumeGroupsClient) ListByElasticSan(ctx context.Context, id ElasticSanI
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ListByElasticSanCustomPager{},
 		Path:       fmt.Sprintf("%s/volumeGroups", id.ID()),
 	}
 
@@ -72,6 +85,7 @@ func (c VolumeGroupsClient) ListByElasticSanCompleteMatchingPredicate(ctx contex
 
 	resp, err := c.ListByElasticSan(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

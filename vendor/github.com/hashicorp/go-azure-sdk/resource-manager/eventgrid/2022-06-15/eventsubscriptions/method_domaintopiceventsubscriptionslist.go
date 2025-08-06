@@ -40,6 +40,7 @@ func (o DomainTopicEventSubscriptionsListOperationOptions) ToHeaders() *client.H
 
 func (o DomainTopicEventSubscriptionsListOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -54,6 +55,18 @@ func (o DomainTopicEventSubscriptionsListOperationOptions) ToQuery() *client.Que
 	return &out
 }
 
+type DomainTopicEventSubscriptionsListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *DomainTopicEventSubscriptionsListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // DomainTopicEventSubscriptionsList ...
 func (c EventSubscriptionsClient) DomainTopicEventSubscriptionsList(ctx context.Context, id DomainTopicId, options DomainTopicEventSubscriptionsListOperationOptions) (result DomainTopicEventSubscriptionsListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -62,8 +75,9 @@ func (c EventSubscriptionsClient) DomainTopicEventSubscriptionsList(ctx context.
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/eventSubscriptions", id.ID()),
 		OptionsObject: options,
+		Pager:         &DomainTopicEventSubscriptionsListCustomPager{},
+		Path:          fmt.Sprintf("%s/eventSubscriptions", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -104,6 +118,7 @@ func (c EventSubscriptionsClient) DomainTopicEventSubscriptionsListCompleteMatch
 
 	resp, err := c.DomainTopicEventSubscriptionsList(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

@@ -7,9 +7,10 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2023-06-02-preview/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/snapshots"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -28,6 +29,11 @@ func TestAccDataSourceKubernetesNodePoolSnapshot_basic(t *testing.T) {
 			Config: r.snapshotSource(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+					if _, ok := ctx.Deadline(); !ok {
+						var cancel context.CancelFunc
+						ctx, cancel = context.WithTimeout(ctx, 30*time.Minute)
+						defer cancel()
+					}
 					client := clients.Containers.SnapshotClient
 					poolId, err := agentpools.ParseAgentPoolID(state.ID)
 					if err != nil {
@@ -60,6 +66,11 @@ func TestAccDataSourceKubernetesNodePoolSnapshot_basic(t *testing.T) {
 			Config: r.snapshotSource(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				data.CheckWithClientForResource(func(ctx context.Context, clients *clients.Client, state *terraform.InstanceState) error {
+					if _, ok := ctx.Deadline(); !ok {
+						var cancel context.CancelFunc
+						ctx, cancel = context.WithTimeout(ctx, 30*time.Minute)
+						defer cancel()
+					}
 					client := clients.Containers.SnapshotClient
 					poolId, err := agentpools.ParseAgentPoolID(state.ID)
 					if err != nil {
@@ -97,6 +108,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_D2s_v3"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
   identity {
     type = "SystemAssigned"
@@ -131,6 +145,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_D2s_v3"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
   identity {
     type = "SystemAssigned"

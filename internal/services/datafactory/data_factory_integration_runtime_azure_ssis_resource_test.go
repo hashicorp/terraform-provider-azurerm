@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/integrationruntimes"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datafactory/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type IntegrationRuntimeManagedSsisResource struct{}
@@ -346,7 +346,7 @@ data "azurerm_storage_account_blob_container_sas" "test" {
   }
 }
 
-resource "azurerm_sql_server" "test" {
+resource "azurerm_mssql_server" "test" {
   name                         = "acctestsql%[1]d"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   location                     = "${azurerm_resource_group.test.location}"
@@ -411,7 +411,7 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
   }
 
   catalog_info {
-    server_endpoint        = "${azurerm_sql_server.test.fully_qualified_domain_name}"
+    server_endpoint        = "${azurerm_mssql_server.test.fully_qualified_domain_name}"
     administrator_login    = "ssis_catalog_admin"
     administrator_password = "my-s3cret-p4ssword!"
     pricing_tier           = "%[4]s"
@@ -611,7 +611,7 @@ data "azurerm_storage_account_blob_container_sas" "test" {
   }
 }
 
-resource "azurerm_sql_server" "test" {
+resource "azurerm_mssql_server" "test" {
   name                         = "acctestsql%[1]d"
   resource_group_name          = "${azurerm_resource_group.test.name}"
   location                     = "${azurerm_resource_group.test.location}"
@@ -682,7 +682,7 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
   }
 
   catalog_info {
-    server_endpoint        = "${azurerm_sql_server.test.fully_qualified_domain_name}"
+    server_endpoint        = "${azurerm_mssql_server.test.fully_qualified_domain_name}"
     administrator_login    = "ssis_catalog_admin"
     administrator_password = "my-s3cret-p4ssword!"
     pricing_tier           = "Basic"
@@ -752,6 +752,8 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_client_config" "test" {}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-df-%d"
   location = "%s"
@@ -767,21 +769,18 @@ resource "azurerm_data_factory" "test" {
   }
 }
 
-resource "azurerm_sql_server" "test" {
+resource "azurerm_mssql_server" "test" {
   name                         = "acctestsql%d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "ssis_catalog_admin"
   administrator_login_password = "my-s3cret-p4ssword!"
-}
 
-resource "azurerm_sql_active_directory_administrator" "test" {
-  server_name         = azurerm_sql_server.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  login               = azurerm_data_factory.test.name
-  tenant_id           = azurerm_data_factory.test.identity.0.tenant_id
-  object_id           = azurerm_data_factory.test.identity.0.principal_id
+  azuread_administrator {
+    login_username = "AzureAD Admin"
+    object_id      = data.azurerm_client_config.test.object_id
+  }
 }
 
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
@@ -791,11 +790,11 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
   node_size       = "Standard_D8_v3"
 
   catalog_info {
-    server_endpoint = azurerm_sql_server.test.fully_qualified_domain_name
+    server_endpoint = azurerm_mssql_server.test.fully_qualified_domain_name
     pricing_tier    = "Basic"
   }
 
-  depends_on = [azurerm_sql_active_directory_administrator.test]
+  depends_on = [azurerm_mssql_server.test]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
@@ -911,6 +910,8 @@ provider "azurerm" {
   features {}
 }
 
+data "azurerm_client_config" "test" {}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-df-%d"
   location = "%s"
@@ -939,21 +940,18 @@ resource "azurerm_data_factory_credential_user_managed_identity" "test" {
   identity_id     = azurerm_user_assigned_identity.test.id
 }
 
-resource "azurerm_sql_server" "test" {
+resource "azurerm_mssql_server" "test" {
   name                         = "acctestsql%d"
   resource_group_name          = azurerm_resource_group.test.name
   location                     = azurerm_resource_group.test.location
   version                      = "12.0"
   administrator_login          = "ssis_catalog_admin"
   administrator_login_password = "my-s3cret-p4ssword!"
-}
 
-resource "azurerm_sql_active_directory_administrator" "test" {
-  server_name         = azurerm_sql_server.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  login               = azurerm_data_factory.test.name
-  tenant_id           = azurerm_user_assigned_identity.test.tenant_id
-  object_id           = azurerm_user_assigned_identity.test.principal_id
+  azuread_administrator {
+    login_username = "AzureAD Admin"
+    object_id      = data.azurerm_client_config.test.object_id
+  }
 }
 
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
@@ -964,11 +962,11 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
   credential_name = azurerm_data_factory_credential_user_managed_identity.test.name
 
   catalog_info {
-    server_endpoint = azurerm_sql_server.test.fully_qualified_domain_name
+    server_endpoint = azurerm_mssql_server.test.fully_qualified_domain_name
     pricing_tier    = "Basic"
   }
 
-  depends_on = [azurerm_sql_active_directory_administrator.test]
+  depends_on = [azurerm_mssql_server.test]
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
@@ -991,7 +989,7 @@ resource "azurerm_data_factory" "test" {
 }
 
 resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
-  name            = "acctestir%[2]d"
+  name            = "managed-integration-runtime"
   data_factory_id = azurerm_data_factory.test.id
   location        = azurerm_resource_group.test.location
   node_size       = "Standard_D8_v3"
@@ -1011,15 +1009,15 @@ resource "azurerm_data_factory_integration_runtime_azure_ssis" "test" {
 }
 
 func (t IntegrationRuntimeManagedSsisResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.IntegrationRuntimeID(state.ID)
+	id, err := integrationruntimes.ParseIntegrationRuntimeID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.DataFactory.IntegrationRuntimesClient.Get(ctx, id.ResourceGroup, id.FactoryName, id.Name, "")
+	resp, err := clients.DataFactory.IntegrationRuntimesClient.Get(ctx, *id, integrationruntimes.DefaultGetOperationOptions())
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }

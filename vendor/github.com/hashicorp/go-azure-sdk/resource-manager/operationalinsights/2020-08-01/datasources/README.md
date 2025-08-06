@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/datasources` Documentation
 
-The `datasources` SDK allows for interaction with the Azure Resource Manager Service `operationalinsights` (API Version `2020-08-01`).
+The `datasources` SDK allows for interaction with Azure Resource Manager `operationalinsights` (API Version `2020-08-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -24,7 +24,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := datasources.NewDataSourceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "dataSourceValue")
+id := datasources.NewDataSourceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "dataSourceName")
 
 payload := datasources.DataSource{
 	// ...
@@ -45,7 +45,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := datasources.NewDataSourceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "dataSourceValue")
+id := datasources.NewDataSourceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "dataSourceName")
 
 read, err := client.Delete(ctx, id)
 if err != nil {
@@ -61,7 +61,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := datasources.NewDataSourceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue", "dataSourceValue")
+id := datasources.NewDataSourceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName", "dataSourceName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -77,7 +77,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := datasources.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceValue")
+id := datasources.NewWorkspaceID("12345678-1234-9876-4563-123456789012", "example-resource-group", "workspaceName")
 
 // alternatively `client.ListByWorkspace(ctx, id, datasources.DefaultListByWorkspaceOperationOptions())` can be used to do batched pagination
 items, err := client.ListByWorkspaceComplete(ctx, id, datasources.DefaultListByWorkspaceOperationOptions())

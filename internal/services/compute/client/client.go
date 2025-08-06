@@ -22,22 +22,26 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplications"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimages"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryimageversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/gallerysharingupdate"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-03-01/virtualmachineruncommands"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-07-03/galleryimageversions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/availabilitysets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/dedicatedhostgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/dedicatedhosts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/restorepointcollections"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/restorepoints"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/sshpublickeys"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineextensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachineimages"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetextensions"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetrollingupgrades"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetvms"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/marketplaceordering/2015-06-01/agreements"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/standbypool/2025-03-01/standbyvirtualmachinepools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 type Client struct {
@@ -60,20 +64,20 @@ type Client struct {
 	ImagesClient                                *images.ImagesClient
 	MarketplaceAgreementsClient                 *agreements.AgreementsClient
 	ProximityPlacementGroupsClient              *proximityplacementgroups.ProximityPlacementGroupsClient
+	RestorePointCollectionsClient               *restorepointcollections.RestorePointCollectionsClient
+	RestorePointsClient                         *restorepoints.RestorePointsClient
 	SkusClient                                  *skus.SkusClient
 	SSHPublicKeysClient                         *sshpublickeys.SshPublicKeysClient
 	SnapshotsClient                             *snapshots.SnapshotsClient
+	StandbyVirtualMachinePoolsClient            *standbyvirtualmachinepools.StandbyVirtualMachinePoolsClient
 	VirtualMachinesClient                       *virtualmachines.VirtualMachinesClient
+	VirtualMachineExtensionsClient              *virtualmachineextensions.VirtualMachineExtensionsClient
 	VirtualMachineRunCommandsClient             *virtualmachineruncommands.VirtualMachineRunCommandsClient
 	VirtualMachineScaleSetsClient               *virtualmachinescalesets.VirtualMachineScaleSetsClient
+	VirtualMachineScaleSetExtensionsClient      *virtualmachinescalesetextensions.VirtualMachineScaleSetExtensionsClient
 	VirtualMachineScaleSetRollingUpgradesClient *virtualmachinescalesetrollingupgrades.VirtualMachineScaleSetRollingUpgradesClient
 	VirtualMachineScaleSetVMsClient             *virtualmachinescalesetvms.VirtualMachineScaleSetVMsClient
-	VMExtensionImageClient                      *compute.VirtualMachineExtensionImagesClient
-	VMExtensionClient                           *compute.VirtualMachineExtensionsClient
-	VMScaleSetClient                            *compute.VirtualMachineScaleSetsClient
-	VMScaleSetExtensionsClient                  *compute.VirtualMachineScaleSetExtensionsClient
-	VMClient                                    *compute.VirtualMachinesClient
-	VMImageClient                               *virtualmachineimages.VirtualMachineImagesClient
+	VirtualMachineImagesClient                  *virtualmachineimages.VirtualMachineImagesClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -179,6 +183,18 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(proximityPlacementGroupsClient.Client, o.Authorizers.ResourceManager)
 
+	restorePointCollectionsClient, err := restorepointcollections.NewRestorePointCollectionsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building RestorePointCollections client: %+v", err)
+	}
+	o.Configure(restorePointCollectionsClient.Client, o.Authorizers.ResourceManager)
+
+	restorePointsClient, err := restorepoints.NewRestorePointsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building RestorePoints client: %+v", err)
+	}
+	o.Configure(restorePointsClient.Client, o.Authorizers.ResourceManager)
+
 	skusClient, err := skus.NewSkusClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Skus client: %+v", err)
@@ -197,14 +213,23 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(sshPublicKeysClient.Client, o.Authorizers.ResourceManager)
 
-	usageClient := compute.NewUsageClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&usageClient.Client, o.ResourceManagerAuthorizer)
+	standbyVirtualMachinePoolsClient, err := standbyvirtualmachinepools.NewStandbyVirtualMachinePoolsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Standby Virtual Machine Pools client: %+v", err)
+	}
+	o.Configure(standbyVirtualMachinePoolsClient.Client, o.Authorizers.ResourceManager)
 
 	virtualMachinesClient, err := virtualmachines.NewVirtualMachinesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building VirtualMachines client: %+v", err)
 	}
 	o.Configure(virtualMachinesClient.Client, o.Authorizers.ResourceManager)
+
+	virtualMachineExtensionsClient, err := virtualmachineextensions.NewVirtualMachineExtensionsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building VirtualMachinesExtensions client: %+v", err)
+	}
+	o.Configure(virtualMachineExtensionsClient.Client, o.Authorizers.ResourceManager)
 
 	virtualMachineRunCommandsClient, err := virtualmachineruncommands.NewVirtualMachineRunCommandsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
@@ -224,32 +249,23 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(virtualMachineScaleSetsClient.Client, o.Authorizers.ResourceManager)
 
+	virtualMachineScaleSetExtensionsClient, err := virtualmachinescalesetextensions.NewVirtualMachineScaleSetExtensionsClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building VirtualMachineScaleSetExtensions client: %+v", err)
+	}
+	o.Configure(virtualMachineScaleSetExtensionsClient.Client, o.Authorizers.ResourceManager)
+
 	virtualMachineScaleSetVMsClient, err := virtualmachinescalesetvms.NewVirtualMachineScaleSetVMsClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building VirtualMachineScaleSetsVMs client: %+v", err)
 	}
 	o.Configure(virtualMachineScaleSetVMsClient.Client, o.Authorizers.ResourceManager)
 
-	vmExtensionImageClient := compute.NewVirtualMachineExtensionImagesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&vmExtensionImageClient.Client, o.ResourceManagerAuthorizer)
-
-	vmExtensionClient := compute.NewVirtualMachineExtensionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&vmExtensionClient.Client, o.ResourceManagerAuthorizer)
-
 	vmImageClient, err := virtualmachineimages.NewVirtualMachineImagesClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building VirtualMachineImages client: %+v", err)
 	}
 	o.Configure(vmImageClient.Client, o.Authorizers.ResourceManager)
-
-	vmScaleSetClient := compute.NewVirtualMachineScaleSetsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&vmScaleSetClient.Client, o.ResourceManagerAuthorizer)
-
-	vmScaleSetExtensionsClient := compute.NewVirtualMachineScaleSetExtensionsClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&vmScaleSetExtensionsClient.Client, o.ResourceManagerAuthorizer)
-
-	vmClient := compute.NewVirtualMachinesClientWithBaseURI(o.ResourceManagerEndpoint, o.SubscriptionId)
-	o.ConfigureClient(&vmClient.Client, o.ResourceManagerAuthorizer)
 
 	return &Client{
 		AvailabilitySetsClient:                      availabilitySetsClient,
@@ -269,22 +285,20 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		ImagesClient:                                imagesClient,
 		MarketplaceAgreementsClient:                 marketplaceAgreementsClient,
 		ProximityPlacementGroupsClient:              proximityPlacementGroupsClient,
+		RestorePointCollectionsClient:               restorePointCollectionsClient,
+		RestorePointsClient:                         restorePointsClient,
 		SkusClient:                                  skusClient,
 		SSHPublicKeysClient:                         sshPublicKeysClient,
 		SnapshotsClient:                             snapshotsClient,
+		StandbyVirtualMachinePoolsClient:            standbyVirtualMachinePoolsClient,
 		VirtualMachinesClient:                       virtualMachinesClient,
+		VirtualMachineExtensionsClient:              virtualMachineExtensionsClient,
 		VirtualMachineRunCommandsClient:             virtualMachineRunCommandsClient,
 		VirtualMachineScaleSetsClient:               virtualMachineScaleSetsClient,
+		VirtualMachineScaleSetExtensionsClient:      virtualMachineScaleSetExtensionsClient,
 		VirtualMachineScaleSetRollingUpgradesClient: virtualMachineScaleSetRollingUpgradesClient,
 		VirtualMachineScaleSetVMsClient:             virtualMachineScaleSetVMsClient,
-		VMExtensionImageClient:                      &vmExtensionImageClient,
-		VMExtensionClient:                           &vmExtensionClient,
-		VMScaleSetClient:                            &vmScaleSetClient,
-		VMScaleSetExtensionsClient:                  &vmScaleSetExtensionsClient,
-		VMImageClient:                               vmImageClient,
-
-		// NOTE: use `VirtualMachinesClient` instead
-		VMClient: &vmClient,
+		VirtualMachineImagesClient:                  vmImageClient,
 	}, nil
 }
 

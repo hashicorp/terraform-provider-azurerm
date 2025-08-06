@@ -4,8 +4,10 @@
 package trafficmanager
 
 import (
+	"errors"
 	"fmt"
 	"log"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -53,16 +55,6 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"profile_status": {
-				Type:     pluginsdk.TypeString,
-				Optional: true,
-				Computed: true,
-				ValidateFunc: validation.StringInSlice([]string{
-					string(profiles.ProfileStatusEnabled),
-					string(profiles.ProfileStatusDisabled),
-				}, false),
-			},
-
 			"traffic_routing_method": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
@@ -90,7 +82,7 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 						"ttl": {
 							Type:         pluginsdk.TypeInt,
 							Required:     true,
-							ValidateFunc: validation.IntBetween(0, 2147483647),
+							ValidateFunc: validation.IntBetween(0, math.MaxInt32),
 						},
 					},
 				},
@@ -174,9 +166,14 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 				},
 			},
 
-			"fqdn": {
+			"profile_status": {
 				Type:     pluginsdk.TypeString,
-				Computed: true,
+				Optional: true,
+				Default:  string(profiles.ProfileStatusEnabled),
+				ValidateFunc: validation.StringInSlice([]string{
+					string(profiles.ProfileStatusEnabled),
+					string(profiles.ProfileStatusDisabled),
+				}, false),
 			},
 
 			"max_return": {
@@ -188,6 +185,11 @@ func resourceArmTrafficManagerProfile() *pluginsdk.Resource {
 			"traffic_view_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+			},
+
+			"fqdn": {
+				Type:     pluginsdk.TypeString,
+				Computed: true,
 			},
 
 			"tags": commonschema.Tags(),
@@ -244,12 +246,12 @@ func resourceArmTrafficManagerProfileCreate(d *pluginsdk.ResourceData, meta inte
 	trafficRoutingMethodPtr := profile.Properties.TrafficRoutingMethod
 	if *trafficRoutingMethodPtr == profiles.TrafficRoutingMethodMultiValue &&
 		profile.Properties.MaxReturn == nil {
-		return fmt.Errorf("`max_return` must be specified when `traffic_routing_method` is set to `MultiValue`")
+		return errors.New("`max_return` must be specified when `traffic_routing_method` is set to `MultiValue`")
 	}
 
 	if *profile.Properties.MonitorConfig.IntervalInSeconds == int64(10) &&
 		*profile.Properties.MonitorConfig.TimeoutInSeconds == int64(10) {
-		return fmt.Errorf("`timeout_in_seconds` must be between `5` and `9` when `interval_in_seconds` is set to `10`")
+		return errors.New("`timeout_in_seconds` must be between `5` and `9` when `interval_in_seconds` is set to `10`")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, profile); err != nil {

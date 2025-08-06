@@ -16,10 +16,11 @@ type ServiceBusQueueEventSubscriptionDestinationProperties struct {
 var _ json.Unmarshaler = &ServiceBusQueueEventSubscriptionDestinationProperties{}
 
 func (s *ServiceBusQueueEventSubscriptionDestinationProperties) UnmarshalJSON(bytes []byte) error {
-	type alias ServiceBusQueueEventSubscriptionDestinationProperties
-	var decoded alias
+	var decoded struct {
+		ResourceId *string `json:"resourceId,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into ServiceBusQueueEventSubscriptionDestinationProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.ResourceId = decoded.ResourceId
@@ -37,7 +38,7 @@ func (s *ServiceBusQueueEventSubscriptionDestinationProperties) UnmarshalJSON(by
 
 		output := make([]DeliveryAttributeMapping, 0)
 		for i, val := range listTemp {
-			impl, err := unmarshalDeliveryAttributeMappingImplementation(val)
+			impl, err := UnmarshalDeliveryAttributeMappingImplementation(val)
 			if err != nil {
 				return fmt.Errorf("unmarshaling index %d field 'DeliveryAttributeMappings' for 'ServiceBusQueueEventSubscriptionDestinationProperties': %+v", i, err)
 			}
@@ -45,5 +46,6 @@ func (s *ServiceBusQueueEventSubscriptionDestinationProperties) UnmarshalJSON(by
 		}
 		s.DeliveryAttributeMappings = &output
 	}
+
 	return nil
 }

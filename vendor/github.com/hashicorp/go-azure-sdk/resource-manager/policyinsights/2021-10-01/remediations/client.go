@@ -15,7 +15,7 @@ type RemediationsClient struct {
 }
 
 func NewRemediationsClientWithBaseURI(sdkApi sdkEnv.Api) (*RemediationsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "remediations", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "remediations", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating RemediationsClient: %+v", err)
 	}

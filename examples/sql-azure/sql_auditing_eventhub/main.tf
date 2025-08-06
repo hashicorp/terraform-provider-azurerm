@@ -54,25 +54,16 @@ resource "azurerm_monitor_diagnostic_setting" "example" {
   eventhub_authorization_rule_id = azurerm_eventhub_namespace_authorization_rule.example.id
   eventhub_name                  = azurerm_eventhub.example.name
 
-  log {
+  enabled_log {
     category = "SQLSecurityAuditEvents"
-    enabled  = true
-
-    retention_policy {
-      enabled = false
-    }
   }
 
   metric {
     category = "AllMetrics"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
   lifecycle {
-    ignore_changes = [log, metric]
+    ignore_changes = [metric]
   }
 }
 

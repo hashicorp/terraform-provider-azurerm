@@ -45,7 +45,7 @@ The following arguments are supported:
 
 * `display_name` - (Optional) A friendly name for this Management Group. If not specified, this will be the same as the `name`.
 
-* `parent_management_group_id` - (Optional) The ID of the Parent Management Group. 
+* `parent_management_group_id` - (Optional) The ID of the Parent Management Group.
 
 * `subscription_ids` - (Optional) A list of Subscription GUIDs which should be assigned to the Management Group.
 
@@ -57,13 +57,15 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Management Group.
 
+* `tenant_scoped_id` - The Management Group ID with the Tenant ID prefix.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Management Group.
-* `update` - (Defaults to 30 minutes) Used when updating the Management Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Management Group.
+* `update` - (Defaults to 30 minutes) Used when updating the Management Group.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Management Group.
 
 ## Import
@@ -73,3 +75,9 @@ Management Groups can be imported using the `management group resource id`, e.g.
 ```shell
 terraform import azurerm_management_group.example /providers/Microsoft.Management/managementGroups/group1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Management` - 2020-05-01

@@ -56,7 +56,7 @@ type VirtualMachineRunCommandInputParameterSchema struct {
 }
 
 type VirtualMachineRunCommandInstanceViewSchema struct {
-	ExitCode         int    `tfschema:"exit_code"`
+	ExitCode         int64  `tfschema:"exit_code"`
 	executionState   string `tfschema:"execution_state"`
 	executionMessage string `tfschema:"execution_message"`
 	output           string `tfschema:"output"`
@@ -594,7 +594,6 @@ func expandVirtualMachineRunCommandInputParameter(input []VirtualMachineRunComma
 			Value: v.Value,
 		}
 		output = append(output, parameter)
-
 	}
 	return &output
 }
@@ -611,7 +610,6 @@ func flattenVirtualMachineRunCommandInputParameter(input *[]virtualmachineruncom
 			Value: v.Value,
 		}
 		output = append(output, parameter)
-
 	}
 
 	return output
@@ -688,7 +686,7 @@ func flattenVirtualMachineRunCommandInstanceView(input *virtualmachineruncommand
 
 	return []VirtualMachineRunCommandInstanceViewSchema{
 		{
-			ExitCode:         int(pointer.From(input.ExitCode)),
+			ExitCode:         pointer.From(input.ExitCode),
 			executionState:   string(pointer.From(input.ExecutionState)),
 			executionMessage: pointer.From(input.ExecutionMessage),
 			output:           pointer.From(input.Output),

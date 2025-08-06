@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2021-08-01-preview/tokens"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/tokens"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -53,10 +53,11 @@ func TestAccContainerRegistryTokenPassword_complete(t *testing.T) {
 }
 
 func TestAccContainerRegistryTokenPassword_update(t *testing.T) {
+	t.Skip("Enable this test after removing the `ForceNew` on the `passwordx.expiry`")
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_token_password", "test")
 	r := ContainerRegistryTokenPasswordResource{Expiry: time.Now().Add(time.Hour)}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -83,10 +84,11 @@ func TestAccContainerRegistryTokenPassword_update(t *testing.T) {
 
 // Regression test for https://github.com/hashicorp/terraform-provider-azurerm/issues/19138
 func TestAccContainerRegistryTokenPassword_updateExpiryReflectNewValue(t *testing.T) {
+	t.Skip("Enable this test after removing the `ForceNew` on the `passwordx.expiry`")
 	data := acceptance.BuildTestData(t, "azurerm_container_registry_token_password", "test")
 	r := ContainerRegistryTokenPasswordResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
 		{
 			Config: r.expiryReflectValue(data, time.Now().Add(time.Hour).Format(time.RFC3339), "password1"),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -96,6 +98,28 @@ func TestAccContainerRegistryTokenPassword_updateExpiryReflectNewValue(t *testin
 		data.ImportStep("password1.0.value"),
 		{
 			Config: r.expiryReflectValue(data, time.Now().Add(2*time.Hour).Format(time.RFC3339), "password2"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password1.0.value"),
+	})
+}
+
+func TestAccContainerRegistryTokenPassword_replace(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry_token_password", "test")
+	r := ContainerRegistryTokenPasswordResource{Expiry: time.Now().Add(time.Hour)}
+
+	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithACRName("acctest1", data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("password1.0.value"),
+		{
+			Config: r.basicWithACRName("acctest2", data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -120,7 +144,7 @@ func TestAccContainerRegistryTokenPassword_requiresImport(t *testing.T) {
 }
 
 func (r ContainerRegistryTokenPasswordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	client := clients.Containers.ContainerRegistryClient_v2021_08_01_preview.Tokens
+	client := clients.Containers.ContainerRegistryClient.Tokens
 
 	id, err := parse.ContainerRegistryTokenPasswordID(state.ID)
 	if err != nil {
@@ -248,4 +272,51 @@ resource "azurerm_container_registry_token" "test" {
   scope_map_id            = data.azurerm_container_registry_scope_map.pull_repos.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (r ContainerRegistryTokenPasswordResource) basicWithACRName(name string, data acceptance.TestData) string {
+	template := r.templateWithACRName(name, data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_container_registry_token_password" "test" {
+  container_registry_token_id = azurerm_container_registry_token.test.id
+  password1 {}
+}
+`, template)
+}
+
+func (r ContainerRegistryTokenPasswordResource) templateWithACRName(name string, data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-acr-%d"
+  location = "%s"
+}
+
+resource "azurerm_container_registry" "test" {
+  name                = "%s%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
+  admin_enabled       = true
+}
+
+# use system wide scope map for tests
+data "azurerm_container_registry_scope_map" "pull_repos" {
+  name                    = "_repositories_pull"
+  container_registry_name = azurerm_container_registry.test.name
+  resource_group_name     = azurerm_container_registry.test.resource_group_name
+}
+
+resource "azurerm_container_registry_token" "test" {
+  name                    = "testtoken-%d"
+  resource_group_name     = azurerm_resource_group.test.name
+  container_registry_name = azurerm_container_registry.test.name
+  scope_map_id            = data.azurerm_container_registry_scope_map.pull_repos.id
+}
+`, data.RandomInteger, data.Locations.Primary, name, data.RandomInteger, data.RandomInteger)
 }

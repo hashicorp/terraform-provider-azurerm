@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/datastore"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/datastore"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -31,6 +31,35 @@ func TestAccMachineLearningDataStoreBlobStorage_accountKey(t *testing.T) {
 			),
 		},
 		data.ImportStep("account_key"),
+	})
+}
+
+func TestAccMachineLearningDataStoreBlobStorage_serviceDataAuthIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore_blobstorage", "test")
+	r := MachineLearningDataStoreBlobStorage{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.serviceDataAuthIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.serviceDataAuthIdentityUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("account_key", "shared_access_signature"),
+		{
+			Config: r.serviceDataAuthIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -120,6 +149,84 @@ resource "azurerm_machine_learning_datastore_blobstorage" "test" {
   workspace_id         = azurerm_machine_learning_workspace.test.id
   storage_container_id = azurerm_storage_container.test.resource_manager_id
   account_key          = azurerm_storage_account.test.primary_access_key
+}
+`, template, data.RandomInteger)
+}
+
+func (r MachineLearningDataStoreBlobStorage) serviceDataAuthIdentity(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "acctestcontainer%[2]d"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+resource "azurerm_machine_learning_datastore_blobstorage" "test" {
+  name                       = "accdatastore%[2]d"
+  workspace_id               = azurerm_machine_learning_workspace.test.id
+  storage_container_id       = azurerm_storage_container.test.resource_manager_id
+  service_data_auth_identity = "WorkspaceSystemAssignedIdentity"
+}
+`, template, data.RandomInteger)
+}
+
+func (r MachineLearningDataStoreBlobStorage) serviceDataAuthIdentityUpdate(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "acctestcontainer%[2]d"
+  storage_account_name  = azurerm_storage_account.test.name
+  container_access_type = "private"
+}
+
+
+data "azurerm_storage_account_sas" "test" {
+  connection_string = azurerm_storage_account.test.primary_connection_string
+  https_only        = true
+  signed_version    = "2019-10-10"
+
+  resource_types {
+    service   = true
+    container = true
+    object    = true
+  }
+
+  services {
+    blob  = true
+    queue = false
+    table = false
+    file  = true
+  }
+
+  start  = "2022-01-01T06:17:07Z"
+  expiry = "2024-12-23T06:17:07Z"
+
+  permissions {
+    read    = true
+    write   = true
+    delete  = false
+    list    = false
+    add     = true
+    create  = true
+    update  = false
+    process = false
+    tag     = false
+    filter  = false
+  }
+}
+
+resource "azurerm_machine_learning_datastore_blobstorage" "test" {
+  name                       = "accdatastore%[2]d"
+  workspace_id               = azurerm_machine_learning_workspace.test.id
+  storage_container_id       = azurerm_storage_container.test.resource_manager_id
+  service_data_auth_identity = "WorkspaceUserAssignedIdentity"
+  shared_access_signature    = data.azurerm_storage_account_sas.test.sas
+  account_key                = azurerm_storage_account.test.primary_access_key
 }
 `, template, data.RandomInteger)
 }

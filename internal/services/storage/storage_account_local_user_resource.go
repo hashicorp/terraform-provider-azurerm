@@ -5,6 +5,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -12,7 +13,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/localusers"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/localusers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computevalidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
@@ -22,9 +24,14 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_account_local_user -service-package-name storage -properties "name" -compare-values "subscription_id:storage_account_id,resource_group_name:storage_account_id,storage_account_name:storage_account_id" -test-name "passwordOnly"
+
 type LocalUserResource struct{}
 
-var _ sdk.ResourceWithUpdate = LocalUserResource{}
+var (
+	_ sdk.ResourceWithUpdate   = LocalUserResource{}
+	_ sdk.ResourceWithIdentity = LocalUserResource{}
+)
 
 type PermissionsModel struct {
 	Create bool `tfschema:"create"`
@@ -193,6 +200,10 @@ func (r LocalUserResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return localusers.ValidateLocalUserID
 }
 
+func (r LocalUserResource) Identity() resourceids.ResourceId {
+	return &localusers.LocalUserId{}
+}
+
 func (r LocalUserResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -222,9 +233,9 @@ func (r LocalUserResource) Create() sdk.ResourceFunc {
 			// Sanity checks on input
 			if plan.SshKeyEnabled != (len(plan.SshAuthorizedKey) != 0) {
 				if plan.SshKeyEnabled {
-					return fmt.Errorf("`ssh_authorized_key` should be specified when `ssh_key_enabled` is enabled")
+					return errors.New("`ssh_authorized_key` should be specified when `ssh_key_enabled` is enabled")
 				} else {
-					return fmt.Errorf("`ssh_authorized_key` should not be specified when `ssh_key_enabled` is disabled")
+					return errors.New("`ssh_authorized_key` should not be specified when `ssh_key_enabled` is disabled")
 				}
 			}
 
@@ -333,6 +344,10 @@ func (r LocalUserResource) Read() sdk.ResourceFunc {
 				if props.Sid != nil {
 					model.Sid = *props.Sid
 				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&model)
@@ -451,8 +466,7 @@ func (r LocalUserResource) expandPermissionScopes(input []PermissionScopeModel) 
 		return nil
 	}
 
-	var output []localusers.PermissionScope
-
+	output := make([]localusers.PermissionScope, 0, len(input))
 	for _, v := range input {
 		// The length constraint is guaranteed by schema
 		permissions := v.Permissions[0]
@@ -488,8 +502,7 @@ func (r LocalUserResource) flattenPermissionScopes(input *[]localusers.Permissio
 		return nil
 	}
 
-	var output []PermissionScopeModel
-
+	output := make([]PermissionScopeModel, 0, len(*input))
 	for _, v := range *input {
 		permissions := PermissionsModel{}
 		// The Storage API's have a history of being case-insensitive, so we case-insensitively check the permission here.
@@ -525,8 +538,7 @@ func (r LocalUserResource) expandSSHAuthorizedKeys(input []SshAuthorizedKeyModel
 		return nil
 	}
 
-	var output []localusers.SshPublicKey
-
+	output := make([]localusers.SshPublicKey, 0, len(input))
 	for _, v := range input {
 		output = append(output, localusers.SshPublicKey{
 			Description: pointer.To(v.Description),

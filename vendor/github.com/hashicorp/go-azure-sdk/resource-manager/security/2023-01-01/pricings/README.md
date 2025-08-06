@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/security/2023-01-01/pricings` Documentation
 
-The `pricings` SDK allows for interaction with the Azure Resource Manager Service `security` (API Version `2023-01-01`).
+The `pricings` SDK allows for interaction with Azure Resource Manager `security` (API Version `2023-01-01`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := pricings.NewPricingID("12345678-1234-9876-4563-123456789012", "pricingValue")
+id := pricings.NewPricingID("12345678-1234-9876-4563-123456789012", "pricingName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -57,7 +57,7 @@ if model := read.Model; model != nil {
 
 ```go
 ctx := context.TODO()
-id := pricings.NewPricingID("12345678-1234-9876-4563-123456789012", "pricingValue")
+id := pricings.NewPricingID("12345678-1234-9876-4563-123456789012", "pricingName")
 
 payload := pricings.Pricing{
 	// ...

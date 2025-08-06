@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2023-10-01/machinelearningcomputes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/machinelearningcomputes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -125,12 +125,12 @@ func (r ComputeInstanceResource) Exists(ctx context.Context, client *clients.Cli
 
 func (r ComputeInstanceResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
+
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_machine_learning_compute_instance" "test" {
   name                          = "acctest%d"
-  location                      = azurerm_resource_group.test.location
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   virtual_machine_size          = "STANDARD_DS2_V2"
   local_auth_enabled            = false
@@ -140,6 +140,7 @@ resource "azurerm_machine_learning_compute_instance" "test" {
 
 func (r ComputeInstanceResource) complete(data acceptance.TestData) string {
 	template := r.template(data)
+
 	return fmt.Sprintf(`
 %s
 
@@ -214,7 +215,6 @@ resource "azurerm_private_endpoint" "test" {
 
 resource "azurerm_machine_learning_compute_instance" "test" {
   name                          = "acctest%d"
-  location                      = azurerm_resource_group.test.location
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   virtual_machine_size          = "STANDARD_DS2_V2"
   authorization_type            = "personal"
@@ -242,7 +242,6 @@ func (r ComputeInstanceResource) requiresImport(data acceptance.TestData) string
 
 resource "azurerm_machine_learning_compute_instance" "import" {
   name                          = azurerm_machine_learning_compute_instance.test.name
-  location                      = azurerm_machine_learning_compute_instance.test.location
   machine_learning_workspace_id = azurerm_machine_learning_compute_instance.test.machine_learning_workspace_id
   virtual_machine_size          = "STANDARD_DS2_V2"
 }
@@ -251,12 +250,12 @@ resource "azurerm_machine_learning_compute_instance" "import" {
 
 func (r ComputeInstanceResource) identitySystemAssigned(data acceptance.TestData) string {
 	template := r.template(data)
+
 	return fmt.Sprintf(`
 %s
 
 resource "azurerm_machine_learning_compute_instance" "test" {
   name                          = "acctest%d"
-  location                      = azurerm_resource_group.test.location
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   virtual_machine_size          = "STANDARD_DS2_V2"
   identity {
@@ -279,7 +278,6 @@ resource "azurerm_user_assigned_identity" "test" {
 
 resource "azurerm_machine_learning_compute_instance" "test" {
   name                          = "acctest%d"
-  location                      = azurerm_resource_group.test.location
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   virtual_machine_size          = "STANDARD_DS2_V2"
   identity {
@@ -294,6 +292,7 @@ resource "azurerm_machine_learning_compute_instance" "test" {
 
 func (r ComputeInstanceResource) identitySystemAssignedUserAssigned(data acceptance.TestData) string {
 	template := r.template(data)
+
 	return fmt.Sprintf(`
 %s
 
@@ -305,7 +304,6 @@ resource "azurerm_user_assigned_identity" "test" {
 
 resource "azurerm_machine_learning_compute_instance" "test" {
   name                          = "acctest%d"
-  location                      = azurerm_resource_group.test.location
   machine_learning_workspace_id = azurerm_machine_learning_workspace.test.id
   virtual_machine_size          = "STANDARD_DS2_V2"
   identity {

@@ -24,6 +24,18 @@ type ServicesListCompleteResult struct {
 	Items              []ServiceResource
 }
 
+type ServicesListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ServicesListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ServicesList ...
 func (c AppPlatformClient) ServicesList(ctx context.Context, id commonids.ResourceGroupId) (result ServicesListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppPlatformClient) ServicesList(ctx context.Context, id commonids.Resour
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &ServicesListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.AppPlatform/spring", id.ID()),
 	}
 
@@ -73,6 +86,7 @@ func (c AppPlatformClient) ServicesListCompleteMatchingPredicate(ctx context.Con
 
 	resp, err := c.ServicesList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

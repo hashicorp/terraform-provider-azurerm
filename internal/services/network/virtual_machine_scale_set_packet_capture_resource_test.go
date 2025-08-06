@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/packetcaptures"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/packetcaptures"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -336,7 +336,6 @@ resource "azurerm_virtual_machine_scale_set_packet_capture" "test" {
 
   machine_scope {
     include_instance_ids = ["0", "1"]
-    exclude_instance_ids = ["2", "3"]
   }
 
   depends_on = [azurerm_virtual_machine_scale_set_extension.test]

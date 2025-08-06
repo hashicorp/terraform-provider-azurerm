@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2018-04-19/projectresource"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datamigration/2021-06-30/projectresource"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -18,16 +18,64 @@ import (
 
 type DatabaseMigrationProjectResource struct{}
 
-func TestAccDatabaseMigrationProject_basic(t *testing.T) {
+func TestAccDatabaseMigrationProject_basicSQLToSQLDB(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_database_migration_project", "test")
 	r := DatabaseMigrationProjectResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, "SQL", "SQLDB"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("source_platform").HasValue("SQL"),
 				check.That(data.ResourceName).Key("target_platform").HasValue("SQLDB"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDatabaseMigrationProject_basicPostgreSqlToAzureDbForPostgreSql(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_database_migration_project", "test")
+	r := DatabaseMigrationProjectResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, "PostgreSql", "AzureDbForPostgreSql"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("source_platform").HasValue("PostgreSql"),
+				check.That(data.ResourceName).Key("target_platform").HasValue("AzureDbForPostgreSql"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDatabaseMigrationProject_basicMySQLToAzureDbForMySql(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_database_migration_project", "test")
+	r := DatabaseMigrationProjectResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, "MySQL", "AzureDbForMySql"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("source_platform").HasValue("MySQL"),
+				check.That(data.ResourceName).Key("target_platform").HasValue("AzureDbForMySql"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccDatabaseMigrationProject_basicMongoDbToMongoDb(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_database_migration_project", "test")
+	r := DatabaseMigrationProjectResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data, "MongoDb", "MongoDb"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("source_platform").HasValue("MongoDb"),
+				check.That(data.ResourceName).Key("target_platform").HasValue("MongoDb"),
 			),
 		},
 		data.ImportStep(),
@@ -58,7 +106,7 @@ func TestAccDatabaseMigrationProject_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, "SQL", "SQLDB"),
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
 	})
@@ -70,7 +118,7 @@ func TestAccDatabaseMigrationProject_update(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, "SQL", "SQLDB"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -85,7 +133,7 @@ func TestAccDatabaseMigrationProject_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.basic(data),
+			Config: r.basic(data, "SQL", "SQLDB"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -108,7 +156,7 @@ func (t DatabaseMigrationProjectResource) Exists(ctx context.Context, clients *c
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (DatabaseMigrationProjectResource) basic(data acceptance.TestData) string {
+func (DatabaseMigrationProjectResource) basic(data acceptance.TestData, sourcePlatform string, targetPlatform string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -117,10 +165,10 @@ resource "azurerm_database_migration_project" "test" {
   service_name        = azurerm_database_migration_service.test.name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  source_platform     = "SQL"
-  target_platform     = "SQLDB"
+  source_platform     = "%s"
+  target_platform     = "%s"
 }
-`, DatabaseMigrationServiceResource{}.basic(data), data.RandomInteger)
+`, DatabaseMigrationServiceResource{}.basic(data), data.RandomInteger, sourcePlatform, targetPlatform)
 }
 
 func (DatabaseMigrationProjectResource) complete(data acceptance.TestData) string {
@@ -142,7 +190,7 @@ resource "azurerm_database_migration_project" "test" {
 }
 
 func (DatabaseMigrationProjectResource) requiresImport(data acceptance.TestData) string {
-	template := DatabaseMigrationProjectResource{}.basic(data)
+	template := DatabaseMigrationProjectResource{}.basic(data, "SQL", "SQLDB")
 	return fmt.Sprintf(`
 %s
 

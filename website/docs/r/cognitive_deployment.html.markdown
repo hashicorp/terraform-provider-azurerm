@@ -29,14 +29,15 @@ resource "azurerm_cognitive_account" "example" {
 resource "azurerm_cognitive_deployment" "example" {
   name                 = "example-cd"
   cognitive_account_id = azurerm_cognitive_account.example.id
+
   model {
     format  = "OpenAI"
     name    = "text-curie-001"
     version = "1"
   }
 
-  scale {
-    type = "Standard"
+  sku {
+    name = "Standard"
   }
 }
 
@@ -52,7 +53,9 @@ The following arguments are supported:
 
 * `model` - (Required) A `model` block as defined below. Changing this forces a new resource to be created.
 
-* `scale` - (Required) A `scale` block as defined below.
+* `sku` - (Required) A `sku` block as defined below.
+
+* `dynamic_throttling_enabled` - (Optional) Whether dynamic throttling is enabled.
 
 * `rai_policy_name` - (Optional) The name of RAI policy.
 
@@ -62,7 +65,9 @@ The following arguments are supported:
 
 A `model` block supports the following:
 
-* `format` - (Required) The format of the Cognitive Services Account Deployment model. Changing this forces a new resource to be created. Possible value is `OpenAI`.
+* `format` - (Required) The format of the Cognitive Services Account Deployment model. Changing this forces a new resource to be created.
+
+~> **Note:** Possible values of `format` can be found by running the command `az cognitiveservices account list-models`. The available values may vary by region or due to quota limitations. These could include models from `AI21 Labs`, `Black Forest Labs`, `Cohere`, `Core42`, `DeepSeek`, `Meta`, `Microsoft`, `Mistral AI`, `OpenAI`, and `xAI`.
 
 * `name` - (Required) The name of the Cognitive Services Account Deployment model. Changing this forces a new resource to be created.
 
@@ -70,11 +75,13 @@ A `model` block supports the following:
 
 ---
 
-A `scale` block supports the following:
+A `sku` block supports the following:
 
-* `type` - (Required) The name of the SKU. Ex - `Standard` or `P3`. It is typically a letter+number code. Changing this forces a new resource to be created.
+* `name` - (Required) The name of the SKU. Possible values include `Standard`, `DataZoneBatch`, `DataZoneStandard`, `DataZoneProvisionedManaged`, `GlobalBatch`, `GlobalProvisionedManaged`, `GlobalStandard`, and `ProvisionedManaged`.
 
-* `tier` - (Optional) Possible values are `Free`, `Basic`, `Standard`, `Premium`, `Enterprise`. Changing this forces a new resource to be created.
+~> **Note:** `DataZoneProvisionedManaged`, `GlobalProvisionedManaged`, and `ProvisionedManaged` are purchased on-demand at an hourly basis based on the number of deployed PTUs, with substantial term discount available via the purchase of Azure Reservations. Currently, this step cannot be completed using Terraform. For more details, please refer to the [provisioned throughput onboarding documentation](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/provisioned-throughput-onboarding).
+
+* `tier` - (Optional) Possible values are `Free`, `Basic`, `Standard`, `Premium`, `Enterprise`. This property is required only when multiple tiers are available with the SKU name. Changing this forces a new resource to be created.
 
 * `size` - (Optional) The SKU size. When the name field is the combination of tier and some other value, this would be the standalone code. Changing this forces a new resource to be created.
 
@@ -104,3 +111,9 @@ Cognitive Services Account Deployment can be imported using the `resource id`, e
 ```shell
 terraform import azurerm_cognitive_deployment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.CognitiveServices/accounts/account1/deployments/deployment1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.CognitiveServices` - 2025-06-01

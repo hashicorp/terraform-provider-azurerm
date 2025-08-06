@@ -7,13 +7,13 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2022-05-01/links"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2022-05-01/servicelinker"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicelinker/2024-04-01/servicelinker"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 
 type Client struct {
 	LinksClient         *links.LinksClient
-	ServiceLinkerClient *servicelinker.ServiceLinkerClient
+	ServiceLinkerClient *servicelinker.ServicelinkerClient
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -23,7 +23,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(linksClient.Client, o.Authorizers.ResourceManager)
 
-	serviceLinkerClient, err := servicelinker.NewServiceLinkerClientWithBaseURI(o.Environment.ResourceManager)
+	serviceLinkerClient, err := servicelinker.NewServicelinkerClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building ServiceLinker Client: %+v", err)
 	}

@@ -45,7 +45,6 @@ func (c SchemaClient) GlobalSchemaGet(ctx context.Context, id SchemaId) (result 
 
 	var model GlobalSchemaContract
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

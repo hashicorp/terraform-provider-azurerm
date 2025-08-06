@@ -93,7 +93,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Data Factory.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -134,8 +134,8 @@ An `identity` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Data Factory.
-* `update` - (Defaults to 30 minutes) Used when updating the Data Factory.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory.
+* `update` - (Defaults to 30 minutes) Used when updating the Data Factory.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Data Factory.
 
 ## Import
@@ -145,3 +145,9 @@ Data Factory can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_data_factory.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DataFactory` - 2018-06-01

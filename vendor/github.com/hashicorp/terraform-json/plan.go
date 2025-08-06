@@ -4,6 +4,7 @@
 package tfjson
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -29,6 +30,12 @@ const (
 
 // Plan represents the entire contents of an output Terraform plan.
 type Plan struct {
+	// useJSONNumber opts into the behavior of calling
+	// json.Decoder.UseNumber prior to decoding the plan, which turns
+	// numbers into json.Numbers instead of float64s. Set it using
+	// Plan.UseJSONNumber.
+	useJSONNumber bool
+
 	// The version of the plan format. This should always match the
 	// PlanFormatVersion constant in this package, or else an unmarshal
 	// will be unstable.
@@ -52,6 +59,17 @@ type Plan struct {
 	// The change operations for resources and data sources within this
 	// plan.
 	ResourceChanges []*ResourceChange `json:"resource_changes,omitempty"`
+
+	// DeferredChanges contains the change operations for resources that are deferred
+	// for this plan.
+	DeferredChanges []*DeferredResourceChange `json:"deferred_changes,omitempty"`
+
+	// Complete indicates that all resources have successfully planned changes.
+	// This will be false if there are DeferredChanges or if the -target flag is used.
+	//
+	// Complete was introduced in Terraform 1.8 and will be nil for all previous
+	// Terraform versions.
+	Complete *bool `json:"complete,omitempty"`
 
 	// The change operations for outputs within this plan.
 	OutputChanges map[string]*Change `json:"output_changes,omitempty"`
@@ -83,6 +101,14 @@ type ResourceAttribute struct {
 	// Attribute describes the attribute path using a lossy representation
 	// of cty.Path. (e.g. ["id"] or ["objects", 0, "val"]).
 	Attribute []json.RawMessage `json:"attribute"`
+}
+
+// UseJSONNumber controls whether the Plan will be decoded using the
+// json.Number behavior or the float64 behavior. When b is true, the Plan will
+// represent numbers in PlanOutputs as json.Numbers. When b is false, the
+// Plan will represent numbers in PlanOutputs as float64s.
+func (p *Plan) UseJSONNumber(b bool) {
+	p.useJSONNumber = b
 }
 
 // Validate checks to ensure that the plan is present, and the
@@ -127,7 +153,11 @@ func (p *Plan) UnmarshalJSON(b []byte) error {
 	type rawPlan Plan
 	var plan rawPlan
 
-	err := json.Unmarshal(b, &plan)
+	dec := json.NewDecoder(bytes.NewReader(b))
+	if p.useJSONNumber {
+		dec.UseNumber()
+	}
+	err := dec.Decode(&plan)
 	if err != nil {
 		return err
 	}
@@ -143,6 +173,10 @@ func (p *Plan) UnmarshalJSON(b []byte) error {
 type ResourceChange struct {
 	// The absolute resource address.
 	Address string `json:"address,omitempty"`
+
+	// The absolute address that this resource instance had
+	// at the conclusion of a previous plan.
+	PreviousAddress string `json:"previous_address,omitempty"`
 
 	// The module portion of the above address. Omitted if the instance
 	// is in the root module.
@@ -223,6 +257,20 @@ type Change struct {
 	// might change in the future. However, not all Importing changes will
 	// contain generated config.
 	GeneratedConfig string `json:"generated_config,omitempty"`
+
+	// ReplacePaths contains a set of paths that point to attributes/elements
+	// that are causing the overall resource to be replaced rather than simply
+	// updated.
+	//
+	// This field is always a slice of indexes, where an index in this context
+	// is either an integer pointing to a child of a set/list, or a string
+	// pointing to the child of a map, object, or block.
+	ReplacePaths []interface{} `json:"replace_paths,omitempty"`
+
+	// BeforeIdentity and AfterIdentity are representations of the resource
+	// identity value both before and after the action.
+	BeforeIdentity interface{} `json:"before_identity,omitempty"`
+	AfterIdentity  interface{} `json:"after_identity,omitempty"`
 }
 
 // Importing is a nested object for the resource import metadata.
@@ -230,10 +278,30 @@ type Importing struct {
 	// The original ID of this resource used to target it as part of planned
 	// import operation.
 	ID string `json:"id,omitempty"`
+
+	// Unknown indicates the ID or identity was unknown at the time of
+	// planning. This would have led to the overall change being deferred, as
+	// such this should only be true when processing changes from the deferred
+	// changes list.
+	Unknown bool `json:"unknown,omitempty"`
+
+	// The identity can be used instead of the ID to target the resource as part
+	// of the planned import operation.
+	Identity interface{} `json:"identity,omitempty"`
 }
 
 // PlanVariable is a top-level variable in the Terraform plan.
 type PlanVariable struct {
 	// The value for this variable at plan time.
 	Value interface{} `json:"value,omitempty"`
+}
+
+// DeferredResourceChange is a description of a resource change that has been
+// deferred for some reason.
+type DeferredResourceChange struct {
+	// Reason is the reason why this resource change was deferred.
+	Reason string `json:"reason,omitempty"`
+
+	// Change contains any information we have about the deferred change.
+	ResourceChange *ResourceChange `json:"resource_change,omitempty"`
 }

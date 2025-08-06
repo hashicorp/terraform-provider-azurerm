@@ -178,6 +178,10 @@ resource "azurerm_iothub" "test" {
   tags = {
     purpose = "testing"
   }
+
+  lifecycle {
+    ignore_changes = [endpoint]
+  }
 }
 
 resource "azurerm_iothub_endpoint_servicebus_topic" "test" {
@@ -253,6 +257,10 @@ resource "azurerm_iothub" "test" {
 
   tags = {
     purpose = "testing"
+  }
+
+  lifecycle {
+    ignore_changes = [endpoint]
   }
 }
 
@@ -410,6 +418,10 @@ resource "azurerm_iothub" "test" {
   depends_on = [
     azurerm_role_assignment.test_azure_service_bus_data_sender_user,
   ]
+
+  lifecycle {
+    ignore_changes = [endpoint]
+  }
 }
 
 resource "azurerm_role_assignment" "test_azure_service_bus_data_sender_system" {

@@ -45,7 +45,6 @@ func (c SshPublicKeysClient) Get(ctx context.Context, id SshPublicKeyId) (result
 
 	var model SshPublicKeyResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -5,12 +5,15 @@ package automation
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/automation/2023-11-01/module"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -29,9 +32,10 @@ type ModuleHash struct {
 }
 
 type AutomationPowerShell72ModuleModel struct {
-	AutomationAccountID string            `tfschema:"automation_account_id"`
-	Name                string            `tfschema:"name"`
-	ModuleLink          []ModuleLinkModel `tfschema:"module_link"`
+	AutomationAccountID string                 `tfschema:"automation_account_id"`
+	Name                string                 `tfschema:"name"`
+	ModuleLink          []ModuleLinkModel      `tfschema:"module_link"`
+	Tags                map[string]interface{} `tfschema:"tags"`
 }
 
 type PowerShell72ModuleResource struct{}
@@ -83,6 +87,7 @@ func (r PowerShell72ModuleResource) Arguments() map[string]*pluginsdk.Schema {
 				},
 			},
 		},
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -124,20 +129,18 @@ func (r PowerShell72ModuleResource) Create() sdk.ResourceFunc {
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
 
 			// for existing global module do update instead of raising ImportAsExistsError
-			isGlobal := existing.Model != nil && existing.Model.Properties != nil && existing.Model.Properties.IsGlobal != nil && *existing.Model.Properties.IsGlobal
+			isGlobal := existing.Model != nil && existing.Model.Properties != nil && pointer.From(existing.Model.Properties.IsGlobal)
 			if !response.WasNotFound(existing.HttpResponse) && !isGlobal {
-				return tf.ImportAsExistsError("azurerm_automation_powershell72_module", id.ID())
+				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
 			parameters := module.ModuleCreateOrUpdateParameters{
 				Properties: module.ModuleCreateOrUpdateProperties{
 					ContentLink: expandPowerShell72ModuleLink(model.ModuleLink),
 				},
+				Tags: tags.Expand(model.Tags),
 			}
 
 			if _, err := client.PowerShell72ModuleCreateOrUpdate(ctx, id, parameters); err != nil {
@@ -184,7 +187,7 @@ func (r PowerShell72ModuleResource) Create() sdk.ResourceFunc {
 								provisioningState = string(*props.ProvisioningState)
 							}
 							if props.Error != nil && props.Error.Message != nil && *props.Error.Message != "" {
-								return resp, provisioningState, fmt.Errorf(*props.Error.Message)
+								return resp, provisioningState, errors.New(*props.Error.Message)
 							}
 							return resp, provisioningState, nil
 						}
@@ -226,6 +229,10 @@ func (r PowerShell72ModuleResource) Update() sdk.ResourceFunc {
 				Properties: module.ModuleCreateOrUpdateProperties{
 					ContentLink: expandPowerShell72ModuleLink(model.ModuleLink),
 				},
+			}
+
+			if metadata.ResourceData.HasChange("tags") {
+				parameters.Tags = tags.Expand(model.Tags)
 			}
 
 			if _, err := client.PowerShell72ModuleCreateOrUpdate(ctx, *id, parameters); err != nil {
@@ -272,7 +279,7 @@ func (r PowerShell72ModuleResource) Update() sdk.ResourceFunc {
 								provisioningState = string(*props.ProvisioningState)
 							}
 							if props.Error != nil && props.Error.Message != nil && *props.Error.Message != "" {
-								return resp, provisioningState, fmt.Errorf(*props.Error.Message)
+								return resp, provisioningState, errors.New(*props.Error.Message)
 							}
 							return resp, provisioningState, nil
 						}
@@ -320,6 +327,9 @@ func (r PowerShell72ModuleResource) Read() sdk.ResourceFunc {
 
 			output.Name = id.PowerShell72ModuleName
 			output.AutomationAccountID = module.NewAutomationAccountID(id.SubscriptionId, id.ResourceGroupName, id.AutomationAccountName).ID()
+			if resp.Model != nil {
+				output.Tags = tags.Flatten(resp.Model.Tags)
+			}
 
 			return metadata.Encode(&output)
 		},

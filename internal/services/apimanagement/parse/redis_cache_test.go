@@ -27,7 +27,6 @@ func TestRedisCacheID(t *testing.T) {
 		Error    bool
 		Expected *RedisCacheId
 	}{
-
 		{
 			// empty
 			Input: "",

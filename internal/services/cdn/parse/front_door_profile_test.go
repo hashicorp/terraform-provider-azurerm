@@ -27,7 +27,6 @@ func TestFrontDoorProfileID(t *testing.T) {
 		Error    bool
 		Expected *FrontDoorProfileId
 	}{
-
 		{
 			// empty
 			Input: "",
@@ -120,7 +119,6 @@ func TestFrontDoorProfileIDInsensitively(t *testing.T) {
 		Error    bool
 		Expected *FrontDoorProfileId
 	}{
-
 		{
 			// empty
 			Input: "",

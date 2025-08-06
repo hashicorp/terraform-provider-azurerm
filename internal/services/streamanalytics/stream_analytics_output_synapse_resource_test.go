@@ -153,13 +153,13 @@ func (r StreamAnalyticsOutputSynapseResource) updated(data acceptance.TestData) 
 %[1]s
 
 resource "azurerm_stream_analytics_output_synapse" "test" {
-  name                      = "acctestoutput-updated-%[2]d"
+  name                      = "acctestoutput-%[2]d"
   stream_analytics_job_name = azurerm_stream_analytics_job.test.name
   resource_group_name       = azurerm_stream_analytics_job.test.resource_group_name
 
   server   = azurerm_synapse_workspace.test.connectivity_endpoints["sqlOnDemand"]
   user     = azurerm_synapse_workspace.test.sql_administrator_login
-  password = azurerm_synapse_workspace.test.sql_administrator_login_password
+  password = "updatedPassword"
   database = "master"
   table    = "AccTestTable"
 }

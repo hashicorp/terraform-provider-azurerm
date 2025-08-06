@@ -8,9 +8,9 @@ import (
 	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 func TestAccLinuxVirtualMachine_otherAllowExtensionOperationsDefault(t *testing.T) {
@@ -87,30 +87,6 @@ func TestAccLinuxVirtualMachine_otherAllowExtensionOperationsUpdatedWithoutVmAge
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("allow_extension_operations").HasValue("true"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
-func TestAccLinuxVirtualMachine_otherVmAgentPlatformUpdates(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
-	r := LinuxVirtualMachineResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.otherVmAgentPlatformUpdatesEnabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vm_agent_platform_updates_enabled").HasValue("true"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.otherVmAgentPlatformUpdatesDisabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("vm_agent_platform_updates_enabled").HasValue("false"),
 			),
 		},
 		data.ImportStep(),
@@ -387,7 +363,39 @@ func TestAccLinuxVirtualMachine_otherLicenseType(t *testing.T) {
 			Config: r.otherLicenseType(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("license_type").HasValue("UBUNTU_PRO"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccLinuxVirtualMachine_otherLicenseTypeUpdated(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherLicenseTypeUpdateWithoutLicenseType(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("license_type").HasValue(""),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.otherLicenseTypeUpdateWithLicenseType(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("license_type").HasValue("SLES_BYOS"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.otherLicenseTypeUpdateWithoutLicenseType(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("license_type").HasValue(""),
 			),
 		},
 		data.ImportStep(),
@@ -623,6 +631,21 @@ func TestAccLinuxVirtualMachine_otherTerminationNotificationTimeout(t *testing.T
 	})
 }
 
+func TestAccLinuxVirtualMachine_otherHibernation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
+	r := LinuxVirtualMachineResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherHibernation(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccLinuxVirtualMachine_otherUltraSsdDefault(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 	r := LinuxVirtualMachineResource{}
@@ -824,7 +847,7 @@ func TestAccLinuxVirtualMachine_otherPatchModeAutomaticByPlatform(t *testing.T) 
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherPatchMode(data, string(compute.LinuxVMGuestPatchModeAutomaticByPlatform)),
+			Config: r.otherPatchMode(data, string(virtualmachines.LinuxVMGuestPatchModeAutomaticByPlatform)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -839,21 +862,21 @@ func TestAccLinuxVirtualMachine_otherPatchModeUpdate(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherPatchMode(data, string(compute.LinuxVMGuestPatchModeImageDefault)),
+			Config: r.otherPatchMode(data, string(virtualmachines.LinuxVMGuestPatchModeImageDefault)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.otherPatchMode(data, string(compute.LinuxVMGuestPatchModeAutomaticByPlatform)),
+			Config: r.otherPatchMode(data, string(virtualmachines.LinuxVMGuestPatchModeAutomaticByPlatform)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.otherPatchMode(data, string(compute.LinuxVMGuestPatchModeImageDefault)),
+			Config: r.otherPatchMode(data, string(virtualmachines.LinuxVMGuestPatchModeImageDefault)),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1223,76 +1246,6 @@ resource "azurerm_linux_virtual_machine" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineResource) otherVmAgentPlatformUpdatesEnabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_linux_virtual_machine" "test" {
-  name                              = "acctestVM-%d"
-  resource_group_name               = azurerm_resource_group.test.name
-  location                          = azurerm_resource_group.test.location
-  size                              = "Standard_F2"
-  admin_username                    = "adminuser"
-  vm_agent_platform_updates_enabled = true
-
-  network_interface_ids = [
-    azurerm_network_interface.test.id,
-  ]
-
-  admin_ssh_key {
-    username   = "adminuser"
-    public_key = local.first_public_key
-  }
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r LinuxVirtualMachineResource) otherVmAgentPlatformUpdatesDisabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_linux_virtual_machine" "test" {
-  name                = "acctestVM-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
-  admin_username      = "adminuser"
-  network_interface_ids = [
-    azurerm_network_interface.test.id,
-  ]
-
-  admin_ssh_key {
-    username   = "adminuser"
-    public_key = local.first_public_key
-  }
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
-  }
-
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
-    version   = "latest"
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
 func (r LinuxVirtualMachineResource) otherExtensionsTimeBudget(data acceptance.TestData, duration string) string {
 	return fmt.Sprintf(`
 %s
@@ -1596,6 +1549,10 @@ func (r LinuxVirtualMachineResource) otherEdgeZone(data acceptance.TestData) str
 	return fmt.Sprintf(`
 %[1]s
 
+provider "azurerm" {
+  features {}
+}
+
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[3]d"
   location = "%[2]s"
@@ -1614,10 +1571,11 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
+  name                            = "internal"
+  resource_group_name             = azurerm_resource_group.test.name
+  virtual_network_name            = azurerm_virtual_network.test.name
+  address_prefixes                = ["10.0.2.0/24"]
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_network_interface" "test" {
@@ -1961,10 +1919,79 @@ resource "azurerm_linux_virtual_machine" "test" {
     version   = "latest"
   }
 }
-`, r.template(data), data.RandomInteger)
+`, r.templateWithOutProvider(data), data.RandomInteger)
 }
 
 func (r LinuxVirtualMachineResource) otherLicenseType(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  license_type        = "UBUNTU_PRO"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineResource) otherLicenseTypeUpdateWithoutLicenseType(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_F2"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "SUSE"
+    offer     = "sles-15-sp6-byos"
+    sku       = "gen2"
+    version   = "latest"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineResource) otherLicenseTypeUpdateWithLicenseType(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1990,9 +2017,9 @@ resource "azurerm_linux_virtual_machine" "test" {
   }
 
   source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
+    publisher = "SUSE"
+    offer     = "sles-15-sp6-byos"
+    sku       = "gen2"
     version   = "latest"
   }
 }
@@ -2317,7 +2344,7 @@ resource "azurerm_key_vault_certificate" "second" {
     }
   }
 }
-`, r.template(data), data.RandomString)
+`, r.templateWithOutProvider(data), data.RandomString)
 }
 
 func (r LinuxVirtualMachineResource) otherSecret(data acceptance.TestData) string {
@@ -2632,6 +2659,46 @@ resource "azurerm_linux_virtual_machine" "test" {
   termination_notification {
     enabled = true
     timeout = "PT15M"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r LinuxVirtualMachineResource) otherHibernation(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_linux_virtual_machine" "test" {
+  name                = "acctestVM-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  size                = "Standard_D16as_v5"
+  admin_username      = "adminuser"
+  network_interface_ids = [
+    azurerm_network_interface.test.id,
+  ]
+  zone = 1
+
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = local.first_public_key
+  }
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+    disk_size_gb         = 128
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
+    version   = "latest"
+  }
+
+  additional_capabilities {
+    hibernation_enabled = true
   }
 }
 `, r.template(data), data.RandomInteger)

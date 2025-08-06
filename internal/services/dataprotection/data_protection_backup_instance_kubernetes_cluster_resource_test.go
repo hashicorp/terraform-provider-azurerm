@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2023-05-01/backupinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -113,10 +113,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%[1]d"
 
   default_node_pool {
-    name                   = "default"
-    node_count             = 1
-    vm_size                = "Standard_DS2_v2"
-    enable_host_encryption = true
+    name                    = "default"
+    node_count              = 1
+    vm_size                 = "Standard_DS2_v2"
+    host_encryption_enabled = true
+    upgrade_settings {
+      max_surge = "10%%"
+    }
   }
 
   identity {

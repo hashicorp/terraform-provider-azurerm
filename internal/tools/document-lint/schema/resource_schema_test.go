@@ -13,7 +13,7 @@ import (
 func TestResourceFile(t *testing.T) {
 	p := automation.SoftwareUpdateConfigurationResource{}
 	file := schema.FileForResource(p.Read().Func)
-	t.Logf(file)
+	t.Log(file)
 
 	// inspect schema
 	r := schema.NewResourceByTyped(p)

@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queuesauthorizationrule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/queuesauthorizationrule"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -173,7 +173,7 @@ resource "azurerm_servicebus_queue" "test" {
   name         = "acctest-%[1]d"
   namespace_id = azurerm_servicebus_namespace.test.id
 
-  enable_partitioning = true
+  partitioning_enabled = true
 }
 
 resource "azurerm_servicebus_queue_authorization_rule" "test" {

@@ -27,7 +27,6 @@ func TestWorkspaceSecurityAlertPolicyID(t *testing.T) {
 		Error    bool
 		Expected *WorkspaceSecurityAlertPolicyId
 	}{
-
 		{
 			// empty
 			Input: "",

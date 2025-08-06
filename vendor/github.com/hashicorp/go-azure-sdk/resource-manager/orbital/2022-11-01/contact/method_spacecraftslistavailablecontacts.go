@@ -26,6 +26,18 @@ type SpacecraftsListAvailableContactsCompleteResult struct {
 	Items              []AvailableContacts
 }
 
+type SpacecraftsListAvailableContactsCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *SpacecraftsListAvailableContactsCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // SpacecraftsListAvailableContacts ...
 func (c ContactClient) SpacecraftsListAvailableContacts(ctx context.Context, id SpacecraftId, input ContactParameters) (result SpacecraftsListAvailableContactsOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -35,6 +47,7 @@ func (c ContactClient) SpacecraftsListAvailableContacts(ctx context.Context, id 
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodPost,
+		Pager:      &SpacecraftsListAvailableContactsCustomPager{},
 		Path:       fmt.Sprintf("%s/listAvailableContacts", id.ID()),
 	}
 

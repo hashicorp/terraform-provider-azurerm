@@ -9,7 +9,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/tombuildsstuff/giovanni/storage/2023-11-03/file/shares"
+	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
+	"github.com/jackofallops/giovanni/storage/2023-11-03/file/shares"
 )
 
 type DataPlaneStorageShareWrapper struct {
@@ -51,6 +52,11 @@ func (w DataPlaneStorageShareWrapper) Exists(ctx context.Context, shareName stri
 func (w DataPlaneStorageShareWrapper) Get(ctx context.Context, shareName string) (*StorageShareProperties, error) {
 	props, err := w.client.GetProperties(ctx, shareName)
 	if err != nil {
+		if props.HttpResponse == nil {
+			return nil, pollers.PollingDroppedConnectionError{
+				Message: err.Error(),
+			}
+		}
 		if response.WasNotFound(props.HttpResponse) {
 			return nil, nil
 		}

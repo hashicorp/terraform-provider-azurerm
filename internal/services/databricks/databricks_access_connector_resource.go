@@ -19,8 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type AccessConnectorResource struct {
-}
+type AccessConnectorResource struct{}
 
 var _ sdk.ResourceWithUpdate = AccessConnectorResource{}
 
@@ -44,7 +43,7 @@ func (r AccessConnectorResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 		"tags": commonschema.Tags(),
 	}
@@ -204,7 +203,6 @@ func (r AccessConnectorResource) Delete() sdk.ResourceFunc {
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := accessconnector.ParseAccessConnectorID(metadata.ResourceData.Id())
-
 			if err != nil {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}

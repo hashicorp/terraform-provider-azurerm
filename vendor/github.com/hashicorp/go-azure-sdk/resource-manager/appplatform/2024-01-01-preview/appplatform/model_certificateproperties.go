@@ -10,18 +10,43 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type CertificateProperties interface {
+	CertificateProperties() BaseCertificatePropertiesImpl
 }
 
-// RawCertificatePropertiesImpl is returned when the Discriminated Value
-// doesn't match any of the defined types
+var _ CertificateProperties = BaseCertificatePropertiesImpl{}
+
+type BaseCertificatePropertiesImpl struct {
+	ActivateDate      *string                               `json:"activateDate,omitempty"`
+	DnsNames          *[]string                             `json:"dnsNames,omitempty"`
+	ExpirationDate    *string                               `json:"expirationDate,omitempty"`
+	IssuedDate        *string                               `json:"issuedDate,omitempty"`
+	Issuer            *string                               `json:"issuer,omitempty"`
+	ProvisioningState *CertificateResourceProvisioningState `json:"provisioningState,omitempty"`
+	SubjectName       *string                               `json:"subjectName,omitempty"`
+	Thumbprint        *string                               `json:"thumbprint,omitempty"`
+	Type              string                                `json:"type"`
+}
+
+func (s BaseCertificatePropertiesImpl) CertificateProperties() BaseCertificatePropertiesImpl {
+	return s
+}
+
+var _ CertificateProperties = RawCertificatePropertiesImpl{}
+
+// RawCertificatePropertiesImpl is returned when the Discriminated Value doesn't match any of the defined types
 // NOTE: this should only be used when a type isn't defined for this type of Object (as a workaround)
 // and is used only for Deserialization (e.g. this cannot be used as a Request Payload).
 type RawCertificatePropertiesImpl struct {
-	Type   string
-	Values map[string]interface{}
+	certificateProperties BaseCertificatePropertiesImpl
+	Type                  string
+	Values                map[string]interface{}
 }
 
-func unmarshalCertificatePropertiesImplementation(input []byte) (CertificateProperties, error) {
+func (s RawCertificatePropertiesImpl) CertificateProperties() BaseCertificatePropertiesImpl {
+	return s.certificateProperties
+}
+
+func UnmarshalCertificatePropertiesImplementation(input []byte) (CertificateProperties, error) {
 	if input == nil {
 		return nil, nil
 	}
@@ -31,9 +56,9 @@ func unmarshalCertificatePropertiesImplementation(input []byte) (CertificateProp
 		return nil, fmt.Errorf("unmarshaling CertificateProperties into map[string]interface: %+v", err)
 	}
 
-	value, ok := temp["type"].(string)
-	if !ok {
-		return nil, nil
+	var value string
+	if v, ok := temp["type"]; ok {
+		value = fmt.Sprintf("%v", v)
 	}
 
 	if strings.EqualFold(value, "ContentCertificate") {
@@ -52,10 +77,15 @@ func unmarshalCertificatePropertiesImplementation(input []byte) (CertificateProp
 		return out, nil
 	}
 
-	out := RawCertificatePropertiesImpl{
-		Type:   value,
-		Values: temp,
+	var parent BaseCertificatePropertiesImpl
+	if err := json.Unmarshal(input, &parent); err != nil {
+		return nil, fmt.Errorf("unmarshaling into BaseCertificatePropertiesImpl: %+v", err)
 	}
-	return out, nil
+
+	return RawCertificatePropertiesImpl{
+		certificateProperties: parent,
+		Type:                  value,
+		Values:                temp,
+	}, nil
 
 }

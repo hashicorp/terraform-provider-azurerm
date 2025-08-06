@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -17,7 +17,7 @@ import (
 	"golang.org/x/mod/modfile"
 )
 
-var discardLogger = log.New(ioutil.Discard, "", 0)
+var discardLogger = log.New(io.Discard, "", 0)
 
 // GoBuild represents a Go builder (to run "go build")
 type GoBuild struct {
@@ -161,7 +161,7 @@ type CleanupFunc func(context.Context)
 func guessRequiredGoVersion(repoDir string) (*version.Version, bool) {
 	goEnvFile := filepath.Join(repoDir, ".go-version")
 	if fi, err := os.Stat(goEnvFile); err == nil && !fi.IsDir() {
-		b, err := ioutil.ReadFile(goEnvFile)
+		b, err := os.ReadFile(goEnvFile)
 		if err != nil {
 			return nil, false
 		}
@@ -174,7 +174,7 @@ func guessRequiredGoVersion(repoDir string) (*version.Version, bool) {
 
 	goModFile := filepath.Join(repoDir, "go.mod")
 	if fi, err := os.Stat(goModFile); err == nil && !fi.IsDir() {
-		b, err := ioutil.ReadFile(goModFile)
+		b, err := os.ReadFile(goModFile)
 		if err != nil {
 			return nil, false
 		}

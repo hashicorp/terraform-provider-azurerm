@@ -24,6 +24,18 @@ type SkusListCompleteResult struct {
 	Items              []ResourceSku
 }
 
+type SkusListCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *SkusListCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // SkusList ...
 func (c AppPlatformClient) SkusList(ctx context.Context, id commonids.SubscriptionId) (result SkusListOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -32,6 +44,7 @@ func (c AppPlatformClient) SkusList(ctx context.Context, id commonids.Subscripti
 			http.StatusOK,
 		},
 		HttpMethod: http.MethodGet,
+		Pager:      &SkusListCustomPager{},
 		Path:       fmt.Sprintf("%s/providers/Microsoft.AppPlatform/skus", id.ID()),
 	}
 
@@ -73,6 +86,7 @@ func (c AppPlatformClient) SkusListCompleteMatchingPredicate(ctx context.Context
 
 	resp, err := c.SkusList(ctx, id)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

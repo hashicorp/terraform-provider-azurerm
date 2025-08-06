@@ -39,6 +39,7 @@ func (o ListBySyncJobOperationOptions) ToHeaders() *client.Headers {
 
 func (o ListBySyncJobOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -50,6 +51,18 @@ func (o ListBySyncJobOperationOptions) ToQuery() *client.QueryParams {
 	return &out
 }
 
+type ListBySyncJobCustomPager struct {
+	NextLink *odata.Link `json:"nextLink"`
+}
+
+func (p *ListBySyncJobCustomPager) NextPageLink() *odata.Link {
+	defer func() {
+		p.NextLink = nil
+	}()
+
+	return p.NextLink
+}
+
 // ListBySyncJob ...
 func (c SourceControlSyncJobStreamsClient) ListBySyncJob(ctx context.Context, id SourceControlSyncJobId, options ListBySyncJobOperationOptions) (result ListBySyncJobOperationResponse, err error) {
 	opts := client.RequestOptions{
@@ -58,8 +71,9 @@ func (c SourceControlSyncJobStreamsClient) ListBySyncJob(ctx context.Context, id
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodGet,
-		Path:          fmt.Sprintf("%s/streams", id.ID()),
 		OptionsObject: options,
+		Pager:         &ListBySyncJobCustomPager{},
+		Path:          fmt.Sprintf("%s/streams", id.ID()),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -100,6 +114,7 @@ func (c SourceControlSyncJobStreamsClient) ListBySyncJobCompleteMatchingPredicat
 
 	resp, err := c.ListBySyncJob(ctx, id, options)
 	if err != nil {
+		result.LatestHttpResponse = resp.HttpResponse
 		err = fmt.Errorf("loading results: %+v", err)
 		return
 	}

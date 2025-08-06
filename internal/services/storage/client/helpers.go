@@ -12,14 +12,14 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/storageaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
 )
 
 var (
-	storageAccountsCache = map[string]accountDetails{}
+	storageAccountsCache = map[string]AccountDetails{}
 
-	accountsLock    = sync.RWMutex{}
-	credentialsLock = sync.RWMutex{}
+	cacheAccountsLock    = sync.RWMutex{}
+	cacheCredentialsLock = sync.RWMutex{}
 )
 
 type EndpointType string
@@ -32,7 +32,7 @@ const (
 	EndpointTypeTable = "table"
 )
 
-type accountDetails struct {
+type AccountDetails struct {
 	Kind             storageaccounts.Kind
 	IsHnsEnabled     bool
 	StorageAccountId commonids.StorageAccountId
@@ -60,9 +60,9 @@ type accountDetails struct {
 	primaryTableEndpoint *string
 }
 
-func (ad *accountDetails) AccountKey(ctx context.Context, client Client) (*string, error) {
-	credentialsLock.Lock()
-	defer credentialsLock.Unlock()
+func (ad *AccountDetails) AccountKey(ctx context.Context, client Client) (*string, error) {
+	cacheCredentialsLock.Lock()
+	defer cacheCredentialsLock.Unlock()
 
 	if ad.accountKey != nil {
 		return ad.accountKey, nil
@@ -84,6 +84,7 @@ func (ad *accountDetails) AccountKey(ctx context.Context, client Client) (*strin
 
 			if *key.Permissions == storageaccounts.KeyPermissionFull {
 				ad.accountKey = key.Value
+				break
 			}
 		}
 	}
@@ -98,7 +99,7 @@ func (ad *accountDetails) AccountKey(ctx context.Context, client Client) (*strin
 	return ad.accountKey, nil
 }
 
-func (ad *accountDetails) DataPlaneEndpoint(endpointType EndpointType) (*string, error) {
+func (ad *AccountDetails) DataPlaneEndpoint(endpointType EndpointType) (*string, error) {
 	var baseUri *string
 	switch endpointType {
 	case EndpointTypeBlob:
@@ -127,8 +128,8 @@ func (ad *accountDetails) DataPlaneEndpoint(endpointType EndpointType) (*string,
 }
 
 func (c Client) AddToCache(accountId commonids.StorageAccountId, account storageaccounts.StorageAccount) error {
-	accountsLock.Lock()
-	defer accountsLock.Unlock()
+	cacheAccountsLock.Lock()
+	defer cacheAccountsLock.Unlock()
 
 	accountDetails, err := populateAccountDetails(accountId, account)
 	if err != nil {
@@ -140,14 +141,14 @@ func (c Client) AddToCache(accountId commonids.StorageAccountId, account storage
 }
 
 func (c Client) RemoveAccountFromCache(accountId commonids.StorageAccountId) {
-	accountsLock.Lock()
+	cacheAccountsLock.Lock()
 	delete(storageAccountsCache, accountId.StorageAccountName)
-	accountsLock.Unlock()
+	cacheAccountsLock.Unlock()
 }
 
-func (c Client) FindAccount(ctx context.Context, subscriptionIdRaw, accountName string) (*accountDetails, error) {
-	accountsLock.Lock()
-	defer accountsLock.Unlock()
+func (c Client) FindAccount(ctx context.Context, subscriptionIdRaw, accountName string) (*AccountDetails, error) {
+	cacheAccountsLock.Lock()
+	defer cacheAccountsLock.Unlock()
 
 	if existing, ok := storageAccountsCache[accountName]; ok {
 		return &existing, nil
@@ -183,8 +184,34 @@ func (c Client) FindAccount(ctx context.Context, subscriptionIdRaw, accountName 
 	return nil, nil
 }
 
-func populateAccountDetails(accountId commonids.StorageAccountId, account storageaccounts.StorageAccount) (*accountDetails, error) {
-	out := accountDetails{
+func (c Client) GetAccount(ctx context.Context, id commonids.StorageAccountId) (*AccountDetails, error) {
+	cacheAccountsLock.Lock()
+	defer cacheAccountsLock.Unlock()
+
+	if existing, ok := storageAccountsCache[id.StorageAccountName]; ok {
+		return &existing, nil
+	}
+
+	resp, err := c.ResourceManager.StorageAccounts.GetProperties(ctx, id, storageaccounts.DefaultGetPropertiesOperationOptions())
+	if err != nil {
+		return nil, fmt.Errorf("retrieving %s: %v", id, err)
+	}
+
+	if resp.Model == nil {
+		return nil, fmt.Errorf("unexpected null model of %s", id)
+	}
+
+	account, err := populateAccountDetails(id, *resp.Model)
+	if err != nil {
+		return nil, fmt.Errorf("populating details for %s: %+v", id, err)
+	}
+
+	storageAccountsCache[id.StorageAccountName] = *account
+	return account, nil
+}
+
+func populateAccountDetails(accountId commonids.StorageAccountId, account storageaccounts.StorageAccount) (*AccountDetails, error) {
+	out := AccountDetails{
 		Kind:             pointer.From(account.Kind),
 		StorageAccountId: accountId,
 	}

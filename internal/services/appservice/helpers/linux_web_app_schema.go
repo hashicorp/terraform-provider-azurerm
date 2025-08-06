@@ -9,10 +9,11 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/webapps"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
+	appServiceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -22,7 +23,6 @@ type SiteConfigLinux struct {
 	ApiManagementConfigId         string                  `tfschema:"api_management_api_id"`
 	ApiDefinition                 string                  `tfschema:"api_definition_url"`
 	AppCommandLine                string                  `tfschema:"app_command_line"`
-	AutoHeal                      bool                    `tfschema:"auto_heal_enabled"`
 	AutoHealSettings              []AutoHealSettingLinux  `tfschema:"auto_heal_setting"`
 	UseManagedIdentityACR         bool                    `tfschema:"container_registry_use_managed_identity"`
 	ContainerRegistryMSI          string                  `tfschema:"container_registry_managed_identity_client_id"`
@@ -56,7 +56,7 @@ type SiteConfigLinux struct {
 }
 
 func SiteConfigSchemaLinux() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	s := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Required: true,
 		MaxItems: 1,
@@ -86,14 +86,6 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				},
 
 				"application_stack": linuxApplicationStackSchema(),
-
-				"auto_heal_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Optional: true,
-					RequiredWith: []string{
-						"site_config.0.auto_heal_setting",
-					},
-				},
 
 				"auto_heal_setting": autoHealSettingSchemaLinux(),
 
@@ -189,8 +181,6 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 					Optional: true,
 					Computed: true,
 					ValidateFunc: validation.StringInSlice([]string{
-						"VS2017",
-						"VS2019",
 						"VS2022",
 					}, false),
 				},
@@ -224,16 +214,17 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 				},
 
 				"health_check_path": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					RequiredWith: []string{"site_config.0.health_check_eviction_time_in_min"},
 				},
 
 				"health_check_eviction_time_in_min": {
 					Type:         pluginsdk.TypeInt,
 					Optional:     true,
-					Computed:     true,
 					ValidateFunc: validation.IntBetween(2, 10),
-					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Defaults to `10`. Only valid in conjunction with `health_check_path`",
+					RequiredWith: []string{"site_config.0.health_check_path"},
+					Description:  "The amount of time in minutes that a node is unhealthy before being removed from the load balancer. Possible values are between `2` and `10`. Only valid in conjunction with `health_check_path`",
 				},
 
 				"worker_count": {
@@ -278,6 +269,16 @@ func SiteConfigSchemaLinux() *pluginsdk.Schema {
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		s.Elem.(*pluginsdk.Resource).Schema["remote_debugging_version"].ValidateFunc = validation.StringInSlice([]string{
+			"VS2017",
+			"VS2019",
+			"VS2022",
+		}, false)
+	}
+
+	return s
 }
 
 func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
@@ -307,11 +308,6 @@ func SiteConfigSchemaLinuxComputed() *pluginsdk.Schema {
 				},
 
 				"application_stack": linuxApplicationStackSchemaComputed(),
-
-				"auto_heal_enabled": {
-					Type:     pluginsdk.TypeBool,
-					Computed: true,
-				},
 
 				"auto_heal_setting": autoHealSettingSchemaLinuxComputed(),
 
@@ -454,9 +450,10 @@ type AutoHealSettingLinux struct {
 }
 
 type AutoHealTriggerLinux struct {
-	Requests     []AutoHealRequestTrigger    `tfschema:"requests"`
-	StatusCodes  []AutoHealStatusCodeTrigger `tfschema:"status_code"` // 0 or more, ranges split by `-`, ranges cannot use sub-status or win32 code
-	SlowRequests []AutoHealSlowRequest       `tfschema:"slow_request"`
+	Requests             []AutoHealRequestTrigger      `tfschema:"requests"`
+	StatusCodes          []AutoHealStatusCodeTrigger   `tfschema:"status_code"` // 0 or more, ranges split by `-`, ranges cannot use sub-status or win32 code
+	SlowRequests         []AutoHealSlowRequest         `tfschema:"slow_request"`
+	SlowRequestsWithPath []AutoHealSlowRequestWithPath `tfschema:"slow_request_with_path"`
 }
 
 type AutoHealActionLinux struct {
@@ -475,9 +472,6 @@ func autoHealSettingSchemaLinux() *pluginsdk.Schema {
 
 				"action": autoHealActionSchemaLinux(),
 			},
-		},
-		RequiredWith: []string{
-			"site_config.0.auto_heal_enabled",
 		},
 	}
 }
@@ -572,7 +566,7 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 				},
 
 				"status_code": {
-					Type:     pluginsdk.TypeList,
+					Type:     pluginsdk.TypeSet,
 					Optional: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
@@ -622,15 +616,41 @@ func autoHealTriggerSchemaLinux() *pluginsdk.Schema {
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
 							"time_taken": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								// ValidateFunc: validation.IsRFC3339Time,
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: appServiceValidate.TimeInterval,
 							},
 
 							"interval": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								// ValidateFunc: validation.IsRFC3339Time,
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: appServiceValidate.TimeInterval,
+							},
+
+							"count": {
+								Type:         pluginsdk.TypeInt,
+								Required:     true,
+								ValidateFunc: validation.IntAtLeast(1),
+							},
+						},
+					},
+				},
+
+				"slow_request_with_path": {
+					Type:     pluginsdk.TypeList,
+					Optional: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"time_taken": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: appServiceValidate.TimeInterval,
+							},
+
+							"interval": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: appServiceValidate.TimeInterval,
 							},
 
 							"count": {
@@ -677,7 +697,7 @@ func autoHealTriggerSchemaLinuxComputed() *pluginsdk.Schema {
 				},
 
 				"status_code": {
-					Type:     pluginsdk.TypeList,
+					Type:     pluginsdk.TypeSet,
 					Computed: true,
 					Elem: &pluginsdk.Resource{
 						Schema: map[string]*pluginsdk.Schema{
@@ -733,6 +753,29 @@ func autoHealTriggerSchemaLinuxComputed() *pluginsdk.Schema {
 								Type:     pluginsdk.TypeInt,
 								Computed: true,
 							},
+						},
+					},
+				},
+
+				"slow_request_with_path": {
+					Type:     pluginsdk.TypeList,
+					Computed: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"time_taken": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"interval": {
+								Type:     pluginsdk.TypeString,
+								Computed: true,
+							},
+
+							"count": {
+								Type:     pluginsdk.TypeInt,
+								Computed: true,
+							},
 
 							"path": {
 								Type:     pluginsdk.TypeString,
@@ -762,7 +805,7 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*webap
 	expanded.FtpsState = pointer.To(webapps.FtpsState(s.FtpsState))
 	expanded.MinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.MinTlsVersion))
 	expanded.ScmMinTlsVersion = pointer.To(webapps.SupportedTlsVersions(s.ScmMinTlsVersion))
-	expanded.AutoHealEnabled = pointer.To(s.AutoHeal)
+	expanded.AutoHealEnabled = pointer.To(false)
 	expanded.VnetRouteAllEnabled = pointer.To(s.VnetRouteAllEnabled)
 	expanded.IPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.IpRestrictionDefaultAction))
 	expanded.ScmIPSecurityRestrictionsDefaultAction = pointer.To(webapps.DefaultAction(s.ScmIpRestrictionDefaultAction))
@@ -815,12 +858,6 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*webap
 				return nil, fmt.Errorf("could not build linuxFxVersion string: %+v", err)
 			}
 			expanded.LinuxFxVersion = javaString
-		}
-
-		if !features.FourPointOhBeta() {
-			if linuxAppStack.DockerImage != "" {
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
-			}
 		}
 
 		if linuxAppStack.DockerImageName != "" {
@@ -879,6 +916,7 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*webap
 	}
 
 	if len(s.AutoHealSettings) == 1 {
+		expanded.AutoHealEnabled = pointer.To(true)
 		expanded.AutoHealRules = expandAutoHealSettingsLinux(s.AutoHealSettings)
 	}
 
@@ -888,8 +926,8 @@ func (s *SiteConfigLinux) ExpandForCreate(appSettings map[string]string) (*webap
 func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existing *webapps.SiteConfig, appSettings map[string]string) (*webapps.SiteConfig, error) {
 	expanded := *existing
 
+	expanded.AlwaysOn = pointer.To(s.AlwaysOn)
 	expanded.AcrUseManagedIdentityCreds = pointer.To(s.UseManagedIdentityACR)
-	expanded.AutoHealEnabled = pointer.To(s.AutoHeal)
 	expanded.HTTP20Enabled = pointer.To(s.Http2Enabled)
 	expanded.LocalMySqlEnabled = pointer.To(s.LocalMysql)
 	expanded.RemoteDebuggingEnabled = pointer.To(s.RemoteDebugging)
@@ -946,12 +984,6 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 				return nil, fmt.Errorf("could not build linuxFxVersion string: %+v", err)
 			}
 			expanded.LinuxFxVersion = javaString
-		}
-
-		if !features.FourPointOhBeta() {
-			if linuxAppStack.DockerImage != "" {
-				expanded.LinuxFxVersion = pointer.To(fmt.Sprintf("DOCKER|%s:%s", linuxAppStack.DockerImage, linuxAppStack.DockerImageTag))
-			}
 		}
 
 		if linuxAppStack.DockerImageName != "" {
@@ -1044,6 +1076,10 @@ func (s *SiteConfigLinux) ExpandForUpdate(metadata sdk.ResourceMetaData, existin
 	}
 
 	if metadata.ResourceData.HasChange("site_config.0.auto_heal_setting") {
+		expanded.AutoHealEnabled = pointer.To(false)
+		if len(s.AutoHealSettings) != 0 {
+			expanded.AutoHealEnabled = pointer.To(true)
+		}
 		expanded.AutoHealRules = expandAutoHealSettingsLinux(s.AutoHealSettings)
 	}
 
@@ -1054,7 +1090,6 @@ func (s *SiteConfigLinux) Flatten(appSiteConfig *webapps.SiteConfig) {
 	if appSiteConfig != nil {
 		s.AlwaysOn = pointer.From(appSiteConfig.AlwaysOn)
 		s.AppCommandLine = pointer.From(appSiteConfig.AppCommandLine)
-		s.AutoHeal = pointer.From(appSiteConfig.AutoHealEnabled)
 		s.AutoHealSettings = flattenAutoHealSettingsLinux(appSiteConfig.AutoHealRules)
 		s.ContainerRegistryMSI = pointer.From(appSiteConfig.AcrUserManagedIdentityID)
 		s.DetailedErrorLogging = pointer.From(appSiteConfig.DetailedErrorLoggingEnabled)
@@ -1133,38 +1168,6 @@ func (s *SiteConfigLinux) DecodeDockerAppStack(input map[string]string) {
 	s.ApplicationStack = []ApplicationStackLinux{applicationStack}
 }
 
-func (s *SiteConfigLinux) DecodeDockerDeprecatedAppStack(input map[string]string, usesDeprecated bool) {
-	applicationStack := ApplicationStackLinux{}
-	if len(s.ApplicationStack) == 1 {
-		applicationStack = s.ApplicationStack[0]
-	}
-	if !usesDeprecated {
-		if v, ok := input["DOCKER_REGISTRY_SERVER_URL"]; ok {
-			applicationStack.DockerRegistryUrl = v
-		}
-
-		if v, ok := input["DOCKER_REGISTRY_SERVER_USERNAME"]; ok {
-			applicationStack.DockerRegistryUsername = v
-		}
-
-		if v, ok := input["DOCKER_REGISTRY_SERVER_PASSWORD"]; ok {
-			applicationStack.DockerRegistryPassword = v
-		}
-
-		registryHost := trimURLScheme(applicationStack.DockerRegistryUrl)
-		dockerString := strings.TrimPrefix(s.LinuxFxVersion, "DOCKER|")
-		applicationStack.DockerImageName = strings.TrimPrefix(dockerString, registryHost+"/")
-	} else {
-		parts := strings.Split(s.LinuxFxVersion, "|")
-		if dockerParts := strings.Split(parts[1], ":"); len(dockerParts) == 2 {
-			applicationStack.DockerImage = dockerParts[0]
-			applicationStack.DockerImageTag = dockerParts[1]
-		}
-	}
-
-	s.ApplicationStack = []ApplicationStackLinux{applicationStack}
-}
-
 func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *webapps.AutoHealRules {
 	if len(autoHealSettings) == 0 {
 		return nil
@@ -1201,9 +1204,22 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *webap
 			TimeInterval: pointer.To(triggers.SlowRequests[0].Interval),
 			Count:        pointer.To(triggers.SlowRequests[0].Count),
 		}
-		if triggers.SlowRequests[0].Path != "" {
-			result.Triggers.SlowRequests.Path = pointer.To(triggers.SlowRequests[0].Path)
+	}
+
+	if len(triggers.SlowRequestsWithPath) > 0 {
+		slowRequestWithPathTriggers := make([]webapps.SlowRequestsBasedTrigger, 0)
+		for _, sr := range triggers.SlowRequestsWithPath {
+			trigger := webapps.SlowRequestsBasedTrigger{
+				TimeTaken:    pointer.To(sr.TimeTaken),
+				TimeInterval: pointer.To(sr.Interval),
+				Count:        pointer.To(sr.Count),
+			}
+			if sr.Path != "" {
+				trigger.Path = pointer.To(sr.Path)
+			}
+			slowRequestWithPathTriggers = append(slowRequestWithPathTriggers, trigger)
 		}
+		result.Triggers.SlowRequestsWithPath = &slowRequestWithPathTriggers
 	}
 
 	if len(triggers.StatusCodes) > 0 {
@@ -1225,6 +1241,10 @@ func expandAutoHealSettingsLinux(autoHealSettings []AutoHealSettingLinux) *webap
 				statusCode, err := strconv.Atoi(s.StatusCodeRange)
 				if err == nil {
 					statusCodeTrigger.Status = pointer.To(int64(statusCode))
+				}
+				statusCodeTrigger.Count = pointer.To(s.Count)
+				if s.Win32Status != 0 {
+					statusCodeTrigger.Win32Status = pointer.To(s.Win32Status)
 				}
 				statusCodeTrigger.Count = pointer.To(s.Count)
 				statusCodeTrigger.TimeInterval = pointer.To(s.Interval)
@@ -1272,7 +1292,7 @@ func flattenAutoHealSettingsLinux(autoHealRules *webapps.AutoHealRules) []AutoHe
 				}
 
 				if s.Status != nil {
-					t.StatusCodeRange = strconv.Itoa(int(*s.Status))
+					t.StatusCodeRange = strconv.FormatInt(*s.Status, 10)
 				}
 
 				if s.Count != nil {
@@ -1281,6 +1301,10 @@ func flattenAutoHealSettingsLinux(autoHealRules *webapps.AutoHealRules) []AutoHe
 
 				if s.SubStatus != nil {
 					t.SubStatus = pointer.From(s.SubStatus)
+				}
+
+				if s.Win32Status != nil {
+					t.Win32Status = pointer.From(s.Win32Status)
 				}
 				statusCodeTriggers = append(statusCodeTriggers, t)
 			}
@@ -1309,10 +1333,23 @@ func flattenAutoHealSettingsLinux(autoHealRules *webapps.AutoHealRules) []AutoHe
 				TimeTaken: pointer.From(triggers.SlowRequests.TimeTaken),
 				Interval:  pointer.From(triggers.SlowRequests.TimeInterval),
 				Count:     pointer.From(triggers.SlowRequests.Count),
-				Path:      pointer.From(triggers.SlowRequests.Path),
 			})
 		}
+
+		slowRequestTriggersWithPaths := make([]AutoHealSlowRequestWithPath, 0)
+		if triggers.SlowRequestsWithPath != nil {
+			for _, v := range *triggers.SlowRequestsWithPath {
+				sr := AutoHealSlowRequestWithPath{
+					TimeTaken: pointer.From(v.TimeTaken),
+					Interval:  pointer.From(v.TimeInterval),
+					Count:     pointer.From(v.Count),
+					Path:      pointer.From(v.Path),
+				}
+				slowRequestTriggersWithPaths = append(slowRequestTriggersWithPaths, sr)
+			}
+		}
 		resultTrigger.SlowRequests = slowRequestTriggers
+		resultTrigger.SlowRequestsWithPath = slowRequestTriggersWithPaths
 		result.Triggers = []AutoHealTriggerLinux{resultTrigger}
 	}
 

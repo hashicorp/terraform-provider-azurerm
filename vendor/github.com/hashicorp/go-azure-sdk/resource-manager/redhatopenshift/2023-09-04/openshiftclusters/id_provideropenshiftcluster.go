@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ProviderOpenShiftClusterId{})
+}
 
 var _ resourceids.ResourceId = &ProviderOpenShiftClusterId{}
 
@@ -37,7 +42,7 @@ func ParseProviderOpenShiftClusterID(input string) (*ProviderOpenShiftClusterId,
 	}
 
 	id := ProviderOpenShiftClusterId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +59,7 @@ func ParseProviderOpenShiftClusterIDInsensitively(input string) (*ProviderOpenSh
 	}
 
 	id := ProviderOpenShiftClusterId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -110,7 +115,7 @@ func (id ProviderOpenShiftClusterId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftRedHatOpenShift", "Microsoft.RedHatOpenShift", "Microsoft.RedHatOpenShift"),
 		resourceids.StaticSegment("staticOpenShiftClusters", "openShiftClusters", "openShiftClusters"),
-		resourceids.UserSpecifiedSegment("openShiftClusterName", "openShiftClusterValue"),
+		resourceids.UserSpecifiedSegment("openShiftClusterName", "openShiftClusterName"),
 	}
 }
 

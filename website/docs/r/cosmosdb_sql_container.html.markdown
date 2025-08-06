@@ -29,7 +29,7 @@ resource "azurerm_cosmosdb_sql_container" "example" {
   resource_group_name   = data.azurerm_cosmosdb_account.example.resource_group_name
   account_name          = data.azurerm_cosmosdb_account.example.name
   database_name         = azurerm_cosmosdb_sql_database.example.name
-  partition_key_path    = "/definition/id"
+  partition_key_paths   = ["/definition/id"]
   partition_key_version = 1
   throughput            = 400
 
@@ -67,15 +67,19 @@ The following arguments are supported:
 
 * `database_name` - (Required) The name of the Cosmos DB SQL Database to create the container within. Changing this forces a new resource to be created.
 
-* `partition_key_path` - (Required) Define a partition key. Changing this forces a new resource to be created.
+* `partition_key_paths` - (Required) A list of partition key paths. Changing this forces a new resource to be created.
 
-* `partition_key_version` - (Optional) Define a partition key version. Changing this forces a new resource to be created. Possible values are `1`and `2`. This should be set to `2` in order to use large partition keys.
+* `partition_key_kind` - (Optional) Define a partition key kind. Possible values are `Hash` and `MultiHash`. Defaults to `Hash`. Changing this forces a new resource to be created.
+
+* `partition_key_version` - (Optional) Define a partition key version. Possible values are `1`and `2`. This should be set to `2` in order to use large partition keys.
+
+-> **Note:** If `partition_key_version` is not specified when creating a new resource, you can update `partition_key_version` to `1`, updating to `2` forces a new resource to be created.
 
 * `unique_key` - (Optional) One or more `unique_key` blocks as defined below. Changing this forces a new resource to be created.
 
 * `throughput` - (Optional) The throughput of SQL container (RU/s). Must be set in increments of `100`. The minimum value is `400`. This must be set upon container creation otherwise it cannot be updated without a manual terraform destroy-apply.
 
-* `autoscale_settings` - (Optional) An `autoscale_settings` block as defined below. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply. Requires `partition_key_path` to be set.
+* `autoscale_settings` - (Optional) An `autoscale_settings` block as defined below. This must be set upon database creation otherwise it cannot be updated without a manual terraform destroy-apply.
 
 ~> **Note:** Switching between autoscale and manual throughput is not supported via Terraform and must be completed via the Azure Portal and refreshed.
 
@@ -170,8 +174,8 @@ A `spatial_index` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the CosmosDB SQL Container.
-* `update` - (Defaults to 30 minutes) Used when updating the CosmosDB SQL Container.
 * `read` - (Defaults to 5 minutes) Used when retrieving the CosmosDB SQL Container.
+* `update` - (Defaults to 30 minutes) Used when updating the CosmosDB SQL Container.
 * `delete` - (Defaults to 30 minutes) Used when deleting the CosmosDB SQL Container.
 
 ## Import
@@ -181,3 +185,9 @@ Cosmos SQL Containers can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_cosmosdb_sql_container.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DocumentDB/databaseAccounts/account1/sqlDatabases/database1/containers/container1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DocumentDB` - 2024-08-15

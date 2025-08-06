@@ -15,7 +15,7 @@ type FeaturesClient struct {
 }
 
 func NewFeaturesClientWithBaseURI(sdkApi sdkEnv.Api) (*FeaturesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "features", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "features", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating FeaturesClient: %+v", err)
 	}

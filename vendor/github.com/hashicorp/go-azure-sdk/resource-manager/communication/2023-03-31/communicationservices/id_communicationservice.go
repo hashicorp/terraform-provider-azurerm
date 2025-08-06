@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&CommunicationServiceId{})
+}
 
 var _ resourceids.ResourceId = &CommunicationServiceId{}
 
@@ -37,7 +42,7 @@ func ParseCommunicationServiceID(input string) (*CommunicationServiceId, error) 
 	}
 
 	id := CommunicationServiceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +59,7 @@ func ParseCommunicationServiceIDInsensitively(input string) (*CommunicationServi
 	}
 
 	id := CommunicationServiceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -110,7 +115,7 @@ func (id CommunicationServiceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCommunication", "Microsoft.Communication", "Microsoft.Communication"),
 		resourceids.StaticSegment("staticCommunicationServices", "communicationServices", "communicationServices"),
-		resourceids.UserSpecifiedSegment("communicationServiceName", "communicationServiceValue"),
+		resourceids.UserSpecifiedSegment("communicationServiceName", "communicationServiceName"),
 	}
 }
 

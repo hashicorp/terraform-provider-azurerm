@@ -49,7 +49,6 @@ func (c JobDefinitionsClient) Update(ctx context.Context, id JobDefinitionId, in
 
 	var model JobDefinition
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

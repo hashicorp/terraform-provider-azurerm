@@ -7,17 +7,18 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"math"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-03/galleryapplicationversions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/networksecuritygroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -87,6 +88,28 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 				},
 				"ip_configuration": virtualMachineScaleSetIPConfigurationSchema(),
 
+				"auxiliary_mode": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						// None is not exposed
+						string(virtualmachinescalesets.NetworkInterfaceAuxiliaryModeAcceleratedConnections),
+						string(virtualmachinescalesets.NetworkInterfaceAuxiliaryModeFloating),
+					}, false),
+				},
+
+				"auxiliary_sku": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						// None is not exposed
+						string(virtualmachinescalesets.NetworkInterfaceAuxiliarySkuAEight),
+						string(virtualmachinescalesets.NetworkInterfaceAuxiliarySkuAFour),
+						string(virtualmachinescalesets.NetworkInterfaceAuxiliarySkuAOne),
+						string(virtualmachinescalesets.NetworkInterfaceAuxiliarySkuATwo),
+					}, false),
+				},
+
 				"dns_servers": {
 					Type:     pluginsdk.TypeList,
 					Optional: true,
@@ -110,7 +133,7 @@ func VirtualMachineScaleSetNetworkInterfaceSchema() *pluginsdk.Schema {
 				"network_security_group_id": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: networkValidate.NetworkSecurityGroupID,
+					ValidateFunc: networksecuritygroups.ValidateNetworkSecurityGroupID,
 				},
 				"primary": {
 					Type:     pluginsdk.TypeBool,
@@ -127,13 +150,6 @@ func VirtualMachineScaleSetGalleryApplicationSchema() *pluginsdk.Schema {
 		Type:     pluginsdk.TypeList,
 		Optional: true,
 		MaxItems: 100,
-		Computed: !features.FourPointOhBeta(),
-		ConflictsWith: func() []string {
-			if !features.FourPointOhBeta() {
-				return []string{"gallery_applications"}
-			}
-			return []string{}
-		}(),
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"version_id": {
@@ -156,54 +172,7 @@ func VirtualMachineScaleSetGalleryApplicationSchema() *pluginsdk.Schema {
 					Optional:     true,
 					Default:      0,
 					ForceNew:     true,
-					ValidateFunc: validation.IntBetween(0, 2147483647),
-				},
-
-				// NOTE: Per the service team, "this is a pass through value that we just add to the model but don't depend on. It can be any string."
-				"tag": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ForceNew:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
-				},
-			},
-		},
-	}
-}
-
-func VirtualMachineScaleSetGalleryApplicationsSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:          pluginsdk.TypeList,
-		Optional:      true,
-		MaxItems:      100,
-		Computed:      !features.FourPointOhBeta(),
-		ConflictsWith: []string{"gallery_application"},
-		Deprecated:    "`gallery_applications` has been renamed to `gallery_application` and will be deprecated in 4.0",
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"package_reference_id": {
-					Type:         pluginsdk.TypeString,
-					Required:     true,
-					ForceNew:     true,
-					ValidateFunc: galleryapplicationversions.ValidateApplicationVersionID,
-					Deprecated:   "`package_reference_id` has been renamed to `version_id` and will be deprecated in 4.0",
-				},
-
-				// Example: https://mystorageaccount.blob.core.windows.net/configurations/settings.config
-				"configuration_reference_blob_uri": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ForceNew:     true,
-					ValidateFunc: validation.IsURLWithHTTPorHTTPS,
-					Deprecated:   "`configuration_reference_blob_uri` has been renamed to `configuration_blob_uri` and will be deprecated in 4.0",
-				},
-
-				"order": {
-					Type:         pluginsdk.TypeInt,
-					Optional:     true,
-					Default:      0,
-					ForceNew:     true,
-					ValidateFunc: validation.IntBetween(0, 2147483647),
+					ValidateFunc: validation.IntBetween(0, math.MaxInt32),
 				},
 
 				// NOTE: Per the service team, "this is a pass through value that we just add to the model but don't depend on. It can be any string."
@@ -280,99 +249,7 @@ func flattenVirtualMachineScaleSetGalleryApplication(input *[]virtualmachinescal
 	return out
 }
 
-func expandVirtualMachineScaleSetGalleryApplications(input []interface{}) *[]virtualmachinescalesets.VMGalleryApplication {
-	if len(input) == 0 {
-		return nil
-	}
-
-	out := make([]virtualmachinescalesets.VMGalleryApplication, 0)
-
-	for _, v := range input {
-		packageReferenceId := v.(map[string]interface{})["package_reference_id"].(string)
-		configurationReference := v.(map[string]interface{})["configuration_reference_blob_uri"].(string)
-		order := v.(map[string]interface{})["order"].(int)
-		tag := v.(map[string]interface{})["tag"].(string)
-
-		app := &virtualmachinescalesets.VMGalleryApplication{
-			PackageReferenceId:     packageReferenceId,
-			ConfigurationReference: pointer.To(configurationReference),
-			Order:                  pointer.To(int64(order)),
-			Tags:                   pointer.To(tag),
-		}
-
-		out = append(out, *app)
-	}
-
-	return &out
-}
-
-func flattenVirtualMachineScaleSetGalleryApplications(input *[]virtualmachinescalesets.VMGalleryApplication) []interface{} {
-	if len(*input) == 0 {
-		return nil
-	}
-
-	out := make([]interface{}, 0)
-
-	for _, v := range *input {
-		var configurationReference, tag string
-		var order int
-
-		if v.ConfigurationReference != nil {
-			configurationReference = *v.ConfigurationReference
-		}
-
-		if v.Order != nil {
-			order = int(*v.Order)
-		}
-
-		if v.Tags != nil {
-			tag = *v.Tags
-		}
-
-		app := map[string]interface{}{
-			"package_reference_id":             v.PackageReferenceId,
-			"configuration_reference_blob_uri": configurationReference,
-			"order":                            order,
-			"tag":                              tag,
-		}
-
-		out = append(out, app)
-	}
-
-	return out
-}
-
 func VirtualMachineScaleSetScaleInPolicySchema() *pluginsdk.Schema {
-	if !features.FourPointOhBeta() {
-		return &pluginsdk.Schema{
-			Type:          pluginsdk.TypeList,
-			Optional:      true,
-			Computed:      !features.FourPointOhBeta(),
-			MaxItems:      1,
-			ConflictsWith: []string{"scale_in_policy"},
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"rule": {
-						Type:     pluginsdk.TypeString,
-						Optional: true,
-						Default:  string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault),
-						ValidateFunc: validation.StringInSlice([]string{
-							string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesDefault),
-							string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesNewestVM),
-							string(virtualmachinescalesets.VirtualMachineScaleSetScaleInRulesOldestVM),
-						}, false),
-					},
-
-					"force_deletion_enabled": {
-						Type:     pluginsdk.TypeBool,
-						Optional: true,
-						Default:  false,
-					},
-				},
-			},
-		}
-	}
-
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
@@ -513,6 +390,16 @@ func VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource() *pluginsdk.Sche
 				},
 
 				"ip_configuration": virtualMachineScaleSetIPConfigurationSchemaForDataSource(),
+
+				"auxiliary_mode": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"auxiliary_sku": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
 
 				"dns_servers": {
 					Type:     pluginsdk.TypeList,
@@ -743,7 +630,7 @@ func virtualMachineScaleSetPublicIPAddressSchema() *pluginsdk.Schema {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
 					ForceNew:     true,
-					ValidateFunc: networkValidate.PublicIpPrefixID,
+					ValidateFunc: publicipprefixes.ValidatePublicIPPrefixID,
 				},
 			},
 		},
@@ -833,6 +720,14 @@ func ExpandVirtualMachineScaleSetNetworkInterface(input []interface{}) (*[]virtu
 				IPConfigurations:            ipConfigurations,
 				Primary:                     pointer.To(raw["primary"].(bool)),
 			},
+		}
+
+		if auxiliaryMode := raw["auxiliary_mode"].(string); auxiliaryMode != "" {
+			config.Properties.AuxiliaryMode = pointer.To(virtualmachinescalesets.NetworkInterfaceAuxiliaryMode(auxiliaryMode))
+		}
+
+		if auxiliarySku := raw["auxiliary_sku"].(string); auxiliarySku != "" {
+			config.Properties.AuxiliarySku = pointer.To(virtualmachinescalesets.NetworkInterfaceAuxiliarySku(auxiliarySku))
 		}
 
 		if nsgId := raw["network_security_group_id"].(string); nsgId != "" {
@@ -966,6 +861,14 @@ func ExpandVirtualMachineScaleSetNetworkInterfaceUpdate(input []interface{}) (*[
 			},
 		}
 
+		if auxiliaryMode := raw["auxiliary_mode"].(string); auxiliaryMode != "" {
+			config.Properties.AuxiliaryMode = pointer.To(virtualmachinescalesets.NetworkInterfaceAuxiliaryMode(auxiliaryMode))
+		}
+
+		if auxiliarySku := raw["auxiliary_sku"].(string); auxiliarySku != "" {
+			config.Properties.AuxiliarySku = pointer.To(virtualmachinescalesets.NetworkInterfaceAuxiliarySku(auxiliarySku))
+		}
+
 		if nsgId := raw["network_security_group_id"].(string); nsgId != "" {
 			config.Properties.NetworkSecurityGroup = &virtualmachinescalesets.SubResource{
 				Id: pointer.To(nsgId),
@@ -1059,10 +962,16 @@ func FlattenVirtualMachineScaleSetNetworkInterface(input *[]virtualmachinescales
 
 	results := make([]interface{}, 0)
 	for _, v := range *input {
-		var networkSecurityGroupId string
+		var auxiliaryMode, auxiliarySku, networkSecurityGroupId string
 		var enableAcceleratedNetworking, enableIPForwarding, primary bool
 		var dnsServers, ipConfigurations []interface{}
 		if props := v.Properties; props != nil {
+			if props.AuxiliaryMode != nil && *props.AuxiliaryMode != virtualmachinescalesets.NetworkInterfaceAuxiliaryModeNone {
+				auxiliaryMode = string(pointer.From(props.AuxiliaryMode))
+			}
+			if props.AuxiliarySku != nil && *props.AuxiliarySku != virtualmachinescalesets.NetworkInterfaceAuxiliarySkuNone {
+				auxiliarySku = string(pointer.From(props.AuxiliarySku))
+			}
 			if props.NetworkSecurityGroup != nil && props.NetworkSecurityGroup.Id != nil {
 				networkSecurityGroupId = *props.NetworkSecurityGroup.Id
 			}
@@ -1087,6 +996,8 @@ func FlattenVirtualMachineScaleSetNetworkInterface(input *[]virtualmachinescales
 
 			results = append(results, map[string]interface{}{
 				"name":                          v.Name,
+				"auxiliary_mode":                auxiliaryMode,
+				"auxiliary_sku":                 auxiliarySku,
 				"dns_servers":                   dnsServers,
 				"enable_accelerated_networking": enableAcceleratedNetworking,
 				"enable_ip_forwarding":          enableIPForwarding,
@@ -1738,12 +1649,16 @@ func VirtualMachineScaleSetRollingUpgradePolicySchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
 				},
+				"maximum_surge_instances_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+				},
 			},
 		},
 	}
 }
 
-func ExpandVirtualMachineScaleSetRollingUpgradePolicy(input []interface{}, isZonal bool) (*virtualmachinescalesets.RollingUpgradePolicy, error) {
+func ExpandVirtualMachineScaleSetRollingUpgradePolicy(input []interface{}, isZonal, overProvision bool) (*virtualmachinescalesets.RollingUpgradePolicy, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -1756,6 +1671,7 @@ func ExpandVirtualMachineScaleSetRollingUpgradePolicy(input []interface{}, isZon
 		MaxUnhealthyUpgradedInstancePercent: pointer.To(int64(raw["max_unhealthy_upgraded_instance_percent"].(int))),
 		PauseTimeBetweenBatches:             pointer.To(raw["pause_time_between_batches"].(string)),
 		PrioritizeUnhealthyInstances:        pointer.To(raw["prioritize_unhealthy_instances_enabled"].(bool)),
+		MaxSurge:                            pointer.To(raw["maximum_surge_instances_enabled"].(bool)),
 	}
 
 	enableCrossZoneUpgrade := raw["cross_zone_upgrades_enabled"].(bool)
@@ -1764,6 +1680,12 @@ func ExpandVirtualMachineScaleSetRollingUpgradePolicy(input []interface{}, isZon
 		rollingUpgradePolicy.EnableCrossZoneUpgrade = pointer.To(enableCrossZoneUpgrade)
 	} else if enableCrossZoneUpgrade {
 		return nil, fmt.Errorf("`rolling_upgrade_policy.0.cross_zone_upgrades_enabled` can only be set to `true` when `zones` is specified")
+	}
+
+	maxSurge := raw["maximum_surge_instances_enabled"].(bool)
+	if overProvision && maxSurge {
+		// MaxSurge can only be set when overprovision is set to false
+		return nil, fmt.Errorf("`rolling_upgrade_policy.0.maximum_surge_instances_enabled` can only be set to `true` when `overprovision` is disabled (set to `false`)")
 	}
 
 	return rollingUpgradePolicy, nil
@@ -1804,6 +1726,11 @@ func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *virtualmachinescal
 		prioritizeUnhealthyInstances = *input.PrioritizeUnhealthyInstances
 	}
 
+	maxSurge := false
+	if input.MaxSurge != nil {
+		maxSurge = *input.MaxSurge
+	}
+
 	return []interface{}{
 		map[string]interface{}{
 			"cross_zone_upgrades_enabled":             enableCrossZoneUpgrade,
@@ -1812,33 +1739,8 @@ func FlattenVirtualMachineScaleSetRollingUpgradePolicy(input *virtualmachinescal
 			"max_unhealthy_upgraded_instance_percent": maxUnhealthyUpgradedInstancePercent,
 			"pause_time_between_batches":              pauseTimeBetweenBatches,
 			"prioritize_unhealthy_instances_enabled":  prioritizeUnhealthyInstances,
+			"maximum_surge_instances_enabled":         maxSurge,
 		},
-	}
-}
-
-// TODO remove VirtualMachineScaleSetTerminateNotificationSchema in 4.0
-func VirtualMachineScaleSetTerminateNotificationSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
-		Type:       pluginsdk.TypeList,
-		Optional:   true,
-		Computed:   true,
-		MaxItems:   1,
-		Deprecated: "`terminate_notification` has been renamed to `termination_notification` and will be removed in 4.0.",
-		Elem: &pluginsdk.Resource{
-			Schema: map[string]*pluginsdk.Schema{
-				"enabled": {
-					Type:     pluginsdk.TypeBool,
-					Required: true,
-				},
-				"timeout": {
-					Type:         pluginsdk.TypeString,
-					Optional:     true,
-					ValidateFunc: azValidate.ISO8601DurationBetween("PT5M", "PT15M"),
-					Default:      "PT5M",
-				},
-			},
-		},
-		ConflictsWith: []string{"termination_notification"},
 	}
 }
 
@@ -1862,12 +1764,6 @@ func VirtualMachineScaleSetTerminationNotificationSchema() *pluginsdk.Schema {
 				},
 			},
 		},
-		ConflictsWith: func() []string {
-			if !features.FourPointOhBeta() {
-				return []string{"terminate_notification"}
-			}
-			return []string{}
-		}(),
 	}
 }
 
@@ -1922,12 +1818,18 @@ func VirtualMachineScaleSetAutomaticRepairsPolicySchema() *pluginsdk.Schema {
 					Type:     pluginsdk.TypeBool,
 					Required: true,
 				},
+				// NOTE: O+C 'grace_period' and 'action' will always return a value once they've been set.
 				"grace_period": {
-					Type:     pluginsdk.TypeString,
-					Optional: true,
-					Default:  "PT30M",
-					// this field actually has a range from 30m to 90m, is there a function that can do this validation?
-					ValidateFunc: azValidate.ISO8601Duration,
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: azValidate.ISO8601DurationBetween("PT10M", "PT90M"),
+				},
+				"action": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForRepairAction(), false),
 				},
 			},
 		},
@@ -1939,38 +1841,37 @@ func ExpandVirtualMachineScaleSetAutomaticRepairsPolicy(input []interface{}) *vi
 		return nil
 	}
 
-	raw := input[0].(map[string]interface{})
+	v := input[0].(map[string]interface{})
 
-	return &virtualmachinescalesets.AutomaticRepairsPolicy{
-		Enabled:     pointer.To(raw["enabled"].(bool)),
-		GracePeriod: pointer.To(raw["grace_period"].(string)),
+	result := virtualmachinescalesets.AutomaticRepairsPolicy{}
+
+	result.Enabled = pointer.To(v["enabled"].(bool))
+	result.GracePeriod = pointer.To(v["grace_period"].(string))
+
+	if v["action"].(string) != "" {
+		result.RepairAction = pointer.To(virtualmachinescalesets.RepairAction(v["action"].(string)))
 	}
+
+	return &result
 }
 
 func FlattenVirtualMachineScaleSetAutomaticRepairsPolicy(input *virtualmachinescalesets.AutomaticRepairsPolicy) []interface{} {
-	// if enabled is set to false, there will be no AutomaticRepairsPolicy in response, to avoid plan non empty when
-	// a user explicitly set enabled to false, we need to assign a default block to this field
-
-	enabled := false
-	if input != nil && input.Enabled != nil {
-		enabled = *input.Enabled
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
 	}
 
-	gracePeriod := "PT30M"
-	if input != nil && input.GracePeriod != nil {
-		gracePeriod = *input.GracePeriod
-	}
+	result := make(map[string]interface{})
 
-	return []interface{}{
-		map[string]interface{}{
-			"enabled":      enabled,
-			"grace_period": gracePeriod,
-		},
-	}
+	result["enabled"] = pointer.From(input.Enabled)
+	result["grace_period"] = pointer.From(input.GracePeriod)
+	result["action"] = pointer.From(input.RepairAction)
+
+	return append(results, result)
 }
 
 func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
-	return &pluginsdk.Schema{
+	schema := &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
 		Optional: true,
 		Computed: true,
@@ -2009,6 +1910,7 @@ func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 				"automatic_upgrade_enabled": {
 					Type:     pluginsdk.TypeBool,
 					Optional: true,
+					Default:  false,
 				},
 
 				"force_update_tag": {
@@ -2044,6 +1946,8 @@ func VirtualMachineScaleSetExtensionsSchema() *pluginsdk.Schema {
 		},
 		Set: virtualMachineScaleSetExtensionHash,
 	}
+
+	return schema
 }
 
 func virtualMachineScaleSetExtensionHash(v interface{}) int {
@@ -2141,7 +2045,7 @@ func expandVirtualMachineScaleSetExtensions(input []interface{}) (extensionProfi
 			extensionProps.Settings = pointer.To(result)
 		}
 
-		protectedSettingsFromKeyVault := expandProtectedSettingsFromKeyVault(extensionRaw["protected_settings_from_key_vault"].([]interface{}))
+		protectedSettingsFromKeyVault := expandProtectedSettingsFromKeyVaultVMSS(extensionRaw["protected_settings_from_key_vault"].([]interface{}))
 		extensionProps.ProtectedSettingsFromKeyVault = protectedSettingsFromKeyVault
 
 		if val, ok := extensionRaw["protected_settings"]; ok && val.(string) != "" {
@@ -2257,7 +2161,7 @@ func flattenVirtualMachineScaleSetExtensions(input *virtualmachinescalesets.Virt
 			"force_update_tag":                  forceUpdateTag,
 			"provision_after_extensions":        provisionAfterExtension,
 			"protected_settings":                protectedSettings,
-			"protected_settings_from_key_vault": flattenProtectedSettingsFromKeyVault(protectedSettingsFromKeyVault),
+			"protected_settings_from_key_vault": flattenProtectedSettingsFromKeyVaultVMSS(protectedSettingsFromKeyVault),
 			"publisher":                         extPublisher,
 			"settings":                          extSettings,
 			"type":                              extType,

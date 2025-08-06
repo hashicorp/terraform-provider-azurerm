@@ -43,6 +43,7 @@ func (o CreateOrReplaceOperationOptions) ToHeaders() *client.Headers {
 
 func (o CreateOrReplaceOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -61,8 +62,8 @@ func (c StreamingJobsClient) CreateOrReplace(ctx context.Context, id StreamingJo
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPut,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

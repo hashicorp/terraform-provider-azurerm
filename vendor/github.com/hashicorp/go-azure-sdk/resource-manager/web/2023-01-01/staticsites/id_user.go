@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&UserId{})
+}
 
 var _ resourceids.ResourceId = &UserId{}
 
@@ -41,7 +46,7 @@ func ParseUserID(input string) (*UserId, error) {
 	}
 
 	id := UserId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -58,7 +63,7 @@ func ParseUserIDInsensitively(input string) (*UserId, error) {
 	}
 
 	id := UserId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -122,11 +127,11 @@ func (id UserId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftWeb", "Microsoft.Web", "Microsoft.Web"),
 		resourceids.StaticSegment("staticStaticSites", "staticSites", "staticSites"),
-		resourceids.UserSpecifiedSegment("staticSiteName", "staticSiteValue"),
+		resourceids.UserSpecifiedSegment("staticSiteName", "staticSiteName"),
 		resourceids.StaticSegment("staticAuthProviders", "authProviders", "authProviders"),
-		resourceids.UserSpecifiedSegment("authProviderName", "authProviderValue"),
+		resourceids.UserSpecifiedSegment("authProviderName", "authProviderName"),
 		resourceids.StaticSegment("staticUsers", "users", "users"),
-		resourceids.UserSpecifiedSegment("userName", "userValue"),
+		resourceids.UserSpecifiedSegment("userName", "userName"),
 	}
 }
 

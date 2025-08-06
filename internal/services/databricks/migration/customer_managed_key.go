@@ -10,14 +10,13 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2023-02-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/databricks/2024-05-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
 var _ pluginsdk.StateUpgrade = CustomerManagedKeyV0ToV1{}
 
-type CustomerManagedKeyV0ToV1 struct {
-}
+type CustomerManagedKeyV0ToV1 struct{}
 
 func (c CustomerManagedKeyV0ToV1) Schema() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{

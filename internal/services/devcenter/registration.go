@@ -9,9 +9,7 @@ import (
 
 var _ sdk.TypedServiceRegistrationWithAGitHubLabel = Registration{}
 
-type Registration struct {
-	autoRegistration
-}
+type Registration struct{}
 
 func (r Registration) Name() string {
 	return "Dev Center"
@@ -22,17 +20,37 @@ func (r Registration) AssociatedGitHubLabel() string {
 }
 
 func (r Registration) WebsiteCategories() []string {
-	return r.autoRegistration.WebsiteCategories()
+	return []string{
+		"Dev Center",
+	}
 }
 
 func (r Registration) DataSources() []sdk.DataSource {
-	return r.autoRegistration.DataSources()
+	return []sdk.DataSource{
+		DevCenterAttachedNetworkDataSource{},
+		DevCenterCatalogDataSource{},
+		DevCenterDataSource{},
+		DevCenterDevBoxDefinitionDataSource{},
+		DevCenterEnvironmentTypeDataSource{},
+		DevCenterGalleryDataSource{},
+		DevCenterNetworkConnectionDataSource{},
+		DevCenterProjectDataSource{},
+		DevCenterProjectEnvironmentTypeDataSource{},
+		DevCenterProjectPoolDataSource{},
+	}
 }
 
 func (r Registration) Resources() []sdk.Resource {
-	resources := []sdk.Resource{
+	return []sdk.Resource{
+		DevCenterAttachedNetworkResource{},
 		DevCenterGalleryResource{},
 		DevCenterCatalogsResource{},
+		DevCenterDevBoxDefinitionResource{},
+		DevCenterEnvironmentTypeResource{},
+		DevCenterNetworkConnectionResource{},
+		DevCenterProjectPoolResource{},
+		DevCenterProjectResource{},
+		DevCenterProjectEnvironmentTypeResource{},
+		DevCenterResource{},
 	}
-	return append(resources, r.autoRegistration.Resources()...)
 }

@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&SliceId{})
+}
 
 var _ resourceids.ResourceId = &SliceId{}
 
@@ -39,7 +44,7 @@ func ParseSliceID(input string) (*SliceId, error) {
 	}
 
 	id := SliceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParseSliceIDInsensitively(input string) (*SliceId, error) {
 	}
 
 	id := SliceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -116,9 +121,9 @@ func (id SliceId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftMobileNetwork", "Microsoft.MobileNetwork", "Microsoft.MobileNetwork"),
 		resourceids.StaticSegment("staticMobileNetworks", "mobileNetworks", "mobileNetworks"),
-		resourceids.UserSpecifiedSegment("mobileNetworkName", "mobileNetworkValue"),
+		resourceids.UserSpecifiedSegment("mobileNetworkName", "mobileNetworkName"),
 		resourceids.StaticSegment("staticSlices", "slices", "slices"),
-		resourceids.UserSpecifiedSegment("sliceName", "sliceValue"),
+		resourceids.UserSpecifiedSegment("sliceName", "sliceName"),
 	}
 }
 

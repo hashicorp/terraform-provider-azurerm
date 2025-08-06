@@ -44,10 +44,10 @@ resource "azurerm_kubernetes_cluster" "example" {
   dns_prefix          = "dns"
 
   default_node_pool {
-    name                   = "default"
-    node_count             = 1
-    vm_size                = "Standard_DS2_v2"
-    enable_host_encryption = true
+    name                    = "default"
+    node_count              = 1
+    vm_size                 = "Standard_DS2_v2"
+    host_encryption_enabled = true
   }
 
   identity {
@@ -91,19 +91,19 @@ resource "azurerm_kubernetes_cluster_extension" "example" {
   }
 }
 
-resource "azurerm_role_assignment" "extension_and_storage_account_permission" {
+resource "azurerm_role_assignment" "test_extension_and_storage_account_permission" {
   scope                = azurerm_storage_account.example.id
   role_definition_name = "Storage Account Contributor"
   principal_id         = azurerm_kubernetes_cluster_extension.example.aks_assigned_identity[0].principal_id
 }
 
-resource "azurerm_role_assignment" "vault_msi_read_on_cluster" {
+resource "azurerm_role_assignment" "test_vault_msi_read_on_cluster" {
   scope                = azurerm_kubernetes_cluster.example.id
   role_definition_name = "Reader"
   principal_id         = azurerm_data_protection_backup_vault.example.identity[0].principal_id
 }
 
-resource "azurerm_role_assignment" "vault_msi_read_on_snap_rg" {
+resource "azurerm_role_assignment" "test_vault_msi_read_on_snap_rg" {
   scope                = azurerm_resource_group.snap.id
   role_definition_name = "Reader"
   principal_id         = azurerm_data_protection_backup_vault.example.identity[0].principal_id
@@ -112,22 +112,22 @@ resource "azurerm_role_assignment" "vault_msi_read_on_snap_rg" {
 resource "azurerm_role_assignment" "test_vault_msi_snapshot_contributor_on_snap_rg" {
   scope                = azurerm_resource_group.snap.id
   role_definition_name = "Disk Snapshot Contributor"
-  principal_id         = azurerm_data_protection_backup_vault.test.identity[0].principal_id
+  principal_id         = azurerm_data_protection_backup_vault.example.identity[0].principal_id
 }
 
 resource "azurerm_role_assignment" "test_vault_data_operator_on_snap_rg" {
   scope                = azurerm_resource_group.snap.id
   role_definition_name = "Data Operator for Managed Disks"
-  principal_id         = azurerm_data_protection_backup_vault.test.identity[0].principal_id
+  principal_id         = azurerm_data_protection_backup_vault.example.identity[0].principal_id
 }
 
 resource "azurerm_role_assignment" "test_vault_data_contributor_on_storage" {
-  scope                = azurerm_storage_account.test.id
+  scope                = azurerm_storage_account.example.id
   role_definition_name = "Storage Blob Data Contributor"
-  principal_id         = azurerm_data_protection_backup_vault.test.identity[0].principal_id
+  principal_id         = azurerm_data_protection_backup_vault.example.identity[0].principal_id
 }
 
-resource "azurerm_role_assignment" "cluster_msi_contributor_on_snap_rg" {
+resource "azurerm_role_assignment" "test_cluster_msi_contributor_on_snap_rg" {
   scope                = azurerm_resource_group.snap.id
   role_definition_name = "Contributor"
   principal_id         = azurerm_kubernetes_cluster.example.identity[0].principal_id
@@ -243,7 +243,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the Backup Instance Kubernetes Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Backup Instance Kubernetes Cluster.
-* `update` - (Defaults to 30 minutes) Used when updating the Backup Instance Kubernetes Cluster.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Backup Instance Kubernetes Cluster.
 
 ## Import
@@ -253,3 +252,9 @@ Backup Instance Kubernetes Cluster can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_data_protection_backup_instance_kubernetes_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DataProtection/backupVaults/vault1/backupInstances/backupInstance1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DataProtection` - 2024-04-01

@@ -52,7 +52,7 @@ The following arguments are supported:
 
 * `function_alias` - (Optional) The function alias if the query serves as a function. Changing this forces a new resource to be created.
 
-* `function_parameters` - (Optional) The function parameters if the query serves as a function. Changing this forces a new resource to be created.
+* `function_parameters` - (Optional) The function parameters if the query serves as a function. Changing this forces a new resource to be created. For more examples and proper syntax please refer to [this document](https://learn.microsoft.com/en-us/azure/data-explorer/kusto/query/functions/user-defined-functions).
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Logs Analytics Saved Search. Changing this forces a new resource to be created.
 
@@ -77,3 +77,9 @@ Log Analytics Saved Searches can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_log_analytics_saved_search.search1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/savedSearches/search1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.OperationalInsights` - 2020-08-01

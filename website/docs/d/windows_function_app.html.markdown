@@ -107,6 +107,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `tags` - A mapping of tags assigned to the Windows Function App.
 
+* `virtual_network_backup_restore_enabled` - Whether backup and restore operations over the linked virtual network are enabled.
+
 * `virtual_network_subnet_id` - The subnet id which the Windows Function App is vNet Integrated with.
 
 * `webdeploy_publish_basic_authentication_enabled` - Are the default WebDeploy Basic Authentication publishing credentials enabled.
@@ -243,7 +245,7 @@ An `active_directory_v2` block supports the following:
 
 * `client_id` - The ID of the Client used to authenticate with Azure Active Directory.
 
-* `tenant_auth_endpoint` - The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/v2.0/{tenant-guid}/`
+* `tenant_auth_endpoint` - The Azure Tenant Endpoint for the Authenticating Tenant. e.g. `https://login.microsoftonline.com/{tenant-guid}/v2.0/`
 
 * `client_secret_setting_name` - The App Setting name that contains the client secret of the Client.
 
@@ -279,7 +281,7 @@ A `custom_oidc_v2` block supports the following:
 
 * `client_id` - The ID of the Client to use to authenticate with the Custom OIDC.
 
-* `openid_configuration_endpoint` - The app setting name that contains the `client_secret` value used for the Custom OIDC Login.
+* `openid_configuration_endpoint`- The endpoint used for OpenID Connect Discovery. For example `https://example.com/.well-known/openid-configuration`.
 
 * `name_claim_type` - The name of the claim that contains the users name.
 
@@ -588,3 +590,9 @@ A `twitter` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 10 minutes) Used when retrieving the Windows Function App.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Web` - 2023-12-01

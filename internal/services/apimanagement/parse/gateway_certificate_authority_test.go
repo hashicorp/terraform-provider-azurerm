@@ -27,7 +27,6 @@ func TestGatewayCertificateAuthorityID(t *testing.T) {
 		Error    bool
 		Expected *GatewayCertificateAuthorityId
 	}{
-
 		{
 			// empty
 			Input: "",

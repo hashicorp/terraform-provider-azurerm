@@ -27,7 +27,6 @@ func TestManagedCertificateID(t *testing.T) {
 		Error    bool
 		Expected *ManagedCertificateId
 	}{
-
 		{
 			// empty
 			Input: "",

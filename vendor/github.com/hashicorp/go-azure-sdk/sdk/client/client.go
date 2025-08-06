@@ -9,6 +9,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -16,6 +17,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"regexp"
 	"runtime"
 	"strconv"
 	"strings"
@@ -71,7 +73,11 @@ func RequestRetryAll(retryFuncs ...RequestRetryFunc) func(resp *http.Response, o
 // RetryableErrorHandler simply returns the resp and err, this is needed to make the Do() method
 // of retryablehttp client return early with the response body not drained.
 func RetryableErrorHandler(resp *http.Response, err error, _ int) (*http.Response, error) {
-	return resp, err
+	if resp == nil {
+		return nil, err
+	}
+
+	return resp, nil
 }
 
 // Request embeds *http.Request and adds useful metadata
@@ -82,6 +88,8 @@ type Request struct {
 
 	Client BaseClient
 	Pager  odata.CustomPager
+
+	CustomErrorParser ResponseErrorParser
 
 	// Embed *http.Request so that we can send this to an *http.Client
 	*http.Request
@@ -437,16 +445,8 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 
 	// Instantiate a RetryableHttp client and configure its CheckRetry func
 	r := c.retryableClient(ctx, func(ctx context.Context, r *http.Response, err error) (bool, error) {
-		// First check for badly malformed responses
-		if r == nil {
-			if req.IsIdempotent() {
-				return true, nil
-			}
-			return false, fmt.Errorf("HTTP response was nil; connection may have been reset")
-		}
-
 		// Eventual consistency checks
-		if !c.DisableRetries {
+		if r != nil && !c.DisableRetries {
 			if r.StatusCode == http.StatusFailedDependency {
 				return true, nil
 			}
@@ -466,6 +466,19 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 					return shouldRetry, err
 				}
 			}
+		}
+
+		// Check for failed connections etc and decide if retries are appropriate
+		if r == nil {
+			if req.IsIdempotent() {
+				if !isResourceManagerHost(req) {
+					return extendedRetryPolicy(r, err)
+				}
+
+				return retryablehttp.DefaultRetryPolicy(ctx, r, err)
+			}
+
+			return false, fmt.Errorf("HTTP response was nil; connection may have been reset")
 		}
 
 		// Fall back to default retry policy to handle rate limiting, server errors etc.
@@ -532,22 +545,33 @@ func (c *Client) Execute(ctx context.Context, req *Request) (*Response, error) {
 
 		// Determine suitable error text
 		var errText string
-		switch {
-		case resp.OData != nil && resp.OData.Error != nil && resp.OData.Error.String() != "":
-			errText = fmt.Sprintf("error: %s", resp.OData.Error)
 
-		default:
-			defer resp.Body.Close()
-
-			respBody, err := io.ReadAll(resp.Body)
-			if err != nil {
-				return resp, fmt.Errorf("unexpected status %s, could not read response body", status)
+		// Use a custom response error handler if provided
+		if req.CustomErrorParser != nil {
+			if err = req.CustomErrorParser.FromResponse(resp.Response); err != nil {
+				errText = err.Error()
 			}
-			if len(respBody) == 0 {
-				return resp, fmt.Errorf("unexpected status %s received with no body", status)
-			}
+		}
 
-			errText = fmt.Sprintf("response: %s", respBody)
+		// Fall back to parsing error text from OData
+		if errText == "" {
+			switch {
+			case resp.OData != nil && resp.OData.Error != nil && resp.OData.Error.String() != "":
+				errText = fmt.Sprintf("error: %s", resp.OData.Error)
+
+			default:
+				defer resp.Body.Close()
+
+				respBody, err := io.ReadAll(resp.Body)
+				if err != nil {
+					return resp, fmt.Errorf("unexpected status %s, could not read response body", status)
+				}
+				if len(respBody) == 0 {
+					return resp, fmt.Errorf("unexpected status %s received with no body", status)
+				}
+
+				errText = fmt.Sprintf("response: %s", respBody)
+			}
 		}
 
 		return resp, fmt.Errorf("unexpected status %s with %s", status, errText)
@@ -598,7 +622,7 @@ func (c *Client) ExecutePaged(ctx context.Context, req *Request) (*Response, err
 			return resp, err
 		}
 	}
-	if nextLink == nil {
+	if nextLink == nil || string(*nextLink) == "" {
 		// This is the last page
 		return resp, nil
 	}
@@ -675,14 +699,28 @@ func (c *Client) retryableClient(ctx context.Context, checkRetry retryablehttp.C
 	r.RetryWaitMin = 1 * time.Second
 	r.RetryWaitMax = 61 * time.Second
 
+	// The default backoff results into the following formula T(n):
+	// ("t" repr. total time in sec, "n" repr. total retry count):
+	// - t = 2**(n+1) - 1 				(0<=n<6)
+	// - t = (1+2+4+8+16+32) + 61*(n-6) (n>6)
+	// This results into the following N(t) (by guaranteeing T(n) <= t):
+	// - n = floor(log(t+1)) - 1 		(0<=t<=63)
+	// - n = (t - 63)/61 + 6 			(t > 63)
+	var safeRetryNumber = func(t time.Duration) int {
+		sec := t.Seconds()
+		if sec <= 63 {
+			return int(math.Floor(math.Log2(sec+1))) - 1
+		}
+		return (int(sec)-63)/61 + 6
+	}
+
 	// Default RetryMax of 16 takes approx 10 minutes to iterate
 	r.RetryMax = 16
 
-	// Extend the RetryMax if the context timeout exceeds 10 minutes
+	// In case the context has deadline defined, adjust the retry count to a value
+	// that the total time spent for retrying is right before the deadline exceeded.
 	if deadline, ok := ctx.Deadline(); ok {
-		if timeout := deadline.Sub(time.Now()); timeout > 10*time.Minute {
-			r.RetryMax = int(math.Round(timeout.Minutes())) + 6
-		}
+		r.RetryMax = safeRetryNumber(time.Until(deadline))
 	}
 
 	tlsConfig := tls.Config{
@@ -713,6 +751,115 @@ func containsStatusCode(expected []int, actual int) bool {
 	for _, v := range expected {
 		if actual == v {
 			return true
+		}
+	}
+
+	return false
+}
+
+// extendedRetryPolicy extends the defaultRetryPolicy implementation in go-retryablehhtp with
+// additional error conditions that should not be retried indefinitely
+// TODO - This should be removed as part of 5.0 release of AzureRM, and the base layer returned to the `retryablehttp.DefaultRetryPolicy` for all requests.
+func extendedRetryPolicy(resp *http.Response, err error) (bool, error) {
+	// A regular expression to match the error returned by net/http when the
+	// configured number of redirects is exhausted. This error isn't typed
+	// specifically so we resort to matching on the error string.
+	redirectsErrorRe := regexp.MustCompile(`stopped after \d+ redirects\z`)
+
+	// A regular expression to match the error returned by net/http when the
+	// scheme specified in the URL is invalid. This error isn't typed
+	// specifically so we resort to matching on the error string.
+	schemeErrorRe := regexp.MustCompile(`unsupported protocol scheme`)
+
+	// A regular expression to match the error returned by net/http when a
+	// request header or value is invalid. This error isn't typed
+	// specifically so we resort to matching on the error string.
+	invalidHeaderErrorRe := regexp.MustCompile(`invalid header`)
+
+	// A regular expression to match the error returned by net/http when the
+	// TLS certificate is not trusted. This error isn't typed
+	// specifically so we resort to matching on the error string.
+	notTrustedErrorRe := regexp.MustCompile(`certificate is not trusted`)
+
+	// A regular expression to catch dial timeouts in the underlying TCP session
+	// connection
+	tcpDialTCPRe := regexp.MustCompile(`dial tcp`)
+
+	// A regular expression to match complete packet loss
+	completePacketLossRe := regexp.MustCompile(`EOF`)
+
+	if err != nil {
+		var v *url.Error
+		if errors.As(err, &v) {
+			// Don't retry if the error was due to too many redirects.
+			if redirectsErrorRe.MatchString(v.Error()) {
+				return false, v
+			}
+
+			// Don't retry if the error was due to an invalid protocol scheme.
+			if schemeErrorRe.MatchString(v.Error()) {
+				return false, v
+			}
+
+			// Don't retry if the error was due to an invalid header.
+			if invalidHeaderErrorRe.MatchString(v.Error()) {
+				return false, v
+			}
+
+			// Don't retry if the error was due to TLS cert verification failure.
+			if notTrustedErrorRe.MatchString(v.Error()) {
+				return false, v
+			}
+
+			if tcpDialTCPRe.MatchString(v.Error()) {
+				return false, v
+			}
+
+			if completePacketLossRe.MatchString(v.Error()) {
+				return false, v
+			}
+
+			var certificateVerificationError *tls.CertificateVerificationError
+			if ok := errors.As(v.Err, &certificateVerificationError); ok {
+				return false, v
+			}
+		}
+
+		// The error is likely recoverable so retry.
+		return true, nil
+	}
+
+	// 429 Too Many Requests is recoverable. Sometimes the server puts
+	// a Retry-After response header to indicate when the server is
+	// available to start processing request from client.
+	if resp.StatusCode == http.StatusTooManyRequests {
+		return true, nil
+	}
+
+	// Check the response code. We retry on 500-range responses to allow
+	// the server time to recover, as 500's are typically not permanent
+	// errors and may relate to outages on the server side. This will catch
+	// invalid response codes as well, like 0 and 999.
+	if resp.StatusCode == 0 || (resp.StatusCode >= 500 && resp.StatusCode != http.StatusNotImplemented) {
+		return true, fmt.Errorf("unexpected HTTP status %s", resp.Status)
+	}
+
+	return false, nil
+}
+
+// exclude Resource Manager calls from the network failure retry avoidance to help users on unreliable networks
+// This code path should be removed when the Data Plane separation work is completed and 5.0 ships.
+func isResourceManagerHost(req *Request) bool {
+	knownResourceManagerHosts := []string{
+		"management.azure.com",
+		"management.chinacloudapi.cn",
+		"management.usgovcloudapi.net",
+	}
+	if url := req.Request.URL; url != nil {
+		for _, host := range knownResourceManagerHosts {
+			if strings.Contains(url.Host, host) {
+				return true
+			}
 		}
 	}
 

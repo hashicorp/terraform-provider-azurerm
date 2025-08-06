@@ -90,34 +90,11 @@ func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
 			"enabled_log": {
 				Type:     pluginsdk.TypeSet,
 				Optional: true,
-				Computed: !features.FourPointOhBeta(),
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"category": {
 							Type:     pluginsdk.TypeString,
 							Required: true,
-						},
-
-						"retention_policy": {
-							Type:     pluginsdk.TypeList,
-							Required: true,
-							MaxItems: 1,
-							Elem: &pluginsdk.Resource{
-								Schema: map[string]*pluginsdk.Schema{
-									"enabled": {
-										Type:     pluginsdk.TypeBool,
-										Optional: true,
-										Default:  false,
-									},
-
-									"days": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntAtLeast(0),
-										Default:      0,
-									},
-								},
-							},
 						},
 					},
 				},
@@ -125,47 +102,25 @@ func resourceMonitorAADDiagnosticSetting() *pluginsdk.Resource {
 		},
 	}
 
-	if !features.FourPointOhBeta() {
-		resource.Schema["enabled_log"].ExactlyOneOf = []string{"enabled_log", "log"}
-		resource.Schema["log"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeSet,
-			Optional:     true,
-			Computed:     true,
-			Deprecated:   "`log` has been superseded by `enabled_log` and will be removed in version 4.0 of the AzureRM Provider.",
-			ExactlyOneOf: []string{"enabled_log", "log"},
+	if !features.FivePointOh() {
+		resource.Schema["enabled_log"].Elem.(*pluginsdk.Resource).Schema["retention_policy"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Deprecated: "Azure does not support retention for new Azure Active Directory Diagnostic Settings",
+			MaxItems:   1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"category": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-					},
-
 					"enabled": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Default:  true,
+						Default:  false,
 					},
 
-					"retention_policy": {
-						Type:     pluginsdk.TypeList,
-						Required: true,
-						MaxItems: 1,
-						Elem: &pluginsdk.Resource{
-							Schema: map[string]*pluginsdk.Schema{
-								"enabled": {
-									Type:     pluginsdk.TypeBool,
-									Optional: true,
-									Default:  false,
-								},
-
-								"days": {
-									Type:         pluginsdk.TypeInt,
-									Optional:     true,
-									ValidateFunc: validation.IntAtLeast(0),
-									Default:      0,
-								},
-							},
-						},
+					"days": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntAtLeast(0),
+						Default:      0,
 					},
 				},
 			},
@@ -196,20 +151,6 @@ func resourceMonitorAADDiagnosticSettingCreate(d *pluginsdk.ResourceData, meta i
 	// Therefore, ensure users has at least one enabled log entry.
 	valid := false
 	var logs []diagnosticsettings.LogSettings
-
-	if !features.FourPointOhBeta() {
-		if logsRaw, ok := d.GetOk("log"); ok && len(logsRaw.(*pluginsdk.Set).List()) > 0 {
-			logs = expandMonitorAADDiagnosticsSettingsLogs(d.Get("log").(*pluginsdk.Set).List())
-
-			for _, v := range logs {
-				if v.Enabled {
-					valid = true
-					break
-				}
-			}
-		}
-	}
-
 	if enabledLogs, ok := d.GetOk("enabled_log"); ok && len(enabledLogs.(*pluginsdk.Set).List()) > 0 {
 		logs = expandMonitorAADDiagnosticsSettingsEnabledLogs(enabledLogs.(*pluginsdk.Set).List())
 		valid = true
@@ -272,19 +213,6 @@ func resourceMonitorAADDiagnosticSettingUpdate(d *pluginsdk.ResourceData, meta i
 	var logs []diagnosticsettings.LogSettings
 	logsChanged := false
 	valid := false
-
-	if !features.FourPointOhBeta() {
-		if d.HasChange("log") {
-			logsChanged = true
-			logs = expandMonitorAADDiagnosticsSettingsLogs(d.Get("log").(*pluginsdk.Set).List())
-			for _, v := range logs {
-				if v.Enabled {
-					valid = true
-					break
-				}
-			}
-		}
-	}
 
 	if d.HasChange("enabled_log") {
 		logsChanged = true
@@ -399,12 +327,6 @@ func resourceMonitorAADDiagnosticSettingRead(d *pluginsdk.ResourceData, meta int
 			if err := d.Set("enabled_log", flattenMonitorAADDiagnosticEnabledLogs(props.Logs)); err != nil {
 				return fmt.Errorf("setting `enabled_log`: %+v", err)
 			}
-
-			if !features.FourPointOhBeta() {
-				if err := d.Set("log", flattenMonitorAADDiagnosticLogs(props.Logs)); err != nil {
-					return fmt.Errorf("setting `log`: %+v", err)
-				}
-			}
 		}
 	}
 
@@ -438,38 +360,6 @@ func resourceMonitorAADDiagnosticSettingDelete(d *pluginsdk.ResourceData, meta i
 	return nil
 }
 
-func expandMonitorAADDiagnosticsSettingsLogs(input []interface{}) []diagnosticsettings.LogSettings {
-	results := make([]diagnosticsettings.LogSettings, 0)
-
-	for _, raw := range input {
-		if raw == nil {
-			continue
-		}
-		v := raw.(map[string]interface{})
-
-		category := v["category"].(string)
-		enabled := v["enabled"].(bool)
-
-		policyRaw := v["retention_policy"].([]interface{})[0].(map[string]interface{})
-		if len(v["retention_policy"].([]interface{})) == 0 || v["retention_policy"].([]interface{})[0] == nil {
-			continue
-		}
-		retentionDays := policyRaw["days"].(int)
-		retentionEnabled := policyRaw["enabled"].(bool)
-
-		results = append(results, diagnosticsettings.LogSettings{
-			Category: pointer.To(diagnosticsettings.Category(category)),
-			Enabled:  enabled,
-			RetentionPolicy: &diagnosticsettings.RetentionPolicy{
-				Days:    int64(retentionDays),
-				Enabled: retentionEnabled,
-			},
-		})
-	}
-
-	return results
-}
-
 func expandMonitorAADDiagnosticsSettingsEnabledLogs(input []interface{}) []diagnosticsettings.LogSettings {
 	results := make([]diagnosticsettings.LogSettings, 0)
 
@@ -479,51 +369,24 @@ func expandMonitorAADDiagnosticsSettingsEnabledLogs(input []interface{}) []diagn
 		}
 		v := raw.(map[string]interface{})
 
-		category := v["category"].(string)
-		if len(v["retention_policy"].([]interface{})) == 0 || v["retention_policy"].([]interface{})[0] == nil {
-			continue
-		}
-
-		policyRaw := v["retention_policy"].([]interface{})[0].(map[string]interface{})
-		retentionDays := policyRaw["days"].(int)
-		retentionEnabled := policyRaw["enabled"].(bool)
-		results = append(results, diagnosticsettings.LogSettings{
-			Category: pointer.To(diagnosticsettings.Category(category)),
+		logSettings := diagnosticsettings.LogSettings{
+			Category: pointer.To(diagnosticsettings.Category(v["category"].(string))),
 			Enabled:  true,
-			RetentionPolicy: &diagnosticsettings.RetentionPolicy{
-				Days:    int64(retentionDays),
-				Enabled: retentionEnabled,
-			},
-		})
-	}
-
-	return results
-}
-
-func flattenMonitorAADDiagnosticLogs(input *[]diagnosticsettings.LogSettings) []interface{} {
-	results := make([]interface{}, 0)
-	if input == nil {
-		return results
-	}
-
-	for _, v := range *input {
-		policies := make([]interface{}, 0)
-		if inputPolicy := v.RetentionPolicy; inputPolicy != nil {
-			policies = append(policies, map[string]interface{}{
-				"days":    int(inputPolicy.Days),
-				"enabled": inputPolicy.Enabled,
-			})
 		}
 
-		category := ""
-		if v.Category != nil {
-			category = string(*v.Category)
+		if !features.FivePointOh() {
+			if len(v["retention_policy"].([]interface{})) != 0 && v["retention_policy"].([]interface{})[0] != nil {
+				policyRaw := v["retention_policy"].([]interface{})[0].(map[string]interface{})
+				retentionDays := policyRaw["days"].(int)
+				retentionEnabled := policyRaw["enabled"].(bool)
+				logSettings.RetentionPolicy = &diagnosticsettings.RetentionPolicy{
+					Days:    int64(retentionDays),
+					Enabled: retentionEnabled,
+				}
+			}
 		}
-		results = append(results, map[string]interface{}{
-			"category":         category,
-			"enabled":          v.Enabled,
-			"retention_policy": policies,
-		})
+
+		results = append(results, logSettings)
 	}
 
 	return results
@@ -540,23 +403,30 @@ func flattenMonitorAADDiagnosticEnabledLogs(input *[]diagnosticsettings.LogSetti
 			continue
 		}
 
-		policies := make([]interface{}, 0)
-		if inputPolicy := v.RetentionPolicy; inputPolicy != nil {
-			policies = append(policies, map[string]interface{}{
-				"days":    int(inputPolicy.Days),
-				"enabled": inputPolicy.Enabled,
-			})
-		}
-
 		category := ""
 		if v.Category != nil {
 			category = string(*v.Category)
 		}
 
-		results = append(results, map[string]interface{}{
-			"category":         category,
-			"retention_policy": policies,
-		})
+		result := map[string]interface{}{
+			"category": category,
+		}
+
+		if !features.FivePointOh() {
+			policies := make([]interface{}, 0)
+			if inputPolicy := v.RetentionPolicy; inputPolicy != nil {
+				if inputPolicy.Days != 0 || inputPolicy.Enabled {
+					policies = append(policies, map[string]interface{}{
+						"days":    int(inputPolicy.Days),
+						"enabled": inputPolicy.Enabled,
+					})
+				}
+			}
+
+			result["retention_policy"] = policies
+		}
+
+		results = append(results, result)
 	}
 
 	return results

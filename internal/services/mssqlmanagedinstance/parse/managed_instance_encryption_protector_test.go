@@ -27,7 +27,6 @@ func TestManagedInstanceEncryptionProtectorID(t *testing.T) {
 		Error    bool
 		Expected *ManagedInstanceEncryptionProtectorId
 	}{
-
 		{
 			// empty
 			Input: "",

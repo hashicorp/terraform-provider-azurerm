@@ -45,7 +45,6 @@ func (c AppliancesClient) GetUpgradeGraph(ctx context.Context, id UpgradeGraphId
 
 	var model UpgradeGraph
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

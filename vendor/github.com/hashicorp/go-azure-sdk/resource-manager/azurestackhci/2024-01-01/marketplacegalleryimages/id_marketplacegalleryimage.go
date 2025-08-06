@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&MarketplaceGalleryImageId{})
+}
 
 var _ resourceids.ResourceId = &MarketplaceGalleryImageId{}
 
@@ -37,7 +42,7 @@ func ParseMarketplaceGalleryImageID(input string) (*MarketplaceGalleryImageId, e
 	}
 
 	id := MarketplaceGalleryImageId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +59,7 @@ func ParseMarketplaceGalleryImageIDInsensitively(input string) (*MarketplaceGall
 	}
 
 	id := MarketplaceGalleryImageId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -110,7 +115,7 @@ func (id MarketplaceGalleryImageId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAzureStackHCI", "Microsoft.AzureStackHCI", "Microsoft.AzureStackHCI"),
 		resourceids.StaticSegment("staticMarketplaceGalleryImages", "marketplaceGalleryImages", "marketplaceGalleryImages"),
-		resourceids.UserSpecifiedSegment("marketplaceGalleryImageName", "marketplaceGalleryImageValue"),
+		resourceids.UserSpecifiedSegment("marketplaceGalleryImageName", "marketplaceGalleryImageName"),
 	}
 }
 

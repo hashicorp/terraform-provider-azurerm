@@ -4,78 +4,115 @@
 package recoveryservices
 
 import (
+	"context"
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-01-01/vaults"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
-func dataSourceRecoveryServicesVault() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
-		Read: dataSourceRecoveryServicesVaultRead,
+var _ sdk.DataSource = SiteRecoveryRecoveryVaultDataSource{}
 
-		Timeouts: &pluginsdk.ResourceTimeout{
-			Read: pluginsdk.DefaultTimeout(5 * time.Minute),
+type (
+	SiteRecoveryRecoveryVaultDataSource      struct{}
+	SiteRecoveryRecoveryVaultDataSourceModel struct {
+		Name              string                                     `tfschema:"name"`
+		ResourceGroupName string                                     `tfschema:"resource_group_name"`
+		Location          string                                     `tfschema:"location"`
+		Identity          []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
+		Sku               string                                     `tfschema:"sku"`
+		Tags              map[string]string                          `tfschema:"tags"`
+	}
+)
+
+func (SiteRecoveryRecoveryVaultDataSource) ModelObject() interface{} {
+	return &SiteRecoveryRecoveryVaultDataSourceModel{}
+}
+
+func (SiteRecoveryRecoveryVaultDataSource) ResourceType() string {
+	return "azurerm_recovery_services_vault"
+}
+
+func (SiteRecoveryRecoveryVaultDataSource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ValidateFunc: validate.RecoveryServicesVaultName,
 		},
 
-		Schema: map[string]*pluginsdk.Schema{
-			"name": {
-				Type:     pluginsdk.TypeString,
-				Required: true,
-			},
+		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+	}
+}
 
-			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+func (SiteRecoveryRecoveryVaultDataSource) Attributes() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"location": commonschema.LocationComputed(),
 
-			"location": commonschema.LocationComputed(),
+		"tags": commonschema.TagsDataSource(),
 
-			"tags": commonschema.TagsDataSource(),
+		"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
-			"sku": {
-				Type:     pluginsdk.TypeString,
-				Computed: true,
-			},
+		"sku": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 	}
 }
 
-func dataSourceRecoveryServicesVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).RecoveryServices.VaultsClient
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
-	defer cancel()
+func (r SiteRecoveryRecoveryVaultDataSource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.RecoveryServices.VaultsClient
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
-	id := vaults.NewVaultID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
-	resp, err := client.Get(ctx, id)
-	if err != nil {
-		if response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("%s was not found", id)
-		}
+			var recoveryServiceVault SiteRecoveryRecoveryVaultDataSourceModel
+			if err := metadata.Decode(&recoveryServiceVault); err != nil {
+				return err
+			}
 
-		return fmt.Errorf("retrieving %s: %+v", id, err)
+			id := vaults.NewVaultID(subscriptionId, recoveryServiceVault.ResourceGroupName, recoveryServiceVault.Name)
+			resp, err := client.Get(ctx, id)
+			if err != nil {
+				if response.WasNotFound(resp.HttpResponse) {
+					return fmt.Errorf("%s was not found", id)
+				}
+				return fmt.Errorf("retrieving %s: %+v", id, err)
+			}
+
+			if model := resp.Model; model != nil {
+				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
+				if err != nil {
+					return fmt.Errorf("flattening `identity`: %+v", err)
+				}
+
+				skuName := ""
+				if model.Sku != nil {
+					skuName = string(model.Sku.Name)
+				}
+
+				recoveryServiceVault.Sku = skuName
+				recoveryServiceVault.Location = location.Normalize(model.Location)
+				recoveryServiceVault.Tags = pointer.From(model.Tags)
+				recoveryServiceVault.Identity = pointer.From(flattenedIdentity)
+			}
+
+			metadata.SetID(id)
+
+			if err := metadata.Encode(&recoveryServiceVault); err != nil {
+				return fmt.Errorf("encoding: %+v", err)
+			}
+
+			return nil
+		},
 	}
-
-	if resp.Model == nil {
-		return fmt.Errorf("retrieving %s: `model` was nil", id)
-	}
-	model := resp.Model
-
-	d.SetId(id.ID())
-	d.Set("name", id.VaultName)
-	d.Set("resource_group_name", id.ResourceGroupName)
-	d.Set("location", location.Normalize(model.Location))
-
-	skuName := ""
-	if model.Sku != nil {
-		skuName = string(model.Sku.Name)
-	}
-	d.Set("sku", skuName)
-
-	return tags.FlattenAndSet(d, model.Tags)
 }

@@ -27,7 +27,6 @@ func TestSharedImageID(t *testing.T) {
 		Error    bool
 		Expected *SharedImageId
 	}{
-
 		{
 			// empty
 			Input: "",

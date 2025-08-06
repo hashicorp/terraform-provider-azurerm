@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&SkuVersionId{})
+}
 
 var _ resourceids.ResourceId = &SkuVersionId{}
 
@@ -43,7 +48,7 @@ func ParseSkuVersionID(input string) (*SkuVersionId, error) {
 	}
 
 	id := SkuVersionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -60,7 +65,7 @@ func ParseSkuVersionIDInsensitively(input string) (*SkuVersionId, error) {
 	}
 
 	id := SkuVersionId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -126,17 +131,17 @@ func (id SkuVersionId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCompute", "Microsoft.Compute", "Microsoft.Compute"),
 		resourceids.StaticSegment("staticLocations", "locations", "locations"),
-		resourceids.UserSpecifiedSegment("locationName", "locationValue"),
+		resourceids.UserSpecifiedSegment("locationName", "locationName"),
 		resourceids.StaticSegment("staticPublishers", "publishers", "publishers"),
-		resourceids.UserSpecifiedSegment("publisherName", "publisherValue"),
+		resourceids.UserSpecifiedSegment("publisherName", "publisherName"),
 		resourceids.StaticSegment("staticArtifactTypes", "artifactTypes", "artifactTypes"),
 		resourceids.StaticSegment("staticVmImage", "vmImage", "vmImage"),
 		resourceids.StaticSegment("staticOffers", "offers", "offers"),
-		resourceids.UserSpecifiedSegment("offerName", "offerValue"),
+		resourceids.UserSpecifiedSegment("offerName", "offerName"),
 		resourceids.StaticSegment("staticSkus", "skus", "skus"),
-		resourceids.UserSpecifiedSegment("skuName", "skuValue"),
+		resourceids.UserSpecifiedSegment("skuName", "skuName"),
 		resourceids.StaticSegment("staticVersions", "versions", "versions"),
-		resourceids.UserSpecifiedSegment("versionName", "versionValue"),
+		resourceids.UserSpecifiedSegment("versionName", "versionName"),
 	}
 }
 

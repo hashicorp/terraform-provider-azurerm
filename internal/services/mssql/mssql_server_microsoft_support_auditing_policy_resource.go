@@ -8,9 +8,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
-	"github.com/gofrs/uuid"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/serverdevopsaudit"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
@@ -97,54 +98,46 @@ func resourceMsSqlServerMicrosoftSupportAuditingPolicyCreateUpdate(d *pluginsdk.
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, serverId.ResourceGroupName, serverId.ServerName, "default")
+		existing, err := client.SettingsGet(ctx, *serverId)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("retrieving MsSql Server Microsoft Support Auditing Policy %s: %+v", serverId, err)
 			}
 		}
 
 		// if state is not disabled, we should import it.
-		if existing.ID != nil && *existing.ID != "" && existing.ServerDevOpsAuditSettingsProperties != nil && existing.ServerDevOpsAuditSettingsProperties.State != sql.BlobAuditingPolicyStateDisabled {
-			return tf.ImportAsExistsError("azurerm_mssql_server_microsoft_support_auditing_policy", *existing.ID)
+		if existing.Model != nil && existing.Model.Id != nil && *existing.Model.Id != "" && existing.Model.Properties != nil && existing.Model.Properties.State != serverdevopsaudit.BlobAuditingPolicyStateDisabled {
+			return tf.ImportAsExistsError("azurerm_mssql_server_microsoft_support_auditing_policy", *existing.Model.Id)
 		}
 	}
 
-	params := sql.ServerDevOpsAuditingSettings{
-		ServerDevOpsAuditSettingsProperties: &sql.ServerDevOpsAuditSettingsProperties{
+	params := serverdevopsaudit.ServerDevOpsAuditingSettings{
+		Properties: &serverdevopsaudit.ServerDevOpsAuditSettingsProperties{
 			IsAzureMonitorTargetEnabled: utils.Bool(d.Get("log_monitoring_enabled").(bool)),
 		},
 	}
 
 	if v := d.Get("blob_storage_endpoint").(string); v != "" {
-		params.ServerDevOpsAuditSettingsProperties.StorageEndpoint = utils.String(v)
+		params.Properties.StorageEndpoint = utils.String(v)
 	}
 
 	if d.Get("enabled").(bool) {
-		params.ServerDevOpsAuditSettingsProperties.State = sql.BlobAuditingPolicyStateEnabled
+		params.Properties.State = serverdevopsaudit.BlobAuditingPolicyStateEnabled
 	} else {
-		params.ServerDevOpsAuditSettingsProperties.State = sql.BlobAuditingPolicyStateDisabled
+		params.Properties.State = serverdevopsaudit.BlobAuditingPolicyStateDisabled
 	}
 
 	if v, ok := d.GetOk("storage_account_subscription_id"); ok {
-		u, err := uuid.FromString(v.(string))
-		if err != nil {
-			return fmt.Errorf("while parsing storage_account_subscrption_id value %q as UUID: %+v", v.(string), err)
-		}
-		params.ServerDevOpsAuditSettingsProperties.StorageAccountSubscriptionID = &u
+		params.Properties.StorageAccountSubscriptionId = pointer.To(v.(string))
 	}
 
 	if v, ok := d.GetOk("storage_account_access_key"); ok {
-		params.ServerDevOpsAuditSettingsProperties.StorageAccountAccessKey = utils.String(v.(string))
+		params.Properties.StorageAccountAccessKey = utils.String(v.(string))
 	}
 
-	future, err := client.CreateOrUpdate(ctx, serverId.ResourceGroupName, serverId.ServerName, "default", params)
+	err = client.SettingsCreateOrUpdateThenPoll(ctx, *serverId, params)
 	if err != nil {
 		return fmt.Errorf("creating MsSql Server Microsoft Support Auditing Policy %s: %+v", serverId, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for the creation of the MsSql Server Microsoft Support Auditing Policy %s: %+v", serverId, err)
 	}
 
 	id := parse.NewServerMicrosoftSupportAuditingPolicyID(subscriptionId, serverId.ResourceGroupName, serverId.ServerName, "default")
@@ -164,26 +157,28 @@ func resourceMsSqlServerMicrosoftSupportAuditingPolicyRead(d *pluginsdk.Resource
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, "default")
+	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
+
+	resp, err := client.SettingsGet(ctx, serverId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading MsSql Server %s Microsoft Support Auditing Policy (Resource Group %q): %s", id.ServerName, id.ResourceGroup, err)
+		return fmt.Errorf("reading %s: %s", *id, err)
 	}
-
-	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
 
 	d.Set("server_id", serverId.ID())
 
-	if props := resp.ServerDevOpsAuditSettingsProperties; props != nil {
-		d.Set("blob_storage_endpoint", props.StorageEndpoint)
-		d.Set("log_monitoring_enabled", props.IsAzureMonitorTargetEnabled)
-		d.Set("enabled", props.State == sql.BlobAuditingPolicyStateEnabled)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("blob_storage_endpoint", props.StorageEndpoint)
+			d.Set("log_monitoring_enabled", props.IsAzureMonitorTargetEnabled)
+			d.Set("enabled", props.State == serverdevopsaudit.BlobAuditingPolicyStateEnabled)
 
-		if props.StorageAccountSubscriptionID.String() != "00000000-0000-0000-0000-000000000000" {
-			d.Set("storage_account_subscription_id", props.StorageAccountSubscriptionID.String())
+			if pointer.From(props.StorageAccountSubscriptionId) != "00000000-0000-0000-0000-000000000000" {
+				d.Set("storage_account_subscription_id", pointer.From(props.StorageAccountSubscriptionId))
+			}
 		}
 	}
 
@@ -200,19 +195,17 @@ func resourceMsSqlServerMicrosoftSupportAuditingPolicyDelete(d *pluginsdk.Resour
 		return err
 	}
 
-	params := sql.ServerDevOpsAuditingSettings{
-		ServerDevOpsAuditSettingsProperties: &sql.ServerDevOpsAuditSettingsProperties{
-			State: sql.BlobAuditingPolicyStateDisabled,
+	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
+
+	params := serverdevopsaudit.ServerDevOpsAuditingSettings{
+		Properties: &serverdevopsaudit.ServerDevOpsAuditSettingsProperties{
+			State: serverdevopsaudit.BlobAuditingPolicyStateDisabled,
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, "default", params)
+	err = client.SettingsCreateOrUpdateThenPoll(ctx, serverId, params)
 	if err != nil {
-		return fmt.Errorf("deleting MsSql Server %q Microsoft Support Auditing Policy(Resource Group %q): %+v", id.ServerName, id.ResourceGroup, err)
-	}
-
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of MsSql Server %q Microsoft Support Auditing Policy (Resource Group %q): %+v", id.ServerName, id.ResourceGroup, err)
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil

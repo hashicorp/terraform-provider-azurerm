@@ -74,7 +74,7 @@ func main() {
 	}
 
 	if err := run(context.Background(), input); err != nil {
-		log.Fatalf(err.Error())
+		log.Fatal(err.Error())
 	}
 }
 
@@ -99,7 +99,7 @@ func (c config) validate() error {
 func run(ctx context.Context, input config) error {
 	// Clone the repository
 	// Determine what's changed in this
-	//// git diff --name-only --diff-filter=A  v0.20220711.1181406...v0.20220712.1062733
+	// // git diff --name-only --diff-filter=A  v0.20220711.1181406...v0.20220712.1062733
 	// ^ gives a list of paths which wants translating into `service[oldapi-newapi]`
 
 	logger.Info(fmt.Sprintf("New SDK Version is %q", input.newSdkVersion))
@@ -246,7 +246,7 @@ func run(ctx context.Context, input config) error {
 	description := buildPullRequestDescription(results, input.newSdkVersion)
 	if input.outputFileName != "" {
 		logger.Info(fmt.Sprintf("Writing PR description to %q..", input.outputFileName))
-		if err := os.WriteFile(input.outputFileName, []byte(description), 0644); err != nil {
+		if err := os.WriteFile(input.outputFileName, []byte(description), 0o644); err != nil {
 			return fmt.Errorf("writing description to `%s`: %+v", input.outputFileName, err)
 		}
 
@@ -725,7 +725,7 @@ func updateImportsWithinDirectory(serviceName string, oldApiVersion string, newA
 				if err = format.Node(&buf, fileSet, file); err != nil {
 					return fmt.Errorf("error formatting new code: %w", err)
 				}
-				_ = os.WriteFile(fileName, buf.Bytes(), 0644)
+				_ = os.WriteFile(fileName, buf.Bytes(), 0o644)
 			}
 		}
 		logger.Trace(fmt.Sprintf("Processed directory %q.", directory))

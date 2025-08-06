@@ -47,8 +47,8 @@ func TestFlexibleServerSkuName(t *testing.T) {
 			valid: true,
 		},
 		{
-			name:  "B_Standard_B1s",
-			input: "B_Standard_B1s",
+			name:  "B_Standard_B1ms",
+			input: "B_Standard_B1ms",
 			valid: true,
 		},
 		{
@@ -67,6 +67,11 @@ func TestFlexibleServerSkuName(t *testing.T) {
 			valid: true,
 		},
 		{
+			name:  "MO_Standard_E96ads_v5",
+			input: "MO_Standard_E96ads_v5",
+			valid: true,
+		},
+		{
 			name:  "B_Standard_B20ms",
 			input: "B_Standard_B20ms",
 			valid: true,
@@ -75,6 +80,16 @@ func TestFlexibleServerSkuName(t *testing.T) {
 			name:  "GP_Standard_D64ds_v4",
 			input: "GP_Standard_D64ds_v4",
 			valid: true,
+		},
+		{
+			name:  "B_Standard_D64ds_v4",
+			input: "B_Standard_D64ds_v4",
+			valid: false,
+		},
+		{
+			name:  "MO_Standard_B2s",
+			input: "MO_Standard_B2s",
+			valid: false,
 		},
 	}
 	for _, tt := range tests {

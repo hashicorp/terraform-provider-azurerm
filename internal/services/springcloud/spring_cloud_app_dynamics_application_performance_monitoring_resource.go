@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -29,14 +31,21 @@ type SpringCloudAppDynamicsApplicationPerformanceMonitoringModel struct {
 	AgentUniqueHostId     string `tfschema:"agent_unique_host_id"`
 	ControllerHostName    string `tfschema:"controller_host_name"`
 	ControllerSslEnabled  bool   `tfschema:"controller_ssl_enabled"`
-	ControllerPort        int    `tfschema:"controller_port"`
+	ControllerPort        int64  `tfschema:"controller_port"`
 	AgentAccountName      string `tfschema:"agent_account_name"`
 	AgentAccountAccessKey string `tfschema:"agent_account_access_key"`
 }
 
 type SpringCloudAppDynamicsApplicationPerformanceMonitoringResource struct{}
 
-var _ sdk.ResourceWithUpdate = SpringCloudAppDynamicsApplicationPerformanceMonitoringResource{}
+func (s SpringCloudAppDynamicsApplicationPerformanceMonitoringResource) DeprecationMessage() string {
+	return features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_app_dynamics_application_performance_monitoring` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.")
+}
+
+var (
+	_ sdk.ResourceWithUpdate                      = SpringCloudAppDynamicsApplicationPerformanceMonitoringResource{}
+	_ sdk.ResourceWithDeprecationAndNoReplacement = SpringCloudAppDynamicsApplicationPerformanceMonitoringResource{}
+)
 
 func (s SpringCloudAppDynamicsApplicationPerformanceMonitoringResource) ResourceType() string {
 	return "azurerm_spring_cloud_app_dynamics_application_performance_monitoring"
@@ -320,7 +329,7 @@ func (s SpringCloudAppDynamicsApplicationPerformanceMonitoringResource) Read() s
 			if result.Model != nil && result.Model.Value != nil {
 				for _, value := range *result.Model.Value {
 					apmId, err := appplatform.ParseApmIDInsensitively(value)
-					if err == nil && apmId.ID() == id.ID() {
+					if err == nil && resourceids.Match(apmId, id) {
 						globallyEnabled = true
 						break
 					}
@@ -365,7 +374,7 @@ func (s SpringCloudAppDynamicsApplicationPerformanceMonitoringResource) Read() s
 					}
 					if value, ok := (*props.Properties)["controller_port"]; ok {
 						if v, err := strconv.ParseInt(value, 10, 32); err == nil {
-							state.ControllerPort = int(v)
+							state.ControllerPort = v
 						}
 					}
 				}

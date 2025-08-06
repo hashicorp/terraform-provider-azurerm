@@ -50,7 +50,6 @@ func (c WatchlistItemsClient) CreateOrUpdate(ctx context.Context, id WatchlistIt
 
 	var model WatchlistItem
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

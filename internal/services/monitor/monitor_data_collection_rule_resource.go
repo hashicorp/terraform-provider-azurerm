@@ -15,20 +15,21 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionendpoints"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2022-06-01/datacollectionrules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionendpoints"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2023-03-11/datacollectionrules"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var _ sdk.ResourceWithUpdate = DataCollectionRuleResource{}
-var _ sdk.ResourceWithCustomizeDiff = DataCollectionRuleResource{}
+var (
+	_ sdk.ResourceWithUpdate        = DataCollectionRuleResource{}
+	_ sdk.ResourceWithCustomizeDiff = DataCollectionRuleResource{}
+)
 
 type DataCollectionRule struct {
 	DataCollectionEndpointId string                 `tfschema:"data_collection_endpoint_id"`
@@ -660,7 +661,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								"sampling_frequency_in_seconds": {
 									Type:         pluginsdk.TypeInt,
 									Required:     true,
-									ValidateFunc: validation.IntBetween(1, 300),
+									ValidateFunc: validation.IntBetween(1, 1800),
 								},
 								"streams": {
 									Type:     pluginsdk.TypeList,
@@ -781,9 +782,7 @@ func (r DataCollectionRuleResource) Arguments() map[string]*pluginsdk.Schema {
 								// lintignore:S013
 								"streams": {
 									Type:     pluginsdk.TypeList,
-									Optional: !features.FourPointOhBeta(),
-									Computed: !features.FourPointOhBeta(),
-									Required: features.FourPointOhBeta(),
+									Required: true,
 									MinItems: 1,
 									Elem: &pluginsdk.Schema{
 										Type:         pluginsdk.TypeString,
@@ -1155,7 +1154,7 @@ func (r DataCollectionRuleResource) Delete() sdk.ResourceFunc {
 			}
 
 			metadata.Logger.Infof("deleting %s..", *id)
-			resp, err := client.Delete(ctx, *id)
+			resp, err := client.Delete(ctx, *id, datacollectionrules.DefaultDeleteOperationOptions())
 			if err != nil && !response.WasNotFound(resp.HttpResponse) {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
@@ -1256,7 +1255,6 @@ func expandDataCollectionRuleDataSourceDataImports(input []DataImport) *datacoll
 	}
 
 	return result
-
 }
 
 func expandDataCollectionRuleDataSourceExtensions(input []Extension) (*[]datacollectionrules.ExtensionDataSource, error) {
@@ -1447,9 +1445,6 @@ func expandDataCollectionRuleDataSourceSyslog(input []Syslog) *[]datacollectionr
 
 func expandDataCollectionRuleDataSourceSyslogStreams(input []string) *[]datacollectionrules.KnownSyslogDataSourceStreams {
 	if len(input) == 0 {
-		if !features.FourPointOhBeta() {
-			return &[]datacollectionrules.KnownSyslogDataSourceStreams{datacollectionrules.KnownSyslogDataSourceStreamsMicrosoftNegativeSyslog}
-		}
 		return nil
 	}
 
@@ -1854,7 +1849,6 @@ func flattenDataCollectionRuleDataSourceLogFiles(input *[]datacollectionrules.Lo
 		})
 	}
 	return result
-
 }
 
 func flattenDataCollectionRuleDataSourcePerfCounters(input *[]datacollectionrules.PerfCounterDataSource) []PerfCounter {
@@ -1867,7 +1861,7 @@ func flattenDataCollectionRuleDataSourcePerfCounters(input *[]datacollectionrule
 		result = append(result, PerfCounter{
 			Name:                       flattenStringPtr(v.Name),
 			CounterSpecifiers:          flattenStringSlicePtr(v.CounterSpecifiers),
-			SamplingFrequencyInSeconds: utils.NormaliseNilableInt64(v.SamplingFrequencyInSeconds),
+			SamplingFrequencyInSeconds: pointer.From(v.SamplingFrequencyInSeconds),
 			Streams:                    flattenDataCollectionRuleDataSourcePerfCounterStreams(v.Streams),
 		})
 	}

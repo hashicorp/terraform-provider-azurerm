@@ -33,6 +33,36 @@ resource "azurerm_role_definition" "example" {
 }
 ```
 
+## Example Usage with Management Group
+```hcl
+data "azurerm_subscription" "current" {
+}
+
+resource "azurerm_management_group" "example" {
+  display_name = "ParentGroup"
+
+  subscription_ids = [
+    data.azurerm_subscription.current.subscription_id,
+  ]
+}
+
+resource "azurerm_role_definition" "example" {
+  name        = "example-mg-role"
+  scope       = azurerm_management_group.example.id
+  description = "Example custom role scoped to a management group."
+
+  permissions {
+    actions = ["Microsoft.Insights/alertRules/*",
+    ]
+    not_actions = []
+  }
+
+  assignable_scopes = [
+    azurerm_management_group.example.id
+  ]
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -41,15 +71,15 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Role Definition. 
 
-* `scope` - (Required) The scope at which the Role Definition applies to, such as `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`, `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`, or `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`. It is recommended to use the first entry of the `assignable_scopes`. Changing this forces a new resource to be created.
+* `scope` - (Required) The scope at which the Role Definition applies to, such as `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`, `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`, `/providers/Microsoft.Management/managementGroups/0b1f6471-1bf0-4dda-aec3-111122223333`, or `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`. It is recommended to use the first entry of the `assignable_scopes`. Changing this forces a new resource to be created.
 
 * `description` - (Optional) A description of the Role Definition.
 
 * `permissions` - (Optional) A `permissions` block as defined below.
 
-* `assignable_scopes` - (Optional) One or more assignable scopes for this Role Definition, such as `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`, `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`, or `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`.
+* `assignable_scopes` - (Optional) One or more assignable scopes for this Role Definition, such as `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`, `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`, `/providers/Microsoft.Management/managementGroups/0b1f6471-1bf0-4dda-aec3-111122223333` , or `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`.
 
-~> **NOTE:** The value for `scope` is automatically included in this list if no other values supplied.
+~> **Note:** The value for `scope` is automatically included in this list if no other values supplied.
 
 ---
 
@@ -78,8 +108,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Role Definition.
-* `update` - (Defaults to 60 minutes) Used when updating the Role Definition.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Role Definition.
+* `update` - (Defaults to 1 hour) Used when updating the Role Definition.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Role Definition.
 
 ## Import
@@ -90,4 +120,10 @@ Role Definitions can be imported using the `resource id`, e.g.
 terraform import azurerm_role_definition.example "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Authorization/roleDefinitions/00000000-0000-0000-0000-000000000000|/subscriptions/00000000-0000-0000-0000-000000000000"
 ```
 
--> **NOTE:** This ID is specific to Terraform - and is of the format `{roleDefinitionId}|{scope}`.
+-> **Note:** This ID is specific to Terraform - and is of the format `{roleDefinitionId}|{scope}`.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Authorization` - 2022-05-01-preview

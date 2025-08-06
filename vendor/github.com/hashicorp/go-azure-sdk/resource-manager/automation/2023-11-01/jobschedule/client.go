@@ -15,7 +15,7 @@ type JobScheduleClient struct {
 }
 
 func NewJobScheduleClientWithBaseURI(sdkApi sdkEnv.Api) (*JobScheduleClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "jobschedule", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "jobschedule", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating JobScheduleClient: %+v", err)
 	}

@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ScriptExecutionHistoryId{})
+}
 
 var _ resourceids.ResourceId = &ScriptExecutionHistoryId{}
 
@@ -39,7 +44,7 @@ func ParseScriptExecutionHistoryID(input string) (*ScriptExecutionHistoryId, err
 	}
 
 	id := ScriptExecutionHistoryId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParseScriptExecutionHistoryIDInsensitively(input string) (*ScriptExecutionH
 	}
 
 	id := ScriptExecutionHistoryId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -116,9 +121,9 @@ func (id ScriptExecutionHistoryId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftHDInsight", "Microsoft.HDInsight", "Microsoft.HDInsight"),
 		resourceids.StaticSegment("staticClusters", "clusters", "clusters"),
-		resourceids.UserSpecifiedSegment("clusterName", "clusterValue"),
+		resourceids.UserSpecifiedSegment("clusterName", "clusterName"),
 		resourceids.StaticSegment("staticScriptExecutionHistory", "scriptExecutionHistory", "scriptExecutionHistory"),
-		resourceids.UserSpecifiedSegment("scriptExecutionId", "scriptExecutionIdValue"),
+		resourceids.UserSpecifiedSegment("scriptExecutionId", "scriptExecutionId"),
 	}
 }
 

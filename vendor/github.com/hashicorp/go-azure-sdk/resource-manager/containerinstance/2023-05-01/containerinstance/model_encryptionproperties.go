@@ -7,5 +7,5 @@ type EncryptionProperties struct {
 	Identity     *string `json:"identity,omitempty"`
 	KeyName      string  `json:"keyName"`
 	KeyVersion   string  `json:"keyVersion"`
-	VaultBaseUrl string  `json:"vaultBaseUrl"`
+	VaultBaseURL string  `json:"vaultBaseUrl"`
 }

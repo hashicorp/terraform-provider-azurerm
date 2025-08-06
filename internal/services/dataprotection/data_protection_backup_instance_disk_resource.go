@@ -6,20 +6,22 @@ package dataprotection
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2023-05-01/backupinstances"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2023-05-01/backuppolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backupinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/dataprotection/2024-04-01/backuppolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	resourceParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	azSchema "github.com/hashicorp/terraform-provider-azurerm/internal/tf/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -73,6 +75,30 @@ func resourceDataProtectionBackupInstanceDisk() *schema.Resource {
 				Required:     true,
 				ValidateFunc: backuppolicies.ValidateBackupPolicyID,
 			},
+
+			"snapshot_subscription_id": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.IsUUID,
+				DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+					// vault_id: ID of the parent resource; must share the same subscription ID as this backup instance.
+					// Suppress diff if snapshot_subscription_id matches this backup instance's subscription.
+					_, planVaultId := d.GetChange("vault_id")
+					vaultId, err := backupinstances.ParseBackupVaultID(planVaultId.(string))
+					if err != nil {
+						return false
+					}
+
+					// oldValue represents the value in the state.
+					// newValue represents the value in the config, in case it is "", it means the user doesn't specify it in the config.
+					if strings.EqualFold(oldValue, vaultId.SubscriptionId) && newValue == "" {
+						return true
+					}
+
+					return false
+				},
+			},
 		},
 	}
 }
@@ -108,7 +134,12 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 	if err != nil {
 		return err
 	}
-	snapshotResourceGroupId := resourceParse.NewResourceGroupID(subscriptionId, d.Get("snapshot_resource_group_name").(string))
+
+	snapshotSubscriptionId := subscriptionId
+	if v := d.Get("snapshot_subscription_id").(string); v != "" {
+		snapshotSubscriptionId = v
+	}
+	snapshotResourceGroupId := resourceParse.NewResourceGroupID(snapshotSubscriptionId, d.Get("snapshot_resource_group_name").(string))
 
 	parameters := backupinstances.BackupInstanceResource{
 		Properties: &backupinstances.BackupInstance{
@@ -136,7 +167,7 @@ func resourceDataProtectionBackupInstanceDiskCreateUpdate(d *schema.ResourceData
 		},
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, parameters, backupinstances.DefaultCreateOrUpdateOperationOptions()); err != nil {
 		return fmt.Errorf("creating/updating DataProtection BackupInstance (%q): %+v", id, err)
 	}
 
@@ -198,6 +229,7 @@ func resourceDataProtectionBackupInstanceDiskRead(d *schema.ResourceData, meta i
 						return err
 					}
 					d.Set("snapshot_resource_group_name", resourceGroupId.ResourceGroup)
+					d.Set("snapshot_subscription_id", resourceGroupId.SubscriptionId)
 				}
 			}
 		}
@@ -215,7 +247,7 @@ func resourceDataProtectionBackupInstanceDiskDelete(d *schema.ResourceData, meta
 		return err
 	}
 
-	err = client.DeleteThenPoll(ctx, *id)
+	err = client.DeleteThenPoll(ctx, *id, backupinstances.DefaultDeleteOperationOptions())
 	if err != nil {
 		return fmt.Errorf("deleting DataProtection BackupInstance (%q): %+v", id, err)
 	}

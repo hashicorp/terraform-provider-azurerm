@@ -15,7 +15,7 @@ type ContactProfileClient struct {
 }
 
 func NewContactProfileClientWithBaseURI(sdkApi sdkEnv.Api) (*ContactProfileClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "contactprofile", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "contactprofile", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ContactProfileClient: %+v", err)
 	}

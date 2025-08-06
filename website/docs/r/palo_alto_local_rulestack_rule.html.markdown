@@ -29,6 +29,7 @@ resource "azurerm_palo_alto_local_rulestack_rule" "example" {
   rulestack_id = azurerm_palo_alto_local_rulestack.example.id
   priority     = 1000
   action       = "Allow"
+  protocol     = "application-default"
 
   applications = ["any"]
 
@@ -52,7 +53,7 @@ The following arguments are supported:
 
 * `priority` - (Required) The Priority of this rule. Rules are executed in numerical order. Changing this forces a new Palo Alto Local Rulestack Rule to be created.
 
-~> **NOTE:** This is the primary identifier of a rule, as such it is not possible to change the Priority of a rule once created.
+~> **Note:** This is the primary identifier of a rule, as such it is not possible to change the Priority of a rule once created.
 
 * `action` - (Required) The action to take on the rule being triggered. Possible values are `Allow`, `DenyResetBoth`, `DenyResetServer` and `DenySilent`.
 
@@ -85,6 +86,8 @@ The following arguments are supported:
 
 * `protocol` - (Optional) The Protocol and port to use in the form `[protocol]:[port_number]` e.g. `TCP:8080` or `UDP:53`. Conflicts with `protocol_ports`. Defaults to `application-default`.
 
+~> **Note:** In 4.0 or later versions, the default of `protocol` will no longer be set by provider, exactly one of `protocol` and `protocol_ports` must be specified. You need to explicitly specify `protocol="application-default"` to keep the the current default of the `protocol`.
+ 
 * `protocol_ports` - (Optional) Specifies a list of Protocol:Port entries. E.g. `[ "TCP:80", "UDP:5431" ]`. Conflicts with `protocol`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Palo Alto Local Rulestack Rule.
@@ -156,3 +159,9 @@ Palo Alto Local Rulestack Rules can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_palo_alto_local_rulestack_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/PaloAltoNetworks.Cloudngfw/localRulestacks/myLocalRulestack/localRules/myRule1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `PaloAltoNetworks.Cloudngfw` - 2022-08-29

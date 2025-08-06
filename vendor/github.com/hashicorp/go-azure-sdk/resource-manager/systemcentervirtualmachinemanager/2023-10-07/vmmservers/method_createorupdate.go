@@ -18,11 +18,11 @@ type CreateOrUpdateOperationResponse struct {
 	Poller       pollers.Poller
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *VMMServer
+	Model        *VMmServer
 }
 
 // CreateOrUpdate ...
-func (c VMmServersClient) CreateOrUpdate(ctx context.Context, id VMmServerId, input VMMServer) (result CreateOrUpdateOperationResponse, err error) {
+func (c VMmServersClient) CreateOrUpdate(ctx context.Context, id VMmServerId, input VMmServer) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,7 +61,7 @@ func (c VMmServersClient) CreateOrUpdate(ctx context.Context, id VMmServerId, in
 }
 
 // CreateOrUpdateThenPoll performs CreateOrUpdate then polls until it's completed
-func (c VMmServersClient) CreateOrUpdateThenPoll(ctx context.Context, id VMmServerId, input VMMServer) error {
+func (c VMmServersClient) CreateOrUpdateThenPoll(ctx context.Context, id VMmServerId, input VMmServer) error {
 	result, err := c.CreateOrUpdate(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing CreateOrUpdate: %+v", err)

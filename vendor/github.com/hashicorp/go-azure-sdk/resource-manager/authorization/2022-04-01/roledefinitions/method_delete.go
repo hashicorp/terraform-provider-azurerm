@@ -46,7 +46,6 @@ func (c RoleDefinitionsClient) Delete(ctx context.Context, id ScopedRoleDefiniti
 
 	var model RoleDefinition
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

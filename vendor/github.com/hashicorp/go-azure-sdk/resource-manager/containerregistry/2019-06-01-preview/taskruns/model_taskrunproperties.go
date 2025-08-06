@@ -18,10 +18,13 @@ type TaskRunProperties struct {
 var _ json.Unmarshaler = &TaskRunProperties{}
 
 func (s *TaskRunProperties) UnmarshalJSON(bytes []byte) error {
-	type alias TaskRunProperties
-	var decoded alias
+	var decoded struct {
+		ForceUpdateTag    *string            `json:"forceUpdateTag,omitempty"`
+		ProvisioningState *ProvisioningState `json:"provisioningState,omitempty"`
+		RunResult         *Run               `json:"runResult,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into TaskRunProperties: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.ForceUpdateTag = decoded.ForceUpdateTag
@@ -34,11 +37,12 @@ func (s *TaskRunProperties) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["runRequest"]; ok {
-		impl, err := unmarshalRunRequestImplementation(v)
+		impl, err := UnmarshalRunRequestImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'RunRequest' for 'TaskRunProperties': %+v", err)
 		}
 		s.RunRequest = impl
 	}
+
 	return nil
 }

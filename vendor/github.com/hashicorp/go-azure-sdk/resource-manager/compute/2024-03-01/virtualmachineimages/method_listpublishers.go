@@ -46,7 +46,6 @@ func (c VirtualMachineImagesClient) ListPublishers(ctx context.Context, id Locat
 
 	var model []VirtualMachineImageResource
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

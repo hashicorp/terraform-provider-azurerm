@@ -66,6 +66,8 @@ func (c *Client) NewRequest(ctx context.Context, input client.RequestOptions) (*
 	}
 
 	req.URL.RawQuery = query.Encode()
+
+	req.CustomErrorParser = &ErrorParser{}
 	req.RetryFunc = client.RequestRetryAny(append(storageDefaultRetryFunctions, input.RetryFunc)...)
 	req.ValidStatusCodes = input.ExpectedStatusCodes
 

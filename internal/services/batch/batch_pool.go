@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/pool"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pool"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -172,11 +172,11 @@ func flattenBatchPoolStartTask(oldConfig *pluginsdk.ResourceData, startTask *poo
 			if armResourceFile.AutoStorageContainerName != nil {
 				resourceFile["auto_storage_container_name"] = *armResourceFile.AutoStorageContainerName
 			}
-			if armResourceFile.StorageContainerUrl != nil {
-				resourceFile["storage_container_url"] = *armResourceFile.StorageContainerUrl
+			if armResourceFile.StorageContainerURL != nil {
+				resourceFile["storage_container_url"] = *armResourceFile.StorageContainerURL
 			}
-			if armResourceFile.HTTPUrl != nil {
-				resourceFile["http_url"] = *armResourceFile.HTTPUrl
+			if armResourceFile.HTTPURL != nil {
+				resourceFile["http_url"] = *armResourceFile.HTTPURL
 			}
 			if armResourceFile.BlobPrefix != nil {
 				resourceFile["blob_prefix"] = *armResourceFile.BlobPrefix
@@ -302,7 +302,7 @@ func flattenBatchPoolContainerRegistry(d *pluginsdk.ResourceData, armContainerRe
 }
 
 func findBatchPoolContainerRegistryPassword(d *pluginsdk.ResourceData, armServer string, armUsername string) interface{} {
-	numContainerRegistries := 0
+	var numContainerRegistries int
 	if n, ok := d.GetOk("container_configuration.0.container_registries.#"); ok {
 		numContainerRegistries = n.(int)
 	} else {
@@ -358,7 +358,7 @@ func flattenBatchPoolMountConfig(d *pluginsdk.ResourceData, config *pool.MountCo
 		azureFileShareConfigList := make([]interface{}, 0)
 		azureFileShareConfig := make(map[string]interface{})
 		azureFileShareConfig["account_name"] = config.AzureFileShareConfiguration.AccountName
-		azureFileShareConfig["azure_file_url"] = config.AzureFileShareConfiguration.AzureFileUrl
+		azureFileShareConfig["azure_file_url"] = config.AzureFileShareConfiguration.AzureFileURL
 		azureFileShareConfig["account_key"] = findSensitiveInfoForMountConfig("account_key", "account_name", config.AzureFileShareConfiguration.AccountName, "azure_file_share", d)
 		azureFileShareConfig["relative_mount_path"] = config.AzureFileShareConfiguration.RelativeMountPath
 
@@ -409,6 +409,22 @@ func flattenBatchPoolIdentityReferenceToIdentityID(ref *pool.ComputeNodeIdentity
 		return *ref.ResourceId
 	}
 	return ""
+}
+
+func flattenBatchPoolSecurityProfile(configProfile *pool.SecurityProfile) []interface{} {
+	securityProfile := make([]interface{}, 0)
+	securityConfig := make(map[string]interface{})
+
+	securityConfig["host_encryption_enabled"] = pointer.From(configProfile.EncryptionAtHost)
+	securityConfig["security_type"] = string(pointer.From(configProfile.SecurityType))
+
+	if configProfile.UefiSettings != nil {
+		securityConfig["secure_boot_enabled"] = pointer.From(configProfile.UefiSettings.SecureBootEnabled)
+		securityConfig["vtpm_enabled"] = pointer.From(configProfile.UefiSettings.VTpmEnabled)
+	}
+
+	securityProfile = append(securityProfile, securityConfig)
+	return securityProfile
 }
 
 func flattenBatchPoolUserAccount(d *pluginsdk.ResourceData, account *pool.UserAccount) map[string]interface{} {
@@ -542,17 +558,17 @@ func expandBatchPoolContainerRegistry(ref map[string]interface{}) (*pool.Contain
 	containerRegistry := pool.ContainerRegistry{}
 
 	if v := ref["registry_server"]; v != nil && v != "" {
-		containerRegistry.RegistryServer = pointer.FromString(v.(string))
+		containerRegistry.RegistryServer = pointer.To(v.(string))
 	}
 	if v := ref["user_name"]; v != nil && v != "" {
-		containerRegistry.Username = pointer.FromString(v.(string))
+		containerRegistry.Username = pointer.To(v.(string))
 	}
 	if v := ref["password"]; v != nil && v != "" {
-		containerRegistry.Password = pointer.FromString(v.(string))
+		containerRegistry.Password = pointer.To(v.(string))
 	}
 	if v := ref["user_assigned_identity_id"]; v != nil && v != "" {
 		containerRegistry.IdentityReference = &pool.ComputeNodeIdentityReference{
-			ResourceId: pointer.FromString(v.(string)),
+			ResourceId: pointer.To(v.(string)),
 		}
 	}
 
@@ -561,8 +577,7 @@ func expandBatchPoolContainerRegistry(ref map[string]interface{}) (*pool.Contain
 
 // ExpandBatchPoolCertificateReferences expands Batch pool certificate references
 func ExpandBatchPoolCertificateReferences(list []interface{}) (*[]pool.CertificateReference, error) {
-	var result []pool.CertificateReference
-
+	result := make([]pool.CertificateReference, 0, len(list))
 	for _, tempItem := range list {
 		item := tempItem.(map[string]interface{})
 		certificateReference, err := expandBatchPoolCertificateReference(item)
@@ -611,7 +626,7 @@ func ExpandBatchPoolStartTask(list []interface{}) (*pool.StartTask, error) {
 
 	maxTaskRetryCount := int64(1)
 
-	if v := startTaskValue["task_retry_maximum"].(int); v > 0 {
+	if v := startTaskValue["task_retry_maximum"].(int); v >= -1 {
 		maxTaskRetryCount = int64(v)
 	}
 
@@ -659,13 +674,13 @@ func ExpandBatchPoolStartTask(list []interface{}) (*pool.StartTask, error) {
 		if v, ok := resourceFileValue["storage_container_url"]; ok {
 			storageContainerURL := v.(string)
 			if storageContainerURL != "" {
-				resourceFile.StorageContainerUrl = &storageContainerURL
+				resourceFile.StorageContainerURL = &storageContainerURL
 			}
 		}
 		if v, ok := resourceFileValue["http_url"]; ok {
 			httpURL := v.(string)
 			if httpURL != "" {
-				resourceFile.HTTPUrl = &httpURL
+				resourceFile.HTTPURL = &httpURL
 			}
 		}
 		if v, ok := resourceFileValue["blob_prefix"]; ok {
@@ -792,11 +807,44 @@ func expandBatchPoolVirtualMachineConfig(d *pluginsdk.ResourceData) (*pool.Virtu
 		result.OsDisk = expandBatchPoolOSDisk(v)
 	}
 
+	if v, ok := d.GetOk("security_profile"); ok {
+		result.SecurityProfile = expandBatchPoolSecurityProfile(v.([]interface{}))
+	}
+
 	if v, ok := d.GetOk("windows"); ok {
 		result.WindowsConfiguration = expandBatchPoolWindowsConfiguration(v.([]interface{}))
 	}
 
 	return &result, nil
+}
+
+func expandBatchPoolSecurityProfile(profile []interface{}) *pool.SecurityProfile {
+	if len(profile) == 0 {
+		return nil
+	}
+
+	item := profile[0].(map[string]interface{})
+	securityProfile := &pool.SecurityProfile{
+		UefiSettings: &pool.UefiSettings{},
+	}
+
+	if v, ok := item["host_encryption_enabled"]; ok {
+		securityProfile.EncryptionAtHost = pointer.To(v.(bool))
+	}
+
+	if v, ok := item["security_type"]; ok {
+		securityProfile.SecurityType = pointer.To(pool.SecurityTypes(v.(string)))
+	}
+
+	if v, ok := item["secure_boot_enabled"]; ok {
+		securityProfile.UefiSettings.SecureBootEnabled = pointer.To(v.(bool))
+	}
+
+	if v, ok := item["vtpm_enabled"]; ok {
+		securityProfile.UefiSettings.VTpmEnabled = pointer.To(v.(bool))
+	}
+
+	return securityProfile
 }
 
 func expandBatchPoolOSDisk(ref interface{}) *pool.OSDisk {
@@ -920,8 +968,8 @@ func expandBatchPoolDataDisks(list []interface{}) *[]pool.DataDisk {
 	if len(list) == 0 || list[0] == nil {
 		return nil
 	}
-	var result []pool.DataDisk
 
+	result := make([]pool.DataDisk, 0, len(list))
 	for _, tempItem := range list {
 		item := tempItem.(map[string]interface{})
 		result = append(result, expandBatchPoolDataDisk(item))
@@ -1057,7 +1105,7 @@ func expandBatchPoolAzureFileShareConfiguration(list []interface{}) (*pool.Azure
 	result := pool.AzureFileShareConfiguration{
 		AccountName:       configMap["account_name"].(string),
 		AccountKey:        configMap["account_key"].(string),
-		AzureFileUrl:      configMap["azure_file_url"].(string),
+		AzureFileURL:      configMap["azure_file_url"].(string),
 		RelativeMountPath: configMap["relative_mount_path"].(string),
 	}
 

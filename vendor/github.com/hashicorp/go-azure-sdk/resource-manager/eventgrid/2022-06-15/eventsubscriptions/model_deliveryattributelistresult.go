@@ -29,7 +29,7 @@ func (s *DeliveryAttributeListResult) UnmarshalJSON(bytes []byte) error {
 
 		output := make([]DeliveryAttributeMapping, 0)
 		for i, val := range listTemp {
-			impl, err := unmarshalDeliveryAttributeMappingImplementation(val)
+			impl, err := UnmarshalDeliveryAttributeMappingImplementation(val)
 			if err != nil {
 				return fmt.Errorf("unmarshaling index %d field 'Value' for 'DeliveryAttributeListResult': %+v", i, err)
 			}
@@ -37,5 +37,6 @@ func (s *DeliveryAttributeListResult) UnmarshalJSON(bytes []byte) error {
 		}
 		s.Value = &output
 	}
+
 	return nil
 }

@@ -10,14 +10,15 @@ import (
 	"time"
 
 	"github.com/Azure/go-autorest/autorest"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2023-03-01/configurationstores"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appconfiguration/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appconfiguration/1.0/appconfiguration"
+	"github.com/jackofallops/kermit/sdk/appconfiguration/1.0/appconfiguration"
 )
 
 type KeyDataSource struct{}
@@ -123,13 +124,13 @@ func (k KeyDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("while checking for key's %q existence: %+v", model.Key, err)
 			}
 
-			if contentType := utils.NormalizeNilableString(kv.ContentType); contentType != VaultKeyContentType {
+			if contentType := pointer.From(kv.ContentType); contentType != VaultKeyContentType {
 				model.Type = KeyTypeKV
 				model.ContentType = contentType
-				model.Value = utils.NormalizeNilableString(kv.Value)
+				model.Value = pointer.From(kv.Value)
 			} else {
 				var ref VaultKeyReference
-				refBytes := []byte(utils.NormalizeNilableString(kv.Value))
+				refBytes := []byte(pointer.From(kv.Value))
 				err := json.Unmarshal(refBytes, &ref)
 				if err != nil {
 					return fmt.Errorf("while unmarshalling vault reference: %+v", err)
@@ -144,7 +145,7 @@ func (k KeyDataSource) Read() sdk.ResourceFunc {
 			if kv.Locked != nil {
 				model.Locked = *kv.Locked
 			}
-			model.Etag = utils.NormalizeNilableString(kv.Etag)
+			model.Etag = pointer.From(kv.Etag)
 
 			metadata.SetID(nestedItemId)
 			return metadata.Encode(&model)

@@ -71,19 +71,19 @@ A `filter` block supports the following:
 
 * `blob_types` - (Required) A set of blob types. Possible values are `blockBlob`, `appendBlob`, and `pageBlob`. The storage account with `is_hns_enabled` is `true` doesn't support `pageBlob`.
 
-~> **NOTE:** The `rules.*.schema_fields` for this rule has to include `BlobType` so that you can specify the `blob_types`.
+~> **Note:** The `rules.*.schema_fields` for this rule has to include `BlobType` so that you can specify the `blob_types`.
 
 * `include_blob_versions` - (Optional) Includes blob versions in blob inventory or not? Defaults to `false`.
 
-~> **NOTE:** The `rules.*.schema_fields` for this rule has to include `IsCurrentVersion` and `VersionId` so that you can specify the `include_blob_versions`.
+~> **Note:** The `rules.*.schema_fields` for this rule has to include `IsCurrentVersion` and `VersionId` so that you can specify the `include_blob_versions`.
 
 * `include_deleted` - (Optional) Includes deleted blobs in blob inventory or not? Defaults to `false`.
 
-~> **NOTE:** If `rules.*.scope` is `Container`, the `rules.*.schema_fields` for this rule must include `Deleted`, `Version`, `DeletedTime`, and `RemainingRetentionDays` so that you can specify the `include_deleted`. If `rules.*.scope` is `Blob`, the `rules.*.schema_fields` must include `Deleted` and `RemainingRetentionDays` so that you can specify the `include_deleted`. If `rules.*.scope` is `Blob` and the storage account specified by `storage_account_id` has hierarchical namespaces enabled (`is_hns_enabled` is `true` on the storage account), the `rules.*.schema_fields` for this rule must include `Deleted`, `Version`, `DeletedTime`, and `RemainingRetentionDays` so that you can specify the `include_deleted`.
+~> **Note:** If `rules.*.scope` is `Container`, the `rules.*.schema_fields` for this rule must include `Deleted`, `Version`, `DeletedTime`, and `RemainingRetentionDays` so that you can specify the `include_deleted`. If `rules.*.scope` is `Blob`, the `rules.*.schema_fields` must include `Deleted` and `RemainingRetentionDays` so that you can specify the `include_deleted`. If `rules.*.scope` is `Blob` and the storage account specified by `storage_account_id` has hierarchical namespaces enabled (`is_hns_enabled` is `true` on the storage account), the `rules.*.schema_fields` for this rule must include `Deleted`, `Version`, `DeletedTime`, and `RemainingRetentionDays` so that you can specify the `include_deleted`.
 
 * `include_snapshots` - (Optional) Includes blob snapshots in blob inventory or not? Defaults to `false`.
 
-~> **NOTE:** The `rules.*.schema_fields` for this rule has to include `Snapshot` so that you can specify the `include_snapshots`.
+~> **Note:** The `rules.*.schema_fields` for this rule has to include `Snapshot` so that you can specify the `include_snapshots`.
 
 * `prefix_match` - (Optional) A set of strings for blob prefixes to be matched. Maximum of 10 blob prefixes.
 
@@ -105,7 +105,7 @@ A `rules` block supports the following:
 
 * `schema_fields` - (Required) A list of fields to be included in the inventory. See the [Azure API reference](https://docs.microsoft.com/rest/api/storagerp/blob-inventory-policies/create-or-update#blobinventorypolicydefinition) for all the supported fields.
 
-* `filter` - (Optional) A `filter` block as defined above. Can only be set when the `scope` is `Blob`.
+* `filter` - (Optional) A `filter` block as defined above.
 
 ## Attributes Reference
 
@@ -129,3 +129,9 @@ Storage Blob Inventory Policies can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_storage_blob_inventory_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Storage/storageAccounts/storageAccount1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Storage` - 2023-05-01

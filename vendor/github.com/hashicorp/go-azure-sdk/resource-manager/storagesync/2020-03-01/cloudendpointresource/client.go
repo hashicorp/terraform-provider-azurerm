@@ -15,7 +15,7 @@ type CloudEndpointResourceClient struct {
 }
 
 func NewCloudEndpointResourceClientWithBaseURI(sdkApi sdkEnv.Api) (*CloudEndpointResourceClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "cloudendpointresource", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "cloudendpointresource", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating CloudEndpointResourceClient: %+v", err)
 	}

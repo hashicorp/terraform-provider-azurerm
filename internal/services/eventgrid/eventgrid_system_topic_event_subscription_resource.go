@@ -12,8 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/eventsubscriptions"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -33,7 +35,7 @@ func possibleSystemTopicEventSubscriptionEndpointTypes() []string {
 }
 
 func resourceEventGridSystemTopicEventSubscription() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceEventGridSystemTopicEventSubscriptionCreateUpdate,
 		Read:   resourceEventGridSystemTopicEventSubscriptionRead,
 		Update: resourceEventGridSystemTopicEventSubscriptionCreateUpdate,
@@ -140,6 +142,12 @@ func resourceEventGridSystemTopicEventSubscription() *pluginsdk.Resource {
 			"delivery_property": eventSubscriptionSchemaDeliveryProperty(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["azure_function_endpoint"].Elem.(*pluginsdk.Resource).Schema["function_id"].ValidateFunc = azure.ValidateResourceID
+	}
+
+	return resource
 }
 
 func resourceEventGridSystemTopicEventSubscriptionCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -248,7 +256,7 @@ func resourceEventGridSystemTopicEventSubscriptionRead(d *pluginsdk.ResourceData
 		return fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	fullUrlResp, err := client.SystemTopicEventSubscriptionsGetFullUrl(ctx, *id)
+	fullUrlResp, err := client.SystemTopicEventSubscriptionsGetFullURL(ctx, *id)
 	if err != nil {
 		// unexpected status 400 with error: InvalidRequest: Destination type of the event subscription XXXX
 		// is StorageQueue which doesn't support full URL. Only webhook destination type supports full URL.

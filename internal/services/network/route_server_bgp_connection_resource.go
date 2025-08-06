@@ -8,17 +8,20 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name route_server_bgp_connection -service-package-name network -properties "name" -compare-values "subscription_id:route_server_id,resource_group_name:route_server_id,hub_name:route_server_id"
 
 func resourceRouteServerBgpConnection() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -32,10 +35,11 @@ func resourceRouteServerBgpConnection() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.BgpConnectionID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.VirtualHubBGPConnectionId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.VirtualHubBGPConnectionId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -49,7 +53,7 @@ func resourceRouteServerBgpConnection() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validate.VirtualHubID,
+				ValidateFunc: virtualwans.ValidateVirtualHubID,
 			},
 
 			"peer_asn": {
@@ -70,47 +74,42 @@ func resourceRouteServerBgpConnection() *pluginsdk.Resource {
 }
 
 func resourceRouteServerBgpConnectionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VirtualHubBgpConnectionClient
+	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	routerServerId, err := parse.VirtualHubID(d.Get("route_server_id").(string))
+	routerServerId, err := virtualwans.ParseVirtualHubID(d.Get("route_server_id").(string))
 	if err != nil {
 		return err
 	}
 
-	locks.ByName(routerServerId.Name, "azurerm_route_server")
-	defer locks.UnlockByName(routerServerId.Name, "azurerm_route_server")
+	locks.ByName(routerServerId.VirtualHubName, "azurerm_route_server")
+	defer locks.UnlockByName(routerServerId.VirtualHubName, "azurerm_route_server")
 
-	id := parse.NewBgpConnectionID(routerServerId.SubscriptionId, routerServerId.ResourceGroup, routerServerId.Name, d.Get("name").(string))
+	id := commonids.NewVirtualHubBGPConnectionID(routerServerId.SubscriptionId, routerServerId.ResourceGroupName, routerServerId.VirtualHubName, d.Get("name").(string))
 
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.Name)
+		existing, err := client.VirtualHubBgpConnectionGet(ctx, id)
 		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
 		}
 
-		if !utils.ResponseWasNotFound(existing.Response) {
+		if !response.WasNotFound(existing.HttpResponse) {
 			return tf.ImportAsExistsError("azurerm_route_server_bgp_connection", id.ID())
 		}
 	}
-	parameters := network.BgpConnection{
-		Name: utils.String(d.Get("name").(string)),
-		BgpConnectionProperties: &network.BgpConnectionProperties{
-			PeerAsn: utils.Int64(int64(d.Get("peer_asn").(int))),
-			PeerIP:  utils.String(d.Get("peer_ip").(string)),
+	parameters := virtualwans.BgpConnection{
+		Name: pointer.To(d.Get("name").(string)),
+		Properties: &virtualwans.BgpConnectionProperties{
+			PeerAsn: pointer.To(int64(d.Get("peer_asn").(int))),
+			PeerIP:  pointer.To(d.Get("peer_ip").(string)),
 		},
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualHubName, id.Name, parameters)
-	if err != nil {
+	if err := client.VirtualHubBgpConnectionCreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on creation/update future for %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -118,56 +117,56 @@ func resourceRouteServerBgpConnectionCreate(d *pluginsdk.ResourceData, meta inte
 }
 
 func resourceRouteServerBgpConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VirtualHubBgpConnectionClient
+	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BgpConnectionID(d.Id())
+	id, err := commonids.ParseVirtualHubBGPConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.Name)
+	resp, err := client.VirtualHubBgpConnectionGet(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("[INFO] BGP Connection %s does not exists", id)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("[INFO] %s does not exists", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Route Server BGP Connection %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	d.Set("name", id.Name)
-	d.Set("route_server_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID())
+	d.Set("name", id.ConnectionName)
+	d.Set("route_server_id", virtualwans.NewVirtualHubID(id.SubscriptionId, id.ResourceGroupName, id.HubName).ID())
 
-	if props := resp.BgpConnectionProperties; props != nil {
-		if props.PeerAsn != nil {
-			d.Set("peer_asn", props.PeerAsn)
-		}
-		if props.PeerIP != nil {
-			d.Set("peer_ip", props.PeerIP)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			if props.PeerAsn != nil {
+				d.Set("peer_asn", props.PeerAsn)
+			}
+			if props.PeerIP != nil {
+				d.Set("peer_ip", props.PeerIP)
+			}
 		}
 	}
-	return nil
+
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceRouteServerBgpConnectionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VirtualHubBgpConnectionClient
+	client := meta.(*clients.Client).Network.VirtualWANs
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.BgpConnectionID(d.Id())
+	id, err := commonids.ParseVirtualHubBGPConnectionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualHubName, id.Name)
-	if err != nil {
-		return fmt.Errorf("deleting BGP Connection %s： %+v", id, err)
+	if err := client.VirtualHubBgpConnectionDeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s： %+v", id, err)
 	}
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting on deletion future for BGP Connection %s: %+v", id, err)
-	}
+
 	return nil
 }

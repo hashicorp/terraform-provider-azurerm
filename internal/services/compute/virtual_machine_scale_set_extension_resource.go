@@ -4,19 +4,22 @@
 package compute
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachinescalesetextensions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/compute/2023-03-01/compute"
 )
 
 // NOTE (also in the docs): this is not intended to be used with the `azurerm_virtual_machine_scale_set` resource
@@ -29,7 +32,7 @@ func resourceVirtualMachineScaleSetExtension() *pluginsdk.Resource {
 		Delete: resourceVirtualMachineScaleSetExtensionDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.VirtualMachineScaleSetExtensionID(id)
+			_, err := virtualmachinescalesetextensions.ParseVirtualMachineScaleSetExtensionID(id)
 			return err
 		}),
 
@@ -129,7 +132,7 @@ func resourceVirtualMachineScaleSetExtension() *pluginsdk.Resource {
 }
 
 func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Compute.VMScaleSetExtensionsClient
+	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetExtensionsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -137,64 +140,61 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 	if err != nil {
 		return err
 	}
-	id := parse.NewVirtualMachineScaleSetExtensionID(virtualMachineScaleSetId.SubscriptionId, virtualMachineScaleSetId.ResourceGroupName, virtualMachineScaleSetId.VirtualMachineScaleSetName, d.Get("name").(string))
+	id := virtualmachinescalesetextensions.NewVirtualMachineScaleSetExtensionID(virtualMachineScaleSetId.SubscriptionId, virtualMachineScaleSetId.ResourceGroupName, virtualMachineScaleSetId.VirtualMachineScaleSetName, d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName, "")
+	resp, err := client.Get(ctx, id, virtualmachinescalesetextensions.DefaultGetOperationOptions())
 	if err != nil {
-		if !utils.ResponseWasNotFound(resp.Response) {
+		if !response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("checking for existing %s: %+v", id, err)
 		}
 	}
 
-	if !utils.ResponseWasNotFound(resp.Response) {
-		return tf.ImportAsExistsError("azurerm_virtual_machine_scale_set_extension", *resp.ID)
+	if !response.WasNotFound(resp.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_virtual_machine_scale_set_extension", id.ID())
 	}
 
-	settings := map[string]interface{}{}
+	var settings *interface{}
 	if settingsString := d.Get("settings").(string); settingsString != "" {
-		s, err := pluginsdk.ExpandJsonFromString(settingsString)
+		var result interface{}
+		err := json.Unmarshal([]byte(settingsString), &result)
 		if err != nil {
-			return fmt.Errorf("unable to parse `settings`: %s", err)
+			return fmt.Errorf("unmarshaling `settings`: %+v", err)
 		}
-		settings = s
+		settings = pointer.To(result)
 	}
 
 	provisionAfterExtensionsRaw := d.Get("provision_after_extensions").([]interface{})
 	provisionAfterExtensions := utils.ExpandStringSlice(provisionAfterExtensionsRaw)
 
-	props := compute.VirtualMachineScaleSetExtension{
-		Name: utils.String(id.ExtensionName),
-		VirtualMachineScaleSetExtensionProperties: &compute.VirtualMachineScaleSetExtensionProperties{
-			Publisher:                     utils.String(d.Get("publisher").(string)),
-			Type:                          utils.String(d.Get("type").(string)),
-			TypeHandlerVersion:            utils.String(d.Get("type_handler_version").(string)),
-			AutoUpgradeMinorVersion:       utils.Bool(d.Get("auto_upgrade_minor_version").(bool)),
-			EnableAutomaticUpgrade:        utils.Bool(d.Get("automatic_upgrade_enabled").(bool)),
-			SuppressFailures:              utils.Bool(d.Get("failure_suppression_enabled").(bool)),
-			ProtectedSettingsFromKeyVault: expandProtectedSettingsFromKeyVaultOld(d.Get("protected_settings_from_key_vault").([]interface{})),
+	props := virtualmachinescalesetextensions.VirtualMachineScaleSetExtension{
+		Name: pointer.To(id.ExtensionName),
+		Properties: &virtualmachinescalesetextensions.VirtualMachineScaleSetExtensionProperties{
+			Publisher:                     pointer.To(d.Get("publisher").(string)),
+			Type:                          pointer.To(d.Get("type").(string)),
+			TypeHandlerVersion:            pointer.To(d.Get("type_handler_version").(string)),
+			AutoUpgradeMinorVersion:       pointer.To(d.Get("auto_upgrade_minor_version").(bool)),
+			EnableAutomaticUpgrade:        pointer.To(d.Get("automatic_upgrade_enabled").(bool)),
+			SuppressFailures:              pointer.To(d.Get("failure_suppression_enabled").(bool)),
+			ProtectedSettingsFromKeyVault: expandProtectedSettingsFromKeyVaultOldVMSSExtension(d.Get("protected_settings_from_key_vault").([]interface{})),
 			ProvisionAfterExtensions:      provisionAfterExtensions,
 			Settings:                      settings,
 		},
 	}
 	if v, ok := d.GetOk("force_update_tag"); ok {
-		props.VirtualMachineScaleSetExtensionProperties.ForceUpdateTag = utils.String(v.(string))
+		props.Properties.ForceUpdateTag = pointer.To(v.(string))
 	}
 
 	if protectedSettingsString := d.Get("protected_settings").(string); protectedSettingsString != "" {
-		protectedSettings, err := pluginsdk.ExpandJsonFromString(protectedSettingsString)
+		var result interface{}
+		err := json.Unmarshal([]byte(protectedSettingsString), &result)
 		if err != nil {
-			return fmt.Errorf("unable to parse `protected_settings`: %s", err)
+			return fmt.Errorf("unmarshaling `protected_settings`: %+v", err)
 		}
-		props.VirtualMachineScaleSetExtensionProperties.ProtectedSettings = &protectedSettings
+		props.Properties.ProtectedSettings = pointer.To(result)
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName, props)
-	if err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, props); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
@@ -203,44 +203,45 @@ func resourceVirtualMachineScaleSetExtensionCreate(d *pluginsdk.ResourceData, me
 }
 
 func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Compute.VMScaleSetExtensionsClient
+	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetExtensionsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualMachineScaleSetExtensionID(d.Id())
+	id, err := virtualmachinescalesetextensions.ParseVirtualMachineScaleSetExtensionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	props := compute.VirtualMachineScaleSetExtensionProperties{
+	props := virtualmachinescalesetextensions.VirtualMachineScaleSetExtensionProperties{
 		// if this isn't specified it defaults to false
-		AutoUpgradeMinorVersion: utils.Bool(d.Get("auto_upgrade_minor_version").(bool)),
-		EnableAutomaticUpgrade:  utils.Bool(d.Get("automatic_upgrade_enabled").(bool)),
+		AutoUpgradeMinorVersion: pointer.To(d.Get("auto_upgrade_minor_version").(bool)),
+		EnableAutomaticUpgrade:  pointer.To(d.Get("automatic_upgrade_enabled").(bool)),
 	}
 
 	if d.HasChange("failure_suppression_enabled") {
-		props.SuppressFailures = utils.Bool(d.Get("failure_suppression_enabled").(bool))
+		props.SuppressFailures = pointer.To(d.Get("failure_suppression_enabled").(bool))
 	}
 
 	if d.HasChange("force_update_tag") {
-		props.ForceUpdateTag = utils.String(d.Get("force_update_tag").(string))
+		props.ForceUpdateTag = pointer.To(d.Get("force_update_tag").(string))
 	}
 
 	if d.HasChange("protected_settings") {
-		protectedSettings := map[string]interface{}{}
+		var protectedSettings interface{}
 		if protectedSettingsString := d.Get("protected_settings").(string); protectedSettingsString != "" {
-			ps, err := pluginsdk.ExpandJsonFromString(protectedSettingsString)
+			var result interface{}
+			err := json.Unmarshal([]byte(protectedSettingsString), &result)
 			if err != nil {
-				return fmt.Errorf("unable to parse `protected_settings`: %s", err)
+				return fmt.Errorf("unmarshaling `protected_settings`: %+v", err)
 			}
-			protectedSettings = ps
-		}
 
-		props.ProtectedSettings = protectedSettings
+			protectedSettings = result
+		}
+		props.ProtectedSettings = pointer.To(protectedSettings)
 	}
 
 	if d.HasChange("protected_settings_from_key_vault") {
-		props.ProtectedSettingsFromKeyVault = expandProtectedSettingsFromKeyVaultOld(d.Get("protected_settings_from_key_vault").([]interface{}))
+		props.ProtectedSettingsFromKeyVault = expandProtectedSettingsFromKeyVaultOldVMSSExtension(d.Get("protected_settings_from_key_vault").([]interface{}))
 	}
 
 	if d.HasChange("provision_after_extensions") {
@@ -249,134 +250,124 @@ func resourceVirtualMachineScaleSetExtensionUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if d.HasChange("publisher") {
-		props.Publisher = utils.String(d.Get("publisher").(string))
+		props.Publisher = pointer.To(d.Get("publisher").(string))
 	}
 
 	if d.HasChange("settings") {
-		settings := map[string]interface{}{}
-
+		var settings interface{}
 		if settingsString := d.Get("settings").(string); settingsString != "" {
-			s, err := pluginsdk.ExpandJsonFromString(settingsString)
+			var result interface{}
+			err := json.Unmarshal([]byte(settingsString), &result)
 			if err != nil {
-				return fmt.Errorf("unable to parse `settings`: %s", err)
+				return fmt.Errorf("unmarshaling `settings`: %+v", err)
 			}
-			settings = s
+			settings = result
 		}
 
-		props.Settings = settings
+		props.Settings = pointer.To(settings)
 	}
 
 	if d.HasChange("type") {
-		props.Type = utils.String(d.Get("type").(string))
+		props.Type = pointer.To(d.Get("type").(string))
 	}
 
 	if d.HasChange("type_handler_version") {
-		props.TypeHandlerVersion = utils.String(d.Get("type_handler_version").(string))
+		props.TypeHandlerVersion = pointer.To(d.Get("type_handler_version").(string))
 	}
 
-	extension := compute.VirtualMachineScaleSetExtension{
-		Name: utils.String(id.ExtensionName),
-		VirtualMachineScaleSetExtensionProperties: &props,
+	extension := virtualmachinescalesetextensions.VirtualMachineScaleSetExtension{
+		Name:       pointer.To(id.ExtensionName),
+		Properties: &props,
 	}
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName, extension)
-	if err != nil {
-		return fmt.Errorf("updating Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for update of Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, extension); err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
 	return resourceVirtualMachineScaleSetExtensionRead(d, meta)
 }
 
 func resourceVirtualMachineScaleSetExtensionRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	vmssClient := meta.(*clients.Client).Compute.VMScaleSetClient
-	client := meta.(*clients.Client).Compute.VMScaleSetExtensionsClient
+	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetExtensionsClient
+	vmssClient := meta.(*clients.Client).Compute.VirtualMachineScaleSetsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualMachineScaleSetExtensionID(d.Id())
+	id, err := virtualmachinescalesetextensions.ParseVirtualMachineScaleSetExtensionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	// Upgrading to the 2021-07-01 exposed a new expand parameter in the GET method
-	vmss, err := vmssClient.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, "")
+	virtualMachineScaleSetId := virtualmachinescalesets.NewVirtualMachineScaleSetID(id.SubscriptionId, id.ResourceGroupName, id.VirtualMachineScaleSetName)
+
+	vmss, err := vmssClient.Get(ctx, virtualMachineScaleSetId, virtualmachinescalesets.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(vmss.Response) {
-			log.Printf("Virtual Machine Scale Set %q was not found in Resource Group %q - removing Extension from state!", id.VirtualMachineScaleSetName, id.ResourceGroup)
+		if response.WasNotFound(vmss.HttpResponse) {
+			log.Printf("%s was not found - removing Extension from state!", virtualMachineScaleSetId)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Virtual Machine Scale Set %q (Resource Group %q): %+v", id.VirtualMachineScaleSetName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", virtualMachineScaleSetId, err)
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName, "")
+	resp, err := client.Get(ctx, *id, virtualmachinescalesetextensions.DefaultGetOperationOptions())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			log.Printf("Extension %q (Virtual Machine Scale Set %q / Resource Group %q) was not found - removing from state!", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			log.Printf("%s was not found - removing from state!", id)
 			d.SetId("")
 			return nil
 		}
 
-		return fmt.Errorf("retrieving Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.Set("name", id.ExtensionName)
-	d.Set("virtual_machine_scale_set_id", vmss.ID)
+	d.Set("virtual_machine_scale_set_id", virtualMachineScaleSetId.ID())
 
-	if props := resp.VirtualMachineScaleSetExtensionProperties; props != nil {
-		d.Set("auto_upgrade_minor_version", props.AutoUpgradeMinorVersion)
-		d.Set("automatic_upgrade_enabled", props.EnableAutomaticUpgrade)
-		d.Set("force_update_tag", props.ForceUpdateTag)
-		d.Set("protected_settings_from_key_vault", flattenProtectedSettingsFromKeyVaultOld(props.ProtectedSettingsFromKeyVault))
-		d.Set("provision_after_extensions", utils.FlattenStringSlice(props.ProvisionAfterExtensions))
-		d.Set("publisher", props.Publisher)
-		d.Set("type", props.Type)
-		d.Set("type_handler_version", props.TypeHandlerVersion)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("auto_upgrade_minor_version", props.AutoUpgradeMinorVersion)
+			d.Set("automatic_upgrade_enabled", props.EnableAutomaticUpgrade)
+			d.Set("force_update_tag", props.ForceUpdateTag)
+			d.Set("protected_settings_from_key_vault", flattenProtectedSettingsFromKeyVaultOldVMSSExtension(props.ProtectedSettingsFromKeyVault))
+			d.Set("provision_after_extensions", utils.FlattenStringSlice(props.ProvisionAfterExtensions))
+			d.Set("publisher", props.Publisher)
+			d.Set("type", props.Type)
+			d.Set("type_handler_version", props.TypeHandlerVersion)
 
-		suppressFailure := false
-		if props.SuppressFailures != nil {
-			suppressFailure = *props.SuppressFailures
-		}
-		d.Set("failure_suppression_enabled", suppressFailure)
-
-		settings := ""
-		if props.Settings != nil {
-			settingsVal, ok := props.Settings.(map[string]interface{})
-			if ok {
-				settingsJson, err := pluginsdk.FlattenJsonToString(settingsVal)
-				if err != nil {
-					return fmt.Errorf("unable to parse settings from response: %s", err)
-				}
-				settings = settingsJson
+			suppressFailure := false
+			if props.SuppressFailures != nil {
+				suppressFailure = *props.SuppressFailures
 			}
+			d.Set("failure_suppression_enabled", suppressFailure)
+
+			settings := ""
+			if props.Settings != nil {
+				settingsRaw, err := json.Marshal(props.Settings)
+				if err != nil {
+					return fmt.Errorf("unmarshaling `settings`: %+v", err)
+				}
+				settings = string(settingsRaw)
+			}
+			d.Set("settings", settings)
 		}
-		d.Set("settings", settings)
 	}
 
 	return nil
 }
 
 func resourceVirtualMachineScaleSetExtensionDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Compute.VMScaleSetExtensionsClient
+	client := meta.(*clients.Client).Compute.VirtualMachineScaleSetExtensionsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.VirtualMachineScaleSetExtensionID(d.Id())
+	id, err := virtualmachinescalesetextensions.ParseVirtualMachineScaleSetExtensionID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualMachineScaleSetName, id.ExtensionName)
-	if err != nil {
-		return fmt.Errorf("deleting Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
-	}
-
-	if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for deletion of Extension %q (Virtual Machine Scale Set %q / Resource Group %q): %+v", id.ExtensionName, id.VirtualMachineScaleSetName, id.ResourceGroup, err)
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
+		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil

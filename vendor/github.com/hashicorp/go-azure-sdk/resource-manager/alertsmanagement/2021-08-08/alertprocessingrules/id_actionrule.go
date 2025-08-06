@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ActionRuleId{})
+}
 
 var _ resourceids.ResourceId = &ActionRuleId{}
 
@@ -37,7 +42,7 @@ func ParseActionRuleID(input string) (*ActionRuleId, error) {
 	}
 
 	id := ActionRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -54,7 +59,7 @@ func ParseActionRuleIDInsensitively(input string) (*ActionRuleId, error) {
 	}
 
 	id := ActionRuleId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -110,7 +115,7 @@ func (id ActionRuleId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAlertsManagement", "Microsoft.AlertsManagement", "Microsoft.AlertsManagement"),
 		resourceids.StaticSegment("staticActionRules", "actionRules", "actionRules"),
-		resourceids.UserSpecifiedSegment("actionRuleName", "actionRuleValue"),
+		resourceids.UserSpecifiedSegment("actionRuleName", "actionRuleName"),
 	}
 }
 

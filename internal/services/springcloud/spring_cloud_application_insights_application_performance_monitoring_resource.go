@@ -12,8 +12,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -33,7 +35,14 @@ type SpringCloudApplicationInsightsApplicationPerformanceMonitoringModel struct 
 
 type SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource struct{}
 
-var _ sdk.ResourceWithUpdate = SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource{}
+func (s SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource) DeprecationMessage() string {
+	return features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_application_insights_application_performance_monitoring` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.")
+}
+
+var (
+	_ sdk.ResourceWithUpdate                      = SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource{}
+	_ sdk.ResourceWithDeprecationAndNoReplacement = SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource{}
+)
 
 func (s SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource) ResourceType() string {
 	return "azurerm_spring_cloud_application_insights_application_performance_monitoring"
@@ -268,7 +277,7 @@ func (s SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource) 
 			if result.Model != nil && result.Model.Value != nil {
 				for _, value := range *result.Model.Value {
 					apmId, err := appplatform.ParseApmIDInsensitively(value)
-					if err == nil && apmId.ID() == id.ID() {
+					if err == nil && resourceids.Match(apmId, id) {
 						globallyEnabled = true
 						break
 					}
@@ -308,7 +317,6 @@ func (s SpringCloudApplicationInsightsApplicationPerformanceMonitoringResource) 
 							state.SamplingPercentage = samplingPercentage
 						}
 					}
-
 				}
 			}
 

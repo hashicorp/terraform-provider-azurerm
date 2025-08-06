@@ -28,7 +28,7 @@ data "azurerm_managed_api" "example" {
 }
 
 resource "azurerm_servicebus_namespace" "example" {
-  name                = "acctestsbn-conn-example"
+  name                = "example-namespace"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
   sku                 = "Basic"
@@ -59,17 +59,17 @@ resource "azurerm_api_connection" "example" {
 
 The following arguments are supported:
 
-* `managed_api_id` - (Required) The ID of the Managed API which this API Connection is linked to. Changing this forces a new API Connection to be created.
-
 * `name` - (Required) The Name which should be used for this API Connection. Changing this forces a new API Connection to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where this API Connection should exist. Changing this forces a new API Connection to be created.
 
+* `managed_api_id` - (Required) The ID of the Managed API which this API Connection is linked to. Changing this forces a new API Connection to be created.
+
 ---
 
-* `display_name` - (Optional) A display name for this API Connection. Changing this forces a new API Connection to be created.
+* `display_name` - (Optional) A display name for this API Connection.
 
-* `parameter_values` - (Optional) A map of parameter values associated with this API Connection. Changing this forces a new API Connection to be created.
+* `parameter_values` - (Optional) A map of parameter values associated with this API Connection.
 
 -> **Note:** The Azure API doesn't return sensitive parameters in the API response which can lead to a diff, as such you may need to use Terraform's `ignore_changes` functionality on this field as shown in the Example Usage above.
 
@@ -97,3 +97,9 @@ API Connections can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_api_connection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.Web/connections/example-connection
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Web` - 2016-06-01

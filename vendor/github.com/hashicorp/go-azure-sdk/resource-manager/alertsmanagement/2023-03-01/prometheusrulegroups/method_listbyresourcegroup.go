@@ -47,7 +47,6 @@ func (c PrometheusRuleGroupsClient) ListByResourceGroup(ctx context.Context, id 
 
 	var model PrometheusRuleGroupResourceCollection
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

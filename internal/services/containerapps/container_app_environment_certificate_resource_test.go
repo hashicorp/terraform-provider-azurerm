@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2023-05-01/certificates"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/certificates"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -33,6 +33,7 @@ func TestAccContainerAppEnvironmentCertificate_basic(t *testing.T) {
 		data.ImportStep("certificate_blob_base64", "certificate_password"),
 	})
 }
+
 func TestAccContainerAppEnvironmentCertificate_basicUpdateTags(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_environment_certificate", "test")
 	r := ContainerAppEnvironmentCertificateResource{}

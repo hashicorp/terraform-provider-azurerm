@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ScopedRoleAssignmentScheduleInstanceId{})
+}
 
 var _ resourceids.ResourceId = &ScopedRoleAssignmentScheduleInstanceId{}
 
@@ -35,7 +40,7 @@ func ParseScopedRoleAssignmentScheduleInstanceID(input string) (*ScopedRoleAssig
 	}
 
 	id := ScopedRoleAssignmentScheduleInstanceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -52,7 +57,7 @@ func ParseScopedRoleAssignmentScheduleInstanceIDInsensitively(input string) (*Sc
 	}
 
 	id := ScopedRoleAssignmentScheduleInstanceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -101,7 +106,7 @@ func (id ScopedRoleAssignmentScheduleInstanceId) Segments() []resourceids.Segmen
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAuthorization", "Microsoft.Authorization", "Microsoft.Authorization"),
 		resourceids.StaticSegment("staticRoleAssignmentScheduleInstances", "roleAssignmentScheduleInstances", "roleAssignmentScheduleInstances"),
-		resourceids.UserSpecifiedSegment("roleAssignmentScheduleInstanceName", "roleAssignmentScheduleInstanceValue"),
+		resourceids.UserSpecifiedSegment("roleAssignmentScheduleInstanceName", "roleAssignmentScheduleInstanceName"),
 	}
 }
 

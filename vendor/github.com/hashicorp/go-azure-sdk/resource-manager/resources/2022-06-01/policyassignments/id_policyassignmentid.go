@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&PolicyAssignmentIdId{})
+}
 
 var _ resourceids.ResourceId = &PolicyAssignmentIdId{}
 
@@ -33,7 +38,7 @@ func ParsePolicyAssignmentIdID(input string) (*PolicyAssignmentIdId, error) {
 	}
 
 	id := PolicyAssignmentIdId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -50,7 +55,7 @@ func ParsePolicyAssignmentIdIDInsensitively(input string) (*PolicyAssignmentIdId
 	}
 
 	id := PolicyAssignmentIdId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -91,7 +96,7 @@ func (id PolicyAssignmentIdId) ID() string {
 // Segments returns a slice of Resource ID Segments which comprise this Policy Assignment Id ID
 func (id PolicyAssignmentIdId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
-		resourceids.UserSpecifiedSegment("policyAssignmentId", "policyAssignmentIdValue"),
+		resourceids.UserSpecifiedSegment("policyAssignmentId", "policyAssignmentId"),
 	}
 }
 

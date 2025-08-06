@@ -4,7 +4,7 @@
 package network
 
 import (
-	"fmt"
+	"errors"
 	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -13,15 +13,15 @@ import (
 // NOTE: these methods are deprecated, but provided to ease compatibility for open PR's
 
 func evaluateSchemaValidateFunc(i interface{}, k string, validateFunc pluginsdk.SchemaValidateFunc) (bool, error) { // nolint: unparam
-	_, errors := validateFunc(i, k)
+	_, errs := validateFunc(i, k)
 
 	errorStrings := []string{}
-	for _, e := range errors {
+	for _, e := range errs {
 		errorStrings = append(errorStrings, e.Error())
 	}
 
-	if len(errors) > 0 {
-		return false, fmt.Errorf(strings.Join(errorStrings, "\n"))
+	if len(errs) > 0 {
+		return false, errors.New(strings.Join(errorStrings, "\n"))
 	}
 
 	return true, nil

@@ -9,7 +9,6 @@ description: |-
 # azurerm_machine_learning_compute_cluster
 
 Manages a Machine Learning Compute Cluster.
-**NOTE:** At this point in time the resource cannot be updated (not supported by the backend Azure Go SDK). Therefore it can only be created and deleted, not updated. At the moment, there is also no possibility to specify ssh User Account Credentials to ssh into the compute cluster.
 
 ## Example Usage
 
@@ -111,25 +110,25 @@ The following arguments are supported:
 
 * `vm_size` - (Required) The size of the VM. Changing this forces a new Machine Learning Compute Cluster to be created.
 
-* `scale_settings` - (Required) A `scale_settings` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
-  
+* `scale_settings` - (Required) A `scale_settings` block as defined below.
+
 ---
 
 * `ssh` - (Optional) Credentials for an administrator user account that will be created on each compute node. A `ssh` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `description` - (Optional) The description of the Machine Learning compute. Changing this forces a new Machine Learning Compute Cluster to be created.
 
-* `identity` - (Optional) An `identity` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `identity` - (Optional) An `identity` block as defined below.
 
 * `local_auth_enabled` - (Optional) Whether local authentication methods is enabled. Defaults to `true`. Changing this forces a new Machine Learning Compute Cluster to be created.
 
-* `node_public_ip_enabled` - (Optional) Whether the compute cluster will have a public ip. To set this to false a `subnet_resource_id` needs to be set. Defaults to `true`. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `node_public_ip_enabled` - (Optional) Whether the compute cluster will have a public ip. Defaults to `true`. Changing this forces a new Machine Learning Compute Cluster to be created.
 
-* `ssh_public_access_enabled` - (Optional) A boolean value indicating whether enable the public SSH port. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `ssh_public_access_enabled` - (Optional) A boolean value indicating whether enable the public SSH port. Defaults to `false`. Changing this forces a new Machine Learning Compute Cluster to be created.
 
 * `subnet_resource_id` - (Optional) The ID of the Subnet that the Compute Cluster should reside in. Changing this forces a new Machine Learning Compute Cluster to be created.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Machine Learning Compute Cluster. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Machine Learning Compute Cluster.
 
 ---
 
@@ -139,7 +138,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Machine Learning Compute Cluster. Changing this forces a new resource to be created.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 A `ssh` block supports the following:
@@ -150,17 +149,17 @@ A `ssh` block supports the following:
 
 * `key_value` - (Optional) SSH public key of the administrator user account. Changing this forces a new Machine Learning Compute Cluster to be created.
 
-~> **NOTE:** At least one of `admin_password` and `key_value` shoud be specified.
+~> **Note:** At least one of `admin_password` and `key_value` shoud be specified.
 
 ---
 
 A `scale_settings` block supports the following:
 
-* `max_node_count` - (Required) Maximum node count. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `max_node_count` - (Required) Maximum node count.
 
-* `min_node_count` - (Required) Minimal node count. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `min_node_count` - (Required) Minimal node count.
 
-* `scale_down_nodes_after_idle_duration` - (Required) Node Idle Time Before Scale Down: defines the time until the compute is shutdown when it has gone into Idle state. Is defined according to W3C XML schema standard for duration. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `scale_down_nodes_after_idle_duration` - (Required) Node Idle Time Before Scale Down: defines the time until the compute is shutdown when it has gone into Idle state. Is defined according to W3C XML schema standard for duration.
 
 ## Attributes Reference
 
@@ -184,6 +183,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 30 minutes) Used when creating the Machine Learning Compute Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Machine Learning Compute Cluster.
+* `update` - (Defaults to 30 minutes) Used when updating the Machine Learning Compute Cluster.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Machine Learning Compute Cluster.
 
 ## Import
@@ -193,3 +193,9 @@ Machine Learning Compute Clusters can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_machine_learning_compute_cluster.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.MachineLearningServices/workspaces/workspace1/computes/cluster1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.MachineLearningServices` - 2025-06-01

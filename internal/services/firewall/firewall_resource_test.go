@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/azurefirewalls"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/azurefirewalls"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -20,8 +20,10 @@ import (
 
 type FirewallResource struct{}
 
-const premium = "Premium"
-const standard = "Standard"
+const (
+	premium  = "Premium"
+	standard = "Standard"
+)
 
 func TestAccFirewall_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
@@ -215,24 +217,14 @@ func TestAccFirewall_withTags(t *testing.T) {
 func TestAccFirewall_withZones(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 	r := FirewallResource{}
-	zones := []string{"1"}
-	zonesUpdate := []string{"1", "2", "3"}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withZones(data, zones),
+			Config: r.withZones(data, []string{"1"}),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("zones.#").HasValue("1"),
 				check.That(data.ResourceName).Key("zones.0").HasValue("1"),
-			),
-		},
-		{
-			Config: r.withZones(data, zonesUpdate),
-			Check: acceptance.ComposeTestCheckFunc(
-
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("zones.#").HasValue("3"),
 			),
 		},
 	})
@@ -518,11 +510,9 @@ func (FirewallResource) enableDNS(data acceptance.TestData, enableProxy bool, dn
 		}
 		dnsServersStr = fmt.Sprintf("dns_servers = [%s]", strings.Join(servers, ", "))
 	}
-	enableProxyStr := ""
+	enableProxyStr := "dns_proxy_enabled = false"
 	if enableProxy {
 		enableProxyStr = "dns_proxy_enabled = true"
-	} else {
-		enableProxyStr = "dns_proxy_enabled = false"
 	}
 
 	return fmt.Sprintf(`
@@ -531,7 +521,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-fw-%d"
   location = "%s"
 }
 

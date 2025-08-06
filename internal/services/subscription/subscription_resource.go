@@ -62,7 +62,7 @@ func resourceSubscription() *pluginsdk.Resource {
 			"alias": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				Computed:     true,
+				Computed:     true, // O+C - This value is supplied by the provider if omitted so must remain `Computed`
 				ForceNew:     true,
 				Description:  "The Alias Name of the subscription. If omitted a new UUID will be generated for this property.",
 				ValidateFunc: validation.StringIsNotEmpty,
@@ -103,7 +103,7 @@ func resourceSubscription() *pluginsdk.Resource {
 				Description: "The GUID of the Subscription.",
 				ForceNew:    true,
 				Optional:    true,
-				Computed:    true,
+				Computed:    true, // O+C This must remain computed due to the unique nature of this resource - See resource documentation for notes.
 				ExactlyOneOf: []string{
 					"subscription_id",
 					"billing_scope_id",
@@ -128,7 +128,7 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	aliasName := ""
+	var aliasName string
 	if aliasNameRaw, ok := d.GetOk("alias"); ok {
 		aliasName = aliasNameRaw.(string)
 	} else {
@@ -163,11 +163,9 @@ func resourceSubscriptionCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		},
 	}
 
-	subscriptionId := ""
-
 	// Check if we're adding alias management for an existing subscription
 	if subscriptionIdRaw, ok := d.GetOk("subscription_id"); ok {
-		subscriptionId = subscriptionIdRaw.(string)
+		subscriptionId := subscriptionIdRaw.(string)
 		subscriptionResourceId := commonids.NewSubscriptionID(subscriptionId)
 
 		locks.ByID(subscriptionId)
@@ -426,7 +424,10 @@ func resourceSubscriptionDelete(d *pluginsdk.ResourceData, meta interface{}) err
 	if !meta.(*clients.Client).Features.Subscription.PreventCancellationOnDestroy {
 		log.Printf("[DEBUG] Cancelling subscription %s", subscriptionId)
 
-		if _, err := aliasClient.SubscriptionCancel(ctx, subscriptionResourceId); err != nil {
+		opts := subscriptionAlias.DefaultSubscriptionCancelOperationOptions()
+		// TODO: support a Provider `features` flag to enable deleting a Subscription containing Resources
+		// This is a dangerous operation, and likely wants a similar default value as to that for Resource Groups
+		if _, err := aliasClient.SubscriptionCancel(ctx, subscriptionResourceId, opts); err != nil {
 			return fmt.Errorf("failed to cancel Subscription: %+v", err)
 		}
 

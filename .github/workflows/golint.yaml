@@ -18,15 +18,15 @@ concurrency:
 
 jobs:
   golint:
-    runs-on: [custom, linux, large]
+    runs-on: custom-linux-large
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
-      - uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 # v5.0.0
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
         with:
           go-version-file: ./.go-version
-      - uses: golangci/golangci-lint-action@3a919529898de77ec3da873e3063ca4b10e7f5cc # v3.7.0
+      - uses: golangci/golangci-lint-action@55c2c1448f86e01eaae002a5a3a9624417608d84 # v6.5.2
         with:
-          version: 'v1.55.1'
+          version: 'v1.64.6'
           args: -v ./internal/...
   save-artifacts-on-fail:
     if: ${{ needs.golint.result }} == 'failure'

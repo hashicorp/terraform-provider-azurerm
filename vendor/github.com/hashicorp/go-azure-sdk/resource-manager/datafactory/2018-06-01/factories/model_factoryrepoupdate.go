@@ -16,10 +16,11 @@ type FactoryRepoUpdate struct {
 var _ json.Unmarshaler = &FactoryRepoUpdate{}
 
 func (s *FactoryRepoUpdate) UnmarshalJSON(bytes []byte) error {
-	type alias FactoryRepoUpdate
-	var decoded alias
+	var decoded struct {
+		FactoryResourceId *string `json:"factoryResourceId,omitempty"`
+	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
-		return fmt.Errorf("unmarshaling into FactoryRepoUpdate: %+v", err)
+		return fmt.Errorf("unmarshaling: %+v", err)
 	}
 
 	s.FactoryResourceId = decoded.FactoryResourceId
@@ -30,11 +31,12 @@ func (s *FactoryRepoUpdate) UnmarshalJSON(bytes []byte) error {
 	}
 
 	if v, ok := temp["repoConfiguration"]; ok {
-		impl, err := unmarshalFactoryRepoConfigurationImplementation(v)
+		impl, err := UnmarshalFactoryRepoConfigurationImplementation(v)
 		if err != nil {
 			return fmt.Errorf("unmarshaling field 'RepoConfiguration' for 'FactoryRepoUpdate': %+v", err)
 		}
 		s.RepoConfiguration = impl
 	}
+
 	return nil
 }

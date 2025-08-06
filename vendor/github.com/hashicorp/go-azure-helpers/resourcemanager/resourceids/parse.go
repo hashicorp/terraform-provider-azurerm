@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 )
 
 type Parser struct {
@@ -182,7 +184,7 @@ func (p Parser) Parse(input string, insensitively bool) (*ParseResult, error) {
 
 		// and then remove rawSegment from `uri` so that any leftovers is the scope
 		// since if there's a scope there'll be more segments than we expect
-		uri = strings.TrimPrefix(uri, fmt.Sprintf("%s", rawSegment))
+		uri = strings.TrimPrefix(uri, rawSegment)
 		uri = strings.TrimPrefix(uri, "/")
 	}
 
@@ -203,6 +205,17 @@ func (p Parser) Parse(input string, insensitively bool) (*ParseResult, error) {
 		}
 	}
 	return &parseResult, nil
+}
+
+// namedSegment returns the named Segment for a ResourceId, if it exists
+func (p Parser) namedSegment(name string) *Segment {
+	for _, item := range p.segments {
+		if item.Name == name {
+			return pointer.To(item)
+		}
+	}
+
+	return nil
 }
 
 func (p Parser) parseScopePrefix(input, regexForNonScopeSegments string, insensitively bool) (*string, error) {

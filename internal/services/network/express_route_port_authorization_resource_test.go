@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/expressrouteportauthorizations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ExpressRoutePortAuthorizationResource struct{}
@@ -71,17 +71,17 @@ func TestAccExpressRoutePortAuthorization_multiple(t *testing.T) {
 }
 
 func (r ExpressRoutePortAuthorizationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := parse.ExpressRoutePortAuthorizationID(state.ID)
+	id, err := expressrouteportauthorizations.ParseExpressRoutePortAuthorizationID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.Network.ExpressRoutePortAuthorizationsClient.Get(ctx, id.ResourceGroup, id.ExpressRoutePortName, id.AuthorizationName)
+	resp, err := clients.Network.ExpressRoutePortAuthorizations.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("reading %s: %+v", *id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r ExpressRoutePortAuthorizationResource) basic(data acceptance.TestData) string {

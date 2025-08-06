@@ -49,7 +49,6 @@ func (c MobileNetworkClient) UpdateTags(ctx context.Context, id MobileNetworkId,
 
 	var model MobileNetwork
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -33,7 +33,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
+	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -265,21 +265,12 @@ func resourceKeyVaultKey() *pluginsdk.Resource {
 					return false // If old or new values are not strings, don't force new
 				}
 
-				// Parse old and new expiration dates
-				oldDate, err1 := time.Parse(time.RFC3339, oldDateStr)
-				newDate, err2 := time.Parse(time.RFC3339, newDateStr)
-				if err1 != nil || err2 != nil {
-					return false // If there are parsing errors, don't force new
+				// There isn't a way to remove the expiration date from a key so we'll recreate the resource when it's removed from config
+				if oldDateStr != "" && newDateStr == "" {
+					return true
 				}
 
-				// Compare old and new expiration dates
-				if newDate.After(oldDate) {
-					// If the new expiration date is further in the future, allow update
-					return false
-				}
-
-				// If the new expiration date is not further, force recreation
-				return true
+				return false
 			}),
 		),
 	}
@@ -672,7 +663,7 @@ func resourceKeyVaultKeyDelete(d *pluginsdk.ResourceData, meta interface{}) erro
 	}
 
 	shouldPurge := meta.(*clients.Client).Features.KeyVault.PurgeSoftDeletedKeysOnDestroy
-	if shouldPurge && kv.Model != nil && utils.NormaliseNilableBool(kv.Model.Properties.EnablePurgeProtection) {
+	if shouldPurge && kv.Model != nil && pointer.From(kv.Model.Properties.EnablePurgeProtection) {
 		log.Printf("[DEBUG] cannot purge key %q because vault %q has purge protection enabled", id.Name, keyVaultId.String())
 		shouldPurge = false
 	}

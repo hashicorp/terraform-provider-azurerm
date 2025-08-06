@@ -17,12 +17,26 @@ type DynamicMetricCriteria struct {
 	Operator         DynamicThresholdOperator       `json:"operator"`
 
 	// Fields inherited from MultiMetricCriteria
+
+	CriterionType        CriterionType       `json:"criterionType"`
 	Dimensions           *[]MetricDimension  `json:"dimensions,omitempty"`
 	MetricName           string              `json:"metricName"`
 	MetricNamespace      *string             `json:"metricNamespace,omitempty"`
 	Name                 string              `json:"name"`
 	SkipMetricValidation *bool               `json:"skipMetricValidation,omitempty"`
 	TimeAggregation      AggregationTypeEnum `json:"timeAggregation"`
+}
+
+func (s DynamicMetricCriteria) MultiMetricCriteria() BaseMultiMetricCriteriaImpl {
+	return BaseMultiMetricCriteriaImpl{
+		CriterionType:        s.CriterionType,
+		Dimensions:           s.Dimensions,
+		MetricName:           s.MetricName,
+		MetricNamespace:      s.MetricNamespace,
+		Name:                 s.Name,
+		SkipMetricValidation: s.SkipMetricValidation,
+		TimeAggregation:      s.TimeAggregation,
+	}
 }
 
 var _ json.Marshaler = DynamicMetricCriteria{}
@@ -36,9 +50,10 @@ func (s DynamicMetricCriteria) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling DynamicMetricCriteria: %+v", err)
 	}
+
 	decoded["criterionType"] = "DynamicThresholdCriterion"
 
 	encoded, err = json.Marshal(decoded)

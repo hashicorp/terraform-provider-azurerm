@@ -12,16 +12,18 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2022-10-01/replicationrecoveryservicesproviders"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicessiterecovery/2024-04-01/replicationrecoveryservicesproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-const LetterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-const NumberBytes = "1234567890"
-const SpecialBytes = "!@#$%^()"
+const (
+	LetterBytes  = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	NumberBytes  = "1234567890"
+	SpecialBytes = "!@#$%^()"
+)
 
 func GenerateRandomPassword(n int) string {
 	b := make([]byte, n)
@@ -296,11 +298,6 @@ resource "azurerm_network_security_group" "hybrid" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
-
-
-  lifecycle {
-    ignore_changes = [security_rule]
-  }
 }
 
 resource "azurerm_network_interface_security_group_association" "hybrid" {
@@ -364,7 +361,7 @@ resource "azurerm_network_interface" "host" {
   location            = azurerm_resource_group.hybrid.location
   resource_group_name = azurerm_resource_group.hybrid.name
 
-  enable_ip_forwarding = true
+  ip_forwarding_enabled = true
 
   ip_configuration {
     name                          = "internal"

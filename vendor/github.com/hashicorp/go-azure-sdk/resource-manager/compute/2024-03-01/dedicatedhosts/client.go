@@ -15,7 +15,7 @@ type DedicatedHostsClient struct {
 }
 
 func NewDedicatedHostsClientWithBaseURI(sdkApi sdkEnv.Api) (*DedicatedHostsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "dedicatedhosts", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "dedicatedhosts", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating DedicatedHostsClient: %+v", err)
 	}

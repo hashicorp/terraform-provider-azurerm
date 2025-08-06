@@ -1,0 +1,8 @@
+bug:
+  - '- \[\s?(x|X)\s?\] Bug Fix'
+
+enhancement:
+ - '- \[\s?(x|X)\s?\] Enhancement'
+
+breaking-change:
+ - '- \[\s?(x|X)\s?\] Breaking Change'

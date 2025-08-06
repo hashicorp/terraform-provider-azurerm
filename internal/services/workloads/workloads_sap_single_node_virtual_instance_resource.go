@@ -5,6 +5,7 @@ package workloads
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -14,7 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2023-04-01/sapvirtualinstances"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/workloads/2024-09-01/sapvirtualinstances"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	networkValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
@@ -25,17 +26,18 @@ import (
 )
 
 type WorkloadsSAPSingleNodeVirtualInstanceModel struct {
-	Name                      string                       `tfschema:"name"`
-	ResourceGroupName         string                       `tfschema:"resource_group_name"`
-	Location                  string                       `tfschema:"location"`
-	AppLocation               string                       `tfschema:"app_location"`
-	Environment               string                       `tfschema:"environment"`
-	SapFqdn                   string                       `tfschema:"sap_fqdn"`
-	SapProduct                string                       `tfschema:"sap_product"`
-	SingleServerConfiguration []SingleServerConfiguration  `tfschema:"single_server_configuration"`
-	Identity                  []identity.ModelUserAssigned `tfschema:"identity"`
-	ManagedResourceGroupName  string                       `tfschema:"managed_resource_group_name"`
-	Tags                      map[string]string            `tfschema:"tags"`
+	Name                              string                       `tfschema:"name"`
+	ResourceGroupName                 string                       `tfschema:"resource_group_name"`
+	Location                          string                       `tfschema:"location"`
+	AppLocation                       string                       `tfschema:"app_location"`
+	Environment                       string                       `tfschema:"environment"`
+	SapFqdn                           string                       `tfschema:"sap_fqdn"`
+	SapProduct                        string                       `tfschema:"sap_product"`
+	SingleServerConfiguration         []SingleServerConfiguration  `tfschema:"single_server_configuration"`
+	Identity                          []identity.ModelUserAssigned `tfschema:"identity"`
+	ManagedResourceGroupName          string                       `tfschema:"managed_resource_group_name"`
+	ManagedResourcesNetworkAccessType string                       `tfschema:"managed_resources_network_access_type"`
+	Tags                              map[string]string            `tfschema:"tags"`
 }
 
 type SingleServerConfiguration struct {
@@ -50,8 +52,8 @@ type SingleServerConfiguration struct {
 
 type SingleServerDiskVolumeConfiguration struct {
 	VolumeName    string `tfschema:"volume_name"`
-	NumberOfDisks int    `tfschema:"number_of_disks"`
-	SizeGb        int    `tfschema:"size_in_gb"`
+	NumberOfDisks int64  `tfschema:"number_of_disks"`
+	SizeGb        int64  `tfschema:"size_in_gb"`
 	SkuName       string `tfschema:"sku_name"`
 }
 
@@ -388,6 +390,13 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Arguments() map[string]*p
 			ValidateFunc: resourcegroups.ValidateName,
 		},
 
+		"managed_resources_network_access_type": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Default:      string(sapvirtualinstances.ManagedResourcesNetworkAccessTypePublic),
+			ValidateFunc: validation.StringInSlice(sapvirtualinstances.PossibleValuesForManagedResourcesNetworkAccessType(), false),
+		},
+
 		"tags": commonschema.Tags(),
 	}
 }
@@ -405,7 +414,7 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) CustomizeDiff() sdk.Resou
 			if v := rd.Get("single_server_configuration.0.disk_volume_configuration"); v != nil {
 				diskVolumes := v.(*pluginsdk.Set).List()
 				if hasDuplicateVolumeNameForSAPSingleNodeVirtualInstance(diskVolumes) {
-					return fmt.Errorf("`volume_name` cannot be duplicated")
+					return errors.New("`volume_name` cannot be duplicated")
 				}
 			}
 
@@ -460,7 +469,7 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Create() sdk.ResourceFunc
 			parameters := &sapvirtualinstances.SAPVirtualInstance{
 				Identity: identity,
 				Location: location.Normalize(model.Location),
-				Properties: sapvirtualinstances.SAPVirtualInstanceProperties{
+				Properties: &sapvirtualinstances.SAPVirtualInstanceProperties{
 					Configuration: sapvirtualinstances.DeploymentWithOSConfiguration{
 						AppLocation:                 utils.String(location.Normalize(model.AppLocation)),
 						InfrastructureConfiguration: expandSingleServerConfiguration(model.SingleServerConfiguration),
@@ -468,8 +477,9 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Create() sdk.ResourceFunc
 							SapFqdn: utils.String(model.SapFqdn),
 						},
 					},
-					Environment: sapvirtualinstances.SAPEnvironmentType(model.Environment),
-					SapProduct:  sapvirtualinstances.SAPProductType(model.SapProduct),
+					Environment:                       sapvirtualinstances.SAPEnvironmentType(model.Environment),
+					ManagedResourcesNetworkAccessType: pointer.To(sapvirtualinstances.ManagedResourcesNetworkAccessType(model.ManagedResourcesNetworkAccessType)),
+					SapProduct:                        sapvirtualinstances.SAPProductType(model.SapProduct),
 				},
 				Tags: &model.Tags,
 			}
@@ -506,7 +516,9 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Update() sdk.ResourceFunc
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			parameters := &sapvirtualinstances.UpdateSAPVirtualInstanceRequest{}
+			parameters := &sapvirtualinstances.UpdateSAPVirtualInstanceRequest{
+				Properties: &sapvirtualinstances.UpdateSAPVirtualInstanceProperties{},
+			}
 
 			if metadata.ResourceData.HasChange("identity") {
 				identityValue, err := identity.ExpandUserAssignedMap(metadata.ResourceData.Get("identity").([]interface{}))
@@ -516,11 +528,15 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Update() sdk.ResourceFunc
 				parameters.Identity = identityValue
 			}
 
+			if metadata.ResourceData.HasChange("managed_resources_network_access_type") {
+				parameters.Properties.ManagedResourcesNetworkAccessType = pointer.To(sapvirtualinstances.ManagedResourcesNetworkAccessType(model.ManagedResourcesNetworkAccessType))
+			}
+
 			if metadata.ResourceData.HasChange("tags") {
 				parameters.Tags = &model.Tags
 			}
 
-			if _, err := client.Update(ctx, *id, *parameters); err != nil {
+			if err := client.UpdateThenPoll(ctx, *id, *parameters); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
@@ -561,35 +577,37 @@ func (r WorkloadsSAPSingleNodeVirtualInstanceResource) Read() sdk.ResourceFunc {
 				}
 				state.Identity = pointer.From(identity)
 
-				props := &model.Properties
-				state.Environment = string(props.Environment)
-				state.SapProduct = string(props.SapProduct)
-				state.Tags = pointer.From(model.Tags)
+				if props := model.Properties; props != nil {
+					state.Environment = string(props.Environment)
+					state.ManagedResourcesNetworkAccessType = string(pointer.From(props.ManagedResourcesNetworkAccessType))
+					state.SapProduct = string(props.SapProduct)
+					state.Tags = pointer.From(model.Tags)
 
-				if config := props.Configuration; config != nil {
-					if v, ok := config.(sapvirtualinstances.DeploymentWithOSConfiguration); ok {
-						appLocation := ""
-						if appLocationVal := v.AppLocation; appLocationVal != nil {
-							appLocation = *v.AppLocation
-						}
-						state.AppLocation = location.Normalize(appLocation)
+					if config := props.Configuration; config != nil {
+						if v, ok := config.(sapvirtualinstances.DeploymentWithOSConfiguration); ok {
+							appLocation := ""
+							if appLocationVal := v.AppLocation; appLocationVal != nil {
+								appLocation = *v.AppLocation
+							}
+							state.AppLocation = location.Normalize(appLocation)
 
-						sapFqdn := ""
-						if osSapConfiguration := v.OsSapConfiguration; osSapConfiguration != nil {
-							sapFqdn = pointer.From(osSapConfiguration.SapFqdn)
-						}
-						state.SapFqdn = sapFqdn
+							sapFqdn := ""
+							if osSapConfiguration := v.OsSapConfiguration; osSapConfiguration != nil {
+								sapFqdn = pointer.From(osSapConfiguration.SapFqdn)
+							}
+							state.SapFqdn = sapFqdn
 
-						if configuration := v.InfrastructureConfiguration; configuration != nil {
-							if singleServerConfiguration, singleServerConfigurationExists := configuration.(sapvirtualinstances.SingleServerConfiguration); singleServerConfigurationExists {
-								state.SingleServerConfiguration = flattenSingleServerConfiguration(singleServerConfiguration, metadata.ResourceData)
+							if configuration := v.InfrastructureConfiguration; configuration != nil {
+								if singleServerConfiguration, singleServerConfigurationExists := configuration.(sapvirtualinstances.SingleServerConfiguration); singleServerConfigurationExists {
+									state.SingleServerConfiguration = flattenSingleServerConfiguration(singleServerConfiguration, metadata.ResourceData)
+								}
 							}
 						}
 					}
-				}
 
-				if v := props.ManagedResourceGroupConfiguration; v != nil {
-					state.ManagedResourceGroupName = pointer.From(v.Name)
+					if v := props.ManagedResourceGroupConfiguration; v != nil {
+						state.ManagedResourceGroupName = pointer.From(v.Name)
+					}
 				}
 			}
 
@@ -742,8 +760,8 @@ func expandSAPSingleNodeVirtualInstanceDiskVolumeConfigurations(input []SingleSe
 		skuName := sapvirtualinstances.DiskSkuName(v.SkuName)
 
 		result[v.VolumeName] = sapvirtualinstances.DiskVolumeConfiguration{
-			Count:  utils.Int64(int64(v.NumberOfDisks)),
-			SizeGB: utils.Int64(int64(v.SizeGb)),
+			Count:  utils.Int64(v.NumberOfDisks),
+			SizeGB: utils.Int64(v.SizeGb),
 			Sku: &sapvirtualinstances.DiskSku{
 				Name: &skuName,
 			},
@@ -789,8 +807,8 @@ func flattenSAPSingleNodeVirtualInstanceDiskVolumeConfigurations(input *sapvirtu
 
 	for k, v := range *input.DiskVolumeConfigurations {
 		diskVolumeConfiguration := SingleServerDiskVolumeConfiguration{
-			NumberOfDisks: int(pointer.From(v.Count)),
-			SizeGb:        int(pointer.From(v.SizeGB)),
+			NumberOfDisks: pointer.From(v.Count),
+			SizeGb:        pointer.From(v.SizeGB),
 			VolumeName:    k,
 		}
 

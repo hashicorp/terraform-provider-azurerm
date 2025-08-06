@@ -44,9 +44,9 @@ resource "azurerm_role_assignment" "example" {
 }
 
 resource "azurerm_data_protection_backup_policy_blob_storage" "example" {
-  name               = "example-backup-policy"
-  vault_id           = azurerm_data_protection_backup_vault.example.id
-  retention_duration = "P30D"
+  name                                   = "example-backup-policy"
+  vault_id                               = azurerm_data_protection_backup_vault.example.id
+  operational_default_retention_duration = "P30D"
 }
 
 resource "azurerm_data_protection_backup_instance_blob_storage" "example" {
@@ -74,6 +74,10 @@ The following arguments are supported:
 
 * `backup_policy_id` - (Required) The ID of the Backup Policy.
 
+* `storage_account_container_names` - (Optional) The list of the container names of the source Storage Account.
+
+-> **Note:** The `storage_account_container_names` should be specified in the vaulted backup policy/operational and vaulted hybrid backup policy. Removing the `storage_account_container_names` will force a new resource to be created since it can't be removed once specified.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -96,3 +100,9 @@ Backup Instance Blob Storages can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_data_protection_backup_instance_blob_storage.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DataProtection/backupVaults/vault1/backupInstances/backupInstance1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DataProtection` - 2024-04-01

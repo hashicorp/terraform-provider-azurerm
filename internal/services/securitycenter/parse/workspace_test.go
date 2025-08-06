@@ -27,7 +27,6 @@ func TestWorkspaceID(t *testing.T) {
 		Error    bool
 		Expected *WorkspaceId
 	}{
-
 		{
 			// empty
 			Input: "",

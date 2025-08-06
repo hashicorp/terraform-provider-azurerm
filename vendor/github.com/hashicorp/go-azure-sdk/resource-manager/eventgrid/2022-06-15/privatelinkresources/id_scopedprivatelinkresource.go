@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ScopedPrivateLinkResourceId{})
+}
 
 var _ resourceids.ResourceId = &ScopedPrivateLinkResourceId{}
 
@@ -35,7 +40,7 @@ func ParseScopedPrivateLinkResourceID(input string) (*ScopedPrivateLinkResourceI
 	}
 
 	id := ScopedPrivateLinkResourceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -52,7 +57,7 @@ func ParseScopedPrivateLinkResourceIDInsensitively(input string) (*ScopedPrivate
 	}
 
 	id := ScopedPrivateLinkResourceId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -99,7 +104,7 @@ func (id ScopedPrivateLinkResourceId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.ScopeSegment("scope", "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group"),
 		resourceids.StaticSegment("staticPrivateLinkResources", "privateLinkResources", "privateLinkResources"),
-		resourceids.UserSpecifiedSegment("privateLinkResourceName", "privateLinkResourceValue"),
+		resourceids.UserSpecifiedSegment("privateLinkResourceName", "privateLinkResourceName"),
 	}
 }
 

@@ -7,15 +7,15 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceVirtualHub() *pluginsdk.Resource {
@@ -60,7 +60,7 @@ func dataSourceVirtualHub() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 
 			"default_route_table_id": {
 				Type:     pluginsdk.TypeString,
@@ -71,57 +71,54 @@ func dataSourceVirtualHub() *pluginsdk.Resource {
 }
 
 func dataSourceVirtualHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.VirtualHubClient
+	client := meta.(*clients.Client).Network.VirtualWANs
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewVirtualHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
+	id := virtualwans.NewVirtualHubID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
+	resp, err := client.VirtualHubsGet(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
-		return fmt.Errorf("reading %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.SetId(id.ID())
 
-	d.Set("name", resp.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.VirtualHubName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 
-	d.Set("location", location.NormalizeNilable(resp.Location))
-
-	if props := resp.VirtualHubProperties; props != nil {
-		d.Set("address_prefix", props.AddressPrefix)
-
-		var virtualWanId *string
-		if props.VirtualWan != nil {
-			virtualWanId = props.VirtualWan.ID
-		}
-		d.Set("virtual_wan_id", virtualWanId)
-
-		var virtualRouterAsn *int64
-		if props.VirtualRouterAsn != nil {
-			virtualRouterAsn = props.VirtualRouterAsn
-		}
-		d.Set("virtual_router_asn", virtualRouterAsn)
-
-		var virtualRouterIps *[]string
-		if props.VirtualRouterIps != nil {
-			virtualRouterIps = props.VirtualRouterIps
-		}
-		d.Set("virtual_router_ips", virtualRouterIps)
-	}
-
-	virtualHub, err := parse.VirtualHubID(*resp.ID)
-	if err != nil {
-		return err
-	}
-
-	defaultRouteTable := parse.NewHubRouteTableID(virtualHub.SubscriptionId, virtualHub.ResourceGroup, virtualHub.Name, "defaultRouteTable")
+	defaultRouteTable := virtualwans.NewHubRouteTableID(id.SubscriptionId, id.ResourceGroupName, id.VirtualHubName, "defaultRouteTable")
 	d.Set("default_route_table_id", defaultRouteTable.ID())
 
-	return tags.FlattenAndSet(d, resp.Tags)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.NormalizeNilable(model.Location))
+
+		if props := model.Properties; props != nil {
+			d.Set("address_prefix", props.AddressPrefix)
+
+			var virtualWanId *string
+			if props.VirtualWAN != nil {
+				virtualWanId = props.VirtualWAN.Id
+			}
+			d.Set("virtual_wan_id", virtualWanId)
+
+			var virtualRouterAsn *int64
+			if props.VirtualRouterAsn != nil {
+				virtualRouterAsn = props.VirtualRouterAsn
+			}
+			d.Set("virtual_router_asn", virtualRouterAsn)
+
+			var virtualRouterIps *[]string
+			if props.VirtualRouterIPs != nil {
+				virtualRouterIps = props.VirtualRouterIPs
+			}
+			d.Set("virtual_router_ips", virtualRouterIps)
+		}
+		return tags.FlattenAndSet(d, model.Tags)
+	}
+	return nil
 }

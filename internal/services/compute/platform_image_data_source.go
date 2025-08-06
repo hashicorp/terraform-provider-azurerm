@@ -51,7 +51,7 @@ func dataSourcePlatformImage() *pluginsdk.Resource {
 }
 
 func dataSourcePlatformImageRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Compute.VMImageClient
+	client := meta.(*clients.Client).Compute.VirtualMachineImagesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

@@ -8,25 +8,28 @@ import (
 	"log"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/preview/sql/mgmt/v5.0/sql" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobagents"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceMsSqlJobAgent() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceMsSqlJobAgentCreateUpdate,
+		Create: resourceMsSqlJobAgentCreate,
 		Read:   resourceMsSqlJobAgentRead,
-		Update: resourceMsSqlJobAgentCreateUpdate,
+		Update: resourceMsSqlJobAgentUpdate,
 		Delete: resourceMsSqlJobAgentDelete,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -58,58 +61,121 @@ func resourceMsSqlJobAgent() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"tags": tags.Schema(),
+			"identity": commonschema.UserAssignedIdentityOptional(),
+
+			// This is a top level argument rather than a block because while Azure accepts input for both sku name and capacity fields,
+			// the capacity must always be equal to the number included in the sku name.
+			"sku": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      helper.SqlJobAgentSkuJA100,
+				ValidateFunc: validation.StringInSlice(helper.PossibleValuesForJobAgentSku(), false),
+			},
+
+			"tags": commonschema.Tags(),
 		},
 	}
 }
 
-func resourceMsSqlJobAgentCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+func resourceMsSqlJobAgentCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).MSSQL.JobAgentsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Job Agent creation.")
 
-	location := azure.NormalizeLocation(d.Get("location").(string))
 	databaseId := d.Get("database_id").(string)
 	dbId, err := commonids.ParseSqlDatabaseID(databaseId)
 	if err != nil {
 		return err
 	}
-	id := parse.NewJobAgentID(dbId.SubscriptionId, dbId.ResourceGroupName, dbId.ServerName, d.Get("name").(string))
+	id := jobagents.NewJobAgentID(dbId.SubscriptionId, dbId.ResourceGroupName, dbId.ServerName, d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("failed to check for presence of existing %s: %s", id, err)
-			}
-		}
-
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return tf.ImportAsExistsError("azurerm_mssql_job_agent", id.ID())
+	existing, err := client.Get(ctx, id)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
-	params := sql.JobAgent{
-		Name:     &id.Name,
-		Location: utils.String(location),
-		JobAgentProperties: &sql.JobAgentProperties{
-			DatabaseID: &databaseId,
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_mssql_job_agent", id.ID())
+	}
+
+	params := jobagents.JobAgent{
+		Name:     &id.JobAgentName,
+		Location: location.Normalize(d.Get("location").(string)),
+		Properties: &jobagents.JobAgentProperties{
+			DatabaseId: databaseId,
+		},
+		Sku: &jobagents.Sku{
+			Name: d.Get("sku").(string),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.ServerName, id.Name, params)
+	expandedIdentity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+	params.Identity = expandedIdentity
+
+	err = client.CreateOrUpdateThenPoll(ctx, id, params)
 	if err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
+	d.SetId(id.ID())
+
+	return resourceMsSqlJobAgentRead(d, meta)
+}
+
+func resourceMsSqlJobAgentUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).MSSQL.JobAgentsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	log.Printf("[INFO] preparing arguments for Job Agent update.")
+
+	databaseId := d.Get("database_id").(string)
+	dbId, err := commonids.ParseSqlDatabaseID(databaseId)
+	if err != nil {
+		return err
+	}
+	id := jobagents.NewJobAgentID(dbId.SubscriptionId, dbId.ResourceGroupName, dbId.ServerName, d.Get("name").(string))
+
+	existing, err := client.Get(ctx, id)
+	if err != nil {
+		return fmt.Errorf("retrieving existing %s: %+v", id, err)
 	}
 
-	d.SetId(id.ID())
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving existing %s: `model` was nil", id)
+	}
+	params := existing.Model
+
+	if d.HasChanges("identity") {
+		expandedIdentity, err := identity.ExpandUserAssignedMap(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		params.Identity = expandedIdentity
+	}
+
+	if d.HasChanges("sku") {
+		params.Sku = &jobagents.Sku{
+			Name: d.Get("sku").(string),
+		}
+	}
+
+	if d.HasChanges("tags") {
+		params.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	err = client.CreateOrUpdateThenPoll(ctx, id, *params)
+	if err != nil {
+		return fmt.Errorf("updating %s: %+v", id, err)
+	}
 
 	return resourceMsSqlJobAgentRead(d, meta)
 }
@@ -119,28 +185,42 @@ func resourceMsSqlJobAgentRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.JobAgentID(d.Id())
+	id, err := jobagents.ParseJobAgentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("reading MsSql Job Agent %s (MsSql Server Name %q / Resource Group %q): %s", id.Name, id.ServerName, id.ResourceGroup, err)
+		return fmt.Errorf("retrieving %s: %s", *id, err)
 	}
 
-	d.Set("name", resp.Name)
-	if location := resp.Location; location != nil {
-		d.Set("location", azure.NormalizeLocation(*location))
+	d.Set("name", id.JobAgentName)
+
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+
+		if props := model.Properties; props != nil {
+			d.Set("database_id", props.DatabaseId)
+		}
+
+		flattenedIdentity, err := identity.FlattenUserAssignedMap(model.Identity)
+		if err != nil {
+			return fmt.Errorf("flattening `identity`: %+v", err)
+		}
+		d.Set("identity", flattenedIdentity)
+
+		if sku := model.Sku; sku != nil {
+			d.Set("sku", sku.Name)
+		}
+
+		return tags.FlattenAndSet(d, model.Tags)
 	}
-
-	d.Set("database_id", resp.DatabaseID)
-
-	return tags.FlattenAndSet(d, resp.Tags)
+	return nil
 }
 
 func resourceMsSqlJobAgentDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -148,15 +228,15 @@ func resourceMsSqlJobAgentDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.JobAgentID(d.Id())
+	id, err := jobagents.ParseJobAgentID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	future, err := client.Delete(ctx, id.ResourceGroup, id.ServerName, id.Name)
+	err = client.DeleteThenPoll(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("deleting Job Agent %s: %+v", id.Name, err)
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	return future.WaitForCompletionRef(ctx, client.Client)
+	return nil
 }

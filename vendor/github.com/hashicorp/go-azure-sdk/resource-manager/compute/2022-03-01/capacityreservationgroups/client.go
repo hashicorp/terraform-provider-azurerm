@@ -15,7 +15,7 @@ type CapacityReservationGroupsClient struct {
 }
 
 func NewCapacityReservationGroupsClientWithBaseURI(sdkApi sdkEnv.Api) (*CapacityReservationGroupsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "capacityreservationgroups", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "capacityreservationgroups", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating CapacityReservationGroupsClient: %+v", err)
 	}

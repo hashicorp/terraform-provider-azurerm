@@ -27,7 +27,6 @@ func TestSlotVirtualNetworkSwiftConnectionID(t *testing.T) {
 		Error    bool
 		Expected *SlotVirtualNetworkSwiftConnectionId
 	}{
-
 		{
 			// empty
 			Input: "",

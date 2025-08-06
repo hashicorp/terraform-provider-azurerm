@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2023-05-01/pool"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/batch/2024-07-01/pool"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -31,7 +31,7 @@ import (
 )
 
 func resourceBatchPool() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceBatchPoolCreate,
 		Read:   resourceBatchPoolRead,
 		Update: resourceBatchPoolUpdate,
@@ -724,6 +724,40 @@ func resourceBatchPool() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"security_profile": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				ForceNew: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"host_encryption_enabled": {
+							Type:     pluginsdk.TypeBool,
+							ForceNew: true,
+							Optional: true,
+						},
+						"security_type": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ForceNew:     true,
+							ValidateFunc: validation.StringInSlice(pool.PossibleValuesForSecurityTypes(), false),
+						},
+						"secure_boot_enabled": {
+							Type:         pluginsdk.TypeBool,
+							Optional:     true,
+							ForceNew:     true,
+							RequiredWith: []string{"security_profile.0.security_type"},
+						},
+						"vtpm_enabled": {
+							Type:         pluginsdk.TypeBool,
+							Optional:     true,
+							ForceNew:     true,
+							RequiredWith: []string{"security_profile.0.security_type"},
+						},
+					},
+				},
+			},
+
 			"target_node_communication_mode": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
@@ -827,6 +861,8 @@ func resourceBatchPool() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	return resource
 }
 
 func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -909,12 +945,13 @@ func resourceBatchPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		return deploymentErr
 	}
 
-	certificates := d.Get("certificate").([]interface{})
-	certificateReferences, err := ExpandBatchPoolCertificateReferences(certificates)
-	if err != nil {
-		return fmt.Errorf("expanding `certificate`: %+v", err)
+	if v, ok := d.GetOk("certificate"); ok {
+		certificateReferences, err := ExpandBatchPoolCertificateReferences(v.([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `certificate`: %+v", err)
+		}
+		parameters.Properties.Certificates = certificateReferences
 	}
-	parameters.Properties.Certificates = certificateReferences
 
 	if err := validateBatchPoolCrossFieldRules(parameters.Properties); err != nil {
 		return err
@@ -1042,6 +1079,15 @@ func resourceBatchPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 
 		parameters.Properties.StartTask = startTask
+	}
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			// when updating `data_disks`, it has to include additional properties such as `NodeAgentSkuId`, `ImageReference` and `OsDisk`, otherwise API request will fail.
+			parameters.Properties.DeploymentConfiguration = props.DeploymentConfiguration
+			if d.HasChange("data_disks") {
+				parameters.Properties.DeploymentConfiguration.VirtualMachineConfiguration.DataDisks = expandBatchPoolDataDisks(d.Get("data_disks").([]interface{}))
+			}
+		}
 	}
 	certificates := d.Get("certificate").([]interface{})
 	certificateReferences, err := ExpandBatchPoolCertificateReferences(certificates)
@@ -1244,11 +1290,17 @@ func resourceBatchPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 						nodePlacementConfiguration = append(nodePlacementConfiguration, nodePlacementConfig)
 						d.Set("node_placement", nodePlacementConfiguration)
 					}
+
 					osDiskPlacement := ""
 					if config.OsDisk != nil && config.OsDisk.EphemeralOSDiskSettings != nil && config.OsDisk.EphemeralOSDiskSettings.Placement != nil {
 						osDiskPlacement = string(*config.OsDisk.EphemeralOSDiskSettings.Placement)
 					}
 					d.Set("os_disk_placement", osDiskPlacement)
+
+					if config.SecurityProfile != nil {
+						d.Set("security_profile", flattenBatchPoolSecurityProfile(config.SecurityProfile))
+					}
+
 					if config.WindowsConfiguration != nil {
 						windowsConfig := []interface{}{
 							map[string]interface{}{
@@ -1406,15 +1458,15 @@ func validateBatchPoolCrossFieldRules(pool *pool.PoolProperties) error {
 		startTask := *pool.StartTask
 		if startTask.ResourceFiles != nil {
 			for _, referenceFile := range *startTask.ResourceFiles {
-				// Must specify exactly one of AutoStorageContainerName, StorageContainerUrl or HttpUrl
+				// Must specify exactly one of AutoStorageContainerName, StorageContainerURL or HttpUrl
 				sourceCount := 0
 				if referenceFile.AutoStorageContainerName != nil {
 					sourceCount++
 				}
-				if referenceFile.StorageContainerUrl != nil {
+				if referenceFile.StorageContainerURL != nil {
 					sourceCount++
 				}
-				if referenceFile.HTTPUrl != nil {
+				if referenceFile.HTTPURL != nil {
 					sourceCount++
 				}
 				if sourceCount != 1 {
@@ -1422,12 +1474,12 @@ func validateBatchPoolCrossFieldRules(pool *pool.PoolProperties) error {
 				}
 
 				if referenceFile.BlobPrefix != nil {
-					if referenceFile.AutoStorageContainerName == nil && referenceFile.StorageContainerUrl == nil {
+					if referenceFile.AutoStorageContainerName == nil && referenceFile.StorageContainerURL == nil {
 						return fmt.Errorf("auto_storage_container_name or storage_container_url must be specified when using blob_prefix")
 					}
 				}
 
-				if referenceFile.HTTPUrl != nil {
+				if referenceFile.HTTPURL != nil {
 					if referenceFile.FilePath == nil {
 						return fmt.Errorf("file_path must be specified when using http_url")
 					}
@@ -1482,8 +1534,9 @@ func startTaskSchema() map[string]*pluginsdk.Schema {
 		},
 
 		"task_retry_maximum": {
-			Type:     pluginsdk.TypeInt,
-			Optional: true,
+			Type:         pluginsdk.TypeInt,
+			Optional:     true,
+			ValidateFunc: validation.IntAtLeast(-1),
 		},
 
 		"wait_for_success": {

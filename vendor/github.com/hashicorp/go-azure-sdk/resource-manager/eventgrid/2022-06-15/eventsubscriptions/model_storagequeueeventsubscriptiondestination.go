@@ -14,6 +14,14 @@ type StorageQueueEventSubscriptionDestination struct {
 	Properties *StorageQueueEventSubscriptionDestinationProperties `json:"properties,omitempty"`
 
 	// Fields inherited from EventSubscriptionDestination
+
+	EndpointType EndpointType `json:"endpointType"`
+}
+
+func (s StorageQueueEventSubscriptionDestination) EventSubscriptionDestination() BaseEventSubscriptionDestinationImpl {
+	return BaseEventSubscriptionDestinationImpl{
+		EndpointType: s.EndpointType,
+	}
 }
 
 var _ json.Marshaler = StorageQueueEventSubscriptionDestination{}
@@ -27,9 +35,10 @@ func (s StorageQueueEventSubscriptionDestination) MarshalJSON() ([]byte, error) 
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling StorageQueueEventSubscriptionDestination: %+v", err)
 	}
+
 	decoded["endpointType"] = "StorageQueue"
 
 	encoded, err = json.Marshal(decoded)

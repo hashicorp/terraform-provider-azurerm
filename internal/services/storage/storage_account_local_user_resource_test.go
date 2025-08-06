@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-01-01/localusers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/localusers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type LocalUserResource struct{}
+type StorageAccountLocalUserResource struct{}
 
 func TestAccLocalUser_passwordOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_local_user", "test")
-	r := LocalUserResource{}
+	r := StorageAccountLocalUserResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -36,7 +36,7 @@ func TestAccLocalUser_passwordOnly(t *testing.T) {
 
 func TestAccLocalUser_sshKeyOnly(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_local_user", "test")
-	r := LocalUserResource{}
+	r := StorageAccountLocalUserResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -63,9 +63,24 @@ func TestAccLocalUser_sshKeyOnly(t *testing.T) {
 	})
 }
 
+func TestAccLocalUser_sshKeyED25519(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account_local_user", "test")
+	r := StorageAccountLocalUserResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.sshKeyED25519(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("ssh_authorized_key"),
+	})
+}
+
 func TestAccLocalUser_passwordAndSSHKey(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_local_user", "test")
-	r := LocalUserResource{}
+	r := StorageAccountLocalUserResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -104,7 +119,7 @@ func TestAccLocalUser_passwordAndSSHKey(t *testing.T) {
 
 func TestAccLocalUser_homeDirectory(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_local_user", "test")
-	r := LocalUserResource{}
+	r := StorageAccountLocalUserResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -126,7 +141,7 @@ func TestAccLocalUser_homeDirectory(t *testing.T) {
 
 func TestAccLocalUser_permissionScope(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_local_user", "test")
-	r := LocalUserResource{}
+	r := StorageAccountLocalUserResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -155,7 +170,7 @@ func TestAccLocalUser_permissionScope(t *testing.T) {
 
 func TestAccLocalUser_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_storage_account_local_user", "test")
-	r := LocalUserResource{}
+	r := StorageAccountLocalUserResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -168,7 +183,7 @@ func TestAccLocalUser_requiresImport(t *testing.T) {
 	})
 }
 
-func (r LocalUserResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r StorageAccountLocalUserResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	client := clients.Storage.ResourceManager.LocalUsers
 
 	id, err := localusers.ParseLocalUserID(state.ID)
@@ -186,7 +201,7 @@ func (r LocalUserResource) Exists(ctx context.Context, clients *clients.Client, 
 	return utils.Bool(true), nil
 }
 
-func (r LocalUserResource) passwordOnly(data acceptance.TestData) string {
+func (r StorageAccountLocalUserResource) passwordOnly(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -199,7 +214,7 @@ resource "azurerm_storage_account_local_user" "test" {
 `, template)
 }
 
-func (r LocalUserResource) sshKeyOnly(data acceptance.TestData) string {
+func (r StorageAccountLocalUserResource) sshKeyOnly(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -216,7 +231,24 @@ resource "azurerm_storage_account_local_user" "test" {
 `, template)
 }
 
-func (r LocalUserResource) sshKeyOnlyUpdate(data acceptance.TestData) string {
+func (r StorageAccountLocalUserResource) sshKeyED25519(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_account_local_user" "test" {
+  name               = "user"
+  storage_account_id = azurerm_storage_account.test.id
+  ssh_key_enabled    = true
+  ssh_authorized_key {
+    description = "key1"
+    key         = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINreJb2zmSALgQUjzq/vKsf05fp5kM0ZGl8YDsP1FdWc"
+  }
+}
+`, template)
+}
+
+func (r StorageAccountLocalUserResource) sshKeyOnlyUpdate(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -237,7 +269,7 @@ resource "azurerm_storage_account_local_user" "test" {
 `, template)
 }
 
-func (r LocalUserResource) passwordAndSSHKey(data acceptance.TestData) string {
+func (r StorageAccountLocalUserResource) passwordAndSSHKey(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -255,7 +287,7 @@ resource "azurerm_storage_account_local_user" "test" {
 `, template)
 }
 
-func (r LocalUserResource) passwordAndSSHKeyMoreAuthKeys(data acceptance.TestData) string {
+func (r StorageAccountLocalUserResource) passwordAndSSHKeyMoreAuthKeys(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -277,7 +309,7 @@ resource "azurerm_storage_account_local_user" "test" {
 `, template)
 }
 
-func (r LocalUserResource) requiresImport(data acceptance.TestData) string {
+func (r StorageAccountLocalUserResource) requiresImport(data acceptance.TestData) string {
 	template := r.passwordOnly(data)
 	return fmt.Sprintf(`
 %s
@@ -290,7 +322,7 @@ resource "azurerm_storage_account_local_user" "import" {
 `, template)
 }
 
-func (r LocalUserResource) noPermissionScope(data acceptance.TestData) string {
+func (r StorageAccountLocalUserResource) noPermissionScope(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -303,7 +335,7 @@ resource "azurerm_storage_account_local_user" "test" {
 `, template)
 }
 
-func (r LocalUserResource) permissionScope(data acceptance.TestData) string {
+func (r StorageAccountLocalUserResource) permissionScope(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -323,7 +355,7 @@ resource "azurerm_storage_account_local_user" "test" {
 `, template)
 }
 
-func (r LocalUserResource) permissionScopeUpdate(data acceptance.TestData) string {
+func (r StorageAccountLocalUserResource) permissionScopeUpdate(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -347,7 +379,7 @@ resource "azurerm_storage_account_local_user" "test" {
 `, template)
 }
 
-func (r LocalUserResource) homeDirectory(data acceptance.TestData, directory string) string {
+func (r StorageAccountLocalUserResource) homeDirectory(data acceptance.TestData, directory string) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
 %s
@@ -361,7 +393,7 @@ resource "azurerm_storage_account_local_user" "test" {
 `, template, directory)
 }
 
-func (r LocalUserResource) template(data acceptance.TestData) string {
+func (r StorageAccountLocalUserResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

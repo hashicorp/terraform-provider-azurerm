@@ -15,6 +15,14 @@ type KeyVaultSecretReferenceSecretInfo struct {
 	Version *string `json:"version,omitempty"`
 
 	// Fields inherited from SecretInfoBase
+
+	SecretType SecretType `json:"secretType"`
+}
+
+func (s KeyVaultSecretReferenceSecretInfo) SecretInfoBase() BaseSecretInfoBaseImpl {
+	return BaseSecretInfoBaseImpl{
+		SecretType: s.SecretType,
+	}
 }
 
 var _ json.Marshaler = KeyVaultSecretReferenceSecretInfo{}
@@ -28,9 +36,10 @@ func (s KeyVaultSecretReferenceSecretInfo) MarshalJSON() ([]byte, error) {
 	}
 
 	var decoded map[string]interface{}
-	if err := json.Unmarshal(encoded, &decoded); err != nil {
+	if err = json.Unmarshal(encoded, &decoded); err != nil {
 		return nil, fmt.Errorf("unmarshaling KeyVaultSecretReferenceSecretInfo: %+v", err)
 	}
+
 	decoded["secretType"] = "keyVaultSecretReference"
 
 	encoded, err = json.Marshal(decoded)

@@ -15,7 +15,7 @@ type ZonesClient struct {
 }
 
 func NewZonesClientWithBaseURI(sdkApi sdkEnv.Api) (*ZonesClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "zones", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "zones", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating ZonesClient: %+v", err)
 	}

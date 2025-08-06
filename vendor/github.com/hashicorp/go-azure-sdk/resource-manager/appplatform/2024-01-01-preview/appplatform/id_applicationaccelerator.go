@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ApplicationAcceleratorId{})
+}
 
 var _ resourceids.ResourceId = &ApplicationAcceleratorId{}
 
@@ -39,7 +44,7 @@ func ParseApplicationAcceleratorID(input string) (*ApplicationAcceleratorId, err
 	}
 
 	id := ApplicationAcceleratorId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParseApplicationAcceleratorIDInsensitively(input string) (*ApplicationAccel
 	}
 
 	id := ApplicationAcceleratorId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -116,9 +121,9 @@ func (id ApplicationAcceleratorId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppPlatform", "Microsoft.AppPlatform", "Microsoft.AppPlatform"),
 		resourceids.StaticSegment("staticSpring", "spring", "spring"),
-		resourceids.UserSpecifiedSegment("springName", "springValue"),
+		resourceids.UserSpecifiedSegment("springName", "springName"),
 		resourceids.StaticSegment("staticApplicationAccelerators", "applicationAccelerators", "applicationAccelerators"),
-		resourceids.UserSpecifiedSegment("applicationAcceleratorName", "applicationAcceleratorValue"),
+		resourceids.UserSpecifiedSegment("applicationAcceleratorName", "applicationAcceleratorName"),
 	}
 }
 

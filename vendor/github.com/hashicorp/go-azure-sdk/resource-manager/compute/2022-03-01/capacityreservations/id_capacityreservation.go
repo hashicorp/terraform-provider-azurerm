@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&CapacityReservationId{})
+}
 
 var _ resourceids.ResourceId = &CapacityReservationId{}
 
@@ -39,7 +44,7 @@ func ParseCapacityReservationID(input string) (*CapacityReservationId, error) {
 	}
 
 	id := CapacityReservationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParseCapacityReservationIDInsensitively(input string) (*CapacityReservation
 	}
 
 	id := CapacityReservationId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -116,9 +121,9 @@ func (id CapacityReservationId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftCompute", "Microsoft.Compute", "Microsoft.Compute"),
 		resourceids.StaticSegment("staticCapacityReservationGroups", "capacityReservationGroups", "capacityReservationGroups"),
-		resourceids.UserSpecifiedSegment("capacityReservationGroupName", "capacityReservationGroupValue"),
+		resourceids.UserSpecifiedSegment("capacityReservationGroupName", "capacityReservationGroupName"),
 		resourceids.StaticSegment("staticCapacityReservations", "capacityReservations", "capacityReservations"),
-		resourceids.UserSpecifiedSegment("capacityReservationName", "capacityReservationValue"),
+		resourceids.UserSpecifiedSegment("capacityReservationName", "capacityReservationName"),
 	}
 }
 

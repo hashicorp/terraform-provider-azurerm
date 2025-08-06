@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&BackupFabricId{})
+}
 
 var _ resourceids.ResourceId = &BackupFabricId{}
 
@@ -39,7 +44,7 @@ func ParseBackupFabricID(input string) (*BackupFabricId, error) {
 	}
 
 	id := BackupFabricId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParseBackupFabricIDInsensitively(input string) (*BackupFabricId, error) {
 	}
 
 	id := BackupFabricId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -116,9 +121,9 @@ func (id BackupFabricId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftRecoveryServices", "Microsoft.RecoveryServices", "Microsoft.RecoveryServices"),
 		resourceids.StaticSegment("staticVaults", "vaults", "vaults"),
-		resourceids.UserSpecifiedSegment("vaultName", "vaultValue"),
+		resourceids.UserSpecifiedSegment("vaultName", "vaultName"),
 		resourceids.StaticSegment("staticBackupFabrics", "backupFabrics", "backupFabrics"),
-		resourceids.UserSpecifiedSegment("backupFabricName", "backupFabricValue"),
+		resourceids.UserSpecifiedSegment("backupFabricName", "backupFabricName"),
 	}
 }
 

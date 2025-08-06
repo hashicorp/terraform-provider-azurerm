@@ -18,11 +18,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
+	"github.com/jackofallops/kermit/sdk/appplatform/2023-05-01-preview/appplatform"
 )
 
 func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_gateway_route_config` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information."),
+
 		Create: resourceSpringCloudGatewayRouteConfigCreateUpdate,
 		Read:   resourceSpringCloudGatewayRouteConfigRead,
 		Update: resourceSpringCloudGatewayRouteConfigCreateUpdate,
@@ -74,17 +76,9 @@ func resourceSpringCloudGatewayRouteConfig() *pluginsdk.Resource {
 				},
 			},
 
-			// lintignore:S013
 			"protocol": {
 				Type:     pluginsdk.TypeString,
-				Optional: !features.FourPointOh(),
-				Required: features.FourPointOh(),
-				Default: func() interface{} {
-					if !features.FourPointOh() {
-						return string(appplatform.GatewayRouteConfigProtocolHTTP)
-					}
-					return nil
-				}(),
+				Required: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(appplatform.GatewayRouteConfigProtocolHTTP),
 					string(appplatform.GatewayRouteConfigProtocolHTTPS),

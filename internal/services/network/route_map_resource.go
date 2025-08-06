@@ -8,14 +8,17 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/network/2022-07-01/network"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name route_map -service-package-name network -properties "name" -compare-values "subscription_id:virtual_hub_id,resource_group_name:virtual_hub_id,virtual_hub_name:virtual_hub_id" -test-params "ident"
 
 type RouteMapModel struct {
 	Name         string `tfschema:"name"`
@@ -24,15 +27,15 @@ type RouteMapModel struct {
 }
 
 type Rule struct {
-	Actions           []Action         `tfschema:"action"`
-	MatchCriteria     []Criterion      `tfschema:"match_criterion"`
-	Name              string           `tfschema:"name"`
-	NextStepIfMatched network.NextStep `tfschema:"next_step_if_matched"`
+	Actions           []Action             `tfschema:"action"`
+	MatchCriteria     []Criterion          `tfschema:"match_criterion"`
+	Name              string               `tfschema:"name"`
+	NextStepIfMatched virtualwans.NextStep `tfschema:"next_step_if_matched"`
 }
 
 type Action struct {
-	Parameters []Parameter                `tfschema:"parameter"`
-	Type       network.RouteMapActionType `tfschema:"type"`
+	Parameters []Parameter                    `tfschema:"parameter"`
+	Type       virtualwans.RouteMapActionType `tfschema:"type"`
 }
 
 type Parameter struct {
@@ -42,15 +45,23 @@ type Parameter struct {
 }
 
 type Criterion struct {
-	AsPath         []string                       `tfschema:"as_path"`
-	Community      []string                       `tfschema:"community"`
-	MatchCondition network.RouteMapMatchCondition `tfschema:"match_condition"`
-	RoutePrefix    []string                       `tfschema:"route_prefix"`
+	AsPath         []string                           `tfschema:"as_path"`
+	Community      []string                           `tfschema:"community"`
+	MatchCondition virtualwans.RouteMapMatchCondition `tfschema:"match_condition"`
+	RoutePrefix    []string                           `tfschema:"route_prefix"`
 }
 
 type RouteMapResource struct{}
 
-var _ sdk.ResourceWithUpdate = RouteMapResource{}
+var (
+	_ sdk.ResourceWithIdentity      = RouteMapResource{}
+	_ sdk.ResourceWithUpdate        = RouteMapResource{}
+	_ sdk.ResourceWithCustomizeDiff = RouteMapResource{}
+)
+
+func (r RouteMapResource) Identity() resourceids.ResourceId {
+	return &virtualwans.RouteMapId{}
+}
 
 func (r RouteMapResource) ResourceType() string {
 	return "azurerm_route_map"
@@ -61,7 +72,7 @@ func (r RouteMapResource) ModelObject() interface{} {
 }
 
 func (r RouteMapResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return validate.RouteMapID
+	return virtualwans.ValidateRouteMapID
 }
 
 func (r RouteMapResource) Arguments() map[string]*pluginsdk.Schema {
@@ -77,7 +88,7 @@ func (r RouteMapResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.VirtualHubID,
+			ValidateFunc: virtualwans.ValidateVirtualHubID,
 		},
 
 		"rule": {
@@ -98,7 +109,7 @@ func (r RouteMapResource) Arguments() map[string]*pluginsdk.Schema {
 							Schema: map[string]*pluginsdk.Schema{
 								"parameter": {
 									Type:     pluginsdk.TypeList,
-									Required: true,
+									Optional: true,
 									Elem: &pluginsdk.Resource{
 										Schema: map[string]*pluginsdk.Schema{
 											"as_path": {
@@ -135,11 +146,11 @@ func (r RouteMapResource) Arguments() map[string]*pluginsdk.Schema {
 									Type:     pluginsdk.TypeString,
 									Required: true,
 									ValidateFunc: validation.StringInSlice([]string{
-										string(network.RouteMapActionTypeAdd),
-										string(network.RouteMapActionTypeDrop),
-										string(network.RouteMapActionTypeRemove),
-										string(network.RouteMapActionTypeReplace),
-										string(network.RouteMapActionTypeUnknown),
+										string(virtualwans.RouteMapActionTypeAdd),
+										string(virtualwans.RouteMapActionTypeDrop),
+										string(virtualwans.RouteMapActionTypeRemove),
+										string(virtualwans.RouteMapActionTypeReplace),
+										string(virtualwans.RouteMapActionTypeUnknown),
 									}, false),
 								},
 							},
@@ -155,11 +166,11 @@ func (r RouteMapResource) Arguments() map[string]*pluginsdk.Schema {
 									Type:     pluginsdk.TypeString,
 									Required: true,
 									ValidateFunc: validation.StringInSlice([]string{
-										string(network.RouteMapMatchConditionContains),
-										string(network.RouteMapMatchConditionEquals),
-										string(network.RouteMapMatchConditionNotContains),
-										string(network.RouteMapMatchConditionNotEquals),
-										string(network.RouteMapMatchConditionUnknown),
+										string(virtualwans.RouteMapMatchConditionContains),
+										string(virtualwans.RouteMapMatchConditionEquals),
+										string(virtualwans.RouteMapMatchConditionNotContains),
+										string(virtualwans.RouteMapMatchConditionNotEquals),
+										string(virtualwans.RouteMapMatchConditionUnknown),
 									}, false),
 								},
 
@@ -196,11 +207,11 @@ func (r RouteMapResource) Arguments() map[string]*pluginsdk.Schema {
 					"next_step_if_matched": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
-						Default:  string(network.NextStepUnknown),
+						Default:  string(virtualwans.NextStepUnknown),
 						ValidateFunc: validation.StringInSlice([]string{
-							string(network.NextStepContinue),
-							string(network.NextStepTerminate),
-							string(network.NextStepUnknown),
+							string(virtualwans.NextStepContinue),
+							string(virtualwans.NextStepTerminate),
+							string(virtualwans.NextStepUnknown),
 						}, false),
 					},
 				},
@@ -215,41 +226,36 @@ func (r RouteMapResource) Attributes() map[string]*pluginsdk.Schema {
 
 func (r RouteMapResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			var model RouteMapModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			client := metadata.Client.Network.RouteMapsClient
-			virtualHubId, err := parse.VirtualHubID(model.VirtualHubId)
+			client := metadata.Client.Network.VirtualWANs
+			virtualHubId, err := virtualwans.ParseVirtualHubID(model.VirtualHubId)
 			if err != nil {
 				return err
 			}
 
-			id := parse.NewRouteMapID(virtualHubId.SubscriptionId, virtualHubId.ResourceGroup, virtualHubId.Name, model.Name)
-			existing, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.Name)
-			if err != nil && !utils.ResponseWasNotFound(existing.Response) {
+			id := virtualwans.NewRouteMapID(virtualHubId.SubscriptionId, virtualHubId.ResourceGroupName, virtualHubId.VirtualHubName, model.Name)
+			existing, err := client.RouteMapsGet(ctx, id)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 			}
-			if !utils.ResponseWasNotFound(existing.Response) {
+			if !response.WasNotFound(existing.HttpResponse) {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			props := &network.RouteMap{
-				RouteMapProperties: &network.RouteMapProperties{
+			props := &virtualwans.RouteMap{
+				Properties: &virtualwans.RouteMapProperties{
 					Rules: expandRules(model.Rules),
 				},
 			}
 
-			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualHubName, id.Name, *props)
-			if err != nil {
+			if err := client.RouteMapsCreateOrUpdateThenPoll(ctx, id, *props); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for creation of %s: %+v", id, err)
 			}
 
 			metadata.SetID(id)
@@ -260,11 +266,11 @@ func (r RouteMapResource) Create() sdk.ResourceFunc {
 
 func (r RouteMapResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.RouteMapsClient
+			client := metadata.Client.Network.VirtualWANs
 
-			id, err := parse.RouteMapID(metadata.ResourceData.Id())
+			id, err := virtualwans.ParseRouteMapID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
@@ -274,22 +280,24 @@ func (r RouteMapResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			existing, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.Name)
+			existing, err := client.RouteMapsGet(ctx, *id)
 			if err != nil {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
+			if existing.Model == nil {
+				return fmt.Errorf("retrieving %s: `model` was nil", id)
+			}
+			if existing.Model.Properties == nil {
+				return fmt.Errorf("retrieving %s: `properties` was nil", id)
+			}
+
 			if metadata.ResourceData.HasChange("rule") {
-				existing.RouteMapProperties.Rules = expandRules(model.Rules)
+				existing.Model.Properties.Rules = expandRules(model.Rules)
 			}
 
-			future, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.VirtualHubName, id.Name, existing)
-			if err != nil {
+			if err := client.RouteMapsCreateOrUpdateThenPoll(ctx, *id, *existing.Model); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
-			}
-
-			if err := future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for update to %s: %+v", *id, err)
 			}
 
 			return nil
@@ -301,16 +309,16 @@ func (r RouteMapResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.RouteMapsClient
+			client := metadata.Client.Network.VirtualWANs
 
-			id, err := parse.RouteMapID(metadata.ResourceData.Id())
+			id, err := virtualwans.ParseRouteMapID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.Name)
+			resp, err := client.RouteMapsGet(ctx, *id)
 			if err != nil {
-				if utils.ResponseWasNotFound(resp.Response) {
+				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(id)
 				}
 
@@ -318,12 +326,18 @@ func (r RouteMapResource) Read() sdk.ResourceFunc {
 			}
 
 			state := RouteMapModel{
-				Name:         id.Name,
-				VirtualHubId: parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID(),
+				Name:         id.RouteMapName,
+				VirtualHubId: virtualwans.NewVirtualHubID(id.SubscriptionId, id.ResourceGroupName, id.VirtualHubName).ID(),
 			}
 
-			if props := resp.RouteMapProperties; props != nil {
-				state.Rules = flattenRules(props.Rules)
+			if model := resp.Model; model != nil {
+				if props := model.Properties; props != nil {
+					state.Rules = flattenRules(props.Rules)
+				}
+			}
+
+			if err := pluginsdk.SetResourceIdentityData(metadata.ResourceData, id); err != nil {
+				return err
 			}
 
 			return metadata.Encode(&state)
@@ -333,22 +347,17 @@ func (r RouteMapResource) Read() sdk.ResourceFunc {
 
 func (r RouteMapResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
+		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.Network.RouteMapsClient
+			client := metadata.Client.Network.VirtualWANs
 
-			id, err := parse.RouteMapID(metadata.ResourceData.Id())
+			id, err := virtualwans.ParseRouteMapID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
 			}
 
-			future, err := client.Delete(ctx, id.ResourceGroup, id.VirtualHubName, id.Name)
-			if err != nil {
+			if err := client.RouteMapsDeleteThenPoll(ctx, *id); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
-			}
-
-			if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
-				return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
 			}
 
 			return nil
@@ -356,21 +365,44 @@ func (r RouteMapResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func expandRules(input []Rule) *[]network.RouteMapRule {
-	var rules []network.RouteMapRule
+func (r RouteMapResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var config RouteMapModel
+			if err := metadata.DecodeDiff(&config); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			// Validate that all actions have parameters when they are not of type Drop
+			for _, rule := range config.Rules {
+				for _, action := range rule.Actions {
+					if action.Type != virtualwans.RouteMapActionTypeDrop && len(action.Parameters) == 0 {
+						return fmt.Errorf("parameters are required when rule action is not `Drop`")
+					}
+				}
+			}
+
+			return nil
+		},
+	}
+}
+
+func expandRules(input []Rule) *[]virtualwans.RouteMapRule {
 	if input == nil {
 		return nil
 	}
 
+	rules := make([]virtualwans.RouteMapRule, 0, len(input))
 	for _, v := range input {
-		rule := network.RouteMapRule{
-			Name:          utils.String(v.Name),
+		rule := virtualwans.RouteMapRule{
+			Name:          pointer.To(v.Name),
 			Actions:       expandActions(v.Actions),
 			MatchCriteria: expandCriteria(v.MatchCriteria),
 		}
 
 		if v.NextStepIfMatched != "" {
-			rule.NextStepIfMatched = v.NextStepIfMatched
+			rule.NextStepIfMatched = pointer.To(v.NextStepIfMatched)
 		}
 
 		rules = append(rules, rule)
@@ -379,15 +411,15 @@ func expandRules(input []Rule) *[]network.RouteMapRule {
 	return &rules
 }
 
-func expandActions(input []Action) *[]network.Action {
-	var actions []network.Action
+func expandActions(input []Action) *[]virtualwans.Action {
 	if input == nil {
 		return nil
 	}
 
+	actions := make([]virtualwans.Action, 0, len(input))
 	for _, v := range input {
-		action := network.Action{
-			Type:       v.Type,
+		action := virtualwans.Action{
+			Type:       pointer.To(v.Type),
 			Parameters: expandParameters(v.Parameters),
 		}
 
@@ -397,15 +429,15 @@ func expandActions(input []Action) *[]network.Action {
 	return &actions
 }
 
-func expandParameters(input []Parameter) *[]network.Parameter {
-	var parameters []network.Parameter
+func expandParameters(input []Parameter) *[]virtualwans.Parameter {
 	if input == nil {
 		return nil
 	}
 
+	parameters := make([]virtualwans.Parameter, 0, len(input))
 	for _, item := range input {
 		v := item
-		parameter := network.Parameter{}
+		parameter := virtualwans.Parameter{}
 
 		if v.AsPath != nil {
 			parameter.AsPath = &v.AsPath
@@ -425,16 +457,16 @@ func expandParameters(input []Parameter) *[]network.Parameter {
 	return &parameters
 }
 
-func expandCriteria(input []Criterion) *[]network.Criterion {
-	var criteria []network.Criterion
+func expandCriteria(input []Criterion) *[]virtualwans.Criterion {
 	if input == nil {
 		return nil
 	}
 
+	criteria := make([]virtualwans.Criterion, 0, len(input))
 	for _, item := range input {
 		v := item
-		criterion := network.Criterion{
-			MatchCondition: v.MatchCondition,
+		criterion := virtualwans.Criterion{
+			MatchCondition: pointer.To(v.MatchCondition),
 		}
 
 		if v.AsPath != nil {
@@ -455,12 +487,12 @@ func expandCriteria(input []Criterion) *[]network.Criterion {
 	return &criteria
 }
 
-func flattenRules(input *[]network.RouteMapRule) []Rule {
-	var rules []Rule
+func flattenRules(input *[]virtualwans.RouteMapRule) []Rule {
 	if input == nil {
-		return rules
+		return []Rule{}
 	}
 
+	rules := make([]Rule, 0, len(*input))
 	for _, v := range *input {
 		rule := Rule{
 			Actions:       flattenActions(v.Actions),
@@ -471,8 +503,8 @@ func flattenRules(input *[]network.RouteMapRule) []Rule {
 			rule.Name = *v.Name
 		}
 
-		if v.NextStepIfMatched != "" {
-			rule.NextStepIfMatched = v.NextStepIfMatched
+		if v.NextStepIfMatched != nil {
+			rule.NextStepIfMatched = pointer.From(v.NextStepIfMatched)
 		}
 
 		rules = append(rules, rule)
@@ -481,19 +513,19 @@ func flattenRules(input *[]network.RouteMapRule) []Rule {
 	return rules
 }
 
-func flattenActions(input *[]network.Action) []Action {
-	var actions []Action
+func flattenActions(input *[]virtualwans.Action) []Action {
 	if input == nil {
-		return actions
+		return []Action{}
 	}
 
+	actions := make([]Action, 0, len(*input))
 	for _, v := range *input {
 		action := Action{
 			Parameters: flattenParameters(v.Parameters),
 		}
 
-		if v.Type != "" {
-			action.Type = v.Type
+		if v.Type != nil {
+			action.Type = pointer.From(v.Type)
 		}
 
 		actions = append(actions, action)
@@ -502,12 +534,12 @@ func flattenActions(input *[]network.Action) []Action {
 	return actions
 }
 
-func flattenParameters(input *[]network.Parameter) []Parameter {
-	var parameters []Parameter
+func flattenParameters(input *[]virtualwans.Parameter) []Parameter {
 	if input == nil {
-		return parameters
+		return []Parameter{}
 	}
 
+	parameters := make([]Parameter, 0, len(*input))
 	for _, v := range *input {
 		parameter := Parameter{}
 
@@ -529,12 +561,12 @@ func flattenParameters(input *[]network.Parameter) []Parameter {
 	return parameters
 }
 
-func flattenCriteria(input *[]network.Criterion) []Criterion {
-	var criteria []Criterion
+func flattenCriteria(input *[]virtualwans.Criterion) []Criterion {
 	if input == nil {
-		return criteria
+		return []Criterion{}
 	}
 
+	criteria := make([]Criterion, 0, len(*input))
 	for _, v := range *input {
 		criterion := Criterion{}
 
@@ -546,8 +578,8 @@ func flattenCriteria(input *[]network.Criterion) []Criterion {
 			criterion.Community = *v.Community
 		}
 
-		if v.MatchCondition != "" {
-			criterion.MatchCondition = v.MatchCondition
+		if v.MatchCondition != nil {
+			criterion.MatchCondition = pointer.From(v.MatchCondition)
 		}
 
 		if v.RoutePrefix != nil {

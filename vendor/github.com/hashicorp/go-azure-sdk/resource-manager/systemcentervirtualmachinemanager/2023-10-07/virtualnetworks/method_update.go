@@ -22,7 +22,7 @@ type UpdateOperationResponse struct {
 }
 
 // Update ...
-func (c VirtualNetworksClient) Update(ctx context.Context, id VirtualNetworkId, input ResourcePatch) (result UpdateOperationResponse, err error) {
+func (c VirtualNetworksClient) Update(ctx context.Context, id VirtualNetworkId, input VirtualNetworkTagsUpdate) (result UpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
@@ -61,7 +61,7 @@ func (c VirtualNetworksClient) Update(ctx context.Context, id VirtualNetworkId, 
 }
 
 // UpdateThenPoll performs Update then polls until it's completed
-func (c VirtualNetworksClient) UpdateThenPoll(ctx context.Context, id VirtualNetworkId, input ResourcePatch) error {
+func (c VirtualNetworksClient) UpdateThenPoll(ctx context.Context, id VirtualNetworkId, input VirtualNetworkTagsUpdate) error {
 	result, err := c.Update(ctx, id, input)
 	if err != nil {
 		return fmt.Errorf("performing Update: %+v", err)

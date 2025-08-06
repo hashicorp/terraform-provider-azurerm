@@ -1,7 +1,7 @@
 
 ## `github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/privateendpointconnections` Documentation
 
-The `privateendpointconnections` SDK allows for interaction with the Azure Resource Manager Service `eventgrid` (API Version `2022-06-15`).
+The `privateendpointconnections` SDK allows for interaction with Azure Resource Manager `eventgrid` (API Version `2022-06-15`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -25,7 +25,7 @@ client.Client.Authorizer = authorizer
 
 ```go
 ctx := context.TODO()
-id := privateendpointconnections.NewScopedPrivateEndpointConnectionID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "privateEndpointConnectionValue")
+id := privateendpointconnections.NewScopedPrivateEndpointConnectionID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "privateEndpointConnectionName")
 
 if err := client.DeleteThenPoll(ctx, id); err != nil {
 	// handle the error
@@ -37,7 +37,7 @@ if err := client.DeleteThenPoll(ctx, id); err != nil {
 
 ```go
 ctx := context.TODO()
-id := privateendpointconnections.NewScopedPrivateEndpointConnectionID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "privateEndpointConnectionValue")
+id := privateendpointconnections.NewScopedPrivateEndpointConnectionID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "privateEndpointConnectionName")
 
 read, err := client.Get(ctx, id)
 if err != nil {
@@ -70,7 +70,7 @@ for _, item := range items {
 
 ```go
 ctx := context.TODO()
-id := privateendpointconnections.NewScopedPrivateEndpointConnectionID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "privateEndpointConnectionValue")
+id := privateendpointconnections.NewScopedPrivateEndpointConnectionID("/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/some-resource-group", "privateEndpointConnectionName")
 
 payload := privateendpointconnections.PrivateEndpointConnection{
 	// ...

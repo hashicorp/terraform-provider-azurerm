@@ -15,7 +15,7 @@ import (
 type UpdateOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *DeploymentScript
+	Model        DeploymentScript
 }
 
 // Update ...
@@ -52,11 +52,11 @@ func (c DeploymentScriptsClient) Update(ctx context.Context, id DeploymentScript
 	if err = resp.Unmarshal(&respObj); err != nil {
 		return
 	}
-	model, err := unmarshalDeploymentScriptImplementation(respObj)
+	model, err := UnmarshalDeploymentScriptImplementation(respObj)
 	if err != nil {
 		return
 	}
-	result.Model = &model
+	result.Model = model
 
 	return
 }

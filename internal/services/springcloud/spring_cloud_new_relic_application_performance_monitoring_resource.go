@@ -14,8 +14,10 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -27,7 +29,7 @@ type SpringCloudNewRelicApplicationPerformanceMonitoringModel struct {
 	GloballyEnabled              bool              `tfschema:"globally_enabled"`
 	AppName                      string            `tfschema:"app_name"`
 	AgentEnabled                 bool              `tfschema:"agent_enabled"`
-	AppServerPort                int               `tfschema:"app_server_port"`
+	AppServerPort                int64             `tfschema:"app_server_port"`
 	AuditModeEnabled             bool              `tfschema:"audit_mode_enabled"`
 	AutoAppNamingEnabled         bool              `tfschema:"auto_app_naming_enabled"`
 	AutoTransactionNamingEnabled bool              `tfschema:"auto_transaction_naming_enabled"`
@@ -38,7 +40,14 @@ type SpringCloudNewRelicApplicationPerformanceMonitoringModel struct {
 
 type SpringCloudNewRelicApplicationPerformanceMonitoringResource struct{}
 
-var _ sdk.ResourceWithUpdate = SpringCloudNewRelicApplicationPerformanceMonitoringResource{}
+func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) DeprecationMessage() string {
+	return features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_new_relic_application_performance_monitoring` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.")
+}
+
+var (
+	_ sdk.ResourceWithUpdate                      = SpringCloudNewRelicApplicationPerformanceMonitoringResource{}
+	_ sdk.ResourceWithDeprecationAndNoReplacement = SpringCloudNewRelicApplicationPerformanceMonitoringResource{}
+)
 
 func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) ResourceType() string {
 	return "azurerm_spring_cloud_new_relic_application_performance_monitoring"
@@ -322,7 +331,7 @@ func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) Read() sdk.
 			if result.Model != nil && result.Model.Value != nil {
 				for _, value := range *result.Model.Value {
 					apmId, err := appplatform.ParseApmIDInsensitively(value)
-					if err == nil && apmId.ID() == id.ID() {
+					if err == nil && resourceids.Match(apmId, id) {
 						globallyEnabled = true
 						break
 					}
@@ -353,8 +362,8 @@ func (s SpringCloudNewRelicApplicationPerformanceMonitoringResource) Read() sdk.
 						state.AgentEnabled = value == "true"
 					}
 					if value, ok := (*props.Properties)["appserver_port"]; ok {
-						if v, err := strconv.ParseInt(value, 10, 32); err == nil {
-							state.AppServerPort = int(v)
+						if v, err := strconv.ParseInt(value, 10, 0); err == nil {
+							state.AppServerPort = v
 						}
 					}
 					if value, ok := (*props.Properties)["audit_mode"]; ok {

@@ -46,7 +46,6 @@ func (c VirtualMachinesClient) ListAvailableSizes(ctx context.Context, id Virtua
 
 	var model VirtualMachineSizeListResult
 	result.Model = &model
-
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}

@@ -15,7 +15,7 @@ type AvailabilitySetsClient struct {
 }
 
 func NewAvailabilitySetsClientWithBaseURI(sdkApi sdkEnv.Api) (*AvailabilitySetsClient, error) {
-	client, err := resourcemanager.NewResourceManagerClient(sdkApi, "availabilitysets", defaultApiVersion)
+	client, err := resourcemanager.NewClient(sdkApi, "availabilitysets", defaultApiVersion)
 	if err != nil {
 		return nil, fmt.Errorf("instantiating AvailabilitySetsClient: %+v", err)
 	}

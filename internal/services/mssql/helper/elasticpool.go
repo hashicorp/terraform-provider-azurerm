@@ -4,6 +4,7 @@
 package helper
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"sort"
@@ -200,19 +201,52 @@ var getvCoreMaxGB = map[string]map[string]map[int]float64{
 	},
 	"hyperscale": {
 		"gen5": {
-			4:  1024,
-			6:  1536,
-			8:  2048,
-			10: 2048,
-			12: 3072,
-			14: 3072,
-			16: 3072,
-			18: 3072,
-			20: 3072,
-			24: 4096,
-			32: 4096,
-			40: 4096,
-			80: 4096,
+			4:  128000,
+			6:  128000,
+			8:  128000,
+			10: 128000,
+			12: 128000,
+			14: 128000,
+			16: 128000,
+			18: 128000,
+			20: 128000,
+			24: 128000,
+			32: 128000,
+			40: 128000,
+			80: 128000,
+		},
+		"prms": {
+			4:   128000,
+			6:   128000,
+			8:   128000,
+			10:  128000,
+			12:  128000,
+			14:  128000,
+			16:  128000,
+			18:  128000,
+			20:  128000,
+			24:  128000,
+			32:  128000,
+			40:  128000,
+			64:  128000,
+			80:  128000,
+			128: 128000,
+		},
+		"moprms": {
+			4:  128000,
+			6:  128000,
+			8:  128000,
+			10: 128000,
+			12: 128000,
+			14: 128000,
+			16: 128000,
+			18: 128000,
+			20: 128000,
+			24: 128000,
+			32: 128000,
+			40: 128000,
+			64: 128000,
+			80: 128000,
 		},
 	},
 }
@@ -235,6 +269,8 @@ var getTierFromName = map[string]string{
 	"bc_gen5":      "BusinessCritical",
 	"bc_dc":        "BusinessCritical",
 	"hs_gen5":      "HyperScale",
+	"hs_prms":      "HyperScale",
+	"hs_moprms":    "HyperScale",
 }
 
 func MSSQLElasticPoolValidateSKU(diff *pluginsdk.ResourceDiff) error {
@@ -387,7 +423,7 @@ func buildErrorString(stub string, m map[int]float64) string {
 
 func doDTUSKUValidation(s sku) error {
 	if s.MaxAllowedGB == 0 {
-		return fmt.Errorf(getDTUCapacityErrorMsg(s))
+		return errors.New(getDTUCapacityErrorMsg(s))
 	}
 
 	if strings.EqualFold(s.Name, "BasicPool") {
@@ -407,7 +443,7 @@ func doDTUSKUValidation(s sku) error {
 
 		// Check to see if the max_size_gb value is valid for this SKU type and capacity
 		if supportedDTUMaxGBValues[int(s.MaxSizeGb)] != 1 {
-			return fmt.Errorf(getDTUNotValidSizeErrorMsg(s))
+			return errors.New(getDTUNotValidSizeErrorMsg(s))
 		}
 	}
 
@@ -425,7 +461,7 @@ func doDTUSKUValidation(s sku) error {
 
 func doVCoreSKUValidation(s sku) error {
 	if s.MaxAllowedGB == 0 {
-		return fmt.Errorf(getVCoreCapacityErrorMsg(s))
+		return errors.New(getVCoreCapacityErrorMsg(s))
 	}
 
 	if s.MaxSizeGb > s.MaxAllowedGB {

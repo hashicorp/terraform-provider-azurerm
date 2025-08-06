@@ -29,12 +29,6 @@ The following arguments are supported:
 
 * `name` - (Required) The name of this Service Bus Topic.
 
-* `namespace_name` - (Required) The name of the Service Bus Namespace.
-
-* `resource_group_name` - (Required) The name of the Resource Group where the Service Bus Topic exists.
-
-~> **Note:** `namespace_name` and `resource_group_name` has been deprecated and will be removed in version 4.0 of the provider in favour of `namespace_id`.
-
 * `namespace_id` - (Required) The ID of the ServiceBus Namespace where the Service Bus Topic exists.
 
 ## Attributes Reference
@@ -49,11 +43,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `duplicate_detection_history_time_window` - The ISO 8601 timespan duration during which duplicates can be detected.
 
-* `enable_batched_operations` - Boolean flag which controls if server-side batched operations are enabled.
+* `batched_operations_enabled` - Boolean flag which controls if server-side batched operations are enabled.
 
-* `enable_express` - Boolean flag which controls whether Express Entities are enabled. An express topic holds a message in memory temporarily before writing it to persistent storage.
+* `express_enabled` - Boolean flag which controls whether Express Entities are enabled. An express topic holds a message in memory temporarily before writing it to persistent storage.
 
-* `enable_partitioning` - Boolean flag which controls whether to enable the topic to be partitioned across multiple message brokers.
+* `partitioning_enabled` - Boolean flag which controls whether to enable the topic to be partitioned across multiple message brokers.
 
 * `max_size_in_megabytes` - Integer value which controls the size of memory allocated for the topic. For supported values see the "Queue/topic size" section of [this document](https://docs.microsoft.com/azure/service-bus-messaging/service-bus-quotas).
 
@@ -68,3 +62,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Service Bus Topic.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.ServiceBus` - 2024-01-01

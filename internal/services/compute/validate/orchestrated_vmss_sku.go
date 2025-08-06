@@ -8,6 +8,10 @@ import (
 	"strings"
 )
 
+const (
+	SkuNameMix = "Mix"
+)
+
 func OrchestratedVirtualMachineScaleSetSku(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
@@ -17,7 +21,7 @@ func OrchestratedVirtualMachineScaleSetSku(input interface{}, key string) (warni
 
 	skuParts := strings.Split(v, "_")
 
-	if len(skuParts) < 2 || strings.Contains(v, "__") || strings.Contains(v, " ") {
+	if (input != SkuNameMix && len(skuParts) < 2) || strings.Contains(v, "__") || strings.Contains(v, " ") {
 		errors = append(errors, fmt.Errorf("%q is not formatted properly, got %q", key, v))
 	}
 

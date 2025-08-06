@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/appplatform/2024-01-01-preview/appplatform"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/springcloud/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -31,7 +32,7 @@ type SpringCloudGatewayModel struct {
 	LocalResponseCachePerInstance         []ResponseCacheModel       `tfschema:"local_response_cache_per_instance"`
 	SensitiveEnvironmentVariables         map[string]string          `tfschema:"sensitive_environment_variables"`
 	HttpsOnly                             bool                       `tfschema:"https_only"`
-	InstanceCount                         int                        `tfschema:"instance_count"`
+	InstanceCount                         int64                      `tfschema:"instance_count"`
 	PublicNetworkAccessEnabled            bool                       `tfschema:"public_network_access_enabled"`
 	Quota                                 []QuotaModel               `tfschema:"quota"`
 	Sso                                   []GatewaySsoModel          `tfschema:"sso"`
@@ -41,7 +42,7 @@ type SpringCloudGatewayModel struct {
 type ApiMetadataModel struct {
 	Description      string `tfschema:"description"`
 	DocumentationUrl string `tfschema:"documentation_url"`
-	ServerUrl        string `tfschema:"server_url"`
+	ServerURL        string `tfschema:"server_url"`
 	Title            string `tfschema:"title"`
 	Version          string `tfschema:"version"`
 }
@@ -58,7 +59,7 @@ type CorsModel struct {
 	AllowedOrigins        []string `tfschema:"allowed_origins"`
 	AllowedOriginPatterns []string `tfschema:"allowed_origin_patterns"`
 	ExposedHeaders        []string `tfschema:"exposed_headers"`
-	MaxAgeSeconds         int      `tfschema:"max_age_seconds"`
+	MaxAgeSeconds         int64    `tfschema:"max_age_seconds"`
 }
 
 type GatewaySsoModel struct {
@@ -80,8 +81,15 @@ type ResponseCacheModel struct {
 
 type SpringCloudGatewayResource struct{}
 
-var _ sdk.ResourceWithUpdate = SpringCloudGatewayResource{}
-var _ sdk.ResourceWithStateMigration = SpringCloudGatewayResource{}
+func (s SpringCloudGatewayResource) DeprecationMessage() string {
+	return features.DeprecatedInFivePointOh("Azure Spring Apps is now deprecated and will be retired on 2028-05-31 - as such the `azurerm_spring_cloud_gateway` resource is deprecated and will be removed in a future major version of the AzureRM Provider. See https://aka.ms/asaretirement for more information.")
+}
+
+var (
+	_ sdk.ResourceWithUpdate                      = SpringCloudGatewayResource{}
+	_ sdk.ResourceWithStateMigration              = SpringCloudGatewayResource{}
+	_ sdk.ResourceWithDeprecationAndNoReplacement = SpringCloudGatewayResource{}
+)
 
 func (s SpringCloudGatewayResource) ResourceType() string {
 	return "azurerm_spring_cloud_gateway"
@@ -274,7 +282,6 @@ func (s SpringCloudGatewayResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"environment_variables": {
 			Type:     pluginsdk.TypeMap,
-			ForceNew: true,
 			Optional: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
@@ -328,7 +335,6 @@ func (s SpringCloudGatewayResource) Arguments() map[string]*pluginsdk.Schema {
 		"sensitive_environment_variables": {
 			Type:      pluginsdk.TypeMap,
 			Optional:  true,
-			ForceNew:  true,
 			Sensitive: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
@@ -486,7 +492,7 @@ func (s SpringCloudGatewayResource) Create() sdk.ResourceFunc {
 				Sku: &appplatform.Sku{
 					Name:     service.Model.Sku.Name,
 					Tier:     service.Model.Sku.Tier,
-					Capacity: pointer.To(int64(model.InstanceCount)),
+					Capacity: pointer.To(model.InstanceCount),
 				},
 			}
 
@@ -579,7 +585,7 @@ func (s SpringCloudGatewayResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("instance_count") {
-				sku.Capacity = pointer.To(int64(model.InstanceCount))
+				sku.Capacity = pointer.To(model.InstanceCount)
 			}
 			resource := appplatform.GatewayResource{
 				Properties: properties,
@@ -595,6 +601,7 @@ func (s SpringCloudGatewayResource) Update() sdk.ResourceFunc {
 		},
 	}
 }
+
 func (s SpringCloudGatewayResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
@@ -650,7 +657,7 @@ func (s SpringCloudGatewayResource) Read() sdk.ResourceFunc {
 				}
 
 				if sku := resp.Model.Sku; sku != nil {
-					state.InstanceCount = int(pointer.From(sku.Capacity))
+					state.InstanceCount = pointer.From(sku.Capacity)
 				}
 			}
 
@@ -690,7 +697,7 @@ func expandGatewayGatewayAPIMetadataProperties(input []ApiMetadataModel) *apppla
 		Description:   pointer.To(v.Description),
 		Documentation: pointer.To(v.DocumentationUrl),
 		Version:       pointer.To(v.Version),
-		ServerUrl:     pointer.To(v.ServerUrl),
+		ServerURL:     pointer.To(v.ServerURL),
 	}
 }
 
@@ -704,7 +711,7 @@ func expandGatewayGatewayCorsProperties(input []CorsModel) *appplatform.GatewayC
 		AllowedOriginPatterns: pointer.To(v.AllowedOriginPatterns),
 		AllowedMethods:        pointer.To(v.AllowedMethods),
 		AllowedHeaders:        pointer.To(v.AllowedHeaders),
-		MaxAge:                pointer.To(int64(v.MaxAgeSeconds)),
+		MaxAge:                pointer.To(v.MaxAgeSeconds),
 		AllowCredentials:      pointer.To(v.CredentialsAllowed),
 		ExposedHeaders:        pointer.To(v.ExposedHeaders),
 	}
@@ -809,7 +816,7 @@ func flattenGatewayGatewayAPIMetadataProperties(input *appplatform.GatewayApiMet
 		{
 			Description:      pointer.From(input.Description),
 			DocumentationUrl: pointer.From(input.Documentation),
-			ServerUrl:        pointer.From(input.ServerUrl),
+			ServerURL:        pointer.From(input.ServerURL),
 			Title:            pointer.From(input.Title),
 			Version:          pointer.From(input.Version),
 		},
@@ -829,7 +836,7 @@ func flattenGatewayGatewayCorsProperties(input *appplatform.GatewayCorsPropertie
 			AllowedOrigins:        pointer.From(input.AllowedOrigins),
 			AllowedOriginPatterns: pointer.From(input.AllowedOriginPatterns),
 			ExposedHeaders:        pointer.From(input.ExposedHeaders),
-			MaxAgeSeconds:         int(pointer.From(input.MaxAge)),
+			MaxAgeSeconds:         pointer.From(input.MaxAge),
 		},
 	}
 }

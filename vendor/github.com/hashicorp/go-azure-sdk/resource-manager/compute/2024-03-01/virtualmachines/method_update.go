@@ -43,6 +43,7 @@ func (o UpdateOperationOptions) ToHeaders() *client.Headers {
 
 func (o UpdateOperationOptions) ToOData() *odata.Query {
 	out := odata.Query{}
+
 	return &out
 }
 
@@ -60,8 +61,8 @@ func (c VirtualMachinesClient) Update(ctx context.Context, id VirtualMachineId, 
 			http.StatusOK,
 		},
 		HttpMethod:    http.MethodPatch,
-		Path:          id.ID(),
 		OptionsObject: options,
+		Path:          id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)

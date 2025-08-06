@@ -168,15 +168,23 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the resource group in which to create the virtual network peering. Changing this forces a new resource to be created.
 
-* `allow_virtual_network_access` - (Optional) Controls if the VMs in the remote virtual network can access VMs in the local virtual network. Defaults to `true`.
+* `allow_virtual_network_access` - (Optional) Controls if the traffic from the local virtual network can reach the remote virtual network. Defaults to `true`.
 
 * `allow_forwarded_traffic` - (Optional) Controls if forwarded traffic from VMs in the remote virtual network is allowed. Defaults to `false`.
 
 * `allow_gateway_transit` - (Optional) Controls gatewayLinks can be used in the remote virtual network’s link to the local virtual network. Defaults to `false`.
 
+* `local_subnet_names` - (Optional) A list of local Subnet names that are Subnet peered with remote Virtual Network.
+
+* `only_ipv6_peering_enabled` - (Optional) Specifies whether only IPv6 address space is peered for Subnet peering. Changing this forces a new resource to be created.
+
+* `peer_complete_virtual_networks_enabled` - (Optional) Specifies whether complete Virtual Network address space is peered. Defaults to `true`. Changing this forces a new resource to be created.
+
+* `remote_subnet_names` - (Optional) A list of remote Subnet names from remote Virtual Network that are Subnet peered.
+
 * `use_remote_gateways` - (Optional) Controls if remote gateways can be used on the local virtual network. If the flag is set to `true`, and `allow_gateway_transit` on the remote peering is also `true`, virtual network will use gateways of remote virtual network for transit. Only one peering can have this flag set to `true`. This flag cannot be set if virtual network already has a gateway. Defaults to `false`.
 
--> **NOTE:** `use_remote_gateways` must be set to `false` if using Global Virtual Network Peerings.
+-> **Note:** `use_remote_gateways` must be set to `false` if using Global Virtual Network Peerings.
 
 * `triggers` - (Optional) A mapping of key values pairs that can be used to sync network routes from the remote virtual network to the local virtual network. See [the trigger example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network_peering#example-usage-triggers) for an example on how to set it up.
 
@@ -191,8 +199,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Virtual Network Peering.
-* `update` - (Defaults to 30 minutes) Used when updating the Virtual Network Peering.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Network Peering.
+* `update` - (Defaults to 30 minutes) Used when updating the Virtual Network Peering.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Virtual Network Peering.
 
 ## Note
@@ -206,3 +214,9 @@ Virtual Network Peerings can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_virtual_network_peering.examplePeering /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/virtualNetworks/myvnet1/virtualNetworkPeerings/myvnet1peering
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

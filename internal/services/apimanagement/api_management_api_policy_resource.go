@@ -4,6 +4,7 @@
 package apimanagement
 
 import (
+	"errors"
 	"fmt"
 	"html"
 	"log"
@@ -115,7 +116,7 @@ func resourceApiManagementAPIPolicyCreateUpdate(d *pluginsdk.ResourceData, meta 
 	}
 
 	if parameters.Properties == nil {
-		return fmt.Errorf("Either `xml_content` or `xml_link` must be set")
+		return errors.New("Either `xml_content` or `xml_link` must be set")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters, apipolicy.CreateOrUpdateOperationOptions{}); err != nil {

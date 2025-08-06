@@ -4,11 +4,16 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/recaser"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 )
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
+
+func init() {
+	recaser.RegisterResourceId(&ServiceRegistryId{})
+}
 
 var _ resourceids.ResourceId = &ServiceRegistryId{}
 
@@ -39,7 +44,7 @@ func ParseServiceRegistryID(input string) (*ServiceRegistryId, error) {
 	}
 
 	id := ServiceRegistryId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -56,7 +61,7 @@ func ParseServiceRegistryIDInsensitively(input string) (*ServiceRegistryId, erro
 	}
 
 	id := ServiceRegistryId{}
-	if err := id.FromParseResult(*parsed); err != nil {
+	if err = id.FromParseResult(*parsed); err != nil {
 		return nil, err
 	}
 
@@ -116,9 +121,9 @@ func (id ServiceRegistryId) Segments() []resourceids.Segment {
 		resourceids.StaticSegment("staticProviders", "providers", "providers"),
 		resourceids.ResourceProviderSegment("staticMicrosoftAppPlatform", "Microsoft.AppPlatform", "Microsoft.AppPlatform"),
 		resourceids.StaticSegment("staticSpring", "spring", "spring"),
-		resourceids.UserSpecifiedSegment("springName", "springValue"),
+		resourceids.UserSpecifiedSegment("springName", "springName"),
 		resourceids.StaticSegment("staticServiceRegistries", "serviceRegistries", "serviceRegistries"),
-		resourceids.UserSpecifiedSegment("serviceRegistryName", "serviceRegistryValue"),
+		resourceids.UserSpecifiedSegment("serviceRegistryName", "serviceRegistryName"),
 	}
 }
 

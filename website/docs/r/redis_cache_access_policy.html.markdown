@@ -49,7 +49,7 @@ The following arguments are supported:
 
 * `redis_cache_id` - (Required) The ID of the Redis Cache. Changing this forces a new Redis Cache Access Policy to be created.
 
-* `permissions` - (Required) Permissions that are going to be assigned to this Redis Cache Access Policy. Changing this forces a new Redis Cache Access Policy to be created.
+* `permissions` - (Required) Permissions that are going to be assigned to this Redis Cache Access Policy.
 
 ## Attributes Reference
 
@@ -63,6 +63,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 5 minutes) Used when creating the Redis Cache Access Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Redis Cache Access Policy.
+* `update` - (Defaults to 5 minutes) Used when updating the Redis Cache Access Policy.
 * `delete` - (Defaults to 5 minutes) Used when deleting the Redis Cache Access Policy.
 
 ## Import
@@ -72,3 +73,9 @@ Redis Cache Access Policy can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_redis_cache_access_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Cache/redis/cache1/accessPolicies/policy1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Cache` - 2024-11-01

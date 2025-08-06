@@ -7,13 +7,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualwans"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceVirtualHubConnection() *pluginsdk.Resource {
@@ -103,7 +103,12 @@ func dataSourceVirtualHubConnection() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						//lintignore:XS003
+						"static_vnet_propagate_static_routes_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
+						// lintignore:XS003
 						"static_vnet_route": {
 							Type:     pluginsdk.TypeList,
 							Computed: true,
@@ -137,16 +142,16 @@ func dataSourceVirtualHubConnection() *pluginsdk.Resource {
 }
 
 func dataSourceVirtualHubConnectionRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.HubVirtualNetworkConnectionClient
+	client := meta.(*clients.Client).Network.VirtualWANs
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := parse.NewHubVirtualNetworkConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("virtual_hub_name").(string), d.Get("name").(string))
+	id := virtualwans.NewHubVirtualNetworkConnectionID(subscriptionId, d.Get("resource_group_name").(string), d.Get("virtual_hub_name").(string), d.Get("name").(string))
 
-	resp, err := client.Get(ctx, id.ResourceGroup, id.VirtualHubName, id.Name)
+	resp, err := client.HubVirtualNetworkConnectionsGet(ctx, id)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s was not found", id)
 		}
 
@@ -155,21 +160,23 @@ func dataSourceVirtualHubConnectionRead(d *pluginsdk.ResourceData, meta interfac
 
 	d.SetId(id.ID())
 
-	d.Set("name", id.Name)
-	d.Set("resource_group_name", id.ResourceGroup)
+	d.Set("name", id.HubVirtualNetworkConnectionName)
+	d.Set("resource_group_name", id.ResourceGroupName)
 	d.Set("virtual_hub_name", id.VirtualHubName)
-	d.Set("virtual_hub_id", parse.NewVirtualHubID(id.SubscriptionId, id.ResourceGroup, id.VirtualHubName).ID())
+	d.Set("virtual_hub_id", virtualwans.NewVirtualHubID(id.SubscriptionId, id.ResourceGroupName, id.VirtualHubName).ID())
 
-	if props := resp.HubVirtualNetworkConnectionProperties; props != nil {
-		d.Set("internet_security_enabled", props.EnableInternetSecurity)
-		remoteVirtualNetworkId := ""
-		if props.RemoteVirtualNetwork != nil && props.RemoteVirtualNetwork.ID != nil {
-			remoteVirtualNetworkId = *props.RemoteVirtualNetwork.ID
-		}
-		d.Set("remote_virtual_network_id", remoteVirtualNetworkId)
+	if model := resp.Model; model != nil {
+		if props := model.Properties; props != nil {
+			d.Set("internet_security_enabled", props.EnableInternetSecurity)
+			remoteVirtualNetworkId := ""
+			if props.RemoteVirtualNetwork != nil && props.RemoteVirtualNetwork.Id != nil {
+				remoteVirtualNetworkId = *props.RemoteVirtualNetwork.Id
+			}
+			d.Set("remote_virtual_network_id", remoteVirtualNetworkId)
 
-		if err := d.Set("routing", flattenVirtualHubConnectionRouting(props.RoutingConfiguration)); err != nil {
-			return fmt.Errorf("setting `routing`: %+v", err)
+			if err := d.Set("routing", flattenVirtualHubConnectionRouting(props.RoutingConfiguration)); err != nil {
+				return fmt.Errorf("setting `routing`: %+v", err)
+			}
 		}
 	}
 

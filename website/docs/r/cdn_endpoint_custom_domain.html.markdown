@@ -3,12 +3,18 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_endpoint_custom_domain"
 description: |-
-  Manages a Custom Domain for a CDN Endpoint.
+  Manages a Custom Domain for a CDN (classic) Endpoint.
 ---
 
 # azurerm_cdn_endpoint_custom_domain
 
-Manages a Custom Domain for a CDN Endpoint.
+Manages a Custom Domain for a CDN (classic) Endpoint.
+
+!> **Note:** Support for the CDN (classic) `sku` `Standard_Akamai` was deprecated from Azure on `October 31, 2023` and is no longer available.
+
+!> **Note:** Support for the CDN (classic) `sku` values `Standard_Verizon` and `Premium_Verizon` were deprecated from Azure on `January 15, 2025` and are no longer available.
+
+!> **Note:** Support for the CDN (classic) `sku` values `Standard_Microsoft` and `Standard_ChinaCdn` will be deprecated from Azure on `October 1, 2025` and will no longer be available, however, modifications to existing CDN (classic) resources will continue to be supported until the API reaches full retirement on `September 30, 2027`.
 
 ## Example Usage
 
@@ -30,7 +36,7 @@ resource "azurerm_cdn_profile" "example" {
   name                = "example-profile"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
-  sku                 = "Standard_Verizon"
+  sku                 = "Standard_Microsoft"
 }
 
 resource "azurerm_cdn_endpoint" "example" {
@@ -79,7 +85,7 @@ The following arguments are supported:
 
 * `user_managed_https` - (Optional) A `user_managed_https` block as defined below.
 
-~> **NOTE** Only one of `cdn_managed_https` and `user_managed_https` can be specified.
+~> **Note:** Only one of `cdn_managed_https` and `user_managed_https` can be specified.
 
 ---
 
@@ -91,17 +97,17 @@ A `cdn_managed_https` block supports the following:
 
 * `tls_version` - (Optional) The minimum TLS protocol version that is used for HTTPS. Possible values are `TLS10` (representing TLS 1.0/1.1), `TLS12` (representing TLS 1.2) and `None` (representing no minimums). Defaults to `TLS12`.
 
+~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
+
 ---
 
 A `user_managed_https` block supports the following:
 
-* `key_vault_certificate_id` - (Optional) The ID of the Key Vault Certificate that contains the HTTPS certificate. This is deprecated in favor of `key_vault_secret_id`.
-
-* `key_vault_secret_id` - (Optional) The ID of the Key Vault Secret that contains the HTTPS certificate.
-
-~> **NOTE** Either `key_vault_certificate_id` or `key_vault_secret_id` has to be specified.
+* `key_vault_secret_id` - (Required) The ID of the Key Vault Secret that contains the HTTPS certificate.
 
 * `tls_version` - (Optional) The minimum TLS protocol version that is used for HTTPS. Possible values are `TLS10` (representing TLS 1.0/1.1), `TLS12` (representing TLS 1.2) and `None` (representing no minimums). Defaults to `TLS12`.
+
+~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
 
 ## Attributes Reference
 
