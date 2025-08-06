@@ -556,12 +556,14 @@ func resourceCdnFrontDoorFirewallPolicy() *pluginsdk.Resource {
 					}
 
 					// Verify that the Standard SKU is not using the JSChallenge or CAPTCHA Action type for custom rules...
-					for _, v := range *customRules.Rules {
-						switch v.Action {
-						case waf.ActionTypeJSChallenge:
-							return fmt.Errorf("'custom_rule' blocks with the 'action' type of 'JSChallenge' are only supported for the %q sku, got action: %q (custom_rule.name: %q, sku_name: %q)", premiumSku, waf.ActionTypeJSChallenge, *v.Name, currentSku)
-						case waf.ActionTypeCAPTCHA:
-							return fmt.Errorf("'custom_rule' blocks with the 'action' type of 'CAPTCHA' are only supported for the %q sku, got action: %q (custom_rule.name: %q, sku_name: %q)", premiumSku, waf.ActionTypeCAPTCHA, *v.Name, currentSku)
+					if customRules != nil && customRules.Rules != nil {
+						for _, v := range *customRules.Rules {
+							switch v.Action {
+							case waf.ActionTypeJSChallenge:
+								return fmt.Errorf("'custom_rule' blocks with the 'action' type of 'JSChallenge' are only supported for the %q sku, got action: %q (custom_rule.name: %q, sku_name: %q)", premiumSku, waf.ActionTypeJSChallenge, *v.Name, currentSku)
+							case waf.ActionTypeCAPTCHA:
+								return fmt.Errorf("'custom_rule' blocks with the 'action' type of 'CAPTCHA' are only supported for the %q sku, got action: %q (custom_rule.name: %q, sku_name: %q)", premiumSku, waf.ActionTypeCAPTCHA, *v.Name, currentSku)
+							}
 						}
 					}
 
@@ -781,7 +783,7 @@ func resourceCdnFrontDoorFirewallPolicyUpdate(d *pluginsdk.ResourceData, meta in
 
 		// NOTE: 'captcha_cookie_expiration_in_minutes' and 'js_challenge_cookie_expiration_in_minutes'
 		// is only valid for 'Premium_AzureFrontDoor' skus...
-		if model.Sku != nil && *model.Sku.Name == waf.SkuNamePremiumAzureFrontDoor {
+		if model.Sku != nil && model.Sku.Name != nil && *model.Sku.Name == waf.SkuNamePremiumAzureFrontDoor {
 			// Set the Default value...
 			jsChallengeExpirationInMinutes := 30
 			captchaExpirationInMinutes := 30
@@ -1244,7 +1246,7 @@ func expandCdnFrontDoorFirewallScrubbingRules(input []interface{}) (*[]waf.WebAp
 		case item.SelectorMatchOperator == waf.ScrubbingRuleEntryMatchOperatorEqualsAny:
 			// NOTE: If the 'operator' is set to 'EqualsAny' the 'selector' must be 'nil'...
 			if pointer.From(item.Selector) != "" {
-				return nil, fmt.Errorf("the 'selector' field cannot be set when the %q 'operator' is used, got %q", waf.ScrubbingRuleEntryMatchOperatorEqualsAny, *item.Selector)
+				return nil, fmt.Errorf("the 'selector' field cannot be set when the %q 'operator' is used, got %q", waf.ScrubbingRuleEntryMatchOperatorEqualsAny, pointer.From(item.Selector))
 			}
 		}
 
