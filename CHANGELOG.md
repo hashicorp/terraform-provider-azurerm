@@ -14,6 +14,7 @@ FEATURES:
 
 BUG FIXES:
 * `azurerm_container_app_environment` - fix an issue where `identity` was not set to the update request payload [GH-30311]
+* `azurerm_kubernetes_cluster_node_pool` - add locks on `vnet_subnet_id` and `pod_subnet_id` to prevent conflicts while updating multiple node pools in parallel [GH-29537]
 
 ## 4.38.1 (July 31, 2025)
 
