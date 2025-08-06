@@ -60,7 +60,6 @@ func ParseBillingAccountCustomerIDInsensitively(input string) (*BillingAccountCu
 }
 
 func (id *BillingAccountCustomerId) FromParseResult(input resourceids.ParseResult) error {
-
 	var ok bool
 
 	if id.BillingAccountName, ok = input.Parsed["billingAccountName"]; !ok {

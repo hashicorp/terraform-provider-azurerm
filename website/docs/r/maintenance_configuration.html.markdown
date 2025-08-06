@@ -133,4 +133,4 @@ terraform import azurerm_maintenance_configuration.example /subscriptions/000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Maintenance`: 2023-04-01
+* `Microsoft.Maintenance` - 2023-04-01

@@ -122,7 +122,7 @@ func getPolicySetDefinitionByDisplayName(ctx context.Context, client *policy.Set
 	return results[0], nil
 }
 
-func expandParameterDefinitionsValueFromString(jsonString string) (map[string]*policy.ParameterDefinitionsValue, error) {
+func expandParameterDefinitionsValueFromStringTrack1(jsonString string) (map[string]*policy.ParameterDefinitionsValue, error) {
 	var result map[string]*policy.ParameterDefinitionsValue
 
 	err := json.Unmarshal([]byte(jsonString), &result)
@@ -130,7 +130,7 @@ func expandParameterDefinitionsValueFromString(jsonString string) (map[string]*p
 	return result, err
 }
 
-func flattenParameterDefinitionsValueToString(input map[string]*policy.ParameterDefinitionsValue) (string, error) {
+func flattenParameterDefinitionsValueToStringTrack1(input map[string]*policy.ParameterDefinitionsValue) (string, error) {
 	if len(input) == 0 {
 		return "", nil
 	}
@@ -156,7 +156,7 @@ func expandParameterValuesValueFromString(jsonString string) (map[string]assignm
 	return result, err
 }
 
-func flattenParameterValuesValueToString(input map[string]*policy.ParameterValuesValue) (string, error) {
+func flattenParameterValuesValueToStringTrack1(input map[string]*policy.ParameterValuesValue) (string, error) {
 	if input == nil {
 		return "", nil
 	}

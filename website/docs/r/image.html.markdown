@@ -37,12 +37,22 @@ The following arguments are supported:
 * `location` - (Required) Specified the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 * `source_virtual_machine_id` - (Optional) The Virtual Machine ID from which to create the image.
 * `os_disk` - (Optional) One or more `os_disk` blocks as defined below. Changing this forces a new resource to be created.
+
+~> **Note:** `os_disk` cannot be set together with `source_virtual_machine_id`.
+
 * `data_disk` - (Optional) One or more `data_disk` blocks as defined below.
-* `tags` - (Optional) A mapping of tags to assign to the resource.
+
+~> **Note:** `data_disk` cannot be set together with `source_virtual_machine_id`.
+
+* `hyper_v_generation` - (Optional) The Hyper-V Generation Type of the Virtual Machine created from the image as `V1`, `V2`. Defaults to `V1`. Changing this forces a new resource to be created.
+
 * `zone_resilient` - (Optional) Is zone resiliency enabled? Defaults to `false`. Changing this forces a new resource to be created.
-* `hyper_v_generation` - (Optional) The HyperVGenerationType of the VirtualMachine created from the image as `V1`, `V2`. Defaults to `V1`. Changing this forces a new resource to be created.
 
 ~> **Note:** `zone_resilient` can only be set to `true` if the image is stored in a region that supports availability zones.
+
+~> **Note:** `zone_resilient` cannot be set together with `source_virtual_machine_id`.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
 
@@ -91,3 +101,9 @@ Images can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_image.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/images/image1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Compute` - 2022-03-01

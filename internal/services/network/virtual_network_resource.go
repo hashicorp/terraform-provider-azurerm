@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -22,7 +23,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/routetables"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/serviceendpointpolicies"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/subnets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/ipampools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworks"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -33,18 +36,17 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name virtual_network -service-package-name network -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 var VirtualNetworkResourceName = "azurerm_virtual_network"
 
 func resourceVirtualNetwork() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceVirtualNetworkCreate,
-		Read:   resourceVirtualNetworkRead,
-		Update: resourceVirtualNetworkUpdate,
-		Delete: resourceVirtualNetworkDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseVirtualNetworkID(id)
-			return err
-		}),
+		Create:   resourceVirtualNetworkCreate,
+		Read:     resourceVirtualNetworkRead,
+		Update:   resourceVirtualNetworkUpdate,
+		Delete:   resourceVirtualNetworkDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.VirtualNetworkId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -54,6 +56,10 @@ func resourceVirtualNetwork() *pluginsdk.Resource {
 		},
 
 		Schema: resourceVirtualNetworkSchema(),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.VirtualNetworkId{}),
+		},
 	}
 }
 
@@ -71,16 +77,27 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"address_space": {
-			Type:     pluginsdk.TypeSet,
-			Required: true,
-			MinItems: 1,
+			Type:         pluginsdk.TypeSet,
+			Optional:     true,
+			ExactlyOneOf: []string{"address_space", "ip_address_pool"},
+			MinItems:     1,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+			DiffSuppressFunc: func(_, old, new string, d *schema.ResourceData) bool {
+				// If `ip_address_pool` is used instead of `address_space` there is a perpetual diff
+				// due to the API returning a CIDR range provisioned by the IP Address Management Pool.
+				// Note: using `GetRawConfig` to avoid suppressing a diff if a user updates from `ip_address_pool` to `address_space`.
+				rawIpAddressPool := d.GetRawConfig().AsValueMap()["ip_address_pool"]
+				if !rawIpAddressPool.IsNull() && len(rawIpAddressPool.AsValueSlice()) > 0 {
+					return true
+				}
+
+				return false
+			},
 		},
 
-		// Optional
 		"bgp_community": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
@@ -141,6 +158,39 @@ func resourceVirtualNetworkSchema() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeInt,
 			Optional:     true,
 			ValidateFunc: validation.IntBetween(4, 30),
+		},
+
+		"ip_address_pool": {
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			MaxItems:     2,
+			ExactlyOneOf: []string{"address_space", "ip_address_pool"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: ipampools.ValidateIPamPoolID,
+					},
+
+					"number_of_ip_addresses": {
+						Type:     pluginsdk.TypeString,
+						Required: true,
+						ValidateFunc: validation.StringMatch(
+							regexp.MustCompile(`^[1-9]\d*$`),
+							"`number_of_ip_addresses` must be a string that represents a positive number",
+						),
+					},
+
+					"allocated_ip_address_prefixes": {
+						Type:     pluginsdk.TypeList,
+						Computed: true,
+						Elem: &pluginsdk.Schema{
+							Type: pluginsdk.TypeString,
+						},
+					},
+				},
+			},
 		},
 
 		"guid": {
@@ -393,6 +443,10 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 				if err = d.Set("address_space", space.AddressPrefixes); err != nil {
 					return fmt.Errorf("setting `address_space`: %+v", err)
 				}
+
+				if err := d.Set("ip_address_pool", flattenVirtualNetworkIPAddressPool(space.IPamPoolPrefixAllocations)); err != nil {
+					return fmt.Errorf("setting `ip_address_pool`: %+v", err)
+				}
 			}
 
 			if err := d.Set("ddos_protection_plan", flattenVirtualNetworkDDoSProtectionPlan(props)); err != nil {
@@ -424,7 +478,13 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 			}
 		}
 
-		return tags.FlattenAndSet(d, model.Tags)
+		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
+			return fmt.Errorf("flattening `tags`: %+v", err)
+		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(d, id); err != nil {
+		return err
 	}
 
 	return nil
@@ -455,11 +515,39 @@ func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	payload := existing.Model
 
 	if d.HasChange("address_space") {
-		if payload.Properties.AddressSpace == nil {
-			payload.Properties.AddressSpace = &virtualnetworks.AddressSpace{}
+		if v := d.Get("address_space").(*pluginsdk.Set).List(); len(v) > 0 {
+			if payload.Properties.AddressSpace == nil {
+				payload.Properties.AddressSpace = &virtualnetworks.AddressSpace{}
+			}
+			payload.Properties.AddressSpace.AddressPrefixes = utils.ExpandStringSlice(v)
+		} else {
+			payload.Properties.AddressSpace.AddressPrefixes = nil
 		}
+	}
 
-		payload.Properties.AddressSpace.AddressPrefixes = utils.ExpandStringSlice(d.Get("address_space").(*pluginsdk.Set).List())
+	if d.HasChange("ip_address_pool") {
+		if v := d.Get("ip_address_pool").([]interface{}); len(v) > 0 {
+			if payload.Properties.AddressSpace == nil {
+				payload.Properties.AddressSpace = &virtualnetworks.AddressSpace{}
+			}
+
+			expandedIPAddressPool := expandVirtualNetworkIPAddressPool(v)
+
+			if payload.Properties.AddressSpace.IPamPoolPrefixAllocations != nil {
+				for _, existingAllocation := range *payload.Properties.AddressSpace.IPamPoolPrefixAllocations {
+					for _, expandedAllocation := range *expandedIPAddressPool {
+						if existingAllocation.Pool != nil && expandedAllocation.Pool != nil && strings.EqualFold(pointer.From(existingAllocation.Pool.Id), pointer.From(expandedAllocation.Pool.Id)) &&
+							existingAllocation.NumberOfIPAddresses != nil && expandedAllocation.NumberOfIPAddresses != nil && *existingAllocation.NumberOfIPAddresses > *expandedAllocation.NumberOfIPAddresses {
+							return fmt.Errorf("`number_of_ip_addresses` cannot be decreased from %v to %v on pool: %v", *existingAllocation.NumberOfIPAddresses, *expandedAllocation.NumberOfIPAddresses, *expandedAllocation.Pool.Id)
+						}
+					}
+				}
+			}
+
+			payload.Properties.AddressSpace.IPamPoolPrefixAllocations = expandedIPAddressPool
+		} else {
+			payload.Properties.AddressSpace.IPamPoolPrefixAllocations = nil
+		}
 	}
 
 	if d.HasChange("bgp_community") {
@@ -784,7 +872,9 @@ func expandVirtualNetworkProperties(ctx context.Context, client virtualnetworks.
 		Subnets:                     &subnets,
 	}
 
-	properties.AddressSpace.AddressPrefixes = utils.ExpandStringSlice(d.Get("address_space").(*pluginsdk.Set).List())
+	if v, ok := d.GetOk("address_space"); ok {
+		properties.AddressSpace.AddressPrefixes = utils.ExpandStringSlice(v.(*pluginsdk.Set).List())
+	}
 
 	if v, ok := d.GetOk("ddos_protection_plan"); ok {
 		rawList := v.([]interface{})
@@ -817,11 +907,61 @@ func expandVirtualNetworkProperties(ctx context.Context, client virtualnetworks.
 		}
 	}
 
+	if v, ok := d.GetOk("ip_address_pool"); ok {
+		properties.AddressSpace.IPamPoolPrefixAllocations = expandVirtualNetworkIPAddressPool(v.([]interface{}))
+	}
+
 	if v, ok := d.GetOk("bgp_community"); ok {
 		properties.BgpCommunities = &virtualnetworks.VirtualNetworkBgpCommunities{VirtualNetworkCommunity: v.(string)}
 	}
 
 	return properties, &routeTables, nil
+}
+
+func expandVirtualNetworkIPAddressPool(input []interface{}) *[]virtualnetworks.IPamPoolPrefixAllocation {
+	if len(input) == 0 {
+		return nil
+	}
+
+	outputs := make([]virtualnetworks.IPamPoolPrefixAllocation, 0)
+	for _, v := range input {
+		ipPoolRaw := v.(map[string]interface{})
+		output := virtualnetworks.IPamPoolPrefixAllocation{}
+
+		if v, ok := ipPoolRaw["number_of_ip_addresses"]; ok {
+			output.NumberOfIPAddresses = pointer.To(v.(string))
+		}
+
+		if v, ok := ipPoolRaw["id"]; ok {
+			output.Pool = &virtualnetworks.IPamPoolPrefixAllocationPool{
+				Id: pointer.To(v.(string)),
+			}
+		}
+
+		outputs = append(outputs, output)
+	}
+
+	return &outputs
+}
+
+func flattenVirtualNetworkIPAddressPool(input *[]virtualnetworks.IPamPoolPrefixAllocation) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	outputs := make([]interface{}, 0)
+	for _, v := range *input {
+		output := map[string]interface{}{
+			"number_of_ip_addresses":        pointer.From(v.NumberOfIPAddresses),
+			"allocated_ip_address_prefixes": pointer.From(v.AllocatedAddressPrefixes),
+		}
+		if v.Pool != nil {
+			output["id"] = pointer.From(v.Pool.Id)
+		}
+		outputs = append(outputs, output)
+	}
+
+	return outputs
 }
 
 func flattenVirtualNetworkDDoSProtectionPlan(input *virtualnetworks.VirtualNetworkPropertiesFormat) []interface{} {

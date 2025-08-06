@@ -82,4 +82,4 @@ terraform import azurerm_container_registry_agent_pool.example /subscriptions/00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerRegistry`: 2019-06-01-preview
+* `Microsoft.ContainerRegistry` - 2019-06-01-preview

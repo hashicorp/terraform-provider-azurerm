@@ -176,6 +176,7 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 								ValidateFunc: validation.StringInSlice([]string{
 									string(virtualmachines.DiffDiskPlacementCacheDisk),
 									string(virtualmachines.DiffDiskPlacementResourceDisk),
+									string(virtualmachines.DiffDiskPlacementNVMeDisk),
 								}, false),
 							},
 						},

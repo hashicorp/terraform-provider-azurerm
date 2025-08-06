@@ -1,4 +1,5 @@
-// Copyright © 2024, Oracle and/or its affiliates. All rights reserved
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
 
 package oracle_test
 
@@ -8,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/cloudvmclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/cloudvmclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -134,7 +135,6 @@ resource "azurerm_oracle_cloud_vm_cluster" "test" {
   db_node_storage_size_in_gbs = 120
   db_servers                  = [for obj in data.azurerm_oracle_db_servers.test.db_servers : obj.ocid]
   display_name                = "OFakeVmacctest%[2]d"
-  domain                      = "ociofakeacctes.com"
   gi_version                  = "23.0.0.0"
   local_backup_enabled        = true
   sparse_diskgroup_enabled    = true
@@ -150,8 +150,43 @@ resource "azurerm_oracle_cloud_vm_cluster" "test" {
     test = "testTag1"
   }
   time_zone          = "UTC"
-  zone_id            = "ocid1.dns-zone.oc1.iad.aaaaaaaac7lyw74bnybmlek7nrsd5h3v5kjfv3aiw62menpuuwoder7yhmpa"
   virtual_network_id = azurerm_virtual_network.virtual_network.id
+  file_system_configuration {
+    mount_point = "/home"
+    size_in_gb  = 8
+  }
+  file_system_configuration {
+    mount_point = "/tmp"
+    size_in_gb  = 20
+  }
+  file_system_configuration {
+    mount_point = "/var/log"
+    size_in_gb  = 50
+  }
+  file_system_configuration {
+    mount_point = "/"
+    size_in_gb  = 15
+  }
+  file_system_configuration {
+    mount_point = "/u01"
+    size_in_gb  = 250
+  }
+  file_system_configuration {
+    mount_point = "/var"
+    size_in_gb  = 10
+  }
+  file_system_configuration {
+    mount_point = "/var/log/audit"
+    size_in_gb  = 10
+  }
+  file_system_configuration {
+    mount_point = "reserved"
+    size_in_gb  = 9
+  }
+  file_system_configuration {
+    mount_point = "swap"
+    size_in_gb  = 16
+  }
 }`, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
@@ -253,7 +288,7 @@ resource "azurerm_oracle_exadata_infrastructure" "test" {
   display_name        = "OFakeacctest%[1]d"
   shape               = "Exadata.X9M"
   storage_count       = "3"
-  zones               = ["3"]
+  zones               = ["2"]
 }
 
 data "azurerm_oracle_db_servers" "test" {
