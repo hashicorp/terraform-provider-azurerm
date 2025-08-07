@@ -1699,7 +1699,7 @@ resource "azurerm_linux_virtual_machine" "test" {
 
   gallery_application {
     version_id                                  = azurerm_gallery_application_version.test2.id
-    automatic_upgrade_enabled                   = true
+    // automatic_upgrade_enabled                   = true
     order                                       = 2
     configuration_blob_uri                      = azurerm_storage_blob.test2.id
     tag                                         = "app2"
@@ -1999,7 +1999,7 @@ resource "azurerm_linux_virtual_machine" "test" {
   name                = "acctestVM-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  size                = "Standard_F2"
+  size                = "Standard_F2s_v2"
   admin_username      = "adminuser"
   license_type        = "SLES_BYOS"
   network_interface_ids = [
