@@ -75,7 +75,6 @@ func resourceBotChannelMsTeams() *pluginsdk.Resource {
 				}, false),
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
 			"calling_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -86,15 +85,17 @@ func resourceBotChannelMsTeams() *pluginsdk.Resource {
 
 	if !features.FivePointOh() {
 		resource.Schema["calling_enabled"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Computed: true,
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"enable_calling"},
 		}
 		resource.Schema["enable_calling"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Optional:   true,
-			Computed:   true,
-			Deprecated: "The property `enable_calling` is deprecated in favour of `calling_enabled` and will be removed in version 5.0 of the AzureRM Provider.",
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"calling_enabled"},
+			Deprecated:    "The property `enable_calling` is deprecated in favour of `calling_enabled` and will be removed in version 5.0 of the AzureRM Provider.",
 		}
 	}
 

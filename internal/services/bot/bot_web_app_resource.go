@@ -192,6 +192,10 @@ func resourceBotWebAppCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("creating Web App Bot %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 	}
 
+	// Creating an azurerm_bot_web_app resource automatically provisions Web Chat and Direct Line channels, each with a
+	// live and enabled "Default Site". These channels are enabled by default, and may expose the bot publicly.
+	// Therefore, we delete the default sites for Direct Line and Web Chat channels after creating the bot. To manage or
+	// disable the sites explicitly, define corresponding resources like azurerm_bot_channel_directline.
 	if err := deleteDefaultChannelSite(d, meta, botservice.ChannelNameBasicChannelChannelNameDirectLineChannel); err != nil {
 		log.Printf("[WARN] deleting direct line default site: %s", err)
 	}
