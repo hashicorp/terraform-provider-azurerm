@@ -1,15 +1,6 @@
 # AzureRM Provider AI-Powered Development Installation Scripts
 
-This directory contains installation scripts for setting up AI-powered coding assistance specifically tuned for - **Settings corruption**: Restore from your own backup if available
-
-## Support
-
-For more information and detailed documentation:
-- **Repository**: https://github.com/hashicorp/terraform-provider-azurerm
-- **Instructions**: See the `.github/instructions/` directory
-- **Help**: Run the scripts with `-Help` (PowerShell) or `-help` (Bash) for detailed usage information
-
-## Advanced Usageorm AzureRM provider development.
+This directory contains installation scripts for setting up AI-powered coding assistance specifically tuned for the Terraform AzureRM provider development.
 
 ## Quick Start
 
@@ -34,13 +25,13 @@ For more information and detailed documentation:
 ./AILocalInstall/install-copilot-setup.sh
 
 # Or specify repository path
-./AILocalInstall/install-copilot-setup.sh --repository-path "/path/to/terraform-provider-azurerm"
+./AILocalInstall/install-copilot-setup.sh -repository-path "/path/to/terraform-provider-azurerm"
 
 # Clean up and restore original settings
-./AILocalInstall/install-copilot-setup.sh --clean
+./AILocalInstall/install-copilot-setup.sh -clean
 
 # Show help
-./AILocalInstall/install-copilot-setup.sh --help
+./AILocalInstall/install-copilot-setup.sh -help
 ```
 
 ## What These Scripts Do
