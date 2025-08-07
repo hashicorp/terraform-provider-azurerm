@@ -151,9 +151,9 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Service Resource should exist. Changing this forces a new resource to be created.
 
-* `sku_name` - (Required) The SKU name for this Service Resource. Possible values are `Standard` and `Premium`.
+* `auto_scaling_enabled` - (Optional) Is auto scaling enabled for this Service Resource? Defaults to `true`.
 
-* `enabled` - (Optional) Is this Service Resource enabled? Defaults to `true`.
+* `sku_name` - (Optional) The SKU name for this Service Resource. Possible values are `Standard` and `Premium`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -337,10 +337,10 @@ output "log_scrubbing_enabled" {
 
 When adding new fields to existing resources, follow this guidance for documentation examples:
 
-**Update Existing Examples (Preferred for Simple Fields):**
-- **Simple optional fields**: Add to existing basic/complete examples (e.g., `enabled = true`, `timeout_seconds = 300`)
-- **Common configuration options**: Update existing examples rather than creating new ones (e.g., tags, basic settings)
-- **Straightforward additions**: Fields that don't require complex explanation or setup
+**Do Not Update Existing Examples (Standard for Simple Fields):**
+- **Simple optional fields**: Do not add to existing basic/complete examples (e.g., `auto_scaling_enabled = true`, `timeout_seconds = 300`)
+- **Common configuration options**: Do not update existing examples for basic settings
+- **Straightforward additions**: Fields that don't require complex explanation or setup should not clutter existing examples
 
 **Create New Examples (Only for Complex Features):**
 - **Complex nested configurations**: Features requiring significant block structures or multiple related fields
@@ -349,8 +349,8 @@ When adding new fields to existing resources, follow this guidance for documenta
 - **Conditional configurations**: When field usage depends on specific combinations of other settings
 
 **Example Decision Matrix:**
-- **Update existing**: `response_timeout_seconds = 120` (simple timeout field)
-- **Update existing**: `enabled = false` (basic boolean toggle)
+- **Do not update existing**: `response_timeout_seconds = 120` (simple timeout field)
+- **Do not update existing**: `auto_scaling_enabled = false` (basic boolean toggle)
 - **New example needed**: Complex nested `security_policy` block with multiple sub-configurations
 - **New example needed**: Advanced `custom_domain` setup requiring certificates and DNS validation
 
@@ -477,7 +477,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `sku_name` - The SKU name of the Service Resource.
 
-* `enabled` - Is the Service Resource enabled?
+* `resource_enabled` - Is the Service Resource enabled?
 
 * `configuration` - A `configuration` block as defined below.
 
@@ -491,10 +491,40 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## 📝 Field Documentation Rules
 
+### 🚨 **CRITICAL: Field Ordering Standards - MUST FOLLOW**
+
+**⚠️ MANDATORY ALPHABETICAL ORDERING ⚠️**
+
+**BEFORE writing ANY field documentation, you MUST:**
+
+1. **📋 CATEGORIZE FIELDS**
+   - Required fields → Group 1 (comes first)
+   - Optional fields → Group 2 (comes second)
+
+2. **🔤 ALPHABETIZE WITHIN GROUPS**
+   - Sort required fields alphabetically: `api_version`, `capacity`, `database_name` (after the common Azure fields)
+   - Sort optional fields alphabetically: `auto_scaling_enabled`, `retention_days`, `sku_name`, with `tags` at end
+
+   **📝 Note**: Common Azure fields follow a specific standard order within their category:
+   - **Required**: `name`, `resource_group_name`, `location` (in this exact order), then other required fields A-Z
+   - **Optional**: Other optional fields A-Z, then `tags` at the very end
+
+3. **✅ FINAL VALIDATION**
+   - Check: Are all required fields listed before optional fields?
+   - Check: Are fields within each group in alphabetical order?
+   - Check: Does this match the pattern in other resources?
+
 ### Field Ordering Standards
 - **Required fields first**: Always list required fields before optional fields in argument documentation
 - **Alphabetical within category**: Within required and optional groups, list fields alphabetically
 - **Consistent structure**: Maintain the same field ordering pattern across all block documentation
+
+### 📋 **Alphabetical Ordering Checklist**
+- [ ] Required fields grouped first
+- [ ] Required fields follow standard order: `name`, `resource_group_name`, `location` first, then other required fields A-Z
+- [ ] Optional fields grouped second
+- [ ] Optional fields sorted A-Z, with `tags` at the very end
+- [ ] Common Azure field pattern followed consistently across all resources
 
 ### Note Format Standards
 - **Use note blocks for conditional behavior**: When field usage depends on other field values, use note format instead of inline descriptions
@@ -504,16 +534,28 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 Example of proper field documentation:
 ```markdown
-* `match_variable` - (Required) The variable to be scrubbed from the logs. Possible values are `QueryStringArgNames`, `RequestIPAddress`, and `RequestUri`.
+## Arguments Reference
 
-* `enabled` - (Optional) Is this scrubbing rule enabled? Defaults to `true`.
+The following arguments are supported:
 
-* `operator` - (Optional) The operator to use for matching. Currently only `EqualsAny` is supported. Defaults to `EqualsAny`.
+* `name` - (Required) The name of the Service Resource. Changing this forces a new resource to be created.
 
-* `selector` - (Optional) The name of the query string argument to be scrubbed.
+* `resource_group_name` - (Required) The name of the Resource Group where the Service Resource should exist. Changing this forces a new resource to be created.
 
-~> **Note:** The `selector` field is required when the `match_variable` is set to `QueryStringArgNames` and cannot be set when the `match_variable` is `RequestIPAddress` or `RequestUri`.
+* `location` - (Required) The Azure Region where the Service Resource should exist. Changing this forces a new resource to be created.
+
+* `auto_scaling_enabled` - (Optional) Is auto scaling enabled for this Service Resource? Defaults to `true`.
+
+* `sku_name` - (Optional) The SKU name for this Service Resource. Possible values are `Standard` and `Premium`.
+
+* `timeout_seconds` - (Optional) The timeout in seconds. Defaults to `300`.
+
+* `tags` - (Optional) A mapping of tags to assign to the resource.
 ```
+
+**✅ Notice the alphabetical pattern:**
+- **Required**: `name`, `resource_group_name`, `location` (A-Z)
+- **Optional**: `auto_scaling_enabled`, `sku_name`, `timeout_seconds`, `tags` (A-Z)
 
 ### Azure-Specific Documentation Standards
 - **Valid values only**: Only document values that are actually supported by the Azure service

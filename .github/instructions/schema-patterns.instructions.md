@@ -759,7 +759,8 @@ resource "azurerm_resource" "test" {
 - **State Changes**: Enabling 5.0 mode may cause irreversible state changes
 - **Documentation**: Always document the migration path in breaking change guides
 
-**For authoritative breaking change procedures, see:** [Contributing Guide - Breaking Changes](../../../contributing/topics/guide-breaking-changes.md)
+**📚 Official Breaking Change Reference:**
+For authoritative breaking change procedures, see: [Contributing Guide - Breaking Changes](../../../contributing/topics/guide-breaking-changes.md)
 
 ### Advanced Schema Validation Patterns
 

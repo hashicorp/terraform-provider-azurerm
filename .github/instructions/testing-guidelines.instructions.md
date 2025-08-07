@@ -565,6 +565,9 @@ make testacc TEST=./internal/services/cdn TESTARGS='-run=TestAccCdnFrontDoorProf
 - Scale-down operations blocked due to health monitoring requirements
 - Soft-delete conflicts preventing immediate recreation
 
+**📚 Official Acceptance Testing Reference:**
+For comprehensive acceptance testing guidelines, see: [Acceptance Testing Reference](../../../contributing/topics/reference-acceptance-testing.md)
+
 ## 📚 Specialized Testing Guidance (On-Demand)
 
 ### **Advanced Testing Patterns**
