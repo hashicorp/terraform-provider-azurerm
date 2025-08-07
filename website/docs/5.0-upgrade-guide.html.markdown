@@ -281,6 +281,10 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `workspace_resource_id` property has been removed and superseded by the `workspace_id` property.
 
+### `azurerm_log_analytics_storage_insights`
+
+* The `storage_account_id` property is marked as `ForceNew`.
+
 ### `azurerm_log_analytics_workspace`
 
 * The deprecated `local_authentication_disabled` property has been removed in favour of the `local_authentication_enabled` property.
