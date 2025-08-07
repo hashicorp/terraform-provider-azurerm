@@ -1376,8 +1376,8 @@ resource "azurerm_windows_virtual_machine" "test" {
     version   = "latest"
   }
 
-  enable_automatic_updates = false
-  patch_mode               = "Manual"
+  automatic_updates_enabled = false
+  patch_mode                = "Manual"
 }
 `, r.template(data))
 }
