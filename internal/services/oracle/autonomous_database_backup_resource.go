@@ -28,7 +28,6 @@ type AutonomousDatabaseBackupResourceModel struct {
 
 	// Required
 	BackupType            string `tfschema:"backup_type"`
-	DisplayName           string `tfschema:"display_name"`
 	RetentionPeriodInDays int64  `tfschema:"retention_period_in_days"`
 }
 
@@ -56,17 +55,12 @@ func (AutonomousDatabaseBackupResource) Arguments() map[string]*pluginsdk.Schema
 		"backup_type": {
 			Type:     schema.TypeString,
 			Optional: true,
-			Default:  string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeFull),
+			Default:  string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeLongTerm),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeFull),
 				string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeIncremental),
 				string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeLongTerm),
 			}, false),
-		},
-		"display_name": {
-			Type:     schema.TypeString,
-			Optional: true,
-			ForceNew: true,
 		},
 	}
 }
@@ -115,7 +109,7 @@ func (r AutonomousDatabaseBackupResource) Create() sdk.ResourceFunc {
 				model.Name,
 			)
 
-			existingBackup, err := findBackupByName(ctx, client, autonomousdatabases.AutonomousDatabaseId(dbId), model.Name)
+			existingBackup, err := findBackupByName(ctx, client, autonomousdatabases.AutonomousDatabaseId(dbId), id)
 			if err != nil {
 				return fmt.Errorf("checking for existing backup: %+v", err)
 			}
@@ -126,7 +120,6 @@ func (r AutonomousDatabaseBackupResource) Create() sdk.ResourceFunc {
 			param := autonomousdatabasebackups.AutonomousDatabaseBackup{
 				Name: pointer.To(model.Name),
 				Properties: &autonomousdatabasebackups.AutonomousDatabaseBackupProperties{
-					DisplayName:           pointer.To(model.DisplayName),
 					RetentionPeriodInDays: pointer.To(model.RetentionPeriodInDays),
 					BackupType:            pointer.To(autonomousdatabasebackups.AutonomousDatabaseBackupType(model.BackupType)),
 				},
@@ -158,9 +151,10 @@ func (r AutonomousDatabaseBackupResource) Read() sdk.ResourceFunc {
 				id.ResourceGroupName,
 				id.AutonomousDatabaseName,
 			)
+			backupId := autonomousdatabasebackups.NewAutonomousDatabaseBackupID(id.SubscriptionId, id.ResourceGroupName, id.AutonomousDatabaseName, id.AutonomousDatabaseBackupName)
 
 			// Use shared method to find the backup
-			backup, err := findBackupByName(ctx, client, adbId, id.AutonomousDatabaseBackupName)
+			backup, err := findBackupByName(ctx, client, adbId, backupId)
 			if err != nil {
 				return fmt.Errorf("retrieving backup: %+v", err)
 			}
@@ -172,7 +166,6 @@ func (r AutonomousDatabaseBackupResource) Read() sdk.ResourceFunc {
 			}
 
 			if props := backup.Properties; props != nil {
-				state.DisplayName = pointer.From(props.DisplayName)
 				state.RetentionPeriodInDays = pointer.From(props.RetentionPeriodInDays)
 				state.BackupType = string(pointer.From(props.BackupType))
 			}
@@ -208,7 +201,7 @@ func (r AutonomousDatabaseBackupResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("retention_period_in_days") {
-				retentionPeriod := int64(model.RetentionPeriodInDays)
+				retentionPeriod := model.RetentionPeriodInDays
 				update.Properties.RetentionPeriodInDays = &retentionPeriod
 			}
 
@@ -241,27 +234,25 @@ func (r AutonomousDatabaseBackupResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func findBackupByName(ctx context.Context, client *autonomousdatabasebackups.AutonomousDatabaseBackupsClient, adbId autonomousdatabases.AutonomousDatabaseId, backupName string) (*autonomousdatabasebackups.AutonomousDatabaseBackup, error) {
-	log.Printf("[DEBUG] Looking for backup '%s' in database %s", backupName, adbId.ID())
+func findBackupByName(ctx context.Context, client *autonomousdatabasebackups.AutonomousDatabaseBackupsClient, adbId autonomousdatabases.AutonomousDatabaseId, backupId autonomousdatabasebackups.AutonomousDatabaseBackupId) (*autonomousdatabasebackups.AutonomousDatabaseBackup, error) {
+	log.Printf("[DEBUG] Looking for backup '%s' in database %s", backupId, adbId.ID())
 
 	resp, err := client.ListByParent(ctx, autonomousdatabasebackups.AutonomousDatabaseId(adbId))
 	if err != nil {
 		return nil, fmt.Errorf("listing backups for %s: %+v", adbId.ID(), err)
 	}
 
-	if resp.Model == nil {
-		log.Printf("[DEBUG] No backups found for database %s", adbId.ID())
-		return nil, nil
-	}
+	id := backupId.ID()
 
-	for i := range *resp.Model {
-		backup := (*resp.Model)[i]
-		// Match by name
-		if backup.Name != nil && *backup.Name == backupName {
-			log.Printf("[DEBUG] Found matching backup: %s", *backup.Name)
-			return &(*resp.Model)[i], nil
+	if model := resp.Model; model != nil {
+		for _, backup := range *model {
+			if backup.Id != nil && strings.EqualFold(*backup.Id, id) {
+				log.Printf("[DEBUG] Found matching backup: %s", *backup.Id)
+				return &backup, nil
+			}
 		}
 	}
+
 	return nil, nil
 }
 

@@ -5,7 +5,9 @@ package oracle_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/autonomousdatabases"
 	"log"
+	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -30,9 +32,10 @@ func (a AutonomousDatabaseBackupResource) Exists(ctx context.Context, client *cl
 		id.ResourceGroupName,
 		id.AutonomousDatabaseName,
 	)
+	backupId := autonomousdatabasebackups.NewAutonomousDatabaseBackupID(id.SubscriptionId, id.ResourceGroupName, id.AutonomousDatabaseName, id.AutonomousDatabaseBackupName)
 
 	// Use shared method to find the backup
-	backup, err := findBackupByName(ctx, client.Oracle.OracleClient.AutonomousDatabaseBackups, adbId, id.AutonomousDatabaseBackupName)
+	backup, err := findBackupByName(ctx, client.Oracle.OracleClient.AutonomousDatabaseBackups, autonomousdatabases.AutonomousDatabaseId(adbId), backupId)
 	if err != nil {
 		return nil, fmt.Errorf("checking backup existence: %+v", err)
 	}
@@ -40,30 +43,25 @@ func (a AutonomousDatabaseBackupResource) Exists(ctx context.Context, client *cl
 	return pointer.To(backup != nil), nil
 }
 
-func findBackupByName(ctx context.Context, client *autonomousdatabasebackups.AutonomousDatabaseBackupsClient, adbId autonomousdatabasebackups.AutonomousDatabaseId, backupName string) (*autonomousdatabasebackups.AutonomousDatabaseBackup, error) {
-	log.Printf("[DEBUG] Looking for backup '%s' in database %s", backupName, adbId.ID())
+func findBackupByName(ctx context.Context, client *autonomousdatabasebackups.AutonomousDatabaseBackupsClient, adbId autonomousdatabases.AutonomousDatabaseId, backupId autonomousdatabasebackups.AutonomousDatabaseBackupId) (*autonomousdatabasebackups.AutonomousDatabaseBackup, error) {
+	log.Printf("[DEBUG] Looking for backup '%s' in database %s", backupId, adbId.ID())
 
-	resp, err := client.ListByParent(ctx, adbId)
+	resp, err := client.ListByParent(ctx, autonomousdatabasebackups.AutonomousDatabaseId(adbId))
 	if err != nil {
 		return nil, fmt.Errorf("listing backups for %s: %+v", adbId.ID(), err)
 	}
 
-	if resp.Model == nil {
-		log.Printf("[DEBUG] No backups found for database %s", adbId.ID())
-		return nil, nil
-	}
+	id := backupId.ID()
 
-	log.Printf("[DEBUG] Found %d backups for database %s", len(*resp.Model), adbId.ID())
-
-	for i := range *resp.Model {
-		backup := (*resp.Model)[i]
-
-		// Match by name
-		if backup.Name != nil && *backup.Name == backupName {
-			log.Printf("[DEBUG] Found matching backup: %s", *backup.Name)
-			return &(*resp.Model)[i], nil
+	if model := resp.Model; model != nil {
+		for _, backup := range *model {
+			if backup.Id != nil && strings.EqualFold(*backup.Id, id) {
+				log.Printf("[DEBUG] Found matching backup: %s", *backup.Id)
+				return &backup, nil
+			}
 		}
 	}
+
 	return nil, nil
 }
 
@@ -140,11 +138,8 @@ provider "azurerm" {
 
 resource "azurerm_oracle_autonomous_database_backup" "test" {
   name             = "backup%[2]d"
-  resource_group_name      = azurerm_resource_group.test.name
-  autonomous_database_name = azurerm_oracle_autonomous_database.test.name
+  autonomous_database_id = azurerm_oracle_autonomous_database.test.id
   retention_period_in_days = 120
-  backup_type              = "LongTerm"
-  display_name             = "backup-display"
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -162,7 +157,6 @@ resource "azurerm_oracle_autonomous_database_backup" "test" {
   autonomous_database_id = azurerm_oracle_autonomous_database.test.id
   retention_period_in_days = 120
   backup_type              = "LongTerm"
-  display_name             = "backup-display"
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -176,9 +170,9 @@ provider "azurerm" {
 }
 
 resource "azurerm_oracle_autonomous_database_backup" "test" {
-  display_name             = "backup%[2]d"
+  name             = "backup%[2]d"
   autonomous_database_id = azurerm_oracle_autonomous_database.test.id
-  retention_period_in_days = 120
+  retention_period_in_days = 160
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -188,10 +182,7 @@ func (a AutonomousDatabaseBackupResource) requiresImport(data acceptance.TestDat
 %s
 
 resource "azurerm_oracle_autonomous_database_backup" "import" {
-  display_name             = azurerm_oracle_autonomous_database_backup.test.display_name
-  resource_group_name      = azurerm_oracle_autonomous_database_backup.test.resource_group_name
-  location                 = azurerm_oracle_autonomous_database_backup.test.location
-  autonomous_database_name = azurerm_oracle_autonomous_database_backup.test.autonomous_database_name
+  name             = azurerm_oracle_autonomous_database_backup.test.name
   retention_period_in_days = azurerm_oracle_autonomous_database_backup.test.retention_period_in_days
 }
 `, a.basic(data))
