@@ -1,6 +1,7 @@
 ## 4.39.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_postgresql_flexible_server` - the `customer_managed_key.geo_backup_key_vault_key_id` now supports versionless IDs [GH-30305]
 * `azurerm_eventgrid_system_topic` - add support for the `SystemAssigned, UserAssigned` value for the `identity.type` property [GH-30339]
 * dependencies: `machinelearning` - update API version to `2025-06-01` [GH-30268]
 * dependencies: `cognitive` - update API version to `2025-06-01` [GH-30302]
