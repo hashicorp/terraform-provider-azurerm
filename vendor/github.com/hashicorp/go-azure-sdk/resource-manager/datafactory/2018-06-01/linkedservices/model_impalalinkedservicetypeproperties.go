@@ -9,33 +9,37 @@ import (
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
 type ImpalaLinkedServiceTypeProperties struct {
-	AllowHostNameCNMismatch   *bool                    `json:"allowHostNameCNMismatch,omitempty"`
-	AllowSelfSignedServerCert *bool                    `json:"allowSelfSignedServerCert,omitempty"`
-	AuthenticationType        ImpalaAuthenticationType `json:"authenticationType"`
-	EnableSsl                 *bool                    `json:"enableSsl,omitempty"`
-	EncryptedCredential       *string                  `json:"encryptedCredential,omitempty"`
-	Host                      interface{}              `json:"host"`
-	Password                  SecretBase               `json:"password"`
-	Port                      *int64                   `json:"port,omitempty"`
-	TrustedCertPath           *interface{}             `json:"trustedCertPath,omitempty"`
-	UseSystemTrustStore       *bool                    `json:"useSystemTrustStore,omitempty"`
-	Username                  *interface{}             `json:"username,omitempty"`
+	AllowHostNameCNMismatch           *bool                          `json:"allowHostNameCNMismatch,omitempty"`
+	AllowSelfSignedServerCert         *bool                          `json:"allowSelfSignedServerCert,omitempty"`
+	AuthenticationType                ImpalaAuthenticationType       `json:"authenticationType"`
+	EnableServerCertificateValidation *bool                          `json:"enableServerCertificateValidation,omitempty"`
+	EnableSsl                         *bool                          `json:"enableSsl,omitempty"`
+	EncryptedCredential               *string                        `json:"encryptedCredential,omitempty"`
+	Host                              interface{}                    `json:"host"`
+	Password                          SecretBase                     `json:"password"`
+	Port                              *int64                         `json:"port,omitempty"`
+	ThriftTransportProtocol           *ImpalaThriftTransportProtocol `json:"thriftTransportProtocol,omitempty"`
+	TrustedCertPath                   *interface{}                   `json:"trustedCertPath,omitempty"`
+	UseSystemTrustStore               *bool                          `json:"useSystemTrustStore,omitempty"`
+	Username                          *interface{}                   `json:"username,omitempty"`
 }
 
 var _ json.Unmarshaler = &ImpalaLinkedServiceTypeProperties{}
 
 func (s *ImpalaLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	var decoded struct {
-		AllowHostNameCNMismatch   *bool                    `json:"allowHostNameCNMismatch,omitempty"`
-		AllowSelfSignedServerCert *bool                    `json:"allowSelfSignedServerCert,omitempty"`
-		AuthenticationType        ImpalaAuthenticationType `json:"authenticationType"`
-		EnableSsl                 *bool                    `json:"enableSsl,omitempty"`
-		EncryptedCredential       *string                  `json:"encryptedCredential,omitempty"`
-		Host                      interface{}              `json:"host"`
-		Port                      *int64                   `json:"port,omitempty"`
-		TrustedCertPath           *interface{}             `json:"trustedCertPath,omitempty"`
-		UseSystemTrustStore       *bool                    `json:"useSystemTrustStore,omitempty"`
-		Username                  *interface{}             `json:"username,omitempty"`
+		AllowHostNameCNMismatch           *bool                          `json:"allowHostNameCNMismatch,omitempty"`
+		AllowSelfSignedServerCert         *bool                          `json:"allowSelfSignedServerCert,omitempty"`
+		AuthenticationType                ImpalaAuthenticationType       `json:"authenticationType"`
+		EnableServerCertificateValidation *bool                          `json:"enableServerCertificateValidation,omitempty"`
+		EnableSsl                         *bool                          `json:"enableSsl,omitempty"`
+		EncryptedCredential               *string                        `json:"encryptedCredential,omitempty"`
+		Host                              interface{}                    `json:"host"`
+		Port                              *int64                         `json:"port,omitempty"`
+		ThriftTransportProtocol           *ImpalaThriftTransportProtocol `json:"thriftTransportProtocol,omitempty"`
+		TrustedCertPath                   *interface{}                   `json:"trustedCertPath,omitempty"`
+		UseSystemTrustStore               *bool                          `json:"useSystemTrustStore,omitempty"`
+		Username                          *interface{}                   `json:"username,omitempty"`
 	}
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)
@@ -44,10 +48,12 @@ func (s *ImpalaLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte) error {
 	s.AllowHostNameCNMismatch = decoded.AllowHostNameCNMismatch
 	s.AllowSelfSignedServerCert = decoded.AllowSelfSignedServerCert
 	s.AuthenticationType = decoded.AuthenticationType
+	s.EnableServerCertificateValidation = decoded.EnableServerCertificateValidation
 	s.EnableSsl = decoded.EnableSsl
 	s.EncryptedCredential = decoded.EncryptedCredential
 	s.Host = decoded.Host
 	s.Port = decoded.Port
+	s.ThriftTransportProtocol = decoded.ThriftTransportProtocol
 	s.TrustedCertPath = decoded.TrustedCertPath
 	s.UseSystemTrustStore = decoded.UseSystemTrustStore
 	s.Username = decoded.Username

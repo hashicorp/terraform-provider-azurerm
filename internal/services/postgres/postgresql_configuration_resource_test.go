@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -21,6 +22,10 @@ import (
 type PostgreSQLConfigurationResource struct{}
 
 func TestAccPostgreSQLConfiguration_backslashQuote(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_configuration` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_configuration", "test")
 	r := PostgreSQLConfigurationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -42,6 +47,10 @@ func TestAccPostgreSQLConfiguration_backslashQuote(t *testing.T) {
 }
 
 func TestAccPostgreSQLConfiguration_clientMinMessages(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_configuration` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_configuration", "test")
 	r := PostgreSQLConfigurationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -63,6 +72,10 @@ func TestAccPostgreSQLConfiguration_clientMinMessages(t *testing.T) {
 }
 
 func TestAccPostgreSQLConfiguration_deadlockTimeout(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_configuration` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_configuration", "test")
 	r := PostgreSQLConfigurationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -84,6 +97,10 @@ func TestAccPostgreSQLConfiguration_deadlockTimeout(t *testing.T) {
 }
 
 func TestAccPostgreSQLConfiguration_multiplePostgreSQLConfigurations(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_postgresql_configuration` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_configuration", "test")
 	r := PostgreSQLConfigurationResource{}
 

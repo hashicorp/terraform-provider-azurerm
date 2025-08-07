@@ -29,6 +29,7 @@ resource "azurerm_cognitive_account" "example" {
 resource "azurerm_cognitive_deployment" "example" {
   name                 = "example-cd"
   cognitive_account_id = azurerm_cognitive_account.example.id
+
   model {
     format  = "OpenAI"
     name    = "text-curie-001"
@@ -64,7 +65,9 @@ The following arguments are supported:
 
 A `model` block supports the following:
 
-* `format` - (Required) The format of the Cognitive Services Account Deployment model. Changing this forces a new resource to be created. Possible value is `OpenAI`.
+* `format` - (Required) The format of the Cognitive Services Account Deployment model. Changing this forces a new resource to be created.
+
+~> **Note:** Possible values of `format` can be found by running the command `az cognitiveservices account list-models`. The available values may vary by region or due to quota limitations. These could include models from `AI21 Labs`, `Black Forest Labs`, `Cohere`, `Core42`, `DeepSeek`, `Meta`, `Microsoft`, `Mistral AI`, `OpenAI`, and `xAI`.
 
 * `name` - (Required) The name of the Cognitive Services Account Deployment model. Changing this forces a new resource to be created.
 
@@ -108,3 +111,9 @@ Cognitive Services Account Deployment can be imported using the `resource id`, e
 ```shell
 terraform import azurerm_cognitive_deployment.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.CognitiveServices/accounts/account1/deployments/deployment1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.CognitiveServices` - 2025-06-01

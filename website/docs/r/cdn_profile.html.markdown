@@ -3,18 +3,21 @@ subcategory: "CDN"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_cdn_profile"
 description: |-
-  Manages a CDN Profile to create a collection of CDN Endpoints.
+  Manages a CDN (classic) Profile to create a collection of CDN Endpoints.
 ---
 
 # azurerm_cdn_profile
 
-Manages a CDN Profile to create a collection of CDN Endpoints.
+Manages a CDN (classic) Profile to create a collection of CDN Endpoints.
 
 !> **Note:** Azure rolled out a breaking change on Friday 9th April 2021 which may cause issues with the CDN/FrontDoor resources. [More information is available in this GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) - unfortunately this may necessitate a breaking change to the CDN and FrontDoor resources, more information will be posted [in the GitHub issue](https://github.com/hashicorp/terraform-provider-azurerm/issues/11231) as the necessary changes are identified.
 
-!> **Note:** The CDN services from Edgio(formerly Verizon) was shut down on 15 January 2025 and is no longer available.
+!> **Note:** Support for the CDN (classic) `sku` `Standard_Akamai` was deprecated from Azure on `October 31, 2023` and is no longer available.
 
-!> **Note:** Support for CDN services from Akamai was removed on 31 October 2023.
+!> **Note:** Support for the CDN (classic) `sku` `Standard_Verizon` and `Premium_Verizon` was deprecated from Azure on `January 15, 2025` and is no longer available.
+
+!> **Note:** Support for the CDN (classic) `sku` `Standard_Microsoft` and `Standard_ChinaCdn` will be deprecated from Azure on `October 1, 2025` and will no longer be available, however modifications to existing CDN (classic) resources will continue to be supported until the API reaches full retirement on `September 30, 2027`.
+
 ## Example Usage
 
 ```hcl
@@ -61,8 +64,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the CDN Profile.
-* `update` - (Defaults to 30 minutes) Used when updating the CDN Profile.
 * `read` - (Defaults to 5 minutes) Used when retrieving the CDN Profile.
+* `update` - (Defaults to 30 minutes) Used when updating the CDN Profile.
 * `delete` - (Defaults to 30 minutes) Used when deleting the CDN Profile.
 
 ## Import

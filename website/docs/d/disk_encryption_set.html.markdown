@@ -45,7 +45,7 @@ The following attributes are exported:
 
 * `managed_hsm_key_id` - Key ID of a key in a managed HSM.
 
-~> Note: Only one of `key_vault_key_url` and `managed_hsm_key_id` will be set, depending on where the encryption key is stored.
+~> **Note:** Only one of `key_vault_key_url` and `managed_hsm_key_id` will be set, depending on where the encryption key is stored.
 
 * `identity` - An `identity` block as defined below.
 
@@ -68,3 +68,9 @@ An `identity` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Disk Encryption Set.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Compute` - 2022-03-02

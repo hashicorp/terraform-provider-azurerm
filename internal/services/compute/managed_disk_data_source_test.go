@@ -26,6 +26,7 @@ func TestAccDataSourceManagedDisk_basic(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").HasValue(name),
 				check.That(data.ResourceName).Key("resource_group_name").HasValue(resourceGroupName),
+				check.That(data.ResourceName).Key("location").HasValue(data.Locations.Primary),
 				check.That(data.ResourceName).Key("storage_account_type").HasValue("Premium_LRS"),
 				check.That(data.ResourceName).Key("disk_size_gb").HasValue("10"),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),

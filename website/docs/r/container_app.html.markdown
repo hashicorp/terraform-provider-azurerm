@@ -202,19 +202,19 @@ An `init_container` block supports:
 
 * `cpu` - (Optional) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. When there's a workload profile specified, there's no such constraint.
 
-~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
+~> **Note:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
 
 * `env` - (Optional) One or more `env` blocks as detailed below.
 
 * `ephemeral_storage` - The amount of ephemeral storage available to the Container App.
 
-~> **NOTE:** `ephemeral_storage` is currently in preview and not configurable at this time.
+~> **Note:** `ephemeral_storage` is currently in preview and not configurable at this time.
 
 * `image` - (Required) The image to use to create the container.
 
 * `memory` - (Optional) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`. When there's a workload profile specified, there's no such constraint.
 
-~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
+~> **Note:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
 
 * `name` - (Required) The name of the container
 
@@ -230,13 +230,13 @@ A `container` block supports the following:
 
 * `cpu` - (Required) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, and `2.0`. When there's a workload profile specified, there's no such constraint.
 
-~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
+~> **Note:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
 
 * `env` - (Optional) One or more `env` blocks as detailed below.
 
 * `ephemeral_storage` - The amount of ephemeral storage available to the Container App.
 
-~> **NOTE:** `ephemeral_storage` is currently in preview and not configurable at this time.
+~> **Note:** `ephemeral_storage` is currently in preview and not configurable at this time.
 
 * `image` - (Required) The image to use to create the container.
 
@@ -244,7 +244,7 @@ A `container` block supports the following:
 
 * `memory` - (Required) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi` and `4Gi`. When there's a workload profile specified, there's no such constraint.
 
-~> **NOTE:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
+~> **Note:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
 
 * `name` - (Required) The name of the container
 
@@ -294,7 +294,7 @@ An `env` block supports the following:
 
 * `value` - (Optional) The value for this environment variable.
 
-~> **NOTE:** This value is ignored if `secret_name` is used
+~> **Note:** This value is ignored if `secret_name` is used
 
 ---
 
@@ -367,6 +367,7 @@ A `volume_mounts` block supports the following:
 * `path` - (Required) The path in the container at which to mount this volume.
 
 * `sub_path` - (Optional) The sub path of the volume to be mounted in the container.
+
 ---
 
 An `identity` block supports the following:
@@ -380,6 +381,8 @@ An `identity` block supports the following:
 An `ingress` block supports the following:
 
 * `allow_insecure_connections` - (Optional) Should this ingress allow insecure connections?
+
+* `cors` - (Optional) A `cors` block as defined below.
 
 * `fqdn` - The FQDN of the ingress.
 
@@ -399,9 +402,25 @@ An `ingress` block supports the following:
 
 * `transport` - (Optional) The transport method for the Ingress. Possible values are `auto`, `http`, `http2` and `tcp`. Defaults to `auto`.
 
-~> **Note:**  if `transport` is set to `tcp`, `exposed_port` and `target_port` should be set at the same time.
+~> **Note:** if `transport` is set to `tcp`, `exposed_port` and `target_port` should be set at the same time.
 
 * `client_certificate_mode` - (Optional) The client certificate mode for the Ingress. Possible values are `require`, `accept`, and `ignore`.
+
+---
+
+A `cors` block supports the following:
+
+* `allowed_origins` - (Required) Specifies the list of origins that are allowed to make cross-origin calls.
+
+* `allow_credentials_enabled` - (Optional) Whether user credentials are allowed in the cross-origin request is enabled. Defaults to `false`.
+
+* `allowed_headers` - (Optional) Specifies the list of request headers that are permitted in the actual request.
+
+* `allowed_methods` - (Optional) Specifies the list of HTTP methods are allowed when accessing the resource in a cross-origin request.
+
+* `exposed_headers` - (Optional) Specifies the list of headers exposed to the browser in the response to a cross-origin request.
+
+* `max_age_in_seconds` - (Optional) Specifies the number of seconds that the browser can cache the results of a preflight request.
 
 ---
 
@@ -409,7 +428,7 @@ A `ip_security_restriction` block supports the following:
 
 * `action` - (Required) The IP-filter action. `Allow` or `Deny`.
 
-~> **NOTE:** The `action` types in an all `ip_security_restriction` blocks must be the same for the `ingress`, mixing `Allow` and `Deny` rules is not currently supported by the service.
+~> **Note:** The `action` types in an all `ip_security_restriction` blocks must be the same for the `ingress`, mixing `Allow` and `Deny` rules is not currently supported by the service.
 
 * `description` - (Optional) Describe the IP restriction rule that is being sent to the container-app.
 
@@ -506,8 +525,8 @@ A `custom_domain` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container App.
-* `update` - (Defaults to 30 minutes) Used when updating the Container App.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container App.
+* `update` - (Defaults to 30 minutes) Used when updating the Container App.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Container App.
 
 ## Import
@@ -517,3 +536,9 @@ A Container App can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_container_app.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.App/containerApps/myContainerApp"
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.App` - 2025-01-01

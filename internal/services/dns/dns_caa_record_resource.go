@@ -82,6 +82,7 @@ func resourceDnsCaaRecord() *pluginsdk.Resource {
 								"issue",
 								"issuewild",
 								"iodef",
+								"contactemail",
 							}, false),
 						},
 

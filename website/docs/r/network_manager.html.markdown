@@ -61,7 +61,7 @@ A `scope` block supports the following:
 
 * `management_group_ids` - (Optional) A list of management group IDs.
 
-~> **NOTE:** When specifying a scope at the management group level, you need to register the `Microsoft.Network` at the management group scope before deploying a Network Manager, more information can be found in the [Azure document](https://learn.microsoft.com/en-us/azure/virtual-network-manager/concept-network-manager-scope#scope).
+~> **Note:** When specifying a scope at the management group level, you need to register the `Microsoft.Network` at the management group scope before deploying a Network Manager, more information can be found in the [Azure document](https://learn.microsoft.com/en-us/azure/virtual-network-manager/concept-network-manager-scope#scope).
 
 * `subscription_ids` - (Optional) A list of subscription IDs.
 
@@ -99,3 +99,9 @@ Network Manager can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_network_manager.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/networkManagers/networkManager1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

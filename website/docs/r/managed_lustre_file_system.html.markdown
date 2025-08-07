@@ -75,7 +75,9 @@ The following arguments are supported:
 
 * `encryption_key` - (Optional) An `encryption_key` block as defined below.
 
--> **NOTE:** Removing `encryption_key` forces a new resource to be created.
+-> **Note:** Removing `encryption_key` forces a new resource to be created.
+
+* `root_squash` - (Optional) A `root_squash` block as defined below.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Azure Managed Lustre File System.
 
@@ -97,7 +99,7 @@ A `hsm_setting` block supports the following:
 
 * `import_prefix` - (Optional) The import prefix for the Azure Managed Lustre File System. Only blobs in the non-logging container that start with this path/prefix get hydrated into the cluster namespace. Changing this forces a new resource to be created.
 
--> **NOTE:** The roles `Contributor` and `Storage Blob Data Contributor` must be added to the Service Principal `HPC Cache Resource Provider` for the Storage Account. See [official docs]( https://learn.microsoft.com/en-us/azure/azure-managed-lustre/amlfs-prerequisites#access-roles-for-blob-integration) for more information.
+-> **Note:** The roles `Contributor` and `Storage Blob Data Contributor` must be added to the Service Principal `HPC Cache Resource Provider` for the Storage Account. See [official docs]( https://learn.microsoft.com/en-us/azure/azure-managed-lustre/amlfs-prerequisites#access-roles-for-blob-integration) for more information.
 
 ---
 
@@ -114,6 +116,18 @@ An `encryption_key` block supports the following:
 * `key_url` - (Required) The URL to the Key Vault Key used as the Encryption Key. This can be found as `id` on the `azurerm_key_vault_key` resource.
 
 * `source_vault_id` - (Required) The ID of the source Key Vault. This can be found as `id` on the `azurerm_key_vault` resource.
+
+---
+
+A `root_squash` block supports the following:
+
+* `mode` - (Required) Squash mode of the AML file system. Possible values are `RootOnly`, and `All`. 
+
+* `no_squash_nids` - (Required) NID IP Address list(s) to be added to the TrustedSystems, separated by semicolons.
+
+* `squash_gid` - (Optional) The GID to be used for the root squash. Defaults to `0`.
+
+* `squash_uid` - (Optional) The UID to be used for the root squash. Defaults to `0`.
 
 ## Attributes Reference
 
@@ -139,3 +153,9 @@ Azure Managed Lustre File Systems can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_managed_lustre_file_system.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.StorageCache/amlFilesystems/amlFilesystem1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.StorageCache` - 2024-07-01
