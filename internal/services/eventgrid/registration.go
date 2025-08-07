@@ -30,6 +30,7 @@ func (r Registration) WebsiteCategories() []string {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
+		EventGridPartnerNamespaceDataSource{},
 		EventGridPartnerRegistrationDataSource{},
 	}
 }
@@ -38,6 +39,7 @@ func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		EventGridNamespaceResource{},
 		EventGridPartnerConfigurationResource{},
+		EventGridPartnerNamespaceResource{},
 		EventGridPartnerRegistrationResource{},
 	}
 }

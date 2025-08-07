@@ -217,6 +217,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/subs
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tag
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/tenantaccess
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2022-08-01/user
+github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apigateway
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice
 github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace
 github.com/hashicorp/go-azure-sdk/resource-manager/appconfiguration/2024-05-01/configurationstores
@@ -334,10 +335,10 @@ github.com/hashicorp/go-azure-sdk/resource-manager/chaosstudio/2023-11-01/target
 github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview
 github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview/certificateprofiles
 github.com/hashicorp/go-azure-sdk/resource-manager/codesigning/2024-09-30-preview/codesigningaccounts
-github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/cognitiveservicesaccounts
-github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/deployments
-github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/raiblocklists
-github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2024-10-01/raipolicies
+github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts
+github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/deployments
+github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/raiblocklists
+github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/raipolicies
 github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/communicationservices
 github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/domains
 github.com/hashicorp/go-azure-sdk/resource-manager/communication/2023-03-31/emailservices
@@ -738,7 +739,6 @@ github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/privateend
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/publicipprefixes
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/routefilters
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/routetables
-github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/subnets
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/virtualwans
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/vmsspublicipaddresses
 github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/webapplicationfirewallpolicies
@@ -970,6 +970,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/servers
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2017-12-01/virtualnetworkrules
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2020-01-01/serverkeys
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/administrators
+github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/backups
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/configurations
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/databases
 github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/firewallrules
