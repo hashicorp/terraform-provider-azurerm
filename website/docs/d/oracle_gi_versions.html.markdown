@@ -16,7 +16,9 @@ Gets a list of supported GI versions.
 
 ```hcl
 data "azurerm_oracle_gi_versions" "example" {
-  location = "West Europe"
+  location = "eastus"
+  zone     = "2"
+  shape    = "Exadata.X9M"
 }
 
 output "example" {
