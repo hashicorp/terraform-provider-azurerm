@@ -195,7 +195,7 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 							Computed:     true,
 							ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForIsolationMode(), false),
 						},
-						"managed_network_provisioning_enabled": {
+						"provision_on_creation_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 							ForceNew: true,
@@ -311,7 +311,7 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 			Encryption:          expandedEncryption,
 			KeyVault:            pointer.To(d.Get("key_vault_id").(string)),
 			ManagedNetwork:      expandMachineLearningWorkspaceManagedNetwork(d.Get("managed_network").([]interface{})),
-			ProvisionNetworkNow: pointer.To(d.Get("managed_network.0.managed_network_provisioning_enabled").(bool)),
+			ProvisionNetworkNow: pointer.To(d.Get("managed_network.0.provision_on_creation_enabled").(bool)),
 			PublicNetworkAccess: pointer.To(networkAccessBehindVnetEnabled),
 			StorageAccount:      pointer.To(d.Get("storage_account_id").(string)),
 			V1LegacyMode:        pointer.To(d.Get("v1_legacy_mode_enabled").(bool)),
@@ -796,7 +796,7 @@ func flattenMachineLearningWorkspaceManagedNetwork(i *workspaces.ManagedNetworkS
 	if i.IsolationMode != nil {
 		out["isolation_mode"] = *i.IsolationMode
 	}
-	out["managed_network_provisioning_enabled"] = provisionNetworkNow
+	out["provision_on_creation_enabled"] = provisionNetworkNow
 
 	return &[]interface{}{out}
 }
