@@ -5,6 +5,7 @@ package compute
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"strconv"
 	"strings"
@@ -225,8 +226,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 
 			"edge_zone": commonschema.EdgeZoneOptionalForceNew(),
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_automatic_updates": {
+			"automatic_updates_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Computed: true,
@@ -478,6 +478,33 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			Computed:   true,
 			Deprecated: "this property has been deprecated due to a breaking change introduced by the Service team, which redefined it as a read-only field within the API",
 		}
+
+		resource.Schema["enable_automatic_updates"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+			ForceNew: true, // updating this is not allowed "Changing property 'windowsConfiguration.enableAutomaticUpdates' is not allowed." Target="windowsConfiguration.enableAutomaticUpdates"
+			DiffSuppressFunc: func(k, _, _ string, d *schema.ResourceData) bool {
+				// Suppress diff if replacement property is used and the values are the same
+				oldVal := d.Get("enable_automatic_updates").(bool)
+				newVal := d.Get("automatic_updates_enabled").(bool)
+				if oldVal == newVal {
+					return true
+				}
+
+				return false
+			},
+			DiffSuppressOnRefresh: true,
+			Deprecated:            "this property has been deprecated in favour of automatic_updates_enabled and will be removed in 5.0 of the provider.",
+			ConflictsWith: []string{
+				"automatic_updates_enabled",
+			},
+		}
+
+		resource.Schema["automatic_updates_enabled"].ConflictsWith = []string{
+			"enable_automatic_updates",
+		}
+
 	}
 
 	return resource
@@ -603,6 +630,19 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 			return fmt.Errorf("`allow_extension_operations` cannot be set to `true` when `provision_vm_agent` is set to `false`")
 		}
 
+		autoUpdatesEnabled := true
+
+		if !d.GetRawConfig().AsValueMap()["automatic_updates_enabled"].IsNull() {
+			autoUpdatesEnabled = d.Get("automatic_updates_enabled").(bool)
+		}
+
+		if !features.FivePointOh() {
+			// reconcile the 2 bools...
+			if !d.GetRawConfig().AsValueMap()["enable_automatic_updates"].IsNull() {
+				autoUpdatesEnabled = d.Get("enable_automatic_updates").(bool)
+			}
+		}
+
 		params.Properties.OsProfile = &virtualmachines.OSProfile{
 			AdminPassword:            pointer.To(d.Get("admin_password").(string)),
 			AdminUsername:            pointer.To(d.Get("admin_username").(string)),
@@ -610,7 +650,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 			AllowExtensionOperations: pointer.To(allowExtensionOperations),
 			WindowsConfiguration: &virtualmachines.WindowsConfiguration{
 				ProvisionVMAgent:       pointer.To(provisionVMAgent),
-				EnableAutomaticUpdates: pointer.To(d.Get("enable_automatic_updates").(bool)),
+				EnableAutomaticUpdates: pointer.To(autoUpdatesEnabled),
 				WinRM:                  expandWinRMListener(d.Get("winrm_listener").(*pluginsdk.Set).List()),
 			},
 			Secrets: secrets,
