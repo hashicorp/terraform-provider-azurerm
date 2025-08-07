@@ -135,6 +135,39 @@ This installation method provides a full local setup with these comprehensive ca
 }
 ```
 
+## Testing
+
+Comprehensive test suite available in the `../AILocalInstallTest/` directory:
+
+```
+AILocalInstallTest/
+├── README.md                    # Test documentation
+├── run-all-tests.ps1           # Comprehensive test runner  
+├── cleanup-test-env.ps1        # Test environment cleanup
+├── TestCases/                  # Individual test scenarios
+│   ├── test-fresh-install.ps1       # Fresh installation tests
+│   ├── test-edge-cases.ps1          # Edge case validation
+│   ├── test-cleanup-logic.ps1       # Cleanup logic tests
+│   ├── test-regex-patterns.ps1      # Regex cleanup validation
+│   ├── test-cleanup-scenarios.ps1   # Multiple cleanup scenarios
+│   └── test-cleanup-edge-cases.ps1  # Advanced edge cases
+└── MockScenarios/              # Mock VS Code environments
+```
+
+### Running Tests
+```powershell
+# Run all tests
+cd ..\AILocalInstallTest
+.\run-all-tests.ps1
+
+# Run specific test categories
+.\run-all-tests.ps1 -Category "Installation"
+.\run-all-tests.ps1 -Category "EdgeCases"
+
+# Clean up test environment
+.\cleanup-test-env.ps1
+```
+
 ## Safety Features
 
 - **Automatic Backups**: Creates timestamped backups before making changes

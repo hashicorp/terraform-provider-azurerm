@@ -157,20 +157,63 @@ function Create-SafeBackup {
     }
 }
 
-# Function to detect previous installation
+# Function to detect previous installation (including partial/failed states)
 function Test-PreviousInstallation {
     param([string]$UserDir)
     
-    $indicators = @(
-        "$UserDir\instructions\terraform-azurerm",
-        "$UserDir\prompts\terraform-azurerm-basic.md",
-        "$UserDir\copilot-instructions.md"
-    )
-    
     $foundIndicators = @()
-    foreach ($indicator in $indicators) {
-        if (Test-Path $indicator) {
-            $foundIndicators += $indicator
+    
+    # Check for instruction directory (even if empty)
+    $instructionsDir = "$UserDir\instructions\terraform-azurerm"
+    if (Test-Path $instructionsDir) {
+        $instructionFiles = Get-ChildItem -Path $instructionsDir -File -ErrorAction SilentlyContinue
+        if ($instructionFiles.Count -gt 0) {
+            $foundIndicators += $instructionsDir
+        } else {
+            $foundIndicators += "$instructionsDir (empty directory - partial cleanup)"
+        }
+    }
+    
+    # Also check for empty parent instructions directory (from partial cleanup)
+    $parentInstructionsDir = "$UserDir\instructions"
+    if (Test-Path $parentInstructionsDir) {
+        $parentItems = Get-ChildItem -Path $parentInstructionsDir -ErrorAction SilentlyContinue
+        if ($parentItems.Count -eq 0) {
+            $foundIndicators += "$parentInstructionsDir (empty directory - needs cleanup)"
+        }
+    }
+    
+    # Check for main copilot instructions
+    $copilotInstructions = "$UserDir\copilot-instructions.md"
+    if (Test-Path $copilotInstructions) {
+        $foundIndicators += $copilotInstructions
+    }
+    
+    # Check for prompts directory with any AzureRM-related files
+    $promptsDir = "$UserDir\prompts"
+    if (Test-Path $promptsDir) {
+        # First check for obvious filename matches
+        $azureRMPrompts = @(Get-ChildItem -Path $promptsDir -Filter "*azurerm*" -File -ErrorAction SilentlyContinue)
+        $terraformPrompts = @(Get-ChildItem -Path $promptsDir -Filter "*terraform*" -File -ErrorAction SilentlyContinue)
+        
+        # Also check for content-based matches in .prompt.md files
+        $allPromptFiles = @(Get-ChildItem -Path $promptsDir -Filter "*.prompt.md" -File -ErrorAction SilentlyContinue)
+        foreach ($promptFile in $allPromptFiles) {
+            try {
+                $content = Get-Content $promptFile.FullName -Head 10 -ErrorAction SilentlyContinue | Out-String
+                if ($content -match "terraform.*azurerm|azurerm.*provider|terraform.*provider.*azurerm") {
+                    $azureRMPrompts += $promptFile
+                }
+            } catch {
+                # If we can't read the file, skip it
+            }
+        }
+        
+        $allPrompts = $azureRMPrompts + $terraformPrompts | Sort-Object FullName | Get-Unique
+        foreach ($prompt in $allPrompts) {
+            if ($foundIndicators -notcontains $prompt.FullName) {
+                $foundIndicators += $prompt.FullName
+            }
         }
     }
     
@@ -203,6 +246,24 @@ function Get-BackupLengthFromSettings {
     return $null
 }
 
+# Function to get the most recent backup file
+function Get-MostRecentBackup {
+    param([string]$UserDir)
+    
+    try {
+        $backupFiles = Get-ChildItem "$UserDir\settings.json.backup.*" -ErrorAction SilentlyContinue
+        if ($backupFiles) {
+            $mostRecent = ($backupFiles | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName
+            return $mostRecent
+        }
+    } catch {
+        # If we can't access backup files, return null
+        return $null
+    }
+    
+    return $null
+}
+
 # Enhanced clean mode with multiple restoration scenarios
 if ($Clean) {
     Write-Host "Starting cleanup process..." -ForegroundColor Yellow
@@ -220,22 +281,57 @@ if ($Clean) {
         $null
     }
     
-    # Detect what needs to be cleaned
+    # Detect what needs to be cleaned (with aggressive detection)
     $previousInstall = Test-PreviousInstallation -UserDir $userDir
     
-    if (-not $previousInstall.HasPrevious) {
+    # Also check for AzureRM traces in settings.json
+    $hasSettingsTraces = $false
+    $hasEmptySettings = $false
+    if (Test-Path $settingsPath) {
+        try {
+            $settingsContent = Get-Content $settingsPath -Raw -ErrorAction SilentlyContinue
+            if ($settingsContent -match "AZURERM|terraform-azurerm|copilot.*instructions") {
+                $hasSettingsTraces = $true
+            }
+            # Also check if settings.json is empty (might need cleanup)
+            try {
+                $settingsJson = $settingsContent | ConvertFrom-Json -ErrorAction Stop
+                $propCount = $settingsJson.PSObject.Properties.Count
+                if ($settingsJson -and ($propCount -eq $null -or $propCount -eq 0)) {
+                    $hasEmptySettings = $true
+                }
+            } catch {
+                # If we can't parse as JSON, check if it's effectively empty (just braces and whitespace)
+                $trimmedContent = $settingsContent.Trim() -replace '\s+', ''
+                if ($trimmedContent -eq '{}') {
+                    $hasEmptySettings = $true
+                }
+            }
+        } catch {
+            # Could not read or parse settings.json
+        }
+    }
+    
+    if (-not $previousInstall.HasPrevious -and -not $hasSettingsTraces -and -not $hasEmptySettings) {
         Write-Host "No previous installation detected. Nothing to clean." -ForegroundColor Green
         exit 0
     }
     
-    Write-Host "Found previous installation files:" -ForegroundColor Yellow
-    foreach ($file in $previousInstall.FoundFiles) {
-        Write-Host "  - $file" -ForegroundColor Gray
+    if ($previousInstall.HasPrevious) {
+        Write-Host "Found previous installation files:" -ForegroundColor Yellow
+        foreach ($file in $previousInstall.FoundFiles) {
+            Write-Host "  - $file" -ForegroundColor Gray
+        }
+        Write-Host ""
     }
-    Write-Host ""
+    
+    if ($hasSettingsTraces) {
+        Write-Host "Found AzureRM traces in settings.json (will attempt cleanup)" -ForegroundColor Yellow
+        Write-Host ""
+    }
     
     # Interactive confirmation for manual backup
-    if ((Test-Path $settingsPath) -and (-not (Test-Path $backupPath))) {
+    if ((Test-Path $settingsPath) -and (-not $backupPath -or -not (Test-Path $backupPath))) {
         Write-Host "WARNING: settings.json exists but no backup found!" -ForegroundColor Red
         Write-Host "This may contain important VS Code settings outside of AzureRM configuration." -ForegroundColor Yellow
         Write-Host ""
@@ -251,13 +347,39 @@ if ($Clean) {
     }
     
     # Remove instruction files
+    # Remove instruction files
     if (Test-Path $instructionsDir) {
         Write-Host "Removing instruction files..." -ForegroundColor Red
         try {
+            $instructionFiles = Get-ChildItem -Path $instructionsDir -File -ErrorAction SilentlyContinue
+            if ($instructionFiles.Count -gt 0) {
+                Write-Host "Found $($instructionFiles.Count) instruction files to remove" -ForegroundColor Yellow
+            } else {
+                Write-Host "Instruction directory is empty (from previous failed cleanup)" -ForegroundColor Yellow
+            }
+            
             Remove-Item -Path $instructionsDir -Recurse -Force -ErrorAction Stop
             Write-Host "Instructions removed" -ForegroundColor Green
         } catch {
             Write-Host "ERROR: Failed to remove instructions: $($_.Exception.Message)" -ForegroundColor Red
+        }
+    } else {
+        Write-Host "No terraform-azurerm instruction directory found to clean" -ForegroundColor Yellow
+    }
+    
+    # Also check for empty parent instructions directory
+    $parentInstructionsDir = "$userDir\instructions"
+    if (Test-Path $parentInstructionsDir) {
+        try {
+            $remainingItems = Get-ChildItem -Path $parentInstructionsDir -ErrorAction SilentlyContinue
+            if ($remainingItems.Count -eq 0) {
+                Remove-Item -Path $parentInstructionsDir -Force -ErrorAction Stop
+                Write-Host "Removed empty instructions directory" -ForegroundColor Green
+            } else {
+                Write-Host "Instructions directory contains other files - keeping it" -ForegroundColor Yellow
+            }
+        } catch {
+            Write-Host "WARNING: Could not clean empty instructions directory: $($_.Exception.Message)" -ForegroundColor Yellow
         }
     }
     
@@ -265,20 +387,43 @@ if ($Clean) {
     if (Test-Path $promptsDir) {
         Write-Host "Removing AI prompt files..." -ForegroundColor Red
         try {
-            $azureRMPrompts = Get-ChildItem -Path $promptsDir -Filter "*azurerm*" -File -ErrorAction SilentlyContinue
-            $terraformPrompts = Get-ChildItem -Path $promptsDir -Filter "*terraform*" -File -ErrorAction SilentlyContinue
+            # First find obvious filename matches
+            $azureRMPrompts = @(Get-ChildItem -Path $promptsDir -Filter "*azurerm*" -File -ErrorAction SilentlyContinue)
+            $terraformPrompts = @(Get-ChildItem -Path $promptsDir -Filter "*terraform*" -File -ErrorAction SilentlyContinue)
             
-            ($azureRMPrompts + $terraformPrompts) | Remove-Item -Force -ErrorAction Stop
+            # Also find content-based matches in .prompt.md files
+            $allPromptFiles = @(Get-ChildItem -Path $promptsDir -Filter "*.prompt.md" -File -ErrorAction SilentlyContinue)
+            foreach ($promptFile in $allPromptFiles) {
+                try {
+                    $content = Get-Content $promptFile.FullName -Head 10 -ErrorAction SilentlyContinue | Out-String
+                    if ($content -match "terraform.*azurerm|azurerm.*provider|terraform.*provider.*azurerm") {
+                        $azureRMPrompts += $promptFile
+                    }
+                } catch {
+                    # If we can't read the file, skip it
+                }
+            }
+            
+            $allPrompts = $azureRMPrompts + $terraformPrompts | Sort-Object FullName | Get-Unique
+            
+            if ($allPrompts.Count -gt 0) {
+                $allPrompts | Remove-Item -Force -ErrorAction Stop
+                Write-Host "Removed $($allPrompts.Count) AzureRM prompt files" -ForegroundColor Green
+            } else {
+                Write-Host "No AzureRM prompt files found to remove" -ForegroundColor Yellow
+            }
             
             # Remove prompts directory if empty
             if ((Get-ChildItem -Path $promptsDir -ErrorAction SilentlyContinue | Measure-Object).Count -eq 0) {
                 Remove-Item -Path $promptsDir -Force -ErrorAction SilentlyContinue
+                Write-Host "Removed empty prompts directory" -ForegroundColor Green
             }
             
-            Write-Host "AI prompts removed" -ForegroundColor Green
         } catch {
             Write-Host "ERROR: Failed to remove prompts: $($_.Exception.Message)" -ForegroundColor Red
         }
+    } else {
+        Write-Host "No prompt directory found to clean" -ForegroundColor Yellow
     }
     
     # Remove main copilot instructions
@@ -294,7 +439,7 @@ if ($Clean) {
     }
     
     # Complex restoration logic with multiple scenarios
-    if (Test-Path $backupPath) {
+    if ($backupPath -and (Test-Path $backupPath)) {
         Write-Host "Restoring original settings.json..." -ForegroundColor Green
         
         # Verify backup integrity using stored metadata from settings.json or backup file
@@ -399,7 +544,7 @@ if ($Clean) {
                     ($settings.PSObject.Properties.Name -contains "github.copilot.chat.reviewSelection.enabled") -or
                     ($settings.PSObject.Properties.Name -contains "github.copilot.chat.reviewSelection.instructions") -or
                     ($settings.PSObject.Properties.Name -contains "github.copilot.advanced") -or
-                    ($settings.PSObject.Properties.Name -contains "// AZURERM_BACKUP_LENGTH") -or
+                    ($settingsContent -match '"//\s*AZURERM_BACKUP_LENGTH"\s*:') -or
                     ($settings."files.associations" -and (
                         $settings."files.associations"."*.instructions.md" -or
                         $settings."files.associations"."*.prompt.md" -or
@@ -408,36 +553,127 @@ if ($Clean) {
                 )
             } catch {
                 Write-Host "WARNING: Unable to parse settings.json - may contain syntax errors" -ForegroundColor Yellow
+                # If we can't parse JSON, check raw content for AzureRM traces
+                $hasAzureRMSettings = ($settingsContent -match "AZURERM|terraform-azurerm|copilot.*instructions")
             }
         }
         
         if ($hasAzureRMSettings) {
-            Write-Host "ERROR: No backup found, but AzureRM Copilot settings detected in settings.json" -ForegroundColor Red
-            Write-Host ""
-            Write-Host "BACKUP MISSING - MANUAL CLEANUP REQUIRED:" -ForegroundColor Yellow
-            Write-Host "   The installation backup file is missing, but your settings.json still contains" -ForegroundColor White
-            Write-Host "   AzureRM Copilot configuration. You must manually remove these settings:" -ForegroundColor White
-            Write-Host ""
-            Write-Host "   Remove these entries from settings.json:" -ForegroundColor White
-            Write-Host "   - `"github.copilot.chat.commitMessageGeneration.instructions`"" -ForegroundColor Gray
-            Write-Host "   - `"github.copilot.chat.summarizeAgentConversationHistory.enabled`"" -ForegroundColor Gray
-            Write-Host "   - `"github.copilot.chat.reviewSelection.enabled`"" -ForegroundColor Gray
-            Write-Host "   - `"github.copilot.chat.reviewSelection.instructions`"" -ForegroundColor Gray
-            Write-Host "   - `"github.copilot.advanced`" (length and temperature settings)" -ForegroundColor Gray
-            Write-Host "   - `"github.copilot.enable`" (if added by AzureRM setup)" -ForegroundColor Gray
-            Write-Host "   - `"files.associations`" entries for *.instructions.md, *.prompt.md, *.azurerm.md" -ForegroundColor Gray
-            Write-Host "   - `"// AZURERM_BACKUP_LENGTH`" (if present)" -ForegroundColor Gray
-            Write-Host ""
-            Write-Host "   Settings file location: $settingsPath" -ForegroundColor Cyan
-            Write-Host ""
-            Write-Host "   CAUTION: Make a backup copy before editing!" -ForegroundColor Red
+            # Check backup length to determine cleanup strategy
+            if ($settingsContent -match '"//\s*AZURERM_BACKUP_LENGTH"\s*:\s*"(-?\d+)"' -or 
+                $settingsContent -match '"AZURERM_BACKUP_LENGTH"\s*:\s*(-?\d+)') {
+                $backupLength = [int]$matches[1]
+                
+                switch ($backupLength) {
+                    0 {
+                        # File was created entirely by our install - safe to remove completely
+                        Write-Host "Settings file was created entirely by AzureRM install - removing completely" -ForegroundColor Yellow
+                        Remove-Item -Path $settingsPath -Force -ErrorAction Stop
+                        Write-Host "Settings.json removed (was created by AzureRM install, VS Code will recreate when needed)" -ForegroundColor Green
+                        return
+                    }
+                    -1 {
+                        # Manual merge was required - too risky for automatic cleanup
+                        Write-Host "ERROR: Settings were manually merged during install" -ForegroundColor Red
+                        Write-Host "Automatic cleanup cannot safely remove AzureRM settings from manually merged file." -ForegroundColor Yellow
+                        Write-Host "Please manually remove AzureRM settings from:" -ForegroundColor Yellow
+                        Write-Host "  $settingsPath" -ForegroundColor White
+                        return
+                    }
+                    default {
+                        # Positive number - original file was backed up, proceed with regex cleanup
+                        Write-Host "Cleaning AzureRM settings from settings.json (backup available)..." -ForegroundColor Yellow
+                    }
+                }
+            } else {
+                # No backup length found - assume standard cleanup
+                Write-Host "Cleaning AzureRM settings from settings.json..." -ForegroundColor Yellow
+            }
+            
+            try {
+                # Clean up the settings - comprehensive approach
+                $cleanedContent = $settingsContent
+                
+                # Remove backup metadata (handle both comment style and property style)
+                $cleanedContent = $cleanedContent -replace '"//\s*AZURERM_BACKUP_LENGTH"\s*:\s*"[^"]*"\s*,?\s*', ''
+                $cleanedContent = $cleanedContent -replace '"AZURERM_BACKUP_LENGTH"\s*:\s*[^,}]*\s*,?\s*', ''
+                
+                # Remove GitHub Copilot settings (handle both string and array formats)
+                $cleanedContent = $cleanedContent -replace '"github\.copilot\.enable"\s*:\s*\{[^{}]*\}\s*,?\s*', ''
+                $cleanedContent = $cleanedContent -replace '"github\.copilot\.chat\.commitMessageGeneration\.instructions"\s*:\s*"[^"]*"\s*,?\s*', ''
+                # Handle complex array format for commit message instructions (multi-line with nested objects)
+                $cleanedContent = $cleanedContent -replace '(?s)"github\.copilot\.chat\.commitMessageGeneration\.instructions"\s*:\s*\[.*?\]\s*,?\s*', ''
+                $cleanedContent = $cleanedContent -replace '"github\.copilot\.chat\.summarizeAgentConversationHistory\.enabled"\s*:\s*(true|false)\s*,?\s*', ''
+                $cleanedContent = $cleanedContent -replace '"github\.copilot\.chat\.reviewSelection\.enabled"\s*:\s*(true|false)\s*,?\s*', ''
+                $cleanedContent = $cleanedContent -replace '"github\.copilot\.chat\.reviewSelection\.instructions"\s*:\s*"[^"]*"\s*,?\s*', ''
+                # Handle complex array format for review selection instructions (multi-line with nested objects)
+                $cleanedContent = $cleanedContent -replace '(?s)"github\.copilot\.chat\.reviewSelection\.instructions"\s*:\s*\[.*?\]\s*,?\s*', ''
+                $cleanedContent = $cleanedContent -replace '"github\.copilot\.advanced"\s*:\s*\{[^}]*\}\s*,?\s*', ''
+                
+                # Clean up file associations
+                $cleanedContent = $cleanedContent -replace '"\*\.instructions\.md"\s*:\s*"[^"]*"\s*,?\s*', ''
+                $cleanedContent = $cleanedContent -replace '"\*\.prompt\.md"\s*:\s*"[^"]*"\s*,?\s*', ''
+                $cleanedContent = $cleanedContent -replace '"\*\.azurerm\.md"\s*:\s*"[^"]*"\s*,?\s*', ''
+                
+                # Clean up trailing commas and empty lines
+                $cleanedContent = $cleanedContent -replace ',(\s*[}\]])', '$1'
+                $cleanedContent = $cleanedContent -replace '\n\s*\n', "`n"
+                
+                # Test if cleaned content is valid JSON
+                try {
+                    $parsedJson = $cleanedContent | ConvertFrom-Json -ErrorAction Stop
+                } catch {
+                    # If cleaning resulted in invalid JSON, the file was likely corrupted
+                    # Fall back to removing the file entirely since it contained only AzureRM content
+                    Write-Host "Settings file appears corrupted after cleaning - removing entirely" -ForegroundColor Yellow
+                    Remove-Item -Path $settingsPath -Force -ErrorAction Stop
+                    Write-Host "Corrupted settings.json removed (VS Code will recreate when needed)" -ForegroundColor Green
+                    return
+                }
+                
+                # Check if the result is an empty object and handle appropriately
+                $propCount = $parsedJson.PSObject.Properties.Count
+                if ($propCount -eq $null -or $propCount -eq 0) {
+                    Write-Host "Settings file contained only AzureRM metadata - removing empty file" -ForegroundColor Yellow
+                    Remove-Item -Path $settingsPath -Force -ErrorAction Stop
+                    Write-Host "Empty settings.json removed (VS Code will recreate when needed)" -ForegroundColor Green
+                } else {
+                    # Write cleaned content back for non-empty settings
+                    Set-Content -Path $settingsPath -Value $cleanedContent -ErrorAction Stop
+                    Write-Host "AzureRM settings cleaned from settings.json successfully!" -ForegroundColor Green
+                }
+                
+            } catch {
+                Write-Host "ERROR: Failed to clean settings.json automatically: $($_.Exception.Message)" -ForegroundColor Red
+                Write-Host "Manual cleanup required for settings.json" -ForegroundColor Yellow
+            }
         } else {
-            Write-Host "No backup found, but no AzureRM Copilot settings detected in settings.json" -ForegroundColor Green
-            Write-Host "Clean operation completed - no action needed." -ForegroundColor Green
+            Write-Host "No AzureRM settings found in settings.json" -ForegroundColor Green
+            
+            # Check if settings.json is empty and remove it
+            try {
+                $settingsJson = $settingsContent | ConvertFrom-Json -ErrorAction Stop
+                $propCount = $settingsJson.PSObject.Properties.Count
+                if ($settingsJson -and ($propCount -eq $null -or $propCount -eq 0)) {
+                    Write-Host "Settings.json is empty - removing unnecessary file" -ForegroundColor Yellow
+                    Remove-Item -Path $settingsPath -Force -ErrorAction Stop
+                    Write-Host "Empty settings.json removed (VS Code will recreate when needed)" -ForegroundColor Green
+                }
+            } catch {
+                # If we can't parse as JSON, check if it's effectively empty (just braces and whitespace)
+                $trimmedContent = $settingsContent.Trim() -replace '\s+', ''
+                if ($trimmedContent -eq '{}') {
+                    Write-Host "Settings.json contains only empty braces - removing unnecessary file" -ForegroundColor Yellow
+                    Remove-Item -Path $settingsPath -Force -ErrorAction Stop
+                    Write-Host "Empty settings.json removed (VS Code will recreate when needed)" -ForegroundColor Green
+                } else {
+                    Write-Host "Settings.json exists but not removing (contains non-standard content)" -ForegroundColor Yellow
+                }
+            }
         }
+        
     } else {
-        Write-Host "No backup found and no settings.json exists" -ForegroundColor Green
-        Write-Host "Clean operation completed - no action needed." -ForegroundColor Green
+        Write-Host "No settings.json found - no cleanup needed" -ForegroundColor Green
     }
     
     Write-Host ""
