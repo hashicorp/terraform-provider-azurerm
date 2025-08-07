@@ -166,7 +166,7 @@ func (r DataFactoryCustomerManagedKeyResource) Read() sdk.ResourceFunc {
 			}
 
 			if encIdentity := encryption.Identity; encIdentity != nil && encIdentity.UserAssignedIdentity != nil {
-				parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(*encIdentity.UserAssignedIdentity)
+				parsed, err := commonids.ParseUserAssignedIdentityIDInsensitively(pointer.From(encIdentity.UserAssignedIdentity))
 				if err != nil {
 					return fmt.Errorf("parsing %q: %+v", *encIdentity.UserAssignedIdentity, err)
 				}
