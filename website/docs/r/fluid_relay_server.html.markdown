@@ -110,4 +110,4 @@ terraform import azurerm_fluid_relay_server.example /subscriptions/00000000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.FluidRelay`: 2022-05-26
+* `Microsoft.FluidRelay` - 2022-05-26

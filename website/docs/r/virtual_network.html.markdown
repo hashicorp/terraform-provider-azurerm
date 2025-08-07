@@ -123,6 +123,8 @@ An `ip_address_pool` block supports the following:
 
 * `number_of_ip_addresses` - (Required) The number of IP addresses to allocated to the Virtual Network. The value must be a string that represents a positive number, e.g., `"100"`.
 
+-> **Note:** `number_of_ip_addresses` cannot be decreased.
+
 ---
 
 The `subnet` block supports:
@@ -220,4 +222,4 @@ terraform import azurerm_virtual_network.exampleNetwork /subscriptions/00000000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2024-05-01
+* `Microsoft.Network` - 2024-05-01

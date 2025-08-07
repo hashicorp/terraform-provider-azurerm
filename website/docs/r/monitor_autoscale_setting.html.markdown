@@ -614,4 +614,4 @@ terraform import azurerm_monitor_autoscale_setting.example /subscriptions/000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Insights`: 2022-10-01
+* `Microsoft.Insights` - 2022-10-01

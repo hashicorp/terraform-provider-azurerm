@@ -219,6 +219,14 @@ Please follow the format in the example below for listing breaking changes in re
 
 * Validation for `rbac_authorization.resource_id` has been changed to validate for an integration runtime resource ID (case-sensitive) rather than validating for a non-empty string.
 
+### `azurerm_eventgrid_event_subscription`
+
+* Validation for `azure_function.function_id` has been changed to validate for an Azure Function resource ID (case-sensitive) rather than validating for an Azure resource ID.
+
+### `azurerm_eventgrid_system_topic_event_subscription`
+
+* Validation for `azure_function.function_id` has been changed to validate for an Azure Function resource ID (case-sensitive) rather than validating for an Azure resource ID.
+
 ### `azurerm_eventhub`
 
 * The deprecated `namespace_name` property has been removed in favour of the `namespace_id` property.
@@ -248,6 +256,10 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_kusto_attached_database_configuration`
 
 * The deprecated `cluster_resource_id` property has been removed in favour of the `cluster_id` property.
+
+### `azurerm_kusto_cluster`
+
+* The deprecated `virtual_network_configuration` block has been removed as it is no longer supported by the resource.
 
 ### `azurerm_linux_function_app`
 
@@ -366,6 +378,10 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `queue_properties` block has been removed and superseded by the `azurerm_storage_account_queue_properties` resource.
 * The deprecated `static_website` block has been removed and superseded by the `azurerm_storage_account_static_website` resource.
 * The property `minimum_tls_version` no longer accepts `TLS1_0` or `TLS1_1` as a value.
+
+### `azurerm_synapse_spark_pool`
+
+* The `spark_version` property no longer accepts `3.2` or `3.3` as a value.
 
 ### `azurerm_storage_container`
 
