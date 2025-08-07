@@ -26,6 +26,7 @@ This instruction system enables **AI-powered "Vibe Coding"** for generating Reso
 ---
 ### 🎯 **Setup Methods (Choose One)**
 ---
+> **ℹ️ NOTE**: While Method 1 (Repository-Based) is typically recommended, **Method 3 (Complete Local Installation)** is currently the preferred option until the AI instructions are merged into the `main` branch.
 
 #### **✅ Method 1: Repository-Based (RECOMMENDED)**
 ---
@@ -59,126 +60,28 @@ terraform-ai-instructions/
 
 #### **✅ Method 3: Complete Local Installation**
 ---
-**Full installation with prompts, settings, and instruction files:**
+> **🌟 RECOMMENDED FOR NOW**: This is the preferred method until the AI instructions are merged into the main branch. It provides the most complete and immediate setup experience.
 
-<details>
-<summary>🔧 Click to expand complete installation scripts</summary>
+**Full local installation with automated scripts and comprehensive AI setup:**
 
-**PowerShell (Windows) - Complete Setup:**
-```powershell
-# Define paths
-$userDir = "$env:APPDATA\Code\User"
-$instructionsDir = "$userDir\instructions\terraform-azurerm"
-$promptsDir = "$userDir\prompts"
-$sourceDir = "c:\github.com\hashicorp\terraform-provider-azurerm\.github"
+**🎯 What It Does:**
+- Installs all AI instructions and prompts directly to your VS Code user directory
+- Configures local VS Code settings with intelligent merge of existing configuration
+- Creates automatic backups and provides clean uninstall capability
+- Works across all your projects (not just this repository)
 
-# Create all necessary directories
-New-Item -ItemType Directory -Force -Path $instructionsDir
-New-Item -ItemType Directory -Force -Path $promptsDir
+**📂 Installation Scripts:**
+- **Windows**: `.\AILocalInstall\install-copilot-setup.ps1`
+- **Linux/macOS/WSL**: `./AILocalInstall/install-copilot-setup.sh`
 
-Write-Host "📁 Creating directories..." -ForegroundColor Blue
+**📋 Key Benefits:**
+- **🔍 Auto-discovery**: Automatically finds repository location
+- **🛡️ Safe setup**: Smart backups and clean uninstall
+- **🔀 Intelligent merge**: Preserves your existing VS Code settings
+- **🧹 Easy cleanup**: Complete removal with original settings restoration
 
-# Copy all instruction files
-Write-Host "📚 Copying instruction files..." -ForegroundColor Blue
-Copy-Item -Path "$sourceDir\instructions\*.md" -Destination $instructionsDir -Force
-
-# Copy AI prompt files
-Write-Host "🤖 Copying AI prompt files..." -ForegroundColor Blue
-Copy-Item -Path "$sourceDir\prompts\*.md" -Destination $promptsDir -Force
-
-# Copy main copilot instructions
-Write-Host "🎯 Copying main copilot instructions..." -ForegroundColor Blue
-Copy-Item -Path "$sourceDir\copilot-instructions.md" -Destination $userDir -Force
-
-# Copy VS Code settings directly from repository
-$settingsPath = "$userDir\settings.json"
-$repoSettingsPath = "c:\github.com\hashicorp\terraform-provider-azurerm\.vscode\settings.json"
-Write-Host "⚙️  Copying VS Code settings from repository..." -ForegroundColor Blue
-Copy-Item -Path $repoSettingsPath -Destination $settingsPath -Force
-
-Write-Host "`n✅ Installation Complete!" -ForegroundColor Green
-Write-Host "📍 Files installed to:" -ForegroundColor Cyan
-Write-Host "   Instructions: $instructionsDir" -ForegroundColor Gray
-Write-Host "   Prompts: $promptsDir" -ForegroundColor Gray
-Write-Host "   VS Code Settings: $settingsPath" -ForegroundColor Gray
-Write-Host "`n🔄 Next Steps:" -ForegroundColor Yellow
-Write-Host "1. Restart VS Code" -ForegroundColor White
-Write-Host "2. Start using AI-powered development!" -ForegroundColor White
-```
-
-**Bash (Linux/macOS/WSL) - Complete Setup:**
-```bash
-#!/bin/bash
-
-# Define paths
-USER_DIR="$HOME/.vscode"
-INSTRUCTIONS_DIR="$USER_DIR/instructions/terraform-azurerm"
-PROMPTS_DIR="$USER_DIR/prompts"
-SOURCE_DIR="/c/github.com/hashicorp/terraform-provider-azurerm/.github"
-
-# Create directories
-echo "📁 Creating directories..."
-mkdir -p "$INSTRUCTIONS_DIR"
-mkdir -p "$PROMPTS_DIR"
-
-# Copy instruction files
-echo "📚 Copying instruction files..."
-cp "$SOURCE_DIR/instructions"/*.md "$INSTRUCTIONS_DIR/"
-
-# Copy AI prompt files
-echo "🤖 Copying AI prompt files..."
-cp "$SOURCE_DIR/prompts"/*.md "$PROMPTS_DIR/"
-
-# Copy main copilot instructions
-echo "🎯 Copying main copilot instructions..."
-cp "$SOURCE_DIR/copilot-instructions.md" "$USER_DIR/"
-
-# Copy VS Code settings directly from repository
-SETTINGS_PATH="$USER_DIR/settings.json"
-REPO_SETTINGS_PATH="/c/github.com/hashicorp/terraform-provider-azurerm/.vscode/settings.json"
-echo "⚙️  Copying VS Code settings from repository..."
-cp "$REPO_SETTINGS_PATH" "$SETTINGS_PATH"
-
-echo ""
-echo "✅ Installation Complete!"
-echo "📍 Files installed to:"
-echo "   Instructions: $INSTRUCTIONS_DIR"
-echo "   Prompts: $PROMPTS_DIR"
-echo "   VS Code Settings: $SETTINGS_PATH"
-echo ""
-echo "🔄 Next Steps:"
-echo "1. Restart VS Code"
-echo "2. Start using AI-powered development!"
-```
-
-**Verification Commands:**
-```powershell
-# Windows PowerShell - Check installation
-$userDir = "$env:APPDATA\Code\User"
-Write-Host "📚 Instruction files:" -ForegroundColor Cyan
-Get-ChildItem "$userDir\instructions\terraform-azurerm" -Name "*.md"
-Write-Host "`n🤖 Prompt files:" -ForegroundColor Cyan
-Get-ChildItem "$userDir\prompts" -Name "*.md"
-Write-Host "`n🎯 Main copilot file:" -ForegroundColor Cyan
-Test-Path "$userDir\copilot-instructions.md"
-Write-Host "`n⚙️  VS Code settings:" -ForegroundColor Cyan
-Test-Path "$userDir\settings.json"
-```
-
-```bash
-# Bash - Check installation
-USER_DIR="$HOME/.vscode"
-echo "📚 Instruction files:"
-ls "$USER_DIR/instructions/terraform-azurerm"/*.md
-echo -e "\n🤖 Prompt files:"
-ls "$USER_DIR/prompts"/*.md
-echo -e "\n🎯 Main copilot file:"
-ls -la "$USER_DIR/copilot-instructions.md"
-echo -e "\n⚙️  VS Code settings:"
-ls -la "$USER_DIR/settings.json"
-```
-
-</details>
+**📖 For detailed usage, features, and troubleshooting:**
+➡️ **See [`../AILocalInstall/README.md`](../AILocalInstall/README.md)** for complete installation guide
 
 ---
 ### ⚙️ **VS Code Configuration**
