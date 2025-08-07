@@ -14,6 +14,9 @@
 .PARAMETER Clean
     Removes all installed AI setup files and restores original VS Code settings from backups.
 
+.PARAMETER AutoApprove
+    Skips interactive approval prompts.
+
 .PARAMETER Help
     Displays detailed help information and usage examples.
 
@@ -24,6 +27,10 @@
 .EXAMPLE
     .\install-copilot-setup.ps1 -RepositoryPath "C:\Projects\terraform-provider-azurerm"
     Installs AI setup using the specified repository path.
+
+.EXAMPLE
+    .\install-copilot-setup.ps1 -AutoApprove
+    Installs AI setup without interactive prompts.
 
 .EXAMPLE
     .\install-copilot-setup.ps1 -Clean
@@ -42,6 +49,7 @@
 param(
     [string]$RepositoryPath,
     [switch]$Clean,
+    [switch]$AutoApprove,
     [switch]$Help
 )
 
@@ -54,11 +62,13 @@ if ($Help) {
     Write-Host "OPTIONS:" -ForegroundColor Yellow
     Write-Host "  -RepositoryPath <path>    Path to terraform-provider-azurerm repository"
     Write-Host "  -Clean                    Remove all installed files and restore backups"
+    Write-Host "  -AutoApprove              Skip interactive approval prompts"
     Write-Host "  -Help                     Show this help message"
     Write-Host ""
     Write-Host "EXAMPLES:" -ForegroundColor Yellow
     Write-Host "  .\install-copilot-setup.ps1                                  # Auto-discover repository"
     Write-Host "  .\install-copilot-setup.ps1 -RepositoryPath C:\path\to\repo  # Use specific path"
+    Write-Host "  .\install-copilot-setup.ps1 -AutoApprove                     # Non-interactive install"
     Write-Host "  .\install-copilot-setup.ps1 -Clean                           # Remove installation"
     Write-Host ""
     Write-Host "AI FEATURES:" -ForegroundColor Green
@@ -335,10 +345,16 @@ if ($Clean) {
         Write-Host "WARNING: settings.json exists but no backup found!" -ForegroundColor Red
         Write-Host "This may contain important VS Code settings outside of AzureRM configuration." -ForegroundColor Yellow
         Write-Host ""
-        do {
-            $response = Read-Host "Continue cleanup? (C)ontinue/(X)exit"
-            $response = $response.ToUpper()
-        } while ($response -ne "C" -and $response -ne "X")
+        
+        if ($AutoApprove) {
+            Write-Host "AutoApprove specified - continuing with cleanup" -ForegroundColor Yellow
+            $response = "C"
+        } else {
+            do {
+                $response = Read-Host "Continue cleanup? (C)ontinue/(X)exit"
+                $response = $response.ToUpper()
+            } while ($response -ne "C" -and $response -ne "X")
+        }
         
         if ($response -eq "X") {
             Write-Host "Cleanup cancelled by user." -ForegroundColor Yellow
@@ -692,6 +708,12 @@ if ($RepositoryPath) {
 }
 
 if (-not $repoRoot) {
+    if ($AutoApprove) {
+        Write-Host "Repository auto-discovery failed and AutoApprove specified." -ForegroundColor Red
+        Write-Host "Please provide -RepositoryPath parameter when using -AutoApprove." -ForegroundColor Yellow
+        exit 1
+    }
+    
     Write-Host "Repository auto-discovery failed." -ForegroundColor Yellow
     Write-Host "Please provide the path to your terraform-provider-azurerm repository:" -ForegroundColor Yellow
     $repoRoot = Read-Host "Repository path"
@@ -747,10 +769,16 @@ if ($previousInstall.HasPrevious) {
     }
     Write-Host ""
     Write-Host "This will overwrite existing AzureRM AI configuration." -ForegroundColor Yellow
-    do {
-        $response = Read-Host "Continue with installation? (Y)es/(N)o"
-        $response = $response.ToUpper()
-    } while ($response -ne "Y" -and $response -ne "N")
+    
+    if ($AutoApprove) {
+        Write-Host "AutoApprove specified - continuing with installation" -ForegroundColor Yellow
+        $response = "Y"
+    } else {
+        do {
+            $response = Read-Host "Continue with installation? (Y)es/(N)o"
+            $response = $response.ToUpper()
+        } while ($response -ne "Y" -and $response -ne "N")
+    }
     
     if ($response -eq "N") {
         Write-Host "Installation cancelled by user." -ForegroundColor Yellow
@@ -864,24 +892,29 @@ Write-Host "   [C] Continue with automatic setup"
 Write-Host "   [X] Exit script (no changes made)"
 Write-Host ""
 
-do {
-    $choice = Read-Host "Choice (C/X)"
-    $choice = $choice.ToUpper()
-    
-    switch ($choice) {
-        "C" {
-            Write-Host "Continuing with setup..." -ForegroundColor Green
-            break
+if ($AutoApprove) {
+    Write-Host "AutoApprove specified - continuing with setup" -ForegroundColor Yellow
+    $choice = "C"
+} else {
+    do {
+        $choice = Read-Host "Choice (C/X)"
+        $choice = $choice.ToUpper()
+        
+        switch ($choice) {
+            "C" {
+                Write-Host "Continuing with setup..." -ForegroundColor Green
+                break
+            }
+            "X" {
+                Write-Host "Setup cancelled by user. No changes were made." -ForegroundColor Yellow
+                exit 0
+            }
+            default {
+                Write-Host "Invalid choice. Please press C to continue or X to exit." -ForegroundColor Red
+            }
         }
-        "X" {
-            Write-Host "Setup cancelled by user. No changes were made." -ForegroundColor Yellow
-            exit 0
-        }
-        default {
-            Write-Host "Invalid choice. Please press C to continue or X to exit." -ForegroundColor Red
-        }
-    }
-} while ($choice -ne "C")
+    } while ($choice -ne "C")
+}
 
 # Smart merge VS Code settings.json with enhanced backup and recovery
 Write-Host "Configuring VS Code settings (preserving existing settings)..." -ForegroundColor Blue

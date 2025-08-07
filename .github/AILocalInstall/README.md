@@ -1,6 +1,15 @@
 # AzureRM Provider AI-Powered Development Installation Scripts
 
-This directory contains installation scripts for setting up AI-powered coding assistance specifically tuned for the Terraform AzureRM provider development.
+This directory contains installation scripts for setting up AI-powered coding assistance specifically tuned for - **Settings corruption**: Restore from your own backup if available
+
+## Support
+
+For more information and detailed documentation:
+- **Repository**: https://github.com/hashicorp/terraform-provider-azurerm
+- **Instructions**: See the `.github/instructions/` directory
+- **Help**: Run the scripts with `-Help` (PowerShell) or `-help` (Bash) for detailed usage information
+
+## Advanced Usageorm AzureRM provider development.
 
 ## Quick Start
 
@@ -117,55 +126,45 @@ This installation method provides a full local setup with these comprehensive ca
 ### Configuration Added to settings.json
 ```json
 {
+  // Commit message generation with Azure provider context
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    {
+      "text": "Provide a concise and clear commit message that summarizes the changes made in the code. For complex changes, include the following details: 1) Specify if the change introduces a breaking change and describe its impact. 2) Highlight any new resources or features added. 3) Mention updates to Azure services or APIs. Aim to keep the message under 72 characters per line for readability."
+    }
+  ],
+
+  // Disable conversation history for privacy
+  "github.copilot.chat.summarizeAgentConversationHistory.enabled": false,
+
+  // Enable code review with instruction files
   "github.copilot.chat.reviewSelection.enabled": true,
   "github.copilot.chat.reviewSelection.instructions": [
-    {"file": "copilot-instructions.md"},
-    {"file": "instructions/terraform-azurerm/implementation-guide.instructions.md"},
-    // ... other instruction files
+    {"file": ".github/copilot-instructions.md"},
+    {"file": ".github/instructions/implementation-guide.instructions.md"},
+    {"file": ".github/instructions/azure-patterns.instructions.md"},
+    {"file": ".github/instructions/testing-guidelines.instructions.md"},
+    {"file": ".github/instructions/documentation-guidelines.instructions.md"},
+    {"file": ".github/instructions/provider-guidelines.instructions.md"}
   ],
+
+  // File associations for proper syntax highlighting
+  "files.associations": {
+    "*.instructions.md": "markdown",
+    ".github/*.md": "markdown"
+  },
+
+  // Additional Copilot optimization settings
   "github.copilot.advanced": {
     "length": 3000,
     "temperature": 0.1
   },
-  "files.associations": {
-    "*.instructions.md": "markdown",
-    "*.prompt.md": "markdown"
+
+  // Enable Copilot across all relevant contexts and file types
+  "github.copilot.enable": {
+    "*": true,
+    "terminal": true
   }
-  // ... other AI enhancements
 }
-```
-
-## Testing
-
-Comprehensive test suite available in the `../AILocalInstallTest/` directory:
-
-```
-AILocalInstallTest/
-├── README.md                    # Test documentation
-├── run-all-tests.ps1           # Comprehensive test runner  
-├── cleanup-test-env.ps1        # Test environment cleanup
-├── TestCases/                  # Individual test scenarios
-│   ├── test-fresh-install.ps1       # Fresh installation tests
-│   ├── test-edge-cases.ps1          # Edge case validation
-│   ├── test-cleanup-logic.ps1       # Cleanup logic tests
-│   ├── test-regex-patterns.ps1      # Regex cleanup validation
-│   ├── test-cleanup-scenarios.ps1   # Multiple cleanup scenarios
-│   └── test-cleanup-edge-cases.ps1  # Advanced edge cases
-└── MockScenarios/              # Mock VS Code environments
-```
-
-### Running Tests
-```powershell
-# Run all tests
-cd ..\AILocalInstallTest
-.\run-all-tests.ps1
-
-# Run specific test categories
-.\run-all-tests.ps1 -Category "Installation"
-.\run-all-tests.ps1 -Category "EdgeCases"
-
-# Clean up test environment
-.\cleanup-test-env.ps1
 ```
 
 ## Safety Features
@@ -193,7 +192,7 @@ cd ..\AILocalInstallTest
 For more information and detailed documentation:
 - **Repository**: https://github.com/hashicorp/terraform-provider-azurerm
 - **Instructions**: See the `.github/instructions/` directory
-- **Help**: Run the scripts with `--help` or `-Help` for detailed usage information
+- **Help**: Run the scripts with `-Help` (PowerShell) or `-help` (Bash) for detailed usage information
 
 ## Advanced Usage
 
