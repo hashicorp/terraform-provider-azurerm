@@ -963,13 +963,19 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if requireUpdateOnLogin {
 		updateMode := servers.CreateModeUpdate
+		// Login password can be set using `administrator_password` or `administrator_password_wo`
+		loginPassword := d.Get("administrator_password").(string)
+		if !woPassword.IsNull() {
+			loginPassword = woPassword.AsString()
+		}
+
 		loginParameters := servers.Server{
 			Location: location.Normalize(d.Get("location").(string)),
 			Properties: &servers.ServerProperties{
 				CreateMode:                 &updateMode,
 				AuthConfig:                 expandFlexibleServerAuthConfig(d.Get("authentication").([]interface{})),
 				AdministratorLogin:         pointer.To(d.Get("administrator_login").(string)),
-				AdministratorLoginPassword: pointer.To(d.Get("administrator_password").(string)),
+				AdministratorLoginPassword: &loginPassword,
 				Network:                    expandArmServerNetwork(d),
 			},
 		}
