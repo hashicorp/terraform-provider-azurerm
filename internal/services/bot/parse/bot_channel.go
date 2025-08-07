@@ -48,7 +48,7 @@ func (id BotChannelId) ID() string {
 func BotChannelID(input string) (*BotChannelId, error) {
 	id, err := resourceids.ParseAzureResourceID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %q as an BotChannel ID: %+v", input, err)
+		return nil, fmt.Errorf("parsing %q as a BotChannel ID: %+v", input, err)
 	}
 
 	resourceId := BotChannelId{

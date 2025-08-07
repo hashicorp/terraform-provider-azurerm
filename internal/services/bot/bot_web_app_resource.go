@@ -9,6 +9,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -170,16 +171,16 @@ func resourceBotWebAppCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	bot := botservice.Bot{
 		Properties: &botservice.BotProperties{
-			DisplayName:                       utils.String(displayName),
-			Endpoint:                          utils.String(d.Get("endpoint").(string)),
-			MsaAppID:                          utils.String(d.Get("microsoft_app_id").(string)),
-			DeveloperAppInsightKey:            utils.String(d.Get("developer_app_insights_key").(string)),
-			DeveloperAppInsightsAPIKey:        utils.String(d.Get("developer_app_insights_api_key").(string)),
-			DeveloperAppInsightsApplicationID: utils.String(d.Get("developer_app_insights_application_id").(string)),
+			DisplayName:                       pointer.To(displayName),
+			Endpoint:                          pointer.To(d.Get("endpoint").(string)),
+			MsaAppID:                          pointer.To(d.Get("microsoft_app_id").(string)),
+			DeveloperAppInsightKey:            pointer.To(d.Get("developer_app_insights_key").(string)),
+			DeveloperAppInsightsAPIKey:        pointer.To(d.Get("developer_app_insights_api_key").(string)),
+			DeveloperAppInsightsApplicationID: pointer.To(d.Get("developer_app_insights_application_id").(string)),
 			LuisAppIds:                        utils.ExpandStringSlice(d.Get("luis_app_ids").([]interface{})),
-			LuisKey:                           utils.String(d.Get("luis_key").(string)),
+			LuisKey:                           pointer.To(d.Get("luis_key").(string)),
 		},
-		Location: utils.String(d.Get("location").(string)),
+		Location: pointer.To(d.Get("location").(string)),
 		Sku: &botservice.Sku{
 			Name: botservice.SkuName(d.Get("sku").(string)),
 		},
@@ -191,7 +192,13 @@ func resourceBotWebAppCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("creating Web App Bot %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 	}
 
-	// TODO: in 4.0 we should remove the "Default Site" on the Directline resource at this point if we can
+	if err := deleteDefaultChannelSite(d, meta, botservice.ChannelNameBasicChannelChannelNameDirectLineChannel); err != nil {
+		log.Printf("[WARN] deleting direct line default site: %s", err)
+	}
+
+	if err := deleteDefaultChannelSite(d, meta, botservice.ChannelNameBasicChannelChannelNameWebChatChannel); err != nil {
+		log.Printf("[WARN] deleting web chat default site: %s", err)
+	}
 
 	d.SetId(resourceId.ID())
 	return resourceBotWebAppRead(d, meta)
@@ -255,16 +262,16 @@ func resourceBotWebAppUpdate(d *pluginsdk.ResourceData, meta interface{}) error 
 
 	bot := botservice.Bot{
 		Properties: &botservice.BotProperties{
-			DisplayName:                       utils.String(displayName),
-			Endpoint:                          utils.String(d.Get("endpoint").(string)),
-			MsaAppID:                          utils.String(d.Get("microsoft_app_id").(string)),
-			DeveloperAppInsightKey:            utils.String(d.Get("developer_app_insights_key").(string)),
-			DeveloperAppInsightsAPIKey:        utils.String(d.Get("developer_app_insights_api_key").(string)),
-			DeveloperAppInsightsApplicationID: utils.String(d.Get("developer_app_insights_application_id").(string)),
+			DisplayName:                       pointer.To(displayName),
+			Endpoint:                          pointer.To(d.Get("endpoint").(string)),
+			MsaAppID:                          pointer.To(d.Get("microsoft_app_id").(string)),
+			DeveloperAppInsightKey:            pointer.To(d.Get("developer_app_insights_key").(string)),
+			DeveloperAppInsightsAPIKey:        pointer.To(d.Get("developer_app_insights_api_key").(string)),
+			DeveloperAppInsightsApplicationID: pointer.To(d.Get("developer_app_insights_application_id").(string)),
 			LuisAppIds:                        utils.ExpandStringSlice(d.Get("luis_app_ids").([]interface{})),
-			LuisKey:                           utils.String(d.Get("luis_key").(string)),
+			LuisKey:                           pointer.To(d.Get("luis_key").(string)),
 		},
-		Location: utils.String(d.Get("location").(string)),
+		Location: pointer.To(d.Get("location").(string)),
 		Sku: &botservice.Sku{
 			Name: botservice.SkuName(d.Get("sku").(string)),
 		},
@@ -294,6 +301,54 @@ func resourceBotWebAppDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting Web App Bot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
+	}
+
+	return nil
+}
+
+func deleteDefaultChannelSite(d *pluginsdk.ResourceData, meta interface{}, channelName botservice.ChannelNameBasicChannel) error {
+	client := meta.(*clients.Client).Bot.ChannelClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
+	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	defer cancel()
+
+	id := parse.NewBotChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string), string(channelName))
+	existing, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ChannelName)
+	if err != nil {
+		if !utils.ResponseWasNotFound(existing.Response) {
+			return fmt.Errorf("checking for presence of existing %s Channel for Bot %q: %+v", channelName, id, err)
+		}
+		return err
+	}
+
+	switch channelName {
+	case botservice.ChannelNameBasicChannelChannelNameDirectLineChannel:
+		channel, ok := existing.Properties.(botservice.DirectLineChannel)
+		if !ok || channel.Properties == nil || channel.Properties.Sites == nil {
+			return nil
+		}
+		for _, site := range *channel.Properties.Sites {
+			if pointer.From(site.SiteName) == "Default Site" {
+				existing.Properties.(botservice.DirectLineChannel).Properties.Sites = pointer.To(make([]botservice.DirectLineSite, 0))
+				break
+			}
+		}
+	case botservice.ChannelNameBasicChannelChannelNameWebChatChannel:
+		channel, ok := existing.Properties.(botservice.WebChatChannel)
+		if !ok || channel.Properties == nil || channel.Properties.Sites == nil {
+			return nil
+		}
+		for _, site := range *channel.Properties.Sites {
+			if pointer.From(site.SiteName) == "Default Site" {
+				existing.Properties.(botservice.WebChatChannel).Properties.Sites = pointer.To(make([]botservice.WebChatSite, 0))
+				break
+			}
+		}
+	default:
+		return fmt.Errorf("unsupported channel type: %s", channelName)
+	}
+	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelName(channelName), existing); err != nil {
+		return fmt.Errorf("updating %s Channel for Bot %q: %+v", channelName, id, err)
 	}
 
 	return nil
