@@ -62,7 +62,7 @@ func resourceEventGridSystemTopic() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupName(),
 
-			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			// TODO: remove `_arm` in 4.0. Can we be more descriptive about /what/ this is?
 			"source_arm_resource_id": {
@@ -123,12 +123,11 @@ func resourceEventGridSystemTopicCreateUpdate(d *pluginsdk.ResourceData, meta in
 	}
 
 	if v, ok := d.GetOk("identity"); ok {
-		identityRaw := v.([]interface{})
-		identity, err := identity.ExpandSystemAndUserAssignedMap(identityRaw)
+		expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(v.([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
-		systemTopic.Identity = identity
+		systemTopic.Identity = expandedIdentity
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, systemTopic); err != nil {

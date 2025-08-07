@@ -132,6 +132,21 @@ func TestAccEventGridSystemTopic_basicWithUserAssignedManagedIdentity(t *testing
 	})
 }
 
+func TestAccEventGridSystemTopic_basicWithSystemAssignedUserAssignedManagedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic", "test")
+	r := EventGridSystemTopicResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicWithSystemAssignedUserAssignedManagedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (EventGridSystemTopicResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := systemtopics.ParseSystemTopicID(state.ID)
 	if err != nil {
@@ -316,6 +331,48 @@ resource "azurerm_eventgrid_system_topic" "test" {
 
   identity {
     type = "UserAssigned"
+    identity_ids = [
+      azurerm_user_assigned_identity.test.id
+    ]
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomIntOfLength(12))
+}
+
+func (EventGridSystemTopicResource) basicWithSystemAssignedUserAssignedManagedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestegst%[3]d"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctesteg-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_eventgrid_system_topic" "test" {
+  name                   = "acctesteg-%[1]d"
+  location               = azurerm_resource_group.test.location
+  resource_group_name    = azurerm_resource_group.test.name
+  source_arm_resource_id = azurerm_storage_account.test.id
+  topic_type             = "Microsoft.Storage.StorageAccounts"
+
+  identity {
+    type = "SystemAssigned, UserAssigned"
     identity_ids = [
       azurerm_user_assigned_identity.test.id
     ]
