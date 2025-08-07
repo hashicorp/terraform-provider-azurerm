@@ -6,6 +6,8 @@ package containers
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -151,7 +153,7 @@ func userDataStateFunc(v interface{}) string {
 }
 
 func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -612,6 +614,24 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 		},
 		"tags": commonschema.Tags(),
 	}
+
+	if !features.FivePointOh() {
+		schema["registry_credential"].Elem.(*pluginsdk.Resource).Schema["custom"].Elem.(*pluginsdk.Resource).Schema["identity"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+			Deprecated:   "The property `registry_credential.custom.identity` is deprecated in favour of `registry_credential.custom.user_assigned_identity_id`",
+		}
+		schema["registry_credential"].Elem.(*pluginsdk.Resource).Schema["custom"].Elem.(*pluginsdk.Resource).Schema["user_assigned_identity_id"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+		}
+	}
+
+	return schema
 }
 
 func (r ContainerRegistryTaskResource) CustomizeDiff() sdk.ResourceFunc {
