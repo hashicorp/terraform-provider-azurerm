@@ -1160,7 +1160,7 @@ func expandClusterNodePoolSysctlConfig(input []interface{}) (*managedclusters.Sy
 	if v := raw["vm_max_map_count"].(int); v != 0 {
 		result.VMMaxMapCount = pointer.To(int64(v))
 	}
-	if v := raw["vm_swappiness"].(int); v != 0 {
+	if v, ok := raw["vm_swappiness"].(int); ok {
 		result.VMSwappiness = pointer.To(int64(v))
 	}
 	if v := raw["vm_vfs_cache_pressure"].(int); v != 0 {
