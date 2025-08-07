@@ -38,7 +38,7 @@ func (r LogAnalyticsQueryPackQueryResource) Exists(ctx context.Context, client *
 
 func TestAccLogAnalyticsQueryPackQuery_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_query_pack_query", "test")
-	r := LogAnalyticsQueryPackQueryResource{}
+	r := LogAnalyticsQueryPackQueryResource{uuid: uuid.New().String()}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -53,7 +53,7 @@ func TestAccLogAnalyticsQueryPackQuery_basic(t *testing.T) {
 
 func TestAccLogAnalyticsQueryPackQuery_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_query_pack_query", "test")
-	r := LogAnalyticsQueryPackQueryResource{}
+	r := LogAnalyticsQueryPackQueryResource{uuid: uuid.New().String()}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
