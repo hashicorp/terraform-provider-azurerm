@@ -12,8 +12,8 @@ ENHANCEMENTS:
 
 FEATURES:
 * **New Resource**: `azurerm_eventgrid_partner_namespace` [GH-30266]
-* **New Resource** : `azurerm_api_management_standalone_gateway` [GH-30226]
-* **New Resource** : `azurerm_postgresql_flexible_server_backup` [GH-29201]
+* **New Resource**: `azurerm_api_management_standalone_gateway` [GH-30226]
+* **New Resource**: `azurerm_postgresql_flexible_server_backup` [GH-29201]
 
 BUG FIXES:
 * `azurerm_postgresql_flexible_server` - fix an issue where `administrator_password_wo` was not set to the update request payload [GH-29475]
