@@ -1052,7 +1052,10 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 						return fmt.Errorf("setting `additional_unattend_content`: %+v", err)
 					}
 
-					d.Set("enable_automatic_updates", config.EnableAutomaticUpdates)
+					d.Set("automatic_updates_enabled", config.EnableAutomaticUpdates)
+					if !features.FivePointOh() {
+						d.Set("enable_automatic_updates", config.EnableAutomaticUpdates)
+					}
 					d.Set("provision_vm_agent", config.ProvisionVMAgent)
 					d.Set("vm_agent_platform_updates_enabled", config.EnableVMAgentPlatformUpdates)
 
