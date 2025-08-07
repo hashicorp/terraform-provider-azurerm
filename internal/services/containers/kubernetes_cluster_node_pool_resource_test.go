@@ -1060,13 +1060,13 @@ func TestAccKubernetesClusterNodePool_gpuInstance(t *testing.T) {
 	})
 }
 
-func TestAccKubernetesClusterNodePool_gpuProfile(t *testing.T) {
+func TestAccKubernetesClusterNodePool_gpuDriver(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_node_pool", "test")
 	r := KubernetesClusterNodePoolResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.gpuProfile(data),
+			Config: r.gpuDriver(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2982,7 +2982,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
  `, data.Locations.Primary, data.RandomInteger)
 }
 
-func (KubernetesClusterNodePoolResource) gpuProfile(data acceptance.TestData) string {
+func (KubernetesClusterNodePoolResource) gpuDriver(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}

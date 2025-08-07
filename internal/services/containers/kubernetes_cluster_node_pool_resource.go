@@ -502,7 +502,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 	if gpuDriver := d.Get("gpu_driver").(string); gpuDriver != "" {
 		profile.GpuProfile = &agentpools.GPUProfile{
-			Driver: pointer.To(agentpools.GPUDriver(d.Get("gpu_driver").(string))),
+			Driver: pointer.To(agentpools.GPUDriver(gpuDriver)),
 		}
 	}
 
@@ -735,12 +735,6 @@ func resourceKubernetesClusterNodePoolUpdate(d *pluginsdk.ResourceData, meta int
 
 	if d.HasChange("fips_enabled") {
 		props.EnableFIPS = pointer.To(d.Get("fips_enabled").(bool))
-	}
-
-	if d.HasChange("gpu_driver") {
-		props.GpuProfile = &agentpools.GPUProfile{
-			Driver: pointer.To(agentpools.GPUDriver(d.Get("gpu_driver").(string))),
-		}
 	}
 
 	if d.HasChange("host_encryption_enabled") {
