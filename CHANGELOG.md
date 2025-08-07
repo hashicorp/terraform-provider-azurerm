@@ -1,6 +1,8 @@
 ## 4.39.0 (Unreleased)
 
 ENHANCEMENTS:
+* Data Source: `azurerm_oracle_db_system_shapes` - add support for the `zone` property [GH-30071]
+* Data Source: `azurerm_oracle_gi_versions` - add support for the `shape` and `zone` properties [GH-30071]
 * `azurerm_postgresql_flexible_server` - the `customer_managed_key.geo_backup_key_vault_key_id` now supports versionless IDs [GH-30305]
 * `azurerm_eventgrid_system_topic` - add support for the `SystemAssigned, UserAssigned` value for the `identity.type` property [GH-30339]
 * dependencies: `machinelearning` - update API version to `2025-06-01` [GH-30268]
