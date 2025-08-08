@@ -117,10 +117,11 @@ type SourceRegistryCredential struct {
 }
 
 type CustomRegistryCredential struct {
-	LoginServer string `tfschema:"login_server"`
-	UserName    string `tfschema:"username"`
-	Password    string `tfschema:"password"`
-	Identity    string `tfschema:"identity"`
+	LoginServer            string `tfschema:"login_server"`
+	UserName               string `tfschema:"username"`
+	Password               string `tfschema:"password"`
+	UserAssignedIdentityID string `tfschema:"user_assigned_identity_id"`
+	Identity               string `tfschema:"identity,removedInNextMajorVersion"`
 }
 
 type ContainerRegistryTaskModel struct {
@@ -556,11 +557,10 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 									Sensitive:    true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
-								"identity": {
-									// TODO - 4.0: this should be `user_assigned_identity_id`?
+								"user_assigned_identity_id": {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
-									ValidateFunc: validation.StringIsNotEmpty,
+									ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 								},
 							},
 						},
@@ -1566,8 +1566,13 @@ func expandCustomRegistryCredential(input []CustomRegistryCredential) map[string
 				Type:  &passwordType,
 			}
 		}
-		if credential.Identity != "" {
-			cred.Identity = pointer.To(credential.Identity)
+		if credential.UserAssignedIdentityID != "" {
+			cred.Identity = pointer.To(credential.UserAssignedIdentityID)
+		}
+		if !features.FivePointOh() {
+			if credential.Identity != "" {
+				cred.Identity = pointer.To(credential.Identity)
+			}
 		}
 		out[credential.LoginServer] = cred
 	}

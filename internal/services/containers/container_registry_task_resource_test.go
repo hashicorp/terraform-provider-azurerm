@@ -9,13 +9,13 @@ import (
 	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ContainerRegistryTaskResource struct {
@@ -387,7 +387,7 @@ func TestAccContainerRegistryTask_fileTaskStepRegistryCredential(t *testing.T) {
 			"file_step.0.context_access_token",
 			"registry_credential.0.custom.#",
 			"registry_credential.0.custom.0.%",
-			"registry_credential.0.custom.0.identity",
+			"registry_credential.0.custom.0.user_assigned_identity_id",
 			"registry_credential.0.custom.0.login_server",
 			"registry_credential.0.custom.0.password",
 			"registry_credential.0.custom.0.username",
@@ -402,7 +402,7 @@ func TestAccContainerRegistryTask_fileTaskStepRegistryCredential(t *testing.T) {
 			"file_step.0.context_access_token",
 			"registry_credential.0.custom.#",
 			"registry_credential.0.custom.0.%",
-			"registry_credential.0.custom.0.identity",
+			"registry_credential.0.custom.0.user_assigned_identity_id",
 			"registry_credential.0.custom.0.login_server",
 			"registry_credential.0.custom.0.password",
 			"registry_credential.0.custom.0.username",
@@ -417,7 +417,7 @@ func TestAccContainerRegistryTask_fileTaskStepRegistryCredential(t *testing.T) {
 			"file_step.0.context_access_token",
 			"registry_credential.0.custom.#",
 			"registry_credential.0.custom.0.%",
-			"registry_credential.0.custom.0.identity",
+			"registry_credential.0.custom.0.user_assigned_identity_id",
 			"registry_credential.0.custom.0.login_server",
 			"registry_credential.0.custom.0.password",
 			"registry_credential.0.custom.0.username",
@@ -480,12 +480,12 @@ func (r ContainerRegistryTaskResource) Exists(ctx context.Context, clients *clie
 
 	if resp, err := client.Get(ctx, *id); err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (r ContainerRegistryTaskResource) dockerStepBasic(data acceptance.TestData) string {
@@ -1013,8 +1013,8 @@ resource "azurerm_container_registry_task" "test" {
   }
   registry_credential {
     custom {
-      login_server = azurerm_container_registry.test2.login_server
-      identity     = "[system]"
+      login_server              = azurerm_container_registry.test2.login_server
+      user_assigned_identity_id = "[system]"
     }
   }
   tags = {
