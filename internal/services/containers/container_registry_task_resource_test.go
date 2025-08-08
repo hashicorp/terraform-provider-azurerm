@@ -948,25 +948,49 @@ resource "azurerm_container_registry_task" "test" {
 func (r ContainerRegistryTaskResource) fileTaskStepRegistryCredentialPassword(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%s
+%[1]s
 
 resource "azurerm_container_registry" "test2" {
-  name                = "testacccrtask2%d"
+  name                = "testacccrtask2%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Basic"
 }
 
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "testacccrtask2%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_role_assignment" "blob_contributor" {
+  principal_id         = azurerm_user_assigned_identity.test.principal_id
+  role_definition_name = "Storage Blob Data Contributor"
+  scope                = azurerm_storage_account.test.id
+}
+
+resource "azuread_application" "test" {
+  display_name = "testacccrtask%[2]d"
+}
+
+resource "azuread_service_principal" "test" {
+  client_id = azuread_application.test.client_id
+}
+
+resource "azuread_service_principal_password" "test" {
+  service_principal_id = azuread_service_principal.test.object_id
+}
+
 resource "azurerm_container_registry_task" "test" {
-  name                  = "testacccrTask%d"
+  name                  = "testacccrTask%[2]d"
   container_registry_id = azurerm_container_registry.test.id
   platform {
     os = "Linux"
   }
   file_step {
     task_file_path       = "taskmulti-multiregistry.yaml"
-    context_path         = "%s"
-    context_access_token = "%s"
+    context_path         = "%[3]s"
+    context_access_token = "%[4]s"
     values = {
       regDate = azurerm_container_registry.test2.login_server
     }
@@ -974,12 +998,12 @@ resource "azurerm_container_registry_task" "test" {
   registry_credential {
     custom {
       login_server = azurerm_container_registry.test2.login_server
-      username     = "%s"
-      password     = "%s"
+      username     = azuread_service_principal.test.client_id
+      password     = azuread_service_principal_password.test.value
     }
   }
 }
-`, template, data.RandomInteger, data.RandomInteger, r.githubRepo.url, r.githubRepo.token, os.Getenv("ARM_CLIENT_ID"), os.Getenv("ARM_CLIENT_SECRET"))
+`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
 }
 
 func (r ContainerRegistryTaskResource) fileTaskStepRegistryCredentialIdentity(data acceptance.TestData, tag string) string {
