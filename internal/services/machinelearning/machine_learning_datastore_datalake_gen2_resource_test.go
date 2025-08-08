@@ -316,5 +316,5 @@ resource "azurerm_machine_learning_workspace" "test" {
     type = "SystemAssigned"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomIntOfLength(15))
+`, data.RandomInteger, data.Locations.Ternary, data.RandomString, data.RandomIntOfLength(15))
 }
