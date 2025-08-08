@@ -229,6 +229,12 @@ resource "azurerm_sentinel_automation_rule" "test" {
     owner_id = data.azurerm_client_config.current.object_id
   }
 
+  action_incident_task {
+    order       = 5
+    title       = "test incident task title"
+    description = "test description"
+  }
+
 }
 `, template, r.uuid, data.RandomInteger, expDate)
 }
