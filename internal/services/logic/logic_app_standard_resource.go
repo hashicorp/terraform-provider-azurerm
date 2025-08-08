@@ -169,6 +169,46 @@ func resourceLogicAppStandard() *pluginsdk.Resource {
 				},
 			},
 
+			"storage_account": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				MaxItems: 5,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"type": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringInSlice(webapps.PossibleValuesForAzureStorageType(), false),
+						},
+						"account_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"share_name": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"access_key": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							Sensitive:    true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
+						"mount_path": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
+
 			"storage_account_name": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
@@ -399,6 +439,13 @@ func resourceLogicAppStandardCreate(d *pluginsdk.ResourceData, meta interface{})
 
 	d.SetId(id.ID())
 
+	if d.GetOk("storage_account"); ok {
+		storageConfig := expandLogicAppStandardStorageConfig(d)
+		if _, err := client.UpdateAzureStorageAccounts(ctx, id, *storageConfig); err != nil {
+			return fmt.Errorf("setting Storage Accounts for %s: %+v", id, err)
+		}
+	}
+
 	// This setting is enabled by default on creation of a logic app, we only need to update if config sets this as `false`
 	if ftpAuth := d.Get("ftp_publish_basic_authentication_enabled").(bool); !ftpAuth {
 		policy := webapps.CsmPublishingCredentialsPoliciesEntity{
@@ -554,6 +601,13 @@ func resourceLogicAppStandardUpdate(d *pluginsdk.ResourceData, meta interface{})
 
 	if _, err = client.UpdateApplicationSettings(ctx, *id, settings); err != nil {
 		return fmt.Errorf("updating Application Settings for %s: %+v", *id, err)
+	}
+
+	if d.HasChange("storage_account") {
+		storageConfig := expandLogicAppStandardStorageConfig(d)
+		if _, err := client.UpdateAzureStorageAccounts(ctx, *id, *storageConfig); err != nil {
+			return fmt.Errorf("setting Storage Accounts for %s: %+v", id, err)
+		}
 	}
 
 	if d.HasChange("connection_string") {
@@ -765,6 +819,18 @@ func resourceLogicAppStandardRead(d *pluginsdk.ResourceData, meta interface{}) e
 	if model := configResp.Model; model != nil {
 		siteConfig := flattenLogicAppStandardSiteConfig(model.Properties)
 		if err = d.Set("site_config", siteConfig); err != nil {
+			return err
+		}
+	}
+
+	storageAccountsResp, err := client.ListAzureStorageAccounts(ctx, *id)
+	if err != nil {
+		return fmt.Errorf("listing Azure Storage Accounts for %s: %+v", *id, err)
+	}
+
+	if model := storageAccountsResp.Model; model != nil {
+		storageAccounts := flattenLogicAppStandardStorageConfig(storageAccountsResp.Model)
+		if err = d.Set("storage_account", storageAccounts); err != nil {
 			return err
 		}
 	}
@@ -1191,6 +1257,27 @@ func flattenLogicAppStandardConnectionStrings(input *map[string]webapps.ConnStri
 	return results
 }
 
+func flattenLogicAppStandardStorageConfig(input *webapps.AzureStoragePropertyDictionaryResource) []interface{} {
+	results := make([]interface{}, 0)
+
+	if input == nil {
+		return results
+	}
+
+	for k, v := range *input.Properties {
+		result := make(map[string]interface{})
+		result["name"] = k
+		result["type"] = string(pointer.From(v.Type))
+		result["account_name"] = pointer.From(v.AccountName)
+		result["share_name"] = v.ShareName
+		result["access_key"] = v.AccessKey
+		result["mount_path"] = v.MountPath
+		results = append(results, result)
+	}
+
+	return results
+}
+
 func flattenLogicAppStandardSiteConfig(input *webapps.SiteConfig) []interface{} {
 	results := make([]interface{}, 0)
 	result := make(map[string]interface{})
@@ -1549,6 +1636,26 @@ func expandLogicAppStandardCorsSettings(input interface{}) webapps.CorsSettings 
 	}
 
 	return corsSettings
+}
+
+func expandLogicAppStandardStorageConfig(d *pluginsdk.ResourceData) *webapps.AzureStoragePropertyDictionaryResource {
+	storageConfigs := d.Get("storage_account").(*pluginsdk.Set).List()
+	storageAccounts := make(map[string]webapps.AzureStorageInfoValue)
+	result := &webapps.AzureStoragePropertyDictionaryResource{}
+
+	for _, v := range storageConfigs {
+		config := v.(map[string]interface{})
+		storageAccounts[config["name"].(string)] = webapps.AzureStorageInfoValue{
+			Type:        pointer.To(webapps.AzureStorageType(config["type"].(string))),
+			AccountName: pointer.To(config["account_name"].(string)),
+			ShareName:   pointer.To(config["share_name"].(string)),
+			AccessKey:   pointer.To(config["access_key"].(string)),
+			MountPath:   pointer.To(config["mount_path"].(string)),
+		}
+	}
+	result.Properties = &storageAccounts
+
+	return result
 }
 
 func expandLogicAppStandardIpRestriction(input interface{}) ([]webapps.IPSecurityRestriction, error) {
