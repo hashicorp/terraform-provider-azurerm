@@ -560,7 +560,7 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 								"user_assigned_identity_id": {
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
-									ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+									ValidateFunc: validation.Any(commonids.ValidateUserAssignedIdentityID, validation.StringInSlice([]string{"[system]"}, false)),
 								},
 							},
 						},
@@ -627,7 +627,7 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
-			ValidateFunc: commonids.ValidateUserAssignedIdentityID,
+			ValidateFunc: validation.Any(commonids.ValidateUserAssignedIdentityID, validation.StringInSlice([]string{"[system]"}, false)),
 		}
 	}
 

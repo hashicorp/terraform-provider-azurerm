@@ -388,6 +388,7 @@ func TestAccContainerRegistryTask_fileTaskStepRegistryCredential(t *testing.T) {
 			"registry_credential.0.custom.#",
 			"registry_credential.0.custom.0.%",
 			"registry_credential.0.custom.0.user_assigned_identity_id",
+			"registry_credential.0.custom.0.identity",
 			"registry_credential.0.custom.0.login_server",
 			"registry_credential.0.custom.0.password",
 			"registry_credential.0.custom.0.username",
@@ -403,6 +404,7 @@ func TestAccContainerRegistryTask_fileTaskStepRegistryCredential(t *testing.T) {
 			"registry_credential.0.custom.#",
 			"registry_credential.0.custom.0.%",
 			"registry_credential.0.custom.0.user_assigned_identity_id",
+			"registry_credential.0.custom.0.identity",
 			"registry_credential.0.custom.0.login_server",
 			"registry_credential.0.custom.0.password",
 			"registry_credential.0.custom.0.username",
@@ -418,6 +420,7 @@ func TestAccContainerRegistryTask_fileTaskStepRegistryCredential(t *testing.T) {
 			"registry_credential.0.custom.#",
 			"registry_credential.0.custom.0.%",
 			"registry_credential.0.custom.0.user_assigned_identity_id",
+			"registry_credential.0.custom.0.identity",
 			"registry_credential.0.custom.0.login_server",
 			"registry_credential.0.custom.0.password",
 			"registry_credential.0.custom.0.username",
@@ -963,12 +966,6 @@ resource "azurerm_user_assigned_identity" "test" {
   location            = azurerm_resource_group.test.location
 }
 
-resource "azurerm_role_assignment" "blob_contributor" {
-  principal_id         = azurerm_user_assigned_identity.test.principal_id
-  role_definition_name = "Storage Blob Data Contributor"
-  scope                = azurerm_storage_account.test.id
-}
-
 resource "azuread_application" "test" {
   display_name = "testacccrtask%[2]d"
 }
@@ -978,7 +975,7 @@ resource "azuread_service_principal" "test" {
 }
 
 resource "azuread_service_principal_password" "test" {
-  service_principal_id = azuread_service_principal.test.object_id
+  service_principal_id = azuread_service_principal.test.id
 }
 
 resource "azurerm_container_registry_task" "test" {
