@@ -1,3 +1,12 @@
+## 4.40.0 (Unreleased)
+
+ENHANCEMENTS:
+
+FEATURES:
+* **New Resource**: `azurerm_data_factory_customer_managed_key` [GH-30341]
+
+BUG FIXES:
+
 ## 4.39.0 (August 08, 2025)
 
 FEATURES:
