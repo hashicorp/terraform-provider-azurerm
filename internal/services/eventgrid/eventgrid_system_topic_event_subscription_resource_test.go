@@ -560,7 +560,7 @@ resource "azurerm_storage_queue" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -641,7 +641,7 @@ resource "azurerm_storage_queue" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -744,7 +744,7 @@ resource "azurerm_storage_queue" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -818,7 +818,7 @@ resource "azurerm_eventhub_namespace" "test" {
 
 resource "azurerm_eventhub" "test" {
   name              = "acctesteventhub-%[1]d"
-  namespace_id      = azurerm_eventhub_namespace.test.name
+  namespace_id      = azurerm_eventhub_namespace.test.id
   partition_count   = 2
   message_retention = 1
 }
@@ -1398,7 +1398,7 @@ resource "azurerm_storage_queue" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -1752,7 +1752,7 @@ resource "azurerm_eventhub_namespace" "test" {
 
 resource "azurerm_eventhub" "test" {
   name              = "acctesteventhub-%[1]d"
-  namespace_id      = azurerm_eventhub_namespace.test.name
+  namespace_id      = azurerm_eventhub_namespace.test.id
   partition_count   = 2
   message_retention = 1
 }
