@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -369,6 +370,20 @@ func TestAccContainerRegistryTask_fileTaskStepRegistryCredential(t *testing.T) {
 		},
 	}
 
+	propertiesToIgnore := []string{
+		"file_step.0.context_access_token",
+		"registry_credential.0.custom.#",
+		"registry_credential.0.custom.0.%",
+		"registry_credential.0.custom.0.user_assigned_identity_id",
+		"registry_credential.0.custom.0.login_server",
+		"registry_credential.0.custom.0.password",
+		"registry_credential.0.custom.0.username",
+	}
+
+	if !features.FivePointOh() {
+		propertiesToIgnore = append(propertiesToIgnore, "registry_credential.0.custom.0.identity")
+	}
+
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.fileTaskStepBasic(data),
@@ -383,48 +398,21 @@ func TestAccContainerRegistryTask_fileTaskStepRegistryCredential(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"file_step.0.context_access_token",
-			"registry_credential.0.custom.#",
-			"registry_credential.0.custom.0.%",
-			"registry_credential.0.custom.0.user_assigned_identity_id",
-			"registry_credential.0.custom.0.identity",
-			"registry_credential.0.custom.0.login_server",
-			"registry_credential.0.custom.0.password",
-			"registry_credential.0.custom.0.username",
-		),
+		data.ImportStep(propertiesToIgnore...),
 		{
 			Config: r.fileTaskStepRegistryCredentialIdentity(data, "foo"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"file_step.0.context_access_token",
-			"registry_credential.0.custom.#",
-			"registry_credential.0.custom.0.%",
-			"registry_credential.0.custom.0.user_assigned_identity_id",
-			"registry_credential.0.custom.0.identity",
-			"registry_credential.0.custom.0.login_server",
-			"registry_credential.0.custom.0.password",
-			"registry_credential.0.custom.0.username",
-		),
+		data.ImportStep(propertiesToIgnore...),
 		{
 			Config: r.fileTaskStepRegistryCredentialIdentity(data, "bar"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(
-			"file_step.0.context_access_token",
-			"registry_credential.0.custom.#",
-			"registry_credential.0.custom.0.%",
-			"registry_credential.0.custom.0.user_assigned_identity_id",
-			"registry_credential.0.custom.0.identity",
-			"registry_credential.0.custom.0.login_server",
-			"registry_credential.0.custom.0.password",
-			"registry_credential.0.custom.0.username",
-		),
+		data.ImportStep(propertiesToIgnore...),
 		{
 			Config: r.fileTaskStepBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
