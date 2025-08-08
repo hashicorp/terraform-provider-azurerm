@@ -872,6 +872,30 @@ func TestAccWindowsVirtualMachineScaleSet_otherGalleryApplicationComplete(t *tes
 	})
 }
 
+func TestAccWindowsVirtualMachineScaleSet_otherGalleryApplicationUpdate(t *testing.T) {
+  data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+  r := LinuxVirtualMachineScaleSetResource{}
+
+  data.ResourceTest(t, r, []acceptance.TestStep{
+    {
+      Config: r.otherGalleryApplicationBasic(data),
+      Check: acceptance.ComposeTestCheckFunc(
+        check.That(data.ResourceName).ExistsInAzure(r),
+        check.That(data.ResourceName).Key("gallery_application.#").HasValue("0"),
+      ),
+    },
+    data.ImportStep("admin_password"),
+    {
+      Config: r.otherGalleryApplicationComplete(data),
+      Check: acceptance.ComposeTestCheckFunc(
+        check.That(data.ResourceName).ExistsInAzure(r),
+        check.That(data.ResourceName).Key("gallery_application.#").HasValue("1"),
+      ),
+    },
+    data.ImportStep("admin_password"),
+  })
+}
+
 func TestAccWindowsVirtualMachineScaleSet_otherCancelRollingUpgrades(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
 	r := WindowsVirtualMachineScaleSetResource{}
