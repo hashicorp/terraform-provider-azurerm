@@ -830,6 +830,22 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
+	if d.HasChange("gallery_application") {
+		updateInstances = true
+
+		galleryApplications := expandVirtualMachineScaleSetGalleryApplication(d.Get("gallery_application").([]interface{}))
+
+		if existing.Model.Properties.VirtualMachineProfile.ApplicationProfile == nil {
+			existing.Model.Properties.VirtualMachineProfile.ApplicationProfile = &virtualmachinescalesets.ApplicationProfile{}
+		}
+		
+		existing.Model.Properties.VirtualMachineProfile.ApplicationProfile.GalleryApplications = galleryApplications
+
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("updating gallery applications for Windows %s: %+v", id, err)
+		}
+	}
+
 	update.Properties = &updateProps
 
 	metaData := virtualMachineScaleSetUpdateMetaData{
