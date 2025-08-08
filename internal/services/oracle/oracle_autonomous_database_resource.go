@@ -122,6 +122,8 @@ func (AutonomousDatabaseRegularResource) Arguments() map[string]*pluginsdk.Schem
 			ValidateFunc: validation.StringInSlice([]string{
 				string(autonomousdatabases.WorkloadTypeDW),
 				string(autonomousdatabases.WorkloadTypeOLTP),
+				string(autonomousdatabases.WorkloadTypeAPEX),
+				string(autonomousdatabases.WorkloadTypeAJD),
 			}, false),
 		},
 
