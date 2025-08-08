@@ -4,8 +4,10 @@
 package monitor
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -14,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2020-10-01/activitylogalertsapis"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -51,10 +54,11 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
+				// NOTE: Name validation requirements documented here: https://learn.microsoft.com/azure/templates/microsoft.insights/activitylogalerts?pivots=deployment-language-terraform
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringIsNotEmpty,
+				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[-\w\._\(\)]+$`), "name must contain only alphanumeric characters, hyphens, underscores, periods, and parentheses"),
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),
@@ -104,6 +108,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 						"level": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							// NOTE: Azure Activity Log levels - no SDK enum available
 							ValidateFunc: validation.StringInSlice([]string{
 								"Verbose",
 								"Informational",
@@ -118,6 +123,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
+								// NOTE: Azure Activity Log levels - no SDK enum available
 								ValidateFunc: validation.StringInSlice([]string{
 									"Verbose",
 									"Informational",
@@ -221,12 +227,14 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 						"recommendation_category": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							// NOTE: Azure Activity Recommendation Category - no SDK enum available
 							ValidateFunc: validation.StringInSlice([]string{
 								"Cost",
 								"Reliability",
 								"OperationalExcellence",
 								"Performance",
 								"HighAvailability",
+								"Security",
 							},
 								false,
 							),
@@ -235,6 +243,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 						"recommendation_impact": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
+							// NOTE: Azure Activity Recommendation Impact levels - no SDK enum available
 							ValidateFunc: validation.StringInSlice([]string{
 								"High",
 								"Medium",
@@ -263,6 +272,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
+											// NOTE: Azure Resource Health status values - no SDK enum available
 											ValidateFunc: validation.StringInSlice([]string{
 												"Available",
 												"Degraded",
@@ -279,6 +289,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
+											// NOTE: Azure Resource Health status values - no SDK enum available
 											ValidateFunc: validation.StringInSlice([]string{
 												"Available",
 												"Degraded",
@@ -295,6 +306,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
+											// NOTE: Azure Resource Health cause values - no SDK enum available
 											ValidateFunc: validation.StringInSlice([]string{
 												"PlatformInitiated",
 												"UserInitiated",
@@ -322,6 +334,7 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
+											// NOTE: Azure Service Health event types - no SDK enum available
 											ValidateFunc: validation.StringInSlice([]string{
 												"Incident",
 												"Maintenance",
@@ -394,6 +407,29 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 
 			"tags": tags.Schema(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, meta interface{}) error {
+				// Validate location constraints for Activity Log Alert resources
+				location := diff.Get("location").(string)
+				normalizedLocation := azure.NormalizeLocation(location)
+
+				supportedLocations := []string{"global", "westeurope", "northeurope", "eastus2euap"}
+				supported := false
+				for _, supportedLocation := range supportedLocations {
+					if normalizedLocation == strings.ToLower(supportedLocation) {
+						supported = true
+						break
+					}
+				}
+
+				if !supported {
+					return fmt.Errorf("`azurerm_monitor_activity_log_alert` resources are only supported in the following regions: [%s], got `%s`", strings.Join(supportedLocations, ", "), location)
+				}
+
+				return nil
+			}),
+		),
 	}
 }
 
