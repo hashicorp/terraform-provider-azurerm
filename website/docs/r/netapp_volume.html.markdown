@@ -247,6 +247,8 @@ An `export_policy_rule` block supports the following:
 
 * `kerberos_5p_read_write_enabled` - (Optional) Is Kerberos 5p read/write permitted to this volume?
 
+* `chown_mode` - (Optional) This parameter specifies who is authorized to change the ownership of a file. Possible values are `Restricted` (The default. Only root user can change the ownership of the file) and `Unrestricted` (Non-root users can change ownership of files that they own).
+
 ---
 
 A `data_protection_replication` block is used when enabling the Cross-Region Replication (CRR) data protection option by deploying two Azure NetApp Files Volumes, one to be a primary volume and the other one will be the secondary, the secondary will have this block and will reference the primary volume, each volume must be in a supported [region pair](https://docs.microsoft.com/azure/azure-netapp-files/cross-region-replication-introduction#supported-region-pairs) and it supports the following:
