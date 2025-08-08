@@ -1412,6 +1412,9 @@ func (m *WindowsFunctionAppModel) unpackWindowsFunctionAppSettings(input *webapp
 		case "APPLICATIONINSIGHTS_CONNECTION_STRING":
 			m.SiteConfig[0].AppInsightsConnectionString = v
 
+		case "APPLICATIONINSIGHTS_AUTHENTICATION_STRING":
+			m.SiteConfig[0].AppInsightsAuthenticationString = v
+
 		case "AzureWebJobsStorage":
 			if strings.HasPrefix(v, "@Microsoft.KeyVault") {
 				trimmed := strings.TrimPrefix(strings.TrimSuffix(v, ")"), "@Microsoft.KeyVault(SecretUri=")
