@@ -10,6 +10,8 @@ description: |-
 
 Manages a Front Door (standard/premium) Route.
 
+!>**Note:** The `azurerm_cdn_frontdoor_route` resource must **explicitly** reference its associated `azurerm_cdn_frontdoor_origin` resource(s). This can be achieved either by using a `depends_on` meta-argument that points to the `azurerm_cdn_frontdoor_origin` resource(s), or by specifying the `azurerm_cdn_frontdoor_origin` IDs via the `cdn_frontdoor_origin_ids` field.
+
 ## Example Usage
 
 ```hcl
@@ -134,15 +136,19 @@ The following arguments are supported:
 
 * `cdn_frontdoor_origin_group_id` - (Required) The resource ID of the Front Door Origin Group where this Front Door Route should be created.
 
-* `cdn_frontdoor_origin_ids` - (Required) One or more Front Door Origin resource IDs that this Front Door Route will link to.
-
-* `forwarding_protocol` - (Optional) The Protocol that will be use when forwarding traffic to backends. Possible values are `HttpOnly`, `HttpsOnly` or `MatchRequest`. Defaults to `MatchRequest`.
-
 * `patterns_to_match` - (Required) The route patterns of the rule.
 
 * `supported_protocols` - (Required) One or more Protocols supported by this Front Door Route. Possible values are `Http` or `Https`.
 
 ~> **Note:** If `https_redirect_enabled` is set to `true` the `supported_protocols` field must contain both `Http` and `Https` values.
+
+* `cdn_frontdoor_origin_ids` - (Optional) One or more Front Door Origin resource IDs for this Front Door Route.
+
+~> **Note:** The `cdn_frontdoor_origin_ids` field is not sent to the Azure API, it exists solely to ensure Terraform can manage the correct `provisioning` and `destruction` order of related resources. When importing an existing `azurerm_cdn_frontdoor_route` resource, you will need to manually add the `cdn_frontdoor_origin_ids` field to your configuration after the resource has been successfully imported.
+
+~> **Note:** If the `cdn_frontdoor_origin_ids` field is not defined in the configuration, you **must** use a `depends_on` meta-argument that references the corresponding `azurerm_cdn_frontdoor_origin` resource(s) for the route. When importing an existing `azurerm_cdn_frontdoor_route` resource from Azure, you will need to manually add the `depends_on` meta-argument to your configuration after the resource has been successfully imported.
+
+* `forwarding_protocol` - (Optional) The Protocol that will be use when forwarding traffic to backends. Possible values are `HttpOnly`, `HttpsOnly` or `MatchRequest`. Defaults to `MatchRequest`.
 
 * `cache` - (Optional) A `cache` block as defined below.
 
