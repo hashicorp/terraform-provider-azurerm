@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/mobilenetwork/2022-11-01/simpolicy"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MobileNetworkSimPolicyResource struct{}
@@ -93,11 +93,11 @@ func (r MobileNetworkSimPolicyResource) Exists(ctx context.Context, clients *cli
 	resp, err := client.SimPoliciesGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r MobileNetworkSimPolicyResource) basic(data acceptance.TestData) string {
@@ -300,12 +300,10 @@ resource "azurerm_mobile_network" "test" {
 }
 
 resource "azurerm_mobile_network_slice" "test" {
-  name              = "acctest-mns-%[1]d"
-  mobile_network_id = azurerm_mobile_network.test.id
-  location          = "%[2]s"
-  single_network_slice_selection_assistance_information {
-    slice_service_type = 1
-  }
+  name               = "acctest-mns-%[1]d"
+  mobile_network_id  = azurerm_mobile_network.test.id
+  location           = "%[2]s"
+  slice_service_type = 1
 }
 
 

@@ -436,7 +436,7 @@ func (r PacketCoreControlPlaneResource) Update() sdk.ResourceFunc {
 				model.Properties.Sku = packetcorecontrolplane.BillingSku(plan.Sku)
 			}
 
-			if metadata.ResourceData.HasChange("version") && plan.SoftwareVersion != "" {
+			if metadata.ResourceData.HasChange("software_version") && plan.SoftwareVersion != "" {
 				model.Properties.Version = &plan.SoftwareVersion
 			}
 
