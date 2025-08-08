@@ -4,6 +4,22 @@ This directory contains installation scripts for setting up AI-powered coding as
 
 ## Quick Start
 
+### Prerequisites
+First, you need to clone the repository and checkout the correct branch:
+
+```bash
+# Clone the repository
+git clone https://github.com/hashicorp/terraform-provider-azurerm.git
+
+# Navigate to the repository
+cd terraform-provider-azurerm
+
+# Checkout the experimental branch with AI features
+git checkout exp/terraform_copilot
+```
+
+Now that you have the repository cloned and the correct branch checked out locally, you can run the installation scripts to set up AI-powered vibe coding assistance:
+
 ### Windows (PowerShell)
 ```powershell
 # Auto-discover repository and install
