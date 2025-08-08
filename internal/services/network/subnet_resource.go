@@ -517,11 +517,13 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		_, nRaw := d.GetChange("network_security_group_id")
 		// o := oRaw.(string)
 		n := nRaw.(string)
+
 		switch {
 		case n != "" && c == "":
-			// Computed value, not configured, don't change anything
+			// Computed value, and not configured explicitly in the resource, don't change anything
 		case c != "":
-			// explicitly configured, safe to assume we can set it as it's direct user input.
+			// explicitly configured value on the subnet resource, so we have to assume the user knows what they're
+			// doing regardless of any possible config by a azurerm_subnet_network_security_group_association resource.
 			nsgID, err := networksecuritygroups.ParseNetworkSecurityGroupID(pointer.From(configNSGID))
 			if err != nil {
 				return err
@@ -529,7 +531,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			props.NetworkSecurityGroup = &subnets.NetworkSecurityGroup{
 				Id: pointer.To(nsgID.ID()),
 			}
-		default:
+		default: // no values, so we remove the NSG from the subnet.
 			props.NetworkSecurityGroup = &subnets.NetworkSecurityGroup{}
 		}
 	}
