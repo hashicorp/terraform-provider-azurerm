@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/dnsforwardingrulesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -65,7 +64,7 @@ func (r PrivateDNSResolverDnsForwardingRulesetDataSource) Attributes() map[strin
 			},
 		},
 
-		"tags": tags.SchemaDataSource(),
+		"tags": commonschema.TagsDataSource(),
 	}
 }
 

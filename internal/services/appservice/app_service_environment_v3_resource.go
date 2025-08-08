@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/appserviceenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -148,7 +147,7 @@ func (r AppServiceEnvironmentV3Resource) Arguments() map[string]*pluginsdk.Schem
 			},
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
