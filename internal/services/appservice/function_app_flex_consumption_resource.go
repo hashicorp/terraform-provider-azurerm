@@ -897,6 +897,10 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				model.Properties.SiteConfig = siteConfig
 			}
 
+			if metadata.ResourceData.HasChange("maximum_instance_count") {
+				model.Properties.FunctionAppConfig.ScaleAndConcurrency.MaximumInstanceCount = pointer.To(state.MaximumInstanceCount)
+			}
+
 			if metadata.ResourceData.HasChange("always_ready") {
 				arc, err := ExpandAlwaysReadyConfiguration(state.AlwaysReady, state.MaximumInstanceCount)
 				if err != nil {

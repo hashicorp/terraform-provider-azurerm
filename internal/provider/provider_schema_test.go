@@ -163,11 +163,6 @@ func TestResourcesHaveEnabledFieldsMarkedAsBooleans(t *testing.T) {
 	// TODO: 4.0 - work through this list
 	resourceFieldsWhichNeedToBeAddressed := map[string]map[string]struct{}{
 		// 1: Fields which require renaming etc
-		"azurerm_netapp_volume": {
-			// should be fixed in 4.0, presumably ditching `_enabled` and making this `protocols_to_use` or something?
-			"protocols_enabled": {},
-		},
-		// 2: False Positives
 		"azurerm_iot_security_solution": {
 			// this is a list of recommendations
 			"recommendations_enabled": {},
@@ -184,6 +179,9 @@ func TestResourcesHaveEnabledFieldsMarkedAsBooleans(t *testing.T) {
 		}
 		resourceFieldsWhichNeedToBeAddressed["azurerm_kubernetes_cluster_node_pool"] = map[string]struct{}{
 			"transparent_huge_page_enabled": {},
+		}
+		resourceFieldsWhichNeedToBeAddressed["azurerm_netapp_volume"] = map[string]struct{}{
+			"protocols_enabled": {},
 		}
 	}
 

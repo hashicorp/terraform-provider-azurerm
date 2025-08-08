@@ -439,8 +439,11 @@ func expandPrometheusRuleModel(inputList []PrometheusRuleModel, d *schema.Resour
 				output.Severity = pointer.To(int64(v.(int)))
 			}
 			output.Annotations = pointer.To(v.Annotations)
-			output.For = pointer.To(v.For)
 			output.ResolveConfiguration = expandPrometheusRuleAlertResolutionModel(v.AlertResolution)
+
+			if v.For != "" {
+				output.For = pointer.To(v.For)
+			}
 		} else {
 			// action, alert, severity, annotations, for, alert_resolution must be empty when type is recording rule
 			output.Record = pointer.To(v.Record)

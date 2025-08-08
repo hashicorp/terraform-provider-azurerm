@@ -5,6 +5,7 @@ package fwserver
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
@@ -27,6 +28,7 @@ type ReadResourceRequest struct {
 	Resource           resource.Resource
 	Private            *privatestate.Data
 	ProviderMeta       *tfsdk.Config
+	ResourceBehavior   resource.ResourceBehavior
 }
 
 // ReadResourceResponse is the framework server response for the
@@ -110,17 +112,25 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 	readReq.Private = privateProviderData
 	readResp.Private = privateProviderData
 
+	readFollowingImport := false
 	if req.Private != nil {
 		if req.Private.Provider != nil {
 			readReq.Private = req.Private.Provider
 			readResp.Private = req.Private.Provider
 		}
 
+		// This internal private field is set on a resource during ImportResourceState to help framework determine if
+		// the resource has been recently imported. We only need to read this once, so we immediately clear it after.
+		_, ok := req.Private.Framework[privatestate.ImportBeforeReadKey]
+		if ok {
+			readFollowingImport = true
+			delete(req.Private.Framework, privatestate.ImportBeforeReadKey)
+		}
+
 		resp.Private = req.Private
 	}
 
 	// If the resource supports identity and there is no current identity data, pre-populate with a null value.
-	// TODO:ResourceIdentity: Is there any reason a provider WOULD NOT want to populate an identity when it supports one?
 	if req.CurrentIdentity == nil && req.IdentitySchema != nil {
 		nullTfValue := tftypes.NewValue(req.IdentitySchema.Type().TerraformType(ctx), nil)
 
@@ -163,14 +173,29 @@ func (s *Server) ReadResource(ctx context.Context, req *ReadResourceRequest, res
 		return
 	}
 
-	if resp.NewIdentity != nil && req.IdentitySchema == nil {
-		resp.Diagnostics.AddError(
-			"Unexpected Read Response",
-			"An unexpected error was encountered when creating the read response. New identity data was returned by the provider read operation, but the resource does not indicate identity support.\n\n"+
-				"This is always a problem with the provider and should be reported to the provider developer.",
-		)
+	if resp.NewIdentity != nil {
+		if req.IdentitySchema == nil {
+			resp.Diagnostics.AddError(
+				"Unexpected Read Response",
+				"An unexpected error was encountered when creating the read response. New identity data was returned by the provider read operation, but the resource does not indicate identity support.\n\n"+
+					"This is always a problem with the provider and should be reported to the provider developer.",
+			)
 
-		return
+			return
+		}
+
+		// If we're refreshing the resource state (excluding a recently imported resource), validate that the new identity isn't changing
+		if !req.ResourceBehavior.MutableIdentity && !readFollowingImport && !req.CurrentIdentity.Raw.IsNull() && !req.CurrentIdentity.Raw.Equal(resp.NewIdentity.Raw) {
+			resp.Diagnostics.AddError(
+				"Unexpected Identity Change",
+				"During the read operation, the Terraform Provider unexpectedly returned a different identity then the previously stored one.\n\n"+
+					"This is always a problem with the provider and should be reported to the provider developer.\n\n"+
+					fmt.Sprintf("Current Identity: %s\n\n", req.CurrentIdentity.Raw.String())+
+					fmt.Sprintf("New Identity: %s", resp.NewIdentity.Raw.String()),
+			)
+
+			return
+		}
 	}
 
 	semanticEqualityReq := SchemaSemanticEqualityRequest{

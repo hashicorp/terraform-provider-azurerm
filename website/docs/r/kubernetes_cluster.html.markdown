@@ -572,7 +572,7 @@ A `maintenance_window` block supports the following:
 
 A `maintenance_window_auto_upgrade` block supports the following:
 
-* `frequency` - (Required) Frequency of maintenance. Possible options are `Weekly`, `AbsoluteMonthly` and `RelativeMonthly`.
+* `frequency` - (Required) Frequency of maintenance. Possible options are `Daily`, `Weekly`, `AbsoluteMonthly` and `RelativeMonthly`.
 
 * `interval` - (Required) The interval for maintenance runs. Depending on the frequency this interval is week or month based.
 
@@ -899,6 +899,8 @@ A `web_app_routing` block supports the following:
 
 * `dns_zone_ids` - (Required) Specifies the list of the DNS Zone IDs in which DNS entries are created for applications deployed to the cluster when Web App Routing is enabled. If not using Bring-Your-Own DNS zones this property should be set to an empty list.
 
+* `default_nginx_controller` - (Optional) Specifies the ingress type for the default `NginxIngressController` custom resource. The allowed values are `None`, `Internal`, `External` and `AnnotationControlled`. It defaults to `AnnotationControlled`.
+
 ---
 
 A `windows_profile` block supports the following:
@@ -1167,4 +1169,4 @@ terraform import azurerm_kubernetes_cluster.cluster1 /subscriptions/00000000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerService`: 2025-02-01
+* `Microsoft.ContainerService` - 2025-02-01

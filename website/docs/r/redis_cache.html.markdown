@@ -249,4 +249,4 @@ terraform import azurerm_redis_cache.cache1 /subscriptions/00000000-0000-0000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Cache`: 2024-11-01
+* `Microsoft.Cache` - 2024-11-01

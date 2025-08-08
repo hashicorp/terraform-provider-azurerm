@@ -52,7 +52,15 @@ func (s *Server) ApplyResourceChange(ctx context.Context, proto6Req *tfprotov6.A
 		return toproto6.ApplyResourceChangeResponse(ctx, fwResp), nil
 	}
 
-	fwReq, diags := fromproto6.ApplyResourceChangeRequest(ctx, proto6Req, resource, resourceSchema, providerMetaSchema, identitySchema)
+	resourceBehavior, diags := s.FrameworkServer.ResourceBehavior(ctx, proto6Req.TypeName)
+
+	fwResp.Diagnostics.Append(diags...)
+
+	if fwResp.Diagnostics.HasError() {
+		return toproto6.ApplyResourceChangeResponse(ctx, fwResp), nil
+	}
+
+	fwReq, diags := fromproto6.ApplyResourceChangeRequest(ctx, proto6Req, resource, resourceSchema, providerMetaSchema, resourceBehavior, identitySchema)
 
 	fwResp.Diagnostics.Append(diags...)
 
