@@ -3,6 +3,7 @@
 ENHANCEMENTS:
 
 FEATURES:
+* **New Resource**: `azurerm_data_factory_customer_managed_key` [GH-30341]
 
 BUG FIXES:
 
