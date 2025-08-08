@@ -1030,14 +1030,15 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  storage_container_type            = "blobContainer"
-  storage_container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  storage_authentication_type       = "UserAssignedIdentity"
-  storage_user_assigned_identity_id = azurerm_user_assigned_identity.test1.id
-  runtime_name                      = "node"
-  runtime_version                   = "20"
-  maximum_instance_count            = 50
-  instance_memory_in_mb             = 2048
+  storage_container_type                   = "blobContainer"
+  storage_container_endpoint               = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+  storage_authentication_type              = "UserAssignedIdentity"
+  storage_user_assigned_identity_id        = azurerm_user_assigned_identity.test1.id
+  storage_user_assigned_identity_client_id = azurerm_user_assigned_identity.test1.client_id
+  runtime_name                             = "node"
+  runtime_version                          = "20"
+  maximum_instance_count                   = 50
+  instance_memory_in_mb                    = 2048
 
   site_config {}
 }
@@ -1064,14 +1065,15 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  storage_container_type            = "blobContainer"
-  storage_container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  storage_authentication_type       = "UserAssignedIdentity"
-  storage_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
-  runtime_name                      = "node"
-  runtime_version                   = "20"
-  maximum_instance_count            = 50
-  instance_memory_in_mb             = 2048
+  storage_container_type                   = "blobContainer"
+  storage_container_endpoint               = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+  storage_authentication_type              = "UserAssignedIdentity"
+  storage_user_assigned_identity_id        = azurerm_user_assigned_identity.test2.id
+  storage_user_assigned_identity_client_id = azurerm_user_assigned_identity.test2.client_id
+  runtime_name                             = "node"
+  runtime_version                          = "20"
+  maximum_instance_count                   = 50
+  instance_memory_in_mb                    = 2048
 
   site_config {}
 }
@@ -1098,14 +1100,15 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  storage_container_type            = "blobContainer"
-  storage_container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
-  storage_authentication_type       = "UserAssignedIdentity"
-  storage_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
-  runtime_name                      = "node"
-  runtime_version                   = "%s"
-  maximum_instance_count            = 50
-  instance_memory_in_mb             = 2048
+  storage_container_type                   = "blobContainer"
+  storage_container_endpoint               = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+  storage_authentication_type              = "UserAssignedIdentity"
+  storage_user_assigned_identity_id        = azurerm_user_assigned_identity.test2.id
+  storage_user_assigned_identity_client_id = azurerm_user_assigned_identity.test2.client_id
+  runtime_name                             = "node"
+  runtime_version                          = "%s"
+  maximum_instance_count                   = 50
+  instance_memory_in_mb                    = 2048
 
   site_config {}
 }
@@ -1132,14 +1135,15 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  storage_container_type            = "blobContainer"
-  storage_container_endpoint        = azurerm_storage_container.test.id
-  storage_authentication_type       = "UserAssignedIdentity"
-  storage_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
-  runtime_name                      = "node"
-  runtime_version                   = "20"
-  maximum_instance_count            = 100
-  instance_memory_in_mb             = 2048
+  storage_container_type                   = "blobContainer"
+  storage_container_endpoint               = azurerm_storage_container.test.id
+  storage_authentication_type              = "UserAssignedIdentity"
+  storage_user_assigned_identity_id        = azurerm_user_assigned_identity.test2.id
+  storage_user_assigned_identity_client_id = azurerm_user_assigned_identity.test2.client_id
+  runtime_name                             = "node"
+  runtime_version                          = "20"
+  maximum_instance_count                   = 100
+  instance_memory_in_mb                    = 2048
   always_ready {
     name           = "function:myHelloWorldFunction"
     instance_count = 20
@@ -1173,14 +1177,15 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  storage_container_type            = "blobContainer"
-  storage_container_endpoint        = azurerm_storage_container.test.id
-  storage_authentication_type       = "UserAssignedIdentity"
-  storage_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
-  runtime_name                      = "node"
-  runtime_version                   = "20"
-  maximum_instance_count            = 100
-  instance_memory_in_mb             = 2048
+  storage_container_type                   = "blobContainer"
+  storage_container_endpoint               = azurerm_storage_container.test.id
+  storage_authentication_type              = "UserAssignedIdentity"
+  storage_user_assigned_identity_id        = azurerm_user_assigned_identity.test2.id
+  storage_user_assigned_identity_client_id = azurerm_user_assigned_identity.test2.client_id
+  runtime_name                             = "node"
+  runtime_version                          = "20"
+  maximum_instance_count                   = 100
+  instance_memory_in_mb                    = 2048
   always_ready {
     name           = "blob"
     instance_count = 20
@@ -1214,14 +1219,15 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  storage_container_type            = "blobContainer"
-  storage_container_endpoint        = azurerm_storage_container.test.id
-  storage_authentication_type       = "UserAssignedIdentity"
-  storage_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
-  runtime_name                      = "node"
-  runtime_version                   = "20"
-  maximum_instance_count            = 50
-  instance_memory_in_mb             = 2048
+  storage_container_type                   = "blobContainer"
+  storage_container_endpoint               = azurerm_storage_container.test.id
+  storage_authentication_type              = "UserAssignedIdentity"
+  storage_user_assigned_identity_id        = azurerm_user_assigned_identity.test2.id
+  storage_user_assigned_identity_client_id = azurerm_user_assigned_identity.test2.client_id
+  runtime_name                             = "node"
+  runtime_version                          = "20"
+  maximum_instance_count                   = 50
+  instance_memory_in_mb                    = 2048
   always_ready {
     name           = "blob"
     instance_count = 20
@@ -1256,14 +1262,15 @@ resource "azurerm_function_app_flex_consumption" "test" {
   resource_group_name = azurerm_resource_group.test.name
   service_plan_id     = azurerm_service_plan.test.id
 
-  storage_container_type            = "blobContainer"
-  storage_container_endpoint        = azurerm_storage_container.test.id
-  storage_authentication_type       = "UserAssignedIdentity"
-  storage_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
-  runtime_name                      = "node"
-  runtime_version                   = "20"
-  maximum_instance_count            = 100
-  instance_memory_in_mb             = 2048
+  storage_container_type                   = "blobContainer"
+  storage_container_endpoint               = azurerm_storage_container.test.id
+  storage_authentication_type              = "UserAssignedIdentity"
+  storage_user_assigned_identity_id        = azurerm_user_assigned_identity.test2.id
+  storage_user_assigned_identity_client_id = azurerm_user_assigned_identity.test2.client_id
+  runtime_name                             = "node"
+  runtime_version                          = "20"
+  maximum_instance_count                   = 100
+  instance_memory_in_mb                    = 2048
   always_ready {
     name           = "function:myHelloWorldFunction"
     instance_count = 20
