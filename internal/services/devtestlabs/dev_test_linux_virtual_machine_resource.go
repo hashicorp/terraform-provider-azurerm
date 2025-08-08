@@ -140,7 +140,7 @@ func resourceArmDevTestLinuxVirtualMachine() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			"fqdn": {
 				Type:     pluginsdk.TypeString,

@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/partnerregistrations"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -46,7 +45,7 @@ func (EventGridPartnerRegistrationResource) Arguments() map[string]*pluginsdk.Sc
 			),
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
-		"tags":                tags.Schema(),
+		"tags":                commonschema.Tags(),
 	}
 }
 

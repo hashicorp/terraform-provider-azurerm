@@ -41,6 +41,17 @@ func Tags() *schema.Schema {
 	}
 }
 
+func TagsWithMaximumElements(m int) *schema.Schema {
+	return &schema.Schema{
+		Type:         schema.TypeMap,
+		Optional:     true,
+		ValidateFunc: tags.ValidateWithMaximumElements(m),
+		Elem: &schema.Schema{
+			Type: schema.TypeString,
+		},
+	}
+}
+
 func TagsWithLowerCaseKeys() *schema.Schema {
 	return &schema.Schema{
 		Type:         schema.TypeMap,
