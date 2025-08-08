@@ -254,9 +254,7 @@ func (r SliceResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("slice_service_type") {
-				updateModel.Properties.Snssai = slice.Snssai{
-					Sst: model.SliceServiceType,
-				}
+				updateModel.Properties.Snssai.Sst = model.SliceServiceType
 			}
 
 			if metadata.ResourceData.HasChange("slice_differentiator") {
@@ -314,10 +312,7 @@ func (r SliceResource) Read() sdk.ResourceFunc {
 				if model.Properties.Snssai.Sd != nil {
 					state.SliceDifferentiator = *model.Properties.Snssai.Sd
 				}
-
-				if model.Tags != nil {
-					state.Tags = *model.Tags
-				}
+				state.Tags = pointer.From(model.Tags)
 			}
 
 			return metadata.Encode(&state)
