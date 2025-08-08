@@ -43,13 +43,11 @@ resource "azurerm_eventgrid_system_topic" "example" {
 
 The following arguments are supported:
 
-* `location` - (Required) The Azure Region where the Event Grid System Topic should exist. Changing this forces a new Event Grid System Topic to be created.
-
 * `name` - (Required) The name which should be used for this Event Grid System Topic. Changing this forces a new Event Grid System Topic to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Event Grid System Topic should exist. Changing this forces a new Event Grid System Topic to be created.
 
-* `identity` - (Optional) An `identity` block as defined below.
+* `location` - (Required) The Azure Region where the Event Grid System Topic should exist. Changing this forces a new Event Grid System Topic to be created.
 
 * `source_resource_id` - (Required) The ID of the Event Grid System Topic ARM Source. Changing this forces a new Event Grid System Topic to be created.
 
@@ -61,19 +59,21 @@ The following arguments are supported:
 
 ---
 
-A `identity` block supports the following:
+* `identity` - (Optional) An `identity` block as defined below.
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Event Grid System Topic. Possible values are `SystemAssigned`, `UserAssigned`.
-
-* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Event Grid System Topic.
-
-~> **Note:** This is required when `type` is set to `UserAssigned`
-
-~> **Note:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the Event Grid System Topic has been created. More details are available below.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Event Grid System Topic.
 
 ---
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Event Grid System Topic.
+A `identity` block supports the following:
+
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Event Grid System Topic. Possible values are `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned`.
+
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Event Grid System Topic.
+
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+~> **Note:** When `type` is set to `SystemAssigned`, The assigned `principal_id` and `tenant_id` can be retrieved after the Event Grid System Topic has been created.
 
 ## Attributes Reference
 
