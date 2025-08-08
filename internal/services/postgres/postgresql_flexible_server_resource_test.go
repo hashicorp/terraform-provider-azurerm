@@ -954,6 +954,8 @@ resource "azurerm_subnet" "test" {
 resource "azurerm_private_dns_zone" "test" {
   name                = "acc%[2]d.postgres.database.azure.com"
   resource_group_name = azurerm_resource_group.test.name
+
+  depends_on = [azurerm_subnet.test]
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "test" {
@@ -961,8 +963,6 @@ resource "azurerm_private_dns_zone_virtual_network_link" "test" {
   private_dns_zone_name = azurerm_private_dns_zone.test.name
   virtual_network_id    = azurerm_virtual_network.test.id
   resource_group_name   = azurerm_resource_group.test.name
-
-  depends_on = [azurerm_subnet.test]
 }
 
 resource "azurerm_postgresql_flexible_server" "test" {
@@ -1031,6 +1031,8 @@ resource "azurerm_subnet" "test" {
 resource "azurerm_private_dns_zone" "test" {
   name                = "acc%[2]d.postgres.database.azure.com"
   resource_group_name = azurerm_resource_group.test.name
+
+  depends_on = [azurerm_subnet.test]
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "test" {
@@ -1038,8 +1040,6 @@ resource "azurerm_private_dns_zone_virtual_network_link" "test" {
   private_dns_zone_name = azurerm_private_dns_zone.test.name
   virtual_network_id    = azurerm_virtual_network.test.id
   resource_group_name   = azurerm_resource_group.test.name
-
-  depends_on = [azurerm_subnet.test]
 }
 
 resource "azurerm_postgresql_flexible_server" "test" {
