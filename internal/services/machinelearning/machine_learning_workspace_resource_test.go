@@ -549,7 +549,8 @@ resource "azurerm_machine_learning_workspace" "test" {
   }
 
   managed_network {
-    isolation_mode = "AllowInternetOutbound"
+    isolation_mode                = "AllowInternetOutbound"
+    provision_on_creation_enabled = true
   }
 
   tags = {
@@ -627,7 +628,8 @@ resource "azurerm_machine_learning_workspace" "test" {
   }
 
   managed_network {
-    isolation_mode = "AllowInternetOutbound"
+    isolation_mode                = "AllowInternetOutbound"
+    provision_on_creation_enabled = true
   }
 
   tags = {
