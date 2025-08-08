@@ -110,13 +110,10 @@ provider "azurerm" {
 %s
 
 resource "azurerm_mobile_network_slice" "test" {
-  name              = "acctest-mns-%d"
-  mobile_network_id = azurerm_mobile_network.test.id
-  location          = azurerm_mobile_network.test.location
-
-  single_network_slice_selection_assistance_information {
-    slice_service_type = 1
-  }
+  name               = "acctest-mns-%d"
+  mobile_network_id  = azurerm_mobile_network.test.id
+  location           = azurerm_mobile_network.test.location
+  slice_service_type = 1
 }
 `, r.template(data), data.RandomInteger)
 	}
@@ -187,10 +184,7 @@ resource "azurerm_mobile_network_slice" "test" {
   mobile_network_id  = azurerm_mobile_network.test.id
   location           = azurerm_mobile_network.test.location
   description        = "my favorite slice2"
-  slice_service_type = 1
-  single_network_slice_selection_assistance_information {
-    slice_service_type = 2
-  }
+  slice_service_type = 2
 
   tags = {
     key = "value"
