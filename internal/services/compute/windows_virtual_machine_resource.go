@@ -1716,8 +1716,6 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-
-
 	if shouldUpdate {
 		log.Printf("[DEBUG] Updating Windows %s", id)
 		if err := client.UpdateThenPoll(ctx, *id, update, virtualmachines.DefaultUpdateOperationOptions()); err != nil {
