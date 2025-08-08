@@ -98,6 +98,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"admin_password_wo_version": {
 				Type:         pluginsdk.TypeInt,
 				Optional:     true,
+				ForceNew:     true,
 				RequiredWith: []string{"admin_password_wo"},
 			},
 
@@ -1715,22 +1716,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	if d.HasChange("admin_password_wo_version") {
-		shouldUpdate = true
 
-		if update.Properties.OsProfile == nil {
-			update.Properties.OsProfile = &virtualmachines.OSProfile{}
-		}
-
-		woPassword, err := pluginsdk.GetWriteOnly(d, "admin_password_wo", cty.String)
-		if err != nil {
-			return err
-		}
-
-		if !woPassword.IsNull() {
-			update.Properties.OsProfile.AdminPassword = pointer.To(woPassword.AsString())
-		}
-	}
 
 	if shouldUpdate {
 		log.Printf("[DEBUG] Updating Windows %s", id)
