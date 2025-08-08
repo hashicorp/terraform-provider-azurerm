@@ -50,6 +50,47 @@ func parseAadAuthFailureMode(input string) (*AadAuthFailureMode, error) {
 	return &out, nil
 }
 
+type ComputeType string
+
+const (
+	ComputeTypeConfidential ComputeType = "confidential"
+	ComputeTypeDefault      ComputeType = "default"
+)
+
+func PossibleValuesForComputeType() []string {
+	return []string{
+		string(ComputeTypeConfidential),
+		string(ComputeTypeDefault),
+	}
+}
+
+func (s *ComputeType) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseComputeType(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseComputeType(input string) (*ComputeType, error) {
+	vals := map[string]ComputeType{
+		"confidential": ComputeTypeConfidential,
+		"default":      ComputeTypeDefault,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ComputeType(input)
+	return &out, nil
+}
+
 type HostingMode string
 
 const (
@@ -194,9 +235,9 @@ func parsePrivateLinkServiceConnectionStatus(input string) (*PrivateLinkServiceC
 type ProvisioningState string
 
 const (
-	ProvisioningStateFailed       ProvisioningState = "Failed"
-	ProvisioningStateProvisioning ProvisioningState = "Provisioning"
-	ProvisioningStateSucceeded    ProvisioningState = "Succeeded"
+	ProvisioningStateFailed       ProvisioningState = "failed"
+	ProvisioningStateProvisioning ProvisioningState = "provisioning"
+	ProvisioningStateSucceeded    ProvisioningState = "succeeded"
 )
 
 func PossibleValuesForProvisioningState() []string {
@@ -317,14 +358,12 @@ func parseResourceType(input string) (*ResourceType, error) {
 type SearchBypass string
 
 const (
-	SearchBypassAzurePortal   SearchBypass = "AzurePortal"
 	SearchBypassAzureServices SearchBypass = "AzureServices"
 	SearchBypassNone          SearchBypass = "None"
 )
 
 func PossibleValuesForSearchBypass() []string {
 	return []string{
-		string(SearchBypassAzurePortal),
 		string(SearchBypassAzureServices),
 		string(SearchBypassNone),
 	}
@@ -345,7 +384,6 @@ func (s *SearchBypass) UnmarshalJSON(bytes []byte) error {
 
 func parseSearchBypass(input string) (*SearchBypass, error) {
 	vals := map[string]SearchBypass{
-		"azureportal":   SearchBypassAzurePortal,
 		"azureservices": SearchBypassAzureServices,
 		"none":          SearchBypassNone,
 	}
@@ -358,24 +396,24 @@ func parseSearchBypass(input string) (*SearchBypass, error) {
 	return &out, nil
 }
 
-type SearchDisabledDataExfiltrationOption string
+type SearchDataExfiltrationProtection string
 
 const (
-	SearchDisabledDataExfiltrationOptionAll SearchDisabledDataExfiltrationOption = "All"
+	SearchDataExfiltrationProtectionBlockAll SearchDataExfiltrationProtection = "BlockAll"
 )
 
-func PossibleValuesForSearchDisabledDataExfiltrationOption() []string {
+func PossibleValuesForSearchDataExfiltrationProtection() []string {
 	return []string{
-		string(SearchDisabledDataExfiltrationOptionAll),
+		string(SearchDataExfiltrationProtectionBlockAll),
 	}
 }
 
-func (s *SearchDisabledDataExfiltrationOption) UnmarshalJSON(bytes []byte) error {
+func (s *SearchDataExfiltrationProtection) UnmarshalJSON(bytes []byte) error {
 	var decoded string
 	if err := json.Unmarshal(bytes, &decoded); err != nil {
 		return fmt.Errorf("unmarshaling: %+v", err)
 	}
-	out, err := parseSearchDisabledDataExfiltrationOption(decoded)
+	out, err := parseSearchDataExfiltrationProtection(decoded)
 	if err != nil {
 		return fmt.Errorf("parsing %q: %+v", decoded, err)
 	}
@@ -383,16 +421,16 @@ func (s *SearchDisabledDataExfiltrationOption) UnmarshalJSON(bytes []byte) error
 	return nil
 }
 
-func parseSearchDisabledDataExfiltrationOption(input string) (*SearchDisabledDataExfiltrationOption, error) {
-	vals := map[string]SearchDisabledDataExfiltrationOption{
-		"all": SearchDisabledDataExfiltrationOptionAll,
+func parseSearchDataExfiltrationProtection(input string) (*SearchDataExfiltrationProtection, error) {
+	vals := map[string]SearchDataExfiltrationProtection{
+		"blockall": SearchDataExfiltrationProtectionBlockAll,
 	}
 	if v, ok := vals[strings.ToLower(input)]; ok {
 		return &v, nil
 	}
 
 	// otherwise presume it's an undefined value and best-effort it
-	out := SearchDisabledDataExfiltrationOption(input)
+	out := SearchDataExfiltrationProtection(input)
 	return &out, nil
 }
 
@@ -772,5 +810,46 @@ func parseUnavailableNameReason(input string) (*UnavailableNameReason, error) {
 
 	// otherwise presume it's an undefined value and best-effort it
 	out := UnavailableNameReason(input)
+	return &out, nil
+}
+
+type UpgradeAvailable string
+
+const (
+	UpgradeAvailableAvailable    UpgradeAvailable = "available"
+	UpgradeAvailableNotAvailable UpgradeAvailable = "notAvailable"
+)
+
+func PossibleValuesForUpgradeAvailable() []string {
+	return []string{
+		string(UpgradeAvailableAvailable),
+		string(UpgradeAvailableNotAvailable),
+	}
+}
+
+func (s *UpgradeAvailable) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseUpgradeAvailable(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseUpgradeAvailable(input string) (*UpgradeAvailable, error) {
+	vals := map[string]UpgradeAvailable{
+		"available":    UpgradeAvailableAvailable,
+		"notavailable": UpgradeAvailableNotAvailable,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := UpgradeAvailable(input)
 	return &out, nil
 }
