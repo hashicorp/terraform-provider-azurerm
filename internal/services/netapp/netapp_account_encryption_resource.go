@@ -249,6 +249,11 @@ func (r NetAppAccountEncryptionResource) Read() sdk.ResourceFunc {
 				FederatedClientID: federatedClientID,
 			}
 
+			// Populate cross-tenant key vault resource ID if available
+			if existing.Model.Properties.Encryption.KeyVaultProperties != nil && existing.Model.Properties.Encryption.KeyVaultProperties.KeyVaultResourceId != nil {
+				model.CrossTenantKeyVaultResourceID = pointer.From(existing.Model.Properties.Encryption.KeyVaultProperties.KeyVaultResourceId)
+			}
+
 			if len(anfAccountIdentityFlattened) > 0 {
 				if anfAccountIdentityFlattened[0].Type == identity.TypeSystemAssigned {
 					model.SystemAssignedIdentityPrincipalID = anfAccountIdentityFlattened[0].PrincipalId

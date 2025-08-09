@@ -54,8 +54,11 @@ In cross-tenant scenarios, `is_manual_connection = true` is often required becau
 
 1. **Coordinate with Remote Tenant**: Ensure the key vault, keys, and permissions are set up in the remote tenant
 2. **Set Variables**: Configure all required variables with the remote tenant resource details
-3. **Deploy**: Run `terraform plan` and `terraform apply`
-4. **Approve Connection**: If using manual approval, coordinate with remote tenant administrators to approve the private endpoint connection
+3. **Choose Wait Method**: Set `private_endpoint_approval_wait_method` to control how Terraform waits for approval:
+   - `"time"`: Terraform will wait for a fixed time period (specify with `private_endpoint_approval_wait_time`)
+   - `"none"`: No wait (you'll need to manage approval timing manually)
+4. **Deploy**: Run `terraform plan` and `terraform apply`
+5. **Approve Connection**: Watch for private endpoint approval timing (see "Private Endpoint Approval" section below)
 
 ## Example terraform.tfvars
 
@@ -79,7 +82,43 @@ cross_tenant_key_vault_resource_id = "/subscriptions/11111111-1111-1111-1111-111
 
 # Require manual approval for cross-tenant private endpoint
 private_endpoint_manual_approval = true
+
+# Wait method configuration
+private_endpoint_approval_wait_method = "time"  # or "none"
+private_endpoint_approval_wait_time   = 15      # minutes (only used with "time" method)
 ```
+
+## Private Endpoint Approval
+
+### When Using "time" Wait Method
+
+When `private_endpoint_approval_wait_method = "time"` is configured, Terraform will wait for the specified time period before continuing. During this wait, you'll see messages like:
+
+```
+time_sleep.private_endpoint_approval_time_wait[0]: Still creating... [2m30s elapsed]
+time_sleep.private_endpoint_approval_time_wait[0]: Still creating... [2m40s elapsed]
+```
+
+**Action Required:** When you see these "Still creating..." messages, coordinate with the remote tenant administrators to:
+
+1. Go to the Azure Portal in the **remote tenant**
+2. Navigate to the Key Vault: `<your-cross-tenant-key-vault-name>`
+3. Go to **Networking** → **Private endpoint connections**
+4. Find the pending connection request
+5. **Approve** the private endpoint connection
+
+The approval should happen as soon as possible after seeing the "Still creating..." messages. The wait time provides a buffer for this manual coordination process.
+
+### When Using "none" Wait Method
+
+With `private_endpoint_approval_wait_method = "none"`, Terraform will not wait and will immediately proceed. You must ensure the private endpoint is approved beforehand or the NetApp volume creation may fail.
+
+### Identifying the Connection Request
+
+In the remote tenant's Key Vault, look for a private endpoint connection request with:
+- **Source subscription**: Your local subscription ID
+- **Resource group**: Your local resource group name
+- **Connection name**: Will contain your prefix (e.g., `anf-ct-cmk-pe-ct-akv`)
 
 ## Important Notes
 

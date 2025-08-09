@@ -64,3 +64,20 @@ variable "cross_tenant_key_vault_resource_id" {
   type        = string
   default     = ""
 }
+
+# Private endpoint approval wait configuration
+variable "private_endpoint_approval_wait_method" {
+  description = "Method to wait for private endpoint approval: 'time' for fixed wait, 'none' for no wait"
+  type        = string
+  default     = "time"
+  validation {
+    condition     = contains(["time", "none"], var.private_endpoint_approval_wait_method)
+    error_message = "The private_endpoint_approval_wait_method must be one of: time, none."
+  }
+}
+
+variable "private_endpoint_approval_wait_time" {
+  description = "Time to wait (in minutes) for private endpoint approval when using 'time' method"
+  type        = number
+  default     = 10
+}

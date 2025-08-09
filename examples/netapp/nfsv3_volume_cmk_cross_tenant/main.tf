@@ -16,6 +16,10 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~>4.0"
     }
+    time = {
+      source  = "hashicorp/time"
+      version = "~>0.9"
+    }
   }
 }
 
@@ -103,6 +107,19 @@ resource "azurerm_private_endpoint" "cross_tenant" {
   depends_on = [azurerm_private_dns_zone_virtual_network_link.keyvault]
 }
 
+# Time-based wait for private endpoint approval
+resource "time_sleep" "private_endpoint_approval_time_wait" {
+  count = var.private_endpoint_manual_approval && var.private_endpoint_approval_wait_method == "time" ? 1 : 0
+
+  create_duration = "${var.private_endpoint_approval_wait_time}m"
+
+  triggers = {
+    private_endpoint_id = azurerm_private_endpoint.cross_tenant.id
+  }
+
+  depends_on = [azurerm_private_endpoint.cross_tenant]
+}
+
 resource "azurerm_netapp_account" "example" {
   name                = "${var.prefix}-netappaccount"
   location            = azurerm_resource_group.example.location
@@ -130,6 +147,19 @@ output "debug_netapp_account_id" {
   value = azurerm_netapp_account.example.id
 }
 
+# Private endpoint approval information
+output "private_endpoint_approval_info" {
+  description = "Information needed for private endpoint approval in remote tenant"
+  value = var.private_endpoint_manual_approval ? {
+    private_endpoint_id    = azurerm_private_endpoint.cross_tenant.id
+    remote_subscription_id = var.remote_subscription_id
+    key_vault_name        = var.cross_tenant_key_vault_name
+    resource_group_name   = var.cross_tenant_resource_group_name
+    connection_name       = azurerm_private_endpoint.cross_tenant.name
+    approval_instructions = "In the remote tenant, go to Key Vault '${var.cross_tenant_key_vault_name}' → Networking → Private endpoint connections → Approve the pending connection"
+  } : null
+}
+
 # END Debug outputs
 
 # NetApp Account Encryption with Cross-Tenant CMK
@@ -152,7 +182,8 @@ resource "azurerm_netapp_account_encryption" "example" {
   cross_tenant_key_vault_resource_id = var.cross_tenant_key_vault_resource_id
 
   depends_on = [
-    azurerm_netapp_account.example
+    azurerm_netapp_account.example,
+    time_sleep.private_endpoint_approval_time_wait
   ]
 }
 
