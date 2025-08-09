@@ -712,7 +712,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   dns_prefix          = "acctestaks%d"
 
   bootstrap_profile {
-    artifact_source = "%s"
+    artifact_source       = "%s"
     container_registry_id = azurerm_container_registry.test.id
   }
 
