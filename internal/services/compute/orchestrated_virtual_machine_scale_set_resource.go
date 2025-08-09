@@ -42,7 +42,7 @@ const (
 )
 
 func orchestratedVirtualMachineScaleSetSkuProfileSchema() *pluginsdk.Schema {
-	skuProfileSchema := map[string]*pluginsdk.Schema{
+	baseSchema := map[string]*pluginsdk.Schema{
 		"allocation_strategy": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -51,8 +51,47 @@ func orchestratedVirtualMachineScaleSetSkuProfileSchema() *pluginsdk.Schema {
 				false,
 			),
 		},
-		"vm_size": {
+	}
+
+	if !features.FivePointOh() {
+		// Pre-5.0 mode: Include deprecated vm_sizes field and make vm_size optional
+		baseSchema["vm_sizes"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeSet,
+			Optional:      true,
+			MinItems:      1,
+			ConflictsWith: []string{"sku_profile.0.vm_size"},
+			Deprecated:    "The `vm_sizes` field has been deprecated and will be removed in v5.0 of the AzureRM Provider. Please use the `vm_size` field instead.",
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
+		}
+
+		baseSchema["vm_size"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeSet,
+			Optional:      true,
+			MinItems:      1,
+			ConflictsWith: []string{"sku_profile.0.vm_sizes"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"rank": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntBetween(0, 2),
+					},
+				},
+			},
+		}
+	} else {
+		// 5.0 mode: Only vm_size field, and it's required
+		baseSchema["vm_size"] = &pluginsdk.Schema{
 			Type:     pluginsdk.TypeSet,
+			Required: true,
 			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
@@ -68,26 +107,7 @@ func orchestratedVirtualMachineScaleSetSkuProfileSchema() *pluginsdk.Schema {
 					},
 				},
 			},
-		},
-	}
-
-	if !features.FivePointOh() {
-		skuProfileSchema["vm_sizes"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeSet,
-			Optional:      true,
-			MinItems:      1,
-			ConflictsWith: []string{"sku_profile.0.vm_size"},
-			Deprecated:    "The `vm_sizes` field has been deprecated and will be removed in v5.0 of the AzureRM Provider. Please use the `vm_size` field instead.",
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
 		}
-
-		skuProfileSchema["vm_size"].Optional = true
-		skuProfileSchema["vm_size"].ConflictsWith = []string{"sku_profile.0.vm_sizes"}
-	} else {
-		skuProfileSchema["vm_size"].Required = true
 	}
 
 	return &pluginsdk.Schema{
@@ -95,7 +115,7 @@ func orchestratedVirtualMachineScaleSetSkuProfileSchema() *pluginsdk.Schema {
 		Optional: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
-			Schema: skuProfileSchema,
+			Schema: baseSchema,
 		},
 	}
 }
