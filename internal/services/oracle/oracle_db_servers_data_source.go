@@ -1,4 +1,5 @@
-// Copyright © 2024, Oracle and/or its affiliates. All rights reserved
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
 
 package oracle
 
@@ -10,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2024-06-01/dbservers"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/dbservers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -28,6 +29,7 @@ type DBServerDataModel struct {
 	AutonomousVMClusterIds      []string `tfschema:"autonomous_vm_cluster_ids"`
 	AutonomousVirtualMachineIds []string `tfschema:"autonomous_virtual_machine_ds"`
 	CompartmentId               string   `tfschema:"compartment_id"`
+	ComputeModel                string   `tfschema:"compute_model"`
 	CpuCoreCount                int64    `tfschema:"cpu_core_count"`
 	DbNodeIds                   []string `tfschema:"db_node_ids"`
 	DbNodeStorageSizeInGbs      int64    `tfschema:"db_node_storage_size_in_gbs"`
@@ -81,6 +83,11 @@ func (d DBServersDataSource) Attributes() map[string]*pluginsdk.Schema {
 					},
 
 					"compartment_id": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+
+					"compute_model": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
@@ -212,6 +219,7 @@ func (d DBServersDataSource) Read() sdk.ResourceFunc {
 							AutonomousVMClusterIds:      pointer.From(props.AutonomousVMClusterIds),
 							AutonomousVirtualMachineIds: pointer.From(props.AutonomousVirtualMachineIds),
 							CompartmentId:               pointer.From(props.CompartmentId),
+							ComputeModel:                pointer.FromEnum(props.ComputeModel),
 							CpuCoreCount:                pointer.From(props.CpuCoreCount),
 							DbNodeIds:                   pointer.From(props.DbNodeIds),
 							DbNodeStorageSizeInGbs:      pointer.From(props.DbNodeStorageSizeInGbs),

@@ -16,7 +16,9 @@ Gets a list of supported GI versions.
 
 ```hcl
 data "azurerm_oracle_gi_versions" "example" {
-  location = "West Europe"
+  location = "eastus"
+  zone     = "2"
+  shape    = "Exadata.X9M"
 }
 
 output "example" {
@@ -29,6 +31,10 @@ output "example" {
 The following arguments are supported:
 
 * `location` - (Required) The Azure Region to query for the GI Versions in.
+
+* `shape` - (Optional) The model name of the Cloud Exadata Infrastructure resource. Possible values are `ExaDbXS`, `Exadata.X9M`, and `Exadata.X11M`. This is used to filter out the available GI versions compatible with the given model.
+
+* `zone` - (Optional) Indicates the Azure zone for the Cloud Exadata Infrastructure, used to filter the available GI versions within a given zone.
 
 ## Attributes Reference
 
@@ -46,4 +52,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Oracle.Database`: 2024-06-01
+* `Oracle.Database` - 2025-03-01

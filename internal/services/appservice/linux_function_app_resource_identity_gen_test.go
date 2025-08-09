@@ -30,7 +30,6 @@ func TestAccLinuxFunctionApp_resourceIdentity(t *testing.T) {
 			{
 				Config: r.basic(data, "B1"),
 				ConfigStateChecks: []statecheck.StateCheck{
-					statecheck.ExpectIdentityValue("azurerm_linux_function_app.test", tfjsonpath.New("kind"), knownvalue.StringExact("functionapp,linux")),
 					statecheck.ExpectIdentityValue("azurerm_linux_function_app.test", tfjsonpath.New("subscription_id"), knownvalue.StringExact(data.Subscriptions.Primary)),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_linux_function_app.test", tfjsonpath.New("name"), tfjsonpath.New("name")),
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_linux_function_app.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),

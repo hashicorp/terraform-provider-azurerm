@@ -58,7 +58,7 @@ The following arguments are supported:
 
 ```hcl
 data "azuread_service_principal" "MicrosoftWebApp" {
-  application_id = "abfa0a7c-a6b6-4736-8310-5855508787cd"
+  client_id = "abfa0a7c-a6b6-4736-8310-5855508787cd"
 }
 ```
 
