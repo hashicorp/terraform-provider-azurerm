@@ -1817,16 +1817,10 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			AutoScalerProfile:         autoScalerProfile,
 			AutoUpgradeProfile:        autoUpgradeProfile,
 			AzureMonitorProfile:       azureMonitorProfile,
-<<<<<<< HEAD
 			BootstrapProfile:          bootstrapProfile,
-			DnsPrefix:                 utils.String(dnsPrefix),
-			EnableRBAC:                utils.Bool(d.Get("role_based_access_control_enabled").(bool)),
-			KubernetesVersion:         utils.String(kubernetesVersion),
-=======
 			DnsPrefix:                 pointer.To(dnsPrefix),
 			EnableRBAC:                pointer.To(d.Get("role_based_access_control_enabled").(bool)),
 			KubernetesVersion:         pointer.To(kubernetesVersion),
->>>>>>> 2a5e8be794f00916bf523bb20031a58657529d47
 			LinuxProfile:              linuxProfile,
 			WindowsProfile:            windowsProfile,
 			MetricsProfile:            metricsProfile,
