@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_basic(t *testing.T) {
@@ -39,6 +40,10 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_basic(t *testing.T) {
 // ImportStateVerify failures. This is a known limitation when supporting multiple
 // configuration formats for the same Azure API data.
 func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_vmSizesBackwardCompatibility(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `vm_sizes` field is deprecated and will be removed in v5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
 	r := OrchestratedVirtualMachineScaleSetResource{}
 
@@ -133,7 +138,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_customizeDiffValidatio
 	// TODO - Remove this override when Preview is rolled out to westeurope - currently only supported in EastUS, WestUS, EastUS2, and WestUS2
 	data.Locations.Primary = "eastus2"
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	testSteps := []acceptance.TestStep{
 		{
 			Config:      r.skuProfileWithoutSkuName(data),
 			ExpectError: regexp.MustCompile(`"sku_name" is not formatted properly, got ""`),
@@ -162,15 +167,23 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_customizeDiffValidatio
 			Config:      r.skuProfileWithInvalidPlatformFaultDomainCount(data),
 			ExpectError: regexp.MustCompile("`sku_profile` can only be configured when `platform_fault_domain_count` is set to `1`, got `5`"),
 		},
-		{ // TODO: Remove in v5.0
-			Config:      r.skuProfileNeitherFieldProvided(data),
-			ExpectError: regexp.MustCompile("either `vm_sizes` or `vm_size` must be configured in `sku_profile`"),
-		},
-		{ // TODO: Remove in v5.0
-			Config:      r.skuProfileDeprecatedWithPrioritized(data),
-			ExpectError: regexp.MustCompile("when `allocation_strategy` is `Prioritized`, you must use `vm_size` instead of `vm_sizes` to specify rank values"),
-		},
-	})
+	}
+
+	// TODO: Remove in v5.0 - These test steps are for deprecated vm_sizes functionality
+	if !features.FivePointOh() {
+		testSteps = append(testSteps,
+			acceptance.TestStep{
+				Config:      r.skuProfileNeitherFieldProvided(data),
+				ExpectError: regexp.MustCompile("either `vm_sizes` or `vm_size` must be configured in `sku_profile`"),
+			},
+			acceptance.TestStep{
+				Config:      r.skuProfileDeprecatedWithPrioritized(data),
+				ExpectError: regexp.MustCompile("when `allocation_strategy` is `Prioritized`, you must use `vm_size` instead of `vm_sizes` to specify rank values"),
+			},
+		)
+	}
+
+	data.ResourceTest(t, r, testSteps)
 }
 
 func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_forceNewOnRemovalWithSkuNameChange(t *testing.T) {
