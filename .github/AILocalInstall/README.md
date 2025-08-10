@@ -21,6 +21,7 @@ git checkout exp/terraform_copilot
 Now that you have the repository cloned and the correct branch checked out locally, you can run the installation scripts to set up AI-powered vibe coding assistance:
 
 ### Windows (PowerShell)
+
 ```powershell
 # Auto-discover repository and install
 .\AILocalInstall\install-copilot-setup.ps1
@@ -57,6 +58,90 @@ Now that you have the repository cloned and the correct branch checked out local
 3. **🤖 Copy AI prompt files** for enhanced coding assistance
 4. **⚙️ Configure VS Code settings** with intelligent merge of existing configuration
 5. **💾 Create backups** of your existing settings for safe restoration
+
+## Installation Options
+
+### 🏗️ Installation System Architecture
+
+The **installation system** uses a clean, maintainable modular architecture:
+
+**Benefits:**
+- **Clean Architecture**: Functions separated into logical modules for better maintainability
+- **Enhanced Error Handling**: Improved error detection and recovery
+- **Better Testing**: Each module can be tested independently  
+- **Easier Debugging**: Issues can be isolated to specific modules
+- **Future-Proof**: Easy to extend and modify individual components
+
+**Structure:**
+```
+AILocalInstall/
+├── install-copilot-setup.ps1     # Main installer (PowerShell)
+├── install-copilot-setup.sh      # Main installer (Bash)
+├── modules/                      # Modular functionality
+│   ├── powershell/              # PowerShell modules
+│   │   ├── core-functions.psm1      # Repository discovery, validation
+│   │   ├── backup-management.psm1   # Backup creation and restoration
+│   │   ├── installation-detection.psm1 # Installation state management
+│   │   ├── ai-installation.psm1     # AI agent installation logic
+│   │   └── cleanup.psm1             # Uninstall and cleanup
+│   └── bash/                    # Bash modules
+│       ├── core-functions.sh        # Repository discovery, validation
+│       ├── backup-management.sh     # Backup creation and restoration
+│       ├── installation-detection.sh # Installation state management
+│       ├── ai-installation.sh       # AI agent installation logic
+│       ├── cleanup.sh               # Uninstall and cleanup
+│       └── user-interface.sh        # User interaction functions
+├── TerraformAzureRMAI.psm1      # PowerShell module
+└── TerraformAzureRMAI.psd1      # Module manifest
+```
+
+### 🐧 Cross-Platform Support
+
+**PowerShell Installer** (`install-copilot-setup.ps1`):
+- ✅ Windows, Linux, macOS
+- ✅ PowerShell 5.1+, PowerShell Core 6+
+- ✅ Advanced error handling and logging
+
+**Bash Installer** (`install-copilot-setup.sh`):
+- ✅ Linux, macOS, WSL
+- ✅ Bash 3.2+
+- ✅ Colored output and progress indicators
+- ✅ JSON processing with jq integration
+
+## Quick Start
+
+### **🚀 PowerShell (Windows/Linux/macOS)**
+```powershell
+# Navigate to the repository
+cd path/to/terraform-provider-azurerm
+
+# Run the installer
+.\.github\AILocalInstall\install-copilot-setup.ps1
+```
+
+### **🐧 Bash (Linux/macOS/WSL)**
+```bash
+# Navigate to the repository
+cd path/to/terraform-provider-azurerm
+
+# Run the bash installer
+./.github/AILocalInstall/install-copilot-setup.sh
+```
+
+### **📋 Available Options**
+```bash
+# Show help
+./install-copilot-setup.sh -help
+
+# Specify repository path
+./install-copilot-setup.sh -repository-path /path/to/repo
+
+# Auto-approve (non-interactive)
+./install-copilot-setup.sh -auto-approve
+
+# Clean installation (uninstall)
+./install-copilot-setup.sh -clean
+```
 
 ## Features
 
