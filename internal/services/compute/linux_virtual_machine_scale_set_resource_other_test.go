@@ -738,7 +738,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherGalleryApplicationUpdate(t *testing
       Config: r.otherGalleryApplicationBasic(data),
       Check: acceptance.ComposeTestCheckFunc(
         check.That(data.ResourceName).ExistsInAzure(r),
-        check.That(data.ResourceName).Key("gallery_application.#").HasValue("0"),
+        check.That(data.ResourceName).Key("gallery_application.0.order").HasValue("0"),
       ),
     },
     data.ImportStep("admin_password"),
@@ -746,7 +746,7 @@ func TestAccLinuxVirtualMachineScaleSet_otherGalleryApplicationUpdate(t *testing
       Config: r.otherGalleryApplicationComplete(data),
       Check: acceptance.ComposeTestCheckFunc(
         check.That(data.ResourceName).ExistsInAzure(r),
-        check.That(data.ResourceName).Key("gallery_application.#").HasValue("1"),
+        check.That(data.ResourceName).Key("gallery_application.0.order").HasValue("1"),
       ),
     },
     data.ImportStep("admin_password"),
