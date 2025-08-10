@@ -1030,6 +1030,15 @@ func resourceServiceName() *pluginsdk.Resource {
 - **Import Requirements**: Typed typically need dual imports, untyped often use single import
 - **Validation Style**: Typed validate against decoded models, untyped use `diff.Get()` patterns
 
+**🚨 CRITICAL: AI Schema Definition Verification Requirement**
+
+**BEFORE the AI suggests ANY field validation logic, the AI MUST verify the field's schema definition:**
+- **Required fields**: AI should suggest direct access (`diff.Get()`, `metadata.Decode()`)
+- **Optional fields**: AI should suggest `GetRawConfig().IsNull()` to check explicit configuration
+- **Optional+Computed fields**: AI should suggest distinguishing user-configured vs Azure-computed values
+
+**For comprehensive AI schema verification guidance, see:** [Schema Patterns - AI Schema Definition Verification](./schema-patterns.instructions.md#🚨-schema-definition-verification-before-field-validation)
+
 **For Azure-specific CustomizeDiff validation techniques including zero value handling patterns, see:** [Azure Patterns - Zero Value Validation](./azure-patterns.instructions.md#zero-value-validation-pattern)
 
 **Programmatic ForceNew Pattern Explanation:**

@@ -152,6 +152,16 @@ return fieldExists && old.(bool) == true && new.(bool) == false
 - Leverage Go's boolean semantics: `bool` values can be used directly in logical expressions
 - Comply with linting standards: Simplified expressions pass gosimple and other Go linting tools
 - Maintain readability: Shorter expressions are easier to understand and maintain
+
+**🚨 CRITICAL: AI Schema Definition Verification Before Field Validation Suggestions**
+
+**BEFORE the AI suggests ANY field validation logic, the AI MUST verify the field's schema definition:**
+- **Required fields**: AI should suggest direct access (`diff.Get()`, `metadata.Decode()`)
+- **Optional fields**: AI should suggest `GetRawConfig().IsNull()` to check explicit configuration
+- **Optional+Computed fields**: AI should suggest distinguishing user-configured vs Azure-computed values
+
+**For comprehensive AI schema verification patterns, see:** [Schema Patterns - AI Schema Definition Verification](./schema-patterns.instructions.md#🚨-schema-definition-verification-before-field-validation)
+
 - `CustomizeDiff` validations should be thoroughly tested with acceptance tests to ensure they work correctly:
 - Test invalid configurations that should trigger validation errors
 - Test valid configurations that should pass validation

@@ -233,6 +233,7 @@ func TestAccResourceName_basic(t *testing.T) {
 - ✅ CustomizeDiff tested if validation logic exists
 - ✅ No hardcoded values in tests or examples
 - ✅ Resource ID parsing follows Azure patterns
+- ✅ **CRITICAL: AI schema verification before field validation suggestions - AI must check Required/Optional/Optional+Computed before suggesting any empty/exists checks**
 - ✅ **CRITICAL: Documentation fields follow alphabetical ordering - Required fields first (A-Z), then Optional fields (A-Z)**
 - ✅ **CRITICAL: Code comments follow strict policy - only for Azure API quirks, complex business logic, or SDK workarounds**
 - ✅ **All code comments have explicit justification documented in review response**

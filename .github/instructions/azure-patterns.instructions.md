@@ -126,6 +126,88 @@ Azure resources have unique validation requirements that CustomizeDiff functions
 
 When validating optional fields in CustomizeDiff functions, Go's zero value behavior can cause false validation errors. An unset field defaults to its Go zero value (`0` for integers, `false` for booleans, `""` for strings), which validation logic may incorrectly interpret as an explicitly set value.
 
+**🚨 MANDATORY: AI Schema Definition Verification Before Field Validation Suggestions**
+
+**BEFORE the AI suggests ANY empty/exists checks on fields, the AI MUST:**
+
+1. **Examine schema definition** to determine if field is:
+   - **Required**: Field must have a value, AI should suggest `diff.Get()` or direct access
+   - **Optional**: Field may be unset, AI should suggest `GetRawConfig().IsNull()` check first
+   - **Optional+Computed**: Field may be unset or computed by Azure, AI should suggest distinguishing user-configured vs Azure values
+
+2. **AI should suggest appropriate validation pattern** based on schema type:
+   ```go
+   // STEP 1: AI examines schema definition first
+   "field_name": {
+       Type:     pluginsdk.TypeString,
+       Optional: true,  // This determines AI's suggested validation approach
+       Computed: true,  // Optional+Computed requires special AI guidance
+   }
+
+   // STEP 2: AI Decision Tree - suggests appropriate validation pattern
+   ```
+
+   **Required Fields** → AI suggests direct access:
+   ```go
+   // Typed Resource Implementation
+   var model ServiceNameModel
+   if err := metadata.Decode(&model); err != nil {
+       return fmt.Errorf("decoding: %+v", err)
+   }
+   // Use model.FieldName directly - Required fields guaranteed to have values
+
+   // Untyped Resource Implementation
+   value := diff.Get("field_name").(string)
+   // Use value directly - Required fields guaranteed to have values
+   ```
+
+   **Optional Fields** → AI suggests checking explicit configuration:
+   ```go
+   // Typed Resource Implementation
+   var model ServiceNameModel
+   if err := metadata.Decode(&model); err != nil {
+       return fmt.Errorf("decoding: %+v", err)
+   }
+   // Check raw config to distinguish user-set vs default values
+   if !metadata.ResourceData.GetRawConfig().GetAttr("field_name").IsNull() {
+       // Validate model.FieldName only if user explicitly configured it
+   }
+
+   // Untyped Resource Implementation
+   if !diff.GetRawConfig().GetAttr("field_name").IsNull() {
+       value := diff.Get("field_name").(string)
+       // AI suggests validating only if user explicitly set the field
+   }
+   ```
+
+   **Optional+Computed Fields** → AI suggests user vs Azure value distinction:
+   ```go
+   // Typed Resource Implementation
+   var model ServiceNameModel
+   if err := metadata.Decode(&model); err != nil {
+       return fmt.Errorf("decoding: %+v", err)
+   }
+   // Distinguish user-configured vs Azure-computed values
+   if !metadata.ResourceData.GetRawConfig().GetAttr("field_name").IsNull() {
+       // Validate model.FieldName only for user-configured values
+   }
+   // Skip validation for Azure-computed values
+
+   // Untyped Resource Implementation
+   if !diff.GetRawConfig().GetAttr("field_name").IsNull() {
+       value := diff.Get("field_name").(string)
+       // AI suggests validating user-configured values only
+   }
+   // AI suggests skipping validation for Azure-computed values
+   ```
+
+3. **AI Schema Analysis Checklist Before Code Suggestions:**
+   - [ ] Examined field schema type (Required/Optional/Optional+Computed)
+   - [ ] Suggested appropriate validation method based on schema type
+   - [ ] Avoided suggesting `GetRawConfig()` for Required fields (unnecessary overhead)
+   - [ ] Avoided suggesting false validation errors from Go zero values
+   - [ ] Suggested validation logic only for explicitly configured values
+
 **Key Implementation Pattern:**
 - **Use `GetRawConfig()`**: Access the raw configuration to check for null values
 - **Check `.IsNull()`**: Distinguish between unset fields and zero values

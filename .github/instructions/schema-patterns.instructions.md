@@ -129,6 +129,105 @@ Schema design patterns and validation standards for the Terraform AzureRM provid
 
 ## ✅ Validation Patterns
 
+### 🚨 Schema Definition Verification Before Field Validation
+
+**CRITICAL RULE: AI Must Check Schema Definition Before Suggesting Field Validation Code**
+
+Before suggesting any empty/exists checks or validation logic for fields, the AI MUST first examine the field's schema definition to determine its type and suggest the appropriate validation approach.
+
+**Mandatory AI Pre-Code-Suggestion Analysis:**
+
+1. **AI Must Identify Field Schema Type**:
+   ```go
+   // AI should examine the schema definition first
+   "field_name": {
+       Type:     pluginsdk.TypeString,
+       Required: true,    // OR Optional: true, OR both Optional+Computed
+       Computed: false,   // May be true for Optional+Computed fields
+   }
+   ```
+
+2. **AI Decision Tree for Validation Pattern Selection**:
+
+   **Required Fields** → AI should suggest direct access:
+   ```go
+   // Typed Resource Implementation
+   var model ServiceNameModel
+   if err := metadata.Decode(&model); err != nil {
+       return fmt.Errorf("decoding: %+v", err)
+   }
+   // Use model.FieldName directly - Required fields guaranteed to have values
+
+   // Untyped Resource Implementation  
+   value := diff.Get("field_name").(string)
+   // Use value directly - Required fields guaranteed to have values
+   ```
+
+   **Optional Fields** → AI should suggest raw config checking:
+   ```go
+   // Typed Resource Implementation
+   var model ServiceNameModel
+   if err := metadata.Decode(&model); err != nil {
+       return fmt.Errorf("decoding: %+v", err)
+   }
+   // Check if user explicitly configured the field
+   if !metadata.ResourceData.GetRawConfig().GetAttr("field_name").IsNull() {
+       // Only validate if user explicitly configured the field
+       if model.FieldName == "" {
+           return fmt.Errorf("field `field_name` cannot be empty when specified")
+       }
+   }
+
+   // Untyped Resource Implementation
+   if !diff.GetRawConfig().GetAttr("field_name").IsNull() {
+       value := diff.Get("field_name").(string)
+       // Only validate if user explicitly configured the field
+       if value == "" {
+           return fmt.Errorf("field `field_name` cannot be empty when specified")
+       }
+   }
+   ```
+
+   **Optional+Computed Fields** → AI should suggest user vs Azure value distinction:
+   ```go
+   // Typed Resource Implementation
+   var model ServiceNameModel
+   if err := metadata.Decode(&model); err != nil {
+       return fmt.Errorf("decoding: %+v", err)
+   }
+   // Distinguish user-configured vs Azure-computed values
+   if !metadata.ResourceData.GetRawConfig().GetAttr("field_name").IsNull() {
+       // Validate user-configured values only
+       if model.FieldName == "" {
+           return fmt.Errorf("field `field_name` cannot be empty when explicitly set")
+       }
+   }
+   // Skip validation for Azure-computed values
+
+   // Untyped Resource Implementation
+   if !diff.GetRawConfig().GetAttr("field_name").IsNull() {
+       value := diff.Get("field_name").(string)
+       // Validate user-configured values only
+       if value == "" {
+           return fmt.Errorf("field `field_name` cannot be empty when explicitly set")
+       }
+   }
+   // Skip validation for Azure-computed values
+   ```
+
+**AI Schema Analysis Checklist Before Code Suggestions:**
+- [ ] Examined field schema definition (Required/Optional/Optional+Computed)
+- [ ] Identified appropriate validation method based on schema type
+- [ ] Avoided suggesting `GetRawConfig()` for Required fields (unnecessary overhead)
+- [ ] Avoided suggesting Go zero value validation for Optional fields without raw config check
+- [ ] Distinguished between user-configured and Azure-computed values for Optional+Computed fields
+
+**AI Common Mistakes to Avoid:**
+- **Zero Value Confusion**: Suggesting validation of Go zero values (`0`, `false`, `""`) without checking if user actually configured them
+- **Required Field Over-validation**: Suggesting `GetRawConfig()` checks for Required fields
+- **Optional Field Under-validation**: Suggesting direct validation of Optional fields without checking user intent
+- **Schema Type Ignorance**: Making validation suggestions without first examining the field's schema definition
+
 ### String Validation
 
 ```go
