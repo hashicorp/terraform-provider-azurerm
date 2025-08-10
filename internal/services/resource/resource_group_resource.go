@@ -56,12 +56,27 @@ func resourceResourceGroup() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+			"subscription_id": {
+				Type:     pluginsdk.TypeString,
+				Optional: true,
+				Computed: true,
+			},
 		},
 	}
 }
 
 func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Resource.GroupsClient
+var client resources.GroupsClient
+ subIDRaw, hasSubID := d.GetOk("subscription_id")
+ if hasSubID && subIDRaw.(string) != "" {
+	// Crée un client spécifique pour la souscription demandée
+	azClient := meta.(*clients.Client)
+	client = resources.NewGroupsClient(subIDRaw.(string))
+	client.Authorizer = azClient.Resource.GroupsClient.Authorizer
+	client.Client = azClient.Resource.GroupsClient.Client
+ } else {
+ client = *meta.(*clients.Client).Resource.GroupsClient
+ }
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -158,7 +173,17 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 }
 
 func resourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Resource.GroupsClient
+ var client *resources.GroupsClient
+ subIDRaw, hasSubID := d.GetOk("subscription_id")
+ if hasSubID && subIDRaw.(string) != "" {
+	 azClient := meta.(*clients.Client)
+	 c := resources.NewGroupsClient(subIDRaw.(string))
+	 client = &c
+	 client.Authorizer = azClient.Resource.GroupsClient.Authorizer
+	 client.Client = azClient.Resource.GroupsClient.Client
+ } else {
+	 client = meta.(*clients.Client).Resource.GroupsClient
+ }
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -181,6 +206,13 @@ func resourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	d.Set("name", resp.Name)
 	d.Set("location", location.NormalizeNilable(resp.Location))
 	d.Set("managed_by", pointer.From(resp.ManagedBy))
+	// Set subscription_id if available
+	if resp.ID != nil {
+		parsedId, err := parse.ResourceGroupIDInsensitively(*resp.ID)
+		if err == nil {
+		 d.Set("subscription_id", parsedId.SubscriptionId)
+		}
+	}
 	return tags.FlattenAndSet(d, resp.Tags)
 }
 
@@ -268,9 +300,9 @@ block when configuring the Provider, for example:
 
 provider "azurerm" {
   features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
+	resource_group {
+	  prevent_deletion_if_contains_resources = false
+	}
   }
 }
 
