@@ -208,10 +208,6 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The `encryption` block is no longer Computed. It now defaults to empty, meaning encryption will be disabled.  
 
-### `azurerm_container_registry_task`
-
-* The deprecated `registry_credential.custom.identity` property has been removed in favour of the `registry_credential.custom.user_assigned_identity_id` property.
-
 ### `azurerm_cosmosdb_account`
 
 * The `minimal_tls_version` property no longer accepts `Tls` or `Tls11` as a value.

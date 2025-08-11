@@ -9,14 +9,13 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ContainerRegistryTaskResource struct {
@@ -370,20 +369,6 @@ func TestAccContainerRegistryTask_fileTaskStepRegistryCredential(t *testing.T) {
 		},
 	}
 
-	propertiesToIgnore := []string{
-		"file_step.0.context_access_token",
-		"registry_credential.0.custom.#",
-		"registry_credential.0.custom.0.%",
-		"registry_credential.0.custom.0.user_assigned_identity_id",
-		"registry_credential.0.custom.0.login_server",
-		"registry_credential.0.custom.0.password",
-		"registry_credential.0.custom.0.username",
-	}
-
-	if !features.FivePointOh() {
-		propertiesToIgnore = append(propertiesToIgnore, "registry_credential.0.custom.0.identity")
-	}
-
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.fileTaskStepBasic(data),
@@ -398,21 +383,45 @@ func TestAccContainerRegistryTask_fileTaskStepRegistryCredential(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(propertiesToIgnore...),
+		data.ImportStep(
+			"file_step.0.context_access_token",
+			"registry_credential.0.custom.#",
+			"registry_credential.0.custom.0.%",
+			"registry_credential.0.custom.0.identity",
+			"registry_credential.0.custom.0.login_server",
+			"registry_credential.0.custom.0.password",
+			"registry_credential.0.custom.0.username",
+		),
 		{
 			Config: r.fileTaskStepRegistryCredentialIdentity(data, "foo"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(propertiesToIgnore...),
+		data.ImportStep(
+			"file_step.0.context_access_token",
+			"registry_credential.0.custom.#",
+			"registry_credential.0.custom.0.%",
+			"registry_credential.0.custom.0.identity",
+			"registry_credential.0.custom.0.login_server",
+			"registry_credential.0.custom.0.password",
+			"registry_credential.0.custom.0.username",
+		),
 		{
 			Config: r.fileTaskStepRegistryCredentialIdentity(data, "bar"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(propertiesToIgnore...),
+		data.ImportStep(
+			"file_step.0.context_access_token",
+			"registry_credential.0.custom.#",
+			"registry_credential.0.custom.0.%",
+			"registry_credential.0.custom.0.identity",
+			"registry_credential.0.custom.0.login_server",
+			"registry_credential.0.custom.0.password",
+			"registry_credential.0.custom.0.username",
+		),
 		{
 			Config: r.fileTaskStepBasic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -471,12 +480,12 @@ func (r ContainerRegistryTaskResource) Exists(ctx context.Context, clients *clie
 
 	if resp, err := client.Get(ctx, *id); err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return pointer.To(false), nil
+			return utils.Bool(false), nil
 		}
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return pointer.To(true), nil
+	return utils.Bool(true), nil
 }
 
 func (r ContainerRegistryTaskResource) dockerStepBasic(data acceptance.TestData) string {
@@ -939,43 +948,25 @@ resource "azurerm_container_registry_task" "test" {
 func (r ContainerRegistryTaskResource) fileTaskStepRegistryCredentialPassword(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
-%[1]s
+%s
 
 resource "azurerm_container_registry" "test2" {
-  name                = "testacccrtask2%[2]d"
+  name                = "testacccrtask2%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Basic"
 }
 
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "testacccrtask2%[2]d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azuread_application" "test" {
-  display_name = "testacccrtask%[2]d"
-}
-
-resource "azuread_service_principal" "test" {
-  client_id = azuread_application.test.client_id
-}
-
-resource "azuread_service_principal_password" "test" {
-  service_principal_id = azuread_service_principal.test.id
-}
-
 resource "azurerm_container_registry_task" "test" {
-  name                  = "testacccrTask%[2]d"
+  name                  = "testacccrTask%d"
   container_registry_id = azurerm_container_registry.test.id
   platform {
     os = "Linux"
   }
   file_step {
     task_file_path       = "taskmulti-multiregistry.yaml"
-    context_path         = "%[3]s"
-    context_access_token = "%[4]s"
+    context_path         = "%s"
+    context_access_token = "%s"
     values = {
       regDate = azurerm_container_registry.test2.login_server
     }
@@ -983,12 +974,12 @@ resource "azurerm_container_registry_task" "test" {
   registry_credential {
     custom {
       login_server = azurerm_container_registry.test2.login_server
-      username     = azuread_service_principal.test.client_id
-      password     = azuread_service_principal_password.test.value
+      username     = "%s"
+      password     = "%s"
     }
   }
 }
-`, template, data.RandomInteger, r.githubRepo.url, r.githubRepo.token)
+`, template, data.RandomInteger, data.RandomInteger, r.githubRepo.url, r.githubRepo.token, os.Getenv("ARM_CLIENT_ID"), os.Getenv("ARM_CLIENT_SECRET"))
 }
 
 func (r ContainerRegistryTaskResource) fileTaskStepRegistryCredentialIdentity(data acceptance.TestData, tag string) string {
@@ -1022,8 +1013,8 @@ resource "azurerm_container_registry_task" "test" {
   }
   registry_credential {
     custom {
-      login_server              = azurerm_container_registry.test2.login_server
-      user_assigned_identity_id = "[system]"
+      login_server = azurerm_container_registry.test2.login_server
+      identity     = "[system]"
     }
   }
   tags = {

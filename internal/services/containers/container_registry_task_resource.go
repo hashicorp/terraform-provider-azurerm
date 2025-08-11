@@ -10,14 +10,12 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2019-06-01-preview/tasks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/validate"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -117,11 +115,10 @@ type SourceRegistryCredential struct {
 }
 
 type CustomRegistryCredential struct {
-	LoginServer            string `tfschema:"login_server"`
-	UserName               string `tfschema:"username"`
-	Password               string `tfschema:"password"`
-	UserAssignedIdentityID string `tfschema:"user_assigned_identity_id"`
-	Identity               string `tfschema:"identity,removedInNextMajorVersion"`
+	LoginServer string `tfschema:"login_server"`
+	UserName    string `tfschema:"username"`
+	Password    string `tfschema:"password"`
+	Identity    string `tfschema:"identity"`
 }
 
 type ContainerRegistryTaskModel struct {
@@ -154,7 +151,7 @@ func userDataStateFunc(v interface{}) string {
 }
 
 func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema {
-	schema := map[string]*pluginsdk.Schema{
+	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -557,10 +554,11 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 									Sensitive:    true,
 									ValidateFunc: validation.StringIsNotEmpty,
 								},
-								"user_assigned_identity_id": {
+								"identity": {
+									// TODO - 4.0: this should be `user_assigned_identity_id`?
 									Type:         pluginsdk.TypeString,
 									Optional:     true,
-									ValidateFunc: validation.Any(commonids.ValidateUserAssignedIdentityID, validation.StringInSlice([]string{"[system]"}, false)),
+									ValidateFunc: validation.StringIsNotEmpty,
 								},
 							},
 						},
@@ -614,24 +612,6 @@ func (r ContainerRegistryTaskResource) Arguments() map[string]*pluginsdk.Schema 
 		},
 		"tags": commonschema.Tags(),
 	}
-
-	if !features.FivePointOh() {
-		schema["registry_credential"].Elem.(*pluginsdk.Resource).Schema["custom"].Elem.(*pluginsdk.Resource).Schema["identity"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-			Deprecated:   "The property `registry_credential.custom.identity` is deprecated in favour of `registry_credential.custom.user_assigned_identity_id`",
-		}
-		schema["registry_credential"].Elem.(*pluginsdk.Resource).Schema["custom"].Elem.(*pluginsdk.Resource).Schema["user_assigned_identity_id"] = &pluginsdk.Schema{
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.Any(commonids.ValidateUserAssignedIdentityID, validation.StringInSlice([]string{"[system]"}, false)),
-		}
-	}
-
-	return schema
 }
 
 func (r ContainerRegistryTaskResource) CustomizeDiff() sdk.ResourceFunc {
@@ -1566,13 +1546,8 @@ func expandCustomRegistryCredential(input []CustomRegistryCredential) map[string
 				Type:  &passwordType,
 			}
 		}
-		if credential.UserAssignedIdentityID != "" {
-			cred.Identity = pointer.To(credential.UserAssignedIdentityID)
-		}
-		if !features.FivePointOh() {
-			if credential.Identity != "" {
-				cred.Identity = pointer.To(credential.Identity)
-			}
+		if credential.Identity != "" {
+			cred.Identity = pointer.To(credential.Identity)
 		}
 		out[credential.LoginServer] = cred
 	}

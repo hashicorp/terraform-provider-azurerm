@@ -131,9 +131,9 @@ A `custom` block supports the following:
 
 * `login_server` - (Required) The login server of the custom Container Registry.
 
-* `password` - (Optional) The password for logging into the custom Container Registry. It can be either a plain text of password, or a Keyvault Secret ID.
+* `identity` - (Optional) The managed identity assigned to this custom credential. For user assigned identity, the value is the client ID of the identity. For system assigned identity, the value is `[system]`.
 
-* `user_assigned_identity_id` - (Optional) The managed identity assigned to this custom credential. For user assigned identity, the value is the client ID of the identity. For system assigned identity, the value is `[system]`.
+* `password` - (Optional) The password for logging into the custom Container Registry. It can be either a plain text of password, or a Keyvault Secret ID.
 
 * `username` - (Optional) The username for logging into the custom Container Registry. It can be either a plain text of username, or a Keyvault Secret ID.
 
