@@ -10,7 +10,7 @@ description: |-
 
 Manages a Route within a Route Table.
 
-~> **NOTE on Route Tables and Routes:** Terraform currently
+~> **Note:** Terraform currently
 provides both a standalone [Route resource](route.html), and allows for Routes to be defined in-line within the [Route Table resource](route_table.html).
 At this time you cannot use a Route Table with in-line Routes in conjunction with any Route resources. Doing so will cause a conflict of Route configurations and will overwrite Routes.
 
@@ -64,8 +64,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Route.
-* `update` - (Defaults to 30 minutes) Used when updating the Route.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Route.
+* `update` - (Defaults to 30 minutes) Used when updating the Route.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Route.
 
 ## Import
@@ -75,3 +75,9 @@ Routes can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_route.exampleRoute /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/routeTables/mytable1/routes/myroute1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

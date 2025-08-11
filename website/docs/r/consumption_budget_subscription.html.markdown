@@ -96,7 +96,7 @@ The following arguments are supported:
 
 * `subscription_id` - (Required) The ID of the Subscription for which to create a Consumption Budget. Changing this forces a new resource to be created.
 
-~> **NOTE:** The `subscription_id` property can accept a subscription ID e.g. `00000000-0000-0000-0000-000000000000` or the subscription resource ID e.g. `/subscriptions/00000000-0000-0000-0000-000000000000`. In version 3.0 this property will only accept the subscription resource ID.
+~> **Note:** The `subscription_id` property can accept a subscription ID e.g. `00000000-0000-0000-0000-000000000000` or the subscription resource ID e.g. `/subscriptions/00000000-0000-0000-0000-000000000000`. In version 3.0 this property will only accept the subscription resource ID.
 
 * `amount` - (Required) The total amount of cost to track with the budget.
 
@@ -134,7 +134,7 @@ A `notification` block supports the following:
 
 * `enabled` - (Optional) Should the notification be enabled? Defaults to `true`.
 
-~> **NOTE:** A `notification` block cannot have all of `contact_emails`, `contact_roles`, and `contact_groups` empty. This means that at least one of the three must be specified.
+~> **Note:** A `notification` block cannot have all of `contact_emails`, `contact_roles`, and `contact_groups` empty. This means that at least one of the three must be specified.
 
 ---
 
@@ -188,3 +188,9 @@ Subscription Consumption Budgets can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_consumption_budget_subscription.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Consumption/budgets/subscription1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Consumption` - 2019-10-01

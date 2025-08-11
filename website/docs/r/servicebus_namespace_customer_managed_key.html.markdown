@@ -148,6 +148,7 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 * `create` - (Defaults to 30 minutes) Used when creating the Service Bus Namespace Customer Managed Key.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Service Bus Namespace Customer Managed Key.
 * `update` - (Defaults to 30 minutes) Used when updating the Service Bus Namespace Customer Managed Key.
+* `delete` - (Defaults to 5 minutes) Used when deleting the Service Bus Namespace Customer Managed Key.
 
 ## Import
 
@@ -156,3 +157,9 @@ Service Bus Namespace Customer Managed Key can be imported using the `resource i
 ```shell
 terraform import azurerm_servicebus_namespace_customer_managed_key.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ServiceBus/namespaces/sbns1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ServiceBus` - 2024-01-01

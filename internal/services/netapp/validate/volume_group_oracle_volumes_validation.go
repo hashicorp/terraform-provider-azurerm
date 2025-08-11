@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumegroups"
 )
 
 type VolumeSpecNameOracle string
@@ -95,14 +95,6 @@ func ValidateNetAppVolumeGroupOracleVolumes(volumeList *[]volumegroups.VolumeGro
 					errors = append(errors, ValidateNetAppVolumeGroupExportPolicyRule(rule, protocol)...)
 				}
 			}
-		}
-
-		// Checking CRR rule that log cannot be DataProtection type
-		if strings.EqualFold(pointer.From(volume.Properties.VolumeSpecName), string(VolumeSpecNameOracleLog)) &&
-			volume.Properties.DataProtection != nil &&
-			volume.Properties.DataProtection.Replication != nil &&
-			strings.EqualFold(string(pointer.From(volume.Properties.DataProtection.Replication.EndpointType)), string(volumegroups.EndpointTypeDst)) {
-			errors = append(errors, fmt.Errorf("'log volume spec type cannot be DataProtection type for %v on volume %v'", applicationType, pointer.From(volume.Name)))
 		}
 
 		// Validating that snapshot policies are not being created in a data protection volume

@@ -12,6 +12,7 @@ type AzureDatabricksLinkedServiceTypeProperties struct {
 	AccessToken                 SecretBase              `json:"accessToken"`
 	Authentication              *interface{}            `json:"authentication,omitempty"`
 	Credential                  *CredentialReference    `json:"credential,omitempty"`
+	DataSecurityMode            *interface{}            `json:"dataSecurityMode,omitempty"`
 	Domain                      interface{}             `json:"domain"`
 	EncryptedCredential         *string                 `json:"encryptedCredential,omitempty"`
 	ExistingClusterId           *interface{}            `json:"existingClusterId,omitempty"`
@@ -36,6 +37,7 @@ func (s *AzureDatabricksLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte)
 	var decoded struct {
 		Authentication              *interface{}            `json:"authentication,omitempty"`
 		Credential                  *CredentialReference    `json:"credential,omitempty"`
+		DataSecurityMode            *interface{}            `json:"dataSecurityMode,omitempty"`
 		Domain                      interface{}             `json:"domain"`
 		EncryptedCredential         *string                 `json:"encryptedCredential,omitempty"`
 		ExistingClusterId           *interface{}            `json:"existingClusterId,omitempty"`
@@ -59,6 +61,7 @@ func (s *AzureDatabricksLinkedServiceTypeProperties) UnmarshalJSON(bytes []byte)
 
 	s.Authentication = decoded.Authentication
 	s.Credential = decoded.Credential
+	s.DataSecurityMode = decoded.DataSecurityMode
 	s.Domain = decoded.Domain
 	s.EncryptedCredential = decoded.EncryptedCredential
 	s.ExistingClusterId = decoded.ExistingClusterId

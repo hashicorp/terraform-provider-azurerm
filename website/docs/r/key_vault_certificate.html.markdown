@@ -11,7 +11,7 @@ description: |-
 
 Manages a Key Vault Certificate.
 
-~> **Note:** The Azure Provider includes a Feature Toggle which will purge a Key Vault Certificate resource on destroy, rather than the default soft-delete. See [`purge_soft_deleted_certificates_on_destroy`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#purge_soft_deleted_certificates_on_destroy) for more information. 
+~> **Note:** The Azure Provider includes a Feature Toggle which will purge a Key Vault Certificate resource on destroy, rather than the default soft-delete. See [`purge_soft_deleted_certificates_on_destroy`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#purge_soft_deleted_certificates_on_destroy) for more information.
 
 ## Example Usage (Importing a PFX)
 
@@ -240,7 +240,7 @@ The following arguments are supported:
 
 * `certificate_policy` - (Optional) A `certificate_policy` block as defined below. Changing this (except the `lifetime_action` field) will create a new version of the Key Vault Certificate.
 
-~> **NOTE:** When creating a Key Vault Certificate, at least one of `certificate` or `certificate_policy` is required. Provide `certificate` to import an existing certificate, `certificate_policy` to generate a new certificate.
+~> **Note:** When creating a Key Vault Certificate, at least one of `certificate` or `certificate_policy` is required. Provide `certificate` to import an existing certificate, `certificate_policy` to generate a new certificate.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -251,7 +251,7 @@ The `certificate` block supports the following:
 * `contents` - (Required) The base64-encoded certificate contents.
 * `password` - (Optional) The password associated with the certificate.
 
-~> **NOTE:** A PEM certificate is already base64 encoded. To successfully import, the `contents` property should include a PEM encoded X509 certificate and a private_key in pkcs8 format. There should only be linux style `\n` line endings and the whole block should have the PEM begin/end blocks around the certificate data and the private key data.
+~> **Note:** A PEM certificate is already base64 encoded. To successfully import, the `contents` property should include a PEM encoded X509 certificate and a private_key in pkcs8 format. There should only be linux style `\n` line endings and the whole block should have the PEM begin/end blocks around the certificate data and the private key data.
 
 To convert a private key to pkcs8 format with openssl use:
 ```shell
@@ -375,9 +375,9 @@ A `certificate_attribute` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Key Vault Certificate.
-* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Certificate.
+* `create` - (Defaults to 1 hour) Used when creating the Key Vault Certificate.
 * `read` - (Defaults to 30 minutes) Used when retrieving the Key Vault Certificate.
+* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Certificate.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Key Vault Certificate.
 
 ## Import

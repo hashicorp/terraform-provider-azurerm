@@ -12,7 +12,7 @@ Manages a Front Door (standard/premium) Secret.
 
 ## Required Key Vault Permissions
 
-!>**IMPORTANT:** You must add an `Access Policy` to your `azurerm_key_vault` for the `Microsoft.AzurefrontDoor-Cdn` Enterprise Application Object ID.
+!> **Note:** You must add an `Access Policy` to your `azurerm_key_vault` for the `Microsoft.AzurefrontDoor-Cdn` Enterprise Application Object ID.
 
 This can be created by running Az Powershell command like this:
 
@@ -24,7 +24,7 @@ This can be created by running Az Powershell command like this:
 | Your Personal AAD Object ID              | -               | **Get** and **List** | **Get**, **List**, **Purge** and **Recover**  |
 | Terraform Service Principal              | -               | **Get**              | **Get**, **Import**, **Delete** and **Purge** |
 
-->**NOTE:** You only need to add the `Access Policy` for your personal AAD Object ID if you are planning to view the `secrets` via the Azure Portal.
+-> **Note:** You only need to add the `Access Policy` for your personal AAD Object ID if you are planning to view the `secrets` via the Azure Portal.
 
 ## Example Usage
 
@@ -130,7 +130,7 @@ A `customer_certificate` block supports the following:
 
 * `key_vault_certificate_id` - (Required) The ID of the Key Vault certificate resource to use. Changing this forces a new Front Door Secret to be created.
 
-->**NOTE:** If you would like to use the **latest version** of the Key Vault Certificate use the Key Vault Certificates `versionless_id` attribute as the `key_vault_certificate_id` fields value(e.g. `key_vault_certificate_id = azurerm_key_vault_certificate.example.versionless_id`).
+-> **Note:** If you would like to use the **latest version** of the Key Vault Certificate use the Key Vault Certificates `versionless_id` attribute as the `key_vault_certificate_id` fields value(e.g. `key_vault_certificate_id = azurerm_key_vault_certificate.example.versionless_id`).
 
 * `subject_alternative_names` - (Computed) One or more `subject alternative names` contained within the key vault certificate.
 

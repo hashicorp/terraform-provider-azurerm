@@ -94,7 +94,7 @@ func resourceSubnetNetworkSecurityGroupAssociationCreate(d *pluginsdk.ResourceDa
 			if nsg := props.NetworkSecurityGroup; nsg != nil {
 				// we're intentionally not checking the ID - if there's a NSG, it needs to be imported
 				if nsg.Id != nil && model.Id != nil {
-					return tf.ImportAsExistsError("azurerm_subnet_network_security_group_association", *model.Id)
+					return tf.ImportAsExistsAssociationError("azurerm_subnet_network_security_group_association", subnetId.ID(), *nsg.Id)
 				}
 			}
 

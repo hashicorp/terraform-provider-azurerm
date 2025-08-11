@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `slot_id` - (Required) The ID of the Linux or Windows Web App Slot. Changing this forces a new resource to be created.
 
-~> **NOTE:** Function App Slots are not supported at this time.
+~> **Note:** Function App Slots are not supported at this time.
 
 ---
 
@@ -135,3 +135,9 @@ an App Service Source Control Slot can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_app_service_source_control_slot.example "/subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/resGroup1/providers/Microsoft.Web/sites/site1/slots/slot1"
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Web` - 2023-12-01

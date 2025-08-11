@@ -4,10 +4,10 @@
 package datafactory
 
 import (
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/datafactory/2018-06-01/dataflows"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
 func SchemaForDataFlowSourceAndSink() *pluginsdk.Schema {
@@ -123,17 +123,17 @@ func SchemaForDataFlowSourceTransformation() *pluginsdk.Schema {
 	}
 }
 
-func expandDataFactoryDataFlowSource(input []interface{}) *[]datafactory.DataFlowSource {
+func expandDataFactoryDataFlowSource(input []interface{}) *[]dataflows.DataFlowSource {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	result := make([]datafactory.DataFlowSource, 0)
+	result := make([]dataflows.DataFlowSource, 0)
 	for _, v := range input {
 		raw := v.(map[string]interface{})
-		result = append(result, datafactory.DataFlowSource{
-			Description:         utils.String(raw["description"].(string)),
-			Name:                utils.String(raw["name"].(string)),
+		result = append(result, dataflows.DataFlowSource{
+			Description:         pointer.To(raw["description"].(string)),
+			Name:                raw["name"].(string),
 			Dataset:             expandDataFactoryDatasetReference(raw["dataset"].([]interface{})),
 			LinkedService:       expandDataFactoryLinkedServiceReference(raw["linked_service"].([]interface{})),
 			SchemaLinkedService: expandDataFactoryLinkedServiceReference(raw["schema_linked_service"].([]interface{})),
@@ -143,17 +143,17 @@ func expandDataFactoryDataFlowSource(input []interface{}) *[]datafactory.DataFlo
 	return &result
 }
 
-func expandDataFactoryDataFlowSink(input []interface{}) *[]datafactory.DataFlowSink {
+func expandDataFactoryDataFlowSink(input []interface{}) *[]dataflows.DataFlowSink {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	result := make([]datafactory.DataFlowSink, 0)
+	result := make([]dataflows.DataFlowSink, 0)
 	for _, v := range input {
 		raw := v.(map[string]interface{})
-		result = append(result, datafactory.DataFlowSink{
-			Description:               utils.String(raw["description"].(string)),
-			Name:                      utils.String(raw["name"].(string)),
+		result = append(result, dataflows.DataFlowSink{
+			Description:               pointer.To(raw["description"].(string)),
+			Name:                      raw["name"].(string),
 			Dataset:                   expandDataFactoryDatasetReference(raw["dataset"].([]interface{})),
 			LinkedService:             expandDataFactoryLinkedServiceReference(raw["linked_service"].([]interface{})),
 			SchemaLinkedService:       expandDataFactoryLinkedServiceReference(raw["schema_linked_service"].([]interface{})),
@@ -164,17 +164,17 @@ func expandDataFactoryDataFlowSink(input []interface{}) *[]datafactory.DataFlowS
 	return &result
 }
 
-func expandDataFactoryDataFlowTransformation(input []interface{}) *[]datafactory.Transformation {
+func expandDataFactoryDataFlowTransformation(input []interface{}) *[]dataflows.Transformation {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
-	result := make([]datafactory.Transformation, 0)
+	result := make([]dataflows.Transformation, 0)
 	for _, v := range input {
 		raw := v.(map[string]interface{})
-		result = append(result, datafactory.Transformation{
-			Description:   utils.String(raw["description"].(string)),
-			Name:          utils.String(raw["name"].(string)),
+		result = append(result, dataflows.Transformation{
+			Description:   pointer.To(raw["description"].(string)),
+			Name:          raw["name"].(string),
 			Dataset:       expandDataFactoryDatasetReference(raw["dataset"].([]interface{})),
 			LinkedService: expandDataFactoryLinkedServiceReference(raw["linked_service"].([]interface{})),
 			Flowlet:       expandDataFactoryDataFlowReference(raw["flowlet"].([]interface{})),
@@ -183,64 +183,56 @@ func expandDataFactoryDataFlowTransformation(input []interface{}) *[]datafactory
 	return &result
 }
 
-func expandDataFactoryDatasetReference(input []interface{}) *datafactory.DatasetReference {
+func expandDataFactoryDatasetReference(input []interface{}) *dataflows.DatasetReference {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	raw := input[0].(map[string]interface{})
-	return &datafactory.DatasetReference{
-		Type:          utils.String("DatasetReference"),
-		ReferenceName: utils.String(raw["name"].(string)),
-		Parameters:    raw["parameters"].(map[string]interface{}),
+	return &dataflows.DatasetReference{
+		Type:          dataflows.DatasetReferenceTypeDatasetReference,
+		ReferenceName: raw["name"].(string),
+		Parameters:    pointer.To(raw["parameters"].(map[string]interface{})),
 	}
 }
 
-func expandDataFactoryLinkedServiceReference(input []interface{}) *datafactory.LinkedServiceReference {
+func expandDataFactoryLinkedServiceReference(input []interface{}) *dataflows.LinkedServiceReference {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	raw := input[0].(map[string]interface{})
-	return &datafactory.LinkedServiceReference{
-		Type:          utils.String("LinkedServiceReference"),
-		ReferenceName: utils.String(raw["name"].(string)),
-		Parameters:    raw["parameters"].(map[string]interface{}),
+	return &dataflows.LinkedServiceReference{
+		Type:          dataflows.TypeLinkedServiceReference,
+		ReferenceName: raw["name"].(string),
+		Parameters:    pointer.To(raw["parameters"].(map[string]interface{})),
 	}
 }
 
-func expandDataFactoryDataFlowReference(input []interface{}) *datafactory.DataFlowReference {
+func expandDataFactoryDataFlowReference(input []interface{}) *dataflows.DataFlowReference {
 	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 
 	raw := input[0].(map[string]interface{})
-	return &datafactory.DataFlowReference{
-		Type:              utils.String("DataFlowReference"),
-		ReferenceName:     utils.String(raw["name"].(string)),
-		Parameters:        raw["parameters"].(map[string]interface{}),
-		DatasetParameters: utils.String(raw["dataset_parameters"].(string)),
+	return &dataflows.DataFlowReference{
+		Type:              dataflows.DataFlowReferenceTypeDataFlowReference,
+		ReferenceName:     raw["name"].(string),
+		Parameters:        pointer.To(raw["parameters"].(map[string]interface{})),
+		DatasetParameters: pointer.To(raw["dataset_parameters"]),
 	}
 }
 
-func flattenDataFactoryDataFlowSource(input *[]datafactory.DataFlowSource) []interface{} {
+func flattenDataFactoryDataFlowSource(input *[]dataflows.DataFlowSource) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
 	result := make([]interface{}, 0)
 	for _, v := range *input {
-		name := ""
-		description := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
-		if v.Description != nil {
-			description = *v.Description
-		}
 		result = append(result, map[string]interface{}{
-			"name":                  name,
-			"description":           description,
+			"name":                  v.Name,
+			"description":           pointer.From(v.Description),
 			"dataset":               flattenDataFactoryDatasetReference(v.Dataset),
 			"linked_service":        flattenDataFactoryLinkedServiceReference(v.LinkedService),
 			"schema_linked_service": flattenDataFactoryLinkedServiceReference(v.SchemaLinkedService),
@@ -250,24 +242,16 @@ func flattenDataFactoryDataFlowSource(input *[]datafactory.DataFlowSource) []int
 	return result
 }
 
-func flattenDataFactoryDataFlowSink(input *[]datafactory.DataFlowSink) []interface{} {
+func flattenDataFactoryDataFlowSink(input *[]dataflows.DataFlowSink) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
 	result := make([]interface{}, 0)
 	for _, v := range *input {
-		name := ""
-		description := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
-		if v.Description != nil {
-			description = *v.Description
-		}
 		result = append(result, map[string]interface{}{
-			"name":                    name,
-			"description":             description,
+			"name":                    v.Name,
+			"description":             pointer.From(v.Description),
 			"dataset":                 flattenDataFactoryDatasetReference(v.Dataset),
 			"linked_service":          flattenDataFactoryLinkedServiceReference(v.LinkedService),
 			"rejected_linked_service": flattenDataFactoryLinkedServiceReference(v.RejectedDataLinkedService),
@@ -278,24 +262,16 @@ func flattenDataFactoryDataFlowSink(input *[]datafactory.DataFlowSink) []interfa
 	return result
 }
 
-func flattenDataFactoryDataFlowTransformation(input *[]datafactory.Transformation) []interface{} {
+func flattenDataFactoryDataFlowTransformation(input *[]dataflows.Transformation) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
 	result := make([]interface{}, 0)
 	for _, v := range *input {
-		name := ""
-		description := ""
-		if v.Name != nil {
-			name = *v.Name
-		}
-		if v.Description != nil {
-			description = *v.Description
-		}
 		result = append(result, map[string]interface{}{
-			"name":           name,
-			"description":    description,
+			"name":           v.Name,
+			"description":    pointer.From(v.Description),
 			"dataset":        flattenDataFactoryDatasetReference(v.Dataset),
 			"linked_service": flattenDataFactoryLinkedServiceReference(v.LinkedService),
 			"flowlet":        flattenDataFactoryDataFlowReference(v.Flowlet),
@@ -304,57 +280,42 @@ func flattenDataFactoryDataFlowTransformation(input *[]datafactory.Transformatio
 	return result
 }
 
-func flattenDataFactoryDatasetReference(input *datafactory.DatasetReference) []interface{} {
+func flattenDataFactoryDatasetReference(input *dataflows.DatasetReference) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
-	name := ""
-	if input.ReferenceName != nil {
-		name = *input.ReferenceName
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"name":       name,
-			"parameters": input.Parameters,
+			"name":       input.ReferenceName,
+			"parameters": pointer.From(input.Parameters),
 		},
 	}
 }
 
-func flattenDataFactoryLinkedServiceReference(input *datafactory.LinkedServiceReference) []interface{} {
+func flattenDataFactoryLinkedServiceReference(input *dataflows.LinkedServiceReference) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
-	name := ""
-	if input.ReferenceName != nil {
-		name = *input.ReferenceName
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"name":       name,
-			"parameters": input.Parameters,
+			"name":       input.ReferenceName,
+			"parameters": pointer.From(input.Parameters),
 		},
 	}
 }
 
-func flattenDataFactoryDataFlowReference(input *datafactory.DataFlowReference) []interface{} {
+func flattenDataFactoryDataFlowReference(input *dataflows.DataFlowReference) []interface{} {
 	if input == nil {
 		return []interface{}{}
 	}
 
-	name := ""
-	if input.ReferenceName != nil {
-		name = *input.ReferenceName
-	}
-
 	return []interface{}{
 		map[string]interface{}{
-			"name":               name,
-			"parameters":         input.Parameters,
-			"dataset_parameters": input.DatasetParameters,
+			"name":               input.ReferenceName,
+			"parameters":         pointer.From(input.Parameters),
+			"dataset_parameters": pointer.From(input.DatasetParameters),
 		},
 	}
 }
