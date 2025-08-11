@@ -535,6 +535,26 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		}
 	}
 
+	if d.HasChange("gallery_application") {
+		galleryApplications := expandVirtualMachineScaleSetGalleryApplication(d.Get("gallery_application").([]interface{}))
+
+		if existing.Model.Properties.VirtualMachineProfile.ApplicationProfile == nil {
+			existing.Model.Properties.VirtualMachineProfile.ApplicationProfile = &virtualmachinescalesets.ApplicationProfile{}
+		}
+
+		existing.Model.Properties.VirtualMachineProfile.ApplicationProfile.GalleryApplications = galleryApplications
+
+		// Add a separate create or update then poll method here, since application profile isn't supported in the current sdk patch method
+		// Azure Rest API Specs issue: https://github.com/Azure/azure-rest-api-specs/issues/36582
+		if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			return fmt.Errorf("updating gallery applications for Windows %s: %+v", id, err)
+		}
+
+		if !d.HasChangeExcept("gallery_application") {
+			return resourceWindowsVirtualMachineScaleSetRead(d, meta)
+		}
+	}
+
 	if d.HasChange("zones") {
 		update.Zones = pointer.To(zones.ExpandUntyped(d.Get("zones").(*schema.Set).List()))
 	}
@@ -828,21 +848,6 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 
 	if d.HasChange("tags") {
 		update.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
-	}
-
-	if d.HasChange("gallery_application") {
-		galleryApplications := expandVirtualMachineScaleSetGalleryApplication(d.Get("gallery_application").([]interface{}))
-
-		if existing.Model.Properties.VirtualMachineProfile.ApplicationProfile == nil {
-			existing.Model.Properties.VirtualMachineProfile.ApplicationProfile = &virtualmachinescalesets.ApplicationProfile{}
-		}
-
-		existing.Model.Properties.VirtualMachineProfile.ApplicationProfile.GalleryApplications = galleryApplications
-
-		// Add a separate create or update then poll method here, since application profile isn't supported in the current sdk patch method 
-		if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
-			return fmt.Errorf("updating gallery applications for Windows %s: %+v", id, err)
-		}
 	}
 
 	update.Properties = &updateProps
