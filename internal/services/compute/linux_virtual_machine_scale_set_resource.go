@@ -815,8 +815,6 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if d.HasChange("gallery_application") {
-		updateInstances = true
-
 		galleryApplications := expandVirtualMachineScaleSetGalleryApplication(d.Get("gallery_application").([]interface{}))
 
 		if existing.Model.Properties.VirtualMachineProfile.ApplicationProfile == nil {
@@ -825,6 +823,7 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 
 		existing.Model.Properties.VirtualMachineProfile.ApplicationProfile.GalleryApplications = galleryApplications
 
+		// Add a separate create or update then poll method here, since application profile isn't supported in the current sdk patch method 
 		if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
 			return fmt.Errorf("updating gallery applications for Linux %s: %+v", id, err)
 		}

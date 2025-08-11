@@ -831,8 +831,6 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 	}
 
 	if d.HasChange("gallery_application") {
-		updateInstances = true
-
 		galleryApplications := expandVirtualMachineScaleSetGalleryApplication(d.Get("gallery_application").([]interface{}))
 
 		if existing.Model.Properties.VirtualMachineProfile.ApplicationProfile == nil {
@@ -841,6 +839,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 
 		existing.Model.Properties.VirtualMachineProfile.ApplicationProfile.GalleryApplications = galleryApplications
 
+		// Add a separate create or update then poll method here, since application profile isn't supported in the current sdk patch method 
 		if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
 			return fmt.Errorf("updating gallery applications for Windows %s: %+v", id, err)
 		}
