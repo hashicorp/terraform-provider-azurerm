@@ -5,6 +5,10 @@ package oracle
 import (
 	"context"
 	"fmt"
+	"log"
+	"strings"
+	"time"
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/autonomousdatabasebackups"
@@ -13,9 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"log"
-	"strings"
-	"time"
 )
 
 var _ sdk.Resource = AutonomousDatabaseBackupResource{}
@@ -33,8 +34,6 @@ type AutonomousDatabaseBackupResourceModel struct {
 
 func (AutonomousDatabaseBackupResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-
-		// Required
 		"autonomous_database_id": {
 			Type:     schema.TypeString,
 			Required: true,

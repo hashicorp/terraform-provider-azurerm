@@ -44,7 +44,6 @@ type AutonomousDatabaseBackupDataModel struct {
 
 func (a AutonomousDatabaseBackupDataSource) Arguments() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
-
 		"autonomous_database_id": {
 			Type:     schema.TypeString,
 			Required: true,

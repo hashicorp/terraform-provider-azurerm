@@ -53,10 +53,10 @@ In addition to the Arguments listed above—the following Attributes are exporte
 ## Timeouts
 The `timeouts` block allows you to specify timeouts for certain actions:
 
-* `create` - (Defaults to 2 hours) Used when creating the Autonomous Database Backup.
+* `create` - (Defaults to 30 minutes) Used when creating the Autonomous Database Backup.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Autonomous Database Backup.
-* `update` - (Defaults to 2 hours) Used when updating the Autonomous Database Backup.
-* `delete` - (Defaults to 2 hours) Used when deleting the Autonomous Database Backup.
+* `update` - (Defaults to 30 minutes) Used when updating the Autonomous Database Backup.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Autonomous Database Backup.
 
 ## Import
 
