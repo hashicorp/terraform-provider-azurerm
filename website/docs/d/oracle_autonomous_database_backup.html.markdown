@@ -65,7 +65,7 @@ In addition to the Arguments listed above—the following Attributes are exporte
 ## Timeouts
 The `timeouts` block allows you to specify timeouts for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the Autonomous Database Backup.
+* `read` - (Defaults to 10 minutes) Used when retrieving the Autonomous Database Backup.
 
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->
