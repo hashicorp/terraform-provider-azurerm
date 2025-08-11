@@ -3,6 +3,7 @@
 package oracle_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
@@ -17,7 +18,7 @@ func TestAccAutonomousDatabaseBackupDataSource_basic(t *testing.T) {
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
-			Config: r.basic(),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("autonomous_database_id").Exists(),
 			),
@@ -25,15 +26,12 @@ func TestAccAutonomousDatabaseBackupDataSource_basic(t *testing.T) {
 	})
 }
 
-func (r AutonomousDatabaseBackupDataSourceTest) basic() string {
-	return `
-
-provider "azurerm" {
-  features {}
-}
+func (r AutonomousDatabaseBackupDataSourceTest) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
 
 data "azurerm_oracle_autonomous_database_backup" "test" {
-  autonomous_database_id = "/subscriptions/4aa7be2d-ffd6-4657-828b-31ca25e39985/resourceGroups/dnsFarwoarder/providers/Oracle.Database/autonomousDatabases/DnsForwaderADBS"
+  autonomous_database_id = azurerm_oracle_autonomous_database_backup.test.id
 }
-`
+`, AutonomousDatabaseBackupResource{}.complete(data))
 }

@@ -14,9 +14,7 @@ Use this data source to access information about an existing Autonomous Database
 
 ```hcl
 data "azurerm_oracle_autonomous_database_backup" "example" {
-  name                     = "existing"
-  resource_group_name      = "existing"
-  autonomous_database_name = "existingadb"
+  autonomous_database_id = azurerm_oracle_autonomous_database.example.id
 }
 
 ```
@@ -24,20 +22,16 @@ data "azurerm_oracle_autonomous_database_backup" "example" {
 ## Arguments Reference
 The following arguments are supported:
 
-* `name` - (Required) The display name of the Autonomous Database Backup.
-
-* `resource_group_name` - (Required) The name of the Resource Group where the Autonomous Database Backup exists.
-
-* `autonomous_database_name` - (Required) The name of the Autonomous Database that this backup is for.
+* `autonomous_database_id` - The azureId of the Autonomous Database for we will be listing the backups.
 
 ## Attributes Reference
 In addition to the Arguments listed above—the following Attributes are exported:
 
 * `id` - The ID of the Autonomous Database Backup.
 
-* `autonomous_database_id` - The OCID of the Autonomous Database OCID.
+* `autonomous_database_ocid` - The OCID of the Autonomous Database OCID.
 
-* `autonomous_database_backup_id`  - The backup OCID.
+* `autonomous_database_backup_ocid`  - The backup OCID.
 
 * `backup_size_in_tbs` - The size of the backup in terabytes.
 
@@ -57,8 +51,6 @@ In addition to the Arguments listed above—the following Attributes are exporte
 
 * `location` `- The Azure Region where the Autonomous Database Backup exists.
 
-* `license_model` - The license model of the Autonomous Database at the time the backup was taken.
-
 * `provisioning_state` - The current provisioning state of the Autonomous Database Backup.
 
 * `retention_period_in_days` - The retention period in days for the Autonomous Database Backup.
@@ -74,3 +66,9 @@ In addition to the Arguments listed above—the following Attributes are exporte
 The `timeouts` block allows you to specify timeouts for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Autonomous Database Backup.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Oracle.Database` - 2025-03-01

@@ -5,7 +5,6 @@ package oracle
 import (
 	"context"
 	"fmt"
-
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -24,6 +23,7 @@ type AutonomousDatabaseBackupsDataModel struct {
 	AutonomousDatabaseBackups []AutonomousDatabaseBackupDataModel `tfschema:"autonomous_database_backups"`
 }
 type AutonomousDatabaseBackupDataModel struct {
+	Id                           string  `tfschema:"id"`
 	DisplayName                  string  `tfschema:"display_name"`
 	BackupType                   string  `tfschema:"backup_type"`
 	RetentionPeriodInDays        int64   `tfschema:"retention_period_in_days"`
@@ -54,15 +54,15 @@ func (a AutonomousDatabaseBackupDataSource) Arguments() map[string]*schema.Schem
 
 func (a AutonomousDatabaseBackupDataSource) Attributes() map[string]*schema.Schema {
 	return map[string]*pluginsdk.Schema{
-		"id": {
-			Type:     schema.TypeString,
-			Computed: true,
-		},
 		"autonomous_database_backups": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
+					"id": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
 					"display_name": {
 						Type:     schema.TypeString,
 						Computed: true,
@@ -188,6 +188,7 @@ func (a AutonomousDatabaseBackupDataSource) Read() sdk.ResourceFunc {
 				for _, element := range *model {
 					if props := element.Properties; props != nil {
 						backup := AutonomousDatabaseBackupDataModel{
+							Id:                           pointer.From(element.Id),
 							DisplayName:                  pointer.From(props.DisplayName),
 							RetentionPeriodInDays:        pointer.From(props.RetentionPeriodInDays),
 							AutonomousDatabaseOcid:       pointer.From(props.AutonomousDatabaseOcid),

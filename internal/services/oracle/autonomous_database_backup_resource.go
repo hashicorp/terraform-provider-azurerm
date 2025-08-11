@@ -95,9 +95,9 @@ func (r AutonomousDatabaseBackupResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding id: %+v", err)
 			}
 
-			dbId := autonomousdatabasebackups.NewAutonomousDatabaseID(subscriptionId, parsedAdbsId.ResourceGroupName, parsedAdbsId.AutonomousDatabaseName)
+			dbId := autonomousdatabases.NewAutonomousDatabaseID(subscriptionId, parsedAdbsId.ResourceGroupName, parsedAdbsId.AutonomousDatabaseName)
 
-			existing, err := dbClient.Get(ctx, autonomousdatabases.AutonomousDatabaseId(dbId))
+			existing, err := dbClient.Get(ctx, dbId)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", dbId, err)
 			}
@@ -109,7 +109,7 @@ func (r AutonomousDatabaseBackupResource) Create() sdk.ResourceFunc {
 				model.Name,
 			)
 
-			existingBackup, err := findBackupByName(ctx, client, autonomousdatabases.AutonomousDatabaseId(dbId), id)
+			existingBackup, err := findBackupByName(ctx, client, dbId, id)
 			if err != nil {
 				return fmt.Errorf("checking for existing backup: %+v", err)
 			}
@@ -186,14 +186,24 @@ func (r AutonomousDatabaseBackupResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("parsing ID: %+v", err)
 			}
 
+			adbId := autonomousdatabases.NewAutonomousDatabaseID(
+				id.SubscriptionId,
+				id.ResourceGroupName,
+				id.AutonomousDatabaseName,
+			)
+			backupId := autonomousdatabasebackups.NewAutonomousDatabaseBackupID(id.SubscriptionId, id.ResourceGroupName, id.AutonomousDatabaseName, id.AutonomousDatabaseBackupName)
+
 			var model AutonomousDatabaseBackupResourceModel
 			if err = metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			_, err = client.Get(ctx, *id)
+			existingBackup, err := findBackupByName(ctx, client, adbId, backupId)
 			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", *id, err)
+				return fmt.Errorf("checking for existing backup: %+v", err)
+			}
+			if existingBackup != nil {
+				return metadata.ResourceRequiresImport(r.ResourceType(), &backupId)
 			}
 
 			update := &autonomousdatabasebackups.AutonomousDatabaseBackupUpdate{
@@ -258,15 +268,4 @@ func findBackupByName(ctx context.Context, client *autonomousdatabasebackups.Aut
 
 func (r AutonomousDatabaseBackupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return autonomousdatabasebackups.ValidateAutonomousDatabaseBackupID
-}
-
-func extractResourceGroupAndNameFromID(id string) (resourceGroup string, name string, err error) {
-	parts := strings.Split(id, "/")
-	if len(parts) != 9 {
-		return "", "", fmt.Errorf("invalid Autonomous Database ID format: %s", id)
-	}
-
-	resourceGroup = parts[4]
-	name = parts[8]
-	return resourceGroup, name, nil
 }

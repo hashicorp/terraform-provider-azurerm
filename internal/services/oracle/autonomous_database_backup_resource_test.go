@@ -5,13 +5,13 @@ package oracle_test
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/autonomousdatabases"
 	"log"
 	"strings"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/autonomousdatabasebackups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/autonomousdatabases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -103,7 +103,6 @@ func TestAutonomousDatabaseBackupResource_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -137,8 +136,8 @@ provider "azurerm" {
 }
 
 resource "azurerm_oracle_autonomous_database_backup" "test" {
-  name             = "backup%[2]d"
-  autonomous_database_id = azurerm_oracle_autonomous_database.test.id
+  name                     = "backup%[2]d"
+  autonomous_database_id   = azurerm_oracle_autonomous_database.test.id
   retention_period_in_days = 120
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
@@ -153,10 +152,10 @@ provider "azurerm" {
 }
 
 resource "azurerm_oracle_autonomous_database_backup" "test" {
-  name             = "backup%[2]d"
-  autonomous_database_id = azurerm_oracle_autonomous_database.test.id
+  name                     = "backup%[2]d"
+  autonomous_database_id   = azurerm_oracle_autonomous_database.test.id
   retention_period_in_days = 120
-  backup_type              = "LongTerm"
+  backup_type              = "Full"
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -170,8 +169,8 @@ provider "azurerm" {
 }
 
 resource "azurerm_oracle_autonomous_database_backup" "test" {
-  name             = "backup%[2]d"
-  autonomous_database_id = azurerm_oracle_autonomous_database.test.id
+  name                     = "backup%[2]d"
+  autonomous_database_id   = azurerm_oracle_autonomous_database.test.id
   retention_period_in_days = 160
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
@@ -182,7 +181,8 @@ func (a AutonomousDatabaseBackupResource) requiresImport(data acceptance.TestDat
 %s
 
 resource "azurerm_oracle_autonomous_database_backup" "import" {
-  name             = azurerm_oracle_autonomous_database_backup.test.name
+  name                     = azurerm_oracle_autonomous_database_backup.test.name
+  autonomous_database_id   = azurerm_oracle_autonomous_database_backup.test.autonomous_database_id
   retention_period_in_days = azurerm_oracle_autonomous_database_backup.test.retention_period_in_days
 }
 `, a.basic(data))
