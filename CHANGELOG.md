@@ -5,6 +5,7 @@ FEATURES:
 * **New Resource**: `azurerm_data_factory_customer_managed_key` [GH-30341]
 
 ENHANCEMENTS:
+* `azurerm_logic_app_standard` - refactored to leverage shared code with other `appservice` apps [GH-30272]
 
 * `azurerm_kubernetes_cluster` - add support for `gpu_profile` property [GH-29954]
 
