@@ -343,7 +343,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 resource "azurerm_key_vault_key" "test" {
-  name         = "key-%[2]d"
+  name         = "acctestkey-%[2]d"
   key_vault_id = azurerm_key_vault.test.id
   key_type     = "RSA"
   key_size     = 2048
