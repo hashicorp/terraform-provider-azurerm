@@ -873,27 +873,27 @@ func TestAccWindowsVirtualMachineScaleSet_otherGalleryApplicationComplete(t *tes
 }
 
 func TestAccWindowsVirtualMachineScaleSet_otherGalleryApplicationUpdate(t *testing.T) {
-  data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-  r := LinuxVirtualMachineScaleSetResource{}
+	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
+	r := LinuxVirtualMachineScaleSetResource{}
 
-  data.ResourceTest(t, r, []acceptance.TestStep{
-    {
-      Config: r.otherGalleryApplicationUpdate(data, 0),
-      Check: acceptance.ComposeTestCheckFunc(
-        check.That(data.ResourceName).ExistsInAzure(r),
-        check.That(data.ResourceName).Key("gallery_application.0.order").HasValue("0"),
-      ),
-    },
-    data.ImportStep("admin_password"),
-    {
-      Config: r.otherGalleryApplicationUpdate(data, 1),
-      Check: acceptance.ComposeTestCheckFunc(
-        check.That(data.ResourceName).ExistsInAzure(r),
-        check.That(data.ResourceName).Key("gallery_application.0.order").HasValue("1"),
-      ),
-    },
-    data.ImportStep("admin_password"),
-  })
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.otherGalleryApplicationUpdate(data, 0),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("gallery_application.0.order").HasValue("0"),
+			),
+		},
+		data.ImportStep("admin_password"),
+		{
+			Config: r.otherGalleryApplicationUpdate(data, 1),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("gallery_application.0.order").HasValue("1"),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
 }
 
 func TestAccWindowsVirtualMachineScaleSet_otherCancelRollingUpgrades(t *testing.T) {

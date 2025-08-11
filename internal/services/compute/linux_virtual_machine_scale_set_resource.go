@@ -819,13 +819,12 @@ func resourceLinuxVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta i
 
 		galleryApplications := expandVirtualMachineScaleSetGalleryApplication(d.Get("gallery_application").([]interface{}))
 
-		// Update the existing model's ApplicationProfile
 		if existing.Model.Properties.VirtualMachineProfile.ApplicationProfile == nil {
 			existing.Model.Properties.VirtualMachineProfile.ApplicationProfile = &virtualmachinescalesets.ApplicationProfile{}
 		}
+
 		existing.Model.Properties.VirtualMachineProfile.ApplicationProfile.GalleryApplications = galleryApplications
 
-		// Use PUT to update the entire VMSS (similar to identity updates)
 		if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
 			return fmt.Errorf("updating gallery applications for Linux %s: %+v", id, err)
 		}

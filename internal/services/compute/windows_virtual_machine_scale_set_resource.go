@@ -838,7 +838,7 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		if existing.Model.Properties.VirtualMachineProfile.ApplicationProfile == nil {
 			existing.Model.Properties.VirtualMachineProfile.ApplicationProfile = &virtualmachinescalesets.ApplicationProfile{}
 		}
-		
+
 		existing.Model.Properties.VirtualMachineProfile.ApplicationProfile.GalleryApplications = galleryApplications
 
 		if err := client.CreateOrUpdateThenPoll(ctx, *id, *existing.Model, virtualmachinescalesets.DefaultCreateOrUpdateOperationOptions()); err != nil {
