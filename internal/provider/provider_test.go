@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 )
 
@@ -178,10 +177,6 @@ func TestAccProvider_resourceProviders_deprecatedSkip(t *testing.T) {
 }
 
 func TestAccProvider_resourceProviders_legacyWithAdditional(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		t.Skip("skipping 4.0 specific test")
-	}
-
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
 	}
@@ -219,10 +214,6 @@ func TestAccProvider_resourceProviders_legacyWithAdditional(t *testing.T) {
 }
 
 func TestAccProvider_resourceProviders_core(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		t.Skip("skipping 4.0 specific test")
-	}
-
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
 	}
@@ -250,10 +241,6 @@ func TestAccProvider_resourceProviders_core(t *testing.T) {
 }
 
 func TestAccProvider_resourceProviders_coreWithAdditional(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		t.Skip("skipping 4.0 specific test")
-	}
-
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
 	}
@@ -288,10 +275,6 @@ func TestAccProvider_resourceProviders_coreWithAdditional(t *testing.T) {
 }
 
 func TestAccProvider_resourceProviders_explicit(t *testing.T) {
-	if !features.FourPointOhBeta() {
-		t.Skip("skipping 4.0 specific test")
-	}
-
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
 	}
@@ -328,6 +311,7 @@ func TestAccProvider_resourceProviders_explicit(t *testing.T) {
 }
 
 func TestAccProvider_cliAuth(t *testing.T) {
+	t.Skip("skipping test for now, as it requires Azure CLI authentication to be set up in the environment which is not compatible with MFA Requirement")
 	if os.Getenv("TF_ACC") == "" {
 		t.Skip("TF_ACC not set")
 	}

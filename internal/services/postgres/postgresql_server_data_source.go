@@ -27,6 +27,8 @@ func dataSourcePostgreSqlServer() *pluginsdk.Resource {
 			Read: pluginsdk.DefaultTimeout(10 * time.Minute),
 		},
 
+		DeprecationMessage: "The `azurerm_postgresql_server` data source is deprecated and will be removed in v5.0 of the AzureRM Provider. Azure Database for PostgreSQL Single Server and its sub resources have been retired as of 2025-03-28, please use the `azurerm_postgresql_flexible_server` data source instead. For more information, see https://techcommunity.microsoft.com/blog/adforpostgresql/retiring-azure-database-for-postgresql-single-server-in-2025/3783783.",
+
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:     pluginsdk.TypeString,

@@ -9,8 +9,10 @@ import (
 	"strings"
 )
 
-var _ json.Marshaler = &Model{}
-var _ json.Unmarshaler = &Model{}
+var (
+	_ json.Marshaler   = &Model{}
+	_ json.Unmarshaler = &Model{}
+)
 
 type Model struct {
 	Name string

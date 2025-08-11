@@ -8,7 +8,6 @@ import (
 )
 
 func CommonIds() []resourceids.ResourceId {
-
 	return []resourceids.ResourceId{
 		&AppServiceId{},
 		&AppServiceEnvironmentId{},

@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `parameters` - (Optional) A map of Key-Value pairs.
 
--> **NOTE:** Any parameters specified must exist in the Schema defined in `workflow_parameters`.
+-> **Note:** Any parameters specified must exist in the Schema defined in `workflow_parameters`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
@@ -85,7 +85,7 @@ A `content` block supports the following:
 
 A `trigger` block supports the following:
 
-* `allowed_caller_ip_address_range` - (Required) A list of the allowed caller IP address ranges.
+* `allowed_caller_ip_address_range` - (Optional) A list of the allowed caller IP address ranges.
 
 * `open_authentication_policy` - (Optional) A `open_authentication_policy` block as defined below.
 
@@ -119,7 +119,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Logic App Workflow.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned`
+~> **Note:** This is required when `type` is set to `UserAssigned`
 
 ## Attributes Reference
 
@@ -152,8 +152,8 @@ The `identity` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Logic App Workflow.
-* `update` - (Defaults to 30 minutes) Used when updating the Logic App Workflow.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Logic App Workflow.
+* `update` - (Defaults to 30 minutes) Used when updating the Logic App Workflow.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Logic App Workflow.
 
 ## Import
@@ -163,3 +163,9 @@ Logic App Workflows can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_logic_app_workflow.workflow1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Logic/workflows/workflow1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Logic` - 2019-05-01

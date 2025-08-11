@@ -425,8 +425,6 @@ resource "azurerm_logic_app_workflow" "test" {
     }
 
     trigger {
-      allowed_caller_ip_address_range = ["10.0.7.0-10.0.7.10"]
-
       open_authentication_policy {
         name = "testpolicy1"
 

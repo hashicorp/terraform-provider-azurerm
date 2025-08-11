@@ -34,6 +34,19 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
   custom_block_response_status_code = 403
   custom_block_response_body        = "PGh0bWw+CjxoZWFkZXI+PHRpdGxlPkhlbGxvPC90aXRsZT48L2hlYWRlcj4KPGJvZHk+CkhlbGxvIHdvcmxkCjwvYm9keT4KPC9odG1sPg=="
 
+  js_challenge_cookie_expiration_in_minutes = 45
+
+  log_scrubbing {
+    enabled = true
+
+    scrubbing_rule {
+      enabled        = true
+      match_variable = "RequestCookieNames"
+      operator       = "Equals"
+      selector       = "ChocolateChip"
+    }
+  }
+
   custom_rule {
     name                           = "Rule1"
     enabled                        = true
@@ -54,7 +67,7 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
   custom_rule {
     name                           = "Rule2"
     enabled                        = true
-    priority                       = 2
+    priority                       = 50
     rate_limit_duration_in_minutes = 1
     rate_limit_threshold           = 10
     type                           = "MatchRule"
@@ -77,9 +90,27 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
     }
   }
 
+  custom_rule {
+    name                           = "CustomJSChallenge"
+    enabled                        = true
+    priority                       = 100
+    rate_limit_duration_in_minutes = 1
+    rate_limit_threshold           = 10
+    type                           = "MatchRule"
+    action                         = "JSChallenge"
+
+    match_condition {
+      match_variable     = "RemoteAddr"
+      operator           = "IPMatch"
+      negation_condition = false
+      match_values       = ["192.168.1.0/24"]
+    }
+  }
+
   managed_rule {
     type    = "DefaultRuleSet"
     version = "1.0"
+    action  = "Log"
 
     exclusion {
       match_variable = "QueryStringArgNames"
@@ -121,49 +152,18 @@ resource "azurerm_cdn_frontdoor_firewall_policy" "example" {
 
   managed_rule {
     type    = "Microsoft_BotManagerRuleSet"
-    version = "1.0"
+    version = "1.1"
     action  = "Log"
-  }
-}
-```
 
-## Example Usage: JSChallenge Managed Rule Override
+    override {
+      rule_group_name = "BadBots"
 
-```hcl
-managed_rule {
-  type    = "Microsoft_BotManagerRuleSet"
-  version = "1.1"
-  action  = "Log"
-
-  override {
-    rule_group_name = "BadBots"
-
-    rule {
-      action  = "JSChallenge"
-      enabled = true
-      rule_id = "Bot100200"
+      rule {
+        action  = "JSChallenge"
+        enabled = true
+        rule_id = "Bot100200"
+      }
     }
-  }
-}
-```
-
-## Example Usage: JSChallenge Custom Rule
-
-```hcl
-custom_rule {
-  name                           = "CustomJSChallenge"
-  enabled                        = true
-  priority                       = 2
-  rate_limit_duration_in_minutes = 1
-  rate_limit_threshold           = 10
-  type                           = "MatchRule"
-  action                         = "JSChallenge"
-
-  match_condition {
-    match_variable     = "RemoteAddr"
-    operator           = "IPMatch"
-    negation_condition = false
-    match_values       = ["192.168.1.0/24"]
   }
 }
 ```
@@ -201,6 +201,10 @@ The following arguments are supported:
 * `custom_block_response_status_code` - (Optional) If a `custom_rule` block's action type is `block`, this is the response status code. Possible values are `200`, `403`, `405`, `406`, or `429`.
 
 * `custom_block_response_body` - (Optional) If a `custom_rule` block's action type is `block`, this is the response body. The body must be specified in base64 encoding.
+
+* `log_scrubbing` - (Optional) A `log_scrubbing` block as defined below.
+
+!> **Note:** Setting the`log_scrubbing` block is currently in **PREVIEW**. Please see the [Supplemental Terms of Use for Microsoft Azure Previews](https://azure.microsoft.com/support/legal/preview-supplemental-terms/) for legal terms that apply to Azure features that are in beta, preview, or otherwise not yet released into general availability.
 
 * `managed_rule` - (Optional) One or more `managed_rule` blocks as defined below.
 
@@ -260,6 +264,16 @@ A `managed_rule` block supports the following:
 
 ---
 
+A `log_scrubbing` block supports the following:
+
+* `enabled` - (Optional) Is log scrubbing enabled? Possible values are `true` or `false`. Defaults to `true`.
+
+* `scrubbing_rule` - (Required) One or more `scrubbing_rule` blocks as defined below.
+
+-> **Note:** For more information on masking sensitive data in Azure Front Door please see the [product documentation](https://learn.microsoft.com/azure/web-application-firewall/afds/waf-sensitive-data-protection-configure-frontdoor).
+
+---
+
 An `override` block supports the following:
 
 * `rule_group_name` - (Required) The managed rule group to override.
@@ -298,6 +312,40 @@ An `exclusion` block supports the following:
 
 -> **Note:** `selector` must be set to `*` if `operator` is set to `EqualsAny`.
 
+---
+
+A `scrubbing_rule` block supports the following:
+
+* `match_variable` - (Required) The variable to be scrubbed from the logs. Possible values include `QueryStringArgNames`, `RequestBodyJsonArgNames`, `RequestBodyPostArgNames`, `RequestCookieNames`, `RequestHeaderNames`, `RequestIPAddress`, or `RequestUri`.
+
+-> **Note:** `RequestIPAddress` and `RequestUri` must use the `EqualsAny` `operator`.
+
+* `selector` - (Optional) When the `match_variable` is a collection, the `operator` is used to specify which elements in the collection this `scrubbing_rule` applies to.
+
+-> **Note:** The `selector` field cannot be set if the `operator` is set to `EqualsAny`.
+
+* `operator` - (Optional) When the `match_variable` is a collection, operate on the `selector` to specify which elements in the collection this `scrubbing_rule` applies to. Possible values are `Equals` or `EqualsAny`. Defaults to `Equals`.
+
+* `enabled` - (Optional) Is this `scrubbing_rule` enabled? Defaults to `true`.
+
+---
+
+## `scrubbing_rule` Examples:
+
+The following table shows examples of `scrubbing_rule`'s that can be used to protect sensitive data:
+
+| Match Variable               | Operator       | Selector      | What Gets Scrubbed                                                            |
+| :--------------------------- | :------------- | :------------ | :---------------------------------------------------------------------------- |
+| `RequestHeaderNames`         | Equals         | keyToBlock    | {"matchVariableName":"HeaderValue:keyToBlock","matchVariableValue":"****"}    |
+| `RequestCookieNames`         | Equals         | cookieToBlock | {"matchVariableName":"CookieValue:cookieToBlock","matchVariableValue":"****"} |
+| `RequestBodyPostArgNames`    | Equals         | var           | {"matchVariableName":"PostParamValue:var","matchVariableValue":"****"}        |
+| `RequestBodyJsonArgNames`    | Equals         | JsonValue     | {"matchVariableName":"JsonValue:key","matchVariableValue":"****"}             |
+| `QueryStringArgNames`        | Equals         | foo           | {"matchVariableName":"QueryParamValue:foo","matchVariableValue":"****"}       |
+| `RequestIPAddress`           | Equals Any     | Not Supported | {"matchVariableName":"ClientIP","matchVariableValue":"****"}                  |
+| `RequestUri`                 | Equals Any     | Not Supported | {"matchVariableName":"URI","matchVariableValue":"****"}                       |
+
+---
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -311,8 +359,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Front Door Firewall Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the Front Door Firewall Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Front Door Firewall Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the Front Door Firewall Policy.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Front Door Firewall Policy.
 
 ## Import

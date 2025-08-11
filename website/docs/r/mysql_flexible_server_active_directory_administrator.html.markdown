@@ -26,7 +26,7 @@ resource "azurerm_mysql_flexible_server" "example" {
   location               = azurerm_resource_group.example.location
   administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
-  sku_name               = "B_Standard_B1s"
+  sku_name               = "B_Standard_B1ms"
   zone                   = "2"
 
   identity {
@@ -86,3 +86,9 @@ A MySQL Flexible Server Active Directory Administrator can be imported using the
 ```shell
 terraform import azurerm_mysql_flexible_server_active_directory_administrator.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.DBforMySQL/flexibleServers/server1/administrators/ActiveDirectory
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DBforMySQL` - 2023-12-30

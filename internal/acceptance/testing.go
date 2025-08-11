@@ -91,3 +91,8 @@ func RequiresImportError(resourceName string) *regexp.Regexp {
 	message := "to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information."
 	return regexp.MustCompile(fmt.Sprintf(message, resourceName))
 }
+
+func RequiresImportAssociationError(resourceName string) *regexp.Regexp {
+	message := "to be managed via Terraform this association needs to be imported into the State. Please see the resource documentation for %q for more information."
+	return regexp.MustCompile(fmt.Sprintf(message, resourceName))
+}

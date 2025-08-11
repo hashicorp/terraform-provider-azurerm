@@ -75,8 +75,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation Module.
-* `update` - (Defaults to 30 minutes) Used when updating the Automation Module.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Automation Module.
+* `update` - (Defaults to 30 minutes) Used when updating the Automation Module.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Automation Module.
 
 ## Import
@@ -86,3 +86,9 @@ Automation Modules can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_automation_module.module1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/modules/module1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Automation` - 2023-11-01

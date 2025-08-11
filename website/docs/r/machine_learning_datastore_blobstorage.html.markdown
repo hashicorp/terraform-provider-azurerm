@@ -89,7 +89,7 @@ The following arguments are supported:
 
 * `shared_access_signature` - (Optional) The Shared Access Signature of the Storage Account. Conflicts with `account_key`.
 
-~> **Note:**  One of `account_key` or `shared_access_signature` must be specified.
+~> **Note:** If `service_data_auth_identity` is set to `None` or omitted, one of `account_key` or `shared_access_signature` must be specified.
 
 * `description` - (Optional) Text used to describe the asset. Changing this forces a new Machine Learning DataStore to be created.
 
@@ -123,3 +123,9 @@ Machine Learning DataStores can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_machine_learning_datastore_blobstorage.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.MachineLearningServices/workspaces/mlw1/dataStores/datastore1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.MachineLearningServices` - 2025-06-01

@@ -189,13 +189,14 @@ func TestAccWindowsVirtualMachine_diskOSEphemeralResourceDisk(t *testing.T) {
 	})
 }
 
-func TestAccWindowsVirtualMachine_diskOSEphemeralNvmeDisk(t *testing.T) {
+
+func TestAccWindowsVirtualMachine_diskOSEphemeralNVMeDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.diskOSEphemeralNvmeDisk(data),
+			Config: r.diskOSEphemeralNVMeDisk(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -861,7 +862,7 @@ resource "azurerm_windows_virtual_machine" "test" {
 `, r.template(data))
 }
 
-func (r WindowsVirtualMachineResource) diskOSEphemeralNvmeDisk(data acceptance.TestData) string {
+func (r WindowsVirtualMachineResource) diskOSEphemeralNVMeDisk(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -869,9 +870,10 @@ resource "azurerm_windows_virtual_machine" "test" {
   name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  size           = "Standard_D2ds_v6"
-  admin_username = "adminuser"
-  admin_password = "P@$$w0rd1234!"
+  size                = "Standard_D2ads_v6"
+  admin_username      = "adminuser"
+  admin_password      = "P@$$w0rd1234!"
+  patch_mode          = "AutomaticByPlatform"
   network_interface_ids = [
     azurerm_network_interface.test.id,
   ]
@@ -889,7 +891,7 @@ resource "azurerm_windows_virtual_machine" "test" {
   source_image_reference {
     publisher = "MicrosoftWindowsServer"
     offer     = "WindowsServer"
-    sku       = "2022-datacenter-smalldisk-g2"
+    sku       = "2022-datacenter-azure-edition-core-smalldisk"
     version   = "latest"
   }
 }

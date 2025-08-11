@@ -664,7 +664,6 @@ func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta interfa
 	client := meta.(*clients.Client).RecoveryServices.VaultsClient
 	protectedItemsClient := meta.(*clients.Client).RecoveryServices.ProtectedItemsGroupClient
 	protectedItemClient := meta.(*clients.Client).RecoveryServices.ProtectedItemsClient
-	opResultClient := meta.(*clients.Client).RecoveryServices.BackupOperationResultsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -692,20 +691,8 @@ func resourceRecoveryServicesVaultDelete(d *pluginsdk.ResourceData, meta interfa
 
 				log.Printf("[DEBUG] Purging %s from %s", protectedItemId, id)
 
-				resp, err := protectedItemClient.Delete(ctx, *protectedItemId)
-				if err != nil {
-					if !response.WasNotFound(resp.HttpResponse) {
-						return fmt.Errorf("issuing delete request for %s: %+v", protectedItemId, err)
-					}
-				}
-
-				operationId, err := parseBackupOperationId(resp.HttpResponse)
-				if err != nil {
-					return fmt.Errorf("purging %s from %s: %+v", protectedItemId, id, err)
-				}
-
-				if err = resourceRecoveryServicesBackupProtectedVMWaitForDeletion(ctx, protectedItemClient, opResultClient, *protectedItemId, operationId); err != nil {
-					return fmt.Errorf("waiting for %s to be purged from %s: %+v", protectedItemId, id, err)
+				if err := protectedItemClient.DeleteThenPoll(ctx, *protectedItemId); err != nil {
+					return fmt.Errorf("deleting %s: %+v", protectedItemId, err)
 				}
 			}
 		}

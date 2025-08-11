@@ -190,7 +190,7 @@ func (r SliceResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if metadata.ResourceData.HasChange("snssai") {
+			if metadata.ResourceData.HasChange("single_network_slice_selection_assistance_information") {
 				updateModel.Properties.Snssai = expandSingleNetworkSliceSelectionAssistanceInformationResourceModel(model.SingleNetworkSliceSelectionAssistanceInformation)
 			}
 

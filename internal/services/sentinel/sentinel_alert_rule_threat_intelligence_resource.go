@@ -238,9 +238,6 @@ func (a AlertRuleThreatIntelligenceResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("enabled") {
 				rule.Properties.Enabled = metaModel.Enabled
 			}
-			if metadata.ResourceData.HasChange("template_name") {
-				rule.Properties.AlertRuleTemplateName = metaModel.TemplateName
-			}
 
 			param := alertrules.ThreatIntelligenceAlertRule{
 				Properties: &alertrules.ThreatIntelligenceAlertRuleProperties{

@@ -79,6 +79,13 @@ func TestAccAlertsManagementPrometheusRuleGroup_update(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.updateAlertRule(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -355,6 +362,95 @@ EOF
   }
   tags = {
     key2 = "value2"
+  }
+}
+`, template, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r AlertPrometheusRuleGroupTestResource) updateAlertRule(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  default_node_pool {
+    name                    = "default"
+    node_count              = 1
+    vm_size                 = "Standard_DS2_v2"
+    host_encryption_enabled = true
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_kubernetes_cluster" "test2" {
+  name                = "acctestaks2%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks2%[2]d"
+
+  default_node_pool {
+    name                    = "default"
+    node_count              = 2
+    vm_size                 = "Standard_DS2_v2"
+    host_encryption_enabled = true
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
+resource "azurerm_monitor_action_group" "test2" {
+  name                = "acctestActionGroup2-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag2"
+}
+
+resource "azurerm_monitor_alert_prometheus_rule_group" "test" {
+  name                = "acctest-amprg-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = "%[3]s"
+  cluster_name        = azurerm_kubernetes_cluster.test2.name
+  description         = "This is the description of the following rule group2"
+  rule_group_enabled  = true
+  interval            = "PT10M"
+  scopes              = [azurerm_monitor_workspace.test.id]
+
+  rule {
+    enabled    = true
+    expression = <<EOF
+histogram_quantile(0.99, sum(rate(jobs_duration_seconds_bucket{service="billing-processing"}[5m])) by (job_type))
+EOF
+    record     = "job_type:billing_jobs_duration_seconds:99p6m"
+    labels = {
+      team2 = "prod2"
+    }
+  }
+
+  rule {
+    alert      = "Billing_Processing_Very_Slow2"
+    enabled    = false
+    expression = <<EOF
+histogram_quantile(0.99, sum(rate(jobs_duration_seconds_bucket{service="billing-processing"}[5m])) by (job_type))
+EOF
   }
 }
 `, template, data.RandomInteger, data.Locations.Primary)

@@ -203,7 +203,7 @@ func deleteItemsProvisionedByTemplate(ctx context.Context, client *client.Client
 	}
 
 	providersClient := client.ResourceProvidersClient
-	resourcesClient := client.ResourcesClient
+	resourcesClient := client.LegacyResourcesClient
 
 	log.Printf("[DEBUG] Determining the API Versions used for Resources provisioned in this Template..")
 	resourceProviderApiVersions, err := determineResourceProviderAPIVersionsForResources(ctx, providersClient, *properties.Providers, subscriptionId)

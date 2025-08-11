@@ -40,6 +40,8 @@ output "private_dns_a_record_id" {
 
 * `registration_enabled` - Whether the auto-registration of virtual machine records in the virtual network in the Private DNS zone is enabled or not.
 
+* `resolution_policy` - The resolution policy of the Private DNS Zone Virtual Network Link.
+
 * `tags` - A mapping of tags to assign to the resource.
 
 ## Timeouts
@@ -47,3 +49,9 @@ output "private_dns_a_record_id" {
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Private DNS Zone Virtual Network Link.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-06-01

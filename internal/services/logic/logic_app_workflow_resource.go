@@ -130,7 +130,7 @@ func resourceLogicAppWorkflow() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 									"allowed_caller_ip_address_range": {
 										Type:     pluginsdk.TypeSet,
-										Required: true,
+										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
 											ValidateFunc: validation.Any(

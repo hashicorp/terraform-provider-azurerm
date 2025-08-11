@@ -11,8 +11,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queues"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-10-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/queues"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -331,23 +331,25 @@ func resourceServiceBusQueueCreateUpdate(d *pluginsdk.ResourceData, meta interfa
 		return err
 	}
 
-	// wait for property update, api issue is being tracked:https://github.com/Azure/azure-rest-api-specs/issues/21445
-	log.Printf("[DEBUG] Waiting for %s status to become ready", id)
-	deadline, ok := ctx.Deadline()
-	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
-	}
-	statusPropertyChangeConf := &pluginsdk.StateChangeConf{
-		Pending:                   []string{"Updating"},
-		Target:                    []string{"Succeeded"},
-		Refresh:                   serviceBusQueueStatusRefreshFunc(ctx, client, id, userConfig),
-		ContinuousTargetOccurence: 5,
-		Timeout:                   time.Until(deadline),
-		MinTimeout:                1 * time.Minute,
-	}
+	if !d.IsNewResource() {
+		// wait for property update, api issue is being tracked:https://github.com/Azure/azure-rest-api-specs/issues/21445
+		log.Printf("[DEBUG] Waiting for %s status to become ready", id)
+		deadline, ok := ctx.Deadline()
+		if !ok {
+			return fmt.Errorf("internal-error: context had no deadline")
+		}
+		statusPropertyChangeConf := &pluginsdk.StateChangeConf{
+			Pending:                   []string{"Updating"},
+			Target:                    []string{"Succeeded"},
+			Refresh:                   serviceBusQueueStatusRefreshFunc(ctx, client, id, userConfig),
+			ContinuousTargetOccurence: 5,
+			Timeout:                   time.Until(deadline),
+			MinTimeout:                1 * time.Minute,
+		}
 
-	if _, err = statusPropertyChangeConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for status of %s to become ready: %+v", id, err)
+		if _, err = statusPropertyChangeConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("waiting for status of %s to become ready: %+v", id, err)
+		}
 	}
 
 	d.SetId(id.ID())

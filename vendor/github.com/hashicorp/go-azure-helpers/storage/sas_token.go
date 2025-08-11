@@ -35,7 +35,6 @@ func ComputeAccountSASToken(accountName string,
 	signedVersion string, // nolint: unparam
 	signedEncryptionScope string, // nolint: unparam
 ) (string, error) {
-
 	// UTF-8 by default...
 	stringToSign := accountName + "\n"
 	stringToSign += permissions + "\n"
@@ -117,7 +116,6 @@ func ComputeContainerSASToken(signedPermissions string,
 	contentLanguage string,
 	contentType string,
 ) (string, error) {
-
 	canonicalizedResource := "/blob/" + accountName + "/" + containerName
 	signedVersion := blobContainerSignedVersion
 	signedResource := "c" // c for container
@@ -195,8 +193,10 @@ func ParseAccountSASConnectionString(connString string) (map[string]string, erro
 	// This connection string was for a real storage account which has been deleted
 	// so its safe to include here for reference to understand the format.
 	// DefaultEndpointsProtocol=https;AccountName=azurermtestsa0;AccountKey=2vJrjEyL4re2nxCEg590wJUUC7PiqqrDHjAN5RU304FNUQieiEwS2bfp83O0v28iSfWjvYhkGmjYQAdd9x+6nw==;EndpointSuffix=core.windows.net
-	validKeys := map[string]bool{"DefaultEndpointsProtocol": true, "BlobEndpoint": true,
-		"AccountName": true, "AccountKey": true, "EndpointSuffix": true}
+	validKeys := map[string]bool{
+		"DefaultEndpointsProtocol": true, "BlobEndpoint": true,
+		"AccountName": true, "AccountKey": true, "EndpointSuffix": true,
+	}
 	// The k-v pairs are separated with semi-colons
 	tokens := strings.Split(connString, ";")
 

@@ -321,10 +321,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this Virtual Machine Run Command.
-* `delete` - (Defaults to 30 minutes) Used when deleting this Virtual Machine Run Command.
-* `read` - (Defaults to 5 minutes) Used when retrieving this Virtual Machine Run Command.
-* `update` - (Defaults to 30 minutes) Used when updating this Virtual Machine Run Command.
+* `create` - (Defaults to 30 minutes) Used when creating the Virtual Machine Run Command.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Run Command.
+* `update` - (Defaults to 30 minutes) Used when updating the Virtual Machine Run Command.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Virtual Machine Run Command.
 
 ## Import
 
@@ -333,3 +333,9 @@ An existing Virtual Machine Run Command can be imported into Terraform using the
 ```shell
 terraform import azurerm_virtual_machine_run_command.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/virtualMachines/vm1/runCommands/rc1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Compute` - 2023-03-01

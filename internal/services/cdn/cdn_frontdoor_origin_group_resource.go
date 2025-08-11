@@ -236,7 +236,17 @@ func resourceCdnFrontDoorOriginGroupUpdate(d *pluginsdk.ResourceData, meta inter
 		return err
 	}
 
-	params := &azuresdkhacks.AFDOriginGroupUpdatePropertiesParameters{}
+	existing, err := client.Get(ctx, id.ResourceGroup, id.ProfileName, id.OriginGroupName)
+	if err != nil || existing.AFDOriginGroupProperties == nil {
+		return fmt.Errorf("retrieving %s: %+v", id, err)
+	}
+
+	// Though this is a Patch, if HealthProbeSettings is left as nil in the payload, it could reset HealthProbeSettings inadvertently
+	// so we'll resend what is in the API if d.HasChange("health_probe") doesn't trigger
+	// fixes https://github.com/hashicorp/terraform-provider-azurerm/issues/22131
+	params := &azuresdkhacks.AFDOriginGroupUpdatePropertiesParameters{
+		HealthProbeSettings: existing.AFDOriginGroupProperties.HealthProbeSettings,
+	}
 
 	// The API requires that an explicit null be passed as the 'health_probe' value to disable the health probe
 	// e.g. {"properties":{"healthProbeSettings":null}}

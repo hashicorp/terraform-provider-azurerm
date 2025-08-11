@@ -64,35 +64,6 @@ func TestAccLogAnalyticsSavedSearch_withTag(t *testing.T) {
 	})
 }
 
-func TestAccLogAnalyticsSavedSearch_functionParameter(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_log_analytics_saved_search", "test")
-	r := LogAnalyticsSavedSearchResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.function_parameter(data, "foo:(*)"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.function_parameter(data, "foo:int=1"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.function_parameter(data, "foo:(bar:long)"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccLogAnalyticsSavedSearch_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_saved_search", "test")
 	r := LogAnalyticsSavedSearchResource{}
@@ -199,38 +170,6 @@ resource "azurerm_log_analytics_saved_search" "test" {
   function_parameters = ["a:int=1", "b:int=2", "c:int=3"]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
-}
-
-func (LogAnalyticsSavedSearchResource) function_parameter(data acceptance.TestData, para string) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_log_analytics_workspace" "test" {
-  name                = "acctestLAW-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "PerGB2018"
-}
-
-resource "azurerm_log_analytics_saved_search" "test" {
-  name                       = "acctestLASS-%d"
-  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
-
-  category     = "Saved Search Test Category"
-  display_name = "Create or Update Saved Search Test"
-  query        = "Heartbeat | summarize Count() by Computer | take 1"
-
-  function_alias      = "heartbeat_func"
-  function_parameters = ["%s"]
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, para)
 }
 
 func (LogAnalyticsSavedSearchResource) withTag(data acceptance.TestData) string {

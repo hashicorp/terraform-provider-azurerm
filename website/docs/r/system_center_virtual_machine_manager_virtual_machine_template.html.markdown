@@ -68,10 +68,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this System Center Virtual Machine Manager Virtual Machine Template.
-* `read` - (Defaults to 5 minutes) Used when retrieving this System Center Virtual Machine Manager Virtual Machine Template.
-* `update` - (Defaults to 30 minutes) Used when updating this System Center Virtual Machine Manager Virtual Machine Template.
-* `delete` - (Defaults to 30 minutes) Used when deleting this System Center Virtual Machine Manager Virtual Machine Template.
+* `create` - (Defaults to 30 minutes) Used when creating the System Center Virtual Machine Manager Virtual Machine Template.
+* `read` - (Defaults to 5 minutes) Used when retrieving the System Center Virtual Machine Manager Virtual Machine Template.
+* `update` - (Defaults to 30 minutes) Used when updating the System Center Virtual Machine Manager Virtual Machine Template.
+* `delete` - (Defaults to 30 minutes) Used when deleting the System Center Virtual Machine Manager Virtual Machine Template.
 
 ## Import
 
@@ -80,3 +80,9 @@ System Center Virtual Machine Manager Virtual Machine Templates can be imported 
 ```shell
 terraform import azurerm_system_center_virtual_machine_manager_virtual_machine_template.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.ScVmm/virtualMachineTemplates/virtualMachineTemplate1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ScVmm` - 2023-10-07

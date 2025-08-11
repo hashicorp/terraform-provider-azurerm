@@ -4,6 +4,16 @@ In an effort to keep the [provider documentation](https://registry.terraform.io/
 
 This page will grow over time, and suggestions are welcome!
 
+## Examples
+
+Each resource/data source must include an example, general guidelines for examples are as follows:
+
+- Generally the resource instance name should simply be `example`. E.g. `resource "azurerm_resource_group" "example"`.
+- All name arguments within the example configuration should be prefixed with `example-` (unless this is disallowed by the naming restrictions), avoid overly complex naming, and ensure any naming restrictions are followed. E.g. `name = example-server`.
+- Avoid multiple examples unless a specific configuration is particularly difficult to configure. If there are many complex examples to document, consider using the `examples` folder in the repository instead.
+- Examples don't need to include every argument, generally the same configuration as the basic acceptance test will suffice (including any resource dependencies, i.e. the configuration from the template).
+- Resource/Data Source examples should not define a `terraform` or `provider` block.
+
 ## Notes
 
 Note blocks are used to provide additional information to users beyond the basic description of a resource, argument or attribute.

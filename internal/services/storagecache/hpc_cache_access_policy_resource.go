@@ -21,6 +21,8 @@ import (
 
 func resourceHPCCacheAccessPolicy() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
+		DeprecationMessage: "The `azurerm_hpc_cache_access_policy` resource has been deprecated because the service is retiring on 2025-09-30. This resource will be removed in v5.0 of the AzureRM Provider. See https://aka.ms/hpccacheretirement for more information.",
+
 		Create: resourceHPCCacheAccessPolicyCreateUpdate,
 		Read:   resourceHPCCacheAccessPolicyRead,
 		Update: resourceHPCCacheAccessPolicyCreateUpdate,
@@ -121,7 +123,7 @@ func resourceHPCCacheAccessPolicy() *pluginsdk.Resource {
 }
 
 func resourceHPCCacheAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.Caches
+	client := meta.(*clients.Client).StorageCache_2023_05_01.Caches
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -186,7 +188,7 @@ func resourceHPCCacheAccessPolicyCreateUpdate(d *pluginsdk.ResourceData, meta in
 }
 
 func resourceHPCCacheAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.Caches
+	client := meta.(*clients.Client).StorageCache_2023_05_01.Caches
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -252,7 +254,7 @@ func resourceHPCCacheAccessPolicyRead(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceHPCCacheAccessPolicyDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).StorageCache.Caches
+	client := meta.(*clients.Client).StorageCache_2023_05_01.Caches
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

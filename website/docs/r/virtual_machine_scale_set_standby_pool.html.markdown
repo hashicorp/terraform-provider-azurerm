@@ -9,7 +9,7 @@ description: |-
 # azurerm_virtual_machine_scale_set_standby_pool
 
 Manages a Standby Pool for Virtual Machine Scale Sets.
-~> **NOTE :** please follow the prerequisites mentioned in this [article](https://learn.microsoft.com/azure/virtual-machine-scale-sets/standby-pools-create?tabs=portal#prerequisites) before using this resource.
+~> **Note:** please follow the prerequisites mentioned in this [article](https://learn.microsoft.com/azure/virtual-machine-scale-sets/standby-pools-create?tabs=portal#prerequisites) before using this resource.
 
 ## Example Usage
 
@@ -71,7 +71,7 @@ An `elasticity_profile` block supports the following:
 
 * `min_ready_capacity` - (Required) Specifies the desired minimum number of virtual machines in the standby pool.
 
-~> **NOTE** `min_ready_capacity` cannot exceed `max_ready_capacity`.
+~> **Note:** `min_ready_capacity` cannot exceed `max_ready_capacity`.
 
 ## Attributes Reference
 
@@ -95,3 +95,9 @@ Standby Pool can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_virtual_machine_scale_set_standby_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.StandbyPool/standbyVirtualMachinePools/standbyVirtualMachinePool1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.StandbyPool` - 2025-03-01

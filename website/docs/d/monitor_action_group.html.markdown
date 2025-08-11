@@ -99,7 +99,7 @@ output "action_group_id" {
 * `event_hub_namespace` - The namespace name of the Event Hub.
 * `subscription_id` - The ID for the subscription containing this Event Hub. Default to the subscription ID of the Action Group.
 
-~> **NOTE:** `event_hub_id` is deprecated in version 3.0 and will be removed in version 4.0 of the AzureRM Provider. Please use `event_hub_name`, `event_hub_name`,and `subscription_id` instead.
+~> **Note:** `event_hub_id` is deprecated in version 3.0 and will be removed in version 4.0 of the AzureRM Provider. Please use `event_hub_name`, `event_hub_name`,and `subscription_id` instead.
 
 * `tenant_id` - The Tenant ID for the subscription containing this Event Hub.
 * `use_common_alert_schema` - Indicates whether to use common alert schema.
@@ -152,3 +152,9 @@ output "action_group_id" {
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Action Group.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.Insights` - 2023-01-01

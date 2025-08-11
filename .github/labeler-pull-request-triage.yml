@@ -469,6 +469,11 @@ service/purview:
   - any-glob-to-any-file:
     - internal/services/purview/**/*
 
+service/qumulo:
+- changed-files:
+  - any-glob-to-any-file:
+    - internal/services/qumulo/**/*
+
 service/recovery-services:
 - changed-files:
   - any-glob-to-any-file:

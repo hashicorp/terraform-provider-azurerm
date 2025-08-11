@@ -138,14 +138,14 @@ func (r EventGridNamespaceResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      1,
-						ValidateFunc: validation.IntBetween(1, 8),
+						ValidateFunc: validation.IntBetween(1, 100),
 					},
 
 					"maximum_session_expiry_in_hours": {
 						Type:         pluginsdk.TypeInt,
 						Optional:     true,
 						Default:      1,
-						ValidateFunc: validation.IntBetween(1, 100),
+						ValidateFunc: validation.IntBetween(1, 8),
 					},
 
 					"route_topic_id": {

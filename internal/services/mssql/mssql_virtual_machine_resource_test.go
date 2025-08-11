@@ -160,7 +160,7 @@ func TestAccMsSqlVirtualMachine_autoBackupDaysOfWeek(t *testing.T) {
 	})
 }
 
-func TestAccMsSqlVirtualMachine_autoPatching(t *testing.T) {
+func TestAccMsSqlVirtualMachine_toggleAutoPatching(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_mssql_virtual_machine", "test")
 	r := MsSqlVirtualMachineResource{}
 
@@ -174,6 +174,13 @@ func TestAccMsSqlVirtualMachine_autoPatching(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.withAutoPatchingUpdated(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),

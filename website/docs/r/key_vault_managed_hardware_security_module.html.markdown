@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `soft_delete_retention_days` - (Optional) The number of days that items should be retained for once soft-deleted. This value can be between `7` and `90` days. Defaults to `90`. Changing this forces a new resource to be created.
 
-* `public_network_access_enabled` - (Optional) Whether traffic from public networks is permitted. Defaults to `true`. Changing this forces a new resource to be created.
+* `public_network_access_enabled` - (Optional) Whether traffic from public networks is permitted. Defaults to `true`.
 
 * `network_acls` - (Optional) A `network_acls` block as defined below.
 
@@ -98,10 +98,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Key Vault Managed Hardware Security Module.
-* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Managed Hardware Security Module.
+* `create` - (Defaults to 1 hour) Used when creating the Key Vault Managed Hardware Security Module.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Managed Hardware Security Module.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Key Vault Managed Hardware Security Module.
+* `update` - (Defaults to 30 minutes) Used when updating the Key Vault Managed Hardware Security Module.
+* `delete` - (Defaults to 1 hour) Used when deleting the Key Vault Managed Hardware Security Module.
 
 ## Import
 
@@ -110,3 +110,9 @@ Key Vault Managed Hardware Security Module can be imported using the `resource i
 ```shell
 terraform import azurerm_key_vault_managed_hardware_security_module.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.KeyVault/managedHSMs/hsm1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.KeyVault` - 2023-07-01

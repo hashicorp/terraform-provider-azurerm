@@ -23,6 +23,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name proximity_placement_group -service-package-name compute -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourceProximityPlacementGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceProximityPlacementGroupCreateUpdate,
@@ -30,10 +32,11 @@ func resourceProximityPlacementGroup() *pluginsdk.Resource {
 		Update: resourceProximityPlacementGroupCreateUpdate,
 		Delete: resourceProximityPlacementGroupDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := proximityplacementgroups.ParseProximityPlacementGroupID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&proximityplacementgroups.ProximityPlacementGroupId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&proximityplacementgroups.ProximityPlacementGroupId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -177,7 +180,7 @@ func resourceProximityPlacementGroupRead(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceProximityPlacementGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {

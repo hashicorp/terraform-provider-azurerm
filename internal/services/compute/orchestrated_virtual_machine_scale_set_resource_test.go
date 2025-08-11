@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-07-01/virtualmachinescalesets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-11-01/virtualmachinescalesets"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -424,15 +424,15 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfileErrorConfiguration(t *t
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.skuProfileWithoutSkuName(data),
-			ExpectError: regexp.MustCompile("`sku_profile` can only be set when `sku_name` is set to `Mix`"),
+			ExpectError: regexp.MustCompile("`sku_profile` can only be configured when `sku_name` is set"),
 		},
 		{
 			Config:      r.skuProfileSkuNameIsNotMix(data),
-			ExpectError: regexp.MustCompile("`sku_profile` can only be set when `sku_name` is set to `Mix`"),
+			ExpectError: regexp.MustCompile("`sku_profile` can only be configured when `sku_name` is set"),
 		},
 		{
 			Config:      r.skuProfileNotExist(data),
-			ExpectError: regexp.MustCompile("`sku_profile` must be set when `sku_name` is set to `Mix`"),
+			ExpectError: regexp.MustCompile("`sku_profile` must be configured when `sku_name` is set"),
 		},
 	})
 }
@@ -582,6 +582,20 @@ func TestAccOrchestratedVirtualMachineScaleSet_updatePriorityMixPolicy(t *testin
 // 		},
 // 	})
 // }
+
+func TestAccOrchestratedVirtualMachineScaleSet_regression29748(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
+	r := OrchestratedVirtualMachineScaleSetResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.osProfile_empty(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+	})
+}
 
 func (t OrchestratedVirtualMachineScaleSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := virtualmachinescalesets.ParseVirtualMachineScaleSetID(state.ID)
@@ -2141,8 +2155,8 @@ resource "azurerm_application_gateway" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   sku {
-    name     = "Standard_Medium"
-    tier     = "Standard"
+    name     = "Standard_v2"
+    tier     = "Standard_v2"
     capacity = 1
   }
 
@@ -2205,6 +2219,7 @@ resource "azurerm_application_gateway" "test" {
     http_listener_name         = "listener-1"
     backend_address_pool_name  = "pool-1"
     backend_http_settings_name = "backend-http-1"
+    priority                   = 10 # required field since API version 2021-08-01
   }
 
   tags = {
@@ -2897,4 +2912,28 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, r.natgateway_template(data))
+}
+
+func (OrchestratedVirtualMachineScaleSetResource) osProfile_empty(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-OVMSS-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_orchestrated_virtual_machine_scale_set" "test" {
+  name                = "acctestOVMSS-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  platform_fault_domain_count = 1
+  zones                       = ["1"]
+
+  os_profile {}
+}
+`, data.RandomInteger, data.Locations.Primary)
 }

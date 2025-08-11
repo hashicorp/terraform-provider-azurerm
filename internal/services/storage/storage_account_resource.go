@@ -24,6 +24,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/fileservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/storage/2023-05-01/storageaccounts"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -45,6 +46,8 @@ import (
 	"github.com/jackofallops/giovanni/storage/2023-11-03/blob/accounts"
 	"github.com/jackofallops/giovanni/storage/2023-11-03/queue/queues"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name storage_account -service-package-name storage -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 var (
 	storageAccountResourceName  = "azurerm_storage_account"
@@ -79,10 +82,11 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			3: migration.AccountV3ToV4{},
 		}),
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseStorageAccountID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.StorageAccountId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.StorageAccountId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(60 * time.Minute),
@@ -115,6 +119,23 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Required:     true,
 				ForceNew:     true,
 				ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForSkuTier(), false),
+			},
+
+			"provisioned_billing_model_version": {
+				Type:     pluginsdk.TypeString,
+				ForceNew: true,
+				Optional: true,
+				// There are two billing model in Azure Storage (at least for File): Provisioned (V1 or V2) and PAYG.
+				// (https://learn.microsoft.com/en-us/azure/storage/files/understanding-billing)
+				// The version only applies to Provisioned model. When reflecting to the API payload, Provisioned V1 and PAYG
+				// look the same, i.e. the `sku.name` will be no suffix for it's first part (e.g. "Standard" in "Standard_LRS").
+				// Only for Provisioned V2, there will be a "V2" suffix added, e.g. "StandardV2" in "StandardV2_LRS".
+				// Due to this, we don't differentiate the empty string and "V1" here, as they ends up to be an empty suffix.
+				//
+				// Aside, at least for File, the diff between Provisioned and PYAG is determined by the "account_kind":
+				// - account_kind = Storage/StorageV2: PAYG
+				// - account_kind = FileStorage: Provisioned
+				ValidateFunc: validation.StringInSlice([]string{"V2"}, false),
 			},
 
 			"account_replication_type": {
@@ -1338,6 +1359,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 
 	accountKind := storageaccounts.Kind(d.Get("account_kind").(string))
 	accountTier := storageaccounts.SkuTier(d.Get("account_tier").(string))
+	provisionedBillingModelVersion := d.Get("provisioned_billing_model_version").(string)
 	replicationType := d.Get("account_replication_type").(string)
 
 	publicNetworkAccess := storageaccounts.PublicNetworkAccessDisabled
@@ -1380,7 +1402,7 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			SasPolicy:                    expandAccountSASPolicy(d.Get("sas_policy").([]interface{})),
 		},
 		Sku: storageaccounts.Sku{
-			Name: storageaccounts.SkuName(fmt.Sprintf("%s_%s", string(accountTier), replicationType)),
+			Name: storageaccounts.SkuName(fmt.Sprintf("%s%s_%s", string(accountTier), provisionedBillingModelVersion, replicationType)),
 			Tier: pointer.To(accountTier),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -1439,11 +1461,6 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		if !isPremiumTierAndBlockBlobStorageKind && !isStandardTierAndStorageV2Kind {
 			return fmt.Errorf("`nfsv3_enabled` can only be used with account tier `Standard` and account kind `StorageV2`, or account tier `Premium` and account kind `BlockBlobStorage`")
 		}
-	}
-
-	// AccountTier must be Premium for FileStorage
-	if accountKind == storageaccounts.KindFileStorage && accountTier != storageaccounts.SkuTierPremium {
-		return fmt.Errorf("`account_tier` must be `Premium` for File Storage accounts")
 	}
 
 	// nolint staticcheck
@@ -1672,8 +1689,9 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	defer locks.UnlockByName(id.StorageAccountName, storageAccountResourceName)
 
 	accountTier := storageaccounts.SkuTier(d.Get("account_tier").(string))
+	provisionedBillingModelVersion := d.Get("provisioned_billing_model_version").(string)
 	replicationType := d.Get("account_replication_type").(string)
-	storageType := fmt.Sprintf("%s_%s", accountTier, replicationType)
+	storageType := fmt.Sprintf("%s%s_%s", accountTier, provisionedBillingModelVersion, replicationType)
 	accountKind := storageaccounts.Kind(d.Get("account_kind").(string))
 
 	if accountKind == storageaccounts.KindBlobStorage || accountKind == storageaccounts.KindStorage {
@@ -1851,7 +1869,7 @@ func resourceStorageAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		payload.Kind = accountKind
 	}
 	if d.HasChange("account_replication_type") {
-		// storageType is derived from "account_replication_type" and "account_tier" (force-new)
+		// storageType is derived from "account_replication_type", "account_tier" (force-new) and "provisioned_billing_model_version" (force-new)
 		payload.Sku = storageaccounts.Sku{
 			Name: storageaccounts.SkuName(storageType),
 		}
@@ -2097,14 +2115,19 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 
 		var accountTier storageaccounts.SkuTier
 		accountReplicationType := ""
+		provisionBillingModelVer := ""
 		if sku := model.Sku; sku != nil {
-			accountReplicationType = strings.Split(string(sku.Name), "_")[1]
+			skuNameSegs := strings.Split(string(sku.Name), "_")
+			accountTierAndProvisionBillingModelVer := skuNameSegs[0]
+			accountReplicationType = skuNameSegs[1]
 			if sku.Tier != nil {
 				accountTier = *sku.Tier
+				provisionBillingModelVer = strings.TrimPrefix(accountTierAndProvisionBillingModelVer, string(accountTier))
 			}
 		}
 		d.Set("account_tier", string(accountTier))
 		d.Set("account_replication_type", accountReplicationType)
+		d.Set("provisioned_billing_model_version", provisionBillingModelVer)
 
 		d.Set("edge_zone", flattenEdgeZone(model.ExtendedLocation))
 		d.Set("location", location.Normalize(model.Location))
@@ -2317,7 +2340,7 @@ func resourceStorageAccountRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceStorageAccountDelete(d *pluginsdk.ResourceData, meta interface{}) error {

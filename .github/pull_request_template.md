@@ -65,6 +65,15 @@ This is a (please select all that apply):
 ## Related Issue(s)
 Fixes #0000
 
+<!-- heimdall_github_prtemplate:grc-pci_dss-2024-01-05 -->
+
+## Rollback Plan
+
+If a change needs to be reverted, we will publish an updated version of the provider.
+
+## Changes to Security Controls
+
+Are there any changes to security controls (access controls, encryption, logging) in this pull request? If so, explain.
 
 > [!NOTE] 
 > If this PR changes meaningfully during the course of review please update the title and description as required.

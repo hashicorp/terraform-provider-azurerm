@@ -25,7 +25,7 @@ The following arguments are supported:
 
 * 'block2' - (Required) One or more 'block2' blocks as defined below.
 
-* 'foo_enabled' - (Required) Should the TODO be enabled?
+* 'foo_enabled' - (Required) Whether to enable the TODO.
 
 * 'foo_id' - (Required) The ID of the TODO.
 

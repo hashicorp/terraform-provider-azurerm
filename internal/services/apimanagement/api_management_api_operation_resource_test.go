@@ -136,6 +136,13 @@ func TestAccApiManagementApiOperation_templateParameter(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		{
+			Config: r.templateParameterUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -583,6 +590,33 @@ resource "azurerm_api_management_api_operation" "test" {
   template_parameter {
     name     = "id"
     type     = "number"
+    required = true
+  }
+
+  response {
+    status_code = 200
+  }
+}
+`, r.template(data))
+}
+
+func (r ApiManagementApiOperationResource) templateParameterUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_api_operation" "test" {
+  operation_id        = "acctest-operation"
+  api_name            = azurerm_api_management_api.test.name
+  api_management_name = azurerm_api_management.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  display_name        = "Acceptance Test Operation"
+  method              = "DELETE"
+  url_template        = "/{*path}"
+  description         = "This can only be done by the logged in user."
+
+  template_parameter {
+    name     = "path"
+    type     = "string"
     required = true
   }
 

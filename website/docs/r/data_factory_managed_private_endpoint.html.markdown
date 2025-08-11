@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `fqdns` - (Optional) Fully qualified domain names. Changing this forces a new resource to be created.
 
--> **NOTE:** Possible values are listed in [documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-overview#dns-configuration).
+-> **Note:** Possible values are listed in [documentation](https://docs.microsoft.com/azure/private-link/private-endpoint-overview#dns-configuration).
 
 ## Attributes Reference
 
@@ -79,3 +79,9 @@ Data Factory Managed Private Endpoint can be imported using the `resource id`, e
 ```shell
 terraform import azurerm_data_factory_managed_private_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.DataFactory/factories/example/managedVirtualNetworks/default/managedPrivateEndpoints/endpoint1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DataFactory` - 2018-06-01

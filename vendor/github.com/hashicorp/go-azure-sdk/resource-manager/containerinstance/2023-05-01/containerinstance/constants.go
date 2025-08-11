@@ -132,6 +132,80 @@ func parseContainerGroupPriority(input string) (*ContainerGroupPriority, error) 
 	return &out, nil
 }
 
+type ContainerGroupProvisioningState string
+
+const (
+	ContainerGroupProvisioningStateAccepted       ContainerGroupProvisioningState = "Accepted"
+	ContainerGroupProvisioningStateCanceled       ContainerGroupProvisioningState = "Canceled"
+	ContainerGroupProvisioningStateCreating       ContainerGroupProvisioningState = "Creating"
+	ContainerGroupProvisioningStateDeleting       ContainerGroupProvisioningState = "Deleting"
+	ContainerGroupProvisioningStateFailed         ContainerGroupProvisioningState = "Failed"
+	ContainerGroupProvisioningStateNotAccessible  ContainerGroupProvisioningState = "NotAccessible"
+	ContainerGroupProvisioningStateNotSpecified   ContainerGroupProvisioningState = "NotSpecified"
+	ContainerGroupProvisioningStatePending        ContainerGroupProvisioningState = "Pending"
+	ContainerGroupProvisioningStatePreProvisioned ContainerGroupProvisioningState = "PreProvisioned"
+	ContainerGroupProvisioningStateRepairing      ContainerGroupProvisioningState = "Repairing"
+	ContainerGroupProvisioningStateSucceeded      ContainerGroupProvisioningState = "Succeeded"
+	ContainerGroupProvisioningStateUnhealthy      ContainerGroupProvisioningState = "Unhealthy"
+	ContainerGroupProvisioningStateUpdating       ContainerGroupProvisioningState = "Updating"
+)
+
+func PossibleValuesForContainerGroupProvisioningState() []string {
+	return []string{
+		string(ContainerGroupProvisioningStateAccepted),
+		string(ContainerGroupProvisioningStateCanceled),
+		string(ContainerGroupProvisioningStateCreating),
+		string(ContainerGroupProvisioningStateDeleting),
+		string(ContainerGroupProvisioningStateFailed),
+		string(ContainerGroupProvisioningStateNotAccessible),
+		string(ContainerGroupProvisioningStateNotSpecified),
+		string(ContainerGroupProvisioningStatePending),
+		string(ContainerGroupProvisioningStatePreProvisioned),
+		string(ContainerGroupProvisioningStateRepairing),
+		string(ContainerGroupProvisioningStateSucceeded),
+		string(ContainerGroupProvisioningStateUnhealthy),
+		string(ContainerGroupProvisioningStateUpdating),
+	}
+}
+
+func (s *ContainerGroupProvisioningState) UnmarshalJSON(bytes []byte) error {
+	var decoded string
+	if err := json.Unmarshal(bytes, &decoded); err != nil {
+		return fmt.Errorf("unmarshaling: %+v", err)
+	}
+	out, err := parseContainerGroupProvisioningState(decoded)
+	if err != nil {
+		return fmt.Errorf("parsing %q: %+v", decoded, err)
+	}
+	*s = *out
+	return nil
+}
+
+func parseContainerGroupProvisioningState(input string) (*ContainerGroupProvisioningState, error) {
+	vals := map[string]ContainerGroupProvisioningState{
+		"accepted":       ContainerGroupProvisioningStateAccepted,
+		"canceled":       ContainerGroupProvisioningStateCanceled,
+		"creating":       ContainerGroupProvisioningStateCreating,
+		"deleting":       ContainerGroupProvisioningStateDeleting,
+		"failed":         ContainerGroupProvisioningStateFailed,
+		"notaccessible":  ContainerGroupProvisioningStateNotAccessible,
+		"notspecified":   ContainerGroupProvisioningStateNotSpecified,
+		"pending":        ContainerGroupProvisioningStatePending,
+		"preprovisioned": ContainerGroupProvisioningStatePreProvisioned,
+		"repairing":      ContainerGroupProvisioningStateRepairing,
+		"succeeded":      ContainerGroupProvisioningStateSucceeded,
+		"unhealthy":      ContainerGroupProvisioningStateUnhealthy,
+		"updating":       ContainerGroupProvisioningStateUpdating,
+	}
+	if v, ok := vals[strings.ToLower(input)]; ok {
+		return &v, nil
+	}
+
+	// otherwise presume it's an undefined value and best-effort it
+	out := ContainerGroupProvisioningState(input)
+	return &out, nil
+}
+
 type ContainerGroupRestartPolicy string
 
 const (

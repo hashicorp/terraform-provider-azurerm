@@ -61,6 +61,7 @@ func dataSourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}
 			d.Set("admin_enabled", props.AdminUserEnabled)
 			d.Set("login_server", props.LoginServer)
 			d.Set("data_endpoint_enabled", props.DataEndpointEnabled)
+			d.Set("data_endpoint_host_names", props.DataEndpointHostNames)
 
 			if *props.AdminUserEnabled {
 				credsResp, err := client.ListCredentials(ctx, id)
@@ -115,6 +116,14 @@ func dataSourceContainerRegistrySchema() map[string]*pluginsdk.Schema {
 		"data_endpoint_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
+		},
+
+		"data_endpoint_host_names": {
+			Type:     pluginsdk.TypeSet,
+			Computed: true,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+			},
 		},
 
 		"login_server": {

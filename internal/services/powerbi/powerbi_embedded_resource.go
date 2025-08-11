@@ -64,6 +64,8 @@ func resourcePowerBIEmbedded() *pluginsdk.Resource {
 					"A4",
 					"A5",
 					"A6",
+					"A7",
+					"A8",
 				}, false),
 			},
 

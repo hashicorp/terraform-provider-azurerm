@@ -96,10 +96,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Virtual Desktop Application Group.
-* `update` - (Defaults to 60 minutes) Used when updating the Virtual Desktop Application Group.
+* `create` - (Defaults to 1 hour) Used when creating the Virtual Desktop Application Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Desktop Application Group.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Desktop Application Group.
+* `update` - (Defaults to 1 hour) Used when updating the Virtual Desktop Application Group.
+* `delete` - (Defaults to 1 hour) Used when deleting the Virtual Desktop Application Group.
 
 ## Import
 
@@ -108,3 +108,9 @@ Virtual Desktop Application Groups can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_virtual_desktop_application_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.DesktopVirtualization/applicationGroups/myapplicationgroup
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DesktopVirtualization` - 2024-04-03

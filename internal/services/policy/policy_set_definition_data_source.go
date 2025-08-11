@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func dataSourceArmPolicySetDefinition() *pluginsdk.Resource {
@@ -188,7 +189,7 @@ func dataSourceArmPolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interf
 	d.Set("policy_type", setDefinition.PolicyType)
 	d.Set("metadata", flattenJSON(setDefinition.Metadata))
 
-	if paramsStr, err := flattenParameterDefinitionsValueToString(setDefinition.Parameters); err != nil {
+	if paramsStr, err := flattenParameterDefinitionsValueToStringTrack1(setDefinition.Parameters); err != nil {
 		return fmt.Errorf("flattening JSON for `parameters`: %+v", err)
 	} else {
 		d.Set("parameters", paramsStr)
@@ -200,7 +201,7 @@ func dataSourceArmPolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interf
 	}
 	d.Set("policy_definitions", string(definitionBytes))
 
-	references, err := flattenAzureRMPolicySetDefinitionPolicyDefinitions(setDefinition.PolicyDefinitions)
+	references, err := flattenAzureRMPolicySetDefinitionPolicyDefinitionsTrack1(setDefinition.PolicyDefinitions)
 	if err != nil {
 		return fmt.Errorf("flattening `policy_definition_reference`: %+v", err)
 	}
@@ -208,9 +209,89 @@ func dataSourceArmPolicySetDefinitionRead(d *pluginsdk.ResourceData, meta interf
 		return fmt.Errorf("setting `policy_definition_reference`: %+v", err)
 	}
 
-	if err := d.Set("policy_definition_group", flattenAzureRMPolicySetDefinitionPolicyGroups(setDefinition.PolicyDefinitionGroups)); err != nil {
+	if err := d.Set("policy_definition_group", flattenAzureRMPolicySetDefinitionPolicyGroupsTrack1(setDefinition.PolicyDefinitionGroups)); err != nil {
 		return fmt.Errorf("setting `policy_definition_group`: %+v", err)
 	}
 
 	return nil
+}
+
+func flattenAzureRMPolicySetDefinitionPolicyDefinitionsTrack1(input *[]policy.DefinitionReference) ([]interface{}, error) {
+	result := make([]interface{}, 0)
+	if input == nil {
+		return result, nil
+	}
+
+	for _, definition := range *input {
+		policyDefinitionID := ""
+		if definition.PolicyDefinitionID != nil {
+			policyDefinitionID = *definition.PolicyDefinitionID
+		}
+
+		parametersMap := make(map[string]interface{})
+		for k, v := range definition.Parameters {
+			if v == nil {
+				continue
+			}
+			parametersMap[k] = fmt.Sprintf("%v", v.Value) // map in terraform only accepts string as its values, therefore we have to convert the value to string
+		}
+
+		parameterValues, err := flattenParameterValuesValueToStringTrack1(definition.Parameters)
+		if err != nil {
+			return nil, fmt.Errorf("serializing JSON from `parameter_values`: %+v", err)
+		}
+
+		policyDefinitionReference := ""
+		if definition.PolicyDefinitionReferenceID != nil {
+			policyDefinitionReference = *definition.PolicyDefinitionReferenceID
+		}
+
+		result = append(result, map[string]interface{}{
+			"policy_definition_id": policyDefinitionID,
+			"parameter_values":     parameterValues,
+			"reference_id":         policyDefinitionReference,
+			"policy_group_names":   utils.FlattenStringSlice(definition.GroupNames),
+		})
+	}
+	return result, nil
+}
+
+func flattenAzureRMPolicySetDefinitionPolicyGroupsTrack1(input *[]policy.DefinitionGroup) []interface{} {
+	result := make([]interface{}, 0)
+	if input == nil {
+		return result
+	}
+
+	for _, group := range *input {
+		name := ""
+		if group.Name != nil {
+			name = *group.Name
+		}
+		displayName := ""
+		if group.DisplayName != nil {
+			displayName = *group.DisplayName
+		}
+		category := ""
+		if group.Category != nil {
+			category = *group.Category
+		}
+		description := ""
+		if group.Description != nil {
+			description = *group.Description
+		}
+		metadataID := ""
+		if group.AdditionalMetadataID != nil {
+			metadataID = *group.AdditionalMetadataID
+		}
+
+		result = append(result, map[string]interface{}{
+			"name":                            name,
+			"display_name":                    displayName,
+			"category":                        category,
+			"description":                     description,
+			"additional_metadata_resource_id": metadataID,
+		})
+	}
+
+	return result
 }

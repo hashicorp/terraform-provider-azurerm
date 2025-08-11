@@ -148,11 +148,11 @@ The following arguments are supported:
 
 * `georeplications` - (Optional) One or more `georeplications` blocks as documented below.
 
-~> **NOTE:** The `georeplications` is only supported on new resources with the `Premium` SKU.
+~> **Note:** The `georeplications` is only supported on new resources with the `Premium` SKU.
 
-~> **NOTE:** The `georeplications` list cannot contain the location where the Container Registry exists.
+~> **Note:** The `georeplications` list cannot contain the location where the Container Registry exists.
 
-~> **NOTE:** If more than one `georeplications` block is specified, they are expected to follow the alphabetic order on the `location` property.
+~> **Note:** If more than one `georeplications` block is specified, they are expected to follow the alphabetic order on the `location` property.
 
 * `network_rule_set` - (Optional) A `network_rule_set` block as documented below.
 
@@ -168,17 +168,17 @@ The following arguments are supported:
 
 * `export_policy_enabled` - (Optional) Boolean value that indicates whether export policy is enabled. Defaults to `true`. In order to set it to `false`, make sure the `public_network_access_enabled` is also set to `false`.
 
-  ~> **NOTE:** `quarantine_policy_enabled`, `retention_policy_in_days`, `trust_policy_enabled`, `export_policy_enabled` and `zone_redundancy_enabled` are only supported on resources with the `Premium` SKU.
+~> **Note:** `quarantine_policy_enabled`, `retention_policy_in_days`, `trust_policy_enabled`, `export_policy_enabled` and `zone_redundancy_enabled` are only supported on resources with the `Premium` SKU.
 
 * `identity` - (Optional) An `identity` block as defined below.
 
 * `encryption` - (Optional) An `encryption` block as documented below.
 
-* `anonymous_pull_enabled` - (Optional) Whether allows anonymous (unauthenticated) pull access to this Container Registry? This is only supported on resources with the `Standard` or `Premium` SKU.
+* `anonymous_pull_enabled` - (Optional) Whether to allow anonymous (unauthenticated) pull access to this Container Registry. This is only supported on resources with the `Standard` or `Premium` SKU.
 
 * `data_endpoint_enabled` - (Optional) Whether to enable dedicated data endpoints for this Container Registry? This is only supported on resources with the `Premium` SKU.
 
-* `network_rule_bypass_option` - (Optional) Whether to allow trusted Azure services to access a network restricted Container Registry? Possible values are `None` and `AzureServices`. Defaults to `AzureServices`.
+* `network_rule_bypass_option` - (Optional) Whether to allow trusted Azure services to access a network-restricted Container Registry? Possible values are `None` and `AzureServices`. Defaults to `AzureServices`.
 
 ---
 
@@ -190,7 +190,7 @@ The `georeplications` block supports the following:
 
 * `zone_redundancy_enabled` - (Optional) Whether zone redundancy is enabled for this replication location? Defaults to `false`.
 
-  ~> **NOTE:** Changing the `zone_redundancy_enabled` forces the a underlying replication to be created.
+~> **Note:** Changing the `zone_redundancy_enabled` forces an underlying replication to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to this replication location.
 
@@ -202,9 +202,9 @@ The `network_rule_set` block supports the following:
 
 * `ip_rule` - (Optional) One or more `ip_rule` blocks as defined below.
 
-~> **NOTE:** `network_rule_set` is only supported with the `Premium` SKU at this time.
+~> **Note:** `network_rule_set` is only supported with the `Premium` SKU at this time.
 
-~> **NOTE:** Azure automatically configures Network Rules - to remove these you'll need to specify an `network_rule_set` block with `default_action` set to `Deny`.
+~> **Note:** Azure automatically configures Network Rules - to remove these, you'll need to specify an `network_rule_set` block with `default_action` set to `Deny`.
 
 ---
 
@@ -222,7 +222,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Container Registry.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
@@ -232,7 +232,7 @@ The `encryption` block supports the following:
 
 * `identity_client_id` - (Required) The client ID of the managed identity associated with the encryption key.
 
-~> **NOTE** The managed identity used in `encryption` also needs to be part of the `identity` block under `identity_ids`
+~> **Note:** The managed identity used in `encryption` also needs to be part of the `identity` block under `identity_ids`
 
 ---
 
@@ -248,6 +248,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `admin_password` - The Password associated with the Container Registry Admin account - if the admin account is enabled.
 
+* `data_endpoint_host_names` - A set of data endpoint hostnames associated with the container registry if data endpoints are enabled. 
+
 * `identity` - An `identity` block as defined below.
 
 ---
@@ -258,7 +260,7 @@ An `identity` block exports the following:
 
 * `tenant_id` - The Tenant ID associated with this Managed Service Identity.
 
--> You can access the Principal ID via `azurerm_container_registry.example.identity[0].principal_id` and the Tenant ID via `azurerm_container_registry.example.identity[0].tenant_id`
+-> **Note:** You can access the Principal ID via `azurerm_container_registry.example.identity[0].principal_id` and the Tenant ID via `azurerm_container_registry.example.identity[0].tenant_id`
 
 ---
 
@@ -267,8 +269,8 @@ An `identity` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container Registry.
-* `update` - (Defaults to 30 minutes) Used when updating the Container Registry.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container Registry.
+* `update` - (Defaults to 30 minutes) Used when updating the Container Registry.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Container Registry.
 
 ## Import
@@ -278,3 +280,9 @@ Container Registries can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_container_registry.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ContainerRegistry/registries/myregistry1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ContainerRegistry` - 2023-11-01-preview

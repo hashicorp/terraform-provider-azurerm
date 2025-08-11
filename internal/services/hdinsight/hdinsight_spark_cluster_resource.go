@@ -15,7 +15,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/hdinsight/2021-06-01/clusters"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -150,6 +152,8 @@ func resourceHDInsightSparkCluster() *pluginsdk.Resource {
 			"monitor": SchemaHDInsightsMonitor(),
 
 			"extension": SchemaHDInsightsExtension(),
+
+			"zones": commonschema.ZonesMultipleOptionalForceNew(),
 		},
 	}
 }
@@ -272,6 +276,10 @@ func resourceHDInsightSparkClusterCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
+	if _, ok := d.GetOk("zones"); ok {
+		payload.Zones = pointer.To(zones.ExpandUntyped(d.Get("zones").(*schema.Set).List()))
+	}
+
 	if err := client.CreateThenPoll(ctx, id, payload); err != nil {
 		return fmt.Errorf("creating Spark %s: %+v", id, err)
 	}
@@ -382,6 +390,10 @@ func resourceHDInsightSparkClusterRead(d *pluginsdk.ResourceData, meta interface
 			}
 			if err := d.Set("disk_encryption", diskEncryptionProps); err != nil {
 				return fmt.Errorf("flattening setting `disk_encryption`: %+v", err)
+			}
+
+			if model.Zones != nil {
+				d.Set("zones", zones.FlattenUntyped(model.Zones))
 			}
 
 			if err := d.Set("network", flattenHDInsightsNetwork(props.NetworkProperties)); err != nil {
