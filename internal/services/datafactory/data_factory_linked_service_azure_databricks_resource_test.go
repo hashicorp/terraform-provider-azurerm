@@ -377,10 +377,6 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
     init_scripts = ["init.sh", "init2.sh"]
   }
 }
-
-
-
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }
 
@@ -438,9 +434,5 @@ resource "azurerm_data_factory_linked_service_azure_databricks" "test" {
     init_scripts = ["updated_init.sh", "updated_init2.sh", "updated_init3.sh"]
   }
 }
-
-
-
-
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
 }

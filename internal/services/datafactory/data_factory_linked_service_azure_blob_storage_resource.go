@@ -241,7 +241,7 @@ func resourceDataFactoryLinkedServiceAzureBlobStorage() *pluginsdk.Resource {
 			Optional:      true,
 			Computed:      true,
 			ConflictsWith: []string{"sas_token_linked_key_vault_key"},
-			Deprecated:    "`security.enable_backend_ssl30` has been deprecated in favour of the `security.backend_ssl30_enabled` property and will be removed in v5.0 of the AzureRM Provider",
+			Deprecated:    "`key_vault_sas_token` has been deprecated in favour of the `sas_token_linked_key_vault_key` property and will be removed in v5.0 of the AzureRM Provider",
 			MaxItems:      1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
