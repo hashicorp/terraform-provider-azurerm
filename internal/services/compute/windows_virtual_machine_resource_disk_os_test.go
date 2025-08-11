@@ -189,7 +189,6 @@ func TestAccWindowsVirtualMachine_diskOSEphemeralResourceDisk(t *testing.T) {
 	})
 }
 
-
 func TestAccWindowsVirtualMachine_diskOSEphemeralNVMeDisk(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine", "test")
 	r := WindowsVirtualMachineResource{}
