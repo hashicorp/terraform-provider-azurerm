@@ -28,3 +28,6 @@ jobs:
         l_max_size: '300'
         xl_label: 'size/XL'
         message_if_xl: ''
+        files_to_ignore: |
+          "vendor/*"
+          "go.mod"
