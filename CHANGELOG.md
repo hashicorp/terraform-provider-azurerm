@@ -1,9 +1,13 @@
 ## 4.40.0 (Unreleased)
 
+FEATURES:
+
+* **New Resource**: `azurerm_data_factory_customer_managed_key` [GH-30341]
+
 ENHANCEMENTS:
 
-FEATURES:
-* **New Resource**: `azurerm_data_factory_customer_managed_key` [GH-30341]
+* `azurerm_kubernetes_cluster` - add support for `gpu_profile` property [GH-29954]
+
 
 BUG FIXES:
 
