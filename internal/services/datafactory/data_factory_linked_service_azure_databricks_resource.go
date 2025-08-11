@@ -266,7 +266,6 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
 			Optional:      true,
 			Computed:      true,
 			ValidateFunc:  workspaces.ValidateWorkspaceID,
-			ConflictsWith: []string{"msi_work_space_resource_id"},
 			ExactlyOneOf:  []string{"access_token", "msi_work_space_resource_id", "key_vault_password", "msi_workspace_id"},
 			Deprecated:    "This field is deprecated in favor of `msi_workspace_id` and will be removed in version 5.0.",
 		}
@@ -275,7 +274,6 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
 			Type:          pluginsdk.TypeString,
 			Optional:      true,
 			Computed:      true,
-			ConflictsWith: []string{"msi_workspace_id"},
 			ValidateFunc:  workspaces.ValidateWorkspaceID,
 			ExactlyOneOf:  []string{"access_token", "msi_work_space_resource_id", "key_vault_password", "msi_workspace_id"},
 			Deprecated:    "This field is deprecated in favor of `msi_workspace_id` and will be removed in version 5.0.",
