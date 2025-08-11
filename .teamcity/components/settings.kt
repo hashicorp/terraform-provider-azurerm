@@ -119,6 +119,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // Logic uses app service which is only available in certain locations
         "logic" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "francecentral", "eastus2", false)),
 
+        // Rotate machinelearning acctest across supported-but-less-frequently-used locations to prevent quota and rate limiting
+        "machinelearning" to testConfiguration(locationOverride = LocationConfiguration("brazilsouth", "japaneast", "australiaeast", true)),
+
         // Maps is only available in certain locations
         "maps" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "westus2", "eastus", false)),
 
