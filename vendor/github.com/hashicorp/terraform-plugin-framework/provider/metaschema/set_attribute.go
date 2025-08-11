@@ -139,6 +139,18 @@ func (a SetAttribute) IsWriteOnly() bool {
 	return false
 }
 
+// IsRequiredForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a SetAttribute) IsRequiredForImport() bool {
+	return false
+}
+
+// IsOptionalForImport returns false as this behavior is only relevant
+// for managed resource identity schema attributes.
+func (a SetAttribute) IsOptionalForImport() bool {
+	return false
+}
+
 // ValidateImplementation contains logic for validating the
 // provider-defined implementation of the attribute to prevent unexpected
 // errors or panics. This logic runs during the GetProviderSchema RPC

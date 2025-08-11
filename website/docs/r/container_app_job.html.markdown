@@ -296,6 +296,8 @@ A `volume_mounts` block supports the following:
 
 * `path` - (Required) The path within the container at which the volume should be mounted. Must not contain `:`.
 
+* `sub_path` - (Optional) The sub path of the volume to be mounted in the container.
+
 ---
 
 A `volume` block supports the following:
@@ -447,4 +449,4 @@ terraform import azurerm_container_app_job.example "/subscriptions/00000000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.App`: 2025-01-01
+* `Microsoft.App` - 2025-01-01

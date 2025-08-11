@@ -454,4 +454,4 @@ terraform import azurerm_netapp_volume_group_oracle.example /subscriptions/00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.NetApp`: 2025-01-01
+* `Microsoft.NetApp` - 2025-01-01

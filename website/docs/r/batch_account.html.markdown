@@ -185,4 +185,4 @@ terraform import azurerm_batch_account.example /subscriptions/00000000-0000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Batch`: 2024-07-01
+* `Microsoft.Batch` - 2024-07-01
