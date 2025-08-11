@@ -441,7 +441,7 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *pluginsdk.ResourceData, 
 		if sasToken := properties.SasToken; sasToken != nil {
 			if keyVaultPassword, ok := sasToken.AsAzureKeyVaultSecretReference(); ok {
 				if err := d.Set("sas_token_linked_key_vault_key", flattenAzureKeyVaultSecretReference(keyVaultPassword)); err != nil {
-					return fmt.Errorf("setting `key_vault_sas_token`: %+v", err)
+					return fmt.Errorf("setting `sas_token_linked_key_vault_key`: %+v", err)
 				}
 				if !features.FivePointOh() {
 					if err := d.Set("key_vault_sas_token", flattenAzureKeyVaultSecretReference(keyVaultPassword)); err != nil {
