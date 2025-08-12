@@ -176,11 +176,9 @@ func (r KeyVaultCertificateContactsResource) Read() sdk.ResourceFunc {
 
 			existing, err := client.GetCertificateContacts(ctx, id.KeyVaultBaseUrl)
 			if err != nil {
-				if utils.ResponseWasNotFound(existing.Response) {
-					metadata.Logger.Infof("No Certificate Contacts could be found at %s - removing from state!", id.KeyVaultBaseUrl)
-					return metadata.MarkAsGone(id)
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing Certificate Contacts (Key Vault %q): %s", id.KeyVaultBaseUrl, err)
 				}
-				return fmt.Errorf("checking for presence of existing Certificate Contacts (Key Vault %q): %s", id.KeyVaultBaseUrl, err)
 			}
 
 			state := KeyVaultCertificateContactsResourceModel{
@@ -214,7 +212,9 @@ func (r KeyVaultCertificateContactsResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.GetCertificateContacts(ctx, id.KeyVaultBaseUrl)
 			if err != nil {
-				return fmt.Errorf("checking for presence of existing Certificate Contacts (Key Vault %q): %s", id.KeyVaultBaseUrl, err)
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing Certificate Contacts (Key Vault %q): %s", id.KeyVaultBaseUrl, err)
+				}
 			}
 
 			if metadata.ResourceData.HasChange("contact") {
