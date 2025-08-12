@@ -238,9 +238,9 @@ func TestAccKeyVaultKey_update(t *testing.T) {
 
 func TestAccKeyVaultKey_withPrivateEndpoint(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
-	subnetIDStr := os.Getenv("ACC_AZURE_SUBNET_ID")
+	subnetIDStr := os.Getenv("ACC_PRIVATE_ENDPOINT_AZURE_SUBNET_ID")
 	if subnetIDStr == "" {
-		t.Skip(`Skipping test: ACC_AZURE_SUBNET_ID is not set. This test has to be run in an Azure Virtual Machine and to set ACC_AZURE_SUBNET_ID to the subnet id of the virtual machine where the test is running`)
+		t.Skip(`Skipping test: ACC_PRIVATE_ENDPOINT_AZURE_SUBNET_ID is not set. This test has to be run in an Azure Virtual Machine and to set ACC_PRIVATE_ENDPOINT_AZURE_SUBNET_ID to the subnet id of the virtual machine where the test is running`)
 	}
 
 	subnetID, err := commonids.ParseSubnetIDInsensitively(subnetIDStr)
@@ -735,8 +735,8 @@ data "azurerm_subnet" "test" {
 
 resource "azurerm_key_vault" "test" {
   name                          = "acckv%[4]d"
-  resource_group_name           = data.azurerm_resource_group.test.name
-  location                      = data.azurerm_resource_group.test.location
+  resource_group_name           = data.azurerm_resource_group.rg.name
+  location                      = data.azurerm_resource_group.rg.location
   tenant_id                     = data.azurerm_client_config.current.tenant_id
   sku_name                      = "standard"
   public_network_access_enabled = false
@@ -756,12 +756,12 @@ resource "azurerm_key_vault" "test" {
 
 resource "azurerm_private_dns_zone" "test" {
   name                = "privatelink.vaultcore.azure.net"
-  resource_group_name = data.azurerm_resource_group.test.name
+  resource_group_name = data.azurerm_resource_group.rg.name
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "test" {
   name                  = "xuwu1-kv-pe-dns-link"
-  resource_group_name   = data.azurerm_resource_group.test.name
+  resource_group_name   = data.azurerm_resource_group.rg.name
   private_dns_zone_name = azurerm_private_dns_zone.test.name
   virtual_network_id    = data.azurerm_virtual_network.test.id
 
