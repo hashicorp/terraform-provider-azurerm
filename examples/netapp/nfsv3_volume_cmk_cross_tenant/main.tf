@@ -150,8 +150,8 @@ resource "azurerm_netapp_account_encryption" "example" {
   cross_tenant_key_vault_resource_id = var.cross_tenant_key_vault_resource_id
 
   depends_on = [
-   azurerm_netapp_account.example,
-   time_sleep.private_endpoint_approval_time_wait
+    azurerm_netapp_account.example,
+    time_sleep.private_endpoint_approval_time_wait
   ]
 }
 
