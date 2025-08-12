@@ -262,21 +262,21 @@ func resourceDataFactoryLinkedServiceAzureDatabricks() *pluginsdk.Resource {
 		resource.Schema["key_vault_password"].ExactlyOneOf = []string{"access_token", "msi_work_space_resource_id", "key_vault_password", "msi_workspace_id"}
 
 		resource.Schema["msi_workspace_id"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ValidateFunc:  workspaces.ValidateWorkspaceID,
-			ExactlyOneOf:  []string{"access_token", "msi_work_space_resource_id", "key_vault_password", "msi_workspace_id"},
-			Deprecated:    "This field is deprecated in favor of `msi_workspace_id` and will be removed in version 5.0.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: workspaces.ValidateWorkspaceID,
+			ExactlyOneOf: []string{"access_token", "msi_work_space_resource_id", "key_vault_password", "msi_workspace_id"},
+			Deprecated:   "This field is deprecated in favor of `msi_workspace_id` and will be removed in version 5.0.",
 		}
 
 		resource.Schema["msi_work_space_resource_id"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Computed:      true,
-			ValidateFunc:  workspaces.ValidateWorkspaceID,
-			ExactlyOneOf:  []string{"access_token", "msi_work_space_resource_id", "key_vault_password", "msi_workspace_id"},
-			Deprecated:    "This field is deprecated in favor of `msi_workspace_id` and will be removed in version 5.0.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: workspaces.ValidateWorkspaceID,
+			ExactlyOneOf: []string{"access_token", "msi_work_space_resource_id", "key_vault_password", "msi_workspace_id"},
+			Deprecated:   "This field is deprecated in favor of `msi_workspace_id` and will be removed in version 5.0.",
 		}
 	}
 
