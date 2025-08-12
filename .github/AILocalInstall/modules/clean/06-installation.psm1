@@ -616,28 +616,55 @@ function Update-VSCodeSettings {
         }
     }
     
-    # Add Terraform AzureRM Provider specific settings (REAL config from working system)
-    $localInstructionsPath = Join-Path $env:APPDATA "Code\User\instructions\terraform-azurerm"
+    # Add AI system settings - exact format from repository's .vscode/settings.json
     $terraformSettings = @{
-        "terraform_azurerm_provider_mode" = $true
-        "terraform_azurerm_ai_enhanced" = $true
-        "terraform_azurerm_installation_date" = (Get-Date -Format "yyyy-MM-dd HH:mm:ss")
-        "terraform_azurerm_backup_length" = 0
-        "github.copilot.chat.reviewSelection.instructions" = $localInstructionsPath
-        "github.copilot.advanced" = @{
-            "debug.overrideEngine" = "copilot-chat"
-            "debug.testOverrideProxyUrl" = "https://api.github.com"
+        # Commit message generation with Azure provider context
+        "github.copilot.chat.commitMessageGeneration.instructions" = @(
+            @{
+                "text" = "Provide a concise and clear commit message that summarizes the changes made in the code. For complex changes, include the following details: 1) Specify if the change introduces a breaking change and describe its impact. 2) Highlight any new resources or features added. 3) Mention updates to Azure services or APIs. Aim to keep the message under 72 characters per line for readability."
+            }
+        )
+
+        # Disable conversation history for privacy
+        "github.copilot.chat.summarizeAgentConversationHistory.enabled" = $false
+
+        # Enable code review with instruction files (LOCAL PATHS)
+        "github.copilot.chat.reviewSelection.enabled" = $true
+        "github.copilot.chat.reviewSelection.instructions" = @(
+            @{"file" = "copilot-instructions.md"}
+            @{"file" = "instructions/terraform-azurerm/implementation-guide.instructions.md"}
+            @{"file" = "instructions/terraform-azurerm/azure-patterns.instructions.md"}
+            @{"file" = "instructions/terraform-azurerm/testing-guidelines.instructions.md"}
+            @{"file" = "instructions/terraform-azurerm/documentation-guidelines.instructions.md"}
+            @{"file" = "instructions/terraform-azurerm/provider-guidelines.instructions.md"}
+            @{"file" = "instructions/terraform-azurerm/code-clarity-enforcement.instructions.md"}
+            @{"file" = "instructions/terraform-azurerm/error-patterns.instructions.md"}
+            @{"file" = "instructions/terraform-azurerm/migration-guide.instructions.md"}
+            @{"file" = "instructions/terraform-azurerm/schema-patterns.instructions.md"}
+            @{"file" = "instructions/terraform-azurerm/performance-optimization.instructions.md"}
+            @{"file" = "instructions/terraform-azurerm/security-compliance.instructions.md"}
+            @{"file" = "instructions/terraform-azurerm/troubleshooting-decision-trees.instructions.md"}
+            @{"file" = "instructions/terraform-azurerm/api-evolution-patterns.instructions.md"}
+        )
+
+        # File associations for proper syntax highlighting
+        "files.associations" = @{
+            "*.instructions.md" = "markdown"
+            ".github/*.md" = "markdown"
         }
-        "github.copilot.chat.localeOverride" = "auto"
+
+        # Additional Copilot optimization settings
+        "github.copilot.advanced" = @{
+            "length" = 3000
+            "temperature" = 0.1
+        }
+
+        # Enable Copilot across all relevant contexts and file types
         "github.copilot.enable" = @{
             "*" = $true
-            "plaintext" = $false
-            "markdown" = $true
-            "scminput" = $false
-            "go" = $true
-            "terraform" = $true
-            "hcl" = $true
+            "terminal" = $true
         }
+    }
     }
     
     # Merge settings (real pattern)
