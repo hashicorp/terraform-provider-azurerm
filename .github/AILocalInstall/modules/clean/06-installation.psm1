@@ -844,8 +844,10 @@ function Remove-AIInstallation {
                 }
             }
             
-            # Clean up backup directory (original logic)
-            Remove-BackupFiles -BackupDirectory $paths.VSCodeBackupDir
+            # NEVER delete backup directory - users need it to restore original settings!
+            # Remove-BackupFiles -BackupDirectory $paths.VSCodeBackupDir  # DANGEROUS - commented out
+            Write-StatusMessage "Backup directory preserved at: $($paths.VSCodeBackupDir)" "Info"
+            Write-StatusMessage "Backups contain your original VS Code settings - keep them safe!" "Info"
         } else {
             Write-StatusMessage "No backup directory found - checking for manual cleanup" "Info"
             
@@ -898,8 +900,10 @@ function Remove-AIInstallation {
         
         if ($results.Success) {
             Write-StatusMessage "AI installation removal completed successfully!" "Success"
+            Write-StatusMessage "Your original VS Code settings backups are preserved for safety" "Info"
         } else {
             Write-StatusMessage "AI installation removal completed with some errors" "Warning"
+            Write-StatusMessage "Your original VS Code settings backups are preserved for safety" "Info"
         }
         
     } catch {
@@ -964,22 +968,119 @@ function Restore-FromBackup {
     }
 }
 
-function Remove-BackupFiles {
-    param([string]$BackupDirectory)
+function New-SafeBackup {
+    <#
+    .SYNOPSIS
+        Creates a safe backup with proper metadata
+        Metadata: AZURERM_BACKUP_LENGTH (0 = didn't exist, -1 = couldn't read, length > 0 = valid backup)
+                 AZURERM_INSTALLATION_DATE
+    #>
+    param(
+        [string]$SourcePath,
+        [string]$BackupReason = "backup"
+    )
     
-    if (-not (Test-Path $BackupDirectory)) {
-        return $true
+    # Create timestamped backup path
+    $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+    $sourceFileName = [System.IO.Path]::GetFileNameWithoutExtension($SourcePath)
+    $sourceExtension = [System.IO.Path]::GetExtension($SourcePath)
+    $backupFileName = "${sourceFileName}_backup_${timestamp}${sourceExtension}"
+    
+    # Use standard backup directory
+    $backupDir = Join-Path $env:APPDATA "Code\User\.terraform-azurerm-backups"
+    if (-not (Test-Path $backupDir)) {
+        New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
     }
+    
+    $backupPath = Join-Path $backupDir $backupFileName
+    $installationDate = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     
     try {
-        Remove-Item -Path $BackupDirectory -Recurse -Force -ErrorAction Stop
-        Write-StatusMessage "Cleaned up backup directory: $BackupDirectory" "Success"
-        return $true
+        if (-not (Test-Path $SourcePath)) {
+            # File doesn't exist - create backup indicating this (length = 0)
+            $noFileBackup = @{
+                "// AZURERM_BACKUP_LENGTH" = 0
+                "// AZURERM_INSTALLATION_DATE" = $installationDate
+            }
+            
+            $noFileBackup | ConvertTo-Json -Depth 3 | Set-Content -Path $backupPath -Encoding UTF8
+            Write-StatusMessage "Created backup (no original file): $backupFileName" "Success"
+            
+            return @{
+                Success = $true
+                BackupPath = $backupPath
+                BackupFileName = $backupFileName
+                OriginalFileLength = 0
+            }
+        }
+        
+        # File exists - try to read it
+        try {
+            $originalContent = Get-Content -Path $SourcePath -Raw -ErrorAction Stop
+            $originalLength = (Get-Item $SourcePath).Length
+            
+            # If original is JSON, merge metadata into it
+            if ($SourcePath -like "*.json") {
+                try {
+                    $originalJson = $originalContent | ConvertFrom-Json -ErrorAction Stop
+                    
+                    # Convert to hashtable and add metadata
+                    $mergedContent = @{}
+                    if ($originalJson -is [PSCustomObject]) {
+                        $originalJson.PSObject.Properties | ForEach-Object {
+                            $mergedContent[$_.Name] = $_.Value
+                        }
+                    } else {
+                        $mergedContent = $originalJson
+                    }
+                    
+                    # Add the two required metadata fields
+                    $mergedContent["// AZURERM_BACKUP_LENGTH"] = $originalLength
+                    $mergedContent["// AZURERM_INSTALLATION_DATE"] = $installationDate
+                    
+                    $mergedContent | ConvertTo-Json -Depth 10 | Set-Content -Path $backupPath -Encoding UTF8
+                    
+                } catch {
+                    # File has .json extension but isn't valid JSON - this indicates corruption
+                    Write-StatusMessage "CRITICAL ERROR: File $SourcePath has .json extension but contains invalid JSON" "Error"
+                    Write-StatusMessage "This indicates VS Code environment corruption" "Error"
+                    Write-StatusMessage "Cannot proceed safely with corrupted JSON files" "Error"
+                    throw "Corrupted JSON file detected: $SourcePath. VS Code environment may be damaged."
+                }
+            } else {
+                # For now, only JSON files are expected in backup operations
+                # If we're backing up non-JSON files, that's unexpected
+                Write-StatusMessage "CRITICAL ERROR: Unexpected file type for backup: $SourcePath" "Error"
+                Write-StatusMessage "Backup system only handles JSON files (like settings.json)" "Error"
+                Write-StatusMessage "Non-JSON file backup indicates environment corruption" "Error"
+                throw "Unexpected file type for backup: $SourcePath. Expected JSON files only."
+            }
+            
+            Write-StatusMessage "Created backup: $backupFileName (original length: $originalLength)" "Success"
+            
+            return @{
+                Success = $true
+                BackupPath = $backupPath
+                BackupFileName = $backupFileName
+                OriginalFileLength = $originalLength
+            }
+            
+        } catch {
+            # File exists but couldn't read it - this is an ERROR condition, not a backup scenario
+            Write-StatusMessage "CRITICAL ERROR: Cannot read existing file $SourcePath`: $($_.Exception.Message)" "Error"
+            Write-StatusMessage "This file may be corrupted, locked, or have permission issues" "Error"
+            Write-StatusMessage "Backup operation cannot proceed safely" "Error"
+            throw "Cannot backup unreadable file: $SourcePath. Error: $($_.Exception.Message)"
+        }
+        
     } catch {
-        Write-StatusMessage "Failed to clean up backup directory: $_" "Warning"
-        return $false
+        # Any other error during backup process - this should also halt
+        Write-StatusMessage "CRITICAL ERROR: Backup operation failed for $SourcePath`: $($_.Exception.Message)" "Error"
+        Write-StatusMessage "Cannot proceed with installation without proper backup" "Error"
+        throw "Backup operation failed: $($_.Exception.Message)"
     }
 }
+
 
 function Remove-TerraformSettingsFromVSCode {
     param([string]$SettingsPath)
