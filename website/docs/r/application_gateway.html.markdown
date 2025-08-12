@@ -134,6 +134,8 @@ The following arguments are supported:
 
 * `http_listener` - (Required) One or more `http_listener` blocks as defined below.
 
+* `listener` - (Optional) One or more `listener` blocks as defined below.
+
 * `request_routing_rule` - (Required) One or more `request_routing_rule` blocks as defined below.
 
 * `sku` - (Required) A `sku` block as defined below.
@@ -184,6 +186,8 @@ The following arguments are supported:
 
 * `autoscale_configuration` - (Optional) An `autoscale_configuration` block as defined below.
 
+* `backend_settings` - (Optional) One or more `backend_settings` blocks as defined below.
+
 * `rewrite_rule_set` - (Optional) One or more `rewrite_rule_set` blocks as defined below. Only valid for v2 WAF and Standard SKUs.
 
 ---
@@ -219,6 +223,26 @@ A `backend_address_pool` block supports the following:
 * `fqdns` - (Optional) A list of FQDN's which should be part of the Backend Address Pool.
 
 * `ip_addresses` - (Optional) A list of IP Addresses which should be part of the Backend Address Pool.
+
+---
+
+A `backend_settings` block supports the following:
+
+* `name` - (Required) The name of the Backend Settings Collection.
+
+* `port` - (Required) The port which should be used for this Backend Settings Collection.
+
+* `protocol` - (Required) The Protocol which should be used. Possible values are `Tcp` and `Tls`.
+
+* `timeout` - (Optional) The connection timeout in seconds, which must be between 1 and 86400 seconds. Defaults to `30`.
+
+* `host_name` - (Optional) Host header to be sent to the backend servers for TLS protocol. Cannot be set if `pick_host_name_from_backend_address` is set to `true`.
+
+* `pick_host_name_from_backend_address` - (Optional) Whether host header should be picked from the host name of the backend server for TLS protocol. Defaults to `false`.
+
+* `probe_name` - (Optional) The name of an associated Probe.
+
+* `trusted_root_certificate_names` - (Optional) A list of `trusted_root_certificate` names.
 
 ---
 
@@ -323,6 +347,24 @@ A `http_listener` block supports the following:
 * `firewall_policy_id` - (Optional) The ID of the Web Application Firewall Policy which should be used for this HTTP Listener.
 
 * `ssl_profile_name` - (Optional) The name of the associated SSL Profile which should be used for this HTTP Listener.
+
+---
+
+A `listener` block supports the following:
+
+* `name` - (Required) The Name of the Listener.
+
+* `frontend_ip_configuration_name` - (Required) The Name of the Frontend IP Configuration used for this Listener.
+
+* `frontend_port_name` - (Required) The Name of the Frontend Port use for this Listener.
+
+* `protocol` - (Required) The Protocol to use for this Listener. Possible values are `Tcp`, and `Tls`.
+
+* `ssl_certificate_name` - (Optional) The name of the associated SSL Certificate which should be used for this Listener.
+
+* `ssl_profile_name` - (Optional) The name of the associated SSL Profile which should be used for this Listener.
+
+* `host_names` - (Optional) A list of Hostname(s) should be used for this Listener. It allows special wildcard characters.
 
 ---
 
@@ -687,6 +729,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `backend_http_settings` - A list of `backend_http_settings` blocks as defined below.
 
+* `backend_settings` - A list of `backend_settings` blocks as defined below.
+
 * `frontend_ip_configuration` - A list of `frontend_ip_configuration` blocks as defined below.
 
 * `frontend_port` - A list of `frontend_port` blocks as defined below.
@@ -728,6 +772,14 @@ A `authentication_certificate` block, within the `backend_http_settings` block e
 A `backend_address_pool` block exports the following:
 
 * `id` - The ID of the Backend Address Pool.
+
+---
+
+A `backend_settings` block exports the following:
+
+* `id` - The ID of the Backend Settings Configuration.
+
+* `probe_id` - The ID of the associated Probe.
 
 ---
 
