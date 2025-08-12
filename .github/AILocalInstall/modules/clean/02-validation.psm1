@@ -73,4 +73,40 @@ function Test-CurrentInstallation {
     }
 }
 
-Export-ModuleMember -Function Test-RepositoryStructure, Test-CurrentInstallation
+function Test-Prerequisites {
+    <#
+    .SYNOPSIS
+        Checks if system prerequisites are met for AI installation
+    #>
+    
+    # Check PowerShell version (5.1+ required) 
+    if ($PSVersionTable.PSVersion.Major -lt 5) {
+        Write-StatusMessage "PowerShell 5.1 or later is required, found version $($PSVersionTable.PSVersion)" "Error"
+        return $false
+    }
+    
+    # Use existing config infrastructure to get VS Code path
+    try {
+        $config = Get-InstallationConfig -RepositoryPath (Get-Location)
+        $vsCodeUserPath = $config.VSCodeUserPath
+        
+        # Test if we can access/create VS Code User directory
+        if (-not (Test-Path $vsCodeUserPath)) {
+            New-Item -Path $vsCodeUserPath -ItemType Directory -Force | Out-Null
+        }
+        
+        # Test write access with minimal file
+        $testFile = Join-Path $vsCodeUserPath ".install-test"
+        "test" | Out-File -FilePath $testFile -Encoding UTF8
+        Remove-Item $testFile -Force
+        
+        Write-StatusMessage "Prerequisites check passed" "Success"
+        return $true
+        
+    } catch {
+        Write-StatusMessage "Cannot access VS Code User directory: $($_.Exception.Message)" "Error"
+        return $false
+    }
+}
+
+Export-ModuleMember -Function Test-RepositoryStructure, Test-CurrentInstallation, Test-Prerequisites
