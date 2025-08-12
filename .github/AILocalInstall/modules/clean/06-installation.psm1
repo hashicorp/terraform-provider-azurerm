@@ -967,8 +967,12 @@ function Remove-AIInstallation {
                 }
                 
                 Write-StatusMessage "Manual merge cleanup completed - settings.json left untouched" "Success"
-            } else {
-                # Try to restore from backup or clean manually
+                
+                # CRITICAL: Early exit - manual merge scenario must NEVER touch settings.json
+                # Skip all other settings.json processing
+            } elseif (-not $isManualMerge) {
+                # ONLY proceed with settings.json modification if NOT a manual merge
+                # Try to restore from backup or clean manually (normal scenarios only)
                 if (Test-Path $paths.VSCodeBackupDir) {
                     $latestBackup = Get-MostRecentBackup -BackupDirectory $paths.VSCodeBackupDir -FilePattern "settings_backup_*.json"
                     
@@ -1007,37 +1011,163 @@ function Remove-AIInstallation {
             Write-StatusMessage "No settings.json found - nothing to clean" "Info"
         }
         
-        # Remove copied instruction files from user's VS Code
+        # Remove copied instruction files from user's VS Code (REMOVAL ONLY)
         if (Test-Path $paths.InstructionsDir) {
+            Write-StatusMessage "Removing only installed instruction files..." "Info"
+            
+            # Read manifest to get exact list of files we installed
             try {
-                Remove-Item -Path $paths.InstructionsDir -Recurse -Force -ErrorAction Stop
-                Write-StatusMessage "Removed copied instruction files from VS Code" "Success"
+                $manifest = Read-FileManifest -RepositoryPath $RepositoryPath
+                if ($manifest.Success -and $manifest.InstructionFiles.Count -gt 0) {
+                    $removedCount = 0
+                    $errors = @()
+                    
+                    foreach ($fileName in $manifest.InstructionFiles) {
+                        $targetFile = Join-Path $paths.InstructionsDir $fileName
+                        if (Test-Path $targetFile) {
+                            try {
+                                Remove-Item -Path $targetFile -Force -ErrorAction Stop
+                                Write-StatusMessage "Removed instruction file: $fileName" "Success"
+                                $removedCount++
+                            } catch {
+                                $errors += "Failed to remove $fileName`: $($_.Exception.Message)"
+                                Write-StatusMessage "Failed to remove $fileName`: $($_.Exception.Message)" "Warning"
+                            }
+                        }
+                    }
+                    
+                    Write-StatusMessage "Removed $removedCount instruction files from VS Code" "Success"
+                    if ($errors.Count -gt 0) {
+                        $results.Errors += $errors
+                    }
+                    
+                    # Only remove directory if it's empty (preserve user's other files)
+                    try {
+                        $remainingFiles = Get-ChildItem -Path $paths.InstructionsDir -Recurse
+                        if ($remainingFiles.Count -eq 0) {
+                            Remove-Item -Path $paths.InstructionsDir -Recurse -Force -ErrorAction Stop
+                            Write-StatusMessage "Removed empty terraform-azurerm instructions directory" "Success"
+                        } else {
+                            Write-StatusMessage "Preserved terraform-azurerm instructions directory (contains user files)" "Info"
+                        }
+                    } catch {
+                        Write-StatusMessage "Failed to check/remove instructions directory: $($_.Exception.Message)" "Warning"
+                    }
+                } else {
+                    Write-StatusMessage "Could not read manifest for removal - skipping instruction files" "Warning"
+                    $results.Errors += "Failed to read manifest for instruction file removal"
+                }
             } catch {
-                Write-StatusMessage "Failed to remove instruction files: $($_.Exception.Message)" "Warning"
-                $results.Errors += "Failed to remove instruction files"
+                Write-StatusMessage "Failed to read manifest for instruction file removal: $($_.Exception.Message)" "Warning"
+                $results.Errors += "Failed to read manifest for instruction file removal"
             }
         }
         
-        # Remove copied prompt files from user's VS Code
-        if (Test-Path $paths.PromptsDir) {
-            try {
-                Remove-Item -Path $paths.PromptsDir -Recurse -Force -ErrorAction Stop
-                Write-StatusMessage "Removed copied prompt files from VS Code" "Success"
-            } catch {
-                Write-StatusMessage "Failed to remove prompt files: $($_.Exception.Message)" "Warning"
-                $results.Errors += "Failed to remove prompt files"
+        # Remove copied prompt files from user's VS Code (REMOVAL ONLY)
+        Write-StatusMessage "Removing only installed prompt files..." "Info"
+        
+        # Read manifest to get exact list of files we installed
+        try {
+            $manifest = Read-FileManifest -RepositoryPath $RepositoryPath
+            if ($manifest.Success -and $manifest.PromptFiles.Count -gt 0) {
+                $removedCount = 0
+                $errors = @()
+                
+                # Check both possible locations: subdirectory and root
+                $promptLocations = @(
+                    $paths.PromptsDir,
+                    (Join-Path $env:APPDATA "Code\User\prompts")  # prompts root
+                )
+                
+                foreach ($fileName in $manifest.PromptFiles) {
+                    $fileRemoved = $false
+                    
+                    foreach ($location in $promptLocations) {
+                        $targetFile = Join-Path $location $fileName
+                        if (Test-Path $targetFile) {
+                            try {
+                                Remove-Item -Path $targetFile -Force -ErrorAction Stop
+                                Write-StatusMessage "Removed prompt file: $fileName from $location" "Success"
+                                $removedCount++
+                                $fileRemoved = $true
+                                break  # File found and removed, stop checking other locations
+                            } catch {
+                                $errors += "Failed to remove $fileName from $location`: $($_.Exception.Message)"
+                                Write-StatusMessage "Failed to remove $fileName from $location`: $($_.Exception.Message)" "Warning"
+                            }
+                        }
+                    }
+                    
+                    if (-not $fileRemoved) {
+                        Write-StatusMessage "Prompt file not found (may have been manually deleted): $fileName" "Info"
+                    }
+                }
+                
+                Write-StatusMessage "Removed $removedCount prompt files from VS Code" "Success"
+                if ($errors.Count -gt 0) {
+                    $results.Errors += $errors
+                }
+                
+                # Only remove terraform-azurerm subdirectory if it exists and is empty
+                if (Test-Path $paths.PromptsDir) {
+                    try {
+                        $remainingFiles = Get-ChildItem -Path $paths.PromptsDir -Recurse
+                        if ($remainingFiles.Count -eq 0) {
+                            Remove-Item -Path $paths.PromptsDir -Recurse -Force -ErrorAction Stop
+                            Write-StatusMessage "Removed empty prompts directory" "Success"
+                        } else {
+                            Write-StatusMessage "Preserved prompts directory (contains user files)" "Info"
+                        }
+                    } catch {
+                        Write-StatusMessage "Failed to check/remove prompts directory: $($_.Exception.Message)" "Warning"
+                    }
+                }
+            } else {
+                Write-StatusMessage "Could not read manifest for removal - skipping prompt files" "Warning"
+                $results.Errors += "Failed to read manifest for prompt file removal"
             }
+        } catch {
+            Write-StatusMessage "Failed to read manifest for prompt file removal: $($_.Exception.Message)" "Warning"
+            $results.Errors += "Failed to read manifest for prompt file removal"
         }
         
-        # Remove copied copilot-instructions.md from user's VS Code
-        if (Test-Path $paths.CopilotInstructions) {
-            try {
-                Remove-Item -Path $paths.CopilotInstructions -Force -ErrorAction Stop
-                Write-StatusMessage "Removed copied copilot-instructions.md from VS Code" "Success"
-            } catch {
-                Write-StatusMessage "Failed to remove copilot-instructions.md: $($_.Exception.Message)" "Warning"
-                $results.Errors += "Failed to remove copilot-instructions.md"
+        # Remove copied copilot-instructions.md from user's VS Code (REMOVAL ONLY)
+        Write-StatusMessage "Removing only installed main files..." "Info"
+        
+        # Read manifest to get exact list of files we installed
+        try {
+            $manifest = Read-FileManifest -RepositoryPath $RepositoryPath
+            if ($manifest.Success -and $manifest.MainFiles.Count -gt 0) {
+                $removedCount = 0
+                $errors = @()
+                
+                foreach ($fileName in $manifest.MainFiles) {
+                    $targetFile = Join-Path (Join-Path $env:APPDATA "Code\User") $fileName
+                    if (Test-Path $targetFile) {
+                        try {
+                            Remove-Item -Path $targetFile -Force -ErrorAction Stop
+                            Write-StatusMessage "Removed main file: $fileName" "Success"
+                            $removedCount++
+                        } catch {
+                            $errors += "Failed to remove $fileName`: $($_.Exception.Message)"
+                            Write-StatusMessage "Failed to remove $fileName`: $($_.Exception.Message)" "Warning"
+                        }
+                    } else {
+                        Write-StatusMessage "Main file not found (may have been manually deleted): $fileName" "Info"
+                    }
+                }
+                
+                Write-StatusMessage "Removed $removedCount main files from VS Code" "Success"
+                if ($errors.Count -gt 0) {
+                    $results.Errors += $errors
+                }
+            } else {
+                Write-StatusMessage "Could not read manifest for removal - skipping main files" "Warning"
+                $results.Errors += "Failed to read manifest for main file removal"
             }
+        } catch {
+            Write-StatusMessage "Failed to read manifest for main file removal: $($_.Exception.Message)" "Warning"
+            $results.Errors += "Failed to read manifest for main file removal"
         }
         
         # Note: We removed the copied AI files from VS Code directories
