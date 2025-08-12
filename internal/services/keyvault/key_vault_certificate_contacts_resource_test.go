@@ -141,7 +141,7 @@ func (r KeyVaultCertificateContactsResource) Exists(ctx context.Context, clients
 
 	resp, err := clients.KeyVault.ManagementClient.GetCertificateContacts(ctx, id.KeyVaultBaseUrl)
 	if err != nil {
-        // If we get a 404, the certificate contact is empty
+		// If we get a 404, the certificate contact is empty
 		if utils.ResponseWasNotFound(resp.Response) {
 			return utils.Bool(false), nil
 		}
