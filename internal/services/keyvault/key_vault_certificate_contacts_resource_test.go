@@ -117,8 +117,8 @@ func TestAccKeyVaultCertificateContacts_remove(t *testing.T) {
 		{
 			Config: r.remove(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("contact").IsEmpty(),
+				check.That(data.ResourceName).DoesNotExistInAzure(r),
+				check.That(data.ResourceName).Key("contact.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -126,7 +126,7 @@ func TestAccKeyVaultCertificateContacts_remove(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("contact").IsNotEmpty(),
+				check.That(data.ResourceName).Key("contact.#").HasValue("1"),
 			),
 		},
 		data.ImportStep(),
@@ -141,9 +141,9 @@ func (r KeyVaultCertificateContactsResource) Exists(ctx context.Context, clients
 
 	resp, err := clients.KeyVault.ManagementClient.GetCertificateContacts(ctx, id.KeyVaultBaseUrl)
 	if err != nil {
-		// Handle 404 "ContactsNotFound" - this means the resource exists but has no contacts
+        // If we get a 404, the certificate contact is empty
 		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(true), err
+			return utils.Bool(false), nil
 		}
 		return nil, err
 	}
