@@ -184,7 +184,7 @@ function Show-Help {
     Write-Host "====================================================" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "USAGE:" -ForegroundColor Yellow
-    Write-Host "  .\install-clean.ps1 [OPTIONS]"
+    Write-Host "  .\install-copilot-setup.ps1 [OPTIONS]"
     Write-Host ""
     Write-Host "OPTIONS:" -ForegroundColor Yellow
     Write-Host "  -RepositoryPath <path>    Path to terraform-provider-azurerm repository"
@@ -194,11 +194,11 @@ function Show-Help {
     Write-Host "  -Help                     Show this help message"
     Write-Host ""
     Write-Host "EXAMPLES:" -ForegroundColor Yellow
-    Write-Host "  .\install-clean.ps1                                  # Auto-discover repository"
-    Write-Host "  .\install-clean.ps1 -RepositoryPath C:\path\to\repo  # Use specific path"
-    Write-Host "  .\install-clean.ps1 -Auto-Approve                    # Non-interactive install"
-    Write-Host "  .\install-clean.ps1 -Clean                           # Remove installation"
-    Write-Host "  .\install-clean.ps1 -Verify                          # Verify current installation"
+    Write-Host "  .\install-copilot-setup.ps1                                  # Auto-discover repository"
+    Write-Host "  .\install-copilot-setup.ps1 -RepositoryPath C:\path\to\repo  # Use specific path"
+    Write-Host "  .\install-copilot-setup.ps1 -Auto-Approve                    # Non-interactive install"
+    Write-Host "  .\install-copilot-setup.ps1 -Clean                           # Remove installation"
+    Write-Host "  .\install-copilot-setup.ps1 -Verify                          # Verify current installation"
     Write-Host ""
 }
 
