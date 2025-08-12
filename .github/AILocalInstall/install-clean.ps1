@@ -161,7 +161,14 @@ function Main {
                 Write-StatusMessage "Verification completed successfully!" "Success"
                 exit 0
             } else {
-                Write-StatusMessage "Verification found issues" "Warning"
+                # Check if this is no installation or partial installation
+                $totalFound = $verifyResult.InstructionFiles.Count + $verifyResult.PromptFiles.Count + $verifyResult.MainFiles.Count
+                
+                if ($totalFound -eq 0 -and -not $verifyResult.SettingsConfigured) {
+                    Write-StatusMessage "No AI installation detected locally" "Info"
+                } else {
+                    Write-StatusMessage "Verification found issues with existing installation" "Warning"
+                }
                 exit 1
             }
         }

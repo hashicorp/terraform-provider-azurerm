@@ -49,7 +49,15 @@ function Show-InstallationSummary {
         Write-Host "   - Main Files: $($Results.MainFiles.Count) of $($Results.ExpectedMainFiles.Count) files found" -ForegroundColor $mainStatus
         Write-Host "   - VS Code Settings: $(if ($Results.SettingsConfigured) { 'Correctly configured' } else { 'Not configured' })" -ForegroundColor $settingsStatus
     } else {
-        Write-Host " Status: INSTALLATION COMPLETED WITH ISSUES" -ForegroundColor Yellow
+        # Determine if this is no installation or partial installation
+        $totalFound = $Results.InstructionFiles.Count + $Results.PromptFiles.Count + $Results.MainFiles.Count
+        $totalExpected = $Results.ExpectedInstructionFiles.Count + $Results.ExpectedPromptFiles.Count + $Results.ExpectedMainFiles.Count
+        
+        if ($totalFound -eq 0 -and -not $Results.SettingsConfigured) {
+            Write-Host " Status: NO INSTALLATION FOUND" -ForegroundColor Red
+        } else {
+            Write-Host " Status: INSTALLATION COMPLETED WITH ISSUES" -ForegroundColor Yellow
+        }
         Write-Host ""
         
         # Show partial installation status
