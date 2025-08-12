@@ -141,7 +141,9 @@ func (r KeyVaultCertificateContactsResource) Exists(ctx context.Context, clients
 
 	resp, err := clients.KeyVault.ManagementClient.GetCertificateContacts(ctx, id.KeyVaultBaseUrl)
 	if err != nil {
-		return nil, err
+		if !utils.ResponseWasNotFound(resp.Response) {
+			return nil, err
+		}
 	}
 
 	return utils.Bool(resp.ContactList != nil && len(*resp.ContactList) != 0), nil
