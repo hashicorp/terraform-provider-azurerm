@@ -250,22 +250,22 @@ function Test-AIInstallation {
                     Write-StatusMessage "VS Code settings.json correctly configured for local AI installation" "Success"
                     $settingsConfigured = $true  # Mark as successfully configured
                 } elseif ($hasCorrectPaths -and $hasIncorrectPaths) {
-                    $errors += "VS Code settings.json contains repository paths that will break local AI installation"
+                    $errors += "VS Code settings.json: contains repository paths that will break local AI installation"
                     Write-StatusMessage "Settings contain both local and repository paths - repository paths will cause failures" "Error"
                 } else {
-                    $errors += "VS Code settings.json contains no local instruction paths (should point to instructions/terraform-azurerm/)"
+                    $errors += "VS Code settings.json: contains no local instruction paths (should point to instructions/terraform-azurerm/)"
                 }
             } else {
-                $errors += "VS Code settings.json missing github.copilot.chat.reviewSelection.instructions setting"
-                Write-StatusMessage "VS Code settings.json missing github.copilot.chat.reviewSelection.instructions setting" "Error"
+                $errors += "VS Code settings.json: missing github.copilot.chat.reviewSelection.instructions setting"
+                Write-StatusMessage "VS Code settings.json: missing github.copilot.chat.reviewSelection.instructions setting" "Error"
             }
             
         } catch {
-            $errors += "Failed to read VS Code settings.json: $($_.Exception.Message)"
+            $errors += "VS Code settings.json: failed to read - $($_.Exception.Message)"
             Write-StatusMessage "Failed to read VS Code settings.json: $($_.Exception.Message)" "Error"
         }
     } else {
-        $errors += "VS Code settings.json not found"
+        $errors += "VS Code settings.json: not found"
         Write-StatusMessage "VS Code settings.json not found" "Error"
     }
     
@@ -589,22 +589,28 @@ function Update-VSCodeSettings {
         }
     }
     
-    # Read existing settings or create new (real pattern from working system)
+    # Read existing settings or create new (handle JSONC with comments)
     $settings = @{}
     if (Test-Path $settingsPath) {
         try {
             $existingContent = Get-Content $settingsPath -Raw
             if ($existingContent.Trim()) {
-                $tempSettings = $existingContent | ConvertFrom-Json
+                # Remove comments for JSON parsing (but preserve them for final output)
+                $cleanJson = $existingContent -replace '//.*$', '' | ForEach-Object { $_ -replace '\s+$', '' }
+                $cleanJson = ($cleanJson -split "`n" | Where-Object { $_.Trim() -ne '' }) -join "`n"
                 
-                # Convert to hashtable for PowerShell 5.1 compatibility (real pattern)
-                if ($tempSettings -is [PSCustomObject]) {
-                    $settings = @{}
-                    $tempSettings.PSObject.Properties | ForEach-Object {
-                        $settings[$_.Name] = $_.Value
+                if ($cleanJson.Trim()) {
+                    $tempSettings = $cleanJson | ConvertFrom-Json
+                    
+                    # Convert to hashtable for PowerShell 5.1 compatibility (real pattern)
+                    if ($tempSettings -is [PSCustomObject]) {
+                        $settings = @{}
+                        $tempSettings.PSObject.Properties | ForEach-Object {
+                            $settings[$_.Name] = $_.Value
+                        }
+                    } else {
+                        $settings = $tempSettings
                     }
-                } else {
-                    $settings = $tempSettings
                 }
             }
         } catch {
@@ -665,16 +671,50 @@ function Update-VSCodeSettings {
             "terminal" = $true
         }
     }
-    }
     
+    # Remove any old invalid properties from previous installations
+    $invalidKeys = @(
+        "terraform_azurerm_provider_mode",
+        "terraform_azurerm_ai_enhanced", 
+        "terraform_azurerm_installation_date",
+        "terraform_azurerm_backup_length",
+        "github.copilot.chat.localeOverride",
+        "// AZURERM_BACKUP_LENGTH",
+        "// AZURERM_INSTALLATION_DATE"
+    )
+    
+    foreach ($invalidKey in $invalidKeys) {
+        if ($settings.ContainsKey($invalidKey)) {
+            $settings.Remove($invalidKey)
+            Write-StatusMessage "Removed invalid setting: $invalidKey" "Info"
+        }
+    }
+
     # Merge settings (real pattern)
     foreach ($key in $terraformSettings.Keys) {
-        $settings[$key] = $terraformSettings[$key]
+        if ($key -notlike "// AZURERM_*") {  # Skip metadata, we'll add it separately
+            $settings[$key] = $terraformSettings[$key]
+        }
     }
     
     try {
-        # Write settings (real pattern)
-        $json = $settings | ConvertTo-Json -Depth 10
+        # Create ordered settings with metadata at the top
+        $orderedSettings = [ordered]@{}
+        
+        # Add metadata first
+        $currentDate = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+        $backupLength = 0  # Default for installation
+        $orderedSettings["// AZURERM_BACKUP_LENGTH"] = $backupLength
+        $orderedSettings["// AZURERM_INSTALLATION_DATE"] = $currentDate
+        
+        # Add all other settings (sorted alphabetically for consistency)
+        $sortedKeys = $settings.Keys | Sort-Object
+        foreach ($key in $sortedKeys) {
+            $orderedSettings[$key] = $settings[$key]
+        }
+        
+        # Write ordered settings as JSON
+        $json = $orderedSettings | ConvertTo-Json -Depth 10
         Set-Content -Path $settingsPath -Value $json -Encoding UTF8
         
         Write-StatusMessage "VS Code settings updated successfully" "Success"

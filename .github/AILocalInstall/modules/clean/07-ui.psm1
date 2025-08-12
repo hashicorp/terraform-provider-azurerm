@@ -62,10 +62,17 @@ function Show-InstallationSummary {
         
         # Show partial installation status
         Write-Host " Components Found:" -ForegroundColor White
-        Write-Host "   - Instruction Files: $($Results.InstructionFiles.Count) of $($Results.ExpectedInstructionFiles.Count) files found" -ForegroundColor Red
-        Write-Host "   - Prompt Files: $($Results.PromptFiles.Count) of $($Results.ExpectedPromptFiles.Count) files found" -ForegroundColor Red  
-        Write-Host "   - Main Files: $($Results.MainFiles.Count) of $($Results.ExpectedMainFiles.Count) files found" -ForegroundColor Red
-        Write-Host "   - VS Code Settings: $(if ($Results.SettingsConfigured) { 'Correctly configured' } else { 'Not configured' })" -ForegroundColor $(if ($Results.SettingsConfigured) { "Green" } else { "Red" })
+        
+        # Show each component with appropriate color based on actual status
+        $instructionStatus = if ($Results.InstructionFiles.Count -eq $Results.ExpectedInstructionFiles.Count) { "Green" } else { "Red" }
+        $promptStatus = if ($Results.PromptFiles.Count -eq $Results.ExpectedPromptFiles.Count) { "Green" } else { "Red" }
+        $mainStatus = if ($Results.MainFiles.Count -eq $Results.ExpectedMainFiles.Count) { "Green" } else { "Red" }
+        $settingsStatus = if ($Results.SettingsConfigured) { "Green" } else { "Red" }
+        
+        Write-Host "   - Instruction Files: $($Results.InstructionFiles.Count) of $($Results.ExpectedInstructionFiles.Count) files found" -ForegroundColor $instructionStatus
+        Write-Host "   - Prompt Files: $($Results.PromptFiles.Count) of $($Results.ExpectedPromptFiles.Count) files found" -ForegroundColor $promptStatus  
+        Write-Host "   - Main Files: $($Results.MainFiles.Count) of $($Results.ExpectedMainFiles.Count) files found" -ForegroundColor $mainStatus
+        Write-Host "   - VS Code Settings: $(if ($Results.SettingsConfigured) { 'Correctly configured' } else { 'Not configured' })" -ForegroundColor $settingsStatus
         Write-Host ""
         
         Write-Host " Errors encountered: $($Results.Errors.Count)" -ForegroundColor Red
