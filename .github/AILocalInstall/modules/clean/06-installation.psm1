@@ -605,6 +605,8 @@ function Update-VSCodeSettings {
     
     # Read existing settings or create new (handle JSONC with comments)
     $settings = @{}
+    $manualMergeRequired = $false
+    
     if (Test-Path $settingsPath) {
         try {
             $existingContent = Get-Content $settingsPath -Raw
@@ -629,6 +631,8 @@ function Update-VSCodeSettings {
             }
         } catch {
             # Manual merge scenario - settings.json exists but is unreadable/corrupted
+            $manualMergeRequired = $true
+            
             Write-StatusMessage "MANUAL MERGE REQUIRED: Cannot read existing settings.json" "Warning"
             Write-StatusMessage "File exists but contains invalid JSON or is corrupted" "Warning"
             Write-StatusMessage "Creating minimal backup marker and proceeding with file-only installation" "Info"
@@ -651,7 +655,7 @@ function Update-VSCodeSettings {
             
             try {
                 $manualMergeBackup | ConvertTo-Json -Depth 10 | Set-Content -Path $backupPath -Encoding UTF8
-                Write-StatusMessage "Created manual merge marker: $backupPath" "Info"
+                Write-StatusMessage "Created manual merge marker: $($backupPath | Split-Path -Leaf)" "Info"
             } catch {
                 Write-StatusMessage "Failed to create manual merge marker, but continuing" "Warning"
             }
@@ -673,9 +677,12 @@ function Update-VSCodeSettings {
             Write-StatusMessage "" "Info"
             Write-StatusMessage "After manually merging settings, the AI features will be fully functional." "Success"
             Write-StatusMessage "================================" "Warning"
-            
-            return $false  # Return false to indicate settings configuration failed
         }
+    }
+    
+    # Exit early if manual merge is required - DO NOT TOUCH settings.json
+    if ($manualMergeRequired) {
+        return $false
     }
     
     # Add AI system settings - exact format from repository's .vscode/settings.json
