@@ -6,6 +6,7 @@ package keyvault_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"regexp"
 	"testing"
 	"time"
@@ -230,6 +231,31 @@ func TestAccKeyVaultKey_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("key_opts.#").HasValue("5"),
 				check.That(data.ResourceName).Key("key_opts.0").HasValue("encrypt"),
+			),
+		},
+	})
+}
+
+func TestAccKeyVaultKey_withPrivateEndpoint(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
+	subnetIDStr := os.Getenv("ACC_AZURE_SUBNET_ID")
+	if subnetIDStr == "" {
+		t.Skip(`Skipping test: ACC_AZURE_SUBNET_ID is not set. This test has to be run in an Azure Virtual Machine and to set ACC_AZURE_SUBNET_ID to the subnet id of the virtual machine where the test is running`)
+	}
+
+	subnetID, err := commonids.ParseSubnetIDInsensitively(subnetIDStr)
+	if err != nil {
+		t.Fatalf("Parsing Subnet ID %q: %+v", subnetIDStr, err)
+	}
+
+	r := KeyVaultKeyResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withPrivateEndpoint(data, *subnetID),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_opts.#").HasValue("2"),
+				check.That(data.ResourceName).Key("key_opts.0").HasValue("decrypt"),
 			),
 		},
 	})
@@ -682,6 +708,99 @@ resource "azurerm_key_vault_key" "test" {
   }
 }
 `, r.templateStandard(data), data.RandomString)
+}
+
+func (r KeyVaultKeyResource) withPrivateEndpoint(data acceptance.TestData, subnetID commonids.SubnetId) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {}
+
+data "azurerm_resource_group" "test" {
+  name = "%[1]s"
+}
+
+data "azurerm_virtual_network" "test" {
+  name                = "%[3]s"
+  resource_group_name = data.azurerm_resource_group.test.name
+}
+
+data "azurerm_subnet" "test" {
+  name                 = "%[2]s"
+  resource_group_name  = data.azurerm_resource_group.test.name
+  virtual_network_name = "%[3]s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                          = "acckv%[4]d"
+  resource_group_name           = data.azurerm_resource_group.test.name
+  location                      = data.azurerm_resource_group.test.location
+  tenant_id                     = data.azurerm_client_config.current.tenant_id
+  sku_name                      = "standard"
+  public_network_access_enabled = false
+
+  network_acls {
+    default_action = "Deny"
+    bypass         = "AzureServices"
+  }
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    key_permissions = ["Get", "Create", "Delete", "List", "Purge", "GetRotationPolicy"]
+  }
+}
+
+resource "azurerm_private_dns_zone" "test" {
+  name                = "privatelink.vaultcore.azure.net"
+  resource_group_name = data.azurerm_resource_group.test.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "test" {
+  name                  = "xuwu1-kv-pe-dns-link"
+  resource_group_name   = data.azurerm_resource_group.test.name
+  private_dns_zone_name = azurerm_private_dns_zone.test.name
+  virtual_network_id    = data.azurerm_virtual_network.test.id
+
+  registration_enabled = false
+}
+
+resource "azurerm_private_endpoint" "test" {
+  name                = "accpe%[4]d"
+  location            = data.azurerm_resource_group.test.location
+  resource_group_name = data.azurerm_resource_group.test.name
+  subnet_id           = data.azurerm_subnet.test.id
+
+  private_service_connection {
+    name                           = "kv-pe-connection"
+    private_connection_resource_id = azurerm_key_vault.test.id
+    subresource_names              = ["vault"]
+    is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name                 = azurerm_private_dns_zone.test.name
+    private_dns_zone_ids = [azurerm_private_dns_zone.test.id]
+  }
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "key-%[5]s"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+  ]
+
+  depends_on = [azurerm_private_endpoint.test, azurerm_private_dns_zone_virtual_network_link.test]
+}
+`, subnetID.ResourceGroupName, subnetID.SubnetName, subnetID.VirtualNetworkName, data.RandomInteger, data.RandomString)
 }
 
 func (r KeyVaultKeyResource) expirationDate(data acceptance.TestData, expirationDate string) string {
