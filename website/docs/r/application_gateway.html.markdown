@@ -438,9 +438,9 @@ A `probe` block supports the following:
 
 * `name` - (Required) The Name of the Probe.
 
-* `protocol` - (Required) The Protocol used for this Probe. Possible values are `Http` and `Https`.
+* `protocol` - (Required) The Protocol used for this Probe. Possible values are `Http`, `Https`, `Tcp` and `Tls`.
 
-* `path` - (Required) The Path used for this Probe.
+* `path` - (Optional) The Path used for this Probe.
 
 * `timeout` - (Required) The Timeout used for this Probe, which indicates when a probe becomes unhealthy. Possible values range from 1 second to a maximum of 86,400 seconds.
 
@@ -739,6 +739,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `http_listener` - A list of `http_listener` blocks as defined below.
 
+* `listener` - A list of `listener` blocks as defined below.
+
 * `private_endpoint_connection` - A list of `private_endpoint_connection` blocks as defined below.
 
 * `private_link_configuration` - A list of `private_link_configuration` blocks as defined below.
@@ -814,6 +816,20 @@ A `gateway_ip_configuration` block exports the following:
 A `http_listener` block exports the following:
 
 * `id` - The ID of the HTTP Listener.
+
+* `frontend_ip_configuration_id` - The ID of the associated Frontend Configuration.
+
+* `frontend_port_id` - The ID of the associated Frontend Port.
+
+* `ssl_certificate_id` - The ID of the associated SSL Certificate.
+
+* `ssl_profile_id` - The ID of the associated SSL Profile.
+
+---
+
+A `listener` block exports the following:
+
+* `id` - The ID of the Listener.
 
 * `frontend_ip_configuration_id` - The ID of the associated Frontend Configuration.
 
