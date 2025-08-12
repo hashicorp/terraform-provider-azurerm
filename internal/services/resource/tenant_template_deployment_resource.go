@@ -89,7 +89,7 @@ func tenantTemplateDeploymentResource() *pluginsdk.Resource {
 				StateFunc: utils.NormalizeJson,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			// Computed
 			"output_content": {
