@@ -133,80 +133,6 @@ function Get-FileManifest {
     }
 }
 
-function Install-InstructionFiles {
-    <#
-    .SYNOPSIS
-        Copies instruction files from repository to user's VS Code instructions directory using manifest
-    #>
-    param(
-        [string]$RepositoryPath
-    )
-    
-    # Get manifest to know which files to copy
-    $manifest = Get-FileManifest -RepositoryPath $RepositoryPath
-    if ($null -eq $manifest) {
-        return @{
-            Success = $false
-            Installed = @()
-            Errors = @("Failed to read manifest file")
-        }
-    }
-    
-    $sourcePath = Join-Path $RepositoryPath ".github\instructions"
-    $targetPath = Join-Path $env:APPDATA "Code\User\instructions\terraform-azurerm"
-    
-    Write-StatusMessage "Installing instruction files to VS Code..." "Info"
-    
-    # Create target directory in user's VS Code
-    if (-not (Test-Path $targetPath)) {
-        try {
-            New-Item -ItemType Directory -Path $targetPath -Force | Out-Null
-            Write-StatusMessage "Created instructions directory: $targetPath" "Info"
-        } catch {
-            Write-StatusMessage "Failed to create target directory: $targetPath" "Error"
-            return @{
-                Success = $false
-                Installed = @()
-                Errors = @("Failed to create target directory: $($_.Exception.Message)")
-            }
-        }
-    }
-    
-    # Copy instruction files from manifest
-    $copiedFiles = @()
-    $errors = @()
-    
-    foreach ($fileName in $manifest.InstructionFiles) {
-        $sourceFile = Join-Path $sourcePath $fileName
-        $targetFile = Join-Path $targetPath $fileName
-        
-        if (-not (Test-Path $sourceFile)) {
-            $errors += "Source file not found: $fileName"
-            Write-StatusMessage "Source file not found: $fileName" "Error"
-            continue
-        }
-        
-        try {
-            Copy-Item -Path $sourceFile -Destination $targetFile -Force -ErrorAction Stop
-            $copiedFiles += $fileName
-            Write-StatusMessage "Copied instruction file: $fileName" "Success"
-        } catch {
-            $errors += "Failed to copy $fileName`: $($_.Exception.Message)"
-            Write-StatusMessage "Failed to copy $fileName`: $($_.Exception.Message)" "Error"
-        }
-    }
-    
-    Write-StatusMessage "Copied $($copiedFiles.Count) instruction files to VS Code" "Success"
-    
-    return @{
-        Success = ($errors.Count -eq 0)
-        Installed = $copiedFiles
-        Errors = $errors
-        Count = $copiedFiles.Count
-        TargetPath = $targetPath
-    }
-}
-
 function Test-AIInstallation {
     <#
     .SYNOPSIS
@@ -691,11 +617,13 @@ function Update-VSCodeSettings {
     }
     
     # Add Terraform AzureRM Provider specific settings (REAL config from working system)
+    $localInstructionsPath = Join-Path $env:APPDATA "Code\User\instructions\terraform-azurerm"
     $terraformSettings = @{
         "terraform_azurerm_provider_mode" = $true
         "terraform_azurerm_ai_enhanced" = $true
         "terraform_azurerm_installation_date" = (Get-Date -Format "yyyy-MM-dd HH:mm:ss")
         "terraform_azurerm_backup_length" = 0
+        "github.copilot.chat.reviewSelection.instructions" = $localInstructionsPath
         "github.copilot.advanced" = @{
             "debug.overrideEngine" = "copilot-chat"
             "debug.testOverrideProxyUrl" = "https://api.github.com"
@@ -773,6 +701,12 @@ function Start-CompleteInstallation {
         # Check overall success (real pattern)
         $fileValidationSuccess = $results.InstructionFiles.Success -and $results.PromptFiles.Success -and $results.MainFiles.Success
         $results.Success = $fileValidationSuccess -and $results.VSCodeSettings
+        
+        # Transform results for UI compatibility
+        $results.ExpectedInstructionFiles = @{ Count = $manifest.InstructionFiles.Count }
+        $results.ExpectedPromptFiles = @{ Count = $manifest.PromptFiles.Count }
+        $results.ExpectedMainFiles = @{ Count = $manifest.MainFiles.Count }
+        $results.SettingsConfigured = $results.VSCodeSettings
         
         if ($results.Success) {
             Write-StatusMessage "Installation completed successfully!" "Success"

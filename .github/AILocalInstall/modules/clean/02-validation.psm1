@@ -42,34 +42,19 @@ function Test-CurrentInstallation {
     
     Write-StatusMessage "Checking current installation status..." "Info"
     
-    # Use real patterns - check files in repository and VS Code settings
-    $instructionCheck = Install-InstructionFiles -RepositoryPath $RepositoryPath
-    $promptCheck = Install-PromptFiles -RepositoryPath $RepositoryPath
-    $mainCheck = Install-MainFiles -RepositoryPath $RepositoryPath
-    
-    # Check VS Code settings (real pattern)
-    $vsCodeUserPath = Join-Path $env:APPDATA "Code\User"
-    $settingsPath = Join-Path $vsCodeUserPath "settings.json"
-    $vsCodeConfigured = $false
-    
-    if (Test-Path $settingsPath) {
-        try {
-            $settings = Get-Content $settingsPath -Raw | ConvertFrom-Json
-            $vsCodeConfigured = $null -ne $settings.terraform_azurerm_provider_mode
-        } catch {
-            $vsCodeConfigured = $false
-        }
-    }
-    
-    $totalSuccess = $instructionCheck.Success -and $promptCheck.Success -and $mainCheck.Success -and $vsCodeConfigured
+    # Use Test-AIInstallation to check existing installation (correct pattern)
+    $installationCheck = Test-AIInstallation -RepositoryPath $RepositoryPath
     
     return @{
-        Success = $totalSuccess
-        InstructionFiles = $instructionCheck
-        PromptFiles = $promptCheck
-        MainFiles = $mainCheck
-        VSCodeSettings = $vsCodeConfigured
-        Errors = @()
+        Success = $installationCheck.Success
+        InstructionFiles = $installationCheck.InstructionFiles
+        PromptFiles = $installationCheck.PromptFiles
+        MainFiles = $installationCheck.MainFiles
+        ExpectedInstructionFiles = $installationCheck.ExpectedInstructionFiles
+        ExpectedPromptFiles = $installationCheck.ExpectedPromptFiles
+        ExpectedMainFiles = $installationCheck.ExpectedMainFiles
+        SettingsConfigured = $installationCheck.SettingsConfigured
+        Errors = $installationCheck.Errors
     }
 }
 
