@@ -798,7 +798,7 @@ func flattenMachineLearningWorkspaceManagedNetwork(i *workspaces.ManagedNetworkS
 	if i.IsolationMode != nil {
 		out["isolation_mode"] = *i.IsolationMode
 	}
-	out["provision_on_creation_enabled"] = provisionNetworkNow
+	out["provision_on_creation_enabled"] = pointer.From(provisionNetworkNow)
 
 	return &[]interface{}{out}
 }
