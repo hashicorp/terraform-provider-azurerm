@@ -682,8 +682,11 @@ function Update-VSCodeSettings {
                 }
             }
         } catch {
-            Write-StatusMessage "Could not parse existing VS Code settings, creating new configuration" "Warning"
-            $settings = @{}
+            Write-StatusMessage "CRITICAL ERROR: VS Code settings.json exists but contains invalid JSON" "Error"
+            Write-StatusMessage "This indicates VS Code environment corruption" "Error"
+            Write-StatusMessage "Cannot proceed safely with corrupted JSON files" "Error"
+            Write-StatusMessage "Corrupted VS Code settings.json detected: $settingsPath. Cannot proceed with installation." "Error"
+            throw "Installation halted due to corrupted VS Code settings.json"
         }
     }
     
