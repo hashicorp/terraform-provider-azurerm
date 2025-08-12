@@ -302,6 +302,10 @@ Please follow the format in the example below for listing breaking changes in re
 * The `site_config.min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
 * The `site_config.scm_min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
 
+### `azurerm_mobile_network_slice`
+
+* The `single_network_slice_selection_assistance_information` has been removed and its properties, `slice_differentiator` and `slice_service_type` have been moved to the top level.
+
 ### `azurerm_monitor_aad_diagnostic_setting`
 
 * The deprecated `enabled_log.retention_policy` block has been removed.
