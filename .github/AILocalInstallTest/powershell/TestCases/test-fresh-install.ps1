@@ -25,7 +25,7 @@ function Test-FreshInstallation {
         $env:APPDATA = $testDir
         
         Write-Host "Running fresh installation..." -ForegroundColor Yellow
-        & PowerShell -ExecutionPolicy Bypass -File $ScriptPath -Force
+        & PowerShell -ExecutionPolicy Bypass -File $ScriptPath -Auto-Approve
         
         # Verify installation
         $settingsExists = Test-Path "$codeUserDir\settings.json"
@@ -39,7 +39,7 @@ function Test-FreshInstallation {
         
         if ($settingsExists) {
             $settings = Get-Content "$codeUserDir\settings.json" | ConvertFrom-Json
-            $hasAzureRM = $settings."github.copilot.chat.reviewSelection.instructions" -ne $null
+            $hasAzureRM = ($settings.PSObject.Properties.Name -contains 'github.copilot.chat.reviewSelection.instructions')
             Write-Host "  AzureRM configuration: $hasAzureRM" -ForegroundColor $(if ($hasAzureRM) { "Green" } else { "Red" })
         }
         
