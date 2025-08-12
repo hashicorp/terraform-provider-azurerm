@@ -3,7 +3,7 @@
 
 # Example of NetApp Account Encryption with Cross-Tenant Customer-Managed Keys
 # This example demonstrates how to configure NetApp encryption using a key vault
-# that already exists in a different Azure AD tenant (cross-tenant scenario)
+# that already exists in a different Entra ID tenant (cross-tenant scenario)
 #
 # IMPORTANT: In a real cross-tenant scenario, you cannot create resources in the remote tenant.
 # The key vault and keys must already exist and be managed by the remote tenant administrators.
@@ -109,7 +109,7 @@ resource "azurerm_private_endpoint" "cross_tenant" {
 
 # Time-based wait for private endpoint approval
 resource "time_sleep" "private_endpoint_approval_time_wait" {
-  count = var.private_endpoint_manual_approval && var.private_endpoint_approval_wait_method == "time" ? 1 : 0
+  count = var.private_endpoint_manual_approval ? 1 : 0
 
   create_duration = "${var.private_endpoint_approval_wait_time}m"
 
@@ -133,35 +133,6 @@ resource "azurerm_netapp_account" "example" {
   }
 }
 
-# Debug outputs
-
-output "debug_user_assigned_identity_id" {
-  value = var.user_assigned_identity_id
-}
-
-output "debug_federated_client_id" {
-  value = var.federated_client_id
-}
-
-output "debug_netapp_account_id" {
-  value = azurerm_netapp_account.example.id
-}
-
-# Private endpoint approval information
-output "private_endpoint_approval_info" {
-  description = "Information needed for private endpoint approval in remote tenant"
-  value = var.private_endpoint_manual_approval ? {
-    private_endpoint_id    = azurerm_private_endpoint.cross_tenant.id
-    remote_subscription_id = var.remote_subscription_id
-    key_vault_name        = var.cross_tenant_key_vault_name
-    resource_group_name   = var.cross_tenant_resource_group_name
-    connection_name       = azurerm_private_endpoint.cross_tenant.name
-    approval_instructions = "In the remote tenant, go to Key Vault '${var.cross_tenant_key_vault_name}' → Networking → Private endpoint connections → Approve the pending connection"
-  } : null
-}
-
-# END Debug outputs
-
 # NetApp Account Encryption with Cross-Tenant CMK
 # This will use the actual remote key vault URL
 resource "azurerm_netapp_account_encryption" "example" {
@@ -169,9 +140,6 @@ resource "azurerm_netapp_account_encryption" "example" {
 
   user_assigned_identity_id = var.user_assigned_identity_id
 
-  # Using the actual cross-tenant key vault URL without version first
-  # Format: https://<vault-name>.vault.azure.net/keys/<key-name>
-  # For cross-tenant scenarios, let's try without version first
   encryption_key = "https://${var.cross_tenant_key_vault_name}.vault.azure.net/keys/${var.cross_tenant_key_name}"
 
   # This is the Client ID of the multi-tenant Entra ID application
@@ -182,8 +150,8 @@ resource "azurerm_netapp_account_encryption" "example" {
   cross_tenant_key_vault_resource_id = var.cross_tenant_key_vault_resource_id
 
   depends_on = [
-    azurerm_netapp_account.example,
-    time_sleep.private_endpoint_approval_time_wait
+   azurerm_netapp_account.example,
+   time_sleep.private_endpoint_approval_time_wait
   ]
 }
 

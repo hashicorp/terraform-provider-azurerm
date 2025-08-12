@@ -4,13 +4,11 @@
 variable "prefix" {
   description = "The prefix used for all resources in this example"
   type        = string
-  default     = "anf-ct-cmk"
 }
 
 variable "location" {
   description = "The Azure region where all resources in this example should be created"
   type        = string
-  default     = "West Europe"
 }
 
 # Cross-tenant key vault details (existing resources in remote tenant)
@@ -58,26 +56,14 @@ variable "user_assigned_identity_id" {
   type        = string
 }
 
-# Cross-tenant key vault resource ID (optional but mandatory for cross-tenant scenarios)
+# Cross-tenant key vault resource ID (mandatory for cross-tenant scenarios)
 variable "cross_tenant_key_vault_resource_id" {
   description = "The full resource ID of the cross-tenant key vault (e.g., /subscriptions/<remote-sub>/resourceGroups/<remote-rg>/providers/Microsoft.KeyVault/vaults/<vault-name>)"
   type        = string
-  default     = ""
-}
-
-# Private endpoint approval wait configuration
-variable "private_endpoint_approval_wait_method" {
-  description = "Method to wait for private endpoint approval: 'time' for fixed wait, 'none' for no wait"
-  type        = string
-  default     = "time"
-  validation {
-    condition     = contains(["time", "none"], var.private_endpoint_approval_wait_method)
-    error_message = "The private_endpoint_approval_wait_method must be one of: time, none."
-  }
 }
 
 variable "private_endpoint_approval_wait_time" {
-  description = "Time to wait (in minutes) for private endpoint approval when using 'time' method"
+  description = "Time to wait (in minutes) for private endpoint approval. Terraform will always wait this amount."
   type        = number
-  default     = 10
+  default     = 15
 }
