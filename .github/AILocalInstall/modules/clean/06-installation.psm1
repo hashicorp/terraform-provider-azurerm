@@ -575,17 +575,31 @@ function Update-VSCodeSettings {
     
     Write-StatusMessage "Configuring VS Code settings..." "Info"
     
-    # Create backup if settings exist (real pattern)
-    if ((Test-Path $settingsPath) -and -not $Force) {
+    # Check if settings already contain our installation markers - if so, don't create redundant backup
+    $isReinstall = $false
+    if (Test-Path $settingsPath) {
+        try {
+            $existingContent = Get-Content $settingsPath -Raw
+            if ($existingContent -like "*AZURERM_BACKUP_LENGTH*" -or $existingContent -like "*AZURERM_INSTALLATION_DATE*") {
+                $isReinstall = $true
+                Write-StatusMessage "Detected existing AI installation - skipping backup creation" "Info"
+            }
+        } catch {
+            Write-StatusMessage "Could not read existing settings to check for previous installation" "Warning"
+        }
+    }
+    
+    # Create backup if settings exist and this is NOT a reinstall
+    if ((Test-Path $settingsPath) -and -not $Force -and -not $isReinstall) {
         try {
             $backupResult = New-SafeBackup -SourcePath $settingsPath -BackupReason "AI installation"
             if (-not $backupResult) {
-                Write-StatusMessage "Failed to create backup of VS Code settings" "Error"
-                return $false
+                Write-StatusMessage "Could not create backup - proceeding with manual merge scenario" "Warning"
+                # Don't return false here - continue to manual merge handling
             }
         } catch {
-            Write-StatusMessage "Backup creation failed: $_" "Error"
-            return $false
+            Write-StatusMessage "Backup failed - proceeding with manual merge scenario" "Warning"
+            # Don't return false here - continue to manual merge handling
         }
     }
     
@@ -614,11 +628,53 @@ function Update-VSCodeSettings {
                 }
             }
         } catch {
-            Write-StatusMessage "CRITICAL ERROR: VS Code settings.json exists but contains invalid JSON" "Error"
-            Write-StatusMessage "This indicates VS Code environment corruption" "Error"
-            Write-StatusMessage "Cannot proceed safely with corrupted JSON files" "Error"
-            Write-StatusMessage "Corrupted VS Code settings.json detected: $settingsPath. Cannot proceed with installation." "Error"
-            throw "Installation halted due to corrupted VS Code settings.json"
+            # Manual merge scenario - settings.json exists but is unreadable/corrupted
+            Write-StatusMessage "MANUAL MERGE REQUIRED: Cannot read existing settings.json" "Warning"
+            Write-StatusMessage "File exists but contains invalid JSON or is corrupted" "Warning"
+            Write-StatusMessage "Creating minimal backup marker and proceeding with file-only installation" "Info"
+            
+            # Create minimal backup with just metadata to mark this as manual merge scenario
+            $backupDir = Join-Path $env:APPDATA "Code\User\.terraform-azurerm-backups"
+            if (-not (Test-Path $backupDir)) {
+                New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
+            }
+            
+            $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+            $backupPath = Join-Path $backupDir "settings_backup_$timestamp.json"
+            
+            # Create minimal backup file with only manual merge metadata
+            $manualMergeBackup = @{
+                "// AZURERM_BACKUP_LENGTH" = -1
+                "// AZURERM_INSTALLATION_DATE" = (Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+                "// MANUAL_MERGE_NOTICE" = "This was a manual merge scenario - user must manually add AI settings to their settings.json"
+            }
+            
+            try {
+                $manualMergeBackup | ConvertTo-Json -Depth 10 | Set-Content -Path $backupPath -Encoding UTF8
+                Write-StatusMessage "Created manual merge marker: $backupPath" "Info"
+            } catch {
+                Write-StatusMessage "Failed to create manual merge marker, but continuing" "Warning"
+            }
+            
+            # DO NOT modify settings.json - user must manually merge
+            Write-StatusMessage "INSTALLATION INCOMPLETE: Settings.json requires manual configuration" "Warning"
+            Write-StatusMessage "Instruction and prompt files have been installed successfully" "Success"
+            Write-StatusMessage "" "Info"
+            Write-StatusMessage "=== MANUAL MERGE INSTRUCTIONS ===" "Warning"
+            Write-StatusMessage "Your VS Code settings.json file contains invalid JSON and could not be automatically updated." "Info"
+            Write-StatusMessage "To complete the AI setup, you must manually add the following settings to your settings.json:" "Info"
+            Write-StatusMessage "" "Info"
+            Write-StatusMessage "1. Fix any JSON syntax errors in your current settings.json file" "Info"
+            Write-StatusMessage "2. Add the AI settings from this repository's .vscode/settings.json file" "Info"
+            Write-StatusMessage "3. The required settings include GitHub Copilot configuration and file associations" "Info"
+            Write-StatusMessage "" "Info"
+            Write-StatusMessage "Repository settings file location: $RepositoryPath\.vscode\settings.json" "Info"
+            Write-StatusMessage "Your settings file location: $settingsPath" "Info"
+            Write-StatusMessage "" "Info"
+            Write-StatusMessage "After manually merging settings, the AI features will be fully functional." "Success"
+            Write-StatusMessage "================================" "Warning"
+            
+            return $false  # Return false to indicate settings configuration failed
         }
     }
     
@@ -634,7 +690,7 @@ function Update-VSCodeSettings {
         # Disable conversation history for privacy
         "github.copilot.chat.summarizeAgentConversationHistory.enabled" = $false
 
-        # Enable code review with instruction files (LOCAL PATHS)
+        # Enable code review with instruction files (CORE 6 FILES ONLY - matches repository .vscode/settings.json)
         "github.copilot.chat.reviewSelection.enabled" = $true
         "github.copilot.chat.reviewSelection.instructions" = @(
             @{"file" = "copilot-instructions.md"}
@@ -643,14 +699,6 @@ function Update-VSCodeSettings {
             @{"file" = "instructions/terraform-azurerm/testing-guidelines.instructions.md"}
             @{"file" = "instructions/terraform-azurerm/documentation-guidelines.instructions.md"}
             @{"file" = "instructions/terraform-azurerm/provider-guidelines.instructions.md"}
-            @{"file" = "instructions/terraform-azurerm/code-clarity-enforcement.instructions.md"}
-            @{"file" = "instructions/terraform-azurerm/error-patterns.instructions.md"}
-            @{"file" = "instructions/terraform-azurerm/migration-guide.instructions.md"}
-            @{"file" = "instructions/terraform-azurerm/schema-patterns.instructions.md"}
-            @{"file" = "instructions/terraform-azurerm/performance-optimization.instructions.md"}
-            @{"file" = "instructions/terraform-azurerm/security-compliance.instructions.md"}
-            @{"file" = "instructions/terraform-azurerm/troubleshooting-decision-trees.instructions.md"}
-            @{"file" = "instructions/terraform-azurerm/api-evolution-patterns.instructions.md"}
         )
 
         # File associations for proper syntax highlighting
@@ -765,7 +813,7 @@ function Start-CompleteInstallation {
         # Install VS Code settings (real pattern - only external modification)
         $results.VSCodeSettings = Update-VSCodeSettings -RepositoryPath $RepositoryPath -Force:$Force
         
-        # Check overall success (real pattern)
+        # Check overall success - modified to handle manual merge scenarios
         $fileValidationSuccess = $results.InstructionFiles.Success -and $results.PromptFiles.Success -and $results.MainFiles.Success
         $results.Success = $fileValidationSuccess -and $results.VSCodeSettings
         
@@ -783,12 +831,21 @@ function Start-CompleteInstallation {
             if (-not (Test-Path $backupDir)) {
                 New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
             }
+        } elseif ($fileValidationSuccess -and -not $results.VSCodeSettings) {
+            # Special case: Files installed successfully but settings configuration failed (manual merge scenario)
+            Write-StatusMessage "Installation partially completed - files installed successfully" "Warning"
+            Write-StatusMessage "MANUAL ACTION REQUIRED: You must manually configure VS Code settings.json" "Warning"
+            Write-StatusMessage "Copy the AI settings from the repository's .vscode/settings.json to your settings.json" "Info"
+            Write-StatusMessage "File installation was successful, only settings configuration requires manual intervention" "Info"
+            
+            # Add the settings failure to errors so it gets counted properly
+            $results.Errors += "VS Code settings configuration failed - manual merge required"
         } else {
             Write-StatusMessage "Installation completed with issues" "Warning"
             if (-not $results.InstructionFiles.Success) { $results.Errors += $results.InstructionFiles.Errors }
             if (-not $results.PromptFiles.Success) { $results.Errors += $results.PromptFiles.Errors }
             if (-not $results.MainFiles.Success) { $results.Errors += $results.MainFiles.Errors }
-            if (-not $results.VSCodeSettings) { $results.Errors += "VS Code settings configuration failed" }
+            if (-not $results.VSCodeSettings) { $results.Errors += "VS Code settings configuration failed - see manual merge instructions above" }
         }
         
         return $results
@@ -824,21 +881,113 @@ function Remove-AIInstallation {
             PromptsDir = Join-Path $env:APPDATA "Code\User\prompts\terraform-azurerm"
         }
         
-        # Restore VS Code settings from backup (original logic)
-        if (Test-Path $paths.VSCodeBackupDir) {
-            $latestBackup = Get-MostRecentBackup -BackupDirectory $paths.VSCodeBackupDir -FilePattern "settings_backup_*.json"
-            
-            if ($latestBackup) {
-                if (Restore-FromBackup -BackupPath $latestBackup -TargetPath $paths.VSCodeSettings) {
-                    Write-StatusMessage "VS Code settings restored from backup" "Success"
-                } else {
-                    Write-StatusMessage "Failed to restore VS Code settings" "Error"
-                    $results.Success = $false
-                    $results.Errors += "Failed to restore VS Code settings from backup"
+        # Smart VS Code settings restoration based on metadata
+        if (Test-Path $paths.VSCodeSettings) {
+            # Check if we created this file from scratch by reading our metadata
+            $shouldDelete = $false
+            $isManualMerge = $false
+            try {
+                $settingsContent = Get-Content $paths.VSCodeSettings -Raw
+                $settings = $settingsContent | ConvertFrom-Json
+                
+                # Convert to hashtable if needed
+                if ($settings -is [PSCustomObject]) {
+                    $hashtable = @{}
+                    $settings.PSObject.Properties | ForEach-Object {
+                        $hashtable[$_.Name] = $_.Value
+                    }
+                    $settings = $hashtable
                 }
+                
+                # Check our metadata to determine restoration strategy
+                if ($settings.ContainsKey("// AZURERM_BACKUP_LENGTH")) {
+                    $backupLength = $settings["// AZURERM_BACKUP_LENGTH"]
+                    
+                    if ($backupLength -eq 0) {
+                        # We created this file from scratch - just delete it
+                        $shouldDelete = $true
+                        Write-StatusMessage "No original settings.json existed - will delete our created file" "Info"
+                    } elseif ($backupLength -eq -1) {
+                        # Manual merge scenario - user manually merged settings, just clean our entries
+                        $isManualMerge = $true
+                        Write-StatusMessage "Manual merge scenario detected - will clean AI settings but preserve user's merged content" "Info"
+                    } else {
+                        # Original file existed - try to restore from backup (backupLength > 0)
+                        Write-StatusMessage "Original settings.json existed (length: $backupLength) - will restore from backup" "Info"
+                    }
+                }
+            } catch {
+                Write-StatusMessage "Could not read metadata from settings.json - will attempt manual cleanup" "Warning"
+            }
+            
+            if ($shouldDelete) {
+                # Delete the entire file since we created it from scratch
+                try {
+                    Remove-Item -Path $paths.VSCodeSettings -Force -ErrorAction Stop
+                    Write-StatusMessage "Deleted settings.json (no original file existed)" "Success"
+                } catch {
+                    Write-StatusMessage "Failed to delete settings.json: $($_.Exception.Message)" "Error"
+                    $results.Success = $false
+                    $results.Errors += "Failed to delete settings.json"
+                }
+            } elseif ($isManualMerge) {
+                # Manual merge scenario - DO NOT touch settings.json, user manually merged and must manually clean
+                Write-StatusMessage "Manual merge scenario detected - user must manually clean AI settings from settings.json" "Warning"
+                Write-StatusMessage "We will NOT modify your settings.json file (you manually merged, you manually clean)" "Info"
+                Write-StatusMessage "Please remove Terraform AzureRM AI settings from your settings.json manually" "Warning"
+                
+                # Remove the manual merge backup marker file
+                if (Test-Path $paths.VSCodeBackupDir) {
+                    try {
+                        $manualMergeBackups = Get-ChildItem -Path $paths.VSCodeBackupDir -Filter "settings_backup_*.json" | ForEach-Object {
+                            try {
+                                $content = Get-Content $_.FullName -Raw | ConvertFrom-Json
+                                if ($content.'// AZURERM_BACKUP_LENGTH' -eq -1) {
+                                    $_
+                                }
+                            } catch {
+                                # Ignore malformed backup files
+                            }
+                        }
+                        
+                        foreach ($backup in $manualMergeBackups) {
+                            Remove-Item -Path $backup.FullName -Force
+                            Write-StatusMessage "Removed manual merge marker: $($backup.Name)" "Success"
+                        }
+                    } catch {
+                        Write-StatusMessage "Failed to remove manual merge marker files" "Warning"
+                    }
+                }
+                
+                Write-StatusMessage "Manual merge cleanup completed - settings.json left untouched" "Success"
             } else {
-                # No backup found, remove our settings manually (original logic)
-                if (Test-Path $paths.VSCodeSettings) {
+                # Try to restore from backup or clean manually
+                if (Test-Path $paths.VSCodeBackupDir) {
+                    $latestBackup = Get-MostRecentBackup -BackupDirectory $paths.VSCodeBackupDir -FilePattern "settings_backup_*.json"
+                    
+                    if ($latestBackup) {
+                        if (Restore-FromBackup -BackupPath $latestBackup -TargetPath $paths.VSCodeSettings) {
+                            Write-StatusMessage "VS Code settings restored from backup" "Success"
+                        } else {
+                            Write-StatusMessage "Failed to restore VS Code settings" "Error"
+                            $results.Success = $false
+                            $results.Errors += "Failed to restore VS Code settings from backup"
+                        }
+                    } else {
+                        # No backup found, remove our settings manually
+                        if (Remove-TerraformSettingsFromVSCode -SettingsPath $paths.VSCodeSettings) {
+                            Write-StatusMessage "Terraform settings removed from VS Code" "Success"
+                        } else {
+                            Write-StatusMessage "Failed to clean Terraform settings from VS Code" "Warning"
+                            $results.Errors += "Failed to clean Terraform settings from VS Code"
+                        }
+                    }
+                    
+                    # Preserve backup directory
+                    Write-StatusMessage "Backup directory preserved at: $($paths.VSCodeBackupDir)" "Info"
+                    Write-StatusMessage "Backups contain your original VS Code settings - keep them safe!" "Info"
+                } else {
+                    # No backup directory, just clean manually
                     if (Remove-TerraformSettingsFromVSCode -SettingsPath $paths.VSCodeSettings) {
                         Write-StatusMessage "Terraform settings removed from VS Code" "Success"
                     } else {
@@ -847,23 +996,8 @@ function Remove-AIInstallation {
                     }
                 }
             }
-            
-            # NEVER delete backup directory - users need it to restore original settings!
-            # Remove-BackupFiles -BackupDirectory $paths.VSCodeBackupDir  # DANGEROUS - commented out
-            Write-StatusMessage "Backup directory preserved at: $($paths.VSCodeBackupDir)" "Info"
-            Write-StatusMessage "Backups contain your original VS Code settings - keep them safe!" "Info"
         } else {
-            Write-StatusMessage "No backup directory found - checking for manual cleanup" "Info"
-            
-            # Still try manual cleanup if no backup directory exists
-            if (Test-Path $paths.VSCodeSettings) {
-                if (Remove-TerraformSettingsFromVSCode -SettingsPath $paths.VSCodeSettings) {
-                    Write-StatusMessage "Terraform settings removed from VS Code" "Success"
-                } else {
-                    Write-StatusMessage "Failed to clean Terraform settings from VS Code" "Warning"
-                    $results.Errors += "Failed to clean Terraform settings from VS Code"
-                }
-            }
+            Write-StatusMessage "No settings.json found - nothing to clean" "Info"
         }
         
         # Remove copied instruction files from user's VS Code
@@ -963,8 +1097,30 @@ function Restore-FromBackup {
             New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
         }
         
-        Copy-Item -Path $BackupPath -Destination $TargetPath -Force -ErrorAction Stop
-        Write-StatusMessage "Restored from backup: $TargetPath" "Success"
+        # Read backup content and strip our metadata before restoring
+        $backupContent = Get-Content $BackupPath -Raw
+        $backupData = $backupContent | ConvertFrom-Json
+        
+        # Convert to hashtable if needed for PowerShell 5.1 compatibility
+        if ($backupData -is [PSCustomObject]) {
+            $hashtable = @{}
+            $backupData.PSObject.Properties | ForEach-Object {
+                $hashtable[$_.Name] = $_.Value
+            }
+            $backupData = $hashtable
+        }
+        
+        # Remove our metadata from the restored content
+        $metadataKeys = @("// AZURERM_BACKUP_LENGTH", "// AZURERM_INSTALLATION_DATE")
+        foreach ($key in $metadataKeys) {
+            if ($backupData.ContainsKey($key)) {
+                $backupData.Remove($key)
+            }
+        }
+        
+        # Save cleaned content to target
+        $backupData | ConvertTo-Json -Depth 10 | Set-Content -Path $TargetPath -Encoding UTF8
+        Write-StatusMessage "Restored from backup (metadata cleaned): $TargetPath" "Success"
         return $true
     } catch {
         Write-StatusMessage "Failed to restore from backup: $_" "Error"
@@ -1045,19 +1201,14 @@ function New-SafeBackup {
                     $mergedContent | ConvertTo-Json -Depth 10 | Set-Content -Path $backupPath -Encoding UTF8
                     
                 } catch {
-                    # File has .json extension but isn't valid JSON - this indicates corruption
-                    Write-StatusMessage "CRITICAL ERROR: File $SourcePath has .json extension but contains invalid JSON" "Error"
-                    Write-StatusMessage "This indicates VS Code environment corruption" "Error"
-                    Write-StatusMessage "Cannot proceed safely with corrupted JSON files" "Error"
-                    throw "Corrupted JSON file detected: $SourcePath. VS Code environment may be damaged."
+                    # File has .json extension but isn't valid JSON - manual merge scenario
+                    Write-StatusMessage "Settings.json contains invalid JSON syntax - manual merge required" "Warning"
+                    throw "Manual merge required: Settings.json contains invalid JSON syntax"
                 }
             } else {
                 # For now, only JSON files are expected in backup operations
-                # If we're backing up non-JSON files, that's unexpected
-                Write-StatusMessage "CRITICAL ERROR: Unexpected file type for backup: $SourcePath" "Error"
-                Write-StatusMessage "Backup system only handles JSON files (like settings.json)" "Error"
-                Write-StatusMessage "Non-JSON file backup indicates environment corruption" "Error"
-                throw "Unexpected file type for backup: $SourcePath. Expected JSON files only."
+                Write-StatusMessage "Backup system only handles JSON files - manual merge required" "Warning"
+                throw "Manual merge required: Backup system only handles JSON files"
             }
             
             Write-StatusMessage "Created backup: $backupFileName (original length: $originalLength)" "Success"
@@ -1070,18 +1221,15 @@ function New-SafeBackup {
             }
             
         } catch {
-            # File exists but couldn't read it - this is an ERROR condition, not a backup scenario
-            Write-StatusMessage "CRITICAL ERROR: Cannot read existing file $SourcePath`: $($_.Exception.Message)" "Error"
-            Write-StatusMessage "This file may be corrupted, locked, or have permission issues" "Error"
-            Write-StatusMessage "Backup operation cannot proceed safely" "Error"
-            throw "Cannot backup unreadable file: $SourcePath. Error: $($_.Exception.Message)"
+            # File exists but couldn't read it - could be permissions, lock, or corruption
+            Write-StatusMessage "Cannot read existing settings.json file - manual merge required" "Warning"
+            throw "Manual merge required: Cannot read settings.json file"
         }
         
     } catch {
-        # Any other error during backup process - this should also halt
-        Write-StatusMessage "CRITICAL ERROR: Backup operation failed for $SourcePath`: $($_.Exception.Message)" "Error"
-        Write-StatusMessage "Cannot proceed with installation without proper backup" "Error"
-        throw "Backup operation failed: $($_.Exception.Message)"
+        # Any other error during backup process - manual merge scenario
+        Write-StatusMessage "Backup creation failed - proceeding with manual merge" "Warning"
+        throw "Manual merge required: $($_.Exception.Message)"
     }
 }
 
@@ -1106,10 +1254,55 @@ function Remove-TerraformSettingsFromVSCode {
             $settings = $hashtable
         }
         
-        # Remove Terraform AzureRM specific settings
-        $terraformKeys = $settings.Keys | Where-Object { $_ -like "terraform_azurerm_*" }
+        # Remove Terraform AzureRM specific settings (both old format and current format)
+        $terraformKeys = $settings.Keys | Where-Object { 
+            $_ -like "terraform_azurerm_*" -or $_ -like "// AZURERM_*" 
+        }
         foreach ($key in $terraformKeys) {
             $settings.Remove($key)
+        }
+        
+        # Also remove our specific GitHub Copilot settings that were added
+        $copilotKeys = @(
+            "github.copilot.chat.commitMessageGeneration.instructions",
+            "github.copilot.chat.summarizeAgentConversationHistory.enabled", 
+            "github.copilot.chat.reviewSelection.enabled",
+            "github.copilot.chat.reviewSelection.instructions",
+            "github.copilot.advanced",
+            "github.copilot.enable"
+        )
+        
+        foreach ($key in $copilotKeys) {
+            if ($settings.ContainsKey($key)) {
+                $settings.Remove($key)
+            }
+        }
+        
+        # Remove file associations we added
+        if ($settings.ContainsKey("files.associations")) {
+            $fileAssoc = $settings["files.associations"]
+            if ($fileAssoc -is [PSCustomObject]) {
+                $assocHash = @{}
+                $fileAssoc.PSObject.Properties | ForEach-Object {
+                    $assocHash[$_.Name] = $_.Value
+                }
+                $fileAssoc = $assocHash
+            }
+            
+            # Remove our specific associations
+            if ($fileAssoc.ContainsKey("*.instructions.md")) {
+                $fileAssoc.Remove("*.instructions.md")
+            }
+            if ($fileAssoc.ContainsKey(".github/*.md")) {
+                $fileAssoc.Remove(".github/*.md")
+            }
+            
+            # If file associations is now empty, remove the whole section
+            if ($fileAssoc.Count -eq 0) {
+                $settings.Remove("files.associations")
+            } else {
+                $settings["files.associations"] = $fileAssoc
+            }
         }
         
         # Write back the cleaned settings

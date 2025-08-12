@@ -51,11 +51,8 @@ $ModulesDir = Join-Path $ScriptDir "modules"
 # Import clean modules with real implementations
 $CleanModulesDir = Join-Path $ModulesDir "clean"
 
-# Also import working modules for functions we depend on
-$WorkingModulesDir = Join-Path $ModulesDir "powershell"
-
 try {
-    # Import clean architecture modules only - no dependencies on old modules
+    # Import clean architecture modules only - completely self-contained
     Import-Module (Join-Path $CleanModulesDir "01-core.psm1") -Force -ErrorAction Stop
     Import-Module (Join-Path $CleanModulesDir "02-validation.psm1") -Force -ErrorAction Stop
     Import-Module (Join-Path $CleanModulesDir "06-installation.psm1") -Force -ErrorAction Stop

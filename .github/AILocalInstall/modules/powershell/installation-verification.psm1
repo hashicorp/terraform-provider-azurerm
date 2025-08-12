@@ -22,20 +22,22 @@ function Test-HardcodedInstallationIntegrity {
         if (Test-Path $settingsPath) {
             try {
                 $content = Get-Content $settingsPath -Raw
-                if ($content -like "*AZURERM_BACKUP_LENGTH*" -or $content -like "*AZURERM_INSTALLATION_DATE*") {
+                if ($content -like "*// AZURERM_BACKUP_LENGTH*" -or $content -like "*// AZURERM_INSTALLATION_DATE*") {
                     $hasVSCodeSettings = $true
                     Write-Host "Found AI settings in VS Code" -ForegroundColor Green
                     
-                    # Check backup length values
+                    # Check backup length values (look for JSON property, not comment)
                     try {
                         $settingsObj = $content | ConvertFrom-Json
                         $backupLength = $settingsObj.'// AZURERM_BACKUP_LENGTH'
-                        if ($backupLength -eq 0) {
-                            Write-Host "  - Backup status: No original settings.json existed (fake backup created)" -ForegroundColor Yellow
-                        } elseif ($backupLength -eq -1) {
-                            Write-Host "  - Backup status: Manual merge scenario detected" -ForegroundColor Yellow
-                        } elseif ($backupLength -gt 0) {
-                            Write-Host "  - Backup status: Original settings.json backed up ($backupLength chars)" -ForegroundColor Yellow
+                        if ($null -ne $backupLength) {
+                            if ($backupLength -eq 0) {
+                                Write-Host "  - Backup status: No original settings.json existed (fake backup created)" -ForegroundColor Yellow
+                            } elseif ($backupLength -eq -1) {
+                                Write-Host "  - Backup status: Manual merge scenario detected" -ForegroundColor Yellow
+                            } elseif ($backupLength -gt 0) {
+                                Write-Host "  - Backup status: Original settings.json backed up ($backupLength chars)" -ForegroundColor Yellow
+                            }
                         }
                     } catch {
                         # Ignore JSON parsing errors for backup length - not critical
