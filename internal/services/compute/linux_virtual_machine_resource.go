@@ -30,7 +30,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/custompoller"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -72,10 +71,8 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			"admin_username": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				RequiredWith: []string{
-					"os_disk",
-				},
-				ConflictsWith: []string{
+				ExactlyOneOf: []string{
+					"admin_username",
 					"os_managed_disk_id",
 				},
 				ForceNew:     true,
@@ -95,18 +92,15 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			"os_disk": virtualMachineOSDiskSchema(),
 
 			"os_managed_disk_id": {
-				// Note: O+C as this is the same value as `id` below but to support
-				// import of the OSDisk and not break compatibility with existing configs / references
-				// we're adding it as a separate property.
+				// Note: O+C as this is the same value as `os_disk.0.id` - which gains a value from implicit
+				// disk creation with a VM when an existing disk is not specified here. This is a top-level property
+				// to enable schema validation to guard against any values for `OsProfile` being set, as these are
+				// incompatible with specifying an existing disk. i.e. the OsProfile becomes unmanageable.
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: commonids.ValidateManagedDiskID,
-				AtLeastOneOf: []string{
-					"os_disk",
-					"os_managed_disk_id",
-				},
 				ExactlyOneOf: []string{
 					"os_managed_disk_id",
 					"source_image_id",
@@ -120,7 +114,6 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			// Optional
 			"additional_capabilities": virtualMachineAdditionalCapabilitiesSchema(),
 
 			"admin_password": {
@@ -163,6 +156,9 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 			"bypass_platform_safety_checks_on_user_schedule_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				ConflictsWith: []string{
+					"os_managed_disk_id",
+				},
 			},
 
 			"capacity_reservation_group_id": {
@@ -187,9 +183,21 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 				ForceNew: true,
 
 				ValidateFunc: computeValidate.LinuxComputerNameFull,
+				ConflictsWith: []string{
+					"os_managed_disk_id",
+				},
 			},
 
-			"custom_data": base64.OptionalSchema(true),
+			"custom_data": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsBase64,
+				ConflictsWith: []string{
+					"os_managed_disk_id",
+				},
+			},
 
 			"dedicated_host_id": {
 				Type:         pluginsdk.TypeString,
@@ -1354,6 +1362,10 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 		osDisk, err := expandVirtualMachineOSDisk(osDiskRaw, virtualmachines.OperatingSystemTypesLinux)
 		if err != nil {
 			return fmt.Errorf("expanding `os_disk`: %+v", err)
+		}
+
+		if v, _ := pluginsdk.GoValueFromTerraformValue[string](d.GetRawConfig().AsValueMap()["os_managed_disk_id"]); pointer.From(v) != "" {
+			osDisk.CreateOption = virtualmachines.DiskCreateOptionTypesAttach
 		}
 
 		if update.Properties.StorageProfile == nil {

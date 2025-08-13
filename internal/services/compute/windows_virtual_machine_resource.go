@@ -29,7 +29,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/base64"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -106,18 +105,15 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"os_disk": virtualMachineOSDiskSchema(),
 
 			"os_managed_disk_id": {
-				// Note: O+C as this is the same value as `id` below but to support
-				// import of the OSDisk and not break compatibility with existing configs / references
-				// we're adding it as a separate property.
+				// Note: O+C as this is the same value as `os_disk.0.id` - which gains a value from implicit
+				// disk creation with a VM when an existing disk is not specified here. This is a top-level property
+				// to enable schema validation to guard against any values for `OsProfile` being set, as these are
+				// incompatible with specifying an existing disk. i.e. the OsProfile becomes unmanageable.
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
 				Computed:     true,
 				ForceNew:     true,
 				ValidateFunc: commonids.ValidateManagedDiskID,
-				AtLeastOneOf: []string{
-					"os_disk",
-					"os_managed_disk_id",
-				},
 				ExactlyOneOf: []string{
 					"os_managed_disk_id",
 					"source_image_id",
@@ -131,10 +127,9 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			// Optional
 			"additional_capabilities": virtualMachineAdditionalCapabilitiesSchema(),
 
-			"additional_unattend_content": additionalUnattendContentSchema(),
+			"additional_unattend_content": additionalUnattendContentSchemaVM(),
 
 			"allow_extension_operations": {
 				Type:     pluginsdk.TypeBool,
@@ -162,6 +157,9 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"bypass_platform_safety_checks_on_user_schedule_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				ConflictsWith: []string{
+					"os_managed_disk_id",
+				},
 			},
 
 			"capacity_reservation_group_id": {
@@ -186,9 +184,21 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ForceNew: true,
 
 				ValidateFunc: computeValidate.WindowsComputerNameFull,
+				ConflictsWith: []string{
+					"os_managed_disk_id",
+				},
 			},
 
-			"custom_data": base64.OptionalSchema(true),
+			"custom_data": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				Sensitive:    true,
+				ValidateFunc: validation.StringIsBase64,
+				ConflictsWith: []string{
+					"os_managed_disk_id",
+				},
+			},
 
 			"dedicated_host_id": {
 				Type:         pluginsdk.TypeString,
@@ -231,6 +241,9 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				ForceNew: true, // updating this is not allowed "Changing property 'windowsConfiguration.enableAutomaticUpdates' is not allowed." Target="windowsConfiguration.enableAutomaticUpdates"
+				ConflictsWith: []string{
+					"os_managed_disk_id",
+				},
 			},
 
 			"encryption_at_host_enabled": {
@@ -316,6 +329,9 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Computed: true,
+				ConflictsWith: []string{
+					"os_managed_disk_id",
+				},
 			},
 
 			"plan": planSchema(),
@@ -336,6 +352,9 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				ForceNew: true,
+				ConflictsWith: []string{
+					"os_managed_disk_id",
+				},
 			},
 
 			"proximity_placement_group_id": {
@@ -358,9 +377,12 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 					string(virtualmachines.WindowsVMGuestPatchAutomaticByPlatformRebootSettingIfRequired),
 					string(virtualmachines.WindowsVMGuestPatchAutomaticByPlatformRebootSettingNever),
 				}, false),
+				ConflictsWith: []string{
+					"os_managed_disk_id",
+				},
 			},
 
-			"secret": windowsSecretSchema(),
+			"secret": windowsSecretSchemaVM(),
 
 			"secure_boot_enabled": {
 				Type:     pluginsdk.TypeBool,
@@ -498,11 +520,13 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			Deprecated:            "this property has been deprecated in favour of automatic_updates_enabled and will be removed in 5.0 of the provider.",
 			ConflictsWith: []string{
 				"automatic_updates_enabled",
+				"os_managed_disk_id",
 			},
 		}
 
 		resource.Schema["automatic_updates_enabled"].ConflictsWith = []string{
 			"enable_automatic_updates",
+			"os_managed_disk_id",
 		}
 
 	}
@@ -1507,6 +1531,10 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 		osDisk, err := expandVirtualMachineOSDisk(osDiskRaw, virtualmachines.OperatingSystemTypesWindows)
 		if err != nil {
 			return fmt.Errorf("expanding `os_disk`: %+v", err)
+		}
+
+		if v, _ := pluginsdk.GoValueFromTerraformValue[string](d.GetRawConfig().AsValueMap()["os_managed_disk_id"]); pointer.From(v) != "" {
+			osDisk.CreateOption = virtualmachines.DiskCreateOptionTypesAttach
 		}
 
 		if update.Properties.StorageProfile == nil {

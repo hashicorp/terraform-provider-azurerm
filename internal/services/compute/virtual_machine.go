@@ -6,6 +6,7 @@ package compute
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"math"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -123,12 +124,7 @@ func flattenVirtualMachineNetworkInterfaceIDs(input *[]virtualmachines.NetworkIn
 func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
-		Optional: true,
-		Computed: true,
-		AtLeastOneOf: []string{
-			"os_disk",
-			"os_managed_disk_id",
-		},
+		Required: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -141,9 +137,11 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 						string(virtualmachines.CachingTypesReadWrite),
 					}, false),
 				},
+
 				"storage_account_type": {
 					Type:     pluginsdk.TypeString,
-					Required: true,
+					Optional: true,
+					Computed: true,
 					// whilst this appears in the Update block the API returns this when changing:
 					// Changing property 'osDisk.managedDisk.storageAccountType' is not allowed
 					ForceNew: true,
@@ -155,6 +153,17 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 						string(virtualmachines.StorageAccountTypesStandardSSDZRS),
 						string(virtualmachines.StorageAccountTypesPremiumZRS),
 					}, false),
+					DiffSuppressFunc: func(_, oldVal, newVal string, d *schema.ResourceData) bool {
+						// When specifying an existing disk to use as the O/S disk, this value cannot be specified
+						// so we must suppress the Diff/ForceNew
+						existingDiskId, _ := pluginsdk.GoValueFromTerraformValue[string](d.GetRawConfig().AsValueMap()["os_managed_disk_id"])
+						return pointer.From(existingDiskId) != ""
+					},
+					// ConflictsWith: []string{"os_managed_disk_id"},
+					ExactlyOneOf: []string{
+						"os_managed_disk_id",
+						"os_disk.0.storage_account_type",
+					},
 				},
 
 				// Optional
@@ -186,6 +195,9 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 							},
 						},
 					},
+					ConflictsWith: []string{
+						"os_managed_disk_id",
+					},
 				},
 
 				"disk_encryption_set_id": {
@@ -209,6 +221,9 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					Optional: true,
 					ForceNew: true,
 					Computed: true,
+					ConflictsWith: []string{
+						"os_managed_disk_id",
+					},
 				},
 
 				"secure_vm_disk_encryption_set_id": {
@@ -235,16 +250,6 @@ func virtualMachineOSDiskSchema() *pluginsdk.Schema {
 					Default:  false,
 				},
 
-				// "managed_disk_id": {
-				// 	// Note: O+C as this is the same value as `id` below but to support
-				// 	// import of the OSDisk and not break compatibility with existing configs / references
-				// 	// we're adding it as a separate property.
-				// 	Type:         pluginsdk.TypeString,
-				// 	Optional:     true,
-				// 	Computed:     true,
-				// 	ValidateFunc: commonids.ValidateManagedDiskID,
-				// },
-				//
 				"id": {
 					Type:     pluginsdk.TypeString,
 					Computed: true,
@@ -272,15 +277,6 @@ func expandVirtualMachineOSDisk(input []interface{}, osType virtualmachines.Oper
 		CreateOption: virtualmachines.DiskCreateOptionTypesFromImage,
 		OsType:       pointer.To(osType),
 	}
-
-	// if diskID, ok := raw["managed_disk_id"]; ok && diskID.(string) != "" {
-	// 	diskId, err := commonids.ParseManagedDiskID(diskID.(string))
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	disk.ManagedDisk.Id = pointer.To(diskId.ID())
-	// 	disk.CreateOption = virtualmachines.DiskCreateOptionTypesAttach
-	// }
 
 	securityEncryptionType := raw["security_encryption_type"].(string)
 	if securityEncryptionType != "" {
@@ -416,12 +412,11 @@ func flattenVirtualMachineOSDisk(ctx context.Context, disksClient *disks.DisksCl
 	}
 	return []interface{}{
 		map[string]interface{}{
-			"caching":                string(pointer.From(input.Caching)),
-			"diff_disk_settings":     diffDiskSettings,
-			"disk_encryption_set_id": diskEncryptionSetId,
-			"disk_size_gb":           diskSizeGb,
-			"id":                     osDiskId,
-			// "managed_disk_id":                  osDiskId,
+			"caching":                          string(pointer.From(input.Caching)),
+			"diff_disk_settings":               diffDiskSettings,
+			"disk_encryption_set_id":           diskEncryptionSetId,
+			"disk_size_gb":                     diskSizeGb,
+			"id":                               osDiskId,
 			"name":                             name,
 			"storage_account_type":             storageAccountType,
 			"secure_vm_disk_encryption_set_id": secureVMDiskEncryptionSetId,
@@ -592,6 +587,9 @@ func VirtualMachineGalleryApplicationSchema() *pluginsdk.Schema {
 					Default:  false,
 				},
 			},
+		},
+		ConflictsWith: []string{
+			"os_managed_disk_id",
 		},
 	}
 }
