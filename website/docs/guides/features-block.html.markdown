@@ -65,7 +65,7 @@ provider "azurerm" {
     managed_disk {
       expand_without_downtime  = true
       stop_vm_before_detaching = false
-      skip_attachment_destroy  = false     
+      skip_attachment_destroy  = false
     }
 
     netapp {
