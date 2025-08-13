@@ -108,7 +108,6 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 						"level": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							// NOTE: Azure Activity Log levels - no SDK enum available
 							ValidateFunc: validation.StringInSlice([]string{
 								"Verbose",
 								"Informational",
@@ -123,7 +122,6 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Schema{
 								Type: pluginsdk.TypeString,
-								// NOTE: Azure Activity Log levels - no SDK enum available
 								ValidateFunc: validation.StringInSlice([]string{
 									"Verbose",
 									"Informational",
@@ -227,7 +225,6 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 						"recommendation_category": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							// NOTE: Azure Activity Recommendation Category - no SDK enum available
 							ValidateFunc: validation.StringInSlice([]string{
 								"Cost",
 								"Reliability",
@@ -243,7 +240,6 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 						"recommendation_impact": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							// NOTE: Azure Activity Recommendation Impact levels - no SDK enum available
 							ValidateFunc: validation.StringInSlice([]string{
 								"High",
 								"Medium",
@@ -272,7 +268,6 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
-											// NOTE: Azure Resource Health status values - no SDK enum available
 											ValidateFunc: validation.StringInSlice([]string{
 												"Available",
 												"Degraded",
@@ -289,7 +284,6 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
-											// NOTE: Azure Resource Health status values - no SDK enum available
 											ValidateFunc: validation.StringInSlice([]string{
 												"Available",
 												"Degraded",
@@ -306,7 +300,6 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
-											// NOTE: Azure Resource Health cause values - no SDK enum available
 											ValidateFunc: validation.StringInSlice([]string{
 												"PlatformInitiated",
 												"UserInitiated",
@@ -334,7 +327,6 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 										Optional: true,
 										Elem: &pluginsdk.Schema{
 											Type: pluginsdk.TypeString,
-											// NOTE: Azure Service Health event types - no SDK enum available
 											ValidateFunc: validation.StringInSlice([]string{
 												"Incident",
 												"Maintenance",
