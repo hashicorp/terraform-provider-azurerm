@@ -54,28 +54,64 @@ read_file_manifest_simple() {
     # Count instruction files
     local instructions_dir="$repository_path/.github/instructions"
     local instruction_count=0
+    local instruction_files=()
     if [[ -d "$instructions_dir" ]]; then
-        instruction_count=$(find "$instructions_dir" -name "*.instructions.md" -type f 2>/dev/null | wc -l)
+        while IFS= read -r -d '' file; do
+            local filename=$(basename "$file")
+            instruction_files+=("\"$filename\"")
+            ((instruction_count++))
+        done < <(find "$instructions_dir" -name "*.instructions.md" -type f -print0 2>/dev/null)
     fi
     
     # Count prompt files
     local prompts_dir="$repository_path/.github/prompts"
     local prompt_count=0
+    local prompt_files=()
     if [[ -d "$prompts_dir" ]]; then
-        prompt_count=$(find "$prompts_dir" -name "*.prompt.md" -type f 2>/dev/null | wc -l)
+        while IFS= read -r -d '' file; do
+            local filename=$(basename "$file")
+            prompt_files+=("\"$filename\"")
+            ((prompt_count++))
+        done < <(find "$prompts_dir" -name "*.prompt.md" -type f -print0 2>/dev/null)
     fi
     
     # Count main files
     local main_count=0
+    local main_files=()
     local main_file="$repository_path/.github/copilot-instructions.md"
     if [[ -f "$main_file" ]]; then
         main_count=1
+        main_files+=("\"copilot-instructions.md\"")
     fi
     
-    # Output counts
-    echo "INSTRUCTION_COUNT=$instruction_count"
-    echo "PROMPT_COUNT=$prompt_count"
-    echo "MAIN_COUNT=$main_count"
+    # Build JSON arrays
+    local instruction_files_json="[]"
+    if [[ ${#instruction_files[@]} -gt 0 ]]; then
+        instruction_files_json="[$(IFS=','; echo "${instruction_files[*]}")]"
+    fi
+    
+    local prompt_files_json="[]"
+    if [[ ${#prompt_files[@]} -gt 0 ]]; then
+        prompt_files_json="[$(IFS=','; echo "${prompt_files[*]}")]"
+    fi
+    
+    local main_files_json="[]"
+    if [[ ${#main_files[@]} -gt 0 ]]; then
+        main_files_json="[$(IFS=','; echo "${main_files[*]}")]"
+    fi
+    
+    # Output JSON format
+    cat <<EOF
+{
+  "Success": true,
+  "InstructionFiles": $instruction_files_json,
+  "PromptFiles": $prompt_files_json,
+  "MainFiles": $main_files_json,
+  "InstructionCount": $instruction_count,
+  "PromptCount": $prompt_count,
+  "MainCount": $main_count
+}
+EOF
 }
 
 # Function to test AI installation
@@ -159,7 +195,7 @@ install_instruction_files() {
     local force="${2:-false}"
     
     local manifest
-    manifest=$(read_file_manifest "$repository_path")
+    manifest=$(read_file_manifest_simple "$repository_path")
     
     local success=$(echo "$manifest" | jq -r '.Success')
     if [[ "$success" != "true" ]]; then
@@ -235,7 +271,7 @@ install_prompt_files() {
     local force="${2:-false}"
     
     local manifest
-    manifest=$(read_file_manifest "$repository_path")
+    manifest=$(read_file_manifest_simple "$repository_path")
     
     local success=$(echo "$manifest" | jq -r '.Success')
     if [[ "$success" != "true" ]]; then
@@ -311,7 +347,7 @@ install_main_files() {
     local force="${2:-false}"
     
     local manifest
-    manifest=$(read_file_manifest "$repository_path")
+    manifest=$(read_file_manifest_simple "$repository_path")
     
     local success=$(echo "$manifest" | jq -r '.Success')
     if [[ "$success" != "true" ]]; then
@@ -622,9 +658,9 @@ start_complete_installation() {
     
     if [[ "$instruction_success" == "true" ]]; then
         local count=$(echo "$instruction_result" | jq -r '.InstalledCount')
-        write_status_message "✓ Instruction files installed ($count files)" "Success"
+        write_status_message "Instruction files installed ($count files)" "Success"
     else
-        write_status_message "✗ Failed to install instruction files" "Error"
+        write_status_message "Failed to install instruction files" "Error"
         overall_success=false
         local errors
         errors=$(echo "$instruction_result" | jq -r '.Errors[]?' 2>/dev/null || echo "")
@@ -641,9 +677,9 @@ start_complete_installation() {
     
     if [[ "$prompt_success" == "true" ]]; then
         local count=$(echo "$prompt_result" | jq -r '.InstalledCount')
-        write_status_message "✓ Prompt files installed ($count files)" "Success"
+        write_status_message "Prompt files installed ($count files)" "Success"
     else
-        write_status_message "✗ Failed to install prompt files" "Error"
+        write_status_message "Failed to install prompt files" "Error"
         overall_success=false
         local errors
         errors=$(echo "$prompt_result" | jq -r '.Errors[]?' 2>/dev/null || echo "")
@@ -660,9 +696,9 @@ start_complete_installation() {
     
     if [[ "$main_success" == "true" ]]; then
         local count=$(echo "$main_result" | jq -r '.InstalledCount')
-        write_status_message "✓ Main files installed ($count files)" "Success"
+        write_status_message "Main files installed ($count files)" "Success"
     else
-        write_status_message "✗ Failed to install main files" "Error"
+        write_status_message "Failed to install main files" "Error"
         overall_success=false
         local errors
         errors=$(echo "$main_result" | jq -r '.Errors[]?' 2>/dev/null || echo "")
@@ -678,15 +714,15 @@ start_complete_installation() {
     local settings_success=$(echo "$settings_result" | jq -r '.Success')
     
     if [[ "$settings_success" == "true" ]]; then
-        write_status_message "✓ VS Code settings updated" "Success"
+        write_status_message "VS Code settings updated" "Success"
     else
         local manual_merge=$(echo "$settings_result" | jq -r '.ManualMergeRequired // false')
         if [[ "$manual_merge" == "true" ]]; then
-            write_status_message "⚠ Manual merge required for VS Code settings" "Warning"
+            write_status_message "Manual merge required for VS Code settings" "Warning"
             overall_success=false
             all_errors+=("Manual merge required for VS Code settings")
         else
-            write_status_message "✗ Failed to update VS Code settings" "Error"
+            write_status_message "Failed to update VS Code settings" "Error"
             overall_success=false
             all_errors+=("Failed to update VS Code settings")
         fi
@@ -695,7 +731,7 @@ start_complete_installation() {
     # Summary
     if [[ "$overall_success" == "true" ]]; then
         write_status_message "" "Info"
-        write_status_message "🎉 AI installation completed successfully!" "Success"
+        write_status_message "AI installation completed successfully!" "Success"
         write_status_message "" "Info"
         write_status_message "Next steps:" "Info"
         write_status_message "1. Restart VS Code to activate the AI features" "Info"
@@ -703,7 +739,7 @@ start_complete_installation() {
         write_status_message "3. Use @workspace in Copilot Chat for context-aware assistance" "Info"
     else
         write_status_message "" "Info"
-        write_status_message "⚠ AI installation completed with some issues" "Warning"
+        write_status_message "AI installation completed with some issues" "Warning"
         
         if [[ ${#all_errors[@]} -gt 0 ]]; then
             write_status_message "" "Info"
@@ -854,7 +890,7 @@ remove_ai_installation() {
         write_status_message "Removing only installed instruction files..." "Info"
         
         local manifest
-        manifest=$(read_file_manifest "$repository_path")
+        manifest=$(read_file_manifest_simple "$repository_path")
         local manifest_success=$(echo "$manifest" | jq -r '.Success')
         
         if [[ "$manifest_success" == "true" ]]; then
@@ -895,7 +931,7 @@ remove_ai_installation() {
     write_status_message "Removing only installed prompt files..." "Info"
     
     local manifest
-    manifest=$(read_file_manifest "$repository_path")
+    manifest=$(read_file_manifest_simple "$repository_path")
     local manifest_success=$(echo "$manifest" | jq -r '.Success')
     
     if [[ "$manifest_success" == "true" ]]; then
