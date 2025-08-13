@@ -735,7 +735,8 @@ function Update-VSCodeSettings {
         "terraform_azurerm_backup_length",
         "github.copilot.chat.localeOverride",
         "// AZURERM_BACKUP_LENGTH",
-        "// AZURERM_INSTALLATION_DATE"
+        "// AZURERM_INSTALLATION_DATE",
+        "// MANUAL_MERGE_NOTICE"  # Remove manual merge notices from previous failed installations
     )
     
     foreach ($invalidKey in $invalidKeys) {
@@ -1247,6 +1248,13 @@ function Restore-FromBackup {
             $backupData = $hashtable
         }
         
+        # Check for manual merge scenario - NEVER restore these backups
+        if ($backupData.ContainsKey("// AZURERM_BACKUP_LENGTH") -and $backupData["// AZURERM_BACKUP_LENGTH"] -eq -1) {
+            Write-StatusMessage "Backup file is from manual merge scenario (BACKUP_LENGTH = -1) - cannot restore" "Warning"
+            Write-StatusMessage "Manual merge backups contain no valid user settings to restore" "Info"
+            return $false
+        }
+
         # Remove our metadata from the restored content
         $metadataKeys = @("// AZURERM_BACKUP_LENGTH", "// AZURERM_INSTALLATION_DATE")
         foreach ($key in $metadataKeys) {
