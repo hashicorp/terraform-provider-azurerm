@@ -150,9 +150,9 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"managed_disk": []interface{}{
 						map[string]interface{}{
-							"expand_without_downtime": true,
+							"expand_without_downtime":  true,
 							"stop_vm_before_detaching": true,
-							"skip_attachment_destroy": true,
+							"skip_attachment_destroy":  true,
 						},
 					},
 					"postgresql_flexible_server": []interface{}{
