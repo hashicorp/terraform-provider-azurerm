@@ -193,6 +193,13 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 			}, false),
 		},
 
+		"gpu_driver": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForGPUDriver(), false),
+		},
+
 		"kubelet_disk_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -529,6 +536,12 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 
 	if gpuInstanceProfile := d.Get("gpu_instance").(string); gpuInstanceProfile != "" {
 		profile.GpuInstanceProfile = pointer.To(agentpools.GPUInstanceProfile(gpuInstanceProfile))
+	}
+
+	if gpuDriver := d.Get("gpu_driver").(string); gpuDriver != "" {
+		profile.GpuProfile = &agentpools.GPUProfile{
+			Driver: pointer.To(agentpools.GPUDriver(gpuDriver)),
+		}
 	}
 
 	if osSku := d.Get("os_sku").(string); osSku != "" {
@@ -1069,6 +1082,10 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 
 		if v := props.GpuInstanceProfile; v != nil {
 			d.Set("gpu_instance", string(*v))
+		}
+
+		if v := props.GpuProfile; v != nil {
+			d.Set("gpu_driver", string(pointer.From(v.Driver)))
 		}
 
 		if props.CreationData != nil {

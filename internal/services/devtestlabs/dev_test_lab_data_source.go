@@ -43,7 +43,7 @@ func dataSourceDevTestLab() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 
 			"artifacts_storage_account_id": {
 				Type:     pluginsdk.TypeString,

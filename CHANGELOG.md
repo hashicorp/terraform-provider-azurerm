@@ -1,3 +1,31 @@
+## 4.39.0 (August 08, 2025)
+
+FEATURES:
+
+* **New Resource**: `azurerm_api_management_standalone_gateway` ([#30226](https://github.com/hashicorp/terraform-provider-azurerm/issues/30226))
+* **New Resource**: `azurerm_eventgrid_partner_namespace` ([#30266](https://github.com/hashicorp/terraform-provider-azurerm/issues/30266))
+* **New Resource**: `azurerm_postgresql_flexible_server_backup` ([#29201](https://github.com/hashicorp/terraform-provider-azurerm/issues/29201))
+
+ENHANCEMENTS:
+
+* dependencies: `cognitive` - update API version to `2025-06-01` ([#30302](https://github.com/hashicorp/terraform-provider-azurerm/issues/30302))
+* dependencies: `machinelearning` - update API version to `2025-06-01` ([#30268](https://github.com/hashicorp/terraform-provider-azurerm/issues/30268))
+* Data Source: `azurerm_oracle_db_system_shapes` - add support for the `zone` property ([#30071](https://github.com/hashicorp/terraform-provider-azurerm/issues/30071))
+* Data Source: `azurerm_oracle_gi_versions` - add support for the `shape` and `zone` properties ([#30071](https://github.com/hashicorp/terraform-provider-azurerm/issues/30071))
+* `azurerm_cognitive_deployment` - remove `model.format` validation ([#30276](https://github.com/hashicorp/terraform-provider-azurerm/issues/30276))
+* `azurerm_eventgrid_system_topic` - add support for the `SystemAssigned, UserAssigned` value for the `identity.type` property ([#30339](https://github.com/hashicorp/terraform-provider-azurerm/issues/30339))
+* `azurerm_linux_web_app` - add support for the `8.4` value in the `php_version` property ([#30281](https://github.com/hashicorp/terraform-provider-azurerm/issues/30281))
+* `azurerm_linux_web_app_slot` - add support for the `8.4` value in the `php_version` property ([#30281](https://github.com/hashicorp/terraform-provider-azurerm/issues/30281))
+* `azurerm_postgresql_flexible_server` - the `customer_managed_key.geo_backup_key_vault_key_id` now supports versionless IDs ([#30305](https://github.com/hashicorp/terraform-provider-azurerm/issues/30305))
+* `azurerm_site_recovery_replicated_vm` - the `target_disk_type` property now supports the `StandardSSD_ZRS`, `Premium_ZRS` and `PremiumV2_LRS` values and the `target_replica_disk_type` now supports the `StandardSSD_ZRS` and `Premium_ZRS` properties ([#30291](https://github.com/hashicorp/terraform-provider-azurerm/issues/30291))
+
+BUG FIXES:
+
+* `azurerm_container_app_environment` - fix an issue where `identity` was not set to the update request payload ([#30311](https://github.com/hashicorp/terraform-provider-azurerm/issues/30311))
+* `azurerm_function_app_flex_consumption` - the `maximum_instance_count` property now updates as expected ([#30342](https://github.com/hashicorp/terraform-provider-azurerm/issues/30342))
+* `azurerm_kubernetes_cluster_node_pool` - add locks on `vnet_subnet_id` and `pod_subnet_id` to prevent conflicts while updating multiple node pools in parallel ([#29537](https://github.com/hashicorp/terraform-provider-azurerm/issues/29537))
+* `azurerm_postgresql_flexible_server` - fix an issue where `administrator_password_wo` was not set to the update request payload ([#29475](https://github.com/hashicorp/terraform-provider-azurerm/issues/29475))
+
 ## 4.38.1 (July 31, 2025)
 
 **NOTE:** This patch release addresses a critical problem in App Service and Logic Apps resources preventing all Long Running Operations from completing successfully. 
