@@ -1,7 +1,0 @@
-{
-    "workbench.colorTheme": "Default Dark+",
-    "editor.fontSize": 14,
-    // Invalid JSON - missing comma and quotes
-    "files.autoSave": afterDelay
-    "terminal.integrated.defaultProfile.windows": "PowerShell"
-    // Missing closing brace intentionally

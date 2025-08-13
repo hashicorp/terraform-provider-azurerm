@@ -36,6 +36,11 @@ Now that you have the repository cloned and the correct branch checked out local
 .\AILocalInstall\install-copilot-setup.ps1 -Help
 ```
 
+> **Note**: If you encounter execution policy restrictions, you may need to run PowerShell scripts using:
+> ```powershell
+> powershell -ExecutionPolicy Bypass -File .\.github\AILocalInstall\install-copilot-setup.ps1
+> ```
+
 ### Linux/macOS/WSL (Bash)
 ```bash
 # Auto-discover repository and install
@@ -119,6 +124,11 @@ cd path/to/terraform-provider-azurerm
 .\.github\AILocalInstall\install-copilot-setup.ps1
 ```
 
+> **Note**: If you encounter PowerShell execution policy restrictions, use:
+> ```powershell
+> powershell -ExecutionPolicy Bypass -File .\.github\AILocalInstall\install-copilot-setup.ps1
+> ```
+
 ### **🐧 Bash (Linux/macOS/WSL)**
 ```bash
 # Navigate to the repository
@@ -181,6 +191,11 @@ This installation method provides a full local setup with these comprehensive ca
 # Show detailed help information
 .\AILocalInstall\install-copilot-setup.ps1 -Help
 ```
+
+> **Note**: If you encounter PowerShell execution policy restrictions, run commands with:
+> ```powershell
+> powershell -ExecutionPolicy Bypass -File .\.github\AILocalInstall\install-copilot-setup.ps1 [parameters]
+> ```
 
 ### Linux/macOS/WSL Bash Examples
 ```bash
