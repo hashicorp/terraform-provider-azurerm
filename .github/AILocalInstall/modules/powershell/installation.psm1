@@ -366,7 +366,11 @@ function Install-InstructionFiles {
         try {
             $sourceFile = Join-Path $sourcePath $fileName
             $targetFile = Join-Path $targetPath $fileName
-            Copy-Item -Path $sourceFile -Destination $targetFile -Force -ErrorAction Stop
+            
+            # Preserve UTF-8 encoding to prevent emoji corruption
+            $content = Get-Content -Path $sourceFile -Encoding UTF8 -Raw
+            Set-Content -Path $targetFile -Value $content -Encoding UTF8 -Force
+            
             $copiedFiles += $fileName
             Write-StatusMessage "Copied instruction file: $fileName" "Success"
         } catch {
@@ -463,7 +467,11 @@ function Install-PromptFiles {
         try {
             $sourceFile = Join-Path $sourcePath $fileName
             $targetFile = Join-Path $targetPath $fileName
-            Copy-Item -Path $sourceFile -Destination $targetFile -Force -ErrorAction Stop
+            
+            # Preserve UTF-8 encoding to prevent emoji corruption
+            $content = Get-Content -Path $sourceFile -Encoding UTF8 -Raw
+            Set-Content -Path $targetFile -Value $content -Encoding UTF8 -Force
+            
             $copiedFiles += $fileName
             Write-StatusMessage "Copied prompt file: $fileName" "Success"
         } catch {
@@ -520,8 +528,8 @@ function Install-MainFiles {
         }
         
         try {
-            # Read the source file content
-            $content = Get-Content $sourcePath -Raw -ErrorAction Stop
+            # Read the source file content with UTF-8 encoding to preserve emojis
+            $content = Get-Content $sourcePath -Raw -Encoding UTF8 -ErrorAction Stop
             
             # For copilot-instructions.md, modify paths to point to local VS Code directories
             if ($fileName -eq "copilot-instructions.md") {
