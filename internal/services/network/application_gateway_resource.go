@@ -695,7 +695,6 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 					},
 				},
-				Set: applicationGatewayListenerHash,
 			},
 
 			"fips_enabled": {
@@ -1757,12 +1756,12 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 
 	httpListeners, err := expandApplicationGatewayHTTPListeners(d, id.ID())
 	if err != nil {
-		return fmt.Errorf("fail to expand `http_listener`: %+v", err)
+		return fmt.Errorf("expanding `http_listener`: %+v", err)
 	}
 
 	listeners, err := expandApplicationGatewayListeners(d, id.ID())
 	if err != nil {
-		return fmt.Errorf("fail to expand `listener`: %+v", err)
+		return fmt.Errorf("expanding `listener`: %+v", err)
 	}
 
 	rewriteRuleSets, err := expandApplicationGatewayRewriteRuleSets(d)
@@ -1968,7 +1967,7 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	if d.HasChange("http_listener") {
 		httpListeners, err := expandApplicationGatewayHTTPListeners(d, id.ID())
 		if err != nil {
-			return fmt.Errorf("fail to expand `http_listener`: %+v", err)
+			return fmt.Errorf("expanding `http_listener`: %+v", err)
 		}
 
 		payload.Properties.HTTPListeners = httpListeners
@@ -3164,6 +3163,9 @@ func expandApplicationGatewayListeners(d *pluginsdk.ResourceData, gatewayID stri
 
 		hosts := v["host_names"].(*pluginsdk.Set).List()
 		if len(hosts) > 0 {
+			if strings.EqualFold(protocol, string(applicationgateways.ApplicationGatewayProtocolTcp)) {
+				return nil, fmt.Errorf("host_names cannot be set with Tcp protocol for listener %q", name)
+			}
 			listener.Properties.HostNames = utils.ExpandStringSlice(hosts)
 		}
 
@@ -5224,28 +5226,6 @@ func applicationGatewayHttpListnerHash(v interface{}) int {
 					buf.WriteString(pageUrl.(string))
 				}
 			}
-		}
-	}
-
-	return pluginsdk.HashString(buf.String())
-}
-
-func applicationGatewayListenerHash(v interface{}) int {
-	var buf bytes.Buffer
-
-	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(m["name"].(string))
-		buf.WriteString(m["frontend_ip_configuration_name"].(string))
-		buf.WriteString(m["frontend_port_name"].(string))
-		buf.WriteString(m["protocol"].(string))
-		if hostNames, ok := m["host_names"]; ok {
-			buf.WriteString(fmt.Sprintf("%s-", hostNames.(*pluginsdk.Set).List()))
-		}
-		if v, ok := m["ssl_certificate_name"]; ok {
-			buf.WriteString(v.(string))
-		}
-		if v, ok := m["ssl_profile_name"]; ok {
-			buf.WriteString(v.(string))
 		}
 	}
 
