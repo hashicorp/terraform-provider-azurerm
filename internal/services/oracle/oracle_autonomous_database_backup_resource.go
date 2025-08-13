@@ -56,8 +56,6 @@ func (AutonomousDatabaseBackupResource) Arguments() map[string]*pluginsdk.Schema
 			Optional: true,
 			Default:  string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeLongTerm),
 			ValidateFunc: validation.StringInSlice([]string{
-				string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeFull),
-				string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeIncremental),
 				string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeLongTerm),
 			}, false),
 		},
@@ -69,7 +67,7 @@ func (r AutonomousDatabaseBackupResource) Attributes() map[string]*schema.Schema
 }
 
 func (r AutonomousDatabaseBackupResource) ModelObject() interface{} {
-	return &AutonomousDatabaseBackupResource{}
+	return &AutonomousDatabaseBackupResourceModel{}
 }
 
 func (r AutonomousDatabaseBackupResource) ResourceType() string {
@@ -197,12 +195,9 @@ func (r AutonomousDatabaseBackupResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			existingBackup, err := findBackupByName(ctx, client, adbId, backupId)
+			_, err = findBackupByName(ctx, client, adbId, backupId)
 			if err != nil {
 				return fmt.Errorf("checking for existing backup: %+v", err)
-			}
-			if existingBackup != nil {
-				return metadata.ResourceRequiresImport(r.ResourceType(), &backupId)
 			}
 
 			update := &autonomousdatabasebackups.AutonomousDatabaseBackupUpdate{
@@ -210,8 +205,7 @@ func (r AutonomousDatabaseBackupResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("retention_period_in_days") {
-				retentionPeriod := model.RetentionPeriodInDays
-				update.Properties.RetentionPeriodInDays = &retentionPeriod
+				update.Properties.RetentionPeriodInDays = &model.RetentionPeriodInDays
 			}
 
 			if err := client.UpdateThenPoll(ctx, *id, *update); err != nil {

@@ -31,7 +31,7 @@ func (r AutonomousDatabaseBackupDataSourceTest) basic(data acceptance.TestData) 
 %s
 
 data "azurerm_oracle_autonomous_database_backup" "test" {
-  autonomous_database_id = azurerm_oracle_autonomous_database_backup.test.id
+  autonomous_database_id = azurerm_oracle_autonomous_database.test.id
 }
 `, AutonomousDatabaseBackupResource{}.complete(data))
 }
