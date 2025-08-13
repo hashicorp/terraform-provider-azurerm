@@ -193,10 +193,10 @@ resource "azurerm_app_service_environment_v3" "test" {
   name                = "acctest-ase-%d"
   resource_group_name = azurerm_resource_group.test.name
   subnet_id           = azurerm_subnet.test.id
-  
+
   zone_redundant               = false
   internal_load_balancing_mode = "Web, Publishing"
-  tags                         = {
+  tags = {
     "tag1" = "test1",
   }
 }
@@ -214,7 +214,7 @@ resource "azurerm_app_service_environment_v3" "test" {
 
   zone_redundant               = false
   internal_load_balancing_mode = "Web, Publishing"
-  tags                         = {
+  tags = {
     "tag1" = "test2",
   }
 }
