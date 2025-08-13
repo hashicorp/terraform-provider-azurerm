@@ -5,6 +5,7 @@ FEATURES:
 * **New Resource**: `azurerm_data_factory_customer_managed_key` [GH-30341]
 
 ENHANCEMENTS:
+* `azurerm_eventgrid_system_topic` - suppress case difference on `source_resource_id` [GH-30379]
 
 * `azurerm_kubernetes_cluster` - add support for `gpu_profile` property [GH-29954]
 * `azurerm_machine_learning_workspace` - support `provision_on_creation_enabled` property [GH-30312]
