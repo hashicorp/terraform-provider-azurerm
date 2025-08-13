@@ -10,6 +10,8 @@ description: |-
 
 Manages a Network Manager Routing Rule Collection.
 
+-> **Note:** Terraform has enabled force deletion. This setting deletes the resource even if it's part of a deployed configuration. If the configuration is deployed, the service will perform a cleanup deployment in the background before the deletion.
+
 ## Example Usage
 
 ```hcl

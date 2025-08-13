@@ -145,17 +145,22 @@ func (r ManagerRoutingRuleCollectionResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			routingConfigurationId := routingrulecollections.NewRoutingConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.NetworkManagerName, id.RoutingConfigurationName).ID()
 			schema := ManagerRoutingRuleCollectionResourceModel{
 				Name:                   id.RoutingConfigurationName,
-				RoutingConfigurationId: routingConfigurationId,
+				RoutingConfigurationId: routingrulecollections.NewRoutingConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.NetworkManagerName, id.RoutingConfigurationName).ID(),
 			}
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
 					schema.BgpRoutePropagationEnabled = flattenBgpRoutePropagation(props.DisableBgpRoutePropagation)
 					schema.Description = pointer.From(props.Description)
-					schema.NetworkGroupIds = flattenNetworkManagerRoutingNetworkGroupIds(props.AppliesTo)
+
+					networkGroupIds, err := flattenNetworkManagerRoutingNetworkGroupIds(props.AppliesTo)
+					if err != nil {
+						return fmt.Errorf("flattening `network_group_ids`: %+v", err)
+					}
+
+					schema.NetworkGroupIds = networkGroupIds
 				}
 			}
 
@@ -244,10 +249,7 @@ func expandBgpRoutePropagation(input bool) *routingrulecollections.DisableBgpRou
 }
 
 func flattenBgpRoutePropagation(input *routingrulecollections.DisableBgpRoutePropagation) bool {
-	if input != nil && *input == routingrulecollections.DisableBgpRoutePropagationFalse {
-		return true
-	}
-	return false
+	return pointer.From(input) == routingrulecollections.DisableBgpRoutePropagationFalse
 }
 
 func expandNetworkManagerRoutingNetworkGroupIds(inputList []string) []routingrulecollections.NetworkManagerRoutingGroupItem {
@@ -263,12 +265,17 @@ func expandNetworkManagerRoutingNetworkGroupIds(inputList []string) []routingrul
 	return outputList
 }
 
-func flattenNetworkManagerRoutingNetworkGroupIds(inputList []routingrulecollections.NetworkManagerRoutingGroupItem) []string {
+func flattenNetworkManagerRoutingNetworkGroupIds(inputList []routingrulecollections.NetworkManagerRoutingGroupItem) ([]string, error) {
 	outputList := make([]string, 0, len(inputList))
 
 	for _, input := range inputList {
-		outputList = append(outputList, input.NetworkGroupId)
+		networkGroupId, err := networkgroups.ParseNetworkGroupIDInsensitively(input.NetworkGroupId)
+		if err != nil {
+			return nil, err
+		}
+
+		outputList = append(outputList, networkGroupId.ID())
 	}
 
-	return outputList
+	return outputList, nil
 }
