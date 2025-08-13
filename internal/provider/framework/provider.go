@@ -418,6 +418,12 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 									"expand_without_downtime": schema.BoolAttribute{
 										Optional: true,
 									},
+									"stop_vm_before_detaching": schema.BoolAttribute{
+										Optional: true,
+									},
+									"skip_attachment_destroy": schema.BoolAttribute{
+										Optional: true,
+									},
 								},
 							},
 						},
