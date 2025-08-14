@@ -29,7 +29,6 @@ type EventGridPartnerNamespaceChannelResourceModel struct {
 	ChannelName                       string              `tfschema:"name"`
 	PartnerNamespaceName              string              `tfschema:"partner_namespace_name"`
 	ResourceGroupName                 string              `tfschema:"resource_group_name"`
-	MessageForActivation              string              `tfschema:"activation_message"`
 	ChannelType                       string              `tfschema:"channel_type"`
 	ExpirationTimeIfNotActivatedInUtc string              `tfschema:"expiration_time_if_not_activated_in_utc"`
 	PartnerTopic                      []PartnerTopicModel `tfschema:"partner_topic"`
@@ -57,6 +56,8 @@ type InlineEventTypeModel struct {
 	DocumentationURL string `tfschema:"documentation_url"`
 }
 
+// MessageForActivation is a problematic field as the API generates a custom default message that can be longer than the allowed length if not included.
+// As such it has been excluded and left to the server to set the default.
 func (EventGridPartnerNamespaceChannelResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
@@ -78,12 +79,26 @@ func (EventGridPartnerNamespaceChannelResource) Arguments() map[string]*pluginsd
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
-		"activation_message": {
+		"expiration_time_if_not_activated_in_utc": {
 			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// NOTE: O+C API sets default if omitted based on channel type and source. This can be longer than allowed length.
-			Computed:     true,
-			ValidateFunc: validation.StringLenBetween(1, 256),
+			Required: true,
+			ValidateFunc: validation.All(validation.IsRFC3339Time,
+				func(i interface{}, k string) (warnings []string, errors []error) {
+					v, ok := i.(string)
+					if !ok {
+						errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
+						return
+					}
+
+					selectedTime, _ := time.Parse(time.RFC3339, v)
+					timeUntilExpiry := selectedTime.Sub(time.Now().In(time.UTC))
+					if timeUntilExpiry < 0 || timeUntilExpiry > 7*24*time.Hour {
+						errors = append(errors, fmt.Errorf("`expiration_time_if_not_activated_in_utc` must be within 7 days from now"))
+					}
+
+					return
+				},
+			),
 		},
 		"channel_type": {
 			Type:     pluginsdk.TypeString,
@@ -93,13 +108,6 @@ func (EventGridPartnerNamespaceChannelResource) Arguments() map[string]*pluginsd
 			ValidateFunc: validation.StringInSlice([]string{
 				string(channels.ChannelTypePartnerTopic),
 			}, false),
-		},
-		"expiration_time_if_not_activated_in_utc": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// NOTE: O+C API sets default if omitted, 7 days from creation.
-			Computed:     true,
-			ValidateFunc: validation.IsRFC3339Time,
 		},
 		"partner_topic": {
 			Type:     pluginsdk.TypeList,
@@ -250,7 +258,6 @@ func (r EventGridPartnerNamespaceChannelResource) Create() sdk.ResourceFunc {
 				Properties: &channels.ChannelProperties{
 					ChannelType:                     pointer.To(channels.ChannelType(config.ChannelType)),
 					ExpirationTimeIfNotActivatedUtc: pointer.To(config.ExpirationTimeIfNotActivatedInUtc),
-					MessageForActivation:            pointer.To(config.MessageForActivation),
 					PartnerTopicInfo:                expandPartnerNamespaceChannelPartnerTopic(config.PartnerTopic),
 				},
 			}
@@ -296,13 +303,8 @@ func (r EventGridPartnerNamespaceChannelResource) Update() sdk.ResourceFunc {
 
 			payload := existing.Model
 
-			// API generated default message can be longer than the allowed length so if invalid, clear it from update payload
-			if payload.Properties.MessageForActivation != nil && len(*payload.Properties.MessageForActivation) > 256 {
-				payload.Properties.MessageForActivation = nil
-			}
-			if metadata.ResourceData.HasChange("activation_message") {
-				payload.Properties.MessageForActivation = pointer.To(config.MessageForActivation)
-			}
+			// API generated default message can be longer than the allowed length so we have to clear it from update payload
+			payload.Properties.MessageForActivation = nil
 
 			if metadata.ResourceData.HasChange("expiration_time_if_not_activated_in_utc") {
 				payload.Properties.ExpirationTimeIfNotActivatedUtc = pointer.To(config.ExpirationTimeIfNotActivatedInUtc)
@@ -372,7 +374,6 @@ func (r EventGridPartnerNamespaceChannelResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					state.MessageForActivation = pointer.From(props.MessageForActivation)
 					state.ChannelType = pointer.FromEnum(props.ChannelType)
 					state.ExpirationTimeIfNotActivatedInUtc = pointer.From(props.ExpirationTimeIfNotActivatedUtc)
 					state.ReadinessState = pointer.FromEnum(props.ReadinessState)

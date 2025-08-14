@@ -36,9 +36,9 @@ resource "azurerm_eventgrid_partner_namespace_channel" "example" {
   name                   = "example-partner-namespace-channel"
   partner_namespace_name = azurerm_eventgrid_partner_namespace.example.name
   resource_group_name    = azurerm_resource_group.example.name
-  activation_message     = "Please activate this channel"
-  channel_type           = "PartnerTopic"
+  expiration_time_if_not_activated_in_utc = "2025-02-0500:00:00Z"
 
+  channel_type           = "PartnerTopic"
   partner_topic {
     name                = "example-partner-topic"
     subscription_id     = data.azurerm_client_config.example.subscription_id
@@ -58,15 +58,13 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Event Grid Partner Namespace Channel should exist. Changing this forces a new Event Grid Partner Namespace Channel to be created.
 
----
-
-* `activation_message` - (Optional) A context or helpful message that can be used during the approval process by the subscriber.
-
-* `channel_type` - (Optional) The type of the channel which represents the direction flow of events. The only possible value is `PartnerTopic`. Defaults to `PartnerTopic`. Changing this forces a new Event Grid Partner Namespace Channel to be created.
-
-* `expiration_time_if_not_activated_in_utc` - (Optional) The expiration time of the channel if not activated (Datetime Format `RFC 3339`).
+* `expiration_time_if_not_activated_in_utc` - (Required) The expiration time of the channel if not activated (Datetime Format `RFC 3339`).
 
 ~> **Note:** If this timer expires while the corresponding partner topic is never activated, the channel and corresponding partner topic are deleted.
+
+---
+
+* `channel_type` - (Optional) The type of the channel which represents the direction flow of events. The only possible value is `PartnerTopic`. Defaults to `PartnerTopic`. Changing this forces a new Event Grid Partner Namespace Channel to be created.
 
 * `partner_topic` - (Optional) A `partner_topic` block as defined below. Required when `channel_type` is `PartnerTopic`.
 

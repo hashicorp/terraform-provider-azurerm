@@ -36,8 +36,6 @@ The following attributes are exported:
 
 * `id` - The ID of the Event Grid Partner Namespace Channel.
 
-* `activation_message` - A context or helpful message that can be used during the approval process by the subscriber.
-
 * `channel_type` -  The type of the channel which represents the direction flow of events.
 
 * `expiration_time_if_not_activated_in_utc` - The expiration time of the channel if not activated.

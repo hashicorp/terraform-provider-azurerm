@@ -25,7 +25,6 @@ type EventGridPartnerNamespaceChannelDataSourceModel struct {
 	ChannelName                       string              `tfschema:"name"`
 	PartnerNamespaceName              string              `tfschema:"partner_namespace_name"`
 	ResourceGroupName                 string              `tfschema:"resource_group_name"`
-	MessageForActivation              string              `tfschema:"activation_message"`
 	ChannelType                       string              `tfschema:"channel_type"`
 	ExpirationTimeIfNotActivatedInUtc string              `tfschema:"expiration_time_if_not_activated_in_utc"`
 	PartnerTopic                      []PartnerTopicModel `tfschema:"partner_topic"`
@@ -50,10 +49,6 @@ func (r EventGridPartnerNamespaceChannelDataSource) Arguments() map[string]*plug
 
 func (r EventGridPartnerNamespaceChannelDataSource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"activation_message": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
 		"channel_type": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -160,7 +155,6 @@ func (r EventGridPartnerNamespaceChannelDataSource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					state.MessageForActivation = pointer.From(props.MessageForActivation)
 					state.ChannelType = pointer.FromEnum(props.ChannelType)
 					state.ExpirationTimeIfNotActivatedInUtc = pointer.From(props.ExpirationTimeIfNotActivatedUtc)
 					state.ReadinessState = pointer.FromEnum(props.ReadinessState)
