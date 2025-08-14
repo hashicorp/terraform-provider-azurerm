@@ -239,6 +239,7 @@ func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*plugins
 		"allowed_ips": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
+			MaxItems: 1024,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: validation.IsIPv4Address,
