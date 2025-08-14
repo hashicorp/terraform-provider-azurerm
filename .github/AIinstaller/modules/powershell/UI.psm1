@@ -174,6 +174,10 @@ function Show-Help {
         [string]$ScriptName = "install-copilot-setup.ps1"
     )
     
+    # Get current branch for context-aware help
+    $currentBranch = try { git branch --show-current 2>$null } catch { "unknown" }
+    $isSourceBranch = $currentBranch -eq "exp/terraform_copilot"
+    
     Clear-Host
     Show-Banner -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version "1.0.0"
     
@@ -182,24 +186,53 @@ function Show-Help {
     Write-Host "  Terraform AzureRM Provider development environment."
     Write-Host ""
     
-    Write-Host "USAGE:" -ForegroundColor Cyan
-    Write-Host "  .\$ScriptName [OPTIONS]"
+    # Show current context
+    Write-Host "CURRENT SITUATION:" -ForegroundColor Cyan
+    Write-Host "  Branch: $currentBranch" -ForegroundColor Gray
+    if ($isSourceBranch) {
+        Write-Host "  Status: SOURCE BRANCH - Only bootstrap operations allowed" -ForegroundColor Yellow
+        Write-Host "  Next:   Run with -Bootstrap to prepare installer for feature branches" -ForegroundColor Yellow
+    } else {
+        Write-Host "  Status: FEATURE BRANCH - Ready for AI infrastructure installation" -ForegroundColor Green
+        Write-Host "  Next:   Run installer to set up AI infrastructure" -ForegroundColor Green
+    }
+    Write-Host ""
+    
+    if ($isSourceBranch) {
+        Write-Host "WORKFLOW (You are on source branch):" -ForegroundColor Cyan
+        Write-Host "  Step 1: .\$ScriptName -Bootstrap" -ForegroundColor White
+        Write-Host "          (Copies installer to your user profile)" -ForegroundColor Gray
+        Write-Host "  Step 2: git switch -c your-feature-branch" -ForegroundColor White
+        Write-Host "          (Switch to your working branch)" -ForegroundColor Gray
+        Write-Host "  Step 3: %USERPROFILE%\.terraform-ai-installer\install-copilot-setup.ps1" -ForegroundColor White
+        Write-Host "          (Run installer from user profile)" -ForegroundColor Gray
+    } else {
+        Write-Host "WORKFLOW (You are on feature branch):" -ForegroundColor Cyan
+        Write-Host "  If installer is not available locally:" -ForegroundColor Yellow
+        Write-Host "    1. git switch exp/terraform_copilot" -ForegroundColor White
+        Write-Host "    2. .\$ScriptName -Bootstrap" -ForegroundColor White
+        Write-Host "    3. git switch $currentBranch" -ForegroundColor White
+        Write-Host "    4. %USERPROFILE%\.terraform-ai-installer\install-copilot-setup.ps1" -ForegroundColor White
+        Write-Host ""
+        Write-Host "  If installer is available locally:" -ForegroundColor Green
+        Write-Host "    .\$ScriptName                    # Install AI infrastructure" -ForegroundColor White
+    }
     Write-Host ""
     
     Write-Host "OPTIONS:" -ForegroundColor Cyan
-    Write-Host "  -Help              Show this help message"
-    Write-Host "  -Auto-Approve      Overwrite existing files without prompting"
-    Write-Host "  -Dry-Run           Show what would be done without making changes"
-    Write-Host "  -Verify            Check the current state of the workspace"
-    Write-Host "  -Clean             Remove AI infrastructure from the workspace"
+    Write-Host "  -Bootstrap         Copy installer to user profile (source branch only)" -ForegroundColor $(if ($isSourceBranch) { "Green" } else { "Gray" })
+    Write-Host "  -Help              Show this help message" -ForegroundColor Green
+    Write-Host "  -Verify            Check current AI infrastructure status" -ForegroundColor $(if ($isSourceBranch) { "Green" } else { "White" })
+    Write-Host "  -Auto-Approve      Install without prompting (feature branch only)" -ForegroundColor $(if ($isSourceBranch) { "Gray" } else { "White" })
+    Write-Host "  -Dry-Run           Preview installation (feature branch only)" -ForegroundColor $(if ($isSourceBranch) { "Gray" } else { "White" })
+    Write-Host "  -Clean             Remove AI infrastructure (feature branch only)" -ForegroundColor $(if ($isSourceBranch) { "Gray" } else { "White" })
     Write-Host ""
     
-    Write-Host "EXAMPLES:" -ForegroundColor Cyan
-    Write-Host "  .\$ScriptName                    # Standard installation"
-    Write-Host "  .\$ScriptName -Auto-Approve      # Overwrite existing files"
-    Write-Host "  .\$ScriptName -Dry-Run           # Preview what would be installed"
-    Write-Host "  .\$ScriptName -Verify            # Check current installation status"
-    Write-Host "  .\$ScriptName -Clean             # Remove AI infrastructure"
+    Write-Host "INSTALLATION BEHAVIOR:" -ForegroundColor Cyan
+    Write-Host "  - Default behavior installs/updates all current AI infrastructure files"
+    Write-Host "  - Automatically removes deprecated files (no longer in manifest)"
+    Write-Host "  - Creates backup of modified settings.json files"
+    Write-Host "  - Preserves existing VS Code user settings"
     Write-Host ""
     
     Write-Host "FILES INSTALLED:" -ForegroundColor Cyan
@@ -209,11 +242,11 @@ function Show-Help {
     Write-Host "  .vscode/settings.json                # VS Code configuration"
     Write-Host ""
     
-    Write-Host "NOTES:" -ForegroundColor Yellow
-    Write-Host "  - Files are downloaded from the exp/terraform_copilot branch"
+    Write-Host "SAFETY NOTES:" -ForegroundColor Yellow
+    Write-Host "  - Installation operations are blocked on source branch (exp/terraform_copilot)"
+    Write-Host "  - Bootstrap operation safely copies installer without modifying source branch"
     Write-Host "  - Created files are automatically excluded from git commits"
-    Write-Host "  - Run from any branch except exp/terraform_copilot"
-    Write-Host "  - Requires internet connection to download files"
+    Write-Host "  - Requires internet connection to download files during bootstrap"
     Write-Host ""
 }
 
@@ -488,9 +521,22 @@ function Show-ValidationResults {
     
     # Check workspace validation
     if ($Results.Workspace) {
-        $workspaceStatus = if ($Results.Workspace.Valid) { "PASS" } else { "FAIL" }
-        $workspaceColor = if ($Results.Workspace.Valid) { "Green" } else { "Red" }
-        Write-Host "  [$workspaceStatus] Workspace" -ForegroundColor $workspaceColor
+        if ($Results.Workspace.Skipped) {
+            Write-Host "  [SKIP] Workspace" -ForegroundColor Yellow
+        } else {
+            $workspaceStatus = if ($Results.Workspace.Valid) { "PASS" } else { "FAIL" }
+            $workspaceColor = if ($Results.Workspace.Valid) { "Green" } else { "Red" }
+            Write-Host "  [$workspaceStatus] Workspace" -ForegroundColor $workspaceColor
+            
+            if ($ShowDetails -and -not $Results.Workspace.Valid -and -not $Results.Workspace.Skipped) {
+                Write-Host "    - $($Results.Workspace.Reason)" -ForegroundColor Yellow
+                if ($Results.Workspace.CurrentPath -and $Results.Workspace.Path -and 
+                    $Results.Workspace.CurrentPath -ne $Results.Workspace.Path) {
+                    Write-Host "    - Current directory: $($Results.Workspace.CurrentPath)" -ForegroundColor Gray
+                    Write-Host "    - Workspace root: $($Results.Workspace.Path)" -ForegroundColor Gray
+                }
+            }
+        }
     }
     
     # Check system requirements

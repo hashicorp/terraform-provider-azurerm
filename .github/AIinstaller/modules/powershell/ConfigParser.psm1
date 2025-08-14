@@ -3,6 +3,65 @@
 
 #region Public Functions
 
+function Get-ManifestConfig {
+    <#
+    .SYNOPSIS
+    Parse the file manifest configuration and return structured data
+    
+    .PARAMETER ManifestPath
+    Path to the manifest file. Defaults to file-manifest.config in the AIinstaller directory
+    
+    .PARAMETER Branch
+    Git branch for remote URLs
+    #>
+    param(
+        [string]$ManifestPath,
+        [string]$Branch = "exp/terraform_copilot"
+    )
+    
+    # Find manifest file if not specified
+    if (-not $ManifestPath) {
+        $scriptRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+        $ManifestPath = Join-Path $scriptRoot "file-manifest.config"
+    }
+    
+    if (-not (Test-Path $ManifestPath)) {
+        throw "Manifest file not found: $ManifestPath"
+    }
+    
+    $manifest = @{
+        SourceBranch = $Branch
+        BaseUrl = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm/$Branch"
+        Sections = @{}
+    }
+    
+    $currentSection = $null
+    $content = Get-Content $ManifestPath
+    
+    foreach ($line in $content) {
+        $line = $line.Trim()
+        
+        # Skip empty lines and comments
+        if (-not $line -or $line.StartsWith('#')) {
+            continue
+        }
+        
+        # Check for section headers
+        if ($line.StartsWith('[') -and $line.EndsWith(']')) {
+            $currentSection = $line.Substring(1, $line.Length - 2)
+            $manifest.Sections[$currentSection] = @()
+            continue
+        }
+        
+        # Add files to current section
+        if ($currentSection -and $line) {
+            $manifest.Sections[$currentSection] += $line
+        }
+    }
+    
+    return $manifest
+}
+
 function Get-InstallationConfig {
     <#
     .SYNOPSIS
@@ -425,6 +484,7 @@ function Test-FileUpToDate {
 #region Export Module Members
 
 Export-ModuleMember -Function @(
+    'Get-ManifestConfig',
     'Get-InstallationConfig',
     'Test-WorkspaceValid',
     'Test-GitRepository',

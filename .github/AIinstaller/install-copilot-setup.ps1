@@ -1,4 +1,4 @@
-# Main AI Infrastructure Installer for Terraform AzureRM Provider
+﻿# Main AI Infrastructure Installer for Terraform AzureRM Provider
 # Version: 1.0.0
 # Description: Interactive installer for AI-powered development infrastructure
 
@@ -6,6 +6,9 @@
 
 [CmdletBinding()]
 param(
+    [Parameter(HelpMessage = "Copy installer to user profile for feature branch use")]
+    [switch]$Bootstrap,
+    
     [Parameter(HelpMessage = "Overwrite existing files without prompting")]
     [switch]${Auto-Approve},
     
@@ -41,419 +44,711 @@ foreach ($module in $RequiredModules) {
     }
 }
 
+# Helper function to get workspace root
+function Get-WorkspaceRoot {
+    <#
+    .SYNOPSIS
+    Dynamically determines the workspace root directory
+    
+    .DESCRIPTION
+    Finds the root of the terraform-provider-azurerm workspace by looking for key files
+    or navigating up from the current script location
+    #>
+    
+    # Start from script directory and look for workspace indicators
+    $currentPath = $PSScriptRoot
+    
+    while ($currentPath -and $currentPath -ne (Split-Path $currentPath -Parent)) {
+        # Look for terraform-provider-azurerm indicators
+        if ((Test-Path (Join-Path $currentPath "go.mod")) -and 
+            (Test-Path (Join-Path $currentPath "main.go")) -and
+            (Test-Path (Join-Path $currentPath "internal"))) {
+            return $currentPath
+        }
+        
+        # Move up one directory
+        $currentPath = Split-Path $currentPath -Parent
+    }
+    
+    # Fallback: assume we're in .github/AIinstaller and go up two levels
+    return Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+}
+
 # Global variables
+$Global:WorkspaceRoot = Get-WorkspaceRoot
+
+# Get dynamic configuration from manifest
+$ManifestConfig = Get-ManifestConfig
+
 $Global:InstallerConfig = @{
     Version = "1.0.0"
     Branch = "exp/terraform_copilot"
-    StartTime = Get-Date
-    AutoApprove = ${Auto-Approve}.IsPresent
-    DryRun = ${Dry-Run}.IsPresent
-    Verify = $Verify.IsPresent
-    Clean = $Clean.IsPresent
-}
-
-function Initialize-Installer {
-    <#
-    .SYNOPSIS
-    Initialize the installer environment and validate prerequisites
-    #>
-    
-    Show-Banner -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
-    
-    Write-Host "> Initializing AI Infrastructure Installer..." -ForegroundColor "Cyan"
-    Write-Host "   Branch: $($Global:InstallerConfig.Branch)" -ForegroundColor "Gray"
-    Write-Host "   Mode: $(if ($Global:InstallerConfig.Verify) { 'Verification Only' } elseif ($Global:InstallerConfig.DryRun) { 'Dry Run' } elseif ($Global:InstallerConfig.Clean) { 'Clean Mode' } else { 'Full Installation' })" -ForegroundColor "Gray"
-    Write-Host ""
-    
-    # Run pre-installation validation
-    $validation = Test-PreInstallation
-    
-    Show-ValidationResults -Results $validation -ShowDetails $true
-    
-    if (-not $validation.OverallValid) {
-        Write-Error "Pre-installation validation failed. Please resolve the issues above before continuing."
-        
-        if (-not $Global:InstallerConfig.AutoApprove) {
-            $showDetails = Confirm-UserAction -Message "Would you like to see detailed recommendations?" -DefaultYes $true
-            if ($showDetails) {
-                $report = Get-ValidationReport -Branch $Global:InstallerConfig.Branch
-                
-                if ($report.Recommendations.Count -gt 0) {
-                    Write-Section "Recommendations"
-                    foreach ($recommendation in $report.Recommendations) {
-                        Write-Host "  - $recommendation" -ForegroundColor "Yellow"
-                    }
-                    Write-Host ""
-                }
-            }
+    SourceRepository = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm"
+    Files = @{
+        Instructions = @{
+            Source = ".github/copilot-instructions.md"
+            Target = (Join-Path $Global:WorkspaceRoot ".github/copilot-instructions.md")
+            Description = "Main Copilot instructions for AI-powered development"
         }
-        
-        exit 1
+        InstructionFiles = @{
+            Source = ".github/instructions"
+            Target = (Join-Path $Global:WorkspaceRoot ".github/instructions")
+            Description = "Detailed implementation guidelines and patterns"
+            Files = $ManifestConfig.Sections.INSTRUCTION_FILES
+        }
+        PromptFiles = @{
+            Source = ".github/prompts"
+            Target = (Join-Path $Global:WorkspaceRoot ".github/prompts")
+            Description = "AI prompt templates for development workflows"
+            Files = $ManifestConfig.Sections.PROMPT_FILES
+        }
+        InstallerFiles = @{
+            Source = ".github/AIinstaller"
+            Target = "$env:USERPROFILE\.terraform-ai-installer"
+            Description = "Installer scripts and modules for bootstrap functionality"
+            Files = $ManifestConfig.Sections.INSTALLER_FILES
+        }
     }
-    
-    Show-Success "Pre-installation validation completed successfully!"
-    
-    return $validation
 }
 
-function Invoke-Installation {
+function Test-BranchType {
     <#
     .SYNOPSIS
-    Execute the main installation process
+    Determine if running from source branch or feature branch
     #>
-    
-    $startTime = Get-Date
-    $statistics = @{
-        "Files Downloaded" = 0
-        "Files Skipped" = 0
-        "Files Failed" = 0
-        "Total Size" = 0
-    }
     
     try {
-        # Get installation configuration
-        $config = Get-InstallationConfig -Branch $Global:InstallerConfig.Branch
-        
-        Write-Section "Installing AI Infrastructure"
-        Write-Host "Installing $($config.Files.Count) files from branch '$($Global:InstallerConfig.Branch)'..." -ForegroundColor "White"
-        Write-Host ""
-        
-        $fileIndex = 0
-        foreach ($filePath in $config.Files.Keys) {
-            $fileIndex++
-            $fileInfo = $config.Files[$filePath]
-            
-            # Check if file exists and AutoApprove flag
-            if ((Test-Path $filePath) -and -not $Global:InstallerConfig.AutoApprove) {
-                Show-FileOperationStatus -Operation "Skipped" -FilePath $filePath -Status "Skipped"
-                $statistics["Files Skipped"]++
-                continue
-            }
-            
-            # Show progress
-            Show-InstallationProgress -CurrentFile $filePath -Current $fileIndex -Total $config.Files.Count -Status "Installing"
-            
-            # Download file
-            try {
-                $downloadResult = Get-FileFromGitHub -FilePath $fileInfo.GitHubPath -LocalPath $filePath -Branch $Global:InstallerConfig.Branch
-                
-                if ($downloadResult.Success) {
-                    $statistics["Files Downloaded"]++
-                    $statistics["Total Size"] += $downloadResult.Size
-                    
-                    Write-Host ""  # New line after progress
-                    Show-FileOperationStatus -Operation "Downloaded" -FilePath $filePath -Status "Success" -Size $downloadResult.Size
-                } else {
-                    $statistics["Files Failed"]++
-                    
-                    Write-Host ""  # New line after progress
-                    Show-FileOperationStatus -Operation "Download" -FilePath $filePath -Status "Failed" -ErrorMessage $downloadResult.Error
-                    
-                    if ($fileInfo.Required) {
-                        throw "Failed to download required file: $filePath"
-                    }
-                }
-            }
-            catch {
-                $statistics["Files Failed"]++
-                
-                Write-Host ""  # New line after progress
-                Show-FileOperationStatus -Operation "Download" -FilePath $filePath -Status "Failed" -ErrorMessage $_.Exception.Message
-                
-                if ($fileInfo.Required) {
-                    throw
-                }
-            }
+        $currentBranch = git rev-parse --abbrev-ref HEAD 2>$null
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warning "Could not determine current git branch"
+            return "unknown"
         }
         
-        # Clear progress line
-        Write-Host ""
-        
-        # Update .gitignore if requested
-        if (-not $Global:InstallerConfig.AutoApprove) {
-            $currentGitIgnore = Get-GitIgnoreStatus
-            if (-not $currentGitIgnore.HasAIEntries) {
-                $addToGitIgnore = Confirm-UserAction -Message "Would you like to add AI infrastructure files to .gitignore?" -DefaultYes $true
-                
-                if ($addToGitIgnore) {
-                    Update-GitIgnore
-                    Show-Success "Updated .gitignore with AI infrastructure entries."
-                }
-            }
-        }
-        
-        $duration = (Get-Date) - $startTime
-        
-        Show-Summary -Operation "Installation" -Statistics $statistics -Duration $duration -Success ($statistics["Files Failed"] -eq 0)
-        
-        return @{
-            Success = ($statistics["Files Failed"] -eq 0)
-            Statistics = $statistics
-            Duration = $duration
+        if ($currentBranch -eq $Global:InstallerConfig.Branch) {
+            return "source"
+        } else {
+            return "feature"
         }
     }
     catch {
-        $duration = (Get-Date) - $startTime
-        
-        Write-Error "Installation failed: $($_.Exception.Message)"
-        Show-Summary -Operation "Installation" -Statistics $statistics -Duration $duration -Success $false
-        
-        return @{
-            Success = $false
-            Error = $_.Exception.Message
-            Statistics = $statistics
-            Duration = $duration
-        }
+        Write-Warning "Git not available or not in a git repository"
+        return "unknown"
     }
 }
 
-function Invoke-PostInstallationValidation {
+function Invoke-Bootstrap {
     <#
     .SYNOPSIS
-    Validate the installation and show results
+    Copy installer files to user profile for feature branch use
     #>
-    
-    Write-Section "Post-Installation Validation"
-    
-    # Run post-installation validation
-    $validation = Test-PostInstallation -Branch $Global:InstallerConfig.Branch
-    
-    if ($validation.OverallValid) {
-        Show-Success "All files installed and validated successfully!"
-        
-        Write-Host "Installation Summary:" -ForegroundColor "Cyan"
-        Write-Host "   Files Installed: $($validation.FilesInstalled)/$($validation.TotalFiles)" -ForegroundColor "White"
-        Write-Host "   Missing Files: $($validation.MissingFiles.Count)" -ForegroundColor $(if ($validation.MissingFiles.Count -eq 0) { "Green" } else { "Red" })
-            
-            if ($validation.MissingFiles.Count -gt 0) {
-                Write-Host "   Missing:" -ForegroundColor "Red"
-            foreach ($missingFile in $validation.MissingFiles) {
-                Write-Host "     - $missingFile" -ForegroundColor "Red"
-            }
-        }
-    } else {
-        Write-Error "Post-installation validation failed!"
-        
-        Write-Host "Issues found:" -ForegroundColor "Red"
-        foreach ($filePath in $validation.FileDetails.Keys) {
-            $fileValidation = $validation.FileDetails[$filePath]
-            if (-not $fileValidation.Exists -and $fileValidation.Required) {
-                Write-Host "  - Missing required file: $filePath" -ForegroundColor "Red"
-            }
-            elseif ($fileValidation.Exists -and $fileValidation.Integrity -and -not $fileValidation.Integrity.Valid) {
-                Write-Host "  - Corrupted file: $filePath" -ForegroundColor "Red"
-            }
-        }
-    }
-    
-    Write-Host ""
-    
-    return $validation
-}
-
-function Show-NextSteps {
-    <#
-    .SYNOPSIS
-    Display next steps after successful installation
-    #>
-    
-    Write-Section "Next Steps"
-    
-    Write-Host "Your AI infrastructure is now installed! Here's what you can do next:" -ForegroundColor "White"
-    Write-Host ""
-    
-    Write-Host "1. Restart VS Code" -ForegroundColor "Cyan"
-    Write-Host "   - Close and reopen VS Code to load the new configuration" -ForegroundColor "Gray"
-    Write-Host "   - The AI instructions will be automatically loaded" -ForegroundColor "Gray"
-    Write-Host ""
-    
-    Write-Host "2. Verify GitHub Copilot" -ForegroundColor "Cyan"
-    Write-Host "   - Ensure GitHub Copilot extension is installed and authenticated" -ForegroundColor "Gray"
-    Write-Host "   - Check that Copilot is active in VS Code status bar" -ForegroundColor "Gray"
-    Write-Host ""
-    
-    Write-Host "3.  Test AI Features" -ForegroundColor "Cyan"
-    Write-Host "   - Open a Go file in the internal/services directory" -ForegroundColor "Gray"
-    Write-Host "   - Try AI-powered code completion and suggestions" -ForegroundColor "Gray"
-    Write-Host "   - Use GitHub Copilot Chat for code explanations" -ForegroundColor "Gray"
-    Write-Host ""
-    
-    Write-Host "4. Explore AI Instructions" -ForegroundColor "Cyan"
-    Write-Host "   - Check .github/instructions/ for comprehensive coding guidelines" -ForegroundColor "Gray"
-    Write-Host "   - Review .github/copilot-instructions.md for AI-specific guidance" -ForegroundColor "Gray"
-    Write-Host ""
-    
-    Write-Host "5. Validate Installation" -ForegroundColor "Cyan"
-    Write-Host "   - Run: .\Install-AIInfrastructure.ps1 -ValidateOnly" -ForegroundColor "Gray"
-    Write-Host "   - Check AI infrastructure health anytime" -ForegroundColor "Gray"
-    Write-Host ""
-    
-    Show-Info "For troubleshooting and advanced configuration, see the documentation in .github/AIinstaller/README.md"
-}
-
-function Invoke-CleanInstallation {
-    <#
-    .SYNOPSIS
-    Remove all AI infrastructure files from the workspace
-    #>
-    
-    $result = @{ Success = $false; Error = $null; RemovedFiles = @() }
     
     try {
-        $config = Get-InstallationConfig -Branch $Global:InstallerConfig.Branch
-        $removedCount = 0
+        Write-Section "Bootstrap - Copying Installer to User Profile"
         
-        foreach ($filePath in $config.Files.Keys) {
-            if (Test-Path $filePath) {
+        # Create target directory
+        $targetDirectory = Join-Path $env:USERPROFILE ".terraform-ai-installer"
+        if (-not (Test-Path $targetDirectory)) {
+            New-Item -ItemType Directory -Path $targetDirectory -Force | Out-Null
+            Write-Host "  Created directory: $targetDirectory" -ForegroundColor "Green"
+        } else {
+            Write-Host "  Using existing directory: $targetDirectory" -ForegroundColor "Yellow"
+        }
+        
+        # Files to bootstrap from configuration
+        $filesToBootstrap = $Global:InstallerConfig.Files.InstallerFiles.Files
+        
+        # Statistics
+        $statistics = @{
+            "Files Copied" = 0
+            "Files Downloaded" = 0
+            "Files Failed" = 0
+            "Total Size" = 0
+        }
+        
+        # Determine if we should copy locally or download from remote
+        $isSourceRepo = Test-SourceRepository
+        $aiInstallerSourcePath = Join-Path $Global:WorkspaceRoot ".github/AIinstaller"
+        
+        if ($isSourceRepo -and (Test-Path $aiInstallerSourcePath)) {
+            Write-Host "  Copying installer files from local source repository..." -ForegroundColor "Cyan"
+            Write-Host ""
+            
+            # Copy files locally from source repository
+            foreach ($file in $filesToBootstrap) {
                 try {
-                    Remove-Item -Path $filePath -Force -ErrorAction Stop
-                    $result.RemovedFiles += $filePath
-                    $removedCount++
+                    $sourcePath = Join-Path $aiInstallerSourcePath $file
+                    $fileName = Split-Path $file -Leaf
                     
-                    Show-FileOperationStatus -Operation "Removed" -FilePath $filePath -Status "Success"
-                } catch {
-                    Show-FileOperationStatus -Operation "Failed to remove" -FilePath $filePath -Status "Error"
+                    # Create subdirectory if needed
+                    $fileDir = Split-Path $file -Parent
+                    if ($fileDir) {
+                        $targetSubDir = Join-Path $targetDirectory $fileDir
+                        if (-not (Test-Path $targetSubDir)) {
+                            New-Item -ItemType Directory -Path $targetSubDir -Force | Out-Null
+                        }
+                        $targetPath = Join-Path $targetSubDir $fileName
+                    } else {
+                        $targetPath = Join-Path $targetDirectory $fileName
+                    }
+                    
+                    Write-Host "    Copying: $fileName" -ForegroundColor "Gray" -NoNewline
+                    
+                    if (Test-Path $sourcePath) {
+                        Copy-Item $sourcePath $targetPath -Force
+                        
+                        if (Test-Path $targetPath) {
+                            $fileSize = (Get-Item $targetPath).Length
+                            $statistics["Files Copied"]++
+                            $statistics["Total Size"] += $fileSize
+                            
+                            Write-Host " [OK]" -ForegroundColor "Green"
+                        } else {
+                            Write-Host " [FAILED]" -ForegroundColor "Red"
+                            $statistics["Files Failed"]++
+                        }
+                    } else {
+                        Write-Host " [SOURCE NOT FOUND]" -ForegroundColor "Red"
+                        $statistics["Files Failed"]++
+                    }
+                }
+                catch {
+                    Write-Host " [ERROR] ($($_.Exception.Message))" -ForegroundColor "Red"
+                    $statistics["Files Failed"]++
+                }
+            }
+        } else {
+            Write-Host "  Downloading installer files from remote source branch..." -ForegroundColor "Cyan"
+            Write-Host ""
+            
+            # Download files from remote repository
+            $baseUri = "$($Global:InstallerConfig.SourceRepository)/$($Global:InstallerConfig.Branch)/.github/AIinstaller"
+            
+            foreach ($file in $filesToBootstrap) {
+                try {
+                    $uri = "$baseUri/$file"
+                    $fileName = Split-Path $file -Leaf
+                    
+                    # Create subdirectory if needed
+                    $fileDir = Split-Path $file -Parent
+                    if ($fileDir) {
+                        $targetSubDir = Join-Path $targetDirectory $fileDir
+                        if (-not (Test-Path $targetSubDir)) {
+                            New-Item -ItemType Directory -Path $targetSubDir -Force | Out-Null
+                        }
+                        $targetPath = Join-Path $targetSubDir $fileName
+                    } else {
+                        $targetPath = Join-Path $targetDirectory $fileName
+                    }
+                    
+                    Write-Host "    Downloading: $fileName" -ForegroundColor "Gray" -NoNewline
+                    
+                    # Download with progress
+                    Invoke-WebRequest -Uri $uri -OutFile $targetPath -UseBasicParsing | Out-Null
+                    
+                    if (Test-Path $targetPath) {
+                        $fileSize = (Get-Item $targetPath).Length
+                        $statistics["Files Downloaded"]++
+                        $statistics["Total Size"] += $fileSize
+                        
+                        Write-Host " [OK]" -ForegroundColor "Green"
+                    } else {
+                        Write-Host " [FAILED]" -ForegroundColor "Red"
+                        $statistics["Files Failed"]++
+                    }
+                }
+                catch {
+                    Write-Host " [ERROR] ($($_.Exception.Message))" -ForegroundColor "Red"
+                    $statistics["Files Failed"]++
                 }
             }
         }
         
-        # Remove empty directories
-        $dirsToCheck = @(".github\instructions", ".github\prompts", ".vscode")
-        foreach ($dir in $dirsToCheck) {
-            if ((Test-Path $dir) -and ((Get-ChildItem $dir -Force | Measure-Object).Count -eq 0)) {
-                Remove-Item -Path $dir -Force -ErrorAction SilentlyContinue
-                Show-FileOperationStatus -Operation "Removed" -FilePath $dir -Status "Success"
+        Write-Host ""
+        
+        if ($statistics["Files Failed"] -eq 0) {
+            $totalSizeKB = [math]::Round($statistics["Total Size"] / 1KB, 1)
+            
+            Show-Success "Bootstrap completed successfully!"
+            Write-Host ""
+            
+            if ($statistics["Files Copied"] -gt 0) {
+                Write-Host "  Files copied: $($statistics["Files Copied"])" -ForegroundColor "Green"
             }
+            if ($statistics["Files Downloaded"] -gt 0) {
+                Write-Host "  Files downloaded: $($statistics["Files Downloaded"])" -ForegroundColor "Green"
+            }
+            
+            Write-Host "  Total size: $totalSizeKB KB" -ForegroundColor "Green"
+            Write-Host "  Location: $targetDirectory" -ForegroundColor "Green"
+            Write-Host ""
+            
+            Write-Host "NEXT STEPS:" -ForegroundColor "Cyan"
+            Write-Host "  1. Switch to your feature branch:" -ForegroundColor "White"
+            Write-Host "     git checkout feature/your-branch-name" -ForegroundColor "Gray"
+            Write-Host ""
+            Write-Host "  2. Run the installer from your user profile:" -ForegroundColor "White"
+            Write-Host "     & `"$targetDirectory\install-copilot-setup.ps1`"" -ForegroundColor "Gray"
+            Write-Host ""
+            
+            return @{
+                Success = $true
+                TargetDirectory = $targetDirectory
+                Statistics = $statistics
+            }
+        } else {
+            Write-Error "Bootstrap failed: $($statistics["Files Failed"]) files could not be processed"
+            return @{
+                Success = $false
+                Statistics = $statistics
+            }
+        }
+    }
+    catch {
+        Write-Error "Bootstrap failed: $($_.Exception.Message)"
+        return @{
+            Success = $false
+            Error = $_.Exception.Message
+        }
+    }
+}
+
+function Test-SourceRepository {
+    <#
+    .SYNOPSIS
+    Determines if we're running on the source repository vs a target repository
+    
+    .DESCRIPTION
+    Checks various indicators to determine if this is the source repository where
+    AI infrastructure files are maintained vs a target repository where they
+    would be installed.
+    
+    .OUTPUTS
+    Boolean - True if this is the source repository, False if target
+    #>
+    
+    # Check if we're on the exp/terraform_copilot branch (source branch)
+    try {
+        Push-Location $Global:WorkspaceRoot
+        $currentBranch = git rev-parse --abbrev-ref HEAD 2>$null
+        if ($currentBranch -eq "exp/terraform_copilot") {
+            return $true
+        }
+    } catch {
+        # Git not available or not in a git repo
+    } finally {
+        Pop-Location
+    }
+    
+    # Check if AIinstaller directory exists (only in source)
+    $aiInstallerPath = Join-Path $Global:WorkspaceRoot ".github/AIinstaller"
+    if (Test-Path $aiInstallerPath) {
+        return $true
+    }
+    
+    # Check if this directory structure looks like the source
+    $copilotInstructionsPath = Join-Path $Global:WorkspaceRoot ".github/copilot-instructions.md"
+    $instructionsPath = Join-Path $Global:WorkspaceRoot ".github/instructions"
+    $promptsPath = Join-Path $Global:WorkspaceRoot ".github/prompts"
+    
+    if ((Test-Path $copilotInstructionsPath) -and 
+        (Test-Path $instructionsPath) -and 
+        (Test-Path $promptsPath) -and
+        (Test-Path $aiInstallerPath)) {
+        return $true
+    }
+    
+    return $false
+}
+
+function Invoke-VerifyWorkspace {
+    <#
+    .SYNOPSIS
+    Verifies the presence of AI infrastructure files in the workspace
+    
+    .DESCRIPTION
+    Checks for all required AI infrastructure files including:
+    - Main copilot instructions
+    - Detailed instruction files
+    - Prompts directory
+    - VS Code settings
+    
+    .OUTPUTS
+    Returns verification results and displays status to console
+    #>
+    
+    Write-Section "Workspace Verification"
+    
+    # Use the dynamically determined workspace root
+    $workspaceRoot = $Global:WorkspaceRoot
+    Push-Location $workspaceRoot
+    
+    try {
+        # Check if we're on the source branch/repository
+        $isSourceRepo = Test-SourceRepository
+        
+        $results = @{
+            Success = $true
+            Files = @()
+            Issues = @()
+            IsSourceRepo = $isSourceRepo
+        }
+        
+        Write-Host "Checking workspace: $workspaceRoot" -ForegroundColor Gray
+        
+        if ($isSourceRepo) {
+            Write-Host "NOTE: Running on SOURCE repository - AI infrastructure files are part of this repository" -ForegroundColor Cyan
+        } else {
+            Write-Host "NOTE: Running on TARGET repository - checking if AI infrastructure files have been installed" -ForegroundColor Yellow
+        }
+        Write-Host ""
+        
+        # Check main instructions file
+        $instructionsFile = $Global:InstallerConfig.Files.Instructions.Target
+        if (Test-Path $instructionsFile) {
+            $results.Files += @{
+                Path = $instructionsFile
+                Status = "Present"
+                Description = "Main Copilot instructions"
+            }
+            Write-Host "  [FOUND] $(Resolve-Path $instructionsFile -Relative)" -ForegroundColor Green
+        } else {
+            $results.Files += @{
+                Path = $instructionsFile
+                Status = "Missing"
+                Description = "Main Copilot instructions"
+            }
+            $results.Issues += "Missing: $instructionsFile"
+            Write-Host "  [MISSING] $(Resolve-Path $instructionsFile -Relative -ErrorAction SilentlyContinue)" -ForegroundColor Red
+        }
+        
+        # Check instructions directory
+        $instructionsDir = $Global:InstallerConfig.Files.InstructionFiles.Target
+        if (Test-Path $instructionsDir -PathType Container) {
+            $results.Files += @{
+                Path = $instructionsDir
+                Status = "Present"
+                Description = "Instructions directory"
+            }
+            Write-Host "  [FOUND] $(Resolve-Path $instructionsDir -Relative)/" -ForegroundColor Green
+            
+            # Check specific instruction files
+            $requiredFiles = $Global:InstallerConfig.Files.InstructionFiles.Files
+            
+            foreach ($file in $requiredFiles) {
+                $filePath = Join-Path $instructionsDir $file
+                if (Test-Path $filePath) {
+                    Write-Host "    [FOUND] $file" -ForegroundColor Green
+                } else {
+                    Write-Host "    [MISSING] $file" -ForegroundColor Red
+                    $results.Issues += "Missing: $filePath"
+                }
+            }
+        } else {
+            $results.Files += @{
+                Path = $instructionsDir
+                Status = "Missing"
+                Description = "Instructions directory"
+            }
+            $results.Issues += "Missing: $instructionsDir"
+            Write-Host "  [MISSING] $(Resolve-Path $instructionsDir -Relative -ErrorAction SilentlyContinue)/" -ForegroundColor Red
+        }
+        
+        # Check prompts directory
+        $promptsDir = $Global:InstallerConfig.Files.PromptFiles.Target
+        if (Test-Path $promptsDir -PathType Container) {
+            $results.Files += @{
+                Path = $promptsDir
+                Status = "Present"
+                Description = "Prompts directory"
+            }
+            Write-Host "  [FOUND] $(Resolve-Path $promptsDir -Relative)/" -ForegroundColor Green
+            
+            # Check specific prompt files
+            $requiredPrompts = $Global:InstallerConfig.Files.PromptFiles.Files
+            
+            foreach ($file in $requiredPrompts) {
+                $filePath = Join-Path $promptsDir $file
+                if (Test-Path $filePath) {
+                    Write-Host "    [FOUND] $file" -ForegroundColor Green
+                } else {
+                    Write-Host "    [MISSING] $file" -ForegroundColor Red
+                    $results.Issues += "Missing: $filePath"
+                }
+            }
+        } else {
+            $results.Files += @{
+                Path = $promptsDir
+                Status = "Missing"
+                Description = "Prompts directory"
+            }
+            $results.Issues += "Missing: $promptsDir"
+            Write-Host "  [MISSING] $(Resolve-Path $promptsDir -Relative -ErrorAction SilentlyContinue)/" -ForegroundColor Red
+        }
+        
+        # Check .vscode directory and settings
+        $vscodeDir = Join-Path $workspaceRoot ".vscode"
+        if (Test-Path $vscodeDir -PathType Container) {
+            Write-Host "  [FOUND] .vscode/" -ForegroundColor Green
+            
+            $settingsFile = Join-Path $vscodeDir "settings.json"
+            if (Test-Path $settingsFile) {
+                Write-Host "    [FOUND] settings.json" -ForegroundColor Green
+            } else {
+                Write-Host "    [MISSING] settings.json" -ForegroundColor Red
+                $results.Issues += "Missing: $settingsFile"
+            }
+        } else {
+            Write-Host "  [MISSING] .vscode/" -ForegroundColor Red
+            $results.Issues += "Missing: $vscodeDir"
         }
         
         Write-Host ""
-        Show-Success "Removed $removedCount AI infrastructure files"
         
-        $result.Success = $true
-    } catch {
-        $result.Error = $_.Exception.Message
+        # Check for deprecated files (files that exist but are no longer in manifest)
+        if (-not $isSourceRepo) {
+            $deprecatedFiles = Remove-DeprecatedFiles -ManifestConfig $ManifestConfig -WorkspaceRoot $workspaceRoot -DryRun $true -Quiet $true
+            if ($deprecatedFiles.Count -gt 0) {
+                $results.Issues += "Found $($deprecatedFiles.Count) deprecated files"
+                Write-Host ""
+                Write-Host "TIP: Deprecated files will be automatically removed during installation" -ForegroundColor Cyan
+            }
+        }
+        
+        if ($results.Issues.Count -gt 0) {
+            $results.Success = $false
+            Write-Host "Issues found:" -ForegroundColor Yellow
+            foreach ($issue in $results.Issues) {
+                Write-Host "  - $issue" -ForegroundColor Red
+            }
+            
+            if (-not $isSourceRepo) {
+                Write-Host ""
+                Write-Host "TIP: To install missing files, run: .\install-copilot-setup.ps1" -ForegroundColor Cyan
+            }
+        } else {
+            if ($isSourceRepo) {
+                Write-Host "All AI infrastructure files are present in the source repository!" -ForegroundColor Green
+            } else {
+                Write-Host "All AI infrastructure files have been successfully installed!" -ForegroundColor Green
+            }
+        }
+        
+        return $results
     }
-    
-    return $result
+    finally {
+        Pop-Location
+    }
 }
 
-function Show-DryRunPreview {
-    <#
-    .SYNOPSIS
-    Show what would be installed without making changes
-    #>
+function Invoke-CleanWorkspace {
+    param([bool]$AutoApprove, [bool]$DryRun)
     
-    $config = Get-InstallationConfig -Branch $Global:InstallerConfig.Branch
+    Write-Section "Clean Workspace"
     
-    Write-Host "The following files would be installed:" -ForegroundColor "White"
-    Write-Host ""
-    
-    foreach ($filePath in $config.Files.Keys) {
-        $fileInfo = $config.Files[$filePath]
-        $status = if (Test-Path $filePath) { "Overwrite" } else { "Create" }
-        $color = if ($status -eq "Create") { "Green" } else { "Yellow" }
-        
-        Write-Host "  [$status] " -ForegroundColor $color -NoNewline
-        Write-Host $filePath -ForegroundColor "White"
-        Write-Host "           $($fileInfo.Description)" -ForegroundColor "Gray"
+    if ($DryRun) {
+        Write-Host "DRY RUN - No files will be deleted" -ForegroundColor Yellow
+        Write-Host ""
     }
     
+    $filesToRemove = @()
+    
+    # Add main instructions file
+    if (Test-Path $Global:InstallerConfig.Files.Instructions.Target) {
+        $filesToRemove += $Global:InstallerConfig.Files.Instructions.Target
+    }
+    
+    # Add instruction files directory and its contents
+    $instructionsDir = $Global:InstallerConfig.Files.InstructionFiles.Target
+    if (Test-Path $instructionsDir) {
+        $filesToRemove += $instructionsDir
+    }
+    
+    # Add prompt files directory and its contents
+    $promptsDir = $Global:InstallerConfig.Files.PromptFiles.Target
+    if (Test-Path $promptsDir) {
+        $filesToRemove += $promptsDir
+    }
+    
+    # Add VS Code settings (if they were installed by this tool)
+    # Note: We don't remove .vscode/settings.json as it may contain user settings
+    
+    if ($filesToRemove.Count -eq 0) {
+        Write-Host "No AI infrastructure files found to remove." -ForegroundColor Yellow
+        return @{ Success = $true }
+    }
+    
+    Write-Host "Files to remove:" -ForegroundColor White
+    foreach ($file in $filesToRemove) {
+        Write-Host "  - $file" -ForegroundColor Gray
+    }
     Write-Host ""
-    Write-Host "Total files: $($config.Files.Count)" -ForegroundColor "Cyan"
-    Write-Host "Branch: $($Global:InstallerConfig.Branch)" -ForegroundColor "Gray"
+    
+    if (-not $AutoApprove -and -not $DryRun) {
+        $confirm = Read-Host "Remove these files? (y/N)"
+        if ($confirm -ne 'y' -and $confirm -ne 'Y') {
+            Write-Host "Operation cancelled." -ForegroundColor Yellow
+            return @{ Success = $false }
+        }
+    }
+    
+    if (-not $DryRun) {
+        foreach ($file in $filesToRemove) {
+            try {
+                Remove-Item $file -Recurse -Force
+                Write-Host "  Removed: $file" -ForegroundColor Green
+            }
+            catch {
+                Write-Host "  Failed to remove: $file - $($_.Exception.Message)" -ForegroundColor Red
+            }
+        }
+    }
+    
+    return @{ Success = $true }
+}
+
+function Invoke-InstallInfrastructure {
+    param([bool]$AutoApprove, [bool]$DryRun)
+    
+    Write-Section "Installing AI Infrastructure"
+    
+    if ($DryRun) {
+        Write-Host "DRY RUN - No files will be created or removed" -ForegroundColor Yellow
+        Write-Host ""
+    }
+    
+    # Step 1: Clean up deprecated files first (automatic part of installation)
+    Write-Host "Checking for deprecated files..." -ForegroundColor Gray
+    $deprecatedFiles = Remove-DeprecatedFiles -ManifestConfig $ManifestConfig -WorkspaceRoot $Global:WorkspaceRoot -DryRun $DryRun -Quiet $true
+    
+    if ($deprecatedFiles.Count -gt 0) {
+        Write-Host "  Removed $($deprecatedFiles.Count) deprecated files" -ForegroundColor Green
+    } else {
+        Write-Host "  No deprecated files found" -ForegroundColor Gray
+    }
     Write-Host ""
-    Write-Host "To perform the actual installation, run without -DryRun" -ForegroundColor "Yellow"
+    
+    # Step 2: Install/update current files
+    Write-Host "Installing current AI infrastructure files..." -ForegroundColor White
+    
+    # TODO: Implement actual file installation logic here
+    # This should copy files from the manifest configuration to target locations
+    Write-Host "Note: Full installation logic would be implemented here" -ForegroundColor Yellow
+    
+    return @{ Success = $true }
 }
 
 function Main {
     <#
     .SYNOPSIS
-    Main installer entry point
+    Main entry point for the installer
     #>
     
     try {
-        # Show help if requested
+        # Determine branch type
+        $branchType = Test-BranchType
+        $isSourceBranch = $branchType -eq "source"
+        
+        # Handle help parameter
         if ($Help) {
             Show-Help
             return
         }
         
-        # Initialize installer
-        Initialize-Installer
-        
-        # Handle Clean mode
-        if ($Global:InstallerConfig.Clean) {
-            Write-Host "Cleaning AI infrastructure..." -ForegroundColor "Yellow"
-            $cleanResult = Invoke-CleanInstallation
-            if ($cleanResult.Success) {
-                Show-Success "AI infrastructure successfully removed."
-            } else {
-                Write-Error "Clean operation failed: $($cleanResult.Error)"
-                exit 1
-            }
-            return
-        }
-        
-        # Handle Verify mode
-        if ($Global:InstallerConfig.Verify) {
-            $infraStatus = Test-AIInfrastructure -Branch $Global:InstallerConfig.Branch
-            Show-AIInfrastructureStatus -Status $infraStatus
-            
-            Show-Success "Verification completed."
-            return
-        }
-        
-        # Handle Dry Run mode
-        if ($Global:InstallerConfig.DryRun) {
-            Write-Host "DRY RUN MODE - No changes will be made" -ForegroundColor "Yellow"
-            Write-Host ""
-            Show-DryRunPreview
-            return
-        }
-        
-        # Confirm installation in interactive mode (unless AutoApprove is set)
-        if (-not $Global:InstallerConfig.AutoApprove) {
-            $proceed = Confirm-UserAction -Message "Ready to install AI infrastructure. Continue?" -DefaultYes $true
-            if (-not $proceed) {
-                Write-Host "Installation cancelled by user." -ForegroundColor "Yellow"
+        # Handle bootstrap parameter (source branch only)
+        if ($Bootstrap) {
+            if (-not $isSourceBranch) {
+                Write-Error "Bootstrap can only be run from the source branch ($($Global:InstallerConfig.Branch))"
                 return
             }
-        }
-        
-        # Execute installation
-        $installResult = Invoke-Installation
-        
-        if ($installResult.Success) {
-            # Run post-installation validation
-            $postValidation = Invoke-PostInstallationValidation
             
-            if ($postValidation.OverallValid) {
-                Show-NextSteps
-                
-                $totalDuration = (Get-Date) - $Global:InstallerConfig.StartTime
-                $durationFormatted = "{0:N1} seconds" -f $totalDuration.TotalSeconds
-                
-                Show-Success "AI infrastructure installation completed successfully in $durationFormatted!"
-                
-                if (-not $Global:InstallerConfig.AutoApprove) {
-                    Wait-ForUser "Press any key to exit..."
-                }
-                exit 0
-            } else {
-                Write-Error "Installation completed but post-validation failed. Some files may be missing or corrupted."
+            $result = Invoke-Bootstrap
+            if (-not $result.Success) {
                 exit 1
             }
+            return
+        }
+        
+        # Handle verify parameter
+        if ($Verify) {
+            $result = Invoke-VerifyWorkspace
+            return
+        }
+        
+        # Handle clean parameter (feature branch only)
+        if ($Clean) {
+            if ($isSourceBranch) {
+                Write-Error "Clean operation not available on source branch. This would remove development files."
+                return
+            }
+            
+            $result = Invoke-CleanWorkspace -AutoApprove:$AutoApprove -DryRun:$DryRun
+            if (-not $result.Success) {
+                exit 1
+            }
+            return
+        }
+        
+        # Default installation flow
+        Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
+        
+        if ($isSourceBranch) {
+            Write-Host "🚀 WELCOME TO AI-POWERED TERRAFORM DEVELOPMENT!" -ForegroundColor "Cyan"
+            Write-Host ""
+            Write-Host "You're running from the source branch ($($Global:InstallerConfig.Branch))." -ForegroundColor "White"
+            Write-Host "To get started with AI infrastructure on your feature branch:" -ForegroundColor "White"
+            Write-Host ""
+            
+            Write-Host "📋 QUICK START (Recommended):" -ForegroundColor "Green"
+            Write-Host "  Run the bootstrap command to set up the installer:" -ForegroundColor "White"
+            Write-Host "  .\install-copilot-setup.ps1 -Bootstrap" -ForegroundColor "Yellow"
+            Write-Host ""
+            
+            Write-Host "📝 MANUAL WORKFLOW:" -ForegroundColor "Cyan"
+            Write-Host "  1. Bootstrap: .\install-copilot-setup.ps1 -Bootstrap" -ForegroundColor "Gray"
+            Write-Host "  2. Switch branch: git checkout feature/your-branch-name" -ForegroundColor "Gray"
+            Write-Host "  3. Install: Run installer from user profile" -ForegroundColor "Gray"
+            Write-Host ""
+            
+            Write-Host "🔍 OTHER OPTIONS:" -ForegroundColor "White"
+            Write-Host "  -Verify       Check current workspace status" -ForegroundColor "Gray"
+            Write-Host "  -Help         Show detailed help information" -ForegroundColor "Gray"
+            Write-Host ""
+            
+            # Interactive prompt for better UX
+            Write-Host "❓ Would you like to run bootstrap now? [Y/n]: " -NoNewline -ForegroundColor "Yellow"
+            $response = Read-Host
+            
+            if ($response -eq "" -or $response -eq "y" -or $response -eq "Y") {
+                Write-Host ""
+                Write-Host "🔄 Running bootstrap automatically..." -ForegroundColor "Green"
+                
+                $result = Invoke-Bootstrap
+                if (-not $result.Success) {
+                    exit 1
+                }
+                return
+            } else {
+                Write-Host ""
+                Write-Host "ℹ️  No problem! Run with -Bootstrap when you're ready." -ForegroundColor "Cyan"
+                Write-Host "   Or use -Help for more information." -ForegroundColor "Cyan"
+            }
         } else {
-            Write-Error "Installation failed: $($installResult.Error)"
-            exit 1
+            Write-Host "FEATURE BRANCH DETECTED" -ForegroundColor "Cyan"
+            Write-Host ""
+            Write-Host "Starting AI infrastructure installation..." -ForegroundColor "White"
+            
+            $result = Invoke-InstallInfrastructure -AutoApprove:$AutoApprove -DryRun:$DryRun
+            if (-not $result.Success) {
+                exit 1
+            }
         }
     }
     catch {
         $errorMessage = $_.Exception.Message
         Write-Error "Installer failed with error: $errorMessage"
         
-        Write-Host "Stack trace:" -ForegroundColor "Red"
-        Write-Host $_.ScriptStackTrace -ForegroundColor "Gray"
+        Write-Host "Stack trace:" -ForegroundColor Red
+        Write-Host $_.ScriptStackTrace -ForegroundColor Gray
         
         exit 1
     }

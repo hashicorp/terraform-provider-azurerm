@@ -3,6 +3,39 @@
 
 #region Private Functions
 
+function Find-WorkspaceRoot {
+    <#
+    .SYNOPSIS
+    Find the workspace root by looking for go.mod file in current or parent directories
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string]$StartPath
+    )
+    
+    $currentPath = $StartPath
+    $maxDepth = 10  # Prevent infinite loops
+    $depth = 0
+    
+    while ($depth -lt $maxDepth -and $currentPath) {
+        $goModPath = Join-Path $currentPath "go.mod"
+        if (Test-Path $goModPath) {
+            return $currentPath
+        }
+        
+        # Move to parent directory
+        $parentPath = Split-Path $currentPath -Parent
+        if ($parentPath -eq $currentPath) {
+            # Reached root directory
+            break
+        }
+        $currentPath = $parentPath
+        $depth++
+    }
+    
+    return $null
+}
+
 function Test-PowerShellVersion {
     <#
     .SYNOPSIS
@@ -156,22 +189,31 @@ function Test-WorkspaceValid {
     Test if current directory is a valid Terraform AzureRM workspace
     #>
     
+    # Smart workspace detection - find the actual workspace root
     $currentPath = Get-Location
+    $workspaceRoot = Find-WorkspaceRoot -StartPath $currentPath.Path
+    
     $results = @{
         Valid = $false
-        Path = $currentPath.Path
+        Path = $workspaceRoot
+        CurrentPath = $currentPath.Path
         IsAzureRMProvider = $false
         HasGoMod = $false
         HasMainGo = $false
         Reason = ""
     }
     
-    # Check for go.mod file
-    $goModPath = Join-Path $currentPath "go.mod"
+    if (-not $workspaceRoot) {
+        $results.Reason = "Could not locate workspace root (no go.mod found in current path or parent directories)"
+        return $results
+    }
+    
+    # Check for go.mod file in workspace root
+    $goModPath = Join-Path $workspaceRoot "go.mod"
     $results.HasGoMod = Test-Path $goModPath
     
-    # Check for main.go file
-    $mainGoPath = Join-Path $currentPath "main.go"
+    # Check for main.go file in workspace root  
+    $mainGoPath = Join-Path $workspaceRoot "main.go"
     $results.HasMainGo = Test-Path $mainGoPath
     
     # Check if this is the terraform-provider-azurerm repository
@@ -210,8 +252,11 @@ function Test-WorkspaceValid {
 function Test-GitRepository {
     <#
     .SYNOPSIS
-    Test if current directory is a valid git repository
+    Test if current directory is a valid git repository with branch safety checks
     #>
+    param(
+        [bool]$AllowBootstrapOnSource = $false
+    )
     
     $results = @{
         Valid = $false
@@ -245,16 +290,20 @@ function Test-GitRepository {
                 $results.HasRemote = $false
             }
             
-            # CRITICAL SAFETY CHECK: Prevent running on source branch
+            # CRITICAL SAFETY CHECK: Prevent running on source branch (unless bootstrap)
             $isSourceBranch = $results.CurrentBranch -eq "exp/terraform_copilot"
             
-            $results.Valid = $results.IsGitRepo -and $results.HasRemote -and (-not $isSourceBranch)
+            $results.Valid = $results.IsGitRepo -and $results.HasRemote -and (-not $isSourceBranch -or $AllowBootstrapOnSource)
             
-            if ($isSourceBranch) {
+            if ($isSourceBranch -and -not $AllowBootstrapOnSource) {
                 $results.Reason = "SAFETY VIOLATION: Cannot run installer on source branch 'exp/terraform_copilot'. Switch to a different branch to install AI infrastructure."
             }
             elseif ($results.Valid) {
-                $results.Reason = "Valid git repository with remote origin"
+                if ($isSourceBranch -and $AllowBootstrapOnSource) {
+                    $results.Reason = "Source branch - bootstrap operations allowed"
+                } else {
+                    $results.Reason = "Valid git repository with remote origin"
+                }
             }
             elseif (-not $results.HasRemote) {
                 $results.Reason = "Git repository has no remote origin configured"
@@ -429,14 +478,42 @@ function Test-PreInstallation {
     .SYNOPSIS
     Run comprehensive pre-installation validation
     #>
+    param(
+        [bool]$AllowBootstrapOnSource = $false
+    )
     
     $results = @{
         OverallValid = $true
-        Git = Test-GitRepository  # Check Git first for branch safety
-        Workspace = Test-WorkspaceValid
-        SystemRequirements = Test-SystemRequirements
+        Git = $null
+        Workspace = $null
+        SystemRequirements = $null
         Timestamp = Get-Date
     }
+    
+    # CRITICAL: Check Git first for branch safety
+    $results.Git = Test-GitRepository -AllowBootstrapOnSource $AllowBootstrapOnSource
+    
+    # If Git validation fails due to branch safety, short-circuit other validations
+    # This prevents running unnecessary tests when we know we can't proceed
+    if (-not $results.Git.Valid -and $results.Git.Reason -like "*SAFETY VIOLATION*") {
+        $results.OverallValid = $false
+        
+        # Still run system requirements (these are always safe to check)
+        $results.SystemRequirements = Test-SystemRequirements
+        
+        # Skip workspace and detailed checks due to safety violation
+        $results.Workspace = @{
+            Valid = $false
+            Reason = "Skipped due to Git branch safety violation"
+            Skipped = $true
+        }
+        
+        return $results
+    }
+    
+    # Continue with full validation if Git is safe
+    $results.Workspace = Test-WorkspaceValid
+    $results.SystemRequirements = Test-SystemRequirements
     
     # Check overall validity - Git validation (including branch safety) is critical
     $results.OverallValid = $results.Git.Valid -and
@@ -779,22 +856,28 @@ function Get-ValidationReport {
     
     # Collect recommendations
     if ($IncludeRecommendations) {
+        # Check if we have a branch safety violation
+        $hasBranchSafetyViolation = -not $report.Summary.GitReady -and 
+                                   $report.Details.Git.Reason -like "*SAFETY VIOLATION*"
+        
         if (-not $report.Summary.SystemReady) {
             $report.Recommendations += "Address system requirement issues"
         }
-        if (-not $report.Summary.WorkspaceValid) {
+        if (-not $report.Summary.WorkspaceValid -and -not $hasBranchSafetyViolation) {
             $report.Recommendations += $report.Details.Workspace.Reason
         }
         if (-not $report.Summary.GitReady) {
             $report.Recommendations += $report.Details.Git.Reason
         }
-        if (-not $report.Summary.InternetConnected) {
+        if (-not $report.Summary.InternetConnected -and -not $hasBranchSafetyViolation) {
             $report.Recommendations += $report.Details.Internet.Reason
         }
         
-        # Add AI infrastructure recommendations
-        $report.Recommendations += $report.Details.AIInfrastructure.Recommendations
-        $report.Recommendations += $report.Details.Dependencies.Recommendations
+        # Only add AI infrastructure recommendations if no branch safety violation
+        if (-not $hasBranchSafetyViolation) {
+            $report.Recommendations += $report.Details.AIInfrastructure.Recommendations
+            $report.Recommendations += $report.Details.Dependencies.Recommendations
+        }
         
         # Remove duplicates
         $report.Recommendations = $report.Recommendations | Select-Object -Unique

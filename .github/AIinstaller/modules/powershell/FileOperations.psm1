@@ -352,6 +352,130 @@ function Remove-AllAIFiles {
     return $results
 }
 
+function Remove-DeprecatedFiles {
+    <#
+    .SYNOPSIS
+    Removes files that were previously installed but are no longer in the manifest
+    
+    .DESCRIPTION
+    Scans the target directories for files that exist but are not listed in the 
+    current manifest configuration, indicating they were deprecated/removed
+    
+    .PARAMETER ManifestConfig
+    The manifest configuration containing current file lists
+    
+    .PARAMETER WorkspaceRoot
+    The root directory of the workspace
+    
+    .PARAMETER DryRun
+    If true, only reports what would be removed without actually removing files
+    
+    .PARAMETER Quiet
+    If true, suppresses output (useful for verification checks)
+    
+    .OUTPUTS
+    Array of deprecated files found
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [hashtable]$ManifestConfig,
+        
+        [Parameter(Mandatory)]
+        [string]$WorkspaceRoot,
+        
+        [bool]$DryRun = $false,
+        [bool]$Quiet = $false
+    )
+    
+    $deprecatedFiles = @()
+    
+    # Check for deprecated instruction files
+    $instructionsDir = Join-Path $WorkspaceRoot ".github\instructions"
+    if (Test-Path $instructionsDir -PathType Container) {
+        $currentFiles = $ManifestConfig.Sections.INSTRUCTION_FILES
+        $existingFiles = Get-ChildItem $instructionsDir -File | Where-Object { $_.Name -like "*.instructions.md" }
+        
+        foreach ($existingFile in $existingFiles) {
+            if ($existingFile.Name -notin $currentFiles) {
+                $deprecatedFiles += @{
+                    Path = $existingFile.FullName
+                    Type = "Instruction"
+                    Name = $existingFile.Name
+                    RelativePath = $existingFile.FullName.Replace($WorkspaceRoot, "").TrimStart('\').TrimStart('/')
+                }
+            }
+        }
+    }
+    
+    # Check for deprecated prompt files
+    $promptsDir = Join-Path $WorkspaceRoot ".github\prompts"
+    if (Test-Path $promptsDir -PathType Container) {
+        $currentPrompts = $ManifestConfig.Sections.PROMPT_FILES
+        $existingPrompts = Get-ChildItem $promptsDir -File | Where-Object { $_.Name -like "*.prompt.md" }
+        
+        foreach ($existingPrompt in $existingPrompts) {
+            if ($existingPrompt.Name -notin $currentPrompts) {
+                $deprecatedFiles += @{
+                    Path = $existingPrompt.FullName
+                    Type = "Prompt"
+                    Name = $existingPrompt.Name
+                    RelativePath = $existingPrompt.FullName.Replace($WorkspaceRoot, "").TrimStart('\').TrimStart('/')
+                }
+            }
+        }
+    }
+    
+    if ($deprecatedFiles.Count -gt 0) {
+        if (-not $Quiet) {
+            Write-Host ""
+            Write-Host "Found deprecated files (no longer in manifest):" -ForegroundColor Yellow
+            foreach ($file in $deprecatedFiles) {
+                Write-Host "  [$($file.Type)] $($file.RelativePath)" -ForegroundColor Gray
+            }
+        }
+        
+        if (-not $DryRun) {
+            if (-not $Quiet) {
+                Write-Host ""
+                $confirm = Read-Host "Remove deprecated files? (y/N)"
+            } else {
+                # Auto-approve in quiet mode (typically during installation)
+                $confirm = 'y'
+            }
+            
+            if ($confirm -eq 'y' -or $confirm -eq 'Y') {
+                $removedCount = 0
+                foreach ($file in $deprecatedFiles) {
+                    try {
+                        Remove-Item -Path $file.Path -Force
+                        if (-not $Quiet) {
+                            Write-Host "  Removed: $($file.RelativePath)" -ForegroundColor Green
+                        }
+                        $removedCount++
+                    }
+                    catch {
+                        if (-not $Quiet) {
+                            Write-Host "  Failed to remove: $($file.RelativePath) - $($_.Exception.Message)" -ForegroundColor Red
+                        }
+                    }
+                }
+                if (-not $Quiet) {
+                    Write-Host ""
+                    Write-Host "Removed $removedCount deprecated files." -ForegroundColor Green
+                }
+            } else {
+                if (-not $Quiet) {
+                    Write-Host "Deprecated files kept." -ForegroundColor Yellow
+                }
+            }
+        }
+    } elseif (-not $DryRun -and -not $Quiet) {
+        Write-Host "No deprecated files found." -ForegroundColor Green
+    }
+    
+    return $deprecatedFiles
+}
+
 function Update-GitIgnore {
     <#
     .SYNOPSIS
@@ -923,6 +1047,7 @@ Export-ModuleMember -Function @(
     'Install-AllAIFiles',
     'Remove-AIFile',
     'Remove-AllAIFiles',
+    'Remove-DeprecatedFiles',
     'Update-GitIgnore',
     'Backup-ExistingFile',
     'Test-FileIntegrity',
