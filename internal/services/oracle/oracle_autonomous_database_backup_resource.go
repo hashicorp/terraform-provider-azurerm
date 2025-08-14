@@ -1,11 +1,11 @@
-// Copyright © 2024, Oracle and/or its affiliates. All rights reserved
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
 
 package oracle
 
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -150,13 +150,11 @@ func (r AutonomousDatabaseBackupResource) Read() sdk.ResourceFunc {
 			)
 			backupId := autonomousdatabasebackups.NewAutonomousDatabaseBackupID(id.SubscriptionId, id.ResourceGroupName, id.AutonomousDatabaseName, id.AutonomousDatabaseBackupName)
 
-			// Use shared method to find the backup
 			backup, err := findBackupByName(ctx, client, adbId, backupId)
 			if err != nil {
 				return fmt.Errorf("retrieving backup: %+v", err)
 			}
 
-			// Build state from found backup
 			state := AutonomousDatabaseBackupResourceModel{
 				Name:                 id.AutonomousDatabaseBackupName,
 				AutonomousDatabaseId: adbId.ID(),
@@ -238,7 +236,6 @@ func (r AutonomousDatabaseBackupResource) Delete() sdk.ResourceFunc {
 }
 
 func findBackupByName(ctx context.Context, client *autonomousdatabasebackups.AutonomousDatabaseBackupsClient, adbId autonomousdatabases.AutonomousDatabaseId, backupId autonomousdatabasebackups.AutonomousDatabaseBackupId) (*autonomousdatabasebackups.AutonomousDatabaseBackup, error) {
-	log.Printf("[DEBUG] Looking for backup '%s' in database %s", backupId, adbId.ID())
 
 	resp, err := client.ListByParent(ctx, autonomousdatabasebackups.AutonomousDatabaseId(adbId))
 	if err != nil {
@@ -250,7 +247,6 @@ func findBackupByName(ctx context.Context, client *autonomousdatabasebackups.Aut
 	if model := resp.Model; model != nil {
 		for _, backup := range *model {
 			if backup.Id != nil && strings.EqualFold(*backup.Id, id) {
-				log.Printf("[DEBUG] Found matching backup: %s", *backup.Id)
 				return &backup, nil
 			}
 		}

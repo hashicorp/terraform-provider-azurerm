@@ -1,11 +1,11 @@
-// Copyright © 2024, Oracle and/or its affiliates. All rights reserved
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
 
 package oracle_test
 
 import (
 	"context"
 	"fmt"
-	"log"
 	"strings"
 	"testing"
 
@@ -20,50 +20,6 @@ import (
 )
 
 type AutonomousDatabaseBackupResource struct{}
-
-func (a AutonomousDatabaseBackupResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := autonomousdatabasebackups.ParseAutonomousDatabaseBackupID(state.ID)
-	if err != nil {
-		return nil, err
-	}
-
-	adbId := autonomousdatabasebackups.NewAutonomousDatabaseID(
-		id.SubscriptionId,
-		id.ResourceGroupName,
-		id.AutonomousDatabaseName,
-	)
-	backupId := autonomousdatabasebackups.NewAutonomousDatabaseBackupID(id.SubscriptionId, id.ResourceGroupName, id.AutonomousDatabaseName, id.AutonomousDatabaseBackupName)
-
-	// Use shared method to find the backup
-	backup, err := findBackupByName(ctx, client.Oracle.OracleClient.AutonomousDatabaseBackups, autonomousdatabases.AutonomousDatabaseId(adbId), backupId)
-	if err != nil {
-		return nil, fmt.Errorf("checking backup existence: %+v", err)
-	}
-
-	return pointer.To(backup != nil), nil
-}
-
-func findBackupByName(ctx context.Context, client *autonomousdatabasebackups.AutonomousDatabaseBackupsClient, adbId autonomousdatabases.AutonomousDatabaseId, backupId autonomousdatabasebackups.AutonomousDatabaseBackupId) (*autonomousdatabasebackups.AutonomousDatabaseBackup, error) {
-	log.Printf("[DEBUG] Looking for backup '%s' in database %s", backupId, adbId.ID())
-
-	resp, err := client.ListByParent(ctx, autonomousdatabasebackups.AutonomousDatabaseId(adbId))
-	if err != nil {
-		return nil, fmt.Errorf("listing backups for %s: %+v", adbId.ID(), err)
-	}
-
-	id := backupId.ID()
-
-	if model := resp.Model; model != nil {
-		for _, backup := range *model {
-			if backup.Id != nil && strings.EqualFold(*backup.Id, id) {
-				log.Printf("[DEBUG] Found matching backup: %s", *backup.Id)
-				return &backup, nil
-			}
-		}
-	}
-
-	return nil, nil
-}
 
 func TestAutonomousDatabaseBackupResource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseBackupResource{}.ResourceType(), "test")
@@ -125,6 +81,47 @@ func TestAutonomousDatabaseBackupResource_requiresImport(t *testing.T) {
 		},
 		data.RequiresImportErrorStep(r.requiresImport),
 	})
+}
+
+func (a AutonomousDatabaseBackupResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := autonomousdatabasebackups.ParseAutonomousDatabaseBackupID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	adbId := autonomousdatabasebackups.NewAutonomousDatabaseID(
+		id.SubscriptionId,
+		id.ResourceGroupName,
+		id.AutonomousDatabaseName,
+	)
+	backupId := autonomousdatabasebackups.NewAutonomousDatabaseBackupID(id.SubscriptionId, id.ResourceGroupName, id.AutonomousDatabaseName, id.AutonomousDatabaseBackupName)
+
+	backup, err := findBackupByName(ctx, client.Oracle.OracleClient.AutonomousDatabaseBackups, autonomousdatabases.AutonomousDatabaseId(adbId), backupId)
+	if err != nil {
+		return nil, fmt.Errorf("checking backup existence: %+v", err)
+	}
+
+	return pointer.To(backup != nil), nil
+}
+
+func findBackupByName(ctx context.Context, client *autonomousdatabasebackups.AutonomousDatabaseBackupsClient, adbId autonomousdatabases.AutonomousDatabaseId, backupId autonomousdatabasebackups.AutonomousDatabaseBackupId) (*autonomousdatabasebackups.AutonomousDatabaseBackup, error) {
+
+	resp, err := client.ListByParent(ctx, autonomousdatabasebackups.AutonomousDatabaseId(adbId))
+	if err != nil {
+		return nil, fmt.Errorf("listing backups for %s: %+v", adbId.ID(), err)
+	}
+
+	id := backupId.ID()
+
+	if model := resp.Model; model != nil {
+		for _, backup := range *model {
+			if backup.Id != nil && strings.EqualFold(*backup.Id, id) {
+				return &backup, nil
+			}
+		}
+	}
+
+	return nil, nil
 }
 
 func (a AutonomousDatabaseBackupResource) basic(data acceptance.TestData) string {
