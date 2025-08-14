@@ -193,7 +193,7 @@ An `identity` block supports the following:
 
 * `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Managed Redis Cluster.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ## Attributes Reference
 
@@ -224,4 +224,4 @@ terraform import azurerm_managed_redis_cluster.example /subscriptions/00000000-0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Cache`: 2025-04-01
+* `Microsoft.Cache` - 2025-04-01
