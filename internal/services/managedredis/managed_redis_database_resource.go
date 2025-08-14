@@ -206,6 +206,10 @@ func (r ManagedRedisDatabaseResource) Create() sdk.ResourceFunc {
 
 			id := databases.NewDatabaseID(subscriptionId, clusterId.ResourceGroupName, clusterId.RedisEnterpriseName, model.Name)
 
+			if err := validate.ValidateLinkedDatabaseIncludesSelf(model.LinkedDatabaseId, id.ID()); err != nil {
+				return err
+			}
+
 			existing, err := client.Get(ctx, id)
 			if err != nil {
 				if !response.WasNotFound(existing.HttpResponse) {
@@ -222,7 +226,7 @@ func (r ManagedRedisDatabaseResource) Create() sdk.ResourceFunc {
 				accessKeysAuth = databases.AccessKeysAuthenticationEnabled
 			}
 
-			linkedDatabase, err := expandArmGeoLinkedDatabase(model.LinkedDatabaseId, id.ID(), model.LinkedDatabaseGroupNickname)
+			linkedDatabase, err := expandArmGeoLinkedDatabase(model.LinkedDatabaseId, model.LinkedDatabaseGroupNickname)
 			if err != nil {
 				return fmt.Errorf("expanding `linked_database_group_nickname` or `linked_database_id`: %+v", err)
 			}
@@ -336,6 +340,10 @@ func (r ManagedRedisDatabaseResource) Update() sdk.ResourceFunc {
 			var model ManagedRedisDatabaseResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			if err := validate.ValidateLinkedDatabaseIncludesSelf(model.LinkedDatabaseId, id.ID()); err != nil {
+				return err
 			}
 
 			existing, err := client.Get(ctx, *id)
@@ -505,29 +513,22 @@ func flattenArmDatabaseModuleArray(input *[]databases.Module) []ModuleModel {
 	return results
 }
 
-func expandArmGeoLinkedDatabase(inputId []string, parentDBId string, inputGeoName string) (*databases.DatabasePropertiesGeoReplication, error) {
+func expandArmGeoLinkedDatabase(inputId []string, inputGeoName string) (*databases.DatabasePropertiesGeoReplication, error) {
 	idList := make([]databases.LinkedDatabase, 0)
 	if len(inputId) == 0 {
 		return nil, nil
 	}
-	isParentDbIncluded := false
 
 	for _, id := range inputId {
-		if id == parentDBId {
-			isParentDbIncluded = true
-		}
 		idList = append(idList, databases.LinkedDatabase{
 			Id: pointer.To(id),
 		})
 	}
-	if isParentDbIncluded {
-		return &databases.DatabasePropertiesGeoReplication{
-			LinkedDatabases: &idList,
-			GroupNickname:   pointer.To(inputGeoName),
-		}, nil
-	}
 
-	return nil, fmt.Errorf("linked database list must include database ID: %s", parentDBId)
+	return &databases.DatabasePropertiesGeoReplication{
+		LinkedDatabases: &idList,
+		GroupNickname:   pointer.To(inputGeoName),
+	}, nil
 }
 
 func flattenArmGeoLinkedDatabase(inputDB *[]databases.LinkedDatabase) []string {
