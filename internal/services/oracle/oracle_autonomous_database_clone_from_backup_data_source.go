@@ -36,8 +36,8 @@ type AutonomousDatabaseCloneFomBackupDataSourceModel struct {
 	ComputeCount                            float64                         `tfschema:"compute_count"`
 	ComputeModel                            string                          `tfschema:"compute_model"`
 	CustomerContacts                        []string                        `tfschema:"customer_contacts"`
-	DataStorageSizeInGbs                    int64                           `tfschema:"data_storage_size_in_gbs"`
-	DataStorageSizeInTbs                    int64                           `tfschema:"data_storage_size_in_tbs"`
+	DataStorageSizeInGb                     int64                           `tfschema:"data_storage_size_in_gb"`
+	DataStorageSizeInTb                     int64                           `tfschema:"data_storage_size_in_tb"`
 	DbVersion                               string                          `tfschema:"db_version"`
 	DbWorkload                              string                          `tfschema:"db_workload"`
 	DisplayName                             string                          `tfschema:"display_name"`
@@ -86,8 +86,8 @@ type AutonomousDatabaseCloneFomBackupDataSourceModel struct {
 	TimeOfLastRefreshPoint                  string                          `tfschema:"time_of_last_refresh_point"`
 	TimeOfLastSwitchover                    string                          `tfschema:"time_of_last_switchover"`
 	TimeReclamationOfFreeAutonomousDatabase string                          `tfschema:"time_reclamation_of_free_autonomous_database"`
-	UsedDataStorageSizeInGbs                int64                           `tfschema:"used_data_storage_size_in_gbs"`
-	UsedDataStorageSizeInTbs                int64                           `tfschema:"used_data_storage_size_in_tbs"`
+	UsedDataStorageSizeInGb                 int64                           `tfschema:"used_data_storage_size_in_gb"`
+	UsedDataStorageSizeInTb                 int64                           `tfschema:"used_data_storage_size_in_tb"`
 }
 
 func (AutonomousDatabaseCloneFromBackupDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -185,12 +185,12 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Attributes() map[string]*plug
 			},
 		},
 
-		"data_storage_size_in_gbs": {
+		"data_storage_size_in_gb": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
 
-		"data_storage_size_in_tbs": {
+		"data_storage_size_in_tb": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
@@ -429,12 +429,12 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Attributes() map[string]*plug
 			Computed: true,
 		},
 
-		"used_data_storage_size_in_gbs": {
+		"used_data_storage_size_in_gb": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
 
-		"used_data_storage_size_in_tbs": {
+		"used_data_storage_size_in_tb": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
@@ -499,8 +499,8 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Read() sdk.ResourceFunc {
 				state.ComputeModel = string(pointer.From(props.ComputeModel))
 				state.CpuCoreCount = pointer.From(props.CpuCoreCount)
 				state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
-				state.DataStorageSizeInGbs = pointer.From(props.DataStorageSizeInGbs)
-				state.DataStorageSizeInTbs = pointer.From(props.DataStorageSizeInTbs)
+				state.DataStorageSizeInGb = pointer.From(props.DataStorageSizeInGbs)
+				state.DataStorageSizeInTb = pointer.From(props.DataStorageSizeInTbs)
 				state.DbVersion = pointer.From(props.DbVersion)
 				state.DbWorkload = string(pointer.From(props.DbWorkload))
 				state.DisplayName = pointer.From(props.DisplayName)
@@ -542,8 +542,8 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Read() sdk.ResourceFunc {
 				state.TimeOfLastRefreshPoint = pointer.From(props.TimeOfLastRefreshPoint)
 				state.TimeOfLastSwitchover = pointer.From(props.TimeOfLastSwitchover)
 				state.TimeReclamationOfFreeAutonomousDatabase = pointer.From(props.TimeReclamationOfFreeAutonomousDatabase)
-				state.UsedDataStorageSizeInGbs = pointer.From(props.UsedDataStorageSizeInGbs)
-				state.UsedDataStorageSizeInTbs = pointer.From(props.UsedDataStorageSizeInTbs)
+				state.UsedDataStorageSizeInGb = pointer.From(props.UsedDataStorageSizeInGbs)
+				state.UsedDataStorageSizeInTb = pointer.From(props.UsedDataStorageSizeInTbs)
 				state.VnetId = pointer.From(props.VnetId)
 			}
 

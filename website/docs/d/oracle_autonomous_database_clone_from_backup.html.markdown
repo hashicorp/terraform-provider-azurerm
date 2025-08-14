@@ -3,19 +3,19 @@ subcategory: "Oracle"
 layout: "azurerm"
 page_title: "Azure Resource Manager: Data Source: azurerm_oracle_autonomous_database_clone_from_backup"
 description: |-
-  Gets information about an existing Autonomous Database Clone created from backup.
+  Gets information about an existing autonomous database clone from backup.
 ---
 
 # Data Source: azurerm_oracle_autonomous_database_clone_from_backup
 
-Use this data source to access information about an existing Autonomous Database Clone that was created from a backup.
+Use this data source to access information about an existing autonomous database clone from backup.
 
 ## Example Usage
 
 ```hcl
 data "azurerm_oracle_autonomous_database_clone_from_backup" "example" {
-  name                = azurerm_oracle_autonomous_database_clone_from_backup.example.name
-  resource_group_name = azurerm_oracle_autonomous_database_clone_from_backup.example.resource_group_name
+  name                = "existing"
+  resource_group_name = "existing"
 }
 
 output "id" {
@@ -27,19 +27,25 @@ output "id" {
 
 The following arguments are supported:
 
-* `name` - (Required) The name of this Autonomous Database.
+* `name` - (Required) The name of this autonomous database clone from backup.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Autonomous Database exists.
+* `resource_group_name` - (Required) The name of the Resource Group where the autonomous database clone from backup exists.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
 
-* `id` - The ID of the Autonomous Database.
+* `id` - The ID of the autonomous database clone from backup.
 
-* `actual_used_data_storage_size_in_tbs` - The current amount of storage in use for user and system data, in terabytes (TB).
+* `actual_used_data_storage_size_in_tb` -  The current amount of storage in use for user and system data, in terabytes (TB).
 
 * `allocated_storage_size_in_tbs` - The amount of storage currently allocated for the database tables and billed for, rounded up. When auto-scaling is not enabled, this value is equal to the `dataStorageSizeInTBs` value. You can compare this value to the `actualUsedDataStorageSizeInTBs` value to determine if a manual shrink operation is appropriate for your allocated storage.
+
+* `allowed_ips` - The client IP access control list (ACL). This feature is available for [Autonomous Database Serverless] (https://docs.oracle.com/en/cloud/paas/autonomous-database/index.html) and on Exadata Cloud@Customer. Only clients connecting from an IP address included in the ACL may access the Autonomous Database instance. If `arePrimaryWhitelistedIpsUsed` is 'TRUE' then Autonomous Database uses this primary's IP access control list (ACL) for the disaster recovery peer called `standbywhitelistedips`..
+
+* `auto_scaling_enabled` - Indicates if auto-scaling is enabled for the Autonomous Database CPU core count.
+
+* `auto_scaling_for_storage_enabled` - Indicates if auto-scaling is enabled for the Autonomous Database storage.
 
 * `autonomous_database_id` - The database [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm).
 
@@ -47,59 +53,61 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `backup_retention_period_in_days` - Retention period, in days, for backups.
 
-* `character_set` - The character set for the autonomous database. 
+* `character_set` - The character set for the autonomous database.
 
 * `compute_count` - The compute amount (CPUs) available to the database.
 
+* `compute_model` - TODO.
+
 * `cpu_core_count` - The number of CPU cores to be made available to the database. When the ECPU is selected, the value for cpuCoreCount is 0. For Autonomous Database on Dedicated Exadata infrastructure, the maximum number of cores is determined by the infrastructure shape. See [Characteristics of Infrastructure Shapes](https://www.oracle.com/pls/topic/lookup?ctx=en/cloud/paas/autonomous-database&id=ATPFG-GUID-B0F033C1-CC5A-42F0-B2E7-3CECFEDA1FD1) for shape details.
 
-* `data_storage_size_in_gbs` - The quantity of data in the database, in gigabytes.
+* `customer_contacts` - A `customer_contacts` block as defined below.
 
-* `data_storage_size_in_tbs` - The maximum storage that can be allocated for the database, in terabytes.
+* `data_storage_size_in_gb` - The quantity of data in the database, in gigabytes.
 
-* `db_node_storage_size_in_gbs` - The DB node storage size in, in gigabytes.
+* `data_storage_size_in_tb` - The maximum storage that can be allocated for the database, in terabytes.
 
 * `db_version` - A valid Oracle Database version for Autonomous Database.
 
+* `db_workload` - TODO.
+
 * `display_name` - The user-friendly name for the Autonomous Database. The name does not have to be unique.
 
-* `failed_data_recovery_in_seconds` - Indicates the number of seconds of data loss for a Data Guard failover.
+* `failed_data_recovery_in_seconds` - Indicates the number of seconds of data loss for Data Guard failover.
 
 * `in_memory_area_in_gbs` - The area assigned to In-Memory tables in Autonomous Database.
 
-* `auto_scaling_enabled` - Indicates if auto scaling is enabled for the Autonomous Database CPU core count.
-
-* `auto_scaling_for_storage_enabled` - Indicates if auto scaling is enabled for the Autonomous Database storage.
-
-* `local_data_guard_enabled` - Indicates whether the Autonomous Database has local (in-region) Data Guard enabled. Not applicable to cross-region Autonomous Data Guard associations, or to Autonomous Databases using dedicated Exadata infrastructure or Exadata Cloud@Customer infrastructure.
-
-* `mtls_connection_required` - Specifies if the Autonomous Database requires mTLS connections.
-
-* `preview` - Indicates if the Autonomous Database version is a preview version.
-
-* `preview_version_with_service_terms_accepted` - Indicates if the Autonomous Database version is a preview version with service terms accepted.
-
-* `remote_data_guard_enabled` - Indicates whether the Autonomous Database has Cross Region Data Guard enabled. Not applicable to Autonomous Databases using dedicated Exadata infrastructure or Exadata Cloud@Customer infrastructure.
-
-* `key_history_entry` - Key History Entry.
+* `license_model` - TODO.
 
 * `lifecycle_details` - Information about the current lifecycle state.
 
-* `local_adg_auto_failover_max_data_loss_limit` - Parameter that allows users to select an acceptable maximum data loss limit in seconds, up to which Automatic Failover will be triggered when necessary for a Local Autonomous Data Guard
+* `lifecycle_state` - TODO.
 
-* `location` - The Azure Region where the Autonomous Database exists.
+* `local_adg_auto_failover_max_data_loss_limit` -  Parameter that allows users to select an acceptable maximum data loss limit in seconds, up to which Automatic Failover will be triggered when necessary for a Local Autonomous Data Guar.
+
+* `local_data_guard_enabled` - Indicates whether the Autonomous Database has local (in-region) Data Guard enabled. Not applicable to cross-region Autonomous Data Guard associations, or to Autonomous Databases using dedicated Exadata infrastructure or Exadata Cloud@Customer infrastructure.
+
+* `location` - The Azure Region where the autonomous database cloned from backup exists.
 
 * `memory_per_oracle_compute_unit_in_gbs` - The amount of memory (in GBs) enabled per ECPU or OCPU.
 
+* `mtls_connection_required` - Specifies if the Autonomous Database requires mTLS connections.
+
 * `national_character_set` - The national character set for the autonomous database.  The default is AL16UTF16. Allowed values are: AL16UTF16 or UTF8.
 
-* `next_long_term_backup_time_stamp` - The date and time when the next long-term backup would be created.
+* `next_long_term_backup_time_stamp` -  The date and time when the next long-term backup would be created.
 
 * `oci_url` - The URL of the resource in the OCI console.
 
 * `ocid` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the autonomous database.
 
+* `peer_db_id` - The ID of the TODO.
+
 * `peer_db_ids` - The list of [OCIDs](https://docs.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of standby databases located in Autonomous Data Guard remote regions that are associated with the source database. Note that for Autonomous Database Serverless instances, standby databases located in the same region as the source primary database do not have OCIDs.
+
+* `preview` - Indicates if the Autonomous Database version is a preview version.
+
+* `preview_version_with_service_terms_accepted` -  Indicates if the Autonomous Database version is a preview version with service terms accepted.
 
 * `private_endpoint` - The private endpoint for the resource.
 
@@ -109,7 +117,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `provisionable_cpus` - An array of CPU values that an Autonomous Database can be scaled to.
 
+* `remote_data_guard_enabled` - Indicates whether the Autonomous Database has Cross Region Data Guard enabled. Not applicable to Autonomous Databases using dedicated Exadata infrastructure or Exadata Cloud@Customer infrastructure.
+
 * `service_console_url` - The URL of the Service Console for the Autonomous Database.
+
+* `source_autonomous_database_id` - The Id of the source Autonomous Database from which this clone was created.
 
 * `sql_web_developer_url` - The URL of the SQL web developer.
 
@@ -117,9 +129,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `supported_regions_to_clone_to` - The list of regions that support the creation of an Autonomous Database clone or an Autonomous Data Guard standby database.
 
-* `source_autonomous_database_id` - The Id of the source Autonomous Database from which this clone was created.
-
-* `tags` - A mapping of tags assigned to the Autonomous Database.
+* `tags` - A mapping of tags assigned to the autonomous database clone from backup.
 
 * `time_created` - The date and time the Autonomous Database was created.
 
@@ -129,9 +139,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `time_local_data_guard_enabled_on` - The date and time that Autonomous Data Guard was enabled for an Autonomous Database where the standby was provisioned in the same region as the primary database.
 
-* `time_maintenance_begin` - The date and time when maintenance will begin.
+* `time_maintenance_begin` -  The date and time when maintenance will begin.
 
-* `time_maintenance_end` - The date and time when maintenance will end.
+* `time_maintenance_end` -  The date and time when maintenance will end.
 
 * `time_of_last_failover` - The timestamp of the last failover operation.
 
@@ -143,36 +153,26 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `time_reclamation_of_free_autonomous_database` - The date and time the Always Free database will be stopped because of inactivity. If this time is reached without any database activity, the database will automatically be put into the STOPPED state.
 
-* `used_data_storage_size_in_gbs` - The storage space consumed by Autonomous Database in GBs.
+* `used_data_storage_size_in_gb` - The storage space consumed by Autonomous Database in GBs.
 
-* `used_data_storage_size_in_tbs` - The amount of storage that has been used, in terabytes.
+* `used_data_storage_size_in_tb` - The amount of storage that has been used, in terabytes.
 
 * `virtual_network_id` - The ID to an Azure Resource Manager vnet resource.
 
-* `allowed_ips` - The client IP access control list (ACL). This feature is available for [Autonomous Database Serverless] (https://docs.oracle.com/en/cloud/paas/autonomous-database/index.html) and on Exadata Cloud@Customer. Only clients connecting from an IP address included in the ACL may access the Autonomous Database instance. If `arePrimaryWhitelistedIpsUsed` is 'TRUE' then Autonomous Database uses this primary's IP access control list (ACL) for the disaster recovery peer called `standbywhitelistedips`.
-
-* `long_term_backup_schedule` - A `long_term_backup_schedule` block as defined below
-
 ---
 
-A `long_term_backup_schedule` blocks exports the following:
+A `long_term_backup_schedule` block exports the following:
+
+* `enabled` - A boolean value that indicates if long-term backup is enabled/disabled.
 
 * `repeat_cadence` - The frequency for automated long-term backups.
 
-* `time_of_backup` - The date and time in which the backup would be made.
-
 * `retention_period_in_days` - The retention period in days for Autonomous database backup.
 
-* `enabled` -  A boolean value that indicates if long term backup is enabled/disabled.
+* `time_of_backup` - The date and time in which the backup would be made.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `read` - (Defaults to 5 minutes) Used when retrieving the Autonomous Database.
-
-## API Providers
-<!-- This section is generated, changes will be overwritten -->
-This data source uses the following Azure API Providers:
-
-* `Oracle.Database` - 2025-03-01
+* `read` - (Defaults to 5 minutes) Used when retrieving the autonomous database clone from backup.
