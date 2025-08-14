@@ -234,7 +234,7 @@ func (r EventGridPartnerNamespaceChannelResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.EventGrid.Channels
+			client := metadata.Client.EventGrid.ChannelsClient
 
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
@@ -276,7 +276,7 @@ func (r EventGridPartnerNamespaceChannelResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.EventGrid.Channels
+			client := metadata.Client.EventGrid.ChannelsClient
 
 			id, err := channels.ParseChannelID(metadata.ResourceData.Id())
 			if err != nil {
@@ -326,7 +326,7 @@ func (r EventGridPartnerNamespaceChannelResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.EventGrid.Channels
+			client := metadata.Client.EventGrid.ChannelsClient
 
 			id, err := channels.ParseChannelID(metadata.ResourceData.Id())
 			if err != nil {
@@ -350,7 +350,7 @@ func (r EventGridPartnerNamespaceChannelResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.EventGrid.Channels
+			client := metadata.Client.EventGrid.ChannelsClient
 
 			id, err := channels.ParseChannelID(metadata.ResourceData.Id())
 			if err != nil {

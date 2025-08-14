@@ -33,12 +33,12 @@ resource "azurerm_eventgrid_partner_namespace" "example" {
 }
 
 resource "azurerm_eventgrid_partner_namespace_channel" "example" {
-  name                   = "example-partner-namespace-channel"
-  partner_namespace_name = azurerm_eventgrid_partner_namespace.example.name
-  resource_group_name    = azurerm_resource_group.example.name
+  name                                    = "example-partner-namespace-channel"
+  partner_namespace_name                  = azurerm_eventgrid_partner_namespace.example.name
+  resource_group_name                     = azurerm_resource_group.example.name
   expiration_time_if_not_activated_in_utc = "2025-02-0500:00:00Z"
 
-  channel_type           = "PartnerTopic"
+  channel_type = "PartnerTopic"
   partner_topic {
     name                = "example-partner-topic"
     subscription_id     = data.azurerm_client_config.example.subscription_id

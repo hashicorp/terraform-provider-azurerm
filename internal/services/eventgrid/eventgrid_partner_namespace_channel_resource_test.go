@@ -102,7 +102,7 @@ func (EventGridPartnerNamespaceChannelTestResource) Exists(ctx context.Context, 
 		return nil, fmt.Errorf("parsing %s: %+v", state.ID, err)
 	}
 
-	resp, err := client.EventGrid.Channels.Get(ctx, *id)
+	resp, err := client.EventGrid.ChannelsClient.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -115,9 +115,9 @@ func (r EventGridPartnerNamespaceChannelTestResource) basic(data acceptance.Test
 %[1]s
 
 resource "azurerm_eventgrid_partner_namespace_channel" "test" {
-  name                   = "acctest-egpnc-%[2]d"
-  partner_namespace_name = azurerm_eventgrid_partner_namespace.test.name
-  resource_group_name    = azurerm_resource_group.test.name
+  name                                    = "acctest-egpnc-%[2]d"
+  partner_namespace_name                  = azurerm_eventgrid_partner_namespace.test.name
+  resource_group_name                     = azurerm_resource_group.test.name
   expiration_time_if_not_activated_in_utc = azurerm_eventgrid_partner_configuration.test.partner_authorization.0.authorization_expiration_time_in_utc
   partner_topic {
     subscription_id     = "%[3]s"
@@ -134,9 +134,9 @@ func (r EventGridPartnerNamespaceChannelTestResource) requiresImport(data accept
 %s
 
 resource "azurerm_eventgrid_partner_namespace_channel" "import" {
-  name                   = azurerm_eventgrid_partner_namespace_channel.test.name
-  partner_namespace_name = azurerm_eventgrid_partner_namespace_channel.test.partner_namespace_name
-  resource_group_name    = azurerm_eventgrid_partner_namespace_channel.test.resource_group_name
+  name                                    = azurerm_eventgrid_partner_namespace_channel.test.name
+  partner_namespace_name                  = azurerm_eventgrid_partner_namespace_channel.test.partner_namespace_name
+  resource_group_name                     = azurerm_eventgrid_partner_namespace_channel.test.resource_group_name
   expiration_time_if_not_activated_in_utc = azurerm_eventgrid_partner_namespace_channel.test.expiration_time_if_not_activated_in_utc
   partner_topic {
     subscription_id     = azurerm_eventgrid_partner_namespace_channel.test.partner_topic[0].subscription_id

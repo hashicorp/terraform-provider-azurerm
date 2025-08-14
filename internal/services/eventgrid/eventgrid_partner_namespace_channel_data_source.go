@@ -132,7 +132,7 @@ func (r EventGridPartnerNamespaceChannelDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.EventGrid.Channels
+			client := metadata.Client.EventGrid.ChannelsClient
 
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
