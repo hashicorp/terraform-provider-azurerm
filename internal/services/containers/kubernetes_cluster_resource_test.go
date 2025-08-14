@@ -328,6 +328,25 @@ func TestAccKubernetesCluster_dnsPrefix(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_nodeProvisioningProfile(t *testing.T) {
+	// regression test case for issue #20806
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nodeProvisioningProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("node_provisioning_profile.#").HasValue("1"),
+				check.That(data.ResourceName).Key("node_provisioning_profile.0.default_node_pool").HasValue("Auto"),
+				check.That(data.ResourceName).Key("node_provisioning_profile.0.mode").HasValue("Auto"),
+			),
+		},
+	})
+}
+
 func (KubernetesClusterResource) hostEncryption(data acceptance.TestData, controlPlaneVersion string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -989,4 +1008,42 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 }
   `, data.RandomString, data.Locations.Primary, time.Now().UTC().Add(8*time.Minute).Format(time.RFC3339), isUpgradeOverrideSettingEnabled)
+}
+
+func (KubernetesClusterResource) nodeProvisioningProfile(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[1]d"
+
+  node_provisioning_profile {
+    default_node_pool = "Auto"
+    mode              = "Auto"
+  }
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+  `, data.RandomInteger, data.Locations.Primary)
 }

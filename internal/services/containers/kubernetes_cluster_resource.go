@@ -1257,6 +1257,29 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"node_provisioning_profile": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"default_node_pool": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(managedclusters.NodeProvisioningDefaultNodePoolsAuto),
+							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForNodeProvisioningDefaultNodePools(), false),
+						},
+						"mode": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(managedclusters.NodeProvisioningModeManual),
+							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForNodeProvisioningMode(), false),
+						},
+					},
+				},
+			},
+
 			"node_resource_group": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -1669,6 +1692,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 		return err
 	}
 
+	nodeProvisioningProfileRaw := d.Get("node_provisioning_profile").([]interface{})
+	nodeProvisioningProfile := expandKubernetesClusterNodeProvisioningProfile(nodeProvisioningProfileRaw)
+
 	metricsProfile, err := expandKubernetesClusterMetricsProfile(d.Get("cost_analysis_enabled").(bool), d.Get("sku_tier").(string))
 	if err != nil {
 		return err
@@ -1796,6 +1822,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			WindowsProfile:            windowsProfile,
 			MetricsProfile:            metricsProfile,
 			NetworkProfile:            networkProfile,
+			NodeProvisioningProfile:   nodeProvisioningProfile,
 			NodeResourceGroup:         pointer.To(nodeResourceGroup),
 			DisableLocalAccounts:      pointer.To(d.Get("local_account_disabled").(bool)),
 			HTTPProxyConfig:           httpProxyConfig,
@@ -2211,6 +2238,15 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			}
 		}
 	}
+
+	if d.HasChange("node_provisioning_profile") {
+		updateCluster = true
+		nodeProvisioningProfileRaw := d.Get("node_provisioning_profile").([]interface{})
+
+		nodeProvisioningProfile := expandKubernetesClusterNodeProvisioningProfile(nodeProvisioningProfileRaw)
+		existing.Model.Properties.NodeProvisioningProfile = nodeProvisioningProfile
+	}
+
 	if d.HasChange("service_mesh_profile") {
 		updateCluster = true
 		if serviceMeshProfile := expandKubernetesClusterServiceMeshProfile(d.Get("service_mesh_profile").([]interface{}), existing.Model.Properties.ServiceMeshProfile); serviceMeshProfile != nil {
@@ -2768,6 +2804,11 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 			if err := d.Set("auto_scaler_profile", autoScalerProfile); err != nil {
 				return fmt.Errorf("setting `auto_scaler_profile`: %+v", err)
+			}
+
+			nodeProvisioningProfile := flattenKubernetesClusterNodeProvisioningProfile(props.NodeProvisioningProfile)
+			if err := d.Set("node_provisioning_profile", nodeProvisioningProfile); err != nil {
+				return fmt.Errorf("setting `node_provisioning_profile`: %+v", err)
 			}
 
 			azureMonitorProfile := flattenKubernetesClusterAzureMonitorProfile(props.AzureMonitorProfile)
@@ -4734,6 +4775,32 @@ func flattenKubernetesClusterUpgradeOverrideSetting(input *managedclusters.Clust
 		map[string]interface{}{
 			"effective_until":       pointer.From(input.OverrideSettings.Until),
 			"force_upgrade_enabled": pointer.From(input.OverrideSettings.ForceUpgrade),
+		},
+	}
+}
+
+func expandKubernetesClusterNodeProvisioningProfile(input []interface{}) *managedclusters.ManagedClusterNodeProvisioningProfile {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	config := input[0].(map[string]interface{})
+
+	return &managedclusters.ManagedClusterNodeProvisioningProfile{
+		DefaultNodePools: pointer.To(managedclusters.NodeProvisioningDefaultNodePools(config["default_node_pool"].(string))),
+		Mode:             pointer.To(managedclusters.NodeProvisioningMode(config["mode"].(string))),
+	}
+}
+
+func flattenKubernetesClusterNodeProvisioningProfile(input *managedclusters.ManagedClusterNodeProvisioningProfile) interface{} {
+	if input == nil || input.Mode == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"default_node_pool": pointer.From(input.DefaultNodePools),
+			"mode":              pointer.From(input.Mode),
 		},
 	}
 }
