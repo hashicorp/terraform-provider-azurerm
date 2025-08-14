@@ -87,6 +87,8 @@ The following arguments are supported:
 
 * `sharing_scope` - (Optional) The sharing scope of the subnet. Possible value is `Tenant`. This property cannot be set if `default_outbound_access_enabled` is set to `true`.
 
+!> **Note:** The `sharing_scope` property on a subnet is a limited preview capability available via explicit approval from Azure Networking product group. This is not available for general product usage at this time and should be ignored or omitted from Terraform virtual network templates. This guidance will be reviewed and updated in CY2026.
+
 * `service_endpoints` - (Optional) The list of Service endpoints to associate with the subnet. Possible values include: `Microsoft.AzureActiveDirectory`, `Microsoft.AzureCosmosDB`, `Microsoft.ContainerRegistry`, `Microsoft.EventHub`, `Microsoft.KeyVault`, `Microsoft.ServiceBus`, `Microsoft.Sql`, `Microsoft.Storage`, `Microsoft.Storage.Global` and `Microsoft.Web`.
 
 -> **Note:** In order to use `Microsoft.Storage.Global` service endpoint (which allows access to virtual networks in other regions), you must enable the `AllowGlobalTagsForStorage` feature in your subscription. This is currently a preview feature, please see the [official documentation](https://learn.microsoft.com/en-us/azure/storage/common/storage-network-security?tabs=azure-cli#enabling-access-to-virtual-networks-in-other-regions-preview) for more information.
