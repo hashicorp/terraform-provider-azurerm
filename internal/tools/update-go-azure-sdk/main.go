@@ -74,7 +74,7 @@ func main() {
 	}
 
 	if err := run(context.Background(), input); err != nil {
-		log.Fatalf(err.Error())
+		log.Fatal(err.Error())
 	}
 }
 
@@ -99,7 +99,7 @@ func (c config) validate() error {
 func run(ctx context.Context, input config) error {
 	// Clone the repository
 	// Determine what's changed in this
-	//// git diff --name-only --diff-filter=A  v0.20220711.1181406...v0.20220712.1062733
+	// // git diff --name-only --diff-filter=A  v0.20220711.1181406...v0.20220712.1062733
 	// ^ gives a list of paths which wants translating into `service[oldapi-newapi]`
 
 	logger.Info(fmt.Sprintf("New SDK Version is %q", input.newSdkVersion))

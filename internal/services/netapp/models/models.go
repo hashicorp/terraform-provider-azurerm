@@ -79,6 +79,7 @@ type NetAppVolumeGroupOracleVolume struct {
 	VolumeSpecName               string                         `tfschema:"volume_spec_name"`
 	ExportPolicy                 []ExportPolicyRule             `tfschema:"export_policy_rule"`
 	MountIpAddresses             []string                       `tfschema:"mount_ip_addresses"`
+	DataProtectionReplication    []DataProtectionReplication    `tfschema:"data_protection_replication"`
 	DataProtectionSnapshotPolicy []DataProtectionSnapshotPolicy `tfschema:"data_protection_snapshot_policy"`
 	Zone                         string                         `tfschema:"zone"`
 	EncryptionKeySource          string                         `tfschema:"encryption_key_source"`

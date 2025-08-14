@@ -37,6 +37,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 		ManagerDataSource{},
 		ManagerNetworkGroupDataSource{},
 		ManagerConnectivityConfigurationDataSource{},
+		ManagerIpamPoolDataSource{},
 		VPNServerConfigurationDataSource{},
 		VirtualNetworkPeeringDataSource{},
 	}
@@ -60,6 +61,7 @@ func (r Registration) Resources() []sdk.Resource {
 		ManagerStaticMemberResource{},
 		ManagerSubscriptionConnectionResource{},
 		ManagerVerifierWorkspaceResource{},
+		ManagerVerifierWorkspaceReachabilityAnalysisIntentResource{},
 		PrivateEndpointApplicationSecurityGroupAssociationResource{},
 		RouteMapResource{},
 		VirtualHubRoutingIntentResource{},

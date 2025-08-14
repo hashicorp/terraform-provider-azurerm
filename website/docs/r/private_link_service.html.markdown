@@ -94,15 +94,17 @@ The following arguments are supported:
 
 * `nat_ip_configuration` - (Required) One or more (up to 8) `nat_ip_configuration` block as defined below.
 
-* `load_balancer_frontend_ip_configuration_ids` - (Required) A list of Frontend IP Configuration IDs from a Standard Load Balancer, where traffic from the Private Link Service should be routed. You can use Load Balancer Rules to direct this traffic to appropriate backend pools where your applications are running. Changing this forces a new resource to be created.
-
 ---
 
 * `auto_approval_subscription_ids` - (Optional) A list of Subscription UUID/GUID's that will be automatically be able to use this Private Link Service.
 
+* `destination_ip_address` - (Optional) The destination IP address of the Private Link Service.
+
 * `enable_proxy_protocol` - (Optional) Should the Private Link Service support the Proxy Protocol? 
 
 * `fqdns` - (Optional) List of FQDNs allowed for the Private Link Service.
+
+* `load_balancer_frontend_ip_configuration_ids` - (Optional) A list of Frontend IP Configuration IDs from a Standard Load Balancer, where traffic from the Private Link Service should be routed. You can use Load Balancer Rules to direct this traffic to appropriate backend pools where your applications are running. Changing this forces a new resource to be created.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource. 
 
@@ -153,4 +155,4 @@ terraform import azurerm_private_link_service.example /subscriptions/00000000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2024-05-01
+* `Microsoft.Network` - 2024-05-01
