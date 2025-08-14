@@ -528,7 +528,6 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"enable_automatic_updates",
 			"os_managed_disk_id",
 		}
-
 	}
 
 	return resource
