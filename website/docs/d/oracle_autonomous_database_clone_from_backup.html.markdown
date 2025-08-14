@@ -57,8 +57,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `compute_count` - The compute amount (CPUs) available to the database.
 
-* `compute_model` - TODO.
-
 * `cpu_core_count` - The number of CPU cores to be made available to the database. When the ECPU is selected, the value for cpuCoreCount is 0. For Autonomous Database on Dedicated Exadata infrastructure, the maximum number of cores is determined by the infrastructure shape. See [Characteristics of Infrastructure Shapes](https://www.oracle.com/pls/topic/lookup?ctx=en/cloud/paas/autonomous-database&id=ATPFG-GUID-B0F033C1-CC5A-42F0-B2E7-3CECFEDA1FD1) for shape details.
 
 * `customer_contacts` - A `customer_contacts` block as defined below.
@@ -69,19 +67,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `db_version` - A valid Oracle Database version for Autonomous Database.
 
-* `db_workload` - TODO.
-
 * `display_name` - The user-friendly name for the Autonomous Database. The name does not have to be unique.
 
 * `failed_data_recovery_in_seconds` - Indicates the number of seconds of data loss for Data Guard failover.
 
 * `in_memory_area_in_gbs` - The area assigned to In-Memory tables in Autonomous Database.
 
-* `license_model` - TODO.
-
 * `lifecycle_details` - Information about the current lifecycle state.
-
-* `lifecycle_state` - TODO.
 
 * `local_adg_auto_failover_max_data_loss_limit` -  Parameter that allows users to select an acceptable maximum data loss limit in seconds, up to which Automatic Failover will be triggered when necessary for a Local Autonomous Data Guar.
 
@@ -100,8 +92,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `oci_url` - The URL of the resource in the OCI console.
 
 * `ocid` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the autonomous database.
-
-* `peer_db_id` - The ID of the TODO.
 
 * `peer_db_ids` - The list of [OCIDs](https://docs.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of standby databases located in Autonomous Data Guard remote regions that are associated with the source database. Note that for Autonomous Database Serverless instances, standby databases located in the same region as the source primary database do not have OCIDs.
 

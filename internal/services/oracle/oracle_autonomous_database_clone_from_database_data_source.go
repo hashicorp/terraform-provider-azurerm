@@ -1,10 +1,12 @@
-// Copyright © 2024, Oracle and/or its affiliates. All rights reserved
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
 
 package oracle
 
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -13,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/autonomousdatabases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.DataSource = AutonomousDatabaseCloneFromDatabaseDataSource{}
@@ -37,7 +38,7 @@ type AutonomousDatabaseCloneFromDatabaseDataSourceModel struct {
 
 	// Base properties (computed)
 	ActualUsedDataStorageSizeInTbs          float64                         `tfschema:"actual_used_data_storage_size_in_tbs"`
-	AllocatedStorageSizeInTbs               float64                         `tfschema:"allocated_storage_size_in_tbs"`
+	AllocatedStorageSizeInTb                float64                         `tfschema:"allocated_storage_size_in_tb"`
 	AllowedIps                              []string                        `tfschema:"allowed_ips"`
 	AutoScalingEnabled                      bool                            `tfschema:"auto_scaling_enabled"`
 	AutoScalingForStorageEnabled            bool                            `tfschema:"auto_scaling_for_storage_enabled"`
@@ -50,8 +51,8 @@ type AutonomousDatabaseCloneFromDatabaseDataSourceModel struct {
 	ConnectionStrings                       []string                        `tfschema:"connection_strings"`
 	CpuCoreCount                            int64                           `tfschema:"cpu_core_count"`
 	CustomerContacts                        []string                        `tfschema:"customer_contacts"`
-	DataStorageSizeInGbs                    int64                           `tfschema:"data_storage_size_in_gbs"`
-	DataStorageSizeInTbs                    int64                           `tfschema:"data_storage_size_in_tbs"`
+	DataStorageSizeInGb                     int64                           `tfschema:"data_storage_size_in_gb"`
+	DataStorageSizeInTb                     int64                           `tfschema:"data_storage_size_in_tb"`
 	DatabaseVersion                         string                          `tfschema:"database_version"`
 	DatabaseWorkload                        string                          `tfschema:"database_workload"`
 	DisplayName                             string                          `tfschema:"display_name"`
@@ -62,8 +63,8 @@ type AutonomousDatabaseCloneFromDatabaseDataSourceModel struct {
 	LocalAdgAutoFailoverMaxDataLossLimit    int64                           `tfschema:"local_adg_auto_failover_max_data_loss_limit"`
 	LocalDataGuardEnabled                   bool                            `tfschema:"local_data_guard_enabled"`
 	LongTermBackupSchedule                  []LongTermBackUpScheduleDetails `tfschema:"long_term_backup_schedule"`
-	MemoryAreaInGbs                         int64                           `tfschema:"in_memory_area_in_gbs"`
-	MemoryPerOracleComputeUnitInGbs         int64                           `tfschema:"memory_per_oracle_compute_unit_in_gbs"`
+	MemoryAreaInGb                          int64                           `tfschema:"in_memory_area_in_gbs"`
+	MemoryPerOracleComputeUnitInGb          int64                           `tfschema:"memory_per_oracle_compute_unit_in_gb"`
 	MtlsConnectionRequired                  bool                            `tfschema:"mtls_connection_required"`
 	NationalCharacterSet                    string                          `tfschema:"national_character_set"`
 	NextLongTermBackupTimeStamp             string                          `tfschema:"next_long_term_backup_time_stamp"`
@@ -93,8 +94,8 @@ type AutonomousDatabaseCloneFromDatabaseDataSourceModel struct {
 	TimeOfLastRefreshPoint                  string                          `tfschema:"time_of_last_refresh_point"`
 	TimeOfLastSwitchover                    string                          `tfschema:"time_of_last_switchover"`
 	TimeReclamationOfFreeAutonomousDatabase string                          `tfschema:"time_reclamation_of_free_autonomous_database"`
-	UsedDataStorageSizeInGbs                int64                           `tfschema:"used_data_storage_size_in_gbs"`
-	UsedDataStorageSizeInTbs                int64                           `tfschema:"used_data_storage_size_in_tbs"`
+	UsedDataStorageSizeInGb                 int64                           `tfschema:"used_data_storage_size_in_gb"`
+	UsedDataStorageSizeInTb                 int64                           `tfschema:"used_data_storage_size_in_tb"`
 	VnetId                                  string                          `tfschema:"virtual_network_id"`
 }
 
@@ -103,7 +104,7 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Arguments() map[string]*plu
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.AutonomousDatabaseName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
@@ -234,12 +235,12 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Attributes() map[string]*pl
 			},
 		},
 
-		"data_storage_size_in_gbs": {
+		"data_storage_size_in_gb": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
 
-		"data_storage_size_in_tbs": {
+		"data_storage_size_in_tb": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
@@ -264,7 +265,7 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Attributes() map[string]*pl
 			Computed: true,
 		},
 
-		"in_memory_area_in_gbs": {
+		"in_memory_area_in_gb": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
@@ -319,7 +320,7 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Attributes() map[string]*pl
 			},
 		},
 
-		"memory_per_oracle_compute_unit_in_gbs": {
+		"memory_per_oracle_compute_unit_in_gb": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
@@ -478,12 +479,12 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Attributes() map[string]*pl
 			Computed: true,
 		},
 
-		"used_data_storage_size_in_gbs": {
+		"used_data_storage_size_in_gb": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
 
-		"used_data_storage_size_in_tbs": {
+		"used_data_storage_size_in_tb": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
@@ -544,8 +545,8 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Read() sdk.ResourceFunc {
 				state.ComputeCount = pointer.From(props.ComputeCount)
 				state.ComputeModel = string(pointer.From(props.ComputeModel))
 				state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
-				state.DataStorageSizeInGbs = pointer.From(props.DataStorageSizeInGbs)
-				state.DataStorageSizeInTbs = pointer.From(props.DataStorageSizeInTbs)
+				state.DataStorageSizeInGb = pointer.From(props.DataStorageSizeInGbs)
+				state.DataStorageSizeInTb = pointer.From(props.DataStorageSizeInTbs)
 				state.DatabaseVersion = pointer.From(props.DbVersion)
 				state.DatabaseWorkload = string(pointer.From(props.DbWorkload))
 				state.DisplayName = pointer.From(props.DisplayName)

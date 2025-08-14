@@ -1,10 +1,12 @@
-// Copyright © 2024, Oracle and/or its affiliates. All rights reserved
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
 
 package oracle
 
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -13,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/autonomousdatabases"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.DataSource = AutonomousDatabaseCloneFromBackupDataSource{}
@@ -95,7 +96,7 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Arguments() map[string]*plugi
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validate.AutonomousDatabaseName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),

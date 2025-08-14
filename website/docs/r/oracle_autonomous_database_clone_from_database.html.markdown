@@ -3,42 +3,66 @@ subcategory: "Oracle"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_oracle_autonomous_database_clone_from_database"
 description: |-
-  Manages an Oracle Autonomous Database Clone From Database Instance.
+  Manages a autonomous database clone from database.
 ---
 
 # azurerm_oracle_autonomous_database_clone_from_database
 
-Manages an Oracle Autonomous Database Clone from database instance.
+Manages a autonomous database clone from database.
 
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
 
-resource "azurerm_oracle_autonomous_database_clone_from_database" "database_clone" {
-  name                = "Example%[2]dclone"
-  resource_group_name = azurerm_oracle_autonomous_database.test.resource_group_name
-  location            = azurerm_oracle_autonomous_database.test.location
-
-  source_autonomous_database_id = azurerm_oracle_autonomous_database.test.id
-  clone_type                    = "Full"
-  source                        = "Database"
-
-  admin_password                   = "BEstrO0ng_#11"
-  backup_retention_period_in_days  = 7
-  character_set                    = "AL32UTF8"
-  compute_count                    = 2.0
-  compute_model                    = "ECPU"
-  data_storage_size_in_tb          = 1
-  db_version                       = "19c"
-  db_workload                      = "OLTP"
-  display_name                     = "Example%[2]dclone"
-  license_model                    = "LicenseIncluded"
-  auto_scaling_enabled             = false
-  auto_scaling_for_storage_enabled = true
+resource "azurerm_oracle_autonomous_database" "example" {
+  name                             = "example"
+  resource_group_name              = "example"
+  location                         = "West Europe"
+  subnet_id                        = "example"
+  display_name                     = "example"
+  db_workload                      = "example"
   mtls_connection_required         = false
+  backup_retention_period_in_days  = 42
+  compute_model                    = "example"
+  data_storage_size_in_gbs         = 42
+  auto_scaling_for_storage_enabled = false
+  virtual_network_id               = "example"
+  admin_password                   = "example"
+  auto_scaling_enabled             = "example"
+  character_set                    = "example"
+  compute_count                    = 1.23456
+  national_character_set           = "example"
+  license_model                    = false
+  db_version                       = "example"
+  allowedIps                       = ""
+}
+
+resource "azurerm_oracle_autonomous_database_clone_from_database" "example" {
+  name                             = "example"
+  resource_group_name              = azurerm_oracle_autonomous_database.example.resource_group_name
+  location                         = "West Europe"
+  source_autonomous_database_id    = azurerm_oracle_autonomous_database.test.id
+  compute_count                    = 2.0
+  display_name                     = "example"
+  auto_scaling_enabled             = false
   national_character_set           = "AL16UTF16"
-  subnet_id                        = azurerm_oracle_autonomous_database.test.subnet_id
-  virtual_network_id               = azurerm_oracle_autonomous_database.test.virtual_network_id
+  db_version                       = "19c"
+  compute_model                    = "ECPU"
+  data_storage_size_in_tb          = 42
+  clone_type                       = "Full"
+  admin_password                   = "BEstrO0ng_#11"
+  source                           = "Database"
+  mtls_connection_required         = false
+  db_workload                      = "OLTP"
+  character_set                    = "AL32UTF8"
+  backup_retention_period_in_days  = 42
+  auto_scaling_for_storage_enabled = false
+  license_model                    = "LicenseIncluded"
+  allowedIps                       = ""
 }
 ```
 
@@ -80,61 +104,53 @@ The following arguments are supported:
 
 * `license_model` - (Required) The Oracle license model that applies to the Oracle Autonomous Database. Possible values are `LicenseIncluded` and `BringYourOwnLicense`. Changing this forces a new Autonomous Database Clone to be created.
 
-* `location` - (Required) The Azure Region where the Autonomous Database Clone should exist. Changing this forces a new Autonomous Database Clone to be created.
-
 * `mtls_connection_required` - (Required) Specifies if the Autonomous Database requires mTLS connections. Changing this forces a new Autonomous Database Clone to be created.
 
-* `name` - (Required) The name of this Autonomous Database Clone. Changing this forces a new Autonomous Database Clone to be created.
+* `name` - (Required) The name which should be used for this autonomous database clone from database. Changing this forces a new autonomous database clone from database to be created.
 
 * `national_character_set` - (Required) The national character set for the autonomous database. Changing this forces a new Autonomous Database Clone to be created.
 
-* `refreshable_model` - (Optional) The refreshable model for the clone. Possible values are `Automatic` and `Manual`.
+* `resource_group_name` - (Required) The name of the Resource Group where the autonomous database clone from database should exist. Changing this forces a new autonomous database clone from database to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the Autonomous Database Clone should exist. Changing this forces a new Autonomous Database Clone to be created.
+* `source` - The source of the clone. Possible values are  `Database` . Changing this forces a new Autonomous Database Clone to be created.
 
-* `source_autonomouse_database_id` - (Required) The ID of the source Autonomous Database to clone from. Changing this forces a new Autonomous Database Clone to be created.
+* `source_autonomous_database_id` - (Required) The ID of the source Autonomous Database to clone from. Changing this forces a new autonomous database clone from database to be created.
 
-* `source` - (Required) The source of the clone. Possible values are  `Database` . Changing this forces a new Autonomous Database Clone to be created.
+---
 
-* `subnet_id` - (Optional) The ID of the subnet the resource is associated with. Changing this forces a new Autonomous Database Clone to be created.
+* `allowed_ips` - (Optional) Defines the network access type for the Autonomous Database. If the property is explicitly set to an empty list, it allows secure public access to the database from any IP address. If specific ACL (Access Control List) values are provided, access will be restricted to only the specified IP addresses.
+
+* `customer_contacts` - (Optional) Specifies a list of customer contacts as email addresses. Changing this forces a new Autonomous Database to be created.
+
+* `refreshable_model` - (Optional) The refreshable model for the clone. Possible values are `Automatic` and `Manual`. Changing this forces a new autonomous database clone from database to be created.
+
+* `subnet_id` - (Optional) The ID of the subnet the resource is associated with. Changing this forces a new autonomous database clone from database to be created.
+
+* `tags` - (Optional) A mapping of tags to assign to the Autonomous Database Clone.
 
 * `time_until_reconnect` - (Optional) The time until reconnect clone is enabled. Must be in RFC3339 format.
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network this Autonomous Database Clone should be created in. Changing this forces a new Autonomous Database Clone to be created.
 
-* `tags` - (Optional) A mapping of tags to assign to the Autonomous Database Clone.
-
-* `allowed_ips` - (Optional) (Optional) Defines the network access type for the Autonomous Database. If the property is explicitly set to an empty list, it allows secure public access to the database from any IP address. If specific ACL (Access Control List) values are provided, access will be restricted to only the specified IP addresses.
-
-~> **Note:** `allowed_ips`  cannot be updated after provisioning the resource with an empty list (i.e., a publicly accessible Autonomous Database)
-size: the maximum number of Ips provided shouldn't exceed 1024. At this time we only support IpV4.
----
-
 ## Attributes Reference
 
-In addition to the Arguments listed above—the following Attributes are exported:
+In addition to the Arguments listed above—the following Attributes are exported: 
 
-* `id` - The ID of the Autonomous Database Clone.
+* `id` - The ID of the autonomous database cloned from a database.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 2 hours) Used when creating the Autonomous Database Clone.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Autonomous Database Clone.
-* `update` - (Defaults to 30 minutes) Used when updating the Autonomous Database Clone.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Autonomous Database Clone.
+* `create` - (Defaults to 2 hours) Used when creating the autonomous database cloned from database.
+* `read` - (Defaults to 5 minutes) Used when retrieving the autonomous database cloned from database.
+* `update` - (Defaults to 30 minutes) Used when updating the autonomous database cloned from database.
+* `delete` - (Defaults to 30 minutes) Used when deleting the autonomous database cloned from database.
 
 ## Import
 
-Autonomous Database Clones can be imported using the `resource id`, e.g.
+autonomous database clone from databases can be imported using the `resource id`, e.g.
 
 ```shell
-terraform import azurerm_oracle_autonomous_database_clone_from_database.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Oracle.Database/autonomousDatabases/adb1
+terraform import azurerm_oracle_autonomous_database_clone_from_database.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Oracle.Database/autonomousDatabases/example
 ```
-
-## API Providers
-<!-- This section is generated, changes will be overwritten -->
-This resource uses the following Azure API Providers:
-
-* `Oracle.Database` - 2025-03-01

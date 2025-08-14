@@ -38,6 +38,7 @@ resource "azurerm_oracle_autonomous_database" "example" {
   national_character_set           = "example"
   license_model                    = false
   db_version                       = "example"
+  allowedIps                       = ""
 }
 
 resource "azurerm_oracle_autonomous_database_clone_from_backup" "example" {
@@ -61,6 +62,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_backup" "example" {
   db_workload                      = "OLTP"
   data_storage_size_in_tb          = 42
   national_character_set           = "AL16UTF16"
+  allowedIps                       = ""
 }
 ```
 
