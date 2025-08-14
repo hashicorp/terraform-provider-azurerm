@@ -4,6 +4,7 @@ ENHANCEMENTS:
 * `azurerm_cdn_frontdoor_profile` - add support for the `log_scrubbing_rule` block [GH-30115]
 
 FEATURES:
+* **New Resource**: `azurerm_network_manager_routing_rule_collection` [GH-29783]
 
 BUG FIXES:
 
