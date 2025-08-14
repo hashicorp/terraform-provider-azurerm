@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/channels"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/channels"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -79,8 +79,9 @@ func (EventGridPartnerNamespaceChannelResource) Arguments() map[string]*pluginsd
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
 		"activation_message": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C API sets default if omitted based on channel type and source. This can be longer than allowed length.
 			Computed:     true,
 			ValidateFunc: validation.StringLenBetween(1, 256),
 		},
@@ -94,8 +95,9 @@ func (EventGridPartnerNamespaceChannelResource) Arguments() map[string]*pluginsd
 			}, false),
 		},
 		"expiration_time_if_not_activated_in_utc": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			// NOTE: O+C API sets default if omitted, 7 days from creation.
 			Computed:     true,
 			ValidateFunc: validation.IsRFC3339Time,
 		},

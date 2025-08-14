@@ -6,7 +6,6 @@ package v2022_06_15
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/channels"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/domains"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/domaintopics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/eventsubscriptions"
@@ -20,6 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/topics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/topictypes"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/verifiedpartners"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/channels"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
