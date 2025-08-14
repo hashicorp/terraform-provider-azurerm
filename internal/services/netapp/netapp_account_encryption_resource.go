@@ -6,7 +6,6 @@ package netapp
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -78,13 +77,15 @@ func (r NetAppAccountEncryptionResource) Arguments() map[string]*pluginsdk.Schem
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.IsUUID,
+			RequiredWith: []string{"cross_tenant_key_vault_resource_id"},
 			Description:  "The Client ID of the multi-tenant Entra ID application used to access cross-tenant key vaults.",
 		},
 
 		"cross_tenant_key_vault_resource_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: commonids.ValidateKeyVaultID,
+			RequiredWith: []string{"federated_client_id"},
 			Description:  "The full resource ID of the cross-tenant key vault. Required when using federated_client_id for cross-tenant scenarios.",
 		},
 	}
@@ -106,8 +107,6 @@ func (r NetAppAccountEncryptionResource) Create() sdk.ResourceFunc {
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
-
-			metadata.Logger.Infof("Decoded model: NetAppAccountID=%q, UserAssignedIdentityID=%q, EncryptionKey=%q, FederatedClientID=%q", model.NetAppAccountID, model.UserAssignedIdentityID, model.EncryptionKey, model.FederatedClientID)
 
 			if model.NetAppAccountID == "" {
 				return fmt.Errorf("netapp_account_id is empty")
@@ -326,35 +325,9 @@ func expandEncryption(ctx context.Context, input string, keyVaultsClient *keyVau
 
 	var keyVaultResourceID string
 
-	// For cross-tenant scenarios, we can't lookup the key vault from the current tenant
-	// Instead, we need to construct the resource ID manually or use a provided resource ID
+	// For cross-tenant scenarios: using CrossTenantKeyVaultResourceID
 	if model.FederatedClientID != "" {
-		// Cross-tenant scenario: try to construct the key vault resource ID from the URL
-		// Extract the key vault name from the URL for all Azure cloud environments
-		keyVaultName := ""
-		if keyId.KeyVaultBaseUrl != "" {
-			const httpsPrefix = "https://"
-			if strings.HasPrefix(keyId.KeyVaultBaseUrl, httpsPrefix) {
-				// Remove the "https://" prefix
-				urlWithoutProtocol := keyId.KeyVaultBaseUrl[len(httpsPrefix):]
-
-				// Find the first dot to separate the vault name from the domain
-				dotIndex := strings.Index(urlWithoutProtocol, ".")
-				if dotIndex > 0 {
-					keyVaultName = urlWithoutProtocol[:dotIndex]
-				}
-			}
-		}
-
-		if keyVaultName == "" {
-			return nil, fmt.Errorf("unable to extract key vault name from URL %q for cross-tenant scenario", keyId.KeyVaultBaseUrl)
-		}
-
-		// For cross-tenant scenarios, use the provided resource ID if available
-		// Otherwise, construct a placeholder resource ID (for backwards compatibility)
-		if model.CrossTenantKeyVaultResourceID != "" {
-			keyVaultResourceID = model.CrossTenantKeyVaultResourceID
-		}
+		keyVaultResourceID = model.CrossTenantKeyVaultResourceID
 	} else {
 		// Same-tenant scenario: lookup the key vault ID
 		keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionID, keyId.KeyVaultBaseUrl)
