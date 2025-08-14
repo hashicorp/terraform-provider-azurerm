@@ -75,6 +75,9 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				RequiredWith: []string{
 					"admin_username",
 				},
+				ConflictsWith: []string{
+					"os_managed_disk_id",
+				},
 				ValidateFunc: computeValidate.WindowsAdminPassword,
 			},
 
