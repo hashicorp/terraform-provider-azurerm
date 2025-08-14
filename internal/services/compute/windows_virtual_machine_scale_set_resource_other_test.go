@@ -884,7 +884,7 @@ func TestAccWindowsVirtualMachineScaleSet_otherGalleryApplicationUpdate(t *testi
 				check.That(data.ResourceName).Key("gallery_application.0.version_id").MatchesRegex(regexp.MustCompile(`^/subscriptions/[\w-]+/resourceGroups/[\w-]+/providers/Microsoft.Compute/galleries/[\w-]+/applications/[\w-]+/versions/0.0.1$`)),
 				check.That(data.ResourceName).Key("gallery_application.0.order").HasValue("0"),
 				check.That(data.ResourceName).Key("gallery_application.0.tag").HasValue("app1"),
-				check.That(data.ResourceName).Key("gallery_application.0.configuration_blob_url").MatchesRegex(regexp.MustCompile(`^https://[\w-]+\.blob\.core\.windows\.net/[\w-]+/.*script$`)),
+				check.That(data.ResourceName).Key("gallery_application.0.configuration_blob_uri").MatchesRegex(regexp.MustCompile(`^https://[\w-]+\.blob\.core\.windows\.net/[\w-]+/.*script$`)),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -3732,7 +3732,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
     tag                    = "%s"
   }
 }
-`, r.otherGalleryApplicationTemplate(data), data.RandomInteger, versionId, configurationBlobUri, order, tag)
+`, r.otherGalleryApplicationTemplate(data), versionId, configurationBlobUri, order, tag)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherGalleryApplicationTemplate(data acceptance.TestData) string {
