@@ -5,7 +5,6 @@ package compute
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"strconv"
 	"strings"
@@ -23,6 +22,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -458,7 +458,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ForceNew: true,
 			},
 
-			"winrm_listener": winRmListenerSchema(),
+			"winrm_listener": winRmListenerSchemaVM(),
 
 			"zone": commonschema.ZoneSingleOptionalForceNew(),
 
@@ -513,11 +513,8 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				// Suppress diff if replacement property is used and the values are the same
 				oldVal := d.Get("enable_automatic_updates").(bool)
 				newVal := d.Get("automatic_updates_enabled").(bool)
-				if oldVal == newVal {
-					return true
-				}
 
-				return false
+				return oldVal == newVal
 			},
 			DiffSuppressOnRefresh: true,
 			Deprecated:            "this property has been deprecated in favour of automatic_updates_enabled and will be removed in 5.0 of the provider.",

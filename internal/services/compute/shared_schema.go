@@ -622,6 +622,7 @@ func sourceImageReferenceSchemaVM() *pluginsdk.Schema {
 		},
 	}
 }
+
 func sourceImageReferenceSchema(isVirtualMachine bool) *pluginsdk.Schema {
 	// whilst originally I was hoping we could use the 'id' from `azurerm_platform_image' unfortunately Azure doesn't
 	// like this as a value for the 'id' field:
@@ -893,6 +894,7 @@ func winRmListenerSchema() *pluginsdk.Schema {
 		},
 	}
 }
+
 func winRmListenerSchemaVM() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeSet,
@@ -1049,6 +1051,7 @@ func windowsSecretSchema() *pluginsdk.Schema {
 		},
 	}
 }
+
 func windowsSecretSchemaVM() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
