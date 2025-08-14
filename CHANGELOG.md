@@ -1,6 +1,7 @@
 ## 4.41.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_cdn_frontdoor_profile` - add support for the `log_scrubbing_rule` block [GH-30115]
 
 FEATURES:
 
