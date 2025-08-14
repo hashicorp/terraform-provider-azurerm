@@ -8,6 +8,8 @@ FEATURES:
 
 BUG FIXES:
 
+* `azurerm_app_service_environment_v3` - fix drift on the `allow_new_private_endpoint_connections` property [GH-30391]
+
 ## 4.40.0 (August 14, 2025)
 
 FEATURES:
