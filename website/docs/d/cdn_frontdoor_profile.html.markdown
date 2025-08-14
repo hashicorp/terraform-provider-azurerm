@@ -35,8 +35,6 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where this Front Door Profile exists.
 
----
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following attributes are exported:
