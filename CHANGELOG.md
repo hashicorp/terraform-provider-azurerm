@@ -1,18 +1,16 @@
-## 4.40.0 (Unreleased)
+## 4.40.0 (August 14, 2025)
 
 FEATURES:
 
-* **New Resource**: `azurerm_data_factory_customer_managed_key` [GH-30341]
+* **New Resource**: `azurerm_data_factory_customer_managed_key` ([#30341](https://github.com/hashicorp/terraform-provider-azurerm/issues/30341))
 
 ENHANCEMENTS:
-* `azurerm_eventgrid_system_topic` - suppress case difference on `source_resource_id` [GH-30379]
 
-* `azurerm_kubernetes_cluster` - add support for `gpu_profile` property [GH-29954]
-* `azurerm_machine_learning_workspace` - support `provision_on_creation_enabled` property [GH-30312]
-* `azurerm_logic_app_standard` - refactored to leverage shared code with other `appservice` apps [GH-30272]
-* `azurerm_load_test` - improved validation for the `encryption.identity.identity_id` property [GH-30323]
-
-BUG FIXES:
+* `azurerm_eventgrid_system_topic` - suppress case difference on `source_resource_id` ([#30379](https://github.com/hashicorp/terraform-provider-azurerm/issues/30379))
+* `azurerm_kubernetes_cluster` - add support for `gpu_profile` property ([#29954](https://github.com/hashicorp/terraform-provider-azurerm/issues/29954))
+* `azurerm_load_test` - improved validation for the `encryption.identity.identity_id` property ([#30323](https://github.com/hashicorp/terraform-provider-azurerm/issues/30323))
+* `azurerm_logic_app_standard` - refactored to leverage shared code with other `appservice` apps ([#30272](https://github.com/hashicorp/terraform-provider-azurerm/issues/30272))
+* `azurerm_machine_learning_workspace` - support `provision_on_creation_enabled` property ([#30312](https://github.com/hashicorp/terraform-provider-azurerm/issues/30312))
 
 ## 4.39.0 (August 08, 2025)
 
