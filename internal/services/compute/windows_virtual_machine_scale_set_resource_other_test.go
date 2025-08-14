@@ -3694,7 +3694,7 @@ resource "azurerm_gallery_application_version" "test2" {
 }
 
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                = "acctestvmss-%d"
+  name                = local.vm_name
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Standard_F2"
@@ -3702,12 +3702,10 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
 
-  disable_password_authentication = false
-
   source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts"
+    publisher = "MicrosoftWindowsServer"
+    offer     = "WindowsServer"
+    sku       = "2019-Datacenter"
     version   = "latest"
   }
 
