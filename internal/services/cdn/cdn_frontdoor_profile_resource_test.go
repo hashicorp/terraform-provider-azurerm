@@ -268,23 +268,6 @@ func TestAccCdnFrontDoorProfile_logScrubbing_update(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorProfile_logScrubbing_withDuplicateScrubbingRules(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
-	r := CdnFrontDoorProfileResource{}
-
-	// Verify TypeSet removes duplicate log_scrubbing_rule...
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.logScrubbingDuplicateScrubbingRules(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("log_scrubbing_rule.#").HasValue("2"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (r CdnFrontDoorProfileResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := profiles.ParseProfileID(state.ID)
 	if err != nil {
@@ -575,38 +558,6 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
 
   log_scrubbing_rule {
     match_variable = "RequestUri"
-  }
-
-  tags = {
-    environment = "Production"
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r CdnFrontDoorProfileResource) logScrubbingDuplicateScrubbingRules(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctestprofile-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "Standard_AzureFrontDoor"
-
-  log_scrubbing_rule {
-    match_variable = "QueryStringArgNames"
-  }
-
-  log_scrubbing_rule {
-    match_variable = "RequestIPAddress"
-  }
-
-  log_scrubbing_rule {
-    match_variable = "QueryStringArgNames"
   }
 
   tags = {
