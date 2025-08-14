@@ -226,10 +226,7 @@ func (r ManagedRedisDatabaseResource) Create() sdk.ResourceFunc {
 				accessKeysAuth = databases.AccessKeysAuthenticationEnabled
 			}
 
-			linkedDatabase, err := expandArmGeoLinkedDatabase(model.LinkedDatabaseId, model.LinkedDatabaseGroupNickname)
-			if err != nil {
-				return fmt.Errorf("expanding `linked_database_group_nickname` or `linked_database_id`: %+v", err)
-			}
+			linkedDatabase := expandArmGeoLinkedDatabase(model.LinkedDatabaseId, model.LinkedDatabaseGroupNickname)
 
 			isGeoEnabled := false
 			if linkedDatabase != nil {
@@ -513,10 +510,10 @@ func flattenArmDatabaseModuleArray(input *[]databases.Module) []ModuleModel {
 	return results
 }
 
-func expandArmGeoLinkedDatabase(inputId []string, inputGeoName string) (*databases.DatabasePropertiesGeoReplication, error) {
+func expandArmGeoLinkedDatabase(inputId []string, inputGeoName string) *databases.DatabasePropertiesGeoReplication {
 	idList := make([]databases.LinkedDatabase, 0)
 	if len(inputId) == 0 {
-		return nil, nil
+		return nil
 	}
 
 	for _, id := range inputId {
@@ -528,7 +525,7 @@ func expandArmGeoLinkedDatabase(inputId []string, inputGeoName string) (*databas
 	return &databases.DatabasePropertiesGeoReplication{
 		LinkedDatabases: &idList,
 		GroupNickname:   pointer.To(inputGeoName),
-	}, nil
+	}
 }
 
 func flattenArmGeoLinkedDatabase(inputDB *[]databases.LinkedDatabase) []string {
