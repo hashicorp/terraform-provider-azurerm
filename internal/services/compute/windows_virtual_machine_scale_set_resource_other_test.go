@@ -873,23 +873,29 @@ func TestAccWindowsVirtualMachineScaleSet_otherGalleryApplicationComplete(t *tes
 }
 
 func TestAccWindowsVirtualMachineScaleSet_otherGalleryApplicationUpdate(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine_scale_set", "test")
-	r := LinuxVirtualMachineScaleSetResource{}
+	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
+	r := WindowsVirtualMachineScaleSetResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherGalleryApplicationUpdate(data, 0),
+			Config: r.otherGalleryApplicationUpdate(data, "test", "test", 0, "app1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("gallery_application.0.version_id").MatchesRegex(regexp.MustCompile(`^/subscriptions/[\w-]+/resourceGroups/[\w-]+/providers/Microsoft.Compute/galleries/[\w-]+/applications/[\w-]+/versions/0.0.1$`)),
 				check.That(data.ResourceName).Key("gallery_application.0.order").HasValue("0"),
+				check.That(data.ResourceName).Key("gallery_application.0.tag").HasValue("app1"),
+				check.That(data.ResourceName).Key("gallery_application.0.configuration_blob_url").MatchesRegex(regexp.MustCompile(`^https://[\w-]+\.blob\.core\.windows\.net/[\w-]+/.*script$`)),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherGalleryApplicationUpdate(data, 1),
+			Config: r.otherGalleryApplicationUpdate(data, "test2", "test2", 1, "app2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("gallery_application.0.version_id").MatchesRegex(regexp.MustCompile(`^/subscriptions/[\w-]+/resourceGroups/[\w-]+/providers/Microsoft.Compute/galleries/[\w-]+/applications/[\w-]+/versions/0.0.2$`)),
 				check.That(data.ResourceName).Key("gallery_application.0.order").HasValue("1"),
+				check.That(data.ResourceName).Key("gallery_application.0.tag").HasValue("app2"),
+				check.That(data.ResourceName).Key("gallery_application.0.configuration_blob_uri").MatchesRegex(regexp.MustCompile(`^https://[\w-]+\.blob\.core\.windows\.net/[\w-]+/.*script2$`)),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -3661,12 +3667,34 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
 `, r.otherGalleryApplicationTemplate(data))
 }
 
-func (r WindowsVirtualMachineScaleSetResource) otherGalleryApplicationUpdate(data acceptance.TestData, order int) string {
+func (r WindowsVirtualMachineScaleSetResource) otherGalleryApplicationUpdate(data acceptance.TestData, versionId string, configurationBlobUri string, order int, tag string) string {
 	return fmt.Sprintf(`
 %s
 
+resource "azurerm_gallery_application_version" "test2" {
+  name                   = "0.0.2"
+  gallery_application_id = azurerm_gallery_application.test.id
+  location               = azurerm_gallery_application.test.location
+
+  source {
+    media_link                 = azurerm_storage_blob.test.id
+    default_configuration_link = azurerm_storage_blob.test.id
+  }
+
+  manage_action {
+    install = "[install command]"
+    remove  = "[remove command]"
+  }
+
+  target_region {
+    name                   = azurerm_gallery_application.test.location
+    regional_replica_count = 1
+    storage_account_type   = "Premium_LRS"
+  }
+}
+
 resource "azurerm_windows_virtual_machine_scale_set" "test" {
-  name                = local.vm_name
+  name                = "acctestvmss-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Standard_F2"
@@ -3674,10 +3702,12 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   admin_username      = "adminuser"
   admin_password      = "P@ssword1234!"
 
+  disable_password_authentication = false
+
   source_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2019-Datacenter"
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts"
     version   = "latest"
   }
 
@@ -3698,11 +3728,13 @@ resource "azurerm_windows_virtual_machine_scale_set" "test" {
   }
 
   gallery_application {
-    version_id = azurerm_gallery_application_version.test.id
-    order      = %d
+    version_id             = azurerm_gallery_application_version.%s.id
+    configuration_blob_uri = azurerm_storage_blob.%s.id
+    order                  = %d
+    tag                    = "%s"
   }
 }
-`, r.otherGalleryApplicationTemplate(data), order)
+`, r.otherGalleryApplicationTemplate(data), data.RandomInteger, versionId, configurationBlobUri, order, tag)
 }
 
 func (r WindowsVirtualMachineScaleSetResource) otherGalleryApplicationTemplate(data acceptance.TestData) string {

@@ -735,18 +735,24 @@ func TestAccLinuxVirtualMachineScaleSet_otherGalleryApplicationUpdate(t *testing
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.otherGalleryApplicationUpdate(data, 0),
+			Config: r.otherGalleryApplicationUpdate(data, "test", "test", 0, "app1"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("gallery_application.0.version_id").MatchesRegex(regexp.MustCompile(`^/subscriptions/[\w-]+/resourceGroups/[\w-]+/providers/Microsoft.Compute/galleries/[\w-]+/applications/[\w-]+/versions/0.0.1$`)),
 				check.That(data.ResourceName).Key("gallery_application.0.order").HasValue("0"),
+				check.That(data.ResourceName).Key("gallery_application.0.tag").HasValue("app1"),
+				check.That(data.ResourceName).Key("gallery_application.0.configuration_blob_uri").MatchesRegex(regexp.MustCompile(`^https://[\w-]+\.blob\.core\.windows\.net/[\w-]+/.*script$`)),
 			),
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config: r.otherGalleryApplicationUpdate(data, 1),
+			Config: r.otherGalleryApplicationUpdate(data, "test2", "test2", 1, "app2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("gallery_application.0.version_id").MatchesRegex(regexp.MustCompile(`^/subscriptions/[\w-]+/resourceGroups/[\w-]+/providers/Microsoft.Compute/galleries/[\w-]+/applications/[\w-]+/versions/0.0.2$`)),
 				check.That(data.ResourceName).Key("gallery_application.0.order").HasValue("1"),
+				check.That(data.ResourceName).Key("gallery_application.0.tag").HasValue("app2"),
+				check.That(data.ResourceName).Key("gallery_application.0.configuration_blob_uri").MatchesRegex(regexp.MustCompile(`^https://[\w-]+\.blob\.core\.windows\.net/[\w-]+/.*script2$`)),
 			),
 		},
 		data.ImportStep("admin_password"),
@@ -3198,9 +3204,31 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
 `, r.otherGalleryApplicationTemplate(data), data.RandomInteger)
 }
 
-func (r LinuxVirtualMachineScaleSetResource) otherGalleryApplicationUpdate(data acceptance.TestData, order int) string {
+func (r LinuxVirtualMachineScaleSetResource) otherGalleryApplicationUpdate(data acceptance.TestData, versionId string, configurationBlobUri string, order int, tag string) string {
 	return fmt.Sprintf(`
 %s
+
+resource "azurerm_gallery_application_version" "test2" {
+  name                   = "0.0.2"
+  gallery_application_id = azurerm_gallery_application.test.id
+  location               = azurerm_gallery_application.test.location
+
+  source {
+    media_link                 = azurerm_storage_blob.test.id
+    default_configuration_link = azurerm_storage_blob.test.id
+  }
+
+  manage_action {
+    install = "[install command]"
+    remove  = "[remove command]"
+  }
+
+  target_region {
+    name                   = azurerm_gallery_application.test.location
+    regional_replica_count = 1
+    storage_account_type   = "Premium_LRS"
+  }
+}
 
 resource "azurerm_linux_virtual_machine_scale_set" "test" {
   name                = "acctestvmss-%d"
@@ -3237,11 +3265,13 @@ resource "azurerm_linux_virtual_machine_scale_set" "test" {
   }
 
   gallery_application {
-    version_id = azurerm_gallery_application_version.test.id
-    order = %d
+    version_id             = azurerm_gallery_application_version.%s.id
+    configuration_blob_uri = azurerm_storage_blob.%s.id
+    order                  = %d
+    tag                    = "%s"
   }
 }
-`, r.otherGalleryApplicationTemplate(data), data.RandomInteger, order)
+`, r.otherGalleryApplicationTemplate(data), data.RandomInteger, versionId, configurationBlobUri, order, tag)
 }
 
 func (r LinuxVirtualMachineScaleSetResource) otherGalleryApplicationTemplate(data acceptance.TestData) string {
