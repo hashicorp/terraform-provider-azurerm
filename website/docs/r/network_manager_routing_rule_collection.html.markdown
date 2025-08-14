@@ -10,7 +10,7 @@ description: |-
 
 Manages a Network Manager Routing Rule Collection.
 
--> **Note:** Terraform has enabled force deletion. This setting deletes the resource even if it's part of a deployed configuration. If the configuration is deployed, the service will perform a cleanup deployment in the background before the deletion.
+!> **Note:** Terraform has enabled force deletion. This setting deletes the resource even if it's part of a deployed configuration. If the configuration is deployed, the service will perform a cleanup deployment in the background before the deletion.
 
 ## Example Usage
 
@@ -89,3 +89,9 @@ Network Manager Routing Rule Collections can be imported using the `resource id`
 ```shell
 terraform import azurerm_network_manager_routing_rule_collection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Network/networkManagers/manager1/routingConfigurations/conf1/ruleCollections/collection1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01
