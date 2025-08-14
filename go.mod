@@ -7,9 +7,9 @@ require (
 	github.com/Azure/go-autorest/autorest/to v0.4.0
 	github.com/Azure/go-autorest/autorest/validation v0.3.1
 	github.com/Azure/go-autorest/tracing v0.6.1
-	github.com/agiledragon/gomonkey/v2 v2.11.0
+	github.com/agiledragon/gomonkey/v2 v2.13.0
 	github.com/btubbs/datetime v0.1.1
-	github.com/dave/jennifer v1.6.0
+	github.com/dave/jennifer v1.7.1
 	github.com/davecgh/go-spew v1.1.1
 	github.com/fatih/color v1.18.0
 	github.com/gofrs/uuid v4.4.0+incompatible
@@ -26,6 +26,7 @@ require (
 	github.com/hashicorp/go-version v1.7.0
 	github.com/hashicorp/terraform-json v0.25.0
 	github.com/hashicorp/terraform-plugin-framework v1.15.0
+	github.com/hashicorp/terraform-plugin-framework-timeouts v0.5.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.18.0
 	github.com/hashicorp/terraform-plugin-go v0.27.0
 	github.com/hashicorp/terraform-plugin-mux v0.19.0-alpha.1
