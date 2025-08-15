@@ -212,15 +212,17 @@ function Show-Help {
         Write-Host "    1. git switch exp/terraform_copilot" -ForegroundColor White
         Write-Host "    2. .\$ScriptName -Bootstrap" -ForegroundColor White
         Write-Host "    3. git switch $currentBranch" -ForegroundColor White
-        Write-Host "    4. %USERPROFILE%\.terraform-ai-installer\install-copilot-setup.ps1" -ForegroundColor White
+        Write-Host "    4. %USERPROFILE%\.terraform-ai-installer\install-copilot-setup.ps1 -RepoDirectory `"C:\path\to\repo`"" -ForegroundColor White
         Write-Host ""
         Write-Host "  If installer is available locally:" -ForegroundColor Green
         Write-Host "    .\$ScriptName                    # Install AI infrastructure" -ForegroundColor White
+        Write-Host "    .\$ScriptName -RepoDirectory `"C:\path\to\repo`"  # When running from user profile" -ForegroundColor White
     }
     Write-Host ""
     
     Write-Host "OPTIONS:" -ForegroundColor Cyan
     Write-Host "  -Bootstrap         Copy installer to user profile (source branch only)" -ForegroundColor $(if ($isSourceBranch) { "Green" } else { "Gray" })
+    Write-Host "  -RepoDirectory     Path to repository for git operations (when running from user profile)" -ForegroundColor $(if ($isSourceBranch) { "Gray" } else { "White" })
     Write-Host "  -Help              Show this help message" -ForegroundColor Green
     Write-Host "  -Verify            Check current AI infrastructure status" -ForegroundColor $(if ($isSourceBranch) { "Green" } else { "White" })
     Write-Host "  -Auto-Approve      Install without prompting (feature branch only)" -ForegroundColor $(if ($isSourceBranch) { "Gray" } else { "White" })
@@ -233,6 +235,7 @@ function Show-Help {
     Write-Host "  - Automatically removes deprecated files (no longer in manifest)"
     Write-Host "  - Creates backup of modified settings.json files"
     Write-Host "  - Preserves existing VS Code user settings"
+    Write-Host "  - Use -RepoDirectory when running from user profile to specify repository location"
     Write-Host ""
     
     Write-Host "FILES INSTALLED:" -ForegroundColor Cyan

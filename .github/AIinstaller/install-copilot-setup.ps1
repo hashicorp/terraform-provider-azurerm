@@ -9,6 +9,9 @@ param(
     [Parameter(HelpMessage = "Copy installer to user profile for feature branch use")]
     [switch]$Bootstrap,
     
+    [Parameter(HelpMessage = "Path to the repository directory for git operations (when running from user profile)")]
+    [string]$RepoDirectory,
+    
     [Parameter(HelpMessage = "Overwrite existing files without prompting")]
     [switch]${Auto-Approve},
     
@@ -118,20 +121,50 @@ function Test-BranchType {
     #>
     
     try {
-        $currentBranch = git rev-parse --abbrev-ref HEAD 2>$null
-        if ($LASTEXITCODE -ne 0) {
-            Write-Warning "Could not determine current git branch"
+        # Use RepoDirectory parameter if provided, otherwise use current workspace root
+        $workspaceRoot = if ($RepoDirectory) { 
+            $RepoDirectory 
+        } else { 
+            $Global:WorkspaceRoot 
+        }
+        
+        Write-Host "[DEBUG] Checking git branch in directory: $workspaceRoot" -ForegroundColor "Gray"
+        
+        if (-not $workspaceRoot -or -not (Test-Path $workspaceRoot)) {
+            Write-Warning "Repository directory not found: $workspaceRoot"
+            Write-Host "[DEBUG] Use -RepoDirectory parameter to specify the repository path when running from user profile" -ForegroundColor "Gray"
             return "unknown"
         }
         
-        if ($currentBranch -eq $Global:InstallerConfig.Branch) {
-            return "source"
-        } else {
-            return "feature"
+        Push-Location $workspaceRoot
+        try {
+            $currentBranch = git rev-parse --abbrev-ref HEAD 2>$null
+            if ($LASTEXITCODE -ne 0) {
+                Write-Warning "Could not determine current git branch"
+                Write-Host "[DEBUG] Git command failed with exit code: $LASTEXITCODE" -ForegroundColor "Gray"
+                Write-Host "[DEBUG] Directory: $workspaceRoot" -ForegroundColor "Gray"
+                Write-Host "[DEBUG] Make sure the directory is a git repository and git is available" -ForegroundColor "Gray"
+                return "unknown"
+            }
+            
+            Write-Host "[DEBUG] Current git branch: '$currentBranch'" -ForegroundColor "Gray"
+            Write-Host "[DEBUG] Expected source branch: '$($Global:InstallerConfig.Branch)'" -ForegroundColor "Gray"
+            
+            if ($currentBranch -eq $Global:InstallerConfig.Branch) {
+                Write-Host "[DEBUG] Branch type: source" -ForegroundColor "Gray"
+                return "source"
+            } else {
+                Write-Host "[DEBUG] Branch type: feature" -ForegroundColor "Gray"
+                return "feature"
+            }
+        }
+        finally {
+            Pop-Location
         }
     }
     catch {
-        Write-Warning "Git not available or not in a git repository"
+        Write-Warning "Git not available or error checking git repository"
+        Write-Host "[DEBUG] Exception caught: $($_.Exception.Message)" -ForegroundColor "Gray"
         return "unknown"
     }
 }
@@ -287,7 +320,10 @@ function Invoke-Bootstrap {
             Write-Host "     git checkout feature/your-branch-name" -ForegroundColor "Gray"
             Write-Host ""
             Write-Host "  2. Run the installer from your user profile:" -ForegroundColor "White"
-            Write-Host "     & `"$targetDirectory\install-copilot-setup.ps1`"" -ForegroundColor "Gray"
+            Write-Host "     & `"$targetDirectory\install-copilot-setup.ps1`" -RepoDirectory `"$($Global:WorkspaceRoot)`"" -ForegroundColor "Gray"
+            Write-Host ""
+            Write-Host "  Note: The -RepoDirectory parameter tells the installer where to find the git repository" -ForegroundColor "Yellow"
+            Write-Host "        for branch detection when running from your user profile." -ForegroundColor "Yellow"
             Write-Host ""
             
             return @{
@@ -644,9 +680,17 @@ function Main {
     #>
     
     try {
+        # Convert hyphenated parameter names to camelCase variables
+        $AutoApprove = ${Auto-Approve}
+        $DryRun = ${Dry-Run}
+        
         # Determine branch type
         $branchType = Test-BranchType
         $isSourceBranch = $branchType -eq "source"
+        
+        Write-Host "[DEBUG] Detected branch type: '$branchType'" -ForegroundColor "Gray"
+        Write-Host "[DEBUG] Is source branch: $isSourceBranch" -ForegroundColor "Gray"
+        Write-Host "" -ForegroundColor "Gray"
         
         # Handle help parameter
         if ($Help) {
@@ -731,11 +775,37 @@ function Main {
                 Write-Host ""
                 Write-Host "No problem! Run with -Bootstrap when you're ready." -ForegroundColor "Cyan"
                 Write-Host "Or use -Help for more information." -ForegroundColor "Cyan"
+                return
             }
         } else {
-            Write-Host "FEATURE BRANCH DETECTED" -ForegroundColor "Cyan"
-            Write-Host ""
-            Write-Host "Starting AI infrastructure installation..." -ForegroundColor "White"
+            if ($branchType -eq "unknown") {
+                # If branch type is unknown and no RepoDirectory provided, error out
+                if (-not $RepoDirectory) {
+                    Write-Host ""
+                    Write-Error "Repository location not specified"
+                    Write-Host ""
+                    Write-Host "When running from user profile, you must specify the repository location:" -ForegroundColor "Yellow"
+                    Write-Host ""
+                    Write-Host "CORRECT USAGE:" -ForegroundColor "Cyan"
+                    Write-Host "  .\install-copilot-setup.ps1 -RepoDirectory `"C:\path\to\terraform-provider-azurerm`"" -ForegroundColor "White"
+                    Write-Host ""
+                    Write-Host "EXAMPLE:" -ForegroundColor "Cyan"
+                    Write-Host "  .\install-copilot-setup.ps1 -RepoDirectory `"C:\github.com\hashicorp\terraform-provider-azurerm`"" -ForegroundColor "White"
+                    Write-Host ""
+                    Write-Host "The -RepoDirectory parameter tells the installer where to find your git repository" -ForegroundColor "Gray"
+                    Write-Host "for branch detection and workspace identification." -ForegroundColor "Gray"
+                    Write-Host ""
+                    exit 1
+                }
+                
+                Write-Host "RUNNING FROM USER PROFILE" -ForegroundColor "Cyan"
+                Write-Host ""
+                Write-Host "Installing AI infrastructure for feature branch development..." -ForegroundColor "White"
+            } else {
+                Write-Host "FEATURE BRANCH DETECTED: $branchType" -ForegroundColor "Cyan"
+                Write-Host ""
+                Write-Host "Starting AI infrastructure installation..." -ForegroundColor "White"
+            }
             
             $result = Invoke-InstallInfrastructure -AutoApprove:$AutoApprove -DryRun:$DryRun
             if (-not $result.Success) {
