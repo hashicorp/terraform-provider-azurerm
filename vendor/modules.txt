@@ -545,6 +545,7 @@ github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/topics
 github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/topictypes
 github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/verifiedpartners
 github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2023-12-15-preview/namespaces
+github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2023-12-15-preview/namespacetopics
 github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/authorizationrulesnamespaces
 github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs
 github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2022-01-01-preview/namespaces
