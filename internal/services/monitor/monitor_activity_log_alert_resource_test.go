@@ -6,14 +6,15 @@ package monitor_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2020-10-01/activitylogalertsapis"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MonitorActivityLogAlertResource struct{}
@@ -27,11 +28,6 @@ func TestAccMonitorActivityLogAlert_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("scopes.#").HasValue("1"),
-				check.That(data.ResourceName).Key("criteria.#").HasValue("1"),
-				check.That(data.ResourceName).Key("criteria.0.category").HasValue("Recommendation"),
-				check.That(data.ResourceName).Key("action.#").HasValue("0"),
 			),
 		},
 		data.ImportStep(),
@@ -56,28 +52,6 @@ func TestAccMonitorActivityLogAlert_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccMonitorActivityLogAlert_singleResource(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
-	r := MonitorActivityLogAlertResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.singleResource(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("scopes.#").HasValue("1"),
-				check.That(data.ResourceName).Key("criteria.#").HasValue("1"),
-				check.That(data.ResourceName).Key("criteria.0.operation_name").HasValue("Microsoft.Storage/storageAccounts/write"),
-				check.That(data.ResourceName).Key("criteria.0.category").HasValue("Recommendation"),
-				check.That(data.ResourceName).Key("criteria.0.resource_id").Exists(),
-				check.That(data.ResourceName).Key("action.#").HasValue("1"),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccMonitorActivityLogAlert_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
 	r := MonitorActivityLogAlertResource{}
@@ -87,17 +61,50 @@ func TestAccMonitorActivityLogAlert_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("description").HasValue("This is just a test acceptance."),
-				check.That(data.ResourceName).Key("scopes.#").HasValue("2"),
-				check.That(data.ResourceName).Key("criteria.#").HasValue("1"),
-				check.That(data.ResourceName).Key("criteria.0.operation_name").HasValue("Microsoft.Storage/storageAccounts/write"),
-				check.That(data.ResourceName).Key("criteria.0.category").HasValue("Policy"),
-				check.That(data.ResourceName).Key("criteria.0.resource_provider").HasValue("Microsoft.Storage"),
-				check.That(data.ResourceName).Key("criteria.0.resource_type").HasValue("Microsoft.Storage/storageAccounts"),
-				check.That(data.ResourceName).Key("criteria.0.resource_group").Exists(),
-				check.That(data.ResourceName).Key("criteria.0.resource_id").Exists(),
-				check.That(data.ResourceName).Key("action.#").HasValue("2"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMonitorActivityLogAlert_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
+	r := MonitorActivityLogAlertResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMonitorActivityLogAlert_singleResource(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
+	r := MonitorActivityLogAlertResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.singleResource(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
@@ -156,64 +163,22 @@ func TestAccMonitorActivityLogAlert_listCriteria(t *testing.T) {
 	})
 }
 
-func TestAccMonitorActivityLogAlert_basicAndCompleteUpdate(t *testing.T) {
+func TestAccMonitorActivityLogAlert_ResourceHealth_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
 	r := MonitorActivityLogAlertResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.resourceHealth_basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("description").HasValue(""),
-				check.That(data.ResourceName).Key("scopes.#").HasValue("1"),
-				check.That(data.ResourceName).Key("criteria.#").HasValue("1"),
-				check.That(data.ResourceName).Key("criteria.0.category").HasValue("Recommendation"),
-				check.That(data.ResourceName).Key("criteria.0.resource_id").HasValue(""),
-				check.That(data.ResourceName).Key("criteria.0.caller").HasValue(""),
-				check.That(data.ResourceName).Key("criteria.0.level").HasValue(""),
-				check.That(data.ResourceName).Key("criteria.0.status").HasValue(""),
-				check.That(data.ResourceName).Key("action.#").HasValue("0"),
 			),
 		},
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("description").HasValue("This is just a test acceptance."),
-				check.That(data.ResourceName).Key("scopes.#").HasValue("2"),
-				check.That(data.ResourceName).Key("criteria.#").HasValue("1"),
-				check.That(data.ResourceName).Key("criteria.0.operation_name").HasValue("Microsoft.Storage/storageAccounts/write"),
-				check.That(data.ResourceName).Key("criteria.0.category").HasValue("Policy"),
-				check.That(data.ResourceName).Key("criteria.0.resource_provider").HasValue("Microsoft.Storage"),
-				check.That(data.ResourceName).Key("criteria.0.resource_type").HasValue("Microsoft.Storage/storageAccounts"),
-				check.That(data.ResourceName).Key("criteria.0.resource_group").Exists(),
-				check.That(data.ResourceName).Key("criteria.0.resource_id").Exists(),
-				check.That(data.ResourceName).Key("action.#").HasValue("2"),
-			),
-		},
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("description").HasValue(""),
-				check.That(data.ResourceName).Key("scopes.#").HasValue("1"),
-				check.That(data.ResourceName).Key("criteria.#").HasValue("1"),
-				check.That(data.ResourceName).Key("criteria.0.category").HasValue("Recommendation"),
-				check.That(data.ResourceName).Key("criteria.0.resource_id").HasValue(""),
-				check.That(data.ResourceName).Key("criteria.0.caller").HasValue(""),
-				check.That(data.ResourceName).Key("criteria.0.level").HasValue(""),
-				check.That(data.ResourceName).Key("criteria.0.status").HasValue(""),
-				check.That(data.ResourceName).Key("action.#").HasValue("0"),
-			),
-		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccMonitorActivityLogAlert_ResourceHealth_basicAndUpdate(t *testing.T) {
+func TestAccMonitorActivityLogAlert_ResourceHealth_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
 	r := MonitorActivityLogAlertResource{}
 
@@ -242,7 +207,7 @@ func TestAccMonitorActivityLogAlert_ResourceHealth_basicAndUpdate(t *testing.T) 
 	})
 }
 
-func TestAccMonitorActivityLogAlert_ResourceHealth_basicAndDelete(t *testing.T) {
+func TestAccMonitorActivityLogAlert_ResourceHealth_delete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
 	r := MonitorActivityLogAlertResource{}
 
@@ -264,7 +229,22 @@ func TestAccMonitorActivityLogAlert_ResourceHealth_basicAndDelete(t *testing.T) 
 	})
 }
 
-func TestAccMonitorActivityLogAlert_ServiceHealth_basicAndUpdate(t *testing.T) {
+func TestAccMonitorActivityLogAlert_ServiceHealth_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
+	r := MonitorActivityLogAlertResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.serviceHealth_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMonitorActivityLogAlert_ServiceHealth_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
 	r := MonitorActivityLogAlertResource{}
 
@@ -293,7 +273,7 @@ func TestAccMonitorActivityLogAlert_ServiceHealth_basicAndUpdate(t *testing.T) {
 	})
 }
 
-func TestAccMonitorActivityLogAlert_ServiceHealth_basicAndDelete(t *testing.T) {
+func TestAccMonitorActivityLogAlert_ServiceHealth_delete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
 	r := MonitorActivityLogAlertResource{}
 
@@ -330,6 +310,129 @@ func TestAccMonitorActivityLogAlert_location(t *testing.T) {
 	})
 }
 
+// Regression test case for issue #30191: Ensure "Security" recommendation category
+// is properly supported and validated by Azure Monitor Activity Log Alert API
+func TestAccMonitorActivityLogAlert_recommendationCategory_securityWithValidation(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
+	r := MonitorActivityLogAlertResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.recommendationCategorySecurity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccMonitorActivityLogAlert_recommendationCategory_invalidRegion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
+	r := MonitorActivityLogAlertResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.regionInvalid(data),
+			ExpectError: regexp.MustCompile("`azurerm_monitor_activity_log_alert` resources are only supported in the following regions:"),
+		},
+	})
+}
+
+func (MonitorActivityLogAlertResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+	id, err := activitylogalertsapis.ParseActivityLogAlertID(state.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := clients.Monitor.ActivityLogAlertsClient.ActivityLogAlertsGet(ctx, *id)
+	if err != nil {
+		return nil, fmt.Errorf("reading Monitor Activity Log Alert %s: %+v", *id, err)
+	}
+
+	return pointer.To(resp.Model != nil), nil
+}
+
+func (MonitorActivityLogAlertResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-monitor-%d"
+  location = "%s"
+}
+
+resource "azurerm_monitor_action_group" "test" {
+  name                = "acctestActionGroup-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag"
+}
+
+resource "azurerm_monitor_action_group" "test1" {
+  name                = "acctestActionGroup1-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag1"
+}
+
+resource "azurerm_monitor_action_group" "test2" {
+  name                = "acctestActionGroup2-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag2"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString)
+}
+
+// Template for tests that need subscription data and additional resources
+func (MonitorActivityLogAlertResource) templateWithSubscription(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+data "azurerm_subscription" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-monitor-%d"
+  location = "%s"
+}
+
+resource "azurerm_resource_group" "test2" {
+  name     = "acctestRG2-monitor-%d"
+  location = "%s"
+}
+
+resource "azurerm_monitor_action_group" "test1" {
+  name                = "acctestActionGroup1-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag1"
+}
+
+resource "azurerm_monitor_action_group" "test2" {
+  name                = "acctestActionGroup2-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag2"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestsa%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+
+resource "azurerm_storage_account" "test2" {
+  name                     = "acctestsec%s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString)
+}
+
 func (MonitorActivityLogAlertResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -337,7 +440,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
+  name     = "acctestRG-monitor-%d"
   location = "%s"
 }
 
@@ -371,30 +474,13 @@ resource "azurerm_monitor_activity_log_alert" "import" {
 `, r.basic(data))
 }
 
-func (MonitorActivityLogAlertResource) singleResource(data acceptance.TestData) string {
+func (r MonitorActivityLogAlertResource) singleResource(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_monitor_action_group" "test" {
-  name                = "acctestActionGroup-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  short_name          = "acctestag"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
+%s
 
 resource "azurerm_monitor_activity_log_alert" "test" {
   name                = "acctestActivityLogAlert-%d"
@@ -412,39 +498,16 @@ resource "azurerm_monitor_activity_log_alert" "test" {
     action_group_id = azurerm_monitor_action_group.test.id
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomString, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (MonitorActivityLogAlertResource) basicWebhook(data acceptance.TestData) string {
+func (r MonitorActivityLogAlertResource) basicWebhook(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_monitor_action_group" "test" {
-  name                = "acctestActionGroup-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  short_name          = "acctestag"
-}
-
-resource "azurerm_monitor_action_group" "test2" {
-  name                = "acctestActionGroup2-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  short_name          = "acctestag2"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
+%s
 
 resource "azurerm_monitor_activity_log_alert" "test" {
   name                = "acctestActivityLogAlert-%d"
@@ -473,39 +536,16 @@ resource "azurerm_monitor_activity_log_alert" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (MonitorActivityLogAlertResource) updateWebhook(data acceptance.TestData) string {
+func (r MonitorActivityLogAlertResource) updateWebhook(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_monitor_action_group" "test" {
-  name                = "acctestActionGroup-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  short_name          = "acctestag"
-}
-
-resource "azurerm_monitor_action_group" "test2" {
-  name                = "acctestActionGroup2-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  short_name          = "acctestag2"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
+%s
 
 resource "azurerm_monitor_activity_log_alert" "test" {
   name                = "acctestActivityLogAlert-%d"
@@ -536,39 +576,16 @@ resource "azurerm_monitor_activity_log_alert" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (MonitorActivityLogAlertResource) complete(data acceptance.TestData) string {
+func (r MonitorActivityLogAlertResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_monitor_action_group" "test1" {
-  name                = "acctestActionGroup1-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  short_name          = "acctestag1"
-}
-
-resource "azurerm_monitor_action_group" "test2" {
-  name                = "acctestActionGroup2-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  short_name          = "acctestag2"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
+%s
 
 resource "azurerm_monitor_activity_log_alert" "test" {
   name                = "acctestActivityLogAlert-%d"
@@ -614,47 +631,19 @@ resource "azurerm_monitor_activity_log_alert" "test" {
     ENV = "Test"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (MonitorActivityLogAlertResource) listCriteria(data acceptance.TestData) string {
+func (r MonitorActivityLogAlertResource) listCriteria(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_resource_group" "test2" {
-  name     = "acctestRG2-%[1]d"
-  location = "%[2]s"
-}
-
-data "azurerm_subscription" "current" {
-}
-
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_storage_account" "test2" {
-  name                     = "acctestsec%[3]s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
+%s
 
 resource "azurerm_monitor_activity_log_alert" "test" {
-  name                = "acctestActivityLogAlert-%[1]d"
+  name                = "acctestActivityLogAlert-%d"
   resource_group_name = azurerm_resource_group.test.name
   enabled             = true
   description         = "This is just a test acceptance."
@@ -677,39 +666,16 @@ resource "azurerm_monitor_activity_log_alert" "test" {
     sub_statuses       = ["Succeeded"]
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, r.templateWithSubscription(data), data.RandomInteger)
 }
 
-func (MonitorActivityLogAlertResource) criteria(data acceptance.TestData) string {
+func (r MonitorActivityLogAlertResource) criteria(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_monitor_action_group" "test1" {
-  name                = "acctestActionGroup1-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  short_name          = "acctestag1"
-}
-
-resource "azurerm_monitor_action_group" "test2" {
-  name                = "acctestActionGroup2-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  short_name          = "acctestag2"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
+%s
 
 resource "azurerm_monitor_activity_log_alert" "test" {
   name                = "acctestActivityLogAlert-%d"
@@ -745,42 +711,16 @@ resource "azurerm_monitor_activity_log_alert" "test" {
     ENV = "Test"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (MonitorActivityLogAlertResource) serviceHealth_basic(data acceptance.TestData) string {
+func (r MonitorActivityLogAlertResource) serviceHealth_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_subscription" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_monitor_action_group" "test1" {
-  name                = "acctestActionGroup1-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  short_name          = "acctestag1"
-}
-
-resource "azurerm_monitor_action_group" "test2" {
-  name                = "acctestActionGroup2-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  short_name          = "acctestag2"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
+%s
 
 resource "azurerm_monitor_activity_log_alert" "test" {
   name                = "acctestActivityLogAlert-%d"
@@ -815,42 +755,16 @@ resource "azurerm_monitor_activity_log_alert" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
+`, r.templateWithSubscription(data), data.RandomInteger)
 }
 
-func (MonitorActivityLogAlertResource) serviceHealth_update(data acceptance.TestData) string {
+func (r MonitorActivityLogAlertResource) serviceHealth_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_subscription" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_monitor_action_group" "test1" {
-  name                = "acctestActionGroup1-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  short_name          = "acctestag1"
-}
-
-resource "azurerm_monitor_action_group" "test2" {
-  name                = "acctestActionGroup2-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  short_name          = "acctestag2"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
+%s
 
 resource "azurerm_monitor_activity_log_alert" "test" {
   name                = "acctestActivityLogAlert-%d"
@@ -895,42 +809,16 @@ resource "azurerm_monitor_activity_log_alert" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
+`, r.templateWithSubscription(data), data.RandomInteger)
 }
 
-func (MonitorActivityLogAlertResource) serviceHealth_delete(data acceptance.TestData) string {
+func (r MonitorActivityLogAlertResource) serviceHealth_delete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-data "azurerm_subscription" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_monitor_action_group" "test1" {
-  name                = "acctestActionGroup1-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  short_name          = "acctestag1"
-}
-
-resource "azurerm_monitor_action_group" "test2" {
-  name                = "acctestActionGroup2-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  short_name          = "acctestag2"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
+%s
 
 resource "azurerm_monitor_activity_log_alert" "test" {
   name                = "acctestActivityLogAlert-%d"
@@ -960,39 +848,16 @@ resource "azurerm_monitor_activity_log_alert" "test" {
     }
   }
 }
-	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
+`, r.templateWithSubscription(data), data.RandomInteger)
 }
 
-func (MonitorActivityLogAlertResource) resourceHealth_basic(data acceptance.TestData) string {
+func (r MonitorActivityLogAlertResource) resourceHealth_basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_monitor_action_group" "test1" {
-  name                = "acctestActionGroup1-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  short_name          = "acctestag1"
-}
-
-resource "azurerm_monitor_action_group" "test2" {
-  name                = "acctestActionGroup2-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  short_name          = "acctestag2"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
+%s
 
 resource "azurerm_monitor_activity_log_alert" "test" {
   name                = "acctestActivityLogAlert-%d"
@@ -1028,39 +893,16 @@ resource "azurerm_monitor_activity_log_alert" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (MonitorActivityLogAlertResource) resourceHealth_update(data acceptance.TestData) string {
+func (r MonitorActivityLogAlertResource) resourceHealth_update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_monitor_action_group" "test1" {
-  name                = "acctestActionGroup1-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  short_name          = "acctestag1"
-}
-
-resource "azurerm_monitor_action_group" "test2" {
-  name                = "acctestActionGroup2-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  short_name          = "acctestag2"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
+%s
 
 resource "azurerm_monitor_activity_log_alert" "test" {
   name                = "acctestActivityLogAlert-%d"
@@ -1106,39 +948,16 @@ resource "azurerm_monitor_activity_log_alert" "test" {
     }
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (MonitorActivityLogAlertResource) resourceHealth_delete(data acceptance.TestData) string {
+func (r MonitorActivityLogAlertResource) resourceHealth_delete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_monitor_action_group" "test1" {
-  name                = "acctestActionGroup1-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  short_name          = "acctestag1"
-}
-
-resource "azurerm_monitor_action_group" "test2" {
-  name                = "acctestActionGroup2-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  short_name          = "acctestag2"
-}
-
-resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%s"
-  resource_group_name      = azurerm_resource_group.test.name
-  location                 = azurerm_resource_group.test.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
+%s
 
 resource "azurerm_monitor_activity_log_alert" "test" {
   name                = "acctestActivityLogAlert-%d"
@@ -1169,7 +988,7 @@ resource "azurerm_monitor_activity_log_alert" "test" {
     }
   }
 }
-	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (MonitorActivityLogAlertResource) location(data acceptance.TestData) string {
@@ -1196,16 +1015,61 @@ resource "azurerm_monitor_activity_log_alert" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
 
-func (t MonitorActivityLogAlertResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := activitylogalertsapis.ParseActivityLogAlertID(state.ID)
-	if err != nil {
-		return nil, err
-	}
+func (MonitorActivityLogAlertResource) recommendationCategorySecurity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
 
-	resp, err := clients.Monitor.ActivityLogAlertsClient.ActivityLogAlertsGet(ctx, *id)
-	if err != nil {
-		return nil, fmt.Errorf("reading (%s): %+v", *id, err)
-	}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-monitor-%d"
+  location = "westeurope" # Hardcoding location because resource type is only available in 'global, westeurope, northeurope and eastus2euap'
+}
 
-	return utils.Bool(resp.Model != nil), nil
+resource "azurerm_monitor_action_group" "test" {
+  name                = "acctestActionGroup-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag"
+}
+
+resource "azurerm_monitor_activity_log_alert" "test" {
+  name                = "acctestActivityLogAlert-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  scopes              = [azurerm_resource_group.test.id]
+
+  criteria {
+    category                = "Recommendation"
+    recommendation_category = "Security"
+  }
+
+  action {
+    action_group_id = azurerm_monitor_action_group.test.id
+  }
+}
+`, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (MonitorActivityLogAlertResource) regionInvalid(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-monitor-%d"
+  location = "%s"
+}
+
+resource "azurerm_monitor_activity_log_alert" "test" {
+  name                = "acctestActivityLogAlert-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  scopes              = [azurerm_resource_group.test.id]
+  location            = "westus2" # Hardcoding location to force CustomizeDiff error condition, resource type is only available in the 'global', 'westeurope', 'northeurope' and 'eastus2euap' regions
+
+  criteria {
+    category = "Recommendation"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
