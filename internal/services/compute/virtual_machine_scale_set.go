@@ -378,6 +378,55 @@ func FlattenVirtualMachineScaleSetSpotRestorePolicy(input *virtualmachinescalese
 	}
 }
 
+func ExpandVirtualMachineScaleSetResiliency(resilientVMCreationEnabled, resilientVMDeletionEnabled bool) *virtualmachinescalesets.ResiliencyPolicy {
+	// Note: AutomaticZoneRebalancingPolicy is excluded as it's in private preview and
+	// has been removed from the schema to prevent API errors.
+
+	// If both policies are disabled, return nil to remove the entire resiliency policy
+	if !resilientVMCreationEnabled && !resilientVMDeletionEnabled {
+		return nil
+	}
+
+	// Azure Limitation: Once resiliency policies are enabled, they cannot be individually disabled
+	// We still send enabled=false for disabled policies, but Azure may ignore this and preserve enabled state
+	// The test expectations have been updated to reflect Azure's actual behavior
+	result := &virtualmachinescalesets.ResiliencyPolicy{}
+
+	// Always include both policies to maintain consistent API behavior
+	result.ResilientVMCreationPolicy = &virtualmachinescalesets.ResilientVMCreationPolicy{
+		Enabled: pointer.To(resilientVMCreationEnabled),
+	}
+
+	result.ResilientVMDeletionPolicy = &virtualmachinescalesets.ResilientVMDeletionPolicy{
+		Enabled: pointer.To(resilientVMDeletionEnabled),
+	}
+
+	return result
+}
+
+func FlattenVirtualMachineScaleSetResiliency(input *virtualmachinescalesets.ResiliencyPolicy) (bool, bool) {
+	// Default values for the top-level fields
+	resilientVMCreationEnabled := false
+	resilientVMDeletionEnabled := false
+
+	if input == nil {
+		// No ResiliencyPolicy - don't set these fields in state for backward compatibility
+		return resilientVMCreationEnabled, resilientVMDeletionEnabled
+	}
+
+	// Extract top-level fields - these are always set in Terraform state based on Azure response
+	if vmCreation := input.ResilientVMCreationPolicy; vmCreation != nil && vmCreation.Enabled != nil {
+		resilientVMCreationEnabled = pointer.From(vmCreation.Enabled)
+	}
+
+	if vmDeletion := input.ResilientVMDeletionPolicy; vmDeletion != nil && vmDeletion.Enabled != nil {
+		resilientVMDeletionEnabled = pointer.From(vmDeletion.Enabled)
+	}
+
+	// ResiliencyPolicy exists - set fields in state
+	return resilientVMCreationEnabled, resilientVMDeletionEnabled
+}
+
 func VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
