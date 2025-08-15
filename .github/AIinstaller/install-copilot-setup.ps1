@@ -78,11 +78,52 @@ function Get-WorkspaceRoot {
 }
 
 # Global variables
+# Initialize workspace root - will be updated if RepoDirectory parameter is provided
 $Global:WorkspaceRoot = Get-WorkspaceRoot
 
-# Get dynamic configuration from manifest
-$ManifestConfig = Get-ManifestConfig
+# Override workspace root if RepoDirectory parameter is provided
+if ($RepoDirectory) {
+    if (Test-Path $RepoDirectory) {
+        # Validate that this looks like a terraform-provider-azurerm repository
+        $goModPath = Join-Path $RepoDirectory "go.mod"
+        $mainGoPath = Join-Path $RepoDirectory "main.go"
+        $internalPath = Join-Path $RepoDirectory "internal"
+        
+        if ((Test-Path $goModPath) -and (Test-Path $mainGoPath) -and (Test-Path $internalPath)) {
+            $Global:WorkspaceRoot = $RepoDirectory
+            Write-Host "Using repository directory: $RepoDirectory" -ForegroundColor Green
+        } else {
+            Write-Error "INVALID REPOSITORY: The specified directory does not appear to be a terraform-provider-azurerm repository."
+            Write-Host ""
+            Write-Host "ISSUE:" -ForegroundColor Red
+            Write-Host "  The -RepoDirectory parameter must point to a valid terraform-provider-azurerm repository root." -ForegroundColor Yellow
+            Write-Host ""
+            Write-Host "HOW TO FIX:" -ForegroundColor Cyan
+            Write-Host "  1. Ensure you're pointing to the repository ROOT directory" -ForegroundColor White
+            Write-Host "  2. Verify the directory contains terraform-provider-azurerm source code" -ForegroundColor White
+            Write-Host "  3. Example: -RepoDirectory 'C:\github.com\hashicorp\terraform-provider-azurerm'" -ForegroundColor White
+            Write-Host ""
+            exit 1
+        }
+    } else {
+        Write-Error "DIRECTORY NOT FOUND: The specified RepoDirectory does not exist."
+        Write-Host ""
+        Write-Host "ISSUE:" -ForegroundColor Red
+        Write-Host "  The path '$RepoDirectory' could not be found on this system." -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "HOW TO FIX:" -ForegroundColor Cyan
+        Write-Host "  1. Check the path spelling and ensure it exists" -ForegroundColor White
+        Write-Host "  2. Use an absolute path (e.g., 'C:\path\to\repo')" -ForegroundColor White
+        Write-Host "  3. Ensure you have permissions to access the directory" -ForegroundColor White
+        Write-Host ""
+        Write-Host "EXAMPLE USAGE:" -ForegroundColor Cyan
+        Write-Host "  .\install-copilot-setup.ps1 -RepoDirectory 'C:\github.com\hashicorp\terraform-provider-azurerm'" -ForegroundColor Gray
+        Write-Host ""
+        exit 1
+    }
+}
 
+# Initialize installer configuration after workspace root is finalized
 $Global:InstallerConfig = @{
     Version = "1.0.0"
     Branch = "exp/terraform_copilot"
@@ -113,6 +154,11 @@ $Global:InstallerConfig = @{
         }
     }
 }
+
+# Get dynamic configuration from manifest
+$ManifestConfig = Get-ManifestConfig
+
+# Note: InstallerConfig will be initialized after RepoDirectory parameter processing
 
 function Test-BranchType {
     <#
@@ -302,7 +348,6 @@ function Invoke-Bootstrap {
             Write-Host "  Total size: $totalSizeKB KB" -ForegroundColor "Green"
             Write-Host "  Location: $targetDirectory" -ForegroundColor "Green"
             Write-Host ""
-            
             Write-Host "NEXT STEPS:" -ForegroundColor "Cyan"
             Write-Host "  1. Switch to your feature branch:" -ForegroundColor "White"
             Write-Host "     git checkout feature/your-branch-name" -ForegroundColor "Gray"

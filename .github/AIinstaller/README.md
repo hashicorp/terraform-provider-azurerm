@@ -62,14 +62,20 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 # 2. Switch to your feature branch
 git checkout feature/your-branch-name
 
-# 3. Run installer from user profile
-& "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1"
+# 3. Run installer from user profile (MUST specify RepoDirectory)
+& "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -RepoDirectory "C:\github.com\hashicorp\terraform-provider-azurerm"
 ```
 
-### If you're on a feature branch:
+### If you're on a feature branch and have local installer:
 ```powershell
-# Run installer directly (if available locally)
+# Run installer directly (RepoDirectory auto-detected)
 .\install-copilot-setup.ps1
+```
+
+### If you're on a feature branch and using user profile installer:
+```powershell
+# MUST specify RepoDirectory when running from user profile
+& "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -RepoDirectory "C:\path\to\your\terraform-provider-azurerm"
 ```
 
 ## 📋 What Gets Installed
@@ -114,12 +120,30 @@ The installer sets up a complete AI development environment:
 | `.\install-copilot-setup.ps1 -Clean` | **Remove AI infrastructure** | Feature branches |
 | `.\install-copilot-setup.ps1 -Help` | **Show detailed help** | Any branch |
 
-### Modifiers
+### Parameters
 
-| Modifier | Description | Example |
-|----------|-------------|---------|
-| `-Auto-Approve` | Skip confirmation prompts | `.\install-copilot-setup.ps1 -Clean -Auto-Approve` |
-| `-Dry-Run` | Preview changes without applying | `.\install-copilot-setup.ps1 -Clean -Dry-Run` |
+| Parameter | Description | Required When | Example |
+|-----------|-------------|---------------|---------|
+| `-RepoDirectory` | **Specify repository path** | Running from user profile | `-RepoDirectory "C:\path\to\terraform-provider-azurerm"` |
+| `-Auto-Approve` | Skip confirmation prompts | Optional | `-Auto-Approve` |
+| `-Dry-Run` | Preview changes without applying | Optional | `-Dry-Run` |
+
+### 🚨 Important: `-RepoDirectory` Parameter
+
+When running the installer **from your user profile** (after bootstrap), you **MUST** specify the `-RepoDirectory` parameter:
+
+```powershell
+# ✅ CORRECT: Running from user profile with RepoDirectory
+& "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -RepoDirectory "C:\github.com\hashicorp\terraform-provider-azurerm"
+
+# ❌ INCORRECT: Running from user profile without RepoDirectory
+& "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1"
+```
+
+**Why is this required?**
+- The installer needs to know where your git repository is located
+- Enables proper branch detection and workspace validation  
+- Ensures files are installed in the correct repository directory
 
 ## 🌊 Workflow Overview
 
@@ -196,20 +220,26 @@ AIinstaller/
 
 ### Check Current Status
 ```powershell
-# See what's installed and what's missing
+# From local installer (auto-detects repository)
 .\install-copilot-setup.ps1 -Verify
+
+# From user profile installer (must specify repository)
+& "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -Verify -RepoDirectory "C:\github.com\hashicorp\terraform-provider-azurerm"
 ```
 
 ### Clean Installation
 ```powershell
-# Remove all AI infrastructure (with confirmation)
+# From local installer (auto-detects repository)
 .\install-copilot-setup.ps1 -Clean
+
+# From user profile installer (must specify repository)
+& "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -Clean -RepoDirectory "C:\github.com\hashicorp\terraform-provider-azurerm"
 
 # Remove without prompts
 .\install-copilot-setup.ps1 -Clean -Auto-Approve
 
-# Preview what would be removed
-.\install-copilot-setup.ps1 -Clean -Dry-Run
+# Preview what would be removed (with RepoDirectory)
+& "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -Clean -Dry-Run -RepoDirectory "C:\github.com\hashicorp\terraform-provider-azurerm"
 ```
 
 ### Bootstrap for Multiple Feature Branches
@@ -217,9 +247,11 @@ AIinstaller/
 # One-time setup from source branch
 .\install-copilot-setup.ps1 -Bootstrap
 
-# Then use from any feature branch
-cd C:\your-terraform-projects\another-azurerm-fork
-& "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1"
+# Then use from any feature branch (MUST specify RepoDirectory)
+& "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -RepoDirectory "C:\github.com\hashicorp\terraform-provider-azurerm"
+
+# For different repository locations
+& "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -RepoDirectory "C:\your-projects\another-azurerm-fork"
 ```
 
 ## 🛠️ Troubleshooting
@@ -232,15 +264,20 @@ cd C:\your-terraform-projects\another-azurerm-fork
 #### ❌ "Clean operation not available on source branch"
 **Solution**: Switch to a feature branch before running clean operations.
 
+#### ❌ "DIRECTORY NOT FOUND: The specified RepoDirectory does not exist"
+**Solution**: 
+- Check the path spelling and ensure it exists
+- Use an absolute path (e.g., `C:\path\to\repo`)
+- Ensure you have permissions to access the directory
+
+#### ❌ "INVALID REPOSITORY: The specified directory does not appear to be a terraform-provider-azurerm repository"
+**Solution**:
+- Ensure you're pointing to the repository ROOT directory
+- Verify the directory contains `go.mod`, `main.go`, and `internal/` folder
+- Example: `-RepoDirectory 'C:\github.com\hashicorp\terraform-provider-azurerm'`
+
 #### ❌ Module import errors
 **Solution**: Ensure you're running from the correct directory with all PowerShell modules present.
-
-### Debug Mode
-
-```powershell
-# Check module loading
-Get-Module ConfigParser, FileOperations, ValidationEngine, UI
-```
 
 ### Manual Recovery
 
