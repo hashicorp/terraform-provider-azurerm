@@ -320,132 +320,6 @@ function Test-GitRepository {
     return $results
 }
 
-function Get-InstallationConfig {
-    <#
-    .SYNOPSIS
-    Get installation configuration for the specified branch
-    #>
-    param(
-        [string]$Branch = "exp/terraform_copilot"
-    )
-    
-    # This would normally load from a configuration file or API
-    # For now, return a basic structure
-    return @{
-        Branch = $Branch
-        Files = @{
-            ".github\AIinstaller\powershell\Install-AIInfrastructure.ps1" = @{
-                Required = $true
-                Type = "Script"
-                Description = "Main installation script"
-            }
-            ".github\AIinstaller\modules\powershell\UI.psm1" = @{
-                Required = $true
-                Type = "Module"
-                Description = "UI helper functions"
-            }
-            ".github\AIinstaller\powershell\modules\ValidationEngine.psm1" = @{
-                Required = $true
-                Type = "Module"
-                Description = "Validation engine"
-            }
-        }
-        RequiredDirectories = @(
-            ".github\AIinstaller",
-            ".github\AIinstaller\powershell",
-            ".github\AIinstaller\powershell\modules"
-        )
-    }
-}
-
-function Get-WorkspaceStatus {
-    <#
-    .SYNOPSIS
-    Get current workspace installation status
-    #>
-    
-    $config = Get-InstallationConfig
-    $installedCount = 0
-    $missingFiles = @()
-    
-    foreach ($filePath in $config.Files.Keys) {
-        if (Test-Path $filePath) {
-            $installedCount++
-        }
-        else {
-            $missingFiles += $filePath
-        }
-    }
-    
-    return @{
-        TotalFiles = $config.Files.Count
-        InstalledCount = $installedCount
-        MissingFiles = $missingFiles
-        InstallationComplete = $installedCount -eq $config.Files.Count
-    }
-}
-
-function Test-FileIntegrity {
-    <#
-    .SYNOPSIS
-    Test file integrity (basic file validation)
-    #>
-    param(
-        [string]$FilePath
-    )
-    
-    $results = @{
-        Valid = $false
-        Message = ""
-        Size = 0
-    }
-    
-    try {
-        if (Test-Path $FilePath) {
-            $fileInfo = Get-Item $FilePath
-            $results.Size = $fileInfo.Length
-            
-            # Basic integrity check - file exists and has content
-            if ($fileInfo.Length -gt 0) {
-                $results.Valid = $true
-                $results.Message = "File integrity verified"
-            }
-            else {
-                $results.Message = "File is empty"
-            }
-        }
-        else {
-            $results.Message = "File does not exist"
-        }
-    }
-    catch {
-        $results.Message = "Error checking file integrity: $($_.Exception.Message)"
-    }
-    
-    return $results
-}
-
-function Test-FileUpToDate {
-    <#
-    .SYNOPSIS
-    Test if file is up to date with remote version
-    #>
-    param(
-        [string]$FilePath,
-        [string]$Branch = "exp/terraform_copilot"
-    )
-    
-    # For now, assume files are up to date if they exist
-    # This would normally check against remote repository
-    return @{
-        UpToDate = Test-Path $FilePath
-        LastChecked = Get-Date
-        RemoteVersion = "unknown"
-        LocalVersion = "unknown"
-        Message = if (Test-Path $FilePath) { "File exists" } else { "File missing" }
-    }
-}
-
 #endregion
 
 #region Public Functions
@@ -899,11 +773,7 @@ Export-ModuleMember -Function @(
     'Get-ValidationReport',
     'Test-InternetConnectivity',
     'Test-WorkspaceValid',
-    'Test-GitRepository',
-    'Get-InstallationConfig',
-    'Get-WorkspaceStatus',
-    'Test-FileIntegrity',
-    'Test-FileUpToDate'
+    'Test-GitRepository'
 )
 
 #endregion

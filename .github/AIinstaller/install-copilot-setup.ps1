@@ -692,35 +692,35 @@ function Main {
         Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
         
         if ($isSourceBranch) {
-            Write-Host "🚀 WELCOME TO AI-POWERED TERRAFORM DEVELOPMENT!" -ForegroundColor "Cyan"
+            Write-Host "WELCOME TO AI-POWERED TERRAFORM DEVELOPMENT!" -ForegroundColor "Cyan"
             Write-Host ""
             Write-Host "You're running from the source branch ($($Global:InstallerConfig.Branch))." -ForegroundColor "White"
             Write-Host "To get started with AI infrastructure on your feature branch:" -ForegroundColor "White"
             Write-Host ""
             
-            Write-Host "📋 QUICK START (Recommended):" -ForegroundColor "Green"
+            Write-Host "QUICK START (Recommended):" -ForegroundColor "Green"
             Write-Host "  Run the bootstrap command to set up the installer:" -ForegroundColor "White"
             Write-Host "  .\install-copilot-setup.ps1 -Bootstrap" -ForegroundColor "Yellow"
             Write-Host ""
             
-            Write-Host "📝 MANUAL WORKFLOW:" -ForegroundColor "Cyan"
+            Write-Host "MANUAL WORKFLOW:" -ForegroundColor "Cyan"
             Write-Host "  1. Bootstrap: .\install-copilot-setup.ps1 -Bootstrap" -ForegroundColor "Gray"
             Write-Host "  2. Switch branch: git checkout feature/your-branch-name" -ForegroundColor "Gray"
             Write-Host "  3. Install: Run installer from user profile" -ForegroundColor "Gray"
             Write-Host ""
             
-            Write-Host "🔍 OTHER OPTIONS:" -ForegroundColor "White"
+            Write-Host "OTHER OPTIONS:" -ForegroundColor "White"
             Write-Host "  -Verify       Check current workspace status" -ForegroundColor "Gray"
             Write-Host "  -Help         Show detailed help information" -ForegroundColor "Gray"
             Write-Host ""
             
             # Interactive prompt for better UX
-            Write-Host "❓ Would you like to run bootstrap now? [Y/n]: " -NoNewline -ForegroundColor "Yellow"
+            Write-Host "Would you like to run bootstrap now? [Y/n]: " -NoNewline -ForegroundColor "Yellow"
             $response = Read-Host
             
             if ($response -eq "" -or $response -eq "y" -or $response -eq "Y") {
                 Write-Host ""
-                Write-Host "🔄 Running bootstrap automatically..." -ForegroundColor "Green"
+                Write-Host "Running bootstrap automatically..." -ForegroundColor "Green"
                 
                 $result = Invoke-Bootstrap
                 if (-not $result.Success) {
@@ -729,8 +729,8 @@ function Main {
                 return
             } else {
                 Write-Host ""
-                Write-Host "ℹ️  No problem! Run with -Bootstrap when you're ready." -ForegroundColor "Cyan"
-                Write-Host "   Or use -Help for more information." -ForegroundColor "Cyan"
+                Write-Host "No problem! Run with -Bootstrap when you're ready." -ForegroundColor "Cyan"
+                Write-Host "Or use -Help for more information." -ForegroundColor "Cyan"
             }
         } else {
             Write-Host "FEATURE BRANCH DETECTED" -ForegroundColor "Cyan"
