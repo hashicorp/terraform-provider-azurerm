@@ -29,6 +29,19 @@ The installer provides a **clean, professional output** focused on what matters:
 
 ## 🚀 Getting Started
 
+### 📁 Directory Requirements
+
+**Important**: The installer workflow has two phases:
+
+**Phase 1 - Bootstrap (one-time setup):**
+- Run `.\.github\AIinstaller\install-copilot-setup.ps1 -Bootstrap` from repository root on source branch
+- This copies the installer to `$env:USERPROFILE\.terraform-ai-installer`
+
+**Phase 2 - All subsequent operations (after bootstrap):**
+- Run from anywhere using: `& "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1"`
+- **MUST** always specify `-RepoDirectory "C:\path\to\your\terraform-provider-azurerm"`
+- Works from any directory, any branch
+
 ### 📋 Prerequisites
 
 Before using the AI-powered development features, ensure you have the following VS Code extensions installed:
@@ -114,16 +127,10 @@ git checkout feature/your-branch-name
 & "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -RepoDirectory "C:\github.com\hashicorp\terraform-provider-azurerm"
 ```
 
-### If you're on a feature branch and have local installer:
+### If you're on a feature branch (after bootstrap):
 ```powershell
-# Run installer directly (RepoDirectory auto-detected)
-.\install-copilot-setup.ps1
-```
-
-### If you're on a feature branch and using user profile installer:
-```powershell
-# MUST specify RepoDirectory when running from user profile
-& "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -RepoDirectory "C:\path\to\your\terraform-provider-azurerm"
+# All operations run from user profile installer with -RepoDirectory
+& "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -RepoDirectory "C:\github.com\hashicorp\terraform-provider-azurerm"
 ```
 
 ## 📋 What Gets Installed
@@ -199,11 +206,11 @@ Simply use slash commands to invoke the prompts directly:
 
 | Command | Description | Available On |
 |---------|-------------|--------------|
-| `.\install-copilot-setup.ps1` | **Install AI infrastructure** | Feature branches |
-| `.\.github\AIinstaller\install-copilot-setup.ps1 -Bootstrap` | **Copy installer to user profile** | Source branch only |
-| `.\install-copilot-setup.ps1 -Verify` | **Check installation status** | Any branch |
-| `.\install-copilot-setup.ps1 -Clean` | **Remove AI infrastructure** | Feature branches |
-| `.\install-copilot-setup.ps1 -Help` | **Show detailed help** | Any branch |
+| `.\.github\AIinstaller\install-copilot-setup.ps1 -Bootstrap` | **Copy installer to user profile** (run from repository root) | Source branch only |
+| `& "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -RepoDirectory "C:\path\to\repo"` | **Install AI infrastructure** (run from anywhere after bootstrap) | Feature branches |
+| `& "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -Verify -RepoDirectory "C:\path\to\repo"` | **Check installation status** (run from anywhere after bootstrap) | Any branch |
+| `& "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -Clean -RepoDirectory "C:\path\to\repo"` | **Remove AI infrastructure** (run from anywhere after bootstrap) | Feature branches |
+| `& "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -Help` | **Show detailed help** (run from anywhere after bootstrap) | Any branch |
 
 ### Parameters
 
@@ -384,32 +391,26 @@ Combine multiple commands for complex tasks:
 
 ### Check Current Status
 ```powershell
-# From local installer (auto-detects repository)
-.\install-copilot-setup.ps1 -Verify
-
-# From user profile installer (must specify repository)
+# After bootstrap - run from anywhere using user profile installer
 & "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -Verify -RepoDirectory "C:\github.com\hashicorp\terraform-provider-azurerm"
 ```
 
 ### Clean Installation
 ```powershell
-# From local installer (auto-detects repository)
-.\install-copilot-setup.ps1 -Clean
-
-# From user profile installer (must specify repository)
+# After bootstrap - run from anywhere using user profile installer
 & "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -Clean -RepoDirectory "C:\github.com\hashicorp\terraform-provider-azurerm"
 
 # Remove without prompts
-.\install-copilot-setup.ps1 -Clean -Auto-Approve
+& "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -Clean -Auto-Approve -RepoDirectory "C:\github.com\hashicorp\terraform-provider-azurerm"
 
-# Preview what would be removed (with RepoDirectory)
+# Preview what would be removed
 & "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -Clean -Dry-Run -RepoDirectory "C:\github.com\hashicorp\terraform-provider-azurerm"
 ```
 
 ### Bootstrap for Multiple Feature Branches
 ```powershell
-# One-time setup from source branch
-.\install-copilot-setup.ps1 -Bootstrap
+# One-time setup from source branch (run from repository root)
+.\.github\AIinstaller\install-copilot-setup.ps1 -Bootstrap
 
 # Then use from any feature branch (MUST specify RepoDirectory)
 & "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -RepoDirectory "C:\github.com\hashicorp\terraform-provider-azurerm"
@@ -457,63 +458,12 @@ git pull origin exp/terraform_copilot
 git switch your-feature-branch
 ```
 
-## 🎯 Advanced Usage
-
-### Automation Scripts
-
-```powershell
-# Automated setup for CI/CD
-$params = @{
-    'Auto-Approve' = $true
-    'Verify' = $true
-}
-& .\install-copilot-setup.ps1 @params
-```
-
-### Custom Installation Paths
-
-The installer respects environment variables:
-- `$env:USERPROFILE\.terraform-ai-installer` - Bootstrap location
-- Target paths are defined in the configuration manifest
-
-### Integration with Other Tools
-
-```powershell
-# Check if AI infrastructure is installed (returns boolean)
-$result = .\install-copilot-setup.ps1 -Verify
-$isInstalled = $result.Success -and ($result.Issues.Count -eq 0)
-```
-
 ## 📚 Additional Resources
 
 - **[Implementation Guide](.github/instructions/implementation-guide.instructions.md)** - Complete coding standards
 - **[Testing Guidelines](.github/instructions/testing-guidelines.instructions.md)** - Testing requirements
 - **[Azure Patterns](.github/instructions/azure-patterns.instructions.md)** - Azure-specific development patterns
 - **[Troubleshooting Guide](.github/instructions/troubleshooting-decision-trees.instructions.md)** - Debugging workflows
-
-## 🤝 Contributing
-
-### Development Setup
-
-1. Fork the repository
-2. Switch to `exp/terraform_copilot` branch
-3. Make changes to installer files
-4. Test with `-Bootstrap` and feature branch installation
-5. Submit pull request
-
-### Testing Changes
-
-```powershell
-# Test bootstrap functionality
-.\.github\AIinstaller\install-copilot-setup.ps1 -Bootstrap
-
-# Test installation on clean feature branch
-git checkout -b test/installer-changes
-& "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -Dry-Run
-
-# Test cleanup
-& "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -Clean -Dry-Run
-```
 
 ## 📄 License
 
