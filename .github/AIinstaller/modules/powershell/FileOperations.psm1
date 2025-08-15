@@ -180,7 +180,7 @@ function Install-AllAIFiles {
         OverallSuccess = $true
     }
     
-    Write-Progress -Activity "Installing AI Infrastructure" -Status "Preparing..." -PercentComplete 0
+    Write-ProgressMessage -Activity "Installing AI Infrastructure" -Status "Preparing..." -PercentComplete 0
     
     $fileIndex = 0
     foreach ($filePath in $config.Files.Keys) {
@@ -189,7 +189,7 @@ function Install-AllAIFiles {
         $downloadUrl = $config.BaseUrl + $fileInfo.Url
         
         $percentComplete = [math]::Round(($fileIndex / $config.Files.Count) * 100)
-        Write-Progress -Activity "Installing AI Infrastructure" -Status "Processing: $filePath" -PercentComplete $percentComplete
+        Write-ProgressMessage -Activity "Installing AI Infrastructure" -Status "Processing: $filePath" -PercentComplete $percentComplete
         
         $fileResult = Install-AIFile -FilePath $filePath -DownloadUrl $downloadUrl -Force $Force -DryRun $DryRun
         $results.Files[$filePath] = $fileResult
@@ -204,7 +204,7 @@ function Install-AllAIFiles {
         }
     }
     
-    Write-Progress -Activity "Installing AI Infrastructure" -Completed
+    Write-ProgressMessage -Activity "Installing AI Infrastructure" -Status "Completed"
     
     return $results
 }
@@ -278,14 +278,14 @@ function Remove-AllAIFiles {
         OverallSuccess = $true
     }
     
-    Write-Progress -Activity "Removing AI Infrastructure" -Status "Preparing..." -PercentComplete 0
+    Write-ProgressMessage -Activity "Removing AI Infrastructure" -Status "Preparing..." -PercentComplete 0
     
     # Remove files
     $fileIndex = 0
     foreach ($filePath in $config.Files.Keys) {
         $fileIndex++
         $percentComplete = [math]::Round(($fileIndex / $config.Files.Count) * 50)
-        Write-Progress -Activity "Removing AI Infrastructure" -Status "Removing: $filePath" -PercentComplete $percentComplete
+        Write-ProgressMessage -Activity "Removing AI Infrastructure" -Status "Removing: $filePath" -PercentComplete $percentComplete
         
         $fileResult = Remove-AIFile -FilePath $filePath -DryRun $DryRun
         $results.Files[$filePath] = $fileResult
@@ -301,7 +301,7 @@ function Remove-AllAIFiles {
     }
     
     # Remove empty directories
-    Write-Progress -Activity "Removing AI Infrastructure" -Status "Cleaning up directories..." -PercentComplete 75
+    Write-ProgressMessage -Activity "Removing AI Infrastructure" -Status "Cleaning up directories..." -PercentComplete 75
     
     $directoriesToCheck = @(
         ".github/instructions",
@@ -347,7 +347,7 @@ function Remove-AllAIFiles {
         $results.Directories[$dir] = $dirResult
     }
     
-    Write-Progress -Activity "Removing AI Infrastructure" -Completed
+    Write-ProgressMessage -Activity "Removing AI Infrastructure" -Status "Completed"
     
     return $results
 }
