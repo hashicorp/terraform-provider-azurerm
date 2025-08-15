@@ -122,6 +122,6 @@ terraform import azurerm_policy_set_definition.example /subscriptions/00000000-0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Authorization`: 2025-01-01
+* `Microsoft.Authorization` - 2025-01-01
 
-* `Microsoft.Management`: 2025-01-01
+* `Microsoft.Management` - 2025-01-01

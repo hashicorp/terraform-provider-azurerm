@@ -131,4 +131,4 @@ terraform import azurerm_eventhub.eventhub1 /subscriptions/00000000-0000-0000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.EventHub`: 2024-01-01
+* `Microsoft.EventHub` - 2024-01-01

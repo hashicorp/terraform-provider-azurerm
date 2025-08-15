@@ -100,4 +100,4 @@ terraform import azurerm_notification_hub_authorization_rule.rule1 /subscription
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.NotificationHubs`: 2023-09-01
+* `Microsoft.NotificationHubs` - 2023-09-01

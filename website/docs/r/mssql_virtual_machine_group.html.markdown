@@ -98,4 +98,4 @@ terraform import azurerm_mssql_virtual_machine_group.example /subscriptions/0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.SqlVirtualMachine`: 2023-10-01
+* `Microsoft.SqlVirtualMachine` - 2023-10-01

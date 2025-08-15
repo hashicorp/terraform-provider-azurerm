@@ -75,4 +75,4 @@ terraform import azurerm_cosmosdb_postgresql_firewall_rule.example /subscription
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DBforPostgreSQL`: 2022-11-08
+* `Microsoft.DBforPostgreSQL` - 2022-11-08
