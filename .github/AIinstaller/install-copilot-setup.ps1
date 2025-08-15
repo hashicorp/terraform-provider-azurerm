@@ -28,6 +28,10 @@ param(
     [switch]$Help
 )
 
+# Suppress verbose output during module loading to keep output clean
+$OriginalVerbosePreference = $VerbosePreference
+$VerbosePreference = 'SilentlyContinue'
+
 # Import required modules
 $ModulesPath = Join-Path $PSScriptRoot "modules\powershell"
 $RequiredModules = @(
@@ -40,12 +44,16 @@ $RequiredModules = @(
 foreach ($module in $RequiredModules) {
     $modulePath = Join-Path $ModulesPath "$module.psm1"
     if (Test-Path $modulePath) {
-        Import-Module $modulePath -Force
+        # Suppress verbose output during module import using stream redirection
+        Import-Module $modulePath -Force -DisableNameChecking 4>$null
     } else {
         Write-ErrorMessage "Required module '$module' not found at: $modulePath"
         exit 1
     }
 }
+
+# Restore original verbose preference after module loading
+$VerbosePreference = $OriginalVerbosePreference
 
 # Helper function to get workspace root
 function Get-WorkspaceRoot {
@@ -581,7 +589,11 @@ function Invoke-VerifyWorkspace {
             
             if (-not $isSourceRepo) {
                 Write-Host ""
-                Write-Host "TIP: To install missing files, run: .\install-copilot-setup.ps1" -ForegroundColor Cyan
+                if ($RepoDirectory) {
+                    Write-Host "TIP: To install missing files, run: .\install-copilot-setup.ps1 -RepoDirectory `"$RepoDirectory`"" -ForegroundColor Cyan
+                } else {
+                    Write-Host "TIP: To install missing files, run: .\install-copilot-setup.ps1 -RepoDirectory `"<path-to-your-repo>`"" -ForegroundColor Cyan
+                }
             }
         } else {
             if ($isSourceRepo) {
@@ -608,60 +620,29 @@ function Invoke-CleanWorkspace {
         Write-Host ""
     }
     
-    $filesToRemove = @()
-    
-    # Add main instructions file
-    if (Test-Path $Global:InstallerConfig.Files.Instructions.Target) {
-        $filesToRemove += $Global:InstallerConfig.Files.Instructions.Target
-    }
-    
-    # Add instruction files directory and its contents
-    $instructionsDir = $Global:InstallerConfig.Files.InstructionFiles.Target
-    if (Test-Path $instructionsDir) {
-        $filesToRemove += $instructionsDir
-    }
-    
-    # Add prompt files directory and its contents
-    $promptsDir = $Global:InstallerConfig.Files.PromptFiles.Target
-    if (Test-Path $promptsDir) {
-        $filesToRemove += $promptsDir
-    }
-    
-    # Add VS Code settings (if they were installed by this tool)
-    # Note: We don't remove .vscode/settings.json as it may contain user settings
-    
-    if ($filesToRemove.Count -eq 0) {
-        Write-Host "No AI infrastructure files found to remove." -ForegroundColor Yellow
-        return @{ Success = $true }
-    }
-    
-    Write-Host "Files to remove:" -ForegroundColor White
-    foreach ($file in $filesToRemove) {
-        Write-Host "  - $file" -ForegroundColor Gray
-    }
-    Write-Host ""
-    
-    if (-not $AutoApprove -and -not $DryRun) {
-        $confirm = Read-Host "Remove these files? (y/N)"
-        if ($confirm -ne 'y' -and $confirm -ne 'Y') {
-            Write-Host "Operation cancelled." -ForegroundColor Yellow
-            return @{ Success = $false }
-        }
-    }
-    
-    if (-not $DryRun) {
-        foreach ($file in $filesToRemove) {
-            try {
-                Remove-Item $file -Recurse -Force
-                Write-Host "  Removed: $file" -ForegroundColor Green
-            }
-            catch {
-                Write-Host "  Failed to remove: $file - $($_.Exception.Message)" -ForegroundColor Red
+    # Use the FileOperations module to properly remove all AI files
+    try {
+        $result = Remove-AllAIFiles -Force:$AutoApprove -DryRun:$DryRun -WorkspaceRoot $Global:WorkspaceRoot
+        
+        if ($result.Success) {
+            Write-Host ""
+            Write-Success "Clean operation completed successfully!"
+            Write-Host "  Files removed: $($result.FilesRemoved)" -ForegroundColor Green
+            Write-Host "  Directories cleaned: $($result.DirectoriesCleaned)" -ForegroundColor Green
+        } else {
+            Write-Host ""
+            Write-WarningMessage "Clean operation encountered issues:"
+            foreach ($issue in $result.Issues) {
+                Write-Host "  - $issue" -ForegroundColor Red
             }
         }
+        
+        return $result
     }
-    
-    return @{ Success = $true }
+    catch {
+        Write-ErrorMessage "Failed to clean workspace: $($_.Exception.Message)"
+        return @{ Success = $false; Issues = @($_.Exception.Message) }
+    }
 }
 
 function Invoke-InstallInfrastructure {
