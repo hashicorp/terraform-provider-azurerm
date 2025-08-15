@@ -173,7 +173,7 @@ func (AutonomousDatabaseCloneFromDatabaseResource) Arguments() map[string]*plugi
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ValidateCloneWorkloadType,
+			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForWorkloadType(), false),
 		},
 
 		"display_name": {

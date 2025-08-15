@@ -29,7 +29,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of this autonomous database clone from backup.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the autonomous database clone from backup exists.
+* `resource_group_name` - (Required) The name of the Resource Group where the Autonomous Database Clone exists.
 
 ## Attributes Reference
 
@@ -37,41 +37,41 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the autonomous database clone from backup.
 
-* `actual_used_data_storage_size_in_tb` -  The current amount of storage in use for user and system data, in terabytes (TB).
+* `actual_used_data_storage_size_in_tb` -  The current amount of storage in use for user and system data in terabytes.
 
-* `allocated_storage_size_in_tbs` - The amount of storage currently allocated for the database tables and billed for, rounded up. When auto-scaling is not enabled, this value is equal to the `dataStorageSizeInTBs` value. You can compare this value to the `actualUsedDataStorageSizeInTBs` value to determine if a manual shrink operation is appropriate for your allocated storage.
+* `allocated_storage_size_in_tb` - The amount of storage currently allocated for the database tables and billed for, rounded up. When auto-scaling is not enabled, this value is equal to the `data_storage_size_in_tb` value. You can compare this value to the `data_storage_size_in_gb` value to determine if a manual shrink operation is appropriate for your allocated storage.
 
-* `allowed_ips` - The client IP access control list (ACL). This feature is available for [Autonomous Database Serverless] (https://docs.oracle.com/en/cloud/paas/autonomous-database/index.html) and on Exadata Cloud@Customer. Only clients connecting from an IP address included in the ACL may access the Autonomous Database instance. If `arePrimaryWhitelistedIpsUsed` is 'TRUE' then Autonomous Database uses this primary's IP access control list (ACL) for the disaster recovery peer called `standbywhitelistedips`..
+* `allowed_ips` - A list of IP addresses on the access control list.
 
-* `auto_scaling_enabled` - Indicates if auto-scaling is enabled for the Autonomous Database CPU core count.
+* `auto_scaling_enabled` - Whether auto-scaling is enabled for the Autonomous Database CPU core count.
 
-* `auto_scaling_for_storage_enabled` - Indicates if auto-scaling is enabled for the Autonomous Database storage.
+* `auto_scaling_for_storage_enabled` - Whether auto-scaling is enabled for the Autonomous Database storage.
 
-* `autonomous_database_id` - The database [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm).
+* `available_upgrade_versions` - A list of Oracle Database versions available for a database upgrade. If there are no version upgrades available, this list is empty.
 
-* `available_upgrade_versions` - List of Oracle Database versions available for a database upgrade. If there are no version upgrades available, this list is empty.
-
-* `backup_retention_period_in_days` - Retention period, in days, for backups.
+* `backup_retention_period_in_days` - The backup retention period in days.
 
 * `character_set` - The character set for the autonomous database.
 
 * `compute_count` - The compute amount (CPUs) available to the database.
 
-* `cpu_core_count` - The number of CPU cores to be made available to the database. When the ECPU is selected, the value for cpuCoreCount is 0. For Autonomous Database on Dedicated Exadata infrastructure, the maximum number of cores is determined by the infrastructure shape. See [Characteristics of Infrastructure Shapes](https://www.oracle.com/pls/topic/lookup?ctx=en/cloud/paas/autonomous-database&id=ATPFG-GUID-B0F033C1-CC5A-42F0-B2E7-3CECFEDA1FD1) for shape details.
+* `cpu_core_count` - The number of CPU cores available to the database. When the ECPU is selected, the value for cpuCoreCount is 0.
+
+-> **Note:** For Autonomous Databases on Dedicated Exadata infrastructure, the maximum number of cores is determined by the infrastructure shape. See [Characteristics of Infrastructure Shapes](https://docs.oracle.com/en/cloud/paas/autonomous-database/dedicated/adbde/index.html#GUID-944C9B72-CE8D-48EE-88FB-FDF2A8CB988B) for shape details.
 
 * `customer_contacts` - A `customer_contacts` block as defined below.
 
-* `data_storage_size_in_gb` - The quantity of data in the database, in gigabytes.
+* `data_storage_size_in_gb` - The quantity of data in the database in gigabytes.
 
-* `data_storage_size_in_tb` - The maximum storage that can be allocated for the database, in terabytes.
+* `data_storage_size_in_tb` - The maximum storage that can be allocated for the database in terabytes.
 
-* `db_version` - A valid Oracle Database version for Autonomous Database.
+* `db_version` - The Oracle Database version for Autonomous Database.
 
-* `display_name` - The user-friendly name for the Autonomous Database. The name does not have to be unique.
+* `display_name` - The display name for the Autonomous Database.
 
 * `failed_data_recovery_in_seconds` - Indicates the number of seconds of data loss for Data Guard failover.
 
-* `in_memory_area_in_gbs` - The area assigned to In-Memory tables in Autonomous Database.
+* `in_memory_area_in_gb` - The area assigned to In-Memory tables in Autonomous Database.
 
 * `lifecycle_details` - Information about the current lifecycle state.
 
@@ -81,13 +81,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `location` - The Azure Region where the autonomous database cloned from backup exists.
 
-* `memory_per_oracle_compute_unit_in_gbs` - The amount of memory (in GBs) enabled per ECPU or OCPU.
+* `memory_per_oracle_compute_unit_in_gb` - The amount of memory in gigabytes per ECPU or OCPU.
 
 * `mtls_connection_required` - Specifies if the Autonomous Database requires mTLS connections.
 
-* `national_character_set` - The national character set for the autonomous database.  The default is AL16UTF16. Allowed values are: AL16UTF16 or UTF8.
+* `national_character_set` - The national character set for the autonomous database.
 
-* `next_long_term_backup_time_stamp` -  The date and time when the next long-term backup would be created.
+* `next_long_term_backup_time_stamp` -  The timestamp when the next long-term backup would be created.
 
 * `oci_url` - The URL of the resource in the OCI console.
 
@@ -113,41 +113,41 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `source_autonomous_database_id` - The Id of the source Autonomous Database from which this clone was created.
 
-* `sql_web_developer_url` - The URL of the SQL web developer.
+* `sql_web_developer_url` - The URL of the SQL web developer portal.
 
-* `subnet_id` - The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the subnet the resource is associated with.
+* `subnet_id` - The ID to an Azure Resource Manager subnet the resource is associated with.
 
 * `supported_regions_to_clone_to` - The list of regions that support the creation of an Autonomous Database clone or an Autonomous Data Guard standby database.
 
 * `tags` - A mapping of tags assigned to the autonomous database clone from backup.
 
-* `time_created` - The date and time the Autonomous Database was created.
+* `time_created` - The timestamp the Autonomous Database was created.
 
-* `time_data_guard_role_changed` - The date and time the Autonomous Data Guard role was switched for the Autonomous Database. For databases that have standbys in both the primary Data Guard region and a remote Data Guard standby region, this is the latest timestamp of either the database using the "primary" role in the primary Data Guard region, or database located in the remote Data Guard standby region.
+* `time_data_guard_role_changed` - The timestamp the Autonomous Data Guard role was switched for the Autonomous Database. For databases that have standbys in both the primary Data Guard region and a remote Data Guard standby region, this is the latest timestamp of either the database using the "primary" role in the primary Data Guard region, or database located in the remote Data Guard standby region.
 
-* `time_deletion_of_free_autonomous_database` - The date and time the Always Free database will be automatically deleted because of inactivity. If the database is in the STOPPED state and without activity until this time, it will be deleted.
+* `time_deletion_of_free_autonomous_database` - The timestamp the Always Free database will be automatically deleted because of inactivity. If the database is in the STOPPED state and without activity until this time, it will be deleted.
 
-* `time_local_data_guard_enabled_on` - The date and time that Autonomous Data Guard was enabled for an Autonomous Database where the standby was provisioned in the same region as the primary database.
+* `time_local_data_guard_enabled_on` - The timestamp that Autonomous Data Guard was enabled for an Autonomous Database where the standby was provisioned in the same region as the primary database.
 
-* `time_maintenance_begin` -  The date and time when maintenance will begin.
+* `time_maintenance_begin` -  The timestamp when maintenance will begin.
 
-* `time_maintenance_end` -  The date and time when maintenance will end.
+* `time_maintenance_end` -  The timestamp when maintenance will end.
 
 * `time_of_last_failover` - The timestamp of the last failover operation.
 
-* `time_of_last_refresh` - The date and time when last refresh happened.
+* `time_of_last_refresh` - The timestamp when last refresh happened.
 
 * `time_of_last_refresh_point` - The refresh point timestamp (UTC). The refresh point is the time to which the database was most recently refreshed. Data created after the refresh point is not included in the refresh.
 
 * `time_of_last_switchover` - The timestamp of the last switchover operation for the Autonomous Database.
 
-* `time_reclamation_of_free_autonomous_database` - The date and time the Always Free database will be stopped because of inactivity. If this time is reached without any database activity, the database will automatically be put into the STOPPED state.
+* `time_reclamation_of_free_autonomous_database` - The timestamp the Always Free database will be stopped because of inactivity. If this time is reached without any database activity, the database will automatically be put into the STOPPED state.
 
 * `used_data_storage_size_in_gb` - The storage space consumed by Autonomous Database in GBs.
 
 * `used_data_storage_size_in_tb` - The amount of storage that has been used, in terabytes.
 
-* `virtual_network_id` - The ID to an Azure Resource Manager vnet resource.
+* `virtual_network_id` - The ID to an Azure Resource Manager virtual network resource.
 
 ---
 
@@ -159,7 +159,7 @@ A `long_term_backup_schedule` block exports the following:
 
 * `retention_period_in_days` - The retention period in days for Autonomous database backup.
 
-* `time_of_backup` - The date and time in which the backup would be made.
+* `time_of_backup` - The timestamp in which the backup would be made.
 
 ## Timeouts
 

@@ -28,7 +28,7 @@ resource "azurerm_oracle_autonomous_database" "example" {
   mtls_connection_required         = false
   backup_retention_period_in_days  = 42
   compute_model                    = "example"
-  data_storage_size_in_gbs         = 42
+  data_storage_size_in_gb          = 42
   auto_scaling_for_storage_enabled = false
   virtual_network_id               = "example"
   admin_password                   = "example"

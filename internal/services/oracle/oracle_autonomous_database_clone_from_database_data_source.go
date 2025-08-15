@@ -42,7 +42,6 @@ type AutonomousDatabaseCloneFromDatabaseDataSourceModel struct {
 	AllowedIps                              []string                        `tfschema:"allowed_ips"`
 	AutoScalingEnabled                      bool                            `tfschema:"auto_scaling_enabled"`
 	AutoScalingForStorageEnabled            bool                            `tfschema:"auto_scaling_for_storage_enabled"`
-	AutonomousDatabaseId                    string                          `tfschema:"autonomous_database_id"`
 	AvailableUpgradeVersions                []string                        `tfschema:"available_upgrade_versions"`
 	BackupRetentionPeriodInDays             int64                           `tfschema:"backup_retention_period_in_days"`
 	CharacterSet                            string                          `tfschema:"character_set"`
@@ -538,7 +537,6 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Read() sdk.ResourceFunc {
 				state.TimeUntilReconnectClone = pointer.From(props.TimeUntilReconnectCloneEnabled)
 				state.RefreshableModel = pointer.FromEnum(props.RefreshableModel)
 				state.RefreshableStatus = pointer.FromEnum(props.RefreshableStatus)
-				state.AutonomousDatabaseId = pointer.From(props.AutonomousDatabaseId)
 				state.AllowedIps = pointer.From(props.WhitelistedIPs)
 				state.BackupRetentionPeriodInDays = pointer.From(props.BackupRetentionPeriodInDays)
 				state.CharacterSet = pointer.From(props.CharacterSet)
