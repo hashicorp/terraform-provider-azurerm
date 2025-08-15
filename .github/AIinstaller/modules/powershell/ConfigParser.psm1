@@ -176,6 +176,49 @@ function Get-InstallationConfig {
                 Description = "API evolution and versioning patterns"
             }
             
+            # Prompt files
+            ".github/prompts/add-unit-tests.prompt.md" = @{
+                Url = "/.github/prompts/add-unit-tests.prompt.md"
+                Required = $true
+                Type = "Prompts"
+                Description = "Prompt for adding unit tests"
+            }
+            
+            ".github/prompts/code-review-committed-changes.prompt.md" = @{
+                Url = "/.github/prompts/code-review-committed-changes.prompt.md"
+                Required = $true
+                Type = "Prompts"
+                Description = "Prompt for reviewing committed changes"
+            }
+            
+            ".github/prompts/code-review-local-changes.prompt.md" = @{
+                Url = "/.github/prompts/code-review-local-changes.prompt.md"
+                Required = $true
+                Type = "Prompts"
+                Description = "Prompt for reviewing local changes"
+            }
+            
+            ".github/prompts/setup-go-dev-environment.prompt.md" = @{
+                Url = "/.github/prompts/setup-go-dev-environment.prompt.md"
+                Required = $true
+                Type = "Prompts"
+                Description = "Prompt for setting up Go development environment"
+            }
+            
+            ".github/prompts/summarize-repo-deep-dive.prompt.md" = @{
+                Url = "/.github/prompts/summarize-repo-deep-dive.prompt.md"
+                Required = $true
+                Type = "Prompts"
+                Description = "Prompt for deep repository analysis"
+            }
+            
+            ".github/prompts/summarize-repo.prompt.md" = @{
+                Url = "/.github/prompts/summarize-repo.prompt.md"
+                Required = $true
+                Type = "Prompts"
+                Description = "Prompt for repository summary"
+            }
+            
             # VS Code settings
             ".vscode/settings.json" = @{
                 Url = "/.vscode/settings.json"

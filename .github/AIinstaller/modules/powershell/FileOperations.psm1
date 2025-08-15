@@ -452,7 +452,8 @@ function Remove-AllAIFiles {
     
     $directoriesToCheck = @(
         ".github/instructions",
-        ".github/prompts"
+        ".github/prompts",
+        ".vscode"
     )
     
     foreach ($dir in $directoriesToCheck) {
