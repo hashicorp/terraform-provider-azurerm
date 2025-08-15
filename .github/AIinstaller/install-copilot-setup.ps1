@@ -693,7 +693,7 @@ function Invoke-InstallInfrastructure {
     
     # Use the FileOperations module to actually install files
     try {
-        $result = Install-AllAIFiles -Force:$AutoApprove -DryRun:$DryRun
+        $result = Install-AllAIFiles -Force:$AutoApprove -DryRun:$DryRun -WorkspaceRoot $Global:WorkspaceRoot
         
         if ($result.OverallSuccess) {
             Show-InstallationResults -Results $result

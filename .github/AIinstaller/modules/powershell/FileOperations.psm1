@@ -98,7 +98,9 @@ function Install-AIFile {
         
         [bool]$Force = $false,
         
-        [bool]$DryRun = $false
+        [bool]$DryRun = $false,
+        
+        [string]$WorkspaceRoot = $null
     )
     
     $result = @{
@@ -111,17 +113,35 @@ function Install-AIFile {
     }
     
     try {
+        # Resolve the full file path using WorkspaceRoot if provided
+        if ($WorkspaceRoot) {
+            $resolvedFilePath = Join-Path $WorkspaceRoot $FilePath
+            $result.DebugInfo.WorkspaceRoot = $WorkspaceRoot
+            $result.DebugInfo.OriginalPath = $FilePath
+            $result.DebugInfo.ResolvedPath = $resolvedFilePath
+        } else {
+            $resolvedFilePath = $FilePath
+            $result.DebugInfo.WorkspaceRoot = "Not provided"
+            $result.DebugInfo.ResolvedPath = $resolvedFilePath
+        }
+        
+        # Update result with resolved path
+        $result.FilePath = $resolvedFilePath
+        
         # Debug: Record initial state
         $result.DebugInfo.StartTime = Get-Date
         $result.DebugInfo.DownloadUrl = $DownloadUrl
-        $result.DebugInfo.TargetPath = $FilePath
+        $result.DebugInfo.TargetPath = $resolvedFilePath
         
         Write-Host "[DEBUG] Starting file operation:" -ForegroundColor Magenta
-        Write-Host "  Target: $FilePath" -ForegroundColor Gray
+        Write-Host "  Target: $resolvedFilePath" -ForegroundColor Gray
         Write-Host "  URL: $DownloadUrl" -ForegroundColor Gray
+        if ($WorkspaceRoot) {
+            Write-Host "  Workspace: $WorkspaceRoot" -ForegroundColor Gray
+        }
         
         # Check if file already exists
-        $fileExists = Test-Path $FilePath
+        $fileExists = Test-Path $resolvedFilePath
         $result.DebugInfo.FileExisted = $fileExists
         
         Write-Host "  Exists: $fileExists" -ForegroundColor Gray
@@ -135,7 +155,7 @@ function Install-AIFile {
         }
         
         # Create directory if needed
-        $directory = Split-Path $FilePath -Parent
+        $directory = Split-Path $resolvedFilePath -Parent
         $result.DebugInfo.TargetDirectory = $directory
         
         Write-Host "  Directory: $directory" -ForegroundColor Gray
@@ -172,14 +192,14 @@ function Install-AIFile {
         Write-Host "  Saving file..." -ForegroundColor Gray
         try {
             # For text files (like .md, .instructions.md), use UTF8 encoding
-            if ($FilePath -match '\.(md|txt|instructions\.md|yml|yaml|json)$') {
+            if ($resolvedFilePath -match '\.(md|txt|instructions\.md|yml|yaml|json)$') {
                 # Use UTF8 encoding without BOM for text files
                 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-                [System.IO.File]::WriteAllText($FilePath, $response.Content, $utf8NoBom)
+                [System.IO.File]::WriteAllText($resolvedFilePath, $response.Content, $utf8NoBom)
                 $result.DebugInfo.SaveMethod = "WriteAllText (UTF8 no BOM)"
             } else {
                 # For binary files, use the raw content bytes
-                [System.IO.File]::WriteAllBytes($FilePath, $response.Content)
+                [System.IO.File]::WriteAllBytes($resolvedFilePath, $response.Content)
                 $result.DebugInfo.SaveMethod = "WriteAllBytes"
             }
         } catch {
@@ -188,8 +208,8 @@ function Install-AIFile {
         }
         
         # Verify file was created
-        if (Test-Path $FilePath) {
-            $fileInfo = Get-Item $FilePath
+        if (Test-Path $resolvedFilePath) {
+            $fileInfo = Get-Item $resolvedFilePath
             $result.Size = $fileInfo.Length
             $result.Action = if ($fileExists) { "Overwritten" } else { "Downloaded" }
             $result.Success = $true
@@ -236,7 +256,8 @@ function Install-AllAIFiles {
     param(
         [bool]$Force = $false,
         [bool]$DryRun = $false,
-        [string]$Branch = "exp/terraform_copilot"
+        [string]$Branch = "exp/terraform_copilot",
+        [string]$WorkspaceRoot = $null
     )
     
     $config = Get-InstallationConfig -Branch $Branch
@@ -271,7 +292,7 @@ function Install-AllAIFiles {
         $percentComplete = [math]::Round(($fileIndex / $config.Files.Count) * 100)
         Write-ProgressMessage -Activity "Installing AI Infrastructure" -Status "Processing: $filePath" -PercentComplete $percentComplete
         
-        $fileResult = Install-AIFile -FilePath $filePath -DownloadUrl $downloadUrl -Force $Force -DryRun $DryRun
+        $fileResult = Install-AIFile -FilePath $filePath -DownloadUrl $downloadUrl -Force $Force -DryRun $DryRun -WorkspaceRoot $WorkspaceRoot
         $results.Files[$filePath] = $fileResult
         
         switch ($fileResult.Action) {
@@ -334,18 +355,27 @@ function Remove-AIFile {
         [Parameter(Mandatory)]
         [string]$FilePath,
         
-        [bool]$DryRun = $false
+        [bool]$DryRun = $false,
+        
+        [string]$WorkspaceRoot = ""
     )
     
+    # Resolve file path relative to workspace root if provided
+    $resolvedFilePath = if ($WorkspaceRoot -and -not [System.IO.Path]::IsPathRooted($FilePath)) {
+        Join-Path $WorkspaceRoot $FilePath
+    } else {
+        $FilePath
+    }
+    
     $result = @{
-        FilePath = $FilePath
+        FilePath = $resolvedFilePath
         Success = $false
         Action = "None"
         Message = ""
     }
     
     try {
-        if (-not (Test-Path $FilePath)) {
+        if (-not (Test-Path $resolvedFilePath)) {
             $result.Action = "Not Found"
             $result.Success = $true
             $result.Message = "File does not exist"
@@ -360,7 +390,7 @@ function Remove-AIFile {
         }
         
         # Remove file
-        Remove-Item -Path $FilePath -Force -ErrorAction Stop
+        Remove-Item -Path $resolvedFilePath -Force -ErrorAction Stop
         
         $result.Action = "Removed"
         $result.Success = $true
@@ -380,7 +410,8 @@ function Remove-AllAIFiles {
     #>
     param(
         [bool]$DryRun = $false,
-        [string]$Branch = "exp/terraform_copilot"
+        [string]$Branch = "exp/terraform_copilot",
+        [string]$WorkspaceRoot = ""
     )
     
     $config = Get-InstallationConfig -Branch $Branch
@@ -403,7 +434,7 @@ function Remove-AllAIFiles {
         $percentComplete = [math]::Round(($fileIndex / $config.Files.Count) * 50)
         Write-ProgressMessage -Activity "Removing AI Infrastructure" -Status "Removing: $filePath" -PercentComplete $percentComplete
         
-        $fileResult = Remove-AIFile -FilePath $filePath -DryRun $DryRun
+        $fileResult = Remove-AIFile -FilePath $filePath -DryRun $DryRun -WorkspaceRoot $WorkspaceRoot
         $results.Files[$filePath] = $fileResult
         
         switch ($fileResult.Action) {
@@ -425,22 +456,29 @@ function Remove-AllAIFiles {
     )
     
     foreach ($dir in $directoriesToCheck) {
+        # Resolve directory path relative to workspace root if provided
+        $resolvedDirPath = if ($WorkspaceRoot -and -not [System.IO.Path]::IsPathRooted($dir)) {
+            Join-Path $WorkspaceRoot $dir
+        } else {
+            $dir
+        }
+        
         $dirResult = @{
-            Path = $dir
+            Path = $resolvedDirPath
             Action = "None"
             Success = $true
             Message = ""
         }
         
-        if (Test-Path $dir -PathType Container) {
-            $dirContents = Get-ChildItem $dir -Force
+        if (Test-Path $resolvedDirPath -PathType Container) {
+            $dirContents = Get-ChildItem $resolvedDirPath -Force
             if ($dirContents.Count -eq 0) {
                 if ($DryRun) {
                     $dirResult.Action = "Would Remove"
                     $dirResult.Message = "Empty directory would be removed"
                 } else {
                     try {
-                        Remove-Item -Path $dir -Force -ErrorAction Stop
+                        Remove-Item -Path $resolvedDirPath -Force -ErrorAction Stop
                         $dirResult.Action = "Removed"
                         $dirResult.Message = "Empty directory removed"
                     }
@@ -460,7 +498,7 @@ function Remove-AllAIFiles {
             $dirResult.Message = "Directory does not exist"
         }
         
-        $results.Directories[$dir] = $dirResult
+        $results.Directories[$resolvedDirPath] = $dirResult
     }
     
     Write-ProgressMessage -Activity "Removing AI Infrastructure" -Status "Completed"
