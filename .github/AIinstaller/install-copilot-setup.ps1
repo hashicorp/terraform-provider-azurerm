@@ -203,6 +203,41 @@ function Test-BranchType {
     }
 }
 
+function Get-CurrentBranch {
+    <#
+    .SYNOPSIS
+    Get the current git branch name
+    #>
+    
+    try {
+        # Use RepoDirectory parameter if provided, otherwise use current workspace root
+        $workspaceRoot = if ($RepoDirectory) { 
+            $RepoDirectory 
+        } else { 
+            $Global:WorkspaceRoot 
+        }
+        
+        if (-not $workspaceRoot -or -not (Test-Path $workspaceRoot)) {
+            return "unknown"
+        }
+        
+        Push-Location $workspaceRoot
+        try {
+            $currentBranch = git rev-parse --abbrev-ref HEAD 2>$null
+            if ($LASTEXITCODE -ne 0) {
+                return "unknown"
+            }
+            return $currentBranch
+        }
+        finally {
+            Pop-Location
+        }
+    }
+    catch {
+        return "unknown"
+    }
+}
+
 function Invoke-Bootstrap {
     <#
     .SYNOPSIS
@@ -900,7 +935,8 @@ function Main {
                 }
             }
             
-            Write-Host "FEATURE BRANCH DETECTED: $branchType" -ForegroundColor "Cyan"
+            $currentBranch = Get-CurrentBranch
+            Write-Host "FEATURE BRANCH DETECTED: $currentBranch" -ForegroundColor "Cyan"
             Write-Host ""
             Write-Host "Starting AI infrastructure installation..." -ForegroundColor "White"
             
