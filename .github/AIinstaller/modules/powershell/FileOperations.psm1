@@ -360,7 +360,10 @@ function Remove-AllAIFiles {
         Failed = 0
         Files = @{}
         Directories = @{}
-        OverallSuccess = $true
+        Success = $true
+        FilesRemoved = 0
+        DirectoriesCleaned = 0
+        Issues = @()
     }
     
     Write-ProgressMessage -Activity "Removing AI Infrastructure" -Status "Preparing..." -PercentComplete 0
@@ -376,11 +379,17 @@ function Remove-AllAIFiles {
         $results.Files[$filePath] = $fileResult
         
         switch ($fileResult.Action) {
-            "Removed" { $results.Removed++ }
+            "Removed" { 
+                $results.Removed++
+                $results.FilesRemoved++
+            }
             "Not Found" { $results.NotFound++ }
             default { 
                 $results.Failed++
-                $results.OverallSuccess = $false
+                $results.Success = $false
+                if ($fileResult.Message) {
+                    $results.Issues += "Failed to remove ${filePath}: $($fileResult.Message)"
+                }
             }
         }
     }
@@ -420,12 +429,14 @@ function Remove-AllAIFiles {
                         Remove-Item -Path $resolvedDirPath -Force -ErrorAction Stop
                         $dirResult.Action = "Removed"
                         $dirResult.Message = "Empty directory removed"
+                        $results.DirectoriesCleaned++
                     }
                     catch {
                         $dirResult.Action = "Failed"
                         $dirResult.Success = $false
                         $dirResult.Message = "Failed to remove directory: $($_.Exception.Message)"
-                        $results.OverallSuccess = $false
+                        $results.Success = $false
+                        $results.Issues += "Failed to remove directory ${resolvedDirPath}: $($_.Exception.Message)"
                     }
                 }
             } else {
