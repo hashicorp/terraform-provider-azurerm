@@ -27,7 +27,7 @@ The following arguments are supported:
 
 * `filter` - The filter used to retrieve the entities.
 
-* `select` - (Optional) A list of properties to select from the returned Storage Table Entities.
+* `select` - (Optional) A list of properties to select from the returned Storage Table Entities. The provider always includes `PartitionKey` and `RowKey` in results, even if they are not explicitly listed.
 
 ## Attributes Reference
 

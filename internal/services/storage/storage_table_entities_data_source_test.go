@@ -141,3 +141,187 @@ data "azurerm_storage_table_entities" "test" {
 }
 `, config)
 }
+
+func TestAccDataSourceStorageTableEntities_boundary1000(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_table_entities", "test")
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: StorageTableEntitiesDataSource{}.withNInPartition(data, "boundaryp", 1000),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("items.#").HasValue("1000"),
+				check.That(data.ResourceName).Key("items.0.partition_key").IsSet(),
+				check.That(data.ResourceName).Key("items.0.row_key").IsSet(),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceStorageTableEntities_paginates1005(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_table_entities", "test")
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: StorageTableEntitiesDataSource{}.withNInPartition(data, "page1", 1005),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("items.#").HasValue("1005"),
+				check.That(data.ResourceName).Key("items.0.partition_key").IsSet(),
+				check.That(data.ResourceName).Key("items.0.row_key").IsSet(),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceStorageTableEntities_paginates2005(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_table_entities", "test")
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: StorageTableEntitiesDataSource{}.withNInPartition(data, "page2", 2005),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("items.#").HasValue("2005"),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceStorageTableEntities_paginatesWithSelect(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_table_entities", "test")
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: StorageTableEntitiesDataSource{}.withNInPartitionAndSelect(data, "selp", 1001),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("items.#").HasValue("1001"),
+				check.That(data.ResourceName).Key("items.0.partition_key").IsSet(),
+				check.That(data.ResourceName).Key("items.0.row_key").IsSet(),
+				// ensure selected property is present and non-empty
+				check.That(data.ResourceName).Key("items.0.properties.testselector").HasValue("val"),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceStorageTableEntities_filterPartitionOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_table_entities", "test")
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: StorageTableEntitiesDataSource{}.twoPartitionsAndFilter(data, "partA", 1001, "partB", 37),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("items.#").HasValue("1001"),
+				check.That(data.ResourceName).Key("items.0.partition_key").HasValue("partA"),
+			),
+		},
+	})
+}
+
+func TestAccDataSourceStorageTableEntities_zeroResults(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_storage_table_entities", "test")
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: StorageTableEntitiesDataSource{}.withZeroResults(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("items.#").HasValue("0"),
+			),
+		},
+	})
+}
+
+func (d StorageTableEntitiesDataSource) withNInPartition(data acceptance.TestData, partition string, n int) string {
+	base := d.basic(data)
+	return fmt.Sprintf(`
+%s
+
+locals {
+  n    = %d
+  rows = tolist([for i in range(local.n) : i])
+}
+
+resource "azurerm_storage_table_entity" "bulk" {
+  for_each         = toset(local.rows)
+  storage_table_id = azurerm_storage_table.test.id
+  partition_key    = "%s"
+  row_key          = format("rk-%%05d", each.value)
+  entity           = { k1 = "v", k2 = tostring(each.value) }
+}
+
+data "azurerm_storage_table_entities" "test" {
+  storage_table_id = azurerm_storage_table.test.id
+  filter           = "PartitionKey eq '%s'"
+  depends_on       = [azurerm_storage_table_entity.bulk]
+}
+`, base, n, partition, partition)
+}
+
+func (d StorageTableEntitiesDataSource) withNInPartitionAndSelect(
+	data acceptance.TestData, partition string, n int,
+) string {
+	base := d.basic(data)
+	return fmt.Sprintf(`
+%s
+
+locals {
+  n    = %d
+  rows = tolist([for i in range(local.n) : i])
+}
+
+resource "azurerm_storage_table_entity" "bulk" {
+  for_each         = toset(local.rows)
+  storage_table_id = azurerm_storage_table.test.id
+  partition_key    = "%s"
+  row_key          = format("rk-%%05d", each.value)
+  entity           = { testselector = "val", other = "x" }
+}
+
+data "azurerm_storage_table_entities" "test" {
+  storage_table_id = azurerm_storage_table.test.id
+  filter           = "PartitionKey eq '%s'"
+  select           = ["testselector"]
+  depends_on       = [azurerm_storage_table_entity.bulk]
+}
+`, base, n, partition, partition)
+}
+
+func (d StorageTableEntitiesDataSource) twoPartitionsAndFilter(data acceptance.TestData, partA string, nA int, partB string, nB int) string {
+	base := d.basic(data)
+	return fmt.Sprintf(`
+%s
+
+locals {
+  nA    = %d
+  nB    = %d
+  rowsA = tolist([for i in range(local.nA) : i])
+  rowsB = tolist([for i in range(local.nB) : i])
+}
+
+resource "azurerm_storage_table_entity" "a" {
+  for_each         = toset(local.rowsA)
+  storage_table_id = azurerm_storage_table.test.id
+  partition_key    = "%s"
+  row_key          = format("a-%%05d", each.value)
+  entity           = { k = "a" }
+}
+
+resource "azurerm_storage_table_entity" "b" {
+  for_each         = toset(local.rowsB)
+  storage_table_id = azurerm_storage_table.test.id
+  partition_key    = "%s"
+  row_key          = format("b-%%05d", each.value)
+  entity           = { k = "b" }
+}
+
+data "azurerm_storage_table_entities" "test" {
+  storage_table_id = azurerm_storage_table.test.id
+  filter           = "PartitionKey eq '%s'"
+  depends_on       = [azurerm_storage_table_entity.a, azurerm_storage_table_entity.b]
+}
+`, base, nA, nB, partA, partB, partA)
+}
+
+func (d StorageTableEntitiesDataSource) withZeroResults(data acceptance.TestData) string {
+	base := d.basic(data)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_storage_table_entities" "test" {
+  storage_table_id = azurerm_storage_table.test.id
+  filter           = "PartitionKey eq 'nope'"
+}
+`, base)
+}
