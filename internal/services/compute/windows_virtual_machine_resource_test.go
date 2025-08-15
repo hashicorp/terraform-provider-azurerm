@@ -16,7 +16,7 @@ import (
 
 type WindowsVirtualMachineResource struct{}
 
-func (t WindowsVirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r WindowsVirtualMachineResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := virtualmachines.ParseVirtualMachineID(state.ID)
 	if err != nil {
 		return nil, err
