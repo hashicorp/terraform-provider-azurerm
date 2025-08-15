@@ -36,6 +36,10 @@ The following arguments are supported:
 
 * `user_assigned_identity_id` - The ID of the User Assigned Managed Identity.
 
+* `federated_client_id` - The Client ID of the multi-tenant Entra ID application used to access cross-tenant key vaults.
+
+* `cross_tenant_key_vault_resource_id` - The full resource ID of the cross-tenant key vault.
+
 ---
 
 ## Attributes Reference

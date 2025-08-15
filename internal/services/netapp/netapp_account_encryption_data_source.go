@@ -61,6 +61,11 @@ func (r NetAppAccountEncryptionDataSource) Attributes() map[string]*pluginsdk.Sc
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
+		"federated_client_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -119,11 +124,12 @@ func (r NetAppAccountEncryptionDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if model.Properties.Encryption != nil {
-				encryptionKey, err := flattenEncryption(model.Properties.Encryption)
+				encryptionKey, federatedClientID, err := flattenEncryption(model.Properties.Encryption)
 				if err != nil {
 					return fmt.Errorf("flattening encryption: %+v", err)
 				}
 				state.EncryptionKey = encryptionKey
+				state.FederatedClientID = federatedClientID
 			}
 
 			metadata.SetID(id)
