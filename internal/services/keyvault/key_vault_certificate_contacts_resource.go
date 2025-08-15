@@ -177,8 +177,14 @@ func (r KeyVaultCertificateContactsResource) Read() sdk.ResourceFunc {
 			existing, err := client.GetCertificateContacts(ctx, id.KeyVaultBaseUrl)
 			if err != nil {
 				if utils.ResponseWasNotFound(existing.Response) {
-					metadata.Logger.Infof("No Certificate Contacts could be found at %s - removing from state!", id.KeyVaultBaseUrl)
-					return metadata.MarkAsGone(id)
+					// Note: it's expected to delete this resource instead of updating contact to be an empty list,
+					// However, contact field is changed to optional to support backward compatibility,
+					// it's possible that user remove contact from this resource.
+					// So we have to mark contact as empty instead of removing the resource to fix "inconsistent result after apply" error
+					return metadata.Encode(&KeyVaultCertificateContactsResourceModel{
+						KeyVaultId: keyVaultId.ID(),
+						Contact:    make([]Contact, 0),
+					})
 				}
 				return fmt.Errorf("checking for presence of existing Certificate Contacts (Key Vault %q): %s", id.KeyVaultBaseUrl, err)
 			}
@@ -214,7 +220,9 @@ func (r KeyVaultCertificateContactsResource) Update() sdk.ResourceFunc {
 
 			existing, err := client.GetCertificateContacts(ctx, id.KeyVaultBaseUrl)
 			if err != nil {
-				return fmt.Errorf("checking for presence of existing Certificate Contacts (Key Vault %q): %s", id.KeyVaultBaseUrl, err)
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("checking for presence of existing Certificate Contacts (Key Vault %q): %s", id.KeyVaultBaseUrl, err)
+				}
 			}
 
 			if metadata.ResourceData.HasChange("contact") {
@@ -223,7 +231,10 @@ func (r KeyVaultCertificateContactsResource) Update() sdk.ResourceFunc {
 
 			if len(*existing.ContactList) == 0 {
 				if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
-					return fmt.Errorf("removing Key Vault Certificate Contacts %s: %+v", id, err)
+					// Skip if contacts are already deleted
+					if !utils.ResponseWasNotFound(existing.Response) {
+						return fmt.Errorf("removing Key Vault Certificate Contacts %s: %+v", id, err)
+					}
 				}
 			} else {
 				if _, err := client.SetCertificateContacts(ctx, id.KeyVaultBaseUrl, existing); err != nil {
@@ -250,8 +261,11 @@ func (r KeyVaultCertificateContactsResource) Delete() sdk.ResourceFunc {
 			locks.ByID(id.ID())
 			defer locks.UnlockByID(id.ID())
 
-			if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
+			if existing, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
+				// Skip if contacts are already deleted
+				if !utils.ResponseWasNotFound(existing.Response) {
+					return fmt.Errorf("deleting %s: %+v", id, err)
+				}
 			}
 
 			return nil
