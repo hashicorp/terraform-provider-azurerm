@@ -106,6 +106,7 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 						"regional_endpoint_enabled": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
+							Default:  true,
 						},
 
 						"tags": commonschema.Tags(),
