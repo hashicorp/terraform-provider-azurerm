@@ -91,34 +91,23 @@ if ($RepoDirectory) {
         
         if ((Test-Path $goModPath) -and (Test-Path $mainGoPath) -and (Test-Path $internalPath)) {
             $Global:WorkspaceRoot = $RepoDirectory
-            Write-Host "Using repository directory: $RepoDirectory" -ForegroundColor Green
+            Show-RepositoryInfo -Directory $RepoDirectory
         } else {
             Write-Error "INVALID REPOSITORY: The specified directory does not appear to be a terraform-provider-azurerm repository."
-            Write-Host ""
-            Write-Host "ISSUE:" -ForegroundColor Red
-            Write-Host "  The -RepoDirectory parameter must point to a valid terraform-provider-azurerm repository root." -ForegroundColor Yellow
-            Write-Host ""
-            Write-Host "HOW TO FIX:" -ForegroundColor Cyan
-            Write-Host "  1. Ensure you're pointing to the repository ROOT directory" -ForegroundColor White
-            Write-Host "  2. Verify the directory contains terraform-provider-azurerm source code" -ForegroundColor White
-            Write-Host "  3. Example: -RepoDirectory 'C:\github.com\hashicorp\terraform-provider-azurerm'" -ForegroundColor White
-            Write-Host ""
+            Show-ErrorBlock -Issue "The -RepoDirectory parameter must point to a valid terraform-provider-azurerm repository root." -Solutions @(
+                "Ensure you're pointing to the repository ROOT directory",
+                "Verify the directory contains terraform-provider-azurerm source code", 
+                "Example: -RepoDirectory 'C:\github.com\hashicorp\terraform-provider-azurerm'"
+            )
             exit 1
         }
     } else {
         Write-Error "DIRECTORY NOT FOUND: The specified RepoDirectory does not exist."
-        Write-Host ""
-        Write-Host "ISSUE:" -ForegroundColor Red
-        Write-Host "  The path '$RepoDirectory' could not be found on this system." -ForegroundColor Yellow
-        Write-Host ""
-        Write-Host "HOW TO FIX:" -ForegroundColor Cyan
-        Write-Host "  1. Check the path spelling and ensure it exists" -ForegroundColor White
-        Write-Host "  2. Use an absolute path (e.g., 'C:\path\to\repo')" -ForegroundColor White
-        Write-Host "  3. Ensure you have permissions to access the directory" -ForegroundColor White
-        Write-Host ""
-        Write-Host "EXAMPLE USAGE:" -ForegroundColor Cyan
-        Write-Host "  .\install-copilot-setup.ps1 -RepoDirectory 'C:\github.com\hashicorp\terraform-provider-azurerm'" -ForegroundColor Gray
-        Write-Host ""
+        Show-ErrorBlock -Issue "The path '$RepoDirectory' could not be found on this system." -Solutions @(
+            "Check the path spelling and ensure it exists",
+            "Use an absolute path (e.g., 'C:\path\to\repo')",
+            "Ensure you have permissions to access the directory"
+        ) -ExampleUsage ".\install-copilot-setup.ps1 -RepoDirectory 'C:\github.com\hashicorp\terraform-provider-azurerm'"
         exit 1
     }
 }
@@ -203,41 +192,6 @@ function Test-BranchType {
     }
 }
 
-function Get-CurrentBranch {
-    <#
-    .SYNOPSIS
-    Get the current git branch name
-    #>
-    
-    try {
-        # Use RepoDirectory parameter if provided, otherwise use current workspace root
-        $workspaceRoot = if ($RepoDirectory) { 
-            $RepoDirectory 
-        } else { 
-            $Global:WorkspaceRoot 
-        }
-        
-        if (-not $workspaceRoot -or -not (Test-Path $workspaceRoot)) {
-            return "unknown"
-        }
-        
-        Push-Location $workspaceRoot
-        try {
-            $currentBranch = git rev-parse --abbrev-ref HEAD 2>$null
-            if ($LASTEXITCODE -ne 0) {
-                return "unknown"
-            }
-            return $currentBranch
-        }
-        finally {
-            Pop-Location
-        }
-    }
-    catch {
-        return "unknown"
-    }
-}
-
 function Invoke-Bootstrap {
     <#
     .SYNOPSIS
@@ -251,9 +205,9 @@ function Invoke-Bootstrap {
         $targetDirectory = Join-Path $env:USERPROFILE ".terraform-ai-installer"
         if (-not (Test-Path $targetDirectory)) {
             New-Item -ItemType Directory -Path $targetDirectory -Force | Out-Null
-            Write-Host "  Created directory: $targetDirectory" -ForegroundColor "Green"
+            Show-DirectoryOperation -Directory $targetDirectory -Status "Created"
         } else {
-            Write-Host "  Using existing directory: $targetDirectory" -ForegroundColor "Yellow"
+            Show-DirectoryOperation -Directory $targetDirectory -Status "Existing"
         }
         
         # Files to bootstrap from configuration
@@ -272,7 +226,7 @@ function Invoke-Bootstrap {
         $aiInstallerSourcePath = Join-Path $Global:WorkspaceRoot ".github/AIinstaller"
         
         if ($isSourceRepo -and (Test-Path $aiInstallerSourcePath)) {
-            Write-Host "  Copying installer files from local source repository..." -ForegroundColor "Cyan"
+            Write-OperationStatus -Message "  Copying installer files from local source repository..." -Type "Progress"
             Write-Host ""
             
             # Copy files locally from source repository
@@ -293,7 +247,7 @@ function Invoke-Bootstrap {
                         $targetPath = Join-Path $targetDirectory $fileName
                     }
                     
-                    Write-Host "    Copying: $fileName" -ForegroundColor "Gray" -NoNewline
+                    Show-FileOperation -Operation "Copying" -FileName $fileName -NoNewLine
                     
                     if (Test-Path $sourcePath) {
                         Copy-Item $sourcePath $targetPath -Force
@@ -650,7 +604,7 @@ function Invoke-CleanWorkspace {
     Write-Section "Clean Workspace"
     
     if ($DryRun) {
-        Write-Host "DRY RUN - No files will be deleted" -ForegroundColor Yellow
+        Write-Warning "DRY RUN - No files will be deleted"
         Write-Host ""
     }
     
@@ -716,7 +670,7 @@ function Invoke-InstallInfrastructure {
     Write-Section "Installing AI Infrastructure"
     
     if ($DryRun) {
-        Write-Host "DRY RUN - No files will be created or removed" -ForegroundColor Yellow
+        Write-Warning "DRY RUN - No files will be created or removed"
         Write-Host ""
     }
     
@@ -725,20 +679,34 @@ function Invoke-InstallInfrastructure {
     $deprecatedFiles = Remove-DeprecatedFiles -ManifestConfig $ManifestConfig -WorkspaceRoot $Global:WorkspaceRoot -DryRun $DryRun -Quiet $true
     
     if ($deprecatedFiles.Count -gt 0) {
-        Write-Host "  Removed $($deprecatedFiles.Count) deprecated files" -ForegroundColor Green
+        Write-OperationStatus -Message "  Removed $($deprecatedFiles.Count) deprecated files" -Type "Success"
     } else {
-        Write-Host "  No deprecated files found" -ForegroundColor Gray
+        Write-OperationStatus -Message "  No deprecated files found" -Type "Info"
     }
     Write-Host ""
     
     # Step 2: Install/update current files
-    Write-Host "Installing current AI infrastructure files..." -ForegroundColor White
+    Write-OperationStatus -Message "Installing current AI infrastructure files..." -Type "Info"
     
-    # TODO: Implement actual file installation logic here
-    # This should copy files from the manifest configuration to target locations
-    Write-Host "Note: Full installation logic would be implemented here" -ForegroundColor Yellow
+    # Debug: Show parameter values
+    Write-Verbose "Parameters: AutoApprove=$AutoApprove, DryRun=$DryRun"
     
-    return @{ Success = $true }
+    # Use the FileOperations module to actually install files
+    try {
+        $result = Install-AllAIFiles -Force:$AutoApprove -DryRun:$DryRun
+        
+        if ($result.OverallSuccess) {
+            Show-InstallationResults -Results $result
+        } else {
+            Show-InstallationResults -Results $result
+        }
+        
+        return @{ Success = $result.OverallSuccess; Details = $result }
+    }
+    catch {
+        Write-Host "Installation failed: $($_.Exception.Message)" -ForegroundColor Red
+        return @{ Success = $false; Error = $_.Exception.Message }
+    }
 }
 
 function Main {
@@ -758,22 +726,9 @@ function Main {
         # If running from user profile installer, RepoDirectory is required for proper branch detection
         if ($isUserProfileInstaller -and -not $RepoDirectory -and -not $Help) {
             Write-Error "REPOSITORY DIRECTORY REQUIRED: When running from user profile installer, -RepoDirectory is required."
-            Write-Host ""
-            Write-Host "ISSUE:" -ForegroundColor Red
-            Write-Host "  You're running the installer from your user profile location, but haven't specified" -ForegroundColor Yellow
-            Write-Host "  where to find the terraform-provider-azurerm repository for branch detection." -ForegroundColor Yellow
-            Write-Host ""
-            Write-Host "SOLUTION:" -ForegroundColor Cyan
-            Write-Host "  Use the -RepoDirectory parameter to specify the repository path:" -ForegroundColor White
-            Write-Host ""
-            Write-Host "EXAMPLE USAGE:" -ForegroundColor Cyan
-            Write-Host "  & `"$PSCommandPath`" -RepoDirectory `"C:\github.com\hashicorp\terraform-provider-azurerm`"" -ForegroundColor Gray
-            Write-Host ""
-            Write-Host "WHY IS THIS NEEDED?" -ForegroundColor Yellow
-            Write-Host "  The installer needs to detect your current git branch to determine whether you're" -ForegroundColor Yellow
-            Write-Host "  working on the main development branch or a feature branch. This affects which" -ForegroundColor Yellow
-            Write-Host "  operations are available and how files are managed." -ForegroundColor Yellow
-            Write-Host ""
+            Show-ErrorBlock -Issue "You're running the installer from your user profile location, but haven't specified where to find the terraform-provider-azurerm repository for branch detection." -Solutions @(
+                "Use the -RepoDirectory parameter to specify the repository path"
+            ) -ExampleUsage "`"$PSCommandPath`" -RepoDirectory `"C:\github.com\hashicorp\terraform-provider-azurerm`"" -AdditionalInfo "The installer needs to detect your current git branch to determine whether you're working on the main development branch or a feature branch. This affects which operations are available and how files are managed."
             exit 1
         }
         
@@ -784,23 +739,11 @@ function Main {
         # Handle unknown branch type (additional safety check)
         if ($branchType -eq "unknown" -and -not $RepoDirectory -and -not $Help) {
             Write-Error "REPOSITORY DIRECTORY REQUIRED: Cannot determine git branch from current location."
-            Write-Host ""
-            Write-Host "ISSUE:" -ForegroundColor Red
-            Write-Host "  The installer cannot determine the current git branch, which usually means:" -ForegroundColor Yellow
-            Write-Host "  1. You're running from outside a git repository" -ForegroundColor Yellow
-            Write-Host "  2. You're running from your user profile location" -ForegroundColor Yellow
-            Write-Host "  3. Git is not available or the directory is not a git repository" -ForegroundColor Yellow
-            Write-Host ""
-            Write-Host "SOLUTION:" -ForegroundColor Cyan
-            Write-Host "  Use the -RepoDirectory parameter to specify the terraform-provider-azurerm repository path:" -ForegroundColor White
-            Write-Host ""
-            Write-Host "EXAMPLE USAGE:" -ForegroundColor Cyan
-            Write-Host "  & `"$PSCommandPath`" -RepoDirectory `"C:\github.com\hashicorp\terraform-provider-azurerm`"" -ForegroundColor Gray
-            Write-Host ""
-            Write-Host "NOTE:" -ForegroundColor Yellow
-            Write-Host "  The -RepoDirectory parameter tells the installer where to find the git repository" -ForegroundColor Yellow
-            Write-Host "  for branch detection when running from outside the repository directory." -ForegroundColor Yellow
-            Write-Host ""
+            Show-ErrorBlock -Issue "The installer cannot determine the current git branch, which usually means:" -Solutions @(
+                "You're running from outside a git repository",
+                "You're running from your user profile location", 
+                "Git is not available or the directory is not a git repository"
+            ) -ExampleUsage "`"$PSCommandPath`" -RepoDirectory `"C:\github.com\hashicorp\terraform-provider-azurerm`"" -AdditionalInfo "The -RepoDirectory parameter tells the installer where to find the git repository for branch detection when running from outside the repository directory."
             exit 1
         }
         
@@ -848,97 +791,32 @@ function Main {
         Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
         
         if ($isSourceBranch) {
-            Write-Host "WELCOME TO AI-POWERED TERRAFORM DEVELOPMENT!" -ForegroundColor "Cyan"
-            Write-Host ""
-            Write-Host "You're running from the source branch ($($Global:InstallerConfig.Branch))." -ForegroundColor "White"
-            Write-Host "To get started with AI infrastructure on your feature branch:" -ForegroundColor "White"
-            Write-Host ""
-            
-            Write-Host "QUICK START (Recommended):" -ForegroundColor "Green"
-            Write-Host "  Run the bootstrap command to set up the installer:" -ForegroundColor "White"
-            Write-Host "  .\install-copilot-setup.ps1 -Bootstrap" -ForegroundColor "Yellow"
-            Write-Host ""
-            
-            Write-Host "MANUAL WORKFLOW:" -ForegroundColor "Cyan"
-            Write-Host "  1. Bootstrap: .\install-copilot-setup.ps1 -Bootstrap" -ForegroundColor "Gray"
-            Write-Host "  2. Switch branch: git checkout feature/your-branch-name" -ForegroundColor "Gray"
-            Write-Host "  3. Install: Run installer from user profile" -ForegroundColor "Gray"
-            Write-Host ""
-            
-            Write-Host "OTHER OPTIONS:" -ForegroundColor "White"
-            Write-Host "  -Verify       Check current workspace status" -ForegroundColor "Gray"
-            Write-Host "  -Help         Show detailed help information" -ForegroundColor "Gray"
-            Write-Host ""
+            Show-SourceBranchWelcome -BranchName $Global:InstallerConfig.Branch -BootstrapCommand ".\install-copilot-setup.ps1 -Bootstrap"
             
             # Interactive prompt for better UX
-            Write-Host "Would you like to run bootstrap now? [Y/n]: " -NoNewline -ForegroundColor "Yellow"
-            $response = Read-Host
+            $shouldBootstrap = Get-BootstrapConfirmation
             
-            if ($response -eq "" -or $response -eq "y" -or $response -eq "Y") {
-                Write-Host ""
-                Write-Host "Running bootstrap automatically..." -ForegroundColor "Green"
-                
+            if ($shouldBootstrap) {
                 $result = Invoke-Bootstrap
                 if (-not $result.Success) {
                     exit 1
                 }
                 return
             } else {
-                Write-Host ""
-                Write-Host "No problem! Run with -Bootstrap when you're ready." -ForegroundColor "Cyan"
-                Write-Host "Or use -Help for more information." -ForegroundColor "Cyan"
                 return
             }
         } else {
             if ($branchType -eq "unknown") {
                 # If branch type is unknown, we need to determine why and provide appropriate error
-                if (-not $RepoDirectory) {
-                    # Case 1: Running from user profile without RepoDirectory
-                    Write-Host ""
-                    Write-Error "Repository location not specified"
-                    Write-Host ""
-                    Write-Host "When running from user profile, you must specify the repository location:" -ForegroundColor "Yellow"
-                    Write-Host ""
-                    Write-Host "CORRECT USAGE:" -ForegroundColor "Cyan"
-                    Write-Host "  .\install-copilot-setup.ps1 -RepoDirectory `"C:\path\to\terraform-provider-azurerm`"" -ForegroundColor "White"
-                    Write-Host ""
-                    Write-Host "EXAMPLE:" -ForegroundColor "Cyan"
-                    Write-Host "  .\install-copilot-setup.ps1 -RepoDirectory `"C:\github.com\hashicorp\terraform-provider-azurerm`"" -ForegroundColor "White"
-                    Write-Host ""
-                    Write-Host "The -RepoDirectory parameter tells the installer where to find your git repository" -ForegroundColor "Gray"
-                    Write-Host "for branch detection and workspace identification." -ForegroundColor "Gray"
-                    Write-Host ""
-                    exit 1
-                } else {
-                    # Case 2: RepoDirectory was provided but git operations failed
-                    Write-Host ""
-                    Write-Error "Invalid repository directory or git operations failed"
-                    Write-Host ""
-                    Write-Host "The specified repository directory has issues:" -ForegroundColor "Yellow"
-                    Write-Host "  Path: $RepoDirectory" -ForegroundColor "Gray"
-                    Write-Host ""
-                    Write-Host "POSSIBLE CAUSES:" -ForegroundColor "Cyan"
-                    Write-Host "  - Path does not exist or is not accessible" -ForegroundColor "White"
-                    Write-Host "  - Directory is not a git repository" -ForegroundColor "White"
-                    Write-Host "  - Git is not installed or not in PATH" -ForegroundColor "White"
-                    Write-Host "  - Repository is in a corrupted state" -ForegroundColor "White"
-                    Write-Host ""
-                    Write-Host "SOLUTIONS:" -ForegroundColor "Cyan"
-                    Write-Host "  - Verify the path exists: Test-Path `"$RepoDirectory`"" -ForegroundColor "White"
-                    Write-Host "  - Check if it's a git repo: git status (from that directory)" -ForegroundColor "White"
-                    Write-Host "  - Verify git is available: git --version" -ForegroundColor "White"
-                    Write-Host ""
-                    Write-Host "EXAMPLE OF CORRECT PATH:" -ForegroundColor "Cyan"
-                    Write-Host "  .\install-copilot-setup.ps1 -RepoDirectory `"C:\github.com\hashicorp\terraform-provider-azurerm`"" -ForegroundColor "White"
-                    Write-Host ""
-                    exit 1
-                }
+                Show-UnknownBranchError -HasRepoDirectory ([bool]$RepoDirectory) -RepoDirectory $RepoDirectory -ScriptPath $PSCommandPath
+                exit 1
             }
             
-            $currentBranch = Get-CurrentBranch
-            Write-Host "FEATURE BRANCH DETECTED: $currentBranch" -ForegroundColor "Cyan"
+            $workspaceRoot = if ($RepoDirectory) { $RepoDirectory } else { $Global:WorkspaceRoot }
+            $currentBranch = Get-CurrentBranch -WorkspaceRoot $workspaceRoot
+            Show-BranchDetection -BranchName $currentBranch
             Write-Host ""
-            Write-Host "Starting AI infrastructure installation..." -ForegroundColor "White"
+            Write-OperationStatus -Message "Starting AI infrastructure installation..." -Type "Info"
             
             $result = Invoke-InstallInfrastructure -AutoApprove:$AutoApprove -DryRun:$DryRun
             if (-not $result.Success) {

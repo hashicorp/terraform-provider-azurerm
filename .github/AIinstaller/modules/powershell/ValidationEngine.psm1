@@ -760,6 +760,47 @@ function Get-ValidationReport {
     return $report
 }
 
+function Get-CurrentBranch {
+    <#
+    .SYNOPSIS
+    Get the current git branch name
+    .DESCRIPTION
+    Returns the current git branch name using git rev-parse
+    .PARAMETER WorkspaceRoot
+    Optional workspace root directory. If not provided, uses current directory.
+    .EXAMPLE
+    $branch = Get-CurrentBranch
+    $branch = Get-CurrentBranch -WorkspaceRoot "C:\path\to\repo"
+    #>
+    param(
+        [string]$WorkspaceRoot
+    )
+    
+    try {
+        if ($WorkspaceRoot -and (Test-Path $WorkspaceRoot)) {
+            Push-Location $WorkspaceRoot
+            try {
+                $branch = git rev-parse --abbrev-ref HEAD 2>$null
+                if ($LASTEXITCODE -eq 0 -and $branch) {
+                    return $branch.Trim()
+                }
+            }
+            finally {
+                Pop-Location
+            }
+        } else {
+            $branch = git rev-parse --abbrev-ref HEAD 2>$null
+            if ($LASTEXITCODE -eq 0 -and $branch) {
+                return $branch.Trim()
+            }
+        }
+        return "unknown"
+    }
+    catch {
+        return "unknown"
+    }
+}
+
 #endregion
 
 #region Export Module Members
@@ -773,7 +814,8 @@ Export-ModuleMember -Function @(
     'Get-ValidationReport',
     'Test-InternetConnectivity',
     'Test-WorkspaceValid',
-    'Test-GitRepository'
+    'Test-GitRepository',
+    'Get-CurrentBranch'
 )
 
 #endregion

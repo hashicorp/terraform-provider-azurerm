@@ -567,6 +567,326 @@ function Show-ValidationResults {
     Write-Host ""
 }
 
+function Show-ErrorBlock {
+    <#
+    .SYNOPSIS
+    Display a structured error block with issue description and solutions
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string]$Issue,
+        
+        [string[]]$Solutions = @(),
+        
+        [string]$ExampleUsage,
+        
+        [string]$AdditionalInfo,
+        
+        [string[]]$AdditionalCommands = @()
+    )
+    
+    Write-Host ""
+    Write-Host "ISSUE:" -ForegroundColor Red
+    Write-Host "  $Issue" -ForegroundColor Yellow
+    Write-Host ""
+    
+    if ($Solutions.Count -gt 0) {
+        Write-Host "HOW TO FIX:" -ForegroundColor Cyan
+        for ($i = 0; $i -lt $Solutions.Count; $i++) {
+            Write-Host "  $($i + 1). $($Solutions[$i])" -ForegroundColor White
+        }
+        Write-Host ""
+    }
+    
+    if ($AdditionalCommands.Count -gt 0) {
+        Write-Host "TROUBLESHOOTING COMMANDS:" -ForegroundColor Cyan
+        foreach ($command in $AdditionalCommands) {
+            Write-Host "  $command" -ForegroundColor White
+        }
+        Write-Host ""
+    }
+    
+    if ($ExampleUsage) {
+        Write-Host "EXAMPLE USAGE:" -ForegroundColor Cyan
+        Write-Host "  $ExampleUsage" -ForegroundColor Gray
+        Write-Host ""
+    }
+    
+    if ($AdditionalInfo) {
+        Write-Host "NOTE:" -ForegroundColor Yellow
+        Write-Host "  $AdditionalInfo" -ForegroundColor Yellow
+        Write-Host ""
+    }
+}
+
+function Show-BranchDetection {
+    <#
+    .SYNOPSIS
+    Display branch detection result with appropriate styling
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string]$BranchName,
+        
+        [ValidateSet("source", "feature", "unknown")]
+        [string]$BranchType = "feature"
+    )
+    
+    switch ($BranchType) {
+        "source" {
+            Write-Host "SOURCE BRANCH DETECTED: " -ForegroundColor "Cyan" -NoNewline
+            Write-Host "$BranchName" -ForegroundColor "Green"
+        }
+        "feature" {
+            Write-Host "FEATURE BRANCH DETECTED: " -ForegroundColor "Cyan" -NoNewline
+            Write-Host "$BranchName" -ForegroundColor "Yellow"
+        }
+        "unknown" {
+            Write-Host "UNKNOWN BRANCH: " -ForegroundColor "Red" -NoNewline
+            Write-Host "$BranchName" -ForegroundColor "Gray"
+        }
+    }
+}
+
+function Show-FileOperation {
+    <#
+    .SYNOPSIS
+    Display file operation with inline status
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string]$Operation,
+        
+        [Parameter(Mandatory)]
+        [string]$FileName,
+        
+        [ValidateSet("OK", "FAILED", "SKIPPED")]
+        [string]$Status,
+        
+        [switch]$NoNewLine
+    )
+    
+    Write-Host "    $Operation`: $FileName" -ForegroundColor "Gray" -NoNewline
+    
+    if (-not $NoNewLine -and $Status) {
+        switch ($Status) {
+            "OK" { Write-Host " [OK]" -ForegroundColor "Green" }
+            "FAILED" { Write-Host " [FAILED]" -ForegroundColor "Red" }
+            "SKIPPED" { Write-Host " [SKIPPED]" -ForegroundColor "Yellow" }
+        }
+    }
+}
+
+function Show-DirectoryOperation {
+    <#
+    .SYNOPSIS
+    Display directory operation status
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string]$Directory,
+        
+        [ValidateSet("Created", "Existing", "Failed")]
+        [string]$Status = "Created"
+    )
+    
+    switch ($Status) {
+        "Created" {
+            Write-Host "  Created directory: $Directory" -ForegroundColor "Green"
+        }
+        "Existing" {
+            Write-Host "  Using existing directory: $Directory" -ForegroundColor "Yellow"
+        }
+        "Failed" {
+            Write-Host "  Failed to create directory: $Directory" -ForegroundColor "Red"
+        }
+    }
+}
+
+function Show-InstallationResults {
+    <#
+    .SYNOPSIS
+    Display installation results summary
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [hashtable]$Results
+    )
+    
+    if ($Results.OverallSuccess) {
+        Write-Success "Successfully installed $($Results.Successful) files"
+        if ($Results.Skipped -gt 0) {
+            Write-Warning "Skipped $($Results.Skipped) existing files (use -Auto-Approve to overwrite)"
+        }
+    } else {
+        Write-Warning "Installation completed with some failures:"
+        Write-Host "  Successful: $($Results.Successful)" -ForegroundColor Green
+        Write-Host "  Failed: $($Results.Failed)" -ForegroundColor Red
+        Write-Host "  Skipped: $($Results.Skipped)" -ForegroundColor Yellow
+    }
+}
+
+function Show-RepositoryInfo {
+    <#
+    .SYNOPSIS
+    Display repository directory information
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string]$Directory
+    )
+    
+    Write-Host "Using repository directory: $Directory" -ForegroundColor Green
+}
+
+function Write-OperationStatus {
+    <#
+    .SYNOPSIS
+    Write operation status with color coding
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string]$Message,
+        
+        [ValidateSet("Info", "Success", "Warning", "Error", "Progress")]
+        [string]$Type = "Info"
+    )
+    
+    switch ($Type) {
+        "Info" { Write-Host $Message -ForegroundColor "White" }
+        "Success" { Write-Host $Message -ForegroundColor "Green" }
+        "Warning" { Write-Host $Message -ForegroundColor "Yellow" }
+        "Error" { Write-Host $Message -ForegroundColor "Red" }
+        "Progress" { Write-Host $Message -ForegroundColor "Cyan" }
+    }
+}
+
+function Show-SourceBranchWelcome {
+    <#
+    .SYNOPSIS
+    Shows the welcome message and options for source branch users
+    
+    .PARAMETER BranchName
+    The name of the source branch
+    
+    .PARAMETER BootstrapCommand
+    The command to run bootstrap
+    
+    .EXAMPLE
+    Show-SourceBranchWelcome -BranchName "main" -BootstrapCommand ".\install-copilot-setup.ps1 -Bootstrap"
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string]$BranchName,
+        
+        [Parameter(Mandatory)]
+        [string]$BootstrapCommand
+    )
+    
+    Write-Host "WELCOME TO AI-POWERED TERRAFORM DEVELOPMENT!" -ForegroundColor "Cyan"
+    Write-Host ""
+    Write-Host "You're running from the source branch ($BranchName)." -ForegroundColor "White"
+    Write-Host "To get started with AI infrastructure on your feature branch:" -ForegroundColor "White"
+    Write-Host ""
+    
+    Write-Host "QUICK START (Recommended):" -ForegroundColor "Green"
+    Write-Host "  Run the bootstrap command to set up the installer:" -ForegroundColor "White"
+    Write-Host "  $BootstrapCommand" -ForegroundColor "Yellow"
+    Write-Host ""
+    
+    Write-Host "MANUAL WORKFLOW:" -ForegroundColor "Cyan"
+    Write-Host "  1. Bootstrap: $BootstrapCommand" -ForegroundColor "Gray"
+    Write-Host "  2. Switch branch: git checkout feature/your-branch-name" -ForegroundColor "Gray"
+    Write-Host "  3. Install: Run installer from user profile" -ForegroundColor "Gray"
+    Write-Host ""
+    
+    Write-Host "OTHER OPTIONS:" -ForegroundColor "White"
+    Write-Host "  -Verify       Check current workspace status" -ForegroundColor "Gray"
+    Write-Host "  -Help         Show detailed help information" -ForegroundColor "Gray"
+    Write-Host ""
+}
+
+function Get-BootstrapConfirmation {
+    <#
+    .SYNOPSIS
+    Prompts user for bootstrap confirmation and returns their response
+    
+    .OUTPUTS
+    Returns $true if user wants to bootstrap, $false otherwise
+    
+    .EXAMPLE
+    $shouldBootstrap = Get-BootstrapConfirmation
+    #>
+    
+    Write-Host "Would you like to run bootstrap now? [Y/n]: " -NoNewline -ForegroundColor "Yellow"
+    $response = Read-Host
+    
+    if ($response -eq "" -or $response -eq "y" -or $response -eq "Y") {
+        Write-Host ""
+        Write-OperationStatus -Message "Running bootstrap automatically..." -Type "Success"
+        return $true
+    } else {
+        Write-Host ""
+        Write-Host "No problem! Run with -Bootstrap when you're ready." -ForegroundColor "Cyan"
+        Write-Host "Or use -Help for more information." -ForegroundColor "Cyan"
+        return $false
+    }
+}
+
+function Show-UnknownBranchError {
+    <#
+    .SYNOPSIS
+    Shows appropriate error message for unknown branch scenarios
+    
+    .PARAMETER HasRepoDirectory
+    Whether RepoDirectory parameter was provided
+    
+    .PARAMETER RepoDirectory
+    The repository directory path (if provided)
+    
+    .PARAMETER ScriptPath
+    The script path for examples
+    
+    .EXAMPLE
+    Show-UnknownBranchError -HasRepoDirectory $false -ScriptPath $PSCommandPath
+    Show-UnknownBranchError -HasRepoDirectory $true -RepoDirectory "C:\invalid" -ScriptPath $PSCommandPath
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [bool]$HasRepoDirectory,
+        
+        [string]$RepoDirectory,
+        
+        [Parameter(Mandatory)]
+        [string]$ScriptPath
+    )
+    
+    if (-not $HasRepoDirectory) {
+        # Case 1: Running from user profile without RepoDirectory
+        Write-Host ""
+        Write-Error "Repository location not specified"
+        
+        Show-ErrorBlock -Issue "When running from user profile, you must specify the repository location" -Solutions @(
+            "Use the -RepoDirectory parameter to specify the terraform-provider-azurerm repository path"
+        ) -ExampleUsage "$ScriptPath -RepoDirectory `"C:\github.com\hashicorp\terraform-provider-azurerm`"" -AdditionalInfo "The -RepoDirectory parameter tells the installer where to find your git repository for branch detection and workspace identification."
+    } else {
+        # Case 2: RepoDirectory was provided but git operations failed
+        Write-Host ""
+        Write-Error "Invalid repository directory or git operations failed"
+        
+        Show-ErrorBlock -Issue "The specified repository directory has issues:" -Solutions @(
+            "Path does not exist or is not accessible",
+            "Directory is not a git repository", 
+            "Git is not installed or not in PATH",
+            "Repository is in a corrupted state"
+        ) -ExampleUsage "$ScriptPath -RepoDirectory `"C:\github.com\hashicorp\terraform-provider-azurerm`"" -AdditionalInfo "Path: $RepoDirectory" -AdditionalCommands @(
+            "Verify the path exists: Test-Path `"$RepoDirectory`"",
+            "Check if it's a git repo: git status (from that directory)",
+            "Verify git is available: git --version"
+        )
+    }
+}
+
 #endregion
 
 #region Export Module Members
@@ -590,7 +910,15 @@ Export-ModuleMember -Function @(
     'Show-Summary',
     'Get-UserInput',
     'Wait-ForUser',
-    'Show-ValidationResults'
+    'Show-ValidationResults',
+    'Show-ErrorBlock',
+    'Show-BranchDetection',
+    'Show-FileOperation',
+    'Write-OperationStatus',
+    'Show-InstallationResults',
+    'Show-SourceBranchWelcome',
+    'Get-BootstrapConfirmation',
+    'Show-UnknownBranchError'
 )
 
 #endregion
