@@ -6,7 +6,19 @@ description: "This is the official Terraform Provider for Azure (Resource Manage
 
 This is the official Terraform Provider for Azure (Resource Manager), written in Go. It enables Terraform to manage Azure resources through the Azure Resource Manager APIs.
 
-**Quick navigation:** [📚 Stack](#stack) | [🏗️ Project Structure](#project-structure) | [💬 Comment Policy](#🚨-blocking-enforcement-zero-tolerance-comment-policy-🚨) | [🚨 Comment Audit](#🚨-mandatory-comment-audit-checklist-🚨) | [🎯 Priority Enforcement](#🎯-ai-development-priority-enforcement) | [🚨 Testing Policy](#🚨-critical-testing-rule-policy-no-redundant-field-validation) | [🎯 AI Guidelines](#🎯-ai-development-guidelines) | [⚡ Implementation](#implementation-approaches) | [📖 Generic Guidelines](#generic-guidelines) | [🧠 Smart Patterns](#smart-pattern-recognition) | [❌ Error Handling](#error-handling-standards) | [🔧 Implementation Guide](#detailed-implementation-guidance) | [📚 Quick Reference](#quick-reference-links)
+## 🚨 **BLOCKING REQUIREMENT: COLLABORATIVE APPROVAL POLICY** 🚨
+
+**MANDATORY: Always suggest before implementing**
+
+- Present options and explain approach first
+- Ask "What would you like me to do next?" 
+- Get explicit approval before any file changes or implementations
+- Offer alternatives when possible
+- If required information is missing (APIs, schemas, endpoints, etc.), explicitly state what's unknown and ask for clarification rather than implementing based on assumptions
+
+**This takes ABSOLUTE PRIORITY over implementation speed.**
+
+**Quick navigation:** [📚 Stack](#stack) | [🏗️ Project Structure](#project-structure) | [💬 Comment Policy](#🚨-blocking-enforcement-zero-tolerance-comment-policy-🚨) | [🚨 Comment Audit](#🚨-mandatory-comment-audit-checklist-🚨) | [🎯 Priority Enforcement](#🎯-ai-development-priority-enforcement) | [🚨 Testing Policy](#🚨-critical-testing-rule-policy-no-redundant-field-validation) | [🎯 AI Guidelines](#🎯-ai-development-guidelines) | [⚡ Implementation](#implementation-approaches) | [📖 Generic Guidelines](#generic-guidelines) | [🔍 API Discovery](#azure-api-discovery-process) | [🧠 Smart Patterns](#smart-pattern-recognition) | [❌ Error Handling](#error-handling-standards) | [🔧 Implementation Guide](#detailed-implementation-guidance) | [📚 Quick Reference](#quick-reference-links)
 
 ## Stack
 
@@ -374,6 +386,134 @@ func resourceServiceName() *pluginsdk.Resource {
 - Use appropriate polling for long-running operations
 - Implement proper retry logic with exponential backoff
 - Handle Azure API rate limits and throttling
+
+### Azure API Discovery Process
+**How to locate and verify Azure APIs in the HashiCorp Go Azure SDK**
+
+When implementing new Azure resources, follow this systematic approach to discover available APIs:
+
+**🔍 Repository Location**: `https://github.com/hashicorp/go-azure-sdk/tree/main/resource-manager`
+
+**📁 Structure Pattern**:
+```text
+resource-manager/
+├── {service-name}/              # e.g., hardwaresecuritymodules, compute, storage
+│   ├── {api-version}/           # e.g., 2025-03-31, 2024-01-01
+│   │   ├── {resource-type}/     # e.g., cloudhsmclusters, virtualmachines
+│   │   │   ├── README.md        # Usage examples and documentation
+│   │   │   ├── client.go        # Client initialization
+│   │   │   ├── model_*.go       # Data models and types
+│   │   │   ├── method_*.go      # CRUD operations
+│   │   │   └── id_*.go          # Resource ID structures
+```
+
+**⚡ Quick Discovery Steps**:
+1. **Navigate to service**: Find folder matching Azure service (e.g., `hardwaresecuritymodules`)
+2. **Choose API version**: Select latest available version (e.g., `2025-03-31`)
+3. **Locate resource type**: Find specific resource folder (e.g., `cloudhsmclusters`)
+4. **Review README.md**: Check available operations and usage examples
+5. **Verify operations**: Confirm CRUD methods exist (`CreateOrUpdate`, `Get`, `Update`, `Delete`)
+
+**✅ Standard Operations to Verify**:
+- `CreateOrUpdate` / `CreateOrUpdateThenPoll` - Resource creation
+- `Get` - Resource retrieval  
+- `Update` / `UpdateThenPoll` - Resource updates (if supported)
+- `Delete` / `DeleteThenPoll` - Resource deletion
+- `ListByResourceGroup` - List resources by resource group
+- `ListBySubscription` - List resources by subscription (if applicable)
+
+**📋 Key Files to Check**:
+- `client.go` - Client initialization patterns
+- `model_*.go` - Resource data structures and properties
+- `method_*.go` - Available operations and HTTP methods
+- `id_*.go` - Resource ID parsing and construction
+
+**🔗 Import Path Pattern**:
+```go
+import "github.com/hashicorp/go-azure-sdk/resource-manager/{service}/{version}/{resource}"
+```
+
+**Example - Cloud HSM Cluster**:
+```go
+import "github.com/hashicorp/go-azure-sdk/resource-manager/hardwaresecuritymodules/2025-03-31/cloudhsmclusters"
+
+// Client operations available:
+client.CreateOrUpdateThenPoll(ctx, id, model)
+client.Get(ctx, id)
+client.UpdateThenPoll(ctx, id, patchModel)  
+client.DeleteThenPoll(ctx, id)
+client.ListByResourceGroup(ctx, resourceGroupId)
+```
+
+**🚨 Version Selection Strategy**:
+- ✅ **Latest Version**: Use most recent API version for new implementations
+- ⚠️ **Preview Versions**: Avoid preview APIs for production resources
+- 📝 **Compatibility**: Ensure version supports all required operations
+
+**❌ What to Do if API Not Found**:
+1. Check if resource is available in a different service folder
+2. Verify API version availability (might be in older/newer version)
+3. Search for similar resource types for reference patterns
+4. Check Azure REST API documentation for correct service categorization
+5. Consider if resource requires custom SDK implementation
+
+### Go Module Workflow for New Azure APIs
+
+**🔧 Standard Workflow** (Based on Provider Standards):
+
+When adding support for new Azure APIs, follow this proven workflow:
+
+```bash
+# 1. FIRST: Add the import to your Go code
+import "github.com/hashicorp/go-azure-sdk/resource-manager/{service}/{version}/{resource}"
+
+# 2. THEN: Let Go automatically resolve and fetch dependencies
+go mod tidy
+
+# 3. FINALLY: Update the vendor directory
+go mod vendor
+
+# 4. Test your implementation
+make test
+```
+
+**⚡ Why This Order Works**:
+- Go automatically detects the new import and fetches the required version
+- `go mod tidy` resolves dependency conflicts and updates `go.mod`/`go.sum`
+- `go mod vendor` copies dependencies to the `/vendor` directory
+- The provider uses vendored dependencies for reproducible builds
+
+**🚨 Version Selection Strategy**:
+- **User Specified Version**: If user requests specific API version (e.g., "2023-01-01"), use that exact version
+- **Latest Version (Default)**: If no version specified, use latest available and inform user:
+  ```
+  "Using latest API version 2025-03-31 for {service}. Specify a different version if needed."
+  ```
+
+**📋 Based on Provider Tools**:
+This workflow is used by the provider's automated tools:
+- `scripts/update-deps.sh` - Dependency management script
+- `internal/tools/update-go-azure-sdk` - SDK version update automation
+- `GNUmakefile` - Build verification process
+
+**Example Implementation Flow**:
+```go
+// 1. Add import for Cloud HSM Clusters API
+import "github.com/hashicorp/go-azure-sdk/resource-manager/hardwaresecuritymodules/2025-03-31/cloudhsmclusters"
+
+// 2. Implement resource using the SDK
+func (r CloudHsmClusterResource) Create() sdk.ResourceFunc {
+    return sdk.ResourceFunc{
+        Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+            client := metadata.Client.HardwareSecurityModules.CloudHsmClustersClient
+            // Implementation continues...
+        },
+    }
+}
+
+// 3. Run go mod tidy && go mod vendor
+// 4. Test with make test
+```
 
 ### Security Guidelines
 - Never hardcode sensitive values in tests or examples
