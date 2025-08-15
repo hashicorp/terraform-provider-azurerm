@@ -1,0 +1,259 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
+package oracle
+
+import (
+	"context"
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/autonomousdatabasebackups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/autonomousdatabases"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+)
+
+var _ sdk.Resource = AutonomousDatabaseBackupResource{}
+
+type AutonomousDatabaseBackupResource struct{}
+
+type AutonomousDatabaseBackupResourceModel struct {
+	AutonomousDatabaseId string `tfschema:"autonomous_database_id"`
+	Name                 string `tfschema:"name"`
+
+	// Required
+	BackupType            string `tfschema:"backup_type"`
+	RetentionPeriodInDays int64  `tfschema:"retention_period_in_days"`
+}
+
+func (AutonomousDatabaseBackupResource) Arguments() map[string]*pluginsdk.Schema {
+	return map[string]*pluginsdk.Schema{
+		"autonomous_database_id": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+		"name": {
+			Type:     schema.TypeString,
+			Required: true,
+			ForceNew: true,
+		},
+		"retention_period_in_days": {
+			Type:         schema.TypeInt,
+			Required:     true,
+			ValidateFunc: validation.IntBetween(90, 3650),
+		},
+
+		// Optional
+		"backup_type": {
+			Type:     schema.TypeString,
+			Optional: true,
+			Default:  string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeLongTerm),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeLongTerm),
+			}, false),
+		},
+	}
+}
+
+func (r AutonomousDatabaseBackupResource) Attributes() map[string]*schema.Schema {
+	return map[string]*pluginsdk.Schema{}
+}
+
+func (r AutonomousDatabaseBackupResource) ModelObject() interface{} {
+	return &AutonomousDatabaseBackupResourceModel{}
+}
+
+func (r AutonomousDatabaseBackupResource) ResourceType() string {
+	return "azurerm_oracle_autonomous_database_backup"
+}
+
+func (r AutonomousDatabaseBackupResource) Create() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Oracle.OracleClient.AutonomousDatabaseBackups
+			dbClient := metadata.Client.Oracle.OracleClient.AutonomousDatabases
+			subscriptionId := metadata.Client.Account.SubscriptionId
+
+			var model AutonomousDatabaseBackupResourceModel
+			if err := metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding model: %+v", err)
+			}
+
+			parsedAdbsId, err := autonomousdatabases.ParseAutonomousDatabaseID(model.AutonomousDatabaseId)
+			if err != nil {
+				return fmt.Errorf("decoding id: %+v", err)
+			}
+
+			dbId := autonomousdatabases.NewAutonomousDatabaseID(subscriptionId, parsedAdbsId.ResourceGroupName, parsedAdbsId.AutonomousDatabaseName)
+
+			existing, err := dbClient.Get(ctx, dbId)
+			if err != nil && !response.WasNotFound(existing.HttpResponse) {
+				return fmt.Errorf("checking for presence of existing %s: %+v", dbId, err)
+			}
+
+			id := autonomousdatabasebackups.NewAutonomousDatabaseBackupID(
+				subscriptionId,
+				parsedAdbsId.ResourceGroupName,
+				parsedAdbsId.AutonomousDatabaseName,
+				model.Name,
+			)
+
+			existingBackup, err := findBackupByName(ctx, client, dbId, id)
+			if err != nil {
+				return fmt.Errorf("checking for existing backup: %+v", err)
+			}
+			if existingBackup != nil {
+				return metadata.ResourceRequiresImport(r.ResourceType(), &id)
+			}
+
+			param := autonomousdatabasebackups.AutonomousDatabaseBackup{
+				Name: pointer.To(model.Name),
+				Properties: &autonomousdatabasebackups.AutonomousDatabaseBackupProperties{
+					RetentionPeriodInDays: pointer.To(model.RetentionPeriodInDays),
+					BackupType:            pointer.To(autonomousdatabasebackups.AutonomousDatabaseBackupType(model.BackupType)),
+				},
+			}
+
+			if err := client.CreateOrUpdateThenPoll(ctx, id, param); err != nil {
+				return fmt.Errorf("creating %s: %+v", id, err)
+			}
+
+			metadata.SetID(id)
+			return nil
+		},
+	}
+}
+
+func (r AutonomousDatabaseBackupResource) Read() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Oracle.OracleClient.AutonomousDatabaseBackups
+
+			id, err := autonomousdatabasebackups.ParseAutonomousDatabaseBackupID(metadata.ResourceData.Id())
+			if err != nil {
+				return fmt.Errorf("parsing ID: %+v", err)
+			}
+
+			adbId := autonomousdatabases.NewAutonomousDatabaseID(
+				id.SubscriptionId,
+				id.ResourceGroupName,
+				id.AutonomousDatabaseName,
+			)
+			backupId := autonomousdatabasebackups.NewAutonomousDatabaseBackupID(id.SubscriptionId, id.ResourceGroupName, id.AutonomousDatabaseName, id.AutonomousDatabaseBackupName)
+
+			backup, err := findBackupByName(ctx, client, adbId, backupId)
+			if err != nil {
+				return fmt.Errorf("retrieving backup: %+v", err)
+			}
+
+			state := AutonomousDatabaseBackupResourceModel{
+				Name:                 id.AutonomousDatabaseBackupName,
+				AutonomousDatabaseId: adbId.ID(),
+			}
+
+			if props := backup.Properties; props != nil {
+				state.RetentionPeriodInDays = pointer.From(props.RetentionPeriodInDays)
+				state.BackupType = string(pointer.From(props.BackupType))
+			}
+
+			return metadata.Encode(&state)
+		},
+	}
+}
+
+func (r AutonomousDatabaseBackupResource) Update() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Oracle.OracleClient.AutonomousDatabaseBackups
+
+			id, err := autonomousdatabasebackups.ParseAutonomousDatabaseBackupID(metadata.ResourceData.Id())
+			if err != nil {
+				return fmt.Errorf("parsing ID: %+v", err)
+			}
+
+			adbId := autonomousdatabases.NewAutonomousDatabaseID(
+				id.SubscriptionId,
+				id.ResourceGroupName,
+				id.AutonomousDatabaseName,
+			)
+			backupId := autonomousdatabasebackups.NewAutonomousDatabaseBackupID(id.SubscriptionId, id.ResourceGroupName, id.AutonomousDatabaseName, id.AutonomousDatabaseBackupName)
+
+			var model AutonomousDatabaseBackupResourceModel
+			if err = metadata.Decode(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			_, err = findBackupByName(ctx, client, adbId, backupId)
+			if err != nil {
+				return fmt.Errorf("checking for existing backup: %+v", err)
+			}
+
+			update := &autonomousdatabasebackups.AutonomousDatabaseBackupUpdate{
+				Properties: &autonomousdatabasebackups.AutonomousDatabaseBackupUpdateProperties{},
+			}
+
+			if metadata.ResourceData.HasChange("retention_period_in_days") {
+				update.Properties.RetentionPeriodInDays = &model.RetentionPeriodInDays
+			}
+
+			if err := client.UpdateThenPoll(ctx, *id, *update); err != nil {
+				return fmt.Errorf("updating %s: %v", id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func (r AutonomousDatabaseBackupResource) Delete() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 30 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			client := metadata.Client.Oracle.OracleClient.AutonomousDatabaseBackups
+
+			id, err := autonomousdatabasebackups.ParseAutonomousDatabaseBackupID(metadata.ResourceData.Id())
+			if err != nil {
+				return fmt.Errorf("parsing ID: %+v", err)
+			}
+
+			if err := client.DeleteThenPoll(ctx, *id); err != nil {
+				return fmt.Errorf("deleting %s: %+v", id, err)
+			}
+
+			return nil
+		},
+	}
+}
+
+func findBackupByName(ctx context.Context, client *autonomousdatabasebackups.AutonomousDatabaseBackupsClient, adbId autonomousdatabases.AutonomousDatabaseId, backupId autonomousdatabasebackups.AutonomousDatabaseBackupId) (*autonomousdatabasebackups.AutonomousDatabaseBackup, error) {
+	resp, err := client.ListByParent(ctx, autonomousdatabasebackups.AutonomousDatabaseId(adbId))
+	if err != nil {
+		return nil, fmt.Errorf("listing backups for %s: %+v", adbId.ID(), err)
+	}
+
+	id := backupId.ID()
+
+	if model := resp.Model; model != nil {
+		for _, backup := range *model {
+			if backup.Id != nil && strings.EqualFold(*backup.Id, id) {
+				return &backup, nil
+			}
+		}
+	}
+
+	return nil, nil
+}
+
+func (r AutonomousDatabaseBackupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+	return autonomousdatabasebackups.ValidateAutonomousDatabaseBackupID
+}
