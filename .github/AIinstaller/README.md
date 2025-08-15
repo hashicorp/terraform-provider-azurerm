@@ -30,6 +30,31 @@ The installer provides a **clean, professional output** focused on what matters:
 
 ## 🚀 Getting Started
 
+### 📋 Prerequisites
+
+Before using the AI-powered development features, ensure you have the following VS Code extensions installed:
+
+#### Required Extensions
+- **[GitHub Copilot](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot)** - Core AI assistance and code generation
+- **[GitHub Copilot Chat](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot-chat)** - Interactive AI chat and slash commands
+
+#### Recommended Configuration
+For optimal performance and the best AI assistance experience:
+
+- **LLM Model**: **Claude Sonnet 4** (optimal for Terraform and Go development)
+- **Copilot Chat Model**: Set to Claude Sonnet 4 in VS Code settings
+- **Alternative**: GPT-4o (good alternative if Claude is unavailable)
+
+#### Quick Setup
+1. Install the required extensions from VS Code marketplace
+2. Sign in to GitHub Copilot with your account
+3. Configure Claude Sonnet 4 as your preferred model:
+   - Open VS Code Settings (`Ctrl+,`)
+   - Search for "copilot chat model"
+   - Select "Claude Sonnet 4" from the dropdown
+
+**Note**: Claude Sonnet 4 provides superior understanding of Terraform patterns, Azure API specifics, and Go code generation compared to other models.
+
 ### First Time Setup
 
 If you don't have the repository yet, clone it and switch to the AI installer branch:
@@ -123,14 +148,51 @@ The installer sets up a complete AI development environment:
   - `troubleshooting-decision-trees.instructions.md` - Debugging
   - `api-evolution-patterns.instructions.md` - API versioning
 
-### 🎨 Development Templates
-- **`.github/prompts/`** - AI prompt templates for common tasks
+### 🎨 Development Templates & AI Prompts
+- **`.github/prompts/`** - AI prompt templates for common development tasks:
+
+#### Available Prompts
+
+| Prompt File | Purpose | Usage |
+|-------------|---------|-------|
+| `add-unit-tests.prompt.md` | **Generate unit tests** for Go files with proper testing patterns | Use when you need comprehensive unit tests for utility functions, parsers, or validators |
+| `code-review-local-changes.prompt.md` | **Review uncommitted changes** with Terraform provider best practices | Use before committing to get expert feedback on your local changes |
+| `code-review-committed-changes.prompt.md` | **Review committed changes** for pull request feedback | Use to review git commits with detailed technical analysis |
+| `setup-go-dev-environment.prompt.md` | **Set up Go development environment** for the Terraform provider | Use when setting up a new development machine or environment |
+| `summarize-repo.prompt.md` | **Generate repository overview** with key components and structure | Use to understand the codebase structure and organization |
+| `summarize-repo-deep-dive.prompt.md` | **Deep technical analysis** of repository architecture and patterns | Use for comprehensive codebase analysis and architecture review |
+
+#### How to Use Prompts
+
+**In GitHub Copilot Chat:**
+**Prerequisites**: Requires [GitHub Copilot](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot) and [GitHub Copilot Chat](https://marketplace.visualstudio.com/items?itemName=GitHub.copilot-chat) extensions. Use **Claude Sonnet 4** for optimal results.
+
+Simply use slash commands to invoke the prompts directly:
+
+| Slash Command | Prompt File | Description |
+|---------------|-------------|-------------|
+| `/code-review-local-changes` | `code-review-local-changes.prompt.md` | Review your uncommitted changes |
+| `/code-review-committed-changes` | `code-review-committed-changes.prompt.md` | Review committed changes |
+| `/add-unit-tests` | `add-unit-tests.prompt.md` | Generate unit tests for Go files |
+| `/setup-go-dev-environment` | `setup-go-dev-environment.prompt.md` | Set up Go development environment |
+| `/summarize-repo` | `summarize-repo.prompt.md` | Generate repository overview |
+| `/summarize-repo-deep-dive` | `summarize-repo-deep-dive.prompt.md` | Deep technical analysis |
+
+**Example Usage:**
+```
+/code-review-local-changes
+/code-review-local-comitted-changes
+```
+
+**For File-Specific Actions:**
+```
+/code-review-local-comitted-changes for focusing on Azure patterns that have already been committed to your branch
+/code-review-local-changes focusing on Azure patterns
+```
 
 ### ⚙️ VS Code Configuration
 - **`.vscode/settings.json`** - Optimized VS Code settings for Terraform development
 
-### 🔧 Git Integration
-- **`.gitignore`** updates - Automatic ignore patterns for AI files
 
 ## 🎛️ Command Reference
 
@@ -239,6 +301,85 @@ AIinstaller/
 - `Show-Help` - Interactive help system
 - `Confirm-UserAction` - User confirmations
 - `Show-CompletionSummary` - Installation summaries
+
+## 🎯 AI Prompt Usage Patterns
+
+### Quick Start with Prompts
+
+Once the AI infrastructure is installed, you can leverage the powerful prompt templates for common development tasks:
+
+#### 🔍 Code Review Workflow
+```
+# Review your current changes before committing
+/code-review-local-changes
+
+# Review specific committed changes
+/code-review-committed-changes for commit abc123
+```
+
+#### 🧪 Testing Workflow
+```
+# Add comprehensive unit tests to a file
+/add-unit-tests for internal/services/cdn/frontdoor_resource.go
+
+# Generate tests following Terraform provider patterns
+/add-unit-tests with both typed and untyped resource patterns
+```
+
+#### 🏗️ Environment Setup
+```
+# Set up development environment
+/setup-go-dev-environment
+
+# Configure Go toolchain for Terraform development
+/setup-go-dev-environment with Go 1.22+ and required tools
+```
+
+#### 📊 Repository Analysis
+```
+# Get high-level repository overview
+/summarize-repo
+
+# Deep dive into architecture and patterns
+/summarize-repo-deep-dive
+```
+
+### Advanced Prompt Techniques
+
+#### 🎯 Context-Specific Usage
+Combine slash commands with specific context for better results:
+
+```
+# Review specific Azure service implementation
+/code-review-local-changes focusing on Azure CDN Front Door patterns
+
+# Generate tests for Azure API integration
+/add-unit-tests for Azure SDK client code with proper mocking patterns
+
+# Set up environment for specific Azure services
+/setup-go-dev-environment and include Azure CLI tools for testing
+```
+
+#### 🔄 Iterative Development
+Use slash commands in sequence for complete development workflows:
+
+```
+1. /summarize-repo to understand the codebase
+2. # Make your code changes
+3. /add-unit-tests for the changed files
+4. /code-review-local-changes before committing
+```
+
+#### 🎨 Custom Prompt Combinations
+Combine multiple commands for complex tasks:
+
+```
+# Comprehensive development review
+/code-review-local-changes AND ensure the code follows Azure patterns from .github/instructions/
+
+# Full testing coverage
+/add-unit-tests and ensure tests follow .github/instructions/testing-guidelines.instructions.md
+```
 
 ## 🔍 Usage Examples
 
