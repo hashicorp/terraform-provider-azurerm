@@ -128,11 +128,8 @@ function Test-BranchType {
             $Global:WorkspaceRoot 
         }
         
-        Write-Host "[DEBUG] Checking git branch in directory: $workspaceRoot" -ForegroundColor "Gray"
-        
         if (-not $workspaceRoot -or -not (Test-Path $workspaceRoot)) {
             Write-Warning "Repository directory not found: $workspaceRoot"
-            Write-Host "[DEBUG] Use -RepoDirectory parameter to specify the repository path when running from user profile" -ForegroundColor "Gray"
             return "unknown"
         }
         
@@ -141,20 +138,12 @@ function Test-BranchType {
             $currentBranch = git rev-parse --abbrev-ref HEAD 2>$null
             if ($LASTEXITCODE -ne 0) {
                 Write-Warning "Could not determine current git branch"
-                Write-Host "[DEBUG] Git command failed with exit code: $LASTEXITCODE" -ForegroundColor "Gray"
-                Write-Host "[DEBUG] Directory: $workspaceRoot" -ForegroundColor "Gray"
-                Write-Host "[DEBUG] Make sure the directory is a git repository and git is available" -ForegroundColor "Gray"
                 return "unknown"
             }
             
-            Write-Host "[DEBUG] Current git branch: '$currentBranch'" -ForegroundColor "Gray"
-            Write-Host "[DEBUG] Expected source branch: '$($Global:InstallerConfig.Branch)'" -ForegroundColor "Gray"
-            
             if ($currentBranch -eq $Global:InstallerConfig.Branch) {
-                Write-Host "[DEBUG] Branch type: source" -ForegroundColor "Gray"
                 return "source"
             } else {
-                Write-Host "[DEBUG] Branch type: feature" -ForegroundColor "Gray"
                 return "feature"
             }
         }
@@ -164,7 +153,6 @@ function Test-BranchType {
     }
     catch {
         Write-Warning "Git not available or error checking git repository"
-        Write-Host "[DEBUG] Exception caught: $($_.Exception.Message)" -ForegroundColor "Gray"
         return "unknown"
     }
 }
@@ -688,10 +676,6 @@ function Main {
         $branchType = Test-BranchType
         $isSourceBranch = $branchType -eq "source"
         
-        Write-Host "[DEBUG] Detected branch type: '$branchType'" -ForegroundColor "Gray"
-        Write-Host "[DEBUG] Is source branch: $isSourceBranch" -ForegroundColor "Gray"
-        Write-Host "" -ForegroundColor "Gray"
-        
         # Handle help parameter
         if ($Help) {
             Show-Help
@@ -779,8 +763,9 @@ function Main {
             }
         } else {
             if ($branchType -eq "unknown") {
-                # If branch type is unknown and no RepoDirectory provided, error out
+                # If branch type is unknown, we need to determine why and provide appropriate error
                 if (-not $RepoDirectory) {
+                    # Case 1: Running from user profile without RepoDirectory
                     Write-Host ""
                     Write-Error "Repository location not specified"
                     Write-Host ""
@@ -796,16 +781,35 @@ function Main {
                     Write-Host "for branch detection and workspace identification." -ForegroundColor "Gray"
                     Write-Host ""
                     exit 1
+                } else {
+                    # Case 2: RepoDirectory was provided but git operations failed
+                    Write-Host ""
+                    Write-Error "Invalid repository directory or git operations failed"
+                    Write-Host ""
+                    Write-Host "The specified repository directory has issues:" -ForegroundColor "Yellow"
+                    Write-Host "  Path: $RepoDirectory" -ForegroundColor "Gray"
+                    Write-Host ""
+                    Write-Host "POSSIBLE CAUSES:" -ForegroundColor "Cyan"
+                    Write-Host "  - Path does not exist or is not accessible" -ForegroundColor "White"
+                    Write-Host "  - Directory is not a git repository" -ForegroundColor "White"
+                    Write-Host "  - Git is not installed or not in PATH" -ForegroundColor "White"
+                    Write-Host "  - Repository is in a corrupted state" -ForegroundColor "White"
+                    Write-Host ""
+                    Write-Host "SOLUTIONS:" -ForegroundColor "Cyan"
+                    Write-Host "  - Verify the path exists: Test-Path `"$RepoDirectory`"" -ForegroundColor "White"
+                    Write-Host "  - Check if it's a git repo: git status (from that directory)" -ForegroundColor "White"
+                    Write-Host "  - Verify git is available: git --version" -ForegroundColor "White"
+                    Write-Host ""
+                    Write-Host "EXAMPLE OF CORRECT PATH:" -ForegroundColor "Cyan"
+                    Write-Host "  .\install-copilot-setup.ps1 -RepoDirectory `"C:\github.com\hashicorp\terraform-provider-azurerm`"" -ForegroundColor "White"
+                    Write-Host ""
+                    exit 1
                 }
-                
-                Write-Host "RUNNING FROM USER PROFILE" -ForegroundColor "Cyan"
-                Write-Host ""
-                Write-Host "Installing AI infrastructure for feature branch development..." -ForegroundColor "White"
-            } else {
-                Write-Host "FEATURE BRANCH DETECTED: $branchType" -ForegroundColor "Cyan"
-                Write-Host ""
-                Write-Host "Starting AI infrastructure installation..." -ForegroundColor "White"
             }
+            
+            Write-Host "FEATURE BRANCH DETECTED: $branchType" -ForegroundColor "Cyan"
+            Write-Host ""
+            Write-Host "Starting AI infrastructure installation..." -ForegroundColor "White"
             
             $result = Invoke-InstallInfrastructure -AutoApprove:$AutoApprove -DryRun:$DryRun
             if (-not $result.Success) {
