@@ -168,9 +168,24 @@ function Install-AIFile {
         
         Write-Host "  Download complete: $($response.StatusCode), $($response.Content.Length) bytes, $([math]::Round($result.DebugInfo.DownloadDuration))ms" -ForegroundColor Gray
         
-        # Save file
+        # Save file (handle both text and binary content properly)
         Write-Host "  Saving file..." -ForegroundColor Gray
-        [System.IO.File]::WriteAllBytes($FilePath, $response.Content)
+        try {
+            # For text files (like .md, .instructions.md), use UTF8 encoding
+            if ($FilePath -match '\.(md|txt|instructions\.md|yml|yaml|json)$') {
+                # Use UTF8 encoding without BOM for text files
+                $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+                [System.IO.File]::WriteAllText($FilePath, $response.Content, $utf8NoBom)
+                $result.DebugInfo.SaveMethod = "WriteAllText (UTF8 no BOM)"
+            } else {
+                # For binary files, use the raw content bytes
+                [System.IO.File]::WriteAllBytes($FilePath, $response.Content)
+                $result.DebugInfo.SaveMethod = "WriteAllBytes"
+            }
+        } catch {
+            $result.DebugInfo.SaveException = $_.Exception.Message
+            throw
+        }
         
         # Verify file was created
         if (Test-Path $FilePath) {
