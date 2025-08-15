@@ -4,6 +4,30 @@
 
 This installer provides GitHub Copilot instructions, VS Code configurations, and AI-powered development workflows for the Terraform AzureRM Provider repository.
 
+## ✨ User Experience
+
+The installer provides a **clean, professional output** focused on what matters:
+
+- **📋 Clear progress indicators** - Section headers and completion status
+- **🎯 Focused messaging** - Only essential information, no technical noise
+- **✅ Success confirmations** - Clear indication when operations complete
+- **🚫 Suppressed verbosity** - Technical module loading details hidden
+- **📊 File operation tracking** - Detailed file copy/install status
+
+**Example output:**
+```
+[SECTION] Bootstrap - Copying Installer to User Profile
+-------------------------------------------------------
+  Using existing directory: C:\Users\username\.terraform-ai-installer
+  Copying installer files from local source repository...
+
+    Copying: file-manifest.config [OK]
+    Copying: install-copilot-setup.ps1 [OK]
+    Copying: ConfigParser.psm1 [OK]
+
+[SUCCESS] Bootstrap completed successfully!
+```
+
 ## 🚀 Getting Started
 
 ### First Time Setup
