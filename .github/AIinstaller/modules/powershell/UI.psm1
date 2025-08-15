@@ -95,8 +95,11 @@ function Write-ProgressMessage {
         [int]$PercentComplete = -1
     )
     
-    if ($PercentComplete -ge 0) {
-        Write-Progress -Activity $Activity -Status $Status -PercentComplete $PercentComplete
+    # Always use console output instead of Write-Progress to avoid flashing
+    if ($PercentComplete -ge 0 -and $Status) {
+        Write-Host "[PROGRESS] $Activity ($PercentComplete%): $Status" -ForegroundColor Blue
+    } elseif ($PercentComplete -ge 0) {
+        Write-Host "[PROGRESS] $Activity ($PercentComplete%)" -ForegroundColor Blue
     } else {
         Write-Host "[PROGRESS] $Activity" -ForegroundColor Blue
         if ($Status) {
