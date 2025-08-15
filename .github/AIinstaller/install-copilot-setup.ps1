@@ -268,7 +268,7 @@ function Invoke-Bootstrap {
         if ($statistics["Files Failed"] -eq 0) {
             $totalSizeKB = [math]::Round($statistics["Total Size"] / 1KB, 1)
             
-            Show-Success "Bootstrap completed successfully!"
+            Write-Success "Bootstrap completed successfully!"
             Write-Host ""
             
             if ($statistics["Files Copied"] -gt 0) {
