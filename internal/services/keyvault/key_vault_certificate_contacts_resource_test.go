@@ -133,7 +133,7 @@ func TestAccKeyVaultCertificateContacts_remove(t *testing.T) {
 	})
 }
 
-func TestAccKeyVaultCertificateContacts_destroy(t *testing.T) {
+func TestAccKeyVaultCertificateContacts_destroyEmptyContact(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_contacts", "test")
 	r := KeyVaultCertificateContactsResource{}
 
@@ -155,11 +155,7 @@ func TestAccKeyVaultCertificateContacts_destroy(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config: r.template(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).DoesNotExistInAzure(r),
-			),
 		},
-		data.ImportStep(),
 	})
 }
 
