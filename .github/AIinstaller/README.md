@@ -80,7 +80,7 @@ If you encounter execution policy errors, you have several options:
 #### Option 1: Bypass for single execution (Recommended)
 ```powershell
 # Run with execution policy bypass (safest for one-time use)
-powershell -ExecutionPolicy Bypass -File .\install-copilot-setup.ps1 -Bootstrap
+powershell -ExecutionPolicy Bypass -File .\.github\AIinstaller\install-copilot-setup.ps1 -Bootstrap
 
 # Or for the user profile installer
 powershell -ExecutionPolicy Bypass -File "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1"
@@ -89,15 +89,15 @@ powershell -ExecutionPolicy Bypass -File "$env:USERPROFILE\.terraform-ai-install
 #### Option 2: Unblock the downloaded files
 ```powershell
 # Unblock all installer files
-Get-ChildItem -Path . -Recurse | Unblock-File
-.\install-copilot-setup.ps1 -Bootstrap
+Get-ChildItem -Path .\.github\AIinstaller -Recurse | Unblock-File
+.\.github\AIinstaller\install-copilot-setup.ps1 -Bootstrap
 ```
 
 #### Option 3: Set execution policy for current user (Permanent)
 ```powershell
 # Allow local scripts for current user
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-.\install-copilot-setup.ps1 -Bootstrap
+.\.github\AIinstaller\install-copilot-setup.ps1 -Bootstrap
 ```
 
 ## 🚀 Quick Start
@@ -105,7 +105,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ### If you're on the source branch (`exp/terraform_copilot`):
 ```powershell
 # 1. Bootstrap the installer
-.\install-copilot-setup.ps1 -Bootstrap
+.\.github\AIinstaller\install-copilot-setup.ps1 -Bootstrap
 
 # 2. Switch to your feature branch
 git checkout feature/your-branch-name
@@ -200,7 +200,7 @@ Simply use slash commands to invoke the prompts directly:
 | Command | Description | Available On |
 |---------|-------------|--------------|
 | `.\install-copilot-setup.ps1` | **Install AI infrastructure** | Feature branches |
-| `.\install-copilot-setup.ps1 -Bootstrap` | **Copy installer to user profile** | Source branch only |
+| `.\.github\AIinstaller\install-copilot-setup.ps1 -Bootstrap` | **Copy installer to user profile** | Source branch only |
 | `.\install-copilot-setup.ps1 -Verify` | **Check installation status** | Any branch |
 | `.\install-copilot-setup.ps1 -Clean` | **Remove AI infrastructure** | Feature branches |
 | `.\install-copilot-setup.ps1 -Help` | **Show detailed help** | Any branch |
@@ -451,7 +451,7 @@ If the installer becomes corrupted:
 # Re-download from source branch
 git switch exp/terraform_copilot
 git pull origin exp/terraform_copilot
-.\install-copilot-setup.ps1 -Bootstrap
+.\.github\AIinstaller\install-copilot-setup.ps1 -Bootstrap
 
 # Then return to your branch
 git switch your-feature-branch
@@ -505,7 +505,7 @@ $isInstalled = $result.Success -and ($result.Issues.Count -eq 0)
 
 ```powershell
 # Test bootstrap functionality
-.\install-copilot-setup.ps1 -Bootstrap
+.\.github\AIinstaller\install-copilot-setup.ps1 -Bootstrap
 
 # Test installation on clean feature branch
 git checkout -b test/installer-changes
