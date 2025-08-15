@@ -123,6 +123,9 @@ if ($RepoDirectory) {
     }
 }
 
+# Get dynamic configuration from manifest FIRST
+$ManifestConfig = Get-ManifestConfig
+
 # Initialize installer configuration after workspace root is finalized
 $Global:InstallerConfig = @{
     Version = "1.0.0"
@@ -154,9 +157,6 @@ $Global:InstallerConfig = @{
         }
     }
 }
-
-# Get dynamic configuration from manifest
-$ManifestConfig = Get-ManifestConfig
 
 # Note: InstallerConfig will be initialized after RepoDirectory parameter processing
 
@@ -717,9 +717,57 @@ function Main {
         $AutoApprove = ${Auto-Approve}
         $DryRun = ${Dry-Run}
         
+        # Check if running from user profile installer
+        $isUserProfileInstaller = $PSScriptRoot -like "*\.terraform-ai-installer*"
+        
+        # If running from user profile installer, RepoDirectory is required for proper branch detection
+        if ($isUserProfileInstaller -and -not $RepoDirectory -and -not $Help) {
+            Write-Error "REPOSITORY DIRECTORY REQUIRED: When running from user profile installer, -RepoDirectory is required."
+            Write-Host ""
+            Write-Host "ISSUE:" -ForegroundColor Red
+            Write-Host "  You're running the installer from your user profile location, but haven't specified" -ForegroundColor Yellow
+            Write-Host "  where to find the terraform-provider-azurerm repository for branch detection." -ForegroundColor Yellow
+            Write-Host ""
+            Write-Host "SOLUTION:" -ForegroundColor Cyan
+            Write-Host "  Use the -RepoDirectory parameter to specify the repository path:" -ForegroundColor White
+            Write-Host ""
+            Write-Host "EXAMPLE USAGE:" -ForegroundColor Cyan
+            Write-Host "  & `"$PSCommandPath`" -RepoDirectory `"C:\github.com\hashicorp\terraform-provider-azurerm`"" -ForegroundColor Gray
+            Write-Host ""
+            Write-Host "WHY IS THIS NEEDED?" -ForegroundColor Yellow
+            Write-Host "  The installer needs to detect your current git branch to determine whether you're" -ForegroundColor Yellow
+            Write-Host "  working on the main development branch or a feature branch. This affects which" -ForegroundColor Yellow
+            Write-Host "  operations are available and how files are managed." -ForegroundColor Yellow
+            Write-Host ""
+            exit 1
+        }
+        
         # Determine branch type
         $branchType = Test-BranchType
         $isSourceBranch = $branchType -eq "source"
+        
+        # Handle unknown branch type (additional safety check)
+        if ($branchType -eq "unknown" -and -not $RepoDirectory -and -not $Help) {
+            Write-Error "REPOSITORY DIRECTORY REQUIRED: Cannot determine git branch from current location."
+            Write-Host ""
+            Write-Host "ISSUE:" -ForegroundColor Red
+            Write-Host "  The installer cannot determine the current git branch, which usually means:" -ForegroundColor Yellow
+            Write-Host "  1. You're running from outside a git repository" -ForegroundColor Yellow
+            Write-Host "  2. You're running from your user profile location" -ForegroundColor Yellow
+            Write-Host "  3. Git is not available or the directory is not a git repository" -ForegroundColor Yellow
+            Write-Host ""
+            Write-Host "SOLUTION:" -ForegroundColor Cyan
+            Write-Host "  Use the -RepoDirectory parameter to specify the terraform-provider-azurerm repository path:" -ForegroundColor White
+            Write-Host ""
+            Write-Host "EXAMPLE USAGE:" -ForegroundColor Cyan
+            Write-Host "  & `"$PSCommandPath`" -RepoDirectory `"C:\github.com\hashicorp\terraform-provider-azurerm`"" -ForegroundColor Gray
+            Write-Host ""
+            Write-Host "NOTE:" -ForegroundColor Yellow
+            Write-Host "  The -RepoDirectory parameter tells the installer where to find the git repository" -ForegroundColor Yellow
+            Write-Host "  for branch detection when running from outside the repository directory." -ForegroundColor Yellow
+            Write-Host ""
+            exit 1
+        }
         
         # Handle help parameter
         if ($Help) {
