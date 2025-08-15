@@ -128,29 +128,19 @@ function Install-AIFile {
         # Update result with resolved path
         $result.FilePath = $resolvedFilePath
         
-        # Debug: Record initial state
+        # Record initial state
         $result.DebugInfo.StartTime = Get-Date
         $result.DebugInfo.DownloadUrl = $DownloadUrl
         $result.DebugInfo.TargetPath = $resolvedFilePath
-        
-        Write-Host "[DEBUG] Starting file operation:" -ForegroundColor Magenta
-        Write-Host "  Target: $resolvedFilePath" -ForegroundColor Gray
-        Write-Host "  URL: $DownloadUrl" -ForegroundColor Gray
-        if ($WorkspaceRoot) {
-            Write-Host "  Workspace: $WorkspaceRoot" -ForegroundColor Gray
-        }
         
         # Check if file already exists
         $fileExists = Test-Path $resolvedFilePath
         $result.DebugInfo.FileExisted = $fileExists
         
-        Write-Host "  Exists: $fileExists" -ForegroundColor Gray
-        
         if ($fileExists -and -not $Force) {
             $result.Action = "Skipped"
             $result.Success = $true
             $result.Message = "File already exists (use -Force to overwrite)"
-            Write-Host "  Result: SKIPPED (file exists)" -ForegroundColor Yellow
             return $result
         }
         
@@ -158,11 +148,8 @@ function Install-AIFile {
         $directory = Split-Path $resolvedFilePath -Parent
         $result.DebugInfo.TargetDirectory = $directory
         
-        Write-Host "  Directory: $directory" -ForegroundColor Gray
-        
         if ($directory -and -not (Assert-DirectoryExists $directory)) {
             $result.Message = "Failed to create directory: $directory"
-            Write-Host "  Result: FAILED (directory creation)" -ForegroundColor Red
             return $result
         }
         
@@ -170,12 +157,10 @@ function Install-AIFile {
             $result.Action = if ($fileExists) { "Would Overwrite" } else { "Would Download" }
             $result.Success = $true
             $result.Message = "Dry run - no changes made"
-            Write-Host "  Result: DRY RUN" -ForegroundColor Cyan
             return $result
         }
         
         # Download file
-        Write-Host "  Downloading..." -ForegroundColor Gray
         Write-Verbose "Downloading: $DownloadUrl"
         
         $downloadStart = Get-Date
@@ -186,10 +171,7 @@ function Install-AIFile {
         $result.DebugInfo.ResponseSize = $response.Content.Length
         $result.DebugInfo.StatusCode = $response.StatusCode
         
-        Write-Host "  Download complete: $($response.StatusCode), $($response.Content.Length) bytes, $([math]::Round($result.DebugInfo.DownloadDuration))ms" -ForegroundColor Gray
-        
         # Save file (handle both text and binary content properly)
-        Write-Host "  Saving file..." -ForegroundColor Gray
         try {
             # For text files (like .md, .instructions.md), use UTF8 encoding
             if ($resolvedFilePath -match '\.(md|txt|instructions\.md|yml|yaml|json)$') {
@@ -215,11 +197,8 @@ function Install-AIFile {
             $result.Success = $true
             $result.Message = "Successfully installed ($($result.Size) bytes)"
             $result.DebugInfo.FinalSize = $result.Size
-            
-            Write-Host "  Result: SUCCESS ($($result.Size) bytes)" -ForegroundColor Green
         } else {
             $result.Message = "File was not created"
-            Write-Host "  Result: FAILED (file not created)" -ForegroundColor Red
         }
     }
     catch {
@@ -227,17 +206,12 @@ function Install-AIFile {
         $result.DebugInfo.Exception = $_.Exception.GetType().Name
         $result.DebugInfo.ExceptionMessage = $_.Exception.Message
         
-        Write-Host "  Result: FAILED (exception)" -ForegroundColor Red
-        Write-Host "  Exception: $($_.Exception.GetType().Name)" -ForegroundColor Red
-        Write-Host "  Message: $($_.Exception.Message)" -ForegroundColor Red
-        
         # Additional debug for specific error types
         if ($_.Exception -is [System.Net.WebException]) {
             $webEx = $_.Exception
             if ($webEx.Response) {
                 $result.DebugInfo.HttpStatusCode = [int]$webEx.Response.StatusCode
                 $result.DebugInfo.HttpStatusDescription = $webEx.Response.StatusDescription
-                Write-Host "  HTTP Status: $([int]$webEx.Response.StatusCode) $($webEx.Response.StatusDescription)" -ForegroundColor Red
             }
         }
     }
@@ -275,12 +249,6 @@ function Install-AllAIFiles {
         }
     }
     
-    Write-Host "[DEBUG] Installation Configuration:" -ForegroundColor Magenta
-    Write-Host "  Branch: $Branch" -ForegroundColor Gray
-    Write-Host "  Base URL: $($config.BaseUrl)" -ForegroundColor Gray
-    Write-Host "  Total Files: $($config.Files.Count)" -ForegroundColor Gray
-    Write-Host ""
-    
     Write-ProgressMessage -Activity "Installing AI Infrastructure" -Status "Preparing..." -PercentComplete 0
     
     $fileIndex = 0
@@ -311,37 +279,7 @@ function Install-AllAIFiles {
     $results.DebugInfo.EndTime = Get-Date
     $results.DebugInfo.TotalDuration = ($results.DebugInfo.EndTime - $results.DebugInfo.StartTime).TotalMilliseconds
     
-    Write-Host ""
-    Write-Host "[DEBUG] Installation Summary:" -ForegroundColor Magenta
-    Write-Host "  Total Duration: $([math]::Round($results.DebugInfo.TotalDuration))ms" -ForegroundColor Gray
-    Write-Host "  Successful: $($results.Successful)" -ForegroundColor Green
-    Write-Host "  Failed: $($results.Failed)" -ForegroundColor Red
-    Write-Host "  Skipped: $($results.Skipped)" -ForegroundColor Yellow
-    Write-Host ""
-    
-    # Show details for failed files
-    if ($results.Failed -gt 0) {
-        Write-Host "[DEBUG] Failed Files Detail:" -ForegroundColor Red
-        foreach ($filePath in $results.Files.Keys) {
-            $fileResult = $results.Files[$filePath]
-            if (-not $fileResult.Success -and $fileResult.Action -ne "Skipped") {
-                Write-Host "  File: $filePath" -ForegroundColor Red
-                Write-Host "    Message: $($fileResult.Message)" -ForegroundColor Gray
-                if ($fileResult.DebugInfo) {
-                    if ($fileResult.DebugInfo.DownloadUrl) {
-                        Write-Host "    URL: $($fileResult.DebugInfo.DownloadUrl)" -ForegroundColor Gray
-                    }
-                    if ($fileResult.DebugInfo.Exception) {
-                        Write-Host "    Exception: $($fileResult.DebugInfo.Exception)" -ForegroundColor Gray
-                    }
-                    if ($fileResult.DebugInfo.HttpStatusCode) {
-                        Write-Host "    HTTP Status: $($fileResult.DebugInfo.HttpStatusCode) $($fileResult.DebugInfo.HttpStatusDescription)" -ForegroundColor Gray
-                    }
-                }
-                Write-Host ""
-            }
-        }
-    }
+    Write-ProgressMessage -Activity "Installing AI Infrastructure" -Status "Complete" -PercentComplete 100
     
     return $results
 }
