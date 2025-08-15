@@ -177,8 +177,8 @@ func (r KeyVaultCertificateContactsResource) Read() sdk.ResourceFunc {
 			existing, err := client.GetCertificateContacts(ctx, id.KeyVaultBaseUrl)
 			if err != nil {
 				if utils.ResponseWasNotFound(existing.Response) {
-					// Notes: it's expected to delete this resource instead of updating contact to be an empty list,
-					// However, contact field is changed to optional to support backward compatibility, 
+					// Note: it's expected to delete this resource instead of updating contact to be an empty list,
+					// However, contact field is changed to optional to support backward compatibility,
 					// it's possible that user remove contact from this resource.
 					// So we have to mark contact as empty instead of removing the resource to fix "inconsistent result after apply" error
 					return metadata.Encode(&KeyVaultCertificateContactsResourceModel{
