@@ -914,8 +914,10 @@ Export-ModuleMember -Function @(
     'Show-ErrorBlock',
     'Show-BranchDetection',
     'Show-FileOperation',
+    'Show-DirectoryOperation',
     'Write-OperationStatus',
     'Show-InstallationResults',
+    'Show-RepositoryInfo',
     'Show-SourceBranchWelcome',
     'Get-BootstrapConfirmation',
     'Show-UnknownBranchError'
