@@ -81,7 +81,7 @@ function Write-Info {
     Write-Host "$Prefix $Message" -ForegroundColor Cyan
 }
 
-function Write-Progress {
+function Write-ProgressMessage {
     <#
     .SYNOPSIS
     Display progress information
@@ -897,7 +897,7 @@ Export-ModuleMember -Function @(
     'Write-WarningMessage', 
     'Write-ErrorMessage',
     'Write-Info',
-    'Write-Progress',
+    'Write-ProgressMessage',
     'Write-FileOperation',
     'Write-Section',
     'Write-VerboseMessage',
