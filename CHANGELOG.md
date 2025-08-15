@@ -1,3 +1,15 @@
+## 4.41.0 (Unreleased)
+
+ENHANCEMENTS:
+* `azurerm_cdn_frontdoor_profile` - add support for the `log_scrubbing_rule` block [GH-30115]
+
+FEATURES:
+* **New Resource**: `azurerm_network_manager_routing_rule_collection` [GH-29783]
+
+BUG FIXES:
+
+* `azurerm_app_service_environment_v3` - fix drift on the `allow_new_private_endpoint_connections` property [GH-30391]
+
 ## 4.40.0 (August 14, 2025)
 
 FEATURES:
