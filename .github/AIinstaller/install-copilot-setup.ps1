@@ -42,7 +42,7 @@ foreach ($module in $RequiredModules) {
     if (Test-Path $modulePath) {
         Import-Module $modulePath -Force
     } else {
-        Write-Error "Required module '$module' not found at: $modulePath"
+        Write-ErrorMessage "Required module '$module' not found at: $modulePath"
         exit 1
     }
 }
@@ -93,7 +93,7 @@ if ($RepoDirectory) {
             $Global:WorkspaceRoot = $RepoDirectory
             Show-RepositoryInfo -Directory $RepoDirectory
         } else {
-            Write-Error "INVALID REPOSITORY: The specified directory does not appear to be a terraform-provider-azurerm repository."
+            Write-ErrorMessage "INVALID REPOSITORY: The specified directory does not appear to be a terraform-provider-azurerm repository."
             Show-ErrorBlock -Issue "The -RepoDirectory parameter must point to a valid terraform-provider-azurerm repository root." -Solutions @(
                 "Ensure you're pointing to the repository ROOT directory",
                 "Verify the directory contains terraform-provider-azurerm source code", 
@@ -102,7 +102,7 @@ if ($RepoDirectory) {
             exit 1
         }
     } else {
-        Write-Error "DIRECTORY NOT FOUND: The specified RepoDirectory does not exist."
+        Write-ErrorMessage "DIRECTORY NOT FOUND: The specified RepoDirectory does not exist."
         Show-ErrorBlock -Issue "The path '$RepoDirectory' could not be found on this system." -Solutions @(
             "Check the path spelling and ensure it exists",
             "Use an absolute path (e.g., 'C:\path\to\repo')",
@@ -164,7 +164,7 @@ function Test-BranchType {
         }
         
         if (-not $workspaceRoot -or -not (Test-Path $workspaceRoot)) {
-            Write-Warning "Repository directory not found: $workspaceRoot"
+            Write-WarningMessage "Repository directory not found: $workspaceRoot"
             return "unknown"
         }
         
@@ -172,7 +172,7 @@ function Test-BranchType {
         try {
             $currentBranch = git rev-parse --abbrev-ref HEAD 2>$null
             if ($LASTEXITCODE -ne 0) {
-                Write-Warning "Could not determine current git branch"
+                Write-WarningMessage "Could not determine current git branch"
                 return "unknown"
             }
             
@@ -187,7 +187,7 @@ function Test-BranchType {
         }
     }
     catch {
-        Write-Warning "Git not available or error checking git repository"
+        Write-WarningMessage "Git not available or error checking git repository"
         return "unknown"
     }
 }
@@ -354,7 +354,7 @@ function Invoke-Bootstrap {
                 Statistics = $statistics
             }
         } else {
-            Write-Error "Bootstrap failed: $($statistics["Files Failed"]) files could not be processed"
+            Write-ErrorMessage "Bootstrap failed: $($statistics["Files Failed"]) files could not be processed"
             return @{
                 Success = $false
                 Statistics = $statistics
@@ -362,7 +362,7 @@ function Invoke-Bootstrap {
         }
     }
     catch {
-        Write-Error "Bootstrap failed: $($_.Exception.Message)"
+        Write-ErrorMessage "Bootstrap failed: $($_.Exception.Message)"
         return @{
             Success = $false
             Error = $_.Exception.Message
@@ -604,7 +604,7 @@ function Invoke-CleanWorkspace {
     Write-Section "Clean Workspace"
     
     if ($DryRun) {
-        Write-Warning "DRY RUN - No files will be deleted"
+        Write-WarningMessage "DRY RUN - No files will be deleted"
         Write-Host ""
     }
     
@@ -670,7 +670,7 @@ function Invoke-InstallInfrastructure {
     Write-Section "Installing AI Infrastructure"
     
     if ($DryRun) {
-        Write-Warning "DRY RUN - No files will be created or removed"
+        Write-WarningMessage "DRY RUN - No files will be created or removed"
         Write-Host ""
     }
     
@@ -689,7 +689,7 @@ function Invoke-InstallInfrastructure {
     Write-OperationStatus -Message "Installing current AI infrastructure files..." -Type "Info"
     
     # Debug: Show parameter values
-    Write-Verbose "Parameters: AutoApprove=$AutoApprove, DryRun=$DryRun"
+    Write-VerboseMessage "Parameters: AutoApprove=$AutoApprove, DryRun=$DryRun"
     
     # Use the FileOperations module to actually install files
     try {
@@ -725,7 +725,7 @@ function Main {
         
         # If running from user profile installer, RepoDirectory is required for proper branch detection
         if ($isUserProfileInstaller -and -not $RepoDirectory -and -not $Help) {
-            Write-Error "REPOSITORY DIRECTORY REQUIRED: When running from user profile installer, -RepoDirectory is required."
+            Write-ErrorMessage "REPOSITORY DIRECTORY REQUIRED: When running from user profile installer, -RepoDirectory is required."
             Show-ErrorBlock -Issue "You're running the installer from your user profile location, but haven't specified where to find the terraform-provider-azurerm repository for branch detection." -Solutions @(
                 "Use the -RepoDirectory parameter to specify the repository path"
             ) -ExampleUsage "`"$PSCommandPath`" -RepoDirectory `"C:\github.com\hashicorp\terraform-provider-azurerm`"" -AdditionalInfo "The installer needs to detect your current git branch to determine whether you're working on the main development branch or a feature branch. This affects which operations are available and how files are managed."
@@ -738,7 +738,7 @@ function Main {
         
         # Handle unknown branch type (additional safety check)
         if ($branchType -eq "unknown" -and -not $RepoDirectory -and -not $Help) {
-            Write-Error "REPOSITORY DIRECTORY REQUIRED: Cannot determine git branch from current location."
+            Write-ErrorMessage "REPOSITORY DIRECTORY REQUIRED: Cannot determine git branch from current location."
             Show-ErrorBlock -Issue "The installer cannot determine the current git branch, which usually means:" -Solutions @(
                 "You're running from outside a git repository",
                 "You're running from your user profile location", 
@@ -756,7 +756,7 @@ function Main {
         # Handle bootstrap parameter (source branch only)
         if ($Bootstrap) {
             if (-not $isSourceBranch) {
-                Write-Error "Bootstrap can only be run from the source branch ($($Global:InstallerConfig.Branch))"
+                Write-ErrorMessage "Bootstrap can only be run from the source branch ($($Global:InstallerConfig.Branch))"
                 return
             }
             
@@ -776,7 +776,7 @@ function Main {
         # Handle clean parameter (feature branch only)
         if ($Clean) {
             if ($isSourceBranch) {
-                Write-Error "Clean operation not available on source branch. This would remove development files."
+                Write-ErrorMessage "Clean operation not available on source branch. This would remove development files."
                 return
             }
             
@@ -826,7 +826,7 @@ function Main {
     }
     catch {
         $errorMessage = $_.Exception.Message
-        Write-Error "Installer failed with error: $errorMessage"
+        Write-ErrorMessage "Installer failed with error: $errorMessage"
         
         Write-Host "Stack trace:" -ForegroundColor Red
         Write-Host $_.ScriptStackTrace -ForegroundColor Gray

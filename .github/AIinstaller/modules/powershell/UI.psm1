@@ -36,7 +36,7 @@ function Write-Success {
     Write-Host "$Prefix $Message" -ForegroundColor Green
 }
 
-function Write-Warning {
+function Write-WarningMessage {
     <#
     .SYNOPSIS
     Display warning message in yellow
@@ -51,7 +51,7 @@ function Write-Warning {
     Write-Host "$Prefix $Message" -ForegroundColor Yellow
 }
 
-function Write-Error {
+function Write-ErrorMessage {
     <#
     .SYNOPSIS
     Display error message in red
@@ -152,7 +152,7 @@ function Write-Section {
     Write-Host ("-" * ($Title.Length + 10)) -ForegroundColor Cyan
 }
 
-function Write-Verbose {
+function Write-VerboseMessage {
     <#
     .SYNOPSIS
     Display verbose information
@@ -716,10 +716,10 @@ function Show-InstallationResults {
     if ($Results.OverallSuccess) {
         Write-Success "Successfully installed $($Results.Successful) files"
         if ($Results.Skipped -gt 0) {
-            Write-Warning "Skipped $($Results.Skipped) existing files (use -Auto-Approve to overwrite)"
+            Write-WarningMessage "Skipped $($Results.Skipped) existing files (use -Auto-Approve to overwrite)"
         }
     } else {
-        Write-Warning "Installation completed with some failures:"
+        Write-WarningMessage "Installation completed with some failures:"
         Write-Host "  Successful: $($Results.Successful)" -ForegroundColor Green
         Write-Host "  Failed: $($Results.Failed)" -ForegroundColor Red
         Write-Host "  Skipped: $($Results.Skipped)" -ForegroundColor Yellow
@@ -864,7 +864,7 @@ function Show-UnknownBranchError {
     if (-not $HasRepoDirectory) {
         # Case 1: Running from user profile without RepoDirectory
         Write-Host ""
-        Write-Error "Repository location not specified"
+        Write-ErrorMessage "Repository location not specified"
         
         Show-ErrorBlock -Issue "When running from user profile, you must specify the repository location" -Solutions @(
             "Use the -RepoDirectory parameter to specify the terraform-provider-azurerm repository path"
@@ -872,7 +872,7 @@ function Show-UnknownBranchError {
     } else {
         # Case 2: RepoDirectory was provided but git operations failed
         Write-Host ""
-        Write-Error "Invalid repository directory or git operations failed"
+        Write-ErrorMessage "Invalid repository directory or git operations failed"
         
         Show-ErrorBlock -Issue "The specified repository directory has issues:" -Solutions @(
             "Path does not exist or is not accessible",
@@ -894,13 +894,13 @@ function Show-UnknownBranchError {
 Export-ModuleMember -Function @(
     'Write-Header',
     'Write-Success',
-    'Write-Warning', 
-    'Write-Error',
+    'Write-WarningMessage', 
+    'Write-ErrorMessage',
     'Write-Info',
     'Write-Progress',
     'Write-FileOperation',
     'Write-Section',
-    'Write-Verbose',
+    'Write-VerboseMessage',
     'Show-Help',
     'Confirm-UserAction',
     'Show-CompletionSummary',
