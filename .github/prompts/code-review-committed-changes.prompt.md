@@ -34,6 +34,13 @@ Focus on delivering actionable feedback in the following areas:
 - **CRITICAL: Code comments policy enforcement - only Azure API quirks, complex business logic, or SDK workarounds**
 - **Comment justification requirement - all comments must have explicit reasoning documented**
 - **No comments on obvious operations, standard patterns, or self-explanatory code**
+- **Documentation Quality & Language Standards**:
+  - Spelling accuracy in all text content (comments, documentation, README files)
+  - Grammar and syntax correctness in documentation
+  - Consistent terminology and naming conventions
+  - Command examples and usage instructions accuracy
+  - Typo detection in visible text content (even if not part of the diff)
+  - Professional language standards for user-facing content
 
 **Azure-Specific Concerns**:
 - Azure API version compatibility
@@ -181,9 +188,21 @@ Changes implement captcha support correctly with minor validation improvements n
 - [x] I will verify suspicious content with read_file if needed  
 - [x] I will focus on critical path: Security → Lifecycle → Quality → Style
 - [x] I will provide actionable technical feedback
+- [x] I will review surrounding context, not just diff changes
+- [x] I will check for typos and language issues in visible content
 
 RULE: Always complete valuable technical reviews
+RULE: Review full file context for quality issues (typos, grammar, consistency)
 ```
+
+## **COMPREHENSIVE REVIEW SCOPE**
+
+**BEYOND DIFF CHANGES - ALSO CHECK:**
+- **Spelling and Grammar**: Review all visible text content for typos and language issues
+- **Command Examples**: Verify accuracy of command syntax and examples
+- **Consistency**: Check naming conventions and terminology consistency
+- **Professional Standards**: Ensure user-facing content meets quality standards
+- **Context Quality**: Review surrounding lines shown in diff for overall file quality
 
 ## Console Line Wrapping (Quick Reference)
 
@@ -261,6 +280,15 @@ RULE: Always complete valuable technical reviews
 ---
 
 ## Individual Suggestions (if needed):
+
+## ⛏️ Typo Detection in Documentation
+* **Priority**: 🔵
+* **File**: `README.md`
+* **Details**: Found typo: "comitted" should be "committed" (2 instances)
+* **Locations**: Lines 183, 187 - same misspelling in multiple command examples
+* **Suggested Change**: Fix spelling consistency across all instances
+
+---
 
 ## ${🔧/❓/⛏️/♻️/🤔/🚀/ℹ️/📌} ${Review Type}: ${Summary with necessary context}
 * **Priority**: ${🔥/🔴/🟡/🔵/⭐/✅}

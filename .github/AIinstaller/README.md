@@ -11,7 +11,6 @@ The installer provides a **clean, professional output** focused on what matters:
 - **📋 Clear progress indicators** - Section headers and completion status
 - **🎯 Focused messaging** - Only essential information, no technical noise
 - **✅ Success confirmations** - Clear indication when operations complete
-- **🚫 Suppressed verbosity** - Technical module loading details hidden
 - **📊 File operation tracking** - Detailed file copy/install status
 
 **Example output:**
@@ -181,12 +180,12 @@ Simply use slash commands to invoke the prompts directly:
 **Example Usage:**
 ```
 /code-review-local-changes
-/code-review-local-comitted-changes
+/code-review-local-committed-changes
 ```
 
 **For File-Specific Actions:**
 ```
-/code-review-local-comitted-changes for focusing on Azure patterns that have already been committed to your branch
+/code-review-local-committed-changes for focusing on Azure patterns that have already been committed to your branch
 /code-review-local-changes focusing on Azure patterns
 ```
 

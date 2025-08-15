@@ -34,6 +34,13 @@ Focus on delivering actionable feedback in the following areas:
   - **CRITICAL: Code comments policy enforcement - only Azure API quirks, complex business logic, or SDK workarounds**
   - **Comment justification requirement - all comments must have explicit reasoning documented**
   - **No comments on obvious operations, standard patterns, or self-explanatory code**
+  - **Documentation Quality & Language Standards**:
+    - Spelling accuracy in all text content (comments, documentation, README files)
+    - Grammar and syntax correctness in documentation
+    - Consistent terminology and naming conventions
+    - Command examples and usage instructions accuracy
+    - Typo detection in visible text content (even if not part of the diff)
+    - Professional language standards for user-facing content
 
 ## **Azure-Specific Concerns**:
   - Azure API version compatibility
@@ -100,10 +107,22 @@ Follow the `code-review-local-changes.prompt.md` instructions. Before flagging *
 - [ ] I will verify actual file content first with `cat` or `Get-Content`
 - [ ] I understand: Git diff wrapping ≠ File corruption
 - [ ] I will NOT assume formatting in diff = actual problems
+- [ ] I will review surrounding context, not just diff changes
+- [ ] I will check for typos and language issues in visible content
 
 RULE: Always verify file content before flagging corruption
+RULE: Review full file context for quality issues (typos, grammar, consistency)
 ```
 **ONLY PROCEED AFTER CHECKING ALL BOXES ABOVE**
+
+## **COMPREHENSIVE REVIEW SCOPE**
+
+**BEYOND DIFF CHANGES - ALSO CHECK:**
+- **Spelling and Grammar**: Review all visible text content for typos and language issues
+- **Command Examples**: Verify accuracy of command syntax and examples
+- **Consistency**: Check naming conventions and terminology consistency
+- **Professional Standards**: Ensure user-facing content meets quality standards
+- **Context Quality**: Review surrounding lines shown in diff for overall file quality
 
 ## **AUTOMATIC VERIFICATION TRIGGERS**
 
@@ -258,6 +277,13 @@ Result: Console display issue, not markdown corruption
   * **File**: `internal/services/cdn/frontdoor_firewall_policy_resource.go`
   * **Details**: Good use of Optional+Computed pattern for Azure-managed defaults
 
+  # ⛏️ Typo Detection in Documentation
+  * **Priority**: 🟡
+  * **File**: `README.md`
+  * **Details**: Found typo: "comitted" should be "committed" (2 instances)
+  * **Locations**: Lines 183, 187 - same misspelling in multiple command examples
+  * **Suggested Change**: Fix spelling consistency across all instances
+
   # **Final Assessment:**
   Changes implement captcha support correctly with minor validation improvements needed.
   ```
@@ -305,17 +331,22 @@ Result: Console display issue, not markdown corruption
 
   ## Individual Suggestions (if needed):
 
-  ## ${Section title}
-  * **Priority**: ${priority}
-  * **File**: ${relative/path/to/file}
-  * **Details**: ...
-  * **Azure Context** (if applicable): Reference to Azure service behavior or API documentation
-  * **Terraform Impact** (if applicable): How this affects Terraform configurations or state
-  * **Example** (if applicable): ...
-  * **Suggested Change** (if applicable): (Go code snippet...)
+  ## ⛏️ Typo Detection in Documentation
+  * **Priority**: 🟡
+  * **File**: `README.md`
+  * **Details**: Found typo: "comitted" should be "committed" (2 instances)
+  * **Locations**: Lines 183, 187 - same misspelling in multiple command examples
+  * **Suggested Change**: Fix spelling consistency across all instances
 
-  ## (other suggestions...)
-  ...
+  ---
+
+  ## ${🔧/❓/⛏️/♻️/🤔/🚀/ℹ️/📌} ${Review Type}: ${Summary with necessary context}
+  * **Priority**: ${🔥/🔴/🟡/🔵/⭐/✅}
+  * **File**: ${relative/path/to/file}
+  * **Details**: Clear explanation
+  * **Azure Context** (if applicable): Service behavior reference
+  * **Terraform Impact** (if applicable): Configuration/state effects
+  * **Suggested Change** (if applicable): Code snippet
 
   # Final Assessment:
 
