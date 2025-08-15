@@ -44,6 +44,8 @@ The following attributes are exported:
 
 * `size_in_tb` - Provisioned size of the pool in TB.
 
+* `custom_throughput_mibps` - The custom throughput for the pool in MiB/s.
+
 * `encryption_type` - The encryption type of the pool.
 
 * `cool_access_enabled` - Whether the NetApp Pool can hold cool access enabled volumes.
