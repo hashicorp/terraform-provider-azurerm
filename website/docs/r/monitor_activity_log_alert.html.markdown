@@ -108,8 +108,9 @@ A `criteria` block supports the following:
 
 ~> **Note:** `resource_id` and `resource_ids` are mutually exclusive.
 
-* `level` - (Optional) The severity level of the event. Possible values are `Verbose`, `Informational`, `Warning`, `Error`, and `Critical`.
-* `levels` - (Optional) A list of severity level of the event. Possible values are `Verbose`, `Informational`, `Warning`, `Error`, and `Critical`.
+* `level` - (Optional) The severity level of the event. Possible values are `Verbose`, `Informational`, `Warning`, `Error`, and `Critical`. If `category` is set to `ResourceHealth`, supported values are `Informational` and `Critical`.
+
+* `levels` - (Optional) A list of severity level of the event. Possible values are `Verbose`, `Informational`, `Warning`, `Error`, and `Critical`. If `category` is set to `ResourceHealth`, supported values are `Informational` and `Critical`.
 
 ~> **Note:** `level` and `levels` are mutually exclusive.
 
@@ -122,7 +123,7 @@ A `criteria` block supports the following:
 * `sub_statuses` - (Optional) A list of sub status of the event.
 
 ~> **Note:** `sub_status` and `sub_statuses` are mutually exclusive.
- 
+
 * `recommendation_type` - (Optional) The recommendation type of the event. It is only allowed when `category` is `Recommendation`.
 * `recommendation_category` - (Optional) The recommendation category of the event. Possible values are `Cost`, `Reliability`, `OperationalExcellence`, `HighAvailability` and `Performance`. It is only allowed when `category` is `Recommendation`.
 * `recommendation_impact` - (Optional) The recommendation impact of the event. Possible values are `High`, `Medium` and `Low`. It is only allowed when `category` is `Recommendation`.
