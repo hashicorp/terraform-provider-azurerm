@@ -231,7 +231,10 @@ func (r KeyVaultCertificateContactsResource) Update() sdk.ResourceFunc {
 
 			if len(*existing.ContactList) == 0 {
 				if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
-					return fmt.Errorf("removing Key Vault Certificate Contacts %s: %+v", id, err)
+					// Skip if contacts are already deleted
+					if !utils.ResponseWasNotFound(existing.Response) {
+						return fmt.Errorf("removing Key Vault Certificate Contacts %s: %+v", id, err)
+					}
 				}
 			} else {
 				if _, err := client.SetCertificateContacts(ctx, id.KeyVaultBaseUrl, existing); err != nil {
