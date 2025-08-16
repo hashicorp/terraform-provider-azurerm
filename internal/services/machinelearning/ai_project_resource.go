@@ -24,12 +24,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type AIFoundryProject struct{}
+type AIProject struct{}
 
-type AIFoundryProjectModel struct {
+type AIProjectModel struct {
 	Name                        string                                     `tfschema:"name"`
 	Location                    string                                     `tfschema:"location"`
-	AIServicesHubId             string                                     `tfschema:"ai_services_hub_id"`
+	HubId                       string                                     `tfschema:"ai_hub_id"`
 	Identity                    []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
 	HighBusinessImpactEnabled   bool                                       `tfschema:"high_business_impact_enabled"`
 	Description                 string                                     `tfschema:"description"`
@@ -39,19 +39,19 @@ type AIFoundryProjectModel struct {
 	Tags                        map[string]interface{}                     `tfschema:"tags"`
 }
 
-func (r AIFoundryProject) ModelObject() interface{} {
-	return &AIFoundryProjectModel{}
+func (r AIProject) ModelObject() interface{} {
+	return &AIProjectModel{}
 }
 
-func (r AIFoundryProject) ResourceType() string {
-	return "azurerm_ai_foundry_project"
+func (r AIProject) ResourceType() string {
+	return "azurerm_ai_project"
 }
 
-func (r AIFoundryProject) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r AIProject) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return workspaces.ValidateWorkspaceID
 }
 
-func (r AIFoundryProject) CustomImporter() sdk.ResourceRunFunc {
+func (r AIProject) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 		id, err := workspaces.ParseWorkspaceID(metadata.ResourceData.Id())
 		if err != nil {
@@ -72,11 +72,11 @@ func (r AIFoundryProject) CustomImporter() sdk.ResourceRunFunc {
 	}
 }
 
-var _ sdk.ResourceWithUpdate = AIFoundryProject{}
+var _ sdk.ResourceWithUpdate = AIProject{}
 
-var _ sdk.ResourceWithCustomImporter = AIFoundryProject{}
+var _ sdk.ResourceWithCustomImporter = AIProject{}
 
-func (r AIFoundryProject) Arguments() map[string]*pluginsdk.Schema {
+func (r AIProject) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
@@ -90,7 +90,7 @@ func (r AIFoundryProject) Arguments() map[string]*pluginsdk.Schema {
 
 		"location": commonschema.Location(),
 
-		"ai_services_hub_id": {
+		"ai_hub_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -130,7 +130,7 @@ func (r AIFoundryProject) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r AIFoundryProject) Attributes() map[string]*pluginsdk.Schema {
+func (r AIProject) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"project_id": {
 			Type:     pluginsdk.TypeString,
@@ -139,19 +139,19 @@ func (r AIFoundryProject) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r AIFoundryProject) Create() sdk.ResourceFunc {
+func (r AIProject) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MachineLearning.Workspaces
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model AIFoundryProjectModel
+			var model AIProjectModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
 
-			hubId, err := workspaces.ParseWorkspaceID(model.AIServicesHubId)
+			hubId, err := workspaces.ParseWorkspaceID(model.HubId)
 			if err != nil {
 				return err
 			}
@@ -165,7 +165,7 @@ func (r AIFoundryProject) Create() sdk.ResourceFunc {
 				}
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_ai_foundry_project", id.ID())
+				return tf.ImportAsExistsError("azurerm_ai_project", id.ID())
 			}
 
 			payload := workspaces.Workspace{
@@ -216,7 +216,7 @@ func (r AIFoundryProject) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r AIFoundryProject) Update() sdk.ResourceFunc {
+func (r AIProject) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -227,7 +227,7 @@ func (r AIFoundryProject) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var state AIFoundryProjectModel
+			var state AIProjectModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
@@ -292,7 +292,7 @@ func (r AIFoundryProject) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r AIFoundryProject) Read() sdk.ResourceFunc {
+func (r AIProject) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -311,7 +311,7 @@ func (r AIFoundryProject) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			hub := AIFoundryProjectModel{
+			hub := AIProjectModel{
 				Name: id.WorkspaceName,
 			}
 
@@ -331,7 +331,7 @@ func (r AIFoundryProject) Read() sdk.ResourceFunc {
 						if err != nil {
 							return err
 						}
-						hub.AIServicesHubId = hubId.ID()
+						hub.HubId = hubId.ID()
 					}
 
 					hub.Description = pointer.From(props.Description)
@@ -347,7 +347,7 @@ func (r AIFoundryProject) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r AIFoundryProject) Delete() sdk.ResourceFunc {
+func (r AIProject) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

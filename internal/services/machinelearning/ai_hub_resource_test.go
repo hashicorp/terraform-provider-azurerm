@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AIFoundry struct{}
+type AIHub struct{}
 
-func TestAccAIFoundry_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_ai_foundry", "test")
-	r := AIFoundry{}
+func TestAccAIHub_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_ai_hub", "test")
+	r := AIHub{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -33,9 +33,9 @@ func TestAccAIFoundry_basic(t *testing.T) {
 	})
 }
 
-func TestAccAIFoundry_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_ai_foundry", "test")
-	r := AIFoundry{}
+func TestAccAIHub_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_ai_hub", "test")
+	r := AIHub{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -48,9 +48,9 @@ func TestAccAIFoundry_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAIFoundry_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_ai_foundry", "test")
-	r := AIFoundry{}
+func TestAccAIHub_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_ai_hub", "test")
+	r := AIHub{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -63,9 +63,9 @@ func TestAccAIFoundry_complete(t *testing.T) {
 	})
 }
 
-func TestAccAIFoundry_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_ai_foundry", "test")
-	r := AIFoundry{}
+func TestAccAIHub_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_ai_hub", "test")
+	r := AIHub{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -85,9 +85,9 @@ func TestAccAIFoundry_update(t *testing.T) {
 	})
 }
 
-func TestAccAIFoundry_encryptionWithSystemAssignedId(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_ai_foundry", "test")
-	r := AIFoundry{}
+func TestAccAIHub_encryptionWithSystemAssignedId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_ai_hub", "test")
+	r := AIHub{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -100,9 +100,9 @@ func TestAccAIFoundry_encryptionWithSystemAssignedId(t *testing.T) {
 	})
 }
 
-func TestAccAIFoundry_encryptionWithUserAssignedId(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_ai_foundry", "test")
-	r := AIFoundry{}
+func TestAccAIHub_encryptionWithUserAssignedId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_ai_hub", "test")
+	r := AIHub{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -115,7 +115,7 @@ func TestAccAIFoundry_encryptionWithUserAssignedId(t *testing.T) {
 	})
 }
 
-func (AIFoundry) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (AIHub) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := workspaces.ParseWorkspaceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -129,7 +129,7 @@ func (AIFoundry) Exists(ctx context.Context, clients *clients.Client, state *plu
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r AIFoundry) basic(data acceptance.TestData) string {
+func (r AIHub) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -142,9 +142,9 @@ provider "azurerm" {
 
 %s
 
-resource "azurerm_ai_foundry" "test" {
+resource "azurerm_ai_hub" "test" {
   name                = "acctestaihub-%[2]d"
-  location            = azurerm_ai_services.test.location
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   storage_account_id  = azurerm_storage_account.test.id
   key_vault_id        = azurerm_key_vault.test.id
@@ -156,7 +156,7 @@ resource "azurerm_ai_foundry" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r AIFoundry) complete(data acceptance.TestData) string {
+func (r AIHub) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -190,9 +190,9 @@ resource "azurerm_user_assigned_identity" "test" {
   location            = azurerm_resource_group.test.location
 }
 
-resource "azurerm_ai_foundry" "test" {
+resource "azurerm_ai_hub" "test" {
   name                = "acctestaihub-%[2]d"
-  location            = azurerm_ai_services.test.location
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   storage_account_id  = azurerm_storage_account.test.id
   key_vault_id        = azurerm_key_vault.test.id
@@ -223,7 +223,7 @@ resource "azurerm_ai_foundry" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r AIFoundry) update(data acceptance.TestData) string {
+func (r AIHub) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -262,9 +262,9 @@ resource "azurerm_user_assigned_identity" "test2" {
   location            = azurerm_resource_group.test.location
 }
 
-resource "azurerm_ai_foundry" "test" {
+resource "azurerm_ai_hub" "test" {
   name                = "acctestaihub-%[2]d"
-  location            = azurerm_ai_services.test.location
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   storage_account_id  = azurerm_storage_account.test.id
   key_vault_id        = azurerm_key_vault.test.id
@@ -297,7 +297,7 @@ resource "azurerm_ai_foundry" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r AIFoundry) encryptionWithUserAssignedId(data acceptance.TestData) string {
+func (r AIHub) encryptionWithUserAssignedId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -350,9 +350,9 @@ resource "azurerm_role_assignment" "test_kv" {
   principal_id         = azurerm_user_assigned_identity.test.principal_id
 }
 
-resource "azurerm_ai_foundry" "test" {
+resource "azurerm_ai_hub" "test" {
   name                = "acctestaihub-%[2]d"
-  location            = azurerm_ai_services.test.location
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   storage_account_id  = azurerm_storage_account.test.id
   key_vault_id        = azurerm_key_vault.test.id
@@ -380,7 +380,7 @@ resource "azurerm_ai_foundry" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r AIFoundry) encryptionWithSystemAssignedId(data acceptance.TestData) string {
+func (r AIHub) encryptionWithSystemAssignedId(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
@@ -409,9 +409,9 @@ resource "azurerm_key_vault_key" "test" {
   depends_on = [azurerm_key_vault.test, azurerm_key_vault_access_policy.test]
 }
 
-resource "azurerm_ai_foundry" "test" {
+resource "azurerm_ai_hub" "test" {
   name                = "acctestaihub-%[2]d"
-  location            = azurerm_ai_services.test.location
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   storage_account_id  = azurerm_storage_account.test.id
   key_vault_id        = azurerm_key_vault.test.id
@@ -428,17 +428,17 @@ resource "azurerm_ai_foundry" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (AIFoundry) requiresImport(data acceptance.TestData) string {
-	template := AIFoundry{}.basic(data)
+func (AIHub) requiresImport(data acceptance.TestData) string {
+	template := AIHub{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_ai_foundry" "import" {
-  name                = azurerm_ai_foundry.test.name
-  location            = azurerm_ai_foundry.test.location
-  resource_group_name = azurerm_ai_foundry.test.resource_group_name
-  storage_account_id  = azurerm_ai_foundry.test.storage_account_id
-  key_vault_id        = azurerm_ai_foundry.test.key_vault_id
+resource "azurerm_ai_hub" "import" {
+  name                = azurerm_ai_hub.test.name
+  location            = azurerm_ai_hub.test.location
+  resource_group_name = azurerm_ai_hub.test.resource_group_name
+  storage_account_id  = azurerm_ai_hub.test.storage_account_id
+  key_vault_id        = azurerm_ai_hub.test.key_vault_id
 
   identity {
     type = "SystemAssigned"
@@ -447,7 +447,7 @@ resource "azurerm_ai_foundry" "import" {
 `, template)
 }
 
-func (AIFoundry) template(data acceptance.TestData) string {
+func (AIHub) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 data "azurerm_client_config" "current" {}
 
@@ -483,18 +483,11 @@ resource "azurerm_key_vault_access_policy" "test" {
 }
 
 resource "azurerm_storage_account" "test" {
-  name                     = "acctestsa%[3]s"
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
-resource "azurerm_ai_services" "test" {
-  name                = "acctestaiservices-%[1]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "S0"
+  name                            = "acctestsa%[3]s"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
