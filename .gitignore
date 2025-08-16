@@ -30,7 +30,20 @@ website/node_modules
 
 website/vendor
 
-.vscode/
+# VS Code: Exclude personal settings but include shared workspace configuration
+# This allows team-wide GitHub Copilot instructions while preserving individual preferences
+.vscode/*
+!.vscode/settings.json
+
+# AI Development Framework: Include GitHub Copilot configuration and development guides
+# Main AI instruction file for GitHub Copilot integration
+!.github/copilot-instructions.md
+# Comprehensive development guidelines and patterns for AI-assisted coding
+!.github/instructions/
+!.github/instructions/**
+# Specialized AI prompts for code review, testing, and development automation
+!.github/prompts/
+!.github/prompts/**
 
 # mkdocs output
 site/
@@ -56,7 +69,3 @@ tf.zip
 
 # do not upload .local folder
 .local
-
-# do not upload GitHub Copilot specific folders and copilot instructions file
-.github/prompts
-.github/copilot-instructions.md
