@@ -8,13 +8,41 @@ This is the official Terraform Provider for Azure (Resource Manager), written in
 
 ## 🚨 **BLOCKING REQUIREMENT: COLLABORATIVE APPROVAL POLICY** 🚨
 
-**MANDATORY: Always suggest before implementing**
+**🛑 MANDATORY STOP CHECKPOINTS - VIOLATION = IMMEDIATE FAILURE 🛑**
 
-- Present options and explain approach first
-- Ask "What would you like me to do next?" 
-- Get explicit approval before any file changes or implementations
-- Offer alternatives when possible
-- If required information is missing (APIs, schemas, endpoints, etc.), explicitly state what's unknown and ask for clarification rather than implementing based on assumptions
+**BEFORE ANY ACTION, AI MUST:**
+
+1. **🔍 ANALYZE REQUEST** - Understand what user wants
+2. **📋 PRESENT OPTIONS** - List 2-3 specific approaches with pros/cons
+3. **❓ ASK FOR APPROVAL** - Use EXACT phrase: "What would you like me to do next?"
+4. **⏸️ WAIT FOR EXPLICIT APPROVAL** - No file changes, implementations, or tool usage without confirmation
+5. **🔄 OFFER ALTERNATIVES** - Always provide multiple paths forward
+
+**🚫 FORBIDDEN WITHOUT APPROVAL:**
+- Creating or editing any files
+- Running terminal commands  
+- Making API calls or searches
+- Implementing any solutions
+- Generating code examples
+
+**✅ REQUIRED APPROVAL TEMPLATE:**
+```
+## Analysis:
+[Brief analysis of the request]
+
+## Options:
+**Option 1:** [Approach 1 - pros/cons]
+**Option 2:** [Approach 2 - pros/cons] 
+**Option 3:** [Alternative approach]
+
+## What would you like me to do next?
+```
+
+**🚨 ENFORCEMENT TRIGGERS:**
+- User requests implementation = STOP → Present options
+- User asks questions = STOP → Present options  
+- User mentions problems = STOP → Present options
+- ANY request = STOP → Present options
 
 **This takes ABSOLUTE PRIORITY over implementation speed.**
 
@@ -388,9 +416,36 @@ func resourceServiceName() *pluginsdk.Resource {
 - Handle Azure API rate limits and throttling
 
 ### Azure API Discovery Process
-**How to locate and verify Azure APIs in the HashiCorp Go Azure SDK**
+**Efficient discovery of Azure APIs for provider implementation**
 
-When implementing new Azure resources, follow this systematic approach to discover available APIs:
+**🚀 PRIMARY DISCOVERY METHOD (Use First - Maximum 2 Minutes)**
+
+**Step 1: Direct SDK Repository Search**
+```bash
+# Use github_repo tool to search HashiCorp Go Azure SDK directly
+github_repo tool: "hashicorp/go-azure-sdk" 
+Query: "{service-name} {resource-type} {api-version}"
+# Example: "hardwaresecuritymodules cloudhsmclusters 2025-03-31"
+```
+
+**Step 2: Vendor Folder Verification**
+```bash
+# Check if API already exists in local vendor directory
+grep_search: "vendor/**" pattern: "{service}/{version}/{resource}"
+# Example: "hardwaresecuritymodules/2025-03-31/cloudhsmclusters"
+```
+
+**⏱️ Time Guideline: If not found in 2 minutes → API likely doesn't exist or needs custom implementation**
+
+**✅ Success Criteria:**
+- Found model files (model_*.go) with resource schema
+- Found method files (method_*.go) with CRUD operations
+- Found client.go with API client setup
+- Confirmed import path: `github.com/hashicorp/go-azure-sdk/resource-manager/{service}/{version}/{resource}`
+
+---
+
+**📚 REFERENCE ONLY (Detailed Investigation When Primary Method Fails)**
 
 **🔍 Repository Location**: `https://github.com/hashicorp/go-azure-sdk/tree/main/resource-manager`
 
@@ -407,7 +462,7 @@ resource-manager/
 │   │   │   └── id_*.go          # Resource ID structures
 ```
 
-**⚡ Quick Discovery Steps**:
+**⚡ Manual Discovery Steps (Reference Only)**:
 1. **Navigate to service**: Find folder matching Azure service (e.g., `hardwaresecuritymodules`)
 2. **Choose API version**: Select latest available version (e.g., `2025-03-31`)
 3. **Locate resource type**: Find specific resource folder (e.g., `cloudhsmclusters`)
