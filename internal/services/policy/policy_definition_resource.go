@@ -63,8 +63,10 @@ func resourceArmPolicyDefinition() *pluginsdk.Resource {
 						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
 					}
 
-					if len(newParameters) < len(oldParameters) {
-						return d.ForceNew("parameters")
+					for paramName := range oldParameters {
+						if _, ok := newParameters[paramName]; !ok {
+							return d.ForceNew("parameters")
+						}
 					}
 				}
 			}

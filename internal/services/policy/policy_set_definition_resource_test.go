@@ -316,6 +316,18 @@ func TestAccAzureRMPolicySetDefinition_removeParameter(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.renameParameter(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.builtIn(data),
 			ConfigPlanChecks: resource.ConfigPlanChecks{
 				PreApply: []plancheck.PlanCheck{
@@ -1050,6 +1062,59 @@ VALUES
     parameter_values     = <<VALUES
   {
       "listOfResourceTypesAllowed": {"value": "[parameters('allowedResourceTypes')]"}
+  }
+VALUES
+  }
+}`, data.RandomInteger, data.RandomInteger)
+}
+
+func (r PolicySetDefinitionResourceTest) renameParameter(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_policy_set_definition" "test" {
+  name         = "acctestpolset-%d"
+  policy_type  = "Custom"
+  display_name = "acctestpolset-%d"
+  parameters   = <<PARAMETERS
+    {
+        "allowedLocations": {
+            "type": "Array",
+            "metadata": {
+                "description": "The list of allowed locations for resources.",
+                "displayName": "Allowed locations",
+                "strongType": "location"
+            }
+        },
+        "allowedResourcesTypes": {
+            "type": "Array",
+            "defaultValue": [
+                "Microsoft.Compute/virtualMachines"
+            ],
+            "metadata": {
+                "description": "The list of allowed resource types.",
+                "displayName": "Allowed resource types",
+                "strongType": "resourceType"
+            }
+        }
+    }
+PARAMETERS
+
+  policy_definition_reference {
+    policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/e765b5de-1225-4ba3-bd56-1ac6695af988"
+    parameter_values     = <<VALUES
+  {
+      "listOfAllowedLocations": {"value": "[parameters('allowedLocations')]"}
+  }
+VALUES
+  }
+  policy_definition_reference {
+    policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/a08ec900-254a-4555-9bf5-e42af04b5c5c"
+    parameter_values     = <<VALUES
+  {
+      "listOfResourceTypesAllowed": {"value": "[parameters('allowedResourcesTypes')]"}
   }
 VALUES
   }
