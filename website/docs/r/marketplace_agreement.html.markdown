@@ -56,4 +56,4 @@ terraform import azurerm_marketplace_agreement.example /subscriptions/00000000-0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.MarketplaceOrdering`: 2015-06-01
+* `Microsoft.MarketplaceOrdering` - 2015-06-01

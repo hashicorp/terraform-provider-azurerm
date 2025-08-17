@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/privatestate"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -18,14 +19,29 @@ import (
 // ImportedResource represents a resource that was imported.
 type ImportedResource struct {
 	Private  *privatestate.Data
+	Identity *tfsdk.ResourceIdentity
 	State    tfsdk.State
 	TypeName string
 }
 
 // ImportResourceStateRequest is the framework server request for the
 // ImportResourceState RPC.
+//
+// Either ID or Identity will be supplied depending on how the resource is being imported.
 type ImportResourceStateRequest struct {
-	ID       string
+	// ID will come from the import CLI command or an import config block with the "id" attribute assigned.
+	//
+	// This ID field is a special string identifier that can be parsed however the provider deems fit.
+	ID string
+
+	// Identity will come from an import config block with the "identity" attribute assigned and will conform
+	// to the identity schema defined by the resource. (Terraform v1.12+)
+	//
+	// All attributes marked as RequiredForImport will be populated (enforced by Terraform core) and OptionalForImport
+	// attributes may be null, but could have a config value.
+	Identity       *tfsdk.ResourceIdentity
+	IdentitySchema fwschema.Schema
+
 	Resource resource.Resource
 
 	// EmptyState is an empty State for the resource schema. This is used to
@@ -132,6 +148,28 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 		Private: privateProviderData,
 	}
 
+	// If the resource supports identity and we are not importing by identity, pre-populate with a null value.
+	if req.Identity == nil && req.IdentitySchema != nil {
+		nullTfValue := tftypes.NewValue(req.IdentitySchema.Type().TerraformType(ctx), nil)
+
+		req.Identity = &tfsdk.ResourceIdentity{
+			Schema: req.IdentitySchema,
+			Raw:    nullTfValue.Copy(),
+		}
+	}
+
+	if req.Identity != nil {
+		importReq.Identity = &tfsdk.ResourceIdentity{
+			Schema: req.Identity.Schema,
+			Raw:    req.Identity.Raw.Copy(),
+		}
+
+		importResp.Identity = &tfsdk.ResourceIdentity{
+			Schema: req.Identity.Schema,
+			Raw:    req.Identity.Raw.Copy(),
+		}
+	}
+
 	logging.FrameworkTrace(ctx, "Calling provider defined Resource ImportState")
 	resourceWithImportState.ImportState(ctx, importReq, &importResp)
 	logging.FrameworkTrace(ctx, "Called provider defined Resource ImportState")
@@ -154,7 +192,9 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 
 	importResp.State.Raw = modifiedState
 
-	if importResp.State.Raw.Equal(req.EmptyState.Raw) {
+	// If we are importing by ID, we should ensure that something in the import stub state has been populated,
+	// otherwise the resource doesn't actually support import, which is a provider issue.
+	if req.ID != "" && importResp.State.Raw.Equal(req.EmptyState.Raw) {
 		resp.Diagnostics.AddError(
 			"Missing Resource Import State",
 			"An unexpected error was encountered when importing the resource. This is always a problem with the provider. Please give the following information to the provider developer:\n\n"+
@@ -165,14 +205,31 @@ func (s *Server) ImportResourceState(ctx context.Context, req *ImportResourceSta
 
 	private := &privatestate.Data{}
 
+	// Set an internal private field that will get sent alongside the imported resource. This will be cleared by
+	// the following ReadResource RPC and is primarily used to control validation of resource identities during refresh.
+	private.Framework = map[string][]byte{
+		privatestate.ImportBeforeReadKey: []byte(`true`), // The actual data isn't important, we just use the map key to detect it.
+	}
+
 	if importResp.Private != nil {
 		private.Provider = importResp.Private
+	}
+
+	if importResp.Identity != nil && req.IdentitySchema == nil {
+		resp.Diagnostics.AddError(
+			"Unexpected ImportState Response",
+			"An unexpected error was encountered when creating the import response. New identity data was returned by the provider import operation, but the resource does not indicate identity support.\n\n"+
+				"This is always a problem with the provider and should be reported to the provider developer.",
+		)
+
+		return
 	}
 
 	resp.Deferred = importResp.Deferred
 	resp.ImportedResources = []ImportedResource{
 		{
 			State:    importResp.State,
+			Identity: importResp.Identity,
 			TypeName: req.TypeName,
 			Private:  private,
 		},

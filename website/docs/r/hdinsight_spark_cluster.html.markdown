@@ -468,4 +468,4 @@ terraform import azurerm_hdinsight_spark_cluster.example /subscriptions/00000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.HDInsight`: 2021-06-01
+* `Microsoft.HDInsight` - 2021-06-01
