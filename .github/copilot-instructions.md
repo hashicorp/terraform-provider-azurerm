@@ -12,37 +12,107 @@ This is the official Terraform Provider for Azure (Resource Manager), written in
 
 **BEFORE ANY ACTION, AI MUST:**
 
-1. **🔍 ANALYZE REQUEST** - Understand what user wants
-2. **📋 PRESENT OPTIONS** - List 2-3 specific approaches with pros/cons
-3. **❓ ASK FOR APPROVAL** - Use EXACT phrase: "What would you like me to do next?"
-4. **⏸️ WAIT FOR EXPLICIT APPROVAL** - No file changes, implementations, or tool usage without confirmation
-5. **🔄 OFFER ALTERNATIVES** - Always provide multiple paths forward
+1. **🔍 UNDERSTAND REQUEST** - Clearly comprehend what user wants
+2. **🔍 COMPLETE THOROUGH API ANALYSIS** - If Azure resource implementation, perform comprehensive API structure analysis (no time limits)
+3. **💡 EXPLAIN SOLUTION** - Describe the proposed approach and what will be implemented (include API analysis findings)
+4. **❓ ASK FOR NATURAL APPROVAL** - Use conversational phrases like:
+   - "Does this approach sound good to you?"
+   - "Should we go ahead and implement this?"
+   - "What do you think - shall I proceed with this solution?"
+   - "Does this make sense, or would you prefer a different approach?"
+5. **⏸️ WAIT FOR EXPLICIT APPROVAL** - No file changes, implementations, or tool usage without confirmation
+6. **🔄 OFFER ALTERNATIVES** - If user disagrees, discuss alternative approaches
+
+**🚨 CRITICAL: API ANALYSIS REQUIREMENT FOR AZURE RESOURCES**
+
+When implementing ANY Azure resource, AI MUST complete thorough API analysis BEFORE proposing solution:
+- ✅ **Comprehensive Model Discovery**: Examine ALL model files for the resource
+- ✅ **Service-Specific Pattern Detection**: Verify SKU structure, identity patterns, API behaviors  
+- ✅ **Field Structure Verification**: Document required/optional/computed fields and their types
+- ✅ **No Assumptions**: Every pattern must be verified against actual API structure
+- ✅ **Cross-Reference**: Validate findings against Azure documentation
+
+**FAILURE TO COMPLETE API ANALYSIS = IMPLEMENTATION FAILURE**
 
 **🚫 FORBIDDEN WITHOUT APPROVAL:**
 - Creating or editing any files
 - Running terminal commands  
-- Making API calls or searches
 - Implementing any solutions
-- Generating code examples
 
-**✅ REQUIRED APPROVAL TEMPLATE:**
-```
-## Analysis:
-[Brief analysis of the request]
+**✅ NO APPROVAL NEEDED (Information Gathering):**
+- Reading files
+- Searching code/documentation  
+- Analyzing existing implementations
+- Explaining concepts
+- Answering questions
+- Providing guidance
 
-## Options:
-**Option 1:** [Approach 1 - pros/cons]
-**Option 2:** [Approach 2 - pros/cons] 
-**Option 3:** [Alternative approach]
+**🚀 DIRECT COMMAND EXCEPTION:**
+When users provide direct, specific commands, no additional approval is needed:
 
-## What would you like me to do next?
-```
+**✅ DIRECT COMMANDS (No Additional Approval Required):**
+- "Create a file called X with this content..."
+- "Run the command `go mod tidy`"
+- "Update the import statement to include..."
+- "Add this function to the file..."
+- "Execute `terraform plan`"
+
+**The command itself IS the approval when it's specific and actionable.**
+
+**❓ STILL REQUIRES APPROVAL:**
+- Vague requests: "Fix this issue"
+- Open-ended asks: "Make this better"
+- Implementation requests: "Add Cloud HSM support"
+- Planning requests: "Help me implement X"
+
+**🤝 SMART CONTEXTUAL APPROVAL:**
+Use natural conversation with clear context-aware approval recognition:
+
+**IMPLEMENTATION REQUEST FLOW:**
+1. **🔍 UNDERSTAND**: "I understand you want to [description of request]"
+2. **💡 PROPOSE**: "My approach would be to [explain solution/implementation plan]"
+3. **📝 DETAIL**: "This would involve [key steps or changes]"
+4. **❓ ASK NATURALLY**: Use conversational approval requests:
+   - "Should I go ahead and implement this?"
+   - "Would you like me to make these changes?"
+   - "Does this approach sound good - shall I proceed?"
+   - "Ready to implement this solution?"
+
+**WHEN AI ASKS SPECIFIC IMPLEMENTATION QUESTIONS:**
+
+**✅ CLEAR APPROVAL IN CONTEXT:**
+- "Yes" / "OK" / "Sure" / "Go ahead"
+- "Sounds good" / "That works"
+- "Do it" / "Let's proceed"
+- "Make those changes"
+- Any affirmative response to the specific implementation question
+
+**❓ AMBIGUOUS RESPONSES (Need Clarification):**
+- Generic responses to explanations (not implementation questions)
+- "Thanks" without context after explanations
+- "I see" or "Understood" (acknowledgment, not approval)
+- Questions about the approach
+- Requests for modifications
+
+**🚫 CLEAR REJECTION:**
+- "No" / "Don't do that" / "Wait"
+- "Let me think about it"
+- "Show me something else first"
+
+**⚠️ VIOLATION RECOVERY (When AI Acts Without Approval):**
+1. **IMMEDIATE ACKNOWLEDGMENT**: "I should have asked approval before making changes"
+2. **QUICK REVERT**: Undo unauthorized changes immediately
+3. **NATURAL RE-REQUEST**: "Let me explain what I was trying to do and ask properly..."
+
+**🧠 CONTEXT AWARENESS:**
+- **After explanation** → "OK" = acknowledgment (NOT approval)
+- **After implementation question** → "OK" = approval (YES, proceed)
 
 **🚨 ENFORCEMENT TRIGGERS:**
-- User requests implementation = STOP → Present options
-- User asks questions = STOP → Present options  
-- User mentions problems = STOP → Present options
-- ANY request = STOP → Present options
+- User requests implementation = STOP → Explain solution and ask approval
+- User asks questions = STOP → Provide answer and ask if they want implementation
+- User mentions problems = STOP → Propose solution and ask approval
+- ANY request = STOP → Natural explanation and approval request
 
 **This takes ABSOLUTE PRIORITY over implementation speed.**
 
@@ -416,32 +486,74 @@ func resourceServiceName() *pluginsdk.Resource {
 - Handle Azure API rate limits and throttling
 
 ### Azure API Discovery Process
-**Efficient discovery of Azure APIs for provider implementation**
+**Comprehensive discovery and analysis of Azure APIs for provider implementation**
 
-**🚀 PRIMARY DISCOVERY METHOD (Use First - Maximum 2 Minutes)**
+**🚨 CRITICAL: THOROUGH API STRUCTURE ANALYSIS REQUIRED**
 
-**Step 1: Direct SDK Repository Search**
+**BEFORE implementing ANY Azure resource, AI MUST complete this comprehensive analysis checklist:**
+
+**🔍 MANDATORY DEEP API ANALYSIS (No Time Limits - Accuracy Over Speed)**
+
+**Step 1: Complete API Structure Discovery**
 ```bash
-# Use github_repo tool to search HashiCorp Go Azure SDK directly
+# Use github_repo tool to search HashiCorp Go Azure SDK comprehensively
 github_repo tool: "hashicorp/go-azure-sdk" 
-Query: "{service-name} {resource-type} {api-version}"
-# Example: "hardwaresecuritymodules cloudhsmclusters 2025-03-31"
+Query: "{service-name} {resource-type} model struct fields"
+# Example: "hardwaresecuritymodules cloudhsmclusters model struct"
 ```
 
-**Step 2: Vendor Folder Verification**
-```bash
-# Check if API already exists in local vendor directory
-grep_search: "vendor/**" pattern: "{service}/{version}/{resource}"
-# Example: "hardwaresecuritymodules/2025-03-31/cloudhsmclusters"
-```
+**Step 2: Critical Model Structure Verification**
+AI must examine EVERY model file for the resource:
+- [ ] **Main Resource Model**: `model_{resource}.go` - Verify ALL fields and types
+- [ ] **SKU Model**: `model_{resource}sku.go` or `model_sku.go` - Check for service-specific SKU structure
+- [ ] **Identity Model**: `model_{resource}identity.go` or search for identity types - Verify if uses common vs service-specific identity
+- [ ] **Properties Model**: `model_{resource}properties.go` - Understand nested property structures
+- [ ] **Configuration Models**: All `model_*.go` files - Map all possible nested configurations
 
-**⏱️ Time Guideline: If not found in 2 minutes → API likely doesn't exist or needs custom implementation**
+**Step 3: Azure Service-Specific Pattern Detection**
+AI must verify these critical aspects:
+- [ ] **SKU Structure**: Does this service use standard SKU (name, tier, size, capacity) or custom SKU structure?
+- [ ] **Identity Pattern**: Does this service use common identity patterns or service-specific identity types?
+- [ ] **API Versioning**: Are there service-specific API behaviors or constraints?
+- [ ] **Field Dependencies**: Are there service-specific field combination rules?
+- [ ] **PATCH vs PUT**: Does this service use PATCH operations with residual state concerns?
+
+**Step 4: Comprehensive Model Field Analysis**
+For EACH model discovered, AI must document:
+- [ ] **Required fields** vs **Optional fields** vs **Computed fields**
+- [ ] **Custom types** vs **Standard types** (string, int, bool)
+- [ ] **Pointer fields** vs **Direct fields**
+- [ ] **Nested structures** and their complexity
+- [ ] **Enum constants** and their possible values
+
+**🚨 BLOCKING REQUIREMENT: NO ASSUMPTIONS WITHOUT VERIFICATION**
+
+**FORBIDDEN Assumptions (Must be verified with actual API models):**
+- ❌ "This service probably uses standard Azure identity patterns"
+- ❌ "SKU likely has capacity field like other services"
+- ❌ "Identity probably follows common schema patterns"
+- ❌ "This should work like other similar Azure services"
+
+**REQUIRED Verification Statements:**
+- ✅ "Verified SKU model shows fields: X, Y, Z (not capacity)"
+- ✅ "Confirmed identity uses service-specific type: CloudHsmClusterManagedServiceIdentity"
+- ✅ "Analyzed all model files and documented unique patterns"
+- ✅ "Tested assumptions against actual API structure"
+
+**Step 5: Cross-Reference with Azure Documentation**
+After API structure analysis:
+- [ ] Verify findings against Azure REST API documentation
+- [ ] Check for any preview features or limitations
+- [ ] Confirm field requirements and constraints
+- [ ] Validate enum values and allowed combinations
+
+**⏱️ Time Guideline: Thorough analysis over speed - Take as long as needed for accuracy**
 
 **✅ Success Criteria:**
-- Found model files (model_*.go) with resource schema
-- Found method files (method_*.go) with CRUD operations
-- Found client.go with API client setup
-- Confirmed import path: `github.com/hashicorp/go-azure-sdk/resource-manager/{service}/{version}/{resource}`
+- Complete model structure documented for ALL discovered models
+- Service-specific patterns identified and verified
+- No assumptions made without API structure proof
+- Ready to implement with confidence in API accuracy
 
 ---
 
@@ -597,6 +709,93 @@ func (r CloudHsmClusterResource) Create() sdk.ResourceFunc {
 [⬆️ Back to top](#custom-instructions)
 
 ## 🎯 AI Development Priority Enforcement
+
+### **BLOCKING PRIORITY #0: API ANALYSIS FOR AZURE RESOURCES**
+
+**MANDATORY ACTIONS FOR AZURE RESOURCE IMPLEMENTATION:**
+
+🚨 **BEFORE ANY AZURE RESOURCE IMPLEMENTATION:**
+1. **MANDATORY API STRUCTURE ANALYSIS**: Complete comprehensive API discovery using github_repo tool
+2. **MANDATORY MODEL VERIFICATION**: Examine ALL model files (`model_*.go`) for the specific resource
+3. **MANDATORY PATTERN DETECTION**: Verify service-specific patterns (SKU structure, identity types, field dependencies)
+4. **MANDATORY ASSUMPTION VALIDATION**: Every pattern assumption MUST be verified against actual API structure
+5. **FAILURE CONDITION**: If API analysis is skipped or incomplete → **AUTOMATIC IMPLEMENTATION FAILURE**
+
+🔧 **MANDATORY ANALYSIS CHECKLIST:**
+- [ ] Used github_repo tool to search for "{service-name} {resource-type} model struct"
+- [ ] Examined main resource model file and documented ALL fields
+- [ ] Checked for service-specific SKU structure (not assumed standard SKU)
+- [ ] Verified identity patterns (service-specific vs common identity types)
+- [ ] Documented required vs optional vs computed fields with actual types
+- [ ] No assumptions made without explicit API structure verification
+
+**VIOLATION RESPONSE**: Immediately acknowledge incomplete analysis and restart with thorough API discovery
+
+### **🎯 SMART MODE DETECTION FOR BALANCED ENFORCEMENT**
+
+**BALANCED APPROACH: Thorough Analysis When Needed, Helpful When Exploring**
+
+**📋 SMART DEFAULT BEHAVIOR BY RESOURCE STATUS:**
+
+**For UNIMPLEMENTED Azure Resources** → **Default to API Analysis Mode**:
+- Schema questions about unimplemented resources likely lead to implementation
+- Default to thorough API analysis using github_repo tool
+- Present analysis naturally as helpful exploration, not strict enforcement
+- Provide comprehensive findings that support both understanding and future implementation
+
+**For EXISTING Azure Resources** → **Default to Information Mode**:
+- Questions about existing resources typically seek current implementation details
+- Show current schemas, patterns, and behaviors
+- Reference existing code and documentation
+
+**🤔 CLARIFICATION TRIGGERS for Ambiguous Requests**:
+When intent is unclear, ask quick clarifying questions:
+- "Would you like to see the current API structure or a proposed Terraform schema design?"
+- "Are you exploring the API or planning implementation?"
+- "Do you want to understand what exists or design what should be implemented?"
+
+**💡 PREFERRED LANGUAGE PATTERNS**:
+
+**✅ USE Verification Language** (for unimplemented Azure resources):
+- "I examined the code and found", "The API structure shows"
+- "Verified in model_*.go files", "Confirmed by github_repo search"
+- "Based on analysis of the actual API"
+
+**⚠️ AVOID Assumption Language** (for unimplemented Azure resources):
+- "likely has", "probably follows", "typically uses"
+- "should have", "usually contains", "generally follows"  
+- "similar to", "like other services", "standard pattern"
+
+**🔄 COURSE CORRECTION APPROACH**:
+When assumption language is detected, simply acknowledge and restart:
+- "I made assumptions without API verification. Let me restart with proper analysis."
+- Use github_repo tool and document actual findings
+- Present verified information instead of assumptions
+
+### **🔍 RESOURCE STATUS DETECTION GUIDE**
+
+**How to Determine UNIMPLEMENTED vs EXISTING Resources:**
+
+**🔍 QUICK DETECTION METHODS:**
+1. **grep_search or semantic_search** for existing resource: `azurerm_service_name`
+2. **Check internal/services/{service-name}/** directory for existing implementations
+3. **Look for registration** in `internal/services/{service}/registration.go`
+
+**📋 UNIMPLEMENTED INDICATORS:**
+- User mentions "implement", "add support for", "create resource for"
+- Service exists in Azure but no `azurerm_*` resource found in codebase
+- Questions about "how would you implement..." or "what would the schema look like"
+- Discussion of Azure services not yet supported by the provider
+
+**📋 EXISTING RESOURCE INDICATORS:**
+- User asks about current `azurerm_*` resources by name
+- Questions about existing behavior, bugs, or current implementation
+- Reference to documented resources or existing Terraform configurations
+
+**🤔 AMBIGUOUS CASE EXAMPLES & RESPONSES:**
+- **"Tell me about Azure Cloud HSM"** → **ASK**: "Are you looking to understand the existing implementation or planning to implement support for it?"
+- **"How does Key Vault work?"** → **ASK**: "Do you want to see how azurerm_key_vault works currently, or are you looking to implement something new?"
+- **"What about Storage Account encryption?"** → **ASK**: "Are you asking about the current azurerm_storage_account encryption features or planning new encryption support?"
 
 ### **BLOCKING PRIORITY #1: ZERO TOLERANCE COMMENT POLICY**
 
