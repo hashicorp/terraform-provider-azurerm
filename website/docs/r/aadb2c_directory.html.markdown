@@ -74,4 +74,4 @@ terraform import azurerm_aadb2c_directory.example /subscriptions/12345678-1234-9
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.AzureActiveDirectory`: 2021-04-01-preview
+* `Microsoft.AzureActiveDirectory` - 2021-04-01-preview

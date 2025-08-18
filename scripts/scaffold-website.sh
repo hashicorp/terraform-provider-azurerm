@@ -44,6 +44,11 @@ function scaffoldDocumentation {
   else
       go run ./internal/tools/website-scaffold/main.go -name "${RESOURCE_NAME}" -brand-name "${BRAND_NAME}" -type "${RESOURCE_TYPE}" -resource-id "${RESOURCE_ID}" -website-path ./website/ -example -root-dir . -service-pkg ./internal/services/"${SERVICE_TYPE}" -testcase "${TESTCASE}"
   fi
+
+  # Temporary - `website-scaffold` tool should be merged into the `document-fmt` tool
+  # This ensures the API section is populated
+  go run ./internal/tools/document-fmt/main.go fix --resource "${RESOURCE_NAME}" > /dev/null
+
   echo "==> Done."
 }
 

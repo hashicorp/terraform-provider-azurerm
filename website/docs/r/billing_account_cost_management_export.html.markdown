@@ -120,4 +120,4 @@ terraform import azurerm_billing_account_cost_management_export.example /provide
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.CostManagement`: 2023-08-01
+* `Microsoft.CostManagement` - 2023-08-01
