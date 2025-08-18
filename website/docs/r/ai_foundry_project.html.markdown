@@ -40,7 +40,7 @@ resource "azurerm_ai_foundry_project" "example" {
   location      = azurerm_resource_group.example.location
   ai_foundry_id = azurerm_ai_foundry.example.id
   description   = "Project description for example-project"
-  display_name  = "Exmaple Project"
+  display_name  = "Example Project"
 
   identity {
     type = "SystemAssigned"

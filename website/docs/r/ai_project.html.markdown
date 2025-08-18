@@ -72,9 +72,9 @@ resource "azurerm_ai_hub" "example" {
 }
 
 resource "azurerm_ai_project" "example" {
-  name                = "example"
-  location            = azurerm_ai_hub.example.location
-  ai_hub_id           = azurerm_ai_hub.example.id
+  name      = "example"
+  location  = azurerm_ai_hub.example.location
+  ai_hub_id = azurerm_ai_hub.example.id
 }
 ```
 
