@@ -49,14 +49,14 @@ resource "azurerm_netapp_account" "example" {
 }
 
 resource "azurerm_netapp_pool" "example" {
-  name                     = "example-netapppool"
-  account_name             = azurerm_netapp_account.example.name
-  location                 = azurerm_resource_group.example.location
-  resource_group_name      = azurerm_resource_group.example.name
-  service_level            = "Flexible"
-  size_in_tb               = 4
-  qos_type                 = "Manual"
-  custom_throughput_mibps  = 256
+  name                    = "example-netapppool"
+  account_name            = azurerm_netapp_account.example.name
+  location                = azurerm_resource_group.example.location
+  resource_group_name     = azurerm_resource_group.example.name
+  service_level           = "Flexible"
+  size_in_tb              = 4
+  qos_type                = "Manual"
+  custom_throughput_mibps = 256
 }
 ```
 

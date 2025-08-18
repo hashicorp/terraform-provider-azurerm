@@ -440,14 +440,14 @@ resource "azurerm_netapp_account" "test" {
 }
 
 resource "azurerm_netapp_pool" "test" {
-  name                     = "acctest-NetAppPool-%d"
-  account_name             = azurerm_netapp_account.test.name
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  service_level            = "Flexible"
-  size_in_tb               = 4
-  qos_type                 = "Manual"
-  custom_throughput_mibps  = 256
+  name                    = "acctest-NetAppPool-%d"
+  account_name            = azurerm_netapp_account.test.name
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  service_level           = "Flexible"
+  size_in_tb              = 4
+  qos_type                = "Manual"
+  custom_throughput_mibps = 256
 
   tags = {
     "CreatedOnDate" = "2022-07-08T23:50:21Z"
@@ -478,14 +478,14 @@ resource "azurerm_netapp_account" "test" {
 }
 
 resource "azurerm_netapp_pool" "test" {
-  name                     = "acctest-NetAppPool-%d"
-  account_name             = azurerm_netapp_account.test.name
-  location                 = azurerm_resource_group.test.location
-  resource_group_name      = azurerm_resource_group.test.name
-  service_level            = "Flexible"
-  size_in_tb               = 4
-  qos_type                 = "Manual"
-  custom_throughput_mibps  = 512
+  name                    = "acctest-NetAppPool-%d"
+  account_name            = azurerm_netapp_account.test.name
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  service_level           = "Flexible"
+  size_in_tb              = 4
+  qos_type                = "Manual"
+  custom_throughput_mibps = 512
 
   tags = {
     "CreatedOnDate" = "2022-07-08T23:50:21Z"
