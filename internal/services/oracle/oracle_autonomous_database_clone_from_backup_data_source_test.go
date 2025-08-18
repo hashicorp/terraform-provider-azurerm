@@ -22,7 +22,7 @@ func TestAccAutonomousDatabaseCloneFromBackupDataSource_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("display_name").Exists(),
-				check.That(data.ResourceName).Key("db_version").Exists(),
+				check.That(data.ResourceName).Key("database_version").Exists(),
 				check.That(data.ResourceName).Key("compute_count").Exists(),
 				check.That(data.ResourceName).Key("data_storage_size_in_tbs").Exists(),
 			),

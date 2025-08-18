@@ -47,11 +47,11 @@ In addition to the Arguments listed above—the following Attributes are exporte
 
 * `auto_scaling_for_storage_enabled` - Indicates if auto scaling is enabled for the Autonomous Database storage.
 
-* `available_upgrade_versions` -A list of Oracle Database versions available for a database upgrade. If there are no version upgrades available, this list is empty.
+* `available_upgrade_versions` - A list of Oracle Database versions available for a database upgrade. If there are no version upgrades available, this list is empty.
 
 * `backup_retention_period_in_days` - The backup retention period in days.
 
-* `character_set` - he character set for the autonomous database.
+* `character_set` - The character set for the autonomous database.
 
 * `compute_count` - The compute amount (CPUs) available to the database.
 
@@ -63,7 +63,7 @@ In addition to the Arguments listed above—the following Attributes are exporte
 
 * `data_storage_size_in_tb` - The maximum storage that can be allocated for the database, in terabytes.
 
-* `db_version` - The Oracle Database version for Autonomous Database.
+* `database_version` - The Oracle Database version for Autonomous Database.
 
 * `display_name` - The display name for the Autonomous Database.
 
@@ -99,7 +99,7 @@ In addition to the Arguments listed above—the following Attributes are exporte
 
 * `private_endpoint` - The private endpoint for the resource.
 
-* `private_endpoint_ip` - The private endpoint Ip address for the resource.
+* `private_endpoint_ip` - The private endpoint IP address for the resource.
 
 * `private_endpoint_label` - The private endpoint label for the resource.
 
@@ -165,7 +165,7 @@ A `long_term_backup_schedule` block exports the following:
 
 * `retention_period_in_days` - The retention period in days for Autonomous database backup.
 
-* `time_of_backup` - The timestamp in which the backup would be made.
+* `time_of_backup_in_utc` - The timestamp in which the backup would be made.
 
 ## Timeouts
 

@@ -3,12 +3,12 @@ subcategory: "Oracle"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_oracle_autonomous_database_clone_from_backup"
 description: |-
-  Manages a autonomous database clone from backup.
+  Manages an autonomous database clone from backup.
 ---
 
 # azurerm_oracle_autonomous_database_clone_from_backup
 
-Manages a autonomous database clone from backup.
+Manages an autonomous database clone from backup.
 
 ## Example Usage
 
@@ -37,7 +37,7 @@ resource "azurerm_oracle_autonomous_database" "example" {
   compute_count                    = 1.23456
   national_character_set           = "example"
   license_model                    = false
-  db_version                       = "example"
+  database_version                 = "example"
   allowedIps                       = ""
 }
 
@@ -49,7 +49,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_backup" "example" {
   mtls_connection_required         = false
   compute_model                    = "ECPU"
   clone_type                       = "Full"
-  db_version                       = "19c"
+  database_version                 = "19c"
   auto_scaling_enabled             = false
   backup_retention_period_in_days  = 42
   license_model                    = "LicenseIncluded"
@@ -74,32 +74,32 @@ The following arguments are supported:
 
 * `auto_scaling_enabled` - (Required) Indicates if auto-scaling is enabled for the Autonomous Database CPU core count.
 
-* `auto_scaling_for_storage_enabled` - (Required) ndicates if auto-scaling is enabled for the Autonomous Database storage.
+* `auto_scaling_for_storage_enabled` - (Required) Indicates if auto-scaling is enabled for the Autonomous Database storage.
 
 * `backup_retention_period_in_days` - (Required) Retention period, in days, for backups. Possible values are between 1 and 60. Changing these forces a new Autonomous Database Clone to be created.
 
-* `character_set` - (Required) The character set for the autonomous database. Changing this forces a new Autonomous Database Clone to be created
+* `character_set` - (Required) The character set for the autonomous database. Changing this forces a new Autonomous Database Clone to be created.
 
 * `clone_type` - (Required) The type of clone to create. Possible values are Full and Metadata. Changing this forces a new autonomous database clone from backup to be created.
 
 * `compute_count` - (Required) The compute amount (CPUs) available to the database. Possible values are between 2.0 and 512.0.
 
-* `compute_model` - (Required) he compute model of the Autonomous Database. Changing this forces a new autonomous database clone from backup to be created.
+* `compute_model` - (Required) The compute model of the Autonomous Database. Changing this forces a new autonomous database clone from backup to be created.
 
 * `data_storage_size_in_tb` - (Required) The maximum storage that can be allocated for the database, in terabytes. Possible values are between 1 and 384.
 
-* `db_version` - (Required) A valid Oracle Database version for Autonomous Database. Changing this forces a new autonomous database clone from backup to be created.
+* `database_version` - (Required) A valid Oracle Database version for Autonomous Database. Changing this forces a new autonomous database clone from backup to be created.
 
-* `db_workload` - (Required) The Autonomous Database workload type. Possible values are OLTP, DW, APEX, and AJD. Changing this forces a new autonomous database clone from backup to be created.
+* `database_workload` - (Required) The Autonomous Database workload type. Possible values are OLTP, DW, APEX, and AJD. Changing this forces a new autonomous database clone from backup to be created.
 
     * OLTP: Indicates an Autonomous Transaction Processing database. 
     * DW: Indicates an Autonomous Data Warehouse database. 
     * AJD: Indicates an Autonomous JSON Database. 
     * APEX: Indicates an Autonomous Database with the Oracle APEX Application Development workload type.
 
-* `display_name` - (Required) he user-friendly name for the Autonomous Database. Changing this forces a new autonomous database clone from backup to be created.
+* `display_name` - (Required) The user-friendly name for the Autonomous Database. Changing this forces a new autonomous database clone from backup to be created.
 
-* `license_model` - (Required) he Oracle license model that applies to the Oracle Autonomous Database. Possible values are LicenseIncluded and BringYourOwnLicense. Changing this forces a new autonomous database clone from backup to be created.
+* `license_model` - (Required) The Oracle license model that applies to the Oracle Autonomous Database. Possible values are LicenseIncluded and BringYourOwnLicense. Changing this forces a new autonomous database clone from backup to be created.
 
 * `location` - (Required) The Azure Region where the autonomous database clone from backup should exist. Changing this forces a new autonomous database clone from backup to be created.
 
@@ -127,7 +127,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the autonomous database clone from backup.
 
-* `use_latest_available_backup_time_stamp` - (Optional) setting this value to true will initiate cloning from latest backup time stamp. Changing this forces a new autonomous database clone from backup to be created.
+* `use_latest_available_backup_time_stamp` - (Optional) Setting this value to true will initiate cloning from latest backup time stamp. Changing this forces a new autonomous database clone from backup to be created.
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network this Autonomous Database Clone should be created in. Changing this forces a new autonomous database clone from backup to be created.
 

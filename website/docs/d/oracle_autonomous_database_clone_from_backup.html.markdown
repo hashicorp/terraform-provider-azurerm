@@ -65,7 +65,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `data_storage_size_in_tb` - The maximum storage that can be allocated for the database in terabytes.
 
-* `db_version` - The Oracle Database version for Autonomous Database.
+* `database_version` - The Oracle Database version for Autonomous Database.
 
 * `display_name` - The display name for the Autonomous Database.
 
@@ -75,7 +75,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `lifecycle_details` - Information about the current lifecycle state.
 
-* `local_adg_auto_failover_max_data_loss_limit` -  Parameter that allows users to select an acceptable maximum data loss limit in seconds, up to which Automatic Failover will be triggered when necessary for a Local Autonomous Data Guar.
+* `local_adg_auto_failover_max_data_loss_limit` -  Parameter that allows users to select an acceptable maximum data loss limit in seconds, up to which Automatic Failover will be triggered when necessary for a Local Autonomous Data Guard.
 
 * `local_data_guard_enabled` - Indicates whether the Autonomous Database has local (in-region) Data Guard enabled. Not applicable to cross-region Autonomous Data Guard associations, or to Autonomous Databases using dedicated Exadata infrastructure or Exadata Cloud@Customer infrastructure.
 
@@ -87,13 +87,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `national_character_set` - The national character set for the autonomous database.
 
-* `next_long_term_backup_time_stamp` -  The timestamp when the next long-term backup would be created.
+* `next_long_term_backup_time_stamp_in_utc` -  The timestamp when the next long-term backup would be created.
 
 * `oci_url` - The URL of the resource in the OCI console.
 
-* `ocid` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the autonomous database.
+* `ocid` - The [OCID](https://docs.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the autonomous database.
 
-* `peer_db_ids` - The list of [OCIDs](https://docs.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of standby databases located in Autonomous Data Guard remote regions that are associated with the source database. Note that for Autonomous Database Serverless instances, standby databases located in the same region as the source primary database do not have OCIDs.
+* `peer_database_ids` - The list of [OCIDs](https://docs.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of standby databases located in Autonomous Data Guard remote regions that are associated with the source database. Note that for Autonomous Database Serverless instances, standby databases located in the same region as the source primary database do not have OCIDs.
 
 * `preview` - Indicates if the Autonomous Database version is a preview version.
 
@@ -159,7 +159,7 @@ A `long_term_backup_schedule` block exports the following:
 
 * `retention_period_in_days` - The retention period in days for Autonomous database backup.
 
-* `time_of_backup - The timestamp in which the backup would be made.
+* `time_of_backup_in_utc` - The timestamp in which the backup would be made.
 
 ## Timeouts
 

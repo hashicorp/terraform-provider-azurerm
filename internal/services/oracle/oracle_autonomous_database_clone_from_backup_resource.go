@@ -45,7 +45,7 @@ type AutonomousDatabaseCloneFromBackupResourceModel struct {
 	ComputeCount                 float64  `tfschema:"compute_count"`
 	ComputeModel                 string   `tfschema:"compute_model"`
 	DataStorageSizeInTb          int64    `tfschema:"data_storage_size_in_tb"`
-	DbVersion                    string   `tfschema:"db_version"`
+	DatabaseVersion              string   `tfschema:"database_version"`
 	DbWorkload                   string   `tfschema:"db_workload"`
 	DisplayName                  string   `tfschema:"display_name"`
 	LicenseModel                 string   `tfschema:"license_model"`
@@ -159,7 +159,7 @@ func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*plugins
 			ValidateFunc: validation.IntBetween(1, 384),
 		},
 
-		"db_version": {
+		"database_version": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -307,7 +307,7 @@ func (r AutonomousDatabaseCloneFromBackupResource) Create() sdk.ResourceFunc {
 				CustomerContacts:               expandCloneCustomerContactsPtr(model.CustomerContacts),
 				DataStorageSizeInTbs:           pointer.To(model.DataStorageSizeInTb),
 				DbWorkload:                     pointer.To(autonomousdatabases.WorkloadType(model.DbWorkload)),
-				DbVersion:                      pointer.To(model.DbVersion),
+				DbVersion:                      pointer.To(model.DatabaseVersion),
 				DisplayName:                    pointer.To(model.DisplayName),
 				IsAutoScalingEnabled:           pointer.To(model.AutoScalingEnabled),
 				IsAutoScalingForStorageEnabled: pointer.To(model.AutoScalingForStorageEnabled),
@@ -388,7 +388,7 @@ func (r AutonomousDatabaseCloneFromBackupResource) Read() sdk.ResourceFunc {
 				state.ComputeModel = pointer.FromEnum(props.ComputeModel)
 				state.CustomerContacts = flattenCloneCustomerContacts(pointer.From(props.CustomerContacts))
 				state.DataStorageSizeInTb = pointer.From(props.DataStorageSizeInTbs)
-				state.DbVersion = pointer.From(props.DbVersion)
+				state.DatabaseVersion = pointer.From(props.DbVersion)
 				state.DbWorkload = string(pointer.From(props.DbWorkload))
 				state.DisplayName = pointer.From(props.DisplayName)
 				state.AutoScalingEnabled = pointer.From(props.IsAutoScalingEnabled)

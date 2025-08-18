@@ -3,12 +3,12 @@ subcategory: "Oracle"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_oracle_autonomous_database_clone_from_database"
 description: |-
-  Manages a autonomous database clone from database.
+  Manages an autonomous database clone from database.
 ---
 
 # azurerm_oracle_autonomous_database_clone_from_database
 
-Manages a autonomous database clone from database.
+Manages an autonomous database clone from database.
 
 ## Example Usage
 
@@ -37,7 +37,7 @@ resource "azurerm_oracle_autonomous_database" "example" {
   compute_count                    = 1.23456
   national_character_set           = "example"
   license_model                    = false
-  db_version                       = "example"
+  database_version                 = "example"
   allowedIps                       = ""
 }
 
@@ -50,7 +50,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_database" "example" {
   display_name                     = "example"
   auto_scaling_enabled             = false
   national_character_set           = "AL16UTF16"
-  db_version                       = "19c"
+  database_version                 = "19c"
   compute_model                    = "ECPU"
   data_storage_size_in_tb          = 42
   clone_type                       = "Full"
@@ -92,13 +92,13 @@ The following arguments are supported:
 
 * `data_storage_size_in_tb` - (Required) The maximum storage that can be allocated for the database, in terabytes. Possible values are between `1` and `384`.
 
-* `db_workload` - (Required) The Autonomous Database workload type. Possible values are `OLTP` and `DW`, `APEX`, `AJD`. Changing this forces a new Autonomous Database Clone to be created.
+* `database_workload` - (Required) The Autonomous Database workload type. Possible values are `OLTP` and `DW`, `APEX`, `AJD`. Changing this forces a new Autonomous Database Clone to be created.
   * OLTP - indicates an Autonomous Transaction Processing database
   * DW - indicates an Autonomous Data Warehouse database
   * AJD - indicates an Autonomous JSON Database
   * APEX - indicates an Autonomous Database with the Oracle APEX Application Development workload type.
 
-~> **Note:** To clone the database with a different `db_workload` type, please refer to the documentation [here](https://docs.public.oneportal.content.oci.oraclecloud.com/en-us/iaas/autonomous-database-serverless/doc/autonomous-clone-cross-workload-type.html#GUID-527A712D-FF82-498B-AB35-8A1623E36EDD) for correct configuration steps.
+~> **Note:** To clone the database with a different `database_workload` type, please refer to the documentation [here](https://docs.public.oneportal.content.oci.oraclecloud.com/en-us/iaas/autonomous-database-serverless/doc/autonomous-clone-cross-workload-type.html#GUID-527A712D-FF82-498B-AB35-8A1623E36EDD) for correct configuration steps.
 
 * `display_name` - (Required) The user-friendly name for the Autonomous Database. Changing this forces a new Autonomous Database Clone to be created.
 
@@ -112,7 +112,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the autonomous database clone from database should exist. Changing this forces a new autonomous database clone from database to be created.
 
-* `source` - The source of the clone. Possible values are  `Database` . Changing this forces a new Autonomous Database Clone to be created.
+* `source` - (Required) The source of the clone. Possible values are  `Database` . Changing this forces a new Autonomous Database Clone to be created.
 
 * `source_autonomous_database_id` - (Required) The ID of the source Autonomous Database to clone from. Changing this forces a new autonomous database clone from database to be created.
 

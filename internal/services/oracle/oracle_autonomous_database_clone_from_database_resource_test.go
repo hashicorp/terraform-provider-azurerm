@@ -85,8 +85,7 @@ func (r AutonomousDatabaseCloneFromDatabaseResource) Exists(ctx context.Context,
 		return nil, err
 	}
 
-	client := clients.Oracle.OracleClient.AutonomousDatabases
-	resp, err := client.Get(ctx, *id)
+	resp, err := clients.Oracle.OracleClient.AutonomousDatabases.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -113,7 +112,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_database" "test" {
   compute_count                    = 2.0
   compute_model                    = "ECPU"
   data_storage_size_in_tb          = 1
-  db_version                       = "19c"
+  database_version                 = "19c"
   db_workload                      = "OLTP"
   display_name                     = "ADB%[2]dclone"
   license_model                    = "LicenseIncluded"
@@ -151,7 +150,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_database" "import" {
   compute_count                    = azurerm_oracle_autonomous_database_clone_from_database.test.compute_count
   compute_model                    = azurerm_oracle_autonomous_database_clone_from_database.test.compute_model
   data_storage_size_in_tb          = azurerm_oracle_autonomous_database_clone_from_database.test.data_storage_size_in_tb
-  db_version                       = azurerm_oracle_autonomous_database_clone_from_database.test.db_version
+  database_version                 = azurerm_oracle_autonomous_database_clone_from_database.test.database_version
   db_workload                      = azurerm_oracle_autonomous_database_clone_from_database.test.db_workload
   display_name                     = azurerm_oracle_autonomous_database_clone_from_database.test.display_name
   license_model                    = azurerm_oracle_autonomous_database_clone_from_database.test.license_model
@@ -185,7 +184,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_database" "test" {
   compute_count                    = 4.0
   compute_model                    = "ECPU"
   data_storage_size_in_tb          = 2
-  db_version                       = "19c"
+  database_version                 = "19c"
   db_workload                      = "DW"
   display_name                     = "ADB%[2]dclone"
   license_model                    = "LicenseIncluded"
@@ -230,7 +229,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_database" "test" {
   compute_count                    = 2.0
   compute_model                    = "ECPU"
   data_storage_size_in_tb          = 1
-  db_version                       = "19c"
+  database_version                 = "19c"
   db_workload                      = "OLTP"
   display_name                     = "ADB%[2]dclone"
   license_model                    = "LicenseIncluded"

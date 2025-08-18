@@ -69,8 +69,7 @@ func (r AutonomousDatabaseCloneFromBackupResource) Exists(ctx context.Context, c
 		return nil, err
 	}
 
-	client := clients.Oracle.OracleClient.AutonomousDatabases
-	resp, err := client.Get(ctx, *id)
+	resp, err := clients.Oracle.OracleClient.AutonomousDatabases.Get(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
@@ -99,7 +98,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_backup" "test" {
   compute_count                    = 2.0
   compute_model                    = "ECPU"
   data_storage_size_in_tb          = 1
-  db_version                       = "19c"
+  database_version                 = "19c"
   db_workload                      = "OLTP"
   display_name                     = "ADB%[2]dclone"
   license_model                    = "LicenseIncluded"
@@ -135,7 +134,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_backup" "import" {
   compute_count                    = azurerm_oracle_autonomous_database_clone_from_backup.test.compute_count
   compute_model                    = azurerm_oracle_autonomous_database_clone_from_backup.test.compute_model
   data_storage_size_in_tb          = azurerm_oracle_autonomous_database_clone_from_backup.test.data_storage_size_in_tb
-  db_version                       = azurerm_oracle_autonomous_database_clone_from_backup.test.db_version
+  database_version                 = azurerm_oracle_autonomous_database_clone_from_backup.test.database_version
   db_workload                      = azurerm_oracle_autonomous_database_clone_from_backup.test.db_workload
   display_name                     = azurerm_oracle_autonomous_database_clone_from_backup.test.display_name
   license_model                    = azurerm_oracle_autonomous_database_clone_from_backup.test.license_model
@@ -172,7 +171,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_backup" "test" {
   compute_count                    = 2.0
   compute_model                    = "ECPU"
   data_storage_size_in_tb          = 1
-  db_version                       = "19c"
+  database_version                 = "19c"
   db_workload                      = "OLTP"
   display_name                     = "ADB%[2]dclone"
   license_model                    = "LicenseIncluded"

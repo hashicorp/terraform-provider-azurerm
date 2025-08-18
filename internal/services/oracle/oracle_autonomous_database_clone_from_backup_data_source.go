@@ -38,7 +38,7 @@ type AutonomousDatabaseCloneFomBackupDataSourceModel struct {
 	CustomerContacts                           []string                        `tfschema:"customer_contacts"`
 	DataStorageSizeInGb                        int64                           `tfschema:"data_storage_size_in_gb"`
 	DataStorageSizeInTb                        int64                           `tfschema:"data_storage_size_in_tb"`
-	DbVersion                                  string                          `tfschema:"db_version"`
+	DatabaseVersion                            string                          `tfschema:"database_version"`
 	DbWorkload                                 string                          `tfschema:"db_workload"`
 	DisplayName                                string                          `tfschema:"display_name"`
 	LicenseModel                               string                          `tfschema:"license_model"`
@@ -195,7 +195,7 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Attributes() map[string]*plug
 			Computed: true,
 		},
 
-		"db_version": {
+		"database_version": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -500,7 +500,7 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Read() sdk.ResourceFunc {
 				state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
 				state.DataStorageSizeInGb = pointer.From(props.DataStorageSizeInGbs)
 				state.DataStorageSizeInTb = pointer.From(props.DataStorageSizeInTbs)
-				state.DbVersion = pointer.From(props.DbVersion)
+				state.DatabaseVersion = pointer.From(props.DbVersion)
 				state.DbWorkload = string(pointer.From(props.DbWorkload))
 				state.DisplayName = pointer.From(props.DisplayName)
 				state.FailedDataRecoveryInSeconds = pointer.From(props.FailedDataRecoveryInSeconds)
