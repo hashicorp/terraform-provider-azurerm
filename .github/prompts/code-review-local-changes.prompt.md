@@ -250,10 +250,11 @@ Result: Console display issue, not markdown corruption
   * Verify `git` availability: `git --version`
 
 * **IMPORTANT**: Use the following git commands to get the diff for code review (try in order):
-  1. `git --no-pager diff --no-prefix --unified=3` - for unstaged local changes
-  2. `git --no-pager diff --no-prefix --unified=3 --staged` - for staged changes if no unstaged changes found
-  3. **If neither command shows any changes, abandon the code review** - this prompt is specifically for reviewing local changes only. When abandoning, display: "☠️ **Argh! There be no changes here!** ☠️"
-  4. **Usage Guidance**: Use the unstaged command during active development to review current work, and the staged command before committing to review what will be included in your commit
+  1. `git branch --show-current` - Get the current branch name
+  2. `git --no-pager diff --no-prefix --unified=3` - for unstaged local changes
+  3. `git --no-pager diff --no-prefix --unified=3 --staged` - for staged changes if no unstaged changes found
+  4. **If neither command shows any changes, abandon the code review** - this prompt is specifically for reviewing local changes only. When abandoning, display: "☠️ **Argh! There be no changes here!** ☠️"
+  5. **Usage Guidance**: Use the unstaged command during active development to review current work, and the staged command before committing to review what will be included in your commit
 
   * In the provided git diff, if the line start with `+` or `-`, it means that the line is added or removed. If the line starts with a space, it means that the line is unchanged. If the line starts with `@@`, it means that the line is a hunk header.
   * Avoid overwhelming the developer with too many suggestions at once.
@@ -306,6 +307,7 @@ Result: Console display issue, not markdown corruption
   ## 📊 **CHANGE SUMMARY**
   - **Files Changed**: [number] files ([additions], [modifications], [deletions])
   - **Scale**: [insertions] insertions, [deletions] deletions
+  - **Branch**: [current_branch_from_git_command]
   - **Type**: [local changes/staged changes]
   - **Scope**: [Brief description of overall scope]
 

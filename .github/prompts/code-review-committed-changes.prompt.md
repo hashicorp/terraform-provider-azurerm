@@ -225,11 +225,12 @@ PRIORITY: Actionable insights > Format compliance
 * Verify `git` availability: `git --version`
 
 **IMPORTANT**: Use the following git commands to get the diff for the code branch committed changes for code review (try in order):
-  1. `git --no-pager diff --stat --no-prefix origin/main...HEAD` - Show a summary of changes (files and line counts) vs. `origin/main`
-  2. `git --no-pager diff --no-prefix origin/main...HEAD` - Show the full unified diff (code-level changes) vs. `origin/main`
-  3. `git log --oneline origin/main..HEAD` - Show commit messages in this branch not in `origin/main`
-  4. `git status` - Show the working directory status (staged, modified, untracked files)
-  5. **If the commands do not show any changes, abandon the code review** - this prompt is specifically for reviewing committed changes. When abandoning, display: "☠️ **Argh! Shiver me source files! This branch be cleaner than a swabbed deck! Push some code, Ye Lily-livered scallywag!** ☠️"
+  1. `git branch --show-current` - Get the current branch name
+  2. `git --no-pager diff --stat --no-prefix origin/main...HEAD` - Show a summary of changes (files and line counts) vs. `origin/main`
+  3. `git --no-pager diff --no-prefix origin/main...HEAD` - Show the full unified diff (code-level changes) vs. `origin/main`
+  4. `git log --oneline origin/main..HEAD` - Show commit messages in this branch not in `origin/main`
+  5. `git status` - Show the working directory status (staged, modified, untracked files)
+  6. **If the commands do not show any changes, abandon the code review** - this prompt is specifically for reviewing committed changes. When abandoning, display: "☠️ **Argh! Shiver me source files! This branch be cleaner than a swabbed deck! Push some code, Ye Lily-livered scallywag!** ☠️"
 
 **In the provided git diff**: `+` = added, `-` = removed, ` ` = unchanged, `@@` = hunk header.
 
@@ -268,7 +269,7 @@ While following the structured format:
 ## 📊 **CHANGE SUMMARY**
 - **Files Changed**: [number] files ([additions], [modifications], [deletions])
 - **Scale**: [insertions] insertions, [deletions] deletions
-- **Branch**: [branch] vs [base_branch]
+- **Branch**: [current_branch_from_git_command] vs origin/main
 - **Scope**: [Brief description of overall scope]
 
 ## 🎯 **PRIMARY CHANGES ANALYSIS**
