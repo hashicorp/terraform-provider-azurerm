@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package cmd
 
 import (
@@ -80,10 +83,12 @@ func Make() *cobra.Command {
 			for _, r := range resources {
 				v.Run(flags.Linter.Rules, r, true)
 
-				if r.Document.HasChange {
+				if l := len(r.Errors); l > 0 {
 					resourceWithErrCount++
-					errCount += len(r.Errors)
+					errCount += l
+				}
 
+				if r.Document.HasChange {
 					if err := r.Document.Write(fs); err != nil {
 						if err != nil {
 							log.WithFields(log.Fields{
@@ -106,6 +111,7 @@ func Make() *cobra.Command {
 					resourceStr += "s"
 				}
 				fmt.Printf(util.Red("Found %d %s in %d %s and applied fixes where possible, please review the changes\n"), errCount, errStr, resourceWithErrCount, resourceStr)
+				os.Exit(1)
 			} else {
 				fmt.Print(util.GreenBold("Found no errors\n"))
 			}
