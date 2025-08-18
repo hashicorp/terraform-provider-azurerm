@@ -69,7 +69,7 @@ service/cdn:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_cdn_((.|\n)*)###'
 
 service/cognitive-services:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(ai_services|cognitive_)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(ai_foundry|cognitive_)((.|\n)*)###'
 
 service/communication:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(communication_service|email_communication_service|gallery_application|orchestrated_virtual_machine_scale_set\W+|restore_point_collection|virtual_machine_gallery_application_assignment\W+|virtual_machine_implicit_data_disk_from_source\W+|virtual_machine_restore_point\W+|virtual_machine_restore_point_collection\W+|virtual_machine_run_command\W+|virtual_machine_scale_set_standby_pool\W+)((.|\n)*)###'
@@ -204,7 +204,7 @@ service/logic:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_logic_app_((.|\n)*)###'
 
 service/machine-learning:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(ai_foundry|machine_learning_)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(ai_hub\W+|ai_project\W+|machine_learning_)((.|\n)*)###'
 
 service/maintenance:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(maintenance_|public_maintenance_configurations)((.|\n)*)###'
