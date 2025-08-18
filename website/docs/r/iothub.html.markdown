@@ -376,8 +376,8 @@ A `shared_access_policy` block contains the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the IotHub.
-* `update` - (Defaults to 30 minutes) Used when updating the IotHub.
 * `read` - (Defaults to 5 minutes) Used when retrieving the IotHub.
+* `update` - (Defaults to 30 minutes) Used when updating the IotHub.
 * `delete` - (Defaults to 30 minutes) Used when deleting the IotHub.
 
 ## Import

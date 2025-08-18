@@ -106,8 +106,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Stream Analytics Reference Input Blob.
-* `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Reference Input Blob.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Stream Analytics Reference Input Blob.
+* `update` - (Defaults to 30 minutes) Used when updating the Stream Analytics Reference Input Blob.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Stream Analytics Reference Input Blob.
 
 ## Import
@@ -117,3 +117,9 @@ Stream Analytics Reference Input Blob's can be imported using the `resource id`,
 ```shell
 terraform import azurerm_stream_analytics_reference_input_blob.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.StreamAnalytics/streamingJobs/job1/inputs/input1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.StreamAnalytics` - 2020-03-01

@@ -172,6 +172,30 @@ func ConfigSchemaToProto(ctx context.Context, b *configschema.Block) *tfprotov5.
 	return block
 }
 
+func ConfigIdentitySchemaToProto(ctx context.Context, identitySchema *configschema.Block) []*tfprotov5.ResourceIdentitySchemaAttribute {
+	output := make([]*tfprotov5.ResourceIdentitySchemaAttribute, 0)
+
+	for name, a := range identitySchema.Attributes {
+
+		attr := &tfprotov5.ResourceIdentitySchemaAttribute{
+			Name:              name,
+			Description:       a.Description,
+			OptionalForImport: a.OptionalForImport,
+			RequiredForImport: a.RequiredForImport,
+		}
+
+		var err error
+		attr.Type, err = tftypeFromCtyType(a.Type)
+		if err != nil {
+			panic(err)
+		}
+
+		output = append(output, attr)
+	}
+
+	return output
+}
+
 func protoStringKind(ctx context.Context, k configschema.StringKind) tfprotov5.StringKind {
 	switch k {
 	default:

@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/videoindexer/2024-01-01/accounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/videoindexer/2025-04-01/accounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -157,9 +157,10 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_video_indexer_account" "test" {
-  name                = "acctestvi-%[2]s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
+  name                  = "acctestvi-%[2]s"
+  resource_group_name   = azurerm_resource_group.test.name
+  location              = azurerm_resource_group.test.location
+  public_network_access = "Disabled"
 
   storage {
     storage_account_id = azurerm_storage_account.test.id

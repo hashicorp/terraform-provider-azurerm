@@ -74,8 +74,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 5 minutes) Used when creating the Data Factory Credential.
-* `update` - (Defaults to 5 minutes) Used when updating the Data Factory Credential.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Data Factory Credential.
+* `update` - (Defaults to 5 minutes) Used when updating the Data Factory Credential.
 * `delete` - (Defaults to 5 minutes) Used when deleting the Data Factory Credential.
 
 ## Import
@@ -85,3 +85,9 @@ Data Factory Credentials can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_data_factory_credential_user_managed_identity.example /subscriptions/1f3d6e58-feed-4bb6-87e5-a52305ad3375/resourceGroups/example-resources/providers/Microsoft.DataFactory/factories/example/credentials/credential1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DataFactory` - 2018-06-01

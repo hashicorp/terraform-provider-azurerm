@@ -116,7 +116,7 @@ func resourceKeyVaultSecret() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.SchemaWithMax(15),
+			"tags": commonschema.TagsWithMaximumElements(15),
 		},
 	}
 }

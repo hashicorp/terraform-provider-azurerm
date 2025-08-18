@@ -197,10 +197,10 @@ An `identity` block exports the following arguments:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this Elastic SAN Volume Group.
-* `delete` - (Defaults to 30 minutes) Used when deleting this Elastic SAN Volume Group.
-* `read` - (Defaults to 5 minutes) Used when retrieving this Elastic SAN Volume Group.
-* `update` - (Defaults to 30 minutes) Used when updating this Elastic SAN Volume Group.
+* `create` - (Defaults to 30 minutes) Used when creating the Elastic SAN Volume Group.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Elastic SAN Volume Group.
+* `update` - (Defaults to 30 minutes) Used when updating the Elastic SAN Volume Group.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Elastic SAN Volume Group.
 
 ## Import
 
@@ -209,3 +209,9 @@ An existing Elastic SAN Volume Group can be imported into Terraform using the `r
 ```shell
 terraform import azurerm_elastic_san_volume_group.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.ElasticSan/elasticSans/esan1/volumeGroups/vg1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ElasticSan` - 2023-01-01

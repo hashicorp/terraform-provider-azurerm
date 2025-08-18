@@ -20,12 +20,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name monitor_action_group -service-package-name monitor -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 func resourceMonitorActionGroup() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
@@ -34,10 +35,11 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 		Update: resourceMonitorActionGroupCreateUpdate,
 		Delete: resourceMonitorActionGroupDelete,
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := actiongroupsapis.ParseActionGroupID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&actiongroupsapis.ActionGroupId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&actiongroupsapis.ActionGroupId{}),
+		},
 
 		SchemaVersion: 1,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
@@ -434,7 +436,7 @@ func resourceMonitorActionGroup() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 
@@ -590,7 +592,7 @@ func resourceMonitorActionGroupRead(d *pluginsdk.ResourceData, meta interface{})
 			return err
 		}
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceMonitorActionGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {

@@ -127,9 +127,111 @@ func dataSourceDatabricksWorkspace() *pluginsdk.Resource {
 				},
 			},
 
+			"custom_parameters": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"machine_learning_workspace_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"nat_gateway_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"no_public_ip": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+						"private_subnet_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"public_ip_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"public_subnet_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"storage_account_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"storage_account_sku_name": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"virtual_network_id": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"vnet_address_prefix": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"tags": commonschema.Tags(),
 		},
 	}
+}
+
+// This functions is used to Flatten the custom parameters in data source.
+// It is similar to flattenWorkspaceCustomParameters but does not return the backend address pool ID.
+// It also omits the public and private subnet NSG association IDs since they are not available in API.
+func flattenWorkspaceCustomParametersForDataSource(input *workspaces.WorkspaceCustomParameters) []interface{} {
+	if input == nil {
+		return nil
+	}
+
+	parameters := make(map[string]interface{})
+
+	if v := input.AmlWorkspaceId; v != nil {
+		parameters["machine_learning_workspace_id"] = v.Value
+	}
+
+	if v := input.NatGatewayName; v != nil {
+		parameters["nat_gateway_name"] = v.Value
+	}
+
+	if v := input.EnableNoPublicIP; v != nil {
+		parameters["no_public_ip"] = v.Value
+	}
+
+	if v := input.CustomPrivateSubnetName; v != nil {
+		parameters["private_subnet_name"] = v.Value
+	}
+
+	if v := input.PublicIPName; v != nil {
+		parameters["public_ip_name"] = v.Value
+	}
+
+	if v := input.CustomPublicSubnetName; v != nil {
+		parameters["public_subnet_name"] = v.Value
+	}
+
+	if v := input.StorageAccountName; v != nil {
+		parameters["storage_account_name"] = v.Value
+	}
+
+	if v := input.StorageAccountSkuName; v != nil {
+		parameters["storage_account_sku_name"] = v.Value
+	}
+
+	if v := input.CustomVirtualNetworkId; v != nil {
+		parameters["virtual_network_id"] = v.Value
+	}
+
+	if v := input.VnetAddressPrefix; v != nil {
+		parameters["vnet_address_prefix"] = v.Value
+	}
+
+	return []interface{}{parameters}
 }
 
 func dataSourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -168,6 +270,10 @@ func dataSourceDatabricksWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 		d.Set("location", model.Location)
 		if err := d.Set("enhanced_security_compliance", flattenWorkspaceEnhancedSecurity(model.Properties.EnhancedSecurityCompliance)); err != nil {
 			return fmt.Errorf("setting `enhanced_security_compliance`: %+v", err)
+		}
+
+		if err := d.Set("custom_parameters", flattenWorkspaceCustomParametersForDataSource(model.Properties.Parameters)); err != nil {
+			return fmt.Errorf("setting `custom_parameters`: %+v", err)
 		}
 
 		return tags.FlattenAndSet(d, model.Tags)

@@ -109,10 +109,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-- `create` - (Defaults to 5 minutes) Used when creating the NGINX Dataplane API Key.
-- `update` - (Defaults to 5 minutes) Used when updating the NGINX Dataplane API Key.
-- `read` - (Defaults to 5 minutes) Used when retrieving the NGINX Dataplane API Key.
-- `delete` - (Defaults to 5 minutes) Used when deleting the NGINX Dataplane API Key.
+* `create` - (Defaults to 5 minutes) Used when creating the NGINX Dataplane API Key.
+* `read` - (Defaults to 5 minutes) Used when retrieving the NGINX Dataplane API Key.
+* `update` - (Defaults to 5 minutes) Used when updating the NGINX Dataplane API Key.
+* `delete` - (Defaults to 5 minutes) Used when deleting the NGINX Dataplane API Key.
 
 ## Import
 
@@ -121,3 +121,9 @@ An NGINX Dataplane API Key can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_nginx_api_key.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Nginx.NginxPlus/nginxDeployments/deploy1/apiKeys/key1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Nginx.NginxPlus` - 2024-11-01-preview

@@ -265,8 +265,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Dashboard.
-* `update` - (Defaults to 30 minutes) Used when updating the Dashboard.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Dashboard.
+* `update` - (Defaults to 30 minutes) Used when updating the Dashboard.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Dashboard.
 
 ## Import
@@ -278,3 +278,9 @@ terraform import azurerm_portal_dashboard.my-board /subscriptions/00000000-0000-
 ```
 
 Note the URI in the above sample can be found using the Resource Explorer tool in the Azure Portal.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Portal` - 2019-01-01-preview

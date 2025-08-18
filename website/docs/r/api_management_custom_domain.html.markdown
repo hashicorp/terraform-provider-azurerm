@@ -176,10 +176,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the API Management Custom Domain.
+* `create` - (Defaults to 1 hour) Used when creating the API Management Custom Domain.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management Custom Domain.
-* `update` - (Defaults to 60 minutes) Used when updating the API Management Custom Domain.
-* `delete` - (Defaults to 60 minutes) Used when deleting the API Management Custom Domain.
+* `update` - (Defaults to 1 hour) Used when updating the API Management Custom Domain.
+* `delete` - (Defaults to 1 hour) Used when deleting the API Management Custom Domain.
 
 ## Import
 
@@ -188,3 +188,9 @@ API Management Custom Domains can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_api_management_custom_domain.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/customDomains/default
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ApiManagement` - 2024-05-01

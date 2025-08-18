@@ -135,8 +135,8 @@ A `rule` block supports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Firewall Network Rule Collection.
-* `update` - (Defaults to 30 minutes) Used when updating the Firewall Network Rule Collection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Firewall Network Rule Collection.
+* `update` - (Defaults to 30 minutes) Used when updating the Firewall Network Rule Collection.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Firewall Network Rule Collection.
 
 ## Import
@@ -146,3 +146,9 @@ Azure Firewall Network Rule Collections can be imported using the `resource id`,
 ```shell
 terraform import azurerm_firewall_network_rule_collection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/azureFirewalls/myfirewall/networkRuleCollections/mycollection
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

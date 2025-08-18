@@ -68,8 +68,8 @@ The `timeouts` block allows you to
 specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management API Schema.
-* `update` - (Defaults to 30 minutes) Used when updating the API Management API Schema.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management API Schema.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management API Schema.
 * `delete` - (Defaults to 30 minutes) Used when deleting the API Management API Schema.
 
 ## Import
@@ -79,3 +79,9 @@ API Management API Schema's can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_api_management_global_schema.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/schemas/schema1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ApiManagement` - 2022-08-01

@@ -418,7 +418,9 @@ An `encryption` block supports the following:
 
 An `managed_network` block supports the following:
 
-* `isolation_mode` - (Optional) The isolation mode of the Machine Learning Workspace. Possible values are `Disabled`, `AllowOnlyApprovedOutbound`, and `AllowInternetOutbound`
+* `isolation_mode` - (Optional) The isolation mode of the Machine Learning Workspace. Possible values are `Disabled`, `AllowOnlyApprovedOutbound`, and `AllowInternetOutbound`.
+
+* `provision_on_creation_enabled` - (Optional) Set to trigger the provisioning of the managed VNet with the default options when creating a Machine Learning Workspace with the managed VNet enabled. Defaults to `false`. Changing this forces a new resource to be created.
 
 ---
 
@@ -466,8 +468,8 @@ An `identity` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Machine Learning Workspace.
-* `update` - (Defaults to 30 minutes) Used when updating the Machine Learning Workspace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Machine Learning Workspace.
+* `update` - (Defaults to 30 minutes) Used when updating the Machine Learning Workspace.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Machine Learning Workspace.
 
 ## Import
@@ -477,3 +479,9 @@ Machine Learning Workspace can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_machine_learning_workspace.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.MachineLearningServices/workspaces/workspace1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.MachineLearningServices` - 2025-06-01

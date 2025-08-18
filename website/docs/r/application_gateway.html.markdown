@@ -470,7 +470,7 @@ A `ssl_certificate` block supports the following:
 
 * `key_vault_secret_id` - (Optional) The Secret ID of the (base-64 encoded unencrypted pfx) `Secret` or `Certificate` object stored in Azure KeyVault. You need to enable soft delete for Key Vault to use this feature. Required if `data` is not set.
 
--> **Note:** To implement certificate rotation, `versionless_secret_id` should be used, although `secret_id` is also supported.
+-> **Note:** To implement certificate rotation, the `azurerm_key_vault_secret` attribute `versionless_id` should be used, although `id` is also supported.
 
 -> **Note:** TLS termination with Key Vault certificates is limited to the [v2 SKUs](https://docs.microsoft.com/azure/application-gateway/key-vault-certs).
 
@@ -868,8 +868,8 @@ A `rewrite_rule_set` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the Application Gateway.
-* `update` - (Defaults to 90 minutes) Used when updating the Application Gateway.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Application Gateway.
+* `update` - (Defaults to 90 minutes) Used when updating the Application Gateway.
 * `delete` - (Defaults to 90 minutes) Used when deleting the Application Gateway.
 
 ## Import
@@ -879,3 +879,9 @@ Application Gateway's can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_application_gateway.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/applicationGateways/myGateway1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

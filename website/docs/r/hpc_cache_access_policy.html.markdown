@@ -10,6 +10,8 @@ description: |-
 
 Manages a HPC Cache Access Policy.
 
+!> **Note:** The `azurerm_hpc_cache_access_policy` resource has been deprecated because the service is retiring on 2025-09-30. This resource will be removed in v5.0 of the AzureRM Provider. See https://aka.ms/hpccacheretirement for more information.
+
 ## Example Usage
 
 ```hcl
@@ -106,3 +108,9 @@ HPC Cache Access Policies can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_hpc_cache_access_policy.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.StorageCache/caches/cache1/cacheAccessPolicies/policy1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.StorageCache` - 2023-05-01

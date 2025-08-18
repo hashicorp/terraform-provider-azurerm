@@ -356,10 +356,10 @@ A `record_sets` block exports:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Private Endpoint.
-* `update` - (Defaults to 60 minutes) Used when updating the Private Endpoint.
+* `create` - (Defaults to 1 hour) Used when creating the Private Endpoint.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Private Endpoint.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Private Endpoint.
+* `update` - (Defaults to 1 hour) Used when updating the Private Endpoint.
+* `delete` - (Defaults to 1 hour) Used when deleting the Private Endpoint.
 
 ## Import
 
@@ -368,3 +368,9 @@ Private Endpoints can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_private_endpoint.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/privateEndpoints/endpoint1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

@@ -60,5 +60,6 @@ func (r Registration) Resources() []sdk.Resource {
 		MsSqlManagedInstanceActiveDirectoryAdministratorResource{},
 		MsSqlManagedInstanceFailoverGroupResource{},
 		MsSqlManagedInstanceResource{},
+		MsSqlManagedInstanceStartStopScheduleResource{},
 	}
 }

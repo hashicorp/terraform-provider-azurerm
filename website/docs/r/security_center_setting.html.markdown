@@ -41,8 +41,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 10 minutes) Used when creating the Security Center Setting.
-* `update` - (Defaults to 10 minutes) Used when updating the Security Center Setting.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Security Center Setting.
+* `update` - (Defaults to 10 minutes) Used when updating the Security Center Setting.
 * `delete` - (Defaults to 10 minutes) Used when deleting the Security Center Setting.
 
 ## Import
@@ -52,3 +52,9 @@ The setting can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_security_center_setting.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Security/settings/<setting_name>
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Security` - 2022-05-01

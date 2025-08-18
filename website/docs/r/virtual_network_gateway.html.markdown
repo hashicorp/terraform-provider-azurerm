@@ -171,7 +171,7 @@ The `ip_configuration` block supports:
 
 * `subnet_id` - (Required) The ID of the gateway subnet of a virtual network in which the virtual network gateway will be created. It is mandatory that the associated subnet is named `GatewaySubnet`. Therefore, each virtual network can contain at most a single Virtual Network Gateway.
 
-* `public_ip_address_id` - (Required) The ID of the public IP address to associate with the Virtual Network Gateway.
+* `public_ip_address_id` - (Optional) The ID of the public IP address to associate with the Virtual Network Gateway.
 
 ---
 
@@ -341,9 +341,9 @@ The `peering_addresses` block supports:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the Virtual Network Gateway.
-* `update` - (Defaults to 60 minutes) Used when updating the Virtual Network Gateway.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Network Gateway.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Virtual Network Gateway.
+* `update` - (Defaults to 1 hour) Used when updating the Virtual Network Gateway.
+* `delete` - (Defaults to 1 hour) Used when deleting the Virtual Network Gateway.
 
 ## Import
 
@@ -352,3 +352,9 @@ Virtual Network Gateways can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_virtual_network_gateway.exampleGateway /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myGroup1/providers/Microsoft.Network/virtualNetworkGateways/myGateway1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

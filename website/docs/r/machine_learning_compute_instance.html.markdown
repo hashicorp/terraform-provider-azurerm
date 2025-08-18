@@ -118,7 +118,11 @@ The following arguments are supported:
 
 * `subnet_resource_id` - (Optional) Virtual network subnet resource ID the compute nodes belong to. Changing this forces a new Machine Learning Compute Instance to be created.
 
-* `node_public_ip_enabled` - (Optional) Whether the compute instance will have a public ip. To set this to false a `subnet_resource_id` needs to be set. Defaults to `true`. Changing this forces a new Machine Learning Compute Cluster to be created.
+~> **Note:** The property `subnet_resource_id` can be set only if the instance's workspace is not using Azure-managed networking.
+
+* `node_public_ip_enabled` - (Optional) Whether the compute instance will have a public ip. Defaults to `true`. Changing this forces a new Machine Learning Compute Cluster to be created.
+
+~> **Note:** The property `subnet_resource_id` becomes required if `node_public_ip_enabled` is set to `false`, and the instance's workspace is not using a managed network (i.e. the workspace's outbound isolation mode is `Disabled`).
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Machine Learning Compute Instance. Changing this forces a new Machine Learning Compute Instance to be created.
 
@@ -186,3 +190,9 @@ Machine Learning Compute Instances can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_machine_learning_compute_instance.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resGroup1/providers/Microsoft.MachineLearningServices/workspaces/workspace1/computes/compute1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.MachineLearningServices` - 2025-06-01

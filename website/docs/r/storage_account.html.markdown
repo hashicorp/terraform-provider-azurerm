@@ -94,6 +94,8 @@ The following arguments are supported:
 
 * `account_replication_type` - (Required) Defines the type of replication to use for this storage account. Valid options are `LRS`, `GRS`, `RAGRS`, `ZRS`, `GZRS` and `RAGZRS`. Changing this forces a new resource to be created when types `LRS`, `GRS` and `RAGRS` are changed to `ZRS`, `GZRS` or `RAGZRS` and vice versa.
 
+* `provisioned_billing_model_version` - (Optional) Specifies the version of the **provisioned** billing model (e.g. when `account_kind = "FileStorage"` for Storage File). Possible value is `V2`. Changing this forces a new resource to be created.
+
 * `cross_tenant_replication_enabled` - (Optional) Should cross Tenant replication be enabled? Defaults to `false`.
 
 * `access_tier` - (Optional) Defines the access tier for `BlobStorage`, `FileStorage` and `StorageV2` accounts. Valid options are `Hot`, `Cool`, `Cold` and `Premium`. Defaults to `Hot`.
@@ -635,10 +637,10 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 60 minutes) Used when creating the Storage Account.
-* `update` - (Defaults to 60 minutes) Used when updating the Storage Account.
+* `create` - (Defaults to 1 hour) Used when creating the Storage Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Account.
-* `delete` - (Defaults to 60 minutes) Used when deleting the Storage Account.
+* `update` - (Defaults to 1 hour) Used when updating the Storage Account.
+* `delete` - (Defaults to 1 hour) Used when deleting the Storage Account.
 
 ## Import
 
@@ -647,3 +649,9 @@ Storage Accounts can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_storage_account.storageAcc1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Storage` - 2023-05-01

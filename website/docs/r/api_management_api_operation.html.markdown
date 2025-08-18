@@ -229,8 +229,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the API Management API Operation.
-* `update` - (Defaults to 30 minutes) Used when updating the API Management API Operation.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management API Operation.
+* `update` - (Defaults to 30 minutes) Used when updating the API Management API Operation.
 * `delete` - (Defaults to 30 minutes) Used when deleting the API Management API Operation.
 
 ## Import
@@ -240,3 +240,9 @@ API Management API Operation's can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_api_management_api_operation.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ApiManagement/service/instance1/apis/api1/operations/operation1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ApiManagement` - 2022-08-01

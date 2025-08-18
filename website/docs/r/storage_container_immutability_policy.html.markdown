@@ -69,8 +69,8 @@ No additional attributes are exported.
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 10 minutes) Used when creating the Storage Container Immutability Policy.
-* `update` - (Defaults to 10 minutes) Used when updating the Storage Container Immutability Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Container Immutability Policy.
+* `update` - (Defaults to 10 minutes) Used when updating the Storage Container Immutability Policy.
 * `delete` - (Defaults to 10 minutes) Used when deleting the Storage Container Immutability Policy.
 
 ## Import
@@ -80,3 +80,9 @@ Storage Container Immutability Policies can be imported using the `resource id`,
 ```shell
 terraform import azurerm_storage_container_immutability_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount/blobServices/default/containers/mycontainer/immutabilityPolicies/default
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Storage` - 2023-05-01

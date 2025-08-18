@@ -119,9 +119,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this System Center Virtual Machine Manager Virtual Machine Instance Guest Agent.
-* `read` - (Defaults to 5 minutes) Used when retrieving this System Center Virtual Machine Manager Virtual Machine Instance Guest Agent.
-* `delete` - (Defaults to 30 minutes) Used when deleting this System Center Virtual Machine Manager Virtual Machine Instance Guest Agent.
+* `create` - (Defaults to 30 minutes) Used when creating the System Center Virtual Machine Manager Virtual Machine Instance Guest Agent.
+* `read` - (Defaults to 5 minutes) Used when retrieving the System Center Virtual Machine Manager Virtual Machine Instance Guest Agent.
+* `delete` - (Defaults to 30 minutes) Used when deleting the System Center Virtual Machine Manager Virtual Machine Instance Guest Agent.
 
 ## Import
 
@@ -130,3 +130,9 @@ System Center Virtual Machine Manager Virtual Machine Instance Guest Agents can 
 ```shell
 terraform import azurerm_system_center_virtual_machine_manager_virtual_machine_instance_guest_agent.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.HybridCompute/machines/machine1/providers/Microsoft.ScVmm/virtualMachineInstances/default/guestAgents/default
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ScVmm` - 2023-10-07

@@ -90,8 +90,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Signalr Shared Private Link Resource.
-* `update` - (Defaults to 30 minutes) Used when updating the Signalr Shared Private Link Resource.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Signalr Shared Private Link Resource.
+* `update` - (Defaults to 30 minutes) Used when updating the Signalr Shared Private Link Resource.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Signalr Shared Private Link Resource.
 
 ## Import
@@ -101,3 +101,9 @@ Signalr Shared Private Link Resource can be imported using the `resource id`, e.
 ```shell
 terraform import azurerm_signalr_shared_private_link_resource.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.SignalRService/signalR/signalr1/sharedPrivateLinkResources/resource1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.SignalRService` - 2024-03-01

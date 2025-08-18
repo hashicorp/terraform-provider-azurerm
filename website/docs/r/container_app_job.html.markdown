@@ -296,6 +296,8 @@ A `volume_mounts` block supports the following:
 
 * `path` - (Required) The path within the container at which the volume should be mounted. Must not contain `:`.
 
+* `sub_path` - (Optional) The sub path of the volume to be mounted in the container.
+
 ---
 
 A `volume` block supports the following:
@@ -430,10 +432,10 @@ An `identity` block exports the following:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to `30 minutes`) Used when creating the Container App Job.
-* `update` - (Defaults to `30 minutes`) Used when updating the Container App Job.
-* `read` - (Defaults to `5 minutes`) Used when retrieving the Container App Job.
-* `delete` - (Defaults to `30 minutes`) Used when deleting the Container App Job.
+* `create` - (Defaults to 30 minutes) Used when creating the Container App Job.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Container App Job.
+* `update` - (Defaults to 30 minutes) Used when updating the Container App Job.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Container App Job.
 
 ## Import
 
@@ -442,3 +444,9 @@ A Container App Job can be imported using the resource id, e.g.
 ```shell
 terraform import azurerm_container_app_job.example "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example-resources/providers/Microsoft.App/jobs/example-container-app-job"
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.App` - 2025-01-01

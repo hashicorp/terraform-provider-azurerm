@@ -162,8 +162,8 @@ A `identity` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Service Bus Namespace.
-* `update` - (Defaults to 30 minutes) Used when updating the Service Bus Namespace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Service Bus Namespace.
+* `update` - (Defaults to 30 minutes) Used when updating the Service Bus Namespace.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Service Bus Namespace.
 
 ## Import
@@ -173,3 +173,9 @@ Service Bus Namespace can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_servicebus_namespace.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ServiceBus/namespaces/sbns1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ServiceBus` - 2024-01-01

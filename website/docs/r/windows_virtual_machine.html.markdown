@@ -267,7 +267,9 @@ A `diff_disk_settings` block supports the following:
 
 * `option` - (Required) Specifies the Ephemeral Disk Settings for the OS Disk. At this time the only possible value is `Local`. Changing this forces a new resource to be created.
 
-* `placement` - (Optional) Specifies where to store the Ephemeral Disk. Possible values are `CacheDisk` and `ResourceDisk`. Defaults to `CacheDisk`. Changing this forces a new resource to be created.
+* `placement` - (Optional) Specifies where to store the Ephemeral Disk. Possible values are `CacheDisk`, `ResourceDisk` and `NvmeDisk`. Defaults to `CacheDisk`. Changing this forces a new resource to be created.
+
+-> **Note:** `NvmeDisk` can only be used for v6 VMs in combination with a supported `source_image_reference`. More information can be found [here](https://learn.microsoft.com/en-us/azure/virtual-machines/ephemeral-os-disks)
 
 ---
 
@@ -428,9 +430,9 @@ An `os_disk` block exports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 45 minutes) Used when creating the Windows Virtual Machine.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Windows Virtual Machine.
 * `update` - (Defaults to 45 minutes) Used when updating the Windows Virtual Machine.
 * `delete` - (Defaults to 45 minutes) Used when deleting the Windows Virtual Machine.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Windows Virtual Machine.
 
 ## Import
 
@@ -439,3 +441,9 @@ Windows Virtual Machines can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_windows_virtual_machine.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/virtualMachines/machine1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Compute` - 2024-03-01, 2023-04-02

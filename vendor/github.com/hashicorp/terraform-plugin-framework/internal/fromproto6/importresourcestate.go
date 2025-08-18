@@ -18,7 +18,7 @@ import (
 
 // ImportResourceStateRequest returns the *fwserver.ImportResourceStateRequest
 // equivalent of a *tfprotov6.ImportResourceStateRequest.
-func ImportResourceStateRequest(ctx context.Context, proto6 *tfprotov6.ImportResourceStateRequest, reqResource resource.Resource, resourceSchema fwschema.Schema) (*fwserver.ImportResourceStateRequest, diag.Diagnostics) {
+func ImportResourceStateRequest(ctx context.Context, proto6 *tfprotov6.ImportResourceStateRequest, reqResource resource.Resource, resourceSchema fwschema.Schema, identitySchema fwschema.Schema) (*fwserver.ImportResourceStateRequest, diag.Diagnostics) {
 	if proto6 == nil {
 		return nil, nil
 	}
@@ -45,10 +45,17 @@ func ImportResourceStateRequest(ctx context.Context, proto6 *tfprotov6.ImportRes
 			Schema: resourceSchema,
 		},
 		ID:                 proto6.ID,
+		IdentitySchema:     identitySchema,
 		Resource:           reqResource,
 		TypeName:           proto6.TypeName,
 		ClientCapabilities: ImportStateClientCapabilities(proto6.ClientCapabilities),
 	}
+
+	identity, identityDiags := ResourceIdentity(ctx, proto6.Identity, identitySchema)
+
+	diags.Append(identityDiags...)
+
+	fw.Identity = identity
 
 	return fw, diags
 }

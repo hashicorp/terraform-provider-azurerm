@@ -153,8 +153,8 @@ An `identity` block supports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Blueprint Assignment.
-* `update` - (Defaults to 30 minutes) Used when updating the Blueprint Assignment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Blueprint Assignment.
+* `update` - (Defaults to 30 minutes) Used when updating the Blueprint Assignment.
 * `delete` - (Defaults to 5 minutes) Used when deleting the Blueprint Assignment.
 
 ## Import
@@ -164,3 +164,9 @@ Azure Blueprint Assignments can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_blueprint_assignment.example "/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Blueprint/blueprintAssignments/assignSimpleBlueprint"
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Blueprint` - 2018-11-01-preview

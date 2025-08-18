@@ -113,8 +113,8 @@ An `authentication` block supports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the Healthcare DICOM Service.
-* `update` - (Defaults to 90 minutes) Used when updating the Healthcare DICOM Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Healthcare DICOM Service.
+* `update` - (Defaults to 90 minutes) Used when updating the Healthcare DICOM Service.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Healthcare DICOM Service.
 
 ## Import
@@ -124,3 +124,9 @@ Healthcare DICOM Service can be imported using the resource`id`, e.g.
 ```shell
 terraform import azurerm_healthcare_dicom_service.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.HealthcareApis/workspaces/workspace1/dicomServices/service1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.HealthcareApis` - 2024-03-31
