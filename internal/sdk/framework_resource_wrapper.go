@@ -2,11 +2,14 @@ package sdk
 
 import (
 	"context"
-
+	"fmt"
 	"github.com/hashicorp/go-azure-helpers/framework/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 type FrameworkResourceWrapper struct {
@@ -18,6 +21,8 @@ type FrameworkResourceWrapper struct {
 }
 
 var _ resource.ResourceWithModifyPlan = &FrameworkResourceWrapper{}
+
+var _ resource.ResourceWithIdentity = &FrameworkResourceWrapper{}
 
 type EmbeddedFrameworkResourceModel interface{}
 
@@ -58,6 +63,12 @@ func (r *FrameworkResourceWrapper) Create(ctx context.Context, request resource.
 	}
 
 	r.ResourceMetadata.EncodeCreate(ctx, response, model)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	// Set the identity attributes on the response based on the resource ID encoded in the previous step.
+	r.SetIdentityOnCreate(ctx, response)
 }
 
 func (r *FrameworkResourceWrapper) Read(ctx context.Context, request resource.ReadRequest, response *resource.ReadResponse) {
@@ -71,8 +82,16 @@ func (r *FrameworkResourceWrapper) Read(ctx context.Context, request resource.Re
 	}
 
 	r.FrameworkWrappedResource.Read(ctx, request, response, r.ResourceMetadata, state)
+	if response.Diagnostics.HasError() {
+		return
+	}
 
 	r.ResourceMetadata.EncodeRead(ctx, response, state)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	r.SetIdentityOnRead(ctx, response)
 }
 
 func (r *FrameworkResourceWrapper) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
@@ -114,6 +133,10 @@ func (r *FrameworkResourceWrapper) Configure(ctx context.Context, request resour
 }
 
 func (r *FrameworkResourceWrapper) ImportState(ctx context.Context, request resource.ImportStateRequest, response *resource.ImportStateResponse) {
+	if request.Identity != nil {
+		response.Identity = request.Identity
+	}
+
 	r.FrameworkWrappedResource.ImportState(ctx, request, response, r.ResourceMetadata)
 }
 
@@ -134,5 +157,89 @@ func (r *FrameworkResourceWrapper) ConfigValidators(ctx context.Context) []resou
 func (r *FrameworkResourceWrapper) ModifyPlan(ctx context.Context, request resource.ModifyPlanRequest, response *resource.ModifyPlanResponse) {
 	if _, ok := r.FrameworkWrappedResource.(FrameworkWrappedResourceWithPlanModifier); ok {
 		r.FrameworkWrappedResource.(FrameworkWrappedResourceWithPlanModifier).ModifyPlan(ctx, request, response, r.ResourceMetadata)
+	}
+}
+
+func (r *FrameworkResourceWrapper) IdentitySchema(_ context.Context, _ resource.IdentitySchemaRequest, response *resource.IdentitySchemaResponse) {
+	response.IdentitySchema = GenerateIdentitySchema(r.FrameworkWrappedResource.Identity())
+}
+
+// SetIdentityOnCreate sets the identity attributes on the response based on the resource ID.
+func (r *FrameworkResourceWrapper) SetIdentityOnCreate(ctx context.Context, response *resource.CreateResponse) {
+	if id, idType := r.FrameworkWrappedResource.Identity(); id != nil {
+		parser := resourceids.NewParserFromResourceIdType(id)
+		idVal := ""
+		response.State.GetAttribute(ctx, path.Root("id"), &idVal)
+		parsed, err := parser.Parse(idVal, true)
+		if err != nil {
+			response.Diagnostics.AddError("parsing resource ID: %s", err.Error())
+		}
+
+		var t ResourceTypeForIdentity
+
+		switch len(idType) {
+		case 0:
+			t = ResourceTypeForIdentityDefault
+		case 1:
+			t = idType[0]
+		default:
+			panic(fmt.Sprintf("expected a maximum of one value for the `idType` argument, got %d", len(idType)))
+		}
+
+		segments := id.Segments()
+		numSegments := len(segments)
+		for idx, segment := range segments {
+			if segmentTypeSupported(segment.Type) {
+				name := segmentName(segment, t, numSegments, idx)
+
+				field, ok := parsed.Parsed[segment.Name]
+				if !ok {
+					response.Diagnostics.AddError("setting resource identity", fmt.Sprintf("field `%s` was not found in the parsed resource ID %s", name, id))
+					return
+				}
+
+				response.Identity.SetAttribute(ctx, path.Root(name), basetypes.NewStringValue(field))
+			}
+		}
+	}
+}
+
+// SetIdentityOnRead sets the identity on the read response based on the resource ID.
+func (r *FrameworkResourceWrapper) SetIdentityOnRead(ctx context.Context, response *resource.ReadResponse) {
+	if id, idType := r.FrameworkWrappedResource.Identity(); id != nil {
+		parser := resourceids.NewParserFromResourceIdType(id)
+		idVal := ""
+		response.State.GetAttribute(ctx, path.Root("id"), &idVal)
+		parsed, err := parser.Parse(idVal, true)
+		if err != nil {
+			response.Diagnostics.AddError("parsing resource ID: %s", err.Error())
+		}
+
+		var t ResourceTypeForIdentity
+
+		switch len(idType) {
+		case 0:
+			t = ResourceTypeForIdentityDefault
+		case 1:
+			t = idType[0]
+		default:
+			panic(fmt.Sprintf("expected a maximum of one value for the `idType` argument, got %d", len(idType)))
+		}
+
+		segments := id.Segments()
+		numSegments := len(segments)
+		for idx, segment := range segments {
+			if segmentTypeSupported(segment.Type) {
+				name := segmentName(segment, t, numSegments, idx)
+
+				field, ok := parsed.Parsed[segment.Name]
+				if !ok {
+					response.Diagnostics.AddError("setting resource identity", fmt.Sprintf("field `%s` was not found in the parsed resource ID %s", name, id))
+					return
+				}
+
+				response.Identity.SetAttribute(ctx, path.Root(name), basetypes.NewStringValue(field))
+			}
+		}
 	}
 }
