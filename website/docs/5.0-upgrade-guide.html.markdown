@@ -23,7 +23,6 @@ TODO
 * [Breaking Changes in Resources](#breaking-changes-in-resources)
 * [Breaking Changes in Data Sources](#breaking-changes-in-data-sources)
 
-
 ## Removed Resources
 
 Please follow the format in the example below for adding removed resources:
@@ -207,6 +206,7 @@ Please follow the format in the example below for listing breaking changes in re
 ### `azurerm_container_registry`
 
 * The `encryption` block is no longer Computed. It now defaults to empty, meaning encryption will be disabled.  
+* The `georeplications.regional_endpoint_enabled` now has a default of true and when the value is `false` it is now being stored in state.
 
 ### `azurerm_cosmosdb_account`
 

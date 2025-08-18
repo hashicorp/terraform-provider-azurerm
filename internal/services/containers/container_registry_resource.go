@@ -94,23 +94,25 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				Optional:   true,
 				ConfigMode: pluginsdk.SchemaConfigModeAuto,
 				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"location": commonschema.LocationWithoutForceNew(),
-
-						"zone_redundancy_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
-						"regional_endpoint_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  true,
-						},
-
-						"tags": commonschema.Tags(),
-					},
+					Schema: func() map[string]*pluginsdk.Schema {
+						schema := map[string]*pluginsdk.Schema{
+							"location": commonschema.LocationWithoutForceNew(),
+							"zone_redundancy_enabled": {
+								Type:     pluginsdk.TypeBool,
+								Optional: true,
+								Default:  false,
+							},
+							"tags": commonschema.Tags(),
+						}
+						if features.FivePointOh() {
+							schema["regional_endpoint_enabled"] = &pluginsdk.Schema{
+								Type:     pluginsdk.TypeBool,
+								Optional: true,
+								Default:  true,
+							}
+						}
+						return schema
+					}(),
 				},
 			},
 
@@ -917,7 +919,11 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 				replication["location"] = valueLocation
 				replication["tags"] = tags.Flatten(value.Tags)
 				replication["zone_redundancy_enabled"] = *value.Properties.ZoneRedundancy == replications.ZoneRedundancyEnabled
-				replication["regional_endpoint_enabled"] = value.Properties.RegionEndpointEnabled != nil && *value.Properties.RegionEndpointEnabled
+				if value.Properties.RegionEndpointEnabled != nil {
+					replication["regional_endpoint_enabled"] = *value.Properties.RegionEndpointEnabled
+				} else {
+					replication["regional_endpoint_enabled"] = true
+				}
 				geoReplications = append(geoReplications, replication)
 			}
 		}

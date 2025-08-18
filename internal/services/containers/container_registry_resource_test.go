@@ -9,11 +9,13 @@ import (
 	"slices"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -584,83 +586,95 @@ resource "azurerm_container_registry" "test" {
 }
 
 func (ContainerRegistryResource) geoReplicationLocation(data acceptance.TestData, replicationRegion string) string {
+
+	regionalEndpoint := ""
+	if features.FivePointOh() {
+		regionalEndpoint = "\n    regional_endpoint_enabled = true"
+	}
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+	provider "azurerm" {
+		features {}
+	}
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-acr-%d"
-  location = "%s"
-}
+	resource "azurerm_resource_group" "test" {
+		name     = "acctestRG-acr-%d"
+		location = "%s"
+	}
 
-resource "azurerm_container_registry" "test" {
-  name                = "testacccr%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Premium"
-  georeplications {
-    location = "%s"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, replicationRegion)
+	resource "azurerm_container_registry" "test" {
+		name                = "testacccr%d"
+		resource_group_name = azurerm_resource_group.test.name
+		location            = azurerm_resource_group.test.location
+		sku                 = "Premium"
+		georeplications {
+			location = "%s"%s
+		}
+	}
+	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, replicationRegion, regionalEndpoint)
 }
 
 func (ContainerRegistryResource) geoReplicationMultipleLocations(data acceptance.TestData, primaryLocation string, secondaryLocation string) string {
+	regionalEndpoint := ""
+	if features.FivePointOh() {
+		regionalEndpoint = "\n    regional_endpoint_enabled = true"
+	}
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+	provider "azurerm" {
+		features {}
+	}
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-acr-%d"
-  location = "%s"
-}
+	resource "azurerm_resource_group" "test" {
+		name     = "acctestRG-acr-%d"
+		location = "%s"
+	}
 
-resource "azurerm_container_registry" "test" {
-  name                = "testacccr%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Premium"
-  georeplications {
-    location = "%s"
-  }
-  georeplications {
-    location = "%s"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, primaryLocation, secondaryLocation)
+	resource "azurerm_container_registry" "test" {
+		name                = "testacccr%d"
+		resource_group_name = azurerm_resource_group.test.name
+		location            = azurerm_resource_group.test.location
+		sku                 = "Premium"
+		georeplications {
+			location = "%s"
+		}
+		georeplications {
+			location = "%s"%s
+		}
+	}
+	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, primaryLocation, secondaryLocation, regionalEndpoint)
 }
 
 func (ContainerRegistryResource) geoReplicationMultipleLocationsUpdate(data acceptance.TestData, primaryLocation string, secondaryLocation string) string {
+	regionalEndpoint := ""
+	if features.FivePointOh() {
+		regionalEndpoint = "\n    regional_endpoint_enabled = true"
+	}
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
+	provider "azurerm" {
+		features {}
+	}
 
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-acr-%d"
-  location = "%s"
-}
+	resource "azurerm_resource_group" "test" {
+		name     = "acctestRG-acr-%d"
+		location = "%s"
+	}
 
-resource "azurerm_container_registry" "test" {
-  name                = "testacccr%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Premium"
-  georeplications {
-    location                = "%s"
-    zone_redundancy_enabled = true
-  }
-  georeplications {
-    location                  = "%s"
-    regional_endpoint_enabled = true
-    tags = {
-      foo = "bar"
-    }
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, primaryLocation, secondaryLocation)
+	resource "azurerm_container_registry" "test" {
+		name                = "testacccr%d"
+		resource_group_name = azurerm_resource_group.test.name
+		location            = azurerm_resource_group.test.location
+		sku                 = "Premium"
+		georeplications {
+			location                = "%s"
+			zone_redundancy_enabled = true
+		}
+		georeplications {
+			location = "%s"%s
+			tags = {
+				foo = "bar"
+			}
+		}
+	}
+	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, primaryLocation, secondaryLocation, regionalEndpoint)
 }
 
 func (ContainerRegistryResource) geoReplicationUpdateWithNoLocationBasic(data acceptance.TestData) string {
@@ -685,6 +699,68 @@ resource "azurerm_container_registry" "test" {
   network_rule_set = []
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+// Helper for testing regional_endpoint_enabled true/false/default
+func (ContainerRegistryResource) geoReplicationRegionalEndpoint(data acceptance.TestData, location string, enabled *bool) string {
+	regionalEndpoint := ""
+	if features.FivePointOh() && enabled != nil {
+		regionalEndpoint = fmt.Sprintf("\n    regional_endpoint_enabled = %t", *enabled)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+	features {}
+}
+resource "azurerm_resource_group" "test" {
+	name     = "acctestRG-acr-%d"
+	location = "%s"
+}
+resource "azurerm_container_registry" "test" {
+	name                = "testacccr%d"
+	resource_group_name = azurerm_resource_group.test.name
+	location            = azurerm_resource_group.test.location
+	sku                 = "Premium"
+	georeplications {
+		location = "%s"%s
+	}
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, location, regionalEndpoint)
+}
+
+func TestAccContainerRegistry_geoReplicationRegionalEndpoint(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_registry", "test")
+	r := ContainerRegistryResource{}
+	loc := data.Locations.Secondary
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		// Default (should be true)
+		{
+			Config: r.geoReplicationRegionalEndpoint(data, loc, nil),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("georeplications.0.regional_endpoint_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		// Explicit true
+		{
+			Config: r.geoReplicationRegionalEndpoint(data, loc, pointer.To(true)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("georeplications.0.regional_endpoint_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep(),
+		// Explicit false
+		{
+			Config: r.geoReplicationRegionalEndpoint(data, loc, pointer.To(false)),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("georeplications.0.regional_endpoint_enabled").HasValue("false"),
+			),
+		},
+		data.ImportStep(),
+	})
 }
 
 func (ContainerRegistryResource) networkAccessProfileIp(data acceptance.TestData, sku string) string {
@@ -810,25 +886,28 @@ resource "azurerm_container_registry" "test" {
 }
 
 func (ContainerRegistryResource) regionEndpoint(data acceptance.TestData) string {
+	regionalEndpoint := ""
+	if features.FivePointOh() {
+		regionalEndpoint = "\n    regional_endpoint_enabled = true"
+	}
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-acr-%d"
-  location = "%s"
-}
-resource "azurerm_container_registry" "test" {
-  name                = "testacccr%d"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  sku                 = "Premium"
-  georeplications {
-    location                  = "%s"
-    regional_endpoint_enabled = true
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary)
+	provider "azurerm" {
+		features {}
+	}
+	resource "azurerm_resource_group" "test" {
+		name     = "acctestRG-acr-%d"
+		location = "%s"
+	}
+	resource "azurerm_container_registry" "test" {
+		name                = "testacccr%d"
+		resource_group_name = azurerm_resource_group.test.name
+		location            = azurerm_resource_group.test.location
+		sku                 = "Premium"
+		georeplications {
+			location = "%s"%s
+		}
+	}
+	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Secondary, regionalEndpoint)
 }
 
 func (ContainerRegistryResource) anonymousPullStandard(data acceptance.TestData, enabled bool) string {
