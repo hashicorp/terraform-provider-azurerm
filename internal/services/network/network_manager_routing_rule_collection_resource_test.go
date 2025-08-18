@@ -112,7 +112,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_network_manager_routing_rule_collection" "test" {
-  name                     = "acctest-nmrc-%[2]d"
+  name                     = "acctest-nmrrc-%[2]d"
   routing_configuration_id = azurerm_network_manager_routing_configuration.test.id
   network_group_ids        = [azurerm_network_manager_network_group.test.id]
 }
@@ -140,7 +140,7 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_network_manager_routing_rule_collection" "test" {
-  name                          = "acctest-nmrc-%[2]d"
+  name                          = "acctest-nmrrc-%[2]d"
   routing_configuration_id      = azurerm_network_manager_routing_configuration.test.id
   bgp_route_propagation_enabled = true
   network_group_ids             = [azurerm_network_manager_network_group.test.id, azurerm_network_manager_network_group.test2.id]
