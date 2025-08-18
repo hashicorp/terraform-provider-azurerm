@@ -176,16 +176,7 @@ func (r *FrameworkResourceWrapper) SetIdentityOnCreate(ctx context.Context, resp
 			response.Diagnostics.AddError("parsing resource ID: %s", err.Error())
 		}
 
-		var t ResourceTypeForIdentity
-
-		switch len(idType) {
-		case 0:
-			t = ResourceTypeForIdentityDefault
-		case 1:
-			t = idType[0]
-		default:
-			panic(fmt.Sprintf("expected a maximum of one value for the `idType` argument, got %d", len(idType)))
-		}
+		t := identityType(idType)
 
 		segments := id.Segments()
 		numSegments := len(segments)
@@ -216,16 +207,7 @@ func (r *FrameworkResourceWrapper) SetIdentityOnRead(ctx context.Context, respon
 			response.Diagnostics.AddError("parsing resource ID: %s", err.Error())
 		}
 
-		var t ResourceTypeForIdentity
-
-		switch len(idType) {
-		case 0:
-			t = ResourceTypeForIdentityDefault
-		case 1:
-			t = idType[0]
-		default:
-			panic(fmt.Sprintf("expected a maximum of one value for the `idType` argument, got %d", len(idType)))
-		}
+		t := identityType(idType)
 
 		segments := id.Segments()
 		numSegments := len(segments)
