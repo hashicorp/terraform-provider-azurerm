@@ -44,7 +44,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `kind` - (Required) Specifies the type of Cognitive Service Account that should be created. Possible values are `Academic`, `AnomalyDetector`, `Bing.Autosuggest`, `Bing.Autosuggest.v7`, `Bing.CustomSearch`, `Bing.Search`, `Bing.Search.v7`, `Bing.Speech`, `Bing.SpellCheck`, `Bing.SpellCheck.v7`, `CognitiveServices`, `ComputerVision`, `ContentModerator`, `ContentSafety`, `CustomSpeech`, `CustomVision.Prediction`, `CustomVision.Training`, `Emotion`, `Face`, `FormRecognizer`, `ImmersiveReader`, `LUIS`, `LUIS.Authoring`, `MetricsAdvisor`, `OpenAI`, `Personalizer`, `QnAMaker`, `Recommendations`, `SpeakerRecognition`, `Speech`, `SpeechServices`, `SpeechTranslation`, `TextAnalytics`, `TextTranslation` and `WebLM`. Changing this forces a new resource to be created.
+* `kind` - (Required) Specifies the type of Cognitive Service Account that should be created. Possible values are `Academic`, `AIServices`, `AnomalyDetector`, `Bing.Autosuggest`, `Bing.Autosuggest.v7`, `Bing.CustomSearch`, `Bing.Search`, `Bing.Search.v7`, `Bing.Speech`, `Bing.SpellCheck`, `Bing.SpellCheck.v7`, `CognitiveServices`, `ComputerVision`, `ContentModerator`, `ContentSafety`, `CustomSpeech`, `CustomVision.Prediction`, `CustomVision.Training`, `Emotion`, `Face`, `FormRecognizer`, `ImmersiveReader`, `LUIS`, `LUIS.Authoring`, `MetricsAdvisor`, `OpenAI`, `Personalizer`, `QnAMaker`, `Recommendations`, `SpeakerRecognition`, `Speech`, `SpeechServices`, `SpeechTranslation`, `TextAnalytics`, `TextTranslation` and `WebLM`. Changing this forces a new resource to be created.
 
 -> **Note:** New Bing Search resources cannot be created as their APIs are moving from Cognitive Services Platform to new surface area under Microsoft.com. Starting from October 30, 2020, existing instances of Bing Search APIs provisioned via Cognitive Services will be continuously supported for next 3 years or till the end of respective Enterprise Agreement, whichever happens first.
 
@@ -78,7 +78,11 @@ The following arguments are supported:
 
 * `network_acls` - (Optional) A `network_acls` block as defined below. When this property is specified, `custom_subdomain_name` is also required to be set.
 
+* `network_injections` - (Optional) A `network_injections` block as defined below. Only applicable when the `kind` is set to `AIServices`.
+
 * `outbound_network_access_restricted` - (Optional) Whether outbound network access is restricted for the Cognitive Account. Defaults to `false`.
+
+* `project_management_enabled` - (Optional) Whether project management is enabled when the `kind` is set to `AIServices`. The option cannot be disabled once this is enabled. Defaults to `false`.
 
 * `public_network_access_enabled` - (Optional) Whether public network access is allowed for the Cognitive Account. Defaults to `true`.
 
@@ -100,13 +104,23 @@ A `network_acls` block supports the following:
 
 * `bypass` - (Optional) Whether to allow trusted Azure Services to access the service. Possible values are `None` and `AzureServices`.
 
--> **Note:** `bypass` can only be set when `kind` is set to `OpenAI`
+-> **Note:** `bypass` can only be set when `kind` is set to `OpenAI` or `AIServices`.
 
 * `default_action` - (Required) The Default Action to use when no rules match from `ip_rules` / `virtual_network_rules`. Possible values are `Allow` and `Deny`.
 
 * `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access the Cognitive Account.
 
 * `virtual_network_rules` - (Optional) A `virtual_network_rules` block as defined below.
+
+---
+
+A `network_injections` block supports the following:
+
+* `scenario` - (Required) Specifies what features network injection applies to. Possible values are `agent` for agent scenarios and `none` for no network injection.
+
+* `subnet_arm_id` - (Optional) Specify the subnet for which the Agent Client is injected into. Required when `scenario` is set to `agent`.
+
+~> **Note:** This is required when `scenario` is set to `agent`.
 
 ---
 
@@ -120,7 +134,9 @@ A `virtual_network_rules` block supports the following:
 
 A `customer_managed_key` block supports the following:
 
-* `key_vault_key_id` - (Required) The ID of the Key Vault Key which should be used to Encrypt the data in this Cognitive Account.
+* `key_vault_key_id` - (Optional) The ID of the Key Vault Key which should be used to encrypt the data in this Cognitive Account. Exactly one of `key_vault_key_id`, `managed_hsm_key_id` must be specified.
+
+* `managed_hsm_key_id` - (Optional) The ID of the managed HSM Key which should be used to encrypt the data in this Cognitive Account. Exactly one of `key_vault_key_id`, `managed_hsm_key_id` must be specified. Can be specified only when the `kind` is set to `AIServices`.
 
 * `identity_client_id` - (Optional) The Client ID of the User Assigned Identity that has access to the key. This property only needs to be specified when there're multiple identities attached to the Cognitive Account.
 
