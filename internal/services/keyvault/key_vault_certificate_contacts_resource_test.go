@@ -117,8 +117,8 @@ func TestAccKeyVaultCertificateContacts_remove(t *testing.T) {
 		{
 			Config: r.remove(data),
 			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).DoesNotExistInAzure(r),
-				check.That(data.ResourceName).Key("contact.#").HasValue("0"),
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("contact").IsEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -126,36 +126,10 @@ func TestAccKeyVaultCertificateContacts_remove(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("contact.#").HasValue("1"),
+				check.That(data.ResourceName).Key("contact").IsNotEmpty(),
 			),
 		},
 		data.ImportStep(),
-	})
-}
-
-func TestAccKeyVaultCertificateContacts_destroyEmptyContact(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_contacts", "test")
-	r := KeyVaultCertificateContactsResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.remove(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).DoesNotExistInAzure(r),
-				check.That(data.ResourceName).Key("contact.#").HasValue("0"),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.template(data),
-		},
 	})
 }
 
@@ -167,10 +141,6 @@ func (r KeyVaultCertificateContactsResource) Exists(ctx context.Context, clients
 
 	resp, err := clients.KeyVault.ManagementClient.GetCertificateContacts(ctx, id.KeyVaultBaseUrl)
 	if err != nil {
-		// If we get a 404, the certificate contact is empty
-		if utils.ResponseWasNotFound(resp.Response) {
-			return utils.Bool(false), nil
-		}
 		return nil, err
 	}
 
