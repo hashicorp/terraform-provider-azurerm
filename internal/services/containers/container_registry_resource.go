@@ -94,22 +94,25 @@ func resourceContainerRegistry() *pluginsdk.Resource {
 				Optional:   true,
 				ConfigMode: pluginsdk.SchemaConfigModeAuto,
 				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"location": commonschema.LocationWithoutForceNew(),
-
-						"zone_redundancy_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
-						"regional_endpoint_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-						},
-
-						"tags": commonschema.Tags(),
-					},
+					Schema: func() map[string]*pluginsdk.Schema {
+						schema := map[string]*pluginsdk.Schema{
+							"location": commonschema.LocationWithoutForceNew(),
+							"zone_redundancy_enabled": {
+								Type:     pluginsdk.TypeBool,
+								Optional: true,
+								Default:  false,
+							},
+							"tags": commonschema.Tags(),
+						}
+						if features.FivePointOh() {
+							schema["regional_endpoint_enabled"] = &pluginsdk.Schema{
+								Type:     pluginsdk.TypeBool,
+								Optional: true,
+								Default:  true,
+							}
+						}
+						return schema
+					}(),
 				},
 			},
 
