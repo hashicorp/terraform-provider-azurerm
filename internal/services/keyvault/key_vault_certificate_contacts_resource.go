@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -42,7 +43,7 @@ func (r KeyVaultCertificateContactsResource) Arguments() map[string]*pluginsdk.S
 
 		"contact": {
 			Type:     pluginsdk.TypeSet,
-			Optional: true,
+			Required: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"email": {
@@ -65,6 +66,34 @@ func (r KeyVaultCertificateContactsResource) Arguments() map[string]*pluginsdk.S
 				},
 			},
 		},
+	}
+
+	if !features.FivePointOh() {
+		schema["contact"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeSet,
+			Optional: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"email": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+
+					"phone": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+				},
+			},
+		}
 	}
 
 	return schema
@@ -131,9 +160,15 @@ func (r KeyVaultCertificateContactsResource) Create() sdk.ResourceFunc {
 				ContactList: expandKeyVaultCertificateContactsContact(state.Contact),
 			}
 
-			if len(*contacts.ContactList) == 0 {
-				if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
-					return fmt.Errorf("removing Key Vault Certificate Contacts %s: %+v", id, err)
+			if !features.FivePointOh() {
+				if len(*contacts.ContactList) == 0 {
+					if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
+						return fmt.Errorf("removing Key Vault Certificate Contacts %s: %+v", id, err)
+					}
+				} else {
+					if _, err := client.SetCertificateContacts(ctx, *keyVaultBaseUri, contacts); err != nil {
+						return fmt.Errorf("creating Key Vault Certificate Contacts %s: %+v", id, err)
+					}
 				}
 			} else {
 				if _, err := client.SetCertificateContacts(ctx, *keyVaultBaseUri, contacts); err != nil {
@@ -221,9 +256,15 @@ func (r KeyVaultCertificateContactsResource) Update() sdk.ResourceFunc {
 				existing.ContactList = expandKeyVaultCertificateContactsContact(state.Contact)
 			}
 
-			if len(*existing.ContactList) == 0 {
-				if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
-					return fmt.Errorf("removing Key Vault Certificate Contacts %s: %+v", id, err)
+			if !features.FivePointOh() {
+				if len(*existing.ContactList) == 0 {
+					if _, err := client.DeleteCertificateContacts(ctx, id.KeyVaultBaseUrl); err != nil {
+						return fmt.Errorf("removing Key Vault Certificate Contacts %s: %+v", id, err)
+					}
+				} else {
+					if _, err := client.SetCertificateContacts(ctx, id.KeyVaultBaseUrl, existing); err != nil {
+						return fmt.Errorf("updating Key Vault Certificate Contacts %s: %+v", id, err)
+					}
 				}
 			} else {
 				if _, err := client.SetCertificateContacts(ctx, id.KeyVaultBaseUrl, existing); err != nil {
