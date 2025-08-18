@@ -101,6 +101,7 @@ func Extended() ResourceProviders {
 		"Microsoft.Sql":                  {},
 		"Microsoft.StreamAnalytics":      {},
 		"Microsoft.Web":                  {},
+		"Microsoft.App":              	  {},
 	})
 }
 
