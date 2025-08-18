@@ -7,6 +7,15 @@ description: "Code Review Prompt for Terraform AzureRM Provider Committed Change
 
 As a principal Terraform provider engineer with expertise in Go development, Azure APIs, and HashiCorp Plugin SDK, perform a code review of the provided git diff for the Terraform AzureRM provider.
 
+**STRUCTURED EXECUTION FRAMEWORK**:
+
+- Follow this structured approach to ensure comprehensive and consistent reviews
+- Use the provided templates and emoji systems for clarity and prioritization
+- Complete verification protocols before flagging issues to prevent false positives
+- Adapt the format as needed to provide the most helpful feedback for the specific changes
+- Focus on substance over strict formatting - the goal is actionable, valuable insights
+- When deviating from templates, explain why to maintain transparency
+
 Focus on delivering actionable feedback in the following areas:
 
 **Critical Issues**:
@@ -31,9 +40,9 @@ Focus on delivering actionable feedback in the following areas:
 - Resource timeout configurations
 - Acceptance test coverage and quality
 - **Tests use ONLY ExistsInAzure() check with ImportStep() - NO redundant field validation**
-- **CRITICAL: Code comments policy enforcement - only Azure API quirks, complex business logic, or SDK workarounds**
-- **Comment justification requirement - all comments must have explicit reasoning documented**
-- **No comments on obvious operations, standard patterns, or self-explanatory code**
+- **CRITICAL: Code comments policy enforcement - Comments only for Azure API quirks, complex business logic, or SDK workarounds that cannot be expressed through code structure**
+- **Comment quality requirement - All comments must have clear justification and add genuine value beyond what code structure provides**
+- **Refactoring preference - Before accepting comments, consider if code restructuring could eliminate the need for explanation**
 - **Documentation Quality & Language Standards**:
   - Spelling accuracy in all text content (comments, documentation, README files)
   - Grammar and syntax correctness in documentation
@@ -181,18 +190,18 @@ Changes implement captcha support correctly with minor validation improvements n
 - ✅ **Complete every review** (maintaining value)
 - ✅ **Stay consistent** (maintaining reliability)
 
-## 📋 **QUICK CHECKLIST** (Check these off before starting)
+## 📋 **ESSENTIAL REVIEW CHECKLIST** (Core principles)
 
 ```markdown
-- [x] I will complete this review regardless of display issues
-- [x] I will verify suspicious content with read_file if needed  
+- [x] I will complete this review with valuable technical insights
+- [x] I will verify suspicious content with read_file when needed  
 - [x] I will focus on critical path: Security → Lifecycle → Quality → Style
-- [x] I will provide actionable technical feedback
-- [x] I will review surrounding context, not just diff changes
+- [x] I will provide actionable, contextual feedback adapted to the changes
+- [x] I will review surrounding context for comprehensive quality assessment
 - [x] I will check for typos and language issues in visible content
 
-RULE: Always complete valuable technical reviews
-RULE: Review full file context for quality issues (typos, grammar, consistency)
+CORE PRINCIPLE: Deliver valuable technical reviews with structured consistency
+PRIORITY: Actionable insights > Format compliance
 ```
 
 ## **COMPREHENSIVE REVIEW SCOPE**
@@ -233,10 +242,22 @@ RULE: Review full file context for quality issues (typos, grammar, consistency)
 4. **🔵 Code Quality**: Go patterns, schema design, testing
 
 ### **Terraform Provider Excellence:**
-- **Code Comments Policy**: Zero tolerance for unnecessary comments
+- **Code Comments Policy**: Apply thoughtful comment guidelines - prioritize code clarity through structure over explanatory comments
 - **CustomizeDiff Patterns**: Correct imports based on implementation type  
 - **Testing Standards**: ExistsInAzure() + ImportStep() only, no redundant validation
 - **Azure Patterns**: PATCH operations, "None" value handling, SDK integration
+
+## 🎯 **FLEXIBILITY FOR VALUABLE INSIGHTS**
+
+While following the structured format:
+- **Adapt sections** when they don't fit the specific changes being reviewed
+- **Add context** that helps the developer understand Azure service implications
+- **Provide alternative approaches** when current implementation could be improved
+- **Explain the "why"** behind suggestions, especially for Azure-specific patterns
+- **Share relevant patterns** from other parts of the codebase when applicable
+- **Highlight innovative solutions** that could benefit other implementations
+
+**Goal**: Structured consistency + contextual expertise = Maximum developer value
 
 ## 📝 **Review Output Format**
 

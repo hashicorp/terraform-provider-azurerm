@@ -7,6 +7,15 @@ description: "Code Review Prompt for Terraform AzureRM Provider Local Changes"
 
 As a principal Terraform provider engineer with expertise in Go development, Azure APIs, and HashiCorp Plugin SDK, perform a code review of the provided git diff for the Terraform AzureRM provider.
 
+**STRUCTURED EXECUTION FRAMEWORK**:
+
+- Follow this structured approach to ensure comprehensive and consistent reviews
+- Use the provided templates and emoji systems for clarity and prioritization
+- Complete verification protocols before flagging issues to prevent false positives
+- Adapt the format as needed to provide the most helpful feedback for the specific changes
+- Focus on substance over strict formatting - the goal is actionable, valuable insights
+- When deviating from templates, explain why to maintain transparency
+
 Focus on delivering actionable feedback in the following areas:
 
 ## **Critical Issues**:
@@ -31,9 +40,9 @@ Focus on delivering actionable feedback in the following areas:
   - Resource timeout configurations
   - Acceptance test coverage and quality
   - **Tests use ONLY ExistsInAzure() check with ImportStep() - NO redundant field validation**
-  - **CRITICAL: Code comments policy enforcement - only Azure API quirks, complex business logic, or SDK workarounds**
-  - **Comment justification requirement - all comments must have explicit reasoning documented**
-  - **No comments on obvious operations, standard patterns, or self-explanatory code**
+  - **CRITICAL: Code comments policy enforcement - Comments only for Azure API quirks, complex business logic, or SDK workarounds that cannot be expressed through code structure**
+  - **Comment quality requirement - All comments must have clear justification and add genuine value beyond what code structure provides**
+  - **Refactoring preference - Before accepting comments, consider if code restructuring could eliminate the need for explanation**
   - **Documentation Quality & Language Standards**:
     - Spelling accuracy in all text content (comments, documentation, README files)
     - Grammar and syntax correctness in documentation
@@ -72,48 +81,48 @@ Format your review using clear sections and bullet points. Include inline code r
 **Note**: This review should comply with the HashiCorp Terraform Provider development guidelines and Azure resource management best practices.
 
 ## Constraints
-  * Before you start the code review, please explicitly check off each item in the MANDATORY PRE-REVIEW CHECKLIST and show me your verification.
-  * Only flag corruption issues IF `read_file` shows the same problems as the git diff. If `read_file` shows clean content, acknowledge console wrapping.
+  * Before starting the code review, complete the essential verification checklist to ensure accurate issue identification
+  * Prioritize file content verification over visual diff formatting to prevent false positives
+  * Use structured format guidelines while adapting content to provide maximum value for the specific changes
+  * Focus on actionable feedback that improves code quality, security, and maintainability
 
-For any suspected issues, you **MUST** use this exact format:
-  - **Suspected Issue**: [describe]
-  - **Verification Command**: read_file
-  - **Actual File Content**: [paste results]
-  - **Assessment**: [`console wrapping` **OR** `actual issue`]
-  - **Action**: [required]"
+For any suspected formatting or corruption issues, you **MUST** use this verification approach:
+  - **Suspected Issue**: [describe what appears problematic in git diff]
+  - **Verification**: Use read_file to check actual content
+  - **Assessment**: [console wrapping **OR** genuine issue requiring action]
+  - **Response**: [acknowledge display artifact **OR** provide specific remediation]
 
-This prompt file contains its own **verification protocols**. You **MUST** follow those protocols when reviewing this very file. Do not create exceptions for reviewing prompt files themselves.
-If you flag **false positives** without proper verification, **STOP** and **RESTART** following the checklist correctly.
+This prompt file follows its own **verification protocols**. Apply these protocols consistently when reviewing any files, including prompt files themselves.
+Focus on preventing false positives through proper verification while maintaining helpful technical insights.
 
-**Priority order for file verification:**
-  1. read_file (most reliable)
-  2. Direct file access tools
+**Verification priority order:**
+  1. read_file (most reliable for content validation)
+  2. Direct file access tools  
   3. Terminal commands (least reliable for content verification)
 
-Follow the `code-review-local-changes.prompt.md` instructions. Before flagging **ANY** issues:
+Follow the structured review approach below. Before flagging **ANY** formatting or corruption issues:
 
-  1. Check off each mandatory checklist item
-  2. Use `read_file` **FIRST** for any suspected corruption
-  3. Use the mandatory verification template format
-  4. Only flag issues that exist in `read_file` output
-  5. If `read_file` shows clean content but terminal shows issues, acknowledge console wrapping
+  1. Apply essential verification checklist
+  2. Use `read_file` **FIRST** for any suspected display problems
+  3. Use the verification template for transparency
+  4. Focus on genuine issues that affect code quality
+  5. Acknowledge console wrapping when file content is actually clean
 
-**Show me your checklist verification before proceeding with the review.**
+**Complete verification for suspected issues before proceeding with technical review.**
 
-# 🔍 **MANDATORY PRE-REVIEW CHECKLIST**
+# 🔍 **ESSENTIAL VERIFICATION CHECKLIST**
 
-**BEFORE FLAGGING ISSUES:**
+**BEFORE FLAGGING DISPLAY/FORMATTING ISSUES:**
 ```markdown
-- [ ] I will verify actual file content first with `cat` or `Get-Content`
-- [ ] I understand: Git diff wrapping ≠ File corruption
-- [ ] I will NOT assume formatting in diff = actual problems
-- [ ] I will review surrounding context, not just diff changes
-- [ ] I will check for typos and language issues in visible content
+- [ ] I will verify actual file content with read_file for any suspected corruption
+- [ ] I understand: Git diff wrapping ≠ File corruption  
+- [ ] I will focus on genuine code quality issues over display artifacts
+- [ ] I will provide helpful context and actionable suggestions
+- [ ] I will review for typos, consistency, and professional standards in visible content
 
-RULE: Always verify file content before flagging corruption
-RULE: Review full file context for quality issues (typos, grammar, consistency)
+CORE PRINCIPLE: Verify first, then provide valuable technical insights
+PRIORITY: Actionable feedback > Format compliance
 ```
-**ONLY PROCEED AFTER CHECKING ALL BOXES ABOVE**
 
 ## **COMPREHENSIVE REVIEW SCOPE**
 
@@ -138,9 +147,9 @@ RULE: Review full file context for quality issues (typos, grammar, consistency)
   - **Windows PowerShell**: `Get-Content "filename" | Select-Object -Skip [line-5] -First 10`
   - **Windows Command Prompt**: `more +[line-5] filename | head -10` (if available)
 
-## 📋 **MANDATORY VERIFICATION TEMPLATE**
+## 📋 **STRUCTURED VERIFICATION TEMPLATE**
 
-When suspicious content is found, use this template:
+When suspicious content is found, use this approach for transparency:
 
   - **Suspected Issue**: [describe what looks wrong in git diff]
   - **Verification Command**: `cat 'filename'`
@@ -244,7 +253,7 @@ Result: Console display issue, not markdown corruption
   1. `git --no-pager diff --no-prefix --unified=3` - for unstaged local changes
   2. `git --no-pager diff --no-prefix --unified=3 --staged` - for staged changes if no unstaged changes found
   3. **If neither command shows any changes, abandon the code review** - this prompt is specifically for reviewing local changes only. When abandoning, display: "☠️ **Argh! There be no changes here!** ☠️"
-  4. **Usage Note**: Use the unstaged command during active development to review your current work, and the staged command before committing to review what will be included in your commit
+  4. **Usage Guidance**: Use the unstaged command during active development to review current work, and the staged command before committing to review what will be included in your commit
 
   * In the provided git diff, if the line start with `+` or `-`, it means that the line is added or removed. If the line starts with a space, it means that the line is unchanged. If the line starts with `@@`, it means that the line is a hunk header.
   * Avoid overwhelming the developer with too many suggestions at once.
@@ -290,7 +299,7 @@ Result: Console display issue, not markdown corruption
 
 ## foo
 
-* Use markdown for each suggestion in the following format:
+* Use structured markdown format for each suggestion to ensure clarity and consistency, while adapting content to provide maximum value for the specific changes being reviewed:
 
   # 📋 **Code Review**: ${change_description}
 
@@ -406,12 +415,24 @@ Use code review emojis. Give the reviewee added context and clarity to follow up
 
 When reviewing Terraform AzureRM provider code, pay special attention to:
 
-- **Code Comments Policy**: Apply strict zero-tolerance policy for unnecessary comments
+- **Code Comments Policy**: Apply thoughtful comment guidelines - prioritize code clarity through structure over explanatory comments
 - **CustomizeDiff Import Requirements**: Verify correct import patterns based on implementation type
 - **Resource Implementation**: Ensure proper CRUD operations, schema validation, and Azure patterns
 - **Azure API Integration**: Check error handling, polling, and authentication patterns
 - **State Management**: Verify drift detection, import functionality, and resource ID handling
 - **Testing Standards**: Ensure comprehensive acceptance tests and proper cleanup
 - **Documentation Quality**: Verify examples, attributes, and import documentation
+
+## 🎯 **FLEXIBILITY FOR VALUABLE INSIGHTS**
+
+While following the structured format:
+- **Adapt sections** when they don't fit the specific changes being reviewed
+- **Add context** that helps the developer understand Azure service implications
+- **Provide alternative approaches** when current implementation could be improved
+- **Explain the "why"** behind suggestions, especially for Azure-specific patterns
+- **Share relevant patterns** from other parts of the codebase when applicable
+- **Highlight innovative solutions** that could benefit other implementations
+
+**Goal**: Structured consistency + contextual expertise = Maximum developer value
 
 **📋 For detailed enforcement guidelines, see: [Code Clarity Enforcement](../instructions/code-clarity-enforcement.instructions.md)**
