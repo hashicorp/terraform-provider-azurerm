@@ -21,7 +21,7 @@ var _ sdk.DataSource = AutonomousDatabaseCloneFromBackupDataSource{}
 
 type AutonomousDatabaseCloneFromBackupDataSource struct{}
 
-type AutonomousDatabaseCloneFomBackupDataSourceModel struct {
+type AutonomousDatabaseCloneFromBackupDataSourceModel struct {
 	Name              string            `tfschema:"name"`
 	ResourceGroupName string            `tfschema:"resource_group_name"`
 	Location          string            `tfschema:"location"`
@@ -447,7 +447,7 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Attributes() map[string]*plug
 }
 
 func (AutonomousDatabaseCloneFromBackupDataSource) ModelObject() interface{} {
-	return &AutonomousDatabaseCloneFomBackupDataSourceModel{}
+	return &AutonomousDatabaseCloneFromBackupDataSourceModel{}
 }
 
 func (AutonomousDatabaseCloneFromBackupDataSource) ResourceType() string {
@@ -461,7 +461,7 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Read() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
 
-			var state AutonomousDatabaseCloneFomBackupDataSourceModel
+			var state AutonomousDatabaseCloneFromBackupDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}

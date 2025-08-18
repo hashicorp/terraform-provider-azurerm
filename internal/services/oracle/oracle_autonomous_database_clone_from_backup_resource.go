@@ -65,16 +65,15 @@ type AutonomousDatabaseCloneFromBackupResourceModel struct {
 
 func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"location": commonschema.Location(),
-
 		"name": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ValidateFunc: validate.AutonomousDatabaseName,
 			ForceNew:     true,
 		},
-
 		"resource_group_name": commonschema.ResourceGroupName(),
+
+		"location": commonschema.Location(),
 
 		// Clone-specific required fields
 
@@ -271,7 +270,7 @@ func (r AutonomousDatabaseCloneFromBackupResource) Create() sdk.ResourceFunc {
 
 			var model AutonomousDatabaseCloneFromBackupResourceModel
 			if err := metadata.Decode(&model); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			id := autonomousdatabases.NewAutonomousDatabaseID(subscriptionId, model.ResourceGroupName, model.Name)

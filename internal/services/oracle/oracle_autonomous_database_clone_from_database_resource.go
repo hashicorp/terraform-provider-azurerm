@@ -271,7 +271,7 @@ func (r AutonomousDatabaseCloneFromDatabaseResource) Create() sdk.ResourceFunc {
 
 			var model AutonomousDatabaseCloneResourceModel
 			if err := metadata.Decode(&model); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			id := autonomousdatabases.NewAutonomousDatabaseID(
