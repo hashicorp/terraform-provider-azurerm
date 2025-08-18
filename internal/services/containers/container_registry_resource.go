@@ -919,7 +919,11 @@ func resourceContainerRegistryRead(d *pluginsdk.ResourceData, meta interface{}) 
 				replication["location"] = valueLocation
 				replication["tags"] = tags.Flatten(value.Tags)
 				replication["zone_redundancy_enabled"] = *value.Properties.ZoneRedundancy == replications.ZoneRedundancyEnabled
-				replication["regional_endpoint_enabled"] = value.Properties.RegionEndpointEnabled != nil && *value.Properties.RegionEndpointEnabled
+				if value.Properties.RegionEndpointEnabled != nil {
+					replication["regional_endpoint_enabled"] = *value.Properties.RegionEndpointEnabled
+				} else {
+					replication["regional_endpoint_enabled"] = true
+				}
 				geoReplications = append(geoReplications, replication)
 			}
 		}
