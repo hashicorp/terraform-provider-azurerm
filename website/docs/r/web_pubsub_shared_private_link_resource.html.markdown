@@ -109,4 +109,4 @@ terraform import azurerm_web_pubsub_shared_private_link_resource.example /subscr
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.SignalRService`: 2024-03-01
+* `Microsoft.SignalRService` - 2024-03-01
