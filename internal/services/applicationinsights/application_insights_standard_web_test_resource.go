@@ -486,6 +486,7 @@ func (ApplicationInsightsStandardWebTestResource) Read() sdk.ResourceFunc {
 						if err != nil {
 							// there might be more than one hidden-link https://github.com/hashicorp/terraform-provider-azurerm/issues/27994
 							log.Printf("[DEBUG] Error parsing hidden-link id: %+v", err)
+							delete(tags, i)
 							continue
 						}
 						state.ApplicationInsightsID = parsedAppInsightsId.ID()
