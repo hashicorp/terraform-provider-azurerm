@@ -37,9 +37,10 @@ func resourceKustoCluster() *pluginsdk.Resource {
 		Update: resourceKustoClusterUpdate,
 		Delete: resourceKustoClusterDelete,
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.KustoAttachedClusterV0ToV1{},
+			1: migration.KustoAttachedClusterV1ToV2{},
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
