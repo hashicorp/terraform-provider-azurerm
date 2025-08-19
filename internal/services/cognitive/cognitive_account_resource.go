@@ -557,6 +557,16 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 		props.Properties.NetworkInjections = networkInjections
 	}
 
+	if d.HasChanges("customer_managed_key") {
+		old, new := d.GetChange("customer_managed_key")
+		// Remove `customer_managed_key` (switch using a customer managed key to microsoft managed), and explicitly specify KeySource as `Microsoft.CognitiveServices`.
+		if len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0 {
+			props.Properties.Encryption = &cognitiveservicesaccounts.Encryption{
+				KeySource: pointer.To(cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices),
+			}
+		}
+	}
+
 	if d.HasChange("identity") {
 		identityRaw := d.Get("identity").([]interface{})
 		if *props.Properties.AllowProjectManagement && len(identityRaw) == 0 {
