@@ -3537,22 +3537,16 @@ func expandKubernetesClusterAdvancedNetworking(input []interface{}, d *pluginsdk
 	config := input[0].(map[string]interface{})
 	observabilityEnabled := config["observability_enabled"].(bool)
 	securityEnabled := config["security_enabled"].(bool)
-	advancedNetworking := &managedclusters.AdvancedNetworking{}
 
-	if observabilityEnabled || securityEnabled {
-		advancedNetworking.Enabled = pointer.To(true)
-	} else {
-		advancedNetworking.Enabled = pointer.To(false)
+	return &managedclusters.AdvancedNetworking{
+		Enabled: pointer.To(true),
+		Observability: &managedclusters.AdvancedNetworkingObservability{
+			Enabled: pointer.To(observabilityEnabled),
+		},
+		Security: &managedclusters.AdvancedNetworkingSecurity{
+			Enabled: pointer.To(securityEnabled),
+		},
 	}
-
-	advancedNetworking.Observability = &managedclusters.AdvancedNetworkingObservability{
-		Enabled: pointer.To(observabilityEnabled),
-	}
-	advancedNetworking.Security = &managedclusters.AdvancedNetworkingSecurity{
-		Enabled: pointer.To(securityEnabled),
-	}
-
-	return advancedNetworking
 }
 
 func flattenKubernetesClusterAdvancedNetworking(advancedNetworking *managedclusters.AdvancedNetworking) []interface{} {
