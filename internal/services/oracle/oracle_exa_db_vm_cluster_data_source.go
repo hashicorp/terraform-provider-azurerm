@@ -5,6 +5,7 @@ package oracle
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -14,8 +15,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/exadbvmclusters"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type ExadbVmClusterDataSource struct{}
@@ -111,9 +112,13 @@ func (d ExadbVmClusterDataSource) Arguments() map[string]*pluginsdk.Schema {
 		"zones":               commonschema.ZonesMultipleOptional(),
 
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validate.ExadbVMClusterName,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ValidateFunc: validation.All(
+				validation.StringLenBetween(1, 255),
+				validation.StringMatch(regexp.MustCompile(`^[a-zA-Z_]`), "Name must start with a letter or underscore (_)"),
+				validation.StringDoesNotContainAny("--"),
+			),
 		},
 	}
 }

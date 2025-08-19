@@ -5,19 +5,18 @@ package oracle
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
-
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/exascaledbstoragevaults"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/exadbvmclusters"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/exascaledbstoragevaults"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -68,27 +67,38 @@ func (ExadbVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validate.ExadbVMClusterName,
-			ForceNew:     true,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.All(
+				validation.StringLenBetween(1, 255),
+				validation.StringMatch(regexp.MustCompile(`^[a-zA-Z_]`), "Name must start with a letter or underscore (_)"),
+				validation.StringDoesNotContainAny("--"),
+			),
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
 		// Required
 		"display_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.ExadbVMClusterName,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.All(
+				validation.StringLenBetween(1, 255),
+				validation.StringMatch(regexp.MustCompile(`^[a-zA-Z_]`), "Display Name must start with a letter or underscore (_)"),
+				validation.StringDoesNotContainAny("--"),
+			),
 		},
 
 		"enabled_ecpu_count": {
-			Type:         pluginsdk.TypeInt,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.EcpuCount,
+			Type:     pluginsdk.TypeInt,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.All(
+				validation.IntBetween(8, 200),
+				validation.IntDivisibleBy(4),
+			),
 		},
 
 		"exascale_db_storage_vault_id": {
@@ -99,7 +109,7 @@ func (ExadbVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"grid_image_ocid": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
 		},
@@ -139,10 +149,13 @@ func (ExadbVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"total_ecpu_count": {
-			Type:         pluginsdk.TypeInt,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.EcpuCount,
+			Type:     pluginsdk.TypeInt,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.All(
+				validation.IntBetween(8, 200),
+				validation.IntDivisibleBy(4),
+			),
 		},
 
 		"vm_file_system_storage": {
@@ -174,11 +187,13 @@ func (ExadbVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"cluster_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.ClusterName,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9-]{0,10}$`),
+				"The Cluster name must begin with an alphabetic character, be no longer than 11 characters, and may contain alphabets, numbers, and hyphens (-).",
+			),
 		},
 
 		"data_collection_options": {
@@ -215,17 +230,20 @@ func (ExadbVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"domain": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Computed: true,
 			ForceNew: true,
 		},
 
 		"license_model": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.ExadbLicenseModel,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			ForceNew: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(exadbvmclusters.LicenseModelBringYourOwnLicense),
+				string(exadbvmclusters.LicenseModelLicenseIncluded),
+			}, false),
 		},
 
 		"nsg_cidrs": {
@@ -267,7 +285,7 @@ func (ExadbVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"private_zone_ocid": {
-			Type:     schema.TypeString,
+			Type:     pluginsdk.TypeString,
 			Optional: true,
 			Computed: true,
 			ForceNew: true,
@@ -290,10 +308,12 @@ func (ExadbVmClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"system_version": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validate.ExadbSystemVersion,
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringMatch(regexp.MustCompile(`^(19|22|23|24|25)\.[0-9]+(\.[0-9]+)*|[0-9]+(\.[0-9]+)$`),
+				"The system_version must match following patterns: (19|22|23|24|25).x(.x(.x)).",
+			),
 		},
 
 		"time_zone": {

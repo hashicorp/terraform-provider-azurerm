@@ -27,7 +27,7 @@ resource "azurerm_oracle_exascale_db_storage_vault" "example" {
   description                       = "description"
   additional_flash_cache_in_percent = 100
   high_capacity_database_storage_input {
-    total_size_in_gbs = 300
+    total_size_in_gb = 300
   }
   time_zone = "UTC"
 }
@@ -41,7 +41,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Exadata Database Storage Vault. Changing this forces a new Exadata Database Storage Vault to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the ODB@A Infrastructure should exist. Changing this forces a new Exadata Database Storage Vault to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the Exadata Database Storage Vault should exist. Changing this forces a new Exadata Database Storage Vault to be created.
 
 * `additional_flash_cache_in_percent` - (Required) The size of additional Flash Cache in percentage of High Capacity database storage. Changing this forces a new Exadata Database Storage Vault to be created.
 
@@ -63,15 +63,15 @@ The following arguments are supported:
 
 A `high_capacity_database_storage_input` block supports the following:
 
-* `total_size_in_gbs` - (Required) Total Capacity
+* `total_size_in_gbs` - (Required) Total Capacity.
 
 ---
 
 A `high_capacity_database_storage` block supports the following:
 
-* `available_size_in_gbs` - (Optional) Available Capacity
+* `available_size_in_gb` - (Optional) Available Capacity.
 
-* `total_size_in_gbs` - (Optional) Total Capacity
+* `total_size_in_gb` - (Optional) Total Capacity.
 
 
 ## Attributes Reference

@@ -65,9 +65,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 A `high_capacity_database_storage` block exports the following:
 
-* `available_size_in_gbs` - Available Capacity
+* `available_size_in_gb` - Available Capacity.
 
-* `total_size_in_gbs` - Total Capacity
+* `total_size_in_gb` - Total Capacity.
 
 ## Timeouts
 

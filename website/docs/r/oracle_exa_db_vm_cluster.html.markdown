@@ -25,7 +25,7 @@ resource "azurerm_oracle_exascale_db_storage_vault" "example" {
   resource_group_name = azurerm_resource_group.example.name
   description         = "description"
   high_capacity_database_storage_input {
-    total_size_in_gbs = 300
+    total_size_in_gb = 300
   }
   additional_flash_cache_in_percent = 100
   zones                             = ["3"]

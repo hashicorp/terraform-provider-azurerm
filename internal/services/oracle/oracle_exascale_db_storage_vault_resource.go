@@ -5,18 +5,19 @@ package oracle
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
-
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/exascaledbstoragevaults"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 var _ sdk.Resource = ExascaleDbStorageVaultResource{}
@@ -37,12 +38,11 @@ type ExascaleDbStorageVaultResourceModel struct {
 	HighCapacityDatabaseStorageInput []ExascaleDbStorageInputDetailsModel `tfschema:"high_capacity_database_storage_input"`
 
 	// Optional
-	HighCapacityDatabaseStorage []ExascaleDbStorageDetailsModel `tfschema:"high_capacity_database_storage"`
-	TimeZone                    string                          `tfschema:"time_zone"`
+	TimeZone string `tfschema:"time_zone"`
 }
 
 type ExascaleDbStorageInputDetailsModel struct {
-	TotalSizeInGbs int64 `tfschema:"total_size_in_gbs"`
+	TotalSizeInGb int64 `tfschema:"total_size_in_gb"`
 }
 
 func (ExascaleDbStorageVaultResource) Arguments() map[string]*pluginsdk.Schema {
@@ -50,10 +50,14 @@ func (ExascaleDbStorageVaultResource) Arguments() map[string]*pluginsdk.Schema {
 		"location": commonschema.Location(),
 
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validate.StorageVaultName,
-			ForceNew:     true,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.All(
+				validation.StringLenBetween(1, 255),
+				validation.StringMatch(regexp.MustCompile(`^[a-zA-Z_]`), "Name must start with a letter or underscore (_)"),
+				validation.StringDoesNotContainAny("--"),
+			),
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -72,41 +76,25 @@ func (ExascaleDbStorageVaultResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"display_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.StorageVaultName,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.All(
+				validation.StringLenBetween(1, 255),
+				validation.StringMatch(regexp.MustCompile(`^[a-zA-Z_]`), "Display Name must start with a letter or underscore (_)"),
+				validation.StringDoesNotContainAny("--"),
+			),
 		},
 
 		"high_capacity_database_storage_input": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
+			ForceNew: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"total_size_in_gbs": {
+					"total_size_in_gb": {
 						Type:     pluginsdk.TypeInt,
 						Required: true,
-					},
-				},
-			},
-		},
-
-		// Optional
-		"high_capacity_database_storage": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			Computed: true,
-			Elem: &pluginsdk.Resource{
-				Schema: map[string]*pluginsdk.Schema{
-					"available_size_in_gbs": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
-						Computed: true,
-					},
-					"total_size_in_gbs": {
-						Type:     pluginsdk.TypeInt,
-						Optional: true,
-						Computed: true,
 					},
 				},
 			},
@@ -170,20 +158,10 @@ func (r ExascaleDbStorageVaultResource) Create() sdk.ResourceFunc {
 					AdditionalFlashCacheInPercent: pointer.To(model.AdditionalFlashCacheInPercent),
 					Description:                   pointer.To(model.Description),
 					TimeZone:                      pointer.To(model.TimeZone),
+					HighCapacityDatabaseStorageInput: exascaledbstoragevaults.ExascaleDbStorageInputDetails{
+						TotalSizeInGbs: model.HighCapacityDatabaseStorageInput[0].TotalSizeInGb,
+					},
 				},
-			}
-
-			if len(model.HighCapacityDatabaseStorageInput) > 0 {
-				param.Properties.HighCapacityDatabaseStorageInput = exascaledbstoragevaults.ExascaleDbStorageInputDetails{
-					TotalSizeInGbs: model.HighCapacityDatabaseStorageInput[0].TotalSizeInGbs,
-				}
-			}
-
-			if len(model.HighCapacityDatabaseStorage) > 0 {
-				param.Properties.HighCapacityDatabaseStorage = &exascaledbstoragevaults.ExascaleDbStorageDetails{
-					AvailableSizeInGbs: pointer.To(model.HighCapacityDatabaseStorage[0].AvailableSizeInGbs),
-					TotalSizeInGbs:     pointer.To(model.HighCapacityDatabaseStorage[0].TotalSizeInGbs),
-				}
 			}
 
 			if err := client.CreateThenPoll(ctx, id, param); err != nil {
@@ -260,15 +238,13 @@ func (ExascaleDbStorageVaultResource) Read() sdk.ResourceFunc {
 				state.Tags = pointer.From(model.Tags)
 				state.Zones = pointer.From(model.Zones)
 				if props := model.Properties; props != nil {
-					state.Name = pointer.ToString(result.Model.Name)
-					state.Location = result.Model.Location
+					state.Location = model.Location
 					state.Tags = pointer.From(model.Tags)
-					state.Zones = pointer.From(result.Model.Zones)
+					state.Zones = pointer.From(model.Zones)
 					state.DisplayName = props.DisplayName
 					state.AdditionalFlashCacheInPercent = pointer.From(props.AdditionalFlashCacheInPercent)
 					state.Description = pointer.From(props.Description)
-					state.HighCapacityDatabaseStorage = ExpandHighCapacityDatabaseStorageInterface(metadata.ResourceData.Get("high_capacity_database_storage").([]interface{}))
-					state.HighCapacityDatabaseStorageInput = ExpandHighCapacityDatabaseStorageInputInterface(metadata.ResourceData.Get("high_capacity_database_storage_input").([]interface{}))
+					state.HighCapacityDatabaseStorageInput = FlattenHighCapacityDatabaseStorageInputInterface(metadata.ResourceData.Get("high_capacity_database_storage_input").([]interface{}))
 					state.TimeZone = pointer.From(props.TimeZone)
 				}
 			}
@@ -285,7 +261,7 @@ func (ExascaleDbStorageVaultResource) Delete() sdk.ResourceFunc {
 
 			id, err := exascaledbstoragevaults.ParseExascaleDbStorageVaultID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", id, err)
+				return err
 			}
 
 			if err = client.DeleteThenPoll(ctx, *id); err != nil {
@@ -301,29 +277,14 @@ func (ExascaleDbStorageVaultResource) IDValidationFunc() pluginsdk.SchemaValidat
 	return exascaledbstoragevaults.ValidateExascaleDbStorageVaultID
 }
 
-func ExpandHighCapacityDatabaseStorageInputInterface(input []interface{}) []ExascaleDbStorageInputDetailsModel {
+func FlattenHighCapacityDatabaseStorageInputInterface(input []interface{}) []ExascaleDbStorageInputDetailsModel {
 	output := make([]ExascaleDbStorageInputDetailsModel, 0)
 	if len(input) == 0 || input[0] == nil {
 		return output
 	}
 	if m, ok := input[0].(map[string]interface{}); ok {
 		storageInput := ExascaleDbStorageInputDetailsModel{
-			TotalSizeInGbs: int64(m["total_size_in_gbs"].(int)),
-		}
-		output = append(output, storageInput)
-	}
-	return output
-}
-
-func ExpandHighCapacityDatabaseStorageInterface(input []interface{}) []ExascaleDbStorageDetailsModel {
-	output := make([]ExascaleDbStorageDetailsModel, 0)
-	if len(input) == 0 || input[0] == nil {
-		return output
-	}
-	if m, ok := input[0].(map[string]interface{}); ok {
-		storageInput := ExascaleDbStorageDetailsModel{
-			TotalSizeInGbs:     int64(m["total_size_in_gbs"].(int)),
-			AvailableSizeInGbs: int64(m["available_size_in_gbs"].(int)),
+			TotalSizeInGb: int64(m["total_size_in_gb"].(int)),
 		}
 		output = append(output, storageInput)
 	}

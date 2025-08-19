@@ -5,6 +5,7 @@ package oracle
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
@@ -15,8 +16,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/oracledatabase/2025-03-01/exascaledbstoragevaults"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type ExascaleDbStorageVaultDataSource struct{}
@@ -41,8 +42,8 @@ type ExascaleDbStorageVaultDataModel struct {
 }
 
 type ExascaleDbStorageDetailsModel struct {
-	AvailableSizeInGbs int64 `tfschema:"available_size_in_gbs"`
-	TotalSizeInGbs     int64 `tfschema:"total_size_in_gbs"`
+	AvailableSizeInGb int64 `tfschema:"available_size_in_gb"`
+	TotalSizeInGb     int64 `tfschema:"total_size_in_gb"`
 }
 
 func (d ExascaleDbStorageVaultDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -51,9 +52,13 @@ func (d ExascaleDbStorageVaultDataSource) Arguments() map[string]*pluginsdk.Sche
 		"zones":               commonschema.ZonesMultipleOptional(),
 
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validate.StorageVaultName,
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ValidateFunc: validation.All(
+				validation.StringLenBetween(1, 255),
+				validation.StringMatch(regexp.MustCompile(`^[a-zA-Z_]`), "Name must start with a letter or underscore (_)"),
+				validation.StringDoesNotContainAny("--"),
+			),
 		},
 	}
 }
@@ -83,11 +88,11 @@ func (d ExascaleDbStorageVaultDataSource) Attributes() map[string]*pluginsdk.Sch
 			Computed: true,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"available_size_in_gbs": {
+					"available_size_in_gb": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
-					"total_size_in_gbs": {
+					"total_size_in_gb": {
 						Type:     pluginsdk.TypeInt,
 						Computed: true,
 					},
@@ -194,8 +199,8 @@ func ExpandHighCapacityDatabaseStorage(input *exascaledbstoragevaults.ExascaleDb
 	output := make([]ExascaleDbStorageDetailsModel, 0)
 	if input != nil {
 		return append(output, ExascaleDbStorageDetailsModel{
-			AvailableSizeInGbs: pointer.From(input.AvailableSizeInGbs),
-			TotalSizeInGbs:     pointer.From(input.TotalSizeInGbs),
+			AvailableSizeInGb: pointer.From(input.AvailableSizeInGbs),
+			TotalSizeInGb:     pointer.From(input.TotalSizeInGbs),
 		})
 	}
 	return output

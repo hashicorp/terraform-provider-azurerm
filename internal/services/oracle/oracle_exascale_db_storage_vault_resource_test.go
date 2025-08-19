@@ -89,7 +89,7 @@ resource "azurerm_oracle_exascale_db_storage_vault" "test" {
   description                       = "description"
   additional_flash_cache_in_percent = 100
   high_capacity_database_storage_input {
-    total_size_in_gbs = 300
+    total_size_in_gb = 300
   }
   time_zone = "UTC"
 }
@@ -98,6 +98,8 @@ resource "azurerm_oracle_exascale_db_storage_vault" "test" {
 
 func (a ExascaleDbStorageVaultResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+
+
 
 
 %s
@@ -113,15 +115,11 @@ resource "azurerm_oracle_exascale_db_storage_vault" "test" {
   zones               = ["2"]
   display_name        = "OFakeacctest%[2]d"
   high_capacity_database_storage_input {
-    total_size_in_gbs = 300
+    total_size_in_gb = 300
   }
   additional_flash_cache_in_percent = 100
   description                       = "description"
-  high_capacity_database_storage {
-    total_size_in_gbs     = 300
-    available_size_in_gbs = 60
-  }
-  time_zone = "UTC"
+  time_zone                         = "UTC"
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -140,7 +138,7 @@ resource "azurerm_oracle_exascale_db_storage_vault" "import" {
   time_zone                         = azurerm_oracle_exascale_db_storage_vault.test.time_zone
   zones                             = azurerm_oracle_exascale_db_storage_vault.test.zones
   high_capacity_database_storage_input {
-    total_size_in_gbs = azurerm_oracle_exascale_db_storage_vault.test.high_capacity_database_storage_input[0].total_size_in_gbs
+    total_size_in_gb = azurerm_oracle_exascale_db_storage_vault.test.high_capacity_database_storage_input[0].total_size_in_gb
   }
 }
 `, a.basic(data))
@@ -148,8 +146,6 @@ resource "azurerm_oracle_exascale_db_storage_vault" "import" {
 
 func (a ExascaleDbStorageVaultResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
-data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-%[1]d"

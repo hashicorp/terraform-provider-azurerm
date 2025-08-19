@@ -255,11 +255,13 @@ resource "azurerm_oracle_exascale_db_storage_vault" "test" {
   display_name        = "OFakeacctest%[1]d"
   description         = "description"
   high_capacity_database_storage_input {
-    total_size_in_gbs = 300
+    total_size_in_gb = 300
   }
   additional_flash_cache_in_percent = 100
   zones                             = ["2"]
 }
+
+
 
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
