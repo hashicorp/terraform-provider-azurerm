@@ -51,6 +51,10 @@ The following arguments are supported:
 
 * `sku_name` - (Required) The name of the SKU for the Dev Center Dev Box Definition.
 
+* `hibernate_support_enabled` - (Optional) Whether the Dev Boxes created with this definition are capable of hibernation. Defaults to `false`.
+
+-> **Note:** Not all images are capable of supporting hibernation, for more information see https://aka.ms/devbox/hibernate.
+
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dev Center Dev Box Definition.
 
 ## Attributes Reference
@@ -80,4 +84,4 @@ terraform import azurerm_dev_center_dev_box_definition.example /subscriptions/00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DevCenter`: 2025-02-01
+* `Microsoft.DevCenter` - 2025-02-01

@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -236,44 +237,50 @@ func TestAccLogAnalyticsWorkspace_ToggleAllowOnlyResourcePermission(t *testing.T
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.withUseResourceOnlyPermission(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.withUseResourceOnlyPermission(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
-func TestAccLogAnalyticsWorkspace_ToggleDisableLocalAuth(t *testing.T) {
+func TestAccLogAnalyticsWorkspace_ToggleEnableLocalAuth(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_log_analytics_workspace", "test")
 	r := LogAnalyticsWorkspaceResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withDisableLocalAuth(data, true),
+			Config: r.localAuthEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
-			Config: r.withDisableLocalAuth(data, false),
+			Config: r.localAuthEnabled(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
-			Config: r.withDisableLocalAuth(data, true),
+			Config: r.localAuthEnabled(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -288,18 +295,21 @@ func TestAccLogAnalyticsWorkspace_ToggleImmediatelyPurgeDataOn30Days(t *testing.
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.withImmediatePurgeDataOn30Days(data, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 		{
 			Config: r.withImmediatePurgeDataOn30Days(data, true),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
+		data.ImportStep(),
 	})
 }
 
@@ -789,8 +799,9 @@ resource "azurerm_log_analytics_workspace" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, useResourceOnlyPermission)
 }
 
-func (LogAnalyticsWorkspaceResource) withDisableLocalAuth(data acceptance.TestData, disableLocalAuth bool) string {
-	return fmt.Sprintf(`
+func (LogAnalyticsWorkspaceResource) localAuthEnabled(data acceptance.TestData, localAuthEnabled bool) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -808,7 +819,27 @@ resource "azurerm_log_analytics_workspace" "test" {
   retention_in_days             = 30
   local_authentication_disabled = %[4]t
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, disableLocalAuth)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, !localAuthEnabled)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name                         = "acctestLAW-%d"
+  location                     = azurerm_resource_group.test.location
+  resource_group_name          = azurerm_resource_group.test.name
+  sku                          = "PerGB2018"
+  retention_in_days            = 30
+  local_authentication_enabled = %[4]t
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, localAuthEnabled)
 }
 
 func (LogAnalyticsWorkspaceResource) withDataCollectionRule(data acceptance.TestData) string {

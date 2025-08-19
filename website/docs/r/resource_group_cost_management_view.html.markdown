@@ -36,6 +36,18 @@ resource "azurerm_resource_group_cost_management_view" "example" {
       column_name = "Cost"
     }
   }
+  pivot {
+    type = "Dimension"
+    name = "ServiceName"
+  }
+  pivot {
+    type = "Dimension"
+    name = "ResourceLocation"
+  }
+  pivot {
+    type = "Dimension"
+    name = "ResourceGroupName"
+  }
 }
 ```
 
@@ -142,4 +154,4 @@ terraform import azurerm_resource_group_cost_management_view.example /subscripti
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.CostManagement`: 2023-08-01
+* `Microsoft.CostManagement` - 2023-08-01

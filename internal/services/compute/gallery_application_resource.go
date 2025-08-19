@@ -23,7 +23,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name gallery_application -properties "application_name:name" -service-package-name compute -compare-values "subscription_id:gallery_id,resource_group_name:gallery_id,gallery_name:gallery_id"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name gallery_application -properties "name" -service-package-name compute -compare-values "subscription_id:gallery_id,resource_group_name:gallery_id,gallery_name:gallery_id"
 
 type GalleryApplicationResource struct{}
 

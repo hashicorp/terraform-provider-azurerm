@@ -169,7 +169,7 @@ func resourceVirtualNetworkGatewaySchema() map[string]*pluginsdk.Schema {
 
 					"public_ip_address_id": {
 						Type:         pluginsdk.TypeString,
-						Required:     true,
+						Optional:     true,
 						ValidateFunc: commonids.ValidatePublicIPAddressID,
 					},
 				},
