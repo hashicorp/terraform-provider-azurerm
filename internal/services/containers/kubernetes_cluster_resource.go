@@ -124,6 +124,17 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 				return nil
 			},
+			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+				if len(d.Get("network_profile.0.advanced_networking").([]interface{})) == 1 {
+					if d.Get("network_profile.0.network_data_plane").(string) != string(managedclusters.NetworkDataplaneCilium) {
+						return fmt.Errorf("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_data_plane` must be set to `%s`", managedclusters.NetworkDataplaneCilium)
+					}
+					if d.Get("network_profile.0.network_plugin").(string) != string(managedclusters.NetworkPluginAzure) {
+						return fmt.Errorf("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_plugin` must be set to `%s`", managedclusters.NetworkPluginAzure)
+					}
+				}
+				return nil
+			},
 		),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -1277,6 +1288,28 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								}, false),
 							},
 						},
+
+						"advanced_networking": {
+							Type:     pluginsdk.TypeList,
+							Optional: true,
+							MaxItems: 1,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"observability_enabled": {
+										Type:         pluginsdk.TypeBool,
+										Optional:     true,
+										Default:      false,
+										AtLeastOneOf: []string{"network_profile.0.advanced_networking.0.observability_enabled", "network_profile.0.advanced_networking.0.security_enabled"},
+									},
+									"security_enabled": {
+										Type:         pluginsdk.TypeBool,
+										Optional:     true,
+										Default:      false,
+										AtLeastOneOf: []string{"network_profile.0.advanced_networking.0.observability_enabled", "network_profile.0.advanced_networking.0.security_enabled"},
+									},
+								},
+							},
+						},
 					},
 				},
 			},
@@ -1700,7 +1733,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	networkProfileRaw := d.Get("network_profile").([]interface{})
-	networkProfile, err := expandKubernetesClusterNetworkProfile(networkProfileRaw)
+	networkProfile, err := expandKubernetesClusterNetworkProfile(networkProfileRaw, d)
 	if err != nil {
 		return err
 	}
@@ -2249,6 +2282,10 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 			if outboundType != managedclusters.OutboundTypeManagedNATGateway && outboundType != managedclusters.OutboundTypeUserAssignedNATGateway {
 				existing.Model.Properties.NetworkProfile.NatGatewayProfile = nil
 			}
+		}
+
+		if d.HasChange("network_profile.0.advanced_networking") {
+			existing.Model.Properties.NetworkProfile.AdvancedNetworking = expandKubernetesClusterAdvancedNetworking(d.Get("network_profile.0.advanced_networking").([]interface{}), d)
 		}
 	}
 	if d.HasChange("service_mesh_profile") {
@@ -3394,7 +3431,7 @@ func flattenGmsaProfile(profile *managedclusters.WindowsGmsaProfile) []interface
 	}
 }
 
-func expandKubernetesClusterNetworkProfile(input []interface{}) (*managedclusters.ContainerServiceNetworkProfile, error) {
+func expandKubernetesClusterNetworkProfile(input []interface{}, d *pluginsdk.ResourceData) (*managedclusters.ContainerServiceNetworkProfile, error) {
 	if len(input) == 0 {
 		return nil, nil
 	}
@@ -3472,7 +3509,73 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*managedcluster
 		networkProfile.ServiceCidrs = utils.ExpandStringSlice(v.([]interface{}))
 	}
 
+	if v, ok := config["advanced_networking"]; ok {
+		networkProfile.AdvancedNetworking = expandKubernetesClusterAdvancedNetworking(v.([]interface{}), d)
+	}
+
 	return &networkProfile, nil
+}
+
+func expandKubernetesClusterAdvancedNetworking(input []interface{}, d *pluginsdk.ResourceData) *managedclusters.AdvancedNetworking {
+	if len(input) == 0 || input[0] == nil {
+
+		o, n := d.GetChange("network_profile.0.advanced_networking")
+		if o != nil && len(o.([]interface{})) == 1 && n == nil || len(n.([]interface{})) == 0 {
+			return &managedclusters.AdvancedNetworking{
+				Enabled: pointer.To(false),
+				Observability: &managedclusters.AdvancedNetworkingObservability{
+					Enabled: pointer.To(false),
+				},
+				Security: &managedclusters.AdvancedNetworkingSecurity{
+					Enabled: pointer.To(false),
+				},
+			}
+		}
+		return nil
+	}
+
+	config := input[0].(map[string]interface{})
+	observabilityEnabled := config["observability_enabled"].(bool)
+	securityEnabled := config["security_enabled"].(bool)
+	advancedNetworking := &managedclusters.AdvancedNetworking{}
+
+	if observabilityEnabled || securityEnabled {
+		advancedNetworking.Enabled = pointer.To(true)
+	} else {
+		advancedNetworking.Enabled = pointer.To(false)
+	}
+
+	advancedNetworking.Observability = &managedclusters.AdvancedNetworkingObservability{
+		Enabled: pointer.To(observabilityEnabled),
+	}
+	advancedNetworking.Security = &managedclusters.AdvancedNetworkingSecurity{
+		Enabled: pointer.To(securityEnabled),
+	}
+
+	return advancedNetworking
+}
+
+func flattenKubernetesClusterAdvancedNetworking(advancedNetworking *managedclusters.AdvancedNetworking) []interface{} {
+	if advancedNetworking == nil || pointer.From(advancedNetworking.Enabled) == false {
+		return []interface{}{}
+	}
+
+	observabilityEnabled := false
+	if advancedNetworking.Observability != nil {
+		observabilityEnabled = pointer.From(advancedNetworking.Observability.Enabled)
+	}
+
+	securityEnabled := false
+	if advancedNetworking.Security != nil {
+		securityEnabled = pointer.From(advancedNetworking.Security.Enabled)
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"observability_enabled": observabilityEnabled,
+			"security_enabled":      securityEnabled,
+		},
+	}
 }
 
 func expandLoadBalancerProfile(d []interface{}) *managedclusters.ManagedClusterLoadBalancerProfile {
@@ -3737,6 +3840,8 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 		networkDataPlane = string(pointer.From(v))
 	}
 
+	advancedNetworking := flattenKubernetesClusterAdvancedNetworking(profile.AdvancedNetworking)
+
 	result := map[string]interface{}{
 		"dns_service_ip":        dnsServiceIP,
 		"network_data_plane":    networkDataPlane,
@@ -3753,6 +3858,7 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 		"service_cidr":          serviceCidr,
 		"service_cidrs":         utils.FlattenStringSlice(profile.ServiceCidrs),
 		"outbound_type":         outboundType,
+		"advanced_networking":   advancedNetworking,
 	}
 
 	return []interface{}{result}
