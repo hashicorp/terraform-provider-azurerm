@@ -1204,13 +1204,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin = "%s"
+    network_plugin     = "%s"
     network_data_plane = "%s"
 
-  advanced_networking {
-       observability_enabled = true
-		security_enabled = true
-	}
+    advanced_networking {
+      observability_enabled = true
+      security_enabled      = true
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin, networkDataPlane)
@@ -1270,13 +1270,13 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin = "%s"
+    network_plugin     = "%s"
     network_data_plane = "cilium"
 
-  advanced_networking {
-       observability_enabled = true
-		security_enabled = false
-	}
+    advanced_networking {
+      observability_enabled = true
+      security_enabled      = false
+    }
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin)
@@ -1336,7 +1336,7 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   network_profile {
-    network_plugin = "%s"
+    network_plugin     = "%s"
     network_data_plane = "%s"
   }
 }
