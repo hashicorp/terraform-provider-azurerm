@@ -12,7 +12,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -104,36 +103,37 @@ func TestAccKeyVaultCertificateContacts_nonExistentVault(t *testing.T) {
 }
 
 func TestAccKeyVaultCertificateContacts_remove(t *testing.T) {
-	if !features.FivePointOh() {
-		data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_contacts", "test")
-		r := KeyVaultCertificateContactsResource{}
+    // The contact field in contacts is changed to 'optional' for backward compatibility
+	// However, users should not remove contact completely from this resource
+	data := acceptance.BuildTestData(t, "azurerm_key_vault_certificate_contacts", "test")
+	r := KeyVaultCertificateContactsResource{}
 
-		data.ResourceTest(t, r, []acceptance.TestStep{
-			{
-				Config: r.basic(data),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: r.remove(data),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("contact").IsEmpty(),
-				),
-			},
-			data.ImportStep(),
-			{
-				Config: r.basic(data),
-				Check: acceptance.ComposeTestCheckFunc(
-					check.That(data.ResourceName).ExistsInAzure(r),
-					check.That(data.ResourceName).Key("contact").IsNotEmpty(),
-				),
-			},
-			data.ImportStep(),
-		})
-	}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.remove(data),
+			// This step should fail because:
+			// - Certificate contacts resource must have at least one contact
+			// - Removing all contacts makes the resource semantically invalid
+			// - The Key Vault dataplane returns 404 when no contacts exist
+			// - Provider correctly treats this as resource deletion, causing state inconsistency
+			ExpectError: regexp.MustCompile(`Provider produced inconsistent result after apply`),
+		},
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("contact.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
 }
 
 func (r KeyVaultCertificateContactsResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {

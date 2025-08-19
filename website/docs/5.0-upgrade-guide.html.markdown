@@ -251,10 +251,6 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `private_link_fast_path_enabled` property has been removed as it is no longer supported by the resource.
 
-### `azurerm_key_vault_certificate_contacts`
-
-* The `contact` property is required.
-
 ### `azurerm_kubernetes_cluster`
 
 * The deprecated `default_node_pool.linux_os_config.transparent_huge_page_enabled` property has been removed in favour of the `default_node_pool.linux_os_config.transparent_huge_page` property.
