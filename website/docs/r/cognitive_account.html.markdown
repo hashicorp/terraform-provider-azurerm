@@ -134,9 +134,7 @@ A `virtual_network_rules` block supports the following:
 
 A `customer_managed_key` block supports the following:
 
-* `key_vault_key_id` - (Optional) The ID of the Key Vault Key which should be used to encrypt the data in this Cognitive Account. Exactly one of `key_vault_key_id`, `managed_hsm_key_id` must be specified.
-
-* `managed_hsm_key_id` - (Optional) The ID of the managed HSM Key which should be used to encrypt the data in this Cognitive Account. Exactly one of `key_vault_key_id`, `managed_hsm_key_id` must be specified. Can be specified only when the `kind` is set to `AIServices`.
+* `key_vault_key_id` - (Required) The ID of the Key Vault Key which should be used to Encrypt the data in this Cognitive Account.
 
 * `identity_client_id` - (Optional) The Client ID of the User Assigned Identity that has access to the key. This property only needs to be specified when there're multiple identities attached to the Cognitive Account.
 

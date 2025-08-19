@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
 	search "github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/services"
-	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	commonValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -27,9 +26,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cognitive/validate"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
-	managedHsmHelpers "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/helpers"
-	managedHsmParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
-	managedHsmValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/network"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
@@ -143,20 +139,14 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 					Schema: map[string]*pluginsdk.Schema{
 						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
-							ExactlyOneOf: []string{"customer_managed_key.0.managed_hsm_key_id", "customer_managed_key.0.key_vault_key_id"},
 						},
+
 						"identity_client_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.IsUUID,
-						},
-						"managed_hsm_key_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.Any(managedHsmValidate.ManagedHSMDataPlaneVersionedKeyID, managedHsmValidate.ManagedHSMDataPlaneVersionlessKeyID),
-							ExactlyOneOf: []string{"customer_managed_key.0.managed_hsm_key_id", "customer_managed_key.0.key_vault_key_id"},
 						},
 					},
 				},
@@ -432,6 +422,21 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
+	identityRaw := d.Get("identity").([]interface{})
+	identity, err := identity.ExpandSystemAndUserAssignedMap(identityRaw)
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
+	if projectManagementEnabled && len(identityRaw) == 0 {
+		return fmt.Errorf("for setting `project_management_enabled` to true, a managed identity must be assigned. Please set `identity` to at least one SystemAssigned or UserAssigned identity")
+	}
+
+	networkInjections, err := expandCognitiveAccountNetworkInjections(d.Get("network_injections").([]interface{}), kind)
+	if err != nil {
+		return fmt.Errorf("expanding `network_injections`: %+v", err)
+	}
+
 	props := cognitiveservicesaccounts.Account{
 		Kind:     utils.String(kind),
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
@@ -443,39 +448,15 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
-			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restricted").(bool)),
-			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
-			DynamicThrottlingEnabled:      utils.Bool(d.Get("dynamic_throttling_enabled").(bool)),
+			RestrictOutboundNetworkAccess: pointer.To(d.Get("outbound_network_access_restricted").(bool)),
+			DisableLocalAuth:              pointer.To(!d.Get("local_auth_enabled").(bool)),
+			DynamicThrottlingEnabled:      pointer.To(d.Get("dynamic_throttling_enabled").(bool)),
 			AllowProjectManagement:        &projectManagementEnabled,
+			Encryption:                    expandCognitiveAccountCustomerManagedKey(d.Get("customer_managed_key").([]interface{})),
+			NetworkInjections:             networkInjections,
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
-	}
-
-	identityRaw := d.Get("identity").([]interface{})
-	identity, err := identity.ExpandSystemAndUserAssignedMap(identityRaw)
-	if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
-	}
-	props.Identity = identity
-
-	if projectManagementEnabled && len(identityRaw) == 0 {
-		return fmt.Errorf("for setting `project_management_enabled` to true, a managed identity must be assigned. Please set `identity` to at least one SystemAssigned or UserAssigned identity")
-	}
-
-	networkInjections, err := expandCognitiveAccountNetworkInjections(d)
-	if err != nil {
-		return fmt.Errorf("expanding `network_injections`: %+v", err)
-	}
-	props.Properties.NetworkInjections = networkInjections
-
-	if len(d.Get("customer_managed_key").([]interface{})) > 0 {
-		encryption, err := expandCognitiveAccountCustomerManagedKey(d)
-		if err != nil {
-			return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
-		}
-		if encryption != nil {
-			props.Properties.Encryption = encryption
-		}
+		Identity: identity,
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if err := client.AccountsCreateThenPoll(ctx, id, props); err != nil {
@@ -502,6 +483,8 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 	client := meta.(*clients.Client).Cognitive.AccountsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
+
+	kind := d.Get("kind").(string)
 
 	id, err := cognitiveservicesaccounts.ParseAccountID(d.Id())
 	if err != nil {
@@ -542,12 +525,10 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	resp, err := client.AccountsGet(ctx, *id)
-	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
-	}
-	if resp.Model == nil || resp.Model.Properties == nil {
-		return fmt.Errorf("retrieving %s: model or properties are nil", *id)
+	if d.HasChange("project_management_enabled") {
+		if !d.Get("project_management_enabled").(bool) {
+			return fmt.Errorf("project_management_enabled cannot be disabled once it is enabled")
+		}
 	}
 
 	props := cognitiveservicesaccounts.Account{
@@ -559,32 +540,17 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
-			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restricted").(bool)),
-			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
-			DynamicThrottlingEnabled:      utils.Bool(d.Get("dynamic_throttling_enabled").(bool)),
+			RestrictOutboundNetworkAccess: pointer.To(d.Get("outbound_network_access_restricted").(bool)),
+			DisableLocalAuth:              pointer.To(!d.Get("local_auth_enabled").(bool)),
+			DynamicThrottlingEnabled:      pointer.To(d.Get("dynamic_throttling_enabled").(bool)),
+			AllowProjectManagement:        pointer.To(d.Get("project_management_enabled").(bool)),
+			Encryption:                    expandCognitiveAccountCustomerManagedKey(d.Get("customer_managed_key").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if d.HasChange("project_management_enabled") {
-		if pointer.From(resp.Model.Properties.AllowProjectManagement) && !d.Get("project_management_enabled").(bool) {
-			return fmt.Errorf("project_management_enabled cannot be disabled once it is enabled")
-		}
-		props.Properties.AllowProjectManagement = pointer.To(d.Get("project_management_enabled").(bool))
-	}
-
-	if d.HasChange("customer_managed_key") {
-		encryption, err := expandCognitiveAccountCustomerManagedKey(d)
-		if err != nil {
-			return fmt.Errorf("expanding `customer_managed_key`: %+v", err)
-		}
-		if encryption != nil {
-			props.Properties.Encryption = encryption
-		}
-	}
-
 	if d.HasChange("network_injections") {
-		networkInjections, err := expandCognitiveAccountNetworkInjections(d)
+		networkInjections, err := expandCognitiveAccountNetworkInjections(d.Get("network_injections").([]interface{}), kind)
 		if err != nil {
 			return fmt.Errorf("expanding `network_injections`: %+v", err)
 		}
@@ -608,12 +574,22 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
-	return nil
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:    []string{"Accepted"},
+		Target:     []string{"Succeeded"},
+		Refresh:    cognitiveAccountStateRefreshFunc(ctx, client, *id),
+		MinTimeout: 15 * time.Second,
+		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
+	}
+
+	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
+	}
+	return resourceCognitiveAccountRead(d, meta)
 }
 
 func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Cognitive.AccountsClient
-	env := meta.(*clients.Client).Account.Environment
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -718,7 +694,7 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 				}
 			}
 
-			customerManagedKey, err := flattenCognitiveAccountCustomerManagedKey(props.Encryption, env)
+			customerManagedKey, err := flattenCognitiveAccountCustomerManagedKey(props.Encryption)
 			if err != nil {
 				return err
 			}
@@ -963,128 +939,63 @@ func flattenCognitiveAccountStorage(input *[]cognitiveservicesaccounts.UserOwned
 	return results
 }
 
-func expandCognitiveAccountCustomerManagedKey(d *pluginsdk.ResourceData) (*cognitiveservicesaccounts.Encryption, error) {
-	customerManagedKey := d.Get("customer_managed_key").([]interface{})
-
-	kind := d.Get("kind").(string)
-	if len(customerManagedKey) == 0 {
-		return &cognitiveservicesaccounts.Encryption{
-			KeySource: pointer.To(cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices),
-		}, nil
+func expandCognitiveAccountCustomerManagedKey(input []interface{}) *cognitiveservicesaccounts.Encryption {
+	if len(input) == 0 || input[0] == nil {
+		return nil
 	}
 
-	v := customerManagedKey[0].(map[string]interface{})
-
-	var identityClientId string
-	if id := v["identity_client_id"].(string); id != "" {
-		identityClientId = id
+	v := input[0].(map[string]interface{})
+	keyId, _ := keyVaultParse.ParseOptionallyVersionedNestedItemID(v["key_vault_key_id"].(string))
+	if keyId == nil {
+		return nil
 	}
 
-	encryption := &cognitiveservicesaccounts.Encryption{
-		KeySource: pointer.To(cognitiveservicesaccounts.KeySourceMicrosoftPointKeyVault),
+	keySource := cognitiveservicesaccounts.KeySourceMicrosoftPointKeyVault
+
+	var identity string
+	if value := v["identity_client_id"]; value != nil && value != "" {
+		identity = value.(string)
+	}
+
+	return &cognitiveservicesaccounts.Encryption{
+		KeySource: &keySource,
 		KeyVaultProperties: &cognitiveservicesaccounts.KeyVaultProperties{
-			IdentityClientId: pointer.To(identityClientId),
+			KeyName:          utils.String(keyId.Name),
+			KeyVersion:       utils.String(keyId.Version),
+			KeyVaultUri:      utils.String(keyId.KeyVaultBaseUrl),
+			IdentityClientId: utils.String(identity),
 		},
 	}
-
-	if v["key_vault_key_id"].(string) != "" {
-		keyId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(v["key_vault_key_id"].(string))
-		if err != nil {
-			return nil, err
-		}
-		encryption.KeyVaultProperties.KeyName = pointer.To(keyId.Name)
-		encryption.KeyVaultProperties.KeyVersion = pointer.To(keyId.Version)
-		encryption.KeyVaultProperties.KeyVaultUri = pointer.To(keyId.KeyVaultBaseUrl)
-	} else {
-		hsmKyId, err := managedHsmParse.ManagedHSMDataPlaneVersionedKeyID(v["managed_hsm_key_id"].(string), nil)
-		if err != nil {
-			return nil, err
-		}
-
-		if kind != "AIServices" {
-			return nil, fmt.Errorf("the `managed_hsm_key_id` can only be set when the `kind` is `AIServices`")
-		}
-
-		encryption.KeyVaultProperties.KeyName = pointer.To(hsmKyId.KeyName)
-		encryption.KeyVaultProperties.KeyVersion = pointer.To(hsmKyId.KeyVersion)
-		encryption.KeyVaultProperties.KeyVaultUri = pointer.To(hsmKyId.BaseUri())
-	}
-	return encryption, nil
 }
 
-func flattenCognitiveAccountCustomerManagedKey(input *cognitiveservicesaccounts.Encryption, env environments.Environment) ([]interface{}, error) {
+func flattenCognitiveAccountCustomerManagedKey(input *cognitiveservicesaccounts.Encryption) ([]interface{}, error) {
 	if input == nil || pointer.From(input.KeySource) == cognitiveservicesaccounts.KeySourceMicrosoftPointCognitiveServices {
 		return []interface{}{}, nil
 	}
 
-	var keyVaultKeyId string
+	var keyId string
 	var identityClientId string
-	var managedHsmKeyID string
-
-	keyName := ""
-	keyVaultURI := ""
-	keyVersion := ""
-
 	if props := input.KeyVaultProperties; props != nil {
-		if props.KeyName != nil {
-			keyName = *props.KeyName
-		}
-		if props.KeyVaultUri != nil {
-			keyVaultURI = *props.KeyVaultUri
-		}
-		if props.KeyVersion != nil {
-			keyVersion = *props.KeyVersion
-		}
-
-		isHsmURI, err, instanceName, domainSuffix := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
+		keyVaultKeyId, err := keyVaultParse.NewNestedItemID(*props.KeyVaultUri, keyVaultParse.NestedItemTypeKey, *props.KeyName, *props.KeyVersion)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
 		}
-
-		switch {
-		case isHsmURI && keyVersion == "":
-			{
-				kvKeyId := managedHsmParse.NewManagedHSMDataPlaneVersionlessKeyID(instanceName, domainSuffix, keyName)
-				managedHsmKeyID = kvKeyId.ID()
-			}
-		case isHsmURI && keyVersion != "":
-			{
-				kvKeyId := managedHsmParse.NewManagedHSMDataPlaneVersionedKeyID(instanceName, domainSuffix, keyName, keyVersion)
-				managedHsmKeyID = kvKeyId.ID()
-			}
-		case !isHsmURI:
-			{
-				kvKeyId, err := keyVaultParse.NewNestedItemID(keyVaultURI, keyVaultParse.NestedItemTypeKey, keyName, keyVersion)
-				if err != nil {
-					return nil, fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
-				}
-				keyVaultKeyId = kvKeyId.ID()
-			}
-		}
-
+		keyId = keyVaultKeyId.ID()
 		if props.IdentityClientId != nil {
 			identityClientId = *props.IdentityClientId
 		}
 	}
 
-	out := map[string]interface{}{
-		"identity_client_id": identityClientId,
-	}
-
-	if managedHsmKeyID != "" {
-		out["managed_hsm_key_id"] = managedHsmKeyID
-	} else {
-		out["key_vault_key_id"] = keyVaultKeyId
-	}
-
-	return []interface{}{out}, nil
+	return []interface{}{
+		map[string]interface{}{
+			"key_vault_key_id":   keyId,
+			"identity_client_id": identityClientId,
+		},
+	}, nil
 }
 
-func expandCognitiveAccountNetworkInjections(d *pluginsdk.ResourceData) (*cognitiveservicesaccounts.NetworkInjections, error) {
-	kind := d.Get("kind").(string)
-
-	networkInjections := d.Get("network_injections").([]interface{})
-	if len(networkInjections) == 0 || networkInjections[0] == nil {
+func expandCognitiveAccountNetworkInjections(input []interface{}, kind string) (*cognitiveservicesaccounts.NetworkInjections, error) {
+	if len(input) == 0 || input[0] == nil {
 		return nil, nil
 	} else {
 		if kind != "AIServices" {
@@ -1092,7 +1003,7 @@ func expandCognitiveAccountNetworkInjections(d *pluginsdk.ResourceData) (*cognit
 		}
 	}
 
-	value := networkInjections[0].(map[string]interface{})
+	value := input[0].(map[string]interface{})
 
 	return &cognitiveservicesaccounts.NetworkInjections{
 		Scenario:    pointer.To(cognitiveservicesaccounts.ScenarioType(value["scenario"].(string))),
@@ -1105,13 +1016,10 @@ func flattenCognitiveAccountNetworkInjections(input *cognitiveservicesaccounts.N
 		return []interface{}{}
 	}
 
-	result := make(map[string]interface{})
-	if input.Scenario != nil {
-		result["scenario"] = *input.Scenario
+	return []interface{}{
+		map[string]interface{}{
+			"scenario":      *input.Scenario,
+			"subnet_arm_id": *input.SubnetArmId,
+		},
 	}
-	if input.SubnetArmId != nil {
-		result["subnet_arm_id"] = *input.SubnetArmId
-	}
-
-	return []interface{}{result}
 }
