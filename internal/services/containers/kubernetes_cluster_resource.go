@@ -3518,7 +3518,6 @@ func expandKubernetesClusterNetworkProfile(input []interface{}, d *pluginsdk.Res
 
 func expandKubernetesClusterAdvancedNetworking(input []interface{}, d *pluginsdk.ResourceData) *managedclusters.AdvancedNetworking {
 	if len(input) == 0 || input[0] == nil {
-
 		o, n := d.GetChange("network_profile.0.advanced_networking")
 		if o != nil && len(o.([]interface{})) == 1 && n == nil || len(n.([]interface{})) == 0 {
 			return &managedclusters.AdvancedNetworking{
@@ -3550,7 +3549,7 @@ func expandKubernetesClusterAdvancedNetworking(input []interface{}, d *pluginsdk
 }
 
 func flattenKubernetesClusterAdvancedNetworking(advancedNetworking *managedclusters.AdvancedNetworking) []interface{} {
-	if advancedNetworking == nil || pointer.From(advancedNetworking.Enabled) == false {
+	if pointer.From(advancedNetworking.Enabled) == false {
 		return []interface{}{}
 	}
 

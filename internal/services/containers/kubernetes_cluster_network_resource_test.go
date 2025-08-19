@@ -59,7 +59,7 @@ func TestAccKubernetesCluster_advancedNetworkingBlock(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.advancedNetworkingBlockRemoved(data, "azure", "cilium"),
+			Config: r.advancedNetworkingBlockRemoved(data, "azure"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_profile.0.network_plugin").HasValue("azure"),
@@ -95,7 +95,7 @@ func TestAccKubernetesCluster_advancedNetworkingNetworkDataplane(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.advancedNetworkingBlock(data, "azure", "cilium"),
+			Config:      r.advancedNetworkingBlock(data, "azure", "azure"),
 			ExpectError: regexp.MustCompile("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_data_plane` must be set to `cilium`"),
 		},
 	})
@@ -1282,7 +1282,7 @@ resource "azurerm_kubernetes_cluster" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin)
 }
 
-func (KubernetesClusterResource) advancedNetworkingBlockRemoved(data acceptance.TestData, networkPlugin, networkDataPlane string) string {
+func (KubernetesClusterResource) advancedNetworkingBlockRemoved(data acceptance.TestData, networkPlugin string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1337,10 +1337,10 @@ resource "azurerm_kubernetes_cluster" "test" {
 
   network_profile {
     network_plugin     = "%s"
-    network_data_plane = "%s"
+    network_data_plane = "cilium"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin, networkDataPlane)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, networkPlugin)
 }
 
 func (KubernetesClusterResource) serviceMeshProfile(data acceptance.TestData, internalIngressEnabled bool, externalIngressEnabled bool) string {
