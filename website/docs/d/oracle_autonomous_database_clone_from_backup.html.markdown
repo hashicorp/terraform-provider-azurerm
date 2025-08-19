@@ -87,7 +87,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `national_character_set` - The national character set for the autonomous database.
 
-* `next_long_term_backup_time_stamp_in_utc` -  The timestamp when the next long-term backup would be created.
+* `next_long_term_backup_time_stamp_in_utc_in_utc` -  The timestamp when the next long-term backup would be created.
 
 * `oci_url` - The URL of the resource in the OCI console.
 

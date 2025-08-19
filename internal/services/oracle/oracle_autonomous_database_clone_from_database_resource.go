@@ -46,7 +46,7 @@ type AutonomousDatabaseCloneResourceModel struct {
 	ComputeModel                 string   `tfschema:"compute_model"`
 	DataStorageSizeInTb          int64    `tfschema:"data_storage_size_in_tb"`
 	DatabaseVersion              string   `tfschema:"database_version"`
-	DbWorkload                   string   `tfschema:"db_workload"`
+	DatabaseWorkload             string   `tfschema:"database_workload"`
 	DisplayName                  string   `tfschema:"display_name"`
 	LicenseModel                 string   `tfschema:"license_model"`
 	AutoScalingEnabled           bool     `tfschema:"auto_scaling_enabled"`
@@ -169,7 +169,7 @@ func (AutonomousDatabaseCloneFromDatabaseResource) Arguments() map[string]*plugi
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"db_workload": {
+		"database_workload": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
@@ -308,7 +308,7 @@ func (r AutonomousDatabaseCloneFromDatabaseResource) Create() sdk.ResourceFunc {
 				ComputeModel:                   pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
 				CustomerContacts:               expandCloneCustomerContactsPtr(model.CustomerContacts),
 				DataStorageSizeInTbs:           pointer.To(model.DataStorageSizeInTb),
-				DbWorkload:                     pointer.To(autonomousdatabases.WorkloadType(model.DbWorkload)),
+				DbWorkload:                     pointer.To(autonomousdatabases.WorkloadType(model.DatabaseWorkload)),
 				DbVersion:                      pointer.To(model.DatabaseVersion),
 				DisplayName:                    pointer.To(model.DisplayName),
 				IsAutoScalingEnabled:           pointer.To(model.AutoScalingEnabled),
@@ -393,7 +393,7 @@ func (r AutonomousDatabaseCloneFromDatabaseResource) Read() sdk.ResourceFunc {
 				state.DataStorageSizeInTb = pointer.From(props.DataStorageSizeInTbs)
 				state.DatabaseVersion = pointer.From(props.DbVersion)
 				state.DatabaseVersion = pointer.From(props.DbVersion)
-				state.DbWorkload = string(pointer.From(props.DbWorkload))
+				state.DatabaseWorkload = string(pointer.From(props.DbWorkload))
 				state.DisplayName = pointer.From(props.DisplayName)
 				state.AutoScalingEnabled = pointer.From(props.IsAutoScalingEnabled)
 				state.AutoScalingForStorageEnabled = pointer.From(props.IsAutoScalingForStorageEnabled)
@@ -498,7 +498,7 @@ func (AutonomousDatabaseCloneFromDatabaseResource) CustomizeDiff() sdk.ResourceF
 			}
 
 			sourceId := metadata.ResourceData.Get("source_id").(string)
-			dbWorkload := metadata.ResourceData.Get("db_workload").(string)
+			dbWorkload := metadata.ResourceData.Get("database_workload").(string)
 
 			if sourceId == "" || dbWorkload == "" {
 				return nil

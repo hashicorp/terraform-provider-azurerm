@@ -37,65 +37,65 @@ type AutonomousDatabaseCloneFromDatabaseDataSourceModel struct {
 	TimeUntilReconnectCloneUtc string `tfschema:"time_until_reconnect_clone_utc"`
 
 	// Base properties (computed)
-	ActualUsedDataStorageSizeInTbs             float64                         `tfschema:"actual_used_data_storage_size_in_tbs"`
-	AllocatedStorageSizeInTb                   float64                         `tfschema:"allocated_storage_size_in_tb"`
-	AllowedIps                                 []string                        `tfschema:"allowed_ips"`
-	AutoScalingEnabled                         bool                            `tfschema:"auto_scaling_enabled"`
-	AutoScalingForStorageEnabled               bool                            `tfschema:"auto_scaling_for_storage_enabled"`
-	AvailableUpgradeVersions                   []string                        `tfschema:"available_upgrade_versions"`
-	BackupRetentionPeriodInDays                int64                           `tfschema:"backup_retention_period_in_days"`
-	CharacterSet                               string                          `tfschema:"character_set"`
-	ComputeCount                               float64                         `tfschema:"compute_count"`
-	ComputeModel                               string                          `tfschema:"compute_model"`
-	ConnectionStrings                          []string                        `tfschema:"connection_strings"`
-	CpuCoreCount                               int64                           `tfschema:"cpu_core_count"`
-	CustomerContacts                           []string                        `tfschema:"customer_contacts"`
-	DataStorageSizeInGb                        int64                           `tfschema:"data_storage_size_in_gb"`
-	DataStorageSizeInTb                        int64                           `tfschema:"data_storage_size_in_tb"`
-	DatabaseVersion                            string                          `tfschema:"database_version"`
-	DatabaseWorkload                           string                          `tfschema:"database_workload"`
-	DisplayName                                string                          `tfschema:"display_name"`
-	FailedDataRecoveryInSeconds                int64                           `tfschema:"failed_data_recovery_in_seconds"`
-	LicenseModel                               string                          `tfschema:"license_model"`
-	LifecycleDetails                           string                          `tfschema:"lifecycle_details"`
-	LifecycleState                             string                          `tfschema:"lifecycle_state"`
-	LocalAdgAutoFailoverMaxDataLossLimit       int64                           `tfschema:"local_adg_auto_failover_max_data_loss_limit"`
-	LocalDataGuardEnabled                      bool                            `tfschema:"local_data_guard_enabled"`
-	LongTermBackupSchedule                     []LongTermBackUpScheduleDetails `tfschema:"long_term_backup_schedule"`
-	MemoryAreaInGb                             int64                           `tfschema:"in_memory_area_in_gbs"`
-	MemoryPerOracleComputeUnitInGb             int64                           `tfschema:"memory_per_oracle_compute_unit_in_gb"`
-	MtlsConnectionRequired                     bool                            `tfschema:"mtls_connection_required"`
-	NationalCharacterSet                       string                          `tfschema:"national_character_set"`
-	NextLongTermBackupTimeStamp                string                          `tfschema:"next_long_term_backup_time_stamp"`
-	OciUrl                                     string                          `tfschema:"oci_url"`
-	Ocid                                       string                          `tfschema:"ocid"`
-	PeerDbId                                   string                          `tfschema:"peer_db_id"`
-	PeerDbIds                                  []string                        `tfschema:"peer_db_ids"`
-	Preview                                    bool                            `tfschema:"preview"`
-	PreviewVersionWithServiceTermsAccepted     bool                            `tfschema:"preview_version_with_service_terms_accepted"`
-	PrivateEndpoint                            string                          `tfschema:"private_endpoint"`
-	PrivateEndpointIp                          string                          `tfschema:"private_endpoint_ip"`
-	PrivateEndpointLabel                       string                          `tfschema:"private_endpoint_label"`
-	ProvisionableCPUs                          []int64                         `tfschema:"provisionable_cpus"`
-	RemoteDataGuardEnabled                     bool                            `tfschema:"remote_data_guard_enabled"`
-	ServiceConsoleUrl                          string                          `tfschema:"service_console_url"`
-	SqlWebDeveloperUrl                         string                          `tfschema:"sql_web_developer_url"`
-	SubnetId                                   string                          `tfschema:"subnet_id"`
-	SupportedRegionsToCloneTo                  []string                        `tfschema:"supported_regions_to_clone_to"`
-	TimeCreatedUtc                             string                          `tfschema:"time_created_utc"`
-	TimeDataGuardRoleChangedUtc                string                          `tfschema:"time_data_guard_role_changed_utc"`
-	TimeDeletionOfFreeAutonomousDatabaseUtc    string                          `tfschema:"time_deletion_of_free_autonomous_database_utc"`
-	TimeLocalDataGuardEnabledUtc               string                          `tfschema:"time_local_data_guard_enabled_on"`
-	TimeMaintenanceBeginUtc                    string                          `tfschema:"time_maintenance_begin_utc"`
-	TimeMaintenanceEndUtc                      string                          `tfschema:"time_maintenance_end_utc"`
-	TimeOfLastFailoverUtc                      string                          `tfschema:"time_of_last_failover_utc"`
-	TimeOfLastRefreshUtc                       string                          `tfschema:"time_of_last_refresh_utc"`
-	TimeOfLastRefreshPointUtc                  string                          `tfschema:"time_of_last_refresh_point_utc"`
-	TimeOfLastSwitchoverUtc                    string                          `tfschema:"time_of_last_switchover_utc"`
-	TimeReclamationOfFreeAutonomousDatabaseUtc string                          `tfschema:"time_reclamation_of_free_autonomous_database_utc"`
-	UsedDataStorageSizeInGb                    int64                           `tfschema:"used_data_storage_size_in_gb"`
-	UsedDataStorageSizeInTb                    int64                           `tfschema:"used_data_storage_size_in_tb"`
-	VnetId                                     string                          `tfschema:"virtual_network_id"`
+	ActualUsedDataStorageSizeInTb                 float64                         `tfschema:"actual_used_data_storage_size_in_tb"`
+	AllocatedStorageSizeInTb                      float64                         `tfschema:"allocated_storage_size_in_tb"`
+	AllowedIps                                    []string                        `tfschema:"allowed_ips"`
+	AutoScalingEnabled                            bool                            `tfschema:"auto_scaling_enabled"`
+	AutoScalingForStorageEnabled                  bool                            `tfschema:"auto_scaling_for_storage_enabled"`
+	AvailableUpgradeVersions                      []string                        `tfschema:"available_upgrade_versions"`
+	BackupRetentionPeriodInDays                   int64                           `tfschema:"backup_retention_period_in_days"`
+	CharacterSet                                  string                          `tfschema:"character_set"`
+	ComputeCount                                  float64                         `tfschema:"compute_count"`
+	ComputeModel                                  string                          `tfschema:"compute_model"`
+	ConnectionStrings                             []string                        `tfschema:"connection_strings"`
+	CpuCoreCount                                  int64                           `tfschema:"cpu_core_count"`
+	CustomerContacts                              []string                        `tfschema:"customer_contacts"`
+	DataStorageSizeInGb                           int64                           `tfschema:"data_storage_size_in_gb"`
+	DataStorageSizeInTb                           int64                           `tfschema:"data_storage_size_in_tb"`
+	DatabaseVersion                               string                          `tfschema:"database_version"`
+	DatabaseWorkload                              string                          `tfschema:"database_workload"`
+	DisplayName                                   string                          `tfschema:"display_name"`
+	FailedDataRecoveryInSeconds                   int64                           `tfschema:"failed_data_recovery_in_seconds"`
+	LicenseModel                                  string                          `tfschema:"license_model"`
+	LifecycleDetails                              string                          `tfschema:"lifecycle_details"`
+	LifecycleState                                string                          `tfschema:"lifecycle_state"`
+	LocalAdgAutoFailoverMaxDataLossLimitInSeconds int64                           `tfschema:"local_adg_auto_failover_max_data_loss_limit_in_seconds"`
+	LocalDataGuardEnabled                         bool                            `tfschema:"local_data_guard_enabled"`
+	LongTermBackupSchedule                        []LongTermBackUpScheduleDetails `tfschema:"long_term_backup_schedule"`
+	MemoryAreaInGb                                int64                           `tfschema:"in_memory_area_in_gb"`
+	MemoryPerOracleComputeUnitInGb                int64                           `tfschema:"memory_per_oracle_compute_unit_in_gb"`
+	MtlsConnectionRequired                        bool                            `tfschema:"mtls_connection_required"`
+	NationalCharacterSet                          string                          `tfschema:"national_character_set"`
+	NextLongTermBackupTimeStamp                   string                          `tfschema:"next_long_term_backup_time_stamp"`
+	OciUrl                                        string                          `tfschema:"oci_url"`
+	Ocid                                          string                          `tfschema:"ocid"`
+	PeerDatabaseId                                string                          `tfschema:"peer_database_id"`
+	PeerDatabaseIds                               []string                        `tfschema:"peer_database_ids"`
+	Preview                                       bool                            `tfschema:"preview"`
+	PreviewVersionWithServiceTermsAccepted        bool                            `tfschema:"preview_version_with_service_terms_accepted"`
+	PrivateEndpoint                               string                          `tfschema:"private_endpoint"`
+	PrivateEndpointIp                             string                          `tfschema:"private_endpoint_ip"`
+	PrivateEndpointLabel                          string                          `tfschema:"private_endpoint_label"`
+	ProvisionableCPUs                             []int64                         `tfschema:"provisionable_cpus"`
+	RemoteDataGuardEnabled                        bool                            `tfschema:"remote_data_guard_enabled"`
+	ServiceConsoleUrl                             string                          `tfschema:"service_console_url"`
+	SqlWebDeveloperUrl                            string                          `tfschema:"sql_web_developer_url"`
+	SubnetId                                      string                          `tfschema:"subnet_id"`
+	SupportedRegionsToCloneTo                     []string                        `tfschema:"supported_regions_to_clone_to"`
+	TimeCreatedUtc                                string                          `tfschema:"time_created_utc"`
+	TimeDataGuardRoleChangedUtc                   string                          `tfschema:"time_data_guard_role_changed_utc"`
+	TimeDeletionOfFreeAutonomousDatabaseUtc       string                          `tfschema:"time_deletion_of_free_autonomous_database_utc"`
+	TimeLocalDataGuardEnabledUtc                  string                          `tfschema:"time_local_data_guard_enabled_on"`
+	TimeMaintenanceBeginUtc                       string                          `tfschema:"time_maintenance_begin_utc"`
+	TimeMaintenanceEndUtc                         string                          `tfschema:"time_maintenance_end_utc"`
+	TimeOfLastFailoverUtc                         string                          `tfschema:"time_of_last_failover_utc"`
+	TimeOfLastRefreshUtc                          string                          `tfschema:"time_of_last_refresh_utc"`
+	TimeOfLastRefreshPointUtc                     string                          `tfschema:"time_of_last_refresh_point_utc"`
+	TimeOfLastSwitchoverUtc                       string                          `tfschema:"time_of_last_switchover_utc"`
+	TimeReclamationOfFreeAutonomousDatabaseUtc    string                          `tfschema:"time_reclamation_of_free_autonomous_database_utc"`
+	UsedDataStorageSizeInGb                       int64                           `tfschema:"used_data_storage_size_in_gb"`
+	UsedDataStorageSizeInTb                       int64                           `tfschema:"used_data_storage_size_in_tb"`
+	VnetId                                        string                          `tfschema:"virtual_network_id"`
 }
 
 func (AutonomousDatabaseCloneFromDatabaseDataSource) Arguments() map[string]*pluginsdk.Schema {
@@ -157,12 +157,12 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Attributes() map[string]*pl
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
-		"actual_used_data_storage_size_in_tbs": {
+		"actual_used_data_storage_size_in_tb": {
 			Type:     pluginsdk.TypeFloat,
 			Computed: true,
 		},
 
-		"allocated_storage_size_in_tbs": {
+		"allocated_storage_size_in_tb": {
 			Type:     pluginsdk.TypeFloat,
 			Computed: true,
 		},
@@ -284,7 +284,7 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Attributes() map[string]*pl
 			Computed: true,
 		},
 
-		"local_adg_auto_failover_max_data_loss_limit": {
+		"local_adg_auto_failover_max_data_loss_limit_in_seconds": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
@@ -349,12 +349,12 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Attributes() map[string]*pl
 			Computed: true,
 		},
 
-		"peer_db_id": {
+		"peer_database_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"peer_db_ids": {
+		"peer_database_ids": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Schema{
@@ -541,15 +541,16 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Read() sdk.ResourceFunc {
 				state.BackupRetentionPeriodInDays = pointer.From(props.BackupRetentionPeriodInDays)
 				state.CharacterSet = pointer.From(props.CharacterSet)
 				state.ComputeCount = pointer.From(props.ComputeCount)
-				state.ComputeModel = string(pointer.From(props.ComputeModel))
+				state.ComputeModel = pointer.FromEnum(props.ComputeModel)
 				state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
 				state.DataStorageSizeInGb = pointer.From(props.DataStorageSizeInGbs)
 				state.DataStorageSizeInTb = pointer.From(props.DataStorageSizeInTbs)
 				state.DatabaseVersion = pointer.From(props.DbVersion)
-				state.DatabaseWorkload = string(pointer.From(props.DbWorkload))
+				state.DatabaseWorkload = pointer.FromEnum(props.DbWorkload)
 				state.DisplayName = pointer.From(props.DisplayName)
-				state.LicenseModel = string(pointer.From(props.LicenseModel))
+				state.LicenseModel = pointer.FromEnum(props.LicenseModel)
 				state.LifecycleState = pointer.FromEnum(props.LifecycleState)
+				state.LocalAdgAutoFailoverMaxDataLossLimitInSeconds = pointer.From(props.LocalAdgAutoFailoverMaxDataLossLimit)
 				state.AutoScalingEnabled = pointer.From(props.IsAutoScalingEnabled)
 				state.AutoScalingForStorageEnabled = pointer.From(props.IsAutoScalingForStorageEnabled)
 				state.MtlsConnectionRequired = pointer.From(props.IsMtlsConnectionRequired)

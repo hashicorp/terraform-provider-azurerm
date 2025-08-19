@@ -99,7 +99,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_backup" "test" {
   compute_model                    = "ECPU"
   data_storage_size_in_tb          = 1
   database_version                 = "19c"
-  db_workload                      = "OLTP"
+  database_workload                = "OLTP"
   display_name                     = "ADB%[2]dclone"
   license_model                    = "LicenseIncluded"
   auto_scaling_enabled             = false
@@ -135,7 +135,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_backup" "import" {
   compute_model                    = azurerm_oracle_autonomous_database_clone_from_backup.test.compute_model
   data_storage_size_in_tb          = azurerm_oracle_autonomous_database_clone_from_backup.test.data_storage_size_in_tb
   database_version                 = azurerm_oracle_autonomous_database_clone_from_backup.test.database_version
-  db_workload                      = azurerm_oracle_autonomous_database_clone_from_backup.test.db_workload
+  database_workload                = azurerm_oracle_autonomous_database_clone_from_backup.test.database_workload
   display_name                     = azurerm_oracle_autonomous_database_clone_from_backup.test.display_name
   license_model                    = azurerm_oracle_autonomous_database_clone_from_backup.test.license_model
   auto_scaling_enabled             = azurerm_oracle_autonomous_database_clone_from_backup.test.auto_scaling_enabled
@@ -172,7 +172,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_backup" "test" {
   compute_model                    = "ECPU"
   data_storage_size_in_tb          = 1
   database_version                 = "19c"
-  db_workload                      = "OLTP"
+  database_workload                = "OLTP"
   display_name                     = "ADB%[2]dclone"
   license_model                    = "LicenseIncluded"
   auto_scaling_enabled             = false

@@ -85,13 +85,13 @@ In addition to the Arguments listed above—the following Attributes are exporte
 
 * `national_character_set` - The national character set for the autonomous database.
 
-* `next_long_term_backup_time_stamp` -  The timestamp when the next long-term backup would be created.
+* `next_long_term_backup_time_stamp_in_utc` -  The timestamp when the next long-term backup would be created.
 
 * `oci_url` -  The URL of the resource in the OCI console.
 
 * `ocid` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the autonomous database.
 
-* `peer_db_ids` - The list of [OCIDs](https://docs.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of standby databases located in Autonomous Data Guard remote regions that are associated with the source database. Note that for Autonomous Database Serverless instances, standby databases located in the same region as the source primary database do not have OCIDs.
+* `peer_database_ids` - The list of [OCIDs](https://docs.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of standby databases located in Autonomous Data Guard remote regions that are associated with the source database. Note that for Autonomous Database Serverless instances, standby databases located in the same region as the source primary database do not have OCIDs.
 
 * `preview` - Indicates if the Autonomous Database version is a preview version.
 
