@@ -1,6 +1,7 @@
 ## 4.41.0 (Unreleased)
 
 ENHANCEMENTS:
+`azurerm_netapp_pool` - add support for `custom_throughput_mibps`  [GH-30404]
 * `azurerm_monitor_diagnostic_setting` - update validation for `target_resource_id` to allow management group IDs as input [GH-30447]
 
 * `azurerm_netapp_account_encryption` - add support for `federated_client_id` and `cross_tenant_key_vault_resource_id`  [GH-30373]
