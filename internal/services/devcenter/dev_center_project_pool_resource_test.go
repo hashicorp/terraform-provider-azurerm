@@ -319,18 +319,30 @@ resource "azurerm_dev_center_network_connection" "test" {
   name                = "acctest-dcnc-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  domain_join_type    = "HybridAzureADJoin"
+  domain_join_type    = "AzureADJoin"
   subnet_id           = azurerm_subnet.test.id
-  domain_name         = "never.gonna.shut.you.down"
-  domain_username     = "tfuser@microsoft.com"
-  domain_password     = "P@ssW0RD7890"
-  organization_unit   = "OU=Sales,DC=Fabrikam,DC=com"
 }
 
 resource "azurerm_dev_center_attached_network" "test" {
   name                  = "acctest-dcan-%d"
   dev_center_id         = azurerm_dev_center.test.id
   network_connection_id = azurerm_dev_center_network_connection.test.id
+  depends_on            = [azurerm_dev_center_dev_box_definition.test]
+}
+
+resource "azurerm_dev_center_dev_box_definition" "test2" {
+  name               = "acctest-dcet2-%d"
+  location           = azurerm_resource_group.test.location
+  dev_center_id      = azurerm_dev_center.test.id
+  image_reference_id = "${azurerm_dev_center.test.id}/galleries/default/images/microsoftvisualstudio_visualstudioplustools_vs-2022-ent-general-win10-m365-gen2"
+  sku_name           = "general_i_8c32gb256ssd_v2"
+}
+
+resource "azurerm_dev_center_attached_network" "test2" {
+  name                  = "acctest-dcan2-%d"
+  dev_center_id         = azurerm_dev_center.test.id
+  network_connection_id = azurerm_dev_center_network_connection.test.id
+  depends_on            = [azurerm_dev_center_dev_box_definition.test2]
 }
 
 resource "azurerm_dev_center_project" "test" {
@@ -338,8 +350,7 @@ resource "azurerm_dev_center_project" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   dev_center_id       = azurerm_dev_center.test.id
-
-  depends_on = [azurerm_dev_center_attached_network.test]
+  depends_on          = [azurerm_dev_center_attached_network.test, azurerm_dev_center_attached_network.test2]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
