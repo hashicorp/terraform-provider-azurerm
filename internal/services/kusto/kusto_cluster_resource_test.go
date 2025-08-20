@@ -414,7 +414,7 @@ resource "azurerm_kusto_cluster" "test" {
   public_network_access_enabled      = false
   public_ip_type                     = "DualStack"
   outbound_network_access_restricted = true
-  
+
   language_extensions {
     name  = "PYTHON"
     image = "Python3_6_5"
