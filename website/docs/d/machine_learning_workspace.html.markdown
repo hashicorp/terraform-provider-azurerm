@@ -45,6 +45,8 @@ The following attributes are exported:
 
 * `identity` - An `identity` block as defined below.
 
+* `system_datastores_auth_mode` - The authentication mode for system datastores.
+
 * `tags` - A mapping of tags assigned to the Machine Learning Workspace.
 
 ---
