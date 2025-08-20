@@ -191,6 +191,7 @@ resource "azurerm_dev_center_project_pool" "test" {
   dev_box_definition_name                 = azurerm_dev_center_dev_box_definition.test.name
   local_administrator_enabled             = true
   dev_center_attached_network_name        = azurerm_dev_center_attached_network.test.name
+  single_sign_on_enabled                  = true
   stop_on_disconnect_grace_period_minutes = 60
 
   tags = {
@@ -215,6 +216,7 @@ resource "azurerm_dev_center_project_pool" "test" {
   dev_box_definition_name                 = azurerm_dev_center_dev_box_definition.test2.name
   local_administrator_enabled             = false
   dev_center_attached_network_name        = azurerm_dev_center_attached_network.test2.name
+  single_sign_on_enabled                  = false
   stop_on_disconnect_grace_period_minutes = 80
 
   tags = {
@@ -302,6 +304,8 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  depends_on = [azurerm_dev_center_dev_box_definition.test]
 }
 
 resource "azurerm_subnet" "test" {
@@ -315,32 +319,18 @@ resource "azurerm_dev_center_network_connection" "test" {
   name                = "acctest-dcnc-%d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  domain_join_type    = "AzureADJoin"
+  domain_join_type    = "HybridAzureADJoin"
   subnet_id           = azurerm_subnet.test.id
+  domain_name         = "never.gonna.shut.you.down"
+  domain_username     = "tfuser@microsoft.com"
+  domain_password     = "P@ssW0RD7890"
+  organization_unit   = "OU=Sales,DC=Fabrikam,DC=com"
 }
 
 resource "azurerm_dev_center_attached_network" "test" {
   name                  = "acctest-dcan-%d"
   dev_center_id         = azurerm_dev_center.test.id
   network_connection_id = azurerm_dev_center_network_connection.test.id
-
-  depends_on = [azurerm_dev_center_dev_box_definition.test]
-}
-
-resource "azurerm_dev_center_dev_box_definition" "test2" {
-  name               = "acctest-dcet2-%d"
-  location           = azurerm_resource_group.test.location
-  dev_center_id      = azurerm_dev_center.test.id
-  image_reference_id = "${azurerm_dev_center.test.id}/galleries/default/images/microsoftvisualstudio_visualstudioplustools_vs-2022-ent-general-win10-m365-gen2"
-  sku_name           = "general_i_8c32gb256ssd_v2"
-}
-
-resource "azurerm_dev_center_attached_network" "test2" {
-  name                  = "acctest-dcan2-%d"
-  dev_center_id         = azurerm_dev_center.test.id
-  network_connection_id = azurerm_dev_center_network_connection.test.id
-
-  depends_on = [azurerm_dev_center_dev_box_definition.test2]
 }
 
 resource "azurerm_dev_center_project" "test" {
@@ -349,7 +339,7 @@ resource "azurerm_dev_center_project" "test" {
   location            = azurerm_resource_group.test.location
   dev_center_id       = azurerm_dev_center.test.id
 
-  depends_on = [azurerm_dev_center_attached_network.test, azurerm_dev_center_attached_network.test2]
+  depends_on = [azurerm_dev_center_attached_network.test]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
