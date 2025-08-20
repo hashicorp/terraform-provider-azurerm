@@ -1,6 +1,7 @@
 ## 4.41.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_monitor_diagnostic_setting` - update validation for `target_resource_id` to allow management group IDs as input [GH-30447]
 
 * `azurerm_netapp_account_encryption` - add support for `federated_client_id` and `cross_tenant_key_vault_resource_id`  [GH-30373]
 * `azurerm_cdn_frontdoor_profile` - add support for the `log_scrubbing_rule` block [GH-30115]
