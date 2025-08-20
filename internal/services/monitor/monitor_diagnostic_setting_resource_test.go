@@ -334,7 +334,21 @@ func TestAccMonitorDiagnosticSetting_enabledLogs(t *testing.T) {
 	})
 }
 
-func (t MonitorDiagnosticSettingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func TestAccMonitorDiagnosticSetting_managementGroup(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_diagnostic_setting", "test")
+	r := MonitorDiagnosticSettingResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.managementGroup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r MonitorDiagnosticSettingResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := monitor.ParseMonitorDiagnosticId(state.ID)
 	if err != nil {
 		return nil, err
@@ -1522,4 +1536,42 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (MonitorDiagnosticSettingResource) managementGroup(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name = "acctestRG%[1]d"
+  location = "eastus"
+}
+
+resource "azurerm_management_group" "test" {
+  name = "acctestMG%[1]d"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  name = "acctestLAW%[1]d"
+  location = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name = "acctestMDS%[1]d"
+
+  target_resource_id = azurerm_management_group.test.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+
+  enabled_log {
+    category = "Administrative"
+  }
+
+  enabled_log {
+    category = "Policy"
+  }
+}
+`, data.RandomInteger)
 }
