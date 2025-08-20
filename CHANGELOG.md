@@ -1,10 +1,13 @@
 ## 4.41.0 (Unreleased)
 
 ENHANCEMENTS:
-`azurerm_netapp_account_encryption` - add support for `federated_client_id` and `cross_tenant_key_vault_resource_id`  [GH-30373]
+
+* `azurerm_netapp_account_encryption` - add support for `federated_client_id` and `cross_tenant_key_vault_resource_id`  [GH-30373]
 * `azurerm_cdn_frontdoor_profile` - add support for the `log_scrubbing_rule` block [GH-30115]
 
 FEATURES:
+
+* **New Resource**: `azurerm_network_manager_ipam_pool_static_cidr` [GH-29501]
 * **New Resource**: `azurerm_network_manager_routing_rule_collection` [GH-29783]
 
 BUG FIXES:
