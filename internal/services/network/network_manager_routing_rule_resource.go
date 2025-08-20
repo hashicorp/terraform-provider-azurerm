@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -66,21 +67,18 @@ func (ManagerRoutingRuleResource) Arguments() map[string]*pluginsdk.Schema {
 		"destination": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
-			MinItems: 1,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"address": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ForceNew:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 					"type": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: validation.StringInSlice(routingrules.PossibleValuesForRoutingRuleDestinationType(), false),
 					},
 				},
 			},
@@ -89,20 +87,17 @@ func (ManagerRoutingRuleResource) Arguments() map[string]*pluginsdk.Schema {
 		"next_hop": {
 			Type:     pluginsdk.TypeList,
 			Required: true,
-			MinItems: 1,
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"address": {
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ForceNew:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
-					},
 					"type": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
-						ForceNew:     true,
+						ValidateFunc: validation.StringInSlice(routingrules.PossibleValuesForRoutingRuleNextHopType(), false),
+					},
+					"address": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
@@ -148,12 +143,17 @@ func (r ManagerRoutingRuleResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
+			nextHop, err := expandNetworkManagerRoutingRuleNextHop(config.NextHop)
+			if err != nil {
+				return fmt.Errorf("expanding `next_hop`: %+v", err)
+			}
+
 			payload := routingrules.RoutingRule{
 				Name: pointer.To(config.Name),
 				Properties: &routingrules.RoutingRulePropertiesFormat{
 					Description: pointer.To(config.Description),
 					Destination: expandNetworkManagerRoutingRuleDestination(config.Destination),
-					NextHop:     expandNetworkManagerRoutingRuleNextHop(config.NextHop),
+					NextHop:     *nextHop,
 				},
 			}
 
@@ -188,10 +188,9 @@ func (r ManagerRoutingRuleResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			ruleCollectionId := routingrules.NewRuleCollectionID(id.SubscriptionId, id.ResourceGroupName, id.NetworkManagerName, id.RoutingConfigurationName, id.RuleCollectionName).ID()
 			schema := ManagerRoutingRuleResourceModel{
 				Name:             id.RuleName,
-				RuleCollectionId: ruleCollectionId,
+				RuleCollectionId: routingrules.NewRuleCollectionID(id.SubscriptionId, id.ResourceGroupName, id.NetworkManagerName, id.RoutingConfigurationName, id.RuleCollectionName).ID(),
 			}
 
 			if model := resp.Model; model != nil {
@@ -246,7 +245,12 @@ func (r ManagerRoutingRuleResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("next_hop") {
-				parameters.Properties.NextHop = expandNetworkManagerRoutingRuleNextHop(model.NextHop)
+				nextHop, err := expandNetworkManagerRoutingRuleNextHop(model.NextHop)
+				if err != nil {
+					return fmt.Errorf("expanding `next_hop`: %+v", err)
+				}
+
+				parameters.Properties.NextHop = *nextHop
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *parameters); err != nil {
@@ -300,16 +304,21 @@ func flattenNetworkManagerRoutingRuleDestination(input routingrules.RoutingRuleR
 	}
 }
 
-func expandNetworkManagerRoutingRuleNextHop(input []ManagerRoutingRuleNextHop) routingrules.RoutingRuleNextHop {
+func expandNetworkManagerRoutingRuleNextHop(input []ManagerRoutingRuleNextHop) (*routingrules.RoutingRuleNextHop, error) {
 	if len(input) == 0 {
-		return routingrules.RoutingRuleNextHop{}
+		return &routingrules.RoutingRuleNextHop{}, nil
 	}
 
 	v := input[0]
-	return routingrules.RoutingRuleNextHop{
+
+	if strings.EqualFold(v.Type, string(routingrules.RoutingRuleNextHopTypeVirtualAppliance)) && v.Address == "" {
+		return nil, fmt.Errorf("address is required when type is `VirtualAppliance`")
+	}
+
+	return &routingrules.RoutingRuleNextHop{
 		NextHopAddress: pointer.To(v.Address),
 		NextHopType:    routingrules.RoutingRuleNextHopType(v.Type),
-	}
+	}, nil
 }
 
 func flattenNetworkManagerRoutingRuleNextHop(input routingrules.RoutingRuleNextHop) []ManagerRoutingRuleNextHop {

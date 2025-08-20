@@ -159,7 +159,7 @@ resource "azurerm_network_manager_routing_rule" "test" {
   description        = "This is a test Routing Rule"
   destination {
     type    = "ServiceTag"
-    address = "10.0.0.0/16"
+    address = "ActionGroup"
   }
 
   next_hop {
@@ -173,7 +173,7 @@ resource "azurerm_network_manager_routing_rule" "test" {
 func (r ManagerRoutingRuleResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-network-manager-rc-%d"
+  name     = "acctestRG-network-manager-rr-%d"
   location = "%s"
 }
 
@@ -202,7 +202,7 @@ resource "azurerm_network_manager_routing_configuration" "test" {
 resource "azurerm_network_manager_routing_rule_collection" "test" {
   name                     = "acctest-nmrrc-%[1]d"
   routing_configuration_id = azurerm_network_manager_routing_configuration.test.id
-  network_group_ids        = ["azurerm_network_manager_network_group.test.id"]
+  network_group_ids        = [azurerm_network_manager_network_group.test.id]
   description              = "test routing rule collection"
 }
 `, data.RandomInteger, data.Locations.Primary)

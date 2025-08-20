@@ -6,25 +6,62 @@ description: |-
   Manages a Network Manager Routing Rule.
 ---
 
+
 # azurerm_network_manager_routing_rule
 
 Manages a Network Manager Routing Rule.
 
+!> **Note:** Terraform has enabled force deletion. This setting deletes the resource even if it's part of a deployed configuration. If the configuration is deployed, the service will perform a cleanup deployment in the background before the deletion.
+
 ## Example Usage
 
 ```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+data "azurerm_subscription" "current" {}
+
+resource "azurerm_network_manager" "example" {
+  name                = "example-network-manager"
+  resource_group_name = azurerm_resource_group.example.name
+  location            = azurerm_resource_group.example.location
+  scope {
+    subscription_ids = [data.azurerm_subscription.current.id]
+  }
+  scope_accesses = ["Routing"]
+}
+
+resource "azurerm_network_manager_network_group" "example" {
+  name               = "example-network-group"
+  network_manager_id = azurerm_network_manager.example.id
+}
+
+resource "azurerm_network_manager_routing_configuration" "example" {
+  name               = "example-routing-configuration"
+  network_manager_id = azurerm_network_manager.example.id
+}
+
+resource "azurerm_network_manager_routing_rule_collection" "example" {
+  name                     = "example-routing-rule-collection"
+  routing_configuration_id = azurerm_network_manager_routing_configuration.example.id
+  network_group_ids        = [azurerm_network_manager_network_group.example.id]
+  description              = "example routing rule collection"
+}
+
 resource "azurerm_network_manager_routing_rule" "example" {
-  name = "example"
-  rule_collection_id = "TODO"
+  name               = "example-routing-rule"
+  rule_collection_id = azurerm_network_manager_routing_rule_collection.example.id
+  description        = "example routing rule"
 
   destination {
-    type = "TODO"
-    address = "TODO"    
+    type    = "AddressPrefix"
+    address = "10.0.0.0/16"
   }
 
   next_hop {
-    address = "TODO"
-    type = "TODO"    
+    type = "VirtualNetworkGateway"
   }
 }
 ```
@@ -33,33 +70,31 @@ resource "azurerm_network_manager_routing_rule" "example" {
 
 The following arguments are supported:
 
-* `destination` - (Required) A `destination` block as defined below.
+* `name` - (Required) The name of the Network Manager Routing Rule. Changing this forces a new resource to be created.
 
-* `name` - (Required) The name which should be used for this Network Manager Routing Rule. Changing this forces a new Network Manager Routing Rule to be created.
+* `rule_collection_id` - (Required) The ID of the Network Manager Routing Rule Collection to which this rule belongs. Changing this forces a new resource to be created.
+
+* `destination` - (Required) A `destination` block as defined below.
 
 * `next_hop` - (Required) A `next_hop` block as defined below.
 
-* `rule_collection_id` - (Required) The ID of the TODO. Changing this forces a new Network Manager Routing Rule to be created.
-
----
-
-* `description` - (Optional) TODO.
+* `description` - (Optional) A description for the routing rule.
 
 ---
 
 A `destination` block supports the following:
 
-* `address` - (Required) TODO. Changing this forces a new Network Manager Routing Rule to be created.
+* `address` - (Required) The destination address.
 
-* `type` - (Required) TODO. Changing this forces a new Network Manager Routing Rule to be created.
+* `type` - (Required) The type of destination. Possible values are `AddressPrefix` and `ServiceTag`.
 
 ---
 
 A `next_hop` block supports the following:
 
-* `address` - (Required) TODO. Changing this forces a new Network Manager Routing Rule to be created.
+* `type` - (Required) The type of next hop. Possible values are `Internet`, `NoNextHop`, `VirtualAppliance`, `VirtualNetworkGateway` and `VnetLocal`.
 
-* `type` - (Required) TODO. Changing this forces a new Network Manager Routing Rule to be created.
+* `address` - (Optional) The address of the next hop. This is required if the next hop type is VirtualAppliance.
 
 ## Attributes Reference
 
@@ -83,3 +118,9 @@ Network Manager Routing Rules can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_network_manager_routing_rule.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Network/networkManagers/manager1/routingConfigurations/conf1/ruleCollections/collection1/rules/rule1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01
