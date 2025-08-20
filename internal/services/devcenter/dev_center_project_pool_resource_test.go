@@ -304,8 +304,6 @@ resource "azurerm_virtual_network" "test" {
   address_space       = ["10.0.0.0/16"]
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-
-  depends_on = [azurerm_dev_center_dev_box_definition.test]
 }
 
 resource "azurerm_subnet" "test" {
@@ -327,7 +325,8 @@ resource "azurerm_dev_center_attached_network" "test" {
   name                  = "acctest-dcan-%d"
   dev_center_id         = azurerm_dev_center.test.id
   network_connection_id = azurerm_dev_center_network_connection.test.id
-  depends_on            = [azurerm_dev_center_dev_box_definition.test]
+
+  depends_on = [azurerm_dev_center_dev_box_definition.test]
 }
 
 resource "azurerm_dev_center_dev_box_definition" "test2" {
@@ -342,7 +341,8 @@ resource "azurerm_dev_center_attached_network" "test2" {
   name                  = "acctest-dcan2-%d"
   dev_center_id         = azurerm_dev_center.test.id
   network_connection_id = azurerm_dev_center_network_connection.test.id
-  depends_on            = [azurerm_dev_center_dev_box_definition.test2]
+
+  depends_on = [azurerm_dev_center_dev_box_definition.test2]
 }
 
 resource "azurerm_dev_center_project" "test" {
@@ -350,7 +350,8 @@ resource "azurerm_dev_center_project" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   dev_center_id       = azurerm_dev_center.test.id
-  depends_on          = [azurerm_dev_center_attached_network.test, azurerm_dev_center_attached_network.test2]
+
+  depends_on = [azurerm_dev_center_attached_network.test, azurerm_dev_center_attached_network.test2]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
