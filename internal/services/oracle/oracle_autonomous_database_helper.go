@@ -28,11 +28,9 @@ func expandCloneCustomerContacts(input []string) []autonomousdatabases.CustomerC
 
 	contacts := make([]autonomousdatabases.CustomerContact, 0, len(input))
 	for _, email := range input {
-
 		contacts = append(contacts, autonomousdatabases.CustomerContact{
 			Email: email,
 		})
-
 	}
 	return contacts
 }

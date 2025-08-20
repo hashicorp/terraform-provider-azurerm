@@ -492,7 +492,7 @@ func getSourceWorkloadforClone(ctx context.Context, sourceId string, metadata sd
 	client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
 	resp, err := client.Get(ctx, *id)
 	if err != nil {
-		return "", fmt.Errorf("retrieving %s: %v", err)
+		return "", fmt.Errorf("retrieving %s", err)
 	}
 
 	if resp.Model == nil {
@@ -509,5 +509,4 @@ func getSourceWorkloadforClone(ctx context.Context, sourceId string, metadata sd
 	}
 
 	return string(*props.DbWorkload), nil
-
 }
