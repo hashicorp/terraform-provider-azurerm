@@ -154,6 +154,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								ValidateFunc: validate.CIDR,
 							},
 						},
+						"vnet_integration_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"subnet_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: commonids.ValidateSubnetID,
+						},
 					},
 				},
 			},
@@ -3146,21 +3156,41 @@ func expandKubernetesClusterAPIAccessProfile(d *pluginsdk.ResourceData) *managed
 		}
 	}
 
+	if v, ok := config["vnet_integration_enabled"]; ok {
+		apiAccessProfile.EnableVnetIntegration = pointer.To(v.(bool))
+	}
+
+	if v, ok := config["subnet_id"]; ok {
+		if s := v.(string); s != "" {
+			apiAccessProfile.SubnetId = pointer.To(s)
+		}
+	}
+
 	return apiAccessProfile
 }
 
 func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedClusterAPIServerAccessProfile) []interface{} {
-	if profile == nil || profile.AuthorizedIPRanges == nil {
+	if profile == nil {
 		return []interface{}{}
 	}
 
 	apiServerAuthorizedIPRanges := utils.FlattenStringSlice(profile.AuthorizedIPRanges)
 
-	return []interface{}{
-		map[string]interface{}{
-			"authorized_ip_ranges": apiServerAuthorizedIPRanges,
-		},
+	enableVnetIntegration := false
+	if profile.EnableVnetIntegration != nil {
+		enableVnetIntegration = *profile.EnableVnetIntegration
 	}
+	subnetId := pointer.From(profile.SubnetId)
+
+	if len(apiServerAuthorizedIPRanges) == 0 && !enableVnetIntegration && subnetId == "" {
+		return []interface{}{}
+	}
+
+	return []interface{}{map[string]interface{}{
+		"authorized_ip_ranges":     apiServerAuthorizedIPRanges,
+		"vnet_integration_enabled": enableVnetIntegration,
+		"subnet_id":                subnetId,
+	}}
 }
 
 func expandKubernetesClusterWorkloadAutoscalerProfile(input []interface{}, d *pluginsdk.ResourceData) *managedclusters.ManagedClusterWorkloadAutoScalerProfile {

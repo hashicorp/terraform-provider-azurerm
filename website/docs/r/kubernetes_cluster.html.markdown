@@ -286,6 +286,10 @@ An `api_server_access_profile` block supports the following:
 
 * `authorized_ip_ranges` - (Optional) Set of authorized IP ranges to allow access to API server, e.g. ["198.51.100.0/24"].
 
+* `subnet_id` - (Optional) The ID of the Subnet where the API server endpoint is delegated to.
+
+* `vnet_integration_enabled` - (Optional) Should API Server VNet Integration be enabled? 
+
 ---
 
 An `auto_scaler_profile` block supports the following:
