@@ -300,9 +300,7 @@ func resourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("qos_type", qosType)
 		d.Set("encryption_type", string(pointer.From(poolProperties.EncryptionType)))
 		d.Set("cool_access_enabled", pointer.From(poolProperties.CoolAccess))
-		if poolProperties.CustomThroughputMibps != nil {
-			d.Set("custom_throughput_mibps", int(pointer.From(poolProperties.CustomThroughputMibps)))
-		}
+		d.Set("custom_throughput_mibps", int(pointer.From(poolProperties.CustomThroughputMibps)))
 
 		return tags.FlattenAndSet(d, model.Tags)
 	}
