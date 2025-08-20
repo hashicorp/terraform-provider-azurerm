@@ -11,7 +11,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/netappaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/netappaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
@@ -63,6 +63,11 @@ func (r NetAppAccountEncryptionDataSource) Attributes() map[string]*pluginsdk.Sc
 		},
 
 		"federated_client_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
+		"cross_tenant_key_vault_resource_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -130,6 +135,11 @@ func (r NetAppAccountEncryptionDataSource) Read() sdk.ResourceFunc {
 				}
 				state.EncryptionKey = encryptionKey
 				state.FederatedClientID = federatedClientID
+
+				// Populate cross-tenant key vault resource ID only for cross-tenant scenarios (when federated_client_id is present)
+				if federatedClientID != "" && model.Properties.Encryption.KeyVaultProperties != nil && model.Properties.Encryption.KeyVaultProperties.KeyVaultResourceId != nil {
+					state.CrossTenantKeyVaultResourceID = pointer.From(model.Properties.Encryption.KeyVaultProperties.KeyVaultResourceId)
+				}
 			}
 
 			metadata.SetID(id)
