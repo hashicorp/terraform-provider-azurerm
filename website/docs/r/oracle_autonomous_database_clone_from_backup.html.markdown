@@ -45,7 +45,6 @@ resource "azurerm_oracle_autonomous_database_clone_from_backup" "example" {
   name                             = "example"
   resource_group_name              = azurerm_oracle_autonomous_database.example.resource_group_name
   location                         = "West Europe"
-  source                           = "BackupFromTimestamp"
   mtls_connection_required         = false
   compute_model                    = "ECPU"
   clone_type                       = "Full"
@@ -110,8 +109,6 @@ The following arguments are supported:
 * `national_character_set` - (Required) The national character set for the autonomous database. Changing this forces a new autonomous database clone from backup to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the autonomous database clone from backup should exist. Changing this forces a new autonomous database clone from backup to be created.
-
-* `source` - (Required) The source of the clone. Possible value is BackupFromTimestamp. Changing this forces a new autonomous database clone from backup to be created.
 
 * `source_autonomous_database_id` - (Required) The ID of the source Autonomous Database to clone from. Changing this forces a new autonomous database clone from backup to be created.
 

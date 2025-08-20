@@ -55,7 +55,6 @@ resource "azurerm_oracle_autonomous_database_clone_from_database" "example" {
   data_storage_size_in_tb          = 42
   clone_type                       = "Full"
   admin_password                   = "BEstrO0ng_#11"
-  source                           = "Database"
   mtls_connection_required         = false
   db_workload                      = "OLTP"
   character_set                    = "AL32UTF8"
@@ -111,8 +110,6 @@ The following arguments are supported:
 * `national_character_set` - (Required) The national character set for the autonomous database. Changing this forces a new Autonomous Database Clone to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the autonomous database clone from database should exist. Changing this forces a new autonomous database clone from database to be created.
-
-* `source` - (Required) The source of the clone. Possible values are  `Database` . Changing this forces a new Autonomous Database Clone to be created.
 
 * `source_autonomous_database_id` - (Required) The ID of the source Autonomous Database to clone from. Changing this forces a new autonomous database clone from database to be created.
 

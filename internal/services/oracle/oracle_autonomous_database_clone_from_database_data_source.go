@@ -66,16 +66,16 @@ type AutonomousDatabaseCloneFromDatabaseDataSourceModel struct {
 	MemoryPerOracleComputeUnitInGb                int64                           `tfschema:"memory_per_oracle_compute_unit_in_gb"`
 	MtlsConnectionRequired                        bool                            `tfschema:"mtls_connection_required"`
 	NationalCharacterSet                          string                          `tfschema:"national_character_set"`
-	NextLongTermBackupTimeStamp                   string                          `tfschema:"next_long_term_backup_time_stamp"`
+	NextLongTermBackupTimeStamp                   string                          `tfschema:"next_long_term_backup_timestamp"`
 	OciUrl                                        string                          `tfschema:"oci_url"`
 	Ocid                                          string                          `tfschema:"ocid"`
 	PeerDatabaseId                                string                          `tfschema:"peer_database_id"`
 	PeerDatabaseIds                               []string                        `tfschema:"peer_database_ids"`
 	Preview                                       bool                            `tfschema:"preview"`
 	PreviewVersionWithServiceTermsAccepted        bool                            `tfschema:"preview_version_with_service_terms_accepted"`
-	PrivateEndpoint                               string                          `tfschema:"private_endpoint"`
+	PrivateEndpoint                               string                          `tfschema:"private_endpoint_erl"`
 	PrivateEndpointIp                             string                          `tfschema:"private_endpoint_ip"`
-	PrivateEndpointLabel                          string                          `tfschema:"private_endpoint_label"`
+	PrivateEndpointLabel                          string                          `tfschema:"private_endpoint_url_label"`
 	ProvisionableCPUs                             []int64                         `tfschema:"provisionable_cpus"`
 	RemoteDataGuardEnabled                        bool                            `tfschema:"remote_data_guard_enabled"`
 	ServiceConsoleUrl                             string                          `tfschema:"service_console_url"`
@@ -153,10 +153,6 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Attributes() map[string]*pl
 		},
 
 		// Base properties
-		"autonomous_database_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
 		"actual_used_data_storage_size_in_tb": {
 			Type:     pluginsdk.TypeFloat,
 			Computed: true,
@@ -334,7 +330,7 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Attributes() map[string]*pl
 			Computed: true,
 		},
 
-		"next_long_term_backup_time_stamp": {
+		"next_long_term_backup_timestamp": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -372,7 +368,7 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Attributes() map[string]*pl
 			Computed: true,
 		},
 
-		"private_endpoint": {
+		"private_endpoint_url": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -528,7 +524,7 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Read() sdk.ResourceFunc {
 
 				props, ok := model.Properties.(autonomousdatabases.AutonomousDatabaseCloneProperties)
 				if !ok {
-					return fmt.Errorf("%s is not a clone type autonomous database", id)
+					return fmt.Errorf("%s was not of type `Clone`", id)
 				}
 				state.CloneType = string(props.CloneType)
 				state.SourceId = props.SourceId
@@ -563,24 +559,37 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Read() sdk.ResourceFunc {
 				state.SqlWebDeveloperUrl = pointer.From(props.SqlWebDeveloperURL)
 				state.TimeCreatedUtc = pointer.From(props.TimeCreated)
 				state.OciUrl = pointer.From(props.OciURL)
-				if props.ConnectionStrings != nil && props.ConnectionStrings.AllConnectionStrings != nil {
-					connStrings := make([]string, 0)
-					allConnStrings := *props.ConnectionStrings.AllConnectionStrings
-					if allConnStrings.High != nil {
-						connStrings = append(connStrings, *allConnStrings.High)
-					}
-					if allConnStrings.Medium != nil {
-						connStrings = append(connStrings, *allConnStrings.Medium)
-					}
-					if allConnStrings.Low != nil {
-						connStrings = append(connStrings, *allConnStrings.Low)
-					}
-					state.ConnectionStrings = connStrings
-				}
+				state.ConnectionStrings = flattenConnectionStrings(props.ConnectionStrings)
 			}
 
 			metadata.SetID(id)
 			return metadata.Encode(&state)
 		},
 	}
+}
+
+func flattenConnectionStrings(connStrings *autonomousdatabases.ConnectionStringType) []string {
+	flattened := make([]string, 0)
+
+	if connStrings == nil {
+		return flattened
+	}
+	allConnStrings := connStrings.AllConnectionStrings
+	if allConnStrings == nil {
+		return flattened
+	}
+
+	if allConnStrings.High != nil {
+		flattened = append(flattened, *allConnStrings.High)
+	}
+
+	if allConnStrings.Medium != nil {
+		flattened = append(flattened, *allConnStrings.Medium)
+	}
+
+	if allConnStrings.Low != nil {
+		flattened = append(flattened, *allConnStrings.Low)
+	}
+
+	return flattened
 }

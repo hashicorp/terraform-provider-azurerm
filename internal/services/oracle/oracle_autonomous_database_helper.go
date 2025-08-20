@@ -20,3 +20,33 @@ func FlattenLongTermBackUpScheduleDetails(longTermBackUpScheduleDetails *autonom
 	}
 	return output
 }
+
+func expandCloneCustomerContacts(input []string) []autonomousdatabases.CustomerContact {
+	if len(input) == 0 {
+		return nil
+	}
+
+	contacts := make([]autonomousdatabases.CustomerContact, 0, len(input))
+	for _, email := range input {
+
+		contacts = append(contacts, autonomousdatabases.CustomerContact{
+			Email: email,
+		})
+
+	}
+	return contacts
+}
+
+func flattenCloneCustomerContacts(input []autonomousdatabases.CustomerContact) []string {
+	if len(input) == 0 {
+		return nil
+	}
+
+	emails := make([]string, 0, len(input))
+	for _, contact := range input {
+		if contact.Email != "" {
+			emails = append(emails, contact.Email)
+		}
+	}
+	return emails
+}

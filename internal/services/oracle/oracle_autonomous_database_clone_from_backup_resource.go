@@ -32,7 +32,6 @@ type AutonomousDatabaseCloneFromBackupResourceModel struct {
 
 	// Required for Clone
 
-	Source                     string `tfschema:"source"`
 	SourceAutonomousDatabaseId string `tfschema:"source_autonomous_database_id"`
 	CloneType                  string `tfschema:"clone_type"`
 
@@ -77,18 +76,6 @@ func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*plugins
 
 		// Clone-specific required fields
 
-		"source": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(autonomousdatabases.SourceTypeBackupFromTimestamp),
-			}, false),
-			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-				// Source is create-only and not returned by Azure API
-				return old != "" && new == ""
-			},
-		},
 		"source_autonomous_database_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -122,6 +109,7 @@ func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*plugins
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			Sensitive:    true,
+			ForceNew:     true,
 			ValidateFunc: validate.AutonomousDatabasePassword,
 		},
 
@@ -142,6 +130,7 @@ func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*plugins
 		"compute_count": {
 			Type:         pluginsdk.TypeFloat,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.FloatBetween(2.0, 512.0),
 		},
 
@@ -155,6 +144,7 @@ func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*plugins
 		"data_storage_size_in_tb": {
 			Type:         pluginsdk.TypeInt,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.IntBetween(1, 384),
 		},
 
@@ -176,17 +166,19 @@ func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*plugins
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.AutonomousDatabaseName,
+			ValidateFunc: validation.StringLenBetween(1, 255),
 		},
 
 		"auto_scaling_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Required: true,
+			ForceNew: true,
 		},
 
 		"auto_scaling_for_storage_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Required: true,
+			ForceNew: true,
 		},
 
 		"mtls_connection_required": {
@@ -196,13 +188,10 @@ func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*plugins
 		},
 
 		"license_model": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(autonomousdatabases.LicenseModelLicenseIncluded),
-				string(autonomousdatabases.LicenseModelBringYourOwnLicense),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForLicenseModel(), false),
 		},
 
 		"national_character_set": {
@@ -240,12 +229,15 @@ func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*plugins
 			Optional: true,
 			MaxItems: 1024,
 			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.IsIPv4Address,
+				Type: pluginsdk.TypeString,
+				ValidateFunc: validation.Any(
+					validation.IsIPv4Address,
+					validation.IsCIDR,
+				),
 			},
 		},
 
-		"tags": commonschema.Tags(),
+		"tags": commonschema.TagsForceNew(),
 	}
 }
 
@@ -303,7 +295,7 @@ func (r AutonomousDatabaseCloneFromBackupResource) Create() sdk.ResourceFunc {
 				CharacterSet:                   pointer.To(model.CharacterSet),
 				ComputeCount:                   pointer.To(model.ComputeCount),
 				ComputeModel:                   pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
-				CustomerContacts:               expandCloneCustomerContactsPtr(model.CustomerContacts),
+				CustomerContacts:               pointer.To(expandCloneCustomerContacts(model.CustomerContacts)),
 				DataStorageSizeInTbs:           pointer.To(model.DataStorageSizeInTb),
 				DbWorkload:                     pointer.To(autonomousdatabases.WorkloadType(model.DatabaseWorkload)),
 				DbVersion:                      pointer.To(model.DatabaseVersion),
@@ -357,13 +349,10 @@ func (r AutonomousDatabaseCloneFromBackupResource) Read() sdk.ResourceFunc {
 
 			var state AutonomousDatabaseCloneFromBackupResourceModel
 
-			if val, ok := metadata.ResourceData.GetOk("source"); ok {
-				state.Source = val.(string)
-			}
 			if v, ok := metadata.ResourceData.GetOk("use_latest_available_backup_time_stamp"); ok {
 				state.UseLatestAvailableBackupTimeStamp = v.(bool)
 			}
-			if v, ok := metadata.ResourceData.GetOk("timestamp"); ok {
+			if v, ok := metadata.ResourceData.GetOk("backup_timestamp"); ok {
 				state.BackupTimestamp = v.(string)
 			}
 
@@ -375,7 +364,7 @@ func (r AutonomousDatabaseCloneFromBackupResource) Read() sdk.ResourceFunc {
 
 				props, ok := model.Properties.(autonomousdatabases.AutonomousDatabaseFromBackupTimestampProperties)
 				if !ok {
-					return fmt.Errorf("%s was not of type `Regular`", id)
+					return fmt.Errorf("%s was not of type `CloneFromBackupTimestamp`", id)
 				}
 				state.CloneType = string(props.CloneType)
 				state.SourceAutonomousDatabaseId = props.SourceId
@@ -420,15 +409,6 @@ func (r AutonomousDatabaseCloneFromBackupResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
-			return nil
-		},
-	}
-}
-
-func (r AutonomousDatabaseCloneFromBackupResource) Update() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			return nil
 		},
 	}

@@ -49,7 +49,7 @@ type AutonomousDatabaseCloneFromBackupDataSourceModel struct {
 	SubnetId                                      string                          `tfschema:"subnet_id"`
 	VnetId                                        string                          `tfschema:"virtual_network_id"`
 	LifecycleState                                string                          `tfschema:"lifecycle_state"`
-	PrivateEndpoint                               string                          `tfschema:"private_endpoint"`
+	PrivateEndpoint                               string                          `tfschema:"private_endpoint_url"`
 	PrivateEndpointIp                             string                          `tfschema:"private_endpoint_ip"`
 	ServiceConsoleUrl                             string                          `tfschema:"service_console_url"`
 	SqlWebDeveloperUrl                            string                          `tfschema:"sql_web_developer_url"`
@@ -66,7 +66,7 @@ type AutonomousDatabaseCloneFromBackupDataSourceModel struct {
 	LongTermBackupSchedule                        []LongTermBackUpScheduleDetails `tfschema:"long_term_backup_schedule"`
 	MemoryAreaInGbs                               int64                           `tfschema:"in_memory_area_in_gb"`
 	MemoryPerOracleComputeUnitInGb                int64                           `tfschema:"memory_per_oracle_compute_unit_in_gb"`
-	NextLongTermBackupTimeStamp                   string                          `tfschema:"next_long_term_backup_time_stamp"`
+	NextLongTermBackupTimeStamp                   string                          `tfschema:"next_long_term_backup_timestamp"`
 	Ocid                                          string                          `tfschema:"ocid"`
 	PeerDatabaseId                                string                          `tfschema:"peer_database_id"`
 	PeerDatabaseIds                               []string                        `tfschema:"peer_database_ids"`
@@ -109,10 +109,6 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Attributes() map[string]*plug
 		"tags": commonschema.TagsDataSource(),
 
 		"source_autonomous_database_id": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-		"autonomous_database_id": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -285,7 +281,7 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Attributes() map[string]*plug
 			Computed: true,
 		},
 
-		"next_long_term_backup_time_stamp": {
+		"next_long_term_backup_timestamp": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -323,7 +319,7 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Attributes() map[string]*plug
 			Computed: true,
 		},
 
-		"private_endpoint": {
+		"private_endpoint_url": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},

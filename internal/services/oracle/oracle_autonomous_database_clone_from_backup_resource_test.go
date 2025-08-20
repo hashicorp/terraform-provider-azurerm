@@ -88,7 +88,6 @@ resource "azurerm_oracle_autonomous_database_clone_from_backup" "test" {
 
   source_autonomous_database_id = azurerm_oracle_autonomous_database.test.id
   clone_type                    = "Full"
-  source                        = "BackupFromTimestamp"
 
   use_latest_available_backup_time_stamp = true
 
@@ -127,7 +126,6 @@ resource "azurerm_oracle_autonomous_database_clone_from_backup" "import" {
   location                         = azurerm_oracle_autonomous_database_clone_from_backup.test.location
   source_autonomous_database_id    = azurerm_oracle_autonomous_database_clone_from_backup.test.source_autonomous_database_id
   clone_type                       = azurerm_oracle_autonomous_database_clone_from_backup.test.clone_type
-  source                           = azurerm_oracle_autonomous_database_clone_from_backup.test.source
   admin_password                   = azurerm_oracle_autonomous_database_clone_from_backup.test.admin_password
   backup_retention_period_in_days  = azurerm_oracle_autonomous_database_clone_from_backup.test.backup_retention_period_in_days
   character_set                    = azurerm_oracle_autonomous_database_clone_from_backup.test.character_set
@@ -160,7 +158,6 @@ resource "azurerm_oracle_autonomous_database_clone_from_backup" "test" {
 
   source_autonomous_database_id = azurerm_oracle_autonomous_database.test.id
   clone_type                    = "Metadata"
-  source                        = "BackupFromTimestamp"
 
   # Use latest backup
   use_latest_available_backup_time_stamp = true

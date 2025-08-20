@@ -99,7 +99,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `preview_version_with_service_terms_accepted` -  Indicates if the Autonomous Database version is a preview version with service terms accepted.
 
-* `private_endpoint` - The private endpoint for the resource.
+* `private_endpoint_url` - The private endpoint for the resource.
 
 * `private_endpoint_ip` - The private endpoint Ip address for the resource.
 
