@@ -66,6 +66,11 @@ func (r NetAppAccountEncryptionDataSource) Attributes() map[string]*pluginsdk.Sc
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
+
+		"cross_tenant_key_vault_resource_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -130,6 +135,11 @@ func (r NetAppAccountEncryptionDataSource) Read() sdk.ResourceFunc {
 				}
 				state.EncryptionKey = encryptionKey
 				state.FederatedClientID = federatedClientID
+
+				// Populate cross-tenant key vault resource ID only for cross-tenant scenarios (when federated_client_id is present)
+				if federatedClientID != "" && model.Properties.Encryption.KeyVaultProperties != nil && model.Properties.Encryption.KeyVaultProperties.KeyVaultResourceId != nil {
+					state.CrossTenantKeyVaultResourceID = pointer.From(model.Properties.Encryption.KeyVaultProperties.KeyVaultResourceId)
+				}
 			}
 
 			metadata.SetID(id)

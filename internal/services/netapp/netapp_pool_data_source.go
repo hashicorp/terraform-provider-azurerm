@@ -100,7 +100,7 @@ func dataSourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("size_in_tb", props.Size/1099511627776)
 		d.Set("encryption_type", string(pointer.From(props.EncryptionType)))
 		d.Set("cool_access_enabled", pointer.From(props.CoolAccess))
-			d.Set("custom_throughput_mibps", int(pointer.From(props.CustomThroughputMibps)))
+		d.Set("custom_throughput_mibps", int(pointer.From(props.CustomThroughputMibps)))
 	}
 
 	return nil
