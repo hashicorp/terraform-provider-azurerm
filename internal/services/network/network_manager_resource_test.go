@@ -103,6 +103,14 @@ func TestAccNetworkManager(t *testing.T) {
 			"requiresImport": testAccNetworkManagerIpamPool_requiresImport,
 			"dataSource":     testAccNetworkManagerIpamPoolDataSource_complete,
 		},
+		"IPAMPoolStaticCIDR": {
+			"basic":                 testAccNetworkManagerIpamPoolStaticCidr_basic,
+			"complete":              testAccNetworkManagerIpamPoolStaticCidr_complete,
+			"update":                testAccNetworkManagerIpamPoolStaticCidr_update,
+			"requiresImport":        testAccNetworkManagerIpamPoolStaticCidr_requiresImport,
+			"ipAddressNumber":       testAccNetworkManagerIpamPoolStaticCidr_ipAddressNumber,
+			"updateIpAddressNumber": testAccNetworkManagerIpamPoolStaticCidr_ipAddressNumberUpdated,
+		},
 		"VerifierWorkspace": {
 			"basic":          testAccNetworkManagerVerifierWorkspace_basic,
 			"complete":       testAccNetworkManagerVerifierWorkspace_complete,

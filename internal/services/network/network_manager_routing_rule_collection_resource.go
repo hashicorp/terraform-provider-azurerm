@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package network
 
 import (
@@ -146,7 +149,7 @@ func (r ManagerRoutingRuleCollectionResource) Read() sdk.ResourceFunc {
 			}
 
 			schema := ManagerRoutingRuleCollectionResourceModel{
-				Name:                   id.RoutingConfigurationName,
+				Name:                   id.RuleCollectionName,
 				RoutingConfigurationId: routingrulecollections.NewRoutingConfigurationID(id.SubscriptionId, id.ResourceGroupName, id.NetworkManagerName, id.RoutingConfigurationName).ID(),
 			}
 

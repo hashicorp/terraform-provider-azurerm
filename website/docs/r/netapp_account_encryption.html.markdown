@@ -103,6 +103,29 @@ resource "azurerm_netapp_account_encryption" "example" {
   user_assigned_identity_id = azurerm_user_assigned_identity.example.id
 
   encryption_key = azurerm_key_vault_key.example.versionless_id
+
+  # Optional: For cross-tenant key vault access scenarios
+  federated_client_id = azurerm_user_assigned_identity.example.client_id
+}
+```
+
+## Cross-Tenant Usage
+
+For scenarios where the key vault is in a different Entra ID tenant:
+
+```hcl
+resource "azurerm_netapp_account_encryption" "cross_tenant" {
+  netapp_account_id = azurerm_netapp_account.example.id
+
+  user_assigned_identity_id = azurerm_user_assigned_identity.example.id
+
+  encryption_key = "https://keyvault-in-other-tenant.vault.azure.net/keys/encryption-key"
+
+  # Client ID of the multi-tenant Entra ID application
+  federated_client_id = "12345678-1234-1234-1234-123456789012"
+
+  # Full resource ID of the cross-tenant key vault (recommended)
+  cross_tenant_key_vault_resource_id = "/subscriptions/11111111-1111-1111-1111-111111111111/resourceGroups/remote-rg/providers/Microsoft.KeyVault/vaults/keyvault-in-other-tenant"
 }
 ```
 
@@ -120,11 +143,17 @@ The following arguments are supported:
 
 * `user_assigned_identity_id` - (Optional) The ID of the User Assigned Managed Identity. Conflicts with `system_assigned_identity_principal_id`.
 
+* `federated_client_id` - (Optional) The Client ID of the multi-tenant Entra ID application used to access cross-tenant key vaults. This is only required when accessing a key vault in a different tenant than the NetApp account.
+
+* `cross_tenant_key_vault_resource_id` - (Optional) The full resource ID of the cross-tenant key vault. This is recommended when using `federated_client_id` for cross-tenant scenarios to ensure proper validation by Azure APIs.
+
 ---
 
 
 
 A full example of the `azurerm_netapp_account_encryption` resource and NetApp Volume with customer-managed keys encryption enabled can be found in [the `./examples/netapp/nfsv3_volume_cmk_userassigned` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/netapp/nfsv3_volume_cmk_userassigned)
+
+For cross-tenant scenarios, see the example in [the `./examples/netapp/nfsv3_volume_cmk_cross_tenant` directory within the GitHub Repository](https://github.com/hashicorp/terraform-provider-azurerm/tree/main/examples/netapp/nfsv3_volume_cmk_cross_tenant)
 
 ## Attributes Reference
 
