@@ -326,7 +326,8 @@ An `auto_scaler_profile` block supports the following:
 
 * `empty_bulk_delete_max` - (Optional) Maximum number of empty nodes that can be deleted at the same time. Defaults to `10`.
 
-* `skip_nodes_with_local_storage` - (Optional) If `true` cluster autoscaler will never delete nodes with pods with local storage, for example, EmptyDir or HostPath. Defaults to `true`.
+* `skip_nodes_with_local_storage` - (Optional) If `true` cluster autoscaler will never delete nodes with pods with local storage, for example, EmptyDir or HostPath. Defaults to `false`.
+<!-- Note: Although Azure’s API default is `true`, Terraform sends the zero-value (`false`) whenever an `auto_scaler_profile` block is present but this field isn’t set. -->
 
 * `skip_nodes_with_system_pods` - (Optional) If `true` cluster autoscaler will never delete nodes with pods from kube-system (except for DaemonSet or mirror pods). Defaults to `true`.
 
