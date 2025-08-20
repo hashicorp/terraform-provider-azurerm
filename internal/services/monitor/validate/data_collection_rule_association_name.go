@@ -6,7 +6,6 @@ package validate
 import (
 	"fmt"
 	"regexp"
-	"strings"
 )
 
 // DataCollectionRuleAssociationName validates that the name does not contain control characters or specific forbidden characters
@@ -25,12 +24,11 @@ func DataCollectionRuleAssociationName(i interface{}, k string) (warnings []stri
 	}
 
 	// Check for forbidden characters: < > % & : \ ? /
-	forbiddenChars := "<>%&:\\?/"
-	for _, char := range forbiddenChars {
-		if strings.ContainsRune(v, char) {
-			errors = append(errors, fmt.Errorf("property `%s` cannot contain the character `%c`", k, char))
-			return warnings, errors
-		}
+	// Use regex to find all forbidden characters at once
+	forbiddenCharPattern := regexp.MustCompile(`[<>%&:\\?/]`)
+	if forbiddenCharPattern.MatchString(v) {
+		errors = append(errors, fmt.Errorf("property `%s` cannot contain any of the following characters: `<`, `>`, `%%`, `&`, `:`, `\\`, `?`, `/`", k))
+		return warnings, errors
 	}
 
 	return warnings, errors

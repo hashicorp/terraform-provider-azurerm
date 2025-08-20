@@ -3,7 +3,9 @@
 
 package validate
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestDataCollectionRuleAssociationName(t *testing.T) {
 	cases := []struct {
