@@ -1545,7 +1545,7 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name = "acctestRG%[1]d"
+  name     = "acctestRG%[1]d"
   location = "eastus"
 }
 
@@ -1554,15 +1554,15 @@ resource "azurerm_management_group" "test" {
 }
 
 resource "azurerm_log_analytics_workspace" "test" {
-  name = "acctestLAW%[1]d"
-  location = azurerm_resource_group.test.location
+  name                = "acctestLAW%[1]d"
+  location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
 }
 
 resource "azurerm_monitor_diagnostic_setting" "test" {
   name = "acctestMDS%[1]d"
 
-  target_resource_id = azurerm_management_group.test.id
+  target_resource_id         = azurerm_management_group.test.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
 
   enabled_log {
