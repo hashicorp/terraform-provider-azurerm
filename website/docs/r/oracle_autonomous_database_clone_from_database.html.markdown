@@ -141,7 +141,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 
 * `create` - (Defaults to 2 hours) Used when creating the autonomous database cloned from database.
 * `read` - (Defaults to 5 minutes) Used when retrieving the autonomous database cloned from database.
-* `update` - (Defaults to 30 minutes) Used when updating the autonomous database cloned from database.
 * `delete` - (Defaults to 30 minutes) Used when deleting the autonomous database cloned from database.
 
 ## Import
