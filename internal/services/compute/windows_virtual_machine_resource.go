@@ -304,7 +304,6 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
-				// Default:  string(virtualmachines.WindowsVMGuestPatchModeAutomaticByOS),
 				ValidateFunc: validation.StringInSlice([]string{
 					string(virtualmachines.WindowsVMGuestPatchModeAutomaticByOS),
 					string(virtualmachines.WindowsVMGuestPatchModeAutomaticByPlatform),
@@ -639,7 +638,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		} else {
 			_, errs := computeValidate.WindowsComputerNameFull(d.Get("name"), "computer_name")
 			if len(errs) > 0 {
-				return fmt.Errorf("unable to assume default computer name %s. Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name")
+				return fmt.Errorf("unable to assume default computer name %s. Please adjust the `name`, or specify an explicit `computer_name`", errs[0])
 			}
 			computerName = id.VirtualMachineName
 		}
@@ -1140,7 +1139,15 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 				if err := d.Set("os_disk", flattenedOSDisk); err != nil {
 					return fmt.Errorf("settings `os_disk`: %+v", err)
 				}
-				d.Set("os_managed_disk_id", profile.OsDisk.ManagedDisk.Id)
+				osManagedDiskId := ""
+				if profile.OsDisk != nil && profile.OsDisk.ManagedDisk != nil && profile.OsDisk.ManagedDisk.Id != nil {
+					osDiskId, err := commonids.ParseManagedDiskID(*profile.OsDisk.ManagedDisk.Id)
+					if err != nil {
+						return err
+					}
+					osManagedDiskId = osDiskId.ID()
+				}
+				d.Set("os_managed_disk_id", osManagedDiskId)
 				var storageImageId string
 				if profile.ImageReference != nil && profile.ImageReference.Id != nil {
 					storageImageId = *profile.ImageReference.Id

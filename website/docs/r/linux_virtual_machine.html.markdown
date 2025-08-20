@@ -93,8 +93,6 @@ resource "azurerm_linux_virtual_machine" "example" {
 
 The following arguments are supported:
 
-* `admin_username` - (Required) The username of the local administrator used for the Virtual Machine. Changing this forces a new resource to be created.
-
 * `location` - (Required) The Azure location where the Linux Virtual Machine should exist. Changing this forces a new resource to be created.
 
 * `license_type` - (Optional) Specifies the License Type for this Virtual Machine. Possible values are `RHEL_BYOS`, `RHEL_BASE`, `RHEL_EUS`, `RHEL_SAPAPPS`, `RHEL_SAPHA`, `RHEL_BASESAPAPPS`, `RHEL_BASESAPHA`, `SLES_BYOS`, `SLES_SAP`, `SLES_HPC`, `UBUNTU_PRO`.
@@ -110,6 +108,10 @@ The following arguments are supported:
 * `size` - (Required) The SKU which should be used for this Virtual Machine, such as `Standard_F2`.
 
 ---
+
+* `admin_username` - (Optional) The username of the local administrator used for the Virtual Machine. Changing this forces a new resource to be created.
+
+~> **Note:** This is required unless using an existing OS Managed Disk by specifying `os_managed_disk_id`.
 
 * `additional_capabilities` - (Optional) A `additional_capabilities` block as defined below.
 
@@ -306,7 +308,9 @@ A `os_disk` block supports the following:
 
 * `caching` - (Required) The Type of Caching which should be used for the Internal OS Disk. Possible values are `None`, `ReadOnly` and `ReadWrite`.
 
-* `storage_account_type` - (Required) The Type of Storage Account which should back this the Internal OS Disk. Possible values are `Standard_LRS`, `StandardSSD_LRS`, `Premium_LRS`, `StandardSSD_ZRS` and `Premium_ZRS`. Changing this forces a new resource to be created.
+* `storage_account_type` - (Optional) The Type of Storage Account which should back this the Internal OS Disk. Possible values are `Standard_LRS`, `StandardSSD_LRS`, `Premium_LRS`, `StandardSSD_ZRS` and `Premium_ZRS`. Changing this forces a new resource to be created.
+
+~> **Note:** This is required unless using an existing OS Managed Disk by specifying `os_managed_disk_id`.
 
 * `diff_disk_settings` - (Optional) A `diff_disk_settings` block as defined above. Changing this forces a new resource to be created.
 

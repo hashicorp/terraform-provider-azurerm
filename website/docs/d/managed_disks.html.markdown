@@ -42,7 +42,7 @@ The `disk` block exports:
 
 * `disk_mbps_read_write` - The bandwidth allowed for this disk.
 
-* `disk_size_gb` - The size of the Managed Disk in gigabytes.
+* `disk_size_in_gb` - The size of the Managed Disk in gigabytes.
 
 * `image_reference_id` - The ID of the source image used for creating this Managed Disk.
 
@@ -66,7 +66,7 @@ The `disk` block exports:
 
 * `disk_access_id` - The ID of the disk access resource for using private endpoints on disks.
 
-* `encryption_settings` - A `encryption_settings` block as defined below.
+* `encryption_settings` - An `encryption_settings` block as defined below.
 
 ---
 

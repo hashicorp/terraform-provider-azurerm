@@ -67,7 +67,6 @@ func resourceLinuxVirtualMachine() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			// Required
 			"admin_username": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
@@ -593,7 +592,7 @@ func resourceLinuxVirtualMachineCreate(d *pluginsdk.ResourceData, meta interface
 		} else {
 			_, errs := computeValidate.LinuxComputerNameFull(d.Get("name"), "computer_name")
 			if len(errs) > 0 {
-				return fmt.Errorf("unable to assume default computer name %s Please adjust the %q, or specify an explicit %q", errs[0], "name", "computer_name")
+				return fmt.Errorf("unable to assume default computer name %s. Please adjust the `name`, or specify an explicit `computer_name`", errs[0])
 			}
 			computerName = id.VirtualMachineName
 		}
@@ -1075,7 +1074,15 @@ func resourceLinuxVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 				if err := d.Set("os_disk", flattenedOSDisk); err != nil {
 					return fmt.Errorf("settings `os_disk`: %+v", err)
 				}
-				d.Set("os_managed_disk_id", profile.OsDisk.ManagedDisk.Id)
+				osManagedDiskId := ""
+				if profile.OsDisk != nil && profile.OsDisk.ManagedDisk != nil && profile.OsDisk.ManagedDisk.Id != nil {
+					osDiskId, err := commonids.ParseManagedDiskID(*profile.OsDisk.ManagedDisk.Id)
+					if err != nil {
+						return err
+					}
+					osManagedDiskId = osDiskId.ID()
+				}
+				d.Set("os_managed_disk_id", osManagedDiskId)
 				var storageImageId string
 				if profile.ImageReference != nil && profile.ImageReference.Id != nil {
 					storageImageId = *profile.ImageReference.Id
@@ -1150,8 +1157,6 @@ func resourceLinuxVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interface
 	if err != nil {
 		return err
 	}
-
-	// vmFromExistingDisk := !d.GetRawConfig().AsValueMap()["os_managed_disk_id"].IsNull()
 
 	locks.ByName(id.VirtualMachineName, VirtualMachineResourceName)
 	defer locks.UnlockByName(id.VirtualMachineName, VirtualMachineResourceName)

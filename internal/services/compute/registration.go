@@ -30,7 +30,6 @@ func (r Registration) SupportedDataSources() map[string]*pluginsdk.Resource {
 		"azurerm_dedicated_host_group":      dataSourceDedicatedHostGroup(),
 		"azurerm_disk_encryption_set":       dataSourceDiskEncryptionSet(),
 		"azurerm_managed_disk":              dataSourceManagedDisk(),
-		"azurerm_managed_disks":             dataSourceManagedDisks(),
 		"azurerm_image":                     dataSourceImage(),
 		"azurerm_images":                    dataSourceImages(),
 		"azurerm_disk_access":               dataSourceDiskAccess(),
@@ -83,6 +82,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 
 func (r Registration) DataSources() []sdk.DataSource {
 	return []sdk.DataSource{
+		ManagedDisksDataSource{},
 		OrchestratedVirtualMachineScaleSetDataSource{},
 	}
 }
