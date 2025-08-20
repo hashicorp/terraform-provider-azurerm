@@ -391,7 +391,7 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 				}
 			}
 			return &pluginsdk.RetryError{
-				Err:       fmt.Errorf("waiting the creation of %s: %+v", id, err),
+				Err:       fmt.Errorf("waiting for the creation of %s: %+v", id, err),
 				Retryable: false,
 			}
 		}
