@@ -59,7 +59,7 @@ type AutonomousDatabaseCloneFromBackupResourceModel struct {
 
 	BackupTimestamp                   string   `tfschema:"backup_timestamp"`
 	CustomerContacts                  []string `tfschema:"customer_contacts"`
-	UseLatestAvailableBackupTimeStamp bool     `tfschema:"use_latest_available_backup_time_stamp"`
+	UseLatestAvailableBackupTimestamp bool     `tfschema:"use_latest_available_backup_timestamp"`
 }
 
 func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*pluginsdk.Schema {
@@ -91,7 +91,7 @@ func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*plugins
 		},
 		// optional
 
-		"use_latest_available_backup_time_stamp": {
+		"use_latest_available_backup_timestamp": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			ForceNew: true,
@@ -211,19 +211,10 @@ func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*plugins
 				ValidateFunc: validate.CustomerContactEmail,
 			},
 		},
-		"subnet_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: commonids.ValidateSubnetID,
-		},
+		"subnet_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.SubnetId{}),
 
-		"virtual_network_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: commonids.ValidateVirtualNetworkID,
-		},
+		"virtual_network_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.VirtualNetworkId{}),
+
 		"allowed_ips": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
@@ -288,7 +279,7 @@ func (r AutonomousDatabaseCloneFromBackupResource) Create() sdk.ResourceFunc {
 				Source:       autonomousdatabases.Source(autonomousdatabases.SourceTypeBackupFromTimestamp),
 				DataBaseType: autonomousdatabases.DataBaseTypeCloneFromBackupTimestamp,
 
-				UseLatestAvailableBackupTimeStamp: pointer.To(model.UseLatestAvailableBackupTimeStamp),
+				UseLatestAvailableBackupTimeStamp: pointer.To(model.UseLatestAvailableBackupTimestamp),
 
 				// Base properties
 				AdminPassword:                  pointer.To(model.AdminPassword),
@@ -351,7 +342,7 @@ func (r AutonomousDatabaseCloneFromBackupResource) Read() sdk.ResourceFunc {
 			var state AutonomousDatabaseCloneFromBackupResourceModel
 
 			if v, ok := metadata.ResourceData.GetOk("use_latest_available_backup_time_stamp"); ok {
-				state.UseLatestAvailableBackupTimeStamp = v.(bool)
+				state.UseLatestAvailableBackupTimestamp = v.(bool)
 			}
 			if v, ok := metadata.ResourceData.GetOk("backup_timestamp"); ok {
 				state.BackupTimestamp = v.(string)
@@ -368,7 +359,11 @@ func (r AutonomousDatabaseCloneFromBackupResource) Read() sdk.ResourceFunc {
 					return fmt.Errorf("%s was not of type `CloneFromBackupTimestamp`", id)
 				}
 				state.CloneType = string(props.CloneType)
-				state.SourceAutonomousDatabaseId = props.SourceId
+				sourceId, err := autonomousdatabases.ParseAutonomousDatabaseID(props.SourceId)
+				if err != nil {
+					return fmt.Errorf("parsing source database ID: %+v", err)
+				}
+				state.SourceAutonomousDatabaseId = sourceId.String()
 
 				state.AdminPassword = metadata.ResourceData.Get("admin_password").(string)
 				state.BackupRetentionPeriodInDays = pointer.From(props.BackupRetentionPeriodInDays)
@@ -378,16 +373,26 @@ func (r AutonomousDatabaseCloneFromBackupResource) Read() sdk.ResourceFunc {
 				state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
 				state.DataStorageSizeInTb = pointer.From(props.DataStorageSizeInTbs)
 				state.DatabaseVersion = pointer.From(props.DbVersion)
-				state.DatabaseWorkload = string(pointer.From(props.DbWorkload))
+				state.DatabaseWorkload = pointer.FromEnum(props.DbWorkload)
 				state.DisplayName = pointer.From(props.DisplayName)
 				state.AutoScalingEnabled = pointer.From(props.IsAutoScalingEnabled)
 				state.AutoScalingForStorageEnabled = pointer.From(props.IsAutoScalingForStorageEnabled)
 				state.MtlsConnectionRequired = pointer.From(props.IsMtlsConnectionRequired)
-				state.LicenseModel = string(pointer.From(props.LicenseModel))
+				state.LicenseModel = pointer.FromEnum(props.LicenseModel)
 				state.NationalCharacterSet = pointer.From(props.NcharacterSet)
-				state.SubnetId = pointer.From(props.SubnetId)
-				state.VnetId = pointer.From(props.VnetId)
 				state.AllowedIps = pointer.From(props.WhitelistedIPs)
+
+				subnetID, err := commonids.ParseSubnetID(*props.SubnetId)
+				if err != nil {
+					return fmt.Errorf("parsing Subnet ID: %+v", err)
+				}
+				state.SubnetId = subnetID.String()
+
+				vnetID, err := commonids.ParseVirtualNetworkID(*props.VnetId)
+				if err != nil {
+					return fmt.Errorf("parsing Virtual Network ID: %+v", err)
+				}
+				state.VnetId = vnetID.String()
 			}
 
 			return metadata.Encode(&state)

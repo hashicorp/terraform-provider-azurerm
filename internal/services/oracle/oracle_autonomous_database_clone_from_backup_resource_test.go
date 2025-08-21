@@ -29,7 +29,7 @@ func TestAccAutonomousDatabaseCloneFromBackup_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "source", "clone_type", "use_latest_available_backup_time_stamp"),
+		data.ImportStep("admin_password", "source", "clone_type", "use_latest_available_backup_timestamp"),
 	})
 }
 
@@ -59,7 +59,7 @@ func TestAccAutonomousDatabaseCloneFromBackup_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "source", "clone_type", "use_latest_available_backup_time_stamp"),
+		data.ImportStep("admin_password", "source", "clone_type", "use_latest_available_backup_timestamp"),
 	})
 }
 
@@ -89,7 +89,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_backup" "test" {
   source_autonomous_database_id = azurerm_oracle_autonomous_database.test.id
   clone_type                    = "Full"
 
-  use_latest_available_backup_time_stamp = true
+  use_latest_available_backup_timestamp = true
 
   admin_password                   = "BEstrO0ng_#11"
   backup_retention_period_in_days  = 7
@@ -160,7 +160,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_backup" "test" {
   clone_type                    = "Metadata"
 
   # Use latest backup
-  use_latest_available_backup_time_stamp = true
+  use_latest_available_backup_timestamp = true
 
   admin_password                   = "BEstrO0ng_#11"
   backup_retention_period_in_days  = 7

@@ -213,19 +213,10 @@ func (AutonomousDatabaseCloneFromDatabaseResource) Arguments() map[string]*plugi
 				ValidateFunc: validate.CustomerContactEmail,
 			},
 		},
-		"subnet_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: commonids.ValidateSubnetID,
-		},
+		"subnet_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.SubnetId{}),
 
-		"virtual_network_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: commonids.ValidateVirtualNetworkID,
-		},
+		"virtual_network_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.VirtualNetworkId{}),
+
 		"allowed_ips": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
@@ -371,8 +362,12 @@ func (r AutonomousDatabaseCloneFromDatabaseResource) Read() sdk.ResourceFunc {
 					return fmt.Errorf("%s was not of type `Clone`", id)
 				}
 				state.CloneType = string(props.CloneType)
-				state.SourceAutonomousDatabaseId = props.SourceId
 				state.TimeUntilReconnect = pointer.From(props.TimeUntilReconnectCloneEnabled)
+				sourceId, err := autonomousdatabases.ParseAutonomousDatabaseID(props.SourceId)
+				if err != nil {
+					return fmt.Errorf("parsing source database ID: %+v", err)
+				}
+				state.SourceAutonomousDatabaseId = sourceId.String()
 
 				// Base properties
 				state.AdminPassword = metadata.ResourceData.Get("admin_password").(string)
@@ -383,17 +378,27 @@ func (r AutonomousDatabaseCloneFromDatabaseResource) Read() sdk.ResourceFunc {
 				state.DataStorageSizeInTb = pointer.From(props.DataStorageSizeInTbs)
 				state.DatabaseVersion = pointer.From(props.DbVersion)
 				state.DatabaseVersion = pointer.From(props.DbVersion)
-				state.DatabaseWorkload = string(pointer.From(props.DbWorkload))
+				state.DatabaseWorkload = pointer.FromEnum(props.DbWorkload)
 				state.DisplayName = pointer.From(props.DisplayName)
 				state.AutoScalingEnabled = pointer.From(props.IsAutoScalingEnabled)
 				state.AutoScalingForStorageEnabled = pointer.From(props.IsAutoScalingForStorageEnabled)
 				state.MtlsConnectionRequired = pointer.From(props.IsMtlsConnectionRequired)
-				state.LicenseModel = string(pointer.From(props.LicenseModel))
+				state.LicenseModel = pointer.FromEnum(props.LicenseModel)
 				state.NationalCharacterSet = pointer.From(props.NcharacterSet)
-				state.SubnetId = pointer.From(props.SubnetId)
-				state.VnetId = pointer.From(props.VnetId)
 				state.AllowedIps = pointer.From(props.WhitelistedIPs)
 				state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
+
+				subnetID, err := commonids.ParseSubnetID(*props.SubnetId)
+				if err != nil {
+					return fmt.Errorf("parsing Subnet ID: %+v", err)
+				}
+				state.SubnetId = subnetID.String()
+
+				vnetID, err := commonids.ParseVirtualNetworkID(*props.VnetId)
+				if err != nil {
+					return fmt.Errorf("parsing Virtual Network ID: %+v", err)
+				}
+				state.VnetId = vnetID.String()
 			}
 
 			return metadata.Encode(&state)

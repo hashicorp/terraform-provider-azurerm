@@ -167,7 +167,7 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Attributes() map[string]*pl
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeInt,
+				Type: pluginsdk.TypeString,
 			},
 		},
 
