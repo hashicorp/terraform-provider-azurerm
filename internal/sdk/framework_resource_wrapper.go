@@ -226,3 +226,23 @@ func (r *FrameworkResourceWrapper) SetIdentityOnRead(ctx context.Context, respon
 		}
 	}
 }
+
+func AssertResourceModelType[T any](input interface{}, response interface{}) *T {
+	result, ok := input.(*T)
+	if !ok {
+		switch v := response.(type) {
+		case *resource.CreateResponse:
+			v.Diagnostics.AddError("resource had wrong model type", fmt.Sprintf("got %T", input))
+		case *resource.ReadResponse:
+			v.Diagnostics.AddError("resource had wrong model type", fmt.Sprintf("got %T", input))
+		case *resource.UpdateResponse:
+			v.Diagnostics.AddError("resource had wrong model type, ", fmt.Sprintf("got %T", input))
+		case *resource.DeleteResponse:
+			v.Diagnostics.AddError("resource had wrong model type", fmt.Sprintf("got %T", input))
+		}
+
+		return nil
+	}
+
+	return result
+}

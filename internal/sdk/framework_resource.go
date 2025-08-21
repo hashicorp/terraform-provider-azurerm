@@ -102,7 +102,11 @@ func (r *ResourceMetadata) EncodeCreate(ctx context.Context, resp *resource.Crea
 // DecodeRead reads a resources State from a resource.ReadRequest into a pointer to a target model and sets resource.ReadResponse diags on error.
 // Returns true if there are no error Diagnostics.
 func (r *ResourceMetadata) DecodeRead(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse, state interface{}) bool {
-	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
+	if !req.State.Raw.IsNull() {
+		resp.Diagnostics.Append(req.State.Get(ctx, state)...)
+	} else {
+		SetResponseErrorDiagnostic(resp, "Current State Error", "Current State was null for read decode")
+	}
 
 	return !resp.Diagnostics.HasError()
 }
@@ -185,6 +189,8 @@ func SetResponseErrorDiagnostic(resp interface{}, summary string, detail interfa
 // detail can be specified as an error, from which error.Error() will be used or as a string
 func AppendResponseErrorDiagnostic(resp interface{}, d diag.Diagnostics) {
 	switch v := resp.(type) {
+	case *resource.ConfigureResponse:
+		v.Diagnostics.Append(d...)
 	case *resource.CreateResponse:
 		v.Diagnostics.Append(d...)
 	case *resource.UpdateResponse:
@@ -192,6 +198,14 @@ func AppendResponseErrorDiagnostic(resp interface{}, d diag.Diagnostics) {
 	case *resource.DeleteResponse:
 		v.Diagnostics.Append(d...)
 	case *resource.ReadResponse:
+		v.Diagnostics.Append(d...)
+	case *resource.ValidateConfigResponse:
+		v.Diagnostics.Append(d...)
+	case *datasource.ConfigureResponse:
+		v.Diagnostics.Append(d...)
+	case *datasource.ValidateConfigResponse:
+		v.Diagnostics.Append(d...)
+	case *datasource.ReadResponse:
 		v.Diagnostics.Append(d...)
 	}
 }
