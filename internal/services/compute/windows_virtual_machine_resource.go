@@ -22,6 +22,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2023-04-02/disks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
+	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	sdkValidation "github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -54,6 +57,10 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(45 * time.Minute),
 		},
 
+		ValidateRawResourceConfigFuncs: []schema.ValidateRawResourceConfigFunc{
+			sdkValidation.PreferWriteOnlyAttribute(cty.GetAttrPath("admin_password"), cty.GetAttrPath("admin_password_wo")),
+		},
+
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
 				Type:         pluginsdk.TypeString,
@@ -69,11 +76,30 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			// Required
 			"admin_password": {
 				Type:             pluginsdk.TypeString,
-				Required:         true,
+				Optional:         true,
 				ForceNew:         true,
 				Sensitive:        true,
 				DiffSuppressFunc: adminPasswordDiffSuppressFunc,
 				ValidateFunc:     computeValidate.WindowsAdminPassword,
+				ConflictsWith:    []string{"admin_password_wo"},
+				ExactlyOneOf:     []string{"admin_password", "admin_password_wo"},
+			},
+
+			"admin_password_wo": {
+				Type:          pluginsdk.TypeString,
+				Optional:      true,
+				WriteOnly:     true,
+				RequiredWith:  []string{"admin_password_wo_version"},
+				ConflictsWith: []string{"admin_password"},
+				ExactlyOneOf:  []string{"admin_password", "admin_password_wo"},
+				ValidateFunc:  computeValidate.WindowsAdminPassword,
+			},
+
+			"admin_password_wo_version": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ForceNew:     true,
+				RequiredWith: []string{"admin_password_wo"},
 			},
 
 			"admin_username": {
@@ -476,6 +502,15 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	additionalUnattendContent := expandAdditionalUnattendContent(additionalUnattendContentRaw)
 
 	adminPassword := d.Get("admin_password").(string)
+
+	woPassword, err := pluginsdk.GetWriteOnly(d, "admin_password_wo", cty.String)
+	if err != nil {
+		return err
+	}
+	if !woPassword.IsNull() {
+		adminPassword = woPassword.AsString()
+	}
+
 	adminUsername := d.Get("admin_username").(string)
 	allowExtensionOperations := d.Get("allow_extension_operations").(bool)
 
@@ -954,6 +989,8 @@ func resourceWindowsVirtualMachineRead(d *pluginsdk.ResourceData, meta interface
 				d.Set("admin_username", profile.AdminUsername)
 				d.Set("allow_extension_operations", profile.AllowExtensionOperations)
 				d.Set("computer_name", profile.ComputerName)
+
+				d.Set("admin_password_wo_version", d.Get("admin_password_wo_version"))
 
 				if config := profile.WindowsConfiguration; config != nil {
 					if err := d.Set("additional_unattend_content", flattenAdditionalUnattendContent(config.AdditionalUnattendContent, d)); err != nil {
@@ -1675,7 +1712,7 @@ func resourceWindowsVirtualMachineUpdate(d *pluginsdk.ResourceData, meta interfa
 
 			log.Printf("[DEBUG] Updating encryption settings of OS Disk %q for Windows Virtual Machine %q (Resource Group %q) to %q.", diskName, id.DiskName, id.ResourceGroupName, diskEncryptionSetId)
 		} else {
-			return fmt.Errorf("once a customer-managed key is used, you can’t change the selection back to a platform-managed key")
+			return fmt.Errorf("once a customer-managed key is used, you can't change the selection back to a platform-managed key")
 		}
 	}
 
