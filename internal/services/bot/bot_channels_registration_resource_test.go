@@ -558,15 +558,22 @@ resource "azuread_application_registration" "test" {
   display_name = "acctestReg-%d"
 }
 
-resource "azurerm_bot_channels_registration" "test" {
-  name                       = "acctestdf%d"
-  location                   = "global"
-  resource_group_name        = azurerm_resource_group.test.name
-  sku                        = "F0"
-  microsoft_app_id           = azuread_application_registration.test.client_id
-  microsoft_app_type         = "SingleTenant"
-  microsoft_app_tenant_id    = data.azurerm_client_config.current.tenant_id
-  streaming_endpoint_enabled = %t
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestmi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, streamingEndpointEnabled)
+
+resource "azurerm_bot_channels_registration" "test" {
+  name                                    = "acctestdf%d"
+  location                                = "global"
+  resource_group_name                     = azurerm_resource_group.test.name
+  sku                                     = "F0"
+  microsoft_app_id                        = azuread_application_registration.test.client_id
+  microsoft_app_type                      = "UserAssignedMSI"
+  microsoft_app_tenant_id                 = data.azurerm_client_config.current.tenant_id
+  microsoft_app_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  streaming_endpoint_enabled              = %t
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, streamingEndpointEnabled)
 }
