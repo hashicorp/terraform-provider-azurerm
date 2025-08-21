@@ -160,6 +160,7 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 			"bypass_platform_safety_checks_on_user_schedule_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
+				Default:  false,
 				ConflictsWith: []string{
 					"os_managed_disk_id",
 				},
