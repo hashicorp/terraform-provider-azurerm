@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
@@ -40,14 +39,11 @@ func (r DataCollectionRuleAssociationResource) Arguments() map[string]*pluginsdk
 		},
 
 		"name": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			ForceNew: true,
-			Default:  "configurationAccessEndpoint",
-			ValidateFunc: validation.All(
-				validation.StringIsNotEmpty,
-				validate.DataCollectionRuleAssociationName,
-			),
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      "configurationAccessEndpoint",
+			ValidateFunc: validate.DataCollectionRuleAssociationName,
 		},
 
 		"data_collection_endpoint_id": {
