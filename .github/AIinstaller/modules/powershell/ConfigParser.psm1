@@ -176,13 +176,7 @@ function Get-InstallationConfig {
                 Description = "API evolution and versioning patterns"
             }
             
-            # Prompt files
-            ".github/prompts/add-unit-tests.prompt.md" = @{
-                Url = "/.github/prompts/add-unit-tests.prompt.md"
-                Required = $true
-                Type = "Prompts"
-                Description = "Prompt for adding unit tests"
-            }
+            # Prompt files (excluding add-unit-tests per requirements)
             
             ".github/prompts/code-review-committed-changes.prompt.md" = @{
                 Url = "/.github/prompts/code-review-committed-changes.prompt.md"

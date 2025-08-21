@@ -7,7 +7,7 @@ description: Complete implementation guide for Go files in the Terraform AzureRM
 
 This comprehensive guide covers all implementation requirements for the Terraform AzureRM provider.
 
-**Quick navigation:** [🏗️ Implementation Patterns](#🏗️-implementation-patterns) | [📏 Coding Standards](#📏-coding-standards) | [🎨 Coding Style](#🎨-coding-style) | [🔧 Azure SDK Integration](#🔧-azure-sdk-integration) | [💡 AI Coding Guidance](#💡-ai-coding-guidance) | [📚 Quick Reference](#quick-reference-links)
+**Quick navigation:** [🏗️ Implementation Patterns](#🏗️-implementation-patterns) | [📏 Coding Standards](#📏-coding-standards) | [🎨 Coding Style](#🎨-coding-style) | [🔧 Azure SDK Integration](#🔧-azure-sdk-integration) | [💡 AI Coding Guidance](#💡-ai-coding-guidance) | [📚 Specialized Guidance](#📚-specialized-guidance-on-demand)
 
 **🧠 SMART MEMORY MANAGEMENT:**
 - **Pattern Cache**: Keep these templates in active memory during implementation sessions

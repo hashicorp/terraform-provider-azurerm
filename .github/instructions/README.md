@@ -103,9 +103,8 @@ The settings are copied directly from `.vscode/settings.json` in the repository 
 **Basic Workflow:**
 1. **Ask AI for help**: "Generate a new Azure [ServiceName] resource using typed implementation"
 2. **Review code**: Select generated code → use `/code-review-local-changes` prompt
-3. **Add tests**: "/add-unit-tests" to generate comprehensive test coverage
-4. **Generate docs**: "Create documentation following provider guidelines"
-5. **Final review**: "/code-review-local-changes" before committing
+3. **Generate docs**: "Create documentation following provider guidelines"
+4. **Final review**: "/code-review-local-changes" before committing
 
 ---
 ### 🎯 **Essential AI Prompts**
@@ -116,7 +115,6 @@ The repository includes specialized prompt files for common development tasks:
 | Prompt | Purpose | Usage |
 |--------|---------|-------|
 | `/code-review-local-changes` | Review uncommitted changes | Before committing |
-| `/add-unit-tests` | Generate comprehensive tests | When adding test coverage |
 | `/summarize-repo` | Repository overview | Understanding structure |
 
 **Example Usage:**
@@ -198,7 +196,6 @@ The repository includes specialized prompt files for common development tasks:
 |--------|---------|-------|
 | `/code-review-local-changes` | Review uncommitted changes for compliance | Type in Copilot Chat |
 | `/code-review-committed-changes` | Review commits and PRs for standards | Type in Copilot Chat |
-| `/add-unit-tests` | Generate comprehensive test coverage | Type in Copilot Chat |
 | `/setup-go-dev-environment` | Complete development environment setup | Type in Copilot Chat |
 | `/summarize-repo` | High-level repository overview | Type in Copilot Chat |
 | `/summarize-repo-deep-dive` | Detailed technical analysis | Type in Copilot Chat |

@@ -161,7 +161,6 @@ The installer sets up a complete AI development environment:
 
 | Prompt File | Purpose | Usage |
 |-------------|---------|-------|
-| `add-unit-tests.prompt.md` | **Generate unit tests** for Go files with proper testing patterns | Use when you need comprehensive unit tests for utility functions, parsers, or validators |
 | `code-review-local-changes.prompt.md` | **Review uncommitted changes** with Terraform provider best practices | Use before committing to get expert feedback on your local changes |
 | `code-review-committed-changes.prompt.md` | **Review committed changes** for pull request feedback | Use to review git commits with detailed technical analysis |
 | `setup-go-dev-environment.prompt.md` | **Set up Go development environment** for the Terraform provider | Use when setting up a new development machine or environment |
@@ -179,7 +178,6 @@ Simply use slash commands to invoke the prompts directly:
 |---------------|-------------|-------------|
 | `/code-review-local-changes` | `code-review-local-changes.prompt.md` | Review your uncommitted changes |
 | `/code-review-committed-changes` | `code-review-committed-changes.prompt.md` | Review committed changes |
-| `/add-unit-tests` | `add-unit-tests.prompt.md` | Generate unit tests for Go files |
 | `/setup-go-dev-environment` | `setup-go-dev-environment.prompt.md` | Set up Go development environment |
 | `/summarize-repo` | `summarize-repo.prompt.md` | Generate repository overview |
 | `/summarize-repo-deep-dive` | `summarize-repo-deep-dive.prompt.md` | Deep technical analysis |
@@ -323,15 +321,6 @@ Once the AI infrastructure is installed, you can leverage the powerful prompt te
 /code-review-committed-changes for commit abc123
 ```
 
-#### 🧪 Testing Workflow
-```
-# Add comprehensive unit tests to a file
-/add-unit-tests for internal/services/cdn/frontdoor_resource.go
-
-# Generate tests following Terraform provider patterns
-/add-unit-tests with both typed and untyped resource patterns
-```
-
 #### 🏗️ Environment Setup
 ```
 # Set up development environment
@@ -359,9 +348,6 @@ Combine slash commands with specific context for better results:
 # Review specific Azure service implementation
 /code-review-local-changes focusing on Azure CDN Front Door patterns
 
-# Generate tests for Azure API integration
-/add-unit-tests for Azure SDK client code with proper mocking patterns
-
 # Set up environment for specific Azure services
 /setup-go-dev-environment and include Azure CLI tools for testing
 ```
@@ -372,8 +358,7 @@ Use slash commands in sequence for complete development workflows:
 ```
 1. /summarize-repo to understand the codebase
 2. # Make your code changes
-3. /add-unit-tests for the changed files
-4. /code-review-local-changes before committing
+3. /code-review-local-changes before committing
 ```
 
 #### 🎨 Custom Prompt Combinations
@@ -382,9 +367,6 @@ Combine multiple commands for complex tasks:
 ```
 # Comprehensive development review
 /code-review-local-changes AND ensure the code follows Azure patterns from .github/instructions/
-
-# Full testing coverage
-/add-unit-tests and ensure tests follow .github/instructions/testing-guidelines.instructions.md
 ```
 
 ## 🔍 Usage Examples

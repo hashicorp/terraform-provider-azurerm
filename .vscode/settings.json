@@ -2,7 +2,10 @@
     // Commit message generation with Azure provider context
     "github.copilot.chat.commitMessageGeneration.instructions": [
         {
-            "text": "Provide a concise and clear commit message that summarizes the changes made in the code. For complex changes, include the following details: 1) Specify if the change introduces a breaking change and describe its impact. 2) Highlight any new resources or features added. 3) Mention updates to Azure services or APIs. Aim to keep the message under 72 characters per line for readability."
+            "text": "Write clear, concise commit messages. Focus on what changed, not why."
+        },
+        {
+            "text": "Keep it under 72 characters. No need for conventional commit prefixes unless it's a breaking change."
         }
     ],
 
