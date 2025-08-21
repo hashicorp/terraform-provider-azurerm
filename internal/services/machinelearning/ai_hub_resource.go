@@ -29,9 +29,9 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type AIFoundry struct{}
+type AIHub struct{}
 
-type AIFoundryModel struct {
+type AIHubModel struct {
 	Name                        string                                     `tfschema:"name"`
 	Location                    string                                     `tfschema:"location"`
 	ResourceGroupName           string                                     `tfschema:"resource_group_name"`
@@ -62,19 +62,19 @@ type Encryption struct {
 	KeyID            string `tfschema:"key_id"`
 }
 
-func (r AIFoundry) ModelObject() interface{} {
-	return &AIFoundryModel{}
+func (r AIHub) ModelObject() interface{} {
+	return &AIHubModel{}
 }
 
-func (r AIFoundry) ResourceType() string {
-	return "azurerm_ai_foundry"
+func (r AIHub) ResourceType() string {
+	return "azurerm_ai_hub"
 }
 
-func (r AIFoundry) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r AIHub) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return workspaces.ValidateWorkspaceID
 }
 
-func (r AIFoundry) CustomImporter() sdk.ResourceRunFunc {
+func (r AIHub) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 		id, err := workspaces.ParseWorkspaceID(metadata.ResourceData.Id())
 		if err != nil {
@@ -95,11 +95,11 @@ func (r AIFoundry) CustomImporter() sdk.ResourceRunFunc {
 	}
 }
 
-var _ sdk.ResourceWithUpdate = AIFoundry{}
+var _ sdk.ResourceWithUpdate = AIHub{}
 
-var _ sdk.ResourceWithCustomImporter = AIFoundry{}
+var _ sdk.ResourceWithCustomImporter = AIHub{}
 
-func (r AIFoundry) Arguments() map[string]*pluginsdk.Schema {
+func (r AIHub) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -218,7 +218,7 @@ func (r AIFoundry) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r AIFoundry) Attributes() map[string]*pluginsdk.Schema {
+func (r AIHub) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"discovery_url": {
 			Type:     pluginsdk.TypeString,
@@ -232,14 +232,14 @@ func (r AIFoundry) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (r AIFoundry) Create() sdk.ResourceFunc {
+func (r AIHub) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 60 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.MachineLearning.Workspaces
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			var model AIFoundryModel
+			var model AIHubModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
@@ -253,7 +253,7 @@ func (r AIFoundry) Create() sdk.ResourceFunc {
 				}
 			}
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_ai_foundry", id.ID())
+				return tf.ImportAsExistsError("azurerm_ai_hub", id.ID())
 			}
 
 			storageAccountId, err := commonids.ParseStorageAccountID(model.StorageAccountId)
@@ -339,7 +339,7 @@ func (r AIFoundry) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r AIFoundry) Update() sdk.ResourceFunc {
+func (r AIHub) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -350,7 +350,7 @@ func (r AIFoundry) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var state AIFoundryModel
+			var state AIHubModel
 			if err := metadata.Decode(&state); err != nil {
 				return err
 			}
@@ -429,7 +429,7 @@ func (r AIFoundry) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r AIFoundry) Read() sdk.ResourceFunc {
+func (r AIHub) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -448,7 +448,7 @@ func (r AIFoundry) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			hub := AIFoundryModel{
+			hub := AIHubModel{
 				Name:              id.WorkspaceName,
 				ResourceGroupName: id.ResourceGroupName,
 			}
@@ -524,7 +524,7 @@ func (r AIFoundry) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r AIFoundry) Delete() sdk.ResourceFunc {
+func (r AIHub) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {

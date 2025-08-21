@@ -35,13 +35,13 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-var _ sdk.ResourceWithUpdate = AIServices{}
+var _ sdk.ResourceWithUpdate = AIFoundry{}
 
-var _ sdk.ResourceWithCustomImporter = AIServices{}
+var _ sdk.ResourceWithCustomImporter = AIFoundry{}
 
-type AIServices struct{}
+type AIFoundry struct{}
 
-func (r AIServices) CustomImporter() sdk.ResourceRunFunc {
+func (r AIFoundry) CustomImporter() sdk.ResourceRunFunc {
 	return func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 		id, err := cognitiveservicesaccounts.ParseAccountID(metadata.ResourceData.Id())
 		if err != nil {
@@ -80,7 +80,7 @@ type CustomerManagedKey struct {
 	ManagedHsmKeyID  string `tfschema:"managed_hsm_key_id"`
 }
 
-type AIServicesModel struct {
+type AIFoundryModel struct {
 	Name                            string                                     `tfschema:"name"`
 	ResourceGroupName               string                                     `tfschema:"resource_group_name"`
 	Location                        string                                     `tfschema:"location"`
@@ -93,13 +93,14 @@ type AIServicesModel struct {
 	NetworkACLs                     []NetworkACLs                              `tfschema:"network_acls"`
 	OutboundNetworkAccessRestricted bool                                       `tfschema:"outbound_network_access_restricted"`
 	PublicNetworkAccess             string                                     `tfschema:"public_network_access"`
+	ProjectManagementEnabled        bool                                       `tfschema:"project_management_enabled"`
 	Tags                            map[string]string                          `tfschema:"tags"`
 	Endpoint                        string                                     `tfschema:"endpoint"`
 	PrimaryAccessKey                string                                     `tfschema:"primary_access_key"`
 	SecondaryAccessKey              string                                     `tfschema:"secondary_access_key"`
 }
 
-func (AIServices) Arguments() map[string]*pluginsdk.Schema {
+func (AIFoundry) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:         pluginsdk.TypeString,
@@ -238,6 +239,13 @@ func (AIServices) Arguments() map[string]*pluginsdk.Schema {
 			Default:  false,
 		},
 
+		"project_management_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+			Default:  false,
+		},
+
 		"public_network_access": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -272,7 +280,7 @@ func (AIServices) Arguments() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (AIServices) Attributes() map[string]*pluginsdk.Schema {
+func (AIFoundry) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"endpoint": {
 			Type:     pluginsdk.TypeString,
@@ -293,19 +301,19 @@ func (AIServices) Attributes() map[string]*pluginsdk.Schema {
 	}
 }
 
-func (AIServices) ModelObject() interface{} {
-	return &AIServicesModel{}
+func (AIFoundry) ModelObject() interface{} {
+	return &AIFoundryModel{}
 }
 
-func (AIServices) ResourceType() string {
-	return "azurerm_ai_services"
+func (AIFoundry) ResourceType() string {
+	return "azurerm_ai_foundry"
 }
 
-func (AIServices) Create() sdk.ResourceFunc {
+func (AIFoundry) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model AIServicesModel
+			var model AIFoundryModel
 			if err := metadata.Decode(&model); err != nil {
 				return err
 			}
@@ -322,7 +330,12 @@ func (AIServices) Create() sdk.ResourceFunc {
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return tf.ImportAsExistsError("azurerm_ai_services", id.ID())
+				return tf.ImportAsExistsError("azurerm_ai_foundry", id.ID())
+			}
+
+			// Check whether `project_management_enabled` is true and `identity` is empty
+			if model.ProjectManagementEnabled && len(model.Identity) == 0 {
+				return fmt.Errorf("you must enable a managed identity when you set `project_management_enabled` to true, please set `identity` to at least one SystemAssigned or UserAssigned identity")
 			}
 
 			networkACLs, subnetIds := expandNetworkACLs(model.NetworkACLs)
@@ -353,6 +366,7 @@ func (AIServices) Create() sdk.ResourceFunc {
 					CustomSubDomainName:           pointer.To(model.CustomSubdomainName),
 					AllowedFqdnList:               pointer.To(model.Fqdns),
 					PublicNetworkAccess:           pointer.To(cognitiveservicesaccounts.PublicNetworkAccess(model.PublicNetworkAccess)),
+					AllowProjectManagement:        pointer.To(model.ProjectManagementEnabled),
 					RestrictOutboundNetworkAccess: pointer.To(model.OutboundNetworkAccessRestricted),
 					DisableLocalAuth:              pointer.To(!model.LocalAuthorizationEnabled),
 				},
@@ -391,14 +405,14 @@ func (AIServices) Create() sdk.ResourceFunc {
 	}
 }
 
-func (AIServices) Read() sdk.ResourceFunc {
+func (AIFoundry) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Cognitive.AccountsClient
 			env := metadata.Client.Account.Environment
 
-			state := AIServicesModel{}
+			state := AIFoundryModel{}
 			id, err := cognitiveservicesaccounts.ParseAccountID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -434,6 +448,7 @@ func (AIServices) Read() sdk.ResourceFunc {
 					state.Fqdns = pointer.From(props.AllowedFqdnList)
 
 					state.PublicNetworkAccess = string(pointer.From(props.PublicNetworkAccess))
+					state.ProjectManagementEnabled = pointer.From(props.AllowProjectManagement)
 					state.OutboundNetworkAccessRestricted = pointer.From(props.RestrictOutboundNetworkAccess)
 
 					localAuthEnabled := true
@@ -469,13 +484,13 @@ func (AIServices) Read() sdk.ResourceFunc {
 	}
 }
 
-func (AIServices) Update() sdk.ResourceFunc {
+func (AIFoundry) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.Cognitive.AccountsClient
 
-			var model AIServicesModel
+			var model AIFoundryModel
 
 			if err := metadata.Decode(&model); err != nil {
 				return err
@@ -536,6 +551,10 @@ func (AIServices) Update() sdk.ResourceFunc {
 				props.Properties.PublicNetworkAccess = pointer.To(cognitiveservicesaccounts.PublicNetworkAccess(model.PublicNetworkAccess))
 			}
 
+			if metadata.ResourceData.HasChange("project_management_enabled") {
+				props.Properties.AllowProjectManagement = pointer.To(model.ProjectManagementEnabled)
+			}
+
 			if metadata.ResourceData.HasChange("outbound_network_access_restricted") {
 				props.Properties.RestrictOutboundNetworkAccess = pointer.To(model.OutboundNetworkAccessRestricted)
 			}
@@ -560,6 +579,11 @@ func (AIServices) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("identity") {
+				// Check whether `project_management_enabled` is true and `identity` is changed to empty
+				if *props.Properties.AllowProjectManagement && len(model.Identity) == 0 {
+					return fmt.Errorf("you must enable a managed identity when you set `project_management_enabled` to true, please set `identity` to at least one SystemAssigned or UserAssigned identity")
+				}
+
 				expandIdentity, err := identity.ExpandSystemAndUserAssignedMapFromModel(model.Identity)
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
@@ -576,7 +600,7 @@ func (AIServices) Update() sdk.ResourceFunc {
 	}
 }
 
-func (AIServices) Delete() sdk.ResourceFunc {
+func (AIFoundry) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 180 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -616,7 +640,7 @@ func (AIServices) Delete() sdk.ResourceFunc {
 	}
 }
 
-func (AIServices) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (AIFoundry) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return cognitiveservicesaccounts.ValidateAccountID
 }
 

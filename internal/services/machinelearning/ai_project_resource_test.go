@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type AIFoundryProject struct{}
+type AIProject struct{}
 
-func TestAccAIFoundryProject_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_ai_foundry_project", "test")
-	r := AIFoundryProject{}
+func TestAccAIProject_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_ai_project", "test")
+	r := AIProject{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -33,9 +33,9 @@ func TestAccAIFoundryProject_basic(t *testing.T) {
 	})
 }
 
-func TestAccAIFoundryProject_userIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_ai_foundry_project", "test")
-	r := AIFoundryProject{}
+func TestAccAIProject_userIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_ai_project", "test")
+	r := AIProject{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -55,9 +55,9 @@ func TestAccAIFoundryProject_userIdentity(t *testing.T) {
 	})
 }
 
-func TestAccAIFoundryProject_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_ai_foundry_project", "test")
-	r := AIFoundryProject{}
+func TestAccAIProject_requiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_ai_project", "test")
+	r := AIProject{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -70,9 +70,9 @@ func TestAccAIFoundryProject_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccAIFoundryProject_complete(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_ai_foundry_project", "test")
-	r := AIFoundryProject{}
+func TestAccAIProject_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_ai_project", "test")
+	r := AIProject{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -85,9 +85,9 @@ func TestAccAIFoundryProject_complete(t *testing.T) {
 	})
 }
 
-func TestAccAIFoundryProject_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_ai_foundry_project", "test")
-	r := AIFoundryProject{}
+func TestAccAIProject_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_ai_project", "test")
+	r := AIProject{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -107,7 +107,7 @@ func TestAccAIFoundryProject_update(t *testing.T) {
 	})
 }
 
-func (AIFoundryProject) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (AIProject) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := workspaces.ParseWorkspaceID(state.ID)
 	if err != nil {
 		return nil, err
@@ -121,23 +121,23 @@ func (AIFoundryProject) Exists(ctx context.Context, clients *clients.Client, sta
 	return pointer.To(resp.Model != nil), nil
 }
 
-func (r AIFoundryProject) basic(data acceptance.TestData) string {
+func (r AIProject) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_ai_foundry_project" "test" {
-  name               = "acctestaip-%[2]d"
-  location           = azurerm_ai_foundry.test.location
-  ai_services_hub_id = azurerm_ai_foundry.test.id
+resource "azurerm_ai_project" "test" {
+  name      = "acctestaip-%[2]d"
+  location  = azurerm_ai_hub.test.location
+  ai_hub_id = azurerm_ai_hub.test.id
 
   identity {
     type = "SystemAssigned"
   }
 }
-`, AIFoundry{}.basic(data), data.RandomInteger)
+`, AIHub{}.basic(data), data.RandomInteger)
 }
 
-func (r AIFoundryProject) userIdentityTemplate(data acceptance.TestData) string {
+func (r AIProject) userIdentityTemplate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -163,17 +163,17 @@ resource "azurerm_key_vault_access_policy" "test2" {
     "Get",
   ]
 }
-`, AIFoundry{}.basic(data), data.RandomInteger)
+`, AIHub{}.basic(data), data.RandomInteger)
 }
 
-func (r AIFoundryProject) userIdentity(data acceptance.TestData) string {
+func (r AIProject) userIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_ai_foundry_project" "test" {
+resource "azurerm_ai_project" "test" {
   name                           = "acctestaip-%[2]d"
-  location                       = azurerm_ai_foundry.test.location
-  ai_services_hub_id             = azurerm_ai_foundry.test.id
+  location                       = azurerm_ai_hub.test.location
+  ai_hub_id                      = azurerm_ai_hub.test.id
   primary_user_assigned_identity = azurerm_user_assigned_identity.test.id
 
   identity {
@@ -186,7 +186,7 @@ resource "azurerm_ai_foundry_project" "test" {
 `, r.userIdentityTemplate(data), data.RandomInteger)
 }
 
-func (r AIFoundryProject) userIdentityUpdate(data acceptance.TestData) string {
+func (r AIProject) userIdentityUpdate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -213,10 +213,10 @@ resource "azurerm_key_vault_access_policy" "test3" {
   ]
 }
 
-resource "azurerm_ai_foundry_project" "test" {
+resource "azurerm_ai_project" "test" {
   name                           = "acctestaip-%[2]d"
-  location                       = azurerm_ai_foundry.test.location
-  ai_services_hub_id             = azurerm_ai_foundry.test.id
+  location                       = azurerm_ai_hub.test.location
+  ai_hub_id                      = azurerm_ai_hub.test.id
   primary_user_assigned_identity = azurerm_user_assigned_identity.test2.id
 
   identity {
@@ -229,14 +229,14 @@ resource "azurerm_ai_foundry_project" "test" {
 `, r.userIdentityTemplate(data), data.RandomInteger)
 }
 
-func (r AIFoundryProject) complete(data acceptance.TestData) string {
+func (r AIProject) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_ai_foundry_project" "test" {
-  name               = "acctestaip-%[2]d"
-  location           = azurerm_ai_foundry.test.location
-  ai_services_hub_id = azurerm_ai_foundry.test.id
+resource "azurerm_ai_project" "test" {
+  name      = "acctestaip-%[2]d"
+  location  = azurerm_ai_hub.test.location
+  ai_hub_id = azurerm_ai_hub.test.id
 
   description                  = "AI Project created by Terraform"
   friendly_name                = "AI Project"
@@ -250,10 +250,10 @@ resource "azurerm_ai_foundry_project" "test" {
     model = "regression"
   }
 }
-`, AIFoundry{}.complete(data), data.RandomInteger)
+`, AIHub{}.complete(data), data.RandomInteger)
 }
 
-func (r AIFoundryProject) update(data acceptance.TestData) string {
+func (r AIProject) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -263,10 +263,10 @@ resource "azurerm_user_assigned_identity" "test_project" {
   location            = azurerm_resource_group.test.location
 }
 
-resource "azurerm_ai_foundry_project" "test" {
-  name               = "acctestaip-%[2]d"
-  location           = azurerm_ai_foundry.test.location
-  ai_services_hub_id = azurerm_ai_foundry.test.id
+resource "azurerm_ai_project" "test" {
+  name      = "acctestaip-%[2]d"
+  location  = azurerm_ai_hub.test.location
+  ai_hub_id = azurerm_ai_hub.test.id
 
   description                  = "AI Project updated by Terraform"
   friendly_name                = "AI Project for OS models"
@@ -281,18 +281,18 @@ resource "azurerm_ai_foundry_project" "test" {
     env   = "test"
   }
 }
-`, AIFoundry{}.complete(data), data.RandomInteger)
+`, AIHub{}.complete(data), data.RandomInteger)
 }
 
-func (AIFoundryProject) requiresImport(data acceptance.TestData) string {
-	template := AIFoundryProject{}.basic(data)
+func (AIProject) requiresImport(data acceptance.TestData) string {
+	template := AIProject{}.basic(data)
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_ai_foundry_project" "import" {
-  name               = azurerm_ai_foundry_project.test.name
-  location           = azurerm_ai_foundry_project.test.location
-  ai_services_hub_id = azurerm_ai_foundry_project.test.ai_services_hub_id
+resource "azurerm_ai_project" "import" {
+  name      = azurerm_ai_project.test.name
+  location  = azurerm_ai_project.test.location
+  ai_hub_id = azurerm_ai_project.test.ai_hub_id
 
   identity {
     type = "SystemAssigned"
