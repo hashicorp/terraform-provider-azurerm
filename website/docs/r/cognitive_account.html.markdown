@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `custom_subdomain_name` - (Optional) The subdomain name used for token-based authentication. This property is required when `network_acls` is specified. This property is also required when using the OpenAI service with libraries which assume the Azure OpenAI endpoint is a subdomain on `https://openai.azure.com/`, eg. `https://<custom_subdomain_name>.openai.azure.com/`.  Changing this forces a new resource to be created.
 
-* `dynamic_throttling_enabled` - (Optional) Whether to enable the dynamic throttling for this Cognitive Service Account.
+* `dynamic_throttling_enabled` - (Optional) Whether to enable the dynamic throttling for this Cognitive Service Account. This attribute can't be set when kind is `OpenAI` or `AIServices`.
 
 * `customer_managed_key` - (Optional) A `customer_managed_key` block as documented below.
 
@@ -77,8 +77,6 @@ The following arguments are supported:
 -> **Note:** This URL is mandatory if the `kind` is set to `QnAMaker`.
 
 * `network_acls` - (Optional) A `network_acls` block as defined below. When this property is specified, `custom_subdomain_name` is also required to be set.
-
-* `network_injections` - (Optional) A `network_injections` block as defined below. Only applicable when the `kind` is set to `AIServices`.
 
 * `outbound_network_access_restricted` - (Optional) Whether outbound network access is restricted for the Cognitive Account. Defaults to `false`.
 
@@ -111,16 +109,6 @@ A `network_acls` block supports the following:
 * `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access the Cognitive Account.
 
 * `virtual_network_rules` - (Optional) A `virtual_network_rules` block as defined below.
-
----
-
-A `network_injections` block supports the following:
-
-* `scenario` - (Required) Specifies what features network injection applies to. Possible values are `agent` for agent scenarios and `none` for no network injection.
-
-* `subnet_arm_id` - (Optional) Specify the subnet for which the Agent Client is injected into. Required when `scenario` is set to `agent`.
-
-~> **Note:** This is required when `scenario` is set to `agent`.
 
 ---
 

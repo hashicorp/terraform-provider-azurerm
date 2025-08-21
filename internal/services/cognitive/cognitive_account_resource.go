@@ -202,29 +202,6 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			"network_injections": {
-				Type:     pluginsdk.TypeList,
-				Optional: true,
-				MaxItems: 1,
-				Elem: &pluginsdk.Resource{
-					Schema: map[string]*pluginsdk.Schema{
-						"scenario": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice(
-								cognitiveservicesaccounts.PossibleValuesForScenarioType(),
-								false,
-							),
-						},
-						"subnet_arm_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: commonids.ValidateSubnetID,
-						},
-					},
-				},
-			},
-
 			"network_acls": {
 				Type:         pluginsdk.TypeList,
 				Optional:     true,
@@ -354,6 +331,31 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 		},
+
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+			if d.Get("project_management_enabled").(bool) && d.Get("kind").(string) != "AIServices" {
+				return fmt.Errorf("`project_management_enabled` can only be enabled when kind is set to `AIServices`")
+			}
+
+			if d.Get("project_management_enabled").(bool) && len(d.Get("identity").([]interface{})) == 0 {
+				return fmt.Errorf("for `project_management_enabled` to be enabled, a managed identity must be assigned. Please set `identity` to at least one SystemAssigned or UserAssigned identity")
+			}
+
+			if d.Get("dynamic_throttling_enabled").(bool) && utils.SliceContainsValue([]string{"OpenAI", "AIServices"}, d.Get("kind").(string)) {
+				return fmt.Errorf("`dynamic_throttling_enabled` is currently not supported when kind is set to `OpenAI` or `AIServices`")
+			}
+
+			if d.HasChange("project_management_enabled") && !d.Get("project_management_enabled").(bool) {
+				return fmt.Errorf("once `project_management_enabled` is enabled, it cannot be disabled")
+			}
+
+			if d.HasChange("customer_managed_key") && d.Get("project_management_enabled").(bool) {
+				if len(d.Get("customer_managed_key").([]interface{})) == 0 {
+					return fmt.Errorf("updating encryption mode from customer-managed keys to microsoft-managed keys is not supported when `project_management_enabled` is enabled")
+				}
+			}
+			return nil
+		},
 	}
 }
 
@@ -413,28 +415,9 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	projectManagementEnabled := false
-	if v := d.Get("project_management_enabled").(bool); v {
-		if kind == "AIServices" {
-			projectManagementEnabled = v
-		} else {
-			return fmt.Errorf("setting `project_management_enabled` can only be used when kind is set to `AIServices`")
-		}
-	}
-
-	identityRaw := d.Get("identity").([]interface{})
-	identity, err := identity.ExpandSystemAndUserAssignedMap(identityRaw)
+	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
 		return fmt.Errorf("expanding `identity`: %+v", err)
-	}
-
-	if projectManagementEnabled && len(identityRaw) == 0 {
-		return fmt.Errorf("for setting `project_management_enabled` to true, a managed identity must be assigned. Please set `identity` to at least one SystemAssigned or UserAssigned identity")
-	}
-
-	networkInjections, err := expandCognitiveAccountNetworkInjections(d.Get("network_injections").([]interface{}), kind)
-	if err != nil {
-		return fmt.Errorf("expanding `network_injections`: %+v", err)
 	}
 
 	props := cognitiveservicesaccounts.Account{
@@ -451,9 +434,8 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 			RestrictOutboundNetworkAccess: pointer.To(d.Get("outbound_network_access_restricted").(bool)),
 			DisableLocalAuth:              pointer.To(!d.Get("local_auth_enabled").(bool)),
 			DynamicThrottlingEnabled:      pointer.To(d.Get("dynamic_throttling_enabled").(bool)),
-			AllowProjectManagement:        &projectManagementEnabled,
+			AllowProjectManagement:        pointer.To(d.Get("project_management_enabled").(bool)),
 			Encryption:                    expandCognitiveAccountCustomerManagedKey(d.Get("customer_managed_key").([]interface{})),
-			NetworkInjections:             networkInjections,
 		},
 		Identity: identity,
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -483,8 +465,6 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 	client := meta.(*clients.Client).Cognitive.AccountsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
-
-	kind := d.Get("kind").(string)
 
 	id, err := cognitiveservicesaccounts.ParseAccountID(d.Id())
 	if err != nil {
@@ -525,12 +505,6 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
-	if d.HasChange("project_management_enabled") {
-		if !d.Get("project_management_enabled").(bool) {
-			return fmt.Errorf("project_management_enabled cannot be disabled once it is enabled")
-		}
-	}
-
 	props := cognitiveservicesaccounts.Account{
 		Sku: &sku,
 		Properties: &cognitiveservicesaccounts.AccountProperties{
@@ -549,14 +523,6 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	if d.HasChange("network_injections") {
-		networkInjections, err := expandCognitiveAccountNetworkInjections(d.Get("network_injections").([]interface{}), kind)
-		if err != nil {
-			return fmt.Errorf("expanding `network_injections`: %+v", err)
-		}
-		props.Properties.NetworkInjections = networkInjections
-	}
-
 	if d.HasChanges("customer_managed_key") {
 		old, new := d.GetChange("customer_managed_key")
 		// Remove `customer_managed_key` (switch using a customer managed key to microsoft managed), and explicitly specify KeySource as `Microsoft.CognitiveServices`.
@@ -568,12 +534,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if d.HasChange("identity") {
-		identityRaw := d.Get("identity").([]interface{})
-		if *props.Properties.AllowProjectManagement && len(identityRaw) == 0 {
-			return fmt.Errorf("for setting `project_management_enabled` to true, a managed identity must be assigned. Please set `identity` to at least one SystemAssigned or UserAssigned identity")
-		}
-
-		identity, err := identity.ExpandSystemAndUserAssignedMap(identityRaw)
+		identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 		if err != nil {
 			return fmt.Errorf("expanding `identity`: %+v", err)
 		}
@@ -665,10 +626,6 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			}
 			d.Set("project_management_enabled", projectManagementEnabled)
 
-			if err := d.Set("network_injections", flattenCognitiveAccountNetworkInjections(props.NetworkInjections)); err != nil {
-				return fmt.Errorf("setting `network_injections` for Cognitive Account %q: %+v", id, err)
-			}
-
 			publicNetworkAccess := true
 			if props.PublicNetworkAccess != nil {
 				publicNetworkAccess = *props.PublicNetworkAccess == cognitiveservicesaccounts.PublicNetworkAccessEnabled
@@ -738,9 +695,6 @@ func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	deletedAccountId := cognitiveservicesaccounts.NewDeletedAccountID(id.SubscriptionId, *account.Model.Location, id.ResourceGroupName, id.AccountName)
-	if err != nil {
-		return err
-	}
 
 	log.Printf("[DEBUG] Deleting %s..", *id)
 	if err := accountsClient.AccountsDeleteThenPoll(ctx, *id); err != nil {
@@ -839,8 +793,8 @@ func expandCognitiveAccountStorage(input []interface{}) *[]cognitiveservicesacco
 	}
 	return &results
 }
-
 func expandCognitiveAccountAPIProperties(d *pluginsdk.ResourceData) (*cognitiveservicesaccounts.ApiProperties, error) {
+
 	props := cognitiveservicesaccounts.ApiProperties{}
 	kind := d.Get("kind")
 	if kind == "QnAMaker" {
@@ -864,6 +818,7 @@ func expandCognitiveAccountAPIProperties(d *pluginsdk.ResourceData) (*cognitives
 			return nil, fmt.Errorf("the Search Service Key `custom_question_answering_search_service_key` can only be set when kind is set to `TextAnalytics`")
 		}
 	}
+
 	if v, ok := d.GetOk("metrics_advisor_aad_client_id"); ok {
 		if kind == "MetricsAdvisor" {
 			props.AadClientId = utils.String(v.(string))
@@ -1002,34 +957,4 @@ func flattenCognitiveAccountCustomerManagedKey(input *cognitiveservicesaccounts.
 			"identity_client_id": identityClientId,
 		},
 	}, nil
-}
-
-func expandCognitiveAccountNetworkInjections(input []interface{}, kind string) (*cognitiveservicesaccounts.NetworkInjections, error) {
-	if len(input) == 0 || input[0] == nil {
-		return nil, nil
-	} else {
-		if kind != "AIServices" {
-			return nil, fmt.Errorf("the `network_injections` can only be set when the `kind` is `AIServices`")
-		}
-	}
-
-	value := input[0].(map[string]interface{})
-
-	return &cognitiveservicesaccounts.NetworkInjections{
-		Scenario:    pointer.To(cognitiveservicesaccounts.ScenarioType(value["scenario"].(string))),
-		SubnetArmId: utils.String(value["subnet_arm_id"].(string)),
-	}, nil
-}
-
-func flattenCognitiveAccountNetworkInjections(input *cognitiveservicesaccounts.NetworkInjections) []interface{} {
-	if input == nil {
-		return []interface{}{}
-	}
-
-	return []interface{}{
-		map[string]interface{}{
-			"scenario":      *input.Scenario,
-			"subnet_arm_id": *input.SubnetArmId,
-		},
-	}
 }
