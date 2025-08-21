@@ -188,6 +188,24 @@ data "azurerm_role_definition" "test" {
 
 %[1]s
 
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%[2]d"
+  location = "%[3]s"
+}
+
+resource "azurerm_role_management_policy" "test" {
+  scope              = azurerm_resource_group.test.id
+  role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.test.id}"
+
+  active_assignment_rules {
+    expiration_required = false
+  }
+
+  eligible_assignment_rules {
+    expiration_required = false
+  }
+}
+
 resource "azurerm_pim_active_role_assignment" "test" {
   scope              = data.azurerm_subscription.primary.id
   role_definition_id = "${data.azurerm_subscription.primary.id}${data.azurerm_role_definition.test.id}"
@@ -200,7 +218,7 @@ resource "azurerm_pim_active_role_assignment" "test" {
     system = "example ticket system"
   }
 }
-`, r.template(data))
+`, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
 
 func (PimActiveRoleAssignmentResource) expirationByDurationHours(data acceptance.TestData) string {
