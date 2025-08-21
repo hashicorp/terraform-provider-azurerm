@@ -793,8 +793,8 @@ func expandCognitiveAccountStorage(input []interface{}) *[]cognitiveservicesacco
 	}
 	return &results
 }
-func expandCognitiveAccountAPIProperties(d *pluginsdk.ResourceData) (*cognitiveservicesaccounts.ApiProperties, error) {
 
+func expandCognitiveAccountAPIProperties(d *pluginsdk.ResourceData) (*cognitiveservicesaccounts.ApiProperties, error) {
 	props := cognitiveservicesaccounts.ApiProperties{}
 	kind := d.Get("kind")
 	if kind == "QnAMaker" {
