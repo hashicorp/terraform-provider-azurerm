@@ -151,14 +151,16 @@ resource "azuread_application_registration" "test" {
 }
 
 resource "azurerm_bot_channels_registration" "test" {
-  name                = "acctestdf%d"
-  location            = "global"
-  resource_group_name = azurerm_resource_group.test.name
-  sku                 = "F0"
-  microsoft_app_id    = azuread_application_registration.test.client_id
+  name                    = "acctestdf%d"
+  location                = "global"
+  resource_group_name     = azurerm_resource_group.test.name
+  sku                     = "F0"
+  microsoft_app_id        = azuread_application_registration.test.client_id
+  microsoft_app_type      = "SingleTenant"
+  microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
 
   tags = {
-    environment = "production"
+    environment = "Test"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
@@ -271,11 +273,13 @@ resource "azuread_application_registration" "test" {
 }
 
 resource "azurerm_bot_channels_registration" "test" {
-  name                = "acctestdf%d"
-  location            = "global"
-  resource_group_name = azurerm_resource_group.test.name
-  microsoft_app_id    = azuread_application_registration.test.client_id
-  sku                 = "F0"
+  name                    = "acctestdf%d"
+  location                = "global"
+  resource_group_name     = azurerm_resource_group.test.name
+  microsoft_app_id        = azuread_application_registration.test.client_id
+  microsoft_app_type      = "SingleTenant"
+  microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
+  sku                     = "F0"
 
   endpoint                              = "https://example2.com"
   developer_app_insights_api_key        = azurerm_application_insights_api_key.test2.api_key
@@ -288,7 +292,7 @@ resource "azurerm_bot_channels_registration" "test" {
   cmk_key_vault_url             = azurerm_key_vault_key.test2.id
 
   tags = {
-    environment = "production2"
+    environment = "Test2"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
@@ -375,11 +379,13 @@ resource "azuread_application_registration" "test" {
 }
 
 resource "azurerm_bot_channels_registration" "test" {
-  name                = "acctestdf%d"
-  location            = "global"
-  resource_group_name = azurerm_resource_group.test.name
-  microsoft_app_id    = azuread_application_registration.test.client_id
-  sku                 = "F0"
+  name                    = "acctestdf%d"
+  location                = "global"
+  resource_group_name     = azurerm_resource_group.test.name
+  microsoft_app_id        = azuread_application_registration.test.client_id
+  microsoft_app_type      = "SingleTenant"
+  microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
+  sku                     = "F0"
 
   endpoint                              = "https://example.com"
   developer_app_insights_api_key        = azurerm_application_insights_api_key.test.api_key
@@ -392,7 +398,7 @@ resource "azurerm_bot_channels_registration" "test" {
   cmk_key_vault_url             = azurerm_key_vault_key.test.id
 
   tags = {
-    environment = "production"
+    environment = "Test"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
@@ -505,11 +511,13 @@ resource "azuread_application_registration" "test" {
 }
 
 resource "azurerm_bot_channels_registration" "test" {
-  name                = "acctestdf%d"
-  location            = "global"
-  resource_group_name = azurerm_resource_group.test.name
-  microsoft_app_id    = azuread_application_registration.test.client_id
-  sku                 = "F0"
+  name                    = "acctestdf%d"
+  location                = "global"
+  resource_group_name     = azurerm_resource_group.test.name
+  microsoft_app_id        = azuread_application_registration.test.client_id
+  microsoft_app_type      = "SingleTenant"
+  microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
+  sku                     = "F0"
 
   endpoint                              = "https://example2.com"
   developer_app_insights_api_key        = azurerm_application_insights_api_key.test2.api_key
@@ -521,7 +529,7 @@ resource "azurerm_bot_channels_registration" "test" {
   icon_url                      = "http://myprofile/myicon2.png"
 
   tags = {
-    environment = "production2"
+    environment = "Test2"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
@@ -556,6 +564,8 @@ resource "azurerm_bot_channels_registration" "test" {
   resource_group_name        = azurerm_resource_group.test.name
   sku                        = "F0"
   microsoft_app_id           = azuread_application_registration.test.client_id
+  microsoft_app_type         = "SingleTenant"
+  microsoft_app_tenant_id    = data.azurerm_client_config.current.tenant_id
   streaming_endpoint_enabled = %t
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, streamingEndpointEnabled)
