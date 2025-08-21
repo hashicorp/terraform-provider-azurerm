@@ -3,6 +3,7 @@ package sdk
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/go-azure-helpers/framework/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
@@ -175,16 +176,7 @@ func (r *FrameworkResourceWrapper) SetIdentityOnCreate(ctx context.Context, resp
 			response.Diagnostics.AddError("parsing resource ID: %s", err.Error())
 		}
 
-		var t ResourceTypeForIdentity
-
-		switch len(idType) {
-		case 0:
-			t = ResourceTypeForIdentityDefault
-		case 1:
-			t = idType[0]
-		default:
-			panic(fmt.Sprintf("expected a maximum of one value for the `idType` argument, got %d", len(idType)))
-		}
+		t := identityType(idType)
 
 		segments := id.Segments()
 		numSegments := len(segments)
@@ -215,16 +207,7 @@ func (r *FrameworkResourceWrapper) SetIdentityOnRead(ctx context.Context, respon
 			response.Diagnostics.AddError("parsing resource ID: %s", err.Error())
 		}
 
-		var t ResourceTypeForIdentity
-
-		switch len(idType) {
-		case 0:
-			t = ResourceTypeForIdentityDefault
-		case 1:
-			t = idType[0]
-		default:
-			panic(fmt.Sprintf("expected a maximum of one value for the `idType` argument, got %d", len(idType)))
-		}
+		t := identityType(idType)
 
 		segments := id.Segments()
 		numSegments := len(segments)
@@ -242,4 +225,24 @@ func (r *FrameworkResourceWrapper) SetIdentityOnRead(ctx context.Context, respon
 			}
 		}
 	}
+}
+
+func AssertResourceModelType[T any](input interface{}, response interface{}) *T {
+	result, ok := input.(*T)
+	if !ok {
+		switch v := response.(type) {
+		case *resource.CreateResponse:
+			v.Diagnostics.AddError("resource had wrong model type", fmt.Sprintf("got %T", input))
+		case *resource.ReadResponse:
+			v.Diagnostics.AddError("resource had wrong model type", fmt.Sprintf("got %T", input))
+		case *resource.UpdateResponse:
+			v.Diagnostics.AddError("resource had wrong model type, ", fmt.Sprintf("got %T", input))
+		case *resource.DeleteResponse:
+			v.Diagnostics.AddError("resource had wrong model type", fmt.Sprintf("got %T", input))
+		}
+
+		return nil
+	}
+
+	return result
 }
