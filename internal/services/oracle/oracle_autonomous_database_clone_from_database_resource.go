@@ -76,18 +76,6 @@ func (AutonomousDatabaseCloneFromDatabaseResource) Arguments() map[string]*plugi
 
 		// Clone-specific required fields
 
-		"source": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(autonomousdatabases.SourceTypeDatabase),
-			}, false),
-			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-				// Source is create-only and not returned by Azure API
-				return old != "" && new == ""
-			},
-		},
 		"source_autonomous_database_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -242,6 +230,7 @@ func (AutonomousDatabaseCloneFromDatabaseResource) Arguments() map[string]*plugi
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
 			MaxItems: 1024,
+			ForceNew: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.Any(
@@ -404,7 +393,7 @@ func (r AutonomousDatabaseCloneFromDatabaseResource) Read() sdk.ResourceFunc {
 				state.SubnetId = pointer.From(props.SubnetId)
 				state.VnetId = pointer.From(props.VnetId)
 				state.AllowedIps = pointer.From(props.WhitelistedIPs)
-				state.CustomerContacts = flattenCloneCustomerContacts(*props.CustomerContacts)
+				state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
 			}
 
 			return metadata.Encode(&state)

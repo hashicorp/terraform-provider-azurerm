@@ -24,7 +24,7 @@ func TestAccAutonomousDatabaseCloneFromDatabaseDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("lifecycle_state").Exists(),
 				check.That(data.ResourceName).Key("display_name").Exists(),
 				check.That(data.ResourceName).Key("compute_count").Exists(),
-				check.That(data.ResourceName).Key("data_storage_size_in_tbs").Exists(),
+				check.That(data.ResourceName).Key("data_storage_size_in_tb").Exists(),
 			),
 		},
 	})
@@ -41,7 +41,7 @@ func TestAccAutonomousDatabaseCloneFromDatabaseDataSource_metadataClone(t *testi
 				check.That(data.ResourceName).Key("lifecycle_state").Exists(),
 				check.That(data.ResourceName).Key("display_name").Exists(),
 				check.That(data.ResourceName).Key("compute_count").Exists(),
-				check.That(data.ResourceName).Key("data_storage_size_in_tbs").Exists(),
+				check.That(data.ResourceName).Key("data_storage_size_in_tb").Exists(),
 			),
 		},
 	})

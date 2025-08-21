@@ -228,6 +228,7 @@ func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*plugins
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
 			MaxItems: 1024,
+			ForceNew: true,
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 				ValidateFunc: validation.Any(
@@ -374,7 +375,7 @@ func (r AutonomousDatabaseCloneFromBackupResource) Read() sdk.ResourceFunc {
 				state.CharacterSet = pointer.From(props.CharacterSet)
 				state.ComputeCount = pointer.From(props.ComputeCount)
 				state.ComputeModel = pointer.FromEnum(props.ComputeModel)
-				state.CustomerContacts = flattenCloneCustomerContacts(pointer.From(props.CustomerContacts))
+				state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
 				state.DataStorageSizeInTb = pointer.From(props.DataStorageSizeInTbs)
 				state.DatabaseVersion = pointer.From(props.DbVersion)
 				state.DatabaseWorkload = string(pointer.From(props.DbWorkload))

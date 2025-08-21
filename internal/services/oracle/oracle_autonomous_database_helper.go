@@ -35,16 +35,28 @@ func expandCloneCustomerContacts(input []string) []autonomousdatabases.CustomerC
 	return contacts
 }
 
-func flattenCloneCustomerContacts(input []autonomousdatabases.CustomerContact) []string {
-	if len(input) == 0 {
-		return nil
+func flattenConnectionStrings(connStrings *autonomousdatabases.ConnectionStringType) []string {
+	flattened := make([]string, 0)
+
+	if connStrings == nil {
+		return flattened
+	}
+	allConnStrings := connStrings.AllConnectionStrings
+	if allConnStrings == nil {
+		return flattened
 	}
 
-	emails := make([]string, 0, len(input))
-	for _, contact := range input {
-		if contact.Email != "" {
-			emails = append(emails, contact.Email)
-		}
+	if allConnStrings.High != nil {
+		flattened = append(flattened, *allConnStrings.High)
 	}
-	return emails
+
+	if allConnStrings.Medium != nil {
+		flattened = append(flattened, *allConnStrings.Medium)
+	}
+
+	if allConnStrings.Low != nil {
+		flattened = append(flattened, *allConnStrings.Low)
+	}
+
+	return flattened
 }
