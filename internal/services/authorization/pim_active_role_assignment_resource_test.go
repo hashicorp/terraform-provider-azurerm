@@ -217,6 +217,8 @@ resource "azurerm_pim_active_role_assignment" "test" {
     number = "1"
     system = "example ticket system"
   }
+
+  depends_on = [azurerm_role_management_policy.test]
 }
 `, r.template(data), data.RandomInteger, data.Locations.Primary)
 }
