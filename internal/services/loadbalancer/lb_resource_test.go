@@ -359,14 +359,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                = "test-ip-%d"
+  name                = "acctest-ip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
 }
 
 resource "azurerm_public_ip" "test1" {
-  name                = "another-test-ip-%d"
+  name                = "acctest-ip2-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
@@ -378,12 +378,12 @@ resource "azurerm_lb" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   frontend_ip_configuration {
-    name                 = "one-%d"
+    name                 = "acctest-fe1-%d"
     public_ip_address_id = azurerm_public_ip.test.id
   }
 
   frontend_ip_configuration {
-    name                 = "two-%d"
+    name                 = "acctest-fe2-%d"
     public_ip_address_id = azurerm_public_ip.test1.id
   }
 }
@@ -402,14 +402,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                = "test-ip-%d"
+  name                = "acctest-ip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
 }
 
 resource "azurerm_public_ip" "test1" {
-  name                = "another-test-ip-%d"
+  name                = "acctest-ip2-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
@@ -421,7 +421,7 @@ resource "azurerm_lb" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   frontend_ip_configuration {
-    name                 = "one-%d"
+    name                 = "acctest-fe1-%d"
     public_ip_address_id = azurerm_public_ip.test.id
   }
 }
@@ -440,7 +440,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip_prefix" "test" {
-  name                = "test-ip-prefix-%d"
+  name                = "acctest-ip-prefix-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   prefix_length       = 31
@@ -472,7 +472,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                = "test-ip-%d"
+  name                = "acctest-ip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
@@ -484,7 +484,7 @@ resource "azurerm_lb" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   frontend_ip_configuration {
-    name                 = "one-%d"
+    name                 = "acctest-fe1-%d"
     public_ip_address_id = azurerm_public_ip.test.id
   }
 }

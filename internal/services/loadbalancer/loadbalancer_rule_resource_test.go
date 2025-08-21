@@ -159,7 +159,7 @@ func TestAccAzureRMLoadBalancerRule_updateMultipleRules(t *testing.T) {
 
 func TestAccAzureRMLoadBalancerRule_vmssBackendPoolUpdateRemoveLBRule(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_lb_rule", "test")
-	lbRuleName := fmt.Sprintf("LbRule-%d", data.RandomInteger%100000000)
+	lbRuleName := fmt.Sprintf("acctest-lb-rule-%d", data.RandomInteger%100000000)
 	r := LoadBalancerRule{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
@@ -280,7 +280,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                = "test-ip-%[1]d"
+  name                = "acctest-ip-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
@@ -288,13 +288,13 @@ resource "azurerm_public_ip" "test" {
 }
 
 resource "azurerm_lb" "test" {
-  name                = "arm-test-loadbalancer-%[1]d"
+  name                = "acctest-loadbalancer-%[1]d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "%[3]s"
 
   frontend_ip_configuration {
-    name                 = "one-%[1]d"
+    name                 = "acctest-fe-%[1]d"
     public_ip_address_id = azurerm_public_ip.test.id
   }
 }
@@ -306,7 +306,7 @@ func (r LoadBalancerRule) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_lb_rule" "test" {
-  name                           = "LbRule-%d"
+  name                           = "acctest-lb-rule-%d"
   loadbalancer_id                = azurerm_lb.test.id
   frontend_ip_configuration_name = azurerm_lb.test.frontend_ip_configuration.0.name
   protocol                       = "Tcp"
@@ -322,7 +322,7 @@ func (r LoadBalancerRule) complete(data acceptance.TestData) string {
 %s
 
 resource "azurerm_lb_rule" "test" {
-  name            = "LbRule-%d"
+  name            = "acctest-lb-rule-%d"
   loadbalancer_id = azurerm_lb.test.id
 
   protocol      = "Tcp"
@@ -344,7 +344,7 @@ resource "azurerm_lb_rule" "test" {
 %s
 
 resource "azurerm_lb_rule" "test" {
-  name            = "LbRule-%d"
+  name            = "acctest-lb-rule-%d"
   loadbalancer_id = azurerm_lb.test.id
 
   protocol      = "Tcp"
@@ -385,19 +385,19 @@ func (r LoadBalancerRule) inconsistentRead(data acceptance.TestData) string {
 %s
 
 resource "azurerm_lb_backend_address_pool" "test" {
-  name            = "%d-address-pool"
+  name            = "acctest-pool-%d"
   loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_lb_probe" "test" {
-  name            = "probe-%d"
+  name            = "acctest-probe-%d"
   loadbalancer_id = azurerm_lb.test.id
   protocol        = "Tcp"
   port            = 443
 }
 
 resource "azurerm_lb_rule" "test" {
-  name                           = "LbRule-%d"
+  name                           = "acctest-lb-rule-%d"
   loadbalancer_id                = azurerm_lb.test.id
   protocol                       = "Tcp"
   frontend_port                  = 3389
@@ -414,7 +414,7 @@ func (r LoadBalancerRule) multipleRules(data, data2 acceptance.TestData) string 
 
 resource "azurerm_lb_rule" "test" {
   loadbalancer_id                = azurerm_lb.test.id
-  name                           = "LbRule-%d"
+  name                           = "acctest-lb-rule-%d"
   protocol                       = "Udp"
   frontend_port                  = 3389
   backend_port                   = 3389
@@ -423,7 +423,7 @@ resource "azurerm_lb_rule" "test" {
 
 resource "azurerm_lb_rule" "test2" {
   loadbalancer_id                = azurerm_lb.test.id
-  name                           = "LbRule-%d"
+  name                           = "acctest-lb-rule2-%d"
   protocol                       = "Udp"
   frontend_port                  = 3390
   backend_port                   = 3390
@@ -439,7 +439,7 @@ func (r LoadBalancerRule) multipleRulesUpdate(data, data2 acceptance.TestData) s
 
 resource "azurerm_lb_rule" "test" {
   loadbalancer_id                = azurerm_lb.test.id
-  name                           = "LbRule-%d"
+  name                           = "acctest-lb-rule-%d"
   protocol                       = "Udp"
   frontend_port                  = 3389
   backend_port                   = 3389
@@ -448,7 +448,7 @@ resource "azurerm_lb_rule" "test" {
 
 resource "azurerm_lb_rule" "test2" {
   loadbalancer_id                = azurerm_lb.test.id
-  name                           = "LbRule-%d"
+  name                           = "acctest-lb-rule2-%d"
   protocol                       = "Udp"
   frontend_port                  = 3391
   backend_port                   = 3391
@@ -528,7 +528,7 @@ func (r LoadBalancerRule) vmssBackendPool(data acceptance.TestData, lbRuleName, 
 
 resource "azurerm_lb_rule" "test" {
   loadbalancer_id                = azurerm_lb.test.id
-  name                           = "%s"
+  name                           = "acctest%s"
   protocol                       = "Tcp"
   frontend_port                  = 3389
   backend_port                   = 3389
@@ -544,7 +544,7 @@ func (r LoadBalancerRule) vmssBackendPoolUpdate(data acceptance.TestData, lbRule
 %s
 resource "azurerm_lb_rule" "test" {
   loadbalancer_id                = azurerm_lb.test.id
-  name                           = "%s"
+  name                           = "acctest%s"
   protocol                       = "Tcp"
   frontend_port                  = 3389
   backend_port                   = 3389
@@ -658,7 +658,7 @@ resource "azurerm_lb_backend_address_pool" "test" {
 
 resource "azurerm_lb_rule" "test" {
   loadbalancer_id = azurerm_lb.test.id
-  name            = "abababa"
+  name            = "acctest-lb-rule-%[2]d"
   protocol        = "All"
   frontend_port   = 0
   backend_port    = 0
@@ -699,7 +699,7 @@ resource "azurerm_lb_backend_address_pool" "test2" {
 
 resource "azurerm_lb_rule" "test" {
   loadbalancer_id = azurerm_lb.test.id
-  name            = "abababa"
+  name            = "acctest-lb-rule-%[2]d"
   protocol        = "All"
   frontend_port   = 0
   backend_port    = 0

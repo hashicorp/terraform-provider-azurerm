@@ -72,19 +72,19 @@ func (r LoadBalancerRule) completeDataSource(data acceptance.TestData) string {
 		return fmt.Sprintf(`
 %s
 resource "azurerm_lb_backend_address_pool" "test" {
-  name            = "LbPool-%s"
+  name            = "acctest-pool-%s"
   loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_lb_probe" "test" {
-  name            = "LbProbe-%s"
+  name            = "acctest-probe-%s"
   loadbalancer_id = azurerm_lb.test.id
   protocol        = "Tcp"
   port            = 443
 }
 
 resource "azurerm_lb_rule" "test" {
-  name            = "LbRule-%s"
+  name            = "acctest-lb-rule-%s"
   loadbalancer_id = azurerm_lb.test.id
 
   protocol      = "Tcp"
@@ -112,19 +112,19 @@ data "azurerm_lb_rule" "test" {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_lb_backend_address_pool" "test" {
-  name            = "LbPool-%s"
+  name            = "acctest-pool-%s"
   loadbalancer_id = azurerm_lb.test.id
 }
 
 resource "azurerm_lb_probe" "test" {
-  name            = "LbProbe-%s"
+  name            = "acctest-probe-%s"
   loadbalancer_id = azurerm_lb.test.id
   protocol        = "Tcp"
   port            = 443
 }
 
 resource "azurerm_lb_rule" "test" {
-  name            = "LbRule-%s"
+  name            = "acctest-lb-rule-%s"
   loadbalancer_id = azurerm_lb.test.id
 
   protocol      = "Tcp"
