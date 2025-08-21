@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `hibernate_support_enabled` - (Optional) Whether the Dev Boxes created with this definition are capable of hibernation. Defaults to `false`.
 
-> **Note:** Not all images are capable of supporting hibernation, for more information see https://aka.ms/devbox/hibernate.
+-> **Note:** Not all images are capable of supporting hibernation, for more information see https://aka.ms/devbox/hibernate.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dev Center Dev Box Definition.
 
@@ -84,4 +84,4 @@ terraform import azurerm_dev_center_dev_box_definition.example /subscriptions/00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DevCenter`: 2025-02-01
+* `Microsoft.DevCenter` - 2025-02-01

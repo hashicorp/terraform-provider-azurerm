@@ -156,3 +156,9 @@ Network Manager Verifier Workspace Reachability Analysis Intents can be imported
 ```shell
 terraform import azurerm_network_manager_verifier_workspace_reachability_analysis_intent.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Network/networkManagers/manager1/verifierWorkspaces/workspace1/reachabilityAnalysisIntents/intent1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

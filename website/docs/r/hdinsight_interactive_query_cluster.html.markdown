@@ -458,4 +458,4 @@ terraform import azurerm_hdinsight_interactive_query_cluster.example /subscripti
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.HDInsight`: 2021-06-01
+* `Microsoft.HDInsight` - 2021-06-01

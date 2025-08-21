@@ -115,6 +115,8 @@ A `vpn_link` block supports the following:
 
 * `name` - (Required) The name which should be used for this VPN Link Connection.
 
+* `dpd_timeout_seconds` - (Optional) The dead peer detection timeout of this connection in seconds. Possible values are between `9` and `3600`.
+
 * `egress_nat_rule_ids` - (Optional) A list of the egress NAT Rule Ids.
 
 * `ingress_nat_rule_ids` - (Optional) A list of the ingress NAT Rule Ids.
@@ -206,4 +208,4 @@ terraform import azurerm_vpn_gateway_connection.example /subscriptions/00000000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2024-05-01
+* `Microsoft.Network` - 2024-05-01

@@ -66,7 +66,7 @@ The following arguments are supported:
 
 * `soft_delete_retention_days` - (Optional) The number of days that items should be retained for once soft-deleted. This value can be between `7` and `90` days. Defaults to `90`. Changing this forces a new resource to be created.
 
-* `public_network_access_enabled` - (Optional) Whether traffic from public networks is permitted. Defaults to `true`. Changing this forces a new resource to be created.
+* `public_network_access_enabled` - (Optional) Whether traffic from public networks is permitted. Defaults to `true`.
 
 * `network_acls` - (Optional) A `network_acls` block as defined below.
 
@@ -115,4 +115,4 @@ terraform import azurerm_key_vault_managed_hardware_security_module.example /sub
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.KeyVault`: 2023-07-01
+* `Microsoft.KeyVault` - 2023-07-01

@@ -101,6 +101,15 @@ func TestAccNetworkManager(t *testing.T) {
 			"complete":       testAccNetworkManagerIpamPool_complete,
 			"update":         testAccNetworkManagerIpamPool_update,
 			"requiresImport": testAccNetworkManagerIpamPool_requiresImport,
+			"dataSource":     testAccNetworkManagerIpamPoolDataSource_complete,
+		},
+		"IPAMPoolStaticCIDR": {
+			"basic":                 testAccNetworkManagerIpamPoolStaticCidr_basic,
+			"complete":              testAccNetworkManagerIpamPoolStaticCidr_complete,
+			"update":                testAccNetworkManagerIpamPoolStaticCidr_update,
+			"requiresImport":        testAccNetworkManagerIpamPoolStaticCidr_requiresImport,
+			"ipAddressNumber":       testAccNetworkManagerIpamPoolStaticCidr_ipAddressNumber,
+			"updateIpAddressNumber": testAccNetworkManagerIpamPoolStaticCidr_ipAddressNumberUpdated,
 		},
 		"VerifierWorkspace": {
 			"basic":          testAccNetworkManagerVerifierWorkspace_basic,
@@ -118,6 +127,12 @@ func TestAccNetworkManager(t *testing.T) {
 			"complete":       testAccNetworkManagerRoutingConfiguration_complete,
 			"update":         testAccNetworkManagerRoutingConfiguration_update,
 			"requiresImport": testAccNetworkManagerRoutingConfiguration_requiresImport,
+		},
+		"RoutingRuleCollection": {
+			"basic":          testAccNetworkManagerRoutingRuleCollection_basic,
+			"complete":       testAccNetworkManagerRoutingRuleCollection_complete,
+			"update":         testAccNetworkManagerRoutingRuleCollection_update,
+			"requiresImport": testAccNetworkManagerRoutingRuleCollection_requiresImport,
 		},
 	}
 
