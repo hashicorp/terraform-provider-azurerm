@@ -99,24 +99,27 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 			"microsoft_app_tenant_id": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				ForceNew:     true,
 				ValidateFunc: validation.IsUUID,
-			},
-
-			"microsoft_app_user_assigned_identity_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 			},
 
 			"microsoft_app_type": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(botservice.MsaAppTypeMultiTenant),
 					string(botservice.MsaAppTypeSingleTenant),
 					string(botservice.MsaAppTypeUserAssignedMSI),
 				}, false),
 				Default: string(botservice.MsaAppTypeMultiTenant),
+			},
+
+			"microsoft_app_user_assigned_identity_id": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 			},
 
 			"cmk_key_vault_url": {
