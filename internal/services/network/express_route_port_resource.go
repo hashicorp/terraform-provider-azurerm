@@ -293,8 +293,6 @@ func resourceArmExpressRoutePortUpdate(d *pluginsdk.ResourceData, meta interface
 	locks.ByID(id.ID())
 	defer locks.UnlockByID(id.ID())
 
-	payload.Properties.Links = expandExpressRoutePortLinks(d.Get("link1").([]interface{}), d.Get("link2").([]interface{}))
-
 	if err := client.CreateOrUpdateThenPoll(ctx, *id, *payload); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
