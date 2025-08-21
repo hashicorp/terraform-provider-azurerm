@@ -35,7 +35,8 @@ func TestAccFwLogicAppStandard_resourceIdentity(t *testing.T) {
 					statecheck.ExpectIdentityValueMatchesStateAtPath("azurerm_fw_logic_app_standard.test", tfjsonpath.New("resource_group_name"), tfjsonpath.New("resource_group_name")),
 				},
 			},
-			// data.ImportBlockWithIDStep(),
+			data.ImportStep(),
+			data.ImportBlockWithIDStep(),
 			data.ImportBlockWithResourceIdentityStep(),
 		},
 	})

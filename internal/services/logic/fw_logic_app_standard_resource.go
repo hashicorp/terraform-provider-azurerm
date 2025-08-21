@@ -3,11 +3,8 @@ package logic
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"reflect"
 	"strings"
-
-	rmidentity "github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 
 	"github.com/hashicorp/go-azure-helpers/framework/commonschema"
 	"github.com/hashicorp/go-azure-helpers/framework/convert"
@@ -17,6 +14,8 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	rmidentity "github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-01-01/resourceproviders"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-plugin-framework-validators/int64validator"
@@ -55,6 +54,13 @@ func (r FwLogicAppStandardResource) ResourceType() string {
 }
 
 func (r FwLogicAppStandardResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse, metadata sdk.ResourceMetadata) {
+	if req.ID == "" {
+		resourceIdentity := &FwLogicAppStandardResourceIdentityModel{}
+		req.Identity.Get(ctx, resourceIdentity)
+		id := pointer.To(commonids.NewAppServiceID(resourceIdentity.SubscriptionId, resourceIdentity.ResourceGroupName, resourceIdentity.Name))
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), id.ID())...)
+	}
+
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
 }
 
@@ -455,7 +461,7 @@ func (r FwLogicAppStandardResource) Create(ctx context.Context, _ resource.Creat
 	client := metadata.Client.AppService.WebAppsClient
 	resourcesClient := metadata.Client.AppService.ResourceProvidersClient
 	env := metadata.Client.Account.Environment
-	data := assertFwLogicAppStandardResourceModel(decodedPlan, resp)
+	data := sdk.AssertResourceModelType[FwLogicAppStandardResourceModel](decodedPlan, resp)
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -465,7 +471,7 @@ func (r FwLogicAppStandardResource) Create(ctx context.Context, _ resource.Creat
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("checking for presence of existing resource group: %+v", err), err.Error())
+			sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("checking for presence of existing Logic App: %+v", err), err.Error())
 			return
 		}
 	}
@@ -619,9 +625,10 @@ func (r FwLogicAppStandardResource) Create(ctx context.Context, _ resource.Creat
 	readLogicAppStandardAppSettings(ctx, &id, client, data, resp)
 }
 
-func (r FwLogicAppStandardResource) Read(ctx context.Context, _ resource.ReadRequest, resp *resource.ReadResponse, metadata sdk.ResourceMetadata, decodedState interface{}) {
+func (r FwLogicAppStandardResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse, metadata sdk.ResourceMetadata, decodedState interface{}) {
 	client := metadata.Client.AppService.WebAppsClient
-	state := assertFwLogicAppStandardResourceModel(decodedState, resp)
+	state := sdk.AssertResourceModelType[FwLogicAppStandardResourceModel](decodedState, resp)
+
 	id, err := commonids.ParseLogicAppId(state.ID.ValueString())
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(resp, "parsing azurerm_fw_logic_app_standard ID", err)
@@ -725,7 +732,7 @@ func (r FwLogicAppStandardResource) Update(ctx context.Context, _ resource.Updat
 
 func (r FwLogicAppStandardResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse, metadata sdk.ResourceMetadata, decodedState interface{}) {
 	client := metadata.Client.AppService.WebAppsClient
-	state := assertFwLogicAppStandardResourceModel(decodedState, resp)
+	state := sdk.AssertResourceModelType[FwLogicAppStandardResourceModel](decodedState, resp)
 	id, err := commonids.ParseLogicAppId(state.ID.ValueString())
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(resp, "ID parsing error", err)
@@ -741,7 +748,7 @@ func (r FwLogicAppStandardResource) Delete(ctx context.Context, req resource.Del
 }
 
 func (r FwLogicAppStandardResource) Identity() (id resourceids.ResourceId, idType []sdk.ResourceTypeForIdentity) {
-	return &commonids.LogicAppId{}, nil
+	return &commonids.LogicAppId{}, []sdk.ResourceTypeForIdentity{sdk.ResourceTypeForIdentityDefault}
 }
 
 func (r *FwLogicAppStandardResourceModel) buildBaseAppSettings(storageAccountDomainSuffix string) []webapps.NameValuePair {
@@ -942,16 +949,18 @@ func flattenIPRestriction(ctx context.Context, settings *[]webapps.IPSecurityRes
 func expandAppSettingsLogicAppStandard(ctx context.Context, input types.Map, baseSettings ...webapps.NameValuePair) *[]webapps.NameValuePair {
 	result := make([]webapps.NameValuePair, 0)
 
-	decode := make(map[string]string)
-	input.ElementsAs(ctx, &decode, false)
+	if !(input.IsUnknown() || input.IsNull()) {
+		decode := make(map[string]string)
+		input.ElementsAs(ctx, &decode, false)
 
-	if len(decode) > 0 {
-		for k, v := range decode {
-			s := webapps.NameValuePair{
-				Name:  pointer.To(k),
-				Value: pointer.To(v),
+		if len(decode) > 0 {
+			for k, v := range decode {
+				s := webapps.NameValuePair{
+					Name:  pointer.To(k),
+					Value: pointer.To(v),
+				}
+				result = append(result, s)
 			}
-			result = append(result, s)
 		}
 	}
 
@@ -972,7 +981,7 @@ func readLogicAppStandardAppSettings(ctx context.Context, id *commonids.AppServi
 		if props := model.Properties; props != nil && len(*props) > 0 {
 			appSettings := *props
 
-			connectionString := appSettings["AzureWebJobsStorage"]
+			connectionString := appSettings[storagePropName]
 			connectionStringParts := strings.Split(connectionString, ";")
 			for _, part := range connectionStringParts {
 				switch {
@@ -991,23 +1000,23 @@ func readLogicAppStandardAppSettings(ctx context.Context, id *commonids.AppServi
 
 			state.Version = types.StringValue(appSettings[functionVersionPropName])
 
-			_, useExtensionBundle := appSettings["AzureFunctionsJobHost__extensionBundle__id"]
+			_, useExtensionBundle := appSettings[extensionBundlePropName]
 			state.UseExtensionBundle = types.BoolValue(useExtensionBundle)
 			if useExtensionBundle {
-				if v, ok := appSettings["AzureFunctionsJobHost__extensionBundle__version"]; ok {
+				if v, ok := appSettings[extensionBundleVersionPropName]; ok {
 					state.BundleVersion = types.StringValue(v)
 				}
 			}
 
-			state.StorageAccountShareName = types.StringValue(appSettings["WEBSITE_CONTENTSHARE"])
-			delete(appSettings, "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING")
-			delete(appSettings, "APP_KIND")
-			delete(appSettings, "AzureFunctionsJobHost__extensionBundle__id")
-			delete(appSettings, "AzureFunctionsJobHost__extensionBundle__version")
-			delete(appSettings, "AzureWebJobsDashboard")
-			delete(appSettings, "AzureWebJobsStorage")
-			delete(appSettings, "FUNCTIONS_EXTENSION_VERSION")
-			delete(appSettings, "WEBSITE_CONTENTSHARE")
+			state.StorageAccountShareName = types.StringValue(appSettings[contentSharePropName])
+			delete(appSettings, contentFileConnStringPropName)
+			delete(appSettings, appKindPropName)
+			delete(appSettings, extensionBundlePropName)
+			delete(appSettings, extensionBundleVersionPropName)
+			delete(appSettings, webJobsDashboardPropName)
+			delete(appSettings, storagePropName)
+			delete(appSettings, functionVersionPropName)
+			delete(appSettings, contentSharePropName)
 
 			convert.Flatten(ctx, appSettings, &state.AppSettings, diags)
 			if diags.HasError() {

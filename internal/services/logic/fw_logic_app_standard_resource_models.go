@@ -2,7 +2,6 @@ package logic
 
 import (
 	"context"
-	"fmt"
 	"math"
 
 	"github.com/hashicorp/go-azure-helpers/framework/identity"
@@ -12,7 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
-	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -35,6 +33,7 @@ const (
 	extensionBundlePropName        = "AzureFunctionsJobHost__extensionBundle__id"
 	extensionBundleName            = "Microsoft.Azure.Functions.ExtensionBundle.Workflows"
 	extensionBundleVersionPropName = "AzureFunctionsJobHost__extensionBundle__version"
+	webJobsDashboardPropName       = "AzureWebJobsDashboard"
 )
 
 // FwLogicAppStandardResourceModel is a temporary struct - please use make generate function after creating/updating the schema function for the resource to correctly populate this and generate all modules for the schema
@@ -69,6 +68,12 @@ type FwLogicAppStandardResourceModel struct {
 	Tags                        typehelpers.MapValueOf[types.String]                                         `tfsdk:"tags"`
 	SiteConfig                  typehelpers.ListNestedObjectValueOf[FwLogicAppStandardSiteConfigModel]       `tfsdk:"site_config"`
 	SiteCredentials             typehelpers.ListNestedObjectValueOf[FwLogicAppStandardSiteCredentialsModel]  `tfsdk:"site_credential"`
+}
+
+type FwLogicAppStandardResourceIdentityModel struct {
+	SubscriptionId    string `tfsdk:"subscription_id"`
+	ResourceGroupName string `tfsdk:"resource_group_name"`
+	Name              string `tfsdk:"name"`
 }
 
 type FwLogicAppStandardResourceNativeModel struct {
@@ -343,21 +348,21 @@ func ipRestrictionCommonSchema(ctx context.Context) schema.ListNestedBlock {
 	}
 }
 
-func assertFwLogicAppStandardResourceModel(input interface{}, response interface{}) *FwLogicAppStandardResourceModel {
-	result, ok := input.(*FwLogicAppStandardResourceModel)
-	if !ok {
-		switch v := response.(type) {
-		case *resource.CreateResponse:
-			v.Diagnostics.AddError("resource had wrong model type", fmt.Sprintf("got %T", input))
-		case *resource.ReadResponse:
-			v.Diagnostics.AddError("resource had wrong model type", fmt.Sprintf("got %T", input))
-		case *resource.UpdateResponse:
-			v.Diagnostics.AddError("resource had wrong model type, ", fmt.Sprintf("got %T", input))
-		case *resource.DeleteResponse:
-			v.Diagnostics.AddError("resource had wrong model type", fmt.Sprintf("got %T", input))
-		}
-		return nil
-	}
-
-	return result
-}
+// func assertFwLogicAppStandardResourceModel(input interface{}, response interface{}) *FwLogicAppStandardResourceModel {
+// 	result, ok := input.(*FwLogicAppStandardResourceModel)
+// 	if !ok {
+// 		switch v := response.(type) {
+// 		case *resource.CreateResponse:
+// 			v.Diagnostics.AddError("resource had wrong model type", fmt.Sprintf("got %T", input))
+// 		case *resource.ReadResponse:
+// 			v.Diagnostics.AddError("resource had wrong model type", fmt.Sprintf("got %T", input))
+// 		case *resource.UpdateResponse:
+// 			v.Diagnostics.AddError("resource had wrong model type, ", fmt.Sprintf("got %T", input))
+// 		case *resource.DeleteResponse:
+// 			v.Diagnostics.AddError("resource had wrong model type", fmt.Sprintf("got %T", input))
+// 		}
+// 		return nil
+// 	}
+//
+// 	return result
+// }
