@@ -1,11 +1,17 @@
 ## 4.42.0 (Unreleased)
 
+NOTES:
+
+* This release contains a state migration that fixes a resource state parsing error for `azurerm_kusto_cluster` when the `language_extensions` property is defined. Users upgrading from a version older than `4.0.0` should upgrade directly to this release.
+
 ENHANCEMENTS:
 
 FEATURES:
 
 BUG FIXES:
-* `azurerm_mssql_job_step` - fix incorrect documentation [GH-30464]
+
+* `azurerm_kusto_cluster` - add a state migration for `language_extensions` to migrate from a list of strings to a list of objects (block) [GH-30438]
+* `azurerm_kusto_cluster` - fix an issue where removal of the `language_extensions` property was not applied to the API request [GH-30449]
 
 ## 4.41.0 (August 21, 2025)
 
