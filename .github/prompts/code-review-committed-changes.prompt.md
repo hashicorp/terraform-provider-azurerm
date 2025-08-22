@@ -103,7 +103,7 @@ As a principal Terraform provider engineer with expertise in Go development, Azu
 [List areas for consideration or minor improvements]
 
 ### 🔴 **ISSUES** (if any)
-[List any problems that need to be addressed]
+[List ONLY actual problems that need to be fixed - bugs, errors, violations, missing requirements, typos, misspellings, improper pointer handling, incorrect SDK usage, using deprecated utilities, etc. Do NOT include observations about what was done correctly or opinions about changes that are already implemented properly]
 
 ## ✅ **RECOMMENDATIONS**
 

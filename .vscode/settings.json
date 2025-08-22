@@ -2,10 +2,7 @@
     // Commit message generation with Azure provider context
     "github.copilot.chat.commitMessageGeneration.instructions": [
         {
-            "text": "Write clear, concise commit messages. Focus on what changed, not why."
-        },
-        {
-            "text": "Keep it under 72 characters. No need for conventional commit prefixes unless it's a breaking change."
+            "text": "Write clear, concise commit messages under 72 characters. Focus on what changed, not why. No need for conventional commit prefixes unless it's a breaking change."
         }
     ],
 

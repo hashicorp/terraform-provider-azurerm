@@ -191,28 +191,7 @@ function Get-InstallationConfig {
                 Type = "Prompts"
                 Description = "Prompt for reviewing local changes"
             }
-            
-            ".github/prompts/setup-go-dev-environment.prompt.md" = @{
-                Url = "/.github/prompts/setup-go-dev-environment.prompt.md"
-                Required = $true
-                Type = "Prompts"
-                Description = "Prompt for setting up Go development environment"
-            }
-            
-            ".github/prompts/summarize-repo-deep-dive.prompt.md" = @{
-                Url = "/.github/prompts/summarize-repo-deep-dive.prompt.md"
-                Required = $true
-                Type = "Prompts"
-                Description = "Prompt for deep repository analysis"
-            }
-            
-            ".github/prompts/summarize-repo.prompt.md" = @{
-                Url = "/.github/prompts/summarize-repo.prompt.md"
-                Required = $true
-                Type = "Prompts"
-                Description = "Prompt for repository summary"
-            }
-            
+                        
             # VS Code settings
             ".vscode/settings.json" = @{
                 Url = "/.vscode/settings.json"

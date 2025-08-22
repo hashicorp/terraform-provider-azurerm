@@ -163,9 +163,6 @@ The installer sets up a complete AI development environment:
 |-------------|---------|-------|
 | `code-review-local-changes.prompt.md` | **Review uncommitted changes** with Terraform provider best practices | Use before committing to get expert feedback on your local changes |
 | `code-review-committed-changes.prompt.md` | **Review committed changes** for pull request feedback | Use to review git commits with detailed technical analysis |
-| `setup-go-dev-environment.prompt.md` | **Set up Go development environment** for the Terraform provider | Use when setting up a new development machine or environment |
-| `summarize-repo.prompt.md` | **Generate repository overview** with key components and structure | Use to understand the codebase structure and organization |
-| `summarize-repo-deep-dive.prompt.md` | **Deep technical analysis** of repository architecture and patterns | Use for comprehensive codebase analysis and architecture review |
 
 #### How to Use Prompts
 
@@ -178,19 +175,16 @@ Simply use slash commands to invoke the prompts directly:
 |---------------|-------------|-------------|
 | `/code-review-local-changes` | `code-review-local-changes.prompt.md` | Review your uncommitted changes |
 | `/code-review-committed-changes` | `code-review-committed-changes.prompt.md` | Review committed changes |
-| `/setup-go-dev-environment` | `setup-go-dev-environment.prompt.md` | Set up Go development environment |
-| `/summarize-repo` | `summarize-repo.prompt.md` | Generate repository overview |
-| `/summarize-repo-deep-dive` | `summarize-repo-deep-dive.prompt.md` | Deep technical analysis |
 
 **Example Usage:**
 ```
 /code-review-local-changes
-/code-review-local-committed-changes
+/code-review-committed-changes
 ```
 
 **For File-Specific Actions:**
 ```
-/code-review-local-committed-changes for focusing on Azure patterns that have already been committed to your branch
+/code-review-committed-changes for focusing on Azure patterns that have already been committed to your branch
 /code-review-local-changes focusing on Azure patterns
 ```
 
@@ -321,24 +315,6 @@ Once the AI infrastructure is installed, you can leverage the powerful prompt te
 /code-review-committed-changes for commit abc123
 ```
 
-#### 🏗️ Environment Setup
-```
-# Set up development environment
-/setup-go-dev-environment
-
-# Configure Go toolchain for Terraform development
-/setup-go-dev-environment with Go 1.22+ and required tools
-```
-
-#### 📊 Repository Analysis
-```
-# Get high-level repository overview
-/summarize-repo
-
-# Deep dive into architecture and patterns
-/summarize-repo-deep-dive
-```
-
 ### Advanced Prompt Techniques
 
 #### 🎯 Context-Specific Usage
@@ -348,17 +324,18 @@ Combine slash commands with specific context for better results:
 # Review specific Azure service implementation
 /code-review-local-changes focusing on Azure CDN Front Door patterns
 
-# Set up environment for specific Azure services
-/setup-go-dev-environment and include Azure CLI tools for testing
+# Review changes with specific focus areas
+/code-review-committed-changes and ensure Azure SDK integration follows best practices
 ```
 
 #### 🔄 Iterative Development
 Use slash commands in sequence for complete development workflows:
 
 ```
-1. /summarize-repo to understand the codebase
+1. # Review your implementation patterns against Azure provider guidelines
 2. # Make your code changes
 3. /code-review-local-changes before committing
+4. /code-review-committed-changes after committing for final review
 ```
 
 #### 🎨 Custom Prompt Combinations
