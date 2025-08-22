@@ -13,6 +13,8 @@ Manages an Azure Bot Service.
 ## Example Usage
 
 ```hcl
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
   location = "West Europe"
@@ -34,11 +36,13 @@ resource "azurerm_application_insights_api_key" "example" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_bot_service_azure_bot" "example" {
-  name                = "exampleazurebot"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = "global"
-  microsoft_app_id    = data.azurerm_client_config.current.client_id
-  sku                 = "F0"
+  name                    = "exampleazurebot"
+  resource_group_name     = azurerm_resource_group.example.name
+  location                = "global"
+  microsoft_app_id        = data.azurerm_client_config.current.client_id
+  microsoft_app_type      = "SingleTenant"
+  microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
+  sku                     = "F0"
 
   endpoint                              = "https://example.com"
   developer_app_insights_api_key        = azurerm_application_insights_api_key.example.api_key
@@ -84,7 +88,11 @@ The following arguments are supported:
 
 * `microsoft_app_tenant_id` - (Optional) The Tenant ID of the Microsoft App for this Azure Bot Service. Changing this forces a new resource to be created.
 
-* `microsoft_app_type` - (Optional) The Microsoft App Type for this Azure Bot Service. Possible values are `MultiTenant`, `SingleTenant` and `UserAssignedMSI`. Changing this forces a new resource to be created.
+* `microsoft_app_type` - (Optional) The Microsoft App Type for this Azure Bot Service. Possible values are `MultiTenant`, `SingleTenant` and `UserAssignedMSI`. Defaults to `MultiTenant`. Changing this forces a new resource to be created.
+
+~> **Note:** The `MultiTenant` bot creation is deprecated by service API. Please use `SingleTenant` or `UserAssignedMSI`.
+
+~> **Note:** The `MultiTenant` bot which is already created will continue to function as normal.
 
 * `local_authentication_enabled` - (Optional) Is local authentication enabled? Defaults to `true`.
 
