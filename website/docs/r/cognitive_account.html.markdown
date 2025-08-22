@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `custom_subdomain_name` - (Optional) The subdomain name used for token-based authentication. This property is required when `network_acls` is specified. This property is also required when using the OpenAI service with libraries which assume the Azure OpenAI endpoint is a subdomain on `https://openai.azure.com/`, eg. `https://<custom_subdomain_name>.openai.azure.com/`.  Changing this forces a new resource to be created.
 
-* `dynamic_throttling_enabled` - (Optional) Whether to enable the dynamic throttling for this Cognitive Service Account. This attribute can't be set when kind is `OpenAI` or `AIServices`.
+* `dynamic_throttling_enabled` - (Optional) Whether to enable the dynamic throttling for this Cognitive Service Account. This attribute can't be set when the `kind` is `OpenAI` or `AIServices`.
 
 * `customer_managed_key` - (Optional) A `customer_managed_key` block as documented below.
 

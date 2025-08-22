@@ -333,7 +333,9 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
-			if d.Get("project_management_enabled").(bool) && d.Get("kind").(string) != "AIServices" {
+			kind := d.Get("kind").(string)
+
+			if d.Get("project_management_enabled").(bool) && kind != "AIServices" {
 				return fmt.Errorf("`project_management_enabled` can only be enabled when kind is set to `AIServices`")
 			}
 
@@ -341,7 +343,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				return fmt.Errorf("for `project_management_enabled` to be enabled, a managed identity must be assigned. Please set `identity` to at least one SystemAssigned or UserAssigned identity")
 			}
 
-			if d.Get("dynamic_throttling_enabled").(bool) && utils.SliceContainsValue([]string{"OpenAI", "AIServices"}, d.Get("kind").(string)) {
+			if d.Get("dynamic_throttling_enabled").(bool) && utils.SliceContainsValue([]string{"OpenAI", "AIServices"}, kind) {
 				return fmt.Errorf("`dynamic_throttling_enabled` is currently not supported when kind is set to `OpenAI` or `AIServices`")
 			}
 
@@ -353,6 +355,10 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				if len(d.Get("customer_managed_key").([]interface{})) == 0 {
 					return fmt.Errorf("updating encryption mode from customer-managed keys to microsoft-managed keys is not supported when `project_management_enabled` is enabled")
 				}
+			}
+
+			if bypass, ok := d.GetOk("network_acls.0.bypass"); ok && bypass != "" && !utils.SliceContainsValue([]string{"OpenAI", "AIServices"}, kind) {
+				return fmt.Errorf("the `network_acls.bypass` does not support Trusted Services for the kind %q", kind)
 			}
 			return nil
 		},
@@ -768,10 +774,6 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 	}
 
 	if b, ok := d.GetOk("network_acls.0.bypass"); ok && b != "" {
-		kind := d.Get("kind").(string)
-		if kind != "OpenAI" && kind != "AIServices" {
-			return nil, nil, fmt.Errorf("the `network_acls.bypass` does not support Trusted Services for the kind %q", kind)
-		}
 		bypasss := cognitiveservicesaccounts.ByPassSelection(v["bypass"].(string))
 		ruleSet.Bypass = &bypasss
 	}
