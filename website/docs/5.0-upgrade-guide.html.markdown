@@ -272,6 +272,15 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `virtual_network_configuration` block has been removed as it is no longer supported by the resource.
 
+### `azurerm_lb_nat_rule`
+
+* The deprecated `enable_floating_ip` property has been removed in favour of the `floating_ip_enabled` property.
+* The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
+
+### `azurerm_lb_outbound_rule`
+
+* The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
+
 ### `azurerm_linux_function_app`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
@@ -456,6 +465,15 @@ Please follow the format in the example below for listing breaking changes in da
 
 * The deprecated `source_arm_resource_id` property has been removed in favour of the `source_resource_id` property.
 * The deprecated `metric_arm_resource_id` property has been removed in favour of the `metric_resource_id` property.
+
+### `azurerm_lb_outbound_rule`
+
+* The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
+
+### `azurerm_lb_rule`
+
+* The deprecated `enable_floating_ip` property has been removed in favour of the `floating_ip_enabled` property.
+* The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
 
 ### `azurerm_logic_app_standard`
 
