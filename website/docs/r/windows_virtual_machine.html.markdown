@@ -93,10 +93,6 @@ resource "azurerm_windows_virtual_machine" "example" {
 
 The following arguments are supported:
 
-* `admin_password` - (Required) The Password which should be used for the local-administrator on this Virtual Machine. Changing this forces a new resource to be created.
-
-* `admin_username` - (Required) The username of the local administrator used for the Virtual Machine. Changing this forces a new resource to be created.
-
 * `location` - (Required) The Azure location where the Windows Virtual Machine should exist. Changing this forces a new resource to be created.
 
 * `name` - (Required) The name of the Windows Virtual Machine. Changing this forces a new resource to be created.
@@ -110,6 +106,14 @@ The following arguments are supported:
 * `size` - (Required) The SKU which should be used for this Virtual Machine, such as `Standard_F2`.
 
 ---
+
+* `admin_password` - (Optional) The Password which should be used for the local-administrator on this Virtual Machine. Changing this forces a new resource to be created.
+
+~> **Note:** This is required unless using an existing OS Managed Disk by specifying `os_managed_disk_id`.
+
+* `admin_username` - (Optional) The username of the local administrator used for the Virtual Machine. Changing this forces a new resource to be created.
+
+~> **Note:** This is required unless using an existing OS Managed Disk by specifying `os_managed_disk_id`.
 
 * `additional_capabilities` - (Optional) A `additional_capabilities` block as defined below.
 
@@ -207,6 +211,10 @@ The following arguments are supported:
 
 * `os_image_notification` - (Optional) A `os_image_notification` block as defined below.
 
+* `os_managed_disk_id` - (Optional) The ID of an existing Managed Disk to use as the OS Disk for this Windows Virtual Machine.
+
+~> **Note:** When specifying an existing Managed Disk it is not currently possible to subsequently manage the Operating System Profile properties: `admin_username`, `admin_password`, `bypass_platform_safety_checks_on_user_schedule_enabled`, `computer_name`, `custom_data`, `provision_vm_agent`, `patch_mode`, `patch_assessment_mode`, or `reboot_setting`.
+
 * `termination_notification` - (Optional) A `termination_notification` block as defined below.
 
 * `timezone` - (Optional) Specifies the Time Zone which should be used by the Virtual Machine, [the possible values are defined here](https://jackstromberg.com/2017/01/list-of-time-zones-consumed-by-azure/). Changing this forces a new resource to be created.
@@ -303,11 +311,14 @@ A `os_disk` block supports the following:
 
 * `caching` - (Required) The Type of Caching which should be used for the Internal OS Disk. Possible values are `None`, `ReadOnly` and `ReadWrite`.
 
-* `storage_account_type` - (Required) The Type of Storage Account which should back this the Internal OS Disk. Possible values are `Standard_LRS`, `StandardSSD_LRS`, `Premium_LRS`, `StandardSSD_ZRS` and `Premium_ZRS`. Changing this forces a new resource to be created.
+* `storage_account_type` - (Optional) The Type of Storage Account which should back this the Internal OS Disk. Possible values are `Standard_LRS`, `StandardSSD_LRS`, `Premium_LRS`, `StandardSSD_ZRS` and `Premium_ZRS`. Changing this forces a new resource to be created.
+
+~> **Note:** This is required unless using an existing OS Managed Disk by specifying `os_managed_disk_id`.
+
 
 * `diff_disk_settings` - (Optional) A `diff_disk_settings` block as defined above. Changing this forces a new resource to be created.
 
--> **Note:** `diff_disk_settings` can only be set when `caching` is set to `ReadOnly`. More information can be found [here](https://docs.microsoft.com/azure/virtual-machines/ephemeral-os-disks-deploy#vm-template-deployment)
+-> **Note:** `diff_disk_settings` can only be set when `caching` is set to `ReadOnly`. More information can be found [here](https://docs.microsoft.com/azure/virtual-machines/ephemeral-os-disks-deploy#vm-template-deployment). Additionally, this property cannot be set when an existing Managed Disk is used to create the Virtual Machine by setting `os_managed_disk_id`.
 
 * `disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to Encrypt this OS Disk. Conflicts with `secure_vm_disk_encryption_set_id`.
 
@@ -318,6 +329,8 @@ A `os_disk` block supports the following:
 -> **Note:** If specified this must be equal to or larger than the size of the Image the Virtual Machine is based on. When creating a larger disk than exists in the image you'll need to repartition the disk to use the remaining space.
 
 * `name` - (Optional) The name which should be used for the Internal OS Disk. Changing this forces a new resource to be created.
+
+-> **Note:** a value for `name` cannot be specified if/when the Virtual Machine has been created using an existing Managed Disk for the OS by setting `os_managed_disk_id`.
 
 * `secure_vm_disk_encryption_set_id` - (Optional) The ID of the Disk Encryption Set which should be used to Encrypt this OS Disk when the Virtual Machine is a Confidential VM. Conflicts with `disk_encryption_set_id`. Changing this forces a new resource to be created.
 
