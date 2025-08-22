@@ -4,6 +4,7 @@
 package frontdoor
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -428,6 +429,20 @@ func resourceFrontDoorFirewallPolicy() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			if IsFrontDoorFullyRetired() {
+				return fmt.Errorf("%s", FullyRetiredMessage)
+			}
+
+			// New resources are not supported, and since these fields are 'ForceNew' we also need to block changing them as
+			// the re-create would fail with the create error from the service API...
+			if IsFrontDoorDeprecatedForCreation() && d.HasChanges("name", "resource_group_name") {
+				return fmt.Errorf("%s", CreateDeprecationMessage)
+			}
+
+			return nil
+		}),
 	}
 }
 

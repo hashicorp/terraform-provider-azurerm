@@ -41,6 +41,11 @@ func TestAccLogAnalyticsWorkspaceTable_updateTableRetention(t *testing.T) {
 				check.That("azurerm_log_analytics_workspace_table.test").Key("total_retention_in_days").HasValue("32"),
 			),
 		},
+		{
+			Config: r.removeRetentionDays(data),
+			// The `retention_in_days` is an optional property, when it's not specified, the service will set a default value for it.
+			ExpectNonEmptyPlan: true,
+		},
 	})
 }
 
@@ -234,6 +239,29 @@ resource "azurerm_log_analytics_workspace" "test" {
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   retention_in_days   = 30
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (LogAnalyticsWorkspaceTableResource) removeRetentionDays(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+resource "azurerm_log_analytics_workspace" "test" {
+  name                = "acctestLAW-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  retention_in_days   = 30
+}
+resource "azurerm_log_analytics_workspace_table" "test" {
+  name                    = "AppEvents"
+  workspace_id            = azurerm_log_analytics_workspace.test.id
+  total_retention_in_days = 180
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }

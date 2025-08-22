@@ -14,7 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/capacitypools"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -70,6 +70,7 @@ func resourceNetAppPool() *pluginsdk.Resource {
 					string(capacitypools.ServiceLevelPremium),
 					string(capacitypools.ServiceLevelStandard),
 					string(capacitypools.ServiceLevelUltra),
+					string(capacitypools.ServiceLevelFlexible),
 				}, false),
 			},
 
@@ -106,6 +107,12 @@ func resourceNetAppPool() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"custom_throughput_mibps": {
+				Type:         pluginsdk.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntAtLeast(128),
+			},
+
 			"tags": commonschema.Tags(),
 		},
 
@@ -114,6 +121,26 @@ func resourceNetAppPool() *pluginsdk.Resource {
 			pluginsdk.ForceNewIfChange("cool_access_enabled", func(ctx context.Context, old, new, meta interface{}) bool {
 				return old.(bool) && !new.(bool)
 			}),
+			// custom_throughput_mibps validation
+			func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+				customThroughput := d.Get("custom_throughput_mibps").(int)
+				qosType := d.Get("qos_type").(string)
+				serviceLevel := d.Get("service_level").(string)
+
+				if customThroughput > 0 {
+					// customThroughputMibps should only be accepted if manual qosType is set
+					if qosType != string(capacitypools.QosTypeManual) {
+						return fmt.Errorf("`custom_throughput_mibps` can only be set when `qos_type` is set to `Manual`")
+					}
+
+					// customThroughputMibps should only be accepted for Flexible service level
+					if serviceLevel != string(capacitypools.ServiceLevelFlexible) {
+						return fmt.Errorf("`custom_throughput_mibps` can only be set when `service_level` is set to `Flexible`")
+					}
+				}
+
+				return nil
+			},
 		),
 	}
 
@@ -161,6 +188,10 @@ func resourceNetAppPoolCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		capacityPoolParameters.Properties.QosType = &qos
 	}
 
+	if customThroughputMibps, ok := d.GetOk("custom_throughput_mibps"); ok {
+		capacityPoolParameters.Properties.CustomThroughputMibps = pointer.To(float64(customThroughputMibps.(int)))
+	}
+
 	if err := client.PoolsCreateOrUpdateThenPoll(ctx, id, capacityPoolParameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -203,6 +234,12 @@ func resourceNetAppPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 
 	if d.HasChange("cool_access_enabled") {
 		update.Properties.CoolAccess = pointer.To(d.Get("cool_access_enabled").(bool))
+	}
+
+	if d.HasChange("custom_throughput_mibps") {
+		if customThroughputMibps, ok := d.GetOk("custom_throughput_mibps"); ok {
+			update.Properties.CustomThroughputMibps = pointer.To(float64(customThroughputMibps.(int)))
+		}
 	}
 
 	if d.HasChange("tags") {
@@ -263,6 +300,7 @@ func resourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("qos_type", qosType)
 		d.Set("encryption_type", string(pointer.From(poolProperties.EncryptionType)))
 		d.Set("cool_access_enabled", pointer.From(poolProperties.CoolAccess))
+		d.Set("custom_throughput_mibps", int(pointer.From(poolProperties.CustomThroughputMibps)))
 
 		return tags.FlattenAndSet(d, model.Tags)
 	}

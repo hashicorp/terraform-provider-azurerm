@@ -10,6 +10,8 @@ description: |-
 
 Manages an Application Insights WebTest.
 
+~> **Note:** Despite the discrepancy in its name, this Terraform resource corresponds to the Azure resource 'Application Insights Classic Web Test'. Azure changed the name, but we retained the original name in Terraform to avoid disruption and ensure backward compatibility.
+
 ## Example Usage
 
 ```hcl
@@ -108,4 +110,4 @@ terraform import azurerm_application_insights_web_test.my_test /subscriptions/00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Insights`: 2022-06-15
+* `Microsoft.Insights` - 2022-06-15

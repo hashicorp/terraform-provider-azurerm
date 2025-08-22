@@ -131,7 +131,7 @@ The following arguments are supported:
 
 * `client_affinity_enabled` - (Optional) Should the Logic App send session affinity cookies, which route client requests in the same session to the same instance?
 
-* `client_certificate_mode` - (Optional) The mode of the Logic App's client certificates requirement for incoming requests. Possible values are `Required` and `Optional`.
+* `client_certificate_mode` - (Optional) The mode of the Logic App's client certificates requirement for incoming requests. Possible values are `Required`, `Optional`, and `OptionalInteractiveUser`.
 
 * `enabled` - (Optional) Is the Logic App enabled? Defaults to `true`.
 
@@ -239,9 +239,9 @@ The `site_config` block supports the following:
 
 A `cors` block supports the following:
 
-* `allowed_origins` - (Required) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
+* `allowed_origins` - (Optional) A list of origins which should be able to make cross-origin calls. `*` can be used to allow all calls.
 
-* `support_credentials` - (Optional) Are credentials supported?
+* `support_credentials` - (Optional) Are credentials supported? 
 
 ---
 
@@ -260,6 +260,8 @@ An `identity` block supports the following:
 A `ip_restriction` block supports the following:
 
 * `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
+
+* `description` - (Optional) The Description of this IP Restriction.
 
 * `service_tag` - (Optional) The Service Tag used for this IP Restriction.
 
@@ -280,6 +282,8 @@ A `ip_restriction` block supports the following:
 A `scm_ip_restriction` block supports the following:
 
 * `ip_address` - (Optional) The IP Address used for this IP Restriction in CIDR notation.
+
+* `description` - (Optional) The Description of this IP Restriction.
 
 * `service_tag` - (Optional) The Service Tag used for this IP Restriction.
 
@@ -359,3 +363,9 @@ Logic Apps can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_logic_app_standard.logicapp1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Web/sites/logicapp1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Web` - 2023-12-01, 2023-01-01

@@ -382,7 +382,7 @@ func (r LogAnalyticsWorkspaceTableResource) Update() sdk.ResourceFunc {
 						updateInput.Properties.Schema.Columns = expandColumns(&state.Columns)
 					}
 
-					if err := client.CreateOrUpdateThenPoll(ctx, *id, updateInput); err != nil {
+					if err := client.UpdateThenPoll(ctx, *id, updateInput); err != nil {
 						return fmt.Errorf("failed to update table: %s: %+v", id.TableName, err)
 					}
 				}

@@ -34,6 +34,32 @@ resource "azurerm_netapp_pool" "example" {
 }
 ```
 
+## NetApp Pool with Flexible Service Level Usage
+
+```hcl
+resource "azurerm_resource_group" "example" {
+  name     = "example-resources"
+  location = "West Europe"
+}
+
+resource "azurerm_netapp_account" "example" {
+  name                = "example-netappaccount"
+  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.example.name
+}
+
+resource "azurerm_netapp_pool" "example" {
+  name                    = "example-netapppool"
+  account_name            = azurerm_netapp_account.example.name
+  location                = azurerm_resource_group.example.location
+  resource_group_name     = azurerm_resource_group.example.name
+  service_level           = "Flexible"
+  size_in_tb              = 4
+  qos_type                = "Manual"
+  custom_throughput_mibps = 256
+}
+```
+
 ## Argument Reference
 
 The following arguments are supported:
@@ -46,7 +72,7 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
 
-* `service_level` - (Required) The service level of the file system. Valid values include `Premium`, `Standard`, and `Ultra`. Changing this forces a new resource to be created.
+* `service_level` - (Required) The service level of the file system. Valid values include `Premium`, `Standard`, `Ultra`, and `Flexible`. Changing this forces a new resource to be created.
 
 * `size_in_tb` - (Required) Provisioned size of the pool in TB. Value must be between `1` and `2048`.
 
@@ -55,6 +81,8 @@ The following arguments are supported:
 ~> **Note:** The maximum `size_in_tb` is goverened by regional quotas. You may request additional capacity from Azure, currently up to `2048`.
 
 * `qos_type` - (Optional) QoS Type of the pool. Valid values include `Auto` or `Manual`. Defaults to `Auto`.
+
+* `custom_throughput_mibps` - (Optional) The custom throughput for the pool in MiB/s. Minimum value is `128`. This field can only be set when `service_level` is set to `Flexible` and `qos_type` is set to `Manual`.
 
 * `encryption_type` - (Optional) The encryption type of the pool. Valid values include `Single`, and `Double`. Defaults to `Single`. Changing this forces a new resource to be created.
 
@@ -71,6 +99,8 @@ The following arguments are supported:
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the NetApp Pool.
+
+* `custom_throughput_mibps` - The custom throughput for the pool in MiB/s.
 
 ## Timeouts
 
@@ -93,4 +123,4 @@ terraform import azurerm_netapp_pool.example /subscriptions/00000000-0000-0000-0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.NetApp`: 2025-01-01
+* `Microsoft.NetApp` - 2025-06-01

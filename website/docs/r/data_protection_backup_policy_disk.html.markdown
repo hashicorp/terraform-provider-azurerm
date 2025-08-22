@@ -86,7 +86,7 @@ A `retention_rule` block supports the following:
 
 A `criteria` block supports the following:
 
-* `absolute_criteria` - (Optional) Possible values are `FirstOfDay` and `FirstOfWeek`. Changing this forces a new Backup Policy Disk to be created.
+* `absolute_criteria` - (Optional) Possible values are `AllBackup`, `FirstOfDay`, `FirstOfWeek`, `FirstOfMonth` and `FirstOfYear`. These values mean the first successful backup of the day/week/month/year. Changing this forces a new Backup Policy Disk to be created.
 
 ## Attributes Reference
 
@@ -114,4 +114,4 @@ terraform import azurerm_data_protection_backup_policy_disk.example /subscriptio
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DataProtection`: 2024-04-01
+* `Microsoft.DataProtection` - 2024-04-01

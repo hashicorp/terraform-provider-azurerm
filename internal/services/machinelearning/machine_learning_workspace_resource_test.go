@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -549,7 +549,8 @@ resource "azurerm_machine_learning_workspace" "test" {
   }
 
   managed_network {
-    isolation_mode = "AllowInternetOutbound"
+    isolation_mode                = "AllowInternetOutbound"
+    provision_on_creation_enabled = true
   }
 
   tags = {
@@ -627,7 +628,8 @@ resource "azurerm_machine_learning_workspace" "test" {
   }
 
   managed_network {
-    isolation_mode = "AllowInternetOutbound"
+    isolation_mode                = "AllowInternetOutbound"
+    provision_on_creation_enabled = true
   }
 
   tags = {

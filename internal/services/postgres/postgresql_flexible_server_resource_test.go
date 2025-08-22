@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/servers"
 	"github.com/hashicorp/go-version"
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
@@ -451,13 +452,34 @@ func TestAccPostgresqlFlexibleServer_upgradeVersion(t *testing.T) {
 	})
 }
 
-func TestAccPostgresqlFlexibleServer_identitySystemAssigned(t *testing.T) {
+func TestAccPostgresqlFlexibleServer_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.identitySystemAssigned(data),
+			Config: r.identity(data, identity.TypeNone),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.identity(data, identity.TypeSystemAssigned),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.identity(data, identity.TypeUserAssigned),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.identity(data, identity.TypeSystemAssignedUserAssigned),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -473,6 +495,21 @@ func TestAccPostgresqlFlexibleServer_enableGeoRedundantBackup(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.enableGeoRedundantBackup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+	})
+}
+
+func TestAccPostgresqlFlexibleServer_geoRedundantBackupWithVersionlessId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.geoRedundantBackupWithVersionlessId(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1231,9 +1268,38 @@ resource "azurerm_postgresql_flexible_server" "test" {
 `, r.template(data), data.RandomInteger, aadEnabled, pwdEnabled, tenantIdBlock)
 }
 
-func (r PostgresqlFlexibleServerResource) identitySystemAssigned(data acceptance.TestData) string {
+func (r PostgresqlFlexibleServerResource) identity(data acceptance.TestData, identityType identity.Type) string {
+	var identityBlock string
+	switch identityType {
+	case identity.TypeSystemAssigned:
+		identityBlock = `
+  identity {
+    type = "SystemAssigned"
+  }
+`
+	case identity.TypeUserAssigned:
+		identityBlock = `
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+`
+	case identity.TypeSystemAssignedUserAssigned:
+		identityBlock = `
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+`
+	}
 	return fmt.Sprintf(`
 %s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestmi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
 
 resource "azurerm_postgresql_flexible_server" "test" {
   name                   = "acctest-fs-%d"
@@ -1245,11 +1311,9 @@ resource "azurerm_postgresql_flexible_server" "test" {
   sku_name               = "GP_Standard_D2s_v3"
   zone                   = "2"
 
-  identity {
-    type = "SystemAssigned"
-  }
+  %s
 }
-`, r.template(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger, data.RandomInteger, identityBlock)
 }
 
 func (r PostgresqlFlexibleServerResource) cmkTemplate(data acceptance.TestData) string {
@@ -1496,6 +1560,86 @@ resource "azurerm_postgresql_flexible_server" "test" {
     key_vault_key_id                     = azurerm_key_vault_key.test.id
     primary_user_assigned_identity_id    = azurerm_user_assigned_identity.test.id
     geo_backup_key_vault_key_id          = azurerm_key_vault_key.test2.id
+    geo_backup_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
+  }
+}
+`, r.cmkTemplate(data), data.RandomInteger, data.Locations.Ternary, data.RandomString, data.RandomString, data.RandomInteger)
+}
+
+func (r PostgresqlFlexibleServerResource) geoRedundantBackupWithVersionlessId(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_resource_group" "test2" {
+  name     = "acctestRG-postgresql2-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test2" {
+  name                = "acctestmi2%s"
+  location            = azurerm_resource_group.test2.location
+  resource_group_name = azurerm_resource_group.test2.name
+}
+
+resource "azurerm_key_vault" "test2" {
+  name                     = "acctestkv2%s"
+  location                 = azurerm_resource_group.test2.location
+  resource_group_name      = azurerm_resource_group.test2.name
+  tenant_id                = data.azurerm_client_config.current.tenant_id
+  sku_name                 = "standard"
+  purge_protection_enabled = true
+}
+
+resource "azurerm_key_vault_access_policy" "server2" {
+  key_vault_id = azurerm_key_vault.test2.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_user_assigned_identity.test2.principal_id
+
+  key_permissions = ["Get", "List", "WrapKey", "UnwrapKey", "GetRotationPolicy", "SetRotationPolicy"]
+}
+
+resource "azurerm_key_vault_access_policy" "client2" {
+  key_vault_id = azurerm_key_vault.test2.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy", "SetRotationPolicy"]
+}
+
+resource "azurerm_key_vault_key" "test2" {
+  name         = "test2"
+  key_vault_id = azurerm_key_vault.test2.id
+  key_type     = "RSA"
+  key_size     = 2048
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
+
+  depends_on = [
+    azurerm_key_vault_access_policy.client2,
+    azurerm_key_vault_access_policy.server2,
+  ]
+}
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                         = "acctest-fs-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  administrator_login          = "adminTerraform"
+  administrator_password       = "QAZwsx123"
+  storage_mb                   = 32768
+  version                      = "12"
+  sku_name                     = "B_Standard_B1ms"
+  zone                         = "2"
+  geo_redundant_backup_enabled = true
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id, azurerm_user_assigned_identity.test2.id]
+  }
+
+  customer_managed_key {
+    key_vault_key_id                     = azurerm_key_vault_key.test.id
+    primary_user_assigned_identity_id    = azurerm_user_assigned_identity.test.id
+    geo_backup_key_vault_key_id          = azurerm_key_vault_key.test2.versionless_id
     geo_backup_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
   }
 }

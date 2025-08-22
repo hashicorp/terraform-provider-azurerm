@@ -70,7 +70,7 @@ data "azurerm_ip_groups" "test" {
     azurerm_ip_group.test,
   ]
 }
-`, IPGroupResource{}.basic(data))
+`, IpGroupResource{}.basic(data))
 }
 
 // Find single IP group
@@ -85,7 +85,7 @@ data "azurerm_ip_groups" "test" {
     azurerm_ip_group.test,
   ]
 }
-`, IPGroupResource{}.basic(data))
+`, IpGroupResource{}.basic(data))
 }
 
 // Find multiple IP Groups, filtered by name substring
@@ -102,5 +102,5 @@ data "azurerm_ip_groups" "test" {
     azurerm_ip_group.test3,
   ]
 }
-`, IPGroupResource{}.complete(data))
+`, IpGroupResource{}.complete(data))
 }
