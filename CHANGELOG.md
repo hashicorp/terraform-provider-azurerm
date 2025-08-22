@@ -5,6 +5,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+* `azurerm_mssql_job_step` - fix incorrect documentation [GH-30464]
 
 ## 4.41.0 (August 21, 2025)
 
