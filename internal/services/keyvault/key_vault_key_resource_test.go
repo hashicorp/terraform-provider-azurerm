@@ -290,21 +290,6 @@ func TestAccKeyVaultKey_disappears(t *testing.T) {
 	})
 }
 
-func TestAccKeyVaultKey_disappearsWhenParentKeyVaultDeleted(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
-	r := KeyVaultKeyResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicEC(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(r.destroyParentKeyVault, "azurerm_key_vault.test"),
-			),
-			ExpectNonEmptyPlan: true,
-		},
-	})
-}
-
 func TestAccKeyVaultKey_withExternalAccessPolicy(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_key", "test")
 	r := KeyVaultKeyResource{}

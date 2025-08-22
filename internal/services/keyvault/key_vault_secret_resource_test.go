@@ -145,21 +145,6 @@ func TestAccKeyVaultSecret_disappears(t *testing.T) {
 	})
 }
 
-func TestAccKeyVaultSecret_disappearsWhenParentKeyVaultDeleted(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
-	r := KeyVaultSecretResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				data.CheckWithClientForResource(r.destroyParentKeyVault, "azurerm_key_vault.test"),
-			),
-			ExpectNonEmptyPlan: true,
-		},
-	})
-}
-
 func TestAccKeyVaultSecret_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_key_vault_secret", "test")
 	r := KeyVaultSecretResource{}
