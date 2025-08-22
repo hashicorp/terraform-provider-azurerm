@@ -10,7 +10,7 @@ description: |-
 
 Manages a Front Door (standard/premium) Route.
 
-!>**Note:** The `azurerm_cdn_frontdoor_route` resource must **explicitly** reference its associated `azurerm_cdn_frontdoor_origin` resource(s). This can be achieved either by using a `depends_on` meta-argument that points to the `azurerm_cdn_frontdoor_origin` resource(s), or by specifying the `azurerm_cdn_frontdoor_origin` IDs via the `cdn_frontdoor_origin_ids` field.
+!> **Note:** The `azurerm_cdn_frontdoor_route` resource must **explicitly** reference its associated `azurerm_cdn_frontdoor_origin` resource(s). This can be achieved either by using a `depends_on` meta-argument that points to the `azurerm_cdn_frontdoor_origin` resource(s), or by specifying the `azurerm_cdn_frontdoor_origin` IDs via the `cdn_frontdoor_origin_ids` field.
 
 ## Example Usage
 
