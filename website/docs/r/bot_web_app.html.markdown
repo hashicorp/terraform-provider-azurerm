@@ -21,11 +21,13 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_bot_web_app" "example" {
-  name                = "example"
-  location            = "global"
-  resource_group_name = azurerm_resource_group.example.name
-  sku                 = "F0"
-  microsoft_app_id    = data.azurerm_client_config.current.client_id
+  name                    = "example"
+  location                = "global"
+  resource_group_name     = azurerm_resource_group.example.name
+  sku                     = "F0"
+  microsoft_app_id        = data.azurerm_client_config.current.client_id
+  microsoft_app_type      = "SingleTenant"
+  microsoft_app_tenant_id = data.azurerm_client_config.current.tenant_id
 }
 ```
 
@@ -42,6 +44,16 @@ The following arguments are supported:
 * `sku` - (Required) The SKU of the Web App Bot. Valid values include `F0` or `S1`. Changing this forces a new resource to be created.
 
 * `microsoft_app_id` - (Required) The Microsoft Application ID for the Web App Bot. Changing this forces a new resource to be created.
+
+* `microsoft_app_type` - (Optional) The Microsoft Application Type for the Bot Channels Registration. Possible values are `MultiTenant`, `SingleTenant` and `UserAssignedMSI`. Defaults to `MultiTenant`. Changing this forces a new resource to be created.
+
+~> **Note:** The `MultiTenant` bot creation is deprecated by service API. Please use `SingleTenant` or `UserAssignedMSI`.
+
+~> **Note:** The `MultiTenant` bot which is already created will continue to function as normal.
+
+* `microsoft_app_tenant_id` - (Optional) The Microsoft Application Tenant ID for the Bot Channels Registration. Changing this forces a new resource to be created.
+
+* `microsoft_app_user_assigned_identity_id` - (Optional) The ID of Microsoft Application User Assigned Identity for the Bot Channels Registration. Changing this forces a new resource to be created.
 
 * `display_name` - (Optional) The name of the Web App Bot will be displayed as. This defaults to `name` if not specified.
 
