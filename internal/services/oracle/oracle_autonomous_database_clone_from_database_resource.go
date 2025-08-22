@@ -363,11 +363,7 @@ func (r AutonomousDatabaseCloneFromDatabaseResource) Read() sdk.ResourceFunc {
 				}
 				state.CloneType = string(props.CloneType)
 				state.TimeUntilReconnect = pointer.From(props.TimeUntilReconnectCloneEnabled)
-				sourceId, err := autonomousdatabases.ParseAutonomousDatabaseID(props.SourceId)
-				if err != nil {
-					return fmt.Errorf("parsing source database ID: %+v", err)
-				}
-				state.SourceAutonomousDatabaseId = sourceId.String()
+				state.SourceAutonomousDatabaseId = props.SourceId
 
 				// Base properties
 				state.AdminPassword = metadata.ResourceData.Get("admin_password").(string)
@@ -387,18 +383,8 @@ func (r AutonomousDatabaseCloneFromDatabaseResource) Read() sdk.ResourceFunc {
 				state.NationalCharacterSet = pointer.From(props.NcharacterSet)
 				state.AllowedIps = pointer.From(props.WhitelistedIPs)
 				state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
-
-				subnetID, err := commonids.ParseSubnetID(*props.SubnetId)
-				if err != nil {
-					return fmt.Errorf("parsing Subnet ID: %+v", err)
-				}
-				state.SubnetId = subnetID.String()
-
-				vnetID, err := commonids.ParseVirtualNetworkID(*props.VnetId)
-				if err != nil {
-					return fmt.Errorf("parsing Virtual Network ID: %+v", err)
-				}
-				state.VnetId = vnetID.String()
+				state.SubnetId = pointer.From(props.SubnetId)
+				state.VnetId = pointer.From(props.VnetId)
 			}
 
 			return metadata.Encode(&state)
