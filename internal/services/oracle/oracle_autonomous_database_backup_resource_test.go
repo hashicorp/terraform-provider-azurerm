@@ -127,15 +127,11 @@ func (a AutonomousDatabaseBackupResource) basic(data acceptance.TestData) string
 	return fmt.Sprintf(`
 %s
 
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_oracle_autonomous_database_backup" "test" {
   name                     = "backup%[2]d"
   autonomous_database_id   = azurerm_oracle_autonomous_database.test.id
   retention_period_in_days = 120
-  backup_type              = "LongTerm"
+  type                     = "LongTerm"
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -144,15 +140,12 @@ func (a AutonomousDatabaseBackupResource) complete(data acceptance.TestData) str
 	return fmt.Sprintf(`
 %s
 
-provider "azurerm" {
-  features {}
-}
 
 resource "azurerm_oracle_autonomous_database_backup" "test" {
   name                     = "backup%[2]d"
   autonomous_database_id   = azurerm_oracle_autonomous_database.test.id
   retention_period_in_days = 120
-  backup_type              = "LongTerm"
+  type                     = "LongTerm"
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -161,15 +154,11 @@ func (a AutonomousDatabaseBackupResource) update(data acceptance.TestData) strin
 	return fmt.Sprintf(`
 %s
 
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_oracle_autonomous_database_backup" "test" {
   name                     = "backup%[2]d"
   autonomous_database_id   = azurerm_oracle_autonomous_database.test.id
   retention_period_in_days = 160
-  backup_type              = "LongTerm"
+  type                     = "LongTerm"
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -188,10 +177,15 @@ resource "azurerm_oracle_autonomous_database_backup" "import" {
 
 func (a AutonomousDatabaseBackupResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+
+provider "azurerm" {
+  features {}
+}
+
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%[1]d"
+  name     = "acctestRG-oadbb-%[1]d"
   location = "%[2]s"
 }
 

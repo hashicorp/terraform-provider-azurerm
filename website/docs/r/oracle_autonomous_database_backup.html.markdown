@@ -37,13 +37,13 @@ resource "azurerm_oracle_autonomous_database_backup" "example" {
 ## Arguments Reference
 The following arguments are supported:
 
-* `name` - (Required) The display name of the Autonomous Database Backup.
+* `name` - (Required) The display name of the Autonomous Database Backup. Changing this forces a new resource to be created.
 
-* `autonomous_database_id` - (Required) The azureId of the Autonomous Database that this backup is for.
+* `autonomous_database_id` - (Required) The azureId of the Autonomous Database that this backup is for. Changing this forces a new resource to be created.
 
 * `retention_period_in_days` - (Required) (Updatable) The number of days to retain the backup. Must be between 90 and 3650 days.
 
-* `backup_type` - (Optional) The type of backup to create. Possible values are Full, Incremental, and LongTerm. Defaults to LongTerm.
+* `type` - (Optional) The type of backup to create. Possible values are `Full`, `Incremental`, and `LongTerm`. Defaults to `LongTerm`.
 
 ## Attributes Reference
 In addition to the Arguments listed above—the following Attributes are exported:

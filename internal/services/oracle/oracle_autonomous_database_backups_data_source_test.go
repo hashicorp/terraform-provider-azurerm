@@ -11,11 +11,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
 
-type AutonomousDatabaseBackupDataSourceTest struct{}
+type AutonomousDatabaseBackupsDataSourceTest struct{}
 
-func TestAccAutonomousDatabaseBackupDataSource_basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "data.azurerm_oracle_autonomous_database_backup", "test")
-	r := AutonomousDatabaseBackupDataSourceTest{}
+func TestAccAutonomousDatabaseBackupsDataSource_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_oracle_autonomous_database_backups", "test")
+	r := AutonomousDatabaseBackupsDataSourceTest{}
 
 	data.DataSourceTest(t, []acceptance.TestStep{
 		{
@@ -27,13 +27,12 @@ func TestAccAutonomousDatabaseBackupDataSource_basic(t *testing.T) {
 	})
 }
 
-func (r AutonomousDatabaseBackupDataSourceTest) basic(data acceptance.TestData) string {
+func (r AutonomousDatabaseBackupsDataSourceTest) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-data "azurerm_oracle_autonomous_database_backup" "test" {
+data "azurerm_oracle_autonomous_database_backups" "test" {
   autonomous_database_id = azurerm_oracle_autonomous_database.test.id
-  name                     = azurerm_oracle_autonomous_database_backup.test.name
 }
 `, AutonomousDatabaseBackupResource{}.complete(data))
 }

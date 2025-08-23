@@ -6,7 +6,6 @@ package oracle
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -16,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/oracle/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -28,21 +28,23 @@ type AutonomousDatabaseBackupResourceModel struct {
 	Name                 string `tfschema:"name"`
 
 	// Required
-	BackupType            string `tfschema:"backup_type"`
+	Type                  string `tfschema:"type"`
 	RetentionPeriodInDays int64  `tfschema:"retention_period_in_days"`
 }
 
 func (AutonomousDatabaseBackupResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"autonomous_database_id": {
-			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         schema.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: autonomousdatabases.ValidateAutonomousDatabaseID,
 		},
 		"name": {
-			Type:     schema.TypeString,
-			Required: true,
-			ForceNew: true,
+			Type:         schema.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.AutonomousDatabaseName,
 		},
 		"retention_period_in_days": {
 			Type:         schema.TypeInt,
@@ -51,13 +53,11 @@ func (AutonomousDatabaseBackupResource) Arguments() map[string]*pluginsdk.Schema
 		},
 
 		// Optional
-		"backup_type": {
-			Type:     schema.TypeString,
-			Optional: true,
-			Default:  string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeLongTerm),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeLongTerm),
-			}, false),
+		"type": {
+			Type:         schema.TypeString,
+			Optional:     true,
+			Default:      string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeLongTerm),
+			ValidateFunc: validation.StringInSlice(autonomousdatabasebackups.PossibleValuesForAutonomousDatabaseBackupType(), false),
 		},
 	}
 }
@@ -89,7 +89,7 @@ func (r AutonomousDatabaseBackupResource) Create() sdk.ResourceFunc {
 
 			parsedAdbsId, err := autonomousdatabases.ParseAutonomousDatabaseID(model.AutonomousDatabaseId)
 			if err != nil {
-				return fmt.Errorf("decoding id: %+v", err)
+				return err
 			}
 
 			dbId := autonomousdatabases.NewAutonomousDatabaseID(subscriptionId, parsedAdbsId.ResourceGroupName, parsedAdbsId.AutonomousDatabaseName)
@@ -118,7 +118,7 @@ func (r AutonomousDatabaseBackupResource) Create() sdk.ResourceFunc {
 				Name: pointer.To(model.Name),
 				Properties: &autonomousdatabasebackups.AutonomousDatabaseBackupProperties{
 					RetentionPeriodInDays: pointer.To(model.RetentionPeriodInDays),
-					BackupType:            pointer.To(autonomousdatabasebackups.AutonomousDatabaseBackupType(model.BackupType)),
+					BackupType:            pointer.To(autonomousdatabasebackups.AutonomousDatabaseBackupType(model.Type)),
 				},
 			}
 
@@ -140,7 +140,7 @@ func (r AutonomousDatabaseBackupResource) Read() sdk.ResourceFunc {
 
 			id, err := autonomousdatabasebackups.ParseAutonomousDatabaseBackupID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing ID: %+v", err)
+				return err
 			}
 
 			adbId := autonomousdatabases.NewAutonomousDatabaseID(
@@ -162,7 +162,7 @@ func (r AutonomousDatabaseBackupResource) Read() sdk.ResourceFunc {
 
 			if props := backup.Properties; props != nil {
 				state.RetentionPeriodInDays = pointer.From(props.RetentionPeriodInDays)
-				state.BackupType = string(pointer.From(props.BackupType))
+				state.Type = pointer.FromEnum(props.BackupType)
 			}
 
 			return metadata.Encode(&state)
@@ -174,11 +174,14 @@ func (r AutonomousDatabaseBackupResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			if !metadata.ResourceData.HasChange("retention_period_in_days") {
+				return nil
+			}
 			client := metadata.Client.Oracle.OracleClient.AutonomousDatabaseBackups
 
 			id, err := autonomousdatabasebackups.ParseAutonomousDatabaseBackupID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing ID: %+v", err)
+				return err
 			}
 
 			adbId := autonomousdatabases.NewAutonomousDatabaseID(
@@ -198,7 +201,7 @@ func (r AutonomousDatabaseBackupResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("checking for existing backup: %+v", err)
 			}
 
-			update := &autonomousdatabasebackups.AutonomousDatabaseBackupUpdate{
+			update := autonomousdatabasebackups.AutonomousDatabaseBackupUpdate{
 				Properties: &autonomousdatabasebackups.AutonomousDatabaseBackupUpdateProperties{},
 			}
 
@@ -206,7 +209,7 @@ func (r AutonomousDatabaseBackupResource) Update() sdk.ResourceFunc {
 				update.Properties.RetentionPeriodInDays = &model.RetentionPeriodInDays
 			}
 
-			if err := client.UpdateThenPoll(ctx, *id, *update); err != nil {
+			if err := client.UpdateThenPoll(ctx, *id, update); err != nil {
 				return fmt.Errorf("updating %s: %v", id, err)
 			}
 
@@ -223,7 +226,7 @@ func (r AutonomousDatabaseBackupResource) Delete() sdk.ResourceFunc {
 
 			id, err := autonomousdatabasebackups.ParseAutonomousDatabaseBackupID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing ID: %+v", err)
+				return err
 			}
 
 			if err := client.DeleteThenPoll(ctx, *id); err != nil {
@@ -233,25 +236,6 @@ func (r AutonomousDatabaseBackupResource) Delete() sdk.ResourceFunc {
 			return nil
 		},
 	}
-}
-
-func findBackupByName(ctx context.Context, client *autonomousdatabasebackups.AutonomousDatabaseBackupsClient, adbId autonomousdatabases.AutonomousDatabaseId, backupId autonomousdatabasebackups.AutonomousDatabaseBackupId) (*autonomousdatabasebackups.AutonomousDatabaseBackup, error) {
-	resp, err := client.ListByParent(ctx, autonomousdatabasebackups.AutonomousDatabaseId(adbId))
-	if err != nil {
-		return nil, fmt.Errorf("listing backups for %s: %+v", adbId.ID(), err)
-	}
-
-	id := backupId.ID()
-
-	if model := resp.Model; model != nil {
-		for _, backup := range *model {
-			if backup.Id != nil && strings.EqualFold(*backup.Id, id) {
-				return &backup, nil
-			}
-		}
-	}
-
-	return nil, nil
 }
 
 func (r AutonomousDatabaseBackupResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
