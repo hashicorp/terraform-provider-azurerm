@@ -62,166 +62,10 @@ function Get-ManifestConfig {
     return $manifest
 }
 
-function Get-InstallationConfig {
-    <#
-    .SYNOPSIS
-    Get the installation configuration with all file mappings and settings
-    #>
-    param(
-        [string]$Branch = "exp/terraform_copilot"
-    )
-    
-    return @{
-        SourceBranch = $Branch
-        BaseUrl = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm/$Branch"
-        
-        Files = @{
-            # Main Copilot instructions
-            ".github/copilot-instructions.md" = @{
-                Url = "/.github/copilot-instructions.md"
-                Required = $true
-                Type = "Instructions"
-                Description = "Main GitHub Copilot instructions file"
-            }
-            
-            # Detailed instruction files
-            ".github/instructions/implementation-guide.instructions.md" = @{
-                Url = "/.github/instructions/implementation-guide.instructions.md"
-                Required = $true
-                Type = "Instructions"
-                Description = "Complete implementation guide"
-            }
-            
-            ".github/instructions/documentation-guidelines.instructions.md" = @{
-                Url = "/.github/instructions/documentation-guidelines.instructions.md"
-                Required = $true
-                Type = "Instructions"
-                Description = "Documentation standards and guidelines"
-            }
-            
-            ".github/instructions/testing-guidelines.instructions.md" = @{
-                Url = "/.github/instructions/testing-guidelines.instructions.md"
-                Required = $true
-                Type = "Instructions"
-                Description = "Testing guidelines and patterns"
-            }
-            
-            ".github/instructions/provider-guidelines.instructions.md" = @{
-                Url = "/.github/instructions/provider-guidelines.instructions.md"
-                Required = $true
-                Type = "Instructions"
-                Description = "Azure provider guidelines"
-            }
-            
-            ".github/instructions/code-clarity-enforcement.instructions.md" = @{
-                Url = "/.github/instructions/code-clarity-enforcement.instructions.md"
-                Required = $true
-                Type = "Instructions"
-                Description = "Code clarity and enforcement guidelines"
-            }
-            
-            ".github/instructions/azure-patterns.instructions.md" = @{
-                Url = "/.github/instructions/azure-patterns.instructions.md"
-                Required = $true
-                Type = "Instructions"
-                Description = "Azure-specific implementation patterns"
-            }
-            
-            ".github/instructions/error-patterns.instructions.md" = @{
-                Url = "/.github/instructions/error-patterns.instructions.md"
-                Required = $true
-                Type = "Instructions"
-                Description = "Error handling patterns"
-            }
-            
-            ".github/instructions/migration-guide.instructions.md" = @{
-                Url = "/.github/instructions/migration-guide.instructions.md"
-                Required = $true
-                Type = "Instructions"
-                Description = "Migration patterns and procedures"
-            }
-            
-            ".github/instructions/schema-patterns.instructions.md" = @{
-                Url = "/.github/instructions/schema-patterns.instructions.md"
-                Required = $true
-                Type = "Instructions"
-                Description = "Schema design patterns"
-            }
-            
-            ".github/instructions/performance-optimization.instructions.md" = @{
-                Url = "/.github/instructions/performance-optimization.instructions.md"
-                Required = $true
-                Type = "Instructions"
-                Description = "Performance optimization guidelines"
-            }
-            
-            ".github/instructions/security-compliance.instructions.md" = @{
-                Url = "/.github/instructions/security-compliance.instructions.md"
-                Required = $true
-                Type = "Instructions"
-                Description = "Security and compliance patterns"
-            }
-            
-            ".github/instructions/troubleshooting-decision-trees.instructions.md" = @{
-                Url = "/.github/instructions/troubleshooting-decision-trees.instructions.md"
-                Required = $true
-                Type = "Instructions"
-                Description = "Troubleshooting decision trees"
-            }
-            
-            ".github/instructions/api-evolution-patterns.instructions.md" = @{
-                Url = "/.github/instructions/api-evolution-patterns.instructions.md"
-                Required = $true
-                Type = "Instructions"
-                Description = "API evolution and versioning patterns"
-            }
-            
-            # Prompt files (excluding add-unit-tests per requirements)
-            
-            ".github/prompts/code-review-committed-changes.prompt.md" = @{
-                Url = "/.github/prompts/code-review-committed-changes.prompt.md"
-                Required = $true
-                Type = "Prompts"
-                Description = "Prompt for reviewing committed changes"
-            }
-            
-            ".github/prompts/code-review-local-changes.prompt.md" = @{
-                Url = "/.github/prompts/code-review-local-changes.prompt.md"
-                Required = $true
-                Type = "Prompts"
-                Description = "Prompt for reviewing local changes"
-            }
-                        
-            # VS Code settings
-            ".vscode/settings.json" = @{
-                Url = "/.vscode/settings.json"
-                Required = $true
-                Type = "Configuration"
-                Description = "VS Code workspace settings"
-            }
-        }
-        
-        GitIgnoreEntries = @(
-            "# AI Infrastructure (auto-generated by install-copilot-setup.ps1)",
-            ".github/copilot-instructions.md",
-            ".github/instructions/",
-            ".github/prompts/",
-            ".vscode/settings.json"
-        )
-        
-        RequiredDirectories = @(
-            ".github",
-            ".github/instructions",
-            ".github/prompts",
-            ".vscode"
-        )
-    }
-}
-
 function Get-FileDownloadUrl {
     <#
     .SYNOPSIS
-    Get the full download URL for a specific file
+    Get the full download URL for a specific file from the manifest
     #>
     param(
         [Parameter(Mandatory)]
@@ -230,17 +74,34 @@ function Get-FileDownloadUrl {
         [string]$Branch = "exp/terraform_copilot"
     )
     
-    $config = Get-InstallationConfig -Branch $Branch
+    $manifestConfig = Get-ManifestConfig -Branch $Branch
+    $baseUrl = $manifestConfig.BaseUrl
     
-    if ($config.Files.ContainsKey($FilePath)) {
-        $fileInfo = $config.Files[$FilePath]
-        return $config.BaseUrl + $fileInfo.Url
+    # Check all sections for the file
+    foreach ($section in $manifestConfig.Sections.Keys) {
+        if ($manifestConfig.Sections[$section] -contains $FilePath) {
+            return "$baseUrl/$FilePath"
+        }
     }
-    
+
     return $null
 }
 
-function ConvertTo-RelativePath {
+function Get-FileLocalPath {
+    <#
+    .SYNOPSIS
+    Get the correct local path for a file based on its manifest path
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string]$FilePath,
+        
+        [string]$WorkspaceRoot = "."
+    )
+    
+    # Simply join the workspace root with the file path from manifest
+    return Join-Path $WorkspaceRoot $FilePath
+}function ConvertTo-RelativePath {
     <#
     .SYNOPSIS
     Convert absolute path to relative path from workspace root
@@ -262,14 +123,71 @@ function ConvertTo-RelativePath {
     }
 }
 
+function Get-InstallerConfig {
+    <#
+    .SYNOPSIS
+    Get the complete installer configuration with all file mappings and targets
+    
+    .PARAMETER WorkspaceRoot
+    The root directory of the workspace
+    
+    .PARAMETER ManifestConfig
+    The manifest configuration from Get-ManifestConfig
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string]$WorkspaceRoot,
+        
+        [Parameter(Mandatory)]
+        [hashtable]$ManifestConfig
+    )
+    
+    return @{
+        Version = "1.0.0"
+        Branch = "exp/terraform_copilot"
+        SourceRepository = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm"
+        Files = @{
+            Instructions = @{
+                Source = ".github/copilot-instructions.md"
+                Target = (Join-Path $WorkspaceRoot ".github/copilot-instructions.md")
+                Description = "Main Copilot instructions for AI-powered development"
+            }
+            InstructionFiles = @{
+                Target = (Join-Path $WorkspaceRoot ".github/instructions")
+                Description = "Detailed implementation guidelines and patterns"
+                Files = $ManifestConfig.Sections.INSTRUCTION_FILES
+            }
+            PromptFiles = @{
+                Target = (Join-Path $WorkspaceRoot ".github/prompts")
+                Description = "AI prompt templates for development workflows"
+                Files = $ManifestConfig.Sections.PROMPT_FILES
+            }
+            InstallerFiles = @{
+                Target = "$env:USERPROFILE\.terraform-ai-installer"
+                Description = "Installer scripts and modules for bootstrap functionality"
+                Files = @(
+                    $ManifestConfig.Sections.INSTALLER_FILES_SHARED
+                    $ManifestConfig.Sections.INSTALLER_FILES_POWERSHELL
+                ) | Where-Object { $_ }
+            }
+            UniversalFiles = @{
+                Target = (Join-Path $WorkspaceRoot ".vscode")
+                Description = "Platform-independent configuration files"
+                Files = $ManifestConfig.Sections.UNIVERSAL_FILES
+            }
+        }
+    }
+}
+
 #endregion
 
 #region Export Module Members
 
 Export-ModuleMember -Function @(
     'Get-ManifestConfig',
-    'Get-InstallationConfig',
+    'Get-InstallerConfig',
     'Get-FileDownloadUrl',
+    'Get-FileLocalPath',
     'ConvertTo-RelativePath'
 )
 

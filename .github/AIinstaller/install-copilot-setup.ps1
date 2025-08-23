@@ -32,29 +32,6 @@ param(
 $OriginalVerbosePreference = $VerbosePreference
 $VerbosePreference = 'SilentlyContinue'
 
-# Import required modules
-$ModulesPath = Join-Path $PSScriptRoot "modules\powershell"
-$RequiredModules = @(
-    "ConfigParser",
-    "FileOperations",
-    "ValidationEngine", 
-    "UI"
-)
-
-foreach ($module in $RequiredModules) {
-    $modulePath = Join-Path $ModulesPath "$module.psm1"
-    if (Test-Path $modulePath) {
-        # Suppress verbose output during module import using stream redirection
-        Import-Module $modulePath -Force -DisableNameChecking 4>$null
-    } else {
-        Write-ErrorMessage "Required module '$module' not found at: $modulePath"
-        exit 1
-    }
-}
-
-# Restore original verbose preference after module loading
-$VerbosePreference = $OriginalVerbosePreference
-
 # Helper function to get workspace root
 function Get-WorkspaceRoot {
     <#
@@ -99,62 +76,62 @@ if ($RepoDirectory) {
         
         if ((Test-Path $goModPath) -and (Test-Path $mainGoPath) -and (Test-Path $internalPath)) {
             $Global:WorkspaceRoot = $RepoDirectory
-            Show-RepositoryInfo -Directory $RepoDirectory
         } else {
-            Write-ErrorMessage "INVALID REPOSITORY: The specified directory does not appear to be a terraform-provider-azurerm repository."
-            Show-ErrorBlock -Issue "The -RepoDirectory parameter must point to a valid terraform-provider-azurerm repository root." -Solutions @(
-                "Ensure you're pointing to the repository ROOT directory",
-                "Verify the directory contains terraform-provider-azurerm source code", 
-                "Example: -RepoDirectory 'C:\github.com\hashicorp\terraform-provider-azurerm'"
-            )
+            Write-Host "INVALID REPOSITORY: The specified directory does not appear to be a terraform-provider-azurerm repository." -ForegroundColor "Red"
+            Write-Host "The -RepoDirectory parameter must point to a valid terraform-provider-azurerm repository root." -ForegroundColor "Red"
             exit 1
         }
     } else {
-        Write-ErrorMessage "DIRECTORY NOT FOUND: The specified RepoDirectory does not exist."
-        Show-ErrorBlock -Issue "The path '$RepoDirectory' could not be found on this system." -Solutions @(
-            "Check the path spelling and ensure it exists",
-            "Use an absolute path (e.g., 'C:\path\to\repo')",
-            "Ensure you have permissions to access the directory"
-        ) -ExampleUsage ".\install-copilot-setup.ps1 -RepoDirectory 'C:\github.com\hashicorp\terraform-provider-azurerm'"
+        Write-Host "DIRECTORY NOT FOUND: The specified RepoDirectory does not exist." -ForegroundColor "Red"
+        Write-Host "The path '$RepoDirectory' could not be found on this system." -ForegroundColor "Red"
         exit 1
     }
 }
 
-# Get dynamic configuration from manifest FIRST
-$ManifestConfig = Get-ManifestConfig
+# Import required modules from the script location (for bootstrapped installs)
+$ScriptDirectory = Split-Path $MyInvocation.MyCommand.Path -Parent
+$ModulesPath = Join-Path $ScriptDirectory "modules\powershell"
 
-# Initialize installer configuration after workspace root is finalized
-$Global:InstallerConfig = @{
-    Version = "1.0.0"
-    Branch = "exp/terraform_copilot"
-    SourceRepository = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm"
-    Files = @{
-        Instructions = @{
-            Source = ".github/copilot-instructions.md"
-            Target = (Join-Path $Global:WorkspaceRoot ".github/copilot-instructions.md")
-            Description = "Main Copilot instructions for AI-powered development"
+# If modules don't exist locally, try workspace location (for direct repo execution)
+if (-not (Test-Path $ModulesPath)) {
+    $ModulesPath = Join-Path $Global:WorkspaceRoot ".github\AIinstaller\modules\powershell"
+}
+
+$RequiredModules = @(
+    "ConfigParser",
+    "FileOperations",
+    "ValidationEngine", 
+    "UI"
+)
+
+foreach ($module in $RequiredModules) {
+    $modulePath = Join-Path $ModulesPath "$module.psm1"
+    if (Test-Path $modulePath) {
+        try {
+            # Import module with explicit scope to ensure functions are available
+            Import-Module $modulePath -Force -DisableNameChecking -Scope Global 4>$null
+            
+            # Load configuration immediately after ConfigParser import
+            if ($module -eq "ConfigParser") {
+                $manifestPath = Join-Path $Global:WorkspaceRoot ".github/AIinstaller/file-manifest.config"
+                $Global:ManifestConfig = ConfigParser\Get-ManifestConfig -ManifestPath $manifestPath
+                $Global:InstallerConfig = ConfigParser\Get-InstallerConfig -WorkspaceRoot $Global:WorkspaceRoot -ManifestConfig $Global:ManifestConfig
+            }
         }
-        InstructionFiles = @{
-            Source = ".github/instructions"
-            Target = (Join-Path $Global:WorkspaceRoot ".github/instructions")
-            Description = "Detailed implementation guidelines and patterns"
-            Files = $ManifestConfig.Sections.INSTRUCTION_FILES
+        catch {
+            Write-Host "ERROR: Failed to import module $module`: $_" -ForegroundColor Red
+            exit 1
         }
-        PromptFiles = @{
-            Source = ".github/prompts"
-            Target = (Join-Path $Global:WorkspaceRoot ".github/prompts")
-            Description = "AI prompt templates for development workflows"
-            Files = $ManifestConfig.Sections.PROMPT_FILES
-        }
-        InstallerFiles = @{
-            Source = ".github/AIinstaller"
-            Target = "$env:USERPROFILE\.terraform-ai-installer"
-            Description = "Installer scripts and modules for bootstrap functionality"
-            Files = $ManifestConfig.Sections.INSTALLER_FILES
-        }
+    } else {
+        Write-Host "Required module '$module' not found at: $modulePath" -ForegroundColor "Red"
+        exit 1
     }
 }
 
+# Restore original verbose preference after module loading
+$VerbosePreference = $OriginalVerbosePreference
+
+# Note: Branch detection will be shown later in the contextual help display
 # Note: InstallerConfig will be initialized after RepoDirectory parameter processing
 
 function Test-BranchType {
@@ -200,416 +177,6 @@ function Test-BranchType {
     }
 }
 
-function Invoke-Bootstrap {
-    <#
-    .SYNOPSIS
-    Copy installer files to user profile for feature branch use
-    #>
-    
-    try {
-        Write-Section "Bootstrap - Copying Installer to User Profile"
-        
-        # Create target directory
-        $targetDirectory = Join-Path $env:USERPROFILE ".terraform-ai-installer"
-        if (-not (Test-Path $targetDirectory)) {
-            New-Item -ItemType Directory -Path $targetDirectory -Force | Out-Null
-            Show-DirectoryOperation -Directory $targetDirectory -Status "Created"
-        } else {
-            Show-DirectoryOperation -Directory $targetDirectory -Status "Existing"
-        }
-        
-        # Files to bootstrap from configuration
-        $filesToBootstrap = $Global:InstallerConfig.Files.InstallerFiles.Files
-        
-        # Statistics
-        $statistics = @{
-            "Files Copied" = 0
-            "Files Downloaded" = 0
-            "Files Failed" = 0
-            "Total Size" = 0
-        }
-        
-        # Determine if we should copy locally or download from remote
-        $isSourceRepo = Test-SourceRepository
-        $aiInstallerSourcePath = Join-Path $Global:WorkspaceRoot ".github/AIinstaller"
-        
-        if ($isSourceRepo -and (Test-Path $aiInstallerSourcePath)) {
-            Write-OperationStatus -Message "  Copying installer files from local source repository..." -Type "Progress"
-            Write-Host ""
-            
-            # Copy files locally from source repository
-            foreach ($file in $filesToBootstrap) {
-                try {
-                    $sourcePath = Join-Path $aiInstallerSourcePath $file
-                    $fileName = Split-Path $file -Leaf
-                    
-                    # Create subdirectory if needed
-                    $fileDir = Split-Path $file -Parent
-                    if ($fileDir) {
-                        $targetSubDir = Join-Path $targetDirectory $fileDir
-                        if (-not (Test-Path $targetSubDir)) {
-                            New-Item -ItemType Directory -Path $targetSubDir -Force | Out-Null
-                        }
-                        $targetPath = Join-Path $targetSubDir $fileName
-                    } else {
-                        $targetPath = Join-Path $targetDirectory $fileName
-                    }
-                    
-                    Show-FileOperation -Operation "Copying" -FileName $fileName -NoNewLine
-                    
-                    if (Test-Path $sourcePath) {
-                        Copy-Item $sourcePath $targetPath -Force
-                        
-                        if (Test-Path $targetPath) {
-                            $fileSize = (Get-Item $targetPath).Length
-                            $statistics["Files Copied"]++
-                            $statistics["Total Size"] += $fileSize
-                            
-                            Write-Host " [OK]" -ForegroundColor "Green"
-                        } else {
-                            Write-Host " [FAILED]" -ForegroundColor "Red"
-                            $statistics["Files Failed"]++
-                        }
-                    } else {
-                        Write-Host " [SOURCE NOT FOUND]" -ForegroundColor "Red"
-                        $statistics["Files Failed"]++
-                    }
-                }
-                catch {
-                    Write-Host " [ERROR] ($($_.Exception.Message))" -ForegroundColor "Red"
-                    $statistics["Files Failed"]++
-                }
-            }
-        } else {
-            Write-Host "  Downloading installer files from remote source branch..." -ForegroundColor "Cyan"
-            Write-Host ""
-            
-            # Download files from remote repository
-            $baseUri = "$($Global:InstallerConfig.SourceRepository)/$($Global:InstallerConfig.Branch)/.github/AIinstaller"
-            
-            foreach ($file in $filesToBootstrap) {
-                try {
-                    $uri = "$baseUri/$file"
-                    $fileName = Split-Path $file -Leaf
-                    
-                    # Create subdirectory if needed
-                    $fileDir = Split-Path $file -Parent
-                    if ($fileDir) {
-                        $targetSubDir = Join-Path $targetDirectory $fileDir
-                        if (-not (Test-Path $targetSubDir)) {
-                            New-Item -ItemType Directory -Path $targetSubDir -Force | Out-Null
-                        }
-                        $targetPath = Join-Path $targetSubDir $fileName
-                    } else {
-                        $targetPath = Join-Path $targetDirectory $fileName
-                    }
-                    
-                    Write-Host "    Downloading: $fileName" -ForegroundColor "Gray" -NoNewline
-                    
-                    # Download with progress
-                    Invoke-WebRequest -Uri $uri -OutFile $targetPath -UseBasicParsing | Out-Null
-                    
-                    if (Test-Path $targetPath) {
-                        $fileSize = (Get-Item $targetPath).Length
-                        $statistics["Files Downloaded"]++
-                        $statistics["Total Size"] += $fileSize
-                        
-                        Write-Host " [OK]" -ForegroundColor "Green"
-                    } else {
-                        Write-Host " [FAILED]" -ForegroundColor "Red"
-                        $statistics["Files Failed"]++
-                    }
-                }
-                catch {
-                    Write-Host " [ERROR] ($($_.Exception.Message))" -ForegroundColor "Red"
-                    $statistics["Files Failed"]++
-                }
-            }
-        }
-        
-        Write-Host ""
-        
-        if ($statistics["Files Failed"] -eq 0) {
-            $totalSizeKB = [math]::Round($statistics["Total Size"] / 1KB, 1)
-            
-            Write-Success "Bootstrap completed successfully!"
-            Write-Host ""
-            
-            if ($statistics["Files Copied"] -gt 0) {
-                Write-Host "  Files copied: $($statistics["Files Copied"])" -ForegroundColor "Green"
-            }
-            if ($statistics["Files Downloaded"] -gt 0) {
-                Write-Host "  Files downloaded: $($statistics["Files Downloaded"])" -ForegroundColor "Green"
-            }
-            
-            Write-Host "  Total size: $totalSizeKB KB" -ForegroundColor "Green"
-            Write-Host "  Location: $targetDirectory" -ForegroundColor "Green"
-            Write-Host ""
-            Write-Host "NEXT STEPS:" -ForegroundColor "Cyan"
-            Write-Host "  1. Switch to your feature branch:" -ForegroundColor "White"
-            Write-Host "     git checkout feature/your-branch-name" -ForegroundColor "Gray"
-            Write-Host ""
-            Write-Host "  2. Run the installer from your user profile:" -ForegroundColor "White"
-            Write-Host "     & `"$targetDirectory\install-copilot-setup.ps1`" -RepoDirectory `"$($Global:WorkspaceRoot)`"" -ForegroundColor "Gray"
-            Write-Host ""
-            Write-Host "  Note: The -RepoDirectory parameter tells the installer where to find the git repository" -ForegroundColor "Yellow"
-            Write-Host "        for branch detection when running from your user profile." -ForegroundColor "Yellow"
-            Write-Host ""
-            
-            return @{
-                Success = $true
-                TargetDirectory = $targetDirectory
-                Statistics = $statistics
-            }
-        } else {
-            Write-ErrorMessage "Bootstrap failed: $($statistics["Files Failed"]) files could not be processed"
-            return @{
-                Success = $false
-                Statistics = $statistics
-            }
-        }
-    }
-    catch {
-        Write-ErrorMessage "Bootstrap failed: $($_.Exception.Message)"
-        return @{
-            Success = $false
-            Error = $_.Exception.Message
-        }
-    }
-}
-
-function Test-SourceRepository {
-    <#
-    .SYNOPSIS
-    Determines if we're running on the source repository vs a target repository
-    
-    .DESCRIPTION
-    Checks various indicators to determine if this is the source repository where
-    AI infrastructure files are maintained vs a target repository where they
-    would be installed.
-    
-    .OUTPUTS
-    Boolean - True if this is the source repository, False if target
-    #>
-    
-    # Check if we're on the exp/terraform_copilot branch (source branch)
-    try {
-        Push-Location $Global:WorkspaceRoot
-        $currentBranch = git rev-parse --abbrev-ref HEAD 2>$null
-        if ($currentBranch -eq "exp/terraform_copilot") {
-            return $true
-        }
-    } catch {
-        # Git not available or not in a git repo
-    } finally {
-        Pop-Location
-    }
-    
-    # Check if AIinstaller directory exists (only in source)
-    $aiInstallerPath = Join-Path $Global:WorkspaceRoot ".github/AIinstaller"
-    if (Test-Path $aiInstallerPath) {
-        return $true
-    }
-    
-    # Check if this directory structure looks like the source
-    $copilotInstructionsPath = Join-Path $Global:WorkspaceRoot ".github/copilot-instructions.md"
-    $instructionsPath = Join-Path $Global:WorkspaceRoot ".github/instructions"
-    $promptsPath = Join-Path $Global:WorkspaceRoot ".github/prompts"
-    
-    if ((Test-Path $copilotInstructionsPath) -and 
-        (Test-Path $instructionsPath) -and 
-        (Test-Path $promptsPath) -and
-        (Test-Path $aiInstallerPath)) {
-        return $true
-    }
-    
-    return $false
-}
-
-function Invoke-VerifyWorkspace {
-    <#
-    .SYNOPSIS
-    Verifies the presence of AI infrastructure files in the workspace
-    
-    .DESCRIPTION
-    Checks for all required AI infrastructure files including:
-    - Main copilot instructions
-    - Detailed instruction files
-    - Prompts directory
-    - VS Code settings
-    
-    .OUTPUTS
-    Returns verification results and displays status to console
-    #>
-    
-    Write-Section "Workspace Verification"
-    
-    # Use the dynamically determined workspace root
-    $workspaceRoot = $Global:WorkspaceRoot
-    Push-Location $workspaceRoot
-    
-    try {
-        # Check if we're on the source branch/repository
-        $isSourceRepo = Test-SourceRepository
-        
-        $results = @{
-            Success = $true
-            Files = @()
-            Issues = @()
-            IsSourceRepo = $isSourceRepo
-        }
-        
-        Write-Host "Checking workspace: $workspaceRoot" -ForegroundColor Gray
-        
-        if ($isSourceRepo) {
-            Write-Host "NOTE: Running on SOURCE repository - AI infrastructure files are part of this repository" -ForegroundColor Cyan
-        } else {
-            Write-Host "NOTE: Running on TARGET repository - checking if AI infrastructure files have been installed" -ForegroundColor Yellow
-        }
-        Write-Host ""
-        
-        # Check main instructions file
-        $instructionsFile = $Global:InstallerConfig.Files.Instructions.Target
-        if (Test-Path $instructionsFile) {
-            $results.Files += @{
-                Path = $instructionsFile
-                Status = "Present"
-                Description = "Main Copilot instructions"
-            }
-            Write-Host "  [FOUND] $(Resolve-Path $instructionsFile -Relative)" -ForegroundColor Green
-        } else {
-            $results.Files += @{
-                Path = $instructionsFile
-                Status = "Missing"
-                Description = "Main Copilot instructions"
-            }
-            $results.Issues += "Missing: $instructionsFile"
-            Write-Host "  [MISSING] $(Resolve-Path $instructionsFile -Relative -ErrorAction SilentlyContinue)" -ForegroundColor Red
-        }
-        
-        # Check instructions directory
-        $instructionsDir = $Global:InstallerConfig.Files.InstructionFiles.Target
-        if (Test-Path $instructionsDir -PathType Container) {
-            $results.Files += @{
-                Path = $instructionsDir
-                Status = "Present"
-                Description = "Instructions directory"
-            }
-            Write-Host "  [FOUND] $(Resolve-Path $instructionsDir -Relative)/" -ForegroundColor Green
-            
-            # Check specific instruction files
-            $requiredFiles = $Global:InstallerConfig.Files.InstructionFiles.Files
-            
-            foreach ($file in $requiredFiles) {
-                $filePath = Join-Path $instructionsDir $file
-                if (Test-Path $filePath) {
-                    Write-Host "    [FOUND] $file" -ForegroundColor Green
-                } else {
-                    Write-Host "    [MISSING] $file" -ForegroundColor Red
-                    $results.Issues += "Missing: $filePath"
-                }
-            }
-        } else {
-            $results.Files += @{
-                Path = $instructionsDir
-                Status = "Missing"
-                Description = "Instructions directory"
-            }
-            $results.Issues += "Missing: $instructionsDir"
-            Write-Host "  [MISSING] $(Resolve-Path $instructionsDir -Relative -ErrorAction SilentlyContinue)/" -ForegroundColor Red
-        }
-        
-        # Check prompts directory
-        $promptsDir = $Global:InstallerConfig.Files.PromptFiles.Target
-        if (Test-Path $promptsDir -PathType Container) {
-            $results.Files += @{
-                Path = $promptsDir
-                Status = "Present"
-                Description = "Prompts directory"
-            }
-            Write-Host "  [FOUND] $(Resolve-Path $promptsDir -Relative)/" -ForegroundColor Green
-            
-            # Check specific prompt files
-            $requiredPrompts = $Global:InstallerConfig.Files.PromptFiles.Files
-            
-            foreach ($file in $requiredPrompts) {
-                $filePath = Join-Path $promptsDir $file
-                if (Test-Path $filePath) {
-                    Write-Host "    [FOUND] $file" -ForegroundColor Green
-                } else {
-                    Write-Host "    [MISSING] $file" -ForegroundColor Red
-                    $results.Issues += "Missing: $filePath"
-                }
-            }
-        } else {
-            $results.Files += @{
-                Path = $promptsDir
-                Status = "Missing"
-                Description = "Prompts directory"
-            }
-            $results.Issues += "Missing: $promptsDir"
-            Write-Host "  [MISSING] $(Resolve-Path $promptsDir -Relative -ErrorAction SilentlyContinue)/" -ForegroundColor Red
-        }
-        
-        # Check .vscode directory and settings
-        $vscodeDir = Join-Path $workspaceRoot ".vscode"
-        if (Test-Path $vscodeDir -PathType Container) {
-            Write-Host "  [FOUND] .vscode/" -ForegroundColor Green
-            
-            $settingsFile = Join-Path $vscodeDir "settings.json"
-            if (Test-Path $settingsFile) {
-                Write-Host "    [FOUND] settings.json" -ForegroundColor Green
-            } else {
-                Write-Host "    [MISSING] settings.json" -ForegroundColor Red
-                $results.Issues += "Missing: $settingsFile"
-            }
-        } else {
-            Write-Host "  [MISSING] .vscode/" -ForegroundColor Red
-            $results.Issues += "Missing: $vscodeDir"
-        }
-        
-        Write-Host ""
-        
-        # Check for deprecated files (files that exist but are no longer in manifest)
-        if (-not $isSourceRepo) {
-            $deprecatedFiles = Remove-DeprecatedFiles -ManifestConfig $ManifestConfig -WorkspaceRoot $workspaceRoot -DryRun $true -Quiet $true
-            if ($deprecatedFiles.Count -gt 0) {
-                $results.Issues += "Found $($deprecatedFiles.Count) deprecated files"
-                Write-Host ""
-                Write-Host "TIP: Deprecated files will be automatically removed during installation" -ForegroundColor Cyan
-            }
-        }
-        
-        if ($results.Issues.Count -gt 0) {
-            $results.Success = $false
-            Write-Host "Issues found:" -ForegroundColor Yellow
-            foreach ($issue in $results.Issues) {
-                Write-Host "  - $issue" -ForegroundColor Red
-            }
-            
-            if (-not $isSourceRepo) {
-                Write-Host ""
-                if ($RepoDirectory) {
-                    Write-Host "TIP: To install missing files, run: .\install-copilot-setup.ps1 -RepoDirectory `"$RepoDirectory`"" -ForegroundColor Cyan
-                } else {
-                    Write-Host "TIP: To install missing files, run: .\install-copilot-setup.ps1 -RepoDirectory `"<path-to-your-repo>`"" -ForegroundColor Cyan
-                }
-            }
-        } else {
-            if ($isSourceRepo) {
-                Write-Host "All AI infrastructure files are present in the source repository!" -ForegroundColor Green
-            } else {
-                Write-Host "All AI infrastructure files have been successfully installed!" -ForegroundColor Green
-            }
-        }
-        
-        return $results
-    }
-    finally {
-        Pop-Location
-    }
-}
-
 function Invoke-CleanWorkspace {
     param([bool]$AutoApprove, [bool]$DryRun)
     
@@ -625,10 +192,14 @@ function Invoke-CleanWorkspace {
         $result = Remove-AllAIFiles -Force:$AutoApprove -DryRun:$DryRun -WorkspaceRoot $Global:WorkspaceRoot
         
         if ($result.Success) {
-            Write-Host ""
-            Write-Success "Clean operation completed successfully!"
-            Write-Host "  Files removed: $($result.FilesRemoved)" -ForegroundColor Green
-            Write-Host "  Directories cleaned: $($result.DirectoriesCleaned)" -ForegroundColor Green
+            # Use the superior summary function
+            $details = @{
+                "Files removed" = $result.FilesRemoved
+                "Directories cleaned" = $result.DirectoriesCleaned
+                "Operation type" = if ($DryRun) { "Dry run (simulation)" } else { "Live cleanup" }
+            }
+            
+            Show-Summary -Title "Clean Operation Results" -Details $details
         } else {
             Write-Host ""
             Write-WarningMessage "Clean operation encountered issues:"
@@ -677,7 +248,21 @@ function Invoke-InstallInfrastructure {
         $result = Install-AllAIFiles -Force:$AutoApprove -DryRun:$DryRun -WorkspaceRoot $Global:WorkspaceRoot
         
         if ($result.OverallSuccess) {
-            Show-InstallationResults -Results $result
+            # Use the superior completion summary function
+            $nextSteps = @()
+            if ($result.Skipped -gt 0) {
+                $nextSteps += "Review skipped files and use -Auto-Approve if needed"
+            }
+            $nextSteps += "Start using GitHub Copilot with your new AI-powered infrastructure"
+            $nextSteps += "Check the .github/instructions/ folder for detailed guidelines"
+            
+            # Get branch information for completion summary
+            $workspaceRoot = if ($RepoDirectory) { $RepoDirectory } else { $Global:WorkspaceRoot }
+            $currentBranch = Get-CurrentBranch -WorkspaceRoot $workspaceRoot
+            $isSourceRepo = Test-SourceRepository
+            $branchType = if ($isSourceRepo) { "source" } else { "feature" }
+            
+            Show-CompletionSummary -FilesInstalled $result.Successful -FilesSkipped $result.Skipped -FilesFailed $result.Failed -NextSteps $nextSteps -BranchName $currentBranch -BranchType $branchType
         } else {
             Show-InstallationResults -Results $result
         }
@@ -730,7 +315,13 @@ function Main {
         
         # Handle help parameter
         if ($Help) {
-            Show-Help
+            # Get branch information for context
+            $workspaceRoot = if ($RepoDirectory) { $RepoDirectory } else { $Global:WorkspaceRoot }
+            $currentBranch = Get-CurrentBranch -WorkspaceRoot $workspaceRoot
+            $isSourceRepo = Test-SourceRepository
+            $branchType = if ($isSourceRepo) { "source" } else { "feature" }
+            
+            Show-Help -BranchName $currentBranch -BranchType $branchType
             return
         }
         
@@ -741,6 +332,23 @@ function Main {
                 return
             }
             
+            # Show consistent header with branch detection for bootstrap
+            Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
+            
+            # Get branch information for context
+            $workspaceRoot = if ($RepoDirectory) { $RepoDirectory } else { $Global:WorkspaceRoot }
+            $currentBranch = Get-CurrentBranch -WorkspaceRoot $workspaceRoot
+            $isSourceRepo = Test-SourceRepository
+            $branchType = if ($isSourceRepo) { "source" } else { "feature" }
+            
+            Show-BranchDetection -BranchName $currentBranch -BranchType $branchType
+            
+            # Show workspace path for consistency
+            $formattedWorkspaceLabel = Format-AlignedLabel -Label "WORKSPACE" -CurrentBranchType $branchType
+            Write-Host $formattedWorkspaceLabel -ForegroundColor Cyan -NoNewline
+            Write-Host $workspaceRoot -ForegroundColor Green
+            Write-Host ""
+            
             $result = Invoke-Bootstrap
             if (-not $result.Success) {
                 exit 1
@@ -750,7 +358,19 @@ function Main {
         
         # Handle verify parameter
         if ($Verify) {
-            $result = Invoke-VerifyWorkspace
+            # Show consistent header for verify operation
+            Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
+            
+            # Get branch information for verification context
+            $workspaceRoot = if ($RepoDirectory) { $RepoDirectory } else { $Global:WorkspaceRoot }
+            $currentBranch = Get-CurrentBranch -WorkspaceRoot $workspaceRoot
+            $isSourceRepo = Test-SourceRepository
+            $branchType = if ($isSourceRepo) { "source" } else { "feature" }
+            
+            # Show branch context before verification
+            UI\Show-BranchDetection -BranchName $currentBranch -BranchType $branchType
+            
+            $result = Invoke-VerifyWorkspace -BranchType $branchType
             return
         }
         
@@ -768,42 +388,47 @@ function Main {
             return
         }
         
-        # Default installation flow
+        # Default installation flow (when no specific action requested)
         Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
         
-        if ($isSourceBranch) {
-            Show-SourceBranchWelcome -BranchName $Global:InstallerConfig.Branch -BootstrapCommand ".\install-copilot-setup.ps1 -Bootstrap"
-            
-            # Interactive prompt for better UX
-            $shouldBootstrap = Get-BootstrapConfirmation
-            
-            if ($shouldBootstrap) {
-                $result = Invoke-Bootstrap
-                if (-not $result.Success) {
-                    exit 1
-                }
-                return
+        # Check if any specific action was requested
+        $hasExplicitAction = $Bootstrap -or $Verify -or $Clean -or $Help -or $DryRun
+        
+        if (-not $hasExplicitAction) {
+            # No action specified - just show help and exit
+            if ($isSourceBranch) {
+                Show-SourceBranchHelp -BranchName $Global:InstallerConfig.Branch -WorkspacePath $Global:WorkspaceRoot
+                Write-Host ""
+                Show-SourceBranchWelcome -BranchName $Global:InstallerConfig.Branch
             } else {
-                return
+                if ($branchType -eq "unknown") {
+                    Show-UnknownBranchError -HasRepoDirectory:$PSBoundParameters.ContainsKey('RepoDirectory') -RepoDirectory $RepoDirectory -ScriptPath $PSCommandPath
+                } else {
+                    Show-FeatureBranchHelp
+                }
             }
-        } else {
-            if ($branchType -eq "unknown") {
-                # If branch type is unknown, we need to determine why and provide appropriate error
-                Show-UnknownBranchError -HasRepoDirectory ([bool]$RepoDirectory) -RepoDirectory $RepoDirectory -ScriptPath $PSCommandPath
-                exit 1
-            }
-            
-            $workspaceRoot = if ($RepoDirectory) { $RepoDirectory } else { $Global:WorkspaceRoot }
-            $currentBranch = Get-CurrentBranch -WorkspaceRoot $workspaceRoot
-            Show-BranchDetection -BranchName $currentBranch
-            Write-Host ""
-            Write-OperationStatus -Message "Starting AI infrastructure installation..." -Type "Info"
-            
-            $result = Invoke-InstallInfrastructure -AutoApprove:$AutoApprove -DryRun:$DryRun
-            if (-not $result.Success) {
-                exit 1
-            }
+            return  # Exit cleanly after showing help
         }
+        
+        # If we get here, user requested a specific action on source branch that's not allowed
+        if ($isSourceBranch) {
+            Show-Help -BranchName $Global:InstallerConfig.Branch -BranchType "source" -SkipHeader
+            Write-Host ""
+            Write-ErrorMessage "Requested operation not available on source branch."
+            Write-Host "Source branch is for development only. Use -Bootstrap, -Verify, or -Help." -ForegroundColor Yellow
+            return
+        }
+        
+        # If we get here, it means we're on a feature branch or unknown branch with no action specified
+        if ($branchType -eq "unknown") {
+            # If branch type is unknown, we need to determine why and provide appropriate error
+            Show-UnknownBranchError -HasRepoDirectory ([bool]$RepoDirectory) -RepoDirectory $RepoDirectory -ScriptPath $PSCommandPath
+            exit 1
+        }
+        
+        # Feature branch with no action - just show help
+        Show-FeatureBranchHelp
+        return
     }
     catch {
         $errorMessage = $_.Exception.Message

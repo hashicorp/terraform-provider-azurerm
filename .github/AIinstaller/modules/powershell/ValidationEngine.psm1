@@ -1,6 +1,10 @@
 # ValidationEngine Module for Terraform AzureRM Provider AI Setup
 # Handles comprehensive validation, dependency checking, and system requirements
 
+# Import required modules
+$ModulePath = Split-Path $PSScriptRoot -Parent
+Import-Module (Join-Path $ModulePath "powershell\ConfigParser.psm1") -Force
+
 #region Private Functions
 
 function Find-WorkspaceRoot {
@@ -406,7 +410,13 @@ function Test-PostInstallation {
         [string]$Branch = "exp/terraform_copilot"
     )
     
-    $config = Get-InstallationConfig -Branch $Branch
+    # Use manifest-driven configuration
+    $manifestConfig = Get-ManifestConfig -Branch $Branch
+    $allFiles = @()
+    foreach ($section in $manifestConfig.Sections.Keys) {
+        $allFiles += $manifestConfig.Sections[$section]
+    }
+    
     $workspaceStatus = Get-WorkspaceStatus
     
     $results = @{
@@ -420,12 +430,10 @@ function Test-PostInstallation {
     }
     
     # Validate each installed file
-    foreach ($filePath in $config.Files.Keys) {
-        $fileInfo = $config.Files[$filePath]
-        
+    foreach ($filePath in $allFiles) {
         $fileValidation = @{
             Exists = Test-Path $filePath
-            Required = $fileInfo.Required
+            Required = $true  # All files in manifest are considered required
             Integrity = $null
             UpToDate = $null
         }
@@ -470,7 +478,13 @@ function Test-AIInfrastructure {
     
     # Get installation status
     $workspaceStatus = Get-WorkspaceStatus
-    $config = Get-InstallationConfig -Branch $Branch
+    
+    # Use manifest-driven configuration
+    $manifestConfig = Get-ManifestConfig -Branch $Branch
+    $allFiles = @()
+    foreach ($section in $manifestConfig.Sections.Keys) {
+        $allFiles += $manifestConfig.Sections[$section]
+    }
     
     # Determine installation status
     if ($workspaceStatus.InstalledCount -eq 0) {
@@ -489,7 +503,7 @@ function Test-AIInfrastructure {
     }
     
     # Check file health
-    foreach ($filePath in $config.Files.Keys) {
+    foreach ($filePath in $allFiles) {
         $fileHealth = @{
             Status = "Unknown"
             Issues = @()
@@ -522,17 +536,23 @@ function Test-AIInfrastructure {
             }
         } else {
             $fileHealth.Status = "Missing"
-            if ($config.Files[$filePath].Required) {
-                $results.OverallHealth = "Degraded"
-                $fileHealth.Issues += "Required file is missing"
-            }
+            # All files in manifest are considered required
+            $results.OverallHealth = "Degraded"
+            $fileHealth.Issues += "Required file is missing"
         }
         
         $results.FileHealth[$filePath] = $fileHealth
     }
     
     # Check directory health
-    foreach ($directory in $config.RequiredDirectories) {
+    $requiredDirectories = @(
+        ".github",
+        ".github/instructions",
+        ".github/prompts",
+        ".vscode"
+    )
+    
+    foreach ($directory in $requiredDirectories) {
         $results.DirectoryHealth[$directory] = @{
             Exists = Test-Path $directory -PathType Container
             Status = if (Test-Path $directory -PathType Container) { "Present" } else { "Missing" }
@@ -801,6 +821,303 @@ function Get-CurrentBranch {
     }
 }
 
+function Test-SourceRepository {
+    <#
+    .SYNOPSIS
+    Determines if we're running on the source repository vs a target repository
+    
+    .DESCRIPTION
+    Checks various indicators to determine if this is the source repository where
+    AI infrastructure files are maintained vs a target repository where they
+    would be installed.
+    
+    .OUTPUTS
+    Boolean - True if this is the source repository, False if target
+    
+    .NOTES
+    CRITICAL FUNCTION: This provides essential source repository protection.
+    The logic here determines whether files should be copied locally or downloaded
+    remotely, preventing accidental overwriting of source files.
+    #>
+    
+    # Check if we're on the exp/terraform_copilot branch (source branch)
+    try {
+        Push-Location $Global:WorkspaceRoot
+        $currentBranch = git rev-parse --abbrev-ref HEAD 2>$null
+        if ($currentBranch -eq "exp/terraform_copilot") {
+            return $true
+        }
+    } catch {
+        # Git not available or not in a git repo
+    } finally {
+        Pop-Location
+    }
+    
+    # Check if AIinstaller directory exists (only in source)
+    $aiInstallerPath = Join-Path $Global:WorkspaceRoot ".github/AIinstaller"
+    if (Test-Path $aiInstallerPath) {
+        return $true
+    }
+    
+    # Check if this directory structure looks like the source
+    $copilotInstructionsPath = Join-Path $Global:WorkspaceRoot ".github/copilot-instructions.md"
+    $instructionsPath = Join-Path $Global:WorkspaceRoot ".github/instructions"
+    $promptsPath = Join-Path $Global:WorkspaceRoot ".github/prompts"
+    
+    if ((Test-Path $copilotInstructionsPath) -and 
+        (Test-Path $instructionsPath) -and 
+        (Test-Path $promptsPath) -and
+        (Test-Path $aiInstallerPath)) {
+        return $true
+    }
+    
+    return $false
+}
+
+function Get-DynamicSpacing {
+    <#
+    .SYNOPSIS
+    Calculate dynamic spacing for aligned output based on branch type
+    #>
+    param(
+        [ValidateSet("source", "feature", "unknown")]
+        [string]$BranchType = "feature"
+    )
+    
+    # Calculate the length of the branch detection line
+    $branchLabels = @{
+        "source"  = "SOURCE BRANCH DETECTED"
+        "feature" = "FEATURE BRANCH DETECTED"
+        "unknown" = "UNKNOWN BRANCH"
+    }
+    
+    $workspaceLabel = "WORKSPACE"
+    $branchLabel = $branchLabels[$BranchType]
+    
+    # Calculate spacing needed to align colons
+    $branchLineLength = $branchLabel.Length + 2  # +2 for ": "
+    $workspaceLineLength = $workspaceLabel.Length + 2  # +2 for ": "
+    
+    $maxLength = [Math]::Max($branchLineLength, $workspaceLineLength)
+    $spacingNeeded = $maxLength - $workspaceLineLength
+    
+    return " " * $spacingNeeded
+}
+
+function Invoke-VerifyWorkspace {
+    <#
+    .SYNOPSIS
+    Verifies the presence of AI infrastructure files in the workspace
+    
+    .DESCRIPTION
+    Checks for all required AI infrastructure files including:
+    - Main copilot instructions
+    - Detailed instruction files
+    - Prompts directory
+    - VS Code settings
+    
+    .PARAMETER BranchType
+    The type of branch (source, feature, unknown) for dynamic spacing calculation
+    
+    .OUTPUTS
+    Returns verification results and displays status to console
+    
+    .NOTES
+    This function maintains source repository awareness and provides different
+    behavior for source vs target repositories.
+    #>
+    param(
+        [ValidateSet("source", "feature", "unknown")]
+        [string]$BranchType = "feature"
+    )
+    
+    # Use the dynamically determined workspace root
+    $workspaceRoot = $Global:WorkspaceRoot
+    Push-Location $workspaceRoot
+    
+    try {
+        # CRITICAL: Check if we're on the source branch/repository
+        $isSourceRepo = Test-SourceRepository
+        
+        $results = @{
+            Success = $true
+            Files = @()
+            Issues = @()
+            IsSourceRepo = $isSourceRepo
+        }
+        
+        # Format WORKSPACE label to align with current branch detection label
+        $workspaceLabel = "WORKSPACE"
+        $formattedWorkspaceLabel = Format-AlignedLabel -Label $workspaceLabel -CurrentBranchType $BranchType
+        
+        Write-Host $formattedWorkspaceLabel -ForegroundColor Cyan -NoNewline
+        Write-Host $workspaceRoot -ForegroundColor Green
+        Write-Host ""
+        Write-Host $("=" * 60) -ForegroundColor Cyan
+        Write-Host "Verifying AI infrastructure files" -ForegroundColor Cyan
+        Write-Host $("=" * 60) -ForegroundColor Cyan
+        Write-Host ""
+        
+        # Check main instructions file
+        $instructionsFile = $Global:InstallerConfig.Files.Instructions.Target
+        if (Test-Path $instructionsFile) {
+            $results.Files += @{
+                Path = $instructionsFile
+                Status = "Present"
+                Description = "Main Copilot instructions"
+            }
+            Write-Host "  [FOUND] $(Resolve-Path $instructionsFile -Relative)" -ForegroundColor Green
+        } else {
+            $results.Files += @{
+                Path = $instructionsFile
+                Status = "Missing"
+                Description = "Main Copilot instructions"
+            }
+            $results.Issues += "Missing: $instructionsFile"
+            Write-Host "  [MISSING] $(Resolve-Path $instructionsFile -Relative -ErrorAction SilentlyContinue)" -ForegroundColor Red
+        }
+        
+        # Check instructions directory
+        $instructionsDir = $Global:InstallerConfig.Files.InstructionFiles.Target
+        if (Test-Path $instructionsDir -PathType Container) {
+            $results.Files += @{
+                Path = $instructionsDir
+                Status = "Present"
+                Description = "Instructions directory"
+            }
+            Write-Host "  [FOUND] $(Resolve-Path $instructionsDir -Relative)/" -ForegroundColor Green
+            
+            # Check specific instruction files
+            $requiredFiles = $Global:InstallerConfig.Files.InstructionFiles.Files
+            
+            foreach ($file in $requiredFiles) {
+                # Handle full repository paths vs relative paths
+                if ($file.StartsWith('.github/')) {
+                    # This is a full repository path - use it directly from workspace root
+                    $filePath = Join-Path $Global:WorkspaceRoot $file
+                } else {
+                    # This is a relative path - join with target directory
+                    $filePath = Join-Path $instructionsDir $file
+                }
+                
+                if (Test-Path $filePath) {
+                    Write-Host "    [FOUND] $file" -ForegroundColor Green
+                } else {
+                    Write-Host "    [MISSING] $file" -ForegroundColor Red
+                    $results.Issues += "Missing: $filePath"
+                }
+            }
+        } else {
+            $results.Files += @{
+                Path = $instructionsDir
+                Status = "Missing"
+                Description = "Instructions directory"
+            }
+            $results.Issues += "Missing: $instructionsDir"
+            Write-Host "  [MISSING] $(Resolve-Path $instructionsDir -Relative -ErrorAction SilentlyContinue)/" -ForegroundColor Red
+        }
+        
+        # Check prompts directory
+        $promptsDir = $Global:InstallerConfig.Files.PromptFiles.Target
+        if (Test-Path $promptsDir -PathType Container) {
+            $results.Files += @{
+                Path = $promptsDir
+                Status = "Present"
+                Description = "Prompts directory"
+            }
+            Write-Host "  [FOUND] $(Resolve-Path $promptsDir -Relative)/" -ForegroundColor Green
+            
+            # Check specific prompt files
+            $requiredPrompts = $Global:InstallerConfig.Files.PromptFiles.Files
+            
+            foreach ($file in $requiredPrompts) {
+                # Handle full repository paths vs relative paths
+                if ($file.StartsWith('.github/')) {
+                    # This is a full repository path - use it directly from workspace root
+                    $filePath = Join-Path $Global:WorkspaceRoot $file
+                } else {
+                    # This is a relative path - join with target directory
+                    $filePath = Join-Path $promptsDir $file
+                }
+                
+                if (Test-Path $filePath) {
+                    Write-Host "    [FOUND] $file" -ForegroundColor Green
+                } else {
+                    Write-Host "    [MISSING] $file" -ForegroundColor Red
+                    $results.Issues += "Missing: $filePath"
+                }
+            }
+        } else {
+            $results.Files += @{
+                Path = $promptsDir
+                Status = "Missing"
+                Description = "Prompts directory"
+            }
+            $results.Issues += "Missing: $promptsDir"
+            Write-Host "  [MISSING] $(Resolve-Path $promptsDir -Relative -ErrorAction SilentlyContinue)/" -ForegroundColor Red
+        }
+        
+        # Check .vscode directory and settings
+        $vscodeDir = Join-Path $workspaceRoot ".vscode"
+        if (Test-Path $vscodeDir -PathType Container) {
+            Write-Host "  [FOUND] .vscode/" -ForegroundColor Green
+            
+            $settingsFile = Join-Path $vscodeDir "settings.json"
+            if (Test-Path $settingsFile) {
+                Write-Host "    [FOUND] settings.json" -ForegroundColor Green
+            } else {
+                Write-Host "    [MISSING] settings.json" -ForegroundColor Red
+                $results.Issues += "Missing: $settingsFile"
+            }
+        } else {
+            Write-Host "  [MISSING] .vscode/" -ForegroundColor Red
+            $results.Issues += "Missing: $vscodeDir"
+        }
+        
+        Write-Host ""
+        
+        # Check for deprecated files (files that exist but are no longer in manifest)
+        if (-not $isSourceRepo) {
+            $deprecatedFiles = Remove-DeprecatedFiles -ManifestConfig $ManifestConfig -WorkspaceRoot $workspaceRoot -DryRun $true -Quiet $true
+            if ($deprecatedFiles.Count -gt 0) {
+                $results.Issues += "Found $($deprecatedFiles.Count) deprecated files"
+                Write-Host ""
+                Write-Host "TIP: Deprecated files will be automatically removed during installation" -ForegroundColor Cyan
+            }
+        }
+        
+        if ($results.Issues.Count -gt 0) {
+            $results.Success = $false
+            Write-Host "Issues found:" -ForegroundColor Yellow
+            foreach ($issue in $results.Issues) {
+                Write-Host "  - $issue" -ForegroundColor Red
+            }
+            
+            if (-not $isSourceRepo) {
+                Write-Host ""
+                if ($RepoDirectory) {
+                    Write-Host "TIP: To install missing files, run: .\install-copilot-setup.ps1 -RepoDirectory `"$RepoDirectory`"" -ForegroundColor Cyan
+                } else {
+                    Write-Host "TIP: To install missing files, run: .\install-copilot-setup.ps1 -RepoDirectory `"<path-to-your-repo>`"" -ForegroundColor Cyan
+                }
+            }
+        } else {
+            if ($isSourceRepo) {
+                Write-Host "All AI infrastructure files are present in the source repository!" -ForegroundColor Green
+            } else {
+                Write-Host "All AI infrastructure files have been successfully installed!" -ForegroundColor Green
+            }
+        }
+        
+        Write-Host ""
+
+        return $results
+    }
+    finally {
+        Pop-Location
+    }
+}
+
 #endregion
 
 #region Export Module Members
@@ -815,7 +1132,10 @@ Export-ModuleMember -Function @(
     'Test-InternetConnectivity',
     'Test-WorkspaceValid',
     'Test-GitRepository',
-    'Get-CurrentBranch'
+    'Get-CurrentBranch',
+    'Test-SourceRepository',
+    'Get-DynamicSpacing',
+    'Invoke-VerifyWorkspace'
 )
 
 #endregion

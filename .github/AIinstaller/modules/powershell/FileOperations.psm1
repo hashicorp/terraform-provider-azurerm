@@ -1,6 +1,10 @@
 # FileOperations Module for Terraform AzureRM Provider AI Setup
 # Handles file downloading, installation, removal, and management
 
+# Import required modules
+$ModulePath = Split-Path $PSScriptRoot -Parent
+Import-Module (Join-Path $ModulePath "powershell\ConfigParser.psm1") -Force
+
 #region Private Functions
 
 function Assert-DirectoryExists {
@@ -100,7 +104,9 @@ function Install-AIFile {
         
         [bool]$DryRun = $false,
         
-        [string]$WorkspaceRoot = $null
+        [string]$WorkspaceRoot = $null,
+        
+        [switch]$UseManifestPath
     )
     
     $result = @{
@@ -113,16 +119,26 @@ function Install-AIFile {
     }
     
     try {
-        # Resolve the full file path using WorkspaceRoot if provided
-        if ($WorkspaceRoot) {
+        # Resolve the full file path
+        if ($UseManifestPath -and $WorkspaceRoot) {
+            # Use manifest-driven path mapping
+            $resolvedFilePath = Get-FileLocalPath -FilePath $FilePath -WorkspaceRoot $WorkspaceRoot
+            $result.DebugInfo.WorkspaceRoot = $WorkspaceRoot
+            $result.DebugInfo.OriginalPath = $FilePath
+            $result.DebugInfo.ResolvedPath = $resolvedFilePath
+            $result.DebugInfo.PathMethod = "Manifest-driven"
+        } elseif ($WorkspaceRoot) {
+            # Legacy path resolution
             $resolvedFilePath = Join-Path $WorkspaceRoot $FilePath
             $result.DebugInfo.WorkspaceRoot = $WorkspaceRoot
             $result.DebugInfo.OriginalPath = $FilePath
             $result.DebugInfo.ResolvedPath = $resolvedFilePath
+            $result.DebugInfo.PathMethod = "Legacy"
         } else {
             $resolvedFilePath = $FilePath
             $result.DebugInfo.WorkspaceRoot = "Not provided"
             $result.DebugInfo.ResolvedPath = $resolvedFilePath
+            $result.DebugInfo.PathMethod = "Direct"
         }
         
         # Update result with resolved path
@@ -234,9 +250,15 @@ function Install-AllAIFiles {
         [string]$WorkspaceRoot = $null
     )
     
-    $config = Get-InstallationConfig -Branch $Branch
+    # Use manifest-driven configuration
+    $manifestConfig = Get-ManifestConfig -Branch $Branch
+    $allFiles = @()
+    foreach ($section in $manifestConfig.Sections.Keys) {
+        $allFiles += $manifestConfig.Sections[$section]
+    }
+    
     $results = @{
-        TotalFiles = $config.Files.Count
+        TotalFiles = $allFiles.Count
         Successful = 0
         Failed = 0
         Skipped = 0
@@ -252,15 +274,26 @@ function Install-AllAIFiles {
     Write-ProgressMessage -Activity "Installing AI Infrastructure" -Status "Preparing..." -PercentComplete 0
     
     $fileIndex = 0
-    foreach ($filePath in $config.Files.Keys) {
+    foreach ($filePath in $allFiles) {
         $fileIndex++
-        $fileInfo = $config.Files[$filePath]
-        $downloadUrl = $config.BaseUrl + $fileInfo.Url
+        $downloadUrl = Get-FileDownloadUrl -FilePath $filePath -Branch $Branch
         
-        $percentComplete = [math]::Round(($fileIndex / $config.Files.Count) * 100)
+        if (-not $downloadUrl) {
+            Write-Warning "Could not determine download URL for file: $filePath"
+            $results.Files[$filePath] = @{
+                FilePath = $filePath
+                Success = $false
+                Action = "Skipped"
+                Message = "Could not determine download URL"
+                Size = 0
+            }
+            continue
+        }
+        
+        $percentComplete = [math]::Round(($fileIndex / $allFiles.Count) * 100)
         Write-ProgressMessage -Activity "Installing AI Infrastructure" -Status "Processing: $filePath" -PercentComplete $percentComplete
         
-        $fileResult = Install-AIFile -FilePath $filePath -DownloadUrl $downloadUrl -Force $Force -DryRun $DryRun -WorkspaceRoot $WorkspaceRoot
+        $fileResult = Install-AIFile -FilePath $filePath -DownloadUrl $downloadUrl -Force $Force -DryRun $DryRun -WorkspaceRoot $WorkspaceRoot -UseManifestPath
         $results.Files[$filePath] = $fileResult
         
         switch ($fileResult.Action) {
@@ -352,9 +385,15 @@ function Remove-AllAIFiles {
         [string]$WorkspaceRoot = ""
     )
     
-    $config = Get-InstallationConfig -Branch $Branch
+    # Use manifest-driven configuration
+    $manifestConfig = Get-ManifestConfig -Branch $Branch
+    $allFiles = @()
+    foreach ($section in $manifestConfig.Sections.Keys) {
+        $allFiles += $manifestConfig.Sections[$section]
+    }
+    
     $results = @{
-        TotalFiles = $config.Files.Count
+        TotalFiles = $allFiles.Count
         Removed = 0
         NotFound = 0
         Failed = 0
@@ -370,9 +409,9 @@ function Remove-AllAIFiles {
     
     # Remove files
     $fileIndex = 0
-    foreach ($filePath in $config.Files.Keys) {
+    foreach ($filePath in $allFiles) {
         $fileIndex++
-        $percentComplete = [math]::Round(($fileIndex / $config.Files.Count) * 50)
+        $percentComplete = [math]::Round(($fileIndex / $allFiles.Count) * 50)
         Write-ProgressMessage -Activity "Removing AI Infrastructure" -Status "Removing: $filePath" -PercentComplete $percentComplete
         
         $fileResult = Remove-AIFile -FilePath $filePath -DryRun $DryRun -WorkspaceRoot $WorkspaceRoot
@@ -594,8 +633,16 @@ function Update-GitIgnore {
         [string]$Branch = "exp/terraform_copilot"
     )
     
-    $config = Get-InstallationConfig -Branch $Branch
     $gitIgnorePath = ".gitignore"
+    
+    # Define the gitignore entries (consistent with legacy config)
+    $gitIgnoreEntries = @(
+        "# AI Infrastructure (auto-generated by install-copilot-setup.ps1)",
+        ".github/copilot-instructions.md",
+        ".github/instructions/",
+        ".github/prompts/",
+        ".vscode/settings.json"
+    )
     
     $result = @{
         Action = $Action
@@ -612,7 +659,7 @@ function Update-GitIgnore {
             $gitIgnoreContent = Get-Content $gitIgnorePath -ErrorAction Stop
         }
         
-        $entriesSection = $config.GitIgnoreEntries
+        $entriesSection = $gitIgnoreEntries
         $sectionStart = $entriesSection[0] # Comment line
         
         if ($Action -eq "Add") {
@@ -873,6 +920,240 @@ function Get-GitIgnoreStatus {
     }
 }
 
+function Invoke-Bootstrap {
+    <#
+    .SYNOPSIS
+    Copy installer files to user profile for feature branch use
+    
+    .DESCRIPTION
+    Handles bootstrapping the installer files to the user profile directory.
+    Preserves source repository protections and handles both local copying
+    and remote downloading based on repository type.
+    
+    .NOTES
+    This function maintains critical source repository protections:
+    - Prevents downloading on source repositories
+    - Uses Test-SourceRepository for proper detection
+    - Maintains workspace root handling
+    #>
+    
+    try {
+        # Modern header style to match main UI
+        Write-Host $("=" * 60) -ForegroundColor Cyan
+        Write-Host " Bootstrap - Copying Installer to User Profile" -ForegroundColor Cyan
+        Write-Host $("=" * 60) -ForegroundColor Cyan
+        
+        # Create target directory
+        $targetDirectory = Join-Path $env:USERPROFILE ".terraform-ai-installer"
+        if (-not (Test-Path $targetDirectory)) {
+            New-Item -ItemType Directory -Path $targetDirectory -Force | Out-Null
+            Write-Host ""
+            Write-Host "PATH: " -ForegroundColor Cyan -NoNewline
+            Write-Host "$targetDirectory" -ForegroundColor Yellow
+        } else {
+            Write-Host ""
+            Write-Host "PATH: " -ForegroundColor Cyan -NoNewline
+            Write-Host "$targetDirectory" -ForegroundColor Yellow
+        }
+        
+        # Files to bootstrap from configuration
+        $filesToBootstrap = $Global:InstallerConfig.Files.InstallerFiles.Files
+        
+        # Statistics
+        $statistics = @{
+            "Files Copied" = 0
+            "Files Downloaded" = 0
+            "Files Failed" = 0
+            "Total Size" = 0
+        }
+        
+        # CRITICAL: Determine if we should copy locally or download from remote
+        # This protection prevents overwriting source files
+        $isSourceRepo = Test-SourceRepository
+        $aiInstallerSourcePath = Join-Path $Global:WorkspaceRoot ".github/AIinstaller"
+        
+        if ($isSourceRepo -and (Test-Path $aiInstallerSourcePath)) {
+            Write-Host ""
+            Write-Host "Copying installer files from local source repository..." -ForegroundColor Cyan
+            Write-Host ""
+            
+            # Copy files locally from source repository
+            foreach ($file in $filesToBootstrap) {
+                try {
+                    # Handle full repository paths vs relative AIinstaller paths
+                    if ($file.StartsWith('.github/AIinstaller/')) {
+                        # This is a full repository path - use it directly from workspace root
+                        $sourcePath = Join-Path $Global:WorkspaceRoot $file
+                    } else {
+                        # This is a relative path - join with AIinstaller directory
+                        $sourcePath = Join-Path $aiInstallerSourcePath $file
+                    }
+                    
+                    $fileName = Split-Path $file -Leaf
+                    
+                    # Determine target path based on file type
+                    if ($fileName.EndsWith('.psm1')) {
+                        # PowerShell modules go in modules/powershell/ subdirectory
+                        $modulesDir = Join-Path $targetDirectory "modules\powershell"
+                        if (-not (Test-Path $modulesDir)) {
+                            New-Item -ItemType Directory -Path $modulesDir -Force | Out-Null
+                        }
+                        $targetPath = Join-Path $modulesDir $fileName
+                    } else {
+                        # Other files (script, config) go directly in target directory
+                        $targetPath = Join-Path $targetDirectory $fileName
+                    }
+                    
+                    Write-Host "   Copying: " -ForegroundColor Cyan -NoNewline
+                    Write-Host "$fileName" -ForegroundColor White -NoNewline
+                    
+                    if (Test-Path $sourcePath) {
+                        Copy-Item $sourcePath $targetPath -Force
+                        
+                        if (Test-Path $targetPath) {
+                            $fileSize = (Get-Item $targetPath).Length
+                            $statistics["Files Copied"]++
+                            $statistics["Total Size"] += $fileSize
+                            
+                            Write-Host " [OK]" -ForegroundColor "Green"
+                        } else {
+                            Write-Host " [FAILED]" -ForegroundColor "Red"
+                            $statistics["Files Failed"]++
+                        }
+                    } else {
+                        Write-Host " [SOURCE NOT FOUND]" -ForegroundColor "Red"
+                        $statistics["Files Failed"]++
+                    }
+                }
+                catch {
+                    Write-Host " [ERROR] ($($_.Exception.Message))" -ForegroundColor "Red"
+                    $statistics["Files Failed"]++
+                }
+            }
+        } else {
+            # CRITICAL SOURCE REPO PROTECTION: Prevent downloading on source repository
+            if ($isSourceRepo) {
+                Write-Host "ERROR: Cannot download files on source repository!" -ForegroundColor Red
+                Write-Host "This would overwrite source files with downloaded versions, potentially losing local changes." -ForegroundColor Red
+                Write-Host "Source repository detected, but local AI installer files are missing." -ForegroundColor Yellow
+                Write-Host "This suggests the repository may be in an inconsistent state." -ForegroundColor Yellow
+                Write-Host "" -ForegroundColor Red
+                Write-Host "To resolve this issue:" -ForegroundColor Yellow
+                Write-Host "  1. Check if you're on the correct branch (should contain .github/AIinstaller/)" -ForegroundColor Yellow
+                Write-Host "  2. If files are missing, restore them from the main branch" -ForegroundColor Yellow
+                Write-Host "  3. Use -Verify flag to check repository state without making changes" -ForegroundColor Yellow
+                exit 1
+            }
+            
+            Write-Host "  Downloading installer files from remote source branch..." -ForegroundColor "Cyan"
+            Write-Host ""
+            
+            # Download files from remote repository
+            $baseUri = "$($Global:InstallerConfig.SourceRepository)/$($Global:InstallerConfig.Branch)/.github/AIinstaller"
+            
+            foreach ($file in $filesToBootstrap) {
+                try {
+                    $uri = "$baseUri/$file"
+                    $fileName = Split-Path $file -Leaf
+                    
+                    # Determine target path based on file type
+                    if ($fileName.EndsWith('.psm1')) {
+                        # PowerShell modules go in modules/powershell/ subdirectory
+                        $modulesDir = Join-Path $targetDirectory "modules\powershell"
+                        if (-not (Test-Path $modulesDir)) {
+                            New-Item -ItemType Directory -Path $modulesDir -Force | Out-Null
+                        }
+                        $targetPath = Join-Path $modulesDir $fileName
+                    } else {
+                        # Other files (script, config) go directly in target directory
+                        $targetPath = Join-Path $targetDirectory $fileName
+                    }
+                    
+                    Show-FileOperation -Operation "Downloading" -FileName $fileName -NoNewLine
+                    
+                    # Download with progress
+                    Invoke-WebRequest -Uri $uri -OutFile $targetPath -UseBasicParsing | Out-Null
+                    
+                    if (Test-Path $targetPath) {
+                        $fileSize = (Get-Item $targetPath).Length
+                        $statistics["Files Downloaded"]++
+                        $statistics["Total Size"] += $fileSize
+                        
+                        Write-Host " [OK]" -ForegroundColor "Green"
+                    } else {
+                        Write-Host " [FAILED]" -ForegroundColor "Red"
+                        $statistics["Files Failed"]++
+                    }
+                }
+                catch {
+                    Write-Host " [ERROR] ($($_.Exception.Message))" -ForegroundColor "Red"
+                    $statistics["Files Failed"]++
+                }
+            }
+        }
+        
+        Write-Host ""
+        
+        if ($statistics["Files Failed"] -eq 0) {
+            $totalSizeKB = [math]::Round($statistics["Total Size"] / 1KB, 1)
+            
+            Write-Host "Bootstrap completed successfully!" -ForegroundColor Green
+            Write-Host ""
+            
+            if ($statistics["Files Copied"] -gt 0) {
+                $label = "Files copied".PadRight(13)
+                Write-Host "  ${label}: " -ForegroundColor Cyan -NoNewline
+                Write-Host "$($statistics["Files Copied"])" -ForegroundColor Green
+            }
+            if ($statistics["Files Downloaded"] -gt 0) {
+                $label = "Files downloaded".PadRight(13)
+                Write-Host "  ${label}: " -ForegroundColor Cyan -NoNewline
+                Write-Host "$($statistics["Files Downloaded"])" -ForegroundColor Green
+            }
+            
+            $label = "Total size".PadRight(13)
+            Write-Host "  ${label}: " -ForegroundColor Cyan -NoNewline
+            Write-Host "$totalSizeKB KB" -ForegroundColor Green
+            $label = "Location".PadRight(13)
+            Write-Host "  ${label}: " -ForegroundColor Cyan -NoNewline
+            Write-Host "$targetDirectory" -ForegroundColor Yellow
+            Write-Host ""
+            Write-Host "NEXT STEPS:" -ForegroundColor "Cyan"
+            Write-Host ""
+            Write-Host "  1. Switch to your feature branch:" -ForegroundColor "Cyan"
+            Write-Host "     git checkout feature/your-branch-name" -ForegroundColor "White"
+            Write-Host ""
+            Write-Host "  2. Run the installer from your user profile:" -ForegroundColor "Cyan"
+            Write-Host "     & `"`$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1`" -RepoDirectory `"$($Global:WorkspaceRoot)`"" -ForegroundColor "White"
+            Write-Host ""
+            Write-Host "  " -NoNewline
+            Write-Host "Note:" -ForegroundColor "Cyan" -NoNewline
+            Write-Host " The -RepoDirectory parameter tells the installer where to find the git repository" -ForegroundColor "Yellow"
+            Write-Host "        for branch detection when running from your user profile." -ForegroundColor "Yellow"
+            Write-Host ""
+            
+            return @{
+                Success = $true
+                TargetDirectory = $targetDirectory
+                Statistics = $statistics
+            }
+        } else {
+            Write-ErrorMessage "Bootstrap failed: $($statistics["Files Failed"]) files could not be processed"
+            return @{
+                Success = $false
+                Statistics = $statistics
+            }
+        }
+    }
+    catch {
+        Write-ErrorMessage "Bootstrap failed: $($_.Exception.Message)"
+        return @{
+            Success = $false
+            Error = $_.Exception.Message
+        }
+    }
+}
+
 #endregion
 
 #region Export Module Members
@@ -887,7 +1168,8 @@ Export-ModuleMember -Function @(
     'Backup-ExistingFile',
     'Test-FileIntegrity',
     'Get-FileFromGitHub',
-    'Get-GitIgnoreStatus'
+    'Get-GitIgnoreStatus',
+    'Invoke-Bootstrap'
 )
 
 #endregion
