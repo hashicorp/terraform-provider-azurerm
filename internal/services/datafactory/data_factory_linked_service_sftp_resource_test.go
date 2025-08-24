@@ -118,7 +118,7 @@ func TestAccDataFactoryLinkedServiceSFTP_mfa(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("private_key_content_base64", "private_key_passphrase"),
+		data.ImportStep("private_key_content_base64", "private_key_passphrase", "password"),
 	})
 }
 
