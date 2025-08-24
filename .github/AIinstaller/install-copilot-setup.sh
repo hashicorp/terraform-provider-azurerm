@@ -16,6 +16,24 @@ SOURCE_REPOSITORY="https://raw.githubusercontent.com/hashicorp/terraform-provide
 # Load modules
 SCRIPT_DIR="$(dirname "$(realpath "${0}")")"
 
+# Simple color function for pre-module-load errors
+print_separator_early() {
+    if [[ -t 1 ]] && command -v tput >/dev/null 2>&1; then
+        echo -e "\033[0;36m============================================================\033[0m"
+    else
+        echo "============================================================"
+    fi
+}
+
+print_error_early() {
+    local message="$1"
+    if [[ -t 1 ]] && command -v tput >/dev/null 2>&1; then
+        echo -e "\033[0;31m[ERROR]\033[0m ${message}"
+    else
+        echo "[ERROR] ${message}"
+    fi
+}
+
 # Load all bash modules
 for module in "${SCRIPT_DIR}/modules/bash"/*.sh; do
     if [[ -f "${module}" ]]; then
@@ -24,12 +42,15 @@ for module in "${SCRIPT_DIR}/modules/bash"/*.sh; do
 done
 
 # Verify essential modules are loaded
-if ! command -v show_usage >/dev/null 2>&1 || ! command -v write_section >/dev/null 2>&1 || ! command -v get_user_profile >/dev/null 2>&1 || ! command -v copy_file >/dev/null 2>&1; then
-    echo -e "\033[0;31m[ERROR]\033[0m Required modules are missing from ${SCRIPT_DIR}/modules/bash/"
+if ! command -v show_usage >/dev/null 2>&1 || ! command -v write_section >/dev/null 2>&1 || ! command -v get_user_profile >/dev/null 2>&1 || ! command -v copy_file >/dev/null 2>&1 || ! command -v verify_installation >/dev/null 2>&1; then
+    echo ""
+    print_separator_early
+    print_error_early "Required modules are missing from ${SCRIPT_DIR}/modules/bash/"
     echo "Please ensure the following modules exist:"
     echo "  - ui.sh"
     echo "  - configparser.sh" 
     echo "  - fileoperations.sh"
+    echo "  - validationengine.sh"
     echo ""
     echo "If running from user profile, run bootstrap first:"
     echo "  ./install-copilot-setup.sh -bootstrap"
@@ -54,16 +75,17 @@ bootstrap_installer() {
     local user_profile
     user_profile="$(get_user_profile)"
     
-    if [[ -d "${user_profile}" ]]; then
-        write_info "Using existing directory: ${user_profile}"
-    else
-        write_info "Creating directory: ${user_profile}"
+    # Show path information like PowerShell
+    show_path_info "${user_profile}"
+    
+    # Create directory if needed
+    if [[ ! -d "${user_profile}" ]]; then
         if [[ "${DRY_RUN}" != "true" ]]; then
             mkdir -p "${user_profile}"
         fi
     fi
     
-    write_info "Copying installer files from local source repository..."
+    echo -e "${CYAN}Copying installer files from local source repository...${NC}"
     echo ""
     
     local script_dir
@@ -74,17 +96,51 @@ bootstrap_installer() {
     local files_failed=0
     local total_size=0
     
-    # Files to bootstrap
-    local bootstrap_files=(
-        "file-manifest.config"
-        "install-copilot-setup.sh"
-    )
+    # Get bootstrap files from configuration (not hardcoded)
+    local manifest_file="${script_dir}/file-manifest.config"
+    local bootstrap_files_list
     
-    # Copy each file individually
-    for file in "${bootstrap_files[@]}"; do
-        local source_path="${script_dir}/${file}"
-        local target_path="${user_profile}/${file}"
-        local filename=$(basename "${file}")
+    if [[ -f "${manifest_file}" ]]; then
+        # Use configuration parser to get INSTALLER_FILES_BOOTSTRAP section
+        bootstrap_files_list=$(get_manifest_files "INSTALLER_FILES_BOOTSTRAP" "${manifest_file}")
+    else
+        write_error "Configuration file not found: ${manifest_file}"
+        return 1
+    fi
+    
+    # Convert to array and process each file
+    local -a bootstrap_files
+    while IFS= read -r line; do
+        if [[ -n "${line}" ]]; then
+            bootstrap_files+=("${line}")
+        fi
+    done <<< "${bootstrap_files_list}"
+    
+    # Copy each file according to configuration
+    for file_path in "${bootstrap_files[@]}"; do
+        # Remove .github/AIinstaller/ prefix to get relative path within installer directory
+        local relative_path="${file_path#.github/AIinstaller/}"
+        local source_path="${script_dir}/${relative_path}"
+        local filename=$(basename "${relative_path}")
+        
+        # Determine target path based on file type and maintain directory structure
+        local target_path
+        if [[ "${filename}" == *.psm1 ]]; then
+            # PowerShell modules go in modules/powershell/ subdirectory
+            if [[ "${DRY_RUN}" != "true" ]]; then
+                mkdir -p "${user_profile}/modules/powershell"
+            fi
+            target_path="${user_profile}/modules/powershell/${filename}"
+        elif [[ "${filename}" == *.sh ]] && [[ "${relative_path}" == modules/bash/* ]]; then
+            # Bash modules go in modules/bash/ subdirectory
+            if [[ "${DRY_RUN}" != "true" ]]; then
+                mkdir -p "${user_profile}/modules/bash"
+            fi
+            target_path="${user_profile}/modules/bash/${filename}"
+        else
+            # Main files (config, scripts) go directly in target directory
+            target_path="${user_profile}/${filename}"
+        fi
         
         if copy_file "${source_path}" "${target_path}" "${filename}"; then
             files_copied=$((files_copied + 1))
@@ -104,146 +160,16 @@ bootstrap_installer() {
         chmod +x "${user_profile}/install-copilot-setup.sh"
     fi
     
-    # Copy bash modules if they exist
-    if [[ -d "${script_dir}/modules/bash" ]]; then
-        # Create modules directory
-        if [[ "${DRY_RUN}" != "true" ]]; then
-            mkdir -p "${user_profile}/modules/bash"
-        fi
-        
-        # Copy each module file individually
-        for module_file in "${script_dir}/modules/bash"/*.sh; do
-            if [[ -f "${module_file}" ]]; then
-                local module_filename=$(basename "${module_file}")
-                local target_module="${user_profile}/modules/bash/${module_filename}"
-                
-                if copy_file "${module_file}" "${target_module}" "${module_filename}"; then
-                    files_copied=$((files_copied + 1))
-                    # Calculate file size
-                    if [[ -f "${target_module}" ]]; then
-                        local file_size
-                        file_size=$(get_file_size "${target_module}")
-                        total_size=$((total_size + file_size))
-                    fi
-                else
-                    files_failed=$((files_failed + 1))
-                fi
-            fi
-        done
-    fi
-    
-    echo ""
-    
     if [[ "${files_failed}" -eq 0 ]]; then
         # Calculate total size in KB (simple integer division)
         local total_size_kb
         total_size_kb=$((total_size / 1024))
         
-        write_success "Bootstrap completed successfully!"
-        echo ""
-        echo -e "  Files copied: ${GREEN}${files_copied}${NC}"
-        echo -e "  Total size: ${GREEN}${total_size_kb} KB${NC}"
-        echo -e "  Location: ${GREEN}${user_profile}${NC}"
-        echo ""
-        echo -e "${BLUE}NEXT STEPS:${NC}"
-        echo -e "  ${BOLD}1. Switch to your feature branch:${NC}"
-        echo -e "     ${YELLOW}git checkout feature/your-branch-name${NC}"
-        echo ""
-        echo -e "  ${BOLD}2. Run the installer from your user profile:${NC}"
-        echo -e "     ${YELLOW}${user_profile}/install-copilot-setup.sh -repo-directory \"$(get_workspace_root)\"${NC}"
-        echo ""
-        echo -e "  ${YELLOW}Note: The -repo-directory parameter tells the installer where to find the git repository${NC}"
-        echo -e "  ${YELLOW}      for branch detection when running from your user profile.${NC}"
-        echo ""
+        # Use the enhanced bootstrap completion function for consistent output
+        show_bootstrap_completion "${files_copied}" "${total_size_kb} KB" "${user_profile}" "$(get_workspace_root)"
     else
         write_error "Bootstrap failed with ${files_failed} file(s) failing to copy"
         return 1
-    fi
-}
-
-# Function to install AI infrastructure
-install_infrastructure() {
-    local workspace_root="$1"
-    
-    log_section "Installing AI Infrastructure"
-    
-    # Read manifest configuration
-    local manifest_file="${HOME}/.terraform-ai-installer/file-manifest.config"
-    if [[ ! -f "${manifest_file}" ]]; then
-        log_error "Manifest file not found: ${manifest_file}"
-        echo "Please run with --bootstrap first to set up the installer."
-        exit 1
-    fi
-    
-    log_info "Installing to workspace: ${workspace_root}"
-    
-    # List of instruction files (this should ideally be read from manifest)
-    local instruction_files=(
-        "api-evolution-patterns.instructions.md"
-        "azure-patterns.instructions.md"
-        "code-clarity-enforcement.instructions.md"
-        "documentation-guidelines.instructions.md"
-        "error-patterns.instructions.md"
-        "implementation-guide.instructions.md"
-        "migration-guide.instructions.md"
-        "performance-optimization.instructions.md"
-        "provider-guidelines.instructions.md"
-        "schema-patterns.instructions.md"
-        "security-compliance.instructions.md"
-        "testing-guidelines.instructions.md"
-        "troubleshooting-decision-trees.instructions.md"
-    )
-    
-    # Calculate total files to install (main copilot instructions + instruction files)
-    local total_files=$((1 + ${#instruction_files[@]}))
-    local current_file=0
-    
-    # Install main copilot instructions
-    current_file=$((current_file + 1))
-    show_completion ${current_file} ${total_files} "Installing main copilot instructions"
-    download_file ".github/copilot-instructions.md" "${workspace_root}/.github/copilot-instructions.md" "Main Copilot instructions"
-    
-    # Install instruction files
-    local instructions_dir="${workspace_root}/.github/instructions"
-    mkdir -p "${instructions_dir}"
-    
-    for file in "${instruction_files[@]}"; do
-        current_file=$((current_file + 1))
-        show_completion ${current_file} ${total_files} "Installing ${file}"
-        download_file ".github/instructions/${file}" "${instructions_dir}/${file}" "instructions/${file}"
-    done
-    
-    log_success "AI Infrastructure installation completed!"
-}
-
-# Function to verify installation
-verify_installation() {
-    local workspace_root
-    workspace_root="$(get_workspace_root)"
-    
-    log_section "Verifying AI Infrastructure"
-    
-    local files_to_check=(
-        "${workspace_root}/.github/copilot-instructions.md"
-        "${workspace_root}/.github/instructions"
-    )
-    
-    local all_good=true
-    
-    for file in "${files_to_check[@]}"; do
-        if [[ -e "${file}" ]]; then
-            echo "  [OK] ${file}"
-        else
-            echo "  [MISSING] ${file}"
-            all_good=false
-        fi
-    done
-    
-    if [[ "${all_good}" == "true" ]]; then
-        log_success "All AI infrastructure files are present"
-    else
-        log_warning "Some AI infrastructure files are missing"
-        echo "Run the installer to restore missing files."
     fi
 }
 
@@ -252,25 +178,34 @@ clean_installation() {
     local workspace_root
     workspace_root="$(get_workspace_root)"
     
-    log_section "Cleaning AI Infrastructure"
+    write_section "Cleaning AI Infrastructure"
     
-    local files_to_remove=(
-        "${workspace_root}/.github/copilot-instructions.md"
-        "${workspace_root}/.github/instructions"
-    )
+    # Get all user-facing files from manifest sections
+    local cleanup_files
+    cleanup_files=($(get_files_for_cleanup "${workspace_root}"))
+    
+    if [[ ${#cleanup_files[@]} -eq 0 ]]; then
+        write_error "No files found in manifest to clean"
+        return 1
+    fi
+    
+    local files_to_remove=()
+    for file in "${cleanup_files[@]}"; do
+        files_to_remove+=("${workspace_root}/${file}")
+    done
     
     for file in "${files_to_remove[@]}"; do
         if [[ -e "${file}" ]]; then
             if [[ "${DRY_RUN}" == "true" ]]; then
-                echo "  [DRY-RUN] Would remove: ${file}"
+                write_info "[DRY-RUN] Would remove: ${file}"
             else
                 rm -rf "${file}"
-                echo "  Removed: ${file}"
+                write_info "Removed: ${file}"
             fi
         fi
     done
     
-    log_success "AI Infrastructure cleanup completed!"
+    write_success "AI Infrastructure cleanup completed!"
 }
 
 # Parse command line arguments
@@ -306,7 +241,7 @@ parse_arguments() {
                 shift
                 ;;
             *)
-                log_error "Unknown option: $1"
+                write_error "Unknown option: $1"
                 show_usage
                 exit 1
                 ;;
@@ -318,35 +253,91 @@ parse_arguments() {
 main() {
     parse_arguments "$@"
     
+    # Display header and branch detection (matches PowerShell output)
+    write_header "Terraform AzureRM Provider - AI Infrastructure Installer" "1.0.0"
+    
+    # Get branch and workspace information
+    local current_branch workspace_root branch_type is_source_branch
+    if [[ -n "${REPO_DIRECTORY}" ]]; then
+        workspace_root="${REPO_DIRECTORY}"
+        current_branch=$(cd "${workspace_root}" && git branch --show-current 2>/dev/null || echo "unknown")
+    else
+        workspace_root="$(get_workspace_root)"
+        current_branch=$(git branch --show-current 2>/dev/null || echo "unknown")
+    fi
+    
+    # Determine branch type early (like PowerShell version)
+    if is_source_repository "${workspace_root}"; then
+        branch_type="source"
+        is_source_branch=true
+    else
+        branch_type="feature"
+        is_source_branch=false
+    fi
+    
+    # Show branch detection
+    show_branch_detection "${current_branch}" "${workspace_root}"
+    
+    # Handle help parameter
     if [[ "${HELP}" == "true" ]]; then
         show_usage
         exit 0
     fi
     
+    # Handle bootstrap parameter
     if [[ "${BOOTSTRAP}" == "true" ]]; then
         bootstrap_installer
         exit 0
     fi
     
+    # Handle verify parameter
     if [[ "${VERIFY}" == "true" ]]; then
-        verify_installation
+        verify_installation "${workspace_root}"
         exit 0
     fi
     
+    # Handle clean parameter (feature branch only)
     if [[ "${CLEAN}" == "true" ]]; then
+        if [[ "${is_source_branch}" == "true" ]]; then
+            echo ""
+            print_separator
+            echo ""
+            write_error "Clean operation not available on source branch. This would remove development files."
+            echo ""
+            exit 1
+        fi
+        
         clean_installation
         exit 0
     fi
     
-    # Default: install infrastructure
-    local workspace_root
-    if [[ -n "${REPO_DIRECTORY}" ]]; then
-        validate_repository "${REPO_DIRECTORY}"
-        workspace_root="${REPO_DIRECTORY}"
-    else
-        workspace_root="$(get_workspace_root)"
+    # Default installation - check if this is safe
+    if [[ "${is_source_branch}" == "true" ]]; then
+        print_separator
+        echo ""
+        write_error "SAFETY CHECK FAILED: Cannot install to source repository directory"
+        echo ""
+        write_plain "This appears to be the terraform-provider-azurerm source repository."
+        write_plain "Installing here would overwrite your local changes with remote files."
+        echo ""
+        write_plain "${YELLOW}SAFE OPTIONS:${NC}"
+        write_plain "  1. Bootstrap installer to user profile:"
+        write_plain "     ${0} -bootstrap"
+        echo ""
+        write_plain "  2. Install to a different repository:"
+        write_plain "     ${0} -repo-directory /path/to/target/repository"
+        echo ""
+        write_plain "For help: ${0} -help"
+        echo ""
+        exit 1
     fi
     
+    # Validate repository if using REPO_DIRECTORY
+    if [[ -n "${REPO_DIRECTORY}" ]]; then
+        validate_repository "${REPO_DIRECTORY}"
+    fi
+    
+    # Call the install_infrastructure function from fileoperations module
     install_infrastructure "${workspace_root}"
 }
 

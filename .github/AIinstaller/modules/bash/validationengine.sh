@@ -2,28 +2,6 @@
 # ValidationEngine Module for Terraform AzureRM Provider AI Setup (Bash)
 # Handles repository validation, workspace detection, and system requirements
 
-# Function to get workspace root
-get_workspace_root() {
-    local current_path
-    current_path="$(dirname "$(realpath "${0}")")"
-    
-    while [[ "${current_path}" != "/" ]]; do
-        # Look for terraform-provider-azurerm indicators
-        if [[ -f "${current_path}/go.mod" ]] && 
-           [[ -f "${current_path}/main.go" ]] && 
-           [[ -d "${current_path}/internal" ]]; then
-            echo "${current_path}"
-            return 0
-        fi
-        
-        # Move up one directory
-        current_path="$(dirname "${current_path}")"
-    done
-    
-    # Fallback: assume we're in .github/AIinstaller and go up two levels
-    echo "$(dirname "$(dirname "$(dirname "$(realpath "${0}")")")")"
-}
-
 # Function to validate repository directory
 validate_repository() {
     local repo_dir="$1"
@@ -59,10 +37,10 @@ validate_repository() {
         exit 1
     fi
     
-    if declare -f write_info >/dev/null 2>&1; then
-        write_info "Repository validated: ${repo_dir}"
+    if declare -f write_plain >/dev/null 2>&1; then
+        write_plain "Repository validated: ${repo_dir}"
     else
-        echo -e "\033[0;34m[INFO]\033[0m Repository validated: ${repo_dir}"
+        echo "Repository validated: ${repo_dir}"
     fi
 }
 
@@ -168,6 +146,122 @@ test_internet_connectivity() {
     return 1
 }
 
+# Function to verify AI infrastructure installation
+verify_installation() {
+    local workspace_root="${1:-$(get_workspace_root)}"
+    
+    if declare -f write_section >/dev/null 2>&1; then
+        write_section "Verifying AI infrastructure files"
+    else
+        echo "============================================================"
+        echo " Verifying AI infrastructure files"
+        echo "============================================================"
+        echo ""
+    fi
+    
+    local all_good=true
+    local manifest_file="${HOME}/.terraform-ai-installer/file-manifest.config"
+    
+    # Check main files
+    local main_files
+    main_files=$(get_manifest_files "MAIN_FILES" "${manifest_file}")
+    if [[ $? -eq 0 && -n "${main_files}" ]]; then
+        while IFS= read -r file; do
+            [[ -z "${file}" ]] && continue
+            local full_path="${workspace_root}/${file}"
+            if [[ -f "${full_path}" ]]; then
+                printf "\033[0;32m  [FOUND] %s\033[0m\n" "${file}"
+            else
+                printf "\033[0;31m  [MISSING] %s\033[0m\n" "${file}"
+                all_good=false
+            fi
+        done <<< "${main_files}"
+    fi
+    
+    # Check instruction files
+    local instruction_files
+    instruction_files=$(get_manifest_files "INSTRUCTION_FILES" "${manifest_file}")
+    if [[ $? -eq 0 && -n "${instruction_files}" ]]; then
+        # Check if instructions directory exists
+        local instructions_dir="${workspace_root}/.github/instructions"
+        if [[ -d "${instructions_dir}" ]]; then
+            printf "\033[0;32m  [FOUND] .github/instructions/\033[0m\n"
+            
+            while IFS= read -r file; do
+                [[ -z "${file}" ]] && continue
+                local full_path="${workspace_root}/${file}"
+                local filename=$(basename "${file}")
+                if [[ -f "${full_path}" ]]; then
+                    printf "\033[0;32m    [FOUND] .github/instructions/%s\033[0m\n" "${filename}"
+                else
+                    printf "\033[0;31m    [MISSING] .github/instructions/%s\033[0m\n" "${filename}"
+                    all_good=false
+                fi
+            done <<< "${instruction_files}"
+        else
+            printf "\033[0;31m  [MISSING] .github/instructions/\033[0m\n"
+            all_good=false
+        fi
+    fi
+    
+    # Check prompt files
+    local prompt_files
+    prompt_files=$(get_manifest_files "PROMPT_FILES" "${manifest_file}")
+    if [[ $? -eq 0 && -n "${prompt_files}" ]]; then
+        # Check if prompts directory exists
+        local prompts_dir="${workspace_root}/.github/prompts"
+        if [[ -d "${prompts_dir}" ]]; then
+            printf "\033[0;32m  [FOUND] .github/prompts/\033[0m\n"
+            
+            while IFS= read -r file; do
+                [[ -z "${file}" ]] && continue
+                local full_path="${workspace_root}/${file}"
+                local filename=$(basename "${file}")
+                if [[ -f "${full_path}" ]]; then
+                    printf "\033[0;32m    [FOUND] .github/prompts/%s\033[0m\n" "${filename}"
+                else
+                    printf "\033[0;31m    [MISSING] .github/prompts/%s\033[0m\n" "${filename}"
+                    all_good=false
+                fi
+            done <<< "${prompt_files}"
+        else
+            printf "\033[0;31m  [MISSING] .github/prompts/\033[0m\n"
+            all_good=false
+        fi
+    fi
+    
+    # Check universal files
+    local universal_files
+    universal_files=$(get_manifest_files "UNIVERSAL_FILES" "${manifest_file}")
+    if [[ $? -eq 0 && -n "${universal_files}" ]]; then
+        while IFS= read -r file; do
+            [[ -z "${file}" ]] && continue
+            local full_path="${workspace_root}/${file}"
+            local dir_path=$(dirname "${file}")
+            local filename=$(basename "${file}")
+            
+            if [[ -f "${full_path}" ]]; then
+                printf "\033[0;32m  [FOUND] %s\033[0m\n" "${dir_path}/"
+                printf "\033[0;32m    [FOUND] %s\033[0m\n" "${filename}"
+            else
+                printf "\033[0;31m  [MISSING] %s\033[0m\n" "${dir_path}/"
+                printf "\033[0;31m    [MISSING] %s\033[0m\n" "${filename}"
+                all_good=false
+            fi
+        done <<< "${universal_files}"
+    fi
+    
+    echo ""
+    if [[ "${all_good}" == "true" ]]; then
+        printf "\033[0;32mAll AI infrastructure files are present in the source repository!\033[0m\n"
+    else
+        printf "\033[0;31mSome AI infrastructure files are missing!\033[0m\n"
+        echo ""
+        echo "Run the installer to restore missing files."
+    fi
+    echo ""
+}
+
 # Export functions for use in other scripts
-export -f get_workspace_root validate_repository test_system_requirements
-export -f test_git_repository get_current_branch test_workspace_valid test_internet_connectivity
+export -f validate_repository test_system_requirements
+export -f test_git_repository get_current_branch test_workspace_valid test_internet_connectivity verify_installation

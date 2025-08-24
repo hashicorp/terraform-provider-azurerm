@@ -35,27 +35,67 @@ read_manifest_config() {
     return 0
 }
 
-# Function to get installation files list
-get_installation_files() {
-    # This should ideally be read from manifest file
-    # For now, return the static list
-    local -a files=(
-        "api-evolution-patterns.instructions.md"
-        "azure-patterns.instructions.md"
-        "code-clarity-enforcement.instructions.md"
-        "documentation-guidelines.instructions.md"
-        "error-patterns.instructions.md"
-        "implementation-guide.instructions.md"
-        "migration-guide.instructions.md"
-        "performance-optimization.instructions.md"
-        "provider-guidelines.instructions.md"
-        "schema-patterns.instructions.md"
-        "security-compliance.instructions.md"
-        "testing-guidelines.instructions.md"
-        "troubleshooting-decision-trees.instructions.md"
-    )
+# Function to parse manifest section (simplified to match PowerShell implementation)
+parse_manifest_section() {
+    local manifest_file="$1"
+    local section_name="$2"
     
-    printf '%s\n' "${files[@]}"
+    if [[ ! -f "${manifest_file}" ]]; then
+        if declare -f write_error >/dev/null 2>&1; then
+            write_error "Manifest file not found: ${manifest_file}"
+        else
+            echo -e "\033[0;31m[ERROR]\033[0m Manifest file not found: ${manifest_file}"
+        fi
+        return 1
+    fi
+    
+    local in_section=false
+    
+    while IFS= read -r line; do
+        # Remove leading/trailing whitespace
+        line=$(echo "${line}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+        
+        # Skip empty lines and comments
+        if [[ -z "${line}" || "${line}" =~ ^# ]]; then
+            continue
+        fi
+        
+        # Check for section headers [SECTION_NAME]
+        if [[ "${line}" =~ ^\[([^]]+)\]$ ]]; then
+            local current_section="${BASH_REMATCH[1]}"
+            if [[ "${current_section}" == "${section_name}" ]]; then
+                in_section=true
+            else
+                in_section=false
+            fi
+            continue
+        fi
+        
+        # Output files from the requested section
+        if [[ "${in_section}" == "true" && -n "${line}" ]]; then
+            echo "${line}"
+        fi
+    done < "${manifest_file}"
+}
+
+# Function to get files from manifest by section
+get_manifest_files() {
+    local section_name="$1"
+    local manifest_file="${2:-${HOME}/.terraform-ai-installer/file-manifest.config}"
+    
+    # Require manifest file - no fallback
+    if [[ ! -f "${manifest_file}" ]]; then
+        if declare -f write_error >/dev/null 2>&1; then
+            write_error "Manifest file not found: ${manifest_file}"
+        else
+            echo -e "\033[0;31m[ERROR]\033[0m Manifest file not found: ${manifest_file}"
+        fi
+        echo "Please run with -bootstrap first to set up the installer."
+        return 1
+    fi
+    
+    # Parse from manifest
+    parse_manifest_section "${manifest_file}" "${section_name}"
 }
 
 # Function to get bootstrap files list
@@ -120,8 +160,8 @@ load_config() {
         # Source the configuration file to load variables
         # Note: This is safe because we control the config file content
         if source "${config_file}" 2>/dev/null; then
-            if declare -f write_info >/dev/null 2>&1; then
-                write_info "Loaded configuration from: ${config_file}"
+            if declare -f write_plain >/dev/null 2>&1; then
+                write_plain "Loaded configuration from: ${config_file}"
             fi
             return 0
         else
@@ -199,6 +239,24 @@ get_temp_directory() {
     echo "${temp_dir}"
 }
 
+# Function to get all user-facing files for clean operations
+get_files_for_cleanup() {
+    local workspace_root="${1:-$(pwd)}"
+    local manifest_file="${workspace_root}/.github/AIinstaller/file-manifest.config"
+    
+    # Get files from all user-facing sections
+    local sections=("MAIN_FILES" "INSTRUCTION_FILES" "PROMPT_FILES" "UNIVERSAL_FILES")
+    local all_files=()
+    
+    for section in "${sections[@]}"; do
+        local section_files
+        section_files=($(parse_manifest_section "${manifest_file}" "${section}"))
+        all_files+=("${section_files[@]}")
+    done
+    
+    printf '%s\n' "${all_files[@]}"
+}
+
 # Function to cleanup temp directory
 cleanup_temp_directory() {
     local temp_dir="$1"
@@ -210,6 +268,6 @@ cleanup_temp_directory() {
 
 # Export functions for use in other scripts
 export -f get_user_profile get_source_repository get_source_branch read_manifest_config
-export -f get_installation_files get_bootstrap_files create_default_config load_config
+export -f get_manifest_files get_bootstrap_files get_files_for_cleanup create_default_config load_config
 export -f validate_config get_file_download_url convert_to_relative_path get_installer_version
-export -f get_temp_directory cleanup_temp_directory
+export -f get_temp_directory cleanup_temp_directory parse_manifest_section

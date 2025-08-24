@@ -176,6 +176,59 @@ function Get-InstallerConfig {
     }
 }
 
+function Get-UserFiles {
+    <#
+    .SYNOPSIS
+    Get all user-facing files from manifest sections for clean operations
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string]$WorkspaceRoot
+    )
+    
+    $manifestPath = Join-Path $WorkspaceRoot ".github\AIinstaller\file-manifest.config"
+    
+    if (-not (Test-Path $manifestPath)) {
+        Write-Warning "Manifest file not found: $manifestPath"
+        return @()
+    }
+    
+    try {
+        $content = Get-Content $manifestPath -ErrorAction Stop
+        $allFiles = @()
+        
+        # Sections that contain user-facing files
+        $userSections = @("MAIN_FILES", "INSTRUCTION_FILES", "PROMPT_FILES", "UNIVERSAL_FILES")
+        $currentSection = $null
+        
+        foreach ($line in $content) {
+            $line = $line.Trim()
+            
+            # Skip empty lines and comments
+            if ([string]::IsNullOrWhiteSpace($line) -or $line.StartsWith('#')) {
+                continue
+            }
+            
+            # Check for section headers
+            if ($line -match '^\[(.+)\]$') {
+                $currentSection = $matches[1]
+                continue
+            }
+            
+            # Add files from user-facing sections
+            if ($currentSection -in $userSections) {
+                $allFiles += $line
+            }
+        }
+        
+        return $allFiles
+    }
+    catch {
+        Write-Error "Failed to parse manifest: $($_.Exception.Message)"
+        return @()
+    }
+}
+
 #endregion
 
 #region Export Module Members
@@ -185,7 +238,8 @@ Export-ModuleMember -Function @(
     'Get-InstallerConfig',
     'Get-FileDownloadUrl',
     'Get-FileLocalPath',
-    'ConvertTo-RelativePath'
+    'ConvertTo-RelativePath',
+    'Get-UserFiles'
 )
 
 #endregion

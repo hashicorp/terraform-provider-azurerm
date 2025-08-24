@@ -38,8 +38,9 @@ The installer provides a **clean, professional output** focused on what matters:
 - **🎯 Focused messaging** - Only essential information, no technical noise
 - **✅ Success confirmations** - Clear indication when operations complete
 - **📊 File operation tracking** - Detailed file copy/install status
+- **🎨 Consistent formatting** - Identical output quality across Windows PowerShell and macOS/Linux Bash
 
-**Example output:**
+**Example output (consistent across Windows PowerShell and macOS/Linux Bash):**
 ```
 ============================================================
  Terraform AzureRM Provider - AI Infrastructure Installer
@@ -81,7 +82,12 @@ NEXT STEPS:
      git checkout feature/your-branch-name
 
   2. Run the installer from your user profile:
+     
+     # Windows PowerShell
      & "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -RepoDirectory "C:\github.com\hashicorp\terraform-provider-azurerm"
+     
+     # macOS/Linux Bash
+     ~/.terraform-ai-installer/install-copilot-setup.sh -repo-directory "/path/to/terraform-provider-azurerm"
 
   Note: The -RepoDirectory parameter tells the installer where to find the git repository
         for branch detection when running from your user profile.
