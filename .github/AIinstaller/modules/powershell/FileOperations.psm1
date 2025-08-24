@@ -991,7 +991,7 @@ function Invoke-Bootstrap {
                     
                     $fileName = Split-Path $file -Leaf
                     
-                    # Determine target path based on file type
+                    # Determine target path based on file type and maintain directory structure
                     if ($fileName.EndsWith('.psm1')) {
                         # PowerShell modules go in modules/powershell/ subdirectory
                         $modulesDir = Join-Path $targetDirectory "modules\powershell"
@@ -999,8 +999,20 @@ function Invoke-Bootstrap {
                             New-Item -ItemType Directory -Path $modulesDir -Force | Out-Null
                         }
                         $targetPath = Join-Path $modulesDir $fileName
+                    } elseif ($fileName.EndsWith('.sh')) {
+                        # Bash modules and scripts go in modules/bash/ subdirectory or root for main scripts
+                        if ($file -like "*modules/bash/*") {
+                            $modulesDir = Join-Path $targetDirectory "modules\bash"
+                            if (-not (Test-Path $modulesDir)) {
+                                New-Item -ItemType Directory -Path $modulesDir -Force | Out-Null
+                            }
+                            $targetPath = Join-Path $modulesDir $fileName
+                        } else {
+                            # Main bash script goes in root directory
+                            $targetPath = Join-Path $targetDirectory $fileName
+                        }
                     } else {
-                        # Other files (script, config) go directly in target directory
+                        # Other files (PowerShell script, config) go directly in target directory
                         $targetPath = Join-Path $targetDirectory $fileName
                     }
                     
@@ -1056,7 +1068,7 @@ function Invoke-Bootstrap {
                     $uri = "$baseUri/$file"
                     $fileName = Split-Path $file -Leaf
                     
-                    # Determine target path based on file type
+                    # Determine target path based on file type and maintain directory structure
                     if ($fileName.EndsWith('.psm1')) {
                         # PowerShell modules go in modules/powershell/ subdirectory
                         $modulesDir = Join-Path $targetDirectory "modules\powershell"
@@ -1064,8 +1076,20 @@ function Invoke-Bootstrap {
                             New-Item -ItemType Directory -Path $modulesDir -Force | Out-Null
                         }
                         $targetPath = Join-Path $modulesDir $fileName
+                    } elseif ($fileName.EndsWith('.sh')) {
+                        # Bash modules and scripts go in modules/bash/ subdirectory or root for main scripts
+                        if ($file -like "*modules/bash/*") {
+                            $modulesDir = Join-Path $targetDirectory "modules\bash"
+                            if (-not (Test-Path $modulesDir)) {
+                                New-Item -ItemType Directory -Path $modulesDir -Force | Out-Null
+                            }
+                            $targetPath = Join-Path $modulesDir $fileName
+                        } else {
+                            # Main bash script goes in root directory
+                            $targetPath = Join-Path $targetDirectory $fileName
+                        }
                     } else {
-                        # Other files (script, config) go directly in target directory
+                        # Other files (PowerShell script, config) go directly in target directory
                         $targetPath = Join-Path $targetDirectory $fileName
                     }
                     
@@ -1124,12 +1148,17 @@ function Invoke-Bootstrap {
             Write-Host "     git checkout feature/your-branch-name" -ForegroundColor "White"
             Write-Host ""
             Write-Host "  2. Run the installer from your user profile:" -ForegroundColor "Cyan"
+            Write-Host ""
+            Write-Host "     Windows (PowerShell):" -ForegroundColor "Green"
             Write-Host "     & `"`$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1`" -RepoDirectory `"$($Global:WorkspaceRoot)`"" -ForegroundColor "White"
+            Write-Host ""
+            Write-Host "     macOS/Linux (Bash):" -ForegroundColor "Green"
+            Write-Host "     ~/.terraform-ai-installer/install-copilot-setup.sh -repo-directory `"$($Global:WorkspaceRoot)`"" -ForegroundColor "White"
             Write-Host ""
             Write-Host "  " -NoNewline
             Write-Host "Note:" -ForegroundColor "Cyan" -NoNewline
-            Write-Host " The -RepoDirectory parameter tells the installer where to find the git repository" -ForegroundColor "Yellow"
-            Write-Host "        for branch detection when running from your user profile." -ForegroundColor "Yellow"
+            Write-Host " Choose the installer for your platform. Both PowerShell and Bash components" -ForegroundColor "Yellow"
+            Write-Host "        are available for maximum flexibility (e.g., VMs, containers, WSL)." -ForegroundColor "Yellow"
             Write-Host ""
             
             return @{

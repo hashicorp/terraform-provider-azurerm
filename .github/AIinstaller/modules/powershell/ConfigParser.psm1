@@ -164,11 +164,8 @@ function Get-InstallerConfig {
             }
             InstallerFiles = @{
                 Target = "$env:USERPROFILE\.terraform-ai-installer"
-                Description = "Installer scripts and modules for bootstrap functionality"
-                Files = @(
-                    $ManifestConfig.Sections.INSTALLER_FILES_SHARED
-                    $ManifestConfig.Sections.INSTALLER_FILES_POWERSHELL
-                ) | Where-Object { $_ }
+                Description = "Cross-platform installer scripts and modules (PowerShell + Bash) for bootstrap functionality"
+                Files = $ManifestConfig.Sections.INSTALLER_FILES_BOOTSTRAP
             }
             UniversalFiles = @{
                 Target = (Join-Path $WorkspaceRoot ".vscode")

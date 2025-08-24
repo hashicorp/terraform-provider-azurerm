@@ -6,30 +6,24 @@ This installer provides GitHub Copilot instructions, VS Code configurations, and
 
 ## 🌍 Cross-Platform Support
 
-The installer now supports **Windows**, **macOS**, and **Linux** with platform-specific optimizations:
+The installer supports **Windows**, **macOS**, and **Linux** with two simple platform choices:
 
-### 🚀 Universal Installer (Recommended)
-Use the universal launcher that automatically detects your platform:
-
-```bash
-# Cross-platform launcher - works on all systems
-./install.sh -help                    # Show help for your platform
-./install.sh -bootstrap               # Bootstrap installer  
-./install.sh -repo-directory "/path"  # Install AI infrastructure
-```
-
-### 📱 Platform-Specific Installers
-
-**Windows (PowerShell):**
+### 🪟 Windows (PowerShell)
+**Recommended for Windows environments:**
 ```powershell
 .\install-copilot-setup.ps1 -Help
 .\install-copilot-setup.ps1 -Bootstrap
+.\install-copilot-setup.ps1 -RepoDirectory "C:\path\to\repo"
 ```
 
-**macOS/Linux (Bash):**
+> ⚠️ **Note**: If you encounter PowerShell execution policy errors, see [Windows PowerShell Execution Policy](#windows---powershell-execution-policy) section below.
+
+### 🐧 macOS/Linux (Bash)
+**Recommended for Unix-like environments:**
 ```bash
 ./install-copilot-setup.sh -help
 ./install-copilot-setup.sh -bootstrap
+./install-copilot-setup.sh -repo-directory "/path/to/repo"
 ```
 
 ### 🔧 Installation Paths
@@ -47,41 +41,74 @@ The installer provides a **clean, professional output** focused on what matters:
 
 **Example output:**
 ```
-[SECTION] Bootstrap - Copying Installer to User Profile
--------------------------------------------------------
-  Using existing directory: C:\Users\username\.terraform-ai-installer
-  Copying installer files from local source repository...
+============================================================
+ Terraform AzureRM Provider - AI Infrastructure Installer
+ Version: 1.0.0
+============================================================
 
-    Copying: file-manifest.config [OK]
-    Copying: install-copilot-setup.ps1 [OK]
-    Copying: ConfigParser.psm1 [OK]
+SOURCE BRANCH DETECTED: exp/terraform_copilot
+WORKSPACE             : C:\github.com\hashicorp\terraform-provider-azurerm
 
-[SUCCESS] Bootstrap completed successfully!
+============================================================
+ Bootstrap - Copying Installer to User Profile
+============================================================
+
+PATH: C:\Users\jcline\.terraform-ai-installer
+
+Copying installer files from local source repository...
+
+   Copying: file-manifest.config [OK]
+   Copying: install-copilot-setup.ps1 [OK]
+   Copying: install-copilot-setup.sh [OK]
+   Copying: ConfigParser.psm1 [OK]
+   Copying: FileOperations.psm1 [OK]
+   Copying: ValidationEngine.psm1 [OK]
+   Copying: UI.psm1 [OK]
+   Copying: configparser.sh [OK]
+   Copying: fileoperations.sh [OK]
+   Copying: validationengine.sh [OK]
+   Copying: ui.sh [OK]
+
+Bootstrap completed successfully!
+
+  Files copied : 11
+  Total size   : 170.6 KB
+  Location     : C:\Users\<username>\.terraform-ai-installer
+
+NEXT STEPS:
+
+  1. Switch to your feature branch:
+     git checkout feature/your-branch-name
+
+  2. Run the installer from your user profile:
+     & "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -RepoDirectory "C:\github.com\hashicorp\terraform-provider-azurerm"
+
+  Note: The -RepoDirectory parameter tells the installer where to find the git repository
+        for branch detection when running from your user profile.
 ```
 
 ## 🚀 Getting Started
 
 ### 🌍 Cross-Platform Quick Start
 
-**Option 1: Universal Installer (Recommended)**
-```bash
-# Works on Windows, macOS, and Linux
-./install.sh -bootstrap
-./install.sh -repo-directory "/path/to/terraform-provider-azurerm"
-```
+Choose your platform and follow the two-step process:
 
-**Option 2: Platform-Specific**
-
-**Windows:**
+**Windows (PowerShell):**
 ```powershell
+# Step 1: Bootstrap (one-time setup)
 .\install-copilot-setup.ps1 -Bootstrap
-.\install-copilot-setup.ps1 -RepoDirectory "C:\path\to\terraform-provider-azurerm"
+
+# Step 2: Install AI infrastructure (from user profile)
+& "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -RepoDirectory "C:\path\to\terraform-provider-azurerm"
 ```
 
-**macOS/Linux:**
+**macOS/Linux (Bash):**
 ```bash
-./install-copilot-setup.sh -bootstrap  
-./install-copilot-setup.sh -repo-directory "/path/to/terraform-provider-azurerm"
+# Step 1: Bootstrap (one-time setup)
+./install-copilot-setup.sh -bootstrap
+
+# Step 2: Install AI infrastructure (from user profile)
+~/.terraform-ai-installer/install-copilot-setup.sh -repo-directory "/path/to/terraform-provider-azurerm"
 ```
 
 ### 📁 Directory Requirements
@@ -89,28 +116,20 @@ The installer provides a **clean, professional output** focused on what matters:
 **Important**: The installer workflow has two phases:
 
 **Phase 1 - Bootstrap (one-time setup):**
+Choose your platform:
 
-*Universal:*
-```bash
-./install.sh -bootstrap
-```
-
-*Platform-specific:*
 - **Windows**: `.\install-copilot-setup.ps1 -Bootstrap`  
 - **macOS/Linux**: `./install-copilot-setup.sh -bootstrap`
+
+> 💡 **Windows Tip**: If PowerShell blocks script execution, add `-ExecutionPolicy Bypass` (see troubleshooting below)
 
 This copies the installer to your user profile:
 - **Windows**: `%USERPROFILE%\.terraform-ai-installer`
 - **macOS/Linux**: `~/.terraform-ai-installer`
 
 **Phase 2 - All subsequent operations (after bootstrap):**
+Run from your user profile:
 
-*Universal:*
-```bash
-~/install.sh -repo-directory "/path/to/terraform-provider-azurerm"
-```
-
-*Platform-specific:*
 - **Windows**: `& "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -RepoDirectory "C:\path\to\repo"`
 - **macOS/Linux**: `~/.terraform-ai-installer/install-copilot-setup.sh -repo-directory "/path/to/repo"`
 
@@ -128,24 +147,23 @@ Before using the AI-powered development features, ensure you have the following 
 For optimal performance and the best AI assistance experience:
 
 - **LLM Model**: **Claude Sonnet 4** (optimal for Terraform and Go development)
-- **Copilot Chat Model**: Set to Claude Sonnet 4 in VS Code settings
+- **Copilot Chat Model**: Set to `Claude Sonnet 4` in VS Code settings
 - **Alternative**: GPT-4o (good alternative if Claude is unavailable)
 
 #### Quick Setup
 1. Install the required extensions from VS Code marketplace
 2. Sign in to GitHub Copilot with your account
-3. Configure Claude Sonnet 4 as your preferred model:
+3. Configure `Claude Sonnet 4` as your preferred model:
    - Open VS Code Settings (`Ctrl+,`)
    - Search for "copilot chat model"
-   - Select "Claude Sonnet 4" from the dropdown
+   - Select `Claude Sonnet 4` from the dropdown
 
-**Note**: Claude Sonnet 4 provides superior understanding of Terraform patterns, Azure API specifics, and Go code generation compared to other models.
+**Note**: `Claude Sonnet 4` provides superior understanding of Terraform patterns, Azure API specifics, and Go code generation compared to other models.
 
 ### First Time Setup
 
 If you don't have the repository yet, clone it and switch to the AI installer branch:
 
-**Universal approach:**
 ```bash
 # Clone the repository
 git clone https://github.com/hashicorp/terraform-provider-azurerm.git
@@ -156,23 +174,17 @@ git checkout exp/terraform_copilot
 
 # Navigate to the installer
 cd .github/AIinstaller
-
-# Bootstrap the installer for use on feature branches (cross-platform)
-./install.sh -bootstrap
 ```
 
-**Platform-specific:**
+**Then choose your platform:**
 
-*Windows:*
+**Windows:**
 ```powershell
-# Navigate to the installer
-cd .github\AIinstaller
-
 # Bootstrap the installer
 .\install-copilot-setup.ps1 -Bootstrap
 ```
 
-*macOS/Linux:*
+**macOS/Linux:**
 ```bash
 # Navigate to the installer
 cd .github/AIinstaller
@@ -217,65 +229,53 @@ If you encounter permission errors on macOS/Linux:
 ```bash
 # Make scripts executable
 chmod +x .github/AIinstaller/*.sh
-chmod +x .github/AIinstaller/install.sh
 
 # Then run the installer
-./install.sh -bootstrap
+./install-copilot-setup.sh -bootstrap
 ```
 
 ## 🚀 Quick Start
 
-### Universal Approach (Recommended)
+### Two-Step Process (Any Platform)
 
-**If you're on the source branch (`exp/terraform_copilot`):**
-```bash
-# 1. Bootstrap the installer (cross-platform)
-./install.sh -bootstrap
-
-# 2. Switch to your feature branch
-git checkout feature/your-branch-name
-
-# 3. Run installer from user profile
-./install.sh -repo-directory "/path/to/terraform-provider-azurerm"
-```
-
-**If you're on a feature branch (after bootstrap):**
-```bash
-# All operations run from user profile installer
-./install.sh -repo-directory "/path/to/terraform-provider-azurerm"
-```
-
-### Platform-Specific Approaches
+**Step 1: Bootstrap (One-time setup)**
+Choose your platform for the bootstrap operation:
 
 **Windows:**
 ```powershell
-# If you're on the source branch (exp/terraform_copilot):
-# 1. Bootstrap the installer
+# From the source branch (exp/terraform_copilot)
 .\.github\AIinstaller\install-copilot-setup.ps1 -Bootstrap
+```
 
-# 2. Switch to your feature branch
+> ⚠️ **PowerShell Execution Policy**: If you get execution policy errors, run:
+> ```powershell
+> powershell -ExecutionPolicy Bypass -File .\.github\AIinstaller\install-copilot-setup.ps1 -Bootstrap
+> ```
+
+**macOS/Linux:**
+```bash
+# From the source branch (exp/terraform_copilot)
+./.github/AIinstaller/install-copilot-setup.sh -bootstrap
+```
+
+**Step 2: Install AI Infrastructure (After bootstrap)**
+Switch to your feature branch and run from user profile:
+
+**Windows:**
+```powershell
+# Switch to your feature branch
 git checkout feature/your-branch-name
 
-# 3. Run installer from user profile (MUST specify RepoDirectory)
-& "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -RepoDirectory "C:\github.com\hashicorp\terraform-provider-azurerm"
-
-# If you're on a feature branch (after bootstrap):
+# Run installer from user profile
 & "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -RepoDirectory "C:\github.com\hashicorp\terraform-provider-azurerm"
 ```
 
 **macOS/Linux:**
 ```bash
-# If you're on the source branch (exp/terraform_copilot):
-# 1. Bootstrap the installer
-./.github/AIinstaller/install-copilot-setup.sh -bootstrap
-
-# 2. Switch to your feature branch
+# Switch to your feature branch
 git checkout feature/your-branch-name
 
-# 3. Run installer from user profile
-~/.terraform-ai-installer/install-copilot-setup.sh -repo-directory "/path/to/terraform-provider-azurerm"
-
-# If you're on a feature branch (after bootstrap):
+# Run installer from user profile
 ~/.terraform-ai-installer/install-copilot-setup.sh -repo-directory "/path/to/terraform-provider-azurerm"
 ```
 
@@ -284,8 +284,8 @@ git checkout feature/your-branch-name
 The installer sets up a complete AI development environment:
 
 ### 📄 Core AI Instructions
-- **`.github/copilot-instructions.md`** - Main Copilot configuration
-- **`.github/instructions/`** - 14 specialized instruction files:
+- `.github/copilot-instructions.md` - Main Copilot configuration
+- `.github/instructions/` - 14 specialized instruction files:
   - `implementation-guide.instructions.md` - Complete coding standards
   - `azure-patterns.instructions.md` - Azure-specific patterns
   - `testing-guidelines.instructions.md` - Testing requirements
@@ -301,7 +301,7 @@ The installer sets up a complete AI development environment:
   - `api-evolution-patterns.instructions.md` - API versioning
 
 ### 🎨 Development Templates & AI Prompts
-- **`.github/prompts/`** - AI prompt templates for common development tasks:
+- `.github/prompts/` - AI prompt templates for common development tasks:
 
 #### Available Prompts
 
@@ -340,16 +340,6 @@ Simply use slash commands to invoke the prompts directly:
 
 ## 🎛️ Command Reference
 
-### Universal Commands (Cross-Platform)
-
-| Command | Description | Available On |
-|---------|-------------|--------------|
-| `./install.sh -bootstrap` | **Copy installer to user profile** (run from repository root) | Source branch only |
-| `./install.sh -repo-directory "/path/to/repo"` | **Install AI infrastructure** (run from anywhere after bootstrap) | Feature branches |
-| `./install.sh -verify -repo-directory "/path/to/repo"` | **Check installation status** (run from anywhere after bootstrap) | Any branch |
-| `./install.sh -clean -repo-directory "/path/to/repo"` | **Remove AI infrastructure** (run from anywhere after bootstrap) | Feature branches |
-| `./install.sh -help` | **Show detailed help** (run from anywhere after bootstrap) | Any branch |
-
 ### Platform-Specific Commands
 
 **Windows (PowerShell):**
@@ -374,17 +364,7 @@ Simply use slash commands to invoke the prompts directly:
 
 ### Parameters
 
-**Universal (Cross-Platform):**
-
-| Parameter | Description | Required When | Example |
-|-----------|-------------|---------------|---------|
-| `-repo-directory` | **Specify repository path** | Running from user profile | `-repo-directory "/path/to/terraform-provider-azurerm"` |
-| `-auto-approve` | Skip confirmation prompts | Optional | `-auto-approve` |
-| `-dry-run` | Preview changes without applying | Optional | `-dry-run` |
-
-**Platform-Specific:**
-
-*Windows (PowerShell):*
+**Windows (PowerShell):**
 
 | Parameter | Description | Required When | Example |
 |-----------|-------------|---------------|---------|
@@ -392,7 +372,7 @@ Simply use slash commands to invoke the prompts directly:
 | `-Auto-Approve` | Skip confirmation prompts | Optional | `-Auto-Approve` |
 | `-Dry-Run` | Preview changes without applying | Optional | `-Dry-Run` |
 
-*macOS/Linux (Bash):*
+**macOS/Linux (Bash):**
 
 | Parameter | Description | Required When | Example |
 |-----------|-------------|---------------|---------|
@@ -403,17 +383,6 @@ Simply use slash commands to invoke the prompts directly:
 ### 🚨 Important: Repository Directory Parameter
 
 When running the installer **from your user profile** (after bootstrap), you **MUST** specify the repository directory parameter:
-
-**Universal:**
-```bash
-# ✅ CORRECT: Running from user profile with -repo-directory
-./install.sh -repo-directory "/path/to/terraform-provider-azurerm"
-
-# ❌ INCORRECT: Running from user profile without -repo-directory
-./install.sh
-```
-
-**Platform-Specific Examples:**
 
 *Windows:*
 ```powershell
@@ -427,7 +396,7 @@ When running the installer **from your user profile** (after bootstrap), you **M
 *macOS/Linux:*
 ```bash
 # ✅ CORRECT: Running from user profile with -repo-directory
-~/.terraform-ai-installer/install-copilot-setup.sh -repo-directory "/Users/username/terraform-provider-azurerm"
+~/.terraform-ai-installer/install-copilot-setup.sh -repo-directory "/Users/<username>/terraform-provider-azurerm"
 
 # ❌ INCORRECT: Running from user profile without -repo-directory
 ~/.terraform-ai-installer/install-copilot-setup.sh
@@ -469,11 +438,10 @@ graph LR
 
 ## 🏗️ Architecture
 
-### Cross-Platform Module Structure
+### Two-Silo Architecture
 
 ```
 AIinstaller/
-├── install.sh                     # Universal cross-platform launcher
 ├── install-copilot-setup.ps1      # Windows PowerShell installer
 ├── install-copilot-setup.sh       # macOS/Linux Bash installer
 ├── README.md                      # This file
@@ -485,6 +453,9 @@ AIinstaller/
     │   ├── ValidationEngine.psm1  # System validation
     │   └── UI.psm1                # User interface functions
     └── bash/                      # Bash modules (macOS/Linux)
+        ├── configparser.sh        # Configuration management
+        ├── fileoperations.sh      # File installation/removal
+        ├── validationengine.sh    # System validation
         └── ui.sh                  # User interface functions
 ```
 
@@ -492,45 +463,45 @@ AIinstaller/
 
 ```mermaid
 graph TD
-    A[User runs ./install.sh] --> B[Detect Platform]
-    B --> C{Platform?}
-    C -->|Windows| D[Run install-copilot-setup.ps1]
-    C -->|macOS| E[Run install-copilot-setup.sh]
-    C -->|Linux| E
-    C -->|Unknown| F[Show Error & Fallback Options]
-    D --> G[PowerShell Execution]
-    E --> H[Bash Execution]
-    G --> I[Platform-specific Module Loading]
-    H --> I
+    A[User Chooses Platform] --> B{Which Platform?}
+    B -->|Windows| C[Run install-copilot-setup.ps1]
+    B -->|macOS/Linux| D[Run install-copilot-setup.sh]
+    C --> E[PowerShell Module Loading]
+    D --> F[Bash Module Loading]
+    E --> G[AI Infrastructure Installation]
+    F --> G
 ```
 
 ### Module Responsibilities
 
 #### 📋 ConfigParser.psm1
-- `Get-ManifestConfig` - File lists and target paths
-- `Get-ManifestConfig` - Parse manifest configuration
+- `Get-ManifestConfig` - Parse manifest configuration and return structured data
+- `Get-FileDownloadUrl` / `Get-FileLocalPath` - GitHub download URLs and local paths
 - `Get-InstallerConfig` - Complete installer configuration
-- `Get-FileDownloadUrl` - GitHub download URLs
-- `ConvertTo-RelativePath` - Path utilities
 
 #### 📁 FileOperations.psm1
-- `Install-AllAIFiles` / `Remove-AllAIFiles` - Bulk operations
+- `Install-AllAIFiles` / `Remove-AllAIFiles` - Bulk file operations
 - `Install-AIFile` / `Remove-AIFile` - Individual file operations
-- `Get-FileFromGitHub` - Remote file downloads
-- `Update-GitIgnore` - Git ignore management
-- `Test-FileIntegrity` - File validation
+- `Get-GitHubFileContent` / `Get-FileFromGitHub` - Remote file downloads
+- `Update-GitIgnore` / `Get-GitIgnoreStatus` - Git ignore management
+- `Test-FileIntegrity` / `Backup-ExistingFile` - File validation and backup
+- `Remove-DeprecatedFiles` / `Invoke-Bootstrap` - Cleanup and bootstrap operations
 
 #### ✅ ValidationEngine.psm1
-- `Test-SystemRequirements` - Validate prerequisites
-- `Test-PreInstallation` / `Test-PostInstallation` - Installation checks
-- `Test-WorkspaceValid` - Workspace validation
-- `Get-ValidationReport` - Comprehensive status reports
+- `Test-SystemRequirements` / `Test-RequiredCommands` - System prerequisites
+- `Test-PreInstallation` / `Test-PostInstallation` - Installation state checks
+- `Test-WorkspaceValid` / `Test-GitRepository` - Workspace and git validation
+- `Test-AIInfrastructure` / `Test-InstallationDependencies` - Infrastructure checks
+- `Get-ValidationReport` / `Get-CurrentBranch` - Status reporting and branch detection
+- `Find-WorkspaceRoot` / `Test-SourceRepository` - Repository discovery and validation
 
 #### 🎨 UI.psm1
-- `Write-Success` / `Write-Warning` / `Write-Error` - Status messages
-- `Show-Help` - Interactive help system
-- `Confirm-UserAction` - User confirmations
-- `Show-CompletionSummary` - Installation summaries
+- `Write-Success` / `Write-WarningMessage` / `Write-ErrorMessage` - Status messages
+- `Show-Help` / `Show-SourceBranchHelp` / `Show-FeatureBranchHelp` - Interactive help
+- `Show-CompletionSummary` / `Show-InstallationResults` - Operation summaries
+- `Get-UserInput` / `Get-BootstrapConfirmation` - User interaction
+- `Show-BranchDetection` / `Show-ContextualError` - Branch-aware messaging
+- `Write-Header` / `Write-Section` / `Format-AlignedLabel` - UI formatting
 
 ## 🎯 AI Prompt Usage Patterns
 
