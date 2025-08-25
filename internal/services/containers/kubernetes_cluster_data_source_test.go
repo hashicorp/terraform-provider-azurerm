@@ -650,6 +650,21 @@ func TestAccDataSourceKubernetesCluster_serviceMeshRevisions(t *testing.T) {
 	})
 }
 
+func TestAccDataSourceKubernetesCluster_nodeProvisioningProfileAuto(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.nodeProvisioningProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("node_provisioning_profile.0.default_node_pool").HasValue("Auto"),
+				check.That(data.ResourceName).Key("node_provisioning_profile.0.mode").HasValue("Auto"),
+			),
+		},
+	})
+}
+
 func (KubernetesClusterDataSource) basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -995,4 +1010,14 @@ data "azurerm_kubernetes_cluster" "test" {
   resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
 }
 `, KubernetesClusterResource{}.addonProfileServiceMeshProfileRevisionsConfig(data, revisions))
+}
+
+func (KubernetesClusterDataSource) nodeProvisioningProfile(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+data "azurerm_kubernetes_cluster" "test" {
+  name                = azurerm_kubernetes_cluster.test.name
+  resource_group_name = azurerm_kubernetes_cluster.test.resource_group_name
+}
+`, KubernetesClusterResource{}.nodeProvisioningProfile(data))
 }
