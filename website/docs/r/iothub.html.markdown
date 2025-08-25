@@ -221,7 +221,7 @@ An `endpoint` block supports the following:
 
 * `subscription_id` - (Optional) The subscription ID for the endpoint.
 
-~> **NOTE:** When `subscription_id` isn't specified it will be set to the subscription ID of the IoT Hub resource.
+~> **Note:** When `subscription_id` isn't specified it will be set to the subscription ID of the IoT Hub resource.
 
 ---
 
