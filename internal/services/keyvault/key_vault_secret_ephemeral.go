@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
@@ -15,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk/frameworkhelpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -54,7 +54,7 @@ func (e *KeyVaultSecretEphemeralResource) Schema(_ context.Context, _ ephemeral.
 			"name": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					frameworkhelpers.WrappedStringValidator{
+					typehelpers.WrappedStringValidator{
 						Func: validation.StringIsNotEmpty,
 					},
 				},
@@ -63,7 +63,7 @@ func (e *KeyVaultSecretEphemeralResource) Schema(_ context.Context, _ ephemeral.
 			"key_vault_id": schema.StringAttribute{
 				Required: true,
 				Validators: []validator.String{
-					frameworkhelpers.WrappedStringValidator{
+					typehelpers.WrappedStringValidator{
 						Func: commonids.ValidateKeyVaultID,
 					},
 				},
@@ -73,7 +73,7 @@ func (e *KeyVaultSecretEphemeralResource) Schema(_ context.Context, _ ephemeral.
 				Optional: true,
 				Computed: true,
 				Validators: []validator.String{
-					frameworkhelpers.WrappedStringValidator{
+					typehelpers.WrappedStringValidator{
 						Func: validation.StringIsNotEmpty,
 					},
 				},

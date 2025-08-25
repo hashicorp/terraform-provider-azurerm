@@ -674,6 +674,11 @@ type TestStep struct {
 	// ID of that resource.
 	ImportState bool
 
+	// ImportStateKind controls the method of import that is used in combination with the other import-related fields on the TestStep struct.
+	//
+	//   - By default, ImportCommandWithID is used, which tests import by using the ID string with the `terraform import` command. This was the original behavior prior to introducing the ImportStateKind field.
+	//   - ImportBlockWithID tests import by using the ID string in an import configuration block with the `terraform plan` command.
+	//   - ImportBlockWithResourceIdentity imports the state using an import configuration block with a resource identity.
 	ImportStateKind ImportStateKind
 
 	// ImportStateId is the ID to perform an ImportState operation with.
