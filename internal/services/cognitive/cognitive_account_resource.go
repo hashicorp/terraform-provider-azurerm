@@ -335,26 +335,26 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
 			kind := d.Get("kind").(string)
 
-			if d.Get("project_management_enabled").(bool) && kind != "AIServices" {
-				return fmt.Errorf("`project_management_enabled` can only be enabled when kind is set to `AIServices`")
-			}
+			if d.Get("project_management_enabled").(bool) {
+				if kind != "AIServices" {
+					return fmt.Errorf("`project_management_enabled` can only be enabled when kind is set to `AIServices`")
+				}
 
-			if d.Get("project_management_enabled").(bool) && len(d.Get("identity").([]interface{})) == 0 {
-				return fmt.Errorf("for `project_management_enabled` to be enabled, a managed identity must be assigned. Please set `identity` to at least one SystemAssigned or UserAssigned identity")
+				if len(d.Get("identity").([]interface{})) == 0 {
+					return fmt.Errorf("for `project_management_enabled` to be enabled, a managed identity must be assigned. Please set `identity` to at least one SystemAssigned or UserAssigned identity")
+				}
+
+				if d.HasChange("customer_managed_key") && len(d.Get("customer_managed_key").([]interface{})) == 0 {
+					return fmt.Errorf("updating encryption mode from customer-managed keys to microsoft-managed keys is not supported when `project_management_enabled` is enabled")
+				}
+			} else {
+				if d.HasChange("project_management_enabled") {
+					return fmt.Errorf("once `project_management_enabled` is enabled, it cannot be disabled")
+				}
 			}
 
 			if d.Get("dynamic_throttling_enabled").(bool) && utils.SliceContainsValue([]string{"OpenAI", "AIServices"}, kind) {
 				return fmt.Errorf("`dynamic_throttling_enabled` is currently not supported when kind is set to `OpenAI` or `AIServices`")
-			}
-
-			if d.HasChange("project_management_enabled") && !d.Get("project_management_enabled").(bool) {
-				return fmt.Errorf("once `project_management_enabled` is enabled, it cannot be disabled")
-			}
-
-			if d.HasChange("customer_managed_key") && d.Get("project_management_enabled").(bool) {
-				if len(d.Get("customer_managed_key").([]interface{})) == 0 {
-					return fmt.Errorf("updating encryption mode from customer-managed keys to microsoft-managed keys is not supported when `project_management_enabled` is enabled")
-				}
 			}
 
 			if bypass, ok := d.GetOk("network_acls.0.bypass"); ok && bypass != "" && !utils.SliceContainsValue([]string{"OpenAI", "AIServices"}, kind) {
@@ -391,10 +391,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		Name: d.Get("sku_name").(string),
 	}
 
-	networkAcls, subnetIds, err := expandCognitiveAccountNetworkAcls(d)
-	if err != nil {
-		return err
-	}
+	networkAcls, subnetIds := expandCognitiveAccountNetworkAcls(d)
 
 	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 	virtualNetworkNames := make([]string, 0)
@@ -481,10 +478,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Name: d.Get("sku_name").(string),
 	}
 
-	networkAcls, subnetIds, err := expandCognitiveAccountNetworkAcls(d)
-	if err != nil {
-		return err
-	}
+	networkAcls, subnetIds := expandCognitiveAccountNetworkAcls(d)
 
 	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 	virtualNetworkNames := make([]string, 0)
@@ -733,11 +727,11 @@ func cognitiveAccountStateRefreshFunc(ctx context.Context, client *cognitiveserv
 	}
 }
 
-func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveservicesaccounts.NetworkRuleSet, []string, error) {
+func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveservicesaccounts.NetworkRuleSet, []string) {
 	input := d.Get("network_acls").([]interface{})
 	subnetIds := make([]string, 0)
 	if len(input) == 0 || input[0] == nil {
-		return nil, subnetIds, nil
+		return nil, subnetIds
 	}
 
 	v := input[0].(map[string]interface{})
@@ -778,7 +772,7 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 		ruleSet.Bypass = &bypasss
 	}
 
-	return &ruleSet, subnetIds, nil
+	return &ruleSet, subnetIds
 }
 
 func expandCognitiveAccountStorage(input []interface{}) *[]cognitiveservicesaccounts.UserOwnedStorage {

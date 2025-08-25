@@ -463,13 +463,46 @@ func TestAccCognitiveAccount_aiServices_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("local_auth_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("outbound_network_access_restricted").HasValue("false"),
-				check.That(data.ResourceName).Key("project_management_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("project_management_enabled").HasValue("true"),
 				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
 				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
 				check.That(data.ResourceName).Key("tags.Acceptance").HasValue("Test"),
 				check.That(data.ResourceName).Key("custom_subdomain_name").IsNotEmpty(),
-				check.That(data.ResourceName).Key("customer_managed_key.0.key_vault_key_id").Exists(),
-				check.That(data.ResourceName).Key("customer_managed_key.0.identity_client_id").IsUUID(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccCognitiveAccount_aiServices_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
+	r := CognitiveAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.aiServices_basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("AIServices"),
+				check.That(data.ResourceName).Key("project_management_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("tags.%").HasValue("0"),
+			),
+		},
+		{
+			Config: r.aiServices_complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("local_auth_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("outbound_network_access_restricted").HasValue("false"),
+				check.That(data.ResourceName).Key("project_management_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("public_network_access_enabled").HasValue("false"),
+				check.That(data.ResourceName).Key("identity.0.principal_id").IsUUID(),
+				check.That(data.ResourceName).Key("identity.0.tenant_id").IsUUID(),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.Acceptance").HasValue("Test"),
+				check.That(data.ResourceName).Key("custom_subdomain_name").IsNotEmpty(),
 			),
 		},
 		data.ImportStep(),
@@ -1426,11 +1459,12 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_cognitive_account" "test" {
-  name                = "acctestaiservices-%d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  kind                = "AIServices"
-  sku_name            = "S0"
+  name                  = "acctestaiservices-%d"
+  location              = azurerm_resource_group.test.location
+  resource_group_name   = azurerm_resource_group.test.name
+  kind                  = "AIServices"
+  sku_name              = "S0"
+  custom_subdomain_name = "acctestaiservices-%[1]d"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
 }
@@ -1452,46 +1486,6 @@ resource "azurerm_user_assigned_identity" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   name                = "%[3]s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                       = "acctestkv%[3]s"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "standard"
-  soft_delete_retention_days = 7
-  purge_protection_enabled   = true
-
-  access_policy {
-    tenant_id = data.azurerm_client_config.current.tenant_id
-    object_id = data.azurerm_client_config.current.object_id
-    key_permissions = [
-      "Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"
-    ]
-    secret_permissions = [
-      "Get",
-    ]
-  }
-
-  access_policy {
-    tenant_id = azurerm_user_assigned_identity.test.tenant_id
-    object_id = azurerm_user_assigned_identity.test.principal_id
-    key_permissions = [
-      "Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy"
-    ]
-    secret_permissions = [
-      "Get",
-    ]
-  }
-}
-
-resource "azurerm_key_vault_key" "test" {
-  name         = "acctestkvkey%[3]s"
-  key_vault_id = azurerm_key_vault.test.id
-  key_type     = "RSA"
-  key_size     = 2048
-  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -1526,14 +1520,9 @@ resource "azurerm_cognitive_account" "test" {
   fqdns                              = ["foo.com", "bar.com"]
   local_auth_enabled                 = true
   outbound_network_access_restricted = false
-  project_management_enabled         = false
+  project_management_enabled         = true
   public_network_access_enabled      = false
   custom_subdomain_name              = "acctestaiservices-%[1]d"
-
-  customer_managed_key {
-    key_vault_key_id   = azurerm_key_vault_key.test.id
-    identity_client_id = azurerm_user_assigned_identity.test.client_id
-  }
 
   identity {
     type = "SystemAssigned, UserAssigned"
