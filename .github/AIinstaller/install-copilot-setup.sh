@@ -286,6 +286,24 @@ main() {
     
     # Handle bootstrap parameter
     if [[ "${BOOTSTRAP}" == "true" ]]; then
+        # Detect if running from user profile directory (incorrect)
+        current_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        if [[ "${current_dir}" == "${HOME}/.terraform-ai-installer" ]]; then
+            echo ""
+            print_separator
+            echo ""
+            write_error "Bootstrap must be run from the source repository, not from user profile directory."
+            echo ""
+            write_info "CORRECT USAGE:"
+            write_plain "  cd /path/to/terraform-provider-azurerm"
+            write_plain "  ./.github/AIinstaller/install-copilot-setup.sh -bootstrap"
+            echo ""
+            write_info "CURRENT LOCATION: ${current_dir}"
+            write_info "EXPECTED LOCATION: <repo>/.github/AIinstaller/"
+            echo ""
+            exit 1
+        fi
+        
         bootstrap_installer
         exit 0
     fi

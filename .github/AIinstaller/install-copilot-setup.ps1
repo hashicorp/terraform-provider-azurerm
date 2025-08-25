@@ -349,6 +349,26 @@ function Main {
             Write-Host $workspaceRoot -ForegroundColor Green
             Write-Host ""
             
+            # Detect if running from user profile directory (incorrect)
+            $currentScriptDir = Split-Path -Parent $PSCommandPath
+            $userProfileInstallerPath = Join-Path $env:USERPROFILE ".terraform-ai-installer"
+            
+            if ($currentScriptDir -eq $userProfileInstallerPath) {
+                Write-Host ""
+                Write-SeparatorLine
+                Write-Host ""
+                Write-ErrorMessage "Bootstrap must be run from the source repository, not from user profile directory."
+                Write-Host ""
+                Write-InfoMessage "CORRECT USAGE:"
+                Write-Host "  cd C:\path\to\terraform-provider-azurerm" -ForegroundColor Gray
+                Write-Host "  & .\.github\AIinstaller\install-copilot-setup.ps1 -Bootstrap" -ForegroundColor Gray
+                Write-Host ""
+                Write-InfoMessage "CURRENT LOCATION: $currentScriptDir"
+                Write-InfoMessage "EXPECTED LOCATION: <repo>\.github\AIinstaller\"
+                Write-Host ""
+                exit 1
+            }
+            
             $result = Invoke-Bootstrap
             if (-not $result.Success) {
                 exit 1
