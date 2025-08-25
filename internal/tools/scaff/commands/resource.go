@@ -68,13 +68,38 @@ func (c ResourceCommand) Run(args []string) int {
 }
 
 func (c ResourceCommand) Synopsis() string {
-	// TODO implement me
-	return ""
+	return "create boilerplate for AzureRM/AD Framework Implemented resource to speed development"
 }
 
 func (c ResourceCommand) Help() string {
-	// TODO implement me
-	return ""
+	return `
+Usage: scaff resource -name "some_resource_name" -service_package_name="someservice" -rp_name="sql" -client_name="SomeClient" [-updatable=true] [-no_resource_group=true] -api_version="2023-08-01-preview" -id_type="commonids.SqlDatabaseId" [-sdk_name="databases"] -id_segments="SubscriptionId,ResourceGroupName,ServerName,DatabaseName" [-uses_lro_crud=true] [-use_create_options=true] [-use_read_options=true] [-use_update_options=true] [-use_delete_options=true]
+
+Parameters:
+	-name (Required) the name of the resource to scaffold the resource for.
+	-service_package_name (Required) the name of the service package to scaffold the resource into.
+	-rp_name (Required) the name of the resource provider of the new resource."
+	-api_version (Required) the API version of the resource to scaffold. e.g. 2025-01-01")
+	-id_type (Required) the type of resource to scaffold. e.g. 'commonids.AppServiceId', or 'virtualmachines.VirtualMachineId'.
+	-id_segments (Required) The User-Specified Segment names for the ID, Order matters. Future versions of this command will discover this from the id_type value, probably...
+
+	-updatable (Optional) whether the new resource can be updated. i.e. any schema property is not going to be 'ForceNew'.
+	-uses_lro_crud (Optional) the new resource uses LROs for Create, Update, and Delete.
+	-use_create_options (Optional) the new resource uses OperationOptions for Create.
+	-use_read_options (Optional) the new resource uses OperationOptions for Read.
+	-use_update_options (Optional) the new resource uses OperationOptions for Update.
+	-use_delete_options (Optional) the new resource uses OperationOptions for Delete.
+	-config_validators (Optional) does the resource have configuration validators.
+	-no_resource_group (Optional) Set to true if the resource is not created in a resource group, or if the RG is inferred from a parent resource ID.
+	-sdk_name (Optional) the name of the SDK used to manage the new resource. If omitted, the first slug of the id_type value will be used.
+
+Example:
+scaff resource -name="fw_mssql_database" -service_package_name="MSSQL" -rp_name="sql" -client_name="DatabasesClient" -updatable=true -no_resource_group=true -api_version="2023-08-01-preview" -id_type="commonids.SqlDatabaseId" -sdk_name="databases" -id_segments="SubscriptionId,ResourceGroupName,ServerName,DatabaseName" -uses_lro_crud=true -use_read_options=true
+
+or 
+
+go run internal/tools/scaff/main.go resource -name="fw_mssql_database" -service_package_name="MSSQL" -rp_name="sql" -client_name="DatabasesClient" -updatable=true -no_resource_group=true -api_version="2023-08-01-preview" -id_type="commonids.SqlDatabaseId" -sdk_name="databases" -id_segments="SubscriptionId,ResourceGroupName,ServerName,DatabaseName" -uses_lro_crud=true -use_read_options=true
+`
 }
 
 func (d *resourceData) parseArgs(args []string) (errs []error) {
@@ -84,6 +109,9 @@ func (d *resourceData) parseArgs(args []string) (errs []error) {
 	argSet.StringVar(&d.ServicePackageName, "service_package_name", "", "(Required) the name of the service package to scaffold the resource into.")
 	argSet.StringVar(&d.RPName, "rp_name", "", "(Required) the name of the resource provider of the new resource.")
 	argSet.StringVar(&d.ClientName, "client_name", "", "(Required) the name of the client used to manage the new resource.")
+	argSet.StringVar(&d.APIVersion, "api_version", "", "(Required) the API version of the resource to scaffold. e.g. 2025-01-01")
+	argSet.StringVar(&d.IdType, "id_type", "", "(Required) the type of resource to scaffold. e.g. `commonids.AppServiceId`, or `virtualmachines.VirtualMachineId`.")
+	argSet.StringVar(&d.IdSegments, "id_segments", "", "(Required) The User-Specified Segment names for the ID, Order matters. Future versions of this command will discover this from the id_type value, I hope...")
 	argSet.BoolVar(&d.Updatable, "updatable", false, "(Optional) whether the new resource can be updated. i.e. any schema property is not going to be `ForceNew`.")
 	argSet.BoolVar(&d.UsesLROCRUD, "uses_lro_crud", false, "(Optional) the new resource uses LROs for Create, Update, and Delete.")
 	argSet.BoolVar(&d.UseCreateOptions, "use_create_options", false, "(Optional) the new resource uses OperationOptions for Create.")
@@ -92,10 +120,7 @@ func (d *resourceData) parseArgs(args []string) (errs []error) {
 	argSet.BoolVar(&d.UseDeleteOptions, "use_delete_options", false, "(Optional) the new resource uses OperationOptions for Delete.")
 	argSet.BoolVar(&d.ConfigValidators, "config_validators", false, "(Optional) does the resource have configuration validators.")
 	argSet.BoolVar(&d.NoResourceGroup, "no_resource_group", false, "(Optional) Set to true if the resource is not created in a resource group, or if the RG is inferred from a parent resource ID.")
-	argSet.StringVar(&d.APIVersion, "api_version", "", "(Required) the API version of the resource to scaffold. e.g. 2025-01-01")
-	argSet.StringVar(&d.IdType, "id_type", "", "(Required) the type of resource to scaffold. e.g. `commonids.AppServiceId`, or `virtualmachines.VirtualMachineId`.")
 	argSet.StringVar(&d.SDKName, "sdk_name", "", "(Optional) the name of the SDK used to manage the new resource. If omitted, the first slug of the id_type value will be used.")
-	argSet.StringVar(&d.IdSegments, "id_segments", "", "(Required) The User-Specified Segment names for the ID, Order matters. Future versions of this command will discover this from the id_type value, I hope...")
 	if err := argSet.Parse(args); err != nil {
 		errs = append(errs, err)
 		return
