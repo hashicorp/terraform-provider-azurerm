@@ -39,6 +39,8 @@ output "servicebus_endpoint" {
 
 * `sku` - A `sku` block as defined below.
 
+* `zone_redundant` - Is this Notification Hub Namespace Zone Redundant?
+
 * `enabled` - Is this Notification Hub Namespace enabled?
 
 * `tags` - A mapping of tags to assign to the resource.
