@@ -99,7 +99,7 @@ function Format-AlignedLabel {
 function Show-BranchDetection {
     <#
     .SYNOPSIS
-    Display branch detection result with appropriate styling
+    Display branch detection result with workspace path and appropriate styling
     #>
     param(
         [Parameter(Mandatory)]
@@ -109,7 +109,7 @@ function Show-BranchDetection {
         [string]$BranchType = "feature"
     )
     
-    # No dynamic spacing for branch labels - they are the baseline for alignment
+    # Display branch detection
     switch ($BranchType) {
         "source" {
             Write-Host "SOURCE BRANCH DETECTED: " -ForegroundColor "Cyan" -NoNewline
@@ -123,6 +123,14 @@ function Show-BranchDetection {
             Write-Host "UNKNOWN BRANCH: " -ForegroundColor "Red" -NoNewline
             Write-Host "$BranchName" -ForegroundColor "Gray"
         }
+    }
+    
+    # Display workspace path with consistent formatting
+    if ($Global:WorkspaceRoot) {
+        $formattedWorkspaceLabel = Format-AlignedLabel -Label "WORKSPACE" -CurrentBranchType $BranchType
+        Write-Host $formattedWorkspaceLabel -ForegroundColor Cyan -NoNewline
+        Write-Host $Global:WorkspaceRoot -ForegroundColor Green
+        Write-Host ""
     }
 }
 
@@ -225,15 +233,6 @@ function Show-Help {
     # Show current branch context if available
     if ($BranchName) {
         Show-BranchDetection -BranchName $BranchName -BranchType $BranchType
-        
-        # Show workspace path for consistency with verify operation
-        $workspaceRoot = $Global:WorkspaceRoot
-        if ($workspaceRoot) {
-            $formattedWorkspaceLabel = Format-AlignedLabel -Label "WORKSPACE" -CurrentBranchType $BranchType
-            Write-Host $formattedWorkspaceLabel -ForegroundColor Cyan -NoNewline
-            Write-Host $workspaceRoot -ForegroundColor Green
-        }
-        Write-Host ""
         Write-Separator
         Write-Host ""
     }
@@ -274,13 +273,6 @@ function Show-SourceBranchHelp {
     # Show branch and workspace context if provided
     if ($BranchName) {
         Show-BranchDetection -BranchName $BranchName -BranchType "source"
-        
-        if ($WorkspacePath) {
-            $formattedWorkspaceLabel = Format-AlignedLabel -Label "WORKSPACE" -CurrentBranchType "source"
-            Write-Host $formattedWorkspaceLabel -ForegroundColor Cyan -NoNewline
-            Write-Host $WorkspacePath -ForegroundColor Green
-        }
-        Write-Host ""
         Write-Separator
         Write-Host ""
     }
@@ -447,7 +439,7 @@ function Show-ErrorBlock {
     if ($Solutions.Count -gt 0) {
         Write-Host "SOLUTIONS:" -ForegroundColor Yellow
         foreach ($solution in $Solutions) {
-            Write-Host "  • $solution" -ForegroundColor White
+            Write-Host "  - $solution" -ForegroundColor White
         }
         Write-Host ""
     }
@@ -568,7 +560,7 @@ function Show-ContextualError {
     if ($allSolutions.Count -gt 0) {
         Write-Host "SUGGESTED ACTIONS:" -ForegroundColor Yellow
         foreach ($solution in $allSolutions) {
-            Write-Host "  • $solution" -ForegroundColor White
+            Write-Host "  - $solution" -ForegroundColor White
         }
         Write-Host ""
     }
@@ -859,6 +851,62 @@ function Show-BootstrapLocationError {
     Write-Host "$ExpectedLocation" -ForegroundColor Green
     Write-Host ""
 }
+
+function Show-VerificationResults {
+    <#
+    .SYNOPSIS
+    Displays workspace verification results in a consistent format
+    
+    .DESCRIPTION
+    Takes verification data and displays it using the standard UI format.
+    This ensures UI consistency across all operations.
+    
+    .PARAMETER VerificationData
+    Hashtable containing verification results with Success, Issues, and Details
+    #>
+    param(
+        [Parameter(Mandatory = $true)]
+        [hashtable]$VerificationData
+    )
+    
+    Write-Section "Workspace Verification Results"
+    
+    if ($VerificationData.Success) {
+        Write-OperationStatus -Message "Workspace verification completed successfully" -Type "Success"
+        
+        # Show summary details if available
+        if ($VerificationData.Details) {
+            $details = @{}
+            if ($VerificationData.Details.ContainsKey("WorkspaceType")) {
+                $details["Workspace Type"] = $VerificationData.Details.WorkspaceType
+            }
+            if ($VerificationData.Details.ContainsKey("FilesChecked")) {
+                $details["Files Checked"] = $VerificationData.Details.FilesChecked
+            }
+            if ($VerificationData.Details.ContainsKey("DirectoriesChecked")) {
+                $details["Directories Checked"] = $VerificationData.Details.DirectoriesChecked
+            }
+            
+            if ($details.Count -gt 0) {
+                Write-Host ""
+                Show-Summary -Title "Verification Summary" -Details $details
+            }
+        }
+    } else {
+        Write-OperationStatus -Message "Workspace verification encountered issues" -Type "Error"
+        
+        if ($VerificationData.Issues -and $VerificationData.Issues.Count -gt 0) {
+            Write-Host ""
+            Write-Host "Issues found:" -ForegroundColor Yellow
+            foreach ($issue in $VerificationData.Issues) {
+                Write-Host "  - $issue" -ForegroundColor Red
+            }
+        }
+    }
+    
+    Write-Host ""
+}
+
 #endregion
 
 #region Export Module Members
@@ -887,6 +935,7 @@ Export-ModuleMember -Function @(
     'Show-CompletionSummary',
     'Show-Summary',
     'Show-ValidationResults',
+    'Show-VerificationResults',
     'Show-DirectoryOperation',
     'Show-FileOperation',
     'Wait-ForUser',

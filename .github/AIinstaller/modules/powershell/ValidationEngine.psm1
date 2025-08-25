@@ -1,10 +1,6 @@
 # ValidationEngine Module for Terraform AzureRM Provider AI Setup
 # Handles comprehensive validation, dependency checking, and system requirements
 
-# Import required modules
-$ModulePath = Split-Path $PSScriptRoot -Parent
-Import-Module (Join-Path $ModulePath "powershell\ConfigParser.psm1") -Force
-
 #region Private Functions
 
 function Find-WorkspaceRoot {
@@ -407,11 +403,20 @@ function Test-PostInstallation {
     Run comprehensive post-installation validation
     #>
     param(
-        [string]$Branch = "exp/terraform_copilot"
+        [string]$Branch = "exp/terraform_copilot",
+        [hashtable]$ManifestConfig = $null
     )
     
-    # Use manifest-driven configuration
-    $manifestConfig = Get-ManifestConfig -Branch $Branch
+    # Use provided manifest configuration or get it directly
+    if ($ManifestConfig) {
+        $manifestConfig = $ManifestConfig
+    } else {
+        # Fallback: require ConfigParser to be loaded in parent scope
+        if (-not (Get-Command Get-ManifestConfig -ErrorAction SilentlyContinue)) {
+            throw "ManifestConfig parameter required or Get-ManifestConfig must be available"
+        }
+        $manifestConfig = Get-ManifestConfig -Branch $Branch
+    }
     $allFiles = @()
     foreach ($section in $manifestConfig.Sections.Keys) {
         $allFiles += $manifestConfig.Sections[$section]
@@ -463,7 +468,8 @@ function Test-AIInfrastructure {
     Comprehensive test of AI infrastructure status
     #>
     param(
-        [string]$Branch = "exp/terraform_copilot"
+        [string]$Branch = "exp/terraform_copilot",
+        [hashtable]$ManifestConfig = $null
     )
     
     $results = @{
@@ -479,8 +485,16 @@ function Test-AIInfrastructure {
     # Get installation status
     $workspaceStatus = Get-WorkspaceStatus
     
-    # Use manifest-driven configuration
-    $manifestConfig = Get-ManifestConfig -Branch $Branch
+    # Use provided manifest configuration or get it directly
+    if ($ManifestConfig) {
+        $manifestConfig = $ManifestConfig
+    } else {
+        # Fallback: require ConfigParser to be loaded in parent scope
+        if (-not (Get-Command Get-ManifestConfig -ErrorAction SilentlyContinue)) {
+            throw "ManifestConfig parameter required or Get-ManifestConfig must be available"
+        }
+        $manifestConfig = Get-ManifestConfig -Branch $Branch
+    }
     $allFiles = @()
     foreach ($section in $manifestConfig.Sections.Keys) {
         $allFiles += $manifestConfig.Sections[$section]
@@ -946,13 +960,6 @@ function Invoke-VerifyWorkspace {
             IsSourceRepo = $isSourceRepo
         }
         
-        # Format WORKSPACE label to align with current branch detection label
-        $workspaceLabel = "WORKSPACE"
-        $formattedWorkspaceLabel = Format-AlignedLabel -Label $workspaceLabel -CurrentBranchType $BranchType
-        
-        Write-Host $formattedWorkspaceLabel -ForegroundColor Cyan -NoNewline
-        Write-Host $workspaceRoot -ForegroundColor Green
-        Write-Host ""
         Write-Host $("=" * 60) -ForegroundColor Cyan
         Write-Host "Verifying AI infrastructure files" -ForegroundColor Cyan
         Write-Host $("=" * 60) -ForegroundColor Cyan
@@ -1118,6 +1125,324 @@ function Invoke-VerifyWorkspace {
     }
 }
 
+function Get-WorkspaceVerificationData {
+    <#
+    .SYNOPSIS
+    Returns AI infrastructure verification data without any UI output
+    
+    .DESCRIPTION
+    Checks for the presence of AI infrastructure files and returns structured data.
+    This is a pure data function - no UI output is performed.
+    
+    .PARAMETER ManifestConfig
+    The manifest configuration to use for verification
+    
+    .OUTPUTS
+    Hashtable with verification results including Success, Files, Issues, and summary information
+    #>
+    param(
+        [hashtable]$ManifestConfig = $null
+    )
+    
+    $workspaceRoot = $Global:WorkspaceRoot
+    if (-not $workspaceRoot) {
+        throw "Global workspace root not set"
+    }
+    
+    # Use provided manifest configuration or get it directly  
+    if ($ManifestConfig) {
+        $manifestConfig = $ManifestConfig
+    } else {
+        # Fallback: require ConfigParser to be loaded in parent scope
+        if (-not (Get-Command Get-ManifestConfig -ErrorAction SilentlyContinue)) {
+            throw "ManifestConfig parameter required or Get-ManifestConfig must be available"
+        }
+        $manifestConfig = Get-ManifestConfig
+    }
+    
+    Push-Location $workspaceRoot
+    
+    try {
+        # CRITICAL: Check if we're on the source branch/repository
+        $isSourceRepo = Test-SourceRepository
+        
+        $results = @{
+            Success = $true
+            Files = @()
+            Issues = @()
+            IsSourceRepo = $isSourceRepo
+            WorkspaceRoot = $workspaceRoot
+            Summary = @{
+                FilesFound = 0
+                FilesMissing = 0
+                DeprecatedFiles = 0
+            }
+        }
+        
+        # Check main instructions file
+        $instructionsFile = $Global:InstallerConfig.Files.Instructions.Target
+        if (Test-Path $instructionsFile) {
+            $results.Files += @{
+                Path = $instructionsFile
+                Status = "Present"
+                Description = "Main Copilot instructions"
+                RelativePath = (Resolve-Path $instructionsFile -Relative)
+            }
+            $results.Summary.FilesFound++
+        } else {
+            $results.Files += @{
+                Path = $instructionsFile
+                Status = "Missing"
+                Description = "Main Copilot instructions"
+                RelativePath = $instructionsFile
+            }
+            $results.Issues += "Missing: $instructionsFile"
+            $results.Summary.FilesMissing++
+        }
+        
+        # Check instructions directory
+        $instructionsDir = $Global:InstallerConfig.Files.InstructionFiles.Target
+        if (Test-Path $instructionsDir -PathType Container) {
+            $childResults = @()
+            
+            # Check specific instruction files
+            $requiredFiles = $Global:InstallerConfig.Files.InstructionFiles.Files
+            
+            foreach ($file in $requiredFiles) {
+                # Handle full repository paths vs relative paths
+                if ($file.StartsWith('.github/')) {
+                    # This is a full repository path - use it directly from workspace root
+                    $filePath = Join-Path $Global:WorkspaceRoot $file
+                } else {
+                    # This is a relative path - join with target directory
+                    $filePath = Join-Path $instructionsDir $file
+                }
+                
+                if (Test-Path $filePath) {
+                    $childResults += @{
+                        File = $file
+                        Status = "Present"
+                    }
+                    $results.Summary.FilesFound++
+                } else {
+                    $childResults += @{
+                        File = $file
+                        Status = "Missing"
+                    }
+                    $results.Issues += "Missing: $filePath"
+                    $results.Summary.FilesMissing++
+                }
+            }
+            
+            $results.Files += @{
+                Path = $instructionsDir
+                Status = "Present"
+                Description = "Instructions directory"
+                RelativePath = (Resolve-Path $instructionsDir -Relative) + "/"
+                Children = $childResults
+            }
+        } else {
+            $results.Files += @{
+                Path = $instructionsDir
+                Status = "Missing"
+                Description = "Instructions directory"
+                RelativePath = $instructionsDir
+            }
+            $results.Issues += "Missing: $instructionsDir"
+            $results.Summary.FilesMissing++
+        }
+        
+        # Check prompts directory
+        $promptsDir = $Global:InstallerConfig.Files.PromptFiles.Target
+        if (Test-Path $promptsDir -PathType Container) {
+            $childResults = @()
+            
+            # Check specific prompt files
+            $requiredPrompts = $Global:InstallerConfig.Files.PromptFiles.Files
+            
+            foreach ($file in $requiredPrompts) {
+                # Handle full repository paths vs relative paths
+                if ($file.StartsWith('.github/')) {
+                    # This is a full repository path - use it directly from workspace root
+                    $filePath = Join-Path $Global:WorkspaceRoot $file
+                } else {
+                    # This is a relative path - join with target directory
+                    $filePath = Join-Path $promptsDir $file
+                }
+                
+                if (Test-Path $filePath) {
+                    $childResults += @{
+                        File = $file
+                        Status = "Present"
+                    }
+                    $results.Summary.FilesFound++
+                } else {
+                    $childResults += @{
+                        File = $file
+                        Status = "Missing"
+                    }
+                    $results.Issues += "Missing: $filePath"
+                    $results.Summary.FilesMissing++
+                }
+            }
+            
+            $results.Files += @{
+                Path = $promptsDir
+                Status = "Present"
+                Description = "Prompts directory"
+                RelativePath = (Resolve-Path $promptsDir -Relative) + "/"
+                Children = $childResults
+            }
+        } else {
+            $results.Files += @{
+                Path = $promptsDir
+                Status = "Missing"
+                Description = "Prompts directory"
+                RelativePath = $promptsDir
+            }
+            $results.Issues += "Missing: $promptsDir"
+            $results.Summary.FilesMissing++
+        }
+        
+        # Check .vscode directory and settings
+        $vscodeDir = Join-Path $workspaceRoot ".vscode"
+        if (Test-Path $vscodeDir -PathType Container) {
+            $settingsFile = Join-Path $vscodeDir "settings.json"
+            $vscodeChildren = @()
+            
+            if (Test-Path $settingsFile) {
+                $vscodeChildren += @{
+                    File = "settings.json"
+                    Status = "Present"
+                }
+                $results.Summary.FilesFound++
+            } else {
+                $vscodeChildren += @{
+                    File = "settings.json"
+                    Status = "Missing"
+                }
+                $results.Issues += "Missing: $settingsFile"
+                $results.Summary.FilesMissing++
+            }
+            
+            $results.Files += @{
+                Path = $vscodeDir
+                Status = "Present"
+                Description = ".vscode directory"
+                RelativePath = ".vscode/"
+                Children = $vscodeChildren
+            }
+        } else {
+            $results.Files += @{
+                Path = $vscodeDir
+                Status = "Missing"
+                Description = ".vscode directory"
+                RelativePath = ".vscode/"
+            }
+            $results.Issues += "Missing: $vscodeDir"
+            $results.Summary.FilesMissing++
+        }
+        
+        # Check for deprecated files (files that exist but are no longer in manifest)
+        if (-not $isSourceRepo) {
+            $deprecatedFiles = Remove-DeprecatedFiles -ManifestConfig $manifestConfig -WorkspaceRoot $workspaceRoot -DryRun $true -Quiet $true
+            $results.Summary.DeprecatedFiles = $deprecatedFiles.Count
+            if ($deprecatedFiles.Count -gt 0) {
+                $results.Issues += "Found $($deprecatedFiles.Count) deprecated files"
+            }
+        }
+        
+        # Final success determination
+        $results.Success = ($results.Issues.Count -eq 0)
+        
+        return $results
+    }
+    finally {
+        Pop-Location
+    }
+}
+
+function Get-WorkspaceVerificationData {
+    <#
+    .SYNOPSIS
+    Returns workspace verification data without UI output
+    
+    .DESCRIPTION
+    Performs the same verification as Invoke-VerifyWorkspace but returns
+    structured data instead of outputting to console. This allows the main
+    script to control all UI formatting.
+    
+    .OUTPUTS
+    Hashtable with Success, Issues, and Details properties
+    #>
+    
+    $verificationData = @{
+        Success = $true
+        Issues = @()
+        Details = @{}
+    }
+    
+    try {
+        # Initialize configuration
+        Initialize-Configuration
+        
+        # Get basic workspace info
+        $currentBranch = Get-CurrentBranch -WorkspaceRoot $Global:WorkspaceRoot
+        $isSourceRepo = Test-SourceRepository
+        $workspaceType = if ($isSourceRepo) { "Source Repository" } else { "Feature Branch" }
+        
+        $verificationData.Details.WorkspaceType = $workspaceType
+        $verificationData.Details.Branch = $currentBranch
+        
+        # Verify workspace structure
+        $requiredDirs = @("internal", ".github")
+        $checkedDirs = 0
+        
+        foreach ($dir in $requiredDirs) {
+            $dirPath = Join-Path $Global:WorkspaceRoot $dir
+            if (-not (Test-Path $dirPath)) {
+                $verificationData.Issues += "Required directory missing: $dir"
+                $verificationData.Success = $false
+            } else {
+                $checkedDirs++
+            }
+        }
+        
+        $verificationData.Details.DirectoriesChecked = $checkedDirs
+        
+        # Verify key files
+        $requiredFiles = @("go.mod", "main.go")
+        $checkedFiles = 0
+        
+        foreach ($file in $requiredFiles) {
+            $filePath = Join-Path $Global:WorkspaceRoot $file
+            if (-not (Test-Path $filePath)) {
+                $verificationData.Issues += "Required file missing: $file"
+                $verificationData.Success = $false
+            } else {
+                $checkedFiles++
+            }
+        }
+        
+        $verificationData.Details.FilesChecked = $checkedFiles
+        
+        # Check AI infrastructure status
+        $aiFilesStatus = Get-AIInfrastructureStatus -WorkspaceRoot $Global:WorkspaceRoot -ManifestConfig $Global:ManifestConfig
+        $verificationData.Details.AIInfrastructure = $aiFilesStatus
+        
+        if ($aiFilesStatus.MissingFiles -gt 0) {
+            $verificationData.Issues += "AI infrastructure incomplete: $($aiFilesStatus.MissingFiles) missing files"
+        }
+        
+    }
+    catch {
+        $verificationData.Success = $false
+        $verificationData.Issues += "Verification failed: $($_.Exception.Message)"
+    }
+    
+    return $verificationData
+}
+
 #endregion
 
 #region Export Module Members
@@ -1135,7 +1460,8 @@ Export-ModuleMember -Function @(
     'Get-CurrentBranch',
     'Test-SourceRepository',
     'Get-DynamicSpacing',
-    'Invoke-VerifyWorkspace'
+    'Invoke-VerifyWorkspace',
+    'Get-WorkspaceVerificationData'
 )
 
 #endregion

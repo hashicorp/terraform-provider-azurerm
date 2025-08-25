@@ -229,6 +229,30 @@ function Get-UserFiles {
     }
 }
 
+function Initialize-Configuration {
+    <#
+    .SYNOPSIS
+    Initialize global configuration variables on-demand
+    
+    .DESCRIPTION
+    Loads manifest and installer configuration into global variables if not already loaded.
+    This ensures configuration is available when needed without requiring explicit initialization
+    in the main script.
+    
+    .PARAMETER WorkspaceRoot
+    The root directory of the workspace. If not provided, uses $Global:WorkspaceRoot
+    #>
+    param(
+        [string]$WorkspaceRoot = $Global:WorkspaceRoot
+    )
+    
+    if ($null -eq $Global:ManifestConfig) {
+        $manifestPath = Join-Path $WorkspaceRoot ".github/AIinstaller/file-manifest.config"
+        $Global:ManifestConfig = Get-ManifestConfig -ManifestPath $manifestPath
+        $Global:InstallerConfig = Get-InstallerConfig -WorkspaceRoot $WorkspaceRoot -ManifestConfig $Global:ManifestConfig
+    }
+}
+
 #endregion
 
 #region Export Module Members
@@ -239,7 +263,8 @@ Export-ModuleMember -Function @(
     'Get-FileDownloadUrl',
     'Get-FileLocalPath',
     'ConvertTo-RelativePath',
-    'Get-UserFiles'
+    'Get-UserFiles',
+    'Initialize-Configuration'
 )
 
 #endregion

@@ -1,10 +1,6 @@
 # FileOperations Module for Terraform AzureRM Provider AI Setup
 # Handles file downloading, installation, removal, and management
 
-# Import required modules
-$ModulePath = Split-Path $PSScriptRoot -Parent
-Import-Module (Join-Path $ModulePath "powershell\ConfigParser.psm1") -Force
-
 #region Private Functions
 
 function Assert-DirectoryExists {
@@ -247,11 +243,20 @@ function Install-AllAIFiles {
         [bool]$Force = $false,
         [bool]$DryRun = $false,
         [string]$Branch = "exp/terraform_copilot",
-        [string]$WorkspaceRoot = $null
+        [string]$WorkspaceRoot = $null,
+        [hashtable]$ManifestConfig = $null
     )
     
-    # Use manifest-driven configuration
-    $manifestConfig = Get-ManifestConfig -Branch $Branch
+    # Use provided manifest configuration or get it directly
+    if ($ManifestConfig) {
+        $manifestConfig = $ManifestConfig
+    } else {
+        # Fallback: require ConfigParser to be loaded in parent scope
+        if (-not (Get-Command Get-ManifestConfig -ErrorAction SilentlyContinue)) {
+            throw "ManifestConfig parameter required or Get-ManifestConfig must be available"
+        }
+        $manifestConfig = Get-ManifestConfig -Branch $Branch
+    }
     $allFiles = @()
     foreach ($section in $manifestConfig.Sections.Keys) {
         $allFiles += $manifestConfig.Sections[$section]
@@ -382,11 +387,20 @@ function Remove-AllAIFiles {
     param(
         [bool]$DryRun = $false,
         [string]$Branch = "exp/terraform_copilot",
-        [string]$WorkspaceRoot = ""
+        [string]$WorkspaceRoot = "",
+        [hashtable]$ManifestConfig = $null
     )
     
-    # Use manifest-driven configuration
-    $manifestConfig = Get-ManifestConfig -Branch $Branch
+    # Use provided manifest configuration or get it directly
+    if ($ManifestConfig) {
+        $manifestConfig = $ManifestConfig
+    } else {
+        # Fallback: require ConfigParser to be loaded in parent scope
+        if (-not (Get-Command Get-ManifestConfig -ErrorAction SilentlyContinue)) {
+            throw "ManifestConfig parameter required or Get-ManifestConfig must be available"
+        }
+        $manifestConfig = Get-ManifestConfig -Branch $Branch
+    }
     $allFiles = @()
     foreach ($section in $manifestConfig.Sections.Keys) {
         $allFiles += $manifestConfig.Sections[$section]
