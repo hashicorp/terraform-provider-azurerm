@@ -94,7 +94,7 @@ The following arguments are supported:
 
 * `subscription_id` - (Optional) The subscription ID for the endpoint.
 
-~> **NOTE:** When `subscription_id` isn't specified it will be set to the subscription ID used in the provider block.
+~> **NOTE:** When `subscription_id` isn't specified it will be set to the subscription ID of the IoT Hub resource.
 
 ## Attributes Reference
 
