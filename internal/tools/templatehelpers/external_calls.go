@@ -26,7 +26,7 @@ func CallTerraform(opts ...string) ([]byte, error) {
 }
 
 // GoFmt calls `gofmt -w` over the specified file (including path)
-// Deprecated, use GoImports instead()
+// Deprecated: use GoImports instead()
 func GoFmt(file string) error {
 	cmd := exec.Command("gofmt", "-w", fmt.Sprintf("./%s", file))
 	if _, err := cmd.Output(); err != nil {

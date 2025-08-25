@@ -86,7 +86,7 @@ func PrefixedLabelString(input string) string {
 func IdToID(id string) string {
 	if strings.HasSuffix(id, "Id") {
 		id = strings.TrimSuffix(id, "d")
-		id = id + "D"
+		id += "D"
 	}
 
 	return id
@@ -99,12 +99,9 @@ func NewIDResourceIdentityFormater(idType []string, idSegments []string, prefix 
 
 	f := "%s.New%s(%s)"
 	out := make([]string, 0)
-	for _, v := range idSegments {
-		out = append(out, fmt.Sprintf("%s.%s", prefix, v))
-	}
-	idSegments = out
+	out = append(out, idSegments...)
 
-	output := fmt.Sprintf(f, idType[0], IdToID(idType[1]), strings.Join(idSegments, ", "))
+	output := fmt.Sprintf(f, idType[0], IdToID(idType[1]), strings.Join(out, ", "))
 
 	return output
 }
@@ -122,17 +119,17 @@ func NewIDCreateFormater(idType []string, idSegments []string, prefix string) st
 
 	if slices.Contains(out, "SubscriptionId") {
 		f = "%s.New%s(metadata.Client.Account.SubscriptionId, %s)"
-		slices.Delete(out, slices.Index(out, "SubscriptionId"), 1)
+		out = slices.Delete(out, slices.Index(out, "SubscriptionId"), 1)
 		out = out[:len(out)-1]
 	}
 
 	if slices.Contains(out, "ResourceGroup") {
 		idx := slices.Index(out, "ResourceGroup")
-		slices.Replace(out, idx, idx, "ResourceGroupName")
+		out = slices.Replace(out, idx, idx, "ResourceGroupName")
 	}
 
 	for i, v := range out {
-		slices.Replace(out, i, i, fmt.Sprintf("%s.%s.ValueString()", prefix, v))
+		out = slices.Replace(out, i, i, fmt.Sprintf("%s.%s.ValueString()", prefix, v))
 	}
 
 	return fmt.Sprintf(f, idType[0], IdToID(idType[1]), strings.Join(out, ", "))
