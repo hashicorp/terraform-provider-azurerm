@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/backend"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
+	azValidate "github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/schemaz"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/apimanagement/validate"
@@ -53,6 +55,78 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 			"api_management_name": schemaz.SchemaApiManagementName(),
 
 			"resource_group_name": commonschema.ResourceGroupName(),
+
+			"circuit_breaker_rule": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringMatch(
+								regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9-]{0,78}[a-zA-Z0-9])?$`),
+								"`name` must be between 1 and 80 characters in length and may contain only numbers, letters, and hyphens (-) sign when preceded and followed by number or a letter.",
+							),
+						},
+						"trip_duration": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: azValidate.ISO8601Duration,
+						},
+						"accept_retry_after_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+						"failure_condition_count": {
+							Type:          pluginsdk.TypeInt,
+							Optional:      true,
+							ConflictsWith: []string{"circuit_breaker_rule.0.failure_condition_percentage"},
+							ValidateFunc:  validation.IntBetween(1, 10000),
+						},
+						"failure_condition_error_reasons": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							MaxItems: 10,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: validation.StringLenBetween(1, 200),
+							},
+						},
+						"failure_condition_interval_duration": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: azValidate.ISO8601Duration,
+						},
+						"failure_condition_percentage": {
+							Type:          pluginsdk.TypeInt,
+							Optional:      true,
+							ConflictsWith: []string{"circuit_breaker_rule.0.failure_condition_count"},
+							ValidateFunc:  validation.IntBetween(1, 100),
+						},
+						"failure_condition_status_code_range": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							MaxItems: 10,
+							Elem: &pluginsdk.Resource{
+								Schema: map[string]*pluginsdk.Schema{
+									"min": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(200, 599),
+									},
+									"max": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										ValidateFunc: validation.IntBetween(200, 599),
+									},
+								},
+							},
+						},
+					},
+				},
+			},
 
 			"credentials": {
 				Type:     pluginsdk.TypeList,
@@ -297,6 +371,9 @@ func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta in
 			Url:         pointer.To(url),
 		},
 	}
+	if v, ok := d.GetOk("circuit_breaker_rule"); ok {
+		backendContract.Properties.CircuitBreaker = expandApiManagementBackendCircuitBreaker(v.([]interface{}))
+	}
 	if description, ok := d.GetOk("description"); ok {
 		backendContract.Properties.Description = pointer.To(description.(string))
 	}
@@ -356,6 +433,9 @@ func resourceApiManagementBackendRead(d *pluginsdk.ResourceData, meta interface{
 			d.Set("resource_id", pointer.From(props.ResourceId))
 			d.Set("title", pointer.From(props.Title))
 			d.Set("url", props.Url)
+			if err := d.Set("circuit_breaker_rule", flattenApiManagementBackendCircuitBreaker(props.CircuitBreaker)); err != nil {
+				return fmt.Errorf("setting `circuit_breaker_rule`: %s", err)
+			}
 			if err := d.Set("credentials", flattenApiManagementBackendCredentials(props.Credentials)); err != nil {
 				return fmt.Errorf("setting `credentials`: %s", err)
 			}
@@ -529,6 +609,142 @@ func expandApiManagementBackendTls(input []interface{}) *backend.BackendTlsPrope
 		properties.ValidateCertificateName = pointer.To(validateCertificateName.(bool))
 	}
 	return &properties
+}
+
+func expandApiManagementBackendCircuitBreaker(input []interface{}) *backend.BackendCircuitBreaker {
+	if len(input) == 0 {
+		return nil
+	}
+
+	rules := make([]backend.CircuitBreakerRule, 0)
+
+	v := input[0].(map[string]interface{})
+	rule := backend.CircuitBreakerRule{}
+
+	if name := v["name"]; name != nil && name.(string) != "" {
+		rule.Name = pointer.To(name.(string))
+	}
+
+	if tripDuration, ok := v["trip_duration"]; ok && tripDuration.(string) != "" {
+		rule.TripDuration = pointer.To(tripDuration.(string))
+	}
+
+	if acceptRetryAfter, ok := v["accept_retry_after_enabled"]; ok {
+		rule.AcceptRetryAfter = pointer.To(acceptRetryAfter.(bool))
+	}
+
+	condition := backend.CircuitBreakerFailureCondition{}
+	hasCondition := false
+
+	if count, ok := v["failure_condition_count"]; ok && count.(int) > 0 {
+		condition.Count = pointer.To(int64(count.(int)))
+		hasCondition = true
+	}
+
+	if percentage, ok := v["failure_condition_percentage"]; ok && percentage.(int) > 0 {
+		condition.Percentage = pointer.To(int64(percentage.(int)))
+		hasCondition = true
+	}
+
+	if interval, ok := v["failure_condition_interval_duration"]; ok && interval.(string) != "" {
+		condition.Interval = pointer.To(interval.(string))
+		hasCondition = true
+	}
+
+	if statusCodeRanges, ok := v["failure_condition_status_code_range"]; ok {
+		ranges := statusCodeRanges.(*pluginsdk.Set).List()
+		if len(ranges) > 0 {
+			condition.StatusCodeRanges = expandApiManagementBackendCircuitBreakerStatusCodeRanges(ranges)
+			hasCondition = true
+		}
+	}
+
+	if errorReasons, ok := v["failure_condition_error_reasons"]; ok {
+		reasons := errorReasons.(*pluginsdk.Set).List()
+		if len(reasons) > 0 {
+			condition.ErrorReasons = utils.ExpandStringSlice(reasons)
+			hasCondition = true
+		}
+	}
+
+	if hasCondition {
+		rule.FailureCondition = pointer.To(condition)
+	}
+
+	rules = append(rules, rule)
+
+	return &backend.BackendCircuitBreaker{
+		Rules: &rules,
+	}
+}
+
+func expandApiManagementBackendCircuitBreakerStatusCodeRanges(input []interface{}) *[]backend.FailureStatusCodeRange {
+	if len(input) == 0 {
+		return nil
+	}
+
+	results := make([]backend.FailureStatusCodeRange, 0)
+	for _, item := range input {
+		v := item.(map[string]interface{})
+		statusCodeRange := backend.FailureStatusCodeRange{}
+
+		if min, ok := v["min"]; ok {
+			statusCodeRange.Min = pointer.To(int64(min.(int)))
+		}
+
+		if max, ok := v["max"]; ok {
+			statusCodeRange.Max = pointer.To(int64(max.(int)))
+		}
+
+		results = append(results, statusCodeRange)
+	}
+
+	return &results
+}
+
+func flattenApiManagementBackendCircuitBreaker(input *backend.BackendCircuitBreaker) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil || input.Rules == nil || len(*input.Rules) == 0 {
+		return results
+	}
+
+	for _, rule := range *input.Rules {
+		result := make(map[string]interface{})
+
+		result["name"] = pointer.From(rule.Name)
+		result["trip_duration"] = pointer.From(rule.TripDuration)
+		result["accept_retry_after_enabled"] = pointer.From(rule.AcceptRetryAfter)
+
+		if rule.FailureCondition != nil {
+			condition := rule.FailureCondition
+
+			result["failure_condition_count"] = pointer.From(condition.Count)
+			result["failure_condition_percentage"] = pointer.From(condition.Percentage)
+			result["failure_condition_interval_duration"] = pointer.From(condition.Interval)
+			result["failure_condition_status_code_range"] = flattenApiManagementBackendCircuitBreakerStatusCodeRanges(condition.StatusCodeRanges)
+			result["failure_condition_error_reasons"] = pointer.From(condition.ErrorReasons)
+		}
+
+		results = append(results, result)
+	}
+
+	return results
+}
+
+func flattenApiManagementBackendCircuitBreakerStatusCodeRanges(input *[]backend.FailureStatusCodeRange) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil || len(*input) == 0 {
+		return results
+	}
+
+	for _, item := range *input {
+		result := make(map[string]interface{})
+		result["min"] = pointer.From(item.Min)
+		result["max"] = pointer.From(item.Max)
+		results = append(results, result)
+	}
+
+	return results
 }
 
 func flattenApiManagementBackendCredentials(input *backend.BackendCredentialsContract) []interface{} {
