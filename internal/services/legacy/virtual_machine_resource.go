@@ -1840,7 +1840,9 @@ func resourceVirtualMachineStorageOsProfileLinuxConfigHash(v interface{}) int {
 	var buf bytes.Buffer
 
 	if m, ok := v.(map[string]interface{}); ok {
-		buf.WriteString(fmt.Sprintf("%t-", m["disable_password_authentication"].(bool)))
+		if v, ok := m["disable_password_authentication"]; ok {
+			buf.WriteString(fmt.Sprintf("%t-", v.(bool)))
+		}
 	}
 
 	return pluginsdk.HashString(buf.String())
