@@ -44,9 +44,9 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Cloud Exadata Infrastructure. Changing this forces a new Cloud Exadata Infrastructure to be created.
 
-* `resource_group_name` - (Required) The name of the Resource Group where the ODB@A Infrastructure should exist. Changing this forces a new Cloud Exadata Infrastructure to be created.
+* `resource_group_name` - (Required) The name of the Resource Group where the Exadata Infrastructure should exist. Changing this forces a new Cloud Exadata Infrastructure to be created.
 
-* `shape` - (Required) The shape of the ODB@A infrastructure resource. Changing this forces a new Cloud Exadata Infrastructure to be created.
+* `shape` - (Required) The shape of the Cloud Exadata infrastructure resource. Changing this forces a new Cloud Exadata Infrastructure to be created.
 
 * `storage_count` - (Required) The number of storage servers for the Cloud Exadata Infrastructure. Changing this forces a new Cloud Exadata Infrastructure to be created.
 
