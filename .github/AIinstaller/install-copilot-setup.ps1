@@ -291,7 +291,6 @@ function Main {
         
         # If running from user profile installer, RepoDirectory is required for proper branch detection
         if ($isUserProfileInstaller -and -not $RepoDirectory -and -not $Help) {
-            Write-ErrorMessage "REPOSITORY DIRECTORY REQUIRED: When running from user profile installer, -RepoDirectory is required."
             Show-ErrorBlock -Issue "You're running the installer from your user profile location, but haven't specified where to find the terraform-provider-azurerm repository for branch detection." -Solutions @(
                 "Use the -RepoDirectory parameter to specify the repository path"
             ) -ExampleUsage "`"$PSCommandPath`" -RepoDirectory `"C:\github.com\hashicorp\terraform-provider-azurerm`"" -AdditionalInfo "The installer needs to detect your current git branch to determine whether you're working on the main development branch or a feature branch. This affects which operations are available and how files are managed."
@@ -304,7 +303,6 @@ function Main {
         
         # Handle unknown branch type (additional safety check)
         if ($branchType -eq "unknown" -and -not $RepoDirectory -and -not $Help) {
-            Write-ErrorMessage "REPOSITORY DIRECTORY REQUIRED: Cannot determine git branch from current location."
             Show-ErrorBlock -Issue "The installer cannot determine the current git branch, which usually means:" -Solutions @(
                 "You're running from outside a git repository",
                 "You're running from your user profile location", 
@@ -354,18 +352,7 @@ function Main {
             $userProfileInstallerPath = Join-Path $env:USERPROFILE ".terraform-ai-installer"
             
             if ($currentScriptDir -eq $userProfileInstallerPath) {
-                Write-Host ""
-                Write-SeparatorLine
-                Write-Host ""
-                Write-ErrorMessage "Bootstrap must be run from the source repository, not from user profile directory."
-                Write-Host ""
-                Write-InfoMessage "CORRECT USAGE:"
-                Write-Host "  cd C:\path\to\terraform-provider-azurerm" -ForegroundColor Gray
-                Write-Host "  & .\.github\AIinstaller\install-copilot-setup.ps1 -Bootstrap" -ForegroundColor Gray
-                Write-Host ""
-                Write-InfoMessage "CURRENT LOCATION: $currentScriptDir"
-                Write-InfoMessage "EXPECTED LOCATION: <repo>\.github\AIinstaller\"
-                Write-Host ""
+                Show-BootstrapLocationError -CurrentLocation $currentScriptDir -ExpectedLocation "<repo>\.github\AIinstaller\"
                 exit 1
             }
             

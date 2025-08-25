@@ -3,6 +3,33 @@
 
 #region Public Functions
 
+function Write-Separator {
+    <#
+    .SYNOPSIS
+    Display a separator line with consistent formatting
+    
+    .DESCRIPTION
+    Displays a colored separator line for visual separation in UI output.
+    Matches the bash script's print_separator() function behavior.
+    
+    .PARAMETER Length
+    The length of the separator line. Defaults to 60 characters.
+    
+    .PARAMETER Color
+    The color of the separator line. Defaults to Cyan.
+    
+    .PARAMETER Character
+    The character to use for the separator. Defaults to "=".
+    #>
+    param(
+        [int]$Length = 60,
+        [string]$Color = "Cyan",
+        [string]$Character = "="
+    )
+    
+    Write-Host $($Character * $Length) -ForegroundColor $Color
+}
+
 function Write-Header {
     <#
     .SYNOPSIS
@@ -14,10 +41,10 @@ function Write-Header {
     )
     
     Write-Host ""
-    Write-Host $("=" * 60) -ForegroundColor Cyan
+    Write-Separator
     Write-Host " $Title" -ForegroundColor Cyan
     Write-Host " Version: $Version" -ForegroundColor Cyan
-    Write-Host $("=" * 60) -ForegroundColor Cyan
+    Write-Separator
     Write-Host ""
 }
 
@@ -207,7 +234,7 @@ function Show-Help {
             Write-Host $workspaceRoot -ForegroundColor Green
         }
         Write-Host ""
-        Write-Host $("=" * 60) -ForegroundColor Cyan
+        Write-Separator
         Write-Host ""
     }
     
@@ -254,7 +281,7 @@ function Show-SourceBranchHelp {
             Write-Host $WorkspacePath -ForegroundColor Green
         }
         Write-Host ""
-        Write-Host $("=" * 60) -ForegroundColor Cyan
+        Write-Separator
         Write-Host ""
     }
     
@@ -591,7 +618,7 @@ function Show-CompletionSummary {
     
     Write-Host ""
     Write-Host "INSTALLATION COMPLETE" -ForegroundColor Green
-    Write-Host $("=" * 40) -ForegroundColor Green
+    Write-Separator -Length 40 -Color Green
     Write-Host ""
     
     # Show branch information if provided
@@ -794,12 +821,51 @@ function Confirm-UserAction {
     
     return $response -match "^[Yy]"
 }
+
+function Show-BootstrapLocationError {
+    <#
+    .SYNOPSIS
+    Shows a detailed error message when bootstrap is run from wrong location
+    
+    .DESCRIPTION
+    Displays a formatted error message with color-coded paths showing current location
+    vs expected location for bootstrap operation
+    
+    .PARAMETER CurrentLocation
+    The current directory where bootstrap is being run from
+    
+    .PARAMETER ExpectedLocation
+    The expected location where bootstrap should be run from
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string]$CurrentLocation,
+        
+        [Parameter(Mandatory)]
+        [string]$ExpectedLocation
+    )
+    
+    Write-Separator
+    Write-Host ""
+    Write-ErrorMessage "Bootstrap must be run from the source repository, not from user profile directory."
+    Write-Host ""
+    Write-Host "CORRECT USAGE:" -ForegroundColor Cyan
+    Write-Host "  cd C:\path\to\terraform-provider-azurerm" -ForegroundColor Gray
+    Write-Host "  & .\.github\AIinstaller\install-copilot-setup.ps1 -Bootstrap" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "CURRENT LOCATION: " -ForegroundColor Cyan -NoNewline
+    Write-Host "$CurrentLocation" -ForegroundColor Yellow
+    Write-Host "EXPECTED LOCATION: " -ForegroundColor Cyan -NoNewline
+    Write-Host "$ExpectedLocation" -ForegroundColor Green
+    Write-Host ""
+}
 #endregion
 
 #region Export Module Members
 
 Export-ModuleMember -Function @(
     'Write-Header',
+    'Write-Separator',
     'Write-Success',
     'Write-WarningMessage', 
     'Write-ErrorMessage',
@@ -825,7 +891,8 @@ Export-ModuleMember -Function @(
     'Show-FileOperation',
     'Wait-ForUser',
     'Confirm-UserAction',
-    'Format-AlignedLabel'
+    'Format-AlignedLabel',
+    'Show-BootstrapLocationError'
 )
 
 #endregion

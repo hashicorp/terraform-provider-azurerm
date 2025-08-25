@@ -29,6 +29,7 @@ if [[ -t 1 ]] && command -v tput >/dev/null 2>&1; then
     export YELLOW='\033[1;33m'
     export BLUE='\033[0;34m'
     export CYAN='\033[0;36m'
+    export GRAY='\033[0;37m'
     export BOLD='\033[1m'
     export NC='\033[0m' # No Color
 else
@@ -38,13 +39,22 @@ else
     export YELLOW=''
     export BLUE=''
     export CYAN=''
+    export GRAY=''
     export BOLD=''
     export NC=''
 fi
 
-# Helper function to print colored separator line
+# Helper function to print colored separator line with customizable parameters
 print_separator() {
-    echo -e "${CYAN}============================================================${NC}"
+    local length="${1:-60}"
+    local color="${2:-${CYAN}}"
+    local character="${3:-=}"
+    
+    printf "${color}"
+    for ((i=1; i<=length; i++)); do
+        printf "${character}"
+    done
+    printf "${NC}\n"
 }
 
 # Function to display main application header
@@ -60,12 +70,43 @@ write_header() {
     echo ""
 }
 
+# Unified function for operation status messages (matches PowerShell Write-OperationStatus)
+write_operation_status() {
+    local message="$1"
+    local type="${2:-Info}"
+    
+    case "${type}" in
+        "Info"|"info")
+            echo -e "${CYAN}[INFO] ${message}${NC}"
+            ;;
+        "Success"|"success")
+            echo -e "${GREEN}[SUCCESS] ${message}${NC}"
+            ;;
+        "Warning"|"warning")
+            echo -e "${YELLOW}[WARNING] ${message}${NC}"
+            ;;
+        "Error"|"error")
+            echo -e "${RED}[ERROR] ${message}${NC}" >&2
+            ;;
+        "Progress"|"progress")
+            echo -e "${BLUE}[PROGRESS] ${message}${NC}"
+            ;;
+        *)
+            echo -e "${CYAN}[INFO] ${message}${NC}"
+            ;;
+    esac
+}
+
 # Function to display success message
 write_success() {
     local message="$1"
     local prefix="${2:-[SUCCESS]}"
     
-    echo -e "${GREEN}${prefix} ${message}${NC}"
+    if [[ "$prefix" == "[SUCCESS]" ]]; then
+        write_operation_status "$message" "Success"
+    else
+        echo -e "${GREEN}${prefix} ${message}${NC}"
+    fi
 }
 
 # Function to display warning message
@@ -73,7 +114,11 @@ write_warning() {
     local message="$1"
     local prefix="${2:-[WARNING]}"
     
-    echo -e "${YELLOW}${prefix} ${message}${NC}"
+    if [[ "$prefix" == "[WARNING]" ]]; then
+        write_operation_status "$message" "Warning"
+    else
+        echo -e "${YELLOW}${prefix} ${message}${NC}"
+    fi
 }
 
 # Function to display error message
@@ -81,7 +126,11 @@ write_error() {
     local message="$1"
     local prefix="${2:-[ERROR]}"
     
-    echo -e "${RED}${prefix} ${message}${NC}" >&2
+    if [[ "$prefix" == "[ERROR]" ]]; then
+        write_operation_status "$message" "Error"
+    else
+        echo -e "${RED}${prefix} ${message}${NC}" >&2
+    fi
 }
 
 # Function to display info message
@@ -89,7 +138,27 @@ write_info() {
     local message="$1"
     local prefix="${2:-[INFO]}"
     
-    echo -e "${BLUE}${prefix} ${message}${NC}"
+    if [[ "$prefix" == "[INFO]" ]]; then
+        write_operation_status "$message" "Info"
+    else
+        echo -e "${BLUE}${prefix} ${message}${NC}"
+    fi
+}
+
+# Unified message functions (matches PowerShell Write-WarningMessage, Write-ErrorMessage, etc.)
+write_warning_message() {
+    local message="$1"
+    echo -e "${YELLOW}[WARNING] ${message}${NC}"
+}
+
+write_error_message() {
+    local message="$1"
+    echo -e "${RED}[ERROR] ${message}${NC}" >&2
+}
+
+write_verbose_message() {
+    local message="$1"
+    echo -e "${BLUE}[VERBOSE] ${message}${NC}"
 }
 
 # Function to display section header
@@ -140,20 +209,37 @@ show_file_operation() {
 # Function to display error block with solutions
 show_error_block() {
     local issue="$1"
-    shift
-    local solutions=("$@")
+    local solutions_str="$2"
+    local example_usage="${3:-}"
+    local additional_info="${4:-}"
     
     echo ""
-    echo -e "${RED}${BOLD}ERROR DETAILS${NC}"
-    echo -e "${RED}=============${NC}"
-    echo -e "${RED}Issue:${NC} ${issue}"
+    echo -e "${RED}ISSUE:${NC}"
+    echo "  ${issue}"
     echo ""
-    echo -e "${YELLOW}${BOLD}Solutions:${NC}"
     
-    for i in "${!solutions[@]}"; do
-        echo -e "${YELLOW}  $((i+1)). ${solutions[i]}${NC}"
-    done
-    echo ""
+    if [[ -n "${solutions_str}" ]]; then
+        echo -e "${YELLOW}SOLUTIONS:${NC}"
+        # Split solutions by semicolon and display each
+        IFS=';' read -ra solutions_array <<< "${solutions_str}"
+        for solution in "${solutions_array[@]}"; do
+            solution="${solution# }"  # Remove leading space
+            echo "  • ${solution}"
+        done
+        echo ""
+    fi
+    
+    if [[ -n "${example_usage}" ]]; then
+        echo -e "${GREEN}EXAMPLE:${NC}"
+        echo "  ${example_usage}"
+        echo ""
+    fi
+    
+    if [[ -n "${additional_info}" ]]; then
+        echo -e "${CYAN}ADDITIONAL INFO:${NC}"
+        echo "  ${additional_info}"
+        echo ""
+    fi
 }
 
 # Function to show branch detection display (matches PowerShell output)
@@ -236,7 +322,8 @@ show_completion_summary() {
     local branch_type="${8:-feature}"
     
     echo ""
-    echo -e "${GREEN}${operation} completed successfully!${NC}"
+    echo -e "${GREEN}INSTALLATION COMPLETE${NC}"
+    print_separator 40 "${GREEN}" "="
     echo ""
     
     # Show branch information if provided
@@ -308,19 +395,29 @@ show_bootstrap_completion() {
     
     echo -e "${CYAN}NEXT STEPS:${NC}"
     echo ""
-    echo -e "  ${BOLD}1. Switch to your feature branch:${NC}"
-    echo -e "     ${YELLOW}git checkout feature/your-branch-name${NC}"
+    echo -e "  ${CYAN}1. Switch to your feature branch:${NC}"
+    echo -e "     ${GRAY}git checkout feature/your-branch-name${NC}"
     echo ""
-    echo -e "  ${BOLD}2. Run the installer from your user profile:${NC}"
+    echo -e "  ${CYAN}2. Run the installer from your user profile:${NC}"
+    echo -e "     ${GRAY}~/.terraform-ai-installer/install-copilot-setup.sh -repo-directory \"${repo_directory}\"${NC}"
     echo ""
-    echo -e "     ${BOLD}Windows (PowerShell):${NC}"
-    echo -e "     ${YELLOW}& \"\$env:USERPROFILE\\.terraform-ai-installer\\install-copilot-setup.ps1\" -RepoDirectory \"${repo_directory}\"${NC}"
+}
+
+# Function to show bootstrap location error (matches PowerShell Show-BootstrapLocationError)
+show_bootstrap_location_error() {
+    local current_location="$1"
+    local expected_location="$2"
+    
+    print_separator
     echo ""
-    echo -e "     ${BOLD}macOS/Linux (Bash):${NC}"
-    echo -e "     ${YELLOW}~/.terraform-ai-installer/install-copilot-setup.sh -repo-directory \"${repo_directory}\"${NC}"
+    write_operation_status "Bootstrap must be run from the source repository, not from user profile directory." "Error"
     echo ""
-    echo -e "  ${YELLOW}Note: Choose the installer for your platform. Both PowerShell and Bash components${NC}"
-    echo -e "        ${YELLOW}are available for maximum flexibility (e.g., VMs, containers, WSL).${NC}"
+    echo -e "${CYAN}CORRECT USAGE:${NC}"
+    echo -e "  ${GRAY}cd /path/to/terraform-provider-azurerm${NC}"
+    echo -e "  ${GRAY}./.github/AIinstaller/install-copilot-setup.sh -bootstrap${NC}"
+    echo ""
+    echo -e "${CYAN}CURRENT LOCATION: ${YELLOW}${current_location}${NC}"
+    echo -e "${CYAN}EXPECTED LOCATION: ${GREEN}${expected_location}${NC}"
     echo ""
 }
 
@@ -372,8 +469,9 @@ write_plain() {
 }
 
 # Export functions for use in other scripts
-export -f write_header write_success write_warning write_error write_info write_section write_plain
+export -f write_header write_operation_status write_success write_warning write_error write_info write_section write_plain
+export -f write_warning_message write_error_message write_verbose_message
 export -f show_completion show_file_operation show_error_block show_repository_info
 export -f prompt_confirmation show_completion_summary show_key_value show_divider show_usage
-export -f show_branch_detection show_path_info show_bootstrap_completion format_aligned_label
+export -f show_branch_detection show_path_info show_bootstrap_completion show_bootstrap_location_error format_aligned_label
 export -f format_aligned_label_spacing show_next_steps print_separator

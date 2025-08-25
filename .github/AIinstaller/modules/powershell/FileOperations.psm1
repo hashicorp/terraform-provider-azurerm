@@ -998,17 +998,7 @@ function Invoke-Bootstrap {
             Write-Host "     git checkout feature/your-branch-name" -ForegroundColor "White"
             Write-Host ""
             Write-Host "  2. Run the installer from your user profile:" -ForegroundColor "Cyan"
-            Write-Host ""
-            Write-Host "     Windows (PowerShell):" -ForegroundColor "Green"
             Write-Host "     & `"`$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1`" -RepoDirectory `"$($Global:WorkspaceRoot)`"" -ForegroundColor "White"
-            Write-Host ""
-            Write-Host "     macOS/Linux (Bash):" -ForegroundColor "Green"
-            Write-Host "     ~/.terraform-ai-installer/install-copilot-setup.sh -repo-directory `"$($Global:WorkspaceRoot)`"" -ForegroundColor "White"
-            Write-Host ""
-            Write-Host "  " -NoNewline
-            Write-Host "Note:" -ForegroundColor "Cyan" -NoNewline
-            Write-Host " Choose the installer for your platform. Both PowerShell and Bash components" -ForegroundColor "Yellow"
-            Write-Host "        are available for maximum flexibility (e.g., VMs, containers, WSL)." -ForegroundColor "Yellow"
             Write-Host ""
             
             return @{

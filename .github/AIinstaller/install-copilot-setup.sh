@@ -104,7 +104,7 @@ bootstrap_installer() {
         # Use configuration parser to get INSTALLER_FILES_BOOTSTRAP section
         bootstrap_files_list=$(get_manifest_files "INSTALLER_FILES_BOOTSTRAP" "${manifest_file}")
     else
-        write_error "Configuration file not found: ${manifest_file}"
+        write_error_message "Configuration file not found: ${manifest_file}"
         return 1
     fi
     
@@ -168,7 +168,7 @@ bootstrap_installer() {
         # Use the enhanced bootstrap completion function for consistent output
         show_bootstrap_completion "${files_copied}" "${total_size_kb} KB" "${user_profile}" "$(get_workspace_root)"
     else
-        write_error "Bootstrap failed with ${files_failed} file(s) failing to copy"
+        write_error_message "Bootstrap failed with ${files_failed} file(s) failing to copy"
         return 1
     fi
 }
@@ -185,7 +185,7 @@ clean_installation() {
     cleanup_files=($(get_files_for_cleanup "${workspace_root}"))
     
     if [[ ${#cleanup_files[@]} -eq 0 ]]; then
-        write_error "No files found in manifest to clean"
+        write_error_message "No files found in manifest to clean"
         return 1
     fi
     
@@ -197,15 +197,15 @@ clean_installation() {
     for file in "${files_to_remove[@]}"; do
         if [[ -e "${file}" ]]; then
             if [[ "${DRY_RUN}" == "true" ]]; then
-                write_info "[DRY-RUN] Would remove: ${file}"
+                write_operation_status "[DRY-RUN] Would remove: ${file}" "Info"
             else
                 rm -rf "${file}"
-                write_info "Removed: ${file}"
+                write_operation_status "Removed: ${file}" "Success"
             fi
         fi
     done
     
-    write_success "AI Infrastructure cleanup completed!"
+    show_completion "AI Infrastructure cleanup completed!"
 }
 
 # Parse command line arguments
@@ -241,7 +241,7 @@ parse_arguments() {
                 shift
                 ;;
             *)
-                write_error "Unknown option: $1"
+                write_error_message "Unknown option: $1"
                 show_usage
                 exit 1
                 ;;
@@ -289,18 +289,7 @@ main() {
         # Detect if running from user profile directory (incorrect)
         current_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
         if [[ "${current_dir}" == "${HOME}/.terraform-ai-installer" ]]; then
-            echo ""
-            print_separator
-            echo ""
-            write_error "Bootstrap must be run from the source repository, not from user profile directory."
-            echo ""
-            write_info "CORRECT USAGE:"
-            write_plain "  cd /path/to/terraform-provider-azurerm"
-            write_plain "  ./.github/AIinstaller/install-copilot-setup.sh -bootstrap"
-            echo ""
-            write_info "CURRENT LOCATION: ${current_dir}"
-            write_info "EXPECTED LOCATION: <repo>/.github/AIinstaller/"
-            echo ""
+            show_bootstrap_location_error "${current_dir}" "<repo>/.github/AIinstaller/"
             exit 1
         fi
         
@@ -320,7 +309,7 @@ main() {
             echo ""
             print_separator
             echo ""
-            write_error "Clean operation not available on source branch. This would remove development files."
+            write_error_message "Clean operation not available on source branch. This would remove development files."
             echo ""
             exit 1
         fi
@@ -333,7 +322,7 @@ main() {
     if [[ "${is_source_branch}" == "true" ]]; then
         print_separator
         echo ""
-        write_error "SAFETY CHECK FAILED: Cannot install to source repository directory"
+        write_error_message "SAFETY CHECK FAILED: Cannot install to source repository directory"
         echo ""
         write_plain "This appears to be the terraform-provider-azurerm source repository."
         write_plain "Installing here would overwrite your local changes with remote files."
