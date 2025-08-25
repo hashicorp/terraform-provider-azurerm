@@ -1,3 +1,23 @@
+## 4.42.0 (Unreleased)
+
+NOTES:
+
+* This release contains a state migration that fixes a resource state parsing error for `azurerm_kusto_cluster` when the `language_extensions` property is defined. Users upgrading from a version older than `4.0.0` should upgrade directly to this release.
+
+FEATURES:
+
+* **New Data Source:** `azurerm_managed_disks` [GH-30394]
+
+ENHANCEMENTS:
+
+* `azurerm_linux_virtual_machine` - add support for `os_managed_disk_id` property [GH-30394]
+* `azurerm_windows_virtual_machine` - add support for `os_managed_disk_id` property [GH-30394]
+
+BUG FIXES:
+
+* `azurerm_kusto_cluster` - add a state migration for `language_extensions` to migrate from a list of strings to a list of objects (block) [GH-30438]
+* `azurerm_kusto_cluster` - fix an issue where removal of the `language_extensions` property was not applied to the API request [GH-30449]
+
 ## 4.41.0 (August 21, 2025)
 
 FEATURES:
