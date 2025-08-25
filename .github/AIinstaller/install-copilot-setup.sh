@@ -176,36 +176,16 @@ bootstrap_installer() {
 # Function to clean installation
 clean_installation() {
     local workspace_root
-    workspace_root="$(get_workspace_root)"
+    if [[ -n "${REPO_DIRECTORY}" ]]; then
+        workspace_root="${REPO_DIRECTORY}"
+    else
+        workspace_root="$(get_workspace_root)"
+    fi
     
     write_section "Cleaning AI Infrastructure"
     
-    # Get all user-facing files from manifest sections
-    local cleanup_files
-    cleanup_files=($(get_files_for_cleanup "${workspace_root}"))
-    
-    if [[ ${#cleanup_files[@]} -eq 0 ]]; then
-        write_error_message "No files found in manifest to clean"
-        return 1
-    fi
-    
-    local files_to_remove=()
-    for file in "${cleanup_files[@]}"; do
-        files_to_remove+=("${workspace_root}/${file}")
-    done
-    
-    for file in "${files_to_remove[@]}"; do
-        if [[ -e "${file}" ]]; then
-            if [[ "${DRY_RUN}" == "true" ]]; then
-                write_operation_status "[DRY-RUN] Would remove: ${file}" "Info"
-            else
-                rm -rf "${file}"
-                write_operation_status "Removed: ${file}" "Success"
-            fi
-        fi
-    done
-    
-    show_completion "AI Infrastructure cleanup completed!"
+    # Use the fileoperations module function for cleanup
+    clean_infrastructure "${workspace_root}"
 }
 
 # Parse command line arguments

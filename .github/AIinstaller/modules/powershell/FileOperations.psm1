@@ -392,6 +392,25 @@ function Remove-AllAIFiles {
         $allFiles += $manifestConfig.Sections[$section]
     }
     
+    # Dynamically determine directories to check based on manifest file paths
+    $directoriesToCheck = @()
+    $uniqueDirectories = @{}
+    
+    foreach ($filePath in $allFiles) {
+        $directory = Split-Path $filePath -Parent
+        if ($directory -and -not $uniqueDirectories.ContainsKey($directory)) {
+            $uniqueDirectories[$directory] = $true
+            $directoriesToCheck += $directory
+        }
+    }
+    
+    # Sort directories for consistent processing order
+    $directoriesToCheck = $directoriesToCheck | Sort-Object
+    
+    # Calculate total work for accurate progress tracking
+    $totalWork = $allFiles.Count + $directoriesToCheck.Count
+    $workCompleted = 0
+    
     $results = @{
         TotalFiles = $allFiles.Count
         Removed = 0
@@ -405,14 +424,15 @@ function Remove-AllAIFiles {
         Issues = @()
     }
     
-    Write-ProgressMessage -Activity "Removing AI Infrastructure" -Status "Preparing..." -PercentComplete 0
+    Write-Host "Preparing to remove AI infrastructure..." -ForegroundColor Cyan
     
     # Remove files
     $fileIndex = 0
     foreach ($filePath in $allFiles) {
         $fileIndex++
-        $percentComplete = [math]::Round(($fileIndex / $allFiles.Count) * 50)
-        Write-ProgressMessage -Activity "Removing AI Infrastructure" -Status "Removing: $filePath" -PercentComplete $percentComplete
+        $workCompleted++
+        $percentComplete = [math]::Round(($workCompleted / $totalWork) * 100)
+        Write-Host "Removing files... $percentComplete% complete ($fileIndex/$($allFiles.Count))" -ForegroundColor Gray
         
         $fileResult = Remove-AIFile -FilePath $filePath -DryRun $DryRun -WorkspaceRoot $WorkspaceRoot
         $results.Files[$filePath] = $fileResult
@@ -434,15 +454,13 @@ function Remove-AllAIFiles {
     }
     
     # Remove empty directories
-    Write-ProgressMessage -Activity "Removing AI Infrastructure" -Status "Cleaning up directories..." -PercentComplete 75
-    
-    $directoriesToCheck = @(
-        ".github/instructions",
-        ".github/prompts",
-        ".vscode"
-    )
-    
+    $dirIndex = 0
     foreach ($dir in $directoriesToCheck) {
+        $dirIndex++
+        $workCompleted++
+        $percentComplete = [math]::Round(($workCompleted / $totalWork) * 100)
+        Write-Host "Cleaning up directories... $percentComplete% complete ($dirIndex/$($directoriesToCheck.Count))" -ForegroundColor Gray
+        
         # Resolve directory path relative to workspace root if provided
         $resolvedDirPath = if ($WorkspaceRoot -and -not [System.IO.Path]::IsPathRooted($dir)) {
             Join-Path $WorkspaceRoot $dir
@@ -490,7 +508,7 @@ function Remove-AllAIFiles {
         $results.Directories[$resolvedDirPath] = $dirResult
     }
     
-    Write-ProgressMessage -Activity "Removing AI Infrastructure" -Status "Completed"
+    Write-Host "Completed AI infrastructure removal." -ForegroundColor Green
     
     return $results
 }

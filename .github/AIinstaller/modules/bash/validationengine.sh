@@ -36,12 +36,6 @@ validate_repository() {
         echo "  - Example: --repo-directory '/Users/username/terraform-provider-azurerm'"
         exit 1
     fi
-    
-    if declare -f write_plain >/dev/null 2>&1; then
-        write_plain "Repository validated: ${repo_dir}"
-    else
-        echo "Repository validated: ${repo_dir}"
-    fi
 }
 
 # Function to test system requirements

@@ -242,7 +242,15 @@ get_temp_directory() {
 # Function to get all user-facing files for clean operations
 get_files_for_cleanup() {
     local workspace_root="${1:-$(pwd)}"
-    local manifest_file="${workspace_root}/.github/AIinstaller/file-manifest.config"
+    local manifest_file="${HOME}/.terraform-ai-installer/file-manifest.config"
+    
+    # The manifest file should only exist in the user's home directory
+    # The AIinstaller directory is not copied to feature branches
+    if [[ ! -f "${manifest_file}" ]]; then
+        write_error_message "Manifest file not found: ${manifest_file}"
+        write_error_message "Please run with -bootstrap first to set up the installer."
+        return 1
+    fi
     
     # Get files from all user-facing sections
     local sections=("MAIN_FILES" "INSTRUCTION_FILES" "PROMPT_FILES" "UNIVERSAL_FILES")

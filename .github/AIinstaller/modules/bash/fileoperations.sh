@@ -131,11 +131,7 @@ download_file() {
             return 0
         fi
     else
-        if declare -f write_error >/dev/null 2>&1; then
-            write_error "Neither curl nor wget is available for downloading files"
-        else
-            echo -e "\033[0;31m[ERROR]\033[0m Neither curl nor wget is available for downloading files"
-        fi
+        write_error_message "Neither curl nor wget is available for downloading files"
         return 1
     fi
     
@@ -347,29 +343,17 @@ export -f remove_path backup_file verify_file make_executable copy_files_with_st
 install_infrastructure() {
     local workspace_root="$1"
     
-    if declare -f write_section >/dev/null 2>&1; then
-        write_section "Installing AI Infrastructure"
-    else
-        echo "=== Installing AI Infrastructure ==="
-    fi
+    write_section "Installing AI Infrastructure"
     
     # Verify manifest file exists
     local manifest_file="${HOME}/.terraform-ai-installer/file-manifest.config"
     if [[ ! -f "${manifest_file}" ]]; then
-        if declare -f write_error >/dev/null 2>&1; then
-            write_error "Manifest file not found: ${manifest_file}"
-        else
-            echo -e "\033[0;31m[ERROR]\033[0m Manifest file not found: ${manifest_file}"
-        fi
+        write_error_message "Manifest file not found: ${manifest_file}"
         echo "Please run with --bootstrap first to set up the installer."
         return 1
     fi
     
-    if declare -f write_plain >/dev/null 2>&1; then
-        write_plain "Installing to workspace: ${workspace_root}"
-    else
-        echo "Installing to workspace: ${workspace_root}"
-    fi
+    echo "Installing to workspace: ${workspace_root}"
     
     # Get file lists from manifest
     local main_files instruction_files prompt_files universal_files
@@ -450,12 +434,76 @@ install_infrastructure() {
         download_file "${file}" "${target_path}" "${filename}"
     done
     
-    if declare -f write_success >/dev/null 2>&1; then
-        write_success "AI Infrastructure installation completed!"
-    else
-        echo -e "\033[0;32m[SUCCESS]\033[0m AI Infrastructure installation completed!"
-    fi
+    write_operation_status "AI Infrastructure installation completed!" "Success"
 }
 
-# Export the new function
+# Export the install_infrastructure function
 export -f install_infrastructure
+
+# Function to clean AI infrastructure files with empty directory cleanup
+clean_infrastructure() {
+    local workspace_root="$1"
+    
+    if [[ -z "${workspace_root}" ]]; then
+        write_error_message "Workspace root directory not specified"
+        return 1
+    fi
+    
+    # Get files from manifest
+    local cleanup_files
+    cleanup_files=($(get_files_for_cleanup "${workspace_root}"))
+    
+    if [[ ${#cleanup_files[@]} -eq 0 ]]; then
+        write_error_message "No files found in manifest to clean"
+        return 1
+    fi
+    
+    local files_to_remove=()
+    local directories_to_check=()
+    
+    # Prepare file and directory lists
+    for file in "${cleanup_files[@]}"; do
+        local full_path="${workspace_root}/${file}"
+        files_to_remove+=("${full_path}")
+        
+        # Add parent directory to list for empty directory cleanup
+        local parent_dir="$(dirname "${full_path}")"
+        if [[ "${parent_dir}" != "${workspace_root}" ]]; then
+            directories_to_check+=("${parent_dir}")
+        fi
+    done
+    
+    # Remove files
+    for file in "${files_to_remove[@]}"; do
+        if [[ -e "${file}" ]]; then
+            if [[ "${DRY_RUN}" == "true" ]]; then
+                write_operation_status "[DRY-RUN] Would remove: ${file}" "Info"
+            else
+                rm -rf "${file}"
+                write_operation_status "Removed: ${file}" "Success"
+            fi
+        fi
+    done
+    
+    # Remove empty parent directories (only if not in dry-run mode)
+    if [[ "${DRY_RUN}" != "true" ]]; then
+        # Sort directories by depth (deepest first) to remove from bottom up
+        local sorted_dirs=($(printf '%s\n' "${directories_to_check[@]}" | sort -u | sort -r))
+        
+        for dir in "${sorted_dirs[@]}"; do
+            # Only remove if directory exists and is empty
+            if [[ -d "${dir}" ]] && [[ -z "$(ls -A "${dir}" 2>/dev/null)" ]]; then
+                if rmdir "${dir}" 2>/dev/null; then
+                    write_operation_status "Removed empty directory: ${dir}" "Success"
+                fi
+            fi
+        done
+    fi
+    
+    echo ""
+    write_operation_status "AI Infrastructure cleanup completed!" "Success"
+    echo ""
+}
+
+# Export the clean_infrastructure function
+export -f clean_infrastructure
