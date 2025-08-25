@@ -180,7 +180,6 @@ func (a AutonomousDatabaseBackupDataSource) Read() sdk.ResourceFunc {
 			}
 
 			if props := resp.Properties; props != nil {
-
 				state.Id = pointer.From(resp.Id)
 				state.DisplayName = pointer.From(props.DisplayName)
 				state.RetentionPeriodInDays = pointer.From(props.RetentionPeriodInDays)
@@ -197,7 +196,6 @@ func (a AutonomousDatabaseBackupDataSource) Read() sdk.ResourceFunc {
 				state.TimeAvailableTil = pointer.From(props.TimeAvailableTil)
 				state.TimeEnded = pointer.From(props.TimeEnded)
 				state.TimeStarted = pointer.From(props.TimeStarted)
-
 			}
 
 			metadata.SetID(id)
