@@ -88,6 +88,11 @@ if ($RepoDirectory) {
     }
 }
 
+# Load configuration after WorkspaceRoot is finalized
+$manifestPath = Join-Path $Global:WorkspaceRoot ".github/AIinstaller/file-manifest.config"
+$Global:ManifestConfig = ConfigParser\Get-ManifestConfig -ManifestPath $manifestPath
+$Global:InstallerConfig = ConfigParser\Get-InstallerConfig -WorkspaceRoot $Global:WorkspaceRoot -ManifestConfig $Global:ManifestConfig
+
 # Import required modules from the script location (for bootstrapped installs)
 $ScriptDirectory = Split-Path $MyInvocation.MyCommand.Path -Parent
 $ModulesPath = Join-Path $ScriptDirectory "modules\powershell"
@@ -110,13 +115,6 @@ foreach ($module in $RequiredModules) {
         try {
             # Import module with explicit scope to ensure functions are available
             Import-Module $modulePath -Force -DisableNameChecking -Scope Global 4>$null
-            
-            # Load configuration immediately after ConfigParser import
-            if ($module -eq "ConfigParser") {
-                $manifestPath = Join-Path $Global:WorkspaceRoot ".github/AIinstaller/file-manifest.config"
-                $Global:ManifestConfig = ConfigParser\Get-ManifestConfig -ManifestPath $manifestPath
-                $Global:InstallerConfig = ConfigParser\Get-InstallerConfig -WorkspaceRoot $Global:WorkspaceRoot -ManifestConfig $Global:ManifestConfig
-            }
         }
         catch {
             Write-Host "ERROR: Failed to import module $module`: $_" -ForegroundColor Red

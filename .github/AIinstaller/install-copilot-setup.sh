@@ -267,7 +267,9 @@ main() {
     fi
     
     # Determine branch type early (like PowerShell version)
-    if is_source_repository "${workspace_root}"; then
+    # Compare against the actual source branch that contains AI infrastructure
+    local source_branch_name="exp/terraform_copilot"  # This is the actual source branch for AI infrastructure
+    if [[ "${current_branch}" == "${source_branch_name}" ]]; then
         branch_type="source"
         is_source_branch=true
     else
