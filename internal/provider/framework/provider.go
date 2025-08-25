@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	providerfunction "github.com/hashicorp/terraform-provider-azurerm/internal/provider/function"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk/frameworkhelpers"
@@ -161,9 +162,15 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 				Optional:    true,
 				Description: "Allow Managed Service Identity to be used for Authentication.",
 			},
+
 			"msi_endpoint": schema.StringAttribute{
 				Optional:    true,
-				Description: "The path to a custom endpoint for Managed Service Identity - in most circumstances this should be detected automatically. ",
+				Description: "The path to a custom endpoint for Managed Service Identity - in most circumstances this should be detected automatically.",
+			},
+
+			"msi_api_version": schema.StringAttribute{
+				Optional:    true,
+				Description: "The API version to use for Managed Service Identity (IMDS) - for cases where the default API version is not supported by the endpoint. e.g. for Azure Container Apps.",
 			},
 
 			// Azure CLI specific fields
@@ -369,9 +376,6 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 									"delete_os_disk_on_deletion": schema.BoolAttribute{
 										Optional: true,
 									},
-									"graceful_shutdown": schema.BoolAttribute{
-										Optional: true,
-									},
 									"skip_shutdown_and_force_delete": schema.BoolAttribute{
 										Optional: true,
 									},
@@ -491,10 +495,27 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 								},
 							},
 						},
+						"databricks_workspace": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"force_delete": schema.BoolAttribute{
+										Optional:    true,
+										Description: "When enabled, the managed resource group that contains the Unity Catalog data will be forcibly deleted when the workspace is destroyed, regardless of contents.",
+									},
+								},
+							},
+						},
 					},
 				},
 			},
 		},
+	}
+
+	if !features.FivePointOh() {
+		response.Schema.Blocks["features"].(schema.ListNestedBlock).NestedObject.Blocks["virtual_machine"].(schema.ListNestedBlock).NestedObject.Attributes["graceful_shutdown"] = schema.BoolAttribute{
+			Optional:           true,
+			DeprecationMessage: "'graceful_shutdown' has been deprecated and will be removed from v5.0 of the AzureRM provider.",
+		}
 	}
 }
 

@@ -67,8 +67,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Dedicated Host.
-* `update` - (Defaults to 30 minutes) Used when updating the Dedicated Host.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Dedicated Host.
+* `update` - (Defaults to 30 minutes) Used when updating the Dedicated Host.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Dedicated Host.
 
 ## Import
@@ -78,3 +78,9 @@ Dedicated Hosts can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_dedicated_host.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Compute/hostGroups/group1/hosts/host1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Compute` - 2024-03-01

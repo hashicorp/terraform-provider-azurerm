@@ -4,6 +4,7 @@
 package cdn
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -201,8 +202,20 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 
 			"delivery_rule": endpointDeliveryRule(),
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
+
+		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
+			if IsCdnFullyRetired() {
+				return fmt.Errorf("%s", FullyRetiredMessage)
+			}
+
+			if IsCdnDeprecatedForCreation() && d.HasChanges("name", "profile_name", "origin") {
+				return fmt.Errorf("%s", CreateDeprecationMessage)
+			}
+
+			return nil
+		}),
 	}
 }
 

@@ -67,6 +67,29 @@ func TestAccDatabricksWorkspaceDataSource_enhancedComplianceSecurity(t *testing.
 	})
 }
 
+func TestAccDatabricksWorkspaceDataSource_customParameters(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_databricks_workspace", "test")
+	r := DatabricksWorkspaceDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.customProperties(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				acceptance.TestMatchResourceAttr(data.ResourceName, "workspace_url", regexp.MustCompile("azuredatabricks.net")),
+				check.That(data.ResourceName).Key("workspace_id").Exists(),
+				check.That(data.ResourceName).Key("location").Exists(),
+				check.That(data.ResourceName).Key("custom_parameters.#").HasValue("1"),
+				check.That(data.ResourceName).Key("custom_parameters.0.no_public_ip").IsNotEmpty(),
+				check.That(data.ResourceName).Key("custom_parameters.0.private_subnet_name").IsNotEmpty(),
+				check.That(data.ResourceName).Key("custom_parameters.0.public_subnet_name").IsNotEmpty(),
+				check.That(data.ResourceName).Key("custom_parameters.0.storage_account_name").IsNotEmpty(),
+				check.That(data.ResourceName).Key("custom_parameters.0.storage_account_sku_name").IsNotEmpty(),
+				check.That(data.ResourceName).Key("custom_parameters.0.virtual_network_id").IsNotEmpty(),
+			),
+		},
+	})
+}
+
 func (DatabricksWorkspaceDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -247,4 +270,16 @@ data "azurerm_databricks_workspace" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
   `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (DatabricksWorkspaceDataSource) customProperties(data acceptance.TestData) string {
+	r := DatabricksWorkspaceResource{}
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_databricks_workspace" "test" {
+  name                = azurerm_databricks_workspace.test.name
+  resource_group_name = azurerm_resource_group.test.name
+}
+  `, r.complete(data))
 }

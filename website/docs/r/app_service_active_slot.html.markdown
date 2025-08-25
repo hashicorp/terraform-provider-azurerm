@@ -11,7 +11,7 @@ description: |-
 
 Promotes an App Service Slot to Production within an App Service.
 
-!> **NOTE:** This resource has been deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use [`azurerm_web_app_active_slot`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/web_app_active_slot) resource instead.
+!> **Note:** This resource has been deprecated in version 3.0 of the AzureRM provider and will be removed in version 4.0. Please use [`azurerm_web_app_active_slot`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/web_app_active_slot) resource instead.
 
 -> **Note:** When using Slots - the `app_settings`, `connection_string` and `site_config` blocks on the `azurerm_app_service` resource will be overwritten when promoting a Slot using the `azurerm_app_service_active_slot` resource.
 
@@ -60,6 +60,6 @@ The following arguments are supported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the App Service Active Slot.
-* `update` - (Defaults to 30 minutes) Used when updating the App Service Active Slot.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Service Active Slot.
+* `update` - (Defaults to 30 minutes) Used when updating the App Service Active Slot.
 * `delete` - (Defaults to 30 minutes) Used when deleting the App Service Active Slot.

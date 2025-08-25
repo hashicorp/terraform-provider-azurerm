@@ -152,7 +152,7 @@ func resourceAppServiceSlot() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			"site_credential": {
 				Type:     pluginsdk.TypeList,
