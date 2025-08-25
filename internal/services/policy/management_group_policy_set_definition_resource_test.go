@@ -128,6 +128,18 @@ func TestAccManagementGroupPolicySetDefinition_removeParameter(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.renameParameter(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basic(data),
 			ConfigPlanChecks: resource.ConfigPlanChecks{
 				PreApply: []plancheck.PlanCheck{
@@ -189,6 +201,59 @@ VALUES
   }
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r ManagementGroupPolicySetDefinitionResourceTest) renameParameter(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_management_group_policy_set_definition" "test" {
+  name                = "acctestpolset-%[2]d"
+  policy_type         = "Custom"
+  display_name        = "acctestpolset-%[2]d"
+  management_group_id = azurerm_management_group.test.id
+
+  parameters = <<PARAMETERS
+   {
+       "allowedLocations": {
+           "type": "Array",
+           "metadata": {
+               "description": "The list of allowed locations for resources.",
+               "displayName": "Allowed locations",
+               "strongType": "location"
+           }
+       },
+       "allowedResourcesTypes": {
+           "type": "Array",
+           "defaultValue": [
+                "Microsoft.Compute/virtualMachines"
+            ],
+           "metadata": {
+               "description": "The list of allowed resource types.",
+               "displayName": "Allowed resource types",
+               "strongType": "resourceType"
+           }
+       }
+   }
+PARAMETERS
+
+  policy_definition_reference {
+    policy_definition_id = azurerm_policy_definition.test.id
+    parameter_values     = <<VALUES
+   {
+     "allowedLocations": {"value": "[parameters('allowedLocations')]"}
+   }
+VALUES
+  }
+  policy_definition_reference {
+    policy_definition_id = "/providers/Microsoft.Authorization/policyDefinitions/a08ec900-254a-4555-9bf5-e42af04b5c5c"
+    parameter_values     = <<VALUES
+  {
+      "listOfResourceTypesAllowed": {"value": "[parameters('allowedResourcesTypes')]"}
+  }
+VALUES
+  }
+}`, r.template(data), data.RandomInteger)
 }
 
 func (r ManagementGroupPolicySetDefinitionResourceTest) additionalParameter(data acceptance.TestData) string {
