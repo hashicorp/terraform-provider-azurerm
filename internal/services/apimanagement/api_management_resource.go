@@ -1639,7 +1639,6 @@ func flattenApiManagementHostnameConfigurations(input *[]apimanagementservice.Ho
 			output["subject"] = config.Certificate.Subject
 		}
 
-		output["certificate_source"] = pointer.From(config.CertificateSource)
 		output["certificate_status"] = pointer.From(config.CertificateStatus)
 
 		var configType string
