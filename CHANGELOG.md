@@ -17,6 +17,7 @@ BUG FIXES:
 
 * `azurerm_kusto_cluster` - add a state migration for `language_extensions` to migrate from a list of strings to a list of objects (block) [GH-30438]
 * `azurerm_kusto_cluster` - fix an issue where removal of the `language_extensions` property was not applied to the API request [GH-30449]
+* `azurerm_linux_web_app` - normalize docker url [GH-30368]
 
 ## 4.41.0 (August 21, 2025)
 
