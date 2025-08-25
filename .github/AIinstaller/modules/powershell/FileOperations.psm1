@@ -410,11 +410,41 @@ function Remove-AllAIFiles {
     $directoriesToCheck = @()
     $uniqueDirectories = @{}
     
+    # Directories that should NEVER be removed (important repository infrastructure)
+    $protectedDirectories = @(
+        ".github",           # Main GitHub directory contains workflows, issue templates, etc.
+        "internal",          # Core provider code
+        "vendor",            # Go dependencies
+        "scripts",           # Build and maintenance scripts
+        "website",           # Documentation
+        "examples",          # Example configurations
+        "helpers"            # Helper utilities
+    )
+    
     foreach ($filePath in $allFiles) {
         $directory = Split-Path $filePath -Parent
         if ($directory -and -not $uniqueDirectories.ContainsKey($directory)) {
-            $uniqueDirectories[$directory] = $true
-            $directoriesToCheck += $directory
+            # Skip protected directories - we only clean up specific AI subdirectories
+            $isProtected = $false
+            
+            # Check if it's a hidden directory (starts with .) - these often contain user settings
+            $dirName = Split-Path $directory -Leaf
+            if ($dirName.StartsWith(".")) {
+                $isProtected = $true
+            } else {
+                # Check against explicit protected directories list
+                foreach ($protected in $protectedDirectories) {
+                    if ($directory -eq $protected) {
+                        $isProtected = $true
+                        break
+                    }
+                }
+            }
+            
+            if (-not $isProtected) {
+                $uniqueDirectories[$directory] = $true
+                $directoriesToCheck += $directory
+            }
         }
     }
     
@@ -424,6 +454,27 @@ function Remove-AllAIFiles {
     # Calculate total work for accurate progress tracking
     $totalWork = $allFiles.Count + $directoriesToCheck.Count
     $workCompleted = 0
+    
+    # Calculate the longest filename for perfect status alignment
+    $maxFileNameLength = 0
+    $maxDirNameLength = 0
+    
+    foreach ($filePath in $allFiles) {
+        $fileName = Split-Path $filePath -Leaf
+        if ($fileName.Length -gt $maxFileNameLength) {
+            $maxFileNameLength = $fileName.Length
+        }
+    }
+    
+    foreach ($dir in $directoriesToCheck) {
+        $dirName = Split-Path $dir -Leaf
+        if ($dirName.Length -gt $maxDirNameLength) {
+            $maxDirNameLength = $dirName.Length
+        }
+    }
+    
+    # Use the longer of the two for universal alignment
+    $maxNameLength = [math]::Max($maxFileNameLength, $maxDirNameLength)
     
     $results = @{
         TotalFiles = $allFiles.Count
@@ -438,7 +489,8 @@ function Remove-AllAIFiles {
         Issues = @()
     }
     
-    Write-Host "Preparing to remove AI infrastructure..." -ForegroundColor Cyan
+    Write-Host "Removing AI Infrastructure Files" -ForegroundColor Cyan
+    Write-Separator
     
     # Remove files
     $fileIndex = 0
@@ -446,7 +498,20 @@ function Remove-AllAIFiles {
         $fileIndex++
         $workCompleted++
         $percentComplete = [math]::Round(($workCompleted / $totalWork) * 100)
-        Write-Host "Removing files... $percentComplete% complete ($fileIndex/$($allFiles.Count))" -ForegroundColor Gray
+        
+        # Extract just the filename for cleaner display
+        $fileName = Split-Path $filePath -Leaf
+        
+        # Calculate padding needed to align status indicators
+        $fileNamePadding = " " * ($maxNameLength - $fileName.Length)
+        
+        # Pad "Removing File" to match "Removing Directory" length for perfect alignment
+        # Dynamic padding of "Complete" to align closing ] brackets (1-digit=2 spaces, 2-digit=1 space, 3-digit=0 spaces)
+        $completePadding = if ($percentComplete -lt 10) { "  " } elseif ($percentComplete -lt 100) { " " } else { "" }
+        Write-Host "  Removing File      " -ForegroundColor Cyan -NoNewline
+        Write-Host "[${percentComplete}% Complete${completePadding}]" -ForegroundColor Green -NoNewline
+        Write-Host ": " -ForegroundColor Cyan -NoNewline
+        Write-Host "$fileName$fileNamePadding " -ForegroundColor White -NoNewline
         
         $fileResult = Remove-AIFile -FilePath $filePath -DryRun $DryRun -WorkspaceRoot $WorkspaceRoot
         $results.Files[$filePath] = $fileResult
@@ -455,11 +520,21 @@ function Remove-AllAIFiles {
             "Removed" { 
                 $results.Removed++
                 $results.FilesRemoved++
+                Write-Host "[OK]" -ForegroundColor Green
             }
-            "Not Found" { $results.NotFound++ }
+            "Would Remove" {
+                $results.Removed++  # Count as success for dry run
+                $results.FilesRemoved++
+                Write-Host "[WOULD REMOVE]" -ForegroundColor Yellow
+            }
+            "Not Found" { 
+                $results.NotFound++
+                Write-Host "[NOT FOUND]" -ForegroundColor Yellow
+            }
             default { 
                 $results.Failed++
                 $results.Success = $false
+                Write-Host "[FAILED]" -ForegroundColor Red
                 if ($fileResult.Message) {
                     $results.Issues += "Failed to remove ${filePath}: $($fileResult.Message)"
                 }
@@ -473,7 +548,20 @@ function Remove-AllAIFiles {
         $dirIndex++
         $workCompleted++
         $percentComplete = [math]::Round(($workCompleted / $totalWork) * 100)
-        Write-Host "Cleaning up directories... $percentComplete% complete ($dirIndex/$($directoriesToCheck.Count))" -ForegroundColor Gray
+        
+        # Extract just the directory name for cleaner display
+        $dirName = Split-Path $dir -Leaf
+        
+        # Calculate padding needed to align status indicators (same as files)
+        $dirNamePadding = " " * ($maxNameLength - $dirName.Length)
+        
+        # "Removing Directory" is the longest operation name, so no padding needed
+        # Dynamic padding of "Complete" to align closing ] brackets (1-digit=2 spaces, 2-digit=1 space, 3-digit=0 spaces)
+        $completePadding = if ($percentComplete -lt 10) { "  " } elseif ($percentComplete -lt 100) { " " } else { "" }
+        Write-Host "  Removing Directory " -ForegroundColor Cyan -NoNewline
+        Write-Host "[${percentComplete}% Complete${completePadding}]" -ForegroundColor Green -NoNewline
+        Write-Host ": " -ForegroundColor Cyan -NoNewline
+        Write-Host "$dirName$dirNamePadding " -ForegroundColor White -NoNewline
         
         # Resolve directory path relative to workspace root if provided
         $resolvedDirPath = if ($WorkspaceRoot -and -not [System.IO.Path]::IsPathRooted($dir)) {
@@ -495,12 +583,14 @@ function Remove-AllAIFiles {
                 if ($DryRun) {
                     $dirResult.Action = "Would Remove"
                     $dirResult.Message = "Empty directory would be removed"
+                    Write-Host "[WOULD REMOVE]" -ForegroundColor Yellow
                 } else {
                     try {
                         Remove-Item -Path $resolvedDirPath -Force -ErrorAction Stop
                         $dirResult.Action = "Removed"
                         $dirResult.Message = "Empty directory removed"
                         $results.DirectoriesCleaned++
+                        Write-Host "[OK]" -ForegroundColor Green
                     }
                     catch {
                         $dirResult.Action = "Failed"
@@ -508,20 +598,24 @@ function Remove-AllAIFiles {
                         $dirResult.Message = "Failed to remove directory: $($_.Exception.Message)"
                         $results.Success = $false
                         $results.Issues += "Failed to remove directory ${resolvedDirPath}: $($_.Exception.Message)"
+                        Write-Host "[FAILED]" -ForegroundColor Red
                     }
                 }
             } else {
                 $dirResult.Action = "Not Empty"
                 $dirResult.Message = "Directory contains other files"
+                Write-Host "[NOT EMPTY]" -ForegroundColor Yellow
             }
         } else {
             $dirResult.Action = "Not Found"
             $dirResult.Message = "Directory does not exist"
+            Write-Host "[NOT FOUND]" -ForegroundColor Yellow
         }
         
         $results.Directories[$resolvedDirPath] = $dirResult
     }
     
+    Write-Host ""
     Write-Host "Completed AI infrastructure removal." -ForegroundColor Green
     
     return $results

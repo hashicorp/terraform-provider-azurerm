@@ -208,10 +208,13 @@ function Invoke-CleanWorkspace {
     # Ensure configuration is loaded for Remove-AllAIFiles
     Initialize-Configuration
     
-    Write-Section "Clean Workspace"
+    Write-Separator
+    Write-Host "Clean Workspace" -ForegroundColor Cyan
+    Write-Separator
+    Write-Host ""
     
     if ($DryRun) {
-        UI\Write-WarningMessage "DRY RUN - No files will be deleted"
+        Write-Host "DRY RUN - No files will be deleted" -ForegroundColor Yellow
         Write-Host ""
     }
     
@@ -230,16 +233,46 @@ function Invoke-CleanWorkspace {
             Show-Summary -Title "Clean Operation Results" -Details $details
         } else {
             Write-Host ""
-            UI\Write-WarningMessage "Clean operation encountered issues:"
-            foreach ($issue in $result.Issues) {
-                Write-Host "  - $issue" -ForegroundColor Red
+            
+            # Handle dry-run vs actual operation messaging differently
+            if ($DryRun) {
+                # For dry-run, show positive confirmation that files were verified
+                $dryRunIssues = $result.Issues | Where-Object { $_ -match "Dry run - no changes made" }
+                $actualIssues = $result.Issues | Where-Object { $_ -notmatch "Dry run - no changes made" }
+                
+                if ($dryRunIssues.Count -gt 0) {
+                    Write-Host "Dry run completed successfully - all $($dryRunIssues.Count) files verified and ready for removal" -ForegroundColor Green
+                    Write-Host ""
+                    Write-Host "Files that would be removed:" -ForegroundColor Cyan
+                    Write-Separator
+                    foreach ($issue in $dryRunIssues) {
+                        # Extract just the filename from the error message
+                        $fileName = ($issue -split ": Dry run")[0] -replace "Failed to remove ", ""
+                        Write-Host "  - $fileName" -ForegroundColor Gray
+                    }
+                }
+                
+                # Show any actual issues (non-dry-run related)
+                if ($actualIssues.Count -gt 0) {
+                    Write-Host ""
+                    Write-Host "Actual issues encountered:" -ForegroundColor Yellow
+                    foreach ($issue in $actualIssues) {
+                        Write-Host "  - $issue" -ForegroundColor Red
+                    }
+                }
+            } else {
+                # For actual operations, show the issues as errors
+                Write-Host "Clean operation encountered issues:" -ForegroundColor Yellow
+                foreach ($issue in $result.Issues) {
+                    Write-Host "  - $issue" -ForegroundColor Red
+                }
             }
         }
         
         return $result
     }
     catch {
-        UI\Write-ErrorMessage "Failed to clean workspace: $($_.Exception.Message)"
+        Write-Host "Failed to clean workspace: $($_.Exception.Message)" -ForegroundColor Red
         return @{ Success = $false; Issues = @($_.Exception.Message) }
     }
 }
@@ -250,10 +283,13 @@ function Invoke-InstallInfrastructure {
     # Ensure configuration is loaded for Remove-DeprecatedFiles and Install-AllAIFiles
     Initialize-Configuration
     
-    Write-Section "Installing AI Infrastructure"
+    Write-Separator
+    Write-Host "Installing AI Infrastructure" -ForegroundColor Cyan
+    Write-Separator
+    Write-Host ""
     
     if ($DryRun) {
-        UI\Write-WarningMessage "DRY RUN - No files will be created or removed"
+        Write-Host "DRY RUN - No files will be created or removed" -ForegroundColor Yellow
         Write-Host ""
     }
     

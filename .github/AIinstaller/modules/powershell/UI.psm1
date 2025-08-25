@@ -658,7 +658,7 @@ function Show-Summary {
     
     Write-Host ""
     Write-Host "SUMMARY: $Title" -ForegroundColor Cyan
-    Write-Host ("-" * 50) -ForegroundColor Gray
+    Write-Separator
     
     foreach ($key in $Details.Keys) {
         Write-Host "  $key`: $($Details[$key])" -ForegroundColor White
