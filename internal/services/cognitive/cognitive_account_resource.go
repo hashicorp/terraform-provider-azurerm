@@ -347,10 +347,8 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				if d.HasChange("customer_managed_key") && len(d.Get("customer_managed_key").([]interface{})) == 0 {
 					return fmt.Errorf("updating encryption mode from customer-managed keys to microsoft-managed keys is not supported when `project_management_enabled` is enabled")
 				}
-			} else {
-				if d.HasChange("project_management_enabled") {
-					return fmt.Errorf("once `project_management_enabled` is enabled, it cannot be disabled")
-				}
+			} else if d.HasChange("project_management_enabled") {
+				return fmt.Errorf("once `project_management_enabled` is enabled, it cannot be disabled")
 			}
 
 			if d.Get("dynamic_throttling_enabled").(bool) && utils.SliceContainsValue([]string{"OpenAI", "AIServices"}, kind) {
