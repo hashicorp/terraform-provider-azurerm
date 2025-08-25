@@ -21,23 +21,23 @@ type ResourceCommand struct {
 var _ cli.Command = &ResourceCommand{}
 
 type resourceData struct {
-	Name                     string   `hcl:"name"                   json:"name"`
-	ServicePackageName       string   `hcl:"service_package_name"   json:"service_package_name"`
-	RPName                   string   `hcl:"resource_provider_name" json:"rp_name"`
-	ClientName               string   `hcl:"client_name"            json:"client_name"`
-	Updatable                bool     `hcl:"updatable"              json:"updatable"`
-	UsesLROCRUD              bool     `hcl:"uses_lro_crud"          json:"uses_lro_crud"`
-	UseCreateOptions         bool     `hcl:"use_create_options"     json:"use_create_options"`
-	UseReadOptions           bool     `hcl:"use_read_options"       json:"use_read_options"`
-	UseUpdateOptions         bool     `hcl:"use_update_options"     json:"use_update_options"`
-	UseDeleteOptions         bool     `hcl:"use_delete_options"     json:"use_delete_options"`
-	ConfigValidators         bool     `hcl:"config_validators"      json:"config_validators"`
-	APIVersion               string   `hcl:"api_version"            json:"api_version"`
-	NoResourceGroup          bool     `hcl:"no_resource_group"      json:"no_resource_group"`
-	IdType                   string   `hcl:"id_type"                json:"id_type"`
-	IdTypeParts              []string `hcl:"id_type_parts"          json:"id_type_parts"`
-	SDKName                  string   `hcl:"sdk_name"               json:"sdk_name"`
-	IdSegments               string   `hcl:"id_segments"            json:"id_segments"`
+	Name                     string   `json:"name"                 hcl:"name"`
+	ServicePackageName       string   `json:"service_package_name" hcl:"service_package_name"`
+	RPName                   string   `json:"rp_name"              hcl:"resource_provider_name"`
+	ClientName               string   `json:"client_name"          hcl:"client_name"`
+	Updatable                bool     `json:"updatable"            hcl:"updatable"`
+	UsesLROCRUD              bool     `json:"uses_lro_crud"        hcl:"uses_lro_crud"`
+	UseCreateOptions         bool     `json:"use_create_options"   hcl:"use_create_options"`
+	UseReadOptions           bool     `json:"use_read_options"     hcl:"use_read_options"`
+	UseUpdateOptions         bool     `json:"use_update_options"   hcl:"use_update_options"`
+	UseDeleteOptions         bool     `json:"use_delete_options"   hcl:"use_delete_options"`
+	ConfigValidators         bool     `json:"config_validators"    hcl:"config_validators"`
+	APIVersion               string   `json:"api_version"          hcl:"api_version"`
+	NoResourceGroup          bool     `json:"no_resource_group"    hcl:"no_resource_group"`
+	IdType                   string   `json:"id_type"              hcl:"id_type"`
+	IdTypeParts              []string `json:"id_type_parts"        hcl:"id_type_parts"`
+	SDKName                  string   `json:"sdk_name"             hcl:"sdk_name"`
+	IdSegments               string   `json:"id_segments"          hcl:"id_segments"`
 	IDSegments               []string
 	ResourceIdentitySegments []string
 	SegmentCount             int
