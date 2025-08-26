@@ -370,6 +370,10 @@ function Main {
         # Step 4: Run centralized validation (replaces scattered Test-SourceRepository calls)
         $validation = Test-PreInstallation -AllowBootstrapOnSource:$Bootstrap
         $currentBranch = $validation.Git.CurrentBranch
+        # Handle empty or null branch names
+        if (-not $currentBranch -or $currentBranch.Trim() -eq "") {
+            $currentBranch = "unknown"
+        }
         $isSourceRepo = ($currentBranch -eq "exp/terraform_copilot")
         $branchType = if ($isSourceRepo) { "source" } else { 
             if ($currentBranch -eq "unknown") { "unknown" } else { "feature" }

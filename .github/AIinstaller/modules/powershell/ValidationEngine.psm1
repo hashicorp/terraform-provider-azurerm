@@ -190,7 +190,8 @@ function Test-GitRepository {
     Test if current directory is a valid git repository with branch safety checks
     #>
     param(
-        [bool]$AllowBootstrapOnSource = $false
+        [bool]$AllowBootstrapOnSource = $false,
+        [string]$WorkspacePath = ""
     )
     
     $results = @{
@@ -203,49 +204,64 @@ function Test-GitRepository {
     }
     
     try {
-        # Test if we're in a git repository
-        $null = git status --porcelain 2>$null
-        $results.IsGitRepo = $LASTEXITCODE -eq 0
+        # Save current location and switch to workspace if provided
+        $originalLocation = Get-Location
+        if ($WorkspacePath -and (Test-Path $WorkspacePath)) {
+            Set-Location $WorkspacePath
+        }
         
-        if ($results.IsGitRepo) {
-            # Get current branch
-            try {
-                $results.CurrentBranch = git branch --show-current 2>$null
-            }
-            catch {
-                $results.CurrentBranch = "unknown"
-            }
+        try {
+            # Test if we're in a git repository
+            $null = git status --porcelain 2>$null
+            $results.IsGitRepo = $LASTEXITCODE -eq 0
             
-            # Get remote URL
-            try {
-                $results.RemoteUrl = git remote get-url origin 2>$null
-                $results.HasRemote = $LASTEXITCODE -eq 0 -and $results.RemoteUrl
-            }
-            catch {
-                $results.HasRemote = $false
-            }
-            
-            # CRITICAL SAFETY CHECK: Prevent running on source branch (unless bootstrap)
-            $isSourceBranch = $results.CurrentBranch -eq "exp/terraform_copilot"
-            
-            $results.Valid = $results.IsGitRepo -and $results.HasRemote -and (-not $isSourceBranch -or $AllowBootstrapOnSource)
-            
-            if ($isSourceBranch -and -not $AllowBootstrapOnSource) {
-                $results.Reason = "SAFETY VIOLATION: Cannot run installer on source branch 'exp/terraform_copilot'. Switch to a different branch to install AI infrastructure."
-            }
-            elseif ($results.Valid) {
-                if ($isSourceBranch -and $AllowBootstrapOnSource) {
-                    $results.Reason = "Source branch - bootstrap operations allowed"
-                } else {
-                    $results.Reason = "Valid git repository with remote origin"
+            if ($results.IsGitRepo) {
+                # Get current branch
+                try {
+                    $results.CurrentBranch = git branch --show-current 2>$null
+                    if (-not $results.CurrentBranch -or $results.CurrentBranch.Trim() -eq "") {
+                        $results.CurrentBranch = "unknown"
+                    }
+                }
+                catch {
+                    $results.CurrentBranch = "unknown"
+                }
+                
+                # Get remote URL
+                try {
+                    $results.RemoteUrl = git remote get-url origin 2>$null
+                    $results.HasRemote = $LASTEXITCODE -eq 0 -and $results.RemoteUrl
+                }
+                catch {
+                    $results.HasRemote = $false
+                }
+                
+                # CRITICAL SAFETY CHECK: Prevent running on source branch (unless bootstrap)
+                $isSourceBranch = $results.CurrentBranch -eq "exp/terraform_copilot"
+                
+                $results.Valid = $results.IsGitRepo -and $results.HasRemote -and (-not $isSourceBranch -or $AllowBootstrapOnSource)
+                
+                if ($isSourceBranch -and -not $AllowBootstrapOnSource) {
+                    $results.Reason = "SAFETY VIOLATION: Cannot run installer on source branch 'exp/terraform_copilot'. Switch to a different branch to install AI infrastructure."
+                }
+                elseif ($results.Valid) {
+                    if ($isSourceBranch -and $AllowBootstrapOnSource) {
+                        $results.Reason = "Source branch - bootstrap operations allowed"
+                    } else {
+                        $results.Reason = "Valid git repository with remote origin"
+                    }
+                }
+                elseif (-not $results.HasRemote) {
+                    $results.Reason = "Git repository has no remote origin configured"
                 }
             }
-            elseif (-not $results.HasRemote) {
-                $results.Reason = "Git repository has no remote origin configured"
+            else {
+                $results.Reason = "Not a git repository"
             }
         }
-        else {
-            $results.Reason = "Not a git repository"
+        finally {
+            # Always restore original location
+            Set-Location $originalLocation
         }
     }
     catch {
@@ -374,7 +390,9 @@ function Test-PreInstallation {
     }
     
     # CRITICAL: Check Git first for branch safety
-    $results.Git = Test-GitRepository -AllowBootstrapOnSource $AllowBootstrapOnSource
+    # Use the workspace root for git operations if available
+    $gitPath = if ($Global:WorkspaceRoot) { $Global:WorkspaceRoot } else { (Get-Location).Path }
+    $results.Git = Test-GitRepository -AllowBootstrapOnSource $AllowBootstrapOnSource -WorkspacePath $gitPath
     
     # If Git validation fails due to branch safety, short-circuit other validations
     # This prevents running unnecessary tests when we know we can't proceed

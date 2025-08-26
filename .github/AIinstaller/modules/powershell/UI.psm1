@@ -85,8 +85,7 @@ function Show-BranchDetection {
     Display current branch detection with type-based formatting
     #>
     param(
-        [Parameter(Mandatory)]
-        [string]$BranchName,
+        [string]$BranchName = "unknown",
         
         [ValidateSet("source", "feature", "unknown")]
         [string]$BranchType = "unknown"
