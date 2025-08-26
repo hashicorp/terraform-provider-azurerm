@@ -349,10 +349,7 @@ function Main {
     Main entry point for the installer
     #>
     
-    # Simple parameter validation - if we got here, all parameters are valid
-    # PowerShell would have already errored out on invalid parameters before reaching this point
-    
-    try {
+     try {
         # Step 1: Initialize workspace and validate it's a proper terraform-provider-azurerm repo
         $Global:WorkspaceRoot = Get-WorkspaceRoot -RepoDirectory $RepoDirectory -ScriptDirectory $ScriptDirectory
         
@@ -417,39 +414,41 @@ function Main {
         $AutoApprove = ${Auto-Approve}
         $DryRun = ${Dry-Run}
         
+        # CONSISTENT PATTERN: Every operation gets the same header and branch detection
+        Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
+        Show-BranchDetection -BranchName $currentBranch -BranchType $branchType
+        
         # Simple parameter handling
         if ($Help) {
-            Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
-            Show-Help -BranchName $currentBranch -BranchType $branchType -SkipHeader:$true -WorkspaceValid $workspaceValidation.Valid -WorkspaceIssue $workspaceValidation.Reason
+            Write-Separator
+            Show-Help -BranchType $branchType -WorkspaceValid $workspaceValidation.Valid -WorkspaceIssue $workspaceValidation.Reason
             return
         }
         
         # For all other operations, workspace must be valid
         if (-not $workspaceValidation.Valid) {
+            Write-Separator
             Write-Host "WORKSPACE VALIDATION FAILED: $($workspaceValidation.Reason)" -ForegroundColor Red
             Write-Host "Please ensure you're running this script from within a terraform-provider-azurerm repository." -ForegroundColor Red
-            Write-Host "Use -Help for more information." -ForegroundColor Yellow
+            Write-Separator
+            Write-Host ""
+            
+            # Show help menu for guidance
+            Show-Help -BranchType $branchType -WorkspaceValid $false -WorkspaceIssue $workspaceValidation.Reason
             exit 1
         }
         
         if ($Verify) {
-            Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
-            Show-BranchDetection -BranchName $currentBranch -BranchType $branchType
             $result = Invoke-VerifyWorkspace
             return
         }
         
         if ($Bootstrap) {
-            Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
-            Show-BranchDetection -BranchName $currentBranch -BranchType $branchType
             $result = Invoke-Bootstrap -AutoApprove $AutoApprove -DryRun $DryRun
             return
         }
         
         if ($Clean) {
-            Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
-            Show-BranchDetection -BranchName $currentBranch -BranchType $branchType
-            
             # Safety check for source branch operations
             if ($RepoDirectory -and $currentBranch -eq "exp/terraform_copilot") {
                 Show-SafetyViolation -BranchName $currentBranch -Operation "Clean" -FromUserProfile
@@ -462,9 +461,6 @@ function Main {
         
         # Installation path (when -RepoDirectory is provided and not other specific operations)
         if ($RepoDirectory -and -not ($Help -or $Verify -or $Bootstrap -or $Clean)) {
-            Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
-            Show-BranchDetection -BranchName $currentBranch -BranchType $branchType
-            
             # Safety check for source branch operations
             if ($currentBranch -eq "exp/terraform_copilot") {
                 Show-SafetyViolation -BranchName $currentBranch -Operation "Install" -FromUserProfile
@@ -476,9 +472,9 @@ function Main {
             return
         }
         
-        # Default: show help
-        Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
-        Show-SourceBranchHelp -BranchName $currentBranch -WorkspacePath $Global:WorkspaceRoot
+        # Default: show source branch help and welcome
+        Write-Separator
+        Show-SourceBranchHelp
         Show-SourceBranchWelcome -BranchName $currentBranch
         
     }

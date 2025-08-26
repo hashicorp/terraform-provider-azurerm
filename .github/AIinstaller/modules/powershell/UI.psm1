@@ -147,24 +147,10 @@ function Show-Help {
     Display contextual help information based on branch type
     #>
     param(
-        [string]$BranchName = "",
         [string]$BranchType = "Unknown",
-        [switch]$SkipHeader,
         [bool]$WorkspaceValid = $true,
         [string]$WorkspaceIssue = ""
     )
-    
-    # Only show header if not already shown by caller
-    if (-not $SkipHeader) {
-        Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
-    }
-    
-    # Show current branch context if available
-    if ($BranchName) {
-        Show-BranchDetection -BranchName $BranchName -BranchType $BranchType
-        Write-Separator
-        Write-Host ""
-    }
     
     Write-Host "DESCRIPTION:" -ForegroundColor Cyan
     Write-Host "  Interactive installer for AI-assisted development infrastructure that enhances"
@@ -193,17 +179,6 @@ function Show-SourceBranchHelp {
     .SYNOPSIS
     Display help specific to source branch operations
     #>
-    param(
-        [string]$BranchName = "",
-        [string]$WorkspacePath = ""
-    )
-    
-    # Show branch and workspace context if provided
-    if ($BranchName) {
-        Show-BranchDetection -BranchName $BranchName -BranchType "source"
-        Write-Separator
-        Write-Host ""
-    }
     
     Write-Host "USAGE:" -ForegroundColor Cyan
     Write-Host "  .\install-copilot-setup.ps1 [OPTIONS]"
@@ -234,6 +209,7 @@ function Show-FeatureBranchHelp {
     .SYNOPSIS
     Display help specific to feature branch operations
     #>
+    
     Write-Host "USAGE:" -ForegroundColor Cyan
     Write-Host "  .\install-copilot-setup.ps1 [OPTIONS]"
     Write-Host ""
