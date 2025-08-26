@@ -250,7 +250,7 @@ function Install-AllAIFiles {
         }
     }
     
-    Write-ProgressMessage -Activity "Installing AI Infrastructure" -Status "Preparing..." -PercentComplete 0
+    Write-Progress -Activity "Installing AI Infrastructure" -Status "Preparing..." -PercentComplete 0
     
     $fileIndex = 0
     foreach ($filePath in $allFiles) {
@@ -270,7 +270,7 @@ function Install-AllAIFiles {
         }
         
         $percentComplete = [math]::Round(($fileIndex / $allFiles.Count) * 100)
-        Write-ProgressMessage -Activity "Installing AI Infrastructure" -Status "Processing: $filePath" -PercentComplete $percentComplete
+        Write-Progress -Activity "Installing AI Infrastructure" -Status "Processing: $filePath" -PercentComplete $percentComplete
         
         $fileResult = Install-AIFile -FilePath $filePath -DownloadUrl $downloadUrl -Force $Force -DryRun $DryRun -WorkspaceRoot $WorkspaceRoot
         $results.Files[$filePath] = $fileResult
@@ -285,13 +285,11 @@ function Install-AllAIFiles {
         }
     }
     
-    Write-ProgressMessage -Activity "Installing AI Infrastructure" -Status "Completed"
+    Write-Progress -Activity "Installing AI Infrastructure" -Status "Completed" -Completed
     
     # Show detailed debug summary
     $results.DebugInfo.EndTime = Get-Date
     $results.DebugInfo.TotalDuration = ($results.DebugInfo.EndTime - $results.DebugInfo.StartTime).TotalMilliseconds
-    
-    Write-ProgressMessage -Activity "Installing AI Infrastructure" -Status "Complete" -PercentComplete 100
     
     return $results
 }
