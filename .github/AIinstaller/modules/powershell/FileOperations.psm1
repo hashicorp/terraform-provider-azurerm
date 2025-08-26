@@ -61,12 +61,12 @@ function Install-AIFile {
     }
     
     try {
-        # Resolve the full file path using manifest-driven mapping
-        $resolvedFilePath = Get-FileLocalPath -FilePath $FilePath -WorkspaceRoot $WorkspaceRoot
+        # Resolve the full file path by joining workspace root with relative path
+        $resolvedFilePath = Join-Path $WorkspaceRoot $FilePath
         $result.DebugInfo.WorkspaceRoot = $WorkspaceRoot
         $result.DebugInfo.OriginalPath = $FilePath
         $result.DebugInfo.ResolvedPath = $resolvedFilePath
-        $result.DebugInfo.PathMethod = "Manifest-driven"
+        $result.DebugInfo.PathMethod = "Join-Path"
         
         # Update result with resolved path
         $result.FilePath = $resolvedFilePath
@@ -258,7 +258,7 @@ function Install-AllAIFiles {
         }
     }
     
-    Write-Progress -Activity "Installing AI Infrastructure" -Status "Preparing..." -PercentComplete 0
+    Write-Host "Preparing to install $($allFiles.Count) files..." -ForegroundColor Cyan
     
     $fileIndex = 0
     foreach ($filePath in $allFiles) {
@@ -278,7 +278,7 @@ function Install-AllAIFiles {
         }
         
         $percentComplete = [math]::Round(($fileIndex / $allFiles.Count) * 100)
-        Write-Progress -Activity "Installing AI Infrastructure" -Status "Processing: $filePath" -PercentComplete $percentComplete
+        Write-Host "[$percentComplete%] Downloading: $filePath" -ForegroundColor Yellow
         
         $fileResult = Install-AIFile -FilePath $filePath -DownloadUrl $downloadUrl -Force $Force -DryRun $DryRun -WorkspaceRoot $WorkspaceRoot
         $results.Files[$filePath] = $fileResult
@@ -293,7 +293,7 @@ function Install-AllAIFiles {
         }
     }
     
-    Write-Progress -Activity "Installing AI Infrastructure" -Status "Completed" -Completed
+    Write-Host "Installation completed!" -ForegroundColor Green
     
     # Show detailed debug summary
     $results.DebugInfo.EndTime = Get-Date
