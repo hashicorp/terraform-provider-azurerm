@@ -110,7 +110,11 @@ function Install-AIFile {
         $response = Invoke-WebRequest -Uri $DownloadUrl -UseBasicParsing -ErrorAction Stop
         $downloadEnd = Get-Date
         
-        $result.DebugInfo.DownloadDuration = ($downloadEnd - $downloadStart).TotalMilliseconds
+        if ($downloadEnd -and $downloadStart) {
+            $result.DebugInfo.DownloadDuration = ($downloadEnd - $downloadStart).TotalMilliseconds
+        } else {
+            $result.DebugInfo.DownloadDuration = 0
+        }
         $result.DebugInfo.ResponseSize = $response.Content.Length
         $result.DebugInfo.StatusCode = $response.StatusCode
         
@@ -160,7 +164,11 @@ function Install-AIFile {
     }
     
     $result.DebugInfo.EndTime = Get-Date
-    $result.DebugInfo.TotalDuration = ($result.DebugInfo.EndTime - $result.DebugInfo.StartTime).TotalMilliseconds
+    if ($result.DebugInfo.EndTime -and $result.DebugInfo.StartTime) {
+        $result.DebugInfo.TotalDuration = ($result.DebugInfo.EndTime - $result.DebugInfo.StartTime).TotalMilliseconds
+    } else {
+        $result.DebugInfo.TotalDuration = 0
+    }
     
     return $result
 }
@@ -289,7 +297,11 @@ function Install-AllAIFiles {
     
     # Show detailed debug summary
     $results.DebugInfo.EndTime = Get-Date
-    $results.DebugInfo.TotalDuration = ($results.DebugInfo.EndTime - $results.DebugInfo.StartTime).TotalMilliseconds
+    if ($results.DebugInfo.StartTime -and $results.DebugInfo.EndTime) {
+        $results.DebugInfo.TotalDuration = ($results.DebugInfo.EndTime - $results.DebugInfo.StartTime).TotalMilliseconds
+    } else {
+        $results.DebugInfo.TotalDuration = 0
+    }
     
     return $results
 }
