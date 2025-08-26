@@ -294,7 +294,9 @@ function Test-WorkspaceValid {
             # If not, search from the provided path
             $workspaceRoot = Find-WorkspaceRoot -StartPath $WorkspacePath
         }
-        $currentPath = Get-Item $WorkspacePath
+        # Use FullName property for DirectoryInfo objects from Get-Item
+        $itemResult = Get-Item $WorkspacePath
+        $currentPath = @{ Path = $itemResult.FullName }
     } else {
         $currentPath = Get-Location
         $workspaceRoot = Find-WorkspaceRoot -StartPath $currentPath.Path
@@ -309,13 +311,11 @@ function Test-WorkspaceValid {
         HasMainGo = $false
         Reason = ""
     }
-    
+
     if (-not $workspaceRoot) {
         $results.Reason = "Could not locate workspace root (no go.mod found in current path or parent directories)"
         return $results
-    }
-    
-    # Check for go.mod file in workspace root
+    }    # Check for go.mod file in workspace root
     $goModPath = Join-Path $workspaceRoot "go.mod"
     $results.HasGoMod = Test-Path $goModPath
     
