@@ -367,34 +367,52 @@ function Main {
         $Global:ManifestConfig = Get-ManifestConfig -ManifestPath $manifestPath
         $Global:InstallerConfig = Get-InstallerConfig -WorkspaceRoot $Global:WorkspaceRoot -ManifestConfig $Global:ManifestConfig
         
-        # Step 4: Run centralized validation (replaces scattered Test-SourceRepository calls)
-        $validation = Test-PreInstallation -AllowBootstrapOnSource:$Bootstrap
-        
-        # CRITICAL: Check validation results and exit immediately if unsafe
-        if (-not $validation.OverallValid) {
-            if ($validation.Git.Reason -like "*SAFETY VIOLATION*") {
-                Write-Host "SAFETY VIOLATION DETECTED" -ForegroundColor Red
+        # Step 4: Simple branch safety check for -RepoDirectory operations
+        if ($RepoDirectory) {
+            # Get current branch of the target repository
+            $originalLocation = Get-Location
+            try {
+                Set-Location $Global:WorkspaceRoot
+                $currentBranch = git branch --show-current 2>$null
+                if (-not $currentBranch -or $currentBranch.Trim() -eq "") {
+                    $currentBranch = "unknown"
+                }
+            }
+            catch {
+                $currentBranch = "unknown"
+            }
+            finally {
+                Set-Location $originalLocation
+            }
+            
+            # SAFETY CHECK: Block operations on source branch (except Verify, Help, and Bootstrap)
+            if ($currentBranch -eq "exp/terraform_copilot" -and -not ($Verify -or $Help -or $Bootstrap)) {
+                Write-Host "SAFETY VIOLATION: Cannot perform operations on source branch" -ForegroundColor Red
                 Write-Separator -Character "-" -Color Red
                 Write-Host ""
-                Write-Host $validation.Git.Reason -ForegroundColor Red
+                Write-Host "The -RepoDirectory points to the source branch 'exp/terraform_copilot'." -ForegroundColor Red
+                Write-Host "Operations other than -Verify, -Help, and -Bootstrap are not allowed on the source branch." -ForegroundColor Red
                 Write-Host ""
                 Write-Host "SOLUTION:" -ForegroundColor Yellow
-                Write-Host "Switch to a feature branch before running the installer:" -ForegroundColor White
+                Write-Host "Switch to a feature branch in your target repository:" -ForegroundColor White
                 Write-Host "  cd `"$Global:WorkspaceRoot`"" -ForegroundColor Gray
                 Write-Host "  git checkout -b feature/your-branch-name" -ForegroundColor Gray
                 Write-Host ""
                 exit 1
-            } else {
-                Write-Host "VALIDATION FAILED: $($validation.Git.Reason)" -ForegroundColor Red
-                exit 1
+            }
+        } else {
+            # Not using -RepoDirectory, get branch info from current location
+            try {
+                $currentBranch = git branch --show-current 2>$null
+                if (-not $currentBranch -or $currentBranch.Trim() -eq "") {
+                    $currentBranch = "unknown"
+                }
+            }
+            catch {
+                $currentBranch = "unknown"
             }
         }
         
-        $currentBranch = $validation.Git.CurrentBranch
-        # Handle empty or null branch names
-        if (-not $currentBranch -or $currentBranch.Trim() -eq "") {
-            $currentBranch = "unknown"
-        }
         $isSourceRepo = ($currentBranch -eq "exp/terraform_copilot")
         $branchType = if ($isSourceRepo) { "source" } else { 
             if ($currentBranch -eq "unknown") { "unknown" } else { "feature" }
