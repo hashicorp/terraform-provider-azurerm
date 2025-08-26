@@ -3399,6 +3399,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count   = 1
     vm_size      = "Standard_NC24ads_A100_v4"
     gpu_instance = "MIG1g"
+    gpu_driver   = "Install"
     upgrade_settings {
       max_surge = "10%%"
     }
