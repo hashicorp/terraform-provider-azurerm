@@ -283,6 +283,14 @@ function Install-AllAIFiles {
         $fileResult = Install-AIFile -FilePath $filePath -DownloadUrl $downloadUrl -Force $Force -DryRun $DryRun -WorkspaceRoot $WorkspaceRoot
         $results.Files[$filePath] = $fileResult
         
+        # Show error details if download failed
+        if (-not $fileResult.Success) {
+            Write-Host "   ERROR: $($fileResult.Message)" -ForegroundColor Red
+            if ($fileResult.DebugInfo.ExceptionMessage) {
+                Write-Host "   DETAILS: $($fileResult.DebugInfo.ExceptionMessage)" -ForegroundColor Red
+            }
+        }
+        
         switch ($fileResult.Action) {
             { $_ -in @("Downloaded", "Overwritten") } { $results.Successful++ }
             "Skipped" { $results.Skipped++ }
