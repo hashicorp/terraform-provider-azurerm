@@ -46,9 +46,9 @@ type sdkMethod struct {
 }
 
 var (
-	sdkRegex             = regexp.MustCompile(`github.com/hashicorp/go-azure-sdk/resource-manager`)
+	sdkRegex             = regexp.MustCompile(`github\.com/hashicorp/go-azure-sdk/resource-manager/.*$`)
 	sdkMethodSuffixRegex = regexp.MustCompile(`ThenPoll|Complete|CompleteMatchingPredicate`)
-	servicePackageRegex  = regexp.MustCompile(`github.com/hashicorp/terraform-provider-azurerm/internal/services/(\w*)$`)
+	servicePackageRegex  = regexp.MustCompile(`github\.com/hashicorp/terraform-provider-azurerm/internal/services/(\w*)$`)
 )
 
 // loadPackages - Loads all service packages
