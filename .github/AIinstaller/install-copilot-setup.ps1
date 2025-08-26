@@ -345,7 +345,32 @@ function Main {
     #>
     
      try {
-        # Step 1: Initialize workspace and validate it's a proper terraform-provider-azurerm repo
+        # Step 1: EARLY SAFETY CHECK - Fail fast if on source branch with RepoDirectory
+        if ($RepoDirectory) {
+            # Get current branch of the target repository quickly
+            $originalLocation = Get-Location
+            try {
+                Set-Location $RepoDirectory
+                $currentBranch = git branch --show-current 2>$null
+                if (-not $currentBranch -or $currentBranch.Trim() -eq "") {
+                    $currentBranch = "Unknown"
+                }
+            }
+            catch {
+                $currentBranch = "Unknown"
+            }
+            finally {
+                Set-Location $originalLocation
+            }
+            
+            # Block operations on source branch immediately
+            if ($currentBranch -eq "exp/terraform_copilot") {
+                Show-SafetyViolation -BranchName $currentBranch -Operation "Install" -FromUserProfile
+                exit 1
+            }
+        }
+        
+        # Step 2: Initialize workspace and validate it's a proper terraform-provider-azurerm repo
         $Global:WorkspaceRoot = Get-WorkspaceRoot -RepoDirectory $RepoDirectory -ScriptDirectory $ScriptDirectory
         
         # Step 2: Early workspace validation before doing anything else
@@ -441,25 +466,13 @@ function Main {
         }
         
         if ($Clean) {
-            # Safety check for source branch operations
-            if ($RepoDirectory -and $currentBranch -eq "exp/terraform_copilot") {
-                Show-SafetyViolation -BranchName $currentBranch -Operation "Clean" -FromUserProfile
-                exit 1
-            }
-            
             $result = Invoke-CleanWorkspace -AutoApprove $AutoApprove -DryRun $DryRun
             return
         }
         
         # Installation path (when -RepoDirectory is provided and not other specific operations)
         if ($RepoDirectory -and -not ($Help -or $Verify -or $Bootstrap -or $Clean)) {
-            # Safety check for source branch operations
-            if ($currentBranch -eq "exp/terraform_copilot") {
-                Show-SafetyViolation -BranchName $currentBranch -Operation "Install" -FromUserProfile
-                exit 1
-            }
-            
-            # Proceed with installation on validated branch
+            # Proceed with installation
             $result = Invoke-InstallInfrastructure -AutoApprove $AutoApprove -DryRun $DryRun
             return
         }

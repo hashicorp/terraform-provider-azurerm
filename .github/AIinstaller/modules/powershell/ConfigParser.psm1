@@ -52,7 +52,6 @@ function Get-ManifestConfig {
     }
     
     $manifest = @{
-        SourceBranch = $Branch
         BaseUrl = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm/exp/terraform_copilot"
         Sections = @{}
     }
@@ -103,26 +102,13 @@ function Get-InstallerConfig {
         [hashtable]$ManifestConfig
     )
     
-    # Determine if we're in source repository to get the correct branch
-    # Push the workspace root to global scope temporarily for Test-SourceRepository
-    $originalWorkspaceRoot = $Global:WorkspaceRoot
-    $Global:WorkspaceRoot = $WorkspaceRoot
-    
-    try {
-        $isSourceRepo = Test-SourceRepository
-        # Always use exp/terraform_copilot for downloads since that's where the AI files exist
-        # regardless of whether we're in source or target repository
-        $currentBranch = "exp/terraform_copilot"
-    }
-    finally {
-        # Restore original global workspace root
-        $Global:WorkspaceRoot = $originalWorkspaceRoot
-    }
+    # DOWNLOAD SOURCE: Always use exp/terraform_copilot branch because that's where the AI files exist
+    # DOWNLOAD TARGET: Copy files to the local workspace directory (regardless of local branch)
     
     return @{
         Version = "1.0.0"
-        Branch = $currentBranch
-        SourceRepository = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm"
+        Branch = "exp/terraform_copilot"
+        SourceRepository = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm/exp/terraform_copilot"
         Files = @{
             Instructions = @{
                 Source = ".github/copilot-instructions.md"
