@@ -755,13 +755,6 @@ function Invoke-Bootstrap {
         $targetDirectory = Join-Path $env:USERPROFILE ".terraform-ai-installer"
         if (-not (Test-Path $targetDirectory)) {
             New-Item -ItemType Directory -Path $targetDirectory -Force | Out-Null
-            Write-Host ""
-            Write-Host "PATH: " -ForegroundColor Cyan -NoNewline
-            Write-Host "$targetDirectory" -ForegroundColor Yellow
-        } else {
-            Write-Host ""
-            Write-Host "PATH: " -ForegroundColor Cyan -NoNewline
-            Write-Host "$targetDirectory" -ForegroundColor Yellow
         }
         
         # Files to bootstrap from configuration

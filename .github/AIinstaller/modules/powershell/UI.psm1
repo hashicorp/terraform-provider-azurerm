@@ -51,26 +51,32 @@ function Write-Header {
 function Format-AlignedLabel {
     <#
     .SYNOPSIS
-    Format a label with dynamic spacing to align with branch detection labels
+    Format a label with dynamic spacing to align with other labels
     .DESCRIPTION
-    Returns a complete formatted string "LABEL    : " that aligns perfectly with 
-    branch detection output like "SOURCE BRANCH DETECTED: "
+    Returns a formatted string with appropriate spacing to align labels in a list.
+    Calculates the required padding based on the longest label provided to ensure
+    consistent vertical alignment when displaying multiple label-value pairs.
+    
+    .PARAMETER Label
+    The label text to format (without decorative characters like colons)
+    
+    .PARAMETER LongestLabel
+    The longest label in the set (without decorative characters like colons or separators)
+    Used as the baseline for calculating alignment spacing
     #>
     param(
         [Parameter(Mandatory)]
         [string]$Label,
         
-        [string]$CurrentBranchType = "source"
+        [Parameter(Mandatory)]
+        [string]$LongestLabel
     )
     
-    # Base width calculation (longest possible branch detection label)
-    $maxBranchLabelWidth = 23  # "SOURCE BRANCH DETECTED" length
-    
-    # Calculate required spacing for alignment
-    $requiredWidth = $maxBranchLabelWidth - $Label.Length
+    # Calculate required spacing for alignment based on the actual longest label
+    $requiredWidth = $LongestLabel.Length - $Label.Length
     if ($requiredWidth -lt 1) { $requiredWidth = 1 }
     
-    return "$Label$(' ' * $requiredWidth): "
+    return "$Label$(' ' * $requiredWidth)"
 }
 
 function Show-BranchDetection {
@@ -88,20 +94,27 @@ function Show-BranchDetection {
     
     switch ($BranchType) {
         "source" {
-            Write-Host "SOURCE BRANCH DETECTED: $BranchName" -ForegroundColor Green
+            $branchLabel = "SOURCE BRANCH DETECTED"
+            Write-Host "${branchLabel}: " -NoNewline -ForegroundColor Cyan
+            Write-Host "$BranchName" -ForegroundColor Yellow
         }
         "feature" {
-            Write-Host "FEATURE BRANCH DETECTED: $BranchName" -ForegroundColor Blue
+            $branchLabel = "FEATURE BRANCH DETECTED"
+            Write-Host "${branchLabel}: " -NoNewline -ForegroundColor Cyan
+            Write-Host "$BranchName" -ForegroundColor Yellow
         }
         default {
-            Write-Host "BRANCH DETECTED: $BranchName" -ForegroundColor Yellow
+            $branchLabel = "BRANCH DETECTED"
+            Write-Host "${branchLabel}: " -NoNewline -ForegroundColor Cyan
+            Write-Host "$BranchName" -ForegroundColor Yellow
         }
     }
     
-    # Dynamic workspace label with proper alignment
+    # Dynamic workspace label with proper alignment and colors
     if ($Global:WorkspaceRoot) {
-        $formattedWorkspaceLabel = Format-AlignedLabel -Label "WORKSPACE" -CurrentBranchType $BranchType
-        Write-Host "$formattedWorkspaceLabel$Global:WorkspaceRoot" -ForegroundColor Gray
+        $formattedWorkspaceLabel = Format-AlignedLabel -Label "WORKSPACE" -LongestLabel $branchLabel
+        Write-Host "${formattedWorkspaceLabel}: " -NoNewline -ForegroundColor Cyan
+        Write-Host "$Global:WorkspaceRoot" -ForegroundColor Green
     }
 }
 
