@@ -205,9 +205,9 @@ function Get-WorkspaceRoot {
 function Invoke-CleanWorkspace {
     param([bool]$AutoApprove, [bool]$DryRun)
     
+    Write-Separator
     Write-Host "Clean Workspace" -ForegroundColor Cyan
     Write-Separator
-    Write-Host ""
     
     if ($DryRun) {
         Write-Host "DRY RUN - No files will be deleted" -ForegroundColor Yellow
@@ -386,20 +386,22 @@ function Main {
             }
             
             # SAFETY CHECK: Block operations on source branch (except Verify, Help, and Bootstrap)
-            if ($currentBranch -eq "exp/terraform_copilot" -and -not ($Verify -or $Help -or $Bootstrap)) {
-                Write-Host "SAFETY VIOLATION: Cannot perform operations on source branch" -ForegroundColor Red
-                Write-Separator -Character "-" -Color Red
-                Write-Host ""
-                Write-Host "The -RepoDirectory points to the source branch 'exp/terraform_copilot'." -ForegroundColor Red
-                Write-Host "Operations other than -Verify, -Help, and -Bootstrap are not allowed on the source branch." -ForegroundColor Red
-                Write-Host ""
-                Write-Host "SOLUTION:" -ForegroundColor Yellow
-                Write-Host "Switch to a feature branch in your target repository:" -ForegroundColor White
-                Write-Host "  cd `"$Global:WorkspaceRoot`"" -ForegroundColor Gray
-                Write-Host "  git checkout -b feature/your-branch-name" -ForegroundColor Gray
-                Write-Host ""
-                exit 1
-            }
+            # NOTE: This check is moved to individual operations that need it, not here
+            # if ($currentBranch -eq "exp/terraform_copilot" -and -not ($Verify -or $Help -or $Bootstrap)) {
+            # NOTE: This check is moved to individual operations that need it, not here
+            #     Write-Host "SAFETY VIOLATION: Cannot perform operations on source branch" -ForegroundColor Red
+            #     Write-Separator -Character "-" -Color Red
+            #     Write-Host ""
+            #     Write-Host "The -RepoDirectory points to the source branch 'exp/terraform_copilot'." -ForegroundColor Red
+            #     Write-Host "Operations other than -Verify, -Help, and -Bootstrap are not allowed on the source branch." -ForegroundColor Red
+            #     Write-Host ""
+            #     Write-Host "SOLUTION:" -ForegroundColor Yellow
+            #     Write-Host "Switch to a feature branch in your target repository:" -ForegroundColor White
+            #     Write-Host "  cd `"$Global:WorkspaceRoot`"" -ForegroundColor Gray
+            #     Write-Host "  git checkout -b feature/your-branch-name" -ForegroundColor Gray
+            #     Write-Host ""
+            #     exit 1
+            # }
         } else {
             # Not using -RepoDirectory, get branch info from current location
             try {
@@ -446,6 +448,28 @@ function Main {
         if ($Clean) {
             Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
             Show-BranchDetection -BranchName $currentBranch -BranchType $branchType
+            
+            # Safety check for source branch operations
+            if ($RepoDirectory -and $currentBranch -eq "exp/terraform_copilot") {
+                Write-Separator
+                Write-Host "SAFETY VIOLATION: Cannot perform operations on source branch" -ForegroundColor Red
+                Write-Separator
+                Write-Host ""
+                Write-Host "The -RepoDirectory points to the source branch 'exp/terraform_copilot'." -ForegroundColor Yellow
+                Write-Host "Operations other than -Verify, -Help, and -Bootstrap are not allowed on the source branch." -ForegroundColor Yellow
+                Write-Host ""
+                Write-Host "SOLUTION:" -ForegroundColor Cyan
+                Write-Host "Switch to a feature branch in your target repository:" -ForegroundColor White
+                Write-Host "  cd `"$Global:WorkspaceRoot`"" -ForegroundColor Gray
+                Write-Host "  git checkout -b feature/your-branch-name" -ForegroundColor Gray
+                Write-Host ""
+                Write-Host "Then run the installer from your user profile:" -ForegroundColor White
+                Write-Host "  cd `"$env:USERPROFILE\.terraform-ai-installer`"" -ForegroundColor Gray
+                Write-Host "  .\install-copilot-setup.ps1 -RepoDirectory `"$Global:WorkspaceRoot`"" -ForegroundColor Gray
+                Write-Host ""
+                exit 1
+            }
+            
             $result = Invoke-CleanWorkspace -AutoApprove $AutoApprove -DryRun $DryRun
             return
         }
@@ -455,7 +479,23 @@ function Main {
             Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
             Show-BranchDetection -BranchName $currentBranch -BranchType $branchType
             
-            # Safety check already handled by Test-PreInstallation above
+            # Safety check for source branch operations
+            if ($currentBranch -eq "exp/terraform_copilot") {
+                Write-Separator
+                Write-Host "SAFETY VIOLATION: Cannot perform operations on source branch" -ForegroundColor Red
+                Write-Separator
+                Write-Host ""
+                Write-Host "The -RepoDirectory points to the source branch 'exp/terraform_copilot'." -ForegroundColor Yellow
+                Write-Host "Operations other than -Verify, -Help, and -Bootstrap are not allowed on the source branch." -ForegroundColor Yellow
+                Write-Host ""
+                Write-Host "SOLUTION:" -ForegroundColor Cyan
+                Write-Host "Switch to a feature branch in your target repository:" -ForegroundColor White
+                Write-Host "  cd `"$Global:WorkspaceRoot`"" -ForegroundColor Gray
+                Write-Host "  git checkout -b feature/your-branch-name" -ForegroundColor Gray
+                Write-Host ""
+                exit 1
+            }
+            
             # Proceed with installation on validated branch
             $result = Invoke-InstallInfrastructure -AutoApprove $AutoApprove -DryRun $DryRun
             return
