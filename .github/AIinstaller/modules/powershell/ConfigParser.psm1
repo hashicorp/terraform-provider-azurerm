@@ -110,12 +110,9 @@ function Get-InstallerConfig {
     
     try {
         $isSourceRepo = Test-SourceRepository
-        $currentBranch = if ($isSourceRepo) { 
-            "exp/terraform_copilot" 
-        } else { 
-            # For target repositories, use main branch as the source
-            "main" 
-        }
+        # Always use exp/terraform_copilot for downloads since that's where the AI files exist
+        # regardless of whether we're in source or target repository
+        $currentBranch = "exp/terraform_copilot"
     }
     finally {
         # Restore original global workspace root
