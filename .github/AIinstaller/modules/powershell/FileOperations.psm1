@@ -521,12 +521,76 @@ function Remove-AllAIFiles {
         Issues = @()
     }
     
+    # Pre-scan: Check if any AI files actually exist
+    Write-Host "Scanning for AI infrastructure files..." -ForegroundColor Cyan
+    $existingFiles = @()
+    $existingDirectories = @()
+    
+    foreach ($filePath in $allFiles) {
+        $fullPath = Join-Path $WorkspaceRoot $filePath
+        if (Test-Path $fullPath) {
+            $existingFiles += $filePath
+        }
+    }
+    
+    foreach ($dirPath in $directoriesToCheck) {
+        $fullDirPath = Join-Path $WorkspaceRoot $dirPath
+        if (Test-Path $fullDirPath) {
+            $existingDirectories += $dirPath
+        }
+    }
+    
+    # If nothing exists, show clean message and exit early
+    if ($existingFiles.Count -eq 0 -and $existingDirectories.Count -eq 0) {
+        Write-Host ""
+        Write-Host "No AI infrastructure files found to remove." -ForegroundColor Green
+        Write-Host "Workspace is already clean!" -ForegroundColor Green
+        
+        return @{
+            Success = $true
+            Issues = @()
+            FilesRemoved = 0
+            DirectoriesCleaned = 0
+            TotalFiles = $allFiles.Count
+            Removed = 0
+            NotFound = $allFiles.Count
+            Failed = 0
+            Files = @{}
+            Directories = @{}
+            CleanWorkspace = $true
+        }
+    }
+    
+    # Show what was found
+    Write-Host "Found $($existingFiles.Count) AI files and $($existingDirectories.Count) directories to remove." -ForegroundColor Yellow
+    Write-Host ""
+    
     Write-Host "Removing AI Infrastructure Files" -ForegroundColor Cyan
     Write-Separator
     
-    # Remove files
+    # Remove files (only process existing ones)
     $fileIndex = 0
-    foreach ($filePath in $allFiles) {
+    $totalWork = $existingFiles.Count + $existingDirectories.Count
+    $workCompleted = 0
+    
+    # Calculate padding for clean display (only for existing files)
+    $maxNameLength = 0
+    foreach ($filePath in $existingFiles) {
+        $fileName = Split-Path $filePath -Leaf
+        if ($fileName.Length -gt $maxNameLength) {
+            $maxNameLength = $fileName.Length
+        }
+    }
+    
+    # Also check directory names for padding
+    foreach ($dirPath in $existingDirectories) {
+        $dirName = Split-Path $dirPath -Leaf
+        if ($dirName.Length -gt $maxNameLength) {
+            $maxNameLength = $dirName.Length
+        }
+    }
+    
+    foreach ($filePath in $existingFiles) {
         $fileIndex++
         $workCompleted++
         $percentComplete = [math]::Round(($workCompleted / $totalWork) * 100)
@@ -575,9 +639,9 @@ function Remove-AllAIFiles {
         }
     }
     
-    # Remove empty directories
+    # Remove empty directories (only process existing ones)
     $dirIndex = 0
-    foreach ($dir in $directoriesToCheck) {
+    foreach ($dir in $existingDirectories) {
         $dirIndex++
         $workCompleted++
         $percentComplete = [math]::Round(($workCompleted / $totalWork) * 100)
