@@ -145,7 +145,7 @@ func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 
         "location": commonschema.Location(),
 
-        "tags": tags.Schema(),
+        "tags": commonschema.Tags(),
     }
 }
 

@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
+
 
 echo "==> Validating and fixing documentation..."
 if ! go run ./internal/tools/document-fmt/main.go fix; then
