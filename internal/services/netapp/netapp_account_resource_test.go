@@ -186,6 +186,51 @@ func TestAccNetAppAccount_updateManagedIdentity(t *testing.T) {
 	})
 }
 
+func TestAccNetAppAccount_nfsv4IdDomain(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_account", "test")
+	r := NetAppAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.nfsv4IdDomainConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("nfsv4_id_domain").HasValue("example.com"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppAccount_nfsv4IdDomainUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_account", "test")
+	r := NetAppAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basicConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.nfsv4IdDomainConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("nfsv4_id_domain").HasValue("example.com"),
+			),
+		},
+		{
+			Config: r.nfsv4IdDomainUpdateConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("nfsv4_id_domain").HasValue("updated.example.com"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t NetAppAccountResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := netappaccounts.ParseNetAppAccountID(state.ID)
 	if err != nil {
@@ -347,4 +392,38 @@ resource "azurerm_resource_group" "test" {
 
 
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (NetAppAccountResource) nfsv4IdDomainConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_netapp_account" "test" {
+  name                = "acctest-NetAppAccount-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  nfsv4_id_domain     = "example.com"
+
+  tags = {
+    CreatedOnDate = "2022-07-08T23:50:21Z"
+  }
+}
+`, NetAppAccountResource{}.template(data), data.RandomInteger)
+}
+
+func (NetAppAccountResource) nfsv4IdDomainUpdateConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_netapp_account" "test" {
+  name                = "acctest-NetAppAccount-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  nfsv4_id_domain     = "updated.example.com"
+
+  tags = {
+    CreatedOnDate = "2022-07-08T23:50:21Z"
+  }
+}
+`, NetAppAccountResource{}.template(data), data.RandomInteger)
 }

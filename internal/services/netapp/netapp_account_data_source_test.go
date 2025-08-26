@@ -44,6 +44,22 @@ func TestAccDataSourceNetAppAccount_systemAssignedManagedIdentity(t *testing.T) 
 	})
 }
 
+func TestAccDataSourceNetAppAccount_nfsv4IdDomain(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_netapp_account", "test")
+	r := NetAppAccountDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.nfsv4IdDomainConfig(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("name").Exists(),
+				check.That(data.ResourceName).Key("nfsv4_id_domain").HasValue("example.com"),
+			),
+		},
+	})
+}
+
 func (r NetAppAccountDataSource) basicConfig(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -64,4 +80,15 @@ data "azurerm_netapp_account" "test" {
   name                = azurerm_netapp_account.test.name
 }
 `, NetAppAccountResource{}.systemAssignedManagedIdentity(data))
+}
+
+func (r NetAppAccountDataSource) nfsv4IdDomainConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_netapp_account" "test" {
+  resource_group_name = azurerm_netapp_account.test.resource_group_name
+  name                = azurerm_netapp_account.test.name
+}
+`, NetAppAccountResource{}.nfsv4IdDomainConfig(data))
 }

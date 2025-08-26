@@ -60,6 +60,13 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
 
+			"nfsv4_id_domain": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringIsNotEmpty,
+				Description:  "The NFSv4 ID domain for this NetApp Account.",
+			},
+
 			"active_directory": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -194,6 +201,10 @@ func resourceNetAppAccountCreate(d *pluginsdk.ResourceData, meta interface{}) er
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
+	if nfsv4IDDomain := d.Get("nfsv4_id_domain").(string); nfsv4IDDomain != "" {
+		accountParameters.Properties.NfsV4IDDomain = utils.String(nfsv4IDDomain)
+	}
+
 	activeDirectoryRaw := d.Get("active_directory")
 	if activeDirectoryRaw != nil {
 		activeDirectories := activeDirectoryRaw.([]interface{})
@@ -241,6 +252,12 @@ func resourceNetAppAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	update := netappaccounts.NetAppAccountPatch{
 		Properties: &netappaccounts.AccountProperties{},
+	}
+
+	if d.HasChange("nfsv4_id_domain") {
+		if nfsv4IDDomain := d.Get("nfsv4_id_domain").(string); nfsv4IDDomain != "" {
+			update.Properties.NfsV4IDDomain = utils.String(nfsv4IDDomain)
+		}
 	}
 
 	if d.HasChange("active_directory") {
@@ -295,6 +312,18 @@ func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if model := resp.Model; model != nil {
 		d.Set("location", azure.NormalizeLocation(model.Location))
+
+		if properties := model.Properties; properties != nil {
+			// Only set nfsv4_id_domain if user has configured it or if it's not the default
+			configuredDomain := d.Get("nfsv4_id_domain").(string)
+			if properties.NfsV4IDDomain != nil {
+				azureDomain := *properties.NfsV4IDDomain
+				// Set the value if user configured something or if Azure value is not the default
+				if configuredDomain != "" || azureDomain != "defaultv4iddomain.com" {
+					d.Set("nfsv4_id_domain", azureDomain)
+				}
+			}
+		}
 
 		if model.Identity != nil {
 			anfAccountIdentity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)

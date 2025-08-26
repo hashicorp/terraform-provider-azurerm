@@ -37,6 +37,8 @@ The following attributes are exported:
 
 * `location` - The Azure Region where the NetApp Account exists.
 
+* `nfsv4_id_domain` - The NFSv4.1 ID domain used for user and group name to UID and GID mappings.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
