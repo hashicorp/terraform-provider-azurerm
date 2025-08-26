@@ -660,8 +660,31 @@ function Show-Summary {
     Write-Host "SUMMARY: $Title" -ForegroundColor Cyan
     Write-Separator
     
-    foreach ($key in $Details.Keys) {
-        Write-Host "  $key`: $($Details[$key])" -ForegroundColor White
+    # Calculate perfect alignment like our main operation display
+    if ($Details.Keys.Count -gt 0) {
+        # Find the longest key name for perfect alignment
+        $maxKeyLength = ($Details.Keys | Measure-Object -Property Length -Maximum).Maximum
+        
+        # Display each detail with perfect alignment and beautiful colors
+        foreach ($key in $Details.Keys) {
+            $paddedKey = $key.PadRight($maxKeyLength)
+            Write-Host "  $paddedKey`: " -ForegroundColor Cyan -NoNewline
+            
+            # Special formatting for operation type - always highlight in yellow
+            if ($key -eq "Operation type") {
+                $value = $Details[$key]
+                if ($value -match '^(.+?)\s+(\(.+\))$') {
+                    # Format: "Operation mode (details)" - mode in yellow, details in cyan
+                    Write-Host "$($matches[1]) " -ForegroundColor Yellow -NoNewline
+                    Write-Host "$($matches[2])" -ForegroundColor Cyan
+                } else {
+                    # Single operation mode - all in yellow
+                    Write-Host "$value" -ForegroundColor Yellow
+                }
+            } else {
+                Write-Host "$($Details[$key])" -ForegroundColor Green
+            }
+        }
     }
     
     if ($Warnings.Count -gt 0) {

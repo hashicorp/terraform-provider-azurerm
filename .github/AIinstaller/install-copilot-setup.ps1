@@ -205,9 +205,6 @@ function Get-WorkspaceRoot {
 function Invoke-CleanWorkspace {
     param([bool]$AutoApprove, [bool]$DryRun)
     
-    # Ensure configuration is loaded for Remove-AllAIFiles
-    Initialize-Configuration
-    
     Write-Separator
     Write-Host "Clean Workspace" -ForegroundColor Cyan
     Write-Separator
@@ -280,9 +277,6 @@ function Invoke-CleanWorkspace {
 function Invoke-InstallInfrastructure {
     param([bool]$AutoApprove, [bool]$DryRun)
     
-    # Ensure configuration is loaded for Remove-DeprecatedFiles and Install-AllAIFiles
-    Initialize-Configuration
-    
     Write-Separator
     Write-Host "Installing AI Infrastructure" -ForegroundColor Cyan
     Write-Separator
@@ -324,10 +318,10 @@ function Invoke-InstallInfrastructure {
             $nextSteps += "Check the .github/instructions/ folder for detailed guidelines"
             
             # Get branch information for completion summary
-            $workspaceRoot = if ($RepoDirectory) { $RepoDirectory } else { $Global:WorkspaceRoot }
-            $currentBranch = Get-CurrentBranch -WorkspaceRoot $workspaceRoot
-            $isSourceRepo = Test-SourceRepository
-            $branchType = if ($isSourceRepo) { "source" } else { "feature" }
+            $currentBranch = $Global:InstallerConfig.Branch
+            $branchType = if (Test-SourceRepository) { "source" } else { 
+                if ($currentBranch -eq "unknown") { "unknown" } else { "feature" }
+            }
             
             Show-CompletionSummary -FilesInstalled $result.Successful -FilesSkipped $result.Skipped -FilesFailed $result.Failed -NextSteps $nextSteps -BranchName $currentBranch -BranchType $branchType
         } else {
@@ -349,12 +343,27 @@ function Main {
     #>
     
     try {
-        # Initialize workspace and configuration
+        # Step 1: Initialize workspace and validate it's a proper terraform-provider-azurerm repo
         $Global:WorkspaceRoot = Get-WorkspaceRoot -RepoDirectory $RepoDirectory -ScriptDirectory $ScriptDirectory
         
+        # Step 2: Early workspace validation before doing anything else
+        $workspaceValidation = Test-WorkspaceValid
+        if (-not $workspaceValidation.Valid) {
+            Write-Host "WORKSPACE VALIDATION FAILED: $($workspaceValidation.Reason)" -ForegroundColor Red
+            Write-Host "Please ensure you're running this script from within a terraform-provider-azurerm repository." -ForegroundColor Red
+            exit 1
+        }
+        
+        # Step 3: Initialize configuration (this sets up global branch info)
         $manifestPath = Join-Path $Global:WorkspaceRoot ".github/AIinstaller/file-manifest.config"
         $Global:ManifestConfig = Get-ManifestConfig -ManifestPath $manifestPath
         $Global:InstallerConfig = Get-InstallerConfig -WorkspaceRoot $Global:WorkspaceRoot -ManifestConfig $Global:ManifestConfig
+        
+        # Step 4: Get current branch state (now that configuration is initialized)
+        $currentBranch = $Global:InstallerConfig.Branch
+        $branchType = if (Test-SourceRepository) { "source" } else { 
+            if ($currentBranch -eq "unknown") { "unknown" } else { "feature" }
+        }
         
         # Convert hyphenated parameter names to camelCase variables
         $AutoApprove = ${Auto-Approve}
@@ -363,36 +372,36 @@ function Main {
         # Simple parameter handling
         if ($Help) {
             Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
-            Show-Help -BranchName $Global:InstallerConfig.Branch -BranchType "source" -SkipHeader:$true
+            Show-Help -BranchName $currentBranch -BranchType $branchType -SkipHeader:$true
             return
         }
         
         if ($Verify) {
             Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
-            Show-BranchDetection -BranchName $Global:InstallerConfig.Branch -BranchType "source"
+            Show-BranchDetection -BranchName $currentBranch -BranchType $branchType
             $result = Invoke-VerifyWorkspace
             return
         }
         
         if ($Bootstrap) {
             Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
-            Show-BranchDetection -BranchName $Global:InstallerConfig.Branch -BranchType "source"
+            Show-BranchDetection -BranchName $currentBranch -BranchType $branchType
             $result = Invoke-Bootstrap -AutoApprove $AutoApprove -DryRun $DryRun
             return
         }
         
         if ($Clean) {
             Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
-            Show-BranchDetection -BranchName $Global:InstallerConfig.Branch -BranchType "source"
+            Show-BranchDetection -BranchName $currentBranch -BranchType $branchType
             $result = Invoke-CleanWorkspace -AutoApprove $AutoApprove -DryRun $DryRun
             return
         }
         
         # Default: show help
         Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
-        Show-SourceBranchHelp -BranchName $Global:InstallerConfig.Branch -WorkspacePath $Global:WorkspaceRoot
+        Show-SourceBranchHelp -BranchName $currentBranch -WorkspacePath $Global:WorkspaceRoot
         Write-Host ""
-        Show-SourceBranchWelcome -BranchName $Global:InstallerConfig.Branch
+        Show-SourceBranchWelcome -BranchName $currentBranch
         
     }
     catch {

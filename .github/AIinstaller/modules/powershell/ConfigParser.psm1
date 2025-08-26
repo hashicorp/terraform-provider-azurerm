@@ -142,9 +142,16 @@ function Get-InstallerConfig {
         [hashtable]$ManifestConfig
     )
     
+    # Detect current branch dynamically
+    $currentBranch = Get-CurrentBranch -WorkspaceRoot $WorkspaceRoot
+    if ($currentBranch -eq "unknown") {
+        # Fallback to source branch if we can't detect current branch
+        $currentBranch = "exp/terraform_copilot"
+    }
+    
     return @{
         Version = "1.0.0"
-        Branch = "exp/terraform_copilot"
+        Branch = $currentBranch
         SourceRepository = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm"
         Files = @{
             Instructions = @{

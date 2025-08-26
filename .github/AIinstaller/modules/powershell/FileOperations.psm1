@@ -391,6 +391,32 @@ function Remove-AllAIFiles {
         [hashtable]$ManifestConfig = $null
     )
     
+    # CRITICAL SOURCE REPOSITORY PROTECTION: Prevent cleaning on source repository
+    $isSourceRepo = Test-SourceRepository
+    if ($isSourceRepo) {
+        $errorMessage = "SAFETY VIOLATION: Cannot run clean operation on source repository!"
+        Write-Host ""
+        Write-Host $errorMessage -ForegroundColor Red
+        Write-Host ""
+        Write-Host "The clean operation would delete the AI installer files themselves." -ForegroundColor Yellow
+        Write-Host "This appears to be the source repository (exp/terraform_copilot branch" -ForegroundColor Yellow
+        Write-Host "or contains the .github/AIinstaller directory)." -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "To clean a target repository:" -ForegroundColor Cyan
+        Write-Host "1. Switch to a feature branch" -ForegroundColor White
+        Write-Host "2. Or run this command on a cloned repository" -ForegroundColor White
+        Write-Host "3. Or use -RepoDirectory to specify target directory" -ForegroundColor White
+        Write-Host ""
+        
+        return @{
+            Success = $false
+            Issues = @($errorMessage)
+            FilesRemoved = 0
+            DirectoriesCleaned = 0
+            SourceRepoProtection = $true
+        }
+    }
+    
     # Use provided manifest configuration or get it directly
     if ($ManifestConfig) {
         $manifestConfig = $ManifestConfig
@@ -583,6 +609,7 @@ function Remove-AllAIFiles {
                 if ($DryRun) {
                     $dirResult.Action = "Would Remove"
                     $dirResult.Message = "Empty directory would be removed"
+                    $results.DirectoriesCleaned++  # Count would-be-removed directories in dry-run
                     Write-Host "[WOULD REMOVE]" -ForegroundColor Yellow
                 } else {
                     try {
