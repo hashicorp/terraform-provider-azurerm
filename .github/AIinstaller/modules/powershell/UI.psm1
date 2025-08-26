@@ -432,9 +432,20 @@ function Show-Summary {
     
     if ($Details.Count -gt 0) {
         Write-Host "DETAILS:" -ForegroundColor Cyan
+        
+        # Calculate the maximum key length for proper alignment
+        $maxKeyLength = 0
+        foreach ($key in $Details.Keys) {
+            if ($key.Length -gt $maxKeyLength) {
+                $maxKeyLength = $key.Length
+            }
+        }
+        
+        # Display each detail with aligned colons
         foreach ($key in $Details.Keys) {
             $value = $Details[$key]
-            Write-Host "  $key`: $value" -ForegroundColor White
+            $padding = " " * ($maxKeyLength - $key.Length)
+            Write-Host "  $key$padding : $value" -ForegroundColor White
         }
         Write-Host ""
     }
