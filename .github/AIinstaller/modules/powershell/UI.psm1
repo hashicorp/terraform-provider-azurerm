@@ -85,10 +85,10 @@ function Show-BranchDetection {
     Display current branch detection with type-based formatting
     #>
     param(
-        [string]$BranchName = "unknown",
+        [string]$BranchName = "Unknown",
         
-        [ValidateSet("source", "feature", "unknown")]
-        [string]$BranchType = "unknown"
+        [ValidateSet("source", "feature", "Unknown")]
+        [string]$BranchType = "Unknown"
     )
     
     switch ($BranchType) {
@@ -148,8 +148,10 @@ function Show-Help {
     #>
     param(
         [string]$BranchName = "",
-        [string]$BranchType = "unknown",
-        [switch]$SkipHeader
+        [string]$BranchType = "Unknown",
+        [switch]$SkipHeader,
+        [bool]$WorkspaceValid = $true,
+        [string]$WorkspaceIssue = ""
     )
     
     # Only show header if not already shown by caller
@@ -165,7 +167,7 @@ function Show-Help {
     }
     
     Write-Host "DESCRIPTION:" -ForegroundColor Cyan
-    Write-Host "  Interactive installer for AI-powered development infrastructure that enhances"
+    Write-Host "  Interactive installer for AI-assisted development infrastructure that enhances"
     Write-Host "  GitHub Copilot with Terraform-specific knowledge, patterns, and best practices."
     Write-Host ""
     
@@ -178,11 +180,10 @@ function Show-Help {
             Show-FeatureBranchHelp
         }
         default {
-            Show-UnknownBranchHelp
+            Show-UnknownBranchHelp -WorkspaceValid $WorkspaceValid -WorkspaceIssue $WorkspaceIssue
         }
     }
     
-    Write-Host ""
     Write-Host "For more information, visit: https://github.com/hashicorp/terraform-provider-azurerm" -ForegroundColor Cyan
     Write-Host ""
 }
@@ -200,6 +201,7 @@ function Show-SourceBranchHelp {
     # Show branch and workspace context if provided
     if ($BranchName) {
         Show-BranchDetection -BranchName $BranchName -BranchType "source"
+        Write-Separator
         Write-Host ""
     }
     
@@ -276,6 +278,24 @@ function Show-UnknownBranchHelp {
     .SYNOPSIS
     Display generic help when branch type cannot be determined
     #>
+    param(
+        [bool]$WorkspaceValid = $true,
+        [string]$WorkspaceIssue = ""
+    )
+    
+    # Show workspace issue if detected
+    if (-not $WorkspaceValid -and $WorkspaceIssue) {
+        Write-Host "WORKSPACE ISSUE DETECTED:" -ForegroundColor Cyan
+        Write-Host "  $WorkspaceIssue" -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "SOLUTION:" -ForegroundColor Cyan
+        Write-Host "  Navigate to a terraform-provider-azurerm repository, or use the -RepoDirectory parameter:"
+        Write-Host "    .\install-copilot-setup.ps1 -RepoDirectory `"C:\path\to\terraform-provider-azurerm`" -Help"
+        Write-Host ""
+        Write-Separator
+        Write-Host ""
+    }
+    
     Write-Host "USAGE:" -ForegroundColor Cyan
     Write-Host "  .\install-copilot-setup.ps1 [OPTIONS]"
     Write-Host ""
@@ -291,17 +311,17 @@ function Show-UnknownBranchHelp {
     Write-Host ""
     
     Write-Host "EXAMPLES:" -ForegroundColor Cyan
-    Write-Host "  Source branch operations:"
+    Write-Host "  Source Branch Operations:" -ForegroundColor DarkCyan
     Write-Host "    .\install-copilot-setup.ps1 -Bootstrap"
     Write-Host "    .\install-copilot-setup.ps1 -Verify"
     Write-Host ""
-    Write-Host "  Feature branch operations:"
+    Write-Host "  Feature Branch Operations:" -ForegroundColor DarkCyan
     Write-Host "    cd ~\.terraform-ai-installer\"
     Write-Host "    .\install-copilot-setup.ps1 -RepoDirectory `"C:\path\to\your\feature\branch`""
     Write-Host "    .\install-copilot-setup.ps1 -RepoDirectory `"C:\path\to\your\feature\branch`" -Clean"
     Write-Host ""
     
-    Write-Host "BRANCH DETECTION:" -ForegroundColor Yellow
+    Write-Host "BRANCH DETECTION:" -ForegroundColor Cyan
     Write-Host "  The installer automatically detects your branch type and shows appropriate options."
     Write-Host "  If branch detection fails, use the examples above as guidance."
     Write-Host ""
@@ -459,6 +479,32 @@ function Show-Summary {
     Write-Host ""
 }
 
+function Show-ParameterError {
+    <#
+    .SYNOPSIS
+    Display a friendly error message for invalid parameters
+    
+    .DESCRIPTION
+    Shows a clean error message when invalid parameters are detected,
+    followed by the help information.
+    #>
+    param(
+        [string]$ParameterName
+    )
+    
+    Write-Host ""
+    Write-Host "PARAMETER ERROR" -ForegroundColor Red
+    Write-Separator -Character "-" -Color Red
+    Write-Host ""
+    Write-Host "'$ParameterName' is not a recognized parameter." -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "Here are the available options:" -ForegroundColor Cyan
+    Write-Host ""
+    
+    # Show the standard help (minimal version)
+    Show-Help -BranchName "Unknown" -BranchType "Unknown" -SkipHeader:$true -WorkspaceValid $true
+}
+
 #endregion
 
 # Export only the functions actually used by the main script
@@ -475,5 +521,6 @@ Export-ModuleMember -Function @(
     'Show-InstallationResults',
     'Show-SourceBranchWelcome',
     'Show-CompletionSummary',
-    'Show-Summary'
+    'Show-Summary',
+    'Show-ParameterError'
 )

@@ -220,11 +220,11 @@ function Test-GitRepository {
                 try {
                     $results.CurrentBranch = git branch --show-current 2>$null
                     if (-not $results.CurrentBranch -or $results.CurrentBranch.Trim() -eq "") {
-                        $results.CurrentBranch = "unknown"
+                        $results.CurrentBranch = "Unknown"
                     }
                 }
                 catch {
-                    $results.CurrentBranch = "unknown"
+                    $results.CurrentBranch = "Unknown"
                 }
                 
                 # Get remote URL
@@ -490,7 +490,7 @@ function Invoke-VerifyWorkspace {
     - VS Code settings
     
     .PARAMETER BranchType
-    The type of branch (source, feature, unknown) for dynamic spacing calculation
+    The type of branch (source, feature, Unknown) for dynamic spacing calculation
     
     .OUTPUTS
     Returns verification results and displays status to console
@@ -500,7 +500,7 @@ function Invoke-VerifyWorkspace {
     behavior for source vs target repositories.
     #>
     param(
-        [ValidateSet("source", "feature", "unknown")]
+        [ValidateSet("source", "feature", "Unknown")]
         [string]$BranchType = "feature"
     )
     

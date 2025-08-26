@@ -4,7 +4,6 @@
 
 #requires -version 5.1
 
-[CmdletBinding()]
 param(
     [Parameter(HelpMessage = "Copy installer to user profile for feature branch use")]
     [switch]$Bootstrap,
@@ -155,14 +154,18 @@ if ($RepoDirectory) {
         if ((Test-Path $goModPath) -and (Test-Path $mainGoPath) -and (Test-Path $internalPath)) {
             $Global:WorkspaceRoot = $RepoDirectory
         } else {
+            Write-Host ""
             Write-Host "INVALID REPOSITORY: The specified directory does not appear to be a terraform-provider-azurerm repository." -ForegroundColor "Red"
             Write-Host "The -RepoDirectory parameter must point to a valid terraform-provider-azurerm repository root." -ForegroundColor "Red"
-            exit 1
+            # Clear RepoDirectory to show help instead of exiting
+            $RepoDirectory = ""
         }
     } else {
+        Write-Host ""
         Write-Host "DIRECTORY NOT FOUND: The specified RepoDirectory does not exist." -ForegroundColor "Red"
         Write-Host "The path '$RepoDirectory' could not be found on this system." -ForegroundColor "Red"
-        exit 1
+        # Clear RepoDirectory to show help instead of exiting
+        $RepoDirectory = ""
     }
 }
 
@@ -195,7 +198,9 @@ function Get-WorkspaceRoot {
         $currentPath = Split-Path $currentPath -Parent
     }
     
-    throw "Could not find terraform-provider-azurerm workspace root. Use -RepoDirectory parameter."
+    # If no workspace found, return the directory where the script was called from
+    # This allows help and other functions to work, with validation happening separately
+    return (Get-Location).Path
 }
 
 # ============================================================================
@@ -321,7 +326,7 @@ function Invoke-InstallInfrastructure {
             # Get branch information for completion summary
             $currentBranch = $Global:InstallerConfig.Branch
             $branchType = if (Test-SourceRepository) { "source" } else { 
-                if ($currentBranch -eq "unknown") { "unknown" } else { "feature" }
+                if ($currentBranch -eq "Unknown") { "Unknown" } else { "feature" }
             }
             
             Show-CompletionSummary -FilesInstalled $result.Successful -FilesSkipped $result.Skipped -FilesFailed $result.Failed -NextSteps $nextSteps -BranchName $currentBranch -BranchType $branchType
@@ -343,29 +348,34 @@ function Main {
     Main entry point for the installer
     #>
     
+    # Simple parameter validation - if we got here, all parameters are valid
+    # PowerShell would have already errored out on invalid parameters before reaching this point
+    
     try {
         # Step 1: Initialize workspace and validate it's a proper terraform-provider-azurerm repo
         $Global:WorkspaceRoot = Get-WorkspaceRoot -RepoDirectory $RepoDirectory -ScriptDirectory $ScriptDirectory
         
         # Step 2: Early workspace validation before doing anything else
         $workspaceValidation = Test-WorkspaceValid -WorkspacePath $Global:WorkspaceRoot
-        if (-not $workspaceValidation.Valid) {
-            Write-Host "WORKSPACE VALIDATION FAILED: $($workspaceValidation.Reason)" -ForegroundColor Red
-            Write-Host "Please ensure you're running this script from within a terraform-provider-azurerm repository." -ForegroundColor Red
-            exit 1
-        }
         
-        # Step 3: Initialize configuration (this sets up global branch info)
-        # CRITICAL: Manifest file should be in the installer directory, not the target repository
-        if ($RepoDirectory) {
-            # Running from user profile - manifest is in the installer directory (where this script is)
-            $manifestPath = Join-Path $ScriptDirectory "file-manifest.config"
+        # Initialize configuration based on workspace validity
+        if ($workspaceValidation.Valid) {
+            # Step 3: Initialize configuration (this sets up global branch info)
+            # CRITICAL: Manifest file should be in the installer directory, not the target repository
+            if ($RepoDirectory) {
+                # Running from user profile - manifest is in the installer directory (where this script is)
+                $manifestPath = Join-Path $ScriptDirectory "file-manifest.config"
+            } else {
+                # Running from source repository - manifest is in the repository's AIinstaller directory
+                $manifestPath = Join-Path $Global:WorkspaceRoot ".github/AIinstaller/file-manifest.config"
+            }
+            $Global:ManifestConfig = Get-ManifestConfig -ManifestPath $manifestPath
+            $Global:InstallerConfig = Get-InstallerConfig -WorkspaceRoot $Global:WorkspaceRoot -ManifestConfig $Global:ManifestConfig
         } else {
-            # Running from source repository - manifest is in the repository's AIinstaller directory
-            $manifestPath = Join-Path $Global:WorkspaceRoot ".github/AIinstaller/file-manifest.config"
+            # Invalid workspace - provide minimal configuration for help
+            $Global:InstallerConfig = @{ Version = "1.0.0" }
+            $Global:ManifestConfig = @{}
         }
-        $Global:ManifestConfig = Get-ManifestConfig -ManifestPath $manifestPath
-        $Global:InstallerConfig = Get-InstallerConfig -WorkspaceRoot $Global:WorkspaceRoot -ManifestConfig $Global:ManifestConfig
         
         # Step 4: Simple branch safety check for -RepoDirectory operations
         if ($RepoDirectory) {
@@ -375,11 +385,11 @@ function Main {
                 Set-Location $Global:WorkspaceRoot
                 $currentBranch = git branch --show-current 2>$null
                 if (-not $currentBranch -or $currentBranch.Trim() -eq "") {
-                    $currentBranch = "unknown"
+                    $currentBranch = "Unknown"
                 }
             }
             catch {
-                $currentBranch = "unknown"
+                $currentBranch = "Unknown"
             }
             finally {
                 Set-Location $originalLocation
@@ -407,17 +417,17 @@ function Main {
             try {
                 $currentBranch = git branch --show-current 2>$null
                 if (-not $currentBranch -or $currentBranch.Trim() -eq "") {
-                    $currentBranch = "unknown"
+                    $currentBranch = "Unknown"
                 }
             }
             catch {
-                $currentBranch = "unknown"
+                $currentBranch = "Unknown"
             }
         }
         
         $isSourceRepo = ($currentBranch -eq "exp/terraform_copilot")
         $branchType = if ($isSourceRepo) { "source" } else { 
-            if ($currentBranch -eq "unknown") { "unknown" } else { "feature" }
+            if ($currentBranch -eq "Unknown") { "Unknown" } else { "feature" }
         }
         
         # Convert hyphenated parameter names to camelCase variables
@@ -427,8 +437,16 @@ function Main {
         # Simple parameter handling
         if ($Help) {
             Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
-            Show-Help -BranchName $currentBranch -BranchType $branchType -SkipHeader:$true
+            Show-Help -BranchName $currentBranch -BranchType $branchType -SkipHeader:$true -WorkspaceValid $workspaceValidation.Valid -WorkspaceIssue $workspaceValidation.Reason
             return
+        }
+        
+        # For all other operations, workspace must be valid
+        if (-not $workspaceValidation.Valid) {
+            Write-Host "WORKSPACE VALIDATION FAILED: $($workspaceValidation.Reason)" -ForegroundColor Red
+            Write-Host "Please ensure you're running this script from within a terraform-provider-azurerm repository." -ForegroundColor Red
+            Write-Host "Use -Help for more information." -ForegroundColor Yellow
+            exit 1
         }
         
         if ($Verify) {
@@ -504,7 +522,6 @@ function Main {
         # Default: show help
         Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
         Show-SourceBranchHelp -BranchName $currentBranch -WorkspacePath $Global:WorkspaceRoot
-        Write-Host ""
         Show-SourceBranchWelcome -BranchName $currentBranch
         
     }
