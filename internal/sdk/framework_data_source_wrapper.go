@@ -49,7 +49,8 @@ func (d *FrameworkDataSourceWrapper) Read(ctx context.Context, request datasourc
 
 	config := d.FrameworkWrappedDataSource.ModelObject()
 
-	if ok := d.ResourceMetadata.DecodeDataSourceRead(ctx, request, response, config); !ok {
+	d.ResourceMetadata.DecodeDataSourceRead(ctx, request, response, config)
+	if response.Diagnostics.HasError() {
 		return
 	}
 

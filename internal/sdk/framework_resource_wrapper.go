@@ -54,7 +54,8 @@ func (r *FrameworkResourceWrapper) Create(ctx context.Context, request resource.
 	defer cancel()
 	model := r.FrameworkWrappedResource.ModelObject()
 
-	if ok := r.ResourceMetadata.DecodeCreate(ctx, request, response, model); !ok {
+	r.ResourceMetadata.DecodeCreate(ctx, request, response, model)
+	if response.Diagnostics.HasError() {
 		return
 	}
 
@@ -78,7 +79,9 @@ func (r *FrameworkResourceWrapper) Read(ctx context.Context, request resource.Re
 
 	state := r.FrameworkWrappedResource.ModelObject()
 
-	if ok := r.ResourceMetadata.DecodeRead(ctx, request, response, state); !ok {
+	r.ResourceMetadata.DecodeRead(ctx, request, response, state)
+
+	if response.Diagnostics.HasError() {
 		return
 	}
 
@@ -102,7 +105,8 @@ func (r *FrameworkResourceWrapper) Update(ctx context.Context, request resource.
 	plan := r.FrameworkWrappedResource.ModelObject()
 	state := r.FrameworkWrappedResource.ModelObject()
 
-	if ok := r.ResourceMetadata.DecodeUpdate(ctx, request, response, &plan, &state); !ok {
+	r.ResourceMetadata.DecodeUpdate(ctx, request, response, &plan, &state)
+	if response.Diagnostics.HasError() {
 		return
 	}
 
