@@ -202,7 +202,6 @@ function Show-SourceBranchHelp {
     # Show branch and workspace context if provided
     if ($BranchName) {
         Show-BranchDetection -BranchName $BranchName -BranchType "source"
-        Write-Separator
         Write-Host ""
     }
     
@@ -249,10 +248,10 @@ function Show-FeatureBranchHelp {
     Write-Host "  Install AI infrastructure:"
     Write-Host "    & `"~\.terraform-ai-installer\install-copilot-setup.ps1`" -RepoDirectory `"C:\path\to\repo`""
     Write-Host ""
-    Write-Host "  Dry run (preview changes):"
+    Write-Host "  Dry-Run (preview changes):"
     Write-Host "    & `"~\.terraform-ai-installer\install-copilot-setup.ps1`" -RepoDirectory `"C:\path\to\repo`" -Dry-Run"
     Write-Host ""
-    Write-Host "  Auto-approve installation:"
+    Write-Host "  Auto-Approve installation:"
     Write-Host "    & `"~\.terraform-ai-installer\install-copilot-setup.ps1`" -RepoDirectory `"C:\path\to\repo`" -Auto-Approve"
     Write-Host ""
     Write-Host "  Clean removal:"
@@ -335,7 +334,7 @@ function Show-SourceBranchWelcome {
         [string]$BranchName
     )
     
-    Write-Host "WELCOME TO AI-POWERED TERRAFORM DEVELOPMENT!" -ForegroundColor Green
+    Write-Host "WELCOME TO AI-ASSISTED AZURERM TERRAFORM DEVELOPMENT" -ForegroundColor Green
     Write-Host ""
     Write-Host "Use the contextual help system above to get started." -ForegroundColor Cyan
     Write-Host ""
