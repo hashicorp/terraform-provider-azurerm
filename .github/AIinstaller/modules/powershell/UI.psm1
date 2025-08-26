@@ -268,7 +268,7 @@ function Show-UnknownBranchHelp {
         Write-Host ""
         Write-Host "SOLUTION:" -ForegroundColor Cyan
         Write-Host "  Navigate to a terraform-provider-azurerm repository, or use the -RepoDirectory parameter:"
-        Write-Host "    .\install-copilot-setup.ps1 -RepoDirectory `"C:\path\to\terraform-provider-azurerm`" -Help"
+        Write-Host "  .\install-copilot-setup.ps1 -RepoDirectory `"C:\path\to\terraform-provider-azurerm`" -Help"
         Write-Host ""
         Write-Separator
         Write-Host ""

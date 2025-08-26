@@ -427,7 +427,6 @@ function Main {
             Write-Host "WORKSPACE VALIDATION FAILED: $($workspaceValidation.Reason)" -ForegroundColor Red
             Write-Host "Please ensure you're running this script from within a terraform-provider-azurerm repository." -ForegroundColor Red
             Write-Separator
-            Write-Host ""
             
             # Show help menu for guidance
             Show-Help -BranchType $branchType -WorkspaceValid $false -WorkspaceIssue $workspaceValidation.Reason
