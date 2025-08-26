@@ -308,7 +308,7 @@ function Invoke-InstallInfrastructure {
     
     # Use the FileOperations module to actually install files
     try {
-        $result = Install-AllAIFiles -Force:$AutoApprove -DryRun:$DryRun -WorkspaceRoot $Global:WorkspaceRoot
+        $result = Install-AllAIFiles -Force:$AutoApprove -DryRun:$DryRun -WorkspaceRoot $Global:WorkspaceRoot -ManifestConfig $Global:ManifestConfig
         
         if ($result.OverallSuccess) {
             # Use the superior completion summary function
