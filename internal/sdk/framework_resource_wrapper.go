@@ -187,8 +187,8 @@ func (r *FrameworkResourceWrapper) Configure(ctx context.Context, request resour
 	r.Defaults(request, response)
 
 	r.Model = r.ModelObject()
-	if _, ok := r.FrameworkWrappedResource.(FrameworkWrappedResourceWithConfigure); ok {
-		r.FrameworkWrappedResource.(FrameworkWrappedResourceWithConfigure).Configure(ctx, request, response, r.ResourceMetadata)
+	if f, ok := r.FrameworkWrappedResource.(FrameworkWrappedResourceWithConfigure); ok {
+		f.Configure(ctx, request, response, r.ResourceMetadata)
 	}
 }
 
@@ -207,16 +207,16 @@ func (r *FrameworkResourceWrapper) Resource() func() resource.Resource {
 }
 
 func (r *FrameworkResourceWrapper) ConfigValidators(ctx context.Context) []resource.ConfigValidator {
-	if _, ok := r.FrameworkWrappedResource.(FrameworkWrappedResourceWithConfigValidators); ok {
-		return r.FrameworkWrappedResource.(FrameworkWrappedResourceWithConfigValidators).ConfigValidators(ctx)
+	if f, ok := r.FrameworkWrappedResource.(FrameworkWrappedResourceWithConfigValidators); ok {
+		return f.ConfigValidators(ctx)
 	}
 
 	return nil
 }
 
 func (r *FrameworkResourceWrapper) ModifyPlan(ctx context.Context, request resource.ModifyPlanRequest, response *resource.ModifyPlanResponse) {
-	if _, ok := r.FrameworkWrappedResource.(FrameworkWrappedResourceWithPlanModifier); ok {
-		r.FrameworkWrappedResource.(FrameworkWrappedResourceWithPlanModifier).ModifyPlan(ctx, request, response, r.ResourceMetadata)
+	if f, ok := r.FrameworkWrappedResource.(FrameworkWrappedResourceWithPlanModifier); ok {
+		f.ModifyPlan(ctx, request, response, r.ResourceMetadata)
 	}
 }
 
