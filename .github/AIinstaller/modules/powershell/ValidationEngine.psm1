@@ -286,7 +286,14 @@ function Test-WorkspaceValid {
     
     # Smart workspace detection - use provided path or find from current location
     if ($WorkspacePath) {
-        $workspaceRoot = Find-WorkspaceRoot -StartPath $WorkspacePath
+        # When WorkspacePath is provided, check if it's already the workspace root
+        $goModInProvidedPath = Join-Path $WorkspacePath "go.mod"
+        if (Test-Path $goModInProvidedPath) {
+            $workspaceRoot = $WorkspacePath
+        } else {
+            # If not, search from the provided path
+            $workspaceRoot = Find-WorkspaceRoot -StartPath $WorkspacePath
+        }
         $currentPath = Get-Item $WorkspacePath
     } else {
         $currentPath = Get-Location
