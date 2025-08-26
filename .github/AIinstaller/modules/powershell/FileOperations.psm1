@@ -1,5 +1,5 @@
 # FileOperations Module for Terraform AzureRM Provider AI Setup
-# Handles file downloading, installation, removal, and management
+# STREAMLINED VERSION - Contains only functions actually used by main script
 
 #region Private Functions
 
@@ -27,59 +27,6 @@ function Assert-DirectoryExists {
     return $true
 }
 
-function Get-GitHubFileContent {
-    <#
-    .SYNOPSIS
-    Download file content from GitHub
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [string]$Url,
-        
-        [int]$TimeoutSeconds = 30
-    )
-    
-    try {
-        $response = Invoke-WebRequest -Uri $Url -UseBasicParsing -TimeoutSec $TimeoutSeconds
-        return @{
-            Success = $true
-            Content = $response.Content
-            Size = $response.Content.Length
-        }
-    }
-    catch {
-        return @{
-            Success = $false
-            Content = $null
-            Size = 0
-            ErrorMessage = $_.Exception.Message
-        }
-    }
-}
-
-function Get-FileHash {
-    <#
-    .SYNOPSIS
-    Get file hash for comparison
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [string]$FilePath
-    )
-    
-    if (Test-Path $FilePath) {
-        try {
-            $hash = Get-FileHash -Path $FilePath -Algorithm SHA256
-            return $hash.Hash
-        }
-        catch {
-            return $null
-        }
-    }
-    
-    return $null
-}
-
 #endregion
 
 #region Public Functions
@@ -100,9 +47,8 @@ function Install-AIFile {
         
         [bool]$DryRun = $false,
         
-        [string]$WorkspaceRoot = $null,
-        
-        [switch]$UseManifestPath
+        [Parameter(Mandatory)]
+        [string]$WorkspaceRoot
     )
     
     $result = @{
@@ -115,27 +61,12 @@ function Install-AIFile {
     }
     
     try {
-        # Resolve the full file path
-        if ($UseManifestPath -and $WorkspaceRoot) {
-            # Use manifest-driven path mapping
-            $resolvedFilePath = Get-FileLocalPath -FilePath $FilePath -WorkspaceRoot $WorkspaceRoot
-            $result.DebugInfo.WorkspaceRoot = $WorkspaceRoot
-            $result.DebugInfo.OriginalPath = $FilePath
-            $result.DebugInfo.ResolvedPath = $resolvedFilePath
-            $result.DebugInfo.PathMethod = "Manifest-driven"
-        } elseif ($WorkspaceRoot) {
-            # Legacy path resolution
-            $resolvedFilePath = Join-Path $WorkspaceRoot $FilePath
-            $result.DebugInfo.WorkspaceRoot = $WorkspaceRoot
-            $result.DebugInfo.OriginalPath = $FilePath
-            $result.DebugInfo.ResolvedPath = $resolvedFilePath
-            $result.DebugInfo.PathMethod = "Legacy"
-        } else {
-            $resolvedFilePath = $FilePath
-            $result.DebugInfo.WorkspaceRoot = "Not provided"
-            $result.DebugInfo.ResolvedPath = $resolvedFilePath
-            $result.DebugInfo.PathMethod = "Direct"
-        }
+        # Resolve the full file path using manifest-driven mapping
+        $resolvedFilePath = Get-FileLocalPath -FilePath $FilePath -WorkspaceRoot $WorkspaceRoot
+        $result.DebugInfo.WorkspaceRoot = $WorkspaceRoot
+        $result.DebugInfo.OriginalPath = $FilePath
+        $result.DebugInfo.ResolvedPath = $resolvedFilePath
+        $result.DebugInfo.PathMethod = "Manifest-driven"
         
         # Update result with resolved path
         $result.FilePath = $resolvedFilePath
@@ -247,6 +178,49 @@ function Install-AllAIFiles {
         [hashtable]$ManifestConfig = $null
     )
     
+    # CRITICAL: Use centralized pre-installation validation (replaces scattered safety checks)
+    Write-Host "Validating installation prerequisites..." -ForegroundColor Cyan
+    $validation = Test-PreInstallation -AllowBootstrapOnSource:$false
+    
+    if (-not $validation.OverallValid) {
+        Write-Host ""
+        Write-Host "Pre-installation validation failed!" -ForegroundColor Red
+        Write-Host ""
+        
+        # Show specific validation failures
+        if (-not $validation.Git.Valid) {
+            Write-Host "   Git Issue: $($validation.Git.Reason)" -ForegroundColor Yellow
+        }
+        if (-not $validation.Workspace.Valid -and -not $validation.Workspace.Skipped) {
+            Write-Host "   Workspace Issue: $($validation.Workspace.Reason)" -ForegroundColor Yellow
+        }
+        if (-not $validation.SystemRequirements.OverallValid) {
+            Write-Host "   System Issue: Missing requirements detected" -ForegroundColor Yellow
+        }
+        
+        Write-Host ""
+        Write-Host "Fix these issues and try again." -ForegroundColor Cyan
+        
+        return @{
+            TotalFiles = 0
+            Successful = 0
+            Failed = 0
+            Skipped = 0
+            Files = @{}
+            OverallSuccess = $false
+            ValidationFailed = $true
+            ValidationResults = $validation
+            DebugInfo = @{
+                StartTime = Get-Date
+                Branch = $Branch
+                FailureReason = "Pre-installation validation failed"
+            }
+        }
+    }
+    
+    Write-Host "All prerequisites validated successfully!" -ForegroundColor Green
+    Write-Host ""
+    
     # Use provided manifest configuration or get it directly
     if ($ManifestConfig) {
         $manifestConfig = $ManifestConfig
@@ -298,7 +272,7 @@ function Install-AllAIFiles {
         $percentComplete = [math]::Round(($fileIndex / $allFiles.Count) * 100)
         Write-ProgressMessage -Activity "Installing AI Infrastructure" -Status "Processing: $filePath" -PercentComplete $percentComplete
         
-        $fileResult = Install-AIFile -FilePath $filePath -DownloadUrl $downloadUrl -Force $Force -DryRun $DryRun -WorkspaceRoot $WorkspaceRoot -UseManifestPath
+        $fileResult = Install-AIFile -FilePath $filePath -DownloadUrl $downloadUrl -Force $Force -DryRun $DryRun -WorkspaceRoot $WorkspaceRoot
         $results.Files[$filePath] = $fileResult
         
         switch ($fileResult.Action) {
@@ -391,22 +365,27 @@ function Remove-AllAIFiles {
         [hashtable]$ManifestConfig = $null
     )
     
-    # CRITICAL SOURCE REPOSITORY PROTECTION: Prevent cleaning on source repository
-    $isSourceRepo = Test-SourceRepository
-    if ($isSourceRepo) {
-        $errorMessage = "SAFETY VIOLATION: Cannot run clean operation on source repository!"
+    # CRITICAL: Use centralized pre-installation validation for source repository protection
+    Write-Host "Validating cleanup prerequisites..." -ForegroundColor Cyan
+    $validation = Test-PreInstallation -AllowBootstrapOnSource:$false
+    
+    if (-not $validation.OverallValid) {
+        $errorMessage = if ($validation.Git.Reason -like "*SAFETY VIOLATION*") {
+            "SAFETY VIOLATION: Cannot run clean operation on source repository!"
+        } else {
+            "Pre-cleanup validation failed!"
+        }
+        
         Write-Host ""
-        Write-Host $errorMessage -ForegroundColor Red
+        Write-Host "$errorMessage" -ForegroundColor Red
         Write-Host ""
-        Write-Host "The clean operation would delete the AI installer files themselves." -ForegroundColor Yellow
-        Write-Host "This appears to be the source repository (exp/terraform_copilot branch" -ForegroundColor Yellow
-        Write-Host "or contains the .github/AIinstaller directory)." -ForegroundColor Yellow
+        Write-Host "   Reason: $($validation.Git.Reason)" -ForegroundColor Yellow
         Write-Host ""
-        Write-Host "To clean a target repository:" -ForegroundColor Cyan
-        Write-Host "1. Switch to a feature branch" -ForegroundColor White
-        Write-Host "2. Or run this command on a cloned repository" -ForegroundColor White
-        Write-Host "3. Or use -RepoDirectory to specify target directory" -ForegroundColor White
-        Write-Host ""
+        Write-Host "To Clean a Target Repository:" -ForegroundColor Cyan
+        Write-Separator
+        Write-Host "  1. Switch to a feature branch" -ForegroundColor White
+        Write-Host "  2. Or run this command on a cloned repository" -ForegroundColor White
+        Write-Host "  3. Or use -RepoDirectory to specify target directory" -ForegroundColor White
         
         return @{
             Success = $false
@@ -414,8 +393,12 @@ function Remove-AllAIFiles {
             FilesRemoved = 0
             DirectoriesCleaned = 0
             SourceRepoProtection = $true
+            ValidationResults = $validation
         }
     }
+    
+    Write-Host "Cleanup validation passed!" -ForegroundColor Green
+    Write-Host ""
     
     # Use provided manifest configuration or get it directly
     if ($ManifestConfig) {
@@ -439,6 +422,7 @@ function Remove-AllAIFiles {
     # Directories that should NEVER be removed (important repository infrastructure)
     $protectedDirectories = @(
         ".github",           # Main GitHub directory contains workflows, issue templates, etc.
+        ".vscode",           # VS Code workspace settings and configurations
         "internal",          # Core provider code
         "vendor",            # Go dependencies
         "scripts",           # Build and maintenance scripts
@@ -532,10 +516,11 @@ function Remove-AllAIFiles {
         $fileNamePadding = " " * ($maxNameLength - $fileName.Length)
         
         # Pad "Removing File" to match "Removing Directory" length for perfect alignment
-        # Dynamic padding of "Complete" to align closing ] brackets (1-digit=2 spaces, 2-digit=1 space, 3-digit=0 spaces)
+        # Dynamic padding of "Complete" to align closing brackets (1-digit=2 spaces, 2-digit=1 space, 3-digit=0 spaces)
         $completePadding = if ($percentComplete -lt 10) { "  " } elseif ($percentComplete -lt 100) { " " } else { "" }
+        $progressText = "[$percentComplete% Complete$completePadding]"
         Write-Host "  Removing File      " -ForegroundColor Cyan -NoNewline
-        Write-Host "[${percentComplete}% Complete${completePadding}]" -ForegroundColor Green -NoNewline
+        Write-Host $progressText -ForegroundColor Green -NoNewline
         Write-Host ": " -ForegroundColor Cyan -NoNewline
         Write-Host "$fileName$fileNamePadding " -ForegroundColor White -NoNewline
         
@@ -582,10 +567,11 @@ function Remove-AllAIFiles {
         $dirNamePadding = " " * ($maxNameLength - $dirName.Length)
         
         # "Removing Directory" is the longest operation name, so no padding needed
-        # Dynamic padding of "Complete" to align closing ] brackets (1-digit=2 spaces, 2-digit=1 space, 3-digit=0 spaces)
+        # Dynamic padding of "Complete" to align closing brackets (1-digit=2 spaces, 2-digit=1 space, 3-digit=0 spaces)
         $completePadding = if ($percentComplete -lt 10) { "  " } elseif ($percentComplete -lt 100) { " " } else { "" }
+        $progressText = "[$percentComplete% Complete$completePadding]"
         Write-Host "  Removing Directory " -ForegroundColor Cyan -NoNewline
-        Write-Host "[${percentComplete}% Complete${completePadding}]" -ForegroundColor Green -NoNewline
+        Write-Host $progressText -ForegroundColor Green -NoNewline
         Write-Host ": " -ForegroundColor Cyan -NoNewline
         Write-Host "$dirName$dirNamePadding " -ForegroundColor White -NoNewline
         
@@ -652,25 +638,6 @@ function Remove-DeprecatedFiles {
     <#
     .SYNOPSIS
     Removes files that were previously installed but are no longer in the manifest
-    
-    .DESCRIPTION
-    Scans the target directories for files that exist but are not listed in the 
-    current manifest configuration, indicating they were deprecated/removed
-    
-    .PARAMETER ManifestConfig
-    The manifest configuration containing current file lists
-    
-    .PARAMETER WorkspaceRoot
-    The root directory of the workspace
-    
-    .PARAMETER DryRun
-    If true, only reports what would be removed without actually removing files
-    
-    .PARAMETER Quiet
-    If true, suppresses output (useful for verification checks)
-    
-    .OUTPUTS
-    Array of deprecated files found
     #>
     param(
         [Parameter(Mandatory)]
@@ -772,172 +739,10 @@ function Remove-DeprecatedFiles {
     return $deprecatedFiles
 }
 
-function Backup-ExistingFile {
-    <#
-    .SYNOPSIS
-    Create a backup of an existing file before overwriting
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [string]$FilePath
-    )
-    
-    if (-not (Test-Path $FilePath)) {
-        return @{
-            Success = $true
-            Message = "File does not exist, no backup needed"
-            BackupPath = $null
-        }
-    }
-    
-    try {
-        $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-        $backupPath = "$FilePath.backup.$timestamp"
-        
-        Copy-Item -Path $FilePath -Destination $backupPath -ErrorAction Stop
-        
-        return @{
-            Success = $true
-            Message = "Backup created successfully"
-            BackupPath = $backupPath
-        }
-    }
-    catch {
-        return @{
-            Success = $false
-            Message = "Failed to create backup: $($_.Exception.Message)"
-            BackupPath = $null
-        }
-    }
-}
-
-function Test-FileIntegrity {
-    <#
-    .SYNOPSIS
-    Verify file integrity after download
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [string]$FilePath,
-        
-        [int]$MinimumSize = 100
-    )
-    
-    $result = @{
-        Valid = $false
-        Message = ""
-        Size = 0
-        Readable = $false
-    }
-    
-    try {
-        if (-not (Test-Path $FilePath)) {
-            $result.Message = "File does not exist"
-            return $result
-        }
-        
-        $fileInfo = Get-Item $FilePath
-        $result.Size = $fileInfo.Length
-        
-        if ($result.Size -lt $MinimumSize) {
-            $result.Message = "File size ($($result.Size) bytes) is smaller than expected minimum ($MinimumSize bytes)"
-            return $result
-        }
-        
-        # Try to read file to verify it's not corrupted
-        $content = Get-Content $FilePath -Raw -ErrorAction Stop
-        $result.Readable = $true
-        
-        if ([string]::IsNullOrWhiteSpace($content)) {
-            $result.Message = "File appears to be empty"
-            return $result
-        }
-        
-        $result.Valid = $true
-        $result.Message = "File integrity verified"
-    }
-    catch {
-        $result.Message = "File integrity check failed: $($_.Exception.Message)"
-    }
-    
-    return $result
-}
-
-function Get-FileFromGitHub {
-    <#
-    .SYNOPSIS
-    Download a file from GitHub and save to local path
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [string]$GitHubPath,
-        
-        [Parameter(Mandatory)]
-        [string]$LocalPath,
-        
-        [string]$Branch = "exp/terraform_copilot"
-    )
-    
-    $downloadResult = @{
-        Success = $false
-        Size = 0
-        ErrorMessage = ""
-        LocalPath = $LocalPath
-    }
-    
-    try {
-        # Ensure directory exists
-        $directory = Split-Path $LocalPath -Parent
-        if ($directory -and -not (Assert-DirectoryExists $directory)) {
-            $downloadResult.ErrorMessage = "Failed to create directory: $directory"
-            return $downloadResult
-        }
-        
-        # Construct download URL
-        $baseUrl = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm/$Branch"
-        $downloadUrl = $baseUrl + $GitHubPath
-        
-        # Download file
-        $downloadData = Get-GitHubFileContent -Url $downloadUrl
-        
-        if ($downloadData.Success) {
-            # Save file
-            [System.IO.File]::WriteAllBytes($LocalPath, $downloadData.Content)
-            
-            # Verify file was created
-            if (Test-Path $LocalPath) {
-                $fileData = Get-Item $LocalPath
-                $downloadResult.Size = $fileData.Length
-                $downloadResult.Success = $true
-            } else {
-                $downloadResult.ErrorMessage = "File was not created after download"
-            }
-        } else {
-            $downloadResult.ErrorMessage = $downloadData.ErrorMessage
-        }
-    }
-    catch {
-        $downloadResult.ErrorMessage = "Download failed: $($_.Exception.Message)"
-    }
-    
-    return $downloadResult
-}
-
 function Invoke-Bootstrap {
     <#
     .SYNOPSIS
     Copy installer files to user profile for feature branch use
-    
-    .DESCRIPTION
-    Handles bootstrapping the installer files to the user profile directory.
-    Preserves source repository protections and handles both local copying
-    and remote downloading based on repository type.
-    
-    .NOTES
-    This function maintains critical source repository protections:
-    - Prevents downloading on source repositories
-    - Uses Test-SourceRepository for proper detection
-    - Maintains workspace root handling
     #>
     
     try {
@@ -980,6 +785,15 @@ function Invoke-Bootstrap {
             Write-Host "Copying installer files from local source repository..." -ForegroundColor Cyan
             Write-Host ""
             
+            # Calculate maximum filename length for alignment
+            $maxFileNameLength = 0
+            foreach ($file in $filesToBootstrap) {
+                $fileName = Split-Path $file -Leaf
+                if ($fileName.Length -gt $maxFileNameLength) {
+                    $maxFileNameLength = $fileName.Length
+                }
+            }
+            
             # Copy files locally from source repository
             foreach ($file in $filesToBootstrap) {
                 try {
@@ -1020,7 +834,7 @@ function Invoke-Bootstrap {
                     }
                     
                     Write-Host "   Copying: " -ForegroundColor Cyan -NoNewline
-                    Write-Host "$fileName" -ForegroundColor White -NoNewline
+                    Write-Host "$($fileName.PadRight($maxFileNameLength))" -ForegroundColor White -NoNewline
                     
                     if (Test-Path $sourcePath) {
                         Copy-Item $sourcePath $targetPath -Force
@@ -1186,10 +1000,6 @@ Export-ModuleMember -Function @(
     'Remove-AIFile',
     'Remove-AllAIFiles',
     'Remove-DeprecatedFiles',
-    'Update-GitIgnore',
-    'Backup-ExistingFile',
-    'Test-FileIntegrity',
-    'Get-FileFromGitHub',
     'Invoke-Bootstrap'
 )
 

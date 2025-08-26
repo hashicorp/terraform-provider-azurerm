@@ -251,18 +251,21 @@ function Invoke-CleanWorkspace {
                 
                 # Show any actual issues (non-dry-run related)
                 if ($actualIssues.Count -gt 0) {
-                    Write-Host ""
-                    Write-Host "Actual issues encountered:" -ForegroundColor Yellow
+                    Write-Host "Actual Issues Encountered:" -ForegroundColor Cyan
+                    Write-Separator
                     foreach ($issue in $actualIssues) {
                         Write-Host "  - $issue" -ForegroundColor Red
                     }
+                    Write-Host ""
                 }
             } else {
                 # For actual operations, show the issues as errors
-                Write-Host "Clean operation encountered issues:" -ForegroundColor Yellow
+                Write-Host "Clean Operation Encountered Issues:" -ForegroundColor Cyan
+                Write-Separator
                 foreach ($issue in $result.Issues) {
                     Write-Host "  - $issue" -ForegroundColor Red
                 }
+                Write-Host ""
             }
         }
         
@@ -359,9 +362,11 @@ function Main {
         $Global:ManifestConfig = Get-ManifestConfig -ManifestPath $manifestPath
         $Global:InstallerConfig = Get-InstallerConfig -WorkspaceRoot $Global:WorkspaceRoot -ManifestConfig $Global:ManifestConfig
         
-        # Step 4: Get current branch state (now that configuration is initialized)
-        $currentBranch = $Global:InstallerConfig.Branch
-        $branchType = if (Test-SourceRepository) { "source" } else { 
+        # Step 4: Run centralized validation (replaces scattered Test-SourceRepository calls)
+        $validation = Test-PreInstallation -AllowBootstrapOnSource:$Bootstrap
+        $currentBranch = $validation.Git.CurrentBranch
+        $isSourceRepo = ($currentBranch -eq "exp/terraform_copilot")
+        $branchType = if ($isSourceRepo) { "source" } else { 
             if ($currentBranch -eq "unknown") { "unknown" } else { "feature" }
         }
         

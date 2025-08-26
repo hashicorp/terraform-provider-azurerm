@@ -1,5 +1,6 @@
 # ConfigParser Module for Terraform AzureRM Provider AI Setup
 # Handles configuration file parsing, validation, and management
+# STREAMLINED VERSION - Contains only functions actually used by main script
 
 #region Public Functions
 
@@ -62,67 +63,6 @@ function Get-ManifestConfig {
     return $manifest
 }
 
-function Get-FileDownloadUrl {
-    <#
-    .SYNOPSIS
-    Get the full download URL for a specific file from the manifest
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [string]$FilePath,
-        
-        [string]$Branch = "exp/terraform_copilot"
-    )
-    
-    $manifestConfig = Get-ManifestConfig -Branch $Branch
-    $baseUrl = $manifestConfig.BaseUrl
-    
-    # Check all sections for the file
-    foreach ($section in $manifestConfig.Sections.Keys) {
-        if ($manifestConfig.Sections[$section] -contains $FilePath) {
-            return "$baseUrl/$FilePath"
-        }
-    }
-
-    return $null
-}
-
-function Get-FileLocalPath {
-    <#
-    .SYNOPSIS
-    Get the correct local path for a file based on its manifest path
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [string]$FilePath,
-        
-        [string]$WorkspaceRoot = "."
-    )
-    
-    # Simply join the workspace root with the file path from manifest
-    return Join-Path $WorkspaceRoot $FilePath
-}function ConvertTo-RelativePath {
-    <#
-    .SYNOPSIS
-    Convert absolute path to relative path from workspace root
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [string]$Path
-    )
-    
-    $workspaceRoot = Get-Location
-    $absolutePath = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($Path)
-    
-    try {
-        $relativePath = [System.IO.Path]::GetRelativePath($workspaceRoot.Path, $absolutePath)
-        return $relativePath -replace '\\', '/'
-    }
-    catch {
-        return $Path
-    }
-}
-
 function Get-InstallerConfig {
     <#
     .SYNOPSIS
@@ -142,11 +82,23 @@ function Get-InstallerConfig {
         [hashtable]$ManifestConfig
     )
     
-    # Detect current branch dynamically
-    $currentBranch = Get-CurrentBranch -WorkspaceRoot $WorkspaceRoot
-    if ($currentBranch -eq "unknown") {
-        # Fallback to source branch if we can't detect current branch
-        $currentBranch = "exp/terraform_copilot"
+    # Determine if we're in source repository to get the correct branch
+    # Push the workspace root to global scope temporarily for Test-SourceRepository
+    $originalWorkspaceRoot = $Global:WorkspaceRoot
+    $Global:WorkspaceRoot = $WorkspaceRoot
+    
+    try {
+        $isSourceRepo = Test-SourceRepository
+        $currentBranch = if ($isSourceRepo) { 
+            "exp/terraform_copilot" 
+        } else { 
+            # For target repositories, use main branch as the source
+            "main" 
+        }
+    }
+    finally {
+        # Restore original global workspace root
+        $Global:WorkspaceRoot = $originalWorkspaceRoot
     }
     
     return @{
@@ -183,95 +135,10 @@ function Get-InstallerConfig {
     }
 }
 
-function Get-UserFiles {
-    <#
-    .SYNOPSIS
-    Get all user-facing files from manifest sections for clean operations
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [string]$WorkspaceRoot
-    )
-    
-    $manifestPath = Join-Path $WorkspaceRoot ".github\AIinstaller\file-manifest.config"
-    
-    if (-not (Test-Path $manifestPath)) {
-        Write-Warning "Manifest file not found: $manifestPath"
-        return @()
-    }
-    
-    try {
-        $content = Get-Content $manifestPath -ErrorAction Stop
-        $allFiles = @()
-        
-        # Sections that contain user-facing files
-        $userSections = @("MAIN_FILES", "INSTRUCTION_FILES", "PROMPT_FILES", "UNIVERSAL_FILES")
-        $currentSection = $null
-        
-        foreach ($line in $content) {
-            $line = $line.Trim()
-            
-            # Skip empty lines and comments
-            if ([string]::IsNullOrWhiteSpace($line) -or $line.StartsWith('#')) {
-                continue
-            }
-            
-            # Check for section headers
-            if ($line -match '^\[(.+)\]$') {
-                $currentSection = $matches[1]
-                continue
-            }
-            
-            # Add files from user-facing sections
-            if ($currentSection -in $userSections) {
-                $allFiles += $line
-            }
-        }
-        
-        return $allFiles
-    }
-    catch {
-        Write-Error "Failed to parse manifest: $($_.Exception.Message)"
-        return @()
-    }
-}
-
-function Initialize-Configuration {
-    <#
-    .SYNOPSIS
-    Initialize global configuration variables on-demand
-    
-    .DESCRIPTION
-    Loads manifest and installer configuration into global variables if not already loaded.
-    This ensures configuration is available when needed without requiring explicit initialization
-    in the main script.
-    
-    .PARAMETER WorkspaceRoot
-    The root directory of the workspace. If not provided, uses $Global:WorkspaceRoot
-    #>
-    param(
-        [string]$WorkspaceRoot = $Global:WorkspaceRoot
-    )
-    
-    if ($null -eq $Global:ManifestConfig) {
-        $manifestPath = Join-Path $WorkspaceRoot ".github/AIinstaller/file-manifest.config"
-        $Global:ManifestConfig = Get-ManifestConfig -ManifestPath $manifestPath
-        $Global:InstallerConfig = Get-InstallerConfig -WorkspaceRoot $WorkspaceRoot -ManifestConfig $Global:ManifestConfig
-    }
-}
-
 #endregion
 
-#region Export Module Members
-
+# Export only the functions actually used by the main script
 Export-ModuleMember -Function @(
     'Get-ManifestConfig',
-    'Get-InstallerConfig',
-    'Get-FileDownloadUrl',
-    'Get-FileLocalPath',
-    'ConvertTo-RelativePath',
-    'Get-UserFiles',
-    'Initialize-Configuration'
+    'Get-InstallerConfig'
 )
-
-#endregion

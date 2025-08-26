@@ -1,5 +1,5 @@
 # UI Module for Terraform AzureRM Provider AI Setup
-# Cleaned version with only used functions
+# STREAMLINED VERSION - Contains only functions actually used by main script and dependencies
 
 #region Public Functions
 
@@ -48,21 +48,6 @@ function Write-Header {
     Write-Host ""
 }
 
-function Write-Success {
-    <#
-    .SYNOPSIS
-    Display success message in green
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [string]$Message,
-        
-        [string]$Prefix = "[SUCCESS]"
-    )
-    
-    Write-Host "$Prefix $Message" -ForegroundColor Green
-}
-
 function Format-AlignedLabel {
     <#
     .SYNOPSIS
@@ -78,118 +63,46 @@ function Format-AlignedLabel {
         [string]$CurrentBranchType = "source"
     )
     
-    # Define branch labels exactly as they appear in Show-BranchDetection (including ": ")
-    $branchLabels = @{
-        "source"  = "SOURCE BRANCH DETECTED: "
-        "feature" = "FEATURE BRANCH DETECTED: " 
-        "unknown" = "UNKNOWN BRANCH: "
-    }
+    # Base width calculation (longest possible branch detection label)
+    $maxBranchLabelWidth = 23  # "SOURCE BRANCH DETECTED" length
     
-    # Get the current branch label length (including ": ")
-    $currentBranchLabelLength = $branchLabels[$CurrentBranchType].Length
+    # Calculate required spacing for alignment
+    $requiredWidth = $maxBranchLabelWidth - $Label.Length
+    if ($requiredWidth -lt 1) { $requiredWidth = 1 }
     
-    # Calculate spacing needed to align the colons perfectly
-    $spacingNeeded = $currentBranchLabelLength - $Label.Length - 2
-    $spacing = " " * [Math]::Max(0, $spacingNeeded)
-    
-    # Return the complete formatted string with colon - centralized formatting
-    return "${Label}${spacing}: "
+    return "$Label$(' ' * $requiredWidth): "
 }
 
 function Show-BranchDetection {
     <#
     .SYNOPSIS
-    Display branch detection result with workspace path and appropriate styling
+    Display current branch detection with type-based formatting
     #>
     param(
         [Parameter(Mandatory)]
         [string]$BranchName,
         
         [ValidateSet("source", "feature", "unknown")]
-        [string]$BranchType = "feature"
+        [string]$BranchType = "unknown"
     )
     
-    # Display branch detection
     switch ($BranchType) {
         "source" {
-            Write-Host "SOURCE BRANCH DETECTED: " -ForegroundColor "Cyan" -NoNewline
-            Write-Host "$BranchName" -ForegroundColor "Green"
+            Write-Host "SOURCE BRANCH DETECTED: $BranchName" -ForegroundColor Green
         }
         "feature" {
-            Write-Host "FEATURE BRANCH DETECTED: " -ForegroundColor "Cyan" -NoNewline
-            Write-Host "$BranchName" -ForegroundColor "Yellow"
+            Write-Host "FEATURE BRANCH DETECTED: $BranchName" -ForegroundColor Blue
         }
-        "unknown" {
-            Write-Host "UNKNOWN BRANCH: " -ForegroundColor "Red" -NoNewline
-            Write-Host "$BranchName" -ForegroundColor "Gray"
+        default {
+            Write-Host "BRANCH DETECTED: $BranchName" -ForegroundColor Yellow
         }
     }
     
-    # Display workspace path with consistent formatting
+    # Dynamic workspace label with proper alignment
     if ($Global:WorkspaceRoot) {
         $formattedWorkspaceLabel = Format-AlignedLabel -Label "WORKSPACE" -CurrentBranchType $BranchType
-        Write-Host $formattedWorkspaceLabel -ForegroundColor Cyan -NoNewline
-        Write-Host $Global:WorkspaceRoot -ForegroundColor Green
-        Write-Host ""
+        Write-Host "$formattedWorkspaceLabel$Global:WorkspaceRoot" -ForegroundColor Gray
     }
-}
-
-function Write-WarningMessage {
-    <#
-    .SYNOPSIS
-    Display warning message in yellow
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [string]$Message,
-        
-        [string]$Prefix = "[WARNING]"
-    )
-    
-    Write-Host "$Prefix $Message" -ForegroundColor Yellow
-}
-
-function Write-ErrorMessage {
-    <#
-    .SYNOPSIS
-    Display error message in red
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [string]$Message,
-        
-        [string]$Prefix = "[ERROR]"
-    )
-    
-    Write-Host "$Prefix $Message" -ForegroundColor Red
-}
-
-function Write-Section {
-    <#
-    .SYNOPSIS
-    Display section header
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [string]$Title
-    )
-    
-    Write-Host ""
-    Write-Host "[SECTION] $Title" -ForegroundColor Cyan
-    Write-Host ("-" * ($Title.Length + 10)) -ForegroundColor Cyan
-}
-
-function Write-VerboseMessage {
-    <#
-    .SYNOPSIS
-    Display verbose information
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [string]$Message
-    )
-    
-    Write-Host "[VERBOSE] $Message" -ForegroundColor DarkGray
 }
 
 function Write-OperationStatus {
@@ -348,8 +261,8 @@ function Show-UnknownBranchHelp {
     Write-Host ""
     
     Write-Host "ALL OPTIONS:" -ForegroundColor Cyan
-    Write-Host "  -Bootstrap        Copy installer to user profile (source branch only)"
-    Write-Host "  -RepoDirectory    Repository path for git operations"
+    Write-Host "  -Bootstrap        Copy installer to user profile (~\.terraform-ai-installer\)"
+    Write-Host "  -RepoDirectory    Repository path for git operations (when running from user profile)"
     Write-Host "  -Auto-Approve     Overwrite existing files without prompting"
     Write-Host "  -Dry-Run          Show what would be done without making changes"
     Write-Host "  -Verify           Check current workspace status and validate setup"
@@ -357,104 +270,20 @@ function Show-UnknownBranchHelp {
     Write-Host "  -Help             Show this help information"
     Write-Host ""
     
-    Write-Host "BRANCH-SPECIFIC WORKFLOW:" -ForegroundColor Cyan
-    Write-Host "  Source Branch: Use -Bootstrap and -Verify only"
-    Write-Host "  Feature Branch: Use all options except -Bootstrap"
-    Write-Host ""
-    
     Write-Host "EXAMPLES:" -ForegroundColor Cyan
-    Write-Host "  Check current state:"
+    Write-Host "  Source branch operations:"
+    Write-Host "    .\install-copilot-setup.ps1 -Bootstrap"
     Write-Host "    .\install-copilot-setup.ps1 -Verify"
     Write-Host ""
-    Write-Host "  Get contextual help:"
-    Write-Host "    .\install-copilot-setup.ps1 -Help"
-    Write-Host ""
-}
-
-function Get-UserInput {
-    <#
-    .SYNOPSIS
-    Get user input with validation
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [string]$Prompt,
-        
-        [string]$DefaultValue = "",
-        
-        [string[]]$ValidValues = @(),
-        
-        [switch]$Secure
-    )
-    
-    do {
-        $promptText = $Prompt
-        if ($DefaultValue) {
-            $promptText += " (default: $DefaultValue)"
-        }
-        $promptText += ": "
-        
-        if ($Secure) {
-            $userInput = Read-Host -Prompt $promptText -AsSecureString
-            $userInput = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($userInput))
-        } else {
-            $userInput = Read-Host -Prompt $promptText
-        }
-        
-        if ([string]::IsNullOrWhiteSpace($userInput) -and $DefaultValue) {
-            $userInput = $DefaultValue
-        }
-        
-        if ($ValidValues.Count -gt 0 -and $userInput -notin $ValidValues) {
-            Write-Host "Invalid input. Valid values are: $($ValidValues -join ', ')" -ForegroundColor Red
-            continue
-        }
-        
-        return $userInput
-        
-    } while ($true)
-}
-
-function Show-ErrorBlock {
-    <#
-    .SYNOPSIS
-    Display detailed error information with solutions
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [string]$Issue,
-        
-        [string[]]$Solutions = @(),
-        
-        [string]$ExampleUsage = "",
-        
-        [string]$AdditionalInfo = ""
-    )
-    
-    Write-Host ""
-    Write-Host "ISSUE:" -ForegroundColor Red
-    Write-Host "  $Issue" -ForegroundColor White
+    Write-Host "  Feature branch operations:"
+    Write-Host "    & `"~\.terraform-ai-installer\install-copilot-setup.ps1`" -RepoDirectory `"C:\path\to\repo`""
+    Write-Host "    & `"~\.terraform-ai-installer\install-copilot-setup.ps1`" -RepoDirectory `"C:\path\to\repo`" -Clean"
     Write-Host ""
     
-    if ($Solutions.Count -gt 0) {
-        Write-Host "SOLUTIONS:" -ForegroundColor Yellow
-        foreach ($solution in $Solutions) {
-            Write-Host "  - $solution" -ForegroundColor White
-        }
-        Write-Host ""
-    }
-    
-    if ($ExampleUsage) {
-        Write-Host "EXAMPLE:" -ForegroundColor Green
-        Write-Host "  $ExampleUsage" -ForegroundColor White
-        Write-Host ""
-    }
-    
-    if ($AdditionalInfo) {
-        Write-Host "ADDITIONAL INFO:" -ForegroundColor Cyan
-        Write-Host "  $AdditionalInfo" -ForegroundColor Gray
-        Write-Host ""
-    }
+    Write-Host "BRANCH DETECTION:" -ForegroundColor Yellow
+    Write-Host "  The installer automatically detects your branch type and shows appropriate options."
+    Write-Host "  If branch detection fails, use the examples above as guidance."
+    Write-Host ""
 }
 
 function Show-InstallationResults {
@@ -468,12 +297,12 @@ function Show-InstallationResults {
     )
     
     if ($Results.OverallSuccess) {
-        Write-Success "Successfully installed $($Results.Successful) files"
+        Write-Host "[SUCCESS] Successfully installed $($Results.Successful) files" -ForegroundColor Green
         if ($Results.Skipped -gt 0) {
-            Write-WarningMessage "Skipped $($Results.Skipped) existing files (use -Auto-Approve to overwrite)"
+            Write-Host "[WARNING] Skipped $($Results.Skipped) existing files (use -Auto-Approve to overwrite)" -ForegroundColor Yellow
         }
     } else {
-        Write-WarningMessage "Installation completed with some failures:"
+        Write-Host "[WARNING] Installation completed with some failures:" -ForegroundColor Yellow
         Write-Host "  Successful: $($Results.Successful)" -ForegroundColor Green
         Write-Host "  Failed    : $($Results.Failed)" -ForegroundColor Red
         Write-Host "  Skipped   : $($Results.Skipped)" -ForegroundColor Yellow
@@ -495,104 +324,6 @@ function Show-SourceBranchWelcome {
     Write-Host "Use the contextual help system above to get started." -ForegroundColor Cyan
     Write-Host ""
 }
-
-function Get-BootstrapConfirmation {
-    <#
-    .SYNOPSIS
-    Get user confirmation for bootstrap operation
-    #>
-    
-    $response = Read-Host "Would you like to run bootstrap now? [Y/n]"
-    if ([string]::IsNullOrWhiteSpace($response) -or $response -match "^[Yy]") {
-        Write-Host "Running bootstrap automatically..." -ForegroundColor Green
-        Write-Host ""
-        return $true
-    }
-    
-    return $false
-}
-
-function Show-ContextualError {
-    <#
-    .SYNOPSIS
-    Display contextual error message with appropriate solutions based on branch type
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [string]$ErrorMessage,
-        
-        [string]$BranchType = "unknown",
-        
-        [string[]]$AdditionalSolutions = @()
-    )
-    
-    Write-ErrorMessage $ErrorMessage
-    Write-Host ""
-    
-    # Provide contextual solutions based on branch type
-    $solutions = switch ($BranchType) {
-        "source" {
-            @(
-                "Use -Bootstrap to set up the installer in your user profile",
-                "Use -Verify to check the current workspace status",
-                "Use -Help to see source branch specific options"
-            )
-        }
-        "feature" {
-            @(
-                "Use -Verify to check the current workspace status", 
-                "Run installer from user profile: ~\.terraform-ai-installer\install-copilot-setup.ps1",
-                "Use -Help to see feature branch specific options"
-            )
-        }
-        default {
-            @(
-                "Use -Verify to check the current workspace status",
-                "Use -Help to see all available options",
-                "Ensure you're in the correct repository directory"
-            )
-        }
-    }
-    
-    # Combine with any additional solutions
-    $allSolutions = $solutions + $AdditionalSolutions
-    
-    if ($allSolutions.Count -gt 0) {
-        Write-Host "SUGGESTED ACTIONS:" -ForegroundColor Yellow
-        foreach ($solution in $allSolutions) {
-            Write-Host "  - $solution" -ForegroundColor White
-        }
-        Write-Host ""
-    }
-}
-
-function Show-UnknownBranchError {
-    <#
-    .SYNOPSIS
-    Display error for unknown branch scenarios
-    #>
-    param(
-        [bool]$HasRepoDirectory,
-        [string]$RepoDirectory = "",
-        [string]$ScriptPath = ""
-    )
-    
-    if ($HasRepoDirectory) {
-        Show-ErrorBlock -Issue "Cannot determine git branch from the specified repository directory: $RepoDirectory" -Solutions @(
-            "Verify the repository directory is correct",
-            "Ensure git is available in PATH",
-            "Check that the directory is a valid git repository"
-        ) -ExampleUsage "`"$ScriptPath`" -RepoDirectory `"C:\correct\path\to\terraform-provider-azurerm`""
-    } else {
-        Show-ErrorBlock -Issue "Cannot determine git branch from current location" -Solutions @(
-            "Run from within the terraform-provider-azurerm repository",
-            "Use -RepoDirectory to specify the repository path",
-            "Ensure git is available in PATH"
-        ) -ExampleUsage "`"$ScriptPath`" -RepoDirectory `"C:\path\to\terraform-provider-azurerm`""
-    }
-}
-
-# Superior functions that should be used instead of simple ones
 
 function Show-CompletionSummary {
     <#
@@ -631,19 +362,36 @@ function Show-CompletionSummary {
     
     if ($NextSteps.Count -gt 0) {
         Write-Host "NEXT STEPS:" -ForegroundColor Cyan
+        $stepNumber = 1
         foreach ($step in $NextSteps) {
-            Write-Host "  - $step" -ForegroundColor White
+            Write-Host "  $stepNumber. $step" -ForegroundColor White
+            $stepNumber++
         }
         Write-Host ""
     }
     
-    Write-Success "GitHub Copilot AI setup is now active for this workspace!"
+    # Show contextual completion message
+    switch ($BranchType) {
+        "source" {
+            Write-Host "AI infrastructure is now available in the source repository!" -ForegroundColor Green
+            Write-Host "Switch to a feature branch to start developing with AI assistance." -ForegroundColor Cyan
+        }
+        "feature" {
+            Write-Host "AI infrastructure is now installed in your workspace!" -ForegroundColor Green
+            Write-Host "Start coding and experience enhanced GitHub Copilot with Terraform expertise." -ForegroundColor Cyan
+        }
+        default {
+            Write-Host "AI infrastructure installation completed!" -ForegroundColor Green
+        }
+    }
+    
+    Write-Host ""
 }
 
 function Show-Summary {
     <#
     .SYNOPSIS
-    Display operation summary with details, warnings, and errors
+    Display operation summary with details
     #>
     param(
         [Parameter(Mandatory)]
@@ -651,52 +399,36 @@ function Show-Summary {
         
         [hashtable]$Details = @{},
         
+        [string[]]$Errors = @(),
+        
         [string[]]$Warnings = @(),
         
-        [string[]]$Errors = @()
+        [string[]]$NextSteps = @()
     )
     
     Write-Host ""
-    Write-Host "SUMMARY: $Title" -ForegroundColor Cyan
+    Write-Host $Title.ToUpper() -ForegroundColor Cyan
     Write-Separator
+    Write-Host ""
     
-    # Calculate perfect alignment like our main operation display
-    if ($Details.Keys.Count -gt 0) {
-        # Find the longest key name for perfect alignment
-        $maxKeyLength = ($Details.Keys | Measure-Object -Property Length -Maximum).Maximum
-        
-        # Display each detail with perfect alignment and beautiful colors
+    if ($Details.Count -gt 0) {
+        Write-Host "DETAILS:" -ForegroundColor Cyan
         foreach ($key in $Details.Keys) {
-            $paddedKey = $key.PadRight($maxKeyLength)
-            Write-Host "  $paddedKey`: " -ForegroundColor Cyan -NoNewline
-            
-            # Special formatting for operation type - always highlight in yellow
-            if ($key -eq "Operation type") {
-                $value = $Details[$key]
-                if ($value -match '^(.+?)\s+(\(.+\))$') {
-                    # Format: "Operation mode (details)" - mode in yellow, details in cyan
-                    Write-Host "$($matches[1]) " -ForegroundColor Yellow -NoNewline
-                    Write-Host "$($matches[2])" -ForegroundColor Cyan
-                } else {
-                    # Single operation mode - all in yellow
-                    Write-Host "$value" -ForegroundColor Yellow
-                }
-            } else {
-                Write-Host "$($Details[$key])" -ForegroundColor Green
-            }
+            $value = $Details[$key]
+            Write-Host "  $key`: $value" -ForegroundColor White
         }
+        Write-Host ""
     }
     
     if ($Warnings.Count -gt 0) {
-        Write-Host ""
         Write-Host "WARNINGS:" -ForegroundColor Yellow
-        foreach ($warning in $Warnings) {
-            Write-Host "  ! $warning" -ForegroundColor Yellow
+        foreach ($warningMsg in $Warnings) {
+            Write-Host "  ! $warningMsg" -ForegroundColor Yellow
         }
+        Write-Host ""
     }
     
     if ($Errors.Count -gt 0) {
-        Write-Host ""
         Write-Host "ERRORS:" -ForegroundColor Red
         foreach ($errorMsg in $Errors) {
             Write-Host "  X $errorMsg" -ForegroundColor Red
@@ -706,265 +438,21 @@ function Show-Summary {
     Write-Host ""
 }
 
-function Show-ValidationResults {
-    <#
-    .SYNOPSIS
-    Display validation results with detailed breakdown
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [hashtable]$Results,
-        
-        [bool]$ShowDetails = $false,
-        [string]$BranchName = "",
-        [string]$BranchType = "feature"
-    )
-    
-    Write-Section "Validation Results"
-    
-    # Show branch context if available
-    if ($BranchName) {
-        Show-BranchDetection -BranchName $BranchName -BranchType $BranchType
-        Write-Host ""
-    }
-    
-    # Show overall status first
-    $overallStatus = if ($Results.OverallValid) { "PASSED" } else { "FAILED" }
-    $overallColor = if ($Results.OverallValid) { "Green" } else { "Red" }
-    Write-Host "Overall Status: $overallStatus" -ForegroundColor $overallColor
-    Write-Host ""
-    
-    # Show detailed results if requested
-    if ($ShowDetails -and $Results.Details) {
-        foreach ($category in $Results.Details.Keys) {
-            $result = $Results.Details[$category]
-            $status = if ($result.Valid) { "PASS" } else { "FAIL" }
-            $color = if ($result.Valid) { "Green" } else { "Red" }
-            Write-Host "$category`: $status" -ForegroundColor $color
-            
-            if (-not $result.Valid -and $result.Issues) {
-                foreach ($issue in $result.Issues) {
-                    Write-Host "  - $issue" -ForegroundColor Red
-                }
-            }
-        }
-    }
-}
-
-function Show-DirectoryOperation {
-    <#
-    .SYNOPSIS
-    Display directory operation status with color coding
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [string]$Directory,
-        
-        [ValidateSet("Created", "Existing", "Failed")]
-        [string]$Status = "Created"
-    )
-    
-    switch ($Status) {
-        "Created" {
-            Write-Host "  Created directory: $Directory" -ForegroundColor "Green"
-        }
-        "Existing" {
-            Write-Host "  Using existing directory: $Directory" -ForegroundColor "Yellow"
-        }
-        "Failed" {
-            Write-Host "  Failed to create directory: $Directory" -ForegroundColor "Red"
-        }
-    }
-}
-
-function Show-FileOperation {
-    <#
-    .SYNOPSIS
-    Display file operation status
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [string]$Operation,
-        
-        [Parameter(Mandatory)]
-        [string]$FileName,
-        
-        [switch]$NoNewLine
-    )
-    
-    Write-Host "   $Operation" -ForegroundColor Cyan -NoNewline
-    Write-Host ": " -ForegroundColor Cyan -NoNewline
-    Write-Host "$FileName" -ForegroundColor DarkCyan -NoNewline
-    
-    if (-not $NoNewLine) {
-        Write-Host ""
-    }
-}
-
-function Wait-ForUser {
-    <#
-    .SYNOPSIS
-    Wait for user to press a key to continue
-    #>
-    param(
-        [string]$Message = "Press any key to continue..."
-    )
-    
-    Write-Host $Message -ForegroundColor Yellow -NoNewline
-    $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
-    Write-Host ""
-}
-
-function Confirm-UserAction {
-    <#
-    .SYNOPSIS
-    Get user confirmation for an action
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [string]$Message,
-        
-        [string]$DefaultChoice = "N"
-    )
-    
-    $choices = if ($DefaultChoice -eq "Y") { "[Y/n]" } else { "[y/N]" }
-    $response = Read-Host "$Message $choices"
-    
-    if ([string]::IsNullOrWhiteSpace($response)) {
-        return $DefaultChoice -eq "Y"
-    }
-    
-    return $response -match "^[Yy]"
-}
-
-function Show-BootstrapLocationError {
-    <#
-    .SYNOPSIS
-    Shows a detailed error message when bootstrap is run from wrong location
-    
-    .DESCRIPTION
-    Displays a formatted error message with color-coded paths showing current location
-    vs expected location for bootstrap operation
-    
-    .PARAMETER CurrentLocation
-    The current directory where bootstrap is being run from
-    
-    .PARAMETER ExpectedLocation
-    The expected location where bootstrap should be run from
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [string]$CurrentLocation,
-        
-        [Parameter(Mandatory)]
-        [string]$ExpectedLocation
-    )
-    
-    Write-Separator
-    Write-Host ""
-    Write-ErrorMessage "Bootstrap must be run from the source repository, not from user profile directory."
-    Write-Host ""
-    Write-Host "CORRECT USAGE:" -ForegroundColor Cyan
-    Write-Host "  cd C:\path\to\terraform-provider-azurerm" -ForegroundColor Gray
-    Write-Host "  & .\.github\AIinstaller\install-copilot-setup.ps1 -Bootstrap" -ForegroundColor Gray
-    Write-Host ""
-    Write-Host "CURRENT LOCATION: " -ForegroundColor Cyan -NoNewline
-    Write-Host "$CurrentLocation" -ForegroundColor Yellow
-    Write-Host "EXPECTED LOCATION: " -ForegroundColor Cyan -NoNewline
-    Write-Host "$ExpectedLocation" -ForegroundColor Green
-    Write-Host ""
-}
-
-function Show-VerificationResults {
-    <#
-    .SYNOPSIS
-    Displays workspace verification results in a consistent format
-    
-    .DESCRIPTION
-    Takes verification data and displays it using the standard UI format.
-    This ensures UI consistency across all operations.
-    
-    .PARAMETER VerificationData
-    Hashtable containing verification results with Success, Issues, and Details
-    #>
-    param(
-        [Parameter(Mandatory = $true)]
-        [hashtable]$VerificationData
-    )
-    
-    Write-Section "Workspace Verification Results"
-    
-    if ($VerificationData.Success) {
-        Write-OperationStatus -Message "Workspace verification completed successfully" -Type "Success"
-        
-        # Show summary details if available
-        if ($VerificationData.Details) {
-            $details = @{}
-            if ($VerificationData.Details.ContainsKey("WorkspaceType")) {
-                $details["Workspace Type"] = $VerificationData.Details.WorkspaceType
-            }
-            if ($VerificationData.Details.ContainsKey("FilesChecked")) {
-                $details["Files Checked"] = $VerificationData.Details.FilesChecked
-            }
-            if ($VerificationData.Details.ContainsKey("DirectoriesChecked")) {
-                $details["Directories Checked"] = $VerificationData.Details.DirectoriesChecked
-            }
-            
-            if ($details.Count -gt 0) {
-                Write-Host ""
-                Show-Summary -Title "Verification Summary" -Details $details
-            }
-        }
-    } else {
-        Write-OperationStatus -Message "Workspace verification encountered issues" -Type "Error"
-        
-        if ($VerificationData.Issues -and $VerificationData.Issues.Count -gt 0) {
-            Write-Host ""
-            Write-Host "Issues found:" -ForegroundColor Yellow
-            foreach ($issue in $VerificationData.Issues) {
-                Write-Host "  - $issue" -ForegroundColor Red
-            }
-        }
-    }
-    
-    Write-Host ""
-}
-
 #endregion
 
-#region Export Module Members
-
+# Export only the functions actually used by the main script
 Export-ModuleMember -Function @(
-    'Write-Header',
     'Write-Separator',
-    'Write-Success',
-    'Write-WarningMessage', 
-    'Write-ErrorMessage',
-    'Write-Section',
-    'Write-VerboseMessage',
+    'Write-Header',
+    'Format-AlignedLabel',
+    'Show-BranchDetection',
     'Write-OperationStatus',
     'Show-Help',
     'Show-SourceBranchHelp',
     'Show-FeatureBranchHelp',
     'Show-UnknownBranchHelp',
-    'Get-UserInput',
-    'Show-ErrorBlock',
-    'Show-ContextualError',
-    'Show-BranchDetection',
     'Show-InstallationResults',
     'Show-SourceBranchWelcome',
-    'Get-BootstrapConfirmation',
-    'Show-UnknownBranchError',
     'Show-CompletionSummary',
-    'Show-Summary',
-    'Show-ValidationResults',
-    'Show-VerificationResults',
-    'Show-DirectoryOperation',
-    'Show-FileOperation',
-    'Wait-ForUser',
-    'Confirm-UserAction',
-    'Format-AlignedLabel',
-    'Show-BootstrapLocationError'
+    'Show-Summary'
 )
-
-#endregion
