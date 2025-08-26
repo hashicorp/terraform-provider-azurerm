@@ -502,7 +502,6 @@ function Invoke-VerifyWorkspace {
             return $results
         }
         
-        Write-Host $("=" * 60) -ForegroundColor Cyan
         Write-Host "Verifying AI infrastructure files" -ForegroundColor Cyan
         Write-Host $("=" * 60) -ForegroundColor Cyan
         Write-Host ""

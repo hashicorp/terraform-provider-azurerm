@@ -205,7 +205,6 @@ function Get-WorkspaceRoot {
 function Invoke-CleanWorkspace {
     param([bool]$AutoApprove, [bool]$DryRun)
     
-    Write-Separator
     Write-Host "Clean Workspace" -ForegroundColor Cyan
     Write-Separator
     Write-Host ""
@@ -261,7 +260,6 @@ function Invoke-CleanWorkspace {
             } else {
                 # For actual operations, show the issues as errors
                 Write-Host "Clean Operation Encountered Issues:" -ForegroundColor Cyan
-                Write-Separator
                 foreach ($issue in $result.Issues) {
                     Write-Host "  - $issue" -ForegroundColor Red
                 }

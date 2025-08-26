@@ -366,30 +366,52 @@ function Remove-AllAIFiles {
     )
     
     # CRITICAL: Use centralized pre-installation validation for source repository protection
-    Write-Host "Validating cleanup prerequisites..." -ForegroundColor Cyan
+    Write-Host "Validating cleanup prerequisites..." -ForegroundColor Yellow
     $validation = Test-PreInstallation -AllowBootstrapOnSource:$false
     
     if (-not $validation.OverallValid) {
-        $errorMessage = if ($validation.Git.Reason -like "*SAFETY VIOLATION*") {
-            "SAFETY VIOLATION: Cannot run clean operation on source repository!"
-        } else {
-            "Pre-cleanup validation failed!"
+        # Build detailed error messages based on validation results
+        $errorMessages = @()
+        
+        if ($validation.Git.Reason -like "*SAFETY VIOLATION*") {
+            $errorMessages += "SAFETY VIOLATION: Cannot run clean operation on source branch '$($validation.Git.CurrentBranch)'. Switch to a feature branch to clean the AI infrastructure"
+        } elseif (-not $validation.Git.Valid) {
+            $errorMessages += $validation.Git.Reason
         }
         
-        Write-Host ""
-        Write-Host "$errorMessage" -ForegroundColor Red
-        Write-Host ""
-        Write-Host "   Reason: $($validation.Git.Reason)" -ForegroundColor Yellow
+        if (-not $validation.Workspace.Valid -and -not $validation.Workspace.Skipped) {
+            $errorMessages += $validation.Workspace.Reason
+        }
+        
+        if (-not $validation.SystemRequirements.OverallValid) {
+            if (-not $validation.SystemRequirements.PowerShell.Valid) {
+                $errorMessages += $validation.SystemRequirements.PowerShell.Reason
+            }
+            if (-not $validation.SystemRequirements.ExecutionPolicy.Valid) {
+                $errorMessages += $validation.SystemRequirements.ExecutionPolicy.Reason
+            }
+            if (-not $validation.SystemRequirements.Commands.Valid) {
+                $errorMessages += $validation.SystemRequirements.Commands.Reason
+            }
+            if (-not $validation.SystemRequirements.Internet.Connected) {
+                $errorMessages += $validation.SystemRequirements.Internet.Reason
+            }
+        }
+        
+        # Fallback if no specific errors found
+        if ($errorMessages.Count -eq 0) {
+            $errorMessages += "Pre-cleanup validation failed"
+        }
+
         Write-Host ""
         Write-Host "To Clean a Target Repository:" -ForegroundColor Cyan
-        Write-Separator
         Write-Host "  1. Switch to a feature branch" -ForegroundColor White
         Write-Host "  2. Or run this command on a cloned repository" -ForegroundColor White
         Write-Host "  3. Or use -RepoDirectory to specify target directory" -ForegroundColor White
         
         return @{
             Success = $false
-            Issues = @($errorMessage)
+            Issues = $errorMessages
             FilesRemoved = 0
             DirectoriesCleaned = 0
             SourceRepoProtection = $true
@@ -747,7 +769,6 @@ function Invoke-Bootstrap {
     
     try {
         # Modern header style to match main UI
-        Write-Host $("=" * 60) -ForegroundColor Cyan
         Write-Host " Bootstrap - Copying Installer to User Profile" -ForegroundColor Cyan
         Write-Host $("=" * 60) -ForegroundColor Cyan
         

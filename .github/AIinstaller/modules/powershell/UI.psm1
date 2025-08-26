@@ -116,6 +116,9 @@ function Show-BranchDetection {
         Write-Host "${formattedWorkspaceLabel}: " -NoNewline -ForegroundColor Cyan
         Write-Host "$Global:WorkspaceRoot" -ForegroundColor Green
     }
+    
+    Write-Host ""
+    Write-Separator
 }
 
 function Write-OperationStatus {
