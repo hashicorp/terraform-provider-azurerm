@@ -54,7 +54,7 @@ WORKSPACE             : C:\github.com\hashicorp\terraform-provider-azurerm
  Bootstrap - Copying Installer to User Profile
 ============================================================
 
-PATH: C:\Users\jcline\.terraform-ai-installer
+PATH: C:\Users\<username>\.terraform-ai-installer
 
 Copying installer files from local source repository...
 

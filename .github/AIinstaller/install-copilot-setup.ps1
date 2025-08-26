@@ -460,12 +460,12 @@ function Main {
                 Write-Host ""
                 Write-Host "SOLUTION:" -ForegroundColor Cyan
                 Write-Host "Switch to a feature branch in your target repository:" -ForegroundColor White
-                Write-Host "  cd `"$Global:WorkspaceRoot`"" -ForegroundColor Gray
+                Write-Host "  cd `"<path-to-your-terraform-provider-azurerm>`"" -ForegroundColor Gray
                 Write-Host "  git checkout -b feature/your-branch-name" -ForegroundColor Gray
                 Write-Host ""
                 Write-Host "Then run the installer from your user profile:" -ForegroundColor White
                 Write-Host "  cd `"$env:USERPROFILE\.terraform-ai-installer`"" -ForegroundColor Gray
-                Write-Host "  .\install-copilot-setup.ps1 -RepoDirectory `"$Global:WorkspaceRoot`"" -ForegroundColor Gray
+                Write-Host "  .\install-copilot-setup.ps1 -RepoDirectory `"<path-to-your-terraform-provider-azurerm>`"" -ForegroundColor Gray
                 Write-Host ""
                 exit 1
             }
