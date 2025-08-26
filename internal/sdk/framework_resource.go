@@ -45,7 +45,7 @@ type ResourceMetadata struct {
 	Features features.UserFeatures
 }
 
-// Defaults configures the Resource Metadata for client access, Provider Features, and subscriptionId.
+// Defaults configures the Resource Metadata for client access, Provider Features, default timeouts, and subscriptionId.
 func (r *ResourceMetadata) Defaults(req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	if req.ProviderData == nil {
 		return
@@ -86,12 +86,16 @@ func (r *ResourceMetadata) DefaultsDataSource(req datasource.ConfigureRequest, r
 	r.TimeoutRead = 5 * time.Minute
 }
 
-// DecodeCreate reads a plan from a resource.CreateRequest into a pointer to a target model and sets resource.CreateResponse diags on error.
+// DecodeCreate reads a plan from a resource.CreateRequest into a pointer to a target model and sets
+// resource.CreateResponse diags on error.
 // Returns true if there are no error Diagnostics.
 func (r *ResourceMetadata) DecodeCreate(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse, planModel any) {
 	resp.Diagnostics.Append(req.Plan.Get(ctx, planModel)...)
 }
 
+// DecodeCreateWithConfig reads both the config and plan from the CreateRequest for cases where the raw config before
+// plan logic has been applied
+// This should be used ONLY when absolutely required. Plan Modifiers should be preferred.
 func (r *ResourceMetadata) DecodeCreateWithConfig(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse, planModel, configModel any) {
 	resp.Diagnostics.Append(req.Plan.Get(ctx, planModel)...)
 	resp.Diagnostics.Append(req.Config.Get(ctx, configModel)...)
@@ -223,28 +227,31 @@ type FrameworkWrappedResource interface {
 	Identity() (id resourceids.ResourceId, idType ResourceTypeForIdentity)
 }
 
-// FrameworkWrappedResourceWithUpdate provides an interface for resources that need custom configuration beyond the standard wrapped Configure()
+// FrameworkWrappedResourceWithUpdate provides an extension to the base resource for resources that can be updated.
 type FrameworkWrappedResourceWithUpdate interface {
 	FrameworkWrappedResource
 
 	Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse, metadata ResourceMetadata, plan any, state any)
 }
 
-// FrameworkWrappedResourceWithConfigure provides an interface for resources that need custom configuration beyond the standard wrapped Configure()
+// FrameworkWrappedResourceWithConfigure provides an interface for resources that need custom configuration beyond the
+// standard wrapped Configure() which configures the resource metadata.
 type FrameworkWrappedResourceWithConfigure interface {
 	FrameworkWrappedResource
 
 	Configure(ctx context.Context, request resource.ConfigureRequest, response *resource.ConfigureResponse, metadata ResourceMetadata)
 }
 
-// FrameworkWrappedResourceWithConfigValidators provides an interface for resources that need custom configuration beyond the standard wrapped Configure()
+// FrameworkWrappedResourceWithConfigValidators provides an interface for resources that need custom or complex
+// validation logic based on the supplied user config, whole or in part.
 type FrameworkWrappedResourceWithConfigValidators interface {
 	FrameworkWrappedResource
 
 	ConfigValidators(ctx context.Context) []resource.ConfigValidator
 }
 
-// FrameworkWrappedResourceWithPlanModifier provides an interface for resources that need custom configuration beyond the standard wrapped Configure()
+// FrameworkWrappedResourceWithPlanModifier provides an interface for resources that require Plan Modification
+// Plan modifiers happen after validators and before create.
 type FrameworkWrappedResourceWithPlanModifier interface {
 	FrameworkWrappedResource
 
