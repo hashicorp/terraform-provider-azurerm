@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/datasource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 )
 
 type FrameworkDataSourceWrapper struct {
@@ -44,7 +45,19 @@ func (d *FrameworkDataSourceWrapper) Metadata(ctx context.Context, request datas
 }
 
 func (d *FrameworkDataSourceWrapper) Read(ctx context.Context, request datasource.ReadRequest, response *datasource.ReadResponse) {
-	ctx, cancel := context.WithTimeout(ctx, d.ResourceMetadata.TimeoutRead)
+	customTimeouts := timeouts.Value{}
+	response.Diagnostics.Append(request.Config.GetAttribute(ctx, path.Root("timeouts"), &customTimeouts)...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	readTimeout, diags := customTimeouts.Read(ctx, d.ResourceMetadata.TimeoutRead)
+	if diags.HasError() {
+		response.Diagnostics.Append(diags...)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, readTimeout)
 	defer cancel()
 
 	config := d.FrameworkWrappedDataSource.ModelObject()

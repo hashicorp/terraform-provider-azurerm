@@ -3,11 +3,11 @@ package sdk
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/hashicorp/go-azure-helpers/framework/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -51,7 +51,19 @@ func (r *FrameworkResourceWrapper) Schema(ctx context.Context, request resource.
 }
 
 func (r *FrameworkResourceWrapper) Create(ctx context.Context, request resource.CreateRequest, response *resource.CreateResponse) {
-	ctx, cancel := context.WithTimeout(ctx, r.ResourceMetadata.TimeoutCreate)
+	customTimeouts := timeouts.Value{}
+	response.Diagnostics.Append(request.Config.GetAttribute(ctx, path.Root("timeouts"), &customTimeouts)...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	createTimeout, diags := customTimeouts.Create(ctx, r.ResourceMetadata.TimeoutCreate)
+	if diags.HasError() {
+		response.Diagnostics.Append(diags...)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, createTimeout)
 	defer cancel()
 	model := r.FrameworkWrappedResource.ModelObject()
 
@@ -75,7 +87,19 @@ func (r *FrameworkResourceWrapper) Create(ctx context.Context, request resource.
 }
 
 func (r *FrameworkResourceWrapper) Read(ctx context.Context, request resource.ReadRequest, response *resource.ReadResponse) {
-	ctx, cancel := context.WithTimeout(ctx, r.ResourceMetadata.TimeoutRead)
+	customTimeouts := timeouts.Value{}
+	response.Diagnostics.Append(request.State.GetAttribute(ctx, path.Root("timeouts"), &customTimeouts)...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	readTimeout, diags := customTimeouts.Read(ctx, r.ResourceMetadata.TimeoutRead)
+	if diags.HasError() {
+		response.Diagnostics.Append(diags...)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, readTimeout)
 	defer cancel()
 
 	state := r.FrameworkWrappedResource.ModelObject()
@@ -100,24 +124,54 @@ func (r *FrameworkResourceWrapper) Read(ctx context.Context, request resource.Re
 }
 
 func (r *FrameworkResourceWrapper) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
-	ctx, cancel := context.WithTimeout(ctx, *r.ResourceMetadata.TimeoutUpdate)
-	defer cancel()
+	if fr, ok := r.FrameworkWrappedResource.(FrameworkWrappedResourceWithUpdate); ok {
+		customTimeouts := timeouts.Value{}
+		response.Diagnostics.Append(request.Config.GetAttribute(ctx, path.Root("timeouts"), &customTimeouts)...)
+		if response.Diagnostics.HasError() {
+			return
+		}
 
-	plan := r.FrameworkWrappedResource.ModelObject()
-	state := r.FrameworkWrappedResource.ModelObject()
+		updateTimeout, diags := customTimeouts.Update(ctx, *r.ResourceMetadata.TimeoutUpdate)
+		if diags.HasError() {
+			response.Diagnostics.Append(diags...)
+			return
+		}
 
-	r.ResourceMetadata.DecodeUpdate(ctx, request, response, &plan, &state)
+		ctx, cancel := context.WithTimeout(ctx, updateTimeout)
+		defer cancel()
+
+		plan := r.FrameworkWrappedResource.ModelObject()
+		state := r.FrameworkWrappedResource.ModelObject()
+
+		r.ResourceMetadata.DecodeUpdate(ctx, request, response, &plan, &state)
+		if response.Diagnostics.HasError() {
+			return
+		}
+
+		fr.Update(ctx, request, response, r.ResourceMetadata, plan, state)
+
+		r.ResourceMetadata.EncodeUpdate(ctx, response, state)
+
+		return
+	} else {
+		SetResponseErrorDiagnostic(response, "Update called on non-updatable resource", fmt.Sprintf("resource type %s does not implement Update", r.FrameworkWrappedResource.ResourceType()))
+	}
+}
+
+func (r *FrameworkResourceWrapper) Delete(ctx context.Context, request resource.DeleteRequest, response *resource.DeleteResponse) {
+	customTimeouts := timeouts.Value{}
+	response.Diagnostics.Append(request.State.GetAttribute(ctx, path.Root("timeouts"), &customTimeouts)...)
 	if response.Diagnostics.HasError() {
 		return
 	}
 
-	r.FrameworkWrappedResource.Update(ctx, request, response, r.ResourceMetadata, plan, state)
+	deleteTimeout, diags := customTimeouts.Delete(ctx, r.ResourceMetadata.TimeoutDelete)
+	if diags.HasError() {
+		response.Diagnostics.Append(diags...)
+		return
+	}
 
-	r.ResourceMetadata.EncodeUpdate(ctx, response, state)
-}
-
-func (r *FrameworkResourceWrapper) Delete(ctx context.Context, request resource.DeleteRequest, response *resource.DeleteResponse) {
-	ctx, cancel := context.WithTimeout(ctx, r.ResourceMetadata.TimeoutDelete)
+	ctx, cancel := context.WithTimeout(ctx, deleteTimeout)
 	defer cancel()
 
 	state := r.FrameworkWrappedResource.ModelObject()
