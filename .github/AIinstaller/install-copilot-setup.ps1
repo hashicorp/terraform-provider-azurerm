@@ -297,17 +297,14 @@ function Invoke-InstallInfrastructure {
     $deprecatedFiles = Remove-DeprecatedFiles -ManifestConfig $Global:ManifestConfig -WorkspaceRoot $Global:WorkspaceRoot -DryRun $DryRun -Quiet $true
     
     if ($deprecatedFiles.Count -gt 0) {
-        Write-OperationStatus -Message "  Removed $($deprecatedFiles.Count) deprecated files" -Type "Success"
+        Write-Host "  Removed $($deprecatedFiles.Count) deprecated files" -ForegroundColor Green
     } else {
-        Write-OperationStatus -Message "  No deprecated files found" -Type "Info"
+        Write-Host "  No deprecated files found" -ForegroundColor Cyan
     }
     Write-Host ""
     
     # Step 2: Install/update current files
-    Write-OperationStatus -Message "Installing current AI infrastructure files..." -Type "Info"
-    
-    # Debug: Show parameter values
-    Write-VerboseMessage "Parameters: AutoApprove=$AutoApprove, DryRun=$DryRun"
+    Write-Host "Installing current AI infrastructure files..." -ForegroundColor Cyan
     
     # Use the FileOperations module to actually install files
     try {
