@@ -369,6 +369,27 @@ function Main {
         
         # Step 4: Run centralized validation (replaces scattered Test-SourceRepository calls)
         $validation = Test-PreInstallation -AllowBootstrapOnSource:$Bootstrap
+        
+        # CRITICAL: Check validation results and exit immediately if unsafe
+        if (-not $validation.OverallValid) {
+            if ($validation.Git.Reason -like "*SAFETY VIOLATION*") {
+                Write-Host "SAFETY VIOLATION DETECTED" -ForegroundColor Red
+                Write-Separator -Character "-" -Color Red
+                Write-Host ""
+                Write-Host $validation.Git.Reason -ForegroundColor Red
+                Write-Host ""
+                Write-Host "SOLUTION:" -ForegroundColor Yellow
+                Write-Host "Switch to a feature branch before running the installer:" -ForegroundColor White
+                Write-Host "  cd `"$Global:WorkspaceRoot`"" -ForegroundColor Gray
+                Write-Host "  git checkout -b feature/your-branch-name" -ForegroundColor Gray
+                Write-Host ""
+                exit 1
+            } else {
+                Write-Host "VALIDATION FAILED: $($validation.Git.Reason)" -ForegroundColor Red
+                exit 1
+            }
+        }
+        
         $currentBranch = $validation.Git.CurrentBranch
         # Handle empty or null branch names
         if (-not $currentBranch -or $currentBranch.Trim() -eq "") {
@@ -408,6 +429,17 @@ function Main {
             Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
             Show-BranchDetection -BranchName $currentBranch -BranchType $branchType
             $result = Invoke-CleanWorkspace -AutoApprove $AutoApprove -DryRun $DryRun
+            return
+        }
+        
+        # Installation path (when -RepoDirectory is provided and not other specific operations)
+        if ($RepoDirectory -and -not ($Help -or $Verify -or $Bootstrap -or $Clean)) {
+            Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
+            Show-BranchDetection -BranchName $currentBranch -BranchType $branchType
+            
+            # Safety check already handled by Test-PreInstallation above
+            # Proceed with installation on validated branch
+            $result = Invoke-InstallInfrastructure -AutoApprove $AutoApprove -DryRun $DryRun
             return
         }
         
