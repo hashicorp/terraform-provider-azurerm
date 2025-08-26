@@ -255,7 +255,7 @@ function Install-AllAIFiles {
     $fileIndex = 0
     foreach ($filePath in $allFiles) {
         $fileIndex++
-        $downloadUrl = Get-FileDownloadUrl -FilePath $filePath -Branch $Branch
+        $downloadUrl = "$($config.BaseUrl)/$filePath"
         
         if (-not $downloadUrl) {
             Write-Warning "Could not determine download URL for file: $filePath"
