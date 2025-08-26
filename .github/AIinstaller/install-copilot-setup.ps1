@@ -348,7 +348,7 @@ function Main {
         $Global:WorkspaceRoot = Get-WorkspaceRoot -RepoDirectory $RepoDirectory -ScriptDirectory $ScriptDirectory
         
         # Step 2: Early workspace validation before doing anything else
-        $workspaceValidation = Test-WorkspaceValid
+        $workspaceValidation = Test-WorkspaceValid -WorkspacePath $Global:WorkspaceRoot
         if (-not $workspaceValidation.Valid) {
             Write-Host "WORKSPACE VALIDATION FAILED: $($workspaceValidation.Reason)" -ForegroundColor Red
             Write-Host "Please ensure you're running this script from within a terraform-provider-azurerm repository." -ForegroundColor Red

@@ -264,10 +264,18 @@ function Test-WorkspaceValid {
     .SYNOPSIS
     Test if current directory is a valid Terraform AzureRM workspace
     #>
+    param(
+        [string]$WorkspacePath = ""
+    )
     
-    # Smart workspace detection - find the actual workspace root
-    $currentPath = Get-Location
-    $workspaceRoot = Find-WorkspaceRoot -StartPath $currentPath.Path
+    # Smart workspace detection - use provided path or find from current location
+    if ($WorkspacePath) {
+        $workspaceRoot = Find-WorkspaceRoot -StartPath $WorkspacePath
+        $currentPath = Get-Item $WorkspacePath
+    } else {
+        $currentPath = Get-Location
+        $workspaceRoot = Find-WorkspaceRoot -StartPath $currentPath.Path
+    }
     
     $results = @{
         Valid = $false
