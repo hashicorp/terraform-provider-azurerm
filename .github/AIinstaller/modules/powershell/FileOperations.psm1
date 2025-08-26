@@ -254,7 +254,7 @@ function Install-AllAIFiles {
         DebugInfo = @{
             StartTime = Get-Date
             Branch = $Branch
-            BaseUrl = $config.BaseUrl
+            BaseUrl = $manifestConfig.BaseUrl
         }
     }
     
@@ -263,15 +263,15 @@ function Install-AllAIFiles {
     $fileIndex = 0
     foreach ($filePath in $allFiles) {
         $fileIndex++
-        $downloadUrl = "$($config.BaseUrl)/$filePath"
+        $downloadUrl = "$($manifestConfig.BaseUrl)/$filePath"
         
         # Debug: Show the constructed URL
         Write-Verbose "Constructed URL: $downloadUrl"
-        Write-Verbose "Base URL: $($config.BaseUrl)"
+        Write-Verbose "Base URL: $($manifestConfig.BaseUrl)"
         Write-Verbose "File Path: $filePath"
         
-        if (-not $downloadUrl -or $downloadUrl -eq "/$filePath" -or [string]::IsNullOrWhiteSpace($config.BaseUrl)) {
-            Write-Warning "Could not determine download URL for file: $filePath (BaseUrl: '$($config.BaseUrl)')"
+        if (-not $downloadUrl -or $downloadUrl -eq "/$filePath" -or [string]::IsNullOrWhiteSpace($manifestConfig.BaseUrl)) {
+            Write-Warning "Could not determine download URL for file: $filePath (BaseUrl: '$($manifestConfig.BaseUrl)')"
             $results.Files[$filePath] = @{
                 FilePath = $filePath
                 Success = $false
@@ -279,7 +279,7 @@ function Install-AllAIFiles {
                 Message = "Could not determine download URL - BaseUrl is empty or invalid"
                 Size = 0
                 DebugInfo = @{
-                    BaseUrl = $config.BaseUrl
+                    BaseUrl = $manifestConfig.BaseUrl
                     ConstructedUrl = $downloadUrl
                 }
             }
