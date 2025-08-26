@@ -120,8 +120,8 @@ function Install-AIFile {
         
         # Save file (handle both text and binary content properly)
         try {
-            # For text files (like .md, .instructions.md), use UTF8 encoding
-            if ($resolvedFilePath -match '\.(md|txt|instructions\.md|yml|yaml|json)$') {
+            # For text files (like .md, .sh, .ps1, .psm1, .txt, etc.), use UTF8 encoding
+            if ($resolvedFilePath -match '\.(md|txt|instructions\.md|yml|yaml|json|sh|ps1|psm1|config)$') {
                 # Use UTF8 encoding without BOM for text files
                 $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
                 [System.IO.File]::WriteAllText($resolvedFilePath, $response.Content, $utf8NoBom)
