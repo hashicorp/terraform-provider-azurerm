@@ -768,9 +768,10 @@ function Invoke-Bootstrap {
     #>
     
     try {
-        # Modern header style to match main UI
-        Write-Host " Bootstrap - Copying Installer to User Profile" -ForegroundColor Cyan
-        Write-Host $("=" * 60) -ForegroundColor Cyan
+        # Show operation title (main header already displayed by caller)
+        Write-Separator
+        Write-Host "Bootstrap - Copying Installer to User Profile" -ForegroundColor Cyan
+        Write-Separator
         
         # Create target directory
         $targetDirectory = Join-Path $env:USERPROFILE ".terraform-ai-installer"

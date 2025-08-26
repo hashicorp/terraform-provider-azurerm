@@ -117,7 +117,6 @@ function Show-BranchDetection {
     }
     
     Write-Host ""
-    Write-Separator
 }
 
 function Write-OperationStatus {
