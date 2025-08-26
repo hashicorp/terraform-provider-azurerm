@@ -3,6 +3,8 @@ package logic
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework-validators/setvalidator"
+	"math"
 	"reflect"
 	"strings"
 
@@ -1028,5 +1030,129 @@ func readLogicAppStandardAppSettings(ctx context.Context, id *commonids.AppServi
 
 	if state.AppSettings.IsUnknown() {
 		state.AppSettings = typehelpers.NewMapValueOfNull[types.String](ctx)
+	}
+}
+
+func ipRestrictionCommonSchema(ctx context.Context) schema.ListNestedBlock {
+	return schema.ListNestedBlock{
+		CustomType: typehelpers.NewListNestedObjectTypeOf[FwLogicAppIPRestrictionModel](ctx),
+		NestedObject: schema.NestedBlockObject{
+			Attributes: map[string]schema.Attribute{
+				"ip_address": schema.StringAttribute{
+					Optional: true,
+					Validators: []validator.String{
+						stringvalidator.LengthAtLeast(1),
+					},
+				},
+
+				"service_tag": schema.StringAttribute{
+					Optional: true,
+					Validators: []validator.String{
+						stringvalidator.LengthAtLeast(1),
+					},
+				},
+
+				"virtual_network_subnet_id": schema.StringAttribute{
+					Optional: true,
+					Validators: []validator.String{
+						stringvalidator.LengthAtLeast(1),
+					},
+				},
+
+				"name": schema.StringAttribute{
+					Optional: true,
+					Computed: true,
+					Validators: []validator.String{
+						stringvalidator.LengthAtLeast(1),
+					},
+				},
+
+				"priority": schema.Int64Attribute{
+					Optional: true,
+					Computed: true,
+					Default:  typehelpers.NewWrappedInt64Default(65000),
+					Validators: []validator.Int64{
+						int64validator.Between(1, math.MaxInt32),
+					},
+				},
+
+				"action": schema.StringAttribute{
+					Default:  typehelpers.NewWrappedStringDefault("Allow"),
+					Optional: true,
+					Computed: true,
+					Validators: []validator.String{
+						typehelpers.WrappedStringValidator{
+							Func: validation.StringInSlice([]string{
+								"Allow",
+								"Deny",
+							}, false),
+						},
+					},
+				},
+			},
+			Blocks: map[string]schema.Block{
+				"headers": schema.ListNestedBlock{
+					CustomType: typehelpers.NewListNestedObjectTypeOf[FwLogicAppIPRestrictionHeadersModel](ctx),
+					NestedObject: schema.NestedBlockObject{
+						Attributes: map[string]schema.Attribute{
+							"x_forwarded_host": schema.SetAttribute{
+								CustomType:  typehelpers.NewSetTypeOf[types.String](ctx),
+								ElementType: types.StringType,
+								Optional:    true,
+								Validators: []validator.Set{
+									setvalidator.SizeAtMost(8),
+								},
+							},
+
+							"x_forwarded_for": schema.SetAttribute{
+								CustomType:  typehelpers.NewSetTypeOf[types.String](ctx),
+								ElementType: types.StringType,
+								Optional:    true,
+								Validators: []validator.Set{
+									setvalidator.All(
+										setvalidator.SizeAtMost(8),
+										setvalidator.ValueStringsAre(
+											typehelpers.WrappedStringValidator{
+												Func: validation.IsCIDR,
+											},
+										),
+									),
+								},
+							},
+
+							"x_azure_fdid": schema.SetAttribute{
+								CustomType:  typehelpers.NewSetTypeOf[types.String](ctx),
+								ElementType: types.StringType,
+								Optional:    true,
+								Validators: []validator.Set{
+									setvalidator.All(
+										setvalidator.SizeAtMost(8),
+										setvalidator.ValueStringsAre(
+											typehelpers.WrappedStringValidator{
+												Func: validation.IsUUID,
+											},
+										),
+									),
+								},
+							},
+
+							"x_fd_health_probe": schema.ListAttribute{
+								CustomType:  typehelpers.NewListTypeOf[types.String](ctx),
+								ElementType: types.StringType,
+								Optional:    true,
+								Validators: []validator.List{
+									listvalidator.All(
+										listvalidator.SizeAtMost(1),
+										listvalidator.ValueStringsAre(
+											stringvalidator.OneOf("0", "1"),
+										),
+									),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 }
