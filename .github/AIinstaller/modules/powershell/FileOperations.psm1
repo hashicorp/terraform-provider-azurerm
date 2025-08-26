@@ -265,14 +265,23 @@ function Install-AllAIFiles {
         $fileIndex++
         $downloadUrl = "$($config.BaseUrl)/$filePath"
         
-        if (-not $downloadUrl) {
-            Write-Warning "Could not determine download URL for file: $filePath"
+        # Debug: Show the constructed URL
+        Write-Verbose "Constructed URL: $downloadUrl"
+        Write-Verbose "Base URL: $($config.BaseUrl)"
+        Write-Verbose "File Path: $filePath"
+        
+        if (-not $downloadUrl -or $downloadUrl -eq "/$filePath" -or [string]::IsNullOrWhiteSpace($config.BaseUrl)) {
+            Write-Warning "Could not determine download URL for file: $filePath (BaseUrl: '$($config.BaseUrl)')"
             $results.Files[$filePath] = @{
                 FilePath = $filePath
                 Success = $false
                 Action = "Skipped"
-                Message = "Could not determine download URL"
+                Message = "Could not determine download URL - BaseUrl is empty or invalid"
                 Size = 0
+                DebugInfo = @{
+                    BaseUrl = $config.BaseUrl
+                    ConstructedUrl = $downloadUrl
+                }
             }
             continue
         }

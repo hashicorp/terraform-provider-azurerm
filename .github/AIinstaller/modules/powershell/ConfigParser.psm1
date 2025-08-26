@@ -53,7 +53,7 @@ function Get-ManifestConfig {
     
     $manifest = @{
         SourceBranch = $Branch
-        BaseUrl = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm/$Branch"
+        BaseUrl = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm/exp/terraform_copilot"
         Sections = @{}
     }
     
