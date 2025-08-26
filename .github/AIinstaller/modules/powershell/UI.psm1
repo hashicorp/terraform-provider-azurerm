@@ -441,11 +441,23 @@ function Show-Summary {
             }
         }
         
-        # Display each detail with aligned colons
+        # Display each detail with aligned colons and proper colors
         foreach ($key in $Details.Keys) {
             $value = $Details[$key]
             $padding = " " * ($maxKeyLength - $key.Length)
-            Write-Host "  $key$padding : $value" -ForegroundColor White
+            
+            # Write key in cyan
+            Write-Host "  $key$padding" -ForegroundColor Cyan -NoNewline
+            Write-Host ": " -ForegroundColor Cyan -NoNewline
+            
+            # Determine value color based on content
+            if ($value -match '^\d+$') {
+                # Numbers in green
+                Write-Host $value -ForegroundColor Green
+            } else {
+                # Text values in yellow
+                Write-Host $value -ForegroundColor Yellow
+            }
         }
         Write-Host ""
     }
