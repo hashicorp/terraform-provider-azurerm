@@ -1,7 +1,6 @@
 package sdk
 
 import (
-	"fmt"
 	"slices"
 	"strings"
 
@@ -17,26 +16,7 @@ const (
 	ResourceTypeForIdentityVirtual
 )
 
-func identityType(idType []ResourceTypeForIdentity) ResourceTypeForIdentity {
-	var t ResourceTypeForIdentity
-
-	switch len(idType) {
-	case 0:
-		t = ResourceTypeForIdentityDefault
-	case 1:
-		t = idType[0]
-	default:
-		panic(fmt.Sprintf("expected a maximum of one value for the `idType` argument, got %d", len(idType)))
-	}
-
-	return t
-}
-
-func GenerateIdentitySchema(id resourceids.ResourceId, idType []ResourceTypeForIdentity) identityschema.Schema {
-	return identitySchema(id, identityType(idType))
-}
-
-func identitySchema(id resourceids.ResourceId, idType ResourceTypeForIdentity) identityschema.Schema {
+func GenerateIdentitySchema(id resourceids.ResourceId, idType ResourceTypeForIdentity) identityschema.Schema {
 	idSchema := identityschema.Schema{
 		Attributes: map[string]identityschema.Attribute{},
 	}

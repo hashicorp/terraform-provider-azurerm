@@ -3,6 +3,7 @@ package sdk
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 
 	"github.com/hashicorp/go-azure-helpers/framework/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
@@ -18,7 +19,7 @@ type FrameworkResourceWrapper struct {
 
 	FrameworkWrappedResource
 
-	Model interface{}
+	Model any
 }
 
 var _ resource.ResourceWithModifyPlan = &FrameworkResourceWrapper{}
@@ -180,13 +181,11 @@ func (r *FrameworkResourceWrapper) SetIdentityOnCreate(ctx context.Context, resp
 			response.Diagnostics.AddError("parsing resource ID: %s", err.Error())
 		}
 
-		t := identityType(idType)
-
 		segments := id.Segments()
 		numSegments := len(segments)
 		for idx, segment := range segments {
 			if segmentTypeSupported(segment.Type) {
-				name := segmentName(segment, t, numSegments, idx)
+				name := segmentName(segment, idType, numSegments, idx)
 
 				field, ok := parsed.Parsed[segment.Name]
 				if !ok {
@@ -211,13 +210,11 @@ func (r *FrameworkResourceWrapper) SetIdentityOnRead(ctx context.Context, respon
 			response.Diagnostics.AddError("parsing resource ID: %s", err.Error())
 		}
 
-		t := identityType(idType)
-
 		segments := id.Segments()
 		numSegments := len(segments)
 		for idx, segment := range segments {
 			if segmentTypeSupported(segment.Type) {
-				name := segmentName(segment, t, numSegments, idx)
+				name := segmentName(segment, idType, numSegments, idx)
 
 				field, ok := parsed.Parsed[segment.Name]
 				if !ok {
@@ -231,18 +228,25 @@ func (r *FrameworkResourceWrapper) SetIdentityOnRead(ctx context.Context, respon
 	}
 }
 
-func AssertResourceModelType[T any](input interface{}, response interface{}) *T {
-	result, ok := input.(*T)
+// AssertResourceModelType is a helper function to assist in checking the Resource or Data Source model type and
+// provides the compiler with the struct type to be able to access the struct fields correctly.
+// model is the initialised struct, and response is the operation response for which the model is being checked to
+// allow error diagnostics to be written back to the SDK and passed to Terraform.
+func AssertResourceModelType[T any](model any, response any) *T {
+	result, ok := model.(*T)
 	if !ok {
 		switch v := response.(type) {
 		case *resource.CreateResponse:
-			v.Diagnostics.AddError("resource had wrong model type", fmt.Sprintf("got %T", input))
+			v.Diagnostics.AddError("resource had wrong model type", fmt.Sprintf("got %T", model))
 		case *resource.ReadResponse:
-			v.Diagnostics.AddError("resource had wrong model type", fmt.Sprintf("got %T", input))
+			v.Diagnostics.AddError("resource had wrong model type", fmt.Sprintf("got %T", model))
 		case *resource.UpdateResponse:
-			v.Diagnostics.AddError("resource had wrong model type, ", fmt.Sprintf("got %T", input))
+			v.Diagnostics.AddError("resource had wrong model type, ", fmt.Sprintf("got %T", model))
 		case *resource.DeleteResponse:
-			v.Diagnostics.AddError("resource had wrong model type", fmt.Sprintf("got %T", input))
+			v.Diagnostics.AddError("resource had wrong model type", fmt.Sprintf("got %T", model))
+
+		case *datasource.ReadResponse:
+			v.Diagnostics.AddError("data source had wrong model type", fmt.Sprintf("got %T", model))
 		}
 
 		return nil

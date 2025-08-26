@@ -88,46 +88,51 @@ func (r *ResourceMetadata) DefaultsDataSource(req datasource.ConfigureRequest, r
 
 // DecodeCreate reads a plan from a resource.CreateRequest into a pointer to a target model and sets resource.CreateResponse diags on error.
 // Returns true if there are no error Diagnostics.
-func (r *ResourceMetadata) DecodeCreate(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse, plan interface{}) {
-	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
+func (r *ResourceMetadata) DecodeCreate(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse, planModel any) {
+	resp.Diagnostics.Append(req.Plan.Get(ctx, planModel)...)
 }
 
-// EncodeCreate writes the Config passed to create to state.
-func (r *ResourceMetadata) EncodeCreate(ctx context.Context, resp *resource.CreateResponse, config interface{}) {
-	resp.Diagnostics.Append(resp.State.Set(ctx, config)...)
+func (r *ResourceMetadata) DecodeCreateWithConfig(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse, planModel, configModel any) {
+	resp.Diagnostics.Append(req.Plan.Get(ctx, planModel)...)
+	resp.Diagnostics.Append(req.Config.Get(ctx, configModel)...)
 }
 
-// DecodeRead reads a resources State from a resource.ReadRequest into a pointer to a target model and sets resource.ReadResponse diags on error.
-// Returns true if there are no error Diagnostics.
-func (r *ResourceMetadata) DecodeRead(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse, state interface{}) {
+// EncodeCreate writes the model populated in the Create method to state.
+func (r *ResourceMetadata) EncodeCreate(ctx context.Context, resp *resource.CreateResponse, model any) {
+	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
+}
+
+// DecodeRead reads a resource's Previous State from a resource.ReadRequest into a pointer to a target model and sets
+// resource.ReadResponse diags on error.
+func (r *ResourceMetadata) DecodeRead(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse, model any) {
 	if !req.State.Raw.IsNull() {
-		resp.Diagnostics.Append(req.State.Get(ctx, state)...)
+		resp.Diagnostics.Append(req.State.Get(ctx, model)...)
 	} else {
+		// Note to maintainers - If this error is reached, there has been an issue converting the Resource Identity into
+		// the Azure Resource ID for the resource
 		SetResponseErrorDiagnostic(resp, "Current State Error", "Current State was null for read decode")
 	}
 }
 
-// DecodeDataSourceRead reads a Data Sources config from a datasource.ReadRequest into a pointer to a target model and sets datasource.ReadResponse diags on error.
-// Returns true if there are no error Diagnostics.
-func (r *ResourceMetadata) DecodeDataSourceRead(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse, state interface{}) {
-	resp.Diagnostics.Append(req.Config.Get(ctx, state)...)
+// DecodeDataSourceRead reads a Data Sources config from a datasource.ReadRequest into a pointer to a target model and
+// sets datasource.ReadResponse diags on error.
+func (r *ResourceMetadata) DecodeDataSourceRead(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse, model any) {
+	resp.Diagnostics.Append(req.Config.Get(ctx, model)...)
 }
 
-// EncodeRead writes the state to a ReadResponse.
-// The state parameter must be a pointer to a model for the resource. This should have been populated with all possible values read from the API.
-func (r *ResourceMetadata) EncodeRead(ctx context.Context, resp *resource.ReadResponse, state interface{}) {
-	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+// EncodeRead writes the model populated in the Resource Read method to state.
+func (r *ResourceMetadata) EncodeRead(ctx context.Context, resp *resource.ReadResponse, model any) {
+	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-// EncodeDataSourceRead writes the state to a ReadResponse.
-// The state parameter must be a pointer to a model for the resource. This should have been populated with all possible values read from the API.
-func (r *ResourceMetadata) EncodeDataSourceRead(ctx context.Context, resp *datasource.ReadResponse, state interface{}) {
-	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
+// EncodeDataSourceRead writes the model populated in the Read method to state.
+func (r *ResourceMetadata) EncodeDataSourceRead(ctx context.Context, resp *datasource.ReadResponse, model any) {
+	resp.Diagnostics.Append(resp.State.Set(ctx, model)...)
 }
 
-// DecodeUpdate reads a plan and state from a resource.UpdateRequest into pointers to a target models and sets resource.UpdateResponse diags on error.
-// The plan and state parameters must be pointer to the model for the resource and should have been populated with the decoded plan and existing state prior to being passed to this function.
-func (r *ResourceMetadata) DecodeUpdate(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse, plan interface{}, state interface{}) {
+// DecodeUpdate reads a plan and state from a resource.UpdateRequest into pointers to the resource models and sets
+// resource.UpdateResponse diags on error.
+func (r *ResourceMetadata) DecodeUpdate(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse, plan any, state any) {
 	resp.Diagnostics.Append(req.Plan.Get(ctx, plan)...)
 	if resp.Diagnostics.HasError() {
 		return
@@ -138,18 +143,18 @@ func (r *ResourceMetadata) DecodeUpdate(ctx context.Context, req resource.Update
 
 // EncodeUpdate writes the state back to an UpdateResponse.
 // The state parameter must be a pointer to a model for the resource.
-func (r *ResourceMetadata) EncodeUpdate(ctx context.Context, resp *resource.UpdateResponse, state interface{}) {
+func (r *ResourceMetadata) EncodeUpdate(ctx context.Context, resp *resource.UpdateResponse, state any) {
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }
 
 // DecodeDelete reads a resources State from a resource.ReadRequest into a pointer to a target model and sets resource.ReadResponse diags on error.
-func (r *ResourceMetadata) DecodeDelete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse, state interface{}) {
+func (r *ResourceMetadata) DecodeDelete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse, state any) {
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 }
 
-// SetResponseErrorDiagnostic is a helper function to write an Error Diagnostic to the appropriate Framework response type
-// detail can be specified as an error, from which error.Error() will be used or as a string
-func SetResponseErrorDiagnostic(resp interface{}, summary string, detail interface{}) {
+// SetResponseErrorDiagnostic is a helper function to write an Error Diagnostic to the appropriate Framework response
+// type detail can be specified as an error, from which error.Error() will be used or as a string
+func SetResponseErrorDiagnostic(resp any, summary string, detail any) {
 	var errorMsg string
 	switch e := detail.(type) {
 	case error:
@@ -175,9 +180,9 @@ func SetResponseErrorDiagnostic(resp interface{}, summary string, detail interfa
 	}
 }
 
-// AppendResponseErrorDiagnostic is a helper function to write an Error Diagnostic to the appropriate Framework response type
-// detail can be specified as an error, from which error.Error() will be used or as a string
-func AppendResponseErrorDiagnostic(resp interface{}, d diag.Diagnostics) {
+// AppendResponseErrorDiagnostic is a helper function to write an Error Diagnostic to the appropriate Framework response
+// type detail can be specified as an error, from which error.Error() will be used or as a string
+func AppendResponseErrorDiagnostic(resp any, d diag.Diagnostics) {
 	switch v := resp.(type) {
 	case *resource.ConfigureResponse:
 		v.Diagnostics.Append(d...)
@@ -201,13 +206,11 @@ func AppendResponseErrorDiagnostic(resp interface{}, d diag.Diagnostics) {
 }
 
 type FrameworkWrappedResource interface {
-	ModelObject() interface{}
+	ModelObject() any
 
 	ResourceType() string
 
 	Schema(_ context.Context, _ resource.SchemaRequest, response *resource.SchemaResponse)
-
-	// New() *FrameworkResourceWrapper
 
 	Create(ctx context.Context, request resource.CreateRequest, response *resource.CreateResponse, metadata ResourceMetadata, plan any)
 
@@ -215,18 +218,16 @@ type FrameworkWrappedResource interface {
 
 	Delete(ctx context.Context, request resource.DeleteRequest, response *resource.DeleteResponse, metadata ResourceMetadata, state any)
 
-	Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse, metadata ResourceMetadata, plan any, state any)
-
 	ImportState(ctx context.Context, request resource.ImportStateRequest, response *resource.ImportStateResponse, metadata ResourceMetadata)
 
-	Identity() (id resourceids.ResourceId, idType []ResourceTypeForIdentity)
+	Identity() (id resourceids.ResourceId, idType ResourceTypeForIdentity)
 }
 
 // FrameworkWrappedResourceWithUpdate provides an interface for resources that need custom configuration beyond the standard wrapped Configure()
 type FrameworkWrappedResourceWithUpdate interface {
 	FrameworkWrappedResource
 
-	Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse, metadata ResourceMetadata, plan interface{}, state interface{})
+	Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse, metadata ResourceMetadata, plan any, state any)
 }
 
 // FrameworkWrappedResourceWithConfigure provides an interface for resources that need custom configuration beyond the standard wrapped Configure()
