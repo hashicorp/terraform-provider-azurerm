@@ -1454,19 +1454,18 @@ provider "azurerm" {
 }
 
 resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-aiservices-%d"
-  location = "%s"
+  name     = "acctestRG-aiservices-%[1]d"
+  location = "%[2]s"
 }
 
 resource "azurerm_cognitive_account" "test" {
-  name                  = "acctestaiservices-%d"
+  name                  = "acctestaiservices-%[1]d"
   location              = azurerm_resource_group.test.location
   resource_group_name   = azurerm_resource_group.test.name
   kind                  = "AIServices"
   sku_name              = "S0"
-  custom_subdomain_name = "acctestaiservices-%[1]d"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (CognitiveAccountResource) aiServices_complete(data acceptance.TestData) string {
@@ -1483,9 +1482,9 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestUAI-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
-  name                = "%[3]s"
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -1544,5 +1543,5 @@ resource "azurerm_cognitive_account" "test" {
     Acceptance = "Test"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary)
 }

@@ -127,7 +127,6 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 			"custom_subdomain_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -357,6 +356,13 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 
 			if bypass, ok := d.GetOk("network_acls.0.bypass"); ok && bypass != "" && !utils.SliceContainsValue([]string{"OpenAI", "AIServices"}, kind) {
 				return fmt.Errorf("the `network_acls.bypass` does not support Trusted Services for the kind %q", kind)
+			}
+
+			if d.HasChange("custom_subdomain_name") {
+				old, _ := d.GetChange("custom_subdomain_name")
+				if old != nil && old != "" {
+					return fmt.Errorf("once set, changing `custom_subdomain_name` is not supported")
+				}
 			}
 			return nil
 		},
