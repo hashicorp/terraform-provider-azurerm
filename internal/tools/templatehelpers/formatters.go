@@ -113,9 +113,7 @@ func NewIDCreateFormater(idType []string, idSegments []string, prefix string) st
 
 	f := "%s.New%s(%s)"
 	out := make([]string, 0)
-	for _, v := range idSegments {
-		out = append(out, v)
-	}
+	out = append(out, idSegments...)
 
 	if slices.Contains(out, "SubscriptionId") {
 		f = "%s.New%s(metadata.Client.Account.SubscriptionId, %s)"
