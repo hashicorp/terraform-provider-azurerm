@@ -224,9 +224,11 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 			},
 
 			"service_side_encryption_enabled": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
-				ForceNew: true,
+				Type:         pluginsdk.TypeBool,
+				Optional:     true,
+				ForceNew:     true,
+				Default:      false,
+				RequiredWith: []string{"encryption"},
 			},
 
 			"v1_legacy_mode_enabled": {

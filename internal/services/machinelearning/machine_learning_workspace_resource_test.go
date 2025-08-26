@@ -524,21 +524,21 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_machine_learning_workspace" "test" {
-  name                          = "acctest-MLW-%[2]d"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  friendly_name                 = "test-workspace"
-  description                   = "Test machine learning workspace"
-  application_insights_id       = azurerm_application_insights.test.id
-  key_vault_id                  = azurerm_key_vault.test.id
-  storage_account_id            = azurerm_storage_account.test.id
-  container_registry_id         = azurerm_container_registry.test.id
-  sku_name                      = "Basic"
-  high_business_impact          = true
-  public_network_access_enabled = true
-  image_build_compute_name      = "terraformCompute"
-	service_side_encryption_enabled = true
-  v1_legacy_mode_enabled        = false
+  name                            = "acctest-MLW-%[2]d"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
+  friendly_name                   = "test-workspace"
+  description                     = "Test machine learning workspace"
+  application_insights_id         = azurerm_application_insights.test.id
+  key_vault_id                    = azurerm_key_vault.test.id
+  storage_account_id              = azurerm_storage_account.test.id
+  container_registry_id           = azurerm_container_registry.test.id
+  sku_name                        = "Basic"
+  high_business_impact            = true
+  public_network_access_enabled   = true
+  image_build_compute_name        = "terraformCompute"
+  service_side_encryption_enabled = true
+  v1_legacy_mode_enabled          = false
 
   identity {
     type = "SystemAssigned"
@@ -605,20 +605,20 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 resource "azurerm_machine_learning_workspace" "test" {
-  name                          = "acctest-MLW-%[2]d"
-  location                      = azurerm_resource_group.test.location
-  resource_group_name           = azurerm_resource_group.test.name
-  friendly_name                 = "test-workspace-updated"
-  description                   = "Test machine learning workspace update"
-  application_insights_id       = azurerm_application_insights.test.id
-  key_vault_id                  = azurerm_key_vault.test.id
-  storage_account_id            = azurerm_storage_account.test.id
-  container_registry_id         = azurerm_container_registry.test.id
-  sku_name                      = "Basic"
-  high_business_impact          = true
-  public_network_access_enabled = true
-	service_side_encryption_enabled = true
-  image_build_compute_name      = "terraformComputeUpdate"
+  name                            = "acctest-MLW-%[2]d"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
+  friendly_name                   = "test-workspace-updated"
+  description                     = "Test machine learning workspace update"
+  application_insights_id         = azurerm_application_insights.test.id
+  key_vault_id                    = azurerm_key_vault.test.id
+  storage_account_id              = azurerm_storage_account.test.id
+  container_registry_id           = azurerm_container_registry.test.id
+  sku_name                        = "Basic"
+  high_business_impact            = true
+  public_network_access_enabled   = true
+  service_side_encryption_enabled = true
+  image_build_compute_name        = "terraformComputeUpdate"
 
   identity {
     type = "SystemAssigned"
@@ -709,9 +709,9 @@ resource "azurerm_storage_account" "test" {
   resource_group_name      = azurerm_resource_group.test.name
   account_tier             = "Standard"
   account_replication_type = "LRS"
-	identity {
-		type = "SystemAssigned"
-	}
+  identity {
+    type = "SystemAssigned"
+  }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomIntOfLength(15))
 }

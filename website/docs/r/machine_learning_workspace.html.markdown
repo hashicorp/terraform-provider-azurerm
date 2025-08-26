@@ -390,6 +390,8 @@ The following arguments are supported:
 
 * `serverless_compute` - (Optional) A `serverless_compute` block as defined below.
 
+* `service_side_encryption_enabled` - (Optional) Whether to enable service-side encryption with customer-managed keys (CMK). Default to `false`. Changing this forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
