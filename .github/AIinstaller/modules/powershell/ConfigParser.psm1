@@ -22,8 +22,29 @@ function Get-ManifestConfig {
     
     # Find manifest file if not specified
     if (-not $ManifestPath) {
-        $scriptRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
-        $ManifestPath = Join-Path $scriptRoot "file-manifest.config"
+        # Try to find manifest file in multiple locations
+        $possiblePaths = @(
+            # User profile installer directory (when running from bootstrapped copy)
+            (Join-Path $env:USERPROFILE ".terraform-ai-installer\file-manifest.config"),
+            # Current script directory (when running from user profile)
+            (Join-Path (Split-Path $PSScriptRoot -Parent) "file-manifest.config"),
+            # Original repository structure (when running from source)
+            (Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) "file-manifest.config")
+        )
+        
+        $ManifestPath = $null
+        foreach ($path in $possiblePaths) {
+            if (Test-Path $path) {
+                $ManifestPath = $path
+                break
+            }
+        }
+        
+        if (-not $ManifestPath) {
+            # Fallback to old behavior
+            $scriptRoot = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+            $ManifestPath = Join-Path $scriptRoot "file-manifest.config"
+        }
     }
     
     if (-not (Test-Path $ManifestPath)) {

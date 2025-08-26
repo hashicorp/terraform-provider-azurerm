@@ -781,6 +781,12 @@ function Invoke-Bootstrap {
         # Files to bootstrap from configuration
         $filesToBootstrap = $Global:InstallerConfig.Files.InstallerFiles.Files
         
+        # CRITICAL: Always include the manifest file in bootstrap - it's required for user profile operations
+        $manifestFile = "file-manifest.config"
+        if ($manifestFile -notin $filesToBootstrap) {
+            $filesToBootstrap += $manifestFile
+        }
+        
         # Statistics
         $statistics = @{
             "Files Copied" = 0
@@ -789,14 +795,14 @@ function Invoke-Bootstrap {
             "Total Size" = 0
         }
         
-        # CRITICAL: Determine if we should copy locally or download from remote
-        # This protection prevents overwriting source files
-        $isSourceRepo = Test-SourceRepository
+        # CRITICAL: Bootstrap should ONLY be allowed from the source branch (exp/terraform_copilot)
+        # This ensures you're copying the correct, official installer files to your user profile
+        # The validation in Test-PreInstallation should have already verified we're on the source branch
         $aiInstallerSourcePath = Join-Path $Global:WorkspaceRoot ".github/AIinstaller"
         
-        if ($isSourceRepo -and (Test-Path $aiInstallerSourcePath)) {
+        if (Test-Path $aiInstallerSourcePath) {
             Write-Host ""
-            Write-Host "Copying installer files from local source repository..." -ForegroundColor Cyan
+            Write-Host "Copying installer files from current repository..." -ForegroundColor Cyan
             Write-Host ""
             
             # Calculate maximum filename length for alignment
@@ -843,7 +849,7 @@ function Invoke-Bootstrap {
                             $targetPath = Join-Path $targetDirectory $fileName
                         }
                     } else {
-                        # Other files (PowerShell script, config) go directly in target directory
+                        # Other files (PowerShell script, config files like file-manifest.config) go directly in target directory
                         $targetPath = Join-Path $targetDirectory $fileName
                     }
                     
@@ -874,77 +880,16 @@ function Invoke-Bootstrap {
                 }
             }
         } else {
-            # CRITICAL SOURCE REPO PROTECTION: Prevent downloading on source repository
-            if ($isSourceRepo) {
-                Write-Host "ERROR: Cannot download files on source repository!" -ForegroundColor Red
-                Write-Host "This would overwrite source files with downloaded versions, potentially losing local changes." -ForegroundColor Red
-                Write-Host "Source repository detected, but local AI installer files are missing." -ForegroundColor Yellow
-                Write-Host "This suggests the repository may be in an inconsistent state." -ForegroundColor Yellow
-                Write-Host "" -ForegroundColor Red
-                Write-Host "To resolve this issue:" -ForegroundColor Yellow
-                Write-Host "  1. Check if you're on the correct branch (should contain .github/AIinstaller/)" -ForegroundColor Yellow
-                Write-Host "  2. If files are missing, restore them from the main branch" -ForegroundColor Yellow
-                Write-Host "  3. Use -Verify flag to check repository state without making changes" -ForegroundColor Yellow
-                exit 1
-            }
-            
-            Write-Host "  Downloading installer files from remote source branch..." -ForegroundColor "Cyan"
-            Write-Host ""
-            
-            # Download files from remote repository
-            $baseUri = "$($Global:InstallerConfig.SourceRepository)/$($Global:InstallerConfig.Branch)/.github/AIinstaller"
-            
-            foreach ($file in $filesToBootstrap) {
-                try {
-                    $uri = "$baseUri/$file"
-                    $fileName = Split-Path $file -Leaf
-                    
-                    # Determine target path based on file type and maintain directory structure
-                    if ($fileName.EndsWith('.psm1')) {
-                        # PowerShell modules go in modules/powershell/ subdirectory
-                        $modulesDir = Join-Path $targetDirectory "modules\powershell"
-                        if (-not (Test-Path $modulesDir)) {
-                            New-Item -ItemType Directory -Path $modulesDir -Force | Out-Null
-                        }
-                        $targetPath = Join-Path $modulesDir $fileName
-                    } elseif ($fileName.EndsWith('.sh')) {
-                        # Bash modules and scripts go in modules/bash/ subdirectory or root for main scripts
-                        if ($file -like "*modules/bash/*") {
-                            $modulesDir = Join-Path $targetDirectory "modules\bash"
-                            if (-not (Test-Path $modulesDir)) {
-                                New-Item -ItemType Directory -Path $modulesDir -Force | Out-Null
-                            }
-                            $targetPath = Join-Path $modulesDir $fileName
-                        } else {
-                            # Main bash script goes in root directory
-                            $targetPath = Join-Path $targetDirectory $fileName
-                        }
-                    } else {
-                        # Other files (PowerShell script, config) go directly in target directory
-                        $targetPath = Join-Path $targetDirectory $fileName
-                    }
-                    
-                    Show-FileOperation -Operation "Downloading" -FileName $fileName -NoNewLine
-                    
-                    # Download with progress
-                    Invoke-WebRequest -Uri $uri -OutFile $targetPath -UseBasicParsing | Out-Null
-                    
-                    if (Test-Path $targetPath) {
-                        $fileSize = (Get-Item $targetPath).Length
-                        $statistics["Files Downloaded"]++
-                        $statistics["Total Size"] += $fileSize
-                        
-                        Write-Host " [OK]" -ForegroundColor "Green"
-                    } else {
-                        Write-Host " [FAILED]" -ForegroundColor "Red"
-                        $statistics["Files Failed"]++
-                    }
-                }
-                catch {
-                    Write-Host " [ERROR] ($($_.Exception.Message))" -ForegroundColor "Red"
-                    $statistics["Files Failed"]++
-                }
-            }
+            # AIinstaller directory not found in current repository
+            Write-Host "ERROR: AIinstaller directory not found!" -ForegroundColor Red
+            Write-Host "The .github/AIinstaller directory was not found in the current repository." -ForegroundColor Red
+            Write-Host "Bootstrap must be run from the source branch (exp/terraform_copilot) that contains the installer files." -ForegroundColor Yellow
+            Write-Host "" 
+            Write-Host "To resolve this issue:" -ForegroundColor Yellow
+            Write-Host "  1. Switch to the source branch: git checkout exp/terraform_copilot" -ForegroundColor Yellow
+            Write-Host "  2. Ensure you're in the correct repository (terraform-provider-azurerm)" -ForegroundColor Yellow
+            Write-Host "  3. Run bootstrap again from the source branch" -ForegroundColor Yellow
+            exit 1
         }
         
         Write-Host ""

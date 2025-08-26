@@ -356,7 +356,14 @@ function Main {
         }
         
         # Step 3: Initialize configuration (this sets up global branch info)
-        $manifestPath = Join-Path $Global:WorkspaceRoot ".github/AIinstaller/file-manifest.config"
+        # CRITICAL: Manifest file should be in the installer directory, not the target repository
+        if ($RepoDirectory) {
+            # Running from user profile - manifest is in the installer directory (where this script is)
+            $manifestPath = Join-Path $ScriptDirectory "file-manifest.config"
+        } else {
+            # Running from source repository - manifest is in the repository's AIinstaller directory
+            $manifestPath = Join-Path $Global:WorkspaceRoot ".github/AIinstaller/file-manifest.config"
+        }
         $Global:ManifestConfig = Get-ManifestConfig -ManifestPath $manifestPath
         $Global:InstallerConfig = Get-InstallerConfig -WorkspaceRoot $Global:WorkspaceRoot -ManifestConfig $Global:ManifestConfig
         

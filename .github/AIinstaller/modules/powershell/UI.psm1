@@ -210,20 +210,23 @@ function Show-SourceBranchHelp {
     Write-Host ""
     Write-Host "AVAILABLE OPTIONS:" -ForegroundColor Cyan
     Write-Host "  -Bootstrap        Copy installer to user profile (~\.terraform-ai-installer\)"
+    Write-Host "                    Run this from the source branch to set up for feature branch use"
     Write-Host "  -Verify           Check current workspace status and validate setup"
     Write-Host "  -Help             Show this help information"
     Write-Host ""
     Write-Host "EXAMPLES:" -ForegroundColor Cyan
-    Write-Host "  Bootstrap installer:"
+    Write-Host "  Bootstrap installer (run from source branch):"
     Write-Host "    .\install-copilot-setup.ps1 -Bootstrap"
     Write-Host ""
     Write-Host "  Verify setup:"
     Write-Host "    .\install-copilot-setup.ps1 -Verify"
     Write-Host ""
-    Write-Host "NEXT STEPS:" -ForegroundColor Cyan
-    Write-Host "  1. Run bootstrap to set up the installer in your user profile"
+    Write-Host "BOOTSTRAP WORKFLOW:" -ForegroundColor Cyan
+    Write-Host "  1. Run -Bootstrap from source branch (exp/terraform_copilot) to copy installer to user profile"
     Write-Host "  2. Switch to your feature branch: git checkout feature/your-branch-name"
-    Write-Host "  3. Run installer from user profile to install AI infrastructure"
+    Write-Host "  3. Navigate to user profile: cd ~\.terraform-ai-installer\"
+    Write-Host "  4. Run installer: .\install-copilot-setup.ps1 -RepoDirectory `"C:\path\to\your\feature\branch`""
+    Write-Host ""
 }
 
 function Show-FeatureBranchHelp {
@@ -232,11 +235,11 @@ function Show-FeatureBranchHelp {
     Display help specific to feature branch operations
     #>
     Write-Host "USAGE:" -ForegroundColor Cyan
-    Write-Host "  & `"~\.terraform-ai-installer\install-copilot-setup.ps1`" [OPTIONS]"
+    Write-Host "  .\install-copilot-setup.ps1 [OPTIONS]"
     Write-Host ""
     
     Write-Host "AVAILABLE OPTIONS:" -ForegroundColor Cyan
-    Write-Host "  -RepoDirectory    Repository path for git operations (when running from user profile)"
+    Write-Host "  -RepoDirectory    Repository path (path to your feature branch directory)"
     Write-Host "  -Auto-Approve     Overwrite existing files without prompting"
     Write-Host "  -Dry-Run          Show what would be done without making changes"
     Write-Host "  -Verify           Check current workspace status and validate setup"
@@ -246,21 +249,25 @@ function Show-FeatureBranchHelp {
     
     Write-Host "EXAMPLES:" -ForegroundColor Cyan
     Write-Host "  Install AI infrastructure:"
-    Write-Host "    & `"~\.terraform-ai-installer\install-copilot-setup.ps1`" -RepoDirectory `"C:\path\to\repo`""
+    Write-Host "    cd ~\.terraform-ai-installer\"
+    Write-Host "    .\install-copilot-setup.ps1 -RepoDirectory `"C:\path\to\your\feature\branch`""
     Write-Host ""
     Write-Host "  Dry-Run (preview changes):"
-    Write-Host "    & `"~\.terraform-ai-installer\install-copilot-setup.ps1`" -RepoDirectory `"C:\path\to\repo`" -Dry-Run"
+    Write-Host "    cd ~\.terraform-ai-installer\"
+    Write-Host "    .\install-copilot-setup.ps1 -RepoDirectory `"C:\path\to\your\feature\branch`" -Dry-Run"
     Write-Host ""
     Write-Host "  Auto-Approve installation:"
-    Write-Host "    & `"~\.terraform-ai-installer\install-copilot-setup.ps1`" -RepoDirectory `"C:\path\to\repo`" -Auto-Approve"
+    Write-Host "    cd ~\.terraform-ai-installer\"
+    Write-Host "    .\install-copilot-setup.ps1 -RepoDirectory `"C:\path\to\your\feature\branch`" -Auto-Approve"
     Write-Host ""
     Write-Host "  Clean removal:"
-    Write-Host "    & `"~\.terraform-ai-installer\install-copilot-setup.ps1`" -RepoDirectory `"C:\path\to\repo`" -Clean"
+    Write-Host "    cd ~\.terraform-ai-installer\"
+    Write-Host "    .\install-copilot-setup.ps1 -RepoDirectory `"C:\path\to\your\feature\branch`" -Clean"
     Write-Host ""
     
     Write-Host "WORKFLOW:" -ForegroundColor Cyan
-    Write-Host "  1. Ensure you're on your feature branch"
-    Write-Host "  2. Run installer from user profile (installed via bootstrap)"
+    Write-Host "  1. Navigate to user profile installer directory: cd ~\.terraform-ai-installer\"
+    Write-Host "  2. Run installer with path to your feature branch"
     Write-Host "  3. Start developing with enhanced GitHub Copilot AI features"
     Write-Host "  4. Use -Clean to remove AI infrastructure when done"
     Write-Host ""
@@ -291,8 +298,9 @@ function Show-UnknownBranchHelp {
     Write-Host "    .\install-copilot-setup.ps1 -Verify"
     Write-Host ""
     Write-Host "  Feature branch operations:"
-    Write-Host "    & `"~\.terraform-ai-installer\install-copilot-setup.ps1`" -RepoDirectory `"C:\path\to\repo`""
-    Write-Host "    & `"~\.terraform-ai-installer\install-copilot-setup.ps1`" -RepoDirectory `"C:\path\to\repo`" -Clean"
+    Write-Host "    cd ~\.terraform-ai-installer\"
+    Write-Host "    .\install-copilot-setup.ps1 -RepoDirectory `"C:\path\to\your\feature\branch`""
+    Write-Host "    .\install-copilot-setup.ps1 -RepoDirectory `"C:\path\to\your\feature\branch`" -Clean"
     Write-Host ""
     
     Write-Host "BRANCH DETECTION:" -ForegroundColor Yellow
