@@ -26,7 +26,10 @@ func FlattenLongTermBackUpScheduleDetails(longTermBackUpScheduleDetails *autonom
 	return output
 }
 
-func findBackupByName(ctx context.Context, client *autonomousdatabasebackups.AutonomousDatabaseBackupsClient, adbId autonomousdatabases.AutonomousDatabaseId, backupId autonomousdatabasebackups.AutonomousDatabaseBackupId) (*autonomousdatabasebackups.AutonomousDatabaseBackup, error) {
+// getBackupFromOCI retrieves a backups by making a direct API call to OCI.
+// It bypasses the standard client.Get() method because backup data is not
+// stored within Azure's metadata resource provider (MetaRp).
+func getBackupFromOCI(ctx context.Context, client *autonomousdatabasebackups.AutonomousDatabaseBackupsClient, adbId autonomousdatabases.AutonomousDatabaseId, backupId autonomousdatabasebackups.AutonomousDatabaseBackupId) (*autonomousdatabasebackups.AutonomousDatabaseBackup, error) {
 	resp, err := client.ListByParent(ctx, autonomousdatabasebackups.AutonomousDatabaseId(adbId))
 	if err != nil {
 		return nil, fmt.Errorf("listing backups for %s: %+v", adbId.ID(), err)

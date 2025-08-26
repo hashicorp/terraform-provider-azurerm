@@ -43,7 +43,7 @@ The following arguments are supported:
 
 * `retention_period_in_days` - (Required) (Updatable) The number of days to retain the backup. Must be between 90 and 3650 days.
 
-* `type` - (Optional) The type of backup to create. Possible values are `Full`, `Incremental`, and `LongTerm`. Defaults to `LongTerm`.
+* `type` - (Optional) The type of backup to create.Currently, only `LongTerm` backup operations are supported through the Oracle database At azure service.
 
 ## Attributes Reference
 In addition to the Arguments listed above—the following Attributes are exported:

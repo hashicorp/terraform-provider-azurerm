@@ -1,12 +1,12 @@
 ---
 subcategory: "Oracle"
 layout: "azurerm"
-page_title: "Azure Resource Manager: Data Source: azurerm_oracle_autonomous_database_backup"
+page_title: "Azure Resource Manager: Data Source: azurerm_oracle_autonomous_database_backups"
 description: |-
-    Gets information about an existing Autonomous Database Backups.
+  Gets information about existing Autonomous Database Backups.
 ---
 
-# Data Source: azurerm_oracle_autonomous_database_backup
+# Data Source: azurerm_oracle_autonomous_database_backups
 
 Use this data source to access information about an existing Autonomous Database Backups.
 
@@ -71,7 +71,7 @@ An `autonomous_database_backups` block exports the following:
 ## Timeouts
 The `timeouts` block allows you to specify timeouts for certain actions:
 
-* `read` - (Defaults to 10 minutes) Used when retrieving the Autonomous Database Backup.
+* `read` - (Defaults to 10 minutes) Used when retrieving the Autonomous Database Backups.
 
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->

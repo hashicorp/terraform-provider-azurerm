@@ -96,7 +96,7 @@ func (a AutonomousDatabaseBackupResource) Exists(ctx context.Context, client *cl
 	)
 	backupId := autonomousdatabasebackups.NewAutonomousDatabaseBackupID(id.SubscriptionId, id.ResourceGroupName, id.AutonomousDatabaseName, id.AutonomousDatabaseBackupName)
 
-	backup, err := findBackupByName(ctx, client.Oracle.OracleClient.AutonomousDatabaseBackups, autonomousdatabases.AutonomousDatabaseId(adbId), backupId)
+	backup, err := getBackupFromOCI(ctx, client.Oracle.OracleClient.AutonomousDatabaseBackups, autonomousdatabases.AutonomousDatabaseId(adbId), backupId)
 	if err != nil {
 		return nil, fmt.Errorf("checking backup existence: %+v", err)
 	}
@@ -104,7 +104,7 @@ func (a AutonomousDatabaseBackupResource) Exists(ctx context.Context, client *cl
 	return pointer.To(backup != nil), nil
 }
 
-func findBackupByName(ctx context.Context, client *autonomousdatabasebackups.AutonomousDatabaseBackupsClient, adbId autonomousdatabases.AutonomousDatabaseId, backupId autonomousdatabasebackups.AutonomousDatabaseBackupId) (*autonomousdatabasebackups.AutonomousDatabaseBackup, error) {
+func getBackupFromOCI(ctx context.Context, client *autonomousdatabasebackups.AutonomousDatabaseBackupsClient, adbId autonomousdatabases.AutonomousDatabaseId, backupId autonomousdatabasebackups.AutonomousDatabaseBackupId) (*autonomousdatabasebackups.AutonomousDatabaseBackup, error) {
 	resp, err := client.ListByParent(ctx, autonomousdatabasebackups.AutonomousDatabaseId(adbId))
 	if err != nil {
 		return nil, fmt.Errorf("listing backups for %s: %+v", adbId.ID(), err)

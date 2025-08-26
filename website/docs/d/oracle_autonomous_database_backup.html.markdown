@@ -8,7 +8,7 @@ description: |-
 
 # Data Source: azurerm_oracle_autonomous_database_backup
 
-Use this data source to access information about an existing Autonomous Database Backup.
+Use this data source to access information about existing Autonomous Database Backups.
 
 ## Example Usage
 

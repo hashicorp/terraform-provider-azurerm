@@ -174,7 +174,7 @@ func (a AutonomousDatabaseBackupDataSource) Read() sdk.ResourceFunc {
 
 			id := autonomousdatabasebackups.NewAutonomousDatabaseBackupID(subscriptionId, parsedAdbsId.ResourceGroupName, parsedAdbsId.AutonomousDatabaseName, state.Name)
 
-			resp, err := findBackupByName(ctx, client, dbId, id)
+			resp, err := getBackupFromOCI(ctx, client, dbId, id)
 			if err != nil {
 				return fmt.Errorf("retrieving backup: %+v", err)
 			}

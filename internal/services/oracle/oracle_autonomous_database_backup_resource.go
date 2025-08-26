@@ -54,10 +54,12 @@ func (AutonomousDatabaseBackupResource) Arguments() map[string]*pluginsdk.Schema
 
 		// Optional
 		"type": {
-			Type:         schema.TypeString,
-			Optional:     true,
-			Default:      string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeLongTerm),
-			ValidateFunc: validation.StringInSlice(autonomousdatabasebackups.PossibleValuesForAutonomousDatabaseBackupType(), false),
+			Type:     schema.TypeString,
+			Optional: true,
+			Default:  string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeLongTerm),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeLongTerm),
+			}, false),
 		},
 	}
 }
@@ -106,7 +108,7 @@ func (r AutonomousDatabaseBackupResource) Create() sdk.ResourceFunc {
 				model.Name,
 			)
 
-			existingBackup, err := findBackupByName(ctx, client, dbId, id)
+			existingBackup, err := getBackupFromOCI(ctx, client, dbId, id)
 			if err != nil {
 				return fmt.Errorf("checking for existing backup: %+v", err)
 			}
@@ -150,7 +152,7 @@ func (r AutonomousDatabaseBackupResource) Read() sdk.ResourceFunc {
 			)
 			backupId := autonomousdatabasebackups.NewAutonomousDatabaseBackupID(id.SubscriptionId, id.ResourceGroupName, id.AutonomousDatabaseName, id.AutonomousDatabaseBackupName)
 
-			backup, err := findBackupByName(ctx, client, adbId, backupId)
+			backup, err := getBackupFromOCI(ctx, client, adbId, backupId)
 			if err != nil {
 				return fmt.Errorf("retrieving backup: %+v", err)
 			}
@@ -196,7 +198,7 @@ func (r AutonomousDatabaseBackupResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			_, err = findBackupByName(ctx, client, adbId, backupId)
+			_, err = getBackupFromOCI(ctx, client, adbId, backupId)
 			if err != nil {
 				return fmt.Errorf("checking for existing backup: %+v", err)
 			}
