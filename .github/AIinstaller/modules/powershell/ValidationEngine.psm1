@@ -420,7 +420,7 @@ function Test-PreInstallation {
     }
     
     # Continue with full validation if Git is safe
-    $results.Workspace = Test-WorkspaceValid
+    $results.Workspace = Test-WorkspaceValid -WorkspacePath $Global:WorkspaceRoot
     $results.SystemRequirements = Test-SystemRequirements
     
     # Check overall validity - Git validation (including branch safety) is critical
