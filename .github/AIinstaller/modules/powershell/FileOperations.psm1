@@ -769,7 +769,6 @@ function Invoke-Bootstrap {
     
     try {
         # Show operation title (main header already displayed by caller)
-        Write-Separator
         Write-Host "Bootstrap - Copying Installer to User Profile" -ForegroundColor Cyan
         Write-Separator
         

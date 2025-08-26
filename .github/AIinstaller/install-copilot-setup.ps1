@@ -210,7 +210,6 @@ function Get-WorkspaceRoot {
 function Invoke-CleanWorkspace {
     param([bool]$AutoApprove, [bool]$DryRun)
     
-    Write-Separator
     Write-Host "Clean Workspace" -ForegroundColor Cyan
     Write-Separator
     Write-Host ""
@@ -284,7 +283,6 @@ function Invoke-CleanWorkspace {
 function Invoke-InstallInfrastructure {
     param([bool]$AutoApprove, [bool]$DryRun)
     
-    Write-Separator
     Write-Host "Installing AI Infrastructure" -ForegroundColor Cyan
     Write-Separator
     Write-Host ""
@@ -420,14 +418,12 @@ function Main {
         
         # Simple parameter handling
         if ($Help) {
-            Write-Separator
             Show-Help -BranchType $branchType -WorkspaceValid $workspaceValidation.Valid -WorkspaceIssue $workspaceValidation.Reason
             return
         }
         
         # For all other operations, workspace must be valid
         if (-not $workspaceValidation.Valid) {
-            Write-Separator
             Write-Host "WORKSPACE VALIDATION FAILED: $($workspaceValidation.Reason)" -ForegroundColor Red
             Write-Host "Please ensure you're running this script from within a terraform-provider-azurerm repository." -ForegroundColor Red
             Write-Separator
@@ -473,7 +469,6 @@ function Main {
         }
         
         # Default: show source branch help and welcome
-        Write-Separator
         Show-SourceBranchHelp
         Show-SourceBranchWelcome -BranchName $currentBranch
         

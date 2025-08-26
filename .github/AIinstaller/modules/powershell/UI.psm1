@@ -117,6 +117,7 @@ function Show-BranchDetection {
     }
     
     Write-Host ""
+    Write-Separator
 }
 
 function Write-OperationStatus {
@@ -152,6 +153,7 @@ function Show-Help {
         [string]$WorkspaceIssue = ""
     )
     
+    Write-Host ""
     Write-Host "DESCRIPTION:" -ForegroundColor Cyan
     Write-Host "  Interactive installer for AI-assisted development infrastructure that enhances"
     Write-Host "  GitHub Copilot with Terraform-specific knowledge, patterns, and best practices."
@@ -496,7 +498,6 @@ function Show-SafetyViolation {
         [switch]$FromUserProfile
     )
     
-    Write-Separator
     Write-Host "SAFETY VIOLATION: Cannot perform operations on source branch" -ForegroundColor Red
     Write-Separator
     Write-Host ""

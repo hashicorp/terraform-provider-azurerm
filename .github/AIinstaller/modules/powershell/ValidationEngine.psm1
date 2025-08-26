@@ -528,7 +528,6 @@ function Invoke-VerifyWorkspace {
             return $results
         }
         
-        Write-Separator
         Write-Host "Workspace Verification" -ForegroundColor Cyan
         Write-Separator
         Write-Host ""
