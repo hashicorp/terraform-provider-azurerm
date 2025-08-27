@@ -969,7 +969,7 @@ func resourceApiManagementServiceCreate(d *pluginsdk.ResourceData, meta interfac
 				return err
 			}
 
-			ifMatch := ""
+			ifMatch := "*"
 			if getResp.HttpResponse != nil {
 				ifMatch = getResp.HttpResponse.Header.Get("Etag")
 			}
