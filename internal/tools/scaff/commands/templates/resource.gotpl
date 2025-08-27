@@ -53,7 +53,7 @@ func (r {{ToCamel .Name }}Resource) ImportState(ctx context.Context, req resourc
 	if req.ID == "" {
 		resourceIdentity := &{{ToCamel .Name }}ResourceIdentityModel{}
 		req.Identity.Get(ctx, resourceIdentity)
-		id := pointer.To({{NewIDResourceIdentityFormater .IdTypeParts .ResourceIdentitySegments "resourceIdentity"}})
+		id := pointer.To({{NewIDResourceIdentityFormatter .IdTypeParts .ResourceIdentitySegments "resourceIdentity"}})
 		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), id.ID())...)
 	}
 

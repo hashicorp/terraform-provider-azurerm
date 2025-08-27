@@ -17,20 +17,20 @@ import (
 )
 
 var TplFuncMap = template.FuncMap{
-	"ToLower":                       strings.ToLower,
-	"ToTitle":                       ToTitle,
-	"ToCamel":                       strcase.ToCamel,
-	"ToSnake":                       strcase.ToSnake,
-	"TfName":                        TerraformResourceName,
-	"ToString":                      ToString,
-	"ToDelim":                       strcase.ToDelimited,
-	"ToDelimTitle":                  ToDelimTitle,
-	"PrefixedDescriptionString":     PrefixedDescriptionString,
-	"PrefixedLabelString":           PrefixedLabelString,
-	"IdToID":                        IdToID,
-	"NewIDResourceIdentityFormater": NewIDResourceIdentityFormater,
-	"NewIDCreateFormatter":          NewIDCreateFormatter,
-	"ClientToPackageName":           ClientToPackageName,
+	"ToLower":                        strings.ToLower,
+	"ToTitle":                        ToTitle,
+	"ToCamel":                        strcase.ToCamel,
+	"ToSnake":                        strcase.ToSnake,
+	"TfName":                         TerraformResourceName,
+	"ToString":                       ToString,
+	"ToDelim":                        strcase.ToDelimited,
+	"ToDelimTitle":                   ToDelimTitle,
+	"PrefixedDescriptionString":      PrefixedDescriptionString,
+	"PrefixedLabelString":            PrefixedLabelString,
+	"IdToID":                         IdToID,
+	"NewIDResourceIdentityFormatter": NewIDResourceIdentityFormatter,
+	"NewIDCreateFormatter":           NewIDCreateFormatter,
+	"ClientToPackageName":            ClientToPackageName,
 }
 
 // TerraformResourceName generates a Terraform-compliant resource name by combining the provider and resource name.
@@ -92,7 +92,7 @@ func IdToID(id string) string {
 	return id
 }
 
-func NewIDResourceIdentityFormater(idType []string, idSegments []string, prefix string) string {
+func NewIDResourceIdentityFormatter(idType []string, idSegments []string, prefix string) string {
 	if len(idType) != 2 {
 		return "// TODO - ID Type provided to scaff tool did not match the expected format"
 	}
