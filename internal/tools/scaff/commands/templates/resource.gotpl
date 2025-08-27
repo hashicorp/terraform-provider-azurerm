@@ -41,7 +41,7 @@ var _ sdk.FrameworkWrappedResourceWithUpdate = &{{ToCamel .Name }}Resource{}
 var _ sdk.FrameworkWrappedResourceWithConfigValidators = &{{ToCamel .Name }}Resource{}
 {{- end }}
 
-func (r {{ToCamel .Name }}Resource) ModelObject() interface{} {
+func (r {{ToCamel .Name }}Resource) ModelObject() any {
 	return new({{ToCamel .Name }}ResourceModel)
 }
 
@@ -184,7 +184,7 @@ func (r {{ToCamel .Name }}Resource) Read(ctx context.Context, req resource.ReadR
 }
 
 {{ if .Updatable -}}
-func (r {{ToCamel .Name }}Resource) Update(ctx context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse, metadata sdk.ResourceMetadata, decodedPlan interface{}, decodedState any) {
+func (r {{ToCamel .Name }}Resource) Update(ctx context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse, metadata sdk.ResourceMetadata, decodedPlan any, decodedState any) {
 	client := metadata.Client.{{ .ServicePackageName }}.{{ .ClientName }}
 	// TODO - uncomment the following line to access the plan data
 	// plan := sdk.AssertResourceModelType[{{ToCamel .Name }}ResourceModel](decodedPlan, resp)
