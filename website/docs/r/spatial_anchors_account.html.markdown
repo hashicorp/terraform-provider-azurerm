@@ -54,8 +54,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Spatial Anchors Account.
-* `update` - (Defaults to 30 minutes) Used when updating the Spatial Anchors Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Spatial Anchors Account.
+* `update` - (Defaults to 30 minutes) Used when updating the Spatial Anchors Account.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Spatial Anchors Account.
 
 ## Import
@@ -65,3 +65,9 @@ Spatial Anchors Account can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_spatial_anchors_account.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/example/providers/Microsoft.MixedReality/spatialAnchorsAccounts/example
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.MixedReality` - 2021-01-01

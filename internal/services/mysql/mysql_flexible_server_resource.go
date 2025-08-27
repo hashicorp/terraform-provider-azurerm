@@ -288,6 +288,12 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 							ValidateFunc: validation.IntBetween(360, 48000),
 						},
 
+						"log_on_disk_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
 						"size_gb": {
 							Type:         pluginsdk.TypeInt,
 							Optional:     true,
@@ -307,7 +313,6 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
 				Computed: true,
-				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(servers.ServerVersionFivePointSeven),
 					string(servers.ServerVersionEightPointZeroPointTwoOne),
@@ -774,6 +779,23 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 	}
 
 	if d.HasChange("storage") && !d.Get("storage.0.auto_grow_enabled").(bool) {
+		// log_on_disk_enabled must be updated first when auto_grow_enabled and log_on_disk_enabled are updated from true to false in one request
+		if oldLogOnDiskEnabled, newLogOnDiskEnabled := d.GetChange("storage.0.log_on_disk_enabled"); oldLogOnDiskEnabled.(bool) && !newLogOnDiskEnabled.(bool) {
+			if oldAutoGrowEnabled, newAutoGrowEnabled := d.GetChange("storage.0.auto_grow_enabled"); oldAutoGrowEnabled.(bool) && !newAutoGrowEnabled.(bool) {
+				logOnDiskDisabled := servers.EnableStatusEnumDisabled
+				parameters := servers.ServerForUpdate{
+					Properties: &servers.ServerPropertiesForUpdate{
+						Storage: &servers.Storage{
+							LogOnDisk: &logOnDiskDisabled,
+						},
+					},
+				}
+				if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
+					return fmt.Errorf("disabling `log_on_disk_enabled` for %s: %+v", *id, err)
+				}
+			}
+		}
+
 		parameters := servers.ServerForUpdate{
 			Properties: &servers.ServerPropertiesForUpdate{
 				Storage: expandArmServerStorage(d.Get("storage").([]interface{})),
@@ -782,6 +804,18 @@ func resourceMysqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta interface
 
 		if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
 			return fmt.Errorf("disabling `auto_grow_enabled` for %s: %+v", *id, err)
+		}
+	}
+
+	if d.HasChange("version") {
+		parameters := servers.ServerForUpdate{
+			Properties: &servers.ServerPropertiesForUpdate{
+				Version: pointer.To(servers.ServerVersion(d.Get("version").(string))),
+			},
+		}
+
+		if err := client.UpdateThenPoll(ctx, *id, parameters); err != nil {
+			return fmt.Errorf("updating `version` for %s: %+v", *id, err)
 		}
 	}
 
@@ -857,9 +891,15 @@ func expandArmServerStorage(inputs []interface{}) *servers.Storage {
 		autoIoScaling = servers.EnableStatusEnumEnabled
 	}
 
+	logOnDisk := servers.EnableStatusEnumDisabled
+	if v := input["log_on_disk_enabled"].(bool); v {
+		logOnDisk = servers.EnableStatusEnumEnabled
+	}
+
 	storage := servers.Storage{
 		AutoGrow:      &autoGrow,
 		AutoIoScaling: &autoIoScaling,
+		LogOnDisk:     &logOnDisk,
 	}
 
 	if v := input["size_gb"].(int); v != 0 {
@@ -889,10 +929,11 @@ func flattenArmServerStorage(storage *servers.Storage) []interface{} {
 
 	return []interface{}{
 		map[string]interface{}{
-			"size_gb":            size,
-			"iops":               iops,
-			"auto_grow_enabled":  *storage.AutoGrow == servers.EnableStatusEnumEnabled,
-			"io_scaling_enabled": *storage.AutoIoScaling == servers.EnableStatusEnumEnabled,
+			"size_gb":             size,
+			"iops":                iops,
+			"auto_grow_enabled":   *storage.AutoGrow == servers.EnableStatusEnumEnabled,
+			"io_scaling_enabled":  *storage.AutoIoScaling == servers.EnableStatusEnumEnabled,
+			"log_on_disk_enabled": *storage.LogOnDisk == servers.EnableStatusEnumEnabled,
 		},
 	}
 }

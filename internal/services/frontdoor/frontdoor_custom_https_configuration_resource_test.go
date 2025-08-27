@@ -11,8 +11,8 @@ import (
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/frontdoor/2020-05-01/frontdoors"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/frontdoor/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -20,90 +20,20 @@ import (
 
 type FrontDoorCustomHttpsConfigurationResource struct{}
 
-func TestAccFrontDoorCustomHttpsConfiguration_CustomHttps(t *testing.T) {
+func TestAccFrontDoorCustomHttpsConfiguration_createShouldFail(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_frontdoor_custom_https_configuration", "test")
 	r := FrontDoorCustomHttpsConfigurationResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.Enabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("custom_https_provisioning_enabled").HasValue("true"),
-				check.That(data.ResourceName).Key("custom_https_configuration.0.certificate_source").HasValue("FrontDoor"),
-			),
-		},
-		{
-			Config: r.Disabled(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("custom_https_provisioning_enabled").HasValue("false"),
-			),
-		},
-	})
-}
 
-func TestAccFrontDoorCustomHttpsConfiguration_DisabledWithConfigurationBlock(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_custom_https_configuration", "test")
-	r := FrontDoorCustomHttpsConfigurationResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.DisabledWithConfigurationBlock(data),
-			ExpectError: regexp.MustCompile(`"custom_https_provisioning_enabled" is set to "false". please remove the "custom_https_configuration" block from the configuration file`),
-		},
-	})
-}
+	expectedError := frontdoor.CreateDeprecationMessage
+	if frontdoor.IsFrontDoorFullyRetired() {
+		expectedError = frontdoor.FullyRetiredMessage
+	}
 
-func TestAccFrontDoorCustomHttpsConfiguration_EnabledWithoutConfigurationBlock(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_custom_https_configuration", "test")
-	r := FrontDoorCustomHttpsConfigurationResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config:      r.EnabledWithoutConfigurationBlock(data),
-			ExpectError: regexp.MustCompile(`"custom_https_provisioning_enabled" is set to "true". please add a "custom_https_configuration" block to the configuration file`),
-		},
-	})
-}
-
-func TestAccFrontDoorCustomHttpsConfiguration_EnabledFrontdoorExtraAttributes(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_custom_https_configuration", "test")
-	r := FrontDoorCustomHttpsConfigurationResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.EnabledFrontdoorExtraAttributes(data),
-			ExpectError: regexp.MustCompile(`a Front Door managed "custom_https_configuration" block does not support the following keys.`),
-		},
-	})
-}
-
-func TestAccFrontDoorCustomHttpsConfiguration_EnabledKeyVaultLatest(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_custom_https_configuration", "test")
-	r := FrontDoorCustomHttpsConfigurationResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.EnabledKeyVaultLatest(data),
-			ExpectError: regexp.MustCompile(`"azure_key_vault_certificate_secret_version" can not be set to "latest" please remove this attribute from the configuration file.`),
-		},
-	})
-}
-
-func TestAccFrontDoorCustomHttpsConfiguration_EnabledKeyVaultLatestMissingAttributes(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_custom_https_configuration", "test")
-	r := FrontDoorCustomHttpsConfigurationResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.EnabledKeyVaultLatestMissingAttributes(data),
-			ExpectError: regexp.MustCompile(`a "AzureKeyVault" managed "custom_https_configuration" block must have values in the following fileds: "azure_key_vault_certificate_secret_name" and "azure_key_vault_certificate_vault_id"`),
-		},
-	})
-}
-
-func TestAccFrontDoorCustomHttpsConfiguration_EnabledKeyVaultMissingAttributes(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_frontdoor_custom_https_configuration", "test")
-	r := FrontDoorCustomHttpsConfigurationResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config:      r.EnabledKeyVaultMissingAttributes(data),
-			ExpectError: regexp.MustCompile(`a "AzureKeyVault" managed "custom_https_configuration" block must have values in the following fileds: "azure_key_vault_certificate_secret_name", "azure_key_vault_certificate_secret_version", and "azure_key_vault_certificate_vault_id"`),
+			Config:      r.Enabled(data),
+			PlanOnly:    true,
+			ExpectError: regexp.MustCompile(expectedError),
 		},
 	})
 }
@@ -137,109 +67,6 @@ resource "azurerm_frontdoor_custom_https_configuration" "test" {
 
   custom_https_configuration {
     certificate_source = "FrontDoor"
-  }
-}
-`, r.template(data))
-}
-
-func (r FrontDoorCustomHttpsConfigurationResource) Disabled(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_frontdoor_custom_https_configuration" "test" {
-  frontend_endpoint_id              = azurerm_frontdoor.test.frontend_endpoints[local.endpoint_name]
-  custom_https_provisioning_enabled = false
-}
-`, r.template(data))
-}
-
-func (r FrontDoorCustomHttpsConfigurationResource) DisabledWithConfigurationBlock(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_frontdoor_custom_https_configuration" "test" {
-  frontend_endpoint_id              = azurerm_frontdoor.test.frontend_endpoints[local.endpoint_name]
-  custom_https_provisioning_enabled = false
-
-  custom_https_configuration {
-    certificate_source = "FrontDoor"
-  }
-}
-`, r.template(data))
-}
-
-func (r FrontDoorCustomHttpsConfigurationResource) EnabledWithoutConfigurationBlock(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_frontdoor_custom_https_configuration" "test" {
-  frontend_endpoint_id              = azurerm_frontdoor.test.frontend_endpoints[local.endpoint_name]
-  custom_https_provisioning_enabled = true
-}
-`, r.template(data))
-}
-
-func (r FrontDoorCustomHttpsConfigurationResource) EnabledFrontdoorExtraAttributes(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_frontdoor_custom_https_configuration" "test" {
-  frontend_endpoint_id              = azurerm_frontdoor.test.frontend_endpoints[local.endpoint_name]
-  custom_https_provisioning_enabled = true
-
-  custom_https_configuration {
-    certificate_source                      = "FrontDoor"
-    azure_key_vault_certificate_secret_name = "accTest"
-  }
-}
-`, r.template(data))
-}
-
-func (r FrontDoorCustomHttpsConfigurationResource) EnabledKeyVaultLatest(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_frontdoor_custom_https_configuration" "test" {
-  frontend_endpoint_id              = azurerm_frontdoor.test.frontend_endpoints[local.endpoint_name]
-  custom_https_provisioning_enabled = true
-
-  custom_https_configuration {
-    certificate_source                         = "AzureKeyVault"
-    azure_key_vault_certificate_secret_name    = "accTest"
-    azure_key_vault_certificate_secret_version = "latest"
-  }
-}
-`, r.template(data))
-}
-
-func (r FrontDoorCustomHttpsConfigurationResource) EnabledKeyVaultLatestMissingAttributes(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_frontdoor_custom_https_configuration" "test" {
-  frontend_endpoint_id              = azurerm_frontdoor.test.frontend_endpoints[local.endpoint_name]
-  custom_https_provisioning_enabled = true
-
-  custom_https_configuration {
-    certificate_source                      = "AzureKeyVault"
-    azure_key_vault_certificate_secret_name = "accTest"
-  }
-}
-`, r.template(data))
-}
-
-func (r FrontDoorCustomHttpsConfigurationResource) EnabledKeyVaultMissingAttributes(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_frontdoor_custom_https_configuration" "test" {
-  frontend_endpoint_id              = azurerm_frontdoor.test.frontend_endpoints[local.endpoint_name]
-  custom_https_provisioning_enabled = true
-
-  custom_https_configuration {
-    certificate_source                         = "AzureKeyVault"
-    azure_key_vault_certificate_secret_name    = "accTest"
-    azure_key_vault_certificate_secret_version = "accTest"
   }
 }
 `, r.template(data))

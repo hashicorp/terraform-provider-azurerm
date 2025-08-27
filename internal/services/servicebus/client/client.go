@@ -6,15 +6,15 @@ package client
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/disasterrecoveryconfigs"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/namespacesauthorizationrule"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queues"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/queuesauthorizationrule"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/rules"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/subscriptions"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/topics"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2021-06-01-preview/topicsauthorizationrule"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2022-10-01-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/disasterrecoveryconfigs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/namespacesauthorizationrule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/queues"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/queuesauthorizationrule"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/rules"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/subscriptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/topics"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/topicsauthorizationrule"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
 

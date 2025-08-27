@@ -155,8 +155,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the NetApp Snapshot Policy.
-* `update` - (Defaults to 30 minutes) Used when updating the NetApp Snapshot Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the NetApp Snapshot Policy.
+* `update` - (Defaults to 30 minutes) Used when updating the NetApp Snapshot Policy.
 * `delete` - (Defaults to 30 minutes) Used when deleting the NetApp Snapshot Policy.
 
 ## Import
@@ -166,3 +166,9 @@ NetApp Snapshot Policy can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_netapp_snapshot_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.NetApp/netAppAccounts/account1/snapshotPolicies/snapshotpolicy1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.NetApp` - 2025-06-01

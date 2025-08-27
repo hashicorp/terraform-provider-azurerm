@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/datashare/2019-11-01/account"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/datashare/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
@@ -38,7 +37,7 @@ func dataSourceDataShareAccount() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedIdentityComputed(),
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 		},
 	}
 }

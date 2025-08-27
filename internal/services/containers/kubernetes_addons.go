@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2024-09-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/managedclusters"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/applicationgateways"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2020-08-01/workspaces"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"

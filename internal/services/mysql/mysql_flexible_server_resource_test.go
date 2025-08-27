@@ -403,14 +403,14 @@ func TestAccMySqlFlexibleServer_failover(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.failover(data, "1", "2"),
+			Config: r.failover(data, "2", "3"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_password"),
 		{
-			Config: r.failover(data, "2", "1"),
+			Config: r.failover(data, "3", "2"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -505,12 +505,12 @@ func TestAccMySqlFlexibleServer_writeOnlyPassword(t *testing.T) {
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		Steps: []resource.TestStep{
 			{
-				Config: r.writeOnlyPassword(data, "a-secret-from-kv", 1),
+				Config: r.writeOnlyPassword(data, "A-secret-from-kv", 1),
 				Check:  check.That(data.ResourceName).ExistsInAzure(r),
 			},
 			data.ImportStep("administrator_password_wo_version"),
 			{
-				Config: r.writeOnlyPassword(data, "a-secret-from-kv-updated", 2),
+				Config: r.writeOnlyPassword(data, "A-secret-from-kv-updated", 2),
 				Check:  check.That(data.ResourceName).ExistsInAzure(r),
 			},
 			data.ImportStep("administrator_password_wo_version"),
@@ -534,7 +534,7 @@ func TestAccMySqlFlexibleServer_updateToWriteOnlyPassword(t *testing.T) {
 			},
 			data.ImportStep("administrator_password"),
 			{
-				Config: r.writeOnlyPassword(data, "a-secret-from-kv", 1),
+				Config: r.writeOnlyPassword(data, "A-secret-from-kv", 1),
 				Check:  check.That(data.ResourceName).ExistsInAzure(r),
 			},
 			data.ImportStep("administrator_password", "administrator_password_wo_version"),
@@ -544,6 +544,28 @@ func TestAccMySqlFlexibleServer_updateToWriteOnlyPassword(t *testing.T) {
 			},
 			data.ImportStep("administrator_password"),
 		},
+	})
+}
+
+func TestAccMySqlFlexibleServer_upgradeVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_mysql_flexible_server", "test")
+	r := MySqlFlexibleServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.upgradeVersion(data, "5.7"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password"),
+		{
+			Config: r.upgradeVersion(data, "8.0.21"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password"),
 	})
 }
 
@@ -605,7 +627,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
-  sku_name               = "B_Standard_B1s"
+  sku_name               = "B_Standard_B1ms"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -677,19 +699,20 @@ resource "azurerm_mysql_flexible_server" "test" {
   location                     = azurerm_resource_group.test.location
   administrator_login          = "adminTerraform"
   administrator_password       = "QAZwsx123"
-  zone                         = "1"
+  zone                         = "3"
   version                      = "8.0.21"
   backup_retention_days        = 7
   geo_redundant_backup_enabled = false
 
   storage {
-    size_gb = 20
-    iops    = 360
+    size_gb             = 20
+    iops                = 360
+    log_on_disk_enabled = true
   }
 
   delegated_subnet_id = azurerm_subnet.test.id
   private_dns_zone_id = azurerm_private_dns_zone.test.id
-  sku_name            = "GP_Standard_D2ds_v4"
+  sku_name            = "MO_Standard_E2ds_v4"
 
   high_availability {
     mode                      = "ZoneRedundant"
@@ -762,21 +785,22 @@ resource "azurerm_mysql_flexible_server" "test" {
   location                     = azurerm_resource_group.test.location
   administrator_login          = "adminTerraform"
   administrator_password       = "123wsxQAZ"
-  zone                         = "1"
+  zone                         = "3"
   version                      = "8.0.21"
   backup_retention_days        = 10
   geo_redundant_backup_enabled = false
 
   storage {
-    size_gb            = 32
-    iops               = 400
-    auto_grow_enabled  = false
-    io_scaling_enabled = false
+    size_gb             = 32
+    iops                = 400
+    auto_grow_enabled   = false
+    io_scaling_enabled  = false
+    log_on_disk_enabled = false
   }
 
   delegated_subnet_id = azurerm_subnet.test.id
   private_dns_zone_id = azurerm_private_dns_zone.test.id
-  sku_name            = "GP_Standard_D4ds_v4"
+  sku_name            = "MO_Standard_E4ds_v4"
 
   maintenance_window {
     day_of_week  = 0
@@ -801,10 +825,9 @@ resource "azurerm_mysql_flexible_server" "test" {
   name                   = "acctest-fs-%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
-  administrator_login    = "adminTerraform"
+  administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
-  sku_name               = "B_Standard_B1s"
-  zone                   = "1"
+  sku_name               = "GP_Standard_D2ds_v4"
 
   maintenance_window {
     day_of_week  = 0
@@ -823,10 +846,9 @@ resource "azurerm_mysql_flexible_server" "test" {
   name                   = "acctest-fs-%d"
   resource_group_name    = azurerm_resource_group.test.name
   location               = azurerm_resource_group.test.location
-  administrator_login    = "adminTerraform"
+  administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
-  sku_name               = "B_Standard_B1s"
-  zone                   = "1"
+  sku_name               = "GP_Standard_D2ds_v4"
 
   maintenance_window {
     day_of_week  = 3
@@ -848,7 +870,6 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
   sku_name               = "MO_Standard_E2ds_v4"
-  zone                   = "1"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -864,7 +885,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login    = "adminTerraform"
   administrator_password = "QAZwsx123"
   sku_name               = "GP_Standard_D2ds_v4"
-  zone                   = "1"
+  zone                   = "2"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -885,7 +906,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   }
 
   sku_name = "GP_Standard_D2ds_v4"
-  zone     = "1"
+  zone     = "2"
 
   lifecycle {
     ignore_changes = [
@@ -914,7 +935,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   }
 
   sku_name = "GP_Standard_D2ds_v4"
-  zone     = "1"
+  zone     = "3"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -937,7 +958,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   }
 
   sku_name = "GP_Standard_D2ds_v4"
-  zone     = "1"
+  zone     = "2"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -953,7 +974,11 @@ resource "azurerm_mysql_flexible_server" "pitr" {
   create_mode                       = "PointInTimeRestore"
   source_server_id                  = azurerm_mysql_flexible_server.test.id
   point_in_time_restore_time_in_utc = "%s"
-  zone                              = "1"
+  zone                              = "2"
+
+  lifecycle {
+    ignore_changes = [source_server_id]
+  }
 }
 `, r.basic(data), data.RandomInteger, time.Now().Add(time.Duration(15)*time.Minute).UTC().Format(time.RFC3339))
 }
@@ -970,7 +995,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_password = "QAZwsx123"
   sku_name               = "GP_Standard_D4ds_v4"
   version                = "8.0.21"
-  zone                   = "1"
+  zone                   = "2"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -986,7 +1011,7 @@ resource "azurerm_mysql_flexible_server" "replica" {
   create_mode         = "Replica"
   source_server_id    = azurerm_mysql_flexible_server.test.id
   version             = "8.0.21"
-  zone                = "1"
+  zone                = "2"
 }
 `, r.source(data), data.RandomInteger)
 }
@@ -1003,7 +1028,11 @@ resource "azurerm_mysql_flexible_server" "replica" {
   source_server_id    = azurerm_mysql_flexible_server.test.id
   replication_role    = "None"
   version             = "8.0.21"
-  zone                = "1"
+  zone                = "2"
+
+  lifecycle {
+    ignore_changes = [source_server_id]
+  }
 }
 `, r.source(data), data.RandomInteger)
 }
@@ -1019,7 +1048,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login          = "adminTerraform"
   administrator_password       = "QAZwsx123"
   geo_redundant_backup_enabled = true
-  sku_name                     = "B_Standard_B1s"
+  sku_name                     = "B_Standard_B1ms"
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -1051,7 +1080,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   sku_name                     = "GP_Standard_D4ds_v4"
   geo_redundant_backup_enabled = true
   version                      = "8.0.21"
-  zone                         = "1"
+  zone                         = "2"
 
   storage {
     size_gb            = %d
@@ -1076,7 +1105,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   sku_name                     = "GP_Standard_D4ds_v4"
   geo_redundant_backup_enabled = true
   version                      = "8.0.21"
-  zone                         = "1"
+  zone                         = "2"
 
   storage {
     size_gb            = %d
@@ -1183,8 +1212,8 @@ resource "azurerm_mysql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
-  sku_name               = "B_Standard_B1s"
-  zone                   = "1"
+  sku_name               = "B_Standard_B1ms"
+  zone                   = "2"
 }
 `, r.cmkTemplate(data), data.RandomInteger)
 }
@@ -1199,8 +1228,8 @@ resource "azurerm_mysql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
-  sku_name               = "B_Standard_B1s"
-  zone                   = "1"
+  sku_name               = "B_Standard_B1ms"
+  zone                   = "2"
 
   identity {
     type         = "UserAssigned"
@@ -1274,7 +1303,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   location                     = azurerm_resource_group.test.location
   administrator_login          = "_admin_Terraform_892123456789312"
   administrator_password       = "QAZwsx123"
-  sku_name                     = "B_Standard_B1s"
+  sku_name                     = "B_Standard_B1ms"
   zone                         = "2"
   geo_redundant_backup_enabled = true
 
@@ -1309,8 +1338,8 @@ resource "azurerm_mysql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
-  sku_name               = "B_Standard_B1s"
-  zone                   = "1"
+  sku_name               = "B_Standard_B1ms"
+  zone                   = "2"
 
   identity {
     type         = "UserAssigned"
@@ -1336,8 +1365,8 @@ resource "azurerm_mysql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
-  sku_name               = "B_Standard_B1s"
-  zone                   = "1"
+  sku_name               = "B_Standard_B1ms"
+  zone                   = "2"
 }
 `, r.template(data), data.RandomString, data.RandomInteger)
 }
@@ -1355,7 +1384,7 @@ resource "azurerm_mysql_flexible_server" "test" {
   administrator_login               = "_admin_Terraform_892123456789312"
   administrator_password_wo         = ephemeral.azurerm_key_vault_secret.test.value
   administrator_password_wo_version = %[4]d
-  sku_name                          = "B_Standard_B1s"
+  sku_name                          = "B_Standard_B1ms"
 }
 `, r.template(data), acceptance.WriteOnlyKeyVaultSecretTemplate(data, secret), data.RandomInteger, version)
 }
@@ -1370,8 +1399,32 @@ resource "azurerm_mysql_flexible_server" "test" {
   location               = azurerm_resource_group.test.location
   administrator_login    = "_admin_Terraform_892123456789312"
   administrator_password = "QAZwsx123"
-  sku_name               = "B_Standard_B1s"
+  sku_name               = "B_Standard_B1ms"
   public_network_access  = "%s"
 }
 `, r.template(data), data.RandomInteger, pna)
+}
+
+func (r MySqlFlexibleServerResource) upgradeVersion(data acceptance.TestData, version string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_mysql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "_admin_Terraform_892123456789312"
+  administrator_password = "QAZwsx123"
+  sku_name               = "GP_Standard_D2ds_v4"
+  version                = "%s"
+  zone                   = "2"
+}
+
+resource "azurerm_mysql_flexible_server_configuration" "test" {
+  name                = "sql_mode"
+  resource_group_name = azurerm_resource_group.test.name
+  server_name         = azurerm_mysql_flexible_server.test.name
+  value               = "ERROR_FOR_DIVISION_BY_ZERO,NO_ZERO_DATE,NO_ZERO_IN_DATE,ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_AUTO_VALUE_ON_ZERO"
+}
+`, r.template(data), data.RandomInteger, version)
 }

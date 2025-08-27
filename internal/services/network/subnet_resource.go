@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -15,7 +16,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/serviceendpointpolicies"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/ipampools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/subnets"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -24,6 +27,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name subnet -service-package-name network -properties "name,resource_group_name,virtual_network_name" -known-values "subscription_id:data.Subscriptions.Primary"
 
 var SubnetResourceName = "azurerm_subnet"
 
@@ -68,6 +73,7 @@ var subnetDelegationServiceNames = []string{
 	"Microsoft.Logic/integrationServiceEnvironments",
 	"Microsoft.MachineLearningServices/workspaces",
 	"Microsoft.Netapp/volumes",
+	"Microsoft.Network/applicationGateways",
 	"Microsoft.Network/dnsResolvers",
 	"Microsoft.Network/managedResolvers",
 	"Microsoft.Network/fpgaNetworkInterfaces",
@@ -99,20 +105,21 @@ var subnetDelegationServiceNames = []string{
 
 func resourceSubnet() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceSubnetCreate,
-		Read:   resourceSubnetRead,
-		Update: resourceSubnetUpdate,
-		Delete: resourceSubnetDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseSubnetID(id)
-			return err
-		}),
+		Create:   resourceSubnetCreate,
+		Read:     resourceSubnetRead,
+		Update:   resourceSubnetUpdate,
+		Delete:   resourceSubnetDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.SubnetId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
 			Update: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
+		},
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.SubnetId{}),
 		},
 
 		Schema: map[string]*pluginsdk.Schema{
@@ -131,12 +138,24 @@ func resourceSubnet() *pluginsdk.Resource {
 			},
 
 			"address_prefixes": {
-				Type:     pluginsdk.TypeList,
-				Required: true,
-				MinItems: 1,
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				MinItems:     1,
+				ExactlyOneOf: []string{"address_prefixes", "ip_address_pool"},
 				Elem: &pluginsdk.Schema{
 					Type:         pluginsdk.TypeString,
 					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				DiffSuppressFunc: func(_, old, new string, d *schema.ResourceData) bool {
+					// If `ip_address_pool` is used instead of `address_prefixes` there is a perpetual diff
+					// due to the API returning a CIDR range provisioned by the IP Address Management Pool.
+					// Note: using `GetRawConfig` to avoid suppressing a diff if a user updates from `ip_address_pool` to `address_prefixes`.
+					rawIpAddressPool := d.GetRawConfig().AsValueMap()["ip_address_pool"]
+					if !rawIpAddressPool.IsNull() && len(rawIpAddressPool.AsValueSlice()) > 0 {
+						return true
+					}
+
+					return false
 				},
 			},
 
@@ -195,6 +214,39 @@ func resourceSubnet() *pluginsdk.Resource {
 										},
 									},
 								},
+							},
+						},
+					},
+				},
+			},
+
+			"ip_address_pool": {
+				Type:         pluginsdk.TypeList,
+				Optional:     true,
+				MaxItems:     1,
+				ExactlyOneOf: []string{"address_prefixes", "ip_address_pool"},
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"id": {
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: ipampools.ValidateIPamPoolID,
+						},
+
+						"number_of_ip_addresses": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringMatch(
+								regexp.MustCompile(`^[1-9]\d*$`),
+								"`number_of_ip_addresses` must be a string that represents a positive number",
+							),
+						},
+
+						"allocated_ip_address_prefixes": {
+							Type:     pluginsdk.TypeList,
+							Computed: true,
+							Elem: &pluginsdk.Schema{
+								Type: pluginsdk.TypeString,
 							},
 						},
 					},
@@ -260,6 +312,8 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		properties.AddressPrefix = &(*properties.AddressPrefixes)[0]
 		properties.AddressPrefixes = nil
 	}
+
+	properties.IPamPoolPrefixAllocations = expandSubnetIPAddressPool(d.Get("ip_address_pool").([]interface{}))
 
 	// To enable private endpoints you must disable the network policies for the subnet because
 	// Network policies like network security groups are not supported by private endpoints.
@@ -362,7 +416,9 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 		addressPrefixesRaw := d.Get("address_prefixes").([]interface{})
 		switch len(addressPrefixesRaw) {
 		case 0:
-			// Will never happen as the "MinItem: 1" constraint is set on "address_prefixes"
+			// this is the case IPAddressPool is used, so we shall clear the `AddressPrefix` and `AddressPrefixes`.
+			props.AddressPrefix = nil
+			props.AddressPrefixes = nil
 		case 1:
 			// N->1: we shall insist on using the `AddressPrefix` and clear the `AddressPrefixes`.
 			props.AddressPrefix = utils.String(addressPrefixesRaw[0].(string))
@@ -372,6 +428,31 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 			// return the `AddressPrefix` in response.
 			props.AddressPrefixes = utils.ExpandStringSlice(addressPrefixesRaw)
 			props.AddressPrefix = nil
+		}
+	}
+
+	if d.HasChange("ip_address_pool") {
+		if v := d.Get("ip_address_pool").([]interface{}); len(v) > 0 {
+			expandedIPAddressPool := expandSubnetIPAddressPool(d.Get("ip_address_pool").([]interface{}))
+
+			if props.IPamPoolPrefixAllocations != nil {
+				for _, existingAllocation := range *props.IPamPoolPrefixAllocations {
+					for _, expandedAllocation := range *expandedIPAddressPool {
+						if existingAllocation.Pool != nil && expandedAllocation.Pool != nil && strings.EqualFold(pointer.From(existingAllocation.Pool.Id), pointer.From(expandedAllocation.Pool.Id)) &&
+							existingAllocation.NumberOfIPAddresses != nil && expandedAllocation.NumberOfIPAddresses != nil && *existingAllocation.NumberOfIPAddresses > *expandedAllocation.NumberOfIPAddresses {
+							return fmt.Errorf("`number_of_ip_addresses` cannot be decreased from %v to %v on pool: %v", *existingAllocation.NumberOfIPAddresses, *expandedAllocation.NumberOfIPAddresses, *expandedAllocation.Pool.Id)
+						}
+					}
+				}
+			}
+
+			props.IPamPoolPrefixAllocations = expandedIPAddressPool
+
+			// Set nil for AddressPrefixes when changing from `AddressPrefixes` to `IPAddressPool` but the change for `AddressPrefix` is not detected due to the diffSuppressFunc.
+			props.AddressPrefix = nil
+			props.AddressPrefixes = nil
+		} else {
+			props.IPamPoolPrefixAllocations = nil
 		}
 	}
 
@@ -488,6 +569,10 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				return fmt.Errorf("flattening `delegation`: %+v", err)
 			}
 
+			if err := d.Set("ip_address_pool", flattenSubnetIPAddressPool(props.IPamPoolPrefixAllocations)); err != nil {
+				return fmt.Errorf("setting `ip_address_pool`: %+v", err)
+			}
+
 			d.Set("private_endpoint_network_policies", string(pointer.From(props.PrivateEndpointNetworkPolicies)))
 			d.Set("private_link_service_network_policies_enabled", flattenSubnetNetworkPolicy(string(*props.PrivateLinkServiceNetworkPolicies)))
 
@@ -501,6 +586,10 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				return fmt.Errorf("setting `service_endpoint_policy_ids`: %+v", err)
 			}
 		}
+	}
+
+	if err := pluginsdk.SetResourceIdentityData(d, id); err != nil {
+		return err
 	}
 
 	return nil
@@ -670,6 +759,52 @@ func flattenSubnetServiceEndpointPolicies(input *[]subnets.ServiceEndpointPolicy
 		output = append(output, id)
 	}
 	return output
+}
+
+func expandSubnetIPAddressPool(input []interface{}) *[]subnets.IPamPoolPrefixAllocation {
+	if len(input) == 0 {
+		return nil
+	}
+
+	outputs := make([]subnets.IPamPoolPrefixAllocation, 0)
+	for _, v := range input {
+		ipPoolRaw := v.(map[string]interface{})
+		output := subnets.IPamPoolPrefixAllocation{}
+
+		if v, ok := ipPoolRaw["number_of_ip_addresses"]; ok {
+			output.NumberOfIPAddresses = pointer.To(v.(string))
+		}
+
+		if v, ok := ipPoolRaw["id"]; ok {
+			output.Pool = &subnets.IPamPoolPrefixAllocationPool{
+				Id: pointer.To(v.(string)),
+			}
+		}
+
+		outputs = append(outputs, output)
+	}
+
+	return &outputs
+}
+
+func flattenSubnetIPAddressPool(input *[]subnets.IPamPoolPrefixAllocation) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	outputs := make([]interface{}, 0)
+	for _, v := range *input {
+		output := map[string]interface{}{
+			"number_of_ip_addresses":        pointer.From(v.NumberOfIPAddresses),
+			"allocated_ip_address_prefixes": pointer.From(v.AllocatedAddressPrefixes),
+		}
+		if v.Pool != nil {
+			output["id"] = pointer.From(v.Pool.Id)
+		}
+		outputs = append(outputs, output)
+	}
+
+	return outputs
 }
 
 func SubnetProvisioningStateRefreshFunc(ctx context.Context, client *subnets.SubnetsClient, id commonids.SubnetId) pluginsdk.StateRefreshFunc {

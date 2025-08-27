@@ -62,7 +62,7 @@ The following arguments are supported:
 
 * `container_registry_id` - (Required) The ID of the Container Registry that this Connected Registry will reside in. Changing this forces a new Container Connected Registry to be created.
 
--> If `parent_registry_id` is not specified, the Connected Registry will be connected to the Container Registry identified by `container_registry_id`.
+-> **Note:** If `parent_registry_id` is not specified, the Connected Registry will be connected to the Container Registry identified by `container_registry_id`.
 
 * `name` - (Required) The name which should be used for this Container Connected Registry. Changing this forces a new Container Connected Registry to be created.
 
@@ -100,7 +100,7 @@ A `notification` block supports the following:
 
 * `digest` - (Optional) The digest of the artifact that wants to be subscribed for the Connected Registry.
 
-~> **NOTE:** One of either `tag` or `digest` can be specified.
+~> **Note:** One of either `tag` or `digest` can be specified.
 
 ## Attributes Reference
 
@@ -124,3 +124,9 @@ Container Connected Registries can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_container_connected_registry.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.ContainerRegistry/registries/registry1/connectedRegistries/registry1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ContainerRegistry` - 2023-11-01-preview
