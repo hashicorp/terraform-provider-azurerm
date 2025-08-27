@@ -3440,7 +3440,7 @@ func expandKubernetesClusterAdvancedNetworking(input []interface{}, d *pluginsdk
 }
 
 func flattenKubernetesClusterAdvancedNetworking(advancedNetworking *managedclusters.AdvancedNetworking) []interface{} {
-	if !pointer.From(advancedNetworking.Enabled) {
+	if advancedNetworking == nil || !pointer.From(advancedNetworking.Enabled) {
 		return []interface{}{}
 	}
 
