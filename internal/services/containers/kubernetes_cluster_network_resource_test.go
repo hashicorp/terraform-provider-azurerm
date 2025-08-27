@@ -84,7 +84,7 @@ func TestAccKubernetesCluster_advancedNetworkingNetworkPluginError(t *testing.T)
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.advancedNetworkingBlock(data, "kubenet", "cilium"),
-			ExpectError: regexp.MustCompile("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_plugin_mode` must be set to `azure`"),
+			ExpectError: regexp.MustCompile("when `network_profile.0.advanced_networking` is set, `network_profile.0.network_plugin` must be set to `azure`"),
 		},
 	})
 }
