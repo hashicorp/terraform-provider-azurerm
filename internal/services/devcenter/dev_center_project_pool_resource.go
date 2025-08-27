@@ -97,6 +97,7 @@ func (r DevCenterProjectPoolResource) Arguments() map[string]*pluginsdk.Schema {
 		"single_sign_on_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
+			Default:  false,
 		},
 
 		"stop_on_disconnect_grace_period_minutes": {
@@ -165,10 +166,9 @@ func (r DevCenterProjectPoolResource) Create() sdk.ResourceFunc {
 				parameters.Properties.LocalAdministrator = pointer.To(pools.LocalAdminStatusDisabled)
 			}
 
+			parameters.Properties.SingleSignOnStatus = pointer.To(pools.SingleSignOnStatusDisabled)
 			if model.SingleSignOnEnabled {
 				parameters.Properties.SingleSignOnStatus = pointer.To(pools.SingleSignOnStatusEnabled)
-			} else {
-				parameters.Properties.SingleSignOnStatus = pointer.To(pools.SingleSignOnStatusDisabled)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
@@ -270,10 +270,9 @@ func (r DevCenterProjectPoolResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("single_sign_on_enabled") {
+				parameters.Properties.SingleSignOnStatus = pointer.To(pools.SingleSignOnStatusDisabled)
 				if model.SingleSignOnEnabled {
 					parameters.Properties.SingleSignOnStatus = pointer.To(pools.SingleSignOnStatusEnabled)
-				} else {
-					parameters.Properties.SingleSignOnStatus = pointer.To(pools.SingleSignOnStatusDisabled)
 				}
 			}
 
