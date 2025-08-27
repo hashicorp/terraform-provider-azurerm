@@ -63,6 +63,7 @@ func resourceNetAppAccount() *pluginsdk.Resource {
 			"nfsv4_id_domain": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
+				Default:      "defaultv4iddomain.com",
 				ValidateFunc: validation.StringIsNotEmpty,
 				Description:  "The NFSv4 ID domain for this NetApp Account.",
 			},
@@ -312,18 +313,7 @@ func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if model := resp.Model; model != nil {
 		d.Set("location", azure.NormalizeLocation(model.Location))
-
-		if properties := model.Properties; properties != nil {
-			// Only set nfsv4_id_domain if user has configured it or if it's not the default
-			configuredDomain := d.Get("nfsv4_id_domain").(string)
-			if properties.NfsV4IDDomain != nil {
-				azureDomain := *properties.NfsV4IDDomain
-				// Set the value if user configured something or if Azure value is not the default
-				if configuredDomain != "" || azureDomain != "defaultv4iddomain.com" {
-					d.Set("nfsv4_id_domain", azureDomain)
-				}
-			}
-		}
+		d.Set("nfsv4_id_domain", pointer.To(model.Properties.NfsV4IDDomain))
 
 		if model.Identity != nil {
 			anfAccountIdentity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
