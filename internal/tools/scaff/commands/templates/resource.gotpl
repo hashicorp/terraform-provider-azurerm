@@ -30,9 +30,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
-	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
@@ -49,7 +46,7 @@ func (r {{ToCamel .Name }}Resource) ModelObject() interface{} {
 }
 
 func (r {{ToCamel .Name }}Resource) ResourceType() string {
-	return "azurerm_fw_logic_app_standard"
+	return "azurerm_{{ToSnake .Name}}"
 }
 
 func (r {{ToCamel .Name }}Resource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse, metadata sdk.ResourceMetadata) {
@@ -69,12 +66,13 @@ func (r {{ToCamel .Name }}Resource) Schema(ctx context.Context, _ resource.Schem
 			commonschema.Name: schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
-					stringplanmodifier.RequiresReplace(),
+					stringplanmodifier.RequiresReplace(), // TODO - Assumes the `name` is ForceNew, if not, then remove this
 				},
 				Validators: []validator.String{
-					typehelpers.WrappedStringValidator{
-						Func: validate.LogicAppStandardName,
-					},
+					// TODO - Add validation here for the name. Either re-use existing validator, or implement a custom StringValidator
+					// typehelpers.WrappedStringValidator{
+					// 	 Func: nil,
+					// },
 				},
 			},
 
@@ -99,7 +97,7 @@ func (r {{ToCamel .Name }}Resource) ConfigValidators(_ context.Context) []resour
 }
 {{ end }}
 
-func (r {{ToCamel .Name }}Resource) Create(ctx context.Context, _ resource.CreateRequest, resp *resource.CreateResponse, metadata sdk.ResourceMetadata, decodedPlan interface{}) {
+func (r {{ToCamel .Name }}Resource) Create(ctx context.Context, _ resource.CreateRequest, resp *resource.CreateResponse, metadata sdk.ResourceMetadata, decodedPlan any) {
 	client := metadata.Client.{{ .ServicePackageName }}.{{ .ClientName }}
 
 	data := sdk.AssertResourceModelType[{{ToCamel .Name }}ResourceModel](decodedPlan, resp)
@@ -107,30 +105,30 @@ func (r {{ToCamel .Name }}Resource) Create(ctx context.Context, _ resource.Creat
 		return
 	}
 
-	id := {{NewIDCreateFormater .IdTypeParts .ResourceIdentitySegments "data" }}
+	id := {{NewIDCreateFormatter .IdTypeParts .ResourceIdentitySegments "data" }}
 
 	existing, err := client.Get(ctx, id{{ if .UseReadOptions}}, {{ClientToPackageName .ClientName}}.DefaultGetOperationOptions(){{ end -}})
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("checking for presence of existing Logic App: %+v", err), err.Error())
+			sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("checking for presence of existing %s: %+v", id, err), err.Error())
 			return
 		}
 	}
 
 	if !response.WasNotFound(existing.HttpResponse) {
-		metadata.ResourceRequiresImport("azurerm_fw_resource_group", id, resp)
+		metadata.ResourceRequiresImport(r.ResourceType(), id, resp)
 		return
 	}
 
-	// TODO - Code for creating the resource goes here - Recommended to use an exported function to build the payload for future featue compatibility
+	// TODO - Code for creating the resource goes here - Recommended to use an exported function to build the payload for future feature compatibility
 	// TODO - Uncomment the below when the API_MODEL is known and initialised.
 	{{ if .UsesLROCRUD }}
-	// 	if err = client.CreateOrUpdateThenPoll(ctx, *id{{ if .UseCreateOptions}}, {{ClientToPackageName .ClientName}}.DefaultCreateOrUpdateOperationOptions(){{ end -}}, API_MODEL); err != nil {
+	// 	if err = client.CreateOrUpdateThenPoll(ctx, id{{ if .UseCreateOptions}}, {{ClientToPackageName .ClientName}}.DefaultCreateOrUpdateOperationOptions(){{ end -}}, API_MODEL); err != nil {
 	// 	  sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("creating %s:", *id), err.Error())
 	//	return
 	// }
 	{{ else }}
-	//  if _, err = client.CreateOrUpdate(ctx, *id{{ if .UseCreateOptions}}, {{ClientToPackageName .ClientName}}.DefaultCreateOrUpdatOperationOptions(){{ end -}}); err != nil {
+	//  if _, err = client.CreateOrUpdate(ctx, id{{ if .UseCreateOptions}}, {{ClientToPackageName .ClientName}}.DefaultCreateOrUpdateOperationOptions(){{ end -}}); err != nil {
 	// 	  sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("creating %s:", id), err.Error())
 	//  return
 	// }
@@ -157,7 +155,7 @@ func (r {{ToCamel .Name }}Resource) Create(ctx context.Context, _ resource.Creat
 	}
 }
 
-func (r {{ToCamel .Name }}Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse, metadata sdk.ResourceMetadata, decodedState interface{}) {
+func (r {{ToCamel .Name }}Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse, metadata sdk.ResourceMetadata, decodedState any) {
 	client := metadata.Client.{{ .ServicePackageName }}.{{ .ClientName }}
 	state := sdk.AssertResourceModelType[{{ToCamel .Name }}ResourceModel](decodedState, resp)
 
@@ -186,7 +184,7 @@ func (r {{ToCamel .Name }}Resource) Read(ctx context.Context, req resource.ReadR
 }
 
 {{ if .Updatable -}}
-func (r {{ToCamel .Name }}Resource) Update(ctx context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse, metadata sdk.ResourceMetadata, decodedPlan interface{}, decodedState interface{}) {
+func (r {{ToCamel .Name }}Resource) Update(ctx context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse, metadata sdk.ResourceMetadata, decodedPlan interface{}, decodedState any) {
 	client := metadata.Client.{{ .ServicePackageName }}.{{ .ClientName }}
 	// TODO - uncomment the following line to access the plan data
 	// plan := sdk.AssertResourceModelType[{{ToCamel .Name }}ResourceModel](decodedPlan, resp)
@@ -211,7 +209,7 @@ func (r {{ToCamel .Name }}Resource) Update(ctx context.Context, _ resource.Updat
 
 }
 {{ end }}
-func (r {{ToCamel .Name }}Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse, metadata sdk.ResourceMetadata, decodedState interface{}) {
+func (r {{ToCamel .Name }}Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse, metadata sdk.ResourceMetadata, decodedState any) {
 	client := metadata.Client.{{ .ServicePackageName }}.{{ .ClientName }}
 	state := sdk.AssertResourceModelType[{{ToCamel .Name }}ResourceModel](decodedState, resp)
 	id, err := {{ index .IdTypeParts 0 }}.Parse{{ IdToID (index .IdTypeParts 1) }}(state.ID.ValueString())

@@ -88,13 +88,12 @@ func (r *ResourceMetadata) DefaultsDataSource(req datasource.ConfigureRequest, r
 
 // DecodeCreate reads a plan from a resource.CreateRequest into a pointer to a target model and sets
 // resource.CreateResponse diags on error.
-// Returns true if there are no error Diagnostics.
 func (r *ResourceMetadata) DecodeCreate(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse, planModel any) {
 	resp.Diagnostics.Append(req.Plan.Get(ctx, planModel)...)
 }
 
-// DecodeCreateWithConfig reads both the config and plan from the CreateRequest for cases where the raw config before
-// plan logic has been applied
+// DecodeCreateWithConfig reads both the config and plan from the CreateRequest for cases where the raw config is
+// required before plan logic has been applied
 // This should be used ONLY when absolutely required. Plan Modifiers should be preferred.
 func (r *ResourceMetadata) DecodeCreateWithConfig(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse, planModel, configModel any) {
 	resp.Diagnostics.Append(req.Plan.Get(ctx, planModel)...)
@@ -145,8 +144,7 @@ func (r *ResourceMetadata) DecodeUpdate(ctx context.Context, req resource.Update
 	resp.Diagnostics.Append(req.State.Get(ctx, state)...)
 }
 
-// EncodeUpdate writes the state back to an UpdateResponse.
-// The state parameter must be a pointer to a model for the resource.
+// EncodeUpdate writes the model populated in the Update method to state.
 func (r *ResourceMetadata) EncodeUpdate(ctx context.Context, resp *resource.UpdateResponse, state any) {
 	resp.Diagnostics.Append(resp.State.Set(ctx, state)...)
 }

@@ -43,11 +43,8 @@ func (r *DataSourceMetadata) Defaults(req datasource.ConfigureRequest, resp *dat
 }
 
 // DecodeRead is a helper function to populate the Data Source model from the user config and writes any diags back to the ReadResponse
-// Returns true if there are no Error Diagnostics.
-func (r *DataSourceMetadata) DecodeRead(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse, config any) bool {
+func (r *DataSourceMetadata) DecodeRead(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse, config any) {
 	resp.Diagnostics.Append(req.Config.Get(ctx, config)...)
-
-	return !resp.Diagnostics.HasError()
 }
 
 type FrameworkWrappedDataSource interface {
@@ -60,7 +57,7 @@ type FrameworkWrappedDataSource interface {
 	Read(ctx context.Context, request datasource.ReadRequest, response *datasource.ReadResponse, metadata ResourceMetadata, state any)
 }
 
-// FrameworkWrappedDataSourceWithConfigure provides an interface for resources that need custom configuration beyond the standard wrapped Configure()
+// FrameworkWrappedDataSourceWithConfigure provides an interface for data sources that need custom configuration beyond the standard wrapped Configure()
 type FrameworkWrappedDataSourceWithConfigure interface {
 	FrameworkWrappedDataSource
 

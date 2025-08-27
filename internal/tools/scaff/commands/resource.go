@@ -197,12 +197,12 @@ func (d *resourceData) exec() error {
 
 	f, err = os.Create(outputPath)
 	if err != nil {
-		return fmt.Errorf("failed opening output resource file for writing: %+v", err.Error())
+		return fmt.Errorf("failed opening output models file for writing: %+v", err.Error())
 	}
 	defer func(f *os.File) {
 		err := f.Close()
 		if err != nil {
-			log.Println("failed closing output resource file for writing:", err.Error())
+			log.Println("failed closing output models file for writing:", err.Error())
 			os.Exit(3)
 		}
 	}(f)

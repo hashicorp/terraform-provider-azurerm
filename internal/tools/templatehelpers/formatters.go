@@ -29,7 +29,7 @@ var TplFuncMap = template.FuncMap{
 	"PrefixedLabelString":           PrefixedLabelString,
 	"IdToID":                        IdToID,
 	"NewIDResourceIdentityFormater": NewIDResourceIdentityFormater,
-	"NewIDCreateFormater":           NewIDCreateFormater,
+	"NewIDCreateFormatter":          NewIDCreateFormatter,
 	"ClientToPackageName":           ClientToPackageName,
 }
 
@@ -106,7 +106,7 @@ func NewIDResourceIdentityFormater(idType []string, idSegments []string, prefix 
 	return output
 }
 
-func NewIDCreateFormater(idType []string, idSegments []string, prefix string) string {
+func NewIDCreateFormatter(idType []string, idSegments []string, prefix string) string {
 	if len(idType) != 2 {
 		return "// TODO - ID Type provided to scaff tool did not match the expected format"
 	}
