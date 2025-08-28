@@ -147,6 +147,7 @@ function Show-Help {
         }
     }
     
+    Write-Host ""
     Write-Host "For more information, visit: https://github.com/hashicorp/terraform-provider-azurerm" -ForegroundColor Cyan
     Write-Host ""
 }
