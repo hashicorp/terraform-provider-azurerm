@@ -72,15 +72,11 @@ function Format-AlignedLabel {
         [string]$LongestLabel
     )
     
-    # Trim whitespace from both labels to ensure accurate length calculation
-    $trimmedLabel = $Label.Trim()
-    $trimmedLongestLabel = $LongestLabel.Trim()
-    
-    # Calculate required spacing for alignment based on the actual longest label
-    $requiredWidth = $trimmedLongestLabel.Length - $trimmedLabel.Length
+    # Calculate required spacing for alignment - preserve leading/trailing spaces
+    $requiredWidth = $LongestLabel.Length - $Label.Length
     if ($requiredWidth -lt 0) { $requiredWidth = 0 }
     
-    return "$trimmedLabel$(' ' * $requiredWidth)"
+    return "$Label$(' ' * $requiredWidth)"
 }
 
 function Show-BranchDetection {
@@ -95,28 +91,25 @@ function Show-BranchDetection {
         [string]$BranchType = "Unknown"
     )
     
-    switch ($BranchType) {
-        "source" {
-            $branchLabel = " SOURCE BRANCH DETECTED"
-            Write-Host "${branchLabel}: " -NoNewline -ForegroundColor Cyan
-            Write-Host "$BranchName" -ForegroundColor Yellow
-        }
-        "feature" {
-            $branchLabel = " FEATURE BRANCH DETECTED"
-            Write-Host "${branchLabel}: " -NoNewline -ForegroundColor Cyan
-            Write-Host "$BranchName" -ForegroundColor Yellow
-        }
-        default {
-            $branchLabel = " BRANCH DETECTED"
-            Write-Host "${branchLabel}: " -NoNewline -ForegroundColor Cyan
-            Write-Host "$BranchName" -ForegroundColor Yellow
-        }
+    # Determine the branch label and longest label for proper alignment
+    $branchLabel = switch ($BranchType) {
+        "source"  { "SOURCE BRANCH DETECTED" }
+        "feature" { "FEATURE BRANCH DETECTED" }
+        default   { "BRANCH DETECTED" }
     }
+    
+    # Use the longest possible label for alignment
+    $longestLabel = "FEATURE BRANCH DETECTED"  # This is the longest possible branch label
+    
+    # Display branch information with consistent alignment
+    $formattedBranchLabel = Format-AlignedLabel -Label $branchLabel -LongestLabel $longestLabel
+    Write-Host " ${formattedBranchLabel}: " -NoNewline -ForegroundColor Cyan
+    Write-Host "$BranchName" -ForegroundColor Yellow
     
     # Dynamic workspace label with proper alignment and colors
     if ($Global:WorkspaceRoot) {
-        $formattedWorkspaceLabel = Format-AlignedLabel -Label " WORKSPACE" -LongestLabel $branchLabel
-        Write-Host "${formattedWorkspaceLabel}: " -NoNewline -ForegroundColor Cyan
+        $formattedWorkspaceLabel = Format-AlignedLabel -Label "WORKSPACE" -LongestLabel $longestLabel
+        Write-Host " ${formattedWorkspaceLabel}: " -NoNewline -ForegroundColor Cyan
         Write-Host "$Global:WorkspaceRoot" -ForegroundColor Green
     }
     

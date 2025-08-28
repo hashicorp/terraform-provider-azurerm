@@ -1,4 +1,4 @@
-# Main AI Infrastructure Installer for Terraform AzureRM Provider
+﻿# Main AI Infrastructure Installer for Terraform AzureRM Provider
 # Version: 1.0.0
 # Description: Interactive installer for AI-powered development infrastructure
 
@@ -110,64 +110,8 @@ catch {
     exit 1
 }
 
-# Helper function to get workspace root
-function Get-WorkspaceRoot {
-    <#
-    .SYNOPSIS
-    Dynamically determines the workspace root directory
-    
-    .DESCRIPTION
-    Finds the root of the terraform-provider-azurerm workspace by looking for key files
-    or navigating up from the current script location
-    #>
-    
-    # Start from script directory and look for workspace indicators
-    $currentPath = $PSScriptRoot
-    
-    while ($currentPath -and $currentPath -ne (Split-Path $currentPath -Parent)) {
-        # Look for terraform-provider-azurerm indicators
-        if ((Test-Path (Join-Path $currentPath "go.mod")) -and 
-            (Test-Path (Join-Path $currentPath "main.go")) -and
-            (Test-Path (Join-Path $currentPath "internal"))) {
-            return $currentPath
-        }
-        
-        # Move up one directory
-        $currentPath = Split-Path $currentPath -Parent
-    }
-    
-    # Fallback: assume we're in .github/AIinstaller and go up two levels
-    return Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
-}
-
 # Initialize workspace root after module loading
-$Global:WorkspaceRoot = Get-WorkspaceRoot
-
-# Override workspace root if RepoDirectory parameter is provided
-if ($RepoDirectory) {
-    if (Test-Path $RepoDirectory) {
-        # Validate that this looks like a terraform-provider-azurerm repository
-        $goModPath = Join-Path $RepoDirectory "go.mod"
-        $mainGoPath = Join-Path $RepoDirectory "main.go"
-        $internalPath = Join-Path $RepoDirectory "internal"
-        
-        if ((Test-Path $goModPath) -and (Test-Path $mainGoPath) -and (Test-Path $internalPath)) {
-            $Global:WorkspaceRoot = $RepoDirectory
-        } else {
-            Write-Host ""
-            Write-Host "INVALID REPOSITORY: The specified directory does not appear to be a terraform-provider-azurerm repository." -ForegroundColor "Red"
-            Write-Host "The -RepoDirectory parameter must point to a valid terraform-provider-azurerm repository root." -ForegroundColor "Red"
-            # Clear RepoDirectory to show help instead of exiting
-            $RepoDirectory = ""
-        }
-    } else {
-        Write-Host ""
-        Write-Host "DIRECTORY NOT FOUND: The specified RepoDirectory does not exist." -ForegroundColor "Red"
-        Write-Host "The path '$RepoDirectory' could not be found on this system." -ForegroundColor "Red"
-        # Clear RepoDirectory to show help instead of exiting
-        $RepoDirectory = ""
-    }
-}
+$Global:WorkspaceRoot = $null
 
 # Configuration will be loaded on-demand in functions that need it
 $Global:ManifestConfig = $null
@@ -180,13 +124,9 @@ $Global:InstallerConfig = $null
 function Get-WorkspaceRoot {
     param([string]$RepoDirectory, [string]$ScriptDirectory)
     
-    # If RepoDirectory is provided, use it
+    # If RepoDirectory is provided, use it (validation happens later)
     if ($RepoDirectory) {
-        if (Test-Path $RepoDirectory) {
-            return $RepoDirectory
-        } else {
-            throw "Specified RepoDirectory does not exist: $RepoDirectory"
-        }
+        return $RepoDirectory
     }
     
     # Otherwise, find workspace root from script location
@@ -315,9 +255,16 @@ function Main {
         
         # For all other operations, workspace must be valid
         if (-not $workspaceValidation.Valid) {
-            Write-Host "WORKSPACE VALIDATION FAILED: $($workspaceValidation.Reason)" -ForegroundColor Red
             Write-Host ""
-            Write-Host "Please ensure you're running this script from within a terraform-provider-azurerm repository." -ForegroundColor Red
+            Write-Host " WORKSPACE VALIDATION FAILED: $($workspaceValidation.Reason)" -ForegroundColor Red
+            
+            # Context-aware error message based on how the script was invoked
+            if ($RepoDirectory) {
+                Write-Host " Please ensure the -RepoDirectory argument is pointing to a valid GitHub terraform-provider-azurerm repository." -ForegroundColor Red
+            } else {
+                Write-Host " Please ensure you are running this script from within a terraform-provider-azurerm repository." -ForegroundColor Red
+            }
+            Write-Host ""
             Write-Separator
             
             # Show help menu for guidance
