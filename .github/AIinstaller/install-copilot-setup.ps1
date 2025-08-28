@@ -283,7 +283,7 @@ function Main {
         }
         
         if ($Clean) {
-            Invoke-CleanWorkspace -AutoApprove $AutoApprove -DryRun $DryRun | Out-Null
+            Invoke-CleanWorkspace -AutoApprove $AutoApprove -DryRun $DryRun -WorkspaceRoot $Global:WorkspaceRoot | Out-Null
             return
         }
         
