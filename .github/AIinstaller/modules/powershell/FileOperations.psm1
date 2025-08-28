@@ -107,7 +107,18 @@ function Install-AIFile {
         Write-Verbose "Downloading: $DownloadUrl"
         
         $downloadStart = Get-Date
-        $response = Invoke-WebRequest -Uri $DownloadUrl -UseBasicParsing -ErrorAction Stop
+        
+        # Hide progress bar during download
+        $originalProgressPreference = $ProgressPreference
+        $ProgressPreference = 'SilentlyContinue'
+        
+        try {
+            $response = Invoke-WebRequest -Uri $DownloadUrl -UseBasicParsing -ErrorAction Stop
+        }
+        finally {
+            $ProgressPreference = $originalProgressPreference
+        }
+        
         $downloadEnd = Get-Date
         
         if ($downloadEnd -and $downloadStart) {
@@ -118,19 +129,12 @@ function Install-AIFile {
         $result.DebugInfo.ResponseSize = $response.Content.Length
         $result.DebugInfo.StatusCode = $response.StatusCode
         
-        # Save file (handle both text and binary content properly)
+        # Save file (all AI infrastructure files are text-based)
         try {
-            # For text files (like .md, .sh, .ps1, .psm1, .txt, etc.), use UTF8 encoding
-            if ($resolvedFilePath -match '\.(md|txt|instructions\.md|yml|yaml|json|sh|ps1|psm1|config)$') {
-                # Use UTF8 encoding without BOM for text files
-                $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-                [System.IO.File]::WriteAllText($resolvedFilePath, $response.Content, $utf8NoBom)
-                $result.DebugInfo.SaveMethod = "WriteAllText (UTF8 no BOM)"
-            } else {
-                # For binary files, use the raw content bytes
-                [System.IO.File]::WriteAllBytes($resolvedFilePath, $response.Content)
-                $result.DebugInfo.SaveMethod = "WriteAllBytes"
-            }
+            # Use UTF8 encoding without BOM for all text files
+            $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+            [System.IO.File]::WriteAllText($resolvedFilePath, $response.Content, $utf8NoBom)
+            $result.DebugInfo.SaveMethod = "WriteAllText (UTF8 no BOM)"
         } catch {
             $result.DebugInfo.SaveException = $_.Exception.Message
             throw
