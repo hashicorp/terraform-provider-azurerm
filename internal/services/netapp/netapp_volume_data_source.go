@@ -168,6 +168,12 @@ func dataSourceNetAppVolume() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
+
+			"accept_grow_capacity_pool_for_short_term_clone_split": {
+				Type:        pluginsdk.TypeString,
+				Computed:    true,
+				Description: "The accept grow capacity pool for short term clone split property.",
+			},
 		},
 	}
 }
@@ -225,6 +231,13 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 			smbAccessBasedEnumeration = strings.EqualFold(string(*props.SmbAccessBasedEnumeration), string(volumes.SmbAccessBasedEnumerationEnabled))
 		}
 		d.Set("smb_access_based_enumeration_enabled", smbAccessBasedEnumeration)
+
+		// Set short-term clone property
+		if props.AcceptGrowCapacityPoolForShortTermCloneSplit != nil {
+			d.Set("accept_grow_capacity_pool_for_short_term_clone_split", string(*props.AcceptGrowCapacityPoolForShortTermCloneSplit))
+		} else {
+			d.Set("accept_grow_capacity_pool_for_short_term_clone_split", "")
+		}
 
 		protocolTypes := make([]string, 0)
 		if prtclTypes := props.ProtocolTypes; prtclTypes != nil {
