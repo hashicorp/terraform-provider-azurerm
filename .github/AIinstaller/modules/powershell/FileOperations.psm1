@@ -1068,15 +1068,49 @@ function Invoke-CleanWorkspace {
         $result = Remove-AllAIFiles -Force:$AutoApprove -DryRun:$DryRun -WorkspaceRoot $WorkspaceRoot
         
         if ($result.Success) {
-            # Use consistent operation summary formatting
-            $details = @{
-                "Files removed" = $result.FilesRemoved
-                "Directories cleaned" = $result.DirectoriesCleaned
-                "Operation type" = if ($DryRun) { "Dry run (simulation)" } else { "Live cleanup" }
+            # Check if this was a clean workspace (no files found)
+            if ($result.CleanWorkspace) {
+                # Simple message for already clean workspace - no extra formatting needed
+                Write-Host ""
+                Write-Host "DETAILS:" -ForegroundColor Cyan
+                Write-Host "  Operation type     : " -ForegroundColor Cyan -NoNewline
+                Write-Host (if ($DryRun) { "Dry run (simulation)" } else { "Live cleanup" }) -ForegroundColor Yellow
+                Write-Host "  Files removed      : " -ForegroundColor Cyan -NoNewline
+                Write-Host "0" -ForegroundColor Green
+                Write-Host "  Directories cleaned: " -ForegroundColor Cyan -NoNewline  
+                Write-Host "0" -ForegroundColor Green
+            } else {
+                # Full completion message for actual removals
+                Write-Host ""
+                Write-Host "All AI infrastructure files have been successfully cleaned!" -ForegroundColor Green
+                Write-Separator
+                Write-Host ""
+                Write-Host "DETAILS:" -ForegroundColor Cyan
+                
+                # Find the longest key for proper alignment
+                $details = @{
+                    "Operation type" = if ($DryRun) { "Dry run (simulation)" } else { "Live cleanup" }
+                    "Files removed" = $result.FilesRemoved
+                    "Directories cleaned" = $result.DirectoriesCleaned
+                }
+                
+                $longestKey = ($details.Keys | Sort-Object Length -Descending | Select-Object -First 1)
+                
+                # Display each detail with consistent alignment
+                foreach ($key in $details.Keys) {
+                    $value = $details[$key]
+                    $formattedLabel = Format-AlignedLabel -Label $key -LongestLabel $longestKey
+                    
+                    Write-Host "  ${formattedLabel}: " -ForegroundColor Cyan -NoNewline
+                    
+                    # Numbers in green, text in yellow
+                    if ($value -match '^\d+$') {
+                        Write-Host $value -ForegroundColor Green
+                    } else {
+                        Write-Host $value -ForegroundColor Yellow
+                    }
+                }
             }
-            
-            Show-OperationSummary -OperationName "Clean Operation" -Success $true -DryRun $DryRun `
-                -ItemsSuccessful $result.FilesRemoved -Details $details
         } else {
             Write-Host ""
             
