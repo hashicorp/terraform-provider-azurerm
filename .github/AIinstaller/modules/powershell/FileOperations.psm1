@@ -321,8 +321,6 @@ function Install-AllAIFiles {
         }
     }
     
-    Write-Host "Completed AI infrastructure installation." -ForegroundColor Green
-    
     # Show detailed debug summary
     $results.DebugInfo.EndTime = Get-Date
     if ($results.DebugInfo.StartTime -and $results.DebugInfo.EndTime) {
