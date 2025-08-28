@@ -734,18 +734,25 @@ function Remove-AllAIFiles {
         }
         
         if (Test-Path $resolvedDirPath -PathType Container) {
-            $dirContents = Get-ChildItem $resolvedDirPath -Force
-            if ($dirContents.Count -eq 0) {
+            # Special handling for AIinstaller directory - just nuke it recursively
+            $relativePath = if ($WorkspaceRoot) {
+                $resolvedDirPath.Replace($WorkspaceRoot, "").TrimStart('\', '/').Replace('\', '/')
+            } else {
+                $dir
+            }
+            
+            if ($relativePath -eq ".github/AIinstaller" -or $relativePath.StartsWith(".github/AIinstaller/")) {
+                # For AIinstaller, remove recursively with force
                 if ($DryRun) {
                     $dirResult.Action = "Would Remove"
-                    $dirResult.Message = "Empty directory would be removed"
-                    $results.DirectoriesCleaned++  # Count would-be-removed directories in dry-run
+                    $dirResult.Message = "Directory would be removed recursively"
+                    $results.DirectoriesCleaned++
                     Write-Host "[WOULD REMOVE]" -ForegroundColor Yellow
                 } else {
                     try {
-                        Remove-Item -Path $resolvedDirPath -Force -ErrorAction Stop
+                        Remove-Item -Path $resolvedDirPath -Recurse -Force -ErrorAction Stop
                         $dirResult.Action = "Removed"
-                        $dirResult.Message = "Empty directory removed"
+                        $dirResult.Message = "Directory removed recursively"
                         $results.DirectoriesCleaned++
                         Write-Host "[OK]" -ForegroundColor Green
                     }
@@ -759,9 +766,36 @@ function Remove-AllAIFiles {
                     }
                 }
             } else {
-                $dirResult.Action = "Not Empty"
-                $dirResult.Message = "Directory contains other files"
-                Write-Host "[NOT EMPTY]" -ForegroundColor Yellow
+                # For other directories, check if empty first
+                $dirContents = Get-ChildItem $resolvedDirPath -Force
+                if ($dirContents.Count -eq 0) {
+                    if ($DryRun) {
+                        $dirResult.Action = "Would Remove"
+                        $dirResult.Message = "Empty directory would be removed"
+                        $results.DirectoriesCleaned++
+                        Write-Host "[WOULD REMOVE]" -ForegroundColor Yellow
+                    } else {
+                        try {
+                            Remove-Item -Path $resolvedDirPath -Force -ErrorAction Stop
+                            $dirResult.Action = "Removed"
+                            $dirResult.Message = "Empty directory removed"
+                            $results.DirectoriesCleaned++
+                            Write-Host "[OK]" -ForegroundColor Green
+                        }
+                        catch {
+                            $dirResult.Action = "Failed"
+                            $dirResult.Success = $false
+                            $dirResult.Message = "Failed to remove directory: $($_.Exception.Message)"
+                            $results.Success = $false
+                            $results.Issues += "Failed to remove directory ${resolvedDirPath}: $($_.Exception.Message)"
+                            Write-Host "[FAILED]" -ForegroundColor Red
+                        }
+                    }
+                } else {
+                    $dirResult.Action = "Not Empty"
+                    $dirResult.Message = "Directory contains other files"
+                    Write-Host "[NOT EMPTY]" -ForegroundColor Yellow
+                }
             }
         } else {
             $dirResult.Action = "Not Found"
@@ -771,13 +805,6 @@ function Remove-AllAIFiles {
         
         $results.Directories[$resolvedDirPath] = $dirResult
     }
-    
-    # After processing all directories, perform recursive cleanup of newly emptied directories
-    Write-Host ""
-    Write-Host "Checking for newly emptied parent directories..." -ForegroundColor Cyan
-    
-    $additionalCleaned = Remove-EmptyParentDirectories -DirectoriesToCheck $directoriesToCheck -WorkspaceRoot $WorkspaceRoot -DryRun $DryRun
-    $results.DirectoriesCleaned += $additionalCleaned
     
     Write-Host ""
     Write-Host "Completed AI infrastructure removal." -ForegroundColor Green
