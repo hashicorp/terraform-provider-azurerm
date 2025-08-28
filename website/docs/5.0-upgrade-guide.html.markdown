@@ -475,6 +475,10 @@ Please follow the format in the example below for listing breaking changes in da
 * The deprecated `enable_floating_ip` property has been removed in favour of the `floating_ip_enabled` property.
 * The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
 
+### `azurerm_key_vault`
+
+* The deprecated `enable_rbac_authorization` property has been removed in favour of the `rbac_authorization_enabled` property.
+
 ### `azurerm_logic_app_standard`
 
 * The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
