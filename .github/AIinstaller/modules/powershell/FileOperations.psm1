@@ -263,6 +263,7 @@ function Install-AllAIFiles {
     }
     
     Write-Host "Preparing to install $($allFiles.Count) files..." -ForegroundColor Cyan
+    Write-Host ""
     
     $fileIndex = 0
     foreach ($filePath in $allFiles) {
