@@ -29,6 +29,8 @@ resource "azurerm_bot_web_app" "example" {
 }
 ```
 
+~> **Note:** Creating an `azurerm_bot_web_app` resource automatically provisions Web Chat and Direct Line channels, each with a live and enabled "Default Site" that may expose the bot publicly. To manage or disable the sites explicitly, define corresponding resources like `azurerm_bot_channel_directline`.
+
 ## Argument Reference
 
 The following arguments are supported:

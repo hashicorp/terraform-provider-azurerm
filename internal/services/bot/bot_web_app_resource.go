@@ -192,18 +192,6 @@ func resourceBotWebAppCreate(d *pluginsdk.ResourceData, meta interface{}) error 
 		return fmt.Errorf("creating Web App Bot %q (Resource Group %q): %+v", resourceId.Name, resourceId.ResourceGroup, err)
 	}
 
-	// Creating an azurerm_bot_web_app resource automatically provisions Web Chat and Direct Line channels, each with a
-	// live and enabled "Default Site". These channels are enabled by default, and may expose the bot publicly.
-	// Therefore, we delete the default sites for Direct Line and Web Chat channels after creating the bot. To manage or
-	// disable the sites explicitly, define corresponding resources like azurerm_bot_channel_directline.
-	if err := deleteDefaultChannelSite(d, meta, botservice.ChannelNameBasicChannelChannelNameDirectLineChannel); err != nil {
-		log.Printf("[WARN] deleting direct line default site: %s", err)
-	}
-
-	if err := deleteDefaultChannelSite(d, meta, botservice.ChannelNameBasicChannelChannelNameWebChatChannel); err != nil {
-		log.Printf("[WARN] deleting web chat default site: %s", err)
-	}
-
 	d.SetId(resourceId.ID())
 	return resourceBotWebAppRead(d, meta)
 }
@@ -305,54 +293,6 @@ func resourceBotWebAppDelete(d *pluginsdk.ResourceData, meta interface{}) error 
 		if !response.WasNotFound(resp.Response) {
 			return fmt.Errorf("deleting Web App Bot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
 		}
-	}
-
-	return nil
-}
-
-func deleteDefaultChannelSite(d *pluginsdk.ResourceData, meta interface{}, channelName botservice.ChannelNameBasicChannel) error {
-	client := meta.(*clients.Client).Bot.ChannelClient
-	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	defer cancel()
-
-	id := parse.NewBotChannelID(subscriptionId, d.Get("resource_group_name").(string), d.Get("name").(string), string(channelName))
-	existing, err := client.Get(ctx, id.ResourceGroup, id.BotServiceName, id.ChannelName)
-	if err != nil {
-		if !utils.ResponseWasNotFound(existing.Response) {
-			return fmt.Errorf("checking for presence of existing %s Channel for Bot %q: %+v", channelName, id, err)
-		}
-		return err
-	}
-
-	switch channelName {
-	case botservice.ChannelNameBasicChannelChannelNameDirectLineChannel:
-		channel, ok := existing.Properties.(botservice.DirectLineChannel)
-		if !ok || channel.Properties == nil || channel.Properties.Sites == nil {
-			return nil
-		}
-		for _, site := range *channel.Properties.Sites {
-			if pointer.From(site.SiteName) == "Default Site" {
-				existing.Properties.(botservice.DirectLineChannel).Properties.Sites = pointer.To(make([]botservice.DirectLineSite, 0))
-				break
-			}
-		}
-	case botservice.ChannelNameBasicChannelChannelNameWebChatChannel:
-		channel, ok := existing.Properties.(botservice.WebChatChannel)
-		if !ok || channel.Properties == nil || channel.Properties.Sites == nil {
-			return nil
-		}
-		for _, site := range *channel.Properties.Sites {
-			if pointer.From(site.SiteName) == "Default Site" {
-				existing.Properties.(botservice.WebChatChannel).Properties.Sites = pointer.To(make([]botservice.WebChatSite, 0))
-				break
-			}
-		}
-	default:
-		return fmt.Errorf("unsupported channel type: %s", channelName)
-	}
-	if _, err := client.Update(ctx, id.ResourceGroup, id.BotServiceName, botservice.ChannelName(channelName), existing); err != nil {
-		return fmt.Errorf("updating %s Channel for Bot %q: %+v", channelName, id, err)
 	}
 
 	return nil
