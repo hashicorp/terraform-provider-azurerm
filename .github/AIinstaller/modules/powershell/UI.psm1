@@ -72,11 +72,15 @@ function Format-AlignedLabel {
         [string]$LongestLabel
     )
     
-    # Calculate required spacing for alignment based on the actual longest label
-    $requiredWidth = $LongestLabel.Length - $Label.Length
-    if ($requiredWidth -lt 1) { $requiredWidth = 1 }
+    # Trim whitespace from both labels to ensure accurate length calculation
+    $trimmedLabel = $Label.Trim()
+    $trimmedLongestLabel = $LongestLabel.Trim()
     
-    return "$Label$(' ' * $requiredWidth)"
+    # Calculate required spacing for alignment based on the actual longest label
+    $requiredWidth = $trimmedLongestLabel.Length - $trimmedLabel.Length
+    if ($requiredWidth -lt 0) { $requiredWidth = 0 }
+    
+    return "$trimmedLabel$(' ' * $requiredWidth)"
 }
 
 function Show-BranchDetection {
@@ -383,73 +387,6 @@ function Show-CompletionSummary {
     Write-Host ""
 }
 
-function Show-Summary {
-    <#
-    .SYNOPSIS
-    Display operation summary with details
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [string]$Title,
-        
-        [hashtable]$Details = @{},
-        
-        [string[]]$Errors = @(),
-        
-        [string[]]$Warnings = @(),
-        
-        [string[]]$NextSteps = @()
-    )
-    
-    Write-Host ""
-    Write-Host $Title.ToUpper() -ForegroundColor Cyan
-    Write-Separator
-    Write-Host ""
-    
-    if ($Details.Count -gt 0) {
-        Write-Host "DETAILS:" -ForegroundColor Cyan
-        
-        # Find the longest key for proper alignment (following UI standards)
-        $longestKey = ($Details.Keys | Sort-Object Length -Descending | Select-Object -First 1)
-        
-        # Display each detail with consistent alignment using Format-AlignedLabel
-        foreach ($key in $Details.Keys) {
-            $value = $Details[$key]
-            $formattedLabel = Format-AlignedLabel -Label $key -LongestLabel $longestKey
-            
-            # Write key with consistent formatting
-            Write-Host "  ${formattedLabel}: " -ForegroundColor Cyan -NoNewline
-            
-            # Determine value color based on content
-            if ($value -match '^\d+$') {
-                # Numbers in green
-                Write-Host $value -ForegroundColor Green
-            } else {
-                # Text values in yellow
-                Write-Host $value -ForegroundColor Yellow
-            }
-        }
-        Write-Host ""
-    }
-    
-    if ($Warnings.Count -gt 0) {
-        Write-Host "WARNINGS:" -ForegroundColor Yellow
-        foreach ($warningMsg in $Warnings) {
-            Write-Host "  ! $warningMsg" -ForegroundColor Yellow
-        }
-        Write-Host ""
-    }
-    
-    if ($Errors.Count -gt 0) {
-        Write-Host "ERRORS:" -ForegroundColor Red
-        foreach ($errorMsg in $Errors) {
-            Write-Host "  X $errorMsg" -ForegroundColor Red
-        }
-    }
-    
-    Write-Host ""
-}
-
 function Show-BootstrapNextSteps {
     <#
     .SYNOPSIS
@@ -584,10 +521,14 @@ function Show-OperationSummary {
     
     Write-Host ""
     
-    # Show operation title
-    $title = if ($DryRun) { "$OperationName (Dry Run)" } else { $OperationName }
-    Write-Host "$title COMPLETE" -ForegroundColor $(if ($Success) { "Green" } else { "Yellow" })
-    Write-Separator -Length 40 -Color $(if ($Success) { "Green" } else { "Yellow" })
+    # Show operation completion with consistent formatting
+    if ($OperationName -eq "Bootstrap") {
+        Write-Host " Bootstrap completed successfully" -ForegroundColor $(if ($Success) { "Green" } else { "Red" })
+    } else {
+        $title = if ($DryRun) { "$OperationName (Dry Run) COMPLETE" } else { "$OperationName COMPLETE" }
+        Write-Host $title -ForegroundColor $(if ($Success) { "Green" } else { "Red" })
+        Write-Separator -Color $(if ($Success) { "Green" } else { "Red" })
+    }
     Write-Host ""
     
     # Process details - handle both hashtables and string arrays
@@ -609,19 +550,45 @@ function Show-OperationSummary {
     }
     
     # Add standard metrics to details
-    if ($ItemsProcessed -gt 0) {
-        $detailsHash["Items Processed"] = $ItemsProcessed
-    }
     if ($ItemsSuccessful -gt 0) {
         $detailsHash["Items Successful"] = $ItemsSuccessful
     }
     if ($ItemsFailed -gt 0) {
         $detailsHash["Items Failed"] = $ItemsFailed
     }
+    if ($ItemsProcessed -gt 0 -and $ItemsProcessed -ne $ItemsSuccessful) {
+        $detailsHash["Items Processed"] = $ItemsProcessed
+    }
     
-    # Display details using the existing Show-Summary function
+    # Display details using consistent UI formatting
     if ($detailsHash.Count -gt 0) {
-        Show-Summary -Title "SUMMARY" -Details $detailsHash
+        Write-Separator -Color Cyan
+        Write-Host " $($OperationName.ToUpper()) SUMMARY:" -ForegroundColor Cyan
+        Write-Separator -Color Cyan
+        Write-Host ""
+        Write-Host "DETAILS:" -ForegroundColor Cyan
+        
+        # Find the longest key for proper alignment (following UI standards)
+        $longestKey = ($detailsHash.Keys | Sort-Object Length -Descending | Select-Object -First 1)
+        
+        # Display each detail with consistent alignment using Format-AlignedLabel
+        foreach ($key in $detailsHash.Keys) {
+            $value = $detailsHash[$key]
+            $formattedLabel = Format-AlignedLabel -Label $key -LongestLabel $longestKey
+            
+            # Write key with consistent formatting
+            Write-Host "  ${formattedLabel}: " -ForegroundColor Cyan -NoNewline
+            
+            # Determine value color based on content
+            if ($value -match '^\d+$' -or $value -match '^\d+(\.\d+)?\s*(KB|MB|GB|TB|B)$') {
+                # Numbers and file sizes in green
+                Write-Host $value -ForegroundColor Green
+            } else {
+                # Text values in yellow
+                Write-Host $value -ForegroundColor Yellow
+            }
+        }
+        Write-Host ""
     }
 }
 
@@ -638,5 +605,6 @@ Export-ModuleMember -Function @(
     'Show-SourceBranchWelcome',
     'Show-SafetyViolation',
     'Show-BootstrapNextSteps',
-    'Show-AIInstallerNotFoundError'
+    'Show-AIInstallerNotFoundError',
+    'Show-OperationSummary'
 )

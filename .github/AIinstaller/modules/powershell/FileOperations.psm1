@@ -864,7 +864,7 @@ function Invoke-Bootstrap {
     
     try {
         # Show operation title (main header already displayed by caller)
-        Write-Host "Bootstrap - Copying Installer to User Profile" -ForegroundColor Cyan
+        Write-Host " Bootstrap - Copying Installer to User Profile" -ForegroundColor Cyan
         Write-Separator
         
         # Create target directory
@@ -878,8 +878,9 @@ function Invoke-Bootstrap {
         
         # CRITICAL: Always include the manifest file in bootstrap - it's required for user profile operations
         $manifestFile = "file-manifest.config"
-        if ($manifestFile -notin $filesToBootstrap) {
-            $filesToBootstrap += $manifestFile
+        $manifestFileFullPath = ".github/AIinstaller/$manifestFile"
+        if (($filesToBootstrap | Where-Object { $_ -like "*$manifestFile" }).Count -eq 0) {
+            $filesToBootstrap += $manifestFileFullPath
         }
         
         # Statistics
@@ -980,8 +981,6 @@ function Invoke-Bootstrap {
             exit 1
         }
         
-        Write-Host ""
-        
         # Prepare details for centralized summary
         $details = @()
         $totalSizeKB = [math]::Round($statistics["Total Size"] / 1KB, 1)
@@ -1055,7 +1054,7 @@ function Invoke-CleanWorkspace {
         [string]$WorkspaceRoot
     )
     
-    Write-Host "Clean Workspace" -ForegroundColor Cyan
+    Write-Host " Clean Workspace" -ForegroundColor Cyan
     Write-Separator
     Write-Host ""
     
@@ -1069,14 +1068,15 @@ function Invoke-CleanWorkspace {
         $result = Remove-AllAIFiles -Force:$AutoApprove -DryRun:$DryRun -WorkspaceRoot $WorkspaceRoot
         
         if ($result.Success) {
-            # Use the superior summary function
+            # Use consistent operation summary formatting
             $details = @{
                 "Files removed" = $result.FilesRemoved
                 "Directories cleaned" = $result.DirectoriesCleaned
                 "Operation type" = if ($DryRun) { "Dry run (simulation)" } else { "Live cleanup" }
             }
             
-            Show-Summary -Title "Clean Operation Results" -Details $details
+            Show-OperationSummary -OperationName "Clean Operation" -Success $true -DryRun $DryRun `
+                -ItemsSuccessful $result.FilesRemoved -Details $details
         } else {
             Write-Host ""
             
@@ -1149,7 +1149,7 @@ function Invoke-InstallInfrastructure {
         [hashtable]$ManifestConfig
     )
     
-    Write-Host "Installing AI Infrastructure" -ForegroundColor Cyan
+    Write-Host " Installing AI Infrastructure" -ForegroundColor Cyan
     Write-Separator
     Write-Host ""
     
