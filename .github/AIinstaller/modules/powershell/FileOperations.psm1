@@ -989,30 +989,27 @@ function Invoke-Bootstrap {
         
         Write-Host ""
         
+        # Prepare details for centralized summary
+        $details = @()
+        $totalSizeKB = [math]::Round($statistics["Total Size"] / 1KB, 1)
+        
+        if ($statistics["Files Copied"] -gt 0) {
+            $details += "Files copied: $($statistics["Files Copied"])"
+        }
+        if ($statistics["Files Downloaded"] -gt 0) {
+            $details += "Files downloaded: $($statistics["Files Downloaded"])"
+        }
+        $details += "Total size: $totalSizeKB KB"
+        $details += "Location: $targetDirectory"
+        
         if ($statistics["Files Failed"] -eq 0) {
-            $totalSizeKB = [math]::Round($statistics["Total Size"] / 1KB, 1)
+            # Use centralized success reporting
+            Show-OperationSummary -OperationName "Bootstrap" -Success $true -DryRun:$DryRun `
+                -ItemsProcessed $statistics["Total Files"] `
+                -ItemsSuccessful ($statistics["Files Copied"] + $statistics["Files Downloaded"]) `
+                -ItemsFailed $statistics["Files Failed"] `
+                -Details $details
             
-            Write-Host "Bootstrap completed successfully!" -ForegroundColor Green
-            Write-Host ""
-            
-            if ($statistics["Files Copied"] -gt 0) {
-                $label = "Files copied".PadRight(13)
-                Write-Host "  ${label}: " -ForegroundColor Cyan -NoNewline
-                Write-Host "$($statistics["Files Copied"])" -ForegroundColor Green
-            }
-            if ($statistics["Files Downloaded"] -gt 0) {
-                $label = "Files downloaded".PadRight(13)
-                Write-Host "  ${label}: " -ForegroundColor Cyan -NoNewline
-                Write-Host "$($statistics["Files Downloaded"])" -ForegroundColor Green
-            }
-            
-            $label = "Total size".PadRight(13)
-            Write-Host "  ${label}: " -ForegroundColor Cyan -NoNewline
-            Write-Host "$totalSizeKB KB" -ForegroundColor Green
-            $label = "Location".PadRight(13)
-            Write-Host "  ${label}: " -ForegroundColor Cyan -NoNewline
-            Write-Host "$targetDirectory" -ForegroundColor Yellow
-            Write-Host ""
             Write-Host "NEXT STEPS:" -ForegroundColor "Cyan"
             Write-Host ""
             Write-Host "  1. Switch to your feature branch:" -ForegroundColor "Cyan"
@@ -1029,7 +1026,13 @@ function Invoke-Bootstrap {
                 Statistics = $statistics
             }
         } else {
-            Write-ErrorMessage "Bootstrap failed: $($statistics["Files Failed"]) files could not be processed"
+            # Use centralized failure reporting
+            Show-OperationSummary -OperationName "Bootstrap" -Success $false -DryRun:$DryRun `
+                -ItemsProcessed $statistics["Total Files"] `
+                -ItemsSuccessful ($statistics["Files Copied"] + $statistics["Files Downloaded"]) `
+                -ItemsFailed $statistics["Files Failed"] `
+                -Details $details
+            
             return @{
                 Success = $false
                 Statistics = $statistics
@@ -1045,6 +1048,180 @@ function Invoke-Bootstrap {
     }
 }
 
+function Invoke-CleanWorkspace {
+    <#
+    .SYNOPSIS
+    High-level clean workspace operation with complete UI experience
+    
+    .PARAMETER AutoApprove
+    Skip confirmation prompts
+    
+    .PARAMETER DryRun
+    Show what would be done without making changes
+    
+    .PARAMETER WorkspaceRoot
+    Root directory of the workspace
+    #>
+    param(
+        [bool]$AutoApprove,
+        [bool]$DryRun,
+        [string]$WorkspaceRoot
+    )
+    
+    Write-Host "Clean Workspace" -ForegroundColor Cyan
+    Write-Separator
+    Write-Host ""
+    
+    if ($DryRun) {
+        Write-Host "DRY RUN - No files will be deleted" -ForegroundColor Yellow
+        Write-Host ""
+    }
+    
+    # Use the FileOperations module to properly remove all AI files
+    try {
+        $result = Remove-AllAIFiles -Force:$AutoApprove -DryRun:$DryRun -WorkspaceRoot $WorkspaceRoot
+        
+        if ($result.Success) {
+            # Use the superior summary function
+            $details = @{
+                "Files removed" = $result.FilesRemoved
+                "Directories cleaned" = $result.DirectoriesCleaned
+                "Operation type" = if ($DryRun) { "Dry run (simulation)" } else { "Live cleanup" }
+            }
+            
+            Show-Summary -Title "Clean Operation Results" -Details $details
+        } else {
+            Write-Host ""
+            
+            # Handle dry-run vs actual operation messaging differently
+            if ($DryRun) {
+                # For dry-run, show positive confirmation that files were verified
+                $dryRunIssues = $result.Issues | Where-Object { $_ -match "Dry run - no changes made" }
+                $actualIssues = $result.Issues | Where-Object { $_ -notmatch "Dry run - no changes made" }
+                
+                if ($dryRunIssues.Count -gt 0) {
+                    Write-Host "Dry run completed successfully - all $($dryRunIssues.Count) files verified and ready for removal" -ForegroundColor Green
+                    Write-Host ""
+                    Write-Host "Files that would be removed:" -ForegroundColor Cyan
+                    Write-Separator
+                    foreach ($issue in $dryRunIssues) {
+                        # Extract just the filename from the error message
+                        $fileName = ($issue -split ": Dry run")[0] -replace "Failed to remove ", ""
+                        Write-Host "  - $fileName" -ForegroundColor Gray
+                    }
+                }
+                
+                # Show any actual issues (non-dry-run related)
+                if ($actualIssues.Count -gt 0) {
+                    Write-Host "Actual Issues Encountered:" -ForegroundColor Cyan
+                    Write-Separator
+                    foreach ($issue in $actualIssues) {
+                        Write-Host "  - $issue" -ForegroundColor Red
+                    }
+                    Write-Host ""
+                }
+            } else {
+                # For actual operations, show the issues as errors
+                Write-Host "Clean Operation Encountered Issues:" -ForegroundColor Cyan
+                foreach ($issue in $result.Issues) {
+                    Write-Host "  - $issue" -ForegroundColor Red
+                }
+                Write-Host ""
+            }
+        }
+        
+        return $result
+    }
+    catch {
+        Write-Host "Failed to clean workspace: $($_.Exception.Message)" -ForegroundColor Red
+        return @{ Success = $false; Issues = @($_.Exception.Message) }
+    }
+}
+
+function Invoke-InstallInfrastructure {
+    <#
+    .SYNOPSIS
+    High-level install infrastructure operation with complete UI experience
+    
+    .PARAMETER AutoApprove
+    Skip confirmation prompts
+    
+    .PARAMETER DryRun
+    Show what would be done without making changes
+    
+    .PARAMETER WorkspaceRoot
+    Root directory of the workspace
+    
+    .PARAMETER ManifestConfig
+    Manifest configuration object
+    #>
+    param(
+        [bool]$AutoApprove,
+        [bool]$DryRun,
+        [string]$WorkspaceRoot,
+        [hashtable]$ManifestConfig
+    )
+    
+    Write-Host "Installing AI Infrastructure" -ForegroundColor Cyan
+    Write-Separator
+    Write-Host ""
+    
+    if ($DryRun) {
+        Write-Host "DRY RUN - No files will be created or removed" -ForegroundColor Yellow
+        Write-Host ""
+    }
+    
+    # Step 1: Clean up deprecated files first (automatic part of installation)
+    Write-Host "Checking for deprecated files..." -ForegroundColor Gray
+    $deprecatedFiles = Remove-DeprecatedFiles -ManifestConfig $ManifestConfig -WorkspaceRoot $WorkspaceRoot -DryRun $DryRun -Quiet $true
+    
+    if ($deprecatedFiles.Count -gt 0) {
+        Write-Host "  Removed $($deprecatedFiles.Count) deprecated files" -ForegroundColor Green
+    } else {
+        Write-Host "  No deprecated files found" -ForegroundColor Cyan
+    }
+    Write-Host ""
+    
+    # Step 2: Install/update current files
+    Write-Host "Installing current AI infrastructure files..." -ForegroundColor Cyan
+    
+    # Use the FileOperations module to actually install files
+    try {
+        $result = Install-AllAIFiles -Force:$AutoApprove -DryRun:$DryRun -WorkspaceRoot $WorkspaceRoot -ManifestConfig $ManifestConfig
+        
+        if ($result.OverallSuccess) {
+            # Use the superior completion summary function
+            $nextSteps = @()
+            if ($result.Skipped -gt 0) {
+                $nextSteps += "Review skipped files and use -Auto-Approve if needed"
+            }
+            $nextSteps += "Start using GitHub Copilot with your new AI-assisted infrastructure"
+            $nextSteps += "Check the .github/instructions/ folder for detailed guidelines"
+            
+            # Get branch information for completion summary - need to access global config
+            $currentBranch = if ($Global:InstallerConfig -and $Global:InstallerConfig.Branch) { 
+                $Global:InstallerConfig.Branch 
+            } else { 
+                "Unknown" 
+            }
+            
+            $branchType = if (Test-SourceRepository) { "source" } else { 
+                if ($currentBranch -eq "Unknown") { "Unknown" } else { "feature" }
+            }
+            
+            Show-CompletionSummary -FilesInstalled $result.Successful -FilesSkipped $result.Skipped -FilesFailed $result.Failed -NextSteps $nextSteps -BranchName $currentBranch -BranchType $branchType
+        } else {
+            Show-InstallationResults -Results $result
+        }
+        
+        return @{ Success = $result.OverallSuccess; Details = $result }
+    }
+    catch {
+        Write-Host "Installation failed: $($_.Exception.Message)" -ForegroundColor Red
+        return @{ Success = $false; Error = $_.Exception.Message }
+    }
+}
+
 #endregion
 
 #region Export Module Members
@@ -1055,7 +1232,9 @@ Export-ModuleMember -Function @(
     'Remove-AIFile',
     'Remove-AllAIFiles',
     'Remove-DeprecatedFiles',
-    'Invoke-Bootstrap'
+    'Invoke-Bootstrap',
+    'Invoke-CleanWorkspace',
+    'Invoke-InstallInfrastructure'
 )
 
 #endregion

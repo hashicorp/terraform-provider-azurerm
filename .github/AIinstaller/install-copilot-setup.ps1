@@ -1,4 +1,4 @@
-﻿# Main AI Infrastructure Installer for Terraform AzureRM Provider
+# Main AI Infrastructure Installer for Terraform AzureRM Provider
 # Version: 1.0.0
 # Description: Interactive installer for AI-powered development infrastructure
 
@@ -207,137 +207,6 @@ function Get-WorkspaceRoot {
 # MAIN EXECUTION - Clean and simple
 # ============================================================================
 
-function Invoke-CleanWorkspace {
-    param([bool]$AutoApprove, [bool]$DryRun)
-    
-    Write-Host "Clean Workspace" -ForegroundColor Cyan
-    Write-Separator
-    Write-Host ""
-    
-    if ($DryRun) {
-        Write-Host "DRY RUN - No files will be deleted" -ForegroundColor Yellow
-        Write-Host ""
-    }
-    
-    # Use the FileOperations module to properly remove all AI files
-    try {
-        $result = Remove-AllAIFiles -Force:$AutoApprove -DryRun:$DryRun -WorkspaceRoot $Global:WorkspaceRoot
-        
-        if ($result.Success) {
-            # Use the superior summary function
-            $details = @{
-                "Files removed" = $result.FilesRemoved
-                "Directories cleaned" = $result.DirectoriesCleaned
-                "Operation type" = if ($DryRun) { "Dry run (simulation)" } else { "Live cleanup" }
-            }
-            
-            Show-Summary -Title "Clean Operation Results" -Details $details
-        } else {
-            Write-Host ""
-            
-            # Handle dry-run vs actual operation messaging differently
-            if ($DryRun) {
-                # For dry-run, show positive confirmation that files were verified
-                $dryRunIssues = $result.Issues | Where-Object { $_ -match "Dry run - no changes made" }
-                $actualIssues = $result.Issues | Where-Object { $_ -notmatch "Dry run - no changes made" }
-                
-                if ($dryRunIssues.Count -gt 0) {
-                    Write-Host "Dry run completed successfully - all $($dryRunIssues.Count) files verified and ready for removal" -ForegroundColor Green
-                    Write-Host ""
-                    Write-Host "Files that would be removed:" -ForegroundColor Cyan
-                    Write-Separator
-                    foreach ($issue in $dryRunIssues) {
-                        # Extract just the filename from the error message
-                        $fileName = ($issue -split ": Dry run")[0] -replace "Failed to remove ", ""
-                        Write-Host "  - $fileName" -ForegroundColor Gray
-                    }
-                }
-                
-                # Show any actual issues (non-dry-run related)
-                if ($actualIssues.Count -gt 0) {
-                    Write-Host "Actual Issues Encountered:" -ForegroundColor Cyan
-                    Write-Separator
-                    foreach ($issue in $actualIssues) {
-                        Write-Host "  - $issue" -ForegroundColor Red
-                    }
-                    Write-Host ""
-                }
-            } else {
-                # For actual operations, show the issues as errors
-                Write-Host "Clean Operation Encountered Issues:" -ForegroundColor Cyan
-                foreach ($issue in $result.Issues) {
-                    Write-Host "  - $issue" -ForegroundColor Red
-                }
-                Write-Host ""
-            }
-        }
-        
-        return $result
-    }
-    catch {
-        Write-Host "Failed to clean workspace: $($_.Exception.Message)" -ForegroundColor Red
-        return @{ Success = $false; Issues = @($_.Exception.Message) }
-    }
-}
-
-function Invoke-InstallInfrastructure {
-    param([bool]$AutoApprove, [bool]$DryRun)
-    
-    Write-Host "Installing AI Infrastructure" -ForegroundColor Cyan
-    Write-Separator
-    Write-Host ""
-    
-    if ($DryRun) {
-        Write-Host "DRY RUN - No files will be created or removed" -ForegroundColor Yellow
-        Write-Host ""
-    }
-    
-    # Step 1: Clean up deprecated files first (automatic part of installation)
-    Write-Host "Checking for deprecated files..." -ForegroundColor Gray
-    $deprecatedFiles = Remove-DeprecatedFiles -ManifestConfig $Global:ManifestConfig -WorkspaceRoot $Global:WorkspaceRoot -DryRun $DryRun -Quiet $true
-    
-    if ($deprecatedFiles.Count -gt 0) {
-        Write-Host "  Removed $($deprecatedFiles.Count) deprecated files" -ForegroundColor Green
-    } else {
-        Write-Host "  No deprecated files found" -ForegroundColor Cyan
-    }
-    Write-Host ""
-    
-    # Step 2: Install/update current files
-    Write-Host "Installing current AI infrastructure files..." -ForegroundColor Cyan
-    
-    # Use the FileOperations module to actually install files
-    try {
-        $result = Install-AllAIFiles -Force:$AutoApprove -DryRun:$DryRun -WorkspaceRoot $Global:WorkspaceRoot -ManifestConfig $Global:ManifestConfig
-        
-        if ($result.OverallSuccess) {
-            # Use the superior completion summary function
-            $nextSteps = @()
-            if ($result.Skipped -gt 0) {
-                $nextSteps += "Review skipped files and use -Auto-Approve if needed"
-            }
-            $nextSteps += "Start using GitHub Copilot with your new AI-powered infrastructure"
-            $nextSteps += "Check the .github/instructions/ folder for detailed guidelines"
-            
-            # Get branch information for completion summary
-            $currentBranch = $Global:InstallerConfig.Branch
-            $branchType = if (Test-SourceRepository) { "source" } else { 
-                if ($currentBranch -eq "Unknown") { "Unknown" } else { "feature" }
-            }
-            
-            Show-CompletionSummary -FilesInstalled $result.Successful -FilesSkipped $result.Skipped -FilesFailed $result.Failed -NextSteps $nextSteps -BranchName $currentBranch -BranchType $branchType
-        } else {
-            Show-InstallationResults -Results $result
-        }
-        
-        return @{ Success = $result.OverallSuccess; Details = $result }
-    }
-    catch {
-        Write-Host "Installation failed: $($_.Exception.Message)" -ForegroundColor Red
-        return @{ Success = $false; Error = $_.Exception.Message }
-    }
-}
-
 function Main {
     <#
     .SYNOPSIS
@@ -363,8 +232,8 @@ function Main {
                 Set-Location $originalLocation
             }
             
-            # Block operations on source branch immediately
-            if ($currentBranch -eq "exp/terraform_copilot") {
+            # Block operations on source branch immediately (except Verify, Help, Bootstrap)
+            if ($currentBranch -eq "exp/terraform_copilot" -and -not ($Verify -or $Help -or $Bootstrap)) {
                 Show-SafetyViolation -BranchName $currentBranch -Operation "Install" -FromUserProfile
                 exit 1
             }
@@ -447,6 +316,7 @@ function Main {
         # For all other operations, workspace must be valid
         if (-not $workspaceValidation.Valid) {
             Write-Host "WORKSPACE VALIDATION FAILED: $($workspaceValidation.Reason)" -ForegroundColor Red
+            Write-Host ""
             Write-Host "Please ensure you're running this script from within a terraform-provider-azurerm repository." -ForegroundColor Red
             Write-Separator
             
@@ -456,31 +326,30 @@ function Main {
         }
         
         if ($Verify) {
-            $result = Invoke-VerifyWorkspace
+            Invoke-VerifyWorkspace | Out-Null
             return
         }
         
         if ($Bootstrap) {
-            $result = Invoke-Bootstrap -AutoApprove $AutoApprove -DryRun $DryRun
+            Invoke-Bootstrap -AutoApprove $AutoApprove -DryRun $DryRun
             return
         }
         
         if ($Clean) {
-            $result = Invoke-CleanWorkspace -AutoApprove $AutoApprove -DryRun $DryRun
+            Invoke-CleanWorkspace -AutoApprove $AutoApprove -DryRun $DryRun
             return
         }
         
         # Installation path (when -RepoDirectory is provided and not other specific operations)
         if ($RepoDirectory -and -not ($Help -or $Verify -or $Bootstrap -or $Clean)) {
             # Proceed with installation
-            $result = Invoke-InstallInfrastructure -AutoApprove $AutoApprove -DryRun $DryRun
+            Invoke-InstallInfrastructure -AutoApprove $AutoApprove -DryRun $DryRun
             return
         }
         
         # Default: show source branch help and welcome
         Show-SourceBranchHelp
         Show-SourceBranchWelcome -BranchName $currentBranch
-        
     }
     catch {
         Write-Host ""

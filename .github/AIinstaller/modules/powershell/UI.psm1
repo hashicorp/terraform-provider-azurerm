@@ -120,28 +120,6 @@ function Show-BranchDetection {
     Write-Separator
 }
 
-function Write-OperationStatus {
-    <#
-    .SYNOPSIS
-    Write operation status message with color coding
-    #>
-    param(
-        [Parameter(Mandatory)]
-        [string]$Message,
-        
-        [ValidateSet('Info', 'Success', 'Warning', 'Error', 'Progress')]
-        [string]$Type = 'Info'
-    )
-    
-    switch ($Type) {
-        'Info'     { Write-Host "[INFO] $Message" -ForegroundColor Cyan }
-        'Success'  { Write-Host "[SUCCESS] $Message" -ForegroundColor Green }
-        'Warning'  { Write-Host "[WARNING] $Message" -ForegroundColor Yellow }
-        'Error'    { Write-Host "[ERROR] $Message" -ForegroundColor Red }
-        'Progress' { Write-Host "[PROGRESS] $Message" -ForegroundColor Blue }
-    }
-}
-
 function Show-Help {
     <#
     .SYNOPSIS
@@ -547,6 +525,275 @@ function Show-SafetyViolation {
     }
 }
 
+#region Operation Summary Functions
+
+function Write-Status {
+    <#
+    .SYNOPSIS
+    Centralized status message formatting for consistent output
+    #>
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Message,
+        
+        [ValidateSet('Info', 'Success', 'Warning', 'Error', 'Progress')]
+        [string]$Type = 'Info'
+    )
+    
+    switch ($Type) {
+        'Info'     { Write-Host "[INFO] $Message" -ForegroundColor Cyan }
+        'Success'  { Write-Host "[SUCCESS] $Message" -ForegroundColor Green }
+        'Warning'  { Write-Host "[WARNING] $Message" -ForegroundColor Yellow }
+        'Error'    { Write-Host "[ERROR] $Message" -ForegroundColor Red }
+        'Progress' { Write-Host "[PROGRESS] $Message" -ForegroundColor Blue }
+    }
+}
+
+function Show-OperationSummary {
+    <#
+    .SYNOPSIS
+    Centralized operation summary display for consistent success/failure reporting
+    
+    .DESCRIPTION
+    Provides a standardized way to report operation outcomes across all installer functions.
+    This ensures consistent formatting and messaging for long-term maintenance.
+    
+    .PARAMETER OperationName
+    The name of the operation being summarized (e.g., "Installation", "Cleanup", "Bootstrap")
+    
+    .PARAMETER Success
+    Whether the operation was successful
+    
+    .PARAMETER ItemsProcessed
+    Total number of items processed
+    
+    .PARAMETER ItemsSuccessful
+    Number of items processed successfully
+    
+    .PARAMETER ItemsFailed
+    Number of items that failed processing
+    
+    .PARAMETER DryRun
+    Whether this was a dry run operation
+    
+    .PARAMETER Details
+    Additional details to include in the summary
+    
+    .PARAMETER FailureDetails
+    Array of failure messages for specific items
+    #>
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$OperationName,
+        
+        [Parameter(Mandatory = $true)]
+        [bool]$Success,
+        
+        [int]$ItemsProcessed = 0,
+        [int]$ItemsSuccessful = 0,
+        [int]$ItemsFailed = 0,
+        
+        [switch]$DryRun,
+        
+        [string[]]$Details = @(),
+        [string[]]$FailureDetails = @()
+    )
+    
+    Write-Separator
+    
+    # Operation header with status
+    if ($DryRun) {
+        $operationTitle = "$OperationName Dry Run"
+    } else {
+        $operationTitle = $OperationName
+    }
+    
+    if ($Success) {
+        Write-Host "$operationTitle completed successfully!" -ForegroundColor Green
+    } else {
+        Write-Host "$operationTitle failed!" -ForegroundColor Red
+    }
+    
+    Write-Host ""
+    
+    # Statistics (if provided)
+    if ($ItemsProcessed -gt 0) {
+        Write-Host "SUMMARY:" -ForegroundColor White
+        
+        # Collect all labels to calculate proper alignment
+        $labels = @("Items processed")
+        if ($ItemsSuccessful -gt 0) { $labels += "Successful" }
+        if ($ItemsFailed -gt 0) { $labels += "Failed" }
+        $labels += "Success Rate"
+        
+        # Find the longest label for alignment
+        $longestLabel = ($labels | Sort-Object Length -Descending)[0]
+        
+        # Display aligned statistics
+        $padding = " " * ($longestLabel.Length - "Items processed".Length)
+        Write-Host "  Items processed$padding" -ForegroundColor Cyan -NoNewline
+        Write-Host ": " -ForegroundColor Cyan -NoNewline
+        Write-Host $ItemsProcessed -ForegroundColor Cyan
+        
+        if ($ItemsSuccessful -gt 0) {
+            $padding = " " * ($longestLabel.Length - "Successful".Length)
+            Write-Host "  Successful$padding" -ForegroundColor Cyan -NoNewline
+            Write-Host ": " -ForegroundColor Cyan -NoNewline
+            Write-Host $ItemsSuccessful -ForegroundColor Green
+        }
+        
+        if ($ItemsFailed -gt 0) {
+            $padding = " " * ($longestLabel.Length - "Failed".Length)
+            Write-Host "  Failed$padding" -ForegroundColor Cyan -NoNewline
+            Write-Host ": " -ForegroundColor Cyan -NoNewline
+            Write-Host $ItemsFailed -ForegroundColor Red
+        }
+        
+        # Success rate
+        if ($ItemsProcessed -gt 0) {
+            $successRate = [math]::Round(($ItemsSuccessful / $ItemsProcessed) * 100, 1)
+            $color = if ($successRate -eq 100) { "Green" } elseif ($successRate -ge 80) { "Yellow" } else { "Red" }
+            $padding = " " * ($longestLabel.Length - "Success Rate".Length)
+            Write-Host "  Success Rate$padding" -ForegroundColor Cyan -NoNewline
+            Write-Host ": " -ForegroundColor Cyan -NoNewline
+            Write-Host "$successRate%" -ForegroundColor $color
+        }
+        
+        Write-Host ""
+    }
+    
+    # Additional details
+    if ($Details.Count -gt 0) {
+        Write-Host "DETAILS:" -ForegroundColor White
+        foreach ($detail in $Details) {
+            Write-Host "  - $detail" -ForegroundColor Gray
+        }
+        Write-Host ""
+    }
+    
+    # Failure details (if any)
+    if ($FailureDetails.Count -gt 0) {
+        Write-Host "FAILURES:" -ForegroundColor Red
+        foreach ($failure in $FailureDetails) {
+            Write-Host "  - $failure" -ForegroundColor Red
+        }
+        Write-Host ""
+    }
+    
+    # Dry run note
+    if ($DryRun) {
+        Write-Host "NOTE: This was a dry run - no actual changes were made." -ForegroundColor Yellow
+        Write-Host ""
+    }
+    
+    Write-Separator
+}
+
+function Show-QuickOperationResult {
+    <#
+    .SYNOPSIS
+    Simplified operation result for quick feedback
+    
+    .DESCRIPTION
+    For simple operations that just need basic success/failure feedback
+    #>
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$OperationName,
+        
+        [Parameter(Mandatory = $true)]
+        [bool]$Success,
+        
+        [string]$Message = "",
+        
+        [switch]$DryRun
+    )
+    
+    $prefix = if ($DryRun) { "[DRY RUN] " } else { "" }
+    
+    if ($Success) {
+        $statusMessage = if ($Message) { "$OperationName completed: $Message" } else { "$OperationName completed successfully!" }
+        Write-Status -Message "$prefix$statusMessage" -Type Success
+    } else {
+        $statusMessage = if ($Message) { "$OperationName failed: $Message" } else { "$OperationName failed!" }
+        Write-Status -Message "$prefix$statusMessage" -Type Error
+    }
+}
+
+function Show-OperationSuccess {
+    <#
+    .SYNOPSIS
+    Shows standardized success message for operations
+    
+    .PARAMETER Operation
+    Name of the operation that succeeded
+    
+    .PARAMETER Summary
+    Brief summary of what was accomplished
+    
+    .PARAMETER NextSteps
+    Array of next steps for the user
+    #>
+    param(
+        [string]$Operation,
+        [string]$Summary,
+        [string[]]$NextSteps = @()
+    )
+    
+    Write-Separator
+    Write-Host "$($Operation.ToUpper()) COMPLETED SUCCESSFULLY" -ForegroundColor Green
+    Write-Host ""
+    Write-Host $Summary -ForegroundColor Green
+    
+    if ($NextSteps.Count -gt 0) {
+        Write-Host ""
+        Write-Host "Next Steps:" -ForegroundColor Cyan
+        for ($i = 0; $i -lt $NextSteps.Count; $i++) {
+            Write-Host "$($i + 1). $($NextSteps[$i])" -ForegroundColor White
+        }
+    }
+    
+    Write-Separator
+}
+
+function Show-OperationFailure {
+    <#
+    .SYNOPSIS
+    Shows standardized failure message for operations
+    
+    .PARAMETER Operation
+    Name of the operation that failed
+    
+    .PARAMETER ErrorMessage
+    Error message or exception details
+    
+    .PARAMETER Suggestions
+    Array of suggested next steps or troubleshooting tips
+    #>
+    param(
+        [string]$Operation,
+        [string]$ErrorMessage,
+        [string[]]$Suggestions = @()
+    )
+    
+    Write-Separator
+    Write-Host "$($Operation.ToUpper()) FAILED" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Error: $ErrorMessage" -ForegroundColor Red
+    
+    if ($Suggestions.Count -gt 0) {
+        Write-Host ""
+        Write-Host "Suggestions:" -ForegroundColor Yellow
+        for ($i = 0; $i -lt $Suggestions.Count; $i++) {
+            Write-Host "$($i + 1). $($Suggestions[$i])" -ForegroundColor White
+        }
+    }
+    
+    Write-Separator
+}
+
+#endregion
+
 #endregion
 
 # Export only the functions actually used by the main script
@@ -556,6 +803,9 @@ Export-ModuleMember -Function @(
     'Format-AlignedLabel',
     'Show-BranchDetection',
     'Write-OperationStatus',
+    'Write-Status',
+    'Show-OperationSummary',
+    'Show-QuickOperationResult',
     'Show-Help',
     'Show-SourceBranchHelp',
     'Show-FeatureBranchHelp',
@@ -565,5 +815,7 @@ Export-ModuleMember -Function @(
     'Show-CompletionSummary',
     'Show-Summary',
     'Show-ParameterError',
-    'Show-SafetyViolation'
+    'Show-SafetyViolation',
+    'Show-OperationSuccess',
+    'Show-OperationFailure'
 )
