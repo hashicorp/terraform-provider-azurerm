@@ -324,69 +324,6 @@ function Show-SourceBranchWelcome {
     Write-Host ""
 }
 
-function Show-CompletionSummary {
-    <#
-    .SYNOPSIS
-    Display installation completion summary with next steps
-    #>
-    param(
-        [int]$FilesInstalled = 0,
-        [int]$FilesSkipped = 0,
-        [int]$FilesFailed = 0,
-        [string[]]$NextSteps = @(),
-        [string]$BranchName = "",
-        [string]$BranchType = "feature"
-    )
-    
-    Write-Host ""
-    Write-Host "INSTALLATION COMPLETE" -ForegroundColor Green
-    Write-Separator -Length 40 -Color Green
-    Write-Host ""
-    
-    # Show branch information if provided
-    if ($BranchName) {
-        Show-BranchDetection -BranchName $BranchName -BranchType $BranchType
-        Write-Host ""
-    }
-    
-    Write-Host "SUMMARY:" -ForegroundColor Cyan
-    Write-Host "  Files installed: $FilesInstalled" -ForegroundColor Green
-    if ($FilesSkipped -gt 0) {
-        Write-Host "  Files skipped:   $FilesSkipped" -ForegroundColor Yellow
-    }
-    if ($FilesFailed -gt 0) {
-        Write-Host "  Files failed:    $FilesFailed" -ForegroundColor Red
-    }
-    Write-Host ""
-    
-    if ($NextSteps.Count -gt 0) {
-        Write-Host "NEXT STEPS:" -ForegroundColor Cyan
-        $stepNumber = 1
-        foreach ($step in $NextSteps) {
-            Write-Host "  $stepNumber. $step" -ForegroundColor White
-            $stepNumber++
-        }
-        Write-Host ""
-    }
-    
-    # Show contextual completion message
-    switch ($BranchType) {
-        "source" {
-            Write-Host "AI infrastructure is now available in the source repository!" -ForegroundColor Green
-            Write-Host "Switch to a feature branch to start developing with AI assistance." -ForegroundColor Cyan
-        }
-        "feature" {
-            Write-Host "AI infrastructure is now installed in your workspace!" -ForegroundColor Green
-            Write-Host "Start coding and experience enhanced GitHub Copilot with Terraform expertise." -ForegroundColor Cyan
-        }
-        default {
-            Write-Host "AI infrastructure installation completed!" -ForegroundColor Green
-        }
-    }
-    
-    Write-Host ""
-}
-
 function Show-BootstrapNextSteps {
     <#
     .SYNOPSIS

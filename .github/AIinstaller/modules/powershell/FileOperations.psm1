@@ -1196,7 +1196,7 @@ function Invoke-InstallInfrastructure {
                 if ($currentBranch -eq "Unknown") { "Unknown" } else { "feature" }
             }
             
-            Show-CompletionSummary -FilesInstalled $result.Successful -FilesSkipped $result.Skipped -FilesFailed $result.Failed -NextSteps $nextSteps -BranchName $currentBranch -BranchType $branchType
+            Show-OperationSummary -OperationName "Installation" -Success $true -ItemsSuccessful $result.Successful -ItemsFailed $result.Failed -Details @{ "Branch" = $currentBranch; "Type" = $branchType }
         } else {
             Show-InstallationResults -Results $result
         }
