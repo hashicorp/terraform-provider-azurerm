@@ -189,7 +189,7 @@ A `customer_managed_key` block supports the following:
 
 * `primary_user_assigned_identity_id` - (Optional) Specifies the primary user managed identity id for a Customer Managed Key. Must be added to `identity.identity_ids`.
 
-* `geo_backup_key_vault_key_id` - (Optional) The versioned ID of the geo backup Key Vault Key.
+* `geo_backup_key_vault_key_id` - (Optional) The versioned/versionless ID of the geo backup Key Vault Key.
 
 ~> **Note:** The key vault in which this key exists must be in the same region as the geo-redundant backup.
 
@@ -297,4 +297,4 @@ terraform import azurerm_postgresql_flexible_server.example /subscriptions/00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DBforPostgreSQL`: 2024-08-01
+* `Microsoft.DBforPostgreSQL` - 2024-08-01

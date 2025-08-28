@@ -11,6 +11,10 @@
   <artifactId>TerraformProviderAzureRM</artifactId>
   <version>1.0-SNAPSHOT</version>
 
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
   <parent>
     <groupId>org.jetbrains.teamcity</groupId>
     <artifactId>configs-dsl-kotlin-parent</artifactId>

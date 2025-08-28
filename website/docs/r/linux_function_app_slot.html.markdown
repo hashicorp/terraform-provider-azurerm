@@ -815,4 +815,4 @@ terraform import azurerm_linux_function_app_slot.example "/subscriptions/1234567
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Web`: 2023-12-01, 2023-01-01
+* `Microsoft.Web` - 2023-12-01, 2023-01-01

@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-//go:generate go run ../../tools/generator-tests resourceidentity -resource-name linux_function_app -properties "site_name:name,resource_group_name" -service-package-name appservice -test-params "B1" -known-values "subscription_id:data.Subscriptions.Primary,kind:functionapp;linux"
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name linux_function_app -properties "name,resource_group_name" -service-package-name appservice -test-params "B1" -known-values "subscription_id:data.Subscriptions.Primary"
 
 package appservice
 
@@ -29,7 +29,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
 	kvValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	storageValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/storage/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/jackofallops/kermit/sdk/web/2022-09-01/web"
@@ -89,15 +88,13 @@ type LinuxFunctionAppModel struct {
 	SiteCredentials []helpers.SiteCredential `tfschema:"site_credential"`
 }
 
-var _ sdk.ResourceWithUpdate = LinuxFunctionAppResource{}
-
-var _ sdk.ResourceWithCustomImporter = LinuxFunctionAppResource{}
-
-var _ sdk.ResourceWithCustomizeDiff = LinuxFunctionAppResource{}
-
-var _ sdk.ResourceWithStateMigration = LinuxFunctionAppResource{}
-
-var _ sdk.ResourceWithIdentity = LinuxFunctionAppResource{}
+var (
+	_ sdk.ResourceWithUpdate         = LinuxFunctionAppResource{}
+	_ sdk.ResourceWithCustomImporter = LinuxFunctionAppResource{}
+	_ sdk.ResourceWithCustomizeDiff  = LinuxFunctionAppResource{}
+	_ sdk.ResourceWithStateMigration = LinuxFunctionAppResource{}
+	_ sdk.ResourceWithIdentity       = LinuxFunctionAppResource{}
+)
 
 func (r LinuxFunctionAppResource) ModelObject() interface{} {
 	return &LinuxFunctionAppModel{}
@@ -109,13 +106,6 @@ func (r LinuxFunctionAppResource) ResourceType() string {
 
 func (r LinuxFunctionAppResource) Identity() resourceids.ResourceId {
 	return &commonids.FunctionAppId{}
-}
-
-func (r LinuxFunctionAppResource) DiscriminatedType() pluginsdk.DiscriminatedType {
-	return pluginsdk.DiscriminatedType{
-		Field: "kind",
-		Value: "functionapp,linux",
-	}
 }
 
 func (r LinuxFunctionAppResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -307,7 +297,7 @@ func (r LinuxFunctionAppResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"storage_account": helpers.StorageAccountSchema(),
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 
 		"virtual_network_backup_restore_enabled": {
 			Type:     pluginsdk.TypeBool,
@@ -860,11 +850,7 @@ func (r LinuxFunctionAppResource) Read() sdk.ResourceFunc {
 				}
 			}
 
-			if err := pluginsdk.SetResourceIdentityDataDiscriminatedType(metadata.ResourceData, id, r.DiscriminatedType()); err != nil {
-				return err
-			}
-
-			return nil
+			return pluginsdk.SetResourceIdentityData(metadata.ResourceData, id)
 		},
 	}
 }

@@ -52,9 +52,11 @@ The following arguments are supported:
 
 ~> **Note:** When using a dedicated Event Hubs cluster, maximum value of `partition_count` is 1024. When using a shared parent EventHub Namespace, maximum value is 32.
 
-* `message_retention` - (Required) Specifies the number of days to retain the events for this Event Hub.
+* `message_retention` - (Optional) Specifies the number of days to retain the events for this Event Hub.
 
 ~> **Note:** When using a dedicated Event Hubs cluster, maximum value of `message_retention` is 90 days. When using a shared parent EventHub Namespace, maximum value is 7 days; or 1 day when using a Basic SKU for the shared parent EventHub Namespace.
+
+* `retention_description` - (Optional) A `retention_description` block as defined below.
 
 * `capture_description` - (Optional) A `capture_description` block as defined below.
 
@@ -75,6 +77,16 @@ A `capture_description` block supports the following:
 * `skip_empty_archives` - (Optional) Specifies if empty files should not be emitted if no events occur during the Capture time window. Defaults to `false`.
 
 * `destination` - (Required) A `destination` block as defined below.
+
+---
+
+A `retention_description` block supports the following:
+
+* `cleanup_policy` - (Required) Specifies the Cleanup Policy for the EventHub. Possible values are `Delete` and `Compact`.
+
+* `retention_time_in_hours` - (Optional) Specifies the number of hours to retain the events for this Event Hub. The value is only used when `cleanup_policy` is `Delete`.
+
+* `tombstone_retention_time_in_hours` - (Optional) Specifies the number of hours to retain the tombstones markers of a compacted Event Hub. The value is only used when `cleanup_policy` is `Compact`.
 
 ---
 
@@ -119,4 +131,4 @@ terraform import azurerm_eventhub.eventhub1 /subscriptions/00000000-0000-0000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.EventHub`: 2024-01-01
+* `Microsoft.EventHub` - 2024-01-01
