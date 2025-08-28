@@ -1048,7 +1048,7 @@ PARAMETERS
 }
 
 func (PolicySetDefinitionResourceTest) templateMultiplePolicies() string {
-	return fmt.Sprintf(`
+	return `
 provider "azurerm" {
   features {}
 }
@@ -1064,7 +1064,7 @@ data "azurerm_policy_definition_built_in" "policyReference2" {
 data "azurerm_policy_definition_built_in" "policyReference3" {
   display_name = "Function apps should require FTPS only"
 }
-`)
+`
 }
 
 func (r PolicySetDefinitionResourceTest) templateNoParameter(data acceptance.TestData) string {
