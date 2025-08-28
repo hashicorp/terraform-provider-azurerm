@@ -274,7 +274,16 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_lb`
 
-* The following properties are no longer Computed: `subnet_id`, `private_ip_address`, `private_ip_address_version`, `public_ip_address_id`
+* The following properties are no longer Computed: `subnet_id`, `public_ip_address_id`
+
+### `azurerm_lb_nat_rule`
+
+* The deprecated `enable_floating_ip` property has been removed in favour of the `floating_ip_enabled` property.
+* The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
+
+### `azurerm_lb_outbound_rule`
+
+* The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
 
 ### `azurerm_linux_function_app`
 
@@ -460,6 +469,19 @@ Please follow the format in the example below for listing breaking changes in da
 
 * The deprecated `source_arm_resource_id` property has been removed in favour of the `source_resource_id` property.
 * The deprecated `metric_arm_resource_id` property has been removed in favour of the `metric_resource_id` property.
+
+### `azurerm_lb_outbound_rule`
+
+* The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
+
+### `azurerm_lb_rule`
+
+* The deprecated `enable_floating_ip` property has been removed in favour of the `floating_ip_enabled` property.
+* The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
+
+### `azurerm_key_vault`
+
+* The deprecated `enable_rbac_authorization` property has been removed in favour of the `rbac_authorization_enabled` property.
 
 ### `azurerm_logic_app_standard`
 
