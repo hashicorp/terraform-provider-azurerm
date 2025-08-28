@@ -169,4 +169,4 @@ terraform import azurerm_virtual_machine_implicit_data_disk_from_source.example 
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Compute`: 2024-03-01, 2023-04-02
+* `Microsoft.Compute` - 2024-03-01, 2023-04-02

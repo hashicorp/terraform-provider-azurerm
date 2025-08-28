@@ -227,7 +227,7 @@ An `export_policy_rule` block supports the following:
 
 * `allowed_clients` - (Required) A list of allowed clients IPv4 addresses.
 
-* `protocols_enabled` - (Optional) A list of allowed protocols. Valid values include `CIFS`, `NFSv3`, or `NFSv4.1`. Only one value is supported at this time. This replaces the previous arguments: `cifs_enabled`, `nfsv3_enabled` and `nfsv4_enabled`.
+* `protocol` - (Optional) A list of allowed protocols. Valid values include `CIFS`, `NFSv3`, or `NFSv4.1`. Only a single element is supported at this time. This replaces the previous arguments: `cifs_enabled`, `nfsv3_enabled` and `nfsv4_enabled`.
 
 * `unix_read_only` - (Optional) Is the file system on unix read only?
 
@@ -316,4 +316,4 @@ terraform import azurerm_netapp_volume.example /subscriptions/00000000-0000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.NetApp`: 2025-01-01
+* `Microsoft.NetApp` - 2025-06-01

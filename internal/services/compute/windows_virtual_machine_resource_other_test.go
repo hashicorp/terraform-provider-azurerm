@@ -77,13 +77,6 @@ func TestAccWindowsVirtualMachine_otherPatchModeUpdate(t *testing.T) {
 			),
 		},
 		data.ImportStep("admin_password"),
-		{
-			Config: r.otherPatchModeManual(data), // this update requires force replacement actually
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
 	})
 }
 
@@ -1911,10 +1904,11 @@ resource "azurerm_virtual_network" "test" {
 }
 
 resource "azurerm_subnet" "test" {
-  name                 = "internal"
-  resource_group_name  = azurerm_resource_group.test.name
-  virtual_network_name = azurerm_virtual_network.test.name
-  address_prefixes     = ["10.0.2.0/24"]
+  name                            = "internal"
+  resource_group_name             = azurerm_resource_group.test.name
+  virtual_network_name            = azurerm_virtual_network.test.name
+  address_prefixes                = ["10.0.2.0/24"]
+  default_outbound_access_enabled = false
 }
 
 resource "azurerm_network_interface" "test" {

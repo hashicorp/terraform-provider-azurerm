@@ -626,7 +626,7 @@ func ExpandBatchPoolStartTask(list []interface{}) (*pool.StartTask, error) {
 
 	maxTaskRetryCount := int64(1)
 
-	if v := startTaskValue["task_retry_maximum"].(int); v > 0 {
+	if v := startTaskValue["task_retry_maximum"].(int); v >= -1 {
 		maxTaskRetryCount = int64(v)
 	}
 

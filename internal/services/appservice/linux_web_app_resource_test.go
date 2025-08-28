@@ -881,6 +881,21 @@ func TestAccLinuxWebApp_withPhp83(t *testing.T) {
 	})
 }
 
+func TestAccLinuxWebApp_withPhp84(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.php(data, "8.4"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccLinuxWebApp_withPython37(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
 	r := LinuxWebAppResource{}
@@ -1281,6 +1296,14 @@ func TestAccLinuxWebApp_withDockerImageMCR(t *testing.T) {
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.dockerImageName(data, "https://mcr.microsoft.com/", "appsvc/staticsite:latest"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("site_config.0.linux_fx_version").HasValue("DOCKER|mcr.microsoft.com/appsvc/staticsite:latest"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
 	})
 }
 
@@ -1581,6 +1604,28 @@ func TestAccLinuxWebApp_zipDeploy(t *testing.T) {
 		},
 		data.ImportStep("zip_deploy_file",
 			"site_credential.0.password"),
+	})
+}
+
+func TestAccLinuxWebApp_zipDeployAppRecycle(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_linux_web_app", "test")
+	r := LinuxWebAppResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.zipDeploy(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("zip_deploy_file", "site_credential.0.password"),
 	})
 }
 

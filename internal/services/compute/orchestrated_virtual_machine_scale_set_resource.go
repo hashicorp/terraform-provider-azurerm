@@ -75,6 +75,23 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
+			"network_api_version": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(virtualmachinescalesets.PossibleValuesForNetworkApiVersion(), false),
+				Default:      virtualmachinescalesets.NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne,
+				DiffSuppressFunc: func(_, old, new string, d *pluginsdk.ResourceData) bool {
+					// This `DiffSuppressFunc` is used to keep compatible with the legacy Orchestrated VMSS and can be removed once the legacy VMSS is removed.
+					if _, ok := d.GetOk("sku_name"); !ok {
+						if old == "" && new == string(virtualmachinescalesets.NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne) {
+							return true
+						}
+					}
+
+					return false
+				},
+			},
+
 			"network_interface": OrchestratedVirtualMachineScaleSetNetworkInterfaceSchema(),
 
 			"os_disk": OrchestratedVirtualMachineScaleSetOSDiskSchema(),
@@ -358,6 +375,28 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 					return fmt.Errorf("`rolling_upgrade_policy` is required when `upgrade_mode` is set to `%s`", string(upgradeMode))
 				}
 
+				networkInterfaces := diff.Get("network_interface").([]interface{})
+				for _, networkInterface := range networkInterfaces {
+					raw := networkInterface.(map[string]interface{})
+					auxiliaryMode := raw["auxiliary_mode"].(string)
+					auxiliarySku := raw["auxiliary_sku"].(string)
+
+					if auxiliaryMode != "" && auxiliarySku == "" {
+						return fmt.Errorf("when `auxiliary_mode` is set, `auxiliary_sku` must also be set")
+					}
+
+					if auxiliarySku != "" && auxiliaryMode == "" {
+						return fmt.Errorf("when `auxiliary_sku` is set, `auxiliary_mode` must also be set")
+					}
+
+					if auxiliaryMode != "" {
+						networkApiVersion := (virtualmachinescalesets.NetworkApiVersion)(diff.Get("network_api_version").(string))
+						if networkApiVersion == virtualmachinescalesets.NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne {
+							return fmt.Errorf("`auxiliary_mode` and `auxiliary_sku` can be set only when `network_api_version` is later than `2020-11-01`")
+						}
+					}
+				}
+
 				return nil
 			}),
 		),
@@ -430,8 +469,7 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	}
 
 	networkProfile := &virtualmachinescalesets.VirtualMachineScaleSetNetworkProfile{
-		// 2020-11-01 is the only valid value for this value and is only valid for VMSS in Orchestration Mode flex
-		NetworkApiVersion: pointer.To(virtualmachinescalesets.NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne),
+		NetworkApiVersion: pointer.To((virtualmachinescalesets.NetworkApiVersion)(d.Get("network_api_version").(string))),
 	}
 
 	if v, ok := d.GetOk("proximity_placement_group_id"); ok {
@@ -1056,18 +1094,20 @@ func resourceOrchestratedVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData,
 			}
 		}
 
-		if d.HasChange("network_interface") {
+		if d.HasChange("network_api_version") || d.HasChange("network_interface") {
+			if updateProps.VirtualMachineProfile.NetworkProfile == nil {
+				updateProps.VirtualMachineProfile.NetworkProfile = &virtualmachinescalesets.VirtualMachineScaleSetUpdateNetworkProfile{}
+			}
+
+			updateProps.VirtualMachineProfile.NetworkProfile.NetworkApiVersion = pointer.To(virtualmachinescalesets.NetworkApiVersion(d.Get("network_api_version").(string)))
+
 			networkInterfacesRaw := d.Get("network_interface").([]interface{})
 			networkInterfaces, err := ExpandOrchestratedVirtualMachineScaleSetNetworkInterfaceUpdate(networkInterfacesRaw)
 			if err != nil {
 				return fmt.Errorf("expanding `network_interface`: %w", err)
 			}
 
-			updateProps.VirtualMachineProfile.NetworkProfile = &virtualmachinescalesets.VirtualMachineScaleSetUpdateNetworkProfile{
-				NetworkInterfaceConfigurations: networkInterfaces,
-				// 2020-11-01 is the only valid value for this value and is only valid for VMSS in Orchestration Mode flex
-				NetworkApiVersion: pointer.To(virtualmachinescalesets.NetworkApiVersionTwoZeroTwoZeroNegativeOneOneNegativeZeroOne),
-			}
+			updateProps.VirtualMachineProfile.NetworkProfile.NetworkInterfaceConfigurations = networkInterfaces
 		}
 
 		if d.HasChange("boot_diagnostics") {
@@ -1407,6 +1447,8 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 				}
 
 				if nwProfile := profile.NetworkProfile; nwProfile != nil {
+					d.Set("network_api_version", pointer.From(nwProfile.NetworkApiVersion))
+
 					flattenedNics := FlattenOrchestratedVirtualMachineScaleSetNetworkInterface(nwProfile.NetworkInterfaceConfigurations)
 					if err := d.Set("network_interface", flattenedNics); err != nil {
 						return fmt.Errorf("setting `network_interface`: %w", err)

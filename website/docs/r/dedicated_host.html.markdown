@@ -83,4 +83,4 @@ terraform import azurerm_dedicated_host.example /subscriptions/00000000-0000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Compute`: 2024-03-01
+* `Microsoft.Compute` - 2024-03-01

@@ -53,7 +53,7 @@ References:
 
 Maintainer specific:
 
-* [Updates to the Changelog](topics/maintainer-changelog.md)
+* [Merging Prs](topics/maintainer-merging.md)
 
 FAQ:
 

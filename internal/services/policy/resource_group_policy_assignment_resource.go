@@ -4,6 +4,8 @@
 package policy
 
 import (
+	"regexp"
+
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
 	resourceValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/validate"
@@ -25,7 +27,9 @@ func (r ResourceGroupAssignmentResource) Arguments() map[string]*pluginsdk.Schem
 			ForceNew: true,
 			ValidateFunc: validation.All(
 				validation.StringIsNotWhiteSpace,
-				validation.StringDoesNotContainAny("/"),
+				validation.StringDoesNotContainAny("#<>%&:\\?/"),
+				validation.StringLenBetween(1, 64),
+				validation.StringMatch(regexp.MustCompile("[^ .]$"), "The name cannot end with a period or space."),
 			),
 		},
 		"resource_group_id": {

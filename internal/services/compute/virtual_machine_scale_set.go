@@ -417,6 +417,16 @@ func VirtualMachineScaleSetNetworkInterfaceSchemaForDataSource() *pluginsdk.Sche
 
 				"ip_configuration": virtualMachineScaleSetIPConfigurationSchemaForDataSource(),
 
+				"auxiliary_mode": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"auxiliary_sku": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
 				"dns_servers": {
 					Type:     pluginsdk.TypeList,
 					Computed: true,

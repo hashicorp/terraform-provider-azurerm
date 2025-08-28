@@ -135,4 +135,4 @@ terraform import azurerm_cosmosdb_cassandra_datacenter.example /subscriptions/12
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DocumentDB`: 2023-04-15
+* `Microsoft.DocumentDB` - 2023-04-15

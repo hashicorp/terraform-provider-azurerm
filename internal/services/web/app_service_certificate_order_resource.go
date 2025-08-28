@@ -172,7 +172,7 @@ func resourceAppServiceCertificateOrder() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
