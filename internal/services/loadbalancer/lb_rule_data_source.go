@@ -97,13 +97,15 @@ func dataSourceArmLoadBalancerRule() *pluginsdk.Resource {
 
 	if !features.FivePointOh() {
 		resource.Schema["enable_floating_ip"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "The property `enable_floating_ip` has been deprecated in favour of `floating_ip_enabled` and will be removed in version 5.0 of the provider",
 		}
 
 		resource.Schema["enable_tcp_reset"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "The property `enable_tcp_reset` has been deprecated in favour of `tcp_reset_enabled` and will be removed in version 5.0 of the provider",
 		}
 	}
 
