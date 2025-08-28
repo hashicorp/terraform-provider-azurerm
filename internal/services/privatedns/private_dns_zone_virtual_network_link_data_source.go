@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
@@ -43,6 +44,11 @@ func dataSourcePrivateDnsZoneVirtualNetworkLink() *pluginsdk.Resource {
 
 			"registration_enabled": {
 				Type:     pluginsdk.TypeBool,
+				Computed: true,
+			},
+
+			"resolution_policy": {
+				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
 
@@ -111,6 +117,7 @@ func dataSourcePrivateDnsZoneVirtualNetworkLinkRead(d *pluginsdk.ResourceData, m
 	if model := resp.Model; model != nil {
 		if props := model.Properties; props != nil {
 			d.Set("registration_enabled", props.RegistrationEnabled)
+			d.Set("resolution_policy", pointer.From(props.ResolutionPolicy))
 
 			if network := props.VirtualNetwork; network != nil {
 				d.Set("virtual_network_id", network.Id)

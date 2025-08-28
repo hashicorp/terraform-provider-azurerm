@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/recordsets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatedns"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/virtualnetworklinks"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -32,12 +32,12 @@ func resourcePrivateDnsPtrRecord() *pluginsdk.Resource {
 		Update: resourcePrivateDnsPtrRecordCreateUpdate,
 		Delete: resourcePrivateDnsPtrRecordDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			resourceId, err := recordsets.ParseRecordTypeID(id)
+			resourceId, err := privatedns.ParseRecordTypeID(id)
 			if err != nil {
 				return err
 			}
-			if resourceId.RecordType != recordsets.RecordTypePTR {
-				return fmt.Errorf("importing %s wrong type received: expected %s received %s", id, recordsets.RecordTypePTR, resourceId.RecordType)
+			if resourceId.RecordType != privatedns.RecordTypePTR {
+				return fmt.Errorf("importing %s wrong type received: expected %s received %s", id, privatedns.RecordTypePTR, resourceId.RecordType)
 			}
 			return nil
 		}),
@@ -145,7 +145,7 @@ func resourcePrivateDnsPtrRecordCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 	id := recordsets.NewRecordTypeID(subscriptionId, dnsZoneId.ResourceGroupName, dnsZoneId.PrivateDnsZoneName, recordsets.RecordTypePTR, d.Get("name").(string))
 	if d.IsNewResource() {
-		existing, err := client.Get(ctx, id)
+		existing, err := client.RecordSetsGet(ctx, id)
 		if err != nil {
 			if !response.WasNotFound(existing.HttpResponse) {
 				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
@@ -157,20 +157,20 @@ func resourcePrivateDnsPtrRecordCreateUpdate(d *pluginsdk.ResourceData, meta int
 		}
 	}
 
-	parameters := recordsets.RecordSet{
+	parameters := privatedns.RecordSet{
 		Name: pointer.To(id.RelativeRecordSetName),
-		Properties: &recordsets.RecordSetProperties{
+		Properties: &privatedns.RecordSetProperties{
 			Metadata:   tags.Expand(d.Get("tags").(map[string]interface{})),
 			Ttl:        pointer.To(int64(d.Get("ttl").(int))),
 			PtrRecords: expandAzureRmPrivateDnsPtrRecords(d),
 		},
 	}
 
-	options := recordsets.CreateOrUpdateOperationOptions{
+	options := privatedns.RecordSetsCreateOrUpdateOperationOptions{
 		IfMatch:     pointer.To(""),
 		IfNoneMatch: pointer.To(""),
 	}
-	if _, err := client.CreateOrUpdate(ctx, id, parameters, options); err != nil {
+	if _, err := client.RecordSetsCreateOrUpdate(ctx, id, parameters, options); err != nil {
 		return fmt.Errorf("creating/updating %s: %+v", id, err)
 	}
 
@@ -183,12 +183,12 @@ func resourcePrivateDnsPtrRecordRead(d *pluginsdk.ResourceData, meta interface{}
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := recordsets.ParseRecordTypeID(d.Id())
+	id, err := privatedns.ParseRecordTypeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := dnsClient.Get(ctx, *id)
+	resp, err := dnsClient.RecordSetsGet(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			d.SetId("")
@@ -232,21 +232,21 @@ func resourcePrivateDnsPtrRecordDelete(d *pluginsdk.ResourceData, meta interface
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := recordsets.ParseRecordTypeID(d.Id())
+	id, err := privatedns.ParseRecordTypeID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	options := recordsets.DeleteOperationOptions{IfMatch: pointer.To("")}
+	options := privatedns.RecordSetsDeleteOperationOptions{IfMatch: pointer.To("")}
 
-	if _, err = dnsClient.Delete(ctx, *id, options); err != nil {
+	if _, err = dnsClient.RecordSetsDelete(ctx, *id, options); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
 	return nil
 }
 
-func flattenAzureRmPrivateDnsPtrRecords(records *[]recordsets.PtrRecord) []string {
+func flattenAzureRmPrivateDnsPtrRecords(records *[]privatedns.PtrRecord) []string {
 	results := make([]string, 0)
 
 	if records != nil {
@@ -261,13 +261,13 @@ func flattenAzureRmPrivateDnsPtrRecords(records *[]recordsets.PtrRecord) []strin
 	return results
 }
 
-func expandAzureRmPrivateDnsPtrRecords(d *pluginsdk.ResourceData) *[]recordsets.PtrRecord {
+func expandAzureRmPrivateDnsPtrRecords(d *pluginsdk.ResourceData) *[]privatedns.PtrRecord {
 	recordStrings := d.Get("records").(*pluginsdk.Set).List()
-	records := make([]recordsets.PtrRecord, len(recordStrings))
+	records := make([]privatedns.PtrRecord, len(recordStrings))
 
 	for i, v := range recordStrings {
 		fqdn := v.(string)
-		records[i] = recordsets.PtrRecord{
+		records[i] = privatedns.PtrRecord{
 			Ptrdname: &fqdn,
 		}
 	}

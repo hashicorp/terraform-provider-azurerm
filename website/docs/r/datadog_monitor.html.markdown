@@ -155,4 +155,4 @@ terraform import azurerm_datadog_monitor.example /subscriptions/00000000-0000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Datadog`: 2021-03-01
+* `Microsoft.Datadog` - 2021-03-01

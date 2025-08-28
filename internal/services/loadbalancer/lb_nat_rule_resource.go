@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -91,15 +92,13 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_floating_ip": {
+			"floating_ip_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 				Computed: true,
 			},
 
-			// TODO 4.0: change this from enable_* to *_enabled
-			"enable_tcp_reset": {
+			"tcp_reset_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
 			},
@@ -145,6 +144,34 @@ func resourceArmLoadBalancerNatRule() *pluginsdk.Resource {
 				Computed: true,
 			},
 		},
+	}
+
+	if !features.FivePointOh() {
+		resource.Schema["enable_floating_ip"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"floating_ip_enabled"},
+			Deprecated:    "This field is deprecated in favour of `floating_ip_enabled` and will be removed in version 5.0 of the provider.",
+		}
+		resource.Schema["floating_ip_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		}
+
+		resource.Schema["enable_tcp_reset"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"tcp_reset_enabled"},
+			Deprecated:    "This field is deprecated in favour of `tcp_reset_enabled` and will be removed in version 5.0 of the provider.",
+		}
+		resource.Schema["tcp_reset_enabled"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		}
 	}
 
 	return resource
@@ -251,8 +278,13 @@ func resourceArmLoadBalancerNatRuleRead(d *pluginsdk.ResourceData, meta interfac
 			}
 			d.Set("backend_ip_configuration_id", backendIPConfigId)
 			d.Set("backend_port", pointer.From(props.BackendPort))
-			d.Set("enable_floating_ip", pointer.From(props.EnableFloatingIP))
-			d.Set("enable_tcp_reset", pointer.From(props.EnableTcpReset))
+			d.Set("floating_ip_enabled", pointer.From(props.EnableFloatingIP))
+			d.Set("tcp_reset_enabled", pointer.From(props.EnableTcpReset))
+
+			if !features.FivePointOh() {
+				d.Set("enable_floating_ip", pointer.From(props.EnableFloatingIP))
+				d.Set("enable_tcp_reset", pointer.From(props.EnableTcpReset))
+			}
 
 			frontendIPConfigName := ""
 			frontendIPConfigID := ""
@@ -327,9 +359,21 @@ func resourceArmLoadBalancerNatRuleDelete(d *pluginsdk.ResourceData, meta interf
 
 func expandAzureRmLoadBalancerNatRule(d *pluginsdk.ResourceData, lb *loadbalancers.LoadBalancer, loadBalancerId loadbalancers.LoadBalancerId) (*loadbalancers.InboundNatRule, error) {
 	properties := loadbalancers.InboundNatRulePropertiesFormat{
-		Protocol:       pointer.To(loadbalancers.TransportProtocol(d.Get("protocol").(string))),
-		BackendPort:    pointer.To(int64(d.Get("backend_port").(int))),
-		EnableTcpReset: pointer.To(d.Get("enable_tcp_reset").(bool)),
+		Protocol:    pointer.To(loadbalancers.TransportProtocol(d.Get("protocol").(string))),
+		BackendPort: pointer.To(int64(d.Get("backend_port").(int))),
+	}
+
+	if v, ok := d.GetOk("tcp_reset_enabled"); ok {
+		properties.EnableTcpReset = pointer.To(v.(bool))
+	}
+
+	if !features.FivePointOh() {
+		if v, ok := d.GetOk("enable_floating_ip"); ok {
+			properties.EnableFloatingIP = pointer.To(v.(bool))
+		}
+		if v, ok := d.GetOk("enable_tcp_reset"); ok {
+			properties.EnableTcpReset = pointer.To(v.(bool))
+		}
 	}
 
 	backendAddressPoolSet, frontendPort := false, false
@@ -355,8 +399,13 @@ func expandAzureRmLoadBalancerNatRule(d *pluginsdk.ResourceData, lb *loadbalance
 		}
 	}
 
-	if v, ok := d.GetOk("enable_floating_ip"); ok {
+	if v, ok := d.GetOk("floating_ip_enabled"); ok {
 		properties.EnableFloatingIP = pointer.To(v.(bool))
+	}
+	if !features.FivePointOh() {
+		if v, ok := d.GetOk("enable_floating_ip"); ok {
+			properties.EnableFloatingIP = pointer.To(v.(bool))
+		}
 	}
 
 	if v, ok := d.GetOk("idle_timeout_in_minutes"); ok {

@@ -202,7 +202,7 @@ func resourceCdnEndpoint() *pluginsdk.Resource {
 
 			"delivery_rule": endpointDeliveryRule(),
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 
 		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {

@@ -39,6 +39,8 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group within which this Dev Center should exist. Changing this forces a new Dev Center to be created.
 
+* `project_catalog_item_sync_enabled` - (Optional) Whether the project catalogs associated with projects in this Dev Center are allowed to sync catalog items. Defaults to `false`.
+
 * `identity` - (Optional) An `identity` block as defined below. Specifies the Managed Identity which should be assigned to this Dev Center.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dev Center.
@@ -94,4 +96,4 @@ terraform import azurerm_dev_center.example /subscriptions/{subscriptionId}/reso
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DevCenter`: 2025-02-01
+* `Microsoft.DevCenter` - 2025-02-01

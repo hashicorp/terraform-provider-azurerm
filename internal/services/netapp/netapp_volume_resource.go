@@ -16,15 +16,16 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/backups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/poolchange"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumesreplication"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/backups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/poolchange"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	netAppValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -91,6 +92,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 					string(volumes.ServiceLevelPremium),
 					string(volumes.ServiceLevelStandard),
 					string(volumes.ServiceLevelUltra),
+					string(volumes.ServiceLevelFlexible),
 				}, false),
 			},
 
@@ -198,7 +200,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 							},
 						},
 
-						"protocols_enabled": {
+						"protocol": {
 							Type:     pluginsdk.TypeList,
 							Optional: true,
 							MaxItems: 1,
@@ -459,8 +461,55 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				}
 			}
 
+			if !features.FivePointOh() {
+				// export_policy_rule.protocol conflicts with export_policy_rule.protocols_enabled
+				// Can't use the sdk's ConflictsWith because the properties are nested under a
+				// TypeList with a MaxItems != 1
+				for _, rule := range d.GetRawConfig().AsValueMap()["export_policy_rule"].AsValueSlice() {
+					ruleMap := rule.AsValueMap()
+					if !ruleMap["protocols_enabled"].IsNull() && !ruleMap["protocol"].IsNull() {
+						return fmt.Errorf("conflicting configuration arguments. export_policy_rule.protocol conflicts with export_policy_rule.protocols_enabled")
+					}
+				}
+			}
+
 			return nil
 		},
+	}
+
+	if !features.FivePointOh() {
+		resource.Schema["export_policy_rule"].Elem.(*pluginsdk.Resource).Schema["protocols_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeList,
+			Optional:   true,
+			Computed:   true,
+			MaxItems:   1,
+			MinItems:   1,
+			Deprecated: "this property has been deprecated in favour of `export_policy_rule.protocol` and will be removed in version 5.0 of the Provider.",
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{
+					"NFSv3",
+					"NFSv4.1",
+					"CIFS",
+				}, false),
+			},
+		}
+
+		resource.Schema["export_policy_rule"].Elem.(*pluginsdk.Resource).Schema["protocol"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			Computed: true,
+			MinItems: 1,
+			MaxItems: 1,
+			Elem: &pluginsdk.Schema{
+				Type: pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice([]string{
+					"NFSv3",
+					"NFSv4.1",
+					"CIFS",
+				}, false),
+			},
+		}
 	}
 
 	return resource
@@ -1139,8 +1188,7 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 			cifsEnabled := false
 			nfsv3Enabled := false
 			nfsv41Enabled := false
-
-			if vpe := v["protocols_enabled"]; vpe != nil {
+			if vpe := v["protocol"]; vpe != nil {
 				protocolsEnabled := vpe.([]interface{})
 				if len(protocolsEnabled) != 0 {
 					for _, protocol := range protocolsEnabled {
@@ -1152,6 +1200,25 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 								nfsv3Enabled = true
 							case "nfsv4.1":
 								nfsv41Enabled = true
+							}
+						}
+					}
+				}
+			}
+			if !features.FivePointOh() {
+				if vpe := v["protocols_enabled"]; vpe != nil {
+					protocolsEnabled := vpe.([]interface{})
+					if len(protocolsEnabled) != 0 {
+						for _, protocol := range protocolsEnabled {
+							if protocol != nil {
+								switch strings.ToLower(protocol.(string)) {
+								case "cifs":
+									cifsEnabled = true
+								case "nfsv3":
+									nfsv3Enabled = true
+								case "nfsv4.1":
+									nfsv41Enabled = true
+								}
 							}
 						}
 					}
@@ -1205,8 +1272,7 @@ func expandNetAppVolumeExportPolicyRulePatch(input []interface{}) *volumes.Volum
 			nfsv3Enabled := false
 			nfsv41Enabled := false
 			cifsEnabled := false
-
-			if vpe := v["protocols_enabled"]; vpe != nil {
+			if vpe := v["protocol"]; vpe != nil {
 				protocolsEnabled := vpe.([]interface{})
 				if len(protocolsEnabled) != 0 {
 					for _, protocol := range protocolsEnabled {
@@ -1218,6 +1284,25 @@ func expandNetAppVolumeExportPolicyRulePatch(input []interface{}) *volumes.Volum
 								nfsv3Enabled = true
 							case "nfsv4.1":
 								nfsv41Enabled = true
+							}
+						}
+					}
+				}
+			}
+			if !features.FivePointOh() {
+				if vpe := v["protocols_enabled"]; vpe != nil {
+					protocolsEnabled := vpe.([]interface{})
+					if len(protocolsEnabled) != 0 {
+						for _, protocol := range protocolsEnabled {
+							if protocol != nil {
+								switch strings.ToLower(protocol.(string)) {
+								case "cifs":
+									cifsEnabled = true
+								case "nfsv3":
+									nfsv3Enabled = true
+								case "nfsv4.1":
+									nfsv41Enabled = true
+								}
 							}
 						}
 					}
@@ -1283,12 +1368,17 @@ func flattenNetAppVolumeExportPolicyRule(input *volumes.VolumePropertiesExportPo
 			"kerberos_5i_read_write_enabled": pointer.From(item.Kerberos5iReadWrite),
 			"kerberos_5p_read_only_enabled":  pointer.From(item.Kerberos5pReadOnly),
 			"kerberos_5p_read_write_enabled": pointer.From(item.Kerberos5pReadWrite),
-			"protocols_enabled":              utils.FlattenStringSlice(&protocolsEnabled),
+			"protocol":                       utils.FlattenStringSlice(&protocolsEnabled),
 			"root_access_enabled":            pointer.From(item.HasRootAccess),
 			"rule_index":                     ruleIndex,
 			"unix_read_only":                 pointer.From(item.UnixReadOnly),
 			"unix_read_write":                pointer.From(item.UnixReadWrite),
 		}
+
+		if !features.FivePointOh() {
+			result["protocols_enabled"] = utils.FlattenStringSlice(&protocolsEnabled)
+		}
+
 		results = append(results, result)
 	}
 

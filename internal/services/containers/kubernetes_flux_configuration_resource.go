@@ -83,6 +83,7 @@ type GitRepositoryDefinitionModel struct {
 	HttpsUser             string `tfschema:"https_user"`
 	HttpsKey              string `tfschema:"https_key_base64"`
 	LocalAuthRef          string `tfschema:"local_auth_reference"`
+	Provider              string `tfschema:"provider"`
 	ReferenceType         string `tfschema:"reference_type"`
 	ReferenceValue        string `tfschema:"reference_value"`
 	SshKnownHosts         string `tfschema:"ssh_known_hosts_base64"`
@@ -547,6 +548,12 @@ func (r KubernetesFluxConfigurationResource) Arguments() map[string]*pluginsdk.S
 						Optional:      true,
 						ValidateFunc:  validate.LocalAuthReference,
 						ConflictsWith: []string{"git_repository.0.https_user", "git_repository.0.ssh_private_key_base64", "git_repository.0.ssh_known_hosts_base64"},
+					},
+
+					"provider": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringInSlice(fluxconfiguration.PossibleValuesForProviderType(), false),
 					},
 
 					"ssh_private_key_base64": {
@@ -1081,6 +1088,10 @@ func expandGitRepositoryDefinitionModel(inputList []GitRepositoryDefinitionModel
 		output.Url = &input.Url
 	}
 
+	if input.Provider != "" {
+		output.Provider = pointer.To(fluxconfiguration.ProviderType(input.Provider))
+	}
+
 	configSettings := make(map[string]string)
 	if input.HttpsKey != "" {
 		configSettings["httpsKey"] = input.HttpsKey
@@ -1270,6 +1281,7 @@ func flattenGitRepositoryDefinitionModel(input *fluxconfiguration.GitRepositoryD
 		HttpsCACert:           pointer.From(input.HTTPSCACert),
 		HttpsUser:             pointer.From(input.HTTPSUser),
 		LocalAuthRef:          pointer.From(input.LocalAuthRef),
+		Provider:              string(pointer.From(input.Provider)),
 		SshKnownHosts:         pointer.From(input.SshKnownHosts),
 		SyncIntervalInSeconds: pointer.From(input.SyncIntervalInSeconds),
 		TimeoutInSeconds:      pointer.From(input.TimeoutInSeconds),

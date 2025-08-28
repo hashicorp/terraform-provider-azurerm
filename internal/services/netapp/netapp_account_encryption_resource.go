@@ -12,7 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/netappaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/netappaccounts"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -72,6 +72,22 @@ func (r NetAppAccountEncryptionResource) Arguments() map[string]*pluginsdk.Schem
 			ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 			Description:  "The versionless encryption key url.",
 		},
+
+		"federated_client_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validation.IsUUID,
+			RequiredWith: []string{"cross_tenant_key_vault_resource_id"},
+			Description:  "The Client ID of the multi-tenant Entra ID application used to access cross-tenant key vaults.",
+		},
+
+		"cross_tenant_key_vault_resource_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: commonids.ValidateKeyVaultID,
+			RequiredWith: []string{"federated_client_id"},
+			Description:  "The full resource ID of the cross-tenant key vault. Required when using federated_client_id for cross-tenant scenarios.",
+		},
 	}
 }
 
@@ -90,6 +106,10 @@ func (r NetAppAccountEncryptionResource) Create() sdk.ResourceFunc {
 			var model netAppModels.NetAppAccountEncryption
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			if model.NetAppAccountID == "" {
+				return fmt.Errorf("netapp_account_id is empty")
 			}
 
 			accountID, err := netappaccounts.ParseNetAppAccountID(model.NetAppAccountID)
@@ -121,7 +141,7 @@ func (r NetAppAccountEncryptionResource) Create() sdk.ResourceFunc {
 
 			encryptionExpanded, err := expandEncryption(ctx, model.EncryptionKey, keyVaultsClient, subscriptionId, pointer.To(model))
 			if err != nil {
-				return err
+				return fmt.Errorf("error expanding encryption: %+v", err)
 			}
 
 			update.Properties.Encryption = encryptionExpanded
@@ -165,7 +185,7 @@ func (r NetAppAccountEncryptionResource) Update() sdk.ResourceFunc {
 				Properties: &netappaccounts.AccountProperties{},
 			}
 
-			if metadata.ResourceData.HasChange("user_assigned_identity_id") || metadata.ResourceData.HasChange("system_assigned_identity_principal_id") || metadata.ResourceData.HasChange("encryption_key") {
+			if metadata.ResourceData.HasChange("user_assigned_identity_id") || metadata.ResourceData.HasChange("system_assigned_identity_principal_id") || metadata.ResourceData.HasChange("encryption_key") || metadata.ResourceData.HasChange("federated_client_id") {
 				encryptionExpanded, err := expandEncryption(ctx, state.EncryptionKey, keyVaultsClient, subscriptionId, pointer.To(state))
 				if err != nil {
 					return err
@@ -217,14 +237,20 @@ func (r NetAppAccountEncryptionResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			encryptionKey, err := flattenEncryption(existing.Model.Properties.Encryption)
+			encryptionKey, federatedClientID, err := flattenEncryption(existing.Model.Properties.Encryption)
 			if err != nil {
 				return err
 			}
 
 			model := netAppModels.NetAppAccountEncryption{
-				NetAppAccountID: id.ID(),
-				EncryptionKey:   encryptionKey,
+				NetAppAccountID:   id.ID(),
+				EncryptionKey:     encryptionKey,
+				FederatedClientID: federatedClientID,
+			}
+
+			// Populate cross-tenant key vault resource ID only for cross-tenant scenarios (when federated_client_id is present)
+			if federatedClientID != "" && existing.Model.Properties.Encryption.KeyVaultProperties != nil && existing.Model.Properties.Encryption.KeyVaultProperties.KeyVaultResourceId != nil {
+				model.CrossTenantKeyVaultResourceID = pointer.From(existing.Model.Properties.Encryption.KeyVaultProperties.KeyVaultResourceId)
 			}
 
 			if len(anfAccountIdentityFlattened) > 0 {
@@ -241,7 +267,7 @@ func (r NetAppAccountEncryptionResource) Read() sdk.ResourceFunc {
 
 			metadata.SetID(id)
 
-			return metadata.Encode(&model)
+			return metadata.Encode(pointer.To(model))
 		},
 	}
 }
@@ -269,7 +295,7 @@ func (r NetAppAccountEncryptionResource) Delete() sdk.ResourceFunc {
 			metadata.Logger.Infof("Updating %s", id)
 
 			update := netappaccounts.NetAppAccountPatch{
-				Properties: &netappaccounts.AccountProperties{},
+				Properties: pointer.To(netappaccounts.AccountProperties{}),
 			}
 
 			update.Properties.Encryption = &netappaccounts.AccountEncryption{}
@@ -294,17 +320,26 @@ func expandEncryption(ctx context.Context, input string, keyVaultsClient *keyVau
 
 	keyId, err := keyVaultParse.ParseOptionallyVersionedNestedKeyID(input)
 	if err != nil {
-		return nil, fmt.Errorf("parsing `key_vault_key_id`: %+v", err)
+		return nil, fmt.Errorf("parsing `key_vault_key_id` %q: %+v", input, err)
 	}
 
-	keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionID, keyId.KeyVaultBaseUrl)
-	if err != nil {
-		return nil, fmt.Errorf("retrieving the resource id the key vault at url %q: %s", keyId.KeyVaultBaseUrl, err)
-	}
+	var keyVaultResourceID string
 
-	parsedKeyVaultID, err := commonids.ParseKeyVaultID(pointer.From(keyVaultID))
-	if err != nil {
-		return nil, err
+	// For cross-tenant scenarios: using CrossTenantKeyVaultResourceID
+	if model.FederatedClientID != "" {
+		keyVaultResourceID = model.CrossTenantKeyVaultResourceID
+	} else {
+		// Same-tenant scenario: lookup the key vault ID
+		keyVaultID, err := keyVaultsClient.KeyVaultIDFromBaseUrl(ctx, subscriptionID, keyId.KeyVaultBaseUrl)
+		if err != nil {
+			return nil, fmt.Errorf("retrieving the resource id the key vault at url %q: %s", keyId.KeyVaultBaseUrl, err)
+		}
+
+		if keyVaultID == nil {
+			return nil, fmt.Errorf("keyVaultID is nil for key vault url %q", keyId.KeyVaultBaseUrl)
+		}
+
+		keyVaultResourceID = pointer.From(keyVaultID)
 	}
 
 	encryptionIdentity := &netappaccounts.EncryptionIdentity{}
@@ -312,6 +347,9 @@ func expandEncryption(ctx context.Context, input string, keyVaultsClient *keyVau
 	if model.UserAssignedIdentityID != "" {
 		encryptionIdentity = &netappaccounts.EncryptionIdentity{
 			UserAssignedIdentity: pointer.To(model.UserAssignedIdentityID),
+		}
+		if model.FederatedClientID != "" {
+			encryptionIdentity.FederatedClientId = pointer.To(model.FederatedClientID)
 		}
 	}
 
@@ -321,22 +359,27 @@ func expandEncryption(ctx context.Context, input string, keyVaultsClient *keyVau
 		KeyVaultProperties: &netappaccounts.KeyVaultProperties{
 			KeyName:            keyId.Name,
 			KeyVaultUri:        keyId.KeyVaultBaseUrl,
-			KeyVaultResourceId: pointer.To(parsedKeyVaultID.ID()),
+			KeyVaultResourceId: pointer.To(keyVaultResourceID),
 		},
 	}
 
 	return &encryptionProperty, nil
 }
 
-func flattenEncryption(encryptionProperties *netappaccounts.AccountEncryption) (string, error) {
+func flattenEncryption(encryptionProperties *netappaccounts.AccountEncryption) (string, string, error) {
 	if encryptionProperties == nil || *encryptionProperties.KeySource == netappaccounts.KeySourceMicrosoftPointNetApp {
-		return "", nil
+		return "", "", nil
 	}
 
 	keyVaultKeyId, err := keyVaultParse.NewNestedItemID(encryptionProperties.KeyVaultProperties.KeyVaultUri, keyVaultParse.NestedItemTypeKey, encryptionProperties.KeyVaultProperties.KeyName, "")
 	if err != nil {
-		return "", fmt.Errorf("parsing key vault key id: %+v", err)
+		return "", "", fmt.Errorf("parsing key vault key id: %+v", err)
 	}
 
-	return keyVaultKeyId.VersionlessID(), nil
+	federatedClientID := ""
+	if encryptionProperties.Identity != nil && encryptionProperties.Identity.FederatedClientId != nil {
+		federatedClientID = pointer.From(encryptionProperties.Identity.FederatedClientId)
+	}
+
+	return keyVaultKeyId.VersionlessID(), federatedClientID, nil
 }

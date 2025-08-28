@@ -51,4 +51,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.ScVmm`: 2023-10-07
+* `Microsoft.ScVmm` - 2023-10-07
