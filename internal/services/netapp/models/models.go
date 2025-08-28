@@ -12,6 +12,8 @@ type NetAppAccountEncryption struct {
 	UserAssignedIdentityID            string `tfschema:"user_assigned_identity_id"`
 	SystemAssignedIdentityPrincipalID string `tfschema:"system_assigned_identity_principal_id"`
 	EncryptionKey                     string `tfschema:"encryption_key"`
+	FederatedClientID                 string `tfschema:"federated_client_id"`
+	CrossTenantKeyVaultResourceID     string `tfschema:"cross_tenant_key_vault_resource_id"`
 }
 
 type NetAppAccountEncryptionDataSourceModel struct {
@@ -19,6 +21,8 @@ type NetAppAccountEncryptionDataSourceModel struct {
 	UserAssignedIdentityID            string `tfschema:"user_assigned_identity_id"`
 	SystemAssignedIdentityPrincipalID string `tfschema:"system_assigned_identity_principal_id"`
 	EncryptionKey                     string `tfschema:"encryption_key"`
+	FederatedClientID                 string `tfschema:"federated_client_id"`
+	CrossTenantKeyVaultResourceID     string `tfschema:"cross_tenant_key_vault_resource_id"`
 }
 
 type NetAppVolumeGroupSAPHanaVolume struct {

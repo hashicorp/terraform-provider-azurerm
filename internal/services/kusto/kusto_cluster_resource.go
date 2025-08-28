@@ -37,9 +37,10 @@ func resourceKustoCluster() *pluginsdk.Resource {
 		Update: resourceKustoClusterUpdate,
 		Delete: resourceKustoClusterDelete,
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.KustoAttachedClusterV0ToV1{},
+			1: migration.KustoAttachedClusterV1ToV2{},
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -261,7 +262,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClustersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Kusto Cluster creation.")
@@ -281,7 +282,7 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	sku, err := expandKustoClusterSku(d.Get("sku").([]interface{}))
 	if err != nil {
-		return err
+		return fmt.Errorf("expanding `sku`: %+v", err)
 	}
 
 	optimizedAutoScale := expandOptimizedAutoScale(d.Get("optimized_auto_scale").([]interface{}))
@@ -377,7 +378,7 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClustersClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := commonids.ParseKustoClusterID(d.Id())
@@ -390,10 +391,15 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	if existing.Model == nil || existing.Model.Properties == nil {
-		return fmt.Errorf("retrieving existing %s: `properties` was nil", *id)
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *id)
+	}
+
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
 	model := existing.Model
 	props := model.Properties
@@ -465,9 +471,7 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if d.HasChange("language_extensions") {
-		if v, ok := d.GetOk("language_extensions"); ok {
-			props.LanguageExtensions = expandKustoClusterLanguageExtensionList(v.([]interface{}))
-		}
+		props.LanguageExtensions = expandKustoClusterLanguageExtensionList(d.Get("language_extensions").([]interface{}))
 	}
 
 	if d.HasChange("outbound_network_access_restricted") {
@@ -719,24 +723,19 @@ func expandKustoClusterVNET(input []interface{}) *clusters.VirtualNetworkConfigu
 }
 
 func expandKustoClusterLanguageExtensionList(input []interface{}) *clusters.LanguageExtensionsList {
-	if len(input) > 0 {
-		extensions := make([]clusters.LanguageExtension, 0)
-		for _, ext := range input {
-			extMap := ext.(map[string]interface{})
-			name := clusters.LanguageExtensionName(extMap["name"].(string))
-			image := clusters.LanguageExtensionImageName(extMap["image"].(string))
-			lanExt := clusters.LanguageExtension{
-				LanguageExtensionName:      &name,
-				LanguageExtensionImageName: &image,
-			}
-			extensions = append(extensions, lanExt)
-		}
-		return &clusters.LanguageExtensionsList{
-			Value: &extensions,
-		}
+	extensions := make([]clusters.LanguageExtension, 0)
+
+	for _, ext := range input {
+		extMap := ext.(map[string]interface{})
+		extensions = append(extensions, clusters.LanguageExtension{
+			LanguageExtensionName:      pointer.To(clusters.LanguageExtensionName(extMap["name"].(string))),
+			LanguageExtensionImageName: pointer.To(clusters.LanguageExtensionImageName(extMap["image"].(string))),
+		})
 	}
 
-	return nil
+	return &clusters.LanguageExtensionsList{
+		Value: &extensions,
+	}
 }
 
 func flattenKustoClusterSku(sku *clusters.AzureSku) []interface{} {

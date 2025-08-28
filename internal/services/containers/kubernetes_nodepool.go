@@ -100,6 +100,13 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						}, false),
 					},
 
+					"gpu_driver": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForGPUDriver(), false),
+					},
+
 					"kubelet_disk_type": {
 						Type:     pluginsdk.TypeString,
 						Optional: true,
@@ -927,6 +934,12 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.GpuInstanceProfile = pointer.To(managedclusters.GPUInstanceProfile(gpuInstanceProfile))
 	}
 
+	if gpuDriver := raw["gpu_driver"].(string); gpuDriver != "" {
+		profile.GpuProfile = &managedclusters.GPUProfile{
+			Driver: pointer.To(managedclusters.GPUDriver(gpuDriver)),
+		}
+	}
+
 	count := raw["node_count"].(int)
 	maxCount := raw["max_count"].(int)
 	minCount := raw["min_count"].(int)
@@ -1214,6 +1227,11 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		gpuInstanceProfile = string(*agentPool.GpuInstanceProfile)
 	}
 
+	gpuDriver := ""
+	if agentPool.GpuProfile != nil {
+		gpuDriver = string(pointer.From(agentPool.GpuProfile.Driver))
+	}
+
 	maxCount := 0
 	if agentPool.MaxCount != nil {
 		maxCount = int(*agentPool.MaxCount)
@@ -1349,6 +1367,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"auto_scaling_enabled":          enableAutoScaling,
 		"fips_enabled":                  enableFIPS,
 		"gpu_instance":                  gpuInstanceProfile,
+		"gpu_driver":                    gpuDriver,
 		"host_encryption_enabled":       enableHostEncryption,
 		"host_group_id":                 hostGroupID,
 		"kubelet_disk_type":             kubeletDiskType,

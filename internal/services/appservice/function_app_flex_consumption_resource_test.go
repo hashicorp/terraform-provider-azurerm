@@ -271,6 +271,38 @@ func TestAccFunctionAppFlexConsumption_alwaysReadyUpdate(t *testing.T) {
 	})
 }
 
+func TestAccFunctionAppFlexConsumption_maxInstanceCount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
+	r := FunctionAppFlexConsumptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.alwaysReadyInstanceCount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccFunctionAppFlexConsumption_runtimeJava(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
