@@ -10,6 +10,11 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `azurerm_iothub_endpoint_cosmosdb_account` - add support for `endpoint.subscription_id` property [GH-27524]
+* `azurerm_iothub_endpoint_eventhub` - add support for `endpoint.subscription_id` property [GH-27524]
+* `azurerm_iothub_endpoint_servicebus_queue` - add support for `endpoint.subscription_id` property [GH-27524]
+* `azurerm_iothub_endpoint_servicebus_topic` - add support for `endpoint.subscription_id` property [GH-27524]
+* `azurerm_iothub` - add support for `endpoint.subscription_id` property [GH-27524]
 * `azurerm_linux_virtual_machine` - add support for `os_managed_disk_id` property [GH-30394]
 * `azurerm_windows_virtual_machine` - add support for `os_managed_disk_id` property [GH-30394]
 
