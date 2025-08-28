@@ -769,10 +769,102 @@ function Remove-AllAIFiles {
         $results.Directories[$resolvedDirPath] = $dirResult
     }
     
+    # After processing all directories, perform recursive cleanup of newly emptied directories
+    Write-Host ""
+    Write-Host "Checking for newly emptied parent directories..." -ForegroundColor Cyan
+    
+    $additionalCleaned = Remove-EmptyParentDirectories -DirectoriesToCheck $directoriesToCheck -WorkspaceRoot $WorkspaceRoot -DryRun $DryRun
+    $results.DirectoriesCleaned += $additionalCleaned
+    
     Write-Host ""
     Write-Host "Completed AI infrastructure removal." -ForegroundColor Green
     
     return $results
+}
+
+function Remove-EmptyParentDirectories {
+    <#
+    .SYNOPSIS
+    Recursively removes empty parent directories after files have been cleaned
+    #>
+    param(
+        [string[]]$DirectoriesToCheck,
+        [string]$WorkspaceRoot,
+        [bool]$DryRun = $false
+    )
+    
+    $cleanedCount = 0
+    $processedDirs = @{}
+    
+    # Get all unique parent directories and sort by depth (deepest first)
+    $allParentDirs = @()
+    foreach ($dir in $DirectoriesToCheck) {
+        $resolvedDir = if ($WorkspaceRoot -and -not [System.IO.Path]::IsPathRooted($dir)) {
+            Join-Path $WorkspaceRoot $dir
+        } else {
+            $dir
+        }
+        
+        # Add all parent directories up to workspace root
+        $currentDir = $resolvedDir
+        while ($currentDir -and $currentDir -ne $WorkspaceRoot -and -not $processedDirs.ContainsKey($currentDir)) {
+            $allParentDirs += $currentDir
+            $processedDirs[$currentDir] = $true
+            $currentDir = Split-Path $currentDir -Parent
+        }
+    }
+    
+    # Sort by depth (deepest first) to ensure we clean child directories before parents
+    $sortedDirs = $allParentDirs | Sort-Object { ($_ -split '[/\\]').Count } -Descending
+    
+    foreach ($dir in $sortedDirs) {
+        if (Test-Path $dir -PathType Container) {
+            $contents = Get-ChildItem $dir -Force
+            if ($contents.Count -eq 0) {
+                # Check if this is an allowed AI directory
+                $relativePath = if ($WorkspaceRoot) {
+                    $dir.Replace($WorkspaceRoot, "").TrimStart('\', '/')
+                } else {
+                    $dir
+                }
+                
+                $allowedAIDirectories = @(
+                    ".github/AIinstaller",
+                    ".github/instructions", 
+                    ".github/prompts"
+                )
+                
+                $isAllowedAI = $false
+                foreach ($allowed in $allowedAIDirectories) {
+                    if ($relativePath -eq $allowed -or $relativePath.StartsWith("$allowed/")) {
+                        $isAllowedAI = $true
+                        break
+                    }
+                }
+                
+                if ($isAllowedAI) {
+                    $dirName = Split-Path $dir -Leaf
+                    Write-Host "  Cleaning Directory: $dirName" -NoNewline
+                    
+                    if ($DryRun) {
+                        Write-Host " [WOULD REMOVE]" -ForegroundColor Yellow
+                        $cleanedCount++
+                    } else {
+                        try {
+                            Remove-Item -Path $dir -Force -ErrorAction Stop
+                            Write-Host " [OK]" -ForegroundColor Green
+                            $cleanedCount++
+                        }
+                        catch {
+                            Write-Host " [FAILED]" -ForegroundColor Red
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    return $cleanedCount
 }
 
 function Remove-DeprecatedFiles {
