@@ -50,6 +50,13 @@ func testAccNetworkManagerRoutingRule_update(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.update(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -165,6 +172,31 @@ resource "azurerm_network_manager_routing_rule" "test" {
   next_hop {
     type    = "VirtualAppliance"
     address = "10.0.10.1"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ManagerRoutingRuleResource) update(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_network_manager_routing_rule" "test" {
+  name               = "acctest-nmrr-%[2]d"
+  rule_collection_id = azurerm_network_manager_routing_rule_collection.test.id
+  description        = "This is an updated test Routing Rule"
+  destination {
+    type    = "ServiceTag"
+    address = "AppServiceManagement"
+  }
+
+  next_hop {
+    type    = "VirtualAppliance"
+    address = "10.0.20.2"
   }
 }
 `, r.template(data), data.RandomInteger)

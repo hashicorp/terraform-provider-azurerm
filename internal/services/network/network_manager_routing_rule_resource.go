@@ -116,6 +116,27 @@ func (ManagerRoutingRuleResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
+func (r ManagerRoutingRuleResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			var model ManagerRoutingRuleResourceModel
+			if err := metadata.DecodeDiff(&model); err != nil {
+				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			if len(model.NextHop) > 0 {
+				v := model.NextHop[0]
+				if strings.EqualFold(v.Type, string(routingrules.RoutingRuleNextHopTypeVirtualAppliance)) && v.Address == "" {
+					return fmt.Errorf("expanding `next_hop`: `address` is required when `type` is `VirtualAppliance`")
+				}
+			}
+
+			return nil
+		},
+		Timeout: 30 * time.Minute,
+	}
+}
+
 func (r ManagerRoutingRuleResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
@@ -143,17 +164,12 @@ func (r ManagerRoutingRuleResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			nextHop, err := expandNetworkManagerRoutingRuleNextHop(config.NextHop)
-			if err != nil {
-				return fmt.Errorf("expanding `next_hop`: %+v", err)
-			}
-
 			payload := routingrules.RoutingRule{
 				Name: pointer.To(config.Name),
 				Properties: &routingrules.RoutingRulePropertiesFormat{
 					Description: pointer.To(config.Description),
 					Destination: expandNetworkManagerRoutingRuleDestination(config.Destination),
-					NextHop:     *nextHop,
+					NextHop:     expandNetworkManagerRoutingRuleNextHop(config.NextHop),
 				},
 			}
 
@@ -245,12 +261,7 @@ func (r ManagerRoutingRuleResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("next_hop") {
-				nextHop, err := expandNetworkManagerRoutingRuleNextHop(model.NextHop)
-				if err != nil {
-					return fmt.Errorf("expanding `next_hop`: %+v", err)
-				}
-
-				parameters.Properties.NextHop = *nextHop
+				parameters.Properties.NextHop = expandNetworkManagerRoutingRuleNextHop(model.NextHop)
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, *id, *parameters); err != nil {
@@ -304,21 +315,17 @@ func flattenNetworkManagerRoutingRuleDestination(input routingrules.RoutingRuleR
 	}
 }
 
-func expandNetworkManagerRoutingRuleNextHop(input []ManagerRoutingRuleNextHop) (*routingrules.RoutingRuleNextHop, error) {
+func expandNetworkManagerRoutingRuleNextHop(input []ManagerRoutingRuleNextHop) routingrules.RoutingRuleNextHop {
 	if len(input) == 0 {
-		return &routingrules.RoutingRuleNextHop{}, nil
+		return routingrules.RoutingRuleNextHop{}
 	}
 
 	v := input[0]
 
-	if strings.EqualFold(v.Type, string(routingrules.RoutingRuleNextHopTypeVirtualAppliance)) && v.Address == "" {
-		return nil, fmt.Errorf("address is required when type is `VirtualAppliance`")
-	}
-
-	return &routingrules.RoutingRuleNextHop{
+	return routingrules.RoutingRuleNextHop{
 		NextHopAddress: pointer.To(v.Address),
 		NextHopType:    routingrules.RoutingRuleNextHopType(v.Type),
-	}, nil
+	}
 }
 
 func flattenNetworkManagerRoutingRuleNextHop(input routingrules.RoutingRuleNextHop) []ManagerRoutingRuleNextHop {

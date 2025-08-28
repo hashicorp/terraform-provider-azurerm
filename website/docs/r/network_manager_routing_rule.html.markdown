@@ -94,7 +94,7 @@ A `next_hop` block supports the following:
 
 * `type` - (Required) The type of next hop. Possible values are `Internet`, `NoNextHop`, `VirtualAppliance`, `VirtualNetworkGateway` and `VnetLocal`.
 
-* `address` - (Optional) The address of the next hop. This is required if the next hop type is VirtualAppliance.
+* `address` - (Optional) The address of the next hop. This is required if the next hop type is `VirtualAppliance`.
 
 ## Attributes Reference
 
