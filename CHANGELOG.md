@@ -10,6 +10,9 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* dependencies: `containerservice` - update api version to `2025-05-01` [GH-30401]
+* dependencies: `go-azure-sdk/resourcemanager` update to `v0.20250814.1105543` [GH-30401]
+* dependencies: `go-azure-sdk/sdk` update to `v0.20250814.1105543` [GH-30401]
 * `azurerm_iothub_endpoint_cosmosdb_account` - add support for `endpoint.subscription_id` property [GH-27524]
 * `azurerm_iothub_endpoint_eventhub` - add support for `endpoint.subscription_id` property [GH-27524]
 * `azurerm_iothub_endpoint_servicebus_queue` - add support for `endpoint.subscription_id` property [GH-27524]
