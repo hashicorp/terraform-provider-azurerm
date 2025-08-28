@@ -291,7 +291,13 @@ function Install-AllAIFiles {
         }
         
         $percentComplete = [math]::Round(($fileIndex / $allFiles.Count) * 100)
-        Write-Host "[$percentComplete%] Downloading: $filePath" -ForegroundColor Yellow
+        # Dynamic padding to align closing brackets (1-digit=2 spaces, 2-digit=1 space, 3-digit=0 spaces)
+        $progressPadding = if ($percentComplete -lt 10) { "  " } elseif ($percentComplete -lt 100) { " " } else { "" }
+        $progressText = "[$percentComplete%$progressPadding]"
+        Write-Host "  Downloading " -ForegroundColor Yellow -NoNewline
+        Write-Host $progressText -ForegroundColor Green -NoNewline
+        Write-Host ": " -ForegroundColor Yellow -NoNewline
+        Write-Host $filePath -ForegroundColor White
         
         $fileResult = Install-AIFile -FilePath $filePath -DownloadUrl $downloadUrl -Force $Force -DryRun $DryRun -WorkspaceRoot $WorkspaceRoot
         $results.Files[$filePath] = $fileResult
@@ -633,9 +639,9 @@ function Remove-AllAIFiles {
         $fileNamePadding = " " * ($maxNameLength - $fileName.Length)
         
         # Pad "Removing File" to match "Removing Directory" length for perfect alignment
-        # Dynamic padding of "Complete" to align closing brackets (1-digit=2 spaces, 2-digit=1 space, 3-digit=0 spaces)
-        $completePadding = if ($percentComplete -lt 10) { "  " } elseif ($percentComplete -lt 100) { " " } else { "" }
-        $progressText = "[$percentComplete% Complete$completePadding]"
+        # Dynamic padding to align closing brackets (1-digit=2 spaces, 2-digit=1 space, 3-digit=0 spaces)
+        $progressPadding = if ($percentComplete -lt 10) { "  " } elseif ($percentComplete -lt 100) { " " } else { "" }
+        $progressText = "[$percentComplete%$progressPadding]"
         Write-Host "  Removing File      " -ForegroundColor Cyan -NoNewline
         Write-Host $progressText -ForegroundColor Green -NoNewline
         Write-Host ": " -ForegroundColor Cyan -NoNewline
@@ -684,9 +690,9 @@ function Remove-AllAIFiles {
         $dirNamePadding = " " * ($maxNameLength - $dirName.Length)
         
         # "Removing Directory" is the longest operation name, so no padding needed
-        # Dynamic padding of "Complete" to align closing brackets (1-digit=2 spaces, 2-digit=1 space, 3-digit=0 spaces)
-        $completePadding = if ($percentComplete -lt 10) { "  " } elseif ($percentComplete -lt 100) { " " } else { "" }
-        $progressText = "[$percentComplete% Complete$completePadding]"
+        # Dynamic padding to align closing brackets (1-digit=2 spaces, 2-digit=1 space, 3-digit=0 spaces)
+        $progressPadding = if ($percentComplete -lt 10) { "  " } elseif ($percentComplete -lt 100) { " " } else { "" }
+        $progressText = "[$percentComplete%$progressPadding]"
         Write-Host "  Removing Directory " -ForegroundColor Cyan -NoNewline
         Write-Host $progressText -ForegroundColor Green -NoNewline
         Write-Host ": " -ForegroundColor Cyan -NoNewline
