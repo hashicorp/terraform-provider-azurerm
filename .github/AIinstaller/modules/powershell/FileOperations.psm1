@@ -1070,19 +1070,15 @@ function Invoke-CleanWorkspace {
         if ($result.Success) {
             # Check if this was a clean workspace (no files found)
             if ($result.CleanWorkspace) {
-                # Simple message for already clean workspace - no extra formatting needed
-                Write-Host ""
-                Write-Host "DETAILS:" -ForegroundColor Cyan
-                Write-Host "  Operation type     : " -ForegroundColor Cyan -NoNewline
-                if ($DryRun) {
-                    Write-Host "Dry run (simulation)" -ForegroundColor Yellow
-                } else {
-                    Write-Host "Live cleanup" -ForegroundColor Yellow
+                # Use standardized UI for clean workspace reporting
+                $details = @{
+                    "Operation type" = if ($DryRun) { "Dry run (simulation)" } else { "Live cleanup" }
+                    "Files removed" = $result.FilesRemoved
+                    "Directories cleaned" = $result.DirectoriesCleaned
                 }
-                Write-Host "  Files removed      : " -ForegroundColor Cyan -NoNewline
-                Write-Host "0" -ForegroundColor Green
-                Write-Host "  Directories cleaned: " -ForegroundColor Cyan -NoNewline  
-                Write-Host "0" -ForegroundColor Green
+                
+                # Use UI module for consistent formatting and spacing
+                Show-OperationSummary -OperationName "Cleanup" -Success $true -Details $details -DryRun:$DryRun
             } else {
                 # Full completion message for actual removals
                 Write-Host ""
