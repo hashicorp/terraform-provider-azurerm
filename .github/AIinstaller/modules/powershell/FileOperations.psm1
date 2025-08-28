@@ -788,7 +788,7 @@ function Remove-AllAIFiles {
 function Remove-EmptyParentDirectories {
     <#
     .SYNOPSIS
-    Recursively removes empty parent directories after files have been cleaned
+    Simple cleanup of empty directories after files are removed
     #>
     param(
         [string[]]$DirectoriesToCheck,
@@ -797,10 +797,9 @@ function Remove-EmptyParentDirectories {
     )
     
     $cleanedCount = 0
-    $processedDirs = @{}
     
-    # Get all unique parent directories and sort by depth (deepest first)
-    $allParentDirs = @()
+    # Get all unique directories that might be empty now
+    $allDirs = @()
     foreach ($dir in $DirectoriesToCheck) {
         $resolvedDir = if ($WorkspaceRoot -and -not [System.IO.Path]::IsPathRooted($dir)) {
             Join-Path $WorkspaceRoot $dir
@@ -808,63 +807,42 @@ function Remove-EmptyParentDirectories {
             $dir
         }
         
-        # Add all parent directories up to workspace root
+        # Add this directory and all its parents up to .github
         $currentDir = $resolvedDir
-        while ($currentDir -and $currentDir -ne $WorkspaceRoot -and -not $processedDirs.ContainsKey($currentDir)) {
-            $allParentDirs += $currentDir
-            $processedDirs[$currentDir] = $true
+        while ($currentDir -and $currentDir -ne $WorkspaceRoot) {
+            $relativePath = $currentDir.Replace($WorkspaceRoot, "").TrimStart('\', '/').Replace('\', '/')
+            
+            # Only process directories under .github that are AI-related
+            if ($relativePath.StartsWith(".github/AIinstaller") -or 
+                $relativePath.StartsWith(".github/instructions") -or 
+                $relativePath.StartsWith(".github/prompts")) {
+                $allDirs += $currentDir
+            }
+            
             $currentDir = Split-Path $currentDir -Parent
         }
     }
     
-    # Sort by depth (deepest first) to ensure we clean child directories before parents
-    $sortedDirs = $allParentDirs | Sort-Object { ($_ -split '[/\\]').Count } -Descending
+    # Remove duplicates and sort by depth (deepest first)
+    $uniqueDirs = $allDirs | Sort-Object -Unique | Sort-Object { ($_ -split '[/\\]').Count } -Descending
     
-    foreach ($dir in $sortedDirs) {
-        if (Test-Path $dir -PathType Container) {
-            $contents = Get-ChildItem $dir -Force
-            if ($contents.Count -eq 0) {
-                # Check if this is an allowed AI directory
-                $relativePath = if ($WorkspaceRoot) {
-                    $dir.Replace($WorkspaceRoot, "").TrimStart('\', '/')
-                } else {
-                    $dir
+    # Remove empty directories
+    foreach ($dir in $uniqueDirs) {
+        if ((Test-Path $dir -PathType Container) -and ((Get-ChildItem $dir -Force).Count -eq 0)) {
+            $dirName = Split-Path $dir -Leaf
+            Write-Host "  Cleaning Directory: $dirName" -NoNewline
+            
+            if ($DryRun) {
+                Write-Host " [WOULD REMOVE]" -ForegroundColor Yellow
+                $cleanedCount++
+            } else {
+                try {
+                    Remove-Item -Path $dir -Force -ErrorAction Stop
+                    Write-Host " [OK]" -ForegroundColor Green
+                    $cleanedCount++
                 }
-                
-                $allowedAIDirectories = @(
-                    ".github/AIinstaller",
-                    ".github/AIinstaller/modules",
-                    ".github/AIinstaller/modules/powershell",
-                    ".github/AIinstaller/modules/bash",
-                    ".github/instructions", 
-                    ".github/prompts"
-                )
-                
-                $isAllowedAI = $false
-                foreach ($allowed in $allowedAIDirectories) {
-                    if ($relativePath -eq $allowed -or $relativePath.StartsWith("$allowed/")) {
-                        $isAllowedAI = $true
-                        break
-                    }
-                }
-                
-                if ($isAllowedAI) {
-                    $dirName = Split-Path $dir -Leaf
-                    Write-Host "  Cleaning Directory: $dirName" -NoNewline
-                    
-                    if ($DryRun) {
-                        Write-Host " [WOULD REMOVE]" -ForegroundColor Yellow
-                        $cleanedCount++
-                    } else {
-                        try {
-                            Remove-Item -Path $dir -Force -ErrorAction Stop
-                            Write-Host " [OK]" -ForegroundColor Green
-                            $cleanedCount++
-                        }
-                        catch {
-                            Write-Host " [FAILED]" -ForegroundColor Red
-                        }
-                    }
+                catch {
+                    Write-Host " [FAILED]" -ForegroundColor Red
                 }
             }
         }
