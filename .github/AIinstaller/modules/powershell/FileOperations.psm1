@@ -595,7 +595,10 @@ function Remove-AllAIFiles {
         $fullDirPath = Join-Path $WorkspaceRoot $dirPath
         if (Test-Path $fullDirPath) {
             # Skip child directories of AIinstaller since we'll remove it recursively
-            $isChildOfAIinstaller = $dirPath.StartsWith(".github/AIinstaller/") -and $dirPath -ne ".github/AIinstaller"
+            # This includes direct children like .github/AIinstaller/modules 
+            # and deeper children like .github/AIinstaller/modules/bash
+            $isChildOfAIinstaller = ($dirPath.StartsWith(".github/AIinstaller/") -and $dirPath -ne ".github/AIinstaller") -or 
+                                   ($dirPath.StartsWith(".github\AIinstaller\") -and $dirPath -ne ".github\AIinstaller")
             if (-not $isChildOfAIinstaller) {
                 $existingDirectories += $dirPath
             }
