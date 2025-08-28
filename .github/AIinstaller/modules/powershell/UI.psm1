@@ -97,17 +97,17 @@ function Show-BranchDetection {
     
     switch ($BranchType) {
         "source" {
-            $branchLabel = "SOURCE BRANCH DETECTED"
+            $branchLabel = " SOURCE BRANCH DETECTED"
             Write-Host "${branchLabel}: " -NoNewline -ForegroundColor Cyan
             Write-Host "$BranchName" -ForegroundColor Yellow
         }
         "feature" {
-            $branchLabel = "FEATURE BRANCH DETECTED"
+            $branchLabel = " FEATURE BRANCH DETECTED"
             Write-Host "${branchLabel}: " -NoNewline -ForegroundColor Cyan
             Write-Host "$BranchName" -ForegroundColor Yellow
         }
         default {
-            $branchLabel = "BRANCH DETECTED"
+            $branchLabel = " BRANCH DETECTED"
             Write-Host "${branchLabel}: " -NoNewline -ForegroundColor Cyan
             Write-Host "$BranchName" -ForegroundColor Yellow
         }
@@ -115,7 +115,7 @@ function Show-BranchDetection {
     
     # Dynamic workspace label with proper alignment and colors
     if ($Global:WorkspaceRoot) {
-        $formattedWorkspaceLabel = Format-AlignedLabel -Label "WORKSPACE" -LongestLabel $branchLabel
+        $formattedWorkspaceLabel = Format-AlignedLabel -Label " WORKSPACE" -LongestLabel $branchLabel
         Write-Host "${formattedWorkspaceLabel}: " -NoNewline -ForegroundColor Cyan
         Write-Host "$Global:WorkspaceRoot" -ForegroundColor Green
     }
