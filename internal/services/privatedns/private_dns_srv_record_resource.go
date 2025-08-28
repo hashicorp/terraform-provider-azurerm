@@ -158,7 +158,7 @@ func resourcePrivateDnsSrvRecordCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	rawDnsZoneId := d.Get("private_zone_id").(string)
 	if !features.FivePointOh() && rawDnsZoneId == "" {
-		dnsZoneId := &recordsets.PrivateDnsZoneId{
+		dnsZoneId := &privatedns.PrivateZoneId{
 			ResourceGroupName:  d.Get("resource_group_name").(string),
 			PrivateDnsZoneName: d.Get("zone_name").(string),
 			SubscriptionId:     subscriptionId,
@@ -167,9 +167,9 @@ func resourcePrivateDnsSrvRecordCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 	dnsZoneId, err := virtualnetworklinks.ParsePrivateDnsZoneID(rawDnsZoneId)
 	if err != nil {
-		return fmt.Errorf("parsing private DNS zone ID %q: %+v", rawDnsZoneId, err)
+		return err
 	}
-	id := recordsets.NewRecordTypeID(subscriptionId, dnsZoneId.ResourceGroupName, dnsZoneId.PrivateDnsZoneName, recordsets.RecordTypeSRV, d.Get("name").(string))
+	id := privatedns.NewRecordTypeID(subscriptionId, dnsZoneId.ResourceGroupName, dnsZoneId.PrivateDnsZoneName, privatedns.RecordTypeSRV, d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.RecordSetsGet(ctx, id)
 		if err != nil {
@@ -185,7 +185,7 @@ func resourcePrivateDnsSrvRecordCreateUpdate(d *pluginsdk.ResourceData, meta int
 
 	parameters := privatedns.RecordSet{
 		Name: pointer.To(id.RelativeRecordSetName),
-		Type: pointer.To(string(recordsets.RecordTypeSRV)),
+		Type: pointer.To(string(privatedns.RecordTypeSRV)),
 		Properties: &privatedns.RecordSetProperties{
 			Metadata:   tags.Expand(d.Get("tags").(map[string]interface{})),
 			Ttl:        pointer.To(int64(d.Get("ttl").(int))),
@@ -225,7 +225,7 @@ func resourcePrivateDnsSrvRecordRead(d *pluginsdk.ResourceData, meta interface{}
 	}
 
 	d.Set("name", id.RelativeRecordSetName)
-	dnsZoneId := &recordsets.PrivateDnsZoneId{
+	dnsZoneId := &privatedns.PrivateZoneId{
 		ResourceGroupName:  id.ResourceGroupName,
 		PrivateDnsZoneName: id.PrivateDnsZoneName,
 		SubscriptionId:     meta.(*clients.Client).Account.SubscriptionId,

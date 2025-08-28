@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatedns"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/recordsets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/virtualnetworklinks"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -129,7 +129,20 @@ func resourcePrivateDnsARecordCreateUpdate(d *pluginsdk.ResourceData, meta inter
 	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id := privatedns.NewRecordTypeID(subscriptionId, d.Get("resource_group_name").(string), d.Get("zone_name").(string), privatedns.RecordTypeA, d.Get("name").(string))
+	rawDnsZoneId := d.Get("private_zone_id").(string)
+	if !features.FivePointOh() && rawDnsZoneId == "" {
+		dnsZoneId := &privatedns.PrivateZoneId{
+			ResourceGroupName:  d.Get("resource_group_name").(string),
+			PrivateDnsZoneName: d.Get("zone_name").(string),
+			SubscriptionId:     subscriptionId,
+		}
+		rawDnsZoneId = dnsZoneId.ID()
+	}
+	dnsZoneId, err := virtualnetworklinks.ParsePrivateDnsZoneID(rawDnsZoneId)
+	if err != nil {
+		return err
+	}
+	id := privatedns.NewRecordTypeID(subscriptionId, dnsZoneId.ResourceGroupName, dnsZoneId.PrivateDnsZoneName, privatedns.RecordTypeA, d.Get("name").(string))
 	if d.IsNewResource() {
 		existing, err := client.RecordSetsGet(ctx, id)
 		if err != nil {
@@ -184,7 +197,7 @@ func resourcePrivateDnsARecordRead(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	d.Set("name", id.RelativeRecordSetName)
-	dnsZoneId := &recordsets.PrivateDnsZoneId{
+	dnsZoneId := &privatedns.PrivateZoneId{
 		ResourceGroupName:  id.ResourceGroupName,
 		PrivateDnsZoneName: id.PrivateDnsZoneName,
 		SubscriptionId:     meta.(*clients.Client).Account.SubscriptionId,

@@ -130,7 +130,7 @@ func resourcePrivateDnsCNameRecordCreateUpdate(d *pluginsdk.ResourceData, meta i
 
 	rawDnsZoneId := d.Get("private_zone_id").(string)
 	if !features.FivePointOh() && rawDnsZoneId == "" {
-		dnsZoneId := &recordsets.PrivateDnsZoneId{
+		dnsZoneId := &privatedns.PrivateZoneId{
 			ResourceGroupName:  d.Get("resource_group_name").(string),
 			PrivateDnsZoneName: d.Get("zone_name").(string),
 			SubscriptionId:     subscriptionId,
@@ -139,9 +139,9 @@ func resourcePrivateDnsCNameRecordCreateUpdate(d *pluginsdk.ResourceData, meta i
 	}
 	dnsZoneId, err := virtualnetworklinks.ParsePrivateDnsZoneID(rawDnsZoneId)
 	if err != nil {
-		return fmt.Errorf("parsing private DNS zone ID %q: %+v", rawDnsZoneId, err)
+		return err
 	}
-	id := recordsets.NewRecordTypeID(subscriptionId, dnsZoneId.ResourceGroupName, dnsZoneId.PrivateDnsZoneName, recordsets.RecordTypeCNAME, d.Get("name").(string))
+	id := privatedns.NewRecordTypeID(subscriptionId, dnsZoneId.ResourceGroupName, dnsZoneId.PrivateDnsZoneName, privatedns.RecordTypeCNAME, d.Get("name").(string))
 
 	if d.IsNewResource() {
 		existing, err := client.RecordSetsGet(ctx, id)
@@ -200,7 +200,7 @@ func resourcePrivateDnsCNameRecordRead(d *pluginsdk.ResourceData, meta interface
 	}
 
 	d.Set("name", id.RelativeRecordSetName)
-	dnsZoneId := &recordsets.PrivateDnsZoneId{
+	dnsZoneId := &privatedns.PrivateZoneId{
 		ResourceGroupName:  id.ResourceGroupName,
 		PrivateDnsZoneName: id.PrivateDnsZoneName,
 		SubscriptionId:     meta.(*clients.Client).Account.SubscriptionId,
