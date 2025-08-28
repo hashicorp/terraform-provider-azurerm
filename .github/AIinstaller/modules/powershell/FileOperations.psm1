@@ -496,16 +496,33 @@ function Remove-AllAIFiles {
             # Skip protected directories - we only clean up specific AI subdirectories
             $isProtected = $false
             
-            # Check if it's a hidden directory (starts with .) - these often contain user settings
-            $dirName = Split-Path $directory -Leaf
-            if ($dirName.StartsWith(".")) {
-                $isProtected = $true
-            } else {
-                # Check against explicit protected directories list
-                foreach ($protected in $protectedDirectories) {
-                    if ($directory -eq $protected) {
-                        $isProtected = $true
-                        break
+            # Allow specific AI directories under .github
+            $allowedAIDirectories = @(
+                ".github/AIinstaller",
+                ".github/instructions", 
+                ".github/prompts"
+            )
+            
+            $isAllowedAI = $false
+            foreach ($allowed in $allowedAIDirectories) {
+                if ($directory -eq $allowed -or $directory.StartsWith("$allowed/")) {
+                    $isAllowedAI = $true
+                    break
+                }
+            }
+            
+            if (-not $isAllowedAI) {
+                # Check if it's a hidden directory (starts with .) - these often contain user settings
+                $dirName = Split-Path $directory -Leaf
+                if ($dirName.StartsWith(".")) {
+                    $isProtected = $true
+                } else {
+                    # Check against explicit protected directories list
+                    foreach ($protected in $protectedDirectories) {
+                        if ($directory -eq $protected) {
+                            $isProtected = $true
+                            break
+                        }
                     }
                 }
             }
@@ -517,8 +534,9 @@ function Remove-AllAIFiles {
         }
     }
     
-    # Sort directories for consistent processing order
-    $directoriesToCheck = $directoriesToCheck | Sort-Object
+    # Sort directories by depth (deepest first) for proper cleanup order
+    # This ensures subdirectories are cleaned before parent directories
+    $directoriesToCheck = $directoriesToCheck | Sort-Object { ($_ -split '[/\\]').Count } -Descending | Sort-Object
     
     # Calculate total work for accurate progress tracking
     $totalWork = $allFiles.Count + $directoriesToCheck.Count
