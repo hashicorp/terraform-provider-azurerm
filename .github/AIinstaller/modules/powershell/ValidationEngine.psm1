@@ -582,6 +582,11 @@ function Invoke-VerifyWorkspace {
                 }
                 
                 if (Test-Path $filePath) {
+                    $results.Files += @{
+                        Path = $file
+                        Status = "Present"
+                        Description = "Instruction file"
+                    }
                     Write-Host "    [FOUND] $file" -ForegroundColor Green
                 } else {
                     Write-Host "    [MISSING] $file" -ForegroundColor Red
@@ -622,6 +627,11 @@ function Invoke-VerifyWorkspace {
                 }
                 
                 if (Test-Path $filePath) {
+                    $results.Files += @{
+                        Path = $file
+                        Status = "Present"
+                        Description = "Prompt file"
+                    }
                     Write-Host "    [FOUND] $file" -ForegroundColor Green
                 } else {
                     Write-Host "    [MISSING] $file" -ForegroundColor Red
@@ -641,10 +651,20 @@ function Invoke-VerifyWorkspace {
         # Check .vscode directory and settings
         $vscodeDir = Join-Path $workspaceRoot ".vscode"
         if (Test-Path $vscodeDir -PathType Container) {
+            $results.Files += @{
+                Path = ".vscode/"
+                Status = "Present"
+                Description = "VSCode directory"
+            }
             Write-Host "  [FOUND] .vscode/" -ForegroundColor Green
             
             $settingsFile = Join-Path $vscodeDir "settings.json"
             if (Test-Path $settingsFile) {
+                $results.Files += @{
+                    Path = ".vscode/settings.json"
+                    Status = "Present"
+                    Description = "VSCode settings file"
+                }
                 Write-Host "    [FOUND] settings.json" -ForegroundColor Green
             } else {
                 Write-Host "    [MISSING] settings.json" -ForegroundColor Red
@@ -654,8 +674,6 @@ function Invoke-VerifyWorkspace {
             Write-Host "  [MISSING] .vscode/" -ForegroundColor Red
             $results.Issues += "Missing: $vscodeDir"
         }
-        
-        Write-Host ""
         
         # Show results summary
         if ($results.Issues.Count -gt 0) {
@@ -669,15 +687,25 @@ function Invoke-VerifyWorkspace {
                 Write-Host ""
                 Write-Host "TIP: To install missing files, run the installer from user profile" -ForegroundColor Cyan
             }
-        } else {
-            if ($results.IsSourceRepo) {
-                Write-Host "All AI infrastructure files are present in the source repository!" -ForegroundColor Green
-            } else {
-                Write-Host "All AI infrastructure files have been successfully installed!" -ForegroundColor Green
-            }
         }
         
-        Write-Host ""
+        # Prepare details for centralized summary
+        $details = @()
+        $filesFound = $results.Files.Count
+        $issuesFound = $results.Issues.Count
+        
+        $details += "Files Verified: $filesFound"
+        $details += "Issues Found: $issuesFound"
+        $details += "Repository Type: $(if ($results.IsSourceRepo) { 'Source' } else { 'Target' })"
+        $details += "Location: $workspaceRoot"
+        
+        # Use centralized success reporting
+        Show-OperationSummary -OperationName "Verification" -Success ($issuesFound -eq 0) -DryRun $false `
+            -ItemsProcessed $filesFound `
+            -ItemsSuccessful $filesFound `
+            -ItemsFailed $issuesFound `
+            -Details $details
+        
         return $results
     }
     finally {

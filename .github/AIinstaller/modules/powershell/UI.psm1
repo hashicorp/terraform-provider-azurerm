@@ -428,9 +428,6 @@ function Show-OperationSummary {
     .PARAMETER ItemsFailed
     Number of items that failed processing
     
-    .PARAMETER Details
-    Hashtable or string array of operation details
-    
     .PARAMETER DryRun
     Whether this was a dry run operation
     #>
@@ -445,9 +442,9 @@ function Show-OperationSummary {
         [int]$ItemsSuccessful = 0,
         [int]$ItemsFailed = 0,
         
-        [object]$Details = $null,
+        [bool]$DryRun = $false,
         
-        [bool]$DryRun = $false
+        [string[]]$Details = @()
     )
     
     Write-Host ""
@@ -462,23 +459,8 @@ function Show-OperationSummary {
     Write-Host $completionMessage -ForegroundColor $(if ($Success) { "Green" } else { "Red" })
     Write-Host ""
     
-    # Process details - handle both hashtables and string arrays
+    # Initialize details hashtable
     $detailsHash = @{}
-    
-    if ($Details -is [hashtable]) {
-        $detailsHash = $Details
-    }
-    elseif ($Details -is [array] -and $Details.Count -gt 0) {
-        # Convert string array to hashtable (for backward compatibility)
-        foreach ($detail in $Details) {
-            if ($detail -match '^(.+?):\s*(.+)$') {
-                $detailsHash[$matches[1].Trim()] = $matches[2].Trim()
-            }
-            else {
-                $detailsHash["Info"] = $detail
-            }
-        }
-    }
     
     # Add standard metrics to details
     if ($ItemsSuccessful -gt 0) {
@@ -489,6 +471,15 @@ function Show-OperationSummary {
     }
     if ($ItemsProcessed -gt 0 -and $ItemsProcessed -ne $ItemsSuccessful) {
         $detailsHash["Items Processed"] = $ItemsProcessed
+    }
+    
+    # Add passed details to details hash (passed details take precedence over standard metrics)
+    foreach ($detail in $Details) {
+        if ($detail -match '^([^:]+):\s*(.+)$') {
+            $key = $matches[1].Trim()
+            $value = $matches[2].Trim()
+            $detailsHash[$key] = $value
+        }
     }
     
     # Display details using consistent UI formatting
