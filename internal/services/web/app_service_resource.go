@@ -168,7 +168,7 @@ func resourceAppService() *pluginsdk.Resource {
 
 			"source_control": schemaAppServiceSiteSourceControl(),
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			"site_credential": {
 				Type:     pluginsdk.TypeList,

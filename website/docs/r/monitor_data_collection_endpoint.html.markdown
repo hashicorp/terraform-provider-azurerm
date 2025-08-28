@@ -90,4 +90,4 @@ terraform import azurerm_monitor_data_collection_endpoint.example /subscriptions
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Insights`: 2023-03-11
+* `Microsoft.Insights` - 2023-03-11

@@ -111,7 +111,7 @@ resource "azurerm_dev_center_dev_box_definition" "test" {
   name               = "acctest-dcet-%d"
   location           = azurerm_resource_group.test.location
   dev_center_id      = azurerm_dev_center.test.id
-  image_reference_id = "${azurerm_dev_center.test.id}/galleries/default/images/microsoftvisualstudio_visualstudioplustools_vs-2022-ent-general-win10-m365-gen2"
+  image_reference_id = "${azurerm_dev_center.test.id}/galleries/default/images/microsoftwindowsdesktop_windows-ent-cpc_win11-24h2-ent-cpc"
   sku_name           = "general_i_8c32gb256ssd_v2"
 }
 `, r.template(data), data.RandomInteger)
@@ -140,11 +140,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_dev_center_dev_box_definition" "test" {
-  name               = "acctest-dcet-%d"
-  location           = azurerm_resource_group.test.location
-  dev_center_id      = azurerm_dev_center.test.id
-  image_reference_id = "${azurerm_dev_center.test.id}/galleries/default/images/microsoftvisualstudio_visualstudioplustools_vs-2022-ent-general-win10-m365-gen2"
-  sku_name           = "general_i_8c32gb256ssd_v2"
+  name                      = "acctest-dcet-%d"
+  location                  = azurerm_resource_group.test.location
+  dev_center_id             = azurerm_dev_center.test.id
+  image_reference_id        = "${azurerm_dev_center.test.id}/galleries/default/images/microsoftwindowsdesktop_windows-ent-cpc_win11-24h2-ent-cpc"
+  hibernate_support_enabled = true
+  sku_name                  = "general_i_8c32gb256ssd_v2"
 
   tags = {
     Env = "Test"
@@ -162,11 +163,12 @@ provider "azurerm" {
 }
 
 resource "azurerm_dev_center_dev_box_definition" "test" {
-  name               = "acctest-dcet-%d"
-  location           = azurerm_resource_group.test.location
-  dev_center_id      = azurerm_dev_center.test.id
-  image_reference_id = "${azurerm_dev_center.test.id}/galleries/default/images/microsoftvisualstudio_visualstudioplustools_vs-2022-ent-general-win11-m365-gen2"
-  sku_name           = "general_i_8c32gb512ssd_v2"
+  name                      = "acctest-dcet-%d"
+  location                  = azurerm_resource_group.test.location
+  dev_center_id             = azurerm_dev_center.test.id
+  image_reference_id        = "${azurerm_dev_center.test.id}/galleries/default/images/microsoftwindowsdesktop_windows-ent-cpc_win11-24h2-ent-cpc"
+  hibernate_support_enabled = false
+  sku_name                  = "general_i_8c32gb512ssd_v2"
 
   tags = {
     Env = "Test2"

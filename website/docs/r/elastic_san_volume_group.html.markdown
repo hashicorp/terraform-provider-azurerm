@@ -214,4 +214,4 @@ terraform import azurerm_elastic_san_volume_group.example /subscriptions/0000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ElasticSan`: 2023-01-01
+* `Microsoft.ElasticSan` - 2023-01-01
