@@ -452,14 +452,14 @@ function Show-OperationSummary {
     
     Write-Host ""
     
-    # Show operation completion with consistent formatting
-    if ($OperationName -eq "Bootstrap") {
-        Write-Host " Bootstrap completed successfully" -ForegroundColor $(if ($Success) { "Green" } else { "Red" })
-    } else {
-        $title = if ($DryRun) { "$OperationName (Dry Run) COMPLETE" } else { "$OperationName COMPLETE" }
-        Write-Host $title -ForegroundColor $(if ($Success) { "Green" } else { "Red" })
-        Write-Separator -Color $(if ($Success) { "Green" } else { "Red" })
+    # Show operation completion with consistent formatting for all operations
+    $statusText = if ($Success) { "completed successfully" } else { "failed" }
+    $completionMessage = if ($DryRun) { 
+        " $($OperationName) $statusText (dry run)" 
+    } else { 
+        " $($OperationName) $statusText" 
     }
+    Write-Host $completionMessage -ForegroundColor $(if ($Success) { "Green" } else { "Red" })
     Write-Host ""
     
     # Process details - handle both hashtables and string arrays

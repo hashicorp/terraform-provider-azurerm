@@ -294,9 +294,9 @@ function Install-AllAIFiles {
         # Dynamic padding to align closing brackets (1-digit=2 spaces, 2-digit=1 space, 3-digit=0 spaces)
         $progressPadding = if ($percentComplete -lt 10) { "  " } elseif ($percentComplete -lt 100) { " " } else { "" }
         $progressText = "[$percentComplete%$progressPadding]"
-        Write-Host "  Downloading " -ForegroundColor Yellow -NoNewline
+        Write-Host "  Downloading " -ForegroundColor Cyan -NoNewline
         Write-Host $progressText -ForegroundColor Green -NoNewline
-        Write-Host ": " -ForegroundColor Yellow -NoNewline
+        Write-Host ": " -ForegroundColor Cyan -NoNewline
         Write-Host $filePath -ForegroundColor White
         
         $fileResult = Install-AIFile -FilePath $filePath -DownloadUrl $downloadUrl -Force $Force -DryRun $DryRun -WorkspaceRoot $WorkspaceRoot
@@ -320,7 +320,7 @@ function Install-AllAIFiles {
         }
     }
     
-    Write-Host "Installation completed!" -ForegroundColor Green
+    Write-Host "Completed AI infrastructure installation." -ForegroundColor Green
     
     # Show detailed debug summary
     $results.DebugInfo.EndTime = Get-Date
