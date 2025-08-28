@@ -1074,7 +1074,11 @@ function Invoke-CleanWorkspace {
                 Write-Host ""
                 Write-Host "DETAILS:" -ForegroundColor Cyan
                 Write-Host "  Operation type     : " -ForegroundColor Cyan -NoNewline
-                Write-Host (if ($DryRun) { "Dry run (simulation)" } else { "Live cleanup" }) -ForegroundColor Yellow
+                if ($DryRun) {
+                    Write-Host "Dry run (simulation)" -ForegroundColor Yellow
+                } else {
+                    Write-Host "Live cleanup" -ForegroundColor Yellow
+                }
                 Write-Host "  Files removed      : " -ForegroundColor Cyan -NoNewline
                 Write-Host "0" -ForegroundColor Green
                 Write-Host "  Directories cleaned: " -ForegroundColor Cyan -NoNewline  
@@ -1088,8 +1092,9 @@ function Invoke-CleanWorkspace {
                 Write-Host "DETAILS:" -ForegroundColor Cyan
                 
                 # Find the longest key for proper alignment
+                $operationType = if ($DryRun) { "Dry run (simulation)" } else { "Live cleanup" }
                 $details = @{
-                    "Operation type" = if ($DryRun) { "Dry run (simulation)" } else { "Live cleanup" }
+                    "Operation type" = $operationType
                     "Files removed" = $result.FilesRemoved
                     "Directories cleaned" = $result.DirectoriesCleaned
                 }
