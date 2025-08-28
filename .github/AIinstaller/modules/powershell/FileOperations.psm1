@@ -1219,10 +1219,7 @@ function Invoke-CleanWorkspace {
                 Write-Host "0" -ForegroundColor Green
                 Write-Host ""
             } else {
-                # Full completion message for actual removals
-                Write-Host ""
-                Write-Host "All AI infrastructure files have been successfully cleaned!" -ForegroundColor Green
-                Write-Separator
+                # Show completion details for actual removals
                 Write-Host ""
                 Write-Host "DETAILS:" -ForegroundColor Cyan
                 
@@ -1251,6 +1248,7 @@ function Invoke-CleanWorkspace {
                     }
                 }
             }
+            Write-Host ""
         } else {
             Write-Host ""
             
