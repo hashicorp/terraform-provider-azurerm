@@ -279,8 +279,6 @@ function Show-UnknownBranchHelp {
     
     Write-Host "BRANCH DETECTION:" -ForegroundColor Cyan
     Write-Host "  The installer automatically detects your branch type and shows appropriate options."
-    Write-Host "  If branch detection fails, use the examples above as guidance."
-    Write-Host ""
 }
 
 function Show-InstallationResults {
@@ -411,22 +409,16 @@ function Show-Summary {
     if ($Details.Count -gt 0) {
         Write-Host "DETAILS:" -ForegroundColor Cyan
         
-        # Calculate the maximum key length for proper alignment
-        $maxKeyLength = 0
-        foreach ($key in $Details.Keys) {
-            if ($key.Length -gt $maxKeyLength) {
-                $maxKeyLength = $key.Length
-            }
-        }
+        # Find the longest key for proper alignment (following UI standards)
+        $longestKey = ($Details.Keys | Sort-Object Length -Descending | Select-Object -First 1)
         
-        # Display each detail with aligned colons and proper colors
+        # Display each detail with consistent alignment using Format-AlignedLabel
         foreach ($key in $Details.Keys) {
             $value = $Details[$key]
-            $padding = " " * ($maxKeyLength - $key.Length)
+            $formattedLabel = Format-AlignedLabel -Label $key -LongestLabel $longestKey
             
-            # Write key in cyan
-            Write-Host "  $key$padding" -ForegroundColor Cyan -NoNewline
-            Write-Host ": " -ForegroundColor Cyan -NoNewline
+            # Write key with consistent formatting
+            Write-Host "  ${formattedLabel}: " -ForegroundColor Cyan -NoNewline
             
             # Determine value color based on content
             if ($value -match '^\d+$') {
@@ -458,30 +450,49 @@ function Show-Summary {
     Write-Host ""
 }
 
-function Show-ParameterError {
+function Show-BootstrapNextSteps {
     <#
     .SYNOPSIS
-    Display a friendly error message for invalid parameters
+    Display next steps after successful bootstrap operation
     
     .DESCRIPTION
-    Shows a clean error message when invalid parameters are detected,
-    followed by the help information.
+    Shows the user what to do next after the installer files have been
+    successfully copied to their user profile.
     #>
     param(
-        [string]$ParameterName
+        [string]$TargetDirectory = "$env:USERPROFILE\.terraform-ai-installer"
     )
     
+    Write-Host "NEXT STEPS:" -ForegroundColor "Cyan"
     Write-Host ""
-    Write-Host "PARAMETER ERROR" -ForegroundColor Red
-    Write-Separator -Character "-" -Color Red
+    Write-Host "  1. Switch to your feature branch:" -ForegroundColor "Cyan"
+    Write-Host "     git checkout feature/your-branch-name" -ForegroundColor "White"
     Write-Host ""
-    Write-Host "'$ParameterName' is not a recognized parameter." -ForegroundColor Yellow
+    Write-Host "  2. Run the installer from your user profile:" -ForegroundColor "Cyan"
+    Write-Host "     cd `"`$env:USERPROFILE\.terraform-ai-installer`"" -ForegroundColor "White"
+    Write-Host "     .\install-copilot-setup.ps1 -RepoDirectory `"<path-to-your-terraform-provider-azurerm>`"" -ForegroundColor "White"
     Write-Host ""
-    Write-Host "Here are the available options:" -ForegroundColor Cyan
-    Write-Host ""
+}
+
+function Show-AIInstallerNotFoundError {
+    <#
+    .SYNOPSIS
+    Display error message when AIinstaller directory is not found
     
-    # Show the standard help (minimal version)
-    Show-Help -BranchName "Unknown" -BranchType "Unknown" -SkipHeader:$true -WorkspaceValid $true
+    .DESCRIPTION
+    Shows a helpful error message when bootstrap fails because the AIinstaller
+    directory is not found in the current repository. Provides clear steps
+    for resolution.
+    #>
+    
+    Write-Host "ERROR: AIinstaller directory not found!" -ForegroundColor Red
+    Write-Host "The .github/AIinstaller directory was not found in the current repository." -ForegroundColor Red
+    Write-Host "Bootstrap must be run from the source branch (exp/terraform_copilot) that contains the installer files." -ForegroundColor Yellow
+    Write-Host "" 
+    Write-Host "To resolve this issue:" -ForegroundColor Yellow
+    Write-Host "  1. Switch to the source branch: git checkout exp/terraform_copilot" -ForegroundColor Yellow
+    Write-Host "  2. Ensure you're in the correct repository (terraform-provider-azurerm)" -ForegroundColor Yellow
+    Write-Host "  3. Run bootstrap again from the source branch" -ForegroundColor Yellow
 }
 
 function Show-SafetyViolation {
@@ -525,30 +536,6 @@ function Show-SafetyViolation {
     }
 }
 
-#region Operation Summary Functions
-
-function Write-Status {
-    <#
-    .SYNOPSIS
-    Centralized status message formatting for consistent output
-    #>
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Message,
-        
-        [ValidateSet('Info', 'Success', 'Warning', 'Error', 'Progress')]
-        [string]$Type = 'Info'
-    )
-    
-    switch ($Type) {
-        'Info'     { Write-Host "[INFO] $Message" -ForegroundColor Cyan }
-        'Success'  { Write-Host "[SUCCESS] $Message" -ForegroundColor Green }
-        'Warning'  { Write-Host "[WARNING] $Message" -ForegroundColor Yellow }
-        'Error'    { Write-Host "[ERROR] $Message" -ForegroundColor Red }
-        'Progress' { Write-Host "[PROGRESS] $Message" -ForegroundColor Blue }
-    }
-}
-
 function Show-OperationSummary {
     <#
     .SYNOPSIS
@@ -573,249 +560,83 @@ function Show-OperationSummary {
     .PARAMETER ItemsFailed
     Number of items that failed processing
     
+    .PARAMETER Details
+    Hashtable or string array of operation details
+    
     .PARAMETER DryRun
     Whether this was a dry run operation
-    
-    .PARAMETER Details
-    Additional details to include in the summary
-    
-    .PARAMETER FailureDetails
-    Array of failure messages for specific items
     #>
     param(
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory)]
         [string]$OperationName,
         
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory)]
         [bool]$Success,
         
         [int]$ItemsProcessed = 0,
         [int]$ItemsSuccessful = 0,
         [int]$ItemsFailed = 0,
         
-        [switch]$DryRun,
+        [object]$Details = $null,
         
-        [string[]]$Details = @(),
-        [string[]]$FailureDetails = @()
+        [bool]$DryRun = $false
     )
-    
-    Write-Separator
-    
-    # Operation header with status
-    if ($DryRun) {
-        $operationTitle = "$OperationName Dry Run"
-    } else {
-        $operationTitle = $OperationName
-    }
-    
-    if ($Success) {
-        Write-Host "$operationTitle completed successfully!" -ForegroundColor Green
-    } else {
-        Write-Host "$operationTitle failed!" -ForegroundColor Red
-    }
     
     Write-Host ""
     
-    # Statistics (if provided)
-    if ($ItemsProcessed -gt 0) {
-        Write-Host "SUMMARY:" -ForegroundColor White
-        
-        # Collect all labels to calculate proper alignment
-        $labels = @("Items processed")
-        if ($ItemsSuccessful -gt 0) { $labels += "Successful" }
-        if ($ItemsFailed -gt 0) { $labels += "Failed" }
-        $labels += "Success Rate"
-        
-        # Find the longest label for alignment
-        $longestLabel = ($labels | Sort-Object Length -Descending)[0]
-        
-        # Display aligned statistics
-        $padding = " " * ($longestLabel.Length - "Items processed".Length)
-        Write-Host "  Items processed$padding" -ForegroundColor Cyan -NoNewline
-        Write-Host ": " -ForegroundColor Cyan -NoNewline
-        Write-Host $ItemsProcessed -ForegroundColor Cyan
-        
-        if ($ItemsSuccessful -gt 0) {
-            $padding = " " * ($longestLabel.Length - "Successful".Length)
-            Write-Host "  Successful$padding" -ForegroundColor Cyan -NoNewline
-            Write-Host ": " -ForegroundColor Cyan -NoNewline
-            Write-Host $ItemsSuccessful -ForegroundColor Green
-        }
-        
-        if ($ItemsFailed -gt 0) {
-            $padding = " " * ($longestLabel.Length - "Failed".Length)
-            Write-Host "  Failed$padding" -ForegroundColor Cyan -NoNewline
-            Write-Host ": " -ForegroundColor Cyan -NoNewline
-            Write-Host $ItemsFailed -ForegroundColor Red
-        }
-        
-        # Success rate
-        if ($ItemsProcessed -gt 0) {
-            $successRate = [math]::Round(($ItemsSuccessful / $ItemsProcessed) * 100, 1)
-            $color = if ($successRate -eq 100) { "Green" } elseif ($successRate -ge 80) { "Yellow" } else { "Red" }
-            $padding = " " * ($longestLabel.Length - "Success Rate".Length)
-            Write-Host "  Success Rate$padding" -ForegroundColor Cyan -NoNewline
-            Write-Host ": " -ForegroundColor Cyan -NoNewline
-            Write-Host "$successRate%" -ForegroundColor $color
-        }
-        
-        Write-Host ""
-    }
+    # Show operation title
+    $title = if ($DryRun) { "$OperationName (Dry Run)" } else { $OperationName }
+    Write-Host "$title COMPLETE" -ForegroundColor $(if ($Success) { "Green" } else { "Yellow" })
+    Write-Separator -Length 40 -Color $(if ($Success) { "Green" } else { "Yellow" })
+    Write-Host ""
     
-    # Additional details
-    if ($Details.Count -gt 0) {
-        Write-Host "DETAILS:" -ForegroundColor White
+    # Process details - handle both hashtables and string arrays
+    $detailsHash = @{}
+    
+    if ($Details -is [hashtable]) {
+        $detailsHash = $Details
+    }
+    elseif ($Details -is [array] -and $Details.Count -gt 0) {
+        # Convert string array to hashtable (for backward compatibility)
         foreach ($detail in $Details) {
-            Write-Host "  - $detail" -ForegroundColor Gray
-        }
-        Write-Host ""
-    }
-    
-    # Failure details (if any)
-    if ($FailureDetails.Count -gt 0) {
-        Write-Host "FAILURES:" -ForegroundColor Red
-        foreach ($failure in $FailureDetails) {
-            Write-Host "  - $failure" -ForegroundColor Red
-        }
-        Write-Host ""
-    }
-    
-    # Dry run note
-    if ($DryRun) {
-        Write-Host "NOTE: This was a dry run - no actual changes were made." -ForegroundColor Yellow
-        Write-Host ""
-    }
-    
-    Write-Separator
-}
-
-function Show-QuickOperationResult {
-    <#
-    .SYNOPSIS
-    Simplified operation result for quick feedback
-    
-    .DESCRIPTION
-    For simple operations that just need basic success/failure feedback
-    #>
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$OperationName,
-        
-        [Parameter(Mandatory = $true)]
-        [bool]$Success,
-        
-        [string]$Message = "",
-        
-        [switch]$DryRun
-    )
-    
-    $prefix = if ($DryRun) { "[DRY RUN] " } else { "" }
-    
-    if ($Success) {
-        $statusMessage = if ($Message) { "$OperationName completed: $Message" } else { "$OperationName completed successfully!" }
-        Write-Status -Message "$prefix$statusMessage" -Type Success
-    } else {
-        $statusMessage = if ($Message) { "$OperationName failed: $Message" } else { "$OperationName failed!" }
-        Write-Status -Message "$prefix$statusMessage" -Type Error
-    }
-}
-
-function Show-OperationSuccess {
-    <#
-    .SYNOPSIS
-    Shows standardized success message for operations
-    
-    .PARAMETER Operation
-    Name of the operation that succeeded
-    
-    .PARAMETER Summary
-    Brief summary of what was accomplished
-    
-    .PARAMETER NextSteps
-    Array of next steps for the user
-    #>
-    param(
-        [string]$Operation,
-        [string]$Summary,
-        [string[]]$NextSteps = @()
-    )
-    
-    Write-Separator
-    Write-Host "$($Operation.ToUpper()) COMPLETED SUCCESSFULLY" -ForegroundColor Green
-    Write-Host ""
-    Write-Host $Summary -ForegroundColor Green
-    
-    if ($NextSteps.Count -gt 0) {
-        Write-Host ""
-        Write-Host "Next Steps:" -ForegroundColor Cyan
-        for ($i = 0; $i -lt $NextSteps.Count; $i++) {
-            Write-Host "$($i + 1). $($NextSteps[$i])" -ForegroundColor White
+            if ($detail -match '^(.+?):\s*(.+)$') {
+                $detailsHash[$matches[1].Trim()] = $matches[2].Trim()
+            }
+            else {
+                $detailsHash["Info"] = $detail
+            }
         }
     }
     
-    Write-Separator
-}
-
-function Show-OperationFailure {
-    <#
-    .SYNOPSIS
-    Shows standardized failure message for operations
-    
-    .PARAMETER Operation
-    Name of the operation that failed
-    
-    .PARAMETER ErrorMessage
-    Error message or exception details
-    
-    .PARAMETER Suggestions
-    Array of suggested next steps or troubleshooting tips
-    #>
-    param(
-        [string]$Operation,
-        [string]$ErrorMessage,
-        [string[]]$Suggestions = @()
-    )
-    
-    Write-Separator
-    Write-Host "$($Operation.ToUpper()) FAILED" -ForegroundColor Red
-    Write-Host ""
-    Write-Host "Error: $ErrorMessage" -ForegroundColor Red
-    
-    if ($Suggestions.Count -gt 0) {
-        Write-Host ""
-        Write-Host "Suggestions:" -ForegroundColor Yellow
-        for ($i = 0; $i -lt $Suggestions.Count; $i++) {
-            Write-Host "$($i + 1). $($Suggestions[$i])" -ForegroundColor White
-        }
+    # Add standard metrics to details
+    if ($ItemsProcessed -gt 0) {
+        $detailsHash["Items Processed"] = $ItemsProcessed
+    }
+    if ($ItemsSuccessful -gt 0) {
+        $detailsHash["Items Successful"] = $ItemsSuccessful
+    }
+    if ($ItemsFailed -gt 0) {
+        $detailsHash["Items Failed"] = $ItemsFailed
     }
     
-    Write-Separator
+    # Display details using the existing Show-Summary function
+    if ($detailsHash.Count -gt 0) {
+        Show-Summary -Title "SUMMARY" -Details $detailsHash
+    }
 }
-
-#endregion
 
 #endregion
 
 # Export only the functions actually used by the main script
 Export-ModuleMember -Function @(
     'Write-Separator',
-    'Write-Header',
+    'Write-Header', 
     'Format-AlignedLabel',
     'Show-BranchDetection',
-    'Write-OperationStatus',
-    'Write-Status',
-    'Show-OperationSummary',
-    'Show-QuickOperationResult',
     'Show-Help',
     'Show-SourceBranchHelp',
-    'Show-FeatureBranchHelp',
-    'Show-UnknownBranchHelp',
-    'Show-InstallationResults',
     'Show-SourceBranchWelcome',
-    'Show-CompletionSummary',
-    'Show-Summary',
-    'Show-ParameterError',
     'Show-SafetyViolation',
-    'Show-OperationSuccess',
-    'Show-OperationFailure'
+    'Show-BootstrapNextSteps',
+    'Show-AIInstallerNotFoundError'
 )

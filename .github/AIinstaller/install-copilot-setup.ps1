@@ -331,19 +331,19 @@ function Main {
         }
         
         if ($Bootstrap) {
-            Invoke-Bootstrap -AutoApprove $AutoApprove -DryRun $DryRun
+            Invoke-Bootstrap -AutoApprove $AutoApprove -DryRun $DryRun | Out-Null
             return
         }
         
         if ($Clean) {
-            Invoke-CleanWorkspace -AutoApprove $AutoApprove -DryRun $DryRun
+            Invoke-CleanWorkspace -AutoApprove $AutoApprove -DryRun $DryRun | Out-Null
             return
         }
         
         # Installation path (when -RepoDirectory is provided and not other specific operations)
         if ($RepoDirectory -and -not ($Help -or $Verify -or $Bootstrap -or $Clean)) {
             # Proceed with installation
-            Invoke-InstallInfrastructure -AutoApprove $AutoApprove -DryRun $DryRun
+            Invoke-InstallInfrastructure -AutoApprove $AutoApprove -DryRun $DryRun | Out-Null
             return
         }
         

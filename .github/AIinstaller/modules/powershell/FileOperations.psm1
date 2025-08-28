@@ -976,14 +976,7 @@ function Invoke-Bootstrap {
             }
         } else {
             # AIinstaller directory not found in current repository
-            Write-Host "ERROR: AIinstaller directory not found!" -ForegroundColor Red
-            Write-Host "The .github/AIinstaller directory was not found in the current repository." -ForegroundColor Red
-            Write-Host "Bootstrap must be run from the source branch (exp/terraform_copilot) that contains the installer files." -ForegroundColor Yellow
-            Write-Host "" 
-            Write-Host "To resolve this issue:" -ForegroundColor Yellow
-            Write-Host "  1. Switch to the source branch: git checkout exp/terraform_copilot" -ForegroundColor Yellow
-            Write-Host "  2. Ensure you're in the correct repository (terraform-provider-azurerm)" -ForegroundColor Yellow
-            Write-Host "  3. Run bootstrap again from the source branch" -ForegroundColor Yellow
+            Show-AIInstallerNotFoundError
             exit 1
         }
         
@@ -1004,21 +997,14 @@ function Invoke-Bootstrap {
         
         if ($statistics["Files Failed"] -eq 0) {
             # Use centralized success reporting
-            Show-OperationSummary -OperationName "Bootstrap" -Success $true -DryRun:$DryRun `
+            Show-OperationSummary -OperationName "Bootstrap" -Success $true -DryRun $false `
                 -ItemsProcessed $statistics["Total Files"] `
                 -ItemsSuccessful ($statistics["Files Copied"] + $statistics["Files Downloaded"]) `
                 -ItemsFailed $statistics["Files Failed"] `
                 -Details $details
             
-            Write-Host "NEXT STEPS:" -ForegroundColor "Cyan"
-            Write-Host ""
-            Write-Host "  1. Switch to your feature branch:" -ForegroundColor "Cyan"
-            Write-Host "     git checkout feature/your-branch-name" -ForegroundColor "White"
-            Write-Host ""
-            Write-Host "  2. Run the installer from your user profile:" -ForegroundColor "Cyan"
-            Write-Host "     cd `"`$env:USERPROFILE\.terraform-ai-installer`"" -ForegroundColor "White"
-            Write-Host "     .\install-copilot-setup.ps1 -RepoDirectory `"<path-to-your-terraform-provider-azurerm>`"" -ForegroundColor "White"
-            Write-Host ""
+            # Show next steps using UI module function
+            Show-BootstrapNextSteps
             
             return @{
                 Success = $true
@@ -1027,7 +1013,7 @@ function Invoke-Bootstrap {
             }
         } else {
             # Use centralized failure reporting
-            Show-OperationSummary -OperationName "Bootstrap" -Success $false -DryRun:$DryRun `
+            Show-OperationSummary -OperationName "Bootstrap" -Success $false -DryRun $false `
                 -ItemsProcessed $statistics["Total Files"] `
                 -ItemsSuccessful ($statistics["Files Copied"] + $statistics["Files Downloaded"]) `
                 -ItemsFailed $statistics["Files Failed"] `
@@ -1040,7 +1026,8 @@ function Invoke-Bootstrap {
         }
     }
     catch {
-        Write-ErrorMessage "Bootstrap failed: $($_.Exception.Message)"
+        Show-OperationSummary -OperationName "Bootstrap" -Success $false -DryRun $false `
+            -Details @{ "Error" = $_.Exception.Message }
         return @{
             Success = $false
             Error = $_.Exception.Message
