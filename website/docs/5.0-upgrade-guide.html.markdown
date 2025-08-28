@@ -457,6 +457,10 @@ Please follow the format in the example below for listing breaking changes in da
 * The deprecated `source_arm_resource_id` property has been removed in favour of the `source_resource_id` property.
 * The deprecated `metric_arm_resource_id` property has been removed in favour of the `metric_resource_id` property.
 
+### `azurerm_key_vault`
+
+* The deprecated `enable_rbac_authorization` property has been removed in favour of the `rbac_authorization_enabled` property.
+
 ### `azurerm_logic_app_standard`
 
 * The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
