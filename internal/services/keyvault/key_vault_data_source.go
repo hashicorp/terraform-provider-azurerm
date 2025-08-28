@@ -171,8 +171,9 @@ func dataSourceKeyVault() *pluginsdk.Resource {
 
 	if !features.FivePointOh() {
 		resource.Schema["enable_rbac_authorization"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeBool,
-			Computed: true,
+			Type:       pluginsdk.TypeBool,
+			Computed:   true,
+			Deprecated: "the `enable_rbac_authorization` property is deprecated in favour of `rbac_authorization_enabled` and will be removed in v5.0 of the AzureRM Provider.",
 		}
 	}
 

@@ -651,7 +651,7 @@ func resourceKeyVaultUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 
 			vaultUri := ""
 			if existing.Model != nil && existing.Model.Properties.VaultUri != nil {
-				vaultUri = *existing.Model.Properties.VaultUri
+				vaultUri = pointer.From(existing.Model.Properties.VaultUri)
 			}
 
 			if vaultUri == "" {
