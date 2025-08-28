@@ -1,4 +1,4 @@
-## 4.42.0 (Unreleased)
+## 4.42.0 (August 28, 2025)
 
 NOTES:
 
@@ -6,26 +6,26 @@ NOTES:
 
 FEATURES:
 
-* **New Data Source:** `azurerm_managed_disks` [GH-30394]
+* **New Data Source:** `azurerm_managed_disks` ([#30394](https://github.com/hashicorp/terraform-provider-azurerm/issues/30394))
 
 ENHANCEMENTS:
 
-* dependencies: `containerservice` - update api version to `2025-05-01` [GH-30401]
-* dependencies: `go-azure-sdk/resourcemanager` update to `v0.20250814.1105543` [GH-30401]
-* dependencies: `go-azure-sdk/sdk` update to `v0.20250814.1105543` [GH-30401]
-* `azurerm_iothub_endpoint_cosmosdb_account` - add support for `endpoint.subscription_id` property [GH-27524]
-* `azurerm_iothub_endpoint_eventhub` - add support for `endpoint.subscription_id` property [GH-27524]
-* `azurerm_iothub_endpoint_servicebus_queue` - add support for `endpoint.subscription_id` property [GH-27524]
-* `azurerm_iothub_endpoint_servicebus_topic` - add support for `endpoint.subscription_id` property [GH-27524]
-* `azurerm_iothub` - add support for `endpoint.subscription_id` property [GH-27524]
-* `azurerm_linux_virtual_machine` - add support for `os_managed_disk_id` property [GH-30394]
-* `azurerm_windows_virtual_machine` - add support for `os_managed_disk_id` property [GH-30394]
+* dependencies: `containerservice` - update api version to `2025-05-01` ([#30401](https://github.com/hashicorp/terraform-provider-azurerm/issues/30401))
+* dependencies: `go-azure-sdk/resourcemanager` update to `v0.20250814.1105543` ([#30401](https://github.com/hashicorp/terraform-provider-azurerm/issues/30401))
+* dependencies: `go-azure-sdk/sdk` update to `v0.20250814.1105543` ([#30401](https://github.com/hashicorp/terraform-provider-azurerm/issues/30401))
+* `azurerm_iothub` - add support for `endpoint.subscription_id` property ([#27524](https://github.com/hashicorp/terraform-provider-azurerm/issues/27524))
+* `azurerm_iothub_endpoint_cosmosdb_account` - add support for `endpoint.subscription_id` property ([#27524](https://github.com/hashicorp/terraform-provider-azurerm/issues/27524))
+* `azurerm_iothub_endpoint_eventhub` - add support for `endpoint.subscription_id` property ([#27524](https://github.com/hashicorp/terraform-provider-azurerm/issues/27524))
+* `azurerm_iothub_endpoint_servicebus_queue` - add support for `endpoint.subscription_id` property ([#27524](https://github.com/hashicorp/terraform-provider-azurerm/issues/27524))
+* `azurerm_iothub_endpoint_servicebus_topic` - add support for `endpoint.subscription_id` property ([#27524](https://github.com/hashicorp/terraform-provider-azurerm/issues/27524))
+* `azurerm_linux_virtual_machine` - add support for `os_managed_disk_id` property ([#30394](https://github.com/hashicorp/terraform-provider-azurerm/issues/30394))
+* `azurerm_windows_virtual_machine` - add support for `os_managed_disk_id` property ([#30394](https://github.com/hashicorp/terraform-provider-azurerm/issues/30394))
 
 BUG FIXES:
 
-* `azurerm_kusto_cluster` - add a state migration for `language_extensions` to migrate from a list of strings to a list of objects (block) [GH-30438]
-* `azurerm_kusto_cluster` - fix an issue where removal of the `language_extensions` property was not applied to the API request [GH-30449]
-* `azurerm_linux_web_app` - normalize docker url [GH-30368]
+* `azurerm_kusto_cluster` - add a state migration for `language_extensions` to migrate from a list of strings to a list of objects (block) ([#30438](https://github.com/hashicorp/terraform-provider-azurerm/issues/30438))
+* `azurerm_kusto_cluster` - fix an issue where removal of the `language_extensions` property was not applied to the API request ([#30449](https://github.com/hashicorp/terraform-provider-azurerm/issues/30449))
+* `azurerm_linux_web_app` - normalize docker url ([#30368](https://github.com/hashicorp/terraform-provider-azurerm/issues/30368))
 
 ## 4.41.0 (August 21, 2025)
 
