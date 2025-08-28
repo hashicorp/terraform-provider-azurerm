@@ -2057,19 +2057,19 @@ resource "azurerm_netapp_snapshot" "test_original" {
 }
 
 resource "azurerm_netapp_volume" "test" {
-  name                                                = "acctest-NetAppVolume-ShortTermClone-%[2]d"
-  location                                            = azurerm_resource_group.test.location
-  resource_group_name                                 = azurerm_resource_group.test.name
-  account_name                                        = azurerm_netapp_account.test.name
-  pool_name                                           = azurerm_netapp_pool.test.name
-  volume_path                                         = "my-unique-file-path-clone-%[2]d"
-  service_level                                       = "Standard"
-  subnet_id                                           = azurerm_subnet.test.id
-  protocols                                           = ["NFSv3"]
-  security_style                                      = "unix"
-  storage_quota_in_gb                                 = 100
-  throughput_in_mibps                                 = 16
-  create_from_snapshot_resource_id                    = azurerm_netapp_snapshot.test_original.id
+  name                                                 = "acctest-NetAppVolume-ShortTermClone-%[2]d"
+  location                                             = azurerm_resource_group.test.location
+  resource_group_name                                  = azurerm_resource_group.test.name
+  account_name                                         = azurerm_netapp_account.test.name
+  pool_name                                            = azurerm_netapp_pool.test.name
+  volume_path                                          = "my-unique-file-path-clone-%[2]d"
+  service_level                                        = "Standard"
+  subnet_id                                            = azurerm_subnet.test.id
+  protocols                                            = ["NFSv3"]
+  security_style                                       = "unix"
+  storage_quota_in_gb                                  = 100
+  throughput_in_mibps                                  = 16
+  create_from_snapshot_resource_id                     = azurerm_netapp_snapshot.test_original.id
   accept_grow_capacity_pool_for_short_term_clone_split = "Accepted"
 
   depends_on = [azurerm_netapp_snapshot.test_original]
