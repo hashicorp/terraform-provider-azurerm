@@ -499,6 +499,9 @@ function Remove-AllAIFiles {
             # Allow specific AI directories under .github
             $allowedAIDirectories = @(
                 ".github/AIinstaller",
+                ".github/AIinstaller/modules",
+                ".github/AIinstaller/modules/powershell",
+                ".github/AIinstaller/modules/bash",
                 ".github/instructions", 
                 ".github/prompts"
             )
@@ -830,6 +833,9 @@ function Remove-EmptyParentDirectories {
                 
                 $allowedAIDirectories = @(
                     ".github/AIinstaller",
+                    ".github/AIinstaller/modules",
+                    ".github/AIinstaller/modules/powershell",
+                    ".github/AIinstaller/modules/bash",
                     ".github/instructions", 
                     ".github/prompts"
                 )
