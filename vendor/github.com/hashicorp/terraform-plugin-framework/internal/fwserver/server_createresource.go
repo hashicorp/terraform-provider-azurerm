@@ -101,7 +101,6 @@ func (s *Server) CreateResource(ctx context.Context, req *CreateResourceRequest,
 	}
 
 	// If the resource supports identity and there is no planned identity data, pre-populate with a null value.
-	// TODO:ResourceIdentity: This logic is likely useless since plan should already handle this, probably should remove.
 	if req.PlannedIdentity == nil && req.IdentitySchema != nil {
 		nullIdentityTfValue := tftypes.NewValue(req.IdentitySchema.Type().TerraformType(ctx), nil)
 

@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2025-04-01/registries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/machinelearning/validate"
@@ -195,6 +195,12 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 							Computed:     true,
 							ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForIsolationMode(), false),
 						},
+						"provision_on_creation_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							ForceNew: true,
+							Default:  false,
+						},
 					},
 				},
 			},
@@ -283,6 +289,8 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 
 	expandedEncryption := expandMachineLearningWorkspaceEncryption(d.Get("encryption").([]interface{}))
 
+	managedNetwork, provisionNetworkNow := expandMachineLearningWorkspaceManagedNetwork(d.Get("managed_network").([]interface{}))
+
 	networkAccessBehindVnetEnabled := workspaces.PublicNetworkAccessDisabled
 
 	if v := d.Get("public_network_access_enabled").(bool); v {
@@ -304,7 +312,8 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 			ApplicationInsights: pointer.To(d.Get("application_insights_id").(string)),
 			Encryption:          expandedEncryption,
 			KeyVault:            pointer.To(d.Get("key_vault_id").(string)),
-			ManagedNetwork:      expandMachineLearningWorkspaceManagedNetwork(d.Get("managed_network").([]interface{})),
+			ManagedNetwork:      managedNetwork,
+			ProvisionNetworkNow: pointer.To(provisionNetworkNow),
 			PublicNetworkAccess: pointer.To(networkAccessBehindVnetEnabled),
 			StorageAccount:      pointer.To(d.Get("storage_account_id").(string)),
 			V1LegacyMode:        pointer.To(d.Get("v1_legacy_mode_enabled").(bool)),
@@ -440,7 +449,7 @@ func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if d.HasChange("managed_network") {
-		payload.Properties.ManagedNetwork = expandMachineLearningWorkspaceManagedNetwork(d.Get("managed_network").([]interface{}))
+		payload.Properties.ManagedNetwork, _ = expandMachineLearningWorkspaceManagedNetwork(d.Get("managed_network").([]interface{}))
 	}
 
 	if d.HasChange("sku_name") {
@@ -546,7 +555,7 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("public_network_access_enabled", *props.PublicNetworkAccess == workspaces.PublicNetworkAccessEnabled)
 			d.Set("v1_legacy_mode_enabled", props.V1LegacyMode)
 			d.Set("workspace_id", props.WorkspaceId)
-			d.Set("managed_network", flattenMachineLearningWorkspaceManagedNetwork(props.ManagedNetwork))
+			d.Set("managed_network", flattenMachineLearningWorkspaceManagedNetwork(props.ManagedNetwork, props.ProvisionNetworkNow))
 			d.Set("serverless_compute", flattenMachineLearningWorkspaceServerlessCompute(props.ServerlessComputeSettings))
 
 			kvId, err := commonids.ParseKeyVaultIDInsensitively(*props.KeyVault)
@@ -767,19 +776,19 @@ func flattenMachineLearningWorkspaceFeatureStore(input *workspaces.FeatureStoreS
 	}
 }
 
-func expandMachineLearningWorkspaceManagedNetwork(i []interface{}) *workspaces.ManagedNetworkSettings {
+func expandMachineLearningWorkspaceManagedNetwork(i []interface{}) (*workspaces.ManagedNetworkSettings, bool) {
 	if len(i) == 0 || i[0] == nil {
-		return nil
+		return nil, false
 	}
 
 	v := i[0].(map[string]interface{})
 
 	return &workspaces.ManagedNetworkSettings{
 		IsolationMode: pointer.To(workspaces.IsolationMode(v["isolation_mode"].(string))),
-	}
+	}, v["provision_on_creation_enabled"].(bool)
 }
 
-func flattenMachineLearningWorkspaceManagedNetwork(i *workspaces.ManagedNetworkSettings) *[]interface{} {
+func flattenMachineLearningWorkspaceManagedNetwork(i *workspaces.ManagedNetworkSettings, provisionNetworkNow *bool) *[]interface{} {
 	if i == nil {
 		return &[]interface{}{}
 	}
@@ -789,6 +798,7 @@ func flattenMachineLearningWorkspaceManagedNetwork(i *workspaces.ManagedNetworkS
 	if i.IsolationMode != nil {
 		out["isolation_mode"] = *i.IsolationMode
 	}
+	out["provision_on_creation_enabled"] = pointer.From(provisionNetworkNow)
 
 	return &[]interface{}{out}
 }

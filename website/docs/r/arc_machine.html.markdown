@@ -93,4 +93,4 @@ terraform import azurerm_arc_machine.example /subscriptions/00000000-0000-0000-0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.HybridCompute`: 2024-07-10
+* `Microsoft.HybridCompute` - 2024-07-10
