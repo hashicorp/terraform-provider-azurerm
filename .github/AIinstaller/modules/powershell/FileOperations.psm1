@@ -1181,12 +1181,16 @@ function Invoke-InstallInfrastructure {
     
     .PARAMETER ManifestConfig
     Manifest configuration object
+    
+    .PARAMETER TargetBranch
+    Target repository branch name for summary display
     #>
     param(
         [bool]$AutoApprove,
         [bool]$DryRun,
         [string]$WorkspaceRoot,
-        [hashtable]$ManifestConfig
+        [hashtable]$ManifestConfig,
+        [string]$TargetBranch = "Unknown"
     )
     
     Write-Host " Installing AI Infrastructure" -ForegroundColor Cyan
@@ -1225,9 +1229,9 @@ function Invoke-InstallInfrastructure {
             $nextSteps += "Start using GitHub Copilot with your new AI-assisted infrastructure"
             $nextSteps += "Check the .github/instructions/ folder for detailed guidelines"
             
-            # Get branch information for completion summary - need to access global config
-            $currentBranch = if ($Global:InstallerConfig -and $Global:InstallerConfig.Branch) { 
-                $Global:InstallerConfig.Branch 
+            # Get branch information for completion summary - use target branch passed in
+            $currentBranch = if ($TargetBranch -and $TargetBranch -ne "Unknown") { 
+                $TargetBranch 
             } else { 
                 "Unknown" 
             }
