@@ -28,14 +28,11 @@ resource "azurerm_mobile_network" "example" {
 
 
 resource "azurerm_mobile_network_slice" "example" {
-  name              = "example-mns"
-  mobile_network_id = azurerm_mobile_network.example.id
-  location          = azurerm_resource_group.example.location
-  description       = "an example slice"
-
-  single_network_slice_selection_assistance_information {
-    slice_service_type = 1
-  }
+  name               = "example-mns"
+  mobile_network_id  = azurerm_mobile_network.example.id
+  location           = azurerm_resource_group.example.location
+  description        = "an example slice"
+  slice_service_type = 1
 
   tags = {
     key = "value"
@@ -54,19 +51,13 @@ The following arguments are supported:
 
 * `location` - (Required) Specifies the Azure Region where the Mobile Network Slice should exist. Changing this forces a new Mobile Network Slice to be created.
 
-* `single_network_slice_selection_assistance_information` - (Required) A `single_network_slice_selection_assistance_information` block as defined below. Single-network slice selection assistance information (S-NSSAI). Unique at the scope of a mobile network.
+* `slice_differentiator` - (Optional) Slice differentiator (SD). Must be a 6 digit hex string. For single-network slice selection assistance information (S-NSSAI). Unique at the scope of a mobile network.
+
+* `slice_service_type` - (Required) Slice/service type (SST). Must be between `0` and `255`. For single-network slice selection assistance information (S-NSSAI). Unique at the scope of a mobile network.
 
 * `description` - (Optional) A description for this Mobile Network Slice.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Mobile Network Slice.
-
----
-
-A `single_network_slice_selection_assistance_information` block supports the following:
-
-* `slice_differentiator` - (Optional) Slice differentiator (SD). Must be a 6 digit hex string.
-
-* `slice_service_type` - (Required) Slice/service type (SST). Must be between `0` and `255`.
 
 ## Attributes Reference
 
@@ -97,4 +88,4 @@ terraform import azurerm_mobile_network_slice.example /subscriptions/00000000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.MobileNetwork`: 2022-11-01
+* `Microsoft.MobileNetwork` - 2022-11-01

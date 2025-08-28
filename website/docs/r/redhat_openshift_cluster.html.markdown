@@ -290,4 +290,4 @@ terraform import azurerm_redhat_openshift_cluster.cluster1 /subscriptions/000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.RedHatOpenShift`: 2023-09-04
+* `Microsoft.RedHatOpenShift` - 2023-09-04
