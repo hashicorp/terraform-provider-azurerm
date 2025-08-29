@@ -229,6 +229,12 @@ func resourceMachineLearningWorkspace() *pluginsdk.Resource {
 				Default:  false,
 			},
 
+			"system_datastores_auth_mode": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(workspaces.PossibleValuesForSystemDatastoresAuthMode(), false),
+			},
+
 			"serverless_compute": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
@@ -353,6 +359,10 @@ func resourceMachineLearningWorkspaceCreate(d *pluginsdk.ResourceData, meta inte
 		workspace.Properties.PrimaryUserAssignedIdentity = pointer.To(v.(string))
 	}
 
+	if v, ok := d.GetOk("system_datastores_auth_mode"); ok {
+		workspace.Properties.SystemDatastoresAuthMode = pointer.To(workspaces.SystemDatastoresAuthMode(v.(string)))
+	}
+
 	featureStore := expandMachineLearningWorkspaceFeatureStore(d.Get("feature_store").([]interface{}))
 	if strings.EqualFold(*workspace.Kind, "Default") {
 		if featureStore != nil {
@@ -463,6 +473,14 @@ func resourceMachineLearningWorkspaceUpdate(d *pluginsdk.ResourceData, meta inte
 		payload.Properties.V1LegacyMode = pointer.To(d.Get("v1_legacy_mode_enabled").(bool))
 	}
 
+	if d.HasChange("system_datastores_auth_mode") {
+		if v, ok := d.GetOk("system_datastores_auth_mode"); ok {
+			payload.Properties.SystemDatastoresAuthMode = pointer.To(workspaces.SystemDatastoresAuthMode(v.(string)))
+		} else {
+			payload.Properties.SystemDatastoresAuthMode = nil
+		}
+	}
+
 	if d.HasChange("serverless_compute") {
 		serverlessCompute := expandMachineLearningWorkspaceServerlessCompute(d.Get("serverless_compute").([]interface{}))
 		if serverlessCompute != nil {
@@ -554,6 +572,7 @@ func resourceMachineLearningWorkspaceRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("primary_user_assigned_identity", props.PrimaryUserAssignedIdentity)
 			d.Set("public_network_access_enabled", *props.PublicNetworkAccess == workspaces.PublicNetworkAccessEnabled)
 			d.Set("v1_legacy_mode_enabled", props.V1LegacyMode)
+			d.Set("system_datastores_auth_mode", props.SystemDatastoresAuthMode)
 			d.Set("workspace_id", props.WorkspaceId)
 			d.Set("managed_network", flattenMachineLearningWorkspaceManagedNetwork(props.ManagedNetwork, props.ProvisionNetworkNow))
 			d.Set("serverless_compute", flattenMachineLearningWorkspaceServerlessCompute(props.ServerlessComputeSettings))
