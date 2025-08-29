@@ -309,6 +309,7 @@ type OSSKU string
 
 const (
 	OSSKUAzureLinux            OSSKU = "AzureLinux"
+	OSSKUAzureLinux3           OSSKU = "AzureLinux3"
 	OSSKUCBLMariner            OSSKU = "CBLMariner"
 	OSSKUUbuntu                OSSKU = "Ubuntu"
 	OSSKUWindowsTwoZeroOneNine OSSKU = "Windows2019"
