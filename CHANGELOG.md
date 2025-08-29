@@ -2,7 +2,7 @@
 
 ENHANCEMENTS:
 * `azurerm_dev_center_project_pool` - add support for the `single_sign_on_enabled` property [GH-30440]
-* Data Source: * `azurerm_dev_center_project_pool` - add support for the `single_sign_on_enabled` property [GH-30440]
+* Data Source: `azurerm_dev_center_project_pool` - add support for the `single_sign_on_enabled` property [GH-30440]
 * dependencies: `azurerm_api_management_backend` - upgrade API version to `2024-05-01` [GH-30500]
 
 FEATURES:
