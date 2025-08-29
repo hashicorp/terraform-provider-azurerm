@@ -678,90 +678,11 @@ func (r RoleManagementPolicyResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving existing %s: %+v", policyId, err)
 			}
 
-			// This is just dumb but we need to somehow reset the entire resource payload and azure didn't implement the delete operation
-			// even though it's in the API spec
+			// build our own model to pass to the buildRoleManagementPolicyForUpdate function
+			// the `metadata.Decode` doesn't work while we're in a delete operation since there is no resource data
 			model := RoleManagementPolicyModel{
 				Scope: *existing.Model.Properties.Scope,
 				Name:  policyId.ID(),
-				NotificationRules: []RoleManagementPolicyNotificationEvents{
-					{
-						ActiveAssignments: []RoleManagementPolicyNotificationRule{
-							{
-								AdminNotifications: []RoleManagementPolicyNotificationSettings{
-									{
-										NotificationLevel:    "All",
-										DefaultRecipients:    true,
-										AdditionalRecipients: nil,
-									},
-								},
-								ApproverNotifications: []RoleManagementPolicyNotificationSettings{
-									{
-										NotificationLevel:    "All",
-										DefaultRecipients:    true,
-										AdditionalRecipients: nil,
-									},
-								},
-								AssigneeNotifications: []RoleManagementPolicyNotificationSettings{
-									{
-										NotificationLevel:    "All",
-										DefaultRecipients:    true,
-										AdditionalRecipients: nil,
-									},
-								},
-							},
-						},
-						EligibleActivations: []RoleManagementPolicyNotificationRule{
-							{
-								AdminNotifications: []RoleManagementPolicyNotificationSettings{
-									{
-										NotificationLevel:    "All",
-										DefaultRecipients:    true,
-										AdditionalRecipients: nil,
-									},
-								},
-								ApproverNotifications: []RoleManagementPolicyNotificationSettings{
-									{
-										NotificationLevel:    "All",
-										DefaultRecipients:    true,
-										AdditionalRecipients: nil,
-									},
-								},
-								AssigneeNotifications: []RoleManagementPolicyNotificationSettings{
-									{
-										NotificationLevel:    "All",
-										DefaultRecipients:    true,
-										AdditionalRecipients: nil,
-									},
-								},
-							},
-						},
-						EligibleAssignments: []RoleManagementPolicyNotificationRule{
-							{
-								AdminNotifications: []RoleManagementPolicyNotificationSettings{
-									{
-										NotificationLevel:    "All",
-										DefaultRecipients:    true,
-										AdditionalRecipients: make([]string, 0),
-									},
-								},
-								ApproverNotifications: []RoleManagementPolicyNotificationSettings{
-									{
-										NotificationLevel:    "All",
-										DefaultRecipients:    true,
-										AdditionalRecipients: nil,
-									},
-								},
-								AssigneeNotifications: []RoleManagementPolicyNotificationSettings{
-									{
-										NotificationLevel:    "All",
-										DefaultRecipients:    true,
-										AdditionalRecipients: nil,
-									},
-								},
-							},
-						},
-					},
-				},
 			}
 
 			payload, err := buildRoleManagementPolicyForUpdate(pointer.To(metadata), existing.Model, model)
