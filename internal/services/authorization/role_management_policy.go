@@ -126,7 +126,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 	}
 
 	if isDelete || metadata.ResourceData.HasChange("active_assignment_rules.0.expiration_required") ||
-		isDelete || metadata.ResourceData.HasChange("active_assignment_rules.0.expire_after") {
+		metadata.ResourceData.HasChange("active_assignment_rules.0.expire_after") {
 		if expirationAdminAssignmentBase, ok := existingRules["Expiration_Admin_Assignment"]; ok {
 			if expirationAdminAssignment, ok := expirationAdminAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyExpirationRule); ok {
 				expirationRequired := pointer.From(expirationAdminAssignment.IsExpirationRequired)
@@ -160,7 +160,7 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 	}
 
 	if isDelete || metadata.ResourceData.HasChange("activation_rules.0.require_approval") ||
-		isDelete || metadata.ResourceData.HasChange("activation_rules.0.approval_stage") {
+		metadata.ResourceData.HasChange("activation_rules.0.approval_stage") {
 		if approvalEndUserAssignmentBase, ok := existingRules["Approval_EndUser_Assignment"]; ok {
 			if approvalEndUserAssignment, ok := approvalEndUserAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyApprovalRule); ok {
 				if len(model.ActivationRules) == 1 {
@@ -218,8 +218,8 @@ func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePoli
 	}
 
 	if isDelete || metadata.ResourceData.HasChange("activation_rules.0.require_multifactor_authentication") ||
-		isDelete || metadata.ResourceData.HasChange("activation_rules.0.require_justification") ||
-		isDelete || metadata.ResourceData.HasChange("activation_rules.0.require_ticket_info") {
+		metadata.ResourceData.HasChange("activation_rules.0.require_justification") ||
+		metadata.ResourceData.HasChange("activation_rules.0.require_ticket_info") {
 		if enablementEndUserAssignmentBase, ok := existingRules["Enablement_EndUser_Assignment"]; ok {
 			if enablementEndUserAssignment, ok := enablementEndUserAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyEnablementRule); ok {
 				enabledRules := make([]rolemanagementpolicies.EnablementRules, 0)
