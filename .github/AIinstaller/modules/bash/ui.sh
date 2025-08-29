@@ -918,119 +918,6 @@ show_unknown_branch_help() {
     echo ""
 }
 
-# Function to display help for feature branch context
-show_feature_branch_help() {
-    local workspace_valid="${1:-true}"
-    local workspace_issue="${2:-}"
-    
-    if [[ "${workspace_valid}" != "true" ]]; then
-        show_workspace_error_help "${workspace_issue}"
-        return
-    fi
-    
-    cat << 'EOF'
-Terraform AzureRM Provider - AI Infrastructure Installer (macOS/Linux)
-FEATURE BRANCH DETECTED
-
-PURPOSE:
-Enables AI-powered development features for HashiCorp's Terraform AzureRM Provider,
-including GitHub Copilot integration and intelligent code suggestions.
-
-USAGE:
-  ./install-copilot-setup.sh [options]
-  ~/.terraform-ai-installer/install-copilot-setup.sh [options]
-
-AVAILABLE OPERATIONS:
-  [Default]          Install AI infrastructure to current feature branch
-                     SAFE: Protected against source branch overwrites
-
-  -verify            Check current installation state
-                     Shows: Installation status, branch type, file locations
-
-  -clean             Remove AI infrastructure from feature branch
-                     SAFE: Only removes from current branch
-
-INSTALLER OPTIONS:
-  -auto-approve      Overwrite existing files without prompting
-  -dry-run           Show what would be done without making changes
-  -repo-directory    Path to repository directory (for remote operations)
-
-HELP:
-  -help              Display this help message
-
-INSTALLATION WORKFLOW:
-1. Ensure you have bootstrapped (run once from source branch):
-   # From source branch: ./install-copilot-setup.sh -bootstrap
-
-2. Install to your feature branch:
-   ~/.terraform-ai-installer/install-copilot-setup.sh
-
-3. Verify installation:
-   ~/.terraform-ai-installer/install-copilot-setup.sh -verify
-
-4. When done, clean up:
-   ~/.terraform-ai-installer/install-copilot-setup.sh -clean
-
-EXAMPLES:
-  # Install AI infrastructure (most common)
-  ~/.terraform-ai-installer/install-copilot-setup.sh
-
-  # Check what's currently installed
-  ~/.terraform-ai-installer/install-copilot-setup.sh -verify
-
-  # Preview changes without applying
-  ~/.terraform-ai-installer/install-copilot-setup.sh -dry-run
-
-  # Remove AI infrastructure when done
-  ~/.terraform-ai-installer/install-copilot-setup.sh -clean
-
-For more information, see: .github/AIinstaller/README.md
-EOF
-}
-
-# Function to display help when workspace validation fails
-show_workspace_error_help() {
-    local workspace_issue="${1:-Unknown workspace issue}"
-    
-    cat << EOF
-Terraform AzureRM Provider - AI Infrastructure Installer (macOS/Linux)
-WORKSPACE VALIDATION FAILED
-
-ISSUE DETECTED:
-${workspace_issue}
-
-TROUBLESHOOTING:
-1. Ensure you are in a terraform-provider-azurerm repository
-2. Verify the repository structure contains .github/AIinstaller/
-3. Check that you have proper git repository status
-
-VALID REPOSITORY STRUCTURE:
-terraform-provider-azurerm/
-├── .github/
-│   └── AIinstaller/
-│       ├── install-copilot-setup.sh
-│       └── modules/
-├── internal/
-├── website/
-└── [other provider files]
-
-COMMON SOLUTIONS:
-- Clone the repository: git clone https://github.com/hashicorp/terraform-provider-azurerm.git
-- Navigate to repository root: cd terraform-provider-azurerm
-- Ensure you're on the correct branch: git branch
-- Use -repo-directory if running from outside repository
-
-EXAMPLES:
-  # From within repository
-  ./.github/AIinstaller/install-copilot-setup.sh -help
-
-  # From outside repository
-  ./install-copilot-setup.sh -repo-directory /path/to/terraform-provider-azurerm
-
-For more information, see: .github/AIinstaller/README.md
-EOF
-}
-
 # Function to display source branch welcome and guidance
 show_source_branch_welcome() {
     local branch_name="${1:-exp/terraform_copilot}"
@@ -1045,28 +932,25 @@ show_source_branch_welcome() {
 show_source_repository_safety_error() {
     local script_name="$1"
     
-    print_separator
     echo ""
     write_error_message "SAFETY CHECK FAILED: Cannot install to source repository directory"
     echo ""
     write_plain "This appears to be the terraform-provider-azurerm source repository."
     write_plain "Installing here would overwrite your local changes with remote files."
     echo ""
-    write_plain "${YELLOW}SAFE OPTIONS:${NC}"
-    write_plain "  1. Bootstrap installer to user profile:"
+    write_cyan "SAFE OPTIONS:"
+    write_cyan "  1. Bootstrap installer to user profile:"
     write_plain "     ${script_name} -bootstrap"
     echo ""
-    write_plain "  2. Install to a different repository:"
+    write_cyan "  2. Install to a different repository:"
     write_plain "     ${script_name} -repo-directory /path/to/target/repository"
     echo ""
-    write_plain "For help: ${script_name} -help"
+    write_cyan "For help: ${script_name} -help"
     echo ""
 }
 
 # Function to show clean operation unavailable error for source branch
 show_clean_unavailable_on_source_error() {
-    echo ""
-    print_separator
     echo ""
     write_error_message "Clean operation not available on source branch"
     echo ""

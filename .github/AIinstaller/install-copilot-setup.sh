@@ -20,9 +20,9 @@ BRANCH="exp/terraform_copilot"
 SOURCE_REPOSITORY="https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm"
 
 # Command line parameters with help text
-BOOTSTRAP=false             # Copy installer to user profile for feature branch use
-REPO_DIRECTORY=""          # Path to the repository directory for git operations (when running from user profile)
-AUTO_APPROVE=false         # Overwrite existing files without prompting
+BOOTSTRAP=false           # Copy installer to user profile for feature branch use
+REPO_DIRECTORY=""         # Path to the repository directory for git operations (when running from user profile)
+AUTO_APPROVE=false        # Overwrite existing files without prompting
 DRY_RUN=false             # Show what would be done without making changes
 VERIFY=false              # Check the current state of the workspace
 CLEAN=false               # Remove AI infrastructure from the workspace
@@ -139,7 +139,7 @@ get_user_profile() {
 
 # Function to bootstrap installer to user profile
 bootstrap_installer() {
-    write_section_after_branch "Bootstrap - Copying Installer to User Profile"
+    write_section "Bootstrap - Copying Installer to User Profile"
     
     # Validate that we're running from the right location
     local current_location
@@ -208,7 +208,7 @@ clean_installation() {
         workspace_root="$(get_workspace_root)"
     fi
     
-    write_section_after_branch "Cleaning AI Infrastructure"
+    write_section "Cleaning AI Infrastructure"
     
     # Use the fileoperations module function for cleanup
     clean_infrastructure "${workspace_root}"
@@ -355,8 +355,8 @@ main() {
     
     # Default installation with enhanced safety checks
     if [[ "${is_source_branch}" == "true" ]]; then
-        # Show welcome and guidance instead of error for better UX
-        show_source_branch_welcome "${current_branch}"
+        # Show safety error for source repository protection
+        show_source_repository_safety_error "./install-copilot-setup.sh"
         exit 1
     fi
     
