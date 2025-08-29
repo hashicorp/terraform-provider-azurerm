@@ -1141,7 +1141,6 @@ func flattenFlexibleServerDataEncryption(de *servers.DataEncryption, meta interf
 		} else {
 			item["key_vault_key_id"] = pointer.From(de.PrimaryKeyURI)
 		}
-
 	}
 
 	if identity := de.PrimaryUserAssignedIdentityId; identity != nil {

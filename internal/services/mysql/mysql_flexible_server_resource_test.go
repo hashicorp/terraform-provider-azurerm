@@ -1219,7 +1219,6 @@ resource "azurerm_key_vault_key" "test" {
 }
 
 func (r MySqlFlexibleServerResource) cmkWithManagedHsmTemplate(data acceptance.TestData) string {
-
 	roleAssignmentName1, _ := uuid.GenerateUUID()
 	roleAssignmentName2, _ := uuid.GenerateUUID()
 	roleAssignmentName3, _ := uuid.GenerateUUID()
