@@ -343,10 +343,51 @@ copy_files_with_stats() {
     return $([[ ${files_failed} -eq 0 ]] && echo 0 || echo 1)
 }
 
-# Export functions for use in other scripts
-export -f get_workspace_root is_source_repository validate_repository
-export -f copy_file download_file get_file_size get_directory_size create_directory_structure
-export -f remove_path backup_file verify_file make_executable copy_files_with_stats
+# Function to validate operation is allowed on current branch
+validate_operation_allowed() {
+    local workspace_root="$1"
+    local operation_name="${2:-operation}"
+    
+    # CRITICAL: Source branch protection - prevent operations on source branches
+    # Check if we're on a protected source branch (main, master, exp/terraform_copilot)
+    local current_branch
+    current_branch=$(cd "${workspace_root}" && git branch --show-current 2>/dev/null || echo "Unknown")
+    
+    case "${current_branch}" in
+        "main"|"master"|"exp/terraform_copilot")
+            write_error_message "${operation_name^^} BLOCKED: Cannot perform ${operation_name} on source branch '${current_branch}'"
+            echo ""
+            write_plain "Source branches (main, master, exp/terraform_copilot) are protected from ${operation_name}."
+            write_plain "This prevents accidental modification of the source repository."
+            echo ""
+            write_plain "${YELLOW}REQUIRED ACTIONS:${NC}"
+            write_plain "  1. Switch to a feature branch: git checkout -b feature/your-branch-name"
+            write_plain "  2. Run ${operation_name} from the feature branch"
+            echo ""
+            return 1
+            ;;
+    esac
+    
+    # Additional validation if validation engine is available
+    if declare -f validate_repository >/dev/null 2>&1; then
+        local validation_result
+        validation_result=$(validate_repository "${workspace_root}" "false")
+        
+        # Parse validation results
+        local valid=$(echo "${validation_result}" | grep "Valid=" | cut -d'=' -f2)
+        
+        if [[ "${valid}" != "true" ]]; then
+            local reason=$(echo "${validation_result}" | grep "Reason=" | cut -d'=' -f2-)
+            write_error_message "Repository validation failed: ${reason}"
+            return 1
+        fi
+    fi
+    
+    # Operation is allowed
+    return 0
+}
+
+# Note: Function exports moved to end of script
 
 # Function to install AI infrastructure (moved from main script)
 install_infrastructure() {
@@ -354,11 +395,16 @@ install_infrastructure() {
     
     write_section "Installing AI Infrastructure"
     
+    # Validate operation is allowed on current branch
+    if ! validate_operation_allowed "${workspace_root}" "installation"; then
+        return 1
+    fi
+    
     # Verify manifest file exists
     local manifest_file="${HOME}/.terraform-ai-installer/file-manifest.config"
     if [[ ! -f "${manifest_file}" ]]; then
         write_error_message "Manifest file not found: ${manifest_file}"
-        echo "Please run with --bootstrap first to set up the installer."
+        echo "Please run with -bootstrap first to set up the installer."
         return 1
     fi
     
@@ -446,15 +492,17 @@ install_infrastructure() {
     write_operation_status "AI Infrastructure installation completed!" "Success"
 }
 
-# Export the install_infrastructure function
-export -f install_infrastructure
-
 # Function to clean AI infrastructure files with empty directory cleanup
 clean_infrastructure() {
     local workspace_root="$1"
     
     if [[ -z "${workspace_root}" ]]; then
         write_error_message "Workspace root directory not specified"
+        return 1
+    fi
+    
+    # Validate operation is allowed on current branch
+    if ! validate_operation_allowed "${workspace_root}" "cleanup"; then
         return 1
     fi
     
@@ -513,6 +561,8 @@ clean_infrastructure() {
     write_operation_status "AI Infrastructure cleanup completed!" "Success"
     echo ""
 }
+
+# Note: Function exports moved to end of script
 
 # Function to perform bootstrap operation (copy installer files to user profile)
 bootstrap_files_to_profile() {
@@ -627,5 +677,12 @@ bootstrap_files_to_profile() {
     return $([[ ${files_failed} -eq 0 ]] && echo 0 || echo 1)
 }
 
-# Export the clean_infrastructure and bootstrap functions
-export -f clean_infrastructure bootstrap_files_to_profile
+# ==============================================================================
+# FUNCTION EXPORTS - PowerShell-like pattern (all exports at end)
+# ==============================================================================
+
+# Export all functions for use in other scripts
+export -f get_workspace_root is_source_repository validate_repository validate_operation_allowed
+export -f copy_file download_file get_file_size get_directory_size create_directory_structure  
+export -f remove_path backup_file verify_file make_executable copy_files_with_stats
+export -f install_infrastructure clean_infrastructure bootstrap_files_to_profile

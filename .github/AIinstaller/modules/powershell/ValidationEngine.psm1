@@ -237,12 +237,13 @@ function Test-GitRepository {
                 }
                 
                 # CRITICAL SAFETY CHECK: Prevent running on source branch (unless bootstrap)
-                $isSourceBranch = $results.CurrentBranch -eq "exp/terraform_copilot"
+                $sourceBranches = @("main", "master", "exp/terraform_copilot")
+                $isSourceBranch = $results.CurrentBranch -in $sourceBranches
                 
                 $results.Valid = $results.IsGitRepo -and $results.HasRemote -and (-not $isSourceBranch -or $AllowBootstrapOnSource)
                 
                 if ($isSourceBranch -and -not $AllowBootstrapOnSource) {
-                    $results.Reason = "SAFETY VIOLATION: Cannot run installer on source branch 'exp/terraform_copilot'. Switch to a different branch to install AI infrastructure."
+                    $results.Reason = "SAFETY VIOLATION: Cannot run installer on source branch '$($results.CurrentBranch)'. Switch to a different branch to install AI infrastructure."
                 }
                 elseif ($results.Valid) {
                     if ($isSourceBranch -and $AllowBootstrapOnSource) {
@@ -450,11 +451,12 @@ function Test-SourceRepository {
     remotely, preventing accidental overwriting of source files.
     #>
     
-    # Check if we're on the exp/terraform_copilot branch (source branch)
+    # Check if we're on a source branch (main, master, exp/terraform_copilot)
     try {
         Push-Location $Global:WorkspaceRoot
         $currentBranch = git rev-parse --abbrev-ref HEAD 2>$null
-        if ($currentBranch -eq "exp/terraform_copilot") {
+        $sourceBranches = @("main", "master", "exp/terraform_copilot")
+        if ($currentBranch -in $sourceBranches) {
             return $true
         }
     } catch {
@@ -523,7 +525,7 @@ function Invoke-VerifyWorkspace {
             Success = $validation.OverallValid
             Files = @()
             Issues = @()
-            IsSourceRepo = ($validation.Git.CurrentBranch -eq "exp/terraform_copilot")
+            IsSourceRepo = ($validation.Git.CurrentBranch -in @("main", "master", "exp/terraform_copilot"))
             ValidationResults = $validation
         }
         
@@ -696,7 +698,8 @@ function Invoke-VerifyWorkspace {
         
         # Determine branch type based on current branch (same logic as installation)
         $currentBranch = $validation.Git.CurrentBranch
-        $branchType = if ($currentBranch -eq "exp/terraform_copilot") { 
+        $sourceBranches = @("main", "master", "exp/terraform_copilot")
+        $branchType = if ($currentBranch -in $sourceBranches) { 
             "source" 
         } elseif ($currentBranch -eq "Unknown") { 
             "Unknown" 
