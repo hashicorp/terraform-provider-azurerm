@@ -1,6 +1,7 @@
 ## 4.43.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `azurerm_api_management_backend` - upgrade API version to `2024-05-01` [GH-30500]
 
 FEATURES:
 
