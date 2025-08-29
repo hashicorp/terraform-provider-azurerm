@@ -86,6 +86,7 @@ copy_file() {
     local source="$1"
     local target="$2"
     local description="$3"
+    local max_length="$4"  # Optional max length for formatting
     
     if [[ "${DRY_RUN:-false}" == "true" ]]; then
         echo "  [DRY-RUN] Would copy: ${description}"
@@ -96,10 +97,10 @@ copy_file() {
     mkdir -p "$(dirname "${target}")"
     
     if cp "${source}" "${target}"; then
-        show_file_operation "Copying" "${description}" "OK"
+        show_file_operation "Copying" "${description}" "OK" "${max_length}"
         return 0
     else
-        show_file_operation "Copying" "${description}" "FAILED"
+        show_file_operation "Copying" "${description}" "FAILED" "${max_length}"
         return 1
     fi
 }
@@ -294,6 +295,14 @@ copy_files_with_stats() {
     local files_failed=0
     local total_size=0
     
+    # Calculate max filename length for consistent formatting (extract filenames only)
+    local filenames_only=()
+    for file in "${files_array[@]}"; do
+        filenames_only+=("$(basename "${file}")")
+    done
+    local max_length
+    max_length=$(calculate_max_filename_length "${filenames_only[@]}")
+    
     for file in "${files_array[@]}"; do
         local source_path="${source_dir}/${file}"
         local target_path="${target_dir}/${file}"
@@ -302,7 +311,7 @@ copy_files_with_stats() {
         echo -n ""  # No inline display needed - show_file_operation handles it
         
         if [[ "${DRY_RUN:-false}" == "true" ]]; then
-            show_file_operation "Copying" "${filename}" "DRY-RUN"
+            show_file_operation "Copying" "${filename}" "DRY-RUN" "${max_length}"
             files_copied=$((files_copied + 1))
         elif [[ -f "${source_path}" ]]; then
             # Create target directory structure
@@ -314,14 +323,14 @@ copy_files_with_stats() {
                 file_size=$(get_file_size "${target_path}")
                 total_size=$((total_size + file_size))
                 
-                show_file_operation "Copying" "${filename}" "OK"
+                show_file_operation "Copying" "${filename}" "OK" "${max_length}"
                 files_copied=$((files_copied + 1))
             else
-                show_file_operation "Copying" "${filename}" "FAILED"
+                show_file_operation "Copying" "${filename}" "FAILED" "${max_length}"
                 files_failed=$((files_failed + 1))
             fi
         else
-            show_file_operation "Copying" "${filename}" "SOURCE NOT FOUND"
+            show_file_operation "Copying" "${filename}" "SOURCE NOT FOUND" "${max_length}"
             files_failed=$((files_failed + 1))
         fi
     done
@@ -505,5 +514,118 @@ clean_infrastructure() {
     echo ""
 }
 
-# Export the clean_infrastructure function
-export -f clean_infrastructure
+# Function to perform bootstrap operation (copy installer files to user profile)
+bootstrap_files_to_profile() {
+    local script_dir="$1"
+    local user_profile="$2"
+    local manifest_file="$3"
+    
+    # Get bootstrap files from configuration
+    local bootstrap_files_list
+    bootstrap_files_list=$(get_manifest_files "INSTALLER_FILES_BOOTSTRAP" "${manifest_file}")
+    
+    if [[ -z "${bootstrap_files_list}" ]]; then
+        write_error_message "No bootstrap files found in manifest: ${manifest_file}"
+        write_plain "Expected section: [INSTALLER_FILES_BOOTSTRAP]"
+        return 1
+    fi
+    
+    # Convert to array
+    local -a bootstrap_files
+    while IFS= read -r line; do
+        if [[ -n "${line}" ]]; then
+            bootstrap_files+=("${line}")
+        fi
+    done <<< "${bootstrap_files_list}"
+    
+    # Count files for progress
+    local total_files=${#bootstrap_files[@]}
+    echo -e "${CYAN}Copying installer files from current repository...${NC}"
+    echo ""
+    
+    # Calculate max filename length for formatting
+    local -a bootstrap_filenames
+    for file in "${bootstrap_files[@]}"; do
+        bootstrap_filenames+=("$(basename "${file}")")
+    done
+    local max_length
+    max_length=$(calculate_max_filename_length "${bootstrap_filenames[@]}")
+    
+    # Statistics tracking
+    local files_copied=0
+    local files_failed=0
+    local total_size=0
+    
+    # Copy each file according to configuration
+    for file_path in "${bootstrap_files[@]}"; do
+        # Remove .github/AIinstaller/ prefix to get relative path within installer directory
+        local relative_path="${file_path#.github/AIinstaller/}"
+        local source_path="${script_dir}/${relative_path}"
+        local filename=$(basename "${relative_path}")
+        
+        # Determine target path based on file type and maintain directory structure
+        local target_path
+        if [[ "${filename}" == *.psm1 ]]; then
+            # PowerShell modules go in modules/powershell/ subdirectory
+            if [[ "${DRY_RUN}" != "true" ]]; then
+                mkdir -p "${user_profile}/modules/powershell"
+            fi
+            target_path="${user_profile}/modules/powershell/${filename}"
+        elif [[ "${filename}" == *.sh ]] && [[ "${relative_path}" == modules/bash/* ]]; then
+            # Bash modules go in modules/bash/ subdirectory
+            if [[ "${DRY_RUN}" != "true" ]]; then
+                mkdir -p "${user_profile}/modules/bash"
+            fi
+            target_path="${user_profile}/modules/bash/${filename}"
+        else
+            # Main files (config, scripts) go directly in target directory
+            target_path="${user_profile}/${filename}"
+        fi
+        
+        if copy_file "${source_path}" "${target_path}" "${filename}" "${max_length}"; then
+            files_copied=$((files_copied + 1))
+            # Calculate file size
+            if [[ -f "${target_path}" ]]; then
+                local file_size
+                file_size=$(get_file_size "${target_path}")
+                total_size=$((total_size + file_size))
+            fi
+        else
+            files_failed=$((files_failed + 1))
+        fi
+    done
+    
+    # Make installer script executable
+    if [[ "${DRY_RUN}" != "true" ]]; then
+        chmod +x "${user_profile}/install-copilot-setup.sh"
+    fi
+    
+    # Validate critical files were copied
+    local critical_files=(
+        "${user_profile}/install-copilot-setup.sh"
+        "${user_profile}/file-manifest.config"
+    )
+    
+    local validation_failed=false
+    for critical_file in "${critical_files[@]}"; do
+        if [[ ! -f "${critical_file}" ]]; then
+            write_error_message "Critical file missing: ${critical_file}"
+            validation_failed=true
+        fi
+    done
+    
+    if [[ "${validation_failed}" == "true" ]]; then
+        write_error_message "Bootstrap validation failed - critical files missing"
+        return 1
+    fi
+    
+    # Return statistics via global variables
+    BOOTSTRAP_STATS_FILES_COPIED=${files_copied}
+    BOOTSTRAP_STATS_FILES_FAILED=${files_failed}
+    BOOTSTRAP_STATS_TOTAL_SIZE=${total_size}
+    
+    return $([[ ${files_failed} -eq 0 ]] && echo 0 || echo 1)
+}
+
+# Export the clean_infrastructure and bootstrap functions
+export -f clean_infrastructure bootstrap_files_to_profile

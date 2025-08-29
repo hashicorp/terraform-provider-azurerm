@@ -274,8 +274,73 @@ cleanup_temp_directory() {
     fi
 }
 
+# Function to get manifest configuration (wrapper around read_manifest_config)
+get_manifest_config() {
+    local branch="${1:-exp/terraform_copilot}"
+    local manifest_path="$2"
+    
+    # Find manifest file if not specified
+    if [[ -z "${manifest_path}" ]]; then
+        local possible_paths=(
+            "${HOME}/.terraform-ai-installer/file-manifest.config"
+            "$(dirname "${BASH_SOURCE[0]}")/../file-manifest.config"
+            "$(dirname "$(dirname "${BASH_SOURCE[0]}")")/file-manifest.config"
+        )
+        
+        for path in "${possible_paths[@]}"; do
+            if [[ -f "${path}" ]]; then
+                manifest_path="${path}"
+                break
+            fi
+        done
+    fi
+    
+    if [[ -z "${manifest_path}" ]] || [[ ! -f "${manifest_path}" ]]; then
+        if declare -f write_error >/dev/null 2>&1; then
+            write_error "Manifest file not found. Run with --bootstrap first."
+        else
+            echo -e "\033[0;31m[ERROR]\033[0m Manifest file not found. Run with --bootstrap first."
+        fi
+        return 1
+    fi
+    
+    # Return manifest configuration data
+    echo "ManifestPath=${manifest_path}"
+    echo "Branch=${branch}"
+    echo "Found=true"
+    return 0
+}
+
+# Function to get installer configuration
+get_installer_config() {
+    local workspace_root="$1"
+    local manifest_output="$2"
+    
+    if [[ -z "${workspace_root}" ]]; then
+        if declare -f write_error >/dev/null 2>&1; then
+            write_error "Workspace root is required"
+        else
+            echo -e "\033[0;31m[ERROR]\033[0m Workspace root is required"
+        fi
+        return 1
+    fi
+    
+    # Parse manifest output
+    local branch="exp/terraform_copilot"
+    if [[ -n "${manifest_output}" ]]; then
+        branch=$(echo "${manifest_output}" | grep "Branch=" | cut -d'=' -f2 || echo "exp/terraform_copilot")
+    fi
+    
+    # Return installer configuration
+    echo "Version=1.0.0"
+    echo "Branch=${branch}"
+    echo "WorkspaceRoot=${workspace_root}"
+    echo "Repository=hashicorp/terraform-provider-azurerm"
+    return 0
+}
+
 # Export functions for use in other scripts
 export -f get_user_profile get_source_repository get_source_branch read_manifest_config
 export -f get_manifest_files get_bootstrap_files get_files_for_cleanup create_default_config load_config
 export -f validate_config get_file_download_url convert_to_relative_path get_installer_version
-export -f get_temp_directory cleanup_temp_directory parse_manifest_section
+export -f get_temp_directory cleanup_temp_directory parse_manifest_section get_manifest_config get_installer_config
