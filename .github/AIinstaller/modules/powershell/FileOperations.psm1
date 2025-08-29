@@ -272,8 +272,8 @@ function Install-AllAIFiles {
         
         # Debug: Show the constructed URL
         Write-Verbose "Constructed URL: $downloadUrl"
-        Write-Verbose "Base URL: $($manifestConfig.BaseUrl)"
-        Write-Verbose "File Path: $filePath"
+        Write-Verbose "Base URL       : $($manifestConfig.BaseUrl)"
+        Write-Verbose "File Path      : $filePath"
         
         if (-not $downloadUrl -or $downloadUrl -eq "/$filePath" -or [string]::IsNullOrWhiteSpace($manifestConfig.BaseUrl)) {
             Write-Warning "Could not determine download URL for file: $filePath (BaseUrl: '$($manifestConfig.BaseUrl)')"
@@ -329,6 +329,15 @@ function Install-AllAIFiles {
         $results.DebugInfo.TotalDuration = 0
     }
     
+    # Calculate total size of all processed files
+    $totalSize = 0
+    foreach ($fileResult in $results.Files.Values) {
+        if ($fileResult.Size -gt 0) {
+            $totalSize += $fileResult.Size
+        }
+    }
+    $results.DebugInfo.TotalSizeBytes = $totalSize
+
     return $results
 }
 
@@ -1371,7 +1380,28 @@ function Invoke-InstallInfrastructure {
                 if ($currentBranch -eq "Unknown") { "Unknown" } else { "feature" }
             }
             
-            Show-OperationSummary -OperationName "Installation" -Success $true -ItemsSuccessful $result.Successful -ItemsFailed $result.Failed -Details @{ "Branch" = $currentBranch; "Type" = $branchType }
+            # Prepare comprehensive details for installation summary
+            $details = @()
+            if ($result.Successful -gt 0) {
+                $details += "Files installed: $($result.Successful)"
+            }
+            if ($result.Failed -gt 0) {
+                $details += "Files failed: $($result.Failed)"
+            }
+            if ($result.Skipped -gt 0) {
+                $details += "Files skipped: $($result.Skipped)"
+            }
+            $details += "Target branch: $currentBranch"
+            $details += "Branch type: $branchType"
+            $details += "Location: $WorkspaceRoot"
+            
+            # Calculate total size if available in debug info
+            if ($result.DebugInfo -and $result.DebugInfo.TotalSizeBytes) {
+                $totalSizeKB = [math]::Round($result.DebugInfo.TotalSizeBytes / 1KB, 1)
+                $details += "Total size: $totalSizeKB KB"
+            }
+            
+            Show-OperationSummary -OperationName "Installation" -Success $true -ItemsSuccessful $result.Successful -ItemsFailed $result.Failed -Details $details
         } else {
             Show-InstallationResults -Results $result
         }
