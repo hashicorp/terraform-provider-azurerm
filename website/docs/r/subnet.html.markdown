@@ -87,7 +87,7 @@ The following arguments are supported:
 
 * `sharing_scope` - (Optional) The sharing scope of the subnet. Possible value is `Tenant`. This property cannot be set if `default_outbound_access_enabled` is set to `true`.
 
-!> **Note:** The `sharing_scope` property is a limited preview feature that is only available to a limited set of users who have been explicitly onboarded for testing. This feature is not available for general production usage and should be omitted from Terraform virtual network configurations. This guidance will be reviewed and updated in 2026.
+!> **Note:** The `sharing_scope` property is in limited preview and only for users who have been specifically onboarded by the Azure Network Product team for testing. It is not intended for general production use. If you have not been onboarded, you should omit this in your Terraform virtual network configurations. This guidance will be reviewed and updated in 2026.
 
 * `service_endpoints` - (Optional) The list of Service endpoints to associate with the subnet. Possible values include: `Microsoft.AzureActiveDirectory`, `Microsoft.AzureCosmosDB`, `Microsoft.ContainerRegistry`, `Microsoft.EventHub`, `Microsoft.KeyVault`, `Microsoft.ServiceBus`, `Microsoft.Sql`, `Microsoft.Storage`, `Microsoft.Storage.Global` and `Microsoft.Web`.
 
