@@ -1128,12 +1128,12 @@ function Invoke-Bootstrap {
         $totalSizeKB = [math]::Round($statistics["Total Size"] / 1KB, 1)
         
         if ($statistics["Files Copied"] -gt 0) {
-            $details += "Files copied: $($statistics["Files Copied"])"
+            $details += "Files Copied: $($statistics["Files Copied"])"
         }
         if ($statistics["Files Downloaded"] -gt 0) {
-            $details += "Files downloaded: $($statistics["Files Downloaded"])"
+            $details += "Files Downloaded: $($statistics["Files Downloaded"])"
         }
-        $details += "Total size: $totalSizeKB KB"
+        $details += "Total Size: $totalSizeKB KB"
         $details += "Location: $targetDirectory"
         
         if ($statistics["Files Failed"] -eq 0) {
@@ -1215,15 +1215,15 @@ function Invoke-CleanWorkspace {
                 # Simple, friendly message for already clean workspace - matches UX pattern
                 Write-Host ""
                 Write-Host "DETAILS:" -ForegroundColor Cyan
-                Write-Host "  Operation type     : " -ForegroundColor Cyan -NoNewline
+                Write-Host "  Operation Type     : " -ForegroundColor Cyan -NoNewline
                 if ($DryRun) {
                     Write-Host "Dry run (simulation)" -ForegroundColor Yellow
                 } else {
                     Write-Host "Live cleanup" -ForegroundColor Yellow
                 }
-                Write-Host "  Files removed      : " -ForegroundColor Cyan -NoNewline
+                Write-Host "  Files Removed      : " -ForegroundColor Cyan -NoNewline
                 Write-Host "0" -ForegroundColor Green
-                Write-Host "  Directories cleaned: " -ForegroundColor Cyan -NoNewline  
+                Write-Host "  Directories Cleaned: " -ForegroundColor Cyan -NoNewline  
                 Write-Host "0" -ForegroundColor Green
                 Write-Host ""
             } else {
@@ -1234,9 +1234,9 @@ function Invoke-CleanWorkspace {
                 # Find the longest key for proper alignment
                 $operationType = if ($DryRun) { "Dry run (simulation)" } else { "Live cleanup" }
                 $details = @{
-                    "Operation type" = $operationType
-                    "Files removed" = $result.FilesRemoved
-                    "Directories cleaned" = $result.DirectoriesCleaned
+                    "Operation Type" = $operationType
+                    "Files Removed" = $result.FilesRemoved
+                    "Directories Cleaned" = $result.DirectoriesCleaned
                 }
                 
                 $longestKey = ($details.Keys | Sort-Object Length -Descending | Select-Object -First 1)
@@ -1388,22 +1388,22 @@ function Invoke-InstallInfrastructure {
             # Prepare comprehensive details for installation summary
             $details = @()
             if ($result.Successful -gt 0) {
-                $details += "Files installed: $($result.Successful)"
+                $details += "Files Installed: $($result.Successful)"
             }
             if ($result.Failed -gt 0) {
-                $details += "Files failed: $($result.Failed)"
+                $details += "Files Failed: $($result.Failed)"
             }
             if ($result.Skipped -gt 0) {
-                $details += "Files skipped: $($result.Skipped)"
+                $details += "Files Skipped: $($result.Skipped)"
             }
-            $details += "Target branch: $currentBranch"
-            $details += "Branch type: $branchType"
+            $details += "Branch Type: $branchType"
+            $details += "Target Branch: $currentBranch"
             $details += "Location: $WorkspaceRoot"
             
             # Calculate total size if available in debug info
             if ($result.DebugInfo -and $result.DebugInfo.TotalSizeBytes) {
                 $totalSizeKB = [math]::Round($result.DebugInfo.TotalSizeBytes / 1KB, 1)
-                $details += "Total size: $totalSizeKB KB"
+                $details += "Total Size: $totalSizeKB KB"
             }
             
             Show-OperationSummary -OperationName "Installation" -Success $true -ItemsSuccessful $result.Successful -ItemsFailed $result.Failed -Details $details

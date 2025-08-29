@@ -678,7 +678,7 @@ function Invoke-VerifyWorkspace {
         # Show results summary
         if ($results.Issues.Count -gt 0) {
             $results.Success = $false
-            Write-Host "Issues found:" -ForegroundColor Yellow
+            Write-Host "Issues Found:" -ForegroundColor Yellow
             foreach ($issue in $results.Issues) {
                 Write-Host "  - $issue" -ForegroundColor Red
             }
@@ -704,10 +704,10 @@ function Invoke-VerifyWorkspace {
             "feature" 
         }
         
+        $details += "Branch Type: $branchType"
+        $details += "Target Branch: $currentBranch"
         $details += "Files Verified: $filesFound"
         $details += "Issues Found: $issuesFound"
-        $details += "Target branch: $currentBranch"
-        $details += "Branch type: $branchType"
         $details += "Location: $workspaceRoot"
         
         # Use centralized success reporting
