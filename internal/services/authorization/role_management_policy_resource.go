@@ -678,58 +678,33 @@ func (r RoleManagementPolicyResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving existing %s: %+v", policyId, err)
 			}
 
-			// This is just dumb but we need to somehow reset the entire resource payload.
+			// This is just dumb but we need to somehow reset the entire resource payload and azure didn't implement the delete operation
+			// even though it's in the API spec
 			model := RoleManagementPolicyModel{
 				Scope: *existing.Model.Properties.Scope,
 				Name:  policyId.ID(),
-				ActiveAssignmentRules: []RoleManagementPolicyActiveAssignmentRules{
-					{
-						ExpirationRequired:     false,
-						ExpireAfter:            "",
-						RequireMultiFactorAuth: false,
-						RequireJustification:   false,
-						RequireTicketInfo:      false,
-					},
-				},
-				EligibleAssignmentRules: []RoleManagementPolicyEligibleAssignmentRules{
-					{
-						ExpirationRequired: false,
-						ExpireAfter:        "",
-					},
-				},
-				ActivationRules: []RoleManagementPolicyActivationRules{
-					{
-						MaximumDuration:                 "",
-						RequireApproval:                 false,
-						ApprovalStages:                  nil,
-						RequireConditionalAccessContext: "",
-						RequireMultiFactorAuth:          false,
-						RequireJustification:            false,
-						RequireTicketInfo:               false,
-					},
-				},
 				NotificationRules: []RoleManagementPolicyNotificationEvents{
 					{
 						ActiveAssignments: []RoleManagementPolicyNotificationRule{
 							{
 								AdminNotifications: []RoleManagementPolicyNotificationSettings{
 									{
-										NotificationLevel:    "",
-										DefaultRecipients:    false,
+										NotificationLevel:    "All",
+										DefaultRecipients:    true,
 										AdditionalRecipients: nil,
 									},
 								},
 								ApproverNotifications: []RoleManagementPolicyNotificationSettings{
 									{
-										NotificationLevel:    "",
-										DefaultRecipients:    false,
+										NotificationLevel:    "All",
+										DefaultRecipients:    true,
 										AdditionalRecipients: nil,
 									},
 								},
 								AssigneeNotifications: []RoleManagementPolicyNotificationSettings{
 									{
-										NotificationLevel:    "",
-										DefaultRecipients:    false,
+										NotificationLevel:    "All",
+										DefaultRecipients:    true,
 										AdditionalRecipients: nil,
 									},
 								},
@@ -739,22 +714,22 @@ func (r RoleManagementPolicyResource) Delete() sdk.ResourceFunc {
 							{
 								AdminNotifications: []RoleManagementPolicyNotificationSettings{
 									{
-										NotificationLevel:    "",
-										DefaultRecipients:    false,
+										NotificationLevel:    "All",
+										DefaultRecipients:    true,
 										AdditionalRecipients: nil,
 									},
 								},
 								ApproverNotifications: []RoleManagementPolicyNotificationSettings{
 									{
-										NotificationLevel:    "",
-										DefaultRecipients:    false,
+										NotificationLevel:    "All",
+										DefaultRecipients:    true,
 										AdditionalRecipients: nil,
 									},
 								},
 								AssigneeNotifications: []RoleManagementPolicyNotificationSettings{
 									{
-										NotificationLevel:    "",
-										DefaultRecipients:    false,
+										NotificationLevel:    "All",
+										DefaultRecipients:    true,
 										AdditionalRecipients: nil,
 									},
 								},
@@ -764,22 +739,22 @@ func (r RoleManagementPolicyResource) Delete() sdk.ResourceFunc {
 							{
 								AdminNotifications: []RoleManagementPolicyNotificationSettings{
 									{
-										NotificationLevel:    "",
-										DefaultRecipients:    false,
-										AdditionalRecipients: nil,
+										NotificationLevel:    "All",
+										DefaultRecipients:    true,
+										AdditionalRecipients: make([]string, 0),
 									},
 								},
 								ApproverNotifications: []RoleManagementPolicyNotificationSettings{
 									{
-										NotificationLevel:    "",
-										DefaultRecipients:    false,
+										NotificationLevel:    "All",
+										DefaultRecipients:    true,
 										AdditionalRecipients: nil,
 									},
 								},
 								AssigneeNotifications: []RoleManagementPolicyNotificationSettings{
 									{
-										NotificationLevel:    "",
-										DefaultRecipients:    false,
+										NotificationLevel:    "All",
+										DefaultRecipients:    true,
 										AdditionalRecipients: nil,
 									},
 								},
