@@ -149,25 +149,25 @@ func expandEventSubscriptionDestinationEventHub(eventhubEndpointId string, deliv
 }
 
 func flattenEventSubscriptionDestinationEventHub(input eventsubscriptions.EventSubscriptionDestination) string {
-	if val, ok := input.(eventsubscriptions.EventHubEventSubscriptionDestination); ok && val.Properties != nil && val.Properties.ResourceId != nil {
-		return *val.Properties.ResourceId
+	if val, ok := input.(eventsubscriptions.EventHubEventSubscriptionDestination); ok && val.Properties != nil {
+		return pointer.From(val.Properties.ResourceId)
 	}
 
 	return ""
 }
 
-func expandEventSubscriptionDestinationArcConnection(hybridConnectionId string, deliveryMappings []eventsubscriptions.DeliveryAttributeMapping) eventsubscriptions.EventSubscriptionDestination {
+func expandEventSubscriptionDestinationArcConnection(connectionId string, deliveryMappings []eventsubscriptions.DeliveryAttributeMapping) eventsubscriptions.EventSubscriptionDestination {
 	return eventsubscriptions.HybridConnectionEventSubscriptionDestination{
 		Properties: &eventsubscriptions.HybridConnectionEventSubscriptionDestinationProperties{
 			DeliveryAttributeMappings: pointer.To(deliveryMappings),
-			ResourceId:                pointer.To(hybridConnectionId),
+			ResourceId:                pointer.To(connectionId),
 		},
 	}
 }
 
 func flattenEventSubscriptionDestinationArcConnection(input eventsubscriptions.EventSubscriptionDestination) string {
-	if val, ok := input.(eventsubscriptions.HybridConnectionEventSubscriptionDestination); ok && val.Properties != nil && val.Properties.ResourceId != nil {
-		return *val.Properties.ResourceId
+	if val, ok := input.(eventsubscriptions.HybridConnectionEventSubscriptionDestination); ok && val.Properties != nil {
+		return pointer.From(val.Properties.ResourceId)
 	}
 
 	return ""
@@ -183,8 +183,8 @@ func expandEventSubscriptionDestinationServiceBusQueue(serviceBusQueueEndpointId
 }
 
 func flattenEventSubscriptionDestinationServiceBusQueue(input eventsubscriptions.EventSubscriptionDestination) string {
-	if val, ok := input.(eventsubscriptions.ServiceBusQueueEventSubscriptionDestination); ok && val.Properties != nil && val.Properties.ResourceId != nil {
-		return *val.Properties.ResourceId
+	if val, ok := input.(eventsubscriptions.ServiceBusQueueEventSubscriptionDestination); ok && val.Properties != nil {
+		return pointer.From(val.Properties.ResourceId)
 	}
 
 	return ""
@@ -200,8 +200,8 @@ func expandEventSubscriptionDestinationServiceBusTopic(serviceBusTopicEndpointId
 }
 
 func flattenEventSubscriptionDestinationServiceBusTopic(input eventsubscriptions.EventSubscriptionDestination) string {
-	if val, ok := input.(eventsubscriptions.ServiceBusTopicEventSubscriptionDestination); ok && val.Properties != nil && val.Properties.ResourceId != nil {
-		return *val.Properties.ResourceId
+	if val, ok := input.(eventsubscriptions.ServiceBusTopicEventSubscriptionDestination); ok && val.Properties != nil {
+		return pointer.From(val.Properties.ResourceId)
 	}
 
 	return ""
