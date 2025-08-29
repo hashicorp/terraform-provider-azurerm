@@ -52,14 +52,18 @@ func FindRoleManagementPolicyId(ctx context.Context, client *rolemanagementpolic
 	return &id, nil
 }
 
-func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePolicy *rolemanagementpolicies.RoleManagementPolicy) (*rolemanagementpolicies.RoleManagementPolicy, error) {
+func buildRoleManagementPolicyForUpdate(metadata *sdk.ResourceMetaData, rolePolicy *rolemanagementpolicies.RoleManagementPolicy, tfmodel ...RoleManagementPolicyModel) (*rolemanagementpolicies.RoleManagementPolicy, error) {
 	if rolePolicy == nil {
 		return nil, fmt.Errorf("existing Role Management Policy was nil")
 	}
 
 	var model RoleManagementPolicyModel
-	if err := metadata.Decode(&model); err != nil {
-		return nil, fmt.Errorf("decoding: %+v", err)
+	if len(tfmodel) > 0 {
+		model = tfmodel[0]
+	} else {
+		if err := metadata.Decode(&model); err != nil {
+			return nil, fmt.Errorf("decoding: %+v", err)
+		}
 	}
 
 	// Take the slice of rules and convert it to a map with the ID as the key

@@ -662,7 +662,139 @@ func (r RoleManagementPolicyResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			if _, err := parse.RoleManagementPolicyID(metadata.ResourceData.Id()); err != nil {
+			id, err := parse.RoleManagementPolicyID(metadata.ResourceData.Id())
+			if err != nil {
+				return err
+			}
+
+			policyId, err := FindRoleManagementPolicyId(ctx, metadata.Client.Authorization.RoleManagementPoliciesClient, id.Scope, id.RoleDefinitionId)
+			if err != nil {
+				return err
+			}
+			client := metadata.Client.Authorization.RoleManagementPoliciesClient
+
+			existing, err := client.Get(ctx, *policyId)
+			if err != nil {
+				return fmt.Errorf("retrieving existing %s: %+v", policyId, err)
+			}
+
+			// This is just dumb but we need to somehow reset the entire resource payload.
+			model := RoleManagementPolicyModel{
+				Scope: *existing.Model.Properties.Scope,
+				Name:  policyId.ID(),
+				ActiveAssignmentRules: []RoleManagementPolicyActiveAssignmentRules{
+					{
+						ExpirationRequired:     false,
+						ExpireAfter:            "",
+						RequireMultiFactorAuth: false,
+						RequireJustification:   false,
+						RequireTicketInfo:      false,
+					},
+				},
+				EligibleAssignmentRules: []RoleManagementPolicyEligibleAssignmentRules{
+					{
+						ExpirationRequired: false,
+						ExpireAfter:        "",
+					},
+				},
+				ActivationRules: []RoleManagementPolicyActivationRules{
+					{
+						MaximumDuration:                 "",
+						RequireApproval:                 false,
+						ApprovalStages:                  nil,
+						RequireConditionalAccessContext: "",
+						RequireMultiFactorAuth:          false,
+						RequireJustification:            false,
+						RequireTicketInfo:               false,
+					},
+				},
+				NotificationRules: []RoleManagementPolicyNotificationEvents{
+					{
+						ActiveAssignments: []RoleManagementPolicyNotificationRule{
+							{
+								AdminNotifications: []RoleManagementPolicyNotificationSettings{
+									{
+										NotificationLevel:    "",
+										DefaultRecipients:    false,
+										AdditionalRecipients: nil,
+									},
+								},
+								ApproverNotifications: []RoleManagementPolicyNotificationSettings{
+									{
+										NotificationLevel:    "",
+										DefaultRecipients:    false,
+										AdditionalRecipients: nil,
+									},
+								},
+								AssigneeNotifications: []RoleManagementPolicyNotificationSettings{
+									{
+										NotificationLevel:    "",
+										DefaultRecipients:    false,
+										AdditionalRecipients: nil,
+									},
+								},
+							},
+						},
+						EligibleActivations: []RoleManagementPolicyNotificationRule{
+							{
+								AdminNotifications: []RoleManagementPolicyNotificationSettings{
+									{
+										NotificationLevel:    "",
+										DefaultRecipients:    false,
+										AdditionalRecipients: nil,
+									},
+								},
+								ApproverNotifications: []RoleManagementPolicyNotificationSettings{
+									{
+										NotificationLevel:    "",
+										DefaultRecipients:    false,
+										AdditionalRecipients: nil,
+									},
+								},
+								AssigneeNotifications: []RoleManagementPolicyNotificationSettings{
+									{
+										NotificationLevel:    "",
+										DefaultRecipients:    false,
+										AdditionalRecipients: nil,
+									},
+								},
+							},
+						},
+						EligibleAssignments: []RoleManagementPolicyNotificationRule{
+							{
+								AdminNotifications: []RoleManagementPolicyNotificationSettings{
+									{
+										NotificationLevel:    "",
+										DefaultRecipients:    false,
+										AdditionalRecipients: nil,
+									},
+								},
+								ApproverNotifications: []RoleManagementPolicyNotificationSettings{
+									{
+										NotificationLevel:    "",
+										DefaultRecipients:    false,
+										AdditionalRecipients: nil,
+									},
+								},
+								AssigneeNotifications: []RoleManagementPolicyNotificationSettings{
+									{
+										NotificationLevel:    "",
+										DefaultRecipients:    false,
+										AdditionalRecipients: nil,
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+
+			payload, err := buildRoleManagementPolicyForUpdate(pointer.To(metadata), existing.Model, model)
+			if err != nil {
+				return fmt.Errorf("could not build update request, %+v", err)
+			}
+
+			if _, err := client.Update(ctx, *policyId, *payload); err != nil {
 				return err
 			}
 
