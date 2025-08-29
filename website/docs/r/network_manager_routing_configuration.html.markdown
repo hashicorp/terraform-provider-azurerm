@@ -48,7 +48,7 @@ The following arguments are supported:
 
 ---
 
-* `description` - (Optional) The description of the Network Manager.
+* `description` - (Optional) The description of the Network Manager Routing Configuration.
 
 ## Attributes Reference
 
@@ -73,3 +73,8 @@ Network Manager Routing Configurations can be imported using the `resource id`, 
 terraform import azurerm_network_manager_routing_configuration.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg1/providers/Microsoft.Network/networkManagers/manager1/routingConfigurations/conf1
 ```
 
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

@@ -110,7 +110,7 @@ The following arguments are supported:
 
 * `vm_size` - (Required) The size of the VM. Changing this forces a new Machine Learning Compute Cluster to be created.
 
-* `scale_settings` - (Required) A `scale_settings` block as defined below. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `scale_settings` - (Required) A `scale_settings` block as defined below.
 
 ---
 
@@ -128,7 +128,7 @@ The following arguments are supported:
 
 * `subnet_resource_id` - (Optional) The ID of the Subnet that the Compute Cluster should reside in. Changing this forces a new Machine Learning Compute Cluster to be created.
 
-* `tags` - (Optional) A mapping of tags which should be assigned to the Machine Learning Compute Cluster. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `tags` - (Optional) A mapping of tags which should be assigned to the Machine Learning Compute Cluster.
 
 ---
 
@@ -155,11 +155,11 @@ A `ssh` block supports the following:
 
 A `scale_settings` block supports the following:
 
-* `max_node_count` - (Required) Maximum node count. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `max_node_count` - (Required) Maximum node count.
 
-* `min_node_count` - (Required) Minimal node count. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `min_node_count` - (Required) Minimal node count.
 
-* `scale_down_nodes_after_idle_duration` - (Required) Node Idle Time Before Scale Down: defines the time until the compute is shutdown when it has gone into Idle state. Is defined according to W3C XML schema standard for duration. Changing this forces a new Machine Learning Compute Cluster to be created.
+* `scale_down_nodes_after_idle_duration` - (Required) Node Idle Time Before Scale Down: defines the time until the compute is shutdown when it has gone into Idle state. Is defined according to W3C XML schema standard for duration.
 
 ## Attributes Reference
 
@@ -198,4 +198,4 @@ terraform import azurerm_machine_learning_compute_cluster.example /subscriptions
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.MachineLearningServices`: 2024-04-01
+* `Microsoft.MachineLearningServices` - 2025-06-01

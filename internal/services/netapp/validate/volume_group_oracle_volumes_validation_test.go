@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumegroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumegroups"
 )
 
 func TestValidateNetAppVolumeGroupOracleVolumes(t *testing.T) {
@@ -1222,35 +1222,6 @@ func TestValidateNetAppVolumeGroupOracleVolumes(t *testing.T) {
 						ProximityPlacementGroup: pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/ppg1"),
 						SecurityStyle:           pointer.To(volumegroups.SecurityStyleUnix),
 						VolumeSpecName:          pointer.To(string(VolumeSpecNameOracleData1)),
-					},
-				},
-			},
-			Errors: 1,
-		},
-		{
-			Name: "ValidateEndpointDstNotEnabledOnLogVolume",
-			VolumesData: []volumegroups.VolumeGroupVolumeProperties{
-				{ // data1
-					Name: pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameOracleData1))),
-					Properties: volumegroups.VolumeProperties{
-						ProtocolTypes:           pointer.To([]string{"NFSv4.1"}),
-						ProximityPlacementGroup: pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/ppg1"),
-						SecurityStyle:           pointer.To(volumegroups.SecurityStyleUnix),
-						VolumeSpecName:          pointer.To(string(VolumeSpecNameOracleData1)),
-					},
-				},
-				{ // log
-					Name: pointer.To(fmt.Sprintf("volume-%v", string(VolumeSpecNameOracleLog))),
-					Properties: volumegroups.VolumeProperties{
-						ProtocolTypes:           pointer.To([]string{"NFSv4.1"}),
-						ProximityPlacementGroup: pointer.To("/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Compute/proximityPlacementGroups/ppg1"),
-						SecurityStyle:           pointer.To(volumegroups.SecurityStyleUnix),
-						VolumeSpecName:          pointer.To(string(VolumeSpecNameOracleLog)),
-						DataProtection: &volumegroups.VolumePropertiesDataProtection{
-							Replication: &volumegroups.ReplicationObject{
-								EndpointType: pointer.To(volumegroups.EndpointTypeDst),
-							},
-						},
 					},
 				},
 			},

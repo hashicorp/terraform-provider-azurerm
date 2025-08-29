@@ -232,7 +232,9 @@ func (r RoleManagementPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 						Description: "The approval stages for the activation",
 						Type:        pluginsdk.TypeList,
 						Optional:    true,
-						MaxItems:    1,
+						// This is O+C because when `activation_rules` is specified, there will be an empty "approval_stage" populated by the API.
+						Computed: true,
+						MaxItems: 1,
 						Elem: &pluginsdk.Resource{
 							Schema: map[string]*pluginsdk.Schema{
 								"primary_approver": {

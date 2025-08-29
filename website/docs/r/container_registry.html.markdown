@@ -248,6 +248,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `admin_password` - The Password associated with the Container Registry Admin account - if the admin account is enabled.
 
+* `data_endpoint_host_names` - A set of data endpoint hostnames associated with the container registry if data endpoints are enabled. 
+
 * `identity` - An `identity` block as defined below.
 
 ---
@@ -283,4 +285,4 @@ terraform import azurerm_container_registry.example /subscriptions/00000000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerRegistry`: 2023-11-01-preview
+* `Microsoft.ContainerRegistry` - 2023-11-01-preview

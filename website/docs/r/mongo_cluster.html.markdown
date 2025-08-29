@@ -101,7 +101,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the MongoDB Cluster.
 
-* `version` - (Optional) The version for the MongoDB Cluster. Possibles values are `5.0`, `6.0` and `7.0`.
+* `version` - (Optional) The version for the MongoDB Cluster. Possibles values are `5.0`, `6.0`, `7.0` and `8.0`.
 
 ## Attributes Reference
 
@@ -142,4 +142,4 @@ terraform import azurerm_mongo_cluster.example /subscriptions/00000000-0000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DocumentDB`: 2024-07-01
+* `Microsoft.DocumentDB` - 2024-07-01

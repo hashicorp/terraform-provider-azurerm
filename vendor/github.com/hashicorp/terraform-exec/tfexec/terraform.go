@@ -5,12 +5,15 @@ package tfexec
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
+	"runtime"
 	"sync"
+	"time"
 
 	"github.com/hashicorp/go-version"
 )
@@ -67,6 +70,9 @@ type Terraform struct {
 	// TF_LOG_PROVIDER environment variable
 	logProvider string
 
+	// waitDelay represents the WaitDelay field of the [exec.Cmd] of Terraform
+	waitDelay time.Duration
+
 	versionLock  sync.Mutex
 	execVersion  *version.Version
 	provVersions map[string]*version.Version
@@ -95,6 +101,7 @@ func NewTerraform(workingDir string, execPath string) (*Terraform, error) {
 		workingDir: workingDir,
 		env:        nil, // explicit nil means copy os.Environ
 		logger:     log.New(ioutil.Discard, "", 0),
+		waitDelay:  60 * time.Second,
 	}
 
 	return &tf, nil
@@ -213,6 +220,15 @@ func (tf *Terraform) SetSkipProviderVerify(skip bool) error {
 		return err
 	}
 	tf.skipProviderVerify = skip
+	return nil
+}
+
+// SetWaitDelay sets the WaitDelay of running Terraform process as [exec.Cmd]
+func (tf *Terraform) SetWaitDelay(delay time.Duration) error {
+	if runtime.GOOS == "windows" {
+		return errors.New("cannot set WaitDelay, graceful cancellation not supported on windows")
+	}
+	tf.waitDelay = delay
 	return nil
 }
 
