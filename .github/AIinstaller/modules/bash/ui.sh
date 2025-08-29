@@ -1027,6 +1027,23 @@ show_bootstrap_directory_validation_error() {
     echo ""
 }
 
+show_repository_directory_required_error() {
+    local current_location="$1"
+    
+    echo ""
+    write_error_message "Repository directory required when running from outside terraform-provider-azurerm repository"
+    echo ""
+    write_plain "You are running the installer from: ${current_location}"
+    write_plain "This is not a terraform-provider-azurerm repository directory."
+    echo ""
+    write_cyan "Required: Specify target repository with -repo-directory"
+    write_plain "  ./install-copilot-setup.sh -repo-directory /path/to/terraform-provider-azurerm"
+    echo ""
+    write_cyan "Alternative: Bootstrap installer to user profile"
+    write_plain "  ./install-copilot-setup.sh -bootstrap"
+    echo ""
+}
+
 # Export functions for use in other scripts
 export -f write_header write_operation_status write_success write_warning write_error write_info write_section write_plain
 export -f write_warning_message write_error_message write_verbose_message
@@ -1035,5 +1052,6 @@ export -f show_completion show_file_operation show_error_block show_repository_i
 export -f prompt_confirmation show_completion_summary show_key_value show_divider show_usage
 export -f show_branch_detection show_path_info show_bootstrap_completion show_bootstrap_next_steps show_bootstrap_location_error format_aligned_label
 export -f format_aligned_label_spacing show_next_steps print_separator calculate_max_filename_length show_bootstrap_directory_validation_error
+export -f show_repository_directory_required_error
 export -f show_operation_summary show_operation_summary_with_steps show_installation_summary show_verification_summary show_cleanup_summary
 export -f show_source_branch_help show_feature_branch_help show_unknown_branch_help show_source_branch_welcome

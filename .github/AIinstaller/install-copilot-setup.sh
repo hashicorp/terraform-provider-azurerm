@@ -285,7 +285,17 @@ main() {
             current_branch="unknown"
         fi
     else
-        workspace_root="$(get_workspace_root)"
+        # Check if we're in a valid terraform-provider-azurerm repository
+        local detected_root
+        detected_root="$(get_workspace_root)"
+        
+        # If get_workspace_root returns current directory and we're not in a terraform repo, require -repo-directory
+        if [[ "${detected_root}" == "$(pwd)" ]] && ! is_source_repository "${detected_root}"; then
+            show_repository_directory_required_error "$(pwd)"
+            exit 1
+        fi
+        
+        workspace_root="${detected_root}"
         current_branch=$(git branch --show-current 2>/dev/null || echo "unknown")
     fi
     
