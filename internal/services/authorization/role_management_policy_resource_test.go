@@ -269,7 +269,7 @@ resource "azurerm_role_management_policy" "test" {
       admin_notifications {
         notification_level    = "Critical"
         default_recipients    = false
-        additional_recipients = ["management-group@example.com"]
+        additional_recipients = ["someone@example.com"]
       }
     }
   }
@@ -316,7 +316,7 @@ resource "azurerm_role_management_policy" "test" {
       approver_notifications {
         notification_level    = "All"
         default_recipients    = false
-        additional_recipients = ["resource-group@example.com"]
+        additional_recipients = ["someone@example.com"]
       }
     }
   }
@@ -470,14 +470,7 @@ resource "azurerm_role_management_policy" "test" {
       approver_notifications {
         notification_level    = "Critical"
         default_recipients    = false
-        additional_recipients = ["resource-group-someone@example.com"]
-      }
-    }
-    eligible_activations {
-      assignee_notifications {
-        notification_level    = "All"
-        default_recipients    = true
-        additional_recipients = ["resource-group-someone.else@example.com"]
+        additional_recipients = ["someone@example.com"]
       }
     }
     active_assignments {
@@ -485,6 +478,13 @@ resource "azurerm_role_management_policy" "test" {
         notification_level    = "Critical"
         default_recipients    = false
         additional_recipients = ["resource-group-approver@example.com"]
+      }
+    }
+    eligible_activations {
+      assignee_notifications {
+        notification_level    = "All"
+        default_recipients    = true
+        additional_recipients = ["someone.else@example.com"]
       }
     }
   }
@@ -528,7 +528,7 @@ resource "azurerm_role_management_policy" "test" {
       approver_notifications {
         notification_level    = "Critical"
         default_recipients    = false
-        additional_recipients = ["subscription-someone@example.com"]
+        additional_recipients = ["someone@example.com"]
       }
     }
   }
@@ -576,14 +576,14 @@ resource "azurerm_role_management_policy" "test" {
       approver_notifications {
         notification_level    = "Critical"
         default_recipients    = false
-        additional_recipients = ["subscription-someone@example.com"]
+        additional_recipients = ["someone@example.com"]
       }
     }
     eligible_activations {
       assignee_notifications {
         notification_level    = "All"
         default_recipients    = true
-        additional_recipients = ["subscription-someone.else@example.com"]
+        additional_recipients = ["someone.else@example.com"]
       }
     }
   }
@@ -625,7 +625,7 @@ resource "azurerm_role_management_policy" "test" {
       approver_notifications {
         notification_level    = "All"
         default_recipients    = false
-        additional_recipients = ["resource-group-someone@example.com"]
+        additional_recipients = ["someone@example.com"]
       }
     }
   }
@@ -695,7 +695,7 @@ resource "azurerm_role_management_policy" "test" {
       approver_notifications {
         notification_level    = "All"
         default_recipients    = false
-        additional_recipients = ["resource-group-someone@example.com"]
+        additional_recipients = ["someone@example.com"]
       }
     }
   }
@@ -743,14 +743,14 @@ resource "azurerm_role_management_policy" "test" {
       approver_notifications {
         notification_level    = "Critical"
         default_recipients    = false
-        additional_recipients = ["resource-someone@example.com"]
+        additional_recipients = ["someone@example.com"]
       }
     }
     eligible_activations {
       assignee_notifications {
         notification_level    = "All"
         default_recipients    = true
-        additional_recipients = ["resource-someone.else@example.com"]
+        additional_recipients = ["someone.else@example.com"]
       }
     }
   }
