@@ -7,12 +7,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apiversionset"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apiversionsets"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace"
@@ -297,7 +297,6 @@ func (r ApiManagementWorkspaceApiVersionSetResource) CustomizeDiff() sdk.Resourc
 			var headerSet, querySet bool
 			if v, ok := rd.GetOk("version_header_name"); ok {
 				headerSet = v.(string) != ""
-
 			}
 			if v, ok := rd.GetOk("version_query_name"); ok {
 				querySet = v.(string) != ""
