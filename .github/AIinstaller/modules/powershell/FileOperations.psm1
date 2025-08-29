@@ -1376,8 +1376,13 @@ function Invoke-InstallInfrastructure {
                 "Unknown" 
             }
             
-            $branchType = if (Test-SourceRepository) { "source" } else { 
-                if ($currentBranch -eq "Unknown") { "Unknown" } else { "feature" }
+            # Determine branch type based on TARGET branch, not source repository
+            $branchType = if ($currentBranch -eq "exp/terraform_copilot") { 
+                "source" 
+            } elseif ($currentBranch -eq "Unknown") { 
+                "Unknown" 
+            } else { 
+                "feature" 
             }
             
             # Prepare comprehensive details for installation summary

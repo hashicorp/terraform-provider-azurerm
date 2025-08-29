@@ -694,9 +694,20 @@ function Invoke-VerifyWorkspace {
         $filesFound = $results.Files.Count
         $issuesFound = $results.Issues.Count
         
+        # Determine branch type based on current branch (same logic as installation)
+        $currentBranch = $validation.Git.CurrentBranch
+        $branchType = if ($currentBranch -eq "exp/terraform_copilot") { 
+            "source" 
+        } elseif ($currentBranch -eq "Unknown") { 
+            "Unknown" 
+        } else { 
+            "feature" 
+        }
+        
         $details += "Files Verified: $filesFound"
         $details += "Issues Found: $issuesFound"
-        $details += "Repository Type: $(if ($results.IsSourceRepo) { 'Source' } else { 'Target' })"
+        $details += "Target branch: $currentBranch"
+        $details += "Branch type: $branchType"
         $details += "Location: $workspaceRoot"
         
         # Use centralized success reporting
