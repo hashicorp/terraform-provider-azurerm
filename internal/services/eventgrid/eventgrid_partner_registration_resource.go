@@ -1,6 +1,3 @@
-// Copyright (c) HashiCorp, Inc.
-// SPDX-License-Identifier: MPL-2.0
-
 package eventgrid
 
 import (
@@ -45,7 +42,7 @@ func (EventGridPartnerRegistrationResource) Arguments() map[string]*pluginsdk.Sc
 			),
 		},
 		"resource_group_name": commonschema.ResourceGroupName(),
-		"tags":                commonschema.Tags(),
+		"tags": commonschema.Tags(),
 	}
 }
 

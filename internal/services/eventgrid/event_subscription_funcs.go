@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/eventsubscriptions"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -16,40 +17,56 @@ import (
 func expandEventSubscriptionDestination(d *pluginsdk.ResourceData) eventsubscriptions.EventSubscriptionDestination {
 	deliveryMappings := expandEventSubscriptionDeliveryAttributeMappings(d.Get("delivery_property").([]interface{}))
 
-	if val, ok := d.GetOk("azure_function_endpoint"); ok && len(val.([]interface{})) == 1 {
-		return expandEventSubscriptionDestinationAzureFunction(d.Get("azure_function_endpoint").([]interface{}), deliveryMappings)
+	if v, ok := d.GetOk("azure_function"); ok && len(v.([]interface{})) == 1 {
+		return expandEventSubscriptionDestinationAzureFunction(d.Get("azure_function").([]interface{}), deliveryMappings)
+	}
+	if v, ok := d.GetOk("eventhub_id"); ok {
+		return expandEventSubscriptionDestinationEventHub(v.(string), deliveryMappings)
+	}
+	if v, ok := d.GetOk("arc_connection_id"); ok {
+		return expandEventSubscriptionDestinationArcConnection(v.(string), deliveryMappings)
+	}
+	if v, ok := d.GetOk("service_bus_queue_id"); ok {
+		return expandEventSubscriptionDestinationServiceBusQueue(v.(string), deliveryMappings)
+	}
+	if v, ok := d.GetOk("service_bus_topic_id"); ok {
+		return expandEventSubscriptionDestinationServiceBusTopic(v.(string), deliveryMappings)
+	}
+	if v, ok := d.GetOk("storage_queue"); ok {
+		return expandEventSubscriptionStorageQueue(v.([]interface{}))
+	}
+	if v, ok := d.GetOk("webhook"); ok {
+		return expandEventGridEventSubscriptionWebhook(v.([]interface{}), deliveryMappings)
 	}
 
-	eventhubEndpointId, ok := d.GetOk("eventhub_endpoint_id")
-	if ok {
-		return expandEventSubscriptionDestinationEventHub(eventhubEndpointId.(string), deliveryMappings)
-	}
-
-	hybridConnectionEndpointId, ok := d.GetOk("hybrid_connection_endpoint_id")
-	if ok {
-		return expandEventSubscriptionDestinationHybridConnection(hybridConnectionEndpointId.(string), deliveryMappings)
-	}
-
-	if val, ok := d.GetOk("service_bus_queue_endpoint_id"); ok {
-		return expandEventSubscriptionDestinationServiceBusQueueEndpoint(val.(string), deliveryMappings)
-	}
-
-	if val, ok := d.GetOk("service_bus_topic_endpoint_id"); ok {
-		return expandEventSubscriptionDestinationServiceBusTopicEndpoint(val.(string), deliveryMappings)
-	}
-
-	if val, ok := d.GetOk("storage_queue_endpoint"); ok {
-		return expandEventSubscriptionStorageQueueEndpoint(val.([]interface{}))
-	}
-
-	if val, ok := d.GetOk("webhook_endpoint"); ok {
-		return expandEventGridEventSubscriptionWebhookEndpoint(val.([]interface{}), deliveryMappings)
+	if !features.FivePointOh() {
+		if val, ok := d.GetOk("azure_function_endpoint"); ok && len(val.([]interface{})) == 1 {
+			return expandEventSubscriptionDestinationAzureFunction(d.Get("azure_function_endpoint").([]interface{}), deliveryMappings)
+		}
+		if v, ok := d.GetOk("eventhub_endpoint_id"); ok {
+			return expandEventSubscriptionDestinationEventHub(v.(string), deliveryMappings)
+		}
+		if v, ok := d.GetOk("hybrid_connection_endpoint_id"); ok {
+			return expandEventSubscriptionDestinationArcConnection(v.(string), deliveryMappings)
+		}
+		if v, ok := d.GetOk("service_bus_queue_endpoint_id"); ok {
+			return expandEventSubscriptionDestinationServiceBusQueue(v.(string), deliveryMappings)
+		}
+		if v, ok := d.GetOk("service_bus_topic_endpoint_id"); ok {
+			return expandEventSubscriptionDestinationServiceBusTopic(v.(string), deliveryMappings)
+		}
+		if v, ok := d.GetOk("storage_queue_endpoint"); ok {
+			return expandEventSubscriptionStorageQueue(v.([]interface{}))
+		}
+		if v, ok := d.GetOk("webhook_endpoint"); ok {
+			return expandEventGridEventSubscriptionWebhook(v.([]interface{}), deliveryMappings)
+		}
 	}
 
 	return nil
 }
 
-func expandEventGridEventSubscriptionWebhookEndpoint(input []interface{}, deliveryMappings []eventsubscriptions.DeliveryAttributeMapping) eventsubscriptions.EventSubscriptionDestination {
+func expandEventGridEventSubscriptionWebhook(input []interface{}, deliveryMappings []eventsubscriptions.DeliveryAttributeMapping) eventsubscriptions.EventSubscriptionDestination {
 	props := eventsubscriptions.WebHookEventSubscriptionDestinationProperties{
 		DeliveryAttributeMappings: &deliveryMappings,
 	}
@@ -76,11 +93,11 @@ func expandEventGridEventSubscriptionWebhookEndpoint(input []interface{}, delive
 	}
 
 	if v, ok := config["active_directory_tenant_id"]; ok && v != "" {
-		props.AzureActiveDirectoryTenantId = utils.String(v.(string))
+		props.AzureActiveDirectoryTenantId = pointer.To(v.(string))
 	}
 
 	if v, ok := config["active_directory_app_id_or_uri"]; ok && v != "" {
-		props.AzureActiveDirectoryApplicationIdOrUri = utils.String(v.(string))
+		props.AzureActiveDirectoryApplicationIdOrUri = pointer.To(v.(string))
 	}
 
 	return webhookDestination
@@ -92,7 +109,7 @@ func expandEventSubscriptionDestinationAzureFunction(input []interface{}, delive
 		DeliveryAttributeMappings: &deliveryMappings,
 	}
 	if v, ok := item["function_id"]; ok && v != "" {
-		props.ResourceId = utils.String(v.(string))
+		props.ResourceId = pointer.To(v.(string))
 	}
 	if v, ok := item["max_events_per_batch"]; ok && v != 0 {
 		props.MaxEventsPerBatch = pointer.To(int64(v.(int)))
@@ -139,7 +156,7 @@ func flattenEventSubscriptionDestinationEventHub(input eventsubscriptions.EventS
 	return ""
 }
 
-func expandEventSubscriptionDestinationHybridConnection(hybridConnectionId string, deliveryMappings []eventsubscriptions.DeliveryAttributeMapping) eventsubscriptions.EventSubscriptionDestination {
+func expandEventSubscriptionDestinationArcConnection(hybridConnectionId string, deliveryMappings []eventsubscriptions.DeliveryAttributeMapping) eventsubscriptions.EventSubscriptionDestination {
 	return eventsubscriptions.HybridConnectionEventSubscriptionDestination{
 		Properties: &eventsubscriptions.HybridConnectionEventSubscriptionDestinationProperties{
 			DeliveryAttributeMappings: pointer.To(deliveryMappings),
@@ -148,7 +165,7 @@ func expandEventSubscriptionDestinationHybridConnection(hybridConnectionId strin
 	}
 }
 
-func flattenEventSubscriptionDestinationHybridConnection(input eventsubscriptions.EventSubscriptionDestination) string {
+func flattenEventSubscriptionDestinationArcConnection(input eventsubscriptions.EventSubscriptionDestination) string {
 	if val, ok := input.(eventsubscriptions.HybridConnectionEventSubscriptionDestination); ok && val.Properties != nil && val.Properties.ResourceId != nil {
 		return *val.Properties.ResourceId
 	}
@@ -156,7 +173,7 @@ func flattenEventSubscriptionDestinationHybridConnection(input eventsubscription
 	return ""
 }
 
-func expandEventSubscriptionDestinationServiceBusQueueEndpoint(serviceBusQueueEndpointId string, deliveryMappings []eventsubscriptions.DeliveryAttributeMapping) eventsubscriptions.EventSubscriptionDestination {
+func expandEventSubscriptionDestinationServiceBusQueue(serviceBusQueueEndpointId string, deliveryMappings []eventsubscriptions.DeliveryAttributeMapping) eventsubscriptions.EventSubscriptionDestination {
 	return eventsubscriptions.ServiceBusQueueEventSubscriptionDestination{
 		Properties: &eventsubscriptions.ServiceBusQueueEventSubscriptionDestinationProperties{
 			DeliveryAttributeMappings: pointer.To(deliveryMappings),
@@ -165,7 +182,7 @@ func expandEventSubscriptionDestinationServiceBusQueueEndpoint(serviceBusQueueEn
 	}
 }
 
-func flattenEventSubscriptionDestinationServiceBusQueueEndpoint(input eventsubscriptions.EventSubscriptionDestination) string {
+func flattenEventSubscriptionDestinationServiceBusQueue(input eventsubscriptions.EventSubscriptionDestination) string {
 	if val, ok := input.(eventsubscriptions.ServiceBusQueueEventSubscriptionDestination); ok && val.Properties != nil && val.Properties.ResourceId != nil {
 		return *val.Properties.ResourceId
 	}
@@ -173,7 +190,7 @@ func flattenEventSubscriptionDestinationServiceBusQueueEndpoint(input eventsubsc
 	return ""
 }
 
-func expandEventSubscriptionDestinationServiceBusTopicEndpoint(serviceBusTopicEndpointId string, deliveryMappings []eventsubscriptions.DeliveryAttributeMapping) eventsubscriptions.EventSubscriptionDestination {
+func expandEventSubscriptionDestinationServiceBusTopic(serviceBusTopicEndpointId string, deliveryMappings []eventsubscriptions.DeliveryAttributeMapping) eventsubscriptions.EventSubscriptionDestination {
 	return eventsubscriptions.ServiceBusTopicEventSubscriptionDestination{
 		Properties: &eventsubscriptions.ServiceBusTopicEventSubscriptionDestinationProperties{
 			DeliveryAttributeMappings: pointer.To(deliveryMappings),
@@ -182,7 +199,7 @@ func expandEventSubscriptionDestinationServiceBusTopicEndpoint(serviceBusTopicEn
 	}
 }
 
-func flattenEventSubscriptionDestinationServiceBusTopicEndpoint(input eventsubscriptions.EventSubscriptionDestination) string {
+func flattenEventSubscriptionDestinationServiceBusTopic(input eventsubscriptions.EventSubscriptionDestination) string {
 	if val, ok := input.(eventsubscriptions.ServiceBusTopicEventSubscriptionDestination); ok && val.Properties != nil && val.Properties.ResourceId != nil {
 		return *val.Properties.ResourceId
 	}
@@ -190,21 +207,53 @@ func flattenEventSubscriptionDestinationServiceBusTopicEndpoint(input eventsubsc
 	return ""
 }
 
-func expandEventSubscriptionStorageQueueEndpoint(input []interface{}) eventsubscriptions.EventSubscriptionDestination {
-	raw := input[0].(map[string]interface{})
-	props := eventsubscriptions.StorageQueueEventSubscriptionDestinationProperties{
-		ResourceId: pointer.To(raw["storage_account_id"].(string)),
-		QueueName:  pointer.To(raw["queue_name"].(string)),
+func expandEventSubscriptionStorageQueue(input []interface{}) eventsubscriptions.EventSubscriptionDestination {
+	storageQueue := eventsubscriptions.StorageQueueEventSubscriptionDestination{}
+
+	if len(input) > 0 {
+		raw := input[0].(map[string]interface{})
+		props := eventsubscriptions.StorageQueueEventSubscriptionDestinationProperties{
+			ResourceId: pointer.To(raw["storage_account_id"].(string)),
+		}
+
+		if raw["name"] != nil && raw["name"].(string) != "" {
+			props.QueueName = pointer.To(raw["name"].(string))
+		}
+
+		if raw["message_time_to_live_in_seconds"] != nil && raw["message_time_to_live_in_seconds"].(int) != 0 {
+			props.QueueMessageTimeToLiveInSeconds = pointer.To(int64(raw["message_time_to_live_in_seconds"].(int)))
+		}
+
+		if !features.FivePointOh() {
+			if raw["queue_name"] != nil && raw["queue_name"].(string) != "" {
+				props.QueueName = pointer.To(raw["queue_name"].(string))
+			}
+			if raw["queue_message_time_to_live_in_seconds"] != nil && raw["queue_message_time_to_live_in_seconds"].(int) != 0 {
+				props.QueueMessageTimeToLiveInSeconds = pointer.To(int64(raw["queue_message_time_to_live_in_seconds"].(int)))
+			}
+		}
+
+		return eventsubscriptions.StorageQueueEventSubscriptionDestination{
+			Properties: &props,
+		}
 	}
 
-	if ttlInSeconds := raw["queue_message_time_to_live_in_seconds"]; ttlInSeconds != 0 {
-		queueMessageTimeToLiveInSeconds := int64(ttlInSeconds.(int))
-		props.QueueMessageTimeToLiveInSeconds = &queueMessageTimeToLiveInSeconds
+	return &storageQueue
+}
+
+func flattenEventSubscriptionDestinationStorageQueue(input eventsubscriptions.EventSubscriptionDestination) []interface{} {
+	output := make([]interface{}, 0)
+
+	val, ok := input.(eventsubscriptions.StorageQueueEventSubscriptionDestination)
+	if ok && val.Properties != nil {
+		output = append(output, map[string]interface{}{
+			"message_time_to_live_in_seconds": int(pointer.From(val.Properties.QueueMessageTimeToLiveInSeconds)),
+			"storage_account_id":              pointer.From(val.Properties.ResourceId),
+			"name":                            pointer.From(val.Properties.QueueName),
+		})
 	}
 
-	return eventsubscriptions.StorageQueueEventSubscriptionDestination{
-		Properties: &props,
-	}
+	return output
 }
 
 func flattenEventSubscriptionDestinationStorageQueueEndpoint(input eventsubscriptions.EventSubscriptionDestination) []interface{} {
@@ -229,17 +278,17 @@ func expandEventSubscriptionDeliveryAttributeMappings(input []interface{}) []eve
 
 		if mappingBlock["type"].(string) == "Static" {
 			output = append(output, eventsubscriptions.StaticDeliveryAttributeMapping{
-				Name: utils.String(mappingBlock["header_name"].(string)),
+				Name: pointer.To(mappingBlock["header_name"].(string)),
 				Properties: &eventsubscriptions.StaticDeliveryAttributeMappingProperties{
-					Value:    utils.String(mappingBlock["value"].(string)),
-					IsSecret: utils.Bool(mappingBlock["secret"].(bool)),
+					Value:    pointer.To(mappingBlock["value"].(string)),
+					IsSecret: pointer.To(mappingBlock["secret"].(bool)),
 				},
 			})
 		} else if mappingBlock["type"].(string) == "Dynamic" {
 			output = append(output, eventsubscriptions.DynamicDeliveryAttributeMapping{
-				Name: utils.String(mappingBlock["header_name"].(string)),
+				Name: pointer.To(mappingBlock["header_name"].(string)),
 				Properties: &eventsubscriptions.DynamicDeliveryAttributeMappingProperties{
-					SourceField: utils.String(mappingBlock["source_field"].(string)),
+					SourceField: pointer.To(mappingBlock["source_field"].(string)),
 				},
 			})
 		}
@@ -342,7 +391,7 @@ func expandEventSubscriptionIdentity(input []interface{}) (*eventsubscriptions.E
 	return &eventgridIdentity, nil
 }
 
-func flattenEventSubscriptionWebhookEndpoint(input eventsubscriptions.EventSubscriptionDestination, fullUrl *eventsubscriptions.EventSubscriptionFullURL) []interface{} {
+func flattenEventSubscriptionWebhook(input eventsubscriptions.EventSubscriptionDestination, fullUrl *eventsubscriptions.EventSubscriptionFullURL) []interface{} {
 	output := make([]interface{}, 0)
 	val, ok := input.(eventsubscriptions.WebHookEventSubscriptionDestination)
 	if ok {
@@ -612,7 +661,7 @@ func expandEventSubscriptionFilter(d *pluginsdk.ResourceData) (*eventsubscriptio
 	}
 
 	if v, ok := d.GetOk("advanced_filtering_on_arrays_enabled"); ok {
-		filter.EnableAdvancedFilteringOnArrays = utils.Bool(v.(bool))
+		filter.EnableAdvancedFilteringOnArrays = pointer.To(v.(bool))
 	}
 
 	return filter, nil

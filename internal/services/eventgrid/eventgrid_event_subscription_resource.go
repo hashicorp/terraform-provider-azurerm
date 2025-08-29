@@ -4,14 +4,18 @@
 package eventgrid
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/eventsubscriptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventhub/2021-11-01/eventhubs"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/relay/2021-11-01/hybridconnections"
+	serviceBusQueues "github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/queues"
+	serviceBusTopics "github.com/hashicorp/go-azure-sdk/resource-manager/servicebus/2024-01-01/topics"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -23,15 +27,28 @@ import (
 )
 
 func possibleEventSubscriptionEndpointTypes() []string {
-	return []string{
-		string(AzureFunctionEndpoint),
-		string(EventHubEndpointID),
-		string(HybridConnectionEndpointID),
-		string(ServiceBusQueueEndpointID),
-		string(ServiceBusTopicEndpointID),
-		string(StorageQueueEndpoint),
-		string(WebHookEndpoint),
+	types := []string{
+		string(AzureFunction),
+		string(EventHubID),
+		string(ArcConnectionID),
+		string(ServiceBusQueueID),
+		string(ServiceBusTopicID),
+		string(StorageQueue),
+		string(WebHook),
 	}
+
+	if !features.FivePointOh() {
+		types = append(types,
+			"azure_function_endpoint",
+			"eventhub_endpoint_id",
+			"hybrid_connection_endpoint_id",
+			"service_bus_queue_endpoint_id",
+			"service_bus_topic_endpoint_id",
+			"storage_queue_endpoint",
+			"webhook_endpoint")
+	}
+
+	return types
 }
 
 func resourceEventGridEventSubscription() *pluginsdk.Resource {
@@ -48,26 +65,7 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
-			if filterRaw := d.Get("advanced_filter"); len(filterRaw.([]interface{})) == 1 {
-				filters := filterRaw.([]interface{})[0].(map[string]interface{})
-				valueCount := 0
-				for _, valRaw := range filters {
-					for _, val := range valRaw.([]interface{}) {
-						v := val.(map[string]interface{})
-						if values, ok := v["values"]; ok {
-							valueCount += len(values.([]interface{}))
-						} else if _, ok := v["value"]; ok {
-							valueCount++
-						}
-					}
-				}
-				if valueCount > 25 {
-					return fmt.Errorf("the total number of `advanced_filter` values allowed on a single event subscription is 25, but %d are configured", valueCount)
-				}
-			}
-			return nil
-		}),
+		CustomizeDiff: advancedFilterLimitCustomizeDiffFunc,
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := eventsubscriptions.ParseScopedEventSubscriptionID(id)
@@ -88,54 +86,52 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 
 			"expiration_time_utc": eventSubscriptionSchemaExpirationTimeUTC(),
 
-			"azure_function_endpoint": eventSubscriptionSchemaAzureFunctionEndpoint(
+			"azure_function": eventSubscriptionSchemaAzureFunction(
 				utils.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
-					string(AzureFunctionEndpoint),
+					string(AzureFunction),
 				),
 			),
 
-			"eventhub_endpoint_id": eventSubscriptionSchemaEventHubEndpointID(
+			"eventhub_id": eventSubscriptionSchemaEventHubID(
 				utils.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
-					string(EventHubEndpointID),
+					string(EventHubID),
 				),
 			),
 
-			"hybrid_connection_endpoint_id": eventSubscriptionSchemaHybridConnectionEndpointID(
+			"arc_connection_id": eventSubscriptionSchemaArcConnectionID(
 				utils.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
-					string(HybridConnectionEndpointID),
+					string(ArcConnectionID),
 				),
 			),
 
-			// TODO: this can become `service_bus_queue_id` in 4.0
-			"service_bus_queue_endpoint_id": eventSubscriptionSchemaServiceBusQueueEndpointID(
+			"service_bus_queue_id": eventSubscriptionSchemaServiceBusQueueID(
 				utils.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
-					string(ServiceBusQueueEndpointID),
+					string(ServiceBusQueueID),
 				),
 			),
 
-			// TODO: this can become `service_bus_topic_id` in 4.0
-			"service_bus_topic_endpoint_id": eventSubscriptionSchemaServiceBusTopicEndpointID(
+			"service_bus_topic_id": eventSubscriptionSchemaServiceBusTopicID(
 				utils.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
-					string(ServiceBusTopicEndpointID),
+					string(ServiceBusTopicID),
 				),
 			),
 
-			"storage_queue_endpoint": eventSubscriptionSchemaStorageQueueEndpoint(
+			"storage_queue": eventSubscriptionSchemaStorageQueue(
 				utils.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
-					string(StorageQueueEndpoint),
+					string(StorageQueue),
 				),
 			),
 
-			"webhook_endpoint": eventSubscriptionSchemaWebHookEndpoint(
+			"webhook": eventSubscriptionSchemaWebHook(
 				utils.RemoveFromStringArray(
 					possibleEventSubscriptionEndpointTypes(),
-					string(WebHookEndpoint),
+					string(WebHook),
 				),
 			),
 
@@ -162,7 +158,250 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
-		resource.Schema["azure_function_endpoint"].Elem.(*pluginsdk.Resource).Schema["function_id"].ValidateFunc = azure.ValidateResourceID
+		resource.Schema["azure_function"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeList,
+			MaxItems:      1,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: utils.RemoveFromStringArray(possibleEventSubscriptionEndpointTypes(), string(AzureFunction)),
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"function_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: commonids.ValidateFunctionAppID,
+					},
+					"max_events_per_batch": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+					},
+					"preferred_batch_size_in_kilobytes": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+					},
+				},
+			},
+		}
+		resource.Schema["azure_function_endpoint"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeList,
+			MaxItems:      1,
+			Optional:      true,
+			ConflictsWith: utils.RemoveFromStringArray(possibleEventSubscriptionEndpointTypes(), "azure_function_endpoint"),
+			Deprecated:    "`azure_function_endpoint` has been deprecated in favour of the `azure_function` property and will be removed in v5.0 of the AzureRM Provider",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"function_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: azure.ValidateResourceID,
+					},
+					"max_events_per_batch": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+					},
+					"preferred_batch_size_in_kilobytes": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+					},
+				},
+			},
+		}
+
+		resource.Schema["eventhub_id"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: utils.RemoveFromStringArray(possibleEventSubscriptionEndpointTypes(), string(EventHubID)),
+			ValidateFunc:  eventhubs.ValidateEventhubID,
+		}
+		resource.Schema["eventhub_endpoint_id"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: utils.RemoveFromStringArray(possibleEventSubscriptionEndpointTypes(), "eventhub_endpoint_id"),
+			ValidateFunc:  eventhubs.ValidateEventhubID,
+			Deprecated:    "`eventhub_endpoint_id` has been deprecated in favour of the `eventhub_id` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+
+		resource.Schema["arc_connection_id"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: utils.RemoveFromStringArray(possibleEventSubscriptionEndpointTypes(), string(ArcConnectionID)),
+			ValidateFunc:  hybridconnections.ValidateHybridConnectionID,
+		}
+		resource.Schema["hybrid_connection_endpoint_id"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: utils.RemoveFromStringArray(possibleEventSubscriptionEndpointTypes(), "hybrid_connection_endpoint_id"),
+			ValidateFunc:  hybridconnections.ValidateHybridConnectionID,
+			Deprecated:    "`hybrid_connection_endpoint_id` has been deprecated in favour of the `arc_connection_id` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+
+		resource.Schema["service_bus_queue_id"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: utils.RemoveFromStringArray(possibleEventSubscriptionEndpointTypes(), "service_bus_queue_id"),
+			ValidateFunc:  serviceBusQueues.ValidateQueueID,
+		}
+		resource.Schema["service_bus_queue_endpoint_id"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: utils.RemoveFromStringArray(possibleEventSubscriptionEndpointTypes(), "service_bus_queue_endpoint_id"),
+			ValidateFunc:  serviceBusQueues.ValidateQueueID,
+			Deprecated:    "`service_bus_queue_endpoint_id` has been deprecated in favour of the `service_bus_queue_id` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+
+		resource.Schema["service_bus_topic_id"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: utils.RemoveFromStringArray(possibleEventSubscriptionEndpointTypes(), "service_bus_topic_id"),
+			ValidateFunc:  serviceBusTopics.ValidateTopicID,
+		}
+		resource.Schema["service_bus_topic_endpoint_id"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: utils.RemoveFromStringArray(possibleEventSubscriptionEndpointTypes(), "service_bus_topic_endpoint_id"),
+			ValidateFunc:  serviceBusTopics.ValidateTopicID,
+			Deprecated:    "`service_bus_topic_endpoint_id` has been deprecated in favour of the `service_bus_topic_id` property and will be removed in v5.0 of the AzureRM Provider",
+		}
+
+		resource.Schema["storage_queue"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeList,
+			MaxItems:      1,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: utils.RemoveFromStringArray(possibleEventSubscriptionEndpointTypes(), string(StorageQueue)),
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"storage_account_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: commonids.ValidateStorageAccountID,
+					},
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"message_time_to_live_in_seconds": {
+						Type:     pluginsdk.TypeInt,
+						Optional: true,
+					},
+				},
+			},
+		}
+		resource.Schema["storage_queue_endpoint"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeList,
+			MaxItems:      1,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: utils.RemoveFromStringArray(possibleEventSubscriptionEndpointTypes(), "storage_queue_endpoint"),
+			Deprecated:    "`storage_queue_endpoint` has been deprecated in favour of the `storage_queue` property and will be removed in v5.0 of the AzureRM Provider",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"storage_account_id": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: commonids.ValidateStorageAccountID,
+					},
+					"queue_name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
+						Deprecated:   "`storage_queue_endpoint.queue_name` has been deprecated in favour of the `storage_queue.name` property and will be removed in v5.0 of the AzureRM Provider",
+					},
+					"queue_message_time_to_live_in_seconds": {
+						Type:       pluginsdk.TypeInt,
+						Optional:   true,
+						Deprecated: "`storage_queue_endpoint.queue_message_time_to_live_in_seconds` has been deprecated in favour of the `storage_queue.message_time_to_live_in_seconds` property and will be removed in v5.0 of the AzureRM Provider",
+					},
+				},
+			},
+		}
+
+		resource.Schema["webhook"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeList,
+			MaxItems:      1,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: utils.RemoveFromStringArray(possibleEventSubscriptionEndpointTypes(), "webhook"),
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"url": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.IsURLWithHTTPS,
+					},
+					"base_url": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"max_events_per_batch": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntBetween(1, 5000),
+					},
+					"preferred_batch_size_in_kilobytes": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntBetween(1, 1024),
+					},
+					"active_directory_tenant_id": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+					"active_directory_app_id_or_uri": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+				},
+			},
+		}
+		resource.Schema["webhook_endpoint"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeList,
+			MaxItems:      1,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: utils.RemoveFromStringArray(possibleEventSubscriptionEndpointTypes(), "webhook_endpoint"),
+			Deprecated:    "`webhook_endpoint` has been deprecated in favour of the `webhook` property and will be removed in v5.0 of the AzureRM Provider",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"url": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.IsURLWithHTTPS,
+					},
+					"base_url": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+					"max_events_per_batch": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntBetween(1, 5000),
+					},
+					"preferred_batch_size_in_kilobytes": {
+						Type:         pluginsdk.TypeInt,
+						Optional:     true,
+						ValidateFunc: validation.IntBetween(1, 1024),
+					},
+					"active_directory_tenant_id": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+					"active_directory_app_id_or_uri": {
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+					},
+				},
+			},
+		}
 	}
 
 	return resource
@@ -318,19 +557,34 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 				return fmt.Errorf("setting `delivery_property` for %s: %+v", *id, err)
 			}
 
-			if err := d.Set("azure_function_endpoint", flattenEventSubscriptionDestinationAzureFunction(destination)); err != nil {
-				return fmt.Errorf("setting `azure_function_endpoint` for %s: %+v", *id, err)
+			if err := d.Set("azure_function", flattenEventSubscriptionDestinationAzureFunction(destination)); err != nil {
+				return fmt.Errorf("setting `azure_function` for %s: %+v", *id, err)
 			}
+			d.Set("eventhub_id", flattenEventSubscriptionDestinationEventHub(destination))
+			d.Set("arc_connection_id", flattenEventSubscriptionDestinationArcConnection(destination))
+			d.Set("service_bus_queue_id", flattenEventSubscriptionDestinationServiceBusQueue(destination))
+			d.Set("service_bus_topic_id", flattenEventSubscriptionDestinationServiceBusTopic(destination))
 
-			d.Set("eventhub_endpoint_id", flattenEventSubscriptionDestinationEventHub(destination))
-			d.Set("hybrid_connection_endpoint_id", flattenEventSubscriptionDestinationHybridConnection(destination))
-			d.Set("service_bus_queue_endpoint_id", flattenEventSubscriptionDestinationServiceBusQueueEndpoint(destination))
-			d.Set("service_bus_topic_endpoint_id", flattenEventSubscriptionDestinationServiceBusTopicEndpoint(destination))
-			if err := d.Set("storage_queue_endpoint", flattenEventSubscriptionDestinationStorageQueueEndpoint(destination)); err != nil {
-				return fmt.Errorf("setting `storage_queue_endpoint` for %s: %+v", *id, err)
+			if err := d.Set("storage_queue", flattenEventSubscriptionDestinationStorageQueue(destination)); err != nil {
+				return fmt.Errorf("setting `storage_queue` for %s: %+v", *id, err)
 			}
-			if err := d.Set("webhook_endpoint", flattenEventSubscriptionWebhookEndpoint(destination, fullUrlResp.Model)); err != nil {
-				return fmt.Errorf("setting `webhook_endpoint` for %s: %+v", *id, err)
+			if err := d.Set("webhook", flattenEventSubscriptionWebhook(destination, fullUrlResp.Model)); err != nil {
+				return fmt.Errorf("setting `webhook` for %s: %+v", *id, err)
+			}
+			if !features.FivePointOh() {
+				if err := d.Set("azure_function_endpoint", flattenEventSubscriptionDestinationAzureFunction(destination)); err != nil {
+					return fmt.Errorf("setting `azure_function_endpoint` for %s: %+v", *id, err)
+				}
+				d.Set("eventhub_endpoint_id", flattenEventSubscriptionDestinationEventHub(destination))
+				d.Set("hybrid_connection_endpoint_id", flattenEventSubscriptionDestinationArcConnection(destination))
+				d.Set("service_bus_queue_endpoint_id", flattenEventSubscriptionDestinationServiceBusQueue(destination))
+				d.Set("service_bus_topic_endpoint_id", flattenEventSubscriptionDestinationServiceBusTopic(destination))
+				if err := d.Set("storage_queue_endpoint", flattenEventSubscriptionDestinationStorageQueueEndpoint(destination)); err != nil {
+					return fmt.Errorf("setting `storage_queue_endpoint` for %s: %+v", *id, err)
+				}
+				if err := d.Set("webhook_endpoint", flattenEventSubscriptionWebhook(destination, fullUrlResp.Model)); err != nil {
+					return fmt.Errorf("setting `webhook_endpoint` for %s: %+v", *id, err)
+				}
 			}
 
 			deadLetterDestination := props.DeadLetterDestination
