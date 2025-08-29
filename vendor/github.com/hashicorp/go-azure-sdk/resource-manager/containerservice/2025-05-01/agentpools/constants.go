@@ -315,10 +315,11 @@ type OSSKU string
 
 const (
 	OSSKUAzureLinux            OSSKU = "AzureLinux"
-	OSSKUAzureLinux3           OSSKU = "AzureLinux3"
+	OSSKUAzureLinuxThree       OSSKU = "AzureLinux3"
 	OSSKUCBLMariner            OSSKU = "CBLMariner"
 	OSSKUUbuntu                OSSKU = "Ubuntu"
 	OSSKUUbuntuTwoTwoZeroFour  OSSKU = "Ubuntu2204"
+	OSSKUUbuntuTwoFourZeroFour OSSKU = "Ubuntu2404"
 	OSSKUWindowsTwoZeroOneNine OSSKU = "Windows2019"
 	OSSKUWindowsTwoZeroTwoTwo  OSSKU = "Windows2022"
 )
@@ -326,9 +327,11 @@ const (
 func PossibleValuesForOSSKU() []string {
 	return []string{
 		string(OSSKUAzureLinux),
+		string(OSSKUAzureLinuxThree),
 		string(OSSKUCBLMariner),
 		string(OSSKUUbuntu),
 		string(OSSKUUbuntuTwoTwoZeroFour),
+		string(OSSKUUbuntuTwoFourZeroFour),
 		string(OSSKUWindowsTwoZeroOneNine),
 		string(OSSKUWindowsTwoZeroTwoTwo),
 	}
@@ -350,9 +353,11 @@ func (s *OSSKU) UnmarshalJSON(bytes []byte) error {
 func parseOSSKU(input string) (*OSSKU, error) {
 	vals := map[string]OSSKU{
 		"azurelinux":  OSSKUAzureLinux,
+		"azurelinux3": OSSKUAzureLinuxThree,
 		"cblmariner":  OSSKUCBLMariner,
 		"ubuntu":      OSSKUUbuntu,
 		"ubuntu2204":  OSSKUUbuntuTwoTwoZeroFour,
+		"ubuntu2404":  OSSKUUbuntuTwoFourZeroFour,
 		"windows2019": OSSKUWindowsTwoZeroOneNine,
 		"windows2022": OSSKUWindowsTwoZeroTwoTwo,
 	}
