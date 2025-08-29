@@ -350,17 +350,28 @@ function Show-AIInstallerNotFoundError {
     .DESCRIPTION
     Shows a helpful error message when bootstrap fails because the AIinstaller
     directory is not found in the current repository. Provides clear steps
-    for resolution.
+    for resolution. Uses standardized UI formatting.
     #>
     
-    Write-Host "ERROR: AIinstaller directory not found!" -ForegroundColor Red
-    Write-Host "The .github/AIinstaller directory was not found in the current repository." -ForegroundColor Red
-    Write-Host "Bootstrap must be run from the source branch (exp/terraform_copilot) that contains the installer files." -ForegroundColor Yellow
-    Write-Host "" 
-    Write-Host "To resolve this issue:" -ForegroundColor Yellow
-    Write-Host "  1. Switch to the source branch: git checkout exp/terraform_copilot" -ForegroundColor Yellow
-    Write-Host "  2. Ensure you're in the correct repository (terraform-provider-azurerm)" -ForegroundColor Yellow
-    Write-Host "  3. Run bootstrap again from the source branch" -ForegroundColor Yellow
+    # Use standardized operation summary with failure details
+    $details = @(
+        "Issue: AIinstaller directory not found in current repository",
+        "Requirement: Bootstrap must be run from source branch (exp/terraform_copilot)",
+        "Resolution: Switch to source branch and run bootstrap again"
+    )
+    
+    Show-OperationSummary -OperationName "Bootstrap" -Success $false -DryRun $false `
+        -ItemsProcessed 0 -ItemsSuccessful 0 -ItemsFailed 1 `
+        -Details $details
+    
+    Write-Host ""
+    Write-Host "RESOLUTION STEPS:" -ForegroundColor Cyan
+    Write-Host "  1. Switch to the source branch: " -ForegroundColor Cyan -NoNewline
+    Write-Host "git checkout exp/terraform_copilot" -ForegroundColor White
+    Write-Host "  2. Ensure you're in the correct repository: " -ForegroundColor Cyan -NoNewline
+    Write-Host "terraform-provider-azurerm" -ForegroundColor White
+    Write-Host "  3. Run bootstrap again from the source branch" -ForegroundColor Cyan
+    Write-Host ""
 }
 
 function Show-SafetyViolation {
