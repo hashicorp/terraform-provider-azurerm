@@ -30,6 +30,42 @@ fi
 # Global workspace root variable for UI consistency
 WORKSPACE_ROOT=""
 
+# Color helper functions for consistent output
+write_cyan() {
+    local message="$1"
+    echo -e "${CYAN}${message}${NC}"
+}
+
+write_green() {
+    local message="$1"
+    echo -e "${GREEN}${message}${NC}"
+}
+
+write_yellow() {
+    local message="$1"
+    echo -e "${YELLOW}${message}${NC}"
+}
+
+write_white() {
+    local message="$1"
+    echo -e "${WHITE}${message}${NC}"
+}
+
+write_red() {
+    local message="$1"
+    echo -e "${RED}${message}${NC}"
+}
+
+write_blue() {
+    local message="$1"
+    echo -e "${BLUE}${message}${NC}"
+}
+
+write_gray() {
+    local message="$1"
+    echo -e "${GRAY}${message}${NC}"
+}
+
 # Function to show operation summary (generic function for all operations - matches PowerShell Show-OperationSummary)
 show_operation_summary() {
     local operation_name="$1"
@@ -161,6 +197,21 @@ show_operation_summary_with_steps() {
         done
         echo ""
     fi
+}
+
+# Function to display next steps after successful bootstrap operation
+show_bootstrap_next_steps() {
+    local target_directory="${1:-$HOME/.terraform-ai-installer}"
+    
+    write_cyan "NEXT STEPS:"
+    echo ""
+    write_cyan "  1. Switch to your feature branch:"
+    write_white "     git checkout feature/your-branch-name"
+    echo ""
+    write_cyan "  2. Run the installer from your user profile:"
+    write_white "     cd \"$HOME/.terraform-ai-installer\""
+    write_white "     ./install-copilot-setup.sh -repo-directory \"<path-to-your-terraform-provider-azurerm>\""
+    echo ""
 }
 
 # Convenience function for bootstrap completion (uses generic summary with next steps)
@@ -320,14 +371,15 @@ show_branch_detection() {
         
         printf "${CYAN} %s%*s : ${NC}${GREEN}%s${NC}\n" "${workspace_label}" ${workspace_required_width} "" "${workspace_root}"
     fi
+    
+    echo ""
+    print_separator
 }
 
 # Function to display section headers
 write_section() {
     local section_title="$1"
     
-    echo ""
-    print_separator
     echo -e "${CYAN} ${section_title}${NC}"
     print_separator
     echo ""
@@ -503,17 +555,6 @@ format_aligned_label_spacing() {
     if [[ $spaces_needed -gt 0 ]]; then
         printf "%*s" $spaces_needed ""
     fi
-}
-
-# Function to display section header
-write_section() {
-    local title="$1"
-    
-    echo ""
-    print_separator
-    echo -e "${CYAN} ${title}${NC}"
-    print_separator
-    echo ""
 }
 
 # Function to show percentage completion
@@ -745,43 +786,151 @@ show_divider() {
     printf "%${length}s\n" | tr ' ' "${char}"
 }
 
-# Function to show usage information
+# Function to display dynamic help based on branch type and context
+# Function to display dynamic help based on branch type and context
 show_usage() {
+    local branch_type="${1:-feature}"
+    local workspace_valid="${2:-true}"
+    local workspace_issue="${3:-}"
+    
     echo ""
-    print_separator
-    echo ""
-    echo "DESCRIPTION:"
-    echo "  Interactive installer for AI-powered development infrastructure that enhances"
+    write_cyan "DESCRIPTION:"
+    echo "  Interactive installer for AI-assisted development infrastructure that enhances"
     echo "  GitHub Copilot with Terraform-specific knowledge, patterns, and best practices."
     echo ""
-    echo "USAGE:"
+    
+    # Dynamic options and examples based on branch type
+    case "${branch_type}" in
+        "source")
+            show_source_branch_help
+            ;;
+        "feature")
+            show_feature_branch_help
+            ;;
+        *)
+            show_unknown_branch_help "${workspace_valid}" "${workspace_issue}"
+            ;;
+    esac
+    
+    write_cyan "For more information, visit: https://github.com/hashicorp/terraform-provider-azurerm"
+    echo ""
+}
+
+# Function to show source branch specific help
+show_source_branch_help() {
+    write_cyan "USAGE:"
     echo "  ./install-copilot-setup.sh [OPTIONS]"
     echo ""
-    echo "AVAILABLE OPTIONS:"
+    write_cyan "AVAILABLE OPTIONS:"
     echo "  -bootstrap        Copy installer to user profile (~/.terraform-ai-installer/)"
+    echo "                    Run this from the source branch to set up for feature branch use"
     echo "  -verify           Check current workspace status and validate setup"
     echo "  -help             Show this help information"
     echo ""
-    echo "EXAMPLES:"
-    echo "  Bootstrap installer:"
+    write_cyan "EXAMPLES:"
+    echo "  Bootstrap installer (run from source branch):"
     echo "    ./install-copilot-setup.sh -bootstrap"
     echo ""
     echo "  Verify setup:"
     echo "    ./install-copilot-setup.sh -verify"
     echo ""
-    echo "NEXT STEPS:"
-    echo "  1. Run bootstrap to set up the installer in your user profile"
+    write_cyan "BOOTSTRAP WORKFLOW:"
+    echo "  1. Run -bootstrap from source branch (exp/terraform_copilot) to copy installer to user profile"
     echo "  2. Switch to your feature branch: git checkout feature/your-branch-name"
-    echo "  3. Run installer from user profile to install AI infrastructure"
-    echo ""
-    echo "For more information, visit: https://github.com/hashicorp/terraform-provider-azurerm"
+    echo "  3. Navigate to user profile: cd ~/.terraform-ai-installer/"
+    echo "  4. Run installer: ./install-copilot-setup.sh -repo-directory "/path/to/your/feature/branch""
     echo ""
 }
 
-# Function to display detailed usage information
-show_usage() {
+# Function to show feature branch specific help
+show_feature_branch_help() {
+    write_cyan "USAGE:"
+    echo "  ./install-copilot-setup.sh [OPTIONS]"
+    echo ""
+    
+    write_cyan "AVAILABLE OPTIONS:"
+    echo "  -repo-directory   Repository path (path to your feature branch directory)"
+    echo "  -auto-approve     Overwrite existing files without prompting"
+    echo "  -dry-run          Show what would be done without making changes"
+    echo "  -verify           Check current workspace status and validate setup"
+    echo "  -clean            Remove AI infrastructure from workspace"
+    echo "  -help             Show this help information"
+    echo ""
+    
+    write_cyan "EXAMPLES:"
+    echo "  Install AI infrastructure:"
+    echo "    cd ~/.terraform-ai-installer/"
+    echo "    ./install-copilot-setup.sh -repo-directory "/path/to/your/feature/branch""
+    echo ""
+    echo "  Dry-Run (preview changes):"
+    echo "    cd ~/.terraform-ai-installer/"
+    echo "    ./install-copilot-setup.sh -repo-directory "/path/to/your/feature/branch" -dry-run"
+    echo ""
+    echo "  Auto-Approve installation:"
+    echo "    cd ~/.terraform-ai-installer/"
+    echo "    ./install-copilot-setup.sh -repo-directory "/path/to/your/feature/branch" -auto-approve"
+    echo ""
+    echo "  Clean removal:"
+    echo "    cd ~/.terraform-ai-installer/"
+    echo "    ./install-copilot-setup.sh -repo-directory "/path/to/your/feature/branch" -clean"
+    echo ""
+    
+    write_cyan "WORKFLOW:"
+    echo "  1. Navigate to user profile installer directory: cd ~/.terraform-ai-installer/"
+    echo "  2. Run installer with path to your feature branch"
+    echo "  3. Start developing with enhanced GitHub Copilot AI features"
+    echo "  4. Use -clean to remove AI infrastructure when done"
+    echo ""
+}
+
+# Function to show generic help when branch type cannot be determined
+show_unknown_branch_help() {
+    local workspace_valid="${1:-true}"
+    local workspace_issue="${2:-}"
+    
+    # Show workspace issue if detected
+    if [[ "${workspace_valid}" != "true" && -n "${workspace_issue}" ]]; then
+        write_cyan "WORKSPACE ISSUE DETECTED:"
+        write_yellow "  ${workspace_issue}"
+        echo ""
+        write_cyan "SOLUTION:"
+        echo "  Navigate to a terraform-provider-azurerm repository, or use the -repo-directory parameter:"
+        echo "  ./install-copilot-setup.sh -repo-directory "/path/to/terraform-provider-azurerm" -help"
+        echo ""
+        print_separator
+        echo ""
+    fi
+    
+    write_cyan "GENERAL USAGE:"
+    echo "  ./install-copilot-setup.sh [OPTIONS]"
+    echo ""
+    
+    write_cyan "COMMON OPTIONS:"
+    echo "  -bootstrap        Copy installer to user profile (source branch only)"
+    echo "  -repo-directory   Repository path (for feature branch operations)"
+    echo "  -verify           Check current workspace status and validate setup"
+    echo "  -help             Show this help information"
+    echo ""
+    
+    write_cyan "GETTING STARTED:"
+    echo "  1. From source branch: ./install-copilot-setup.sh -bootstrap"
+    echo "  2. From feature branch: use installer in ~/.terraform-ai-installer/"
+    echo ""
+}
+
+# Function to display help for feature branch context
+show_feature_branch_help() {
+    local workspace_valid="${1:-true}"
+    local workspace_issue="${2:-}"
+    
+    if [[ "${workspace_valid}" != "true" ]]; then
+        show_workspace_error_help "${workspace_issue}"
+        return
+    fi
+    
     cat << 'EOF'
 Terraform AzureRM Provider - AI Infrastructure Installer (macOS/Linux)
+FEATURE BRANCH DETECTED
 
 PURPOSE:
 Enables AI-powered development features for HashiCorp's Terraform AzureRM Provider,
@@ -789,15 +938,17 @@ including GitHub Copilot integration and intelligent code suggestions.
 
 USAGE:
   ./install-copilot-setup.sh [options]
+  ~/.terraform-ai-installer/install-copilot-setup.sh [options]
 
-REQUIRED OPERATIONS:
-  -bootstrap          Copy installer to user profile for feature branch use
-                     Must be run first from source repository
-                     Creates: ~/.terraform-ai-installer/
+AVAILABLE OPERATIONS:
+  [Default]          Install AI infrastructure to current feature branch
+                     SAFE: Protected against source branch overwrites
 
-VERIFICATION & CLEANUP:
   -verify            Check current installation state
-  -clean             Remove AI infrastructure (feature branches only)
+                     Shows: Installation status, branch type, file locations
+
+  -clean             Remove AI infrastructure from feature branch
+                     SAFE: Only removes from current branch
 
 INSTALLER OPTIONS:
   -auto-approve      Overwrite existing files without prompting
@@ -807,26 +958,87 @@ INSTALLER OPTIONS:
 HELP:
   -help              Display this help message
 
-SECURITY NOTES:
-- Branch protection prevents accidental overwrites of source repository
-- Bootstrap copies installer files locally for safe feature branch usage
-- All operations include verification and rollback capabilities
+INSTALLATION WORKFLOW:
+1. Ensure you have bootstrapped (run once from source branch):
+   # From source branch: ./install-copilot-setup.sh -bootstrap
+
+2. Install to your feature branch:
+   ~/.terraform-ai-installer/install-copilot-setup.sh
+
+3. Verify installation:
+   ~/.terraform-ai-installer/install-copilot-setup.sh -verify
+
+4. When done, clean up:
+   ~/.terraform-ai-installer/install-copilot-setup.sh -clean
 
 EXAMPLES:
-  # Initial setup (run once from source repository)
-  ./install-copilot-setup.sh -bootstrap
-
-  # Install to feature branch (run from user profile)
+  # Install AI infrastructure (most common)
   ~/.terraform-ai-installer/install-copilot-setup.sh
 
-  # Check installation state
+  # Check what's currently installed
   ~/.terraform-ai-installer/install-copilot-setup.sh -verify
 
-  # Remove from feature branch
+  # Preview changes without applying
+  ~/.terraform-ai-installer/install-copilot-setup.sh -dry-run
+
+  # Remove AI infrastructure when done
   ~/.terraform-ai-installer/install-copilot-setup.sh -clean
 
 For more information, see: .github/AIinstaller/README.md
 EOF
+}
+
+# Function to display help when workspace validation fails
+show_workspace_error_help() {
+    local workspace_issue="${1:-Unknown workspace issue}"
+    
+    cat << EOF
+Terraform AzureRM Provider - AI Infrastructure Installer (macOS/Linux)
+WORKSPACE VALIDATION FAILED
+
+ISSUE DETECTED:
+${workspace_issue}
+
+TROUBLESHOOTING:
+1. Ensure you are in a terraform-provider-azurerm repository
+2. Verify the repository structure contains .github/AIinstaller/
+3. Check that you have proper git repository status
+
+VALID REPOSITORY STRUCTURE:
+terraform-provider-azurerm/
+├── .github/
+│   └── AIinstaller/
+│       ├── install-copilot-setup.sh
+│       └── modules/
+├── internal/
+├── website/
+└── [other provider files]
+
+COMMON SOLUTIONS:
+- Clone the repository: git clone https://github.com/hashicorp/terraform-provider-azurerm.git
+- Navigate to repository root: cd terraform-provider-azurerm
+- Ensure you're on the correct branch: git branch
+- Use -repo-directory if running from outside repository
+
+EXAMPLES:
+  # From within repository
+  ./.github/AIinstaller/install-copilot-setup.sh -help
+
+  # From outside repository
+  ./install-copilot-setup.sh -repo-directory /path/to/terraform-provider-azurerm
+
+For more information, see: .github/AIinstaller/README.md
+EOF
+}
+
+# Function to display source branch welcome and guidance
+show_source_branch_welcome() {
+    local branch_name="${1:-exp/terraform_copilot}"
+    
+    write_green "WELCOME TO AI-ASSISTED AZURERM TERRAFORM DEVELOPMENT"
+    echo ""
+    write_cyan "Use the contextual help system above to get started."
+    echo ""
 }
 
 # Function to show source repository safety error
@@ -934,8 +1146,10 @@ show_bootstrap_directory_validation_error() {
 # Export functions for use in other scripts
 export -f write_header write_operation_status write_success write_warning write_error write_info write_section write_plain
 export -f write_warning_message write_error_message write_verbose_message
+export -f write_cyan write_green write_yellow write_white write_red write_blue write_gray
 export -f show_completion show_file_operation show_error_block show_repository_info
 export -f prompt_confirmation show_completion_summary show_key_value show_divider show_usage
-export -f show_branch_detection show_path_info show_bootstrap_completion show_bootstrap_location_error format_aligned_label
+export -f show_branch_detection show_path_info show_bootstrap_completion show_bootstrap_next_steps show_bootstrap_location_error format_aligned_label
 export -f format_aligned_label_spacing show_next_steps print_separator calculate_max_filename_length show_bootstrap_directory_validation_error
 export -f show_operation_summary show_operation_summary_with_steps show_installation_summary show_verification_summary show_cleanup_summary
+export -f show_source_branch_help show_feature_branch_help show_unknown_branch_help show_source_branch_welcome

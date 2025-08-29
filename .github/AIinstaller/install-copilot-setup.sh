@@ -139,7 +139,7 @@ get_user_profile() {
 
 # Function to bootstrap installer to user profile
 bootstrap_installer() {
-    write_section "Bootstrap - Copying Installer to User Profile"
+    write_section_after_branch "Bootstrap - Copying Installer to User Profile"
     
     # Validate that we're running from the right location
     local current_location
@@ -208,7 +208,7 @@ clean_installation() {
         workspace_root="$(get_workspace_root)"
     fi
     
-    write_section "Cleaning AI Infrastructure"
+    write_section_after_branch "Cleaning AI Infrastructure"
     
     # Use the fileoperations module function for cleanup
     clean_infrastructure "${workspace_root}"
@@ -305,7 +305,12 @@ main() {
     
     # Handle help parameter first
     if [[ "${HELP}" == "true" ]]; then
-        show_usage
+        # Determine branch type for dynamic help
+        if [[ "${is_source_branch}" == "true" ]]; then
+            show_usage "source" "true" ""
+        else
+            show_usage "feature" "true" ""
+        fi
         exit 0
     fi
     
@@ -350,7 +355,8 @@ main() {
     
     # Default installation with enhanced safety checks
     if [[ "${is_source_branch}" == "true" ]]; then
-        show_source_repository_safety_error "${0}"
+        # Show welcome and guidance instead of error for better UX
+        show_source_branch_welcome "${current_branch}"
         exit 1
     fi
     

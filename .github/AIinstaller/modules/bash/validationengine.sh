@@ -357,7 +357,7 @@ verify_installation() {
     local workspace_root="${1:-$(get_workspace_root)}"
     
     if declare -f write_section >/dev/null 2>&1; then
-        write_section "Verifying AI infrastructure files"
+                write_section "Verifying AI infrastructure files"
     else
         echo "============================================================"
         echo " Verifying AI infrastructure files"
