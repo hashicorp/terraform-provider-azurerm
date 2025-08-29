@@ -313,7 +313,7 @@ func resourceNetAppAccountRead(d *pluginsdk.ResourceData, meta interface{}) erro
 
 	if model := resp.Model; model != nil {
 		d.Set("location", azure.NormalizeLocation(model.Location))
-		d.Set("nfsv4_id_domain", pointer.To(model.Properties.NfsV4IDDomain))
+		d.Set("nfsv4_id_domain", pointer.To(model.Properties.NfsV4IDDomain)) //
 
 		if model.Identity != nil {
 			anfAccountIdentity, err := identity.FlattenLegacySystemAndUserAssignedMap(model.Identity)
