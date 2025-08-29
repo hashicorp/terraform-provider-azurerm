@@ -47,34 +47,38 @@ The installer provides a **clean, professional output** focused on what matters:
  Version: 1.0.0
 ============================================================
 
-SOURCE BRANCH DETECTED: exp/terraform_copilot
-WORKSPACE             : C:\github.com\hashicorp\terraform-provider-azurerm
+ SOURCE BRANCH DETECTED : exp/terraform_copilot
+ WORKSPACE              : C:\github.com\hashicorp\terraform-provider-azurerm
 
 ============================================================
  Bootstrap - Copying Installer to User Profile
 ============================================================
 
-PATH: C:\Users\<username>\.terraform-ai-installer
+Copying installer files from current repository...
 
-Copying installer files from local source repository...
-
-   Copying: file-manifest.config [OK]
+   Copying: file-manifest.config      [OK]
    Copying: install-copilot-setup.ps1 [OK]
-   Copying: install-copilot-setup.sh [OK]
-   Copying: ConfigParser.psm1 [OK]
-   Copying: FileOperations.psm1 [OK]
-   Copying: ValidationEngine.psm1 [OK]
-   Copying: UI.psm1 [OK]
-   Copying: configparser.sh [OK]
-   Copying: fileoperations.sh [OK]
-   Copying: validationengine.sh [OK]
-   Copying: ui.sh [OK]
+   Copying: install-copilot-setup.sh  [OK]
+   Copying: ConfigParser.psm1         [OK]
+   Copying: FileOperations.psm1       [OK]
+   Copying: ValidationEngine.psm1     [OK]
+   Copying: UI.psm1                   [OK]
+   Copying: configparser.sh           [OK]
+   Copying: fileoperations.sh         [OK]
+   Copying: validationengine.sh       [OK]
+   Copying: ui.sh                     [OK]
 
-Bootstrap completed successfully!
+ Bootstrap completed successfully
 
-  Files copied : 11
-  Total size   : 170.6 KB
-  Location     : C:\Users\<username>\.terraform-ai-installer
+============================================================
+ BOOTSTRAP SUMMARY:
+============================================================
+
+DETAILS:
+  Items Successful: 11
+  Total Size      : 181.5 KB
+  Location        : C:\Users\<username>\.terraform-ai-installer
+  Files Copied    : 11
 
 NEXT STEPS:
 
@@ -82,16 +86,11 @@ NEXT STEPS:
      git checkout feature/your-branch-name
 
   2. Run the installer from your user profile:
-     
-     # Windows PowerShell
-     & "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -RepoDirectory "C:\github.com\hashicorp\terraform-provider-azurerm"
-     
-     # macOS/Linux Bash
-     ~/.terraform-ai-installer/install-copilot-setup.sh -repo-directory "/path/to/terraform-provider-azurerm"
-
-  Note: The -RepoDirectory parameter tells the installer where to find the git repository
-        for branch detection when running from your user profile.
+     cd "$env:USERPROFILE\.terraform-ai-installer"
+     .\install-copilot-setup.ps1 -RepoDirectory "<path-to-your-terraform-provider-azurerm>"
 ```
+
+> **Note**: The `-RepoDirectory` parameter tells the installer where to find the git repository for branch detection when running from your user profile.
 
 ## 🚀 Getting Started
 
@@ -291,7 +290,7 @@ The installer sets up a complete AI development environment:
 
 ### 📄 Core AI Instructions
 - `.github/copilot-instructions.md` - Main Copilot configuration
-- `.github/instructions/` - 14 specialized instruction files:
+- `.github/instructions/` - 13 specialized instruction files:
   - `implementation-guide.instructions.md` - Complete coding standards
   - `azure-patterns.instructions.md` - Azure-specific patterns
   - `testing-guidelines.instructions.md` - Testing requirements
@@ -478,37 +477,6 @@ graph TD
     F --> G
 ```
 
-### Module Responsibilities
-
-#### 📋 ConfigParser.psm1
-- `Get-ManifestConfig` - Parse manifest configuration and return structured data
-- `Get-FileDownloadUrl` / `Get-FileLocalPath` - GitHub download URLs and local paths
-- `Get-InstallerConfig` - Complete installer configuration
-
-#### 📁 FileOperations.psm1
-- `Install-AllAIFiles` / `Remove-AllAIFiles` - Bulk file operations
-- `Install-AIFile` / `Remove-AIFile` - Individual file operations
-- `Get-GitHubFileContent` / `Get-FileFromGitHub` - Remote file downloads
-- `Update-GitIgnore` / `Get-GitIgnoreStatus` - Git ignore management
-- `Test-FileIntegrity` / `Backup-ExistingFile` - File validation and backup
-- `Remove-DeprecatedFiles` / `Invoke-Bootstrap` - Cleanup and bootstrap operations
-
-#### ✅ ValidationEngine.psm1
-- `Test-SystemRequirements` / `Test-RequiredCommands` - System prerequisites
-- `Test-PreInstallation` / `Test-PostInstallation` - Installation state checks
-- `Test-WorkspaceValid` / `Test-GitRepository` - Workspace and git validation
-- `Test-AIInfrastructure` / `Test-InstallationDependencies` - Infrastructure checks
-- `Get-ValidationReport` / `Get-CurrentBranch` - Status reporting and branch detection
-- `Find-WorkspaceRoot` / `Test-SourceRepository` - Repository discovery and validation
-
-#### 🎨 UI.psm1
-- `Write-Success` / `Write-WarningMessage` / `Write-ErrorMessage` - Status messages
-- `Show-Help` / `Show-SourceBranchHelp` / `Show-FeatureBranchHelp` - Interactive help
-- `Show-CompletionSummary` / `Show-InstallationResults` - Operation summaries
-- `Get-UserInput` / `Get-BootstrapConfirmation` - User interaction
-- `Show-BranchDetection` / `Show-ContextualError` - Branch-aware messaging
-- `Write-Header` / `Write-Section` / `Format-AlignedLabel` - UI formatting
-
 ## 🎯 AI Prompt Usage Patterns
 
 ### Quick Start with Prompts
@@ -625,13 +593,6 @@ git pull origin exp/terraform_copilot
 # Then return to your branch
 git switch your-feature-branch
 ```
-
-## 📚 Additional Resources
-
-- **[Implementation Guide](.github/instructions/implementation-guide.instructions.md)** - Complete coding standards
-- **[Testing Guidelines](.github/instructions/testing-guidelines.instructions.md)** - Testing requirements
-- **[Azure Patterns](.github/instructions/azure-patterns.instructions.md)** - Azure-specific development patterns
-- **[Troubleshooting Guide](.github/instructions/troubleshooting-decision-trees.instructions.md)** - Debugging workflows
 
 ## 📄 License
 
