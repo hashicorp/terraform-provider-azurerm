@@ -340,7 +340,7 @@ func (ExadataInfraResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.CustomerContacts = FlattenCustomerContacts(result.Model.Properties.CustomerContacts)
 					state.Name = pointer.ToString(result.Model.Name)
-					state.Location = result.Model.Location
+					state.Location = model.Location
 					state.Zones = result.Model.Zones
 					state.ResourceGroupName = id.ResourceGroupName
 					state.Tags = pointer.From(result.Model.Tags)
