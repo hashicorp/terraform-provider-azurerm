@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/topics"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2023-12-15-preview/namespaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2023-12-15-preview/namespacetopics"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -149,9 +150,12 @@ func (r EventGridNamespaceResource) Arguments() map[string]*pluginsdk.Schema {
 					},
 
 					"route_topic_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: topics.ValidateTopicID,
+						Type:     pluginsdk.TypeString,
+						Optional: true,
+						ValidateFunc: validation.Any(
+							topics.ValidateTopicID,
+							namespacetopics.ValidateNamespaceTopicID,
+						),
 					},
 
 					"dynamic_routing_enrichment": {
