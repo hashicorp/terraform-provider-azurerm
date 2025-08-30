@@ -481,7 +481,6 @@ verify_installation() {
         done <<< "${universal_files}"
     fi
 
-    echo ""
     if [[ "${all_good}" == "true" ]]; then
         # Show verification summary using dynamic show_operation_summary
         if declare -f show_operation_summary >/dev/null 2>&1; then
