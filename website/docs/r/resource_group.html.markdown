@@ -37,11 +37,15 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Resource Group.
 
+* `subscription_id` - (Optional) The ID of the subscription in which to create the Resource Group.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Resource Group.
+
+* `subscription_id` - The ID of the subscription associated with the Resource Group.
 
 ## Timeouts
 
