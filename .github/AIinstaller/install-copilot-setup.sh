@@ -45,10 +45,10 @@ get_script_directory() {
 
 get_modules_path() {
     local script_directory="$1"
-    
+
     # Simple logic: modules are always in the same relative location
     local modules_path="${script_directory}/modules/bash"
-    
+
     # If not found, try from workspace root (for direct repo execution)
     if [[ ! -d "${modules_path}" ]]; then
         local current_path="${script_directory}"
@@ -60,25 +60,25 @@ get_modules_path() {
             current_path="$(dirname "${current_path}")"
         done
     fi
-    
+
     echo "${modules_path}"
 }
 
 import_required_modules() {
     local modules_path="$1"
-    
+
     # Define all required modules in dependency order
     local modules=(
         "configparser"
-        "ui" 
+        "ui"
         "validationengine"
         "fileoperations"
     )
-    
+
     # Load each module cleanly
     for module in "${modules[@]}"; do
         local module_path="${modules_path}/${module}.sh"
-        
+
         if [[ ! -f "${module_path}" ]]; then
             echo ""
             echo "============================================================"
@@ -89,7 +89,7 @@ import_required_modules() {
             echo ""
             return 1
         fi
-        
+
         if ! source "${module_path}"; then
             echo ""
             echo "============================================================"
@@ -98,15 +98,15 @@ import_required_modules() {
             return 1
         fi
     done
-    
+
     # Verify critical functions are available
     local required_functions=(
         "get_manifest_config"
-        "get_installer_config" 
+        "get_installer_config"
         "write_header"
         "verify_installation"
     )
-    
+
     for func in "${required_functions[@]}"; do
         if ! command -v "${func}" >/dev/null 2>&1; then
             echo ""
@@ -116,7 +116,7 @@ import_required_modules() {
             return 1
         fi
     done
-    
+
     return 0
 }
 
@@ -140,19 +140,19 @@ get_user_profile() {
 # Function to bootstrap installer to user profile
 bootstrap_installer() {
     write_section "Bootstrap - Copying Installer to User Profile"
-    
+
     # Validate that we're running from the right location
     local current_location
     current_location="$(pwd)"
     local user_profile
     user_profile="$(get_user_profile)"
-    
+
     # Prevent bootstrap from user profile (circular operation)
     if [[ "${current_location}" == "${user_profile}"* ]]; then
         show_bootstrap_location_error "${current_location}" "terraform-provider-azurerm/.github/AIinstaller"
         return 1
     fi
-    
+
     # Detect if we're in the repo root and adjust SCRIPT_DIR accordingly
     local installer_dir
     if [[ -f ".github/AIinstaller/install-copilot-setup.sh" ]] && [[ -d ".github/AIinstaller/modules" ]]; then
@@ -166,31 +166,31 @@ bootstrap_installer() {
         show_bootstrap_directory_validation_error "${current_location}"
         return 1
     fi
-    
+
     # Create directory if needed
     if [[ ! -d "${user_profile}" ]]; then
         if [[ "${DRY_RUN}" != "true" ]]; then
             mkdir -p "${user_profile}"
         fi
     fi
-    
+
     # Delegate file operations to the file operations module
     local manifest_file="${SCRIPT_DIR}/file-manifest.config"
     if [[ ! -f "${manifest_file}" ]]; then
         write_error_message "Configuration file not found: ${manifest_file}"
         return 1
     fi
-    
+
     # Perform bootstrap operation using file operations module
     if bootstrap_files_to_profile "${SCRIPT_DIR}" "${user_profile}" "${manifest_file}"; then
         # Calculate total size in KB (simple integer division)
         local total_size_kb
         total_size_kb=$((BOOTSTRAP_STATS_TOTAL_SIZE / 1024))
-        
+
         # Get current branch for intelligent next steps
         local current_branch
         current_branch=$(git branch --show-current 2>/dev/null || echo "unknown")
-        
+
         # Use the enhanced bootstrap completion function for consistent output
         show_bootstrap_completion "${BOOTSTRAP_STATS_FILES_COPIED}" "${total_size_kb} KB" "${user_profile}" "$(get_workspace_root)" "${current_branch}"
     else
@@ -207,9 +207,9 @@ clean_installation() {
     else
         workspace_root="$(get_workspace_root)"
     fi
-    
+
     write_section "Cleaning AI Infrastructure"
-    
+
     # Use the fileoperations module function for cleanup
     clean_infrastructure "${workspace_root}"
 }
@@ -271,10 +271,10 @@ parse_arguments() {
 # Main function with enhanced branch protection logic
 main() {
     parse_arguments "$@"
-    
+
     # Display header and branch detection (matches PowerShell output)
     write_header "Terraform AzureRM Provider - AI Infrastructure Installer" "${VERSION}"
-    
+
     # Get branch and workspace information with proper error handling
     local current_branch workspace_root branch_type is_source_branch
     if [[ -n "${REPO_DIRECTORY}" ]]; then
@@ -288,17 +288,17 @@ main() {
         # Check if we're in a valid terraform-provider-azurerm repository
         local detected_root
         detected_root="$(get_workspace_root)"
-        
+
         # If get_workspace_root returns current directory and we're not in a terraform repo, require -repo-directory
         if [[ "${detected_root}" == "$(pwd)" ]] && ! is_source_repository "${detected_root}"; then
             show_repository_directory_required_error "$(pwd)"
             exit 1
         fi
-        
+
         workspace_root="${detected_root}"
         current_branch=$(git branch --show-current 2>/dev/null || echo "unknown")
     fi
-    
+
     # Determine branch type early (like PowerShell version)
     # Check if current branch is a source branch (main, master, or exp/terraform_copilot)
     # Source branches are protected from AI infrastructure installation for safety
@@ -312,10 +312,10 @@ main() {
             is_source_branch=false
             ;;
     esac
-    
+
     # Show branch detection with consistent formatting
     show_branch_detection "${current_branch}" "${workspace_root}"
-    
+
     # Handle help parameter first
     if [[ "${HELP}" == "true" ]]; then
         # Determine branch type for dynamic help
@@ -326,58 +326,58 @@ main() {
         fi
         exit 0
     fi
-    
+
     # Handle bootstrap parameter with proper safety checks
     if [[ "${BOOTSTRAP}" == "true" ]]; then
         # Enhanced location validation - prevent bootstrap from user profile
         current_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
         local user_profile_dir
         user_profile_dir="$(get_user_profile)"
-        
+
         if [[ "${current_dir}" == "${user_profile_dir}" ]]; then
             show_bootstrap_location_error "${current_dir}" "<repo>/.github/AIinstaller/"
             exit 1
         fi
-        
+
         # Verify we're in the source repository for bootstrap
         if [[ ! -f "${workspace_root}/go.mod" ]] || ! grep -q "terraform-provider-azurerm" "${workspace_root}/go.mod" 2>/dev/null; then
             show_bootstrap_repository_validation_error "${workspace_root}"
             exit 1
         fi
-        
+
         bootstrap_installer
         exit 0
     fi
-    
+
     # Handle verify parameter
     if [[ "${VERIFY}" == "true" ]]; then
         verify_installation "${workspace_root}"
         exit 0
     fi
-    
+
     # Handle clean parameter (feature branch only)
     if [[ "${CLEAN}" == "true" ]]; then
         if [[ "${is_source_branch}" == "true" ]]; then
             show_clean_unavailable_on_source_error
             exit 1
         fi
-        
+
         clean_installation
         exit 0
     fi
-    
+
     # Default installation with enhanced safety checks
     if [[ "${is_source_branch}" == "true" ]]; then
         # Show safety error for source repository protection
         show_source_repository_safety_error "./install-copilot-setup.sh"
         exit 1
     fi
-    
+
     # Validate repository if using REPO_DIRECTORY
     if [[ -n "${REPO_DIRECTORY}" ]]; then
         validate_repository "${REPO_DIRECTORY}"
     fi
-    
+
     # Call the install_infrastructure function from fileoperations module
     install_infrastructure "${workspace_root}"
 }

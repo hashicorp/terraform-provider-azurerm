@@ -7,22 +7,22 @@
 param(
     [Parameter(HelpMessage = "Copy installer to user profile for feature branch use")]
     [switch]$Bootstrap,
-    
+
     [Parameter(HelpMessage = "Path to the repository directory for git operations (when running from user profile)")]
     [string]$RepoDirectory,
-    
+
     [Parameter(HelpMessage = "Overwrite existing files without prompting")]
     [switch]${Auto-Approve},
-    
+
     [Parameter(HelpMessage = "Show what would be done without making changes")]
     [switch]${Dry-Run},
-    
+
     [Parameter(HelpMessage = "Check the current state of the workspace")]
     [switch]$Verify,
-    
+
     [Parameter(HelpMessage = "Remove AI infrastructure from the workspace")]
     [switch]$Clean,
-    
+
     [Parameter(HelpMessage = "Show detailed help information")]
     [switch]$Help
 )
@@ -33,10 +33,10 @@ param(
 
 function Get-ModulesPath {
     param([string]$ScriptDirectory)
-    
+
     # Simple logic: modules are always in the same relative location
     $ModulesPath = Join-Path $ScriptDirectory "modules\powershell"
-    
+
     # If not found, try from workspace root (for direct repo execution)
     if (-not (Test-Path $ModulesPath)) {
         $currentPath = $ScriptDirectory
@@ -48,29 +48,29 @@ function Get-ModulesPath {
             $currentPath = Split-Path $currentPath -Parent
         }
     }
-    
+
     return $ModulesPath
 }
 
 function Import-RequiredModules {
     param([string]$ModulesPath)
-    
+
     # Define all required modules in dependency order
     $modules = @(
         "ConfigParser",
-        "UI", 
+        "UI",
         "ValidationEngine",
         "FileOperations"
     )
-    
+
     # Load each module cleanly
     foreach ($module in $modules) {
         $modulePath = Join-Path $ModulesPath "$module.psm1"
-        
+
         if (-not (Test-Path $modulePath)) {
             throw "Required module '$module' not found at: $modulePath"
         }
-        
+
         try {
             Remove-Module $module -Force -ErrorAction SilentlyContinue
             Import-Module $modulePath -Force -DisableNameChecking -Global -ErrorAction Stop
@@ -79,7 +79,7 @@ function Import-RequiredModules {
             throw "Failed to import module '$module': $_"
         }
     }
-    
+
     # Verify critical functions are available
     $requiredFunctions = @("Get-ManifestConfig", "Get-InstallerConfig", "Write-Header", "Invoke-VerifyWorkspace")
     foreach ($func in $requiredFunctions) {
@@ -90,11 +90,11 @@ function Import-RequiredModules {
 }
 
 # Get script directory with robust detection
-$ScriptDirectory = if ($PSScriptRoot) { 
-    $PSScriptRoot 
-} elseif ($MyInvocation.MyCommand.Path) { 
-    Split-Path $MyInvocation.MyCommand.Path -Parent 
-} else { 
+$ScriptDirectory = if ($PSScriptRoot) {
+    $PSScriptRoot
+} elseif ($MyInvocation.MyCommand.Path) {
+    Split-Path $MyInvocation.MyCommand.Path -Parent
+} else {
     # Fallback: assume we're in the AIinstaller directory
     Get-Location | ForEach-Object { $_.Path }
 }
@@ -123,12 +123,12 @@ $Global:InstallerConfig = $null
 
 function Get-WorkspaceRoot {
     param([string]$RepoDirectory, [string]$ScriptDirectory)
-    
+
     # If RepoDirectory is provided, use it (validation happens later)
     if ($RepoDirectory) {
         return $RepoDirectory
     }
-    
+
     # Otherwise, find workspace root from script location
     $currentPath = $ScriptDirectory
     while ($currentPath -and $currentPath -ne (Split-Path $currentPath -Parent)) {
@@ -137,7 +137,7 @@ function Get-WorkspaceRoot {
         }
         $currentPath = Split-Path $currentPath -Parent
     }
-    
+
     # If no workspace found, return the directory where the script was called from
     # This allows help and other functions to work, with validation happening separately
     return (Get-Location).Path
@@ -152,7 +152,7 @@ function Main {
     .SYNOPSIS
     Main entry point for the installer
     #>
-    
+
      try {
         # Step 1: EARLY SAFETY CHECK - Fail fast if on source branch with RepoDirectory
         if ($RepoDirectory) {
@@ -171,7 +171,7 @@ function Main {
             finally {
                 Set-Location $originalLocation
             }
-            
+
             # Block operations on source branch immediately (except Verify, Help, Bootstrap)
             # Source branches: main, master, exp/terraform_copilot
             $sourceBranches = @("main", "master", "exp/terraform_copilot")
@@ -180,13 +180,13 @@ function Main {
                 exit 1
             }
         }
-        
+
         # Step 2: Initialize workspace and validate it's a proper terraform-provider-azurerm repo
         $Global:WorkspaceRoot = Get-WorkspaceRoot -RepoDirectory $RepoDirectory -ScriptDirectory $ScriptDirectory
-        
+
         # Step 2: Early workspace validation before doing anything else
         $workspaceValidation = Test-WorkspaceValid -WorkspacePath $Global:WorkspaceRoot
-        
+
         # Initialize configuration based on workspace validity
         if ($workspaceValidation.Valid) {
             # Step 3: Initialize configuration (this sets up global branch info)
@@ -205,7 +205,7 @@ function Main {
             $Global:InstallerConfig = @{ Version = "1.0.0" }
             $Global:ManifestConfig = @{}
         }
-        
+
         # Step 4: Simple branch safety check for -RepoDirectory operations
         if ($RepoDirectory) {
             # Get current branch of the target repository
@@ -235,34 +235,34 @@ function Main {
                 $currentBranch = "Unknown"
             }
         }
-        
+
         # Check if current branch is a source branch (main, master, or exp/terraform_copilot)
         # Source branches are protected from AI infrastructure installation for safety
         $sourceBranches = @("main", "master", "exp/terraform_copilot")
         $isSourceRepo = ($currentBranch -in $sourceBranches)
-        $branchType = if ($isSourceRepo) { "source" } else { 
+        $branchType = if ($isSourceRepo) { "source" } else {
             if ($currentBranch -eq "Unknown") { "Unknown" } else { "feature" }
         }
-        
+
         # Convert hyphenated parameter names to camelCase variables
         $AutoApprove = ${Auto-Approve}
         $DryRun = ${Dry-Run}
-        
+
         # CONSISTENT PATTERN: Every operation gets the same header and branch detection
         Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
         Show-BranchDetection -BranchName $currentBranch -BranchType $branchType
-        
+
         # Simple parameter handling
         if ($Help) {
             Show-Help -BranchType $branchType -WorkspaceValid $workspaceValidation.Valid -WorkspaceIssue $workspaceValidation.Reason
             return
         }
-        
+
         # For all other operations, workspace must be valid
         if (-not $workspaceValidation.Valid) {
             Write-Host ""
             Write-Host " WORKSPACE VALIDATION FAILED: $($workspaceValidation.Reason)" -ForegroundColor Red
-            
+
             # Context-aware error message based on how the script was invoked
             if ($RepoDirectory) {
                 Write-Host " Please ensure the -RepoDirectory argument is pointing to a valid GitHub terraform-provider-azurerm repository." -ForegroundColor Red
@@ -271,34 +271,34 @@ function Main {
             }
             Write-Host ""
             Write-Separator
-            
+
             # Show help menu for guidance
             Show-Help -BranchType $branchType -WorkspaceValid $false -WorkspaceIssue $workspaceValidation.Reason
             exit 1
         }
-        
+
         if ($Verify) {
             Invoke-VerifyWorkspace | Out-Null
             return
         }
-        
+
         if ($Bootstrap) {
             Invoke-Bootstrap -AutoApprove $AutoApprove -DryRun $DryRun | Out-Null
             return
         }
-        
+
         if ($Clean) {
             Invoke-CleanWorkspace -AutoApprove $AutoApprove -DryRun $DryRun -WorkspaceRoot $Global:WorkspaceRoot | Out-Null
             return
         }
-        
+
         # Installation path (when -RepoDirectory is provided and not other specific operations)
         if ($RepoDirectory -and -not ($Help -or $Verify -or $Bootstrap -or $Clean)) {
             # Proceed with installation
             Invoke-InstallInfrastructure -AutoApprove $AutoApprove -DryRun $DryRun -WorkspaceRoot $Global:WorkspaceRoot -ManifestConfig $Global:ManifestConfig -TargetBranch $currentBranch | Out-Null
             return
         }
-        
+
         # Default: show source branch help and welcome
         Show-SourceBranchHelp
         Show-SourceBranchWelcome -BranchName $currentBranch

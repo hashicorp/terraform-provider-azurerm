@@ -72,18 +72,18 @@ show_operation_summary() {
     local success="$2"
     local dry_run="${3:-false}"
     shift 3
-    
+
     # Parse remaining arguments as details (key:value pairs)
     local -A details_hash
     local longest_key=""
-    
+
     # Process details arguments
     while [[ $# -gt 0 ]]; do
         if [[ "$1" =~ ^([^:]+):[[:space:]]*(.+)$ ]]; then
             local key="${BASH_REMATCH[1]// /}"  # Remove spaces from key
             local value="${BASH_REMATCH[2]}"
             details_hash["$key"]="$value"
-            
+
             # Track longest key for alignment
             if [[ ${#key} -gt ${#longest_key} ]]; then
                 longest_key="$key"
@@ -91,9 +91,9 @@ show_operation_summary() {
         fi
         shift
     done
-    
+
     echo ""
-    
+
     # Show operation completion with consistent formatting
     local status_text
     local color
@@ -104,17 +104,17 @@ show_operation_summary() {
         status_text="failed"
         color="${RED}"
     fi
-    
+
     local completion_message
     if [[ "$dry_run" == "true" ]]; then
         completion_message=" ${operation_name} ${status_text} (dry run)"
     else
         completion_message=" ${operation_name} ${status_text}"
     fi
-    
+
     echo -e "${color}${completion_message}${NC}"
     echo ""
-    
+
     # Display details if any exist
     if [[ ${#details_hash[@]} -gt 0 ]]; then
         # Summary section with cyan headers (matches PowerShell structure)
@@ -123,23 +123,23 @@ show_operation_summary() {
         print_separator 60 "${CYAN}" "="
         echo ""
         echo -e "${CYAN}DETAILS:${NC}"
-        
+
         # Display each detail with consistent alignment
         for key in "${!details_hash[@]}"; do
             local value="${details_hash[$key]}"
-            
+
             # Calculate required spacing for alignment
             local label_length=${#key}
             local longest_length=${#longest_key}
             local required_width=$((longest_length - label_length))
-            
+
             if [[ ${required_width} -lt 0 ]]; then
                 required_width=0
             fi
-            
+
             # Write key with consistent formatting and proper spacing
             printf "  ${CYAN} %s%*s :${NC} " "${key}" ${required_width} ""
-            
+
             # Determine value color based on content
             if [[ "$value" =~ ^[0-9]+$ ]] || [[ "$value" =~ ^[0-9]+(\.[0-9]+)?[[:space:]]*(KB|MB|GB|TB|B)$ ]]; then
                 # Numbers and file sizes in green
@@ -158,19 +158,19 @@ show_operation_summary_with_steps() {
     local success="$2"
     local dry_run="${3:-false}"
     shift 3
-    
+
     # Parse arguments for details and next steps
     local details=()
     local next_steps=()
     local parsing_steps=false
-    
+
     while [[ $# -gt 0 ]]; do
         if [[ "$1" == "--next-steps" ]]; then
             parsing_steps=true
             shift
             continue
         fi
-        
+
         if [[ "$parsing_steps" == true ]]; then
             next_steps+=("$1")
         else
@@ -178,10 +178,10 @@ show_operation_summary_with_steps() {
         fi
         shift
     done
-    
+
     # Call the base operation summary function
     show_operation_summary "$operation_name" "$success" "$dry_run" "${details[@]}"
-    
+
     # Add next steps if provided
     if [[ ${#next_steps[@]} -gt 0 ]]; then
         echo ""
@@ -202,7 +202,7 @@ show_operation_summary_with_steps() {
 # Function to display next steps after successful bootstrap operation
 show_bootstrap_next_steps() {
     local target_directory="${1:-$HOME/.terraform-ai-installer}"
-    
+
     write_cyan "NEXT STEPS:"
     echo ""
     write_cyan "  1. Switch to your feature branch:"
@@ -220,7 +220,7 @@ show_bootstrap_completion() {
     local size_info="$2"
     local user_profile="$3"
     local workspace_root="$4"
-    
+
     # Use the enhanced generic function with next steps
     show_operation_summary_with_steps "Bootstrap" "true" "false" \
         "Files Copied:${files_copied}" \
@@ -237,12 +237,12 @@ show_installation_summary() {
     local install_location="$2"
     local total_size="${3:-}"
     local success="${4:-true}"
-    
+
     local details=("Files Installed:${files_installed}" "Location:${install_location}")
     if [[ -n "$total_size" ]]; then
         details+=("Total Size:${total_size}")
     fi
-    
+
     show_operation_summary_with_steps "Installation" "$success" "false" \
         "${details[@]}" \
         --next-steps \
@@ -256,7 +256,7 @@ show_verification_summary() {
     local items_passed="$2"
     local items_failed="$3"
     local success="$4"
-    
+
     show_operation_summary_with_steps "Verification" "$success" "false" \
         "Items Checked:${items_checked}" \
         "Items Passed:${items_passed}" \
@@ -271,7 +271,7 @@ show_cleanup_summary() {
     local files_removed="$1"
     local cleanup_location="$2"
     local success="${3:-true}"
-    
+
     show_operation_summary_with_steps "Cleanup" "$success" "false" \
         "Files Removed:${files_removed}" \
         "Location:${cleanup_location}" \
@@ -285,7 +285,7 @@ print_separator() {
     local length="${1:-60}"
     local color="${2:-${CYAN}}"
     local character="${3:-=}"
-    
+
     printf "${color}"
     for ((i=1; i<=length; i++)); do
         printf "${character}"
@@ -297,7 +297,7 @@ print_separator() {
 write_header() {
     local title="${1:-Terraform AzureRM Provider - AI Infrastructure Installer}"
     local version="${2:-1.0.0}"
-    
+
     echo ""
     print_separator
     echo -e "${CYAN} ${title}${NC}"
@@ -310,16 +310,16 @@ write_header() {
 format_aligned_label() {
     local label="$1"
     local longest_label="$2"
-    
+
     # Calculate required spacing for alignment (PowerShell style)
     local label_length=${#label}
     local longest_length=${#longest_label}
     local required_width=$((longest_length - label_length))
-    
+
     if [[ ${required_width} -lt 0 ]]; then
         required_width=0
     fi
-    
+
     # Return with leading space and trailing spaces to match PowerShell format
     printf " %s%*s " "${label}" ${required_width} ""
 }
@@ -328,10 +328,10 @@ format_aligned_label() {
 show_branch_detection() {
     local branch_name="${1:-Unknown}"
     local workspace_root="${2:-}"
-    
+
     # Set global for consistency across UI functions
     WORKSPACE_ROOT="${workspace_root}"
-    
+
     # Determine branch label based on type
     local branch_label
     case "${branch_name}" in
@@ -345,10 +345,10 @@ show_branch_detection() {
             branch_label="FEATURE BRANCH DETECTED"
             ;;
     esac
-    
+
     # Use the longest possible label for alignment
     local longest_label="FEATURE BRANCH DETECTED"
-    
+
     # Calculate spacing for branch label
     local branch_label_length=${#branch_label}
     local longest_length=${#longest_label}
@@ -356,10 +356,10 @@ show_branch_detection() {
     if [[ ${branch_required_width} -lt 0 ]]; then
         branch_required_width=0
     fi
-    
+
     # Display branch information with consistent alignment
     printf "${CYAN} %s%*s : ${NC}${YELLOW}%s${NC}\n" "${branch_label}" ${branch_required_width} "" "${branch_name}"
-    
+
     # Dynamic workspace label with proper alignment and colors
     if [[ -n "${workspace_root}" ]]; then
         local workspace_label="WORKSPACE"
@@ -368,10 +368,10 @@ show_branch_detection() {
         if [[ ${workspace_required_width} -lt 0 ]]; then
             workspace_required_width=0
         fi
-        
+
         printf "${CYAN} %s%*s : ${NC}${GREEN}%s${NC}\n" "${workspace_label}" ${workspace_required_width} "" "${workspace_root}"
     fi
-    
+
     echo ""
     print_separator
 }
@@ -379,7 +379,7 @@ show_branch_detection() {
 # Function to display section headers
 write_section() {
     local section_title="$1"
-    
+
     echo -e "${CYAN} ${section_title}${NC}"
     print_separator
     echo ""
@@ -412,16 +412,16 @@ write_plain() {
 # Function to show path information during bootstrap
 show_path_info() {
     local user_profile="$1"
-    
+
     echo "Target Directory: ${user_profile}"
-    
+
     # Show if directory exists and is writable
     if [[ -d "${user_profile}" ]]; then
         echo "Directory status: ${GREEN}exists${NC}"
     else
         echo "Directory status: ${YELLOW}will be created${NC}"
     fi
-    
+
     # Check write permissions
     local parent_dir
     parent_dir="$(dirname "${user_profile}")"
@@ -436,7 +436,7 @@ show_path_info() {
 show_bootstrap_location_error() {
     local current_dir="$1"
     local expected_location="$2"
-    
+
     echo ""
     print_separator
     echo ""
@@ -461,7 +461,7 @@ get_user_profile() {
 write_success() {
     local message="$1"
     local prefix="${2:-[SUCCESS]}"
-    
+
     if [[ "$prefix" == "[SUCCESS]" ]]; then
         write_operation_status "$message" "Success"
     else
@@ -473,7 +473,7 @@ write_success() {
 write_warning() {
     local message="$1"
     local prefix="${2:-[WARNING]}"
-    
+
     if [[ "$prefix" == "[WARNING]" ]]; then
         write_operation_status "$message" "Warning"
     else
@@ -485,7 +485,7 @@ write_warning() {
 write_error() {
     local message="$1"
     local prefix="${2:-[ERROR]}"
-    
+
     if [[ "$prefix" == "[ERROR]" ]]; then
         write_operation_status "$message" "Error"
     else
@@ -497,7 +497,7 @@ write_error() {
 write_info() {
     local message="$1"
     local prefix="${2:-[INFO]}"
-    
+
     if [[ "$prefix" == "[INFO]" ]]; then
         write_operation_status "$message" "Info"
     else
@@ -525,7 +525,7 @@ write_verbose_message() {
 write_operation_status() {
     local message="$1"
     local status="${2:-Info}"
-    
+
     case "$status" in
         "Success")
             echo -e "${GREEN}[SUCCESS] ${message}${NC}"
@@ -546,12 +546,12 @@ write_operation_status() {
 format_aligned_label_spacing() {
     local label="$1"
     local reference_label="$2"
-    
+
     # Calculate spacing needed to align labels
     local label_len=${#label}
     local ref_len=${#reference_label}
     local spaces_needed=$((ref_len - label_len))
-    
+
     if [[ $spaces_needed -gt 0 ]]; then
         printf "%*s" $spaces_needed ""
     fi
@@ -562,9 +562,9 @@ show_completion() {
     local current="$1"
     local total="$2"
     local description="$3"
-    
+
     local percentage=$(( (current * 100) / total ))
-    
+
     printf "${BLUE}[%3d%%]${NC} %s\n" "${percentage}" "${description}"
 }
 
@@ -572,14 +572,14 @@ show_completion() {
 calculate_max_filename_length() {
     local -a filenames=("$@")
     local max_length=0
-    
+
     for filename in "${filenames[@]}"; do
         local length=${#filename}
         if [[ $length -gt $max_length ]]; then
             max_length=$length
         fi
     done
-    
+
     echo $max_length
 }
 
@@ -590,11 +590,11 @@ show_file_operation() {
     local filename="$2"
     local status="$3"
     local max_length="$4"  # Required parameter - no default to ensure dynamic calculation
-    
+
     # Align filename to match PowerShell format using dynamic length
     local formatted_filename
     formatted_filename=$(printf "%-${max_length}s" "${filename}")
-    
+
     case "${status}" in
         "OK"|"SUCCESS")
             echo -e "   ${CYAN}${operation}: ${NC}${formatted_filename} ${GREEN}[OK]${NC}"
@@ -617,12 +617,12 @@ show_error_block() {
     local solutions_str="$2"
     local example_usage="${3:-}"
     local additional_info="${4:-}"
-    
+
     echo ""
     echo -e "${RED}ISSUE:${NC}"
     echo "  ${issue}"
     echo ""
-    
+
     if [[ -n "${solutions_str}" ]]; then
         echo -e "${YELLOW}SOLUTIONS:${NC}"
         # Split solutions by semicolon and display each
@@ -633,13 +633,13 @@ show_error_block() {
         done
         echo ""
     fi
-    
+
     if [[ -n "${example_usage}" ]]; then
         echo -e "${GREEN}EXAMPLE:${NC}"
         echo "  ${example_usage}"
         echo ""
     fi
-    
+
     if [[ -n "${additional_info}" ]]; then
         echo -e "${CYAN}ADDITIONAL INFO:${NC}"
         echo "  ${additional_info}"
@@ -650,9 +650,9 @@ show_error_block() {
 # Function to show repository information
 show_repository_info() {
     local directory="$1"
-    
+
     write_plain "Repository Directory: ${directory}"
-    
+
     # Try to get git branch if available
     if command -v git >/dev/null 2>&1 && [[ -d "${directory}/.git" ]]; then
         local branch
@@ -665,22 +665,22 @@ show_repository_info() {
 prompt_confirmation() {
     local message="$1"
     local default="${2:-n}"
-    
+
     local prompt_text
     if [[ "${default}" == "y" ]]; then
         prompt_text="${message} [Y/n]: "
     else
         prompt_text="${message} [y/N]: "
     fi
-    
+
     echo -n -e "${YELLOW}${prompt_text}${NC}"
     read -r response
-    
+
     # Use default if no response
     if [[ -z "${response}" ]]; then
         response="${default}"
     fi
-    
+
     case "${response}" in
         [Yy]|[Yy][Ee][Ss])
             return 0
@@ -701,18 +701,18 @@ show_completion_summary() {
     local install_location="${6:-}"
     local branch_name="${7:-}"
     local branch_type="${8:-feature}"
-    
+
     echo ""
     echo -e "${GREEN}INSTALLATION COMPLETE${NC}"
     print_separator 40 "${GREEN}" "="
     echo ""
-    
+
     # Show branch information if provided
     if [[ -n "${branch_name}" ]]; then
         show_branch_detection "${branch_name}" "${branch_type}"
         echo ""
     fi
-    
+
     # Show summary statistics
     echo -e "${CYAN}SUMMARY:${NC}"
     echo -e "  ${GREEN}Files copied${NC} : ${files_succeeded}"
@@ -738,11 +738,11 @@ show_key_value() {
 # Function to show next steps (matches PowerShell formatting)
 show_next_steps() {
     local steps=("$@")
-    
+
     if [[ ${#steps[@]} -gt 0 ]]; then
         echo -e "${CYAN}NEXT STEPS:${NC}"
         echo ""
-        
+
         for i in "${!steps[@]}"; do
             local step_num=$((i + 1))
             echo -e "  ${step_num}. ${steps[i]}"
@@ -754,7 +754,7 @@ show_next_steps() {
 # Function to show path information (matches PowerShell output)
 show_path_info() {
     local path="$1"
-    
+
     echo -e "${CYAN}PATH: ${YELLOW}${path}${NC}"
     echo ""
 }
@@ -764,7 +764,7 @@ show_path_info() {
 show_bootstrap_location_error() {
     local current_location="$1"
     local expected_location="$2"
-    
+
     print_separator
     echo ""
     write_operation_status "Bootstrap must be run from the source repository, not from user profile directory." "Error"
@@ -782,7 +782,7 @@ show_bootstrap_location_error() {
 show_divider() {
     local char="${1:--}"
     local length="${2:-60}"
-    
+
     printf "%${length}s\n" | tr ' ' "${char}"
 }
 
@@ -792,13 +792,13 @@ show_usage() {
     local branch_type="${1:-feature}"
     local workspace_valid="${2:-true}"
     local workspace_issue="${3:-}"
-    
+
     echo ""
     write_cyan "DESCRIPTION:"
     echo "  Interactive installer for AI-assisted development infrastructure that enhances"
     echo "  GitHub Copilot with Terraform-specific knowledge, patterns, and best practices."
     echo ""
-    
+
     # Dynamic options and examples based on branch type
     case "${branch_type}" in
         "source")
@@ -811,7 +811,7 @@ show_usage() {
             show_unknown_branch_help "${workspace_valid}" "${workspace_issue}"
             ;;
     esac
-    
+
     write_cyan "For more information, visit: https://github.com/hashicorp/terraform-provider-azurerm"
     echo ""
 }
@@ -847,7 +847,7 @@ show_feature_branch_help() {
     write_cyan "USAGE:"
     echo "  ./install-copilot-setup.sh [OPTIONS]"
     echo ""
-    
+
     write_cyan "AVAILABLE OPTIONS:"
     echo "  -repo-directory   Repository path (path to your feature branch directory)"
     echo "  -auto-approve     Overwrite existing files without prompting"
@@ -856,7 +856,7 @@ show_feature_branch_help() {
     echo "  -clean            Remove AI infrastructure from workspace"
     echo "  -help             Show this help information"
     echo ""
-    
+
     write_cyan "EXAMPLES:"
     echo "  Install AI infrastructure:"
     echo "    cd ~/.terraform-ai-installer/"
@@ -874,7 +874,7 @@ show_feature_branch_help() {
     echo "    cd ~/.terraform-ai-installer/"
     echo "    ./install-copilot-setup.sh -repo-directory "/path/to/your/feature/branch" -clean"
     echo ""
-    
+
     write_cyan "WORKFLOW:"
     echo "  1. Navigate to user profile installer directory: cd ~/.terraform-ai-installer/"
     echo "  2. Run installer with path to your feature branch"
@@ -887,7 +887,7 @@ show_feature_branch_help() {
 show_unknown_branch_help() {
     local workspace_valid="${1:-true}"
     local workspace_issue="${2:-}"
-    
+
     # Show workspace issue if detected
     if [[ "${workspace_valid}" != "true" && -n "${workspace_issue}" ]]; then
         write_cyan "WORKSPACE ISSUE DETECTED:"
@@ -900,18 +900,18 @@ show_unknown_branch_help() {
         print_separator
         echo ""
     fi
-    
+
     write_cyan "GENERAL USAGE:"
     echo "  ./install-copilot-setup.sh [OPTIONS]"
     echo ""
-    
+
     write_cyan "COMMON OPTIONS:"
     echo "  -bootstrap        Copy installer to user profile (source branch only)"
     echo "  -repo-directory   Repository path (for feature branch operations)"
     echo "  -verify           Check current workspace status and validate setup"
     echo "  -help             Show this help information"
     echo ""
-    
+
     write_cyan "GETTING STARTED:"
     echo "  1. From source branch: ./install-copilot-setup.sh -bootstrap"
     echo "  2. From feature branch: use installer in ~/.terraform-ai-installer/"
@@ -921,7 +921,7 @@ show_unknown_branch_help() {
 # Function to display source branch welcome and guidance
 show_source_branch_welcome() {
     local branch_name="${1:-exp/terraform_copilot}"
-    
+
     write_green "WELCOME TO AI-ASSISTED AZURERM TERRAFORM DEVELOPMENT"
     echo ""
     write_cyan "Use the contextual help system above to get started."
@@ -931,7 +931,7 @@ show_source_branch_welcome() {
 # Function to show source repository safety error
 show_source_repository_safety_error() {
     local script_name="$1"
-    
+
     echo ""
     write_error_message "SAFETY CHECK FAILED: Cannot install to source repository directory"
     echo ""
@@ -962,7 +962,7 @@ show_clean_unavailable_on_source_error() {
 # Function to show bootstrap repository validation error
 show_bootstrap_repository_validation_error() {
     local workspace_root="$1"
-    
+
     write_error_message "Bootstrap must be run from terraform-provider-azurerm repository"
     echo ""
     write_plain "Expected to find go.mod with terraform-provider-azurerm content"
@@ -974,7 +974,7 @@ show_bootstrap_failure_error() {
     local files_failed="$1"
     local user_profile="$2"
     local script_name="$3"
-    
+
     echo ""
     write_error_message "Bootstrap failed with ${files_failed} file(s) failing to copy"
     echo ""
@@ -997,7 +997,7 @@ write_plain() {
 show_bootstrap_location_error() {
     local current_location="$1"
     local expected_location="$2"
-    
+
     echo ""
     print_separator
     echo ""
@@ -1016,7 +1016,7 @@ show_bootstrap_location_error() {
 # Function to show bootstrap directory validation error
 show_bootstrap_directory_validation_error() {
     local current_location="$1"
-    
+
     echo ""
     write_error_message "Bootstrap must be run from terraform-provider-azurerm root or .github/AIinstaller directory"
     echo ""
@@ -1029,7 +1029,7 @@ show_bootstrap_directory_validation_error() {
 
 show_repository_directory_required_error() {
     local current_location="$1"
-    
+
     echo ""
     write_error_message "Repository directory required when running from outside terraform-provider-azurerm repository"
     echo ""
