@@ -70,92 +70,8 @@ func buildRoleManagementPolicyForDelete(rolePolicy *rolemanagementpolicies.RoleM
 		return nil, fmt.Errorf("existing Role Management Policy was nil")
 	}
 
-	defaultsModel := buildModelWithDefaultNotificationSettings()
-	return buildRoleManagementPolicyInternal(nil, rolePolicy, defaultsModel)
-}
-
-func buildModelWithDefaultNotificationSettings() *RoleManagementPolicyModel {
-	return &RoleManagementPolicyModel{
-		NotificationRules: []RoleManagementPolicyNotificationEvents{
-			{
-				ActiveAssignments: []RoleManagementPolicyNotificationRule{
-					{
-						AdminNotifications: []RoleManagementPolicyNotificationSettings{
-							{
-								NotificationLevel:    "All",
-								DefaultRecipients:    true,
-								AdditionalRecipients: []string{},
-							},
-						},
-						ApproverNotifications: []RoleManagementPolicyNotificationSettings{
-							{
-								NotificationLevel:    "All",
-								DefaultRecipients:    true,
-								AdditionalRecipients: []string{},
-							},
-						},
-						AssigneeNotifications: []RoleManagementPolicyNotificationSettings{
-							{
-								NotificationLevel:    "All",
-								DefaultRecipients:    true,
-								AdditionalRecipients: []string{},
-							},
-						},
-					},
-				},
-				EligibleActivations: []RoleManagementPolicyNotificationRule{
-					{
-						AdminNotifications: []RoleManagementPolicyNotificationSettings{
-							{
-								NotificationLevel:    "All",
-								DefaultRecipients:    true,
-								AdditionalRecipients: []string{},
-							},
-						},
-						ApproverNotifications: []RoleManagementPolicyNotificationSettings{
-							{
-								NotificationLevel:    "All",
-								DefaultRecipients:    true,
-								AdditionalRecipients: []string{},
-							},
-						},
-						AssigneeNotifications: []RoleManagementPolicyNotificationSettings{
-							{
-								NotificationLevel:    "All",
-								DefaultRecipients:    true,
-								AdditionalRecipients: []string{},
-							},
-						},
-					},
-				},
-				EligibleAssignments: []RoleManagementPolicyNotificationRule{
-					{
-						AdminNotifications: []RoleManagementPolicyNotificationSettings{
-							{
-								NotificationLevel:    "All",
-								DefaultRecipients:    true,
-								AdditionalRecipients: []string{},
-							},
-						},
-						ApproverNotifications: []RoleManagementPolicyNotificationSettings{
-							{
-								NotificationLevel:    "All",
-								DefaultRecipients:    true,
-								AdditionalRecipients: []string{},
-							},
-						},
-						AssigneeNotifications: []RoleManagementPolicyNotificationSettings{
-							{
-								NotificationLevel:    "All",
-								DefaultRecipients:    true,
-								AdditionalRecipients: []string{},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
+	emptyModel := &RoleManagementPolicyModel{}
+	return buildRoleManagementPolicyInternal(nil, rolePolicy, emptyModel)
 }
 
 func buildRoleManagementPolicyInternal(metadata *sdk.ResourceMetaData, rolePolicy *rolemanagementpolicies.RoleManagementPolicy, model *RoleManagementPolicyModel) (*rolemanagementpolicies.RoleManagementPolicy, error) {
@@ -334,92 +250,85 @@ func buildRoleManagementPolicyInternal(metadata *sdk.ResourceMetaData, rolePolic
 		}
 	}
 
+	defaultSettings := &RoleManagementPolicyNotificationSettings{
+		NotificationLevel:    "All",
+		DefaultRecipients:    true,
+		AdditionalRecipients: []string{},
+	}
+
 	notificationRulesConfig := []struct {
 		changeDetectionKey string
-		recipientChangeKey string
-		azureRuleID        string
+		ruleID             string
 		getModelSettings   func() *RoleManagementPolicyNotificationSettings
 	}{
-		{"notification_rules.0.eligible_assignments.0.admin_notifications", "notification_rules.0.eligible_assignments.0.admin_notifications.0.additional_recipients", "Notification_Admin_Admin_Eligibility", func() *RoleManagementPolicyNotificationSettings {
+		{"notification_rules.0.eligible_assignments.0.admin_notifications", "Notification_Admin_Admin_Eligibility", func() *RoleManagementPolicyNotificationSettings {
 			if len(model.NotificationRules) == 1 && len(model.NotificationRules[0].EligibleAssignments) == 1 && len(model.NotificationRules[0].EligibleAssignments[0].AdminNotifications) == 1 {
 				return &model.NotificationRules[0].EligibleAssignments[0].AdminNotifications[0]
 			}
-			return nil
+			return defaultSettings
 		}},
-		{"notification_rules.0.active_assignments.0.admin_notifications", "notification_rules.0.active_assignments.0.admin_notifications.0.additional_recipients", "Notification_Admin_Admin_Assignment", func() *RoleManagementPolicyNotificationSettings {
+		{"notification_rules.0.active_assignments.0.admin_notifications", "Notification_Admin_Admin_Assignment", func() *RoleManagementPolicyNotificationSettings {
 			if len(model.NotificationRules) == 1 && len(model.NotificationRules[0].ActiveAssignments) == 1 && len(model.NotificationRules[0].ActiveAssignments[0].AdminNotifications) == 1 {
 				return &model.NotificationRules[0].ActiveAssignments[0].AdminNotifications[0]
 			}
-			return nil
+			return defaultSettings
 		}},
-		{"notification_rules.0.eligible_activations.0.admin_notifications", "notification_rules.0.eligible_activations.0.admin_notifications.0.additional_recipients", "Notification_Admin_EndUser_Assignment", func() *RoleManagementPolicyNotificationSettings {
+		{"notification_rules.0.eligible_activations.0.admin_notifications", "Notification_Admin_EndUser_Assignment", func() *RoleManagementPolicyNotificationSettings {
 			if len(model.NotificationRules) == 1 && len(model.NotificationRules[0].EligibleActivations) == 1 && len(model.NotificationRules[0].EligibleActivations[0].AdminNotifications) == 1 {
 				return &model.NotificationRules[0].EligibleActivations[0].AdminNotifications[0]
 			}
-			return nil
+			return defaultSettings
 		}},
-		{"notification_rules.0.eligible_assignments.0.approver_notifications", "notification_rules.0.eligible_assignments.0.approver_notifications.0.additional_recipients", "Notification_Approver_Admin_Eligibility", func() *RoleManagementPolicyNotificationSettings {
+		{"notification_rules.0.eligible_assignments.0.approver_notifications", "Notification_Approver_Admin_Eligibility", func() *RoleManagementPolicyNotificationSettings {
 			if len(model.NotificationRules) == 1 && len(model.NotificationRules[0].EligibleAssignments) == 1 && len(model.NotificationRules[0].EligibleAssignments[0].ApproverNotifications) == 1 {
 				return &model.NotificationRules[0].EligibleAssignments[0].ApproverNotifications[0]
 			}
-			return nil
+			return defaultSettings
 		}},
-		{"notification_rules.0.active_assignments.0.approver_notifications", "notification_rules.0.active_assignments.0.approver_notifications.0.additional_recipients", "Notification_Approver_Admin_Assignment", func() *RoleManagementPolicyNotificationSettings {
+		{"notification_rules.0.active_assignments.0.approver_notifications", "Notification_Approver_Admin_Assignment", func() *RoleManagementPolicyNotificationSettings {
 			if len(model.NotificationRules) == 1 && len(model.NotificationRules[0].ActiveAssignments) == 1 && len(model.NotificationRules[0].ActiveAssignments[0].ApproverNotifications) == 1 {
 				return &model.NotificationRules[0].ActiveAssignments[0].ApproverNotifications[0]
 			}
-			return nil
+			return defaultSettings
 		}},
-		{"notification_rules.0.eligible_activations.0.approver_notifications", "notification_rules.0.eligible_activations.0.approver_notifications.0.additional_recipients", "Notification_Approver_EndUser_Assignment", func() *RoleManagementPolicyNotificationSettings {
+		{"notification_rules.0.eligible_activations.0.approver_notifications", "Notification_Approver_EndUser_Assignment", func() *RoleManagementPolicyNotificationSettings {
 			if len(model.NotificationRules) == 1 && len(model.NotificationRules[0].EligibleActivations) == 1 && len(model.NotificationRules[0].EligibleActivations[0].ApproverNotifications) == 1 {
 				return &model.NotificationRules[0].EligibleActivations[0].ApproverNotifications[0]
 			}
-			return nil
+			return defaultSettings
 		}},
-		{"notification_rules.0.eligible_assignments.0.assignee_notifications", "notification_rules.0.eligible_assignments.0.assignee_notifications.0.additional_recipients", "Notification_Requestor_Admin_Eligibility", func() *RoleManagementPolicyNotificationSettings {
+		{"notification_rules.0.eligible_assignments.0.assignee_notifications", "Notification_Requestor_Admin_Eligibility", func() *RoleManagementPolicyNotificationSettings {
 			if len(model.NotificationRules) == 1 && len(model.NotificationRules[0].EligibleAssignments) == 1 && len(model.NotificationRules[0].EligibleAssignments[0].AssigneeNotifications) == 1 {
 				return &model.NotificationRules[0].EligibleAssignments[0].AssigneeNotifications[0]
 			}
-			return nil
+			return defaultSettings
 		}},
-		{"notification_rules.0.active_assignments.0.assignee_notifications", "notification_rules.0.active_assignments.0.assignee_notifications.0.additional_recipients", "Notification_Requestor_Admin_Assignment", func() *RoleManagementPolicyNotificationSettings {
+		{"notification_rules.0.active_assignments.0.assignee_notifications", "Notification_Requestor_Admin_Assignment", func() *RoleManagementPolicyNotificationSettings {
 			if len(model.NotificationRules) == 1 && len(model.NotificationRules[0].ActiveAssignments) == 1 && len(model.NotificationRules[0].ActiveAssignments[0].AssigneeNotifications) == 1 {
 				return &model.NotificationRules[0].ActiveAssignments[0].AssigneeNotifications[0]
 			}
-			return nil
+			return defaultSettings
 		}},
-		{"notification_rules.0.eligible_activations.0.assignee_notifications", "notification_rules.0.eligible_activations.0.assignee_notifications.0.additional_recipients", "Notification_Requestor_EndUser_Assignment", func() *RoleManagementPolicyNotificationSettings {
+		{"notification_rules.0.eligible_activations.0.assignee_notifications", "Notification_Requestor_EndUser_Assignment", func() *RoleManagementPolicyNotificationSettings {
 			if len(model.NotificationRules) == 1 && len(model.NotificationRules[0].EligibleActivations) == 1 && len(model.NotificationRules[0].EligibleActivations[0].AssigneeNotifications) == 1 {
 				return &model.NotificationRules[0].EligibleActivations[0].AssigneeNotifications[0]
 			}
-			return nil
+			return defaultSettings
 		}},
 	}
 
 	for _, ruleConfig := range notificationRulesConfig {
 		if metadata == nil || metadata.ResourceData.HasChange(ruleConfig.changeDetectionKey) {
-			if existingRuleBase, ok := existingRules[ruleConfig.azureRuleID]; ok {
+			if existingRuleBase, ok := existingRules[ruleConfig.ruleID]; ok {
 				if existingRule, ok := existingRuleBase.(rolemanagementpolicies.RoleManagementPolicyNotificationRule); ok {
-					configSettings := ruleConfig.getModelSettings()
-					if configSettings != nil {
-						recipientChange := metadata == nil || metadata.ResourceData.HasChange(ruleConfig.recipientChangeKey)
-						updatedRules = append(updatedRules,
-							expandNotificationSettings(
-								existingRule,
-								*configSettings,
-								recipientChange,
-							),
-						)
-					} else {
-						defaultSettings := RoleManagementPolicyNotificationSettings{
-							NotificationLevel:    "All",
-							DefaultRecipients:    true,
-							AdditionalRecipients: []string{},
-						}
-						updatedRules = append(updatedRules,
-							expandNotificationSettings(existingRule, defaultSettings, true),
-						)
-					}
+					recipientChange := metadata == nil || metadata.ResourceData.HasChange(fmt.Sprintf("%s.0.additional_recipients", ruleConfig.changeDetectionKey))
+					updatedRules = append(updatedRules,
+						expandNotificationSettings(
+							existingRule,
+							*ruleConfig.getModelSettings(),
+							recipientChange,
+						),
+					)
 				}
 			}
 		}

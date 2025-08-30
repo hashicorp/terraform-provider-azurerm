@@ -492,7 +492,7 @@ resource "azurerm_role_management_policy" "test" {
 `, r.resourceGroupTemplate(data), data.RandomString)
 }
 
-func (RoleManagementPolicyResource) subscriptionTemplate(data acceptance.TestData) string {
+func (RoleManagementPolicyResource) subscriptionTemplate() string {
 	return `
 provider "azurerm" {
   features {}
@@ -533,7 +533,7 @@ resource "azurerm_role_management_policy" "test" {
     }
   }
 }
-`, r.subscriptionTemplate(data), data.RandomString)
+`, r.subscriptionTemplate(), data.RandomString)
 }
 
 func (r RoleManagementPolicyResource) subscriptionUpdate(data acceptance.TestData) string {
@@ -588,7 +588,7 @@ resource "azurerm_role_management_policy" "test" {
     }
   }
 }
-`, r.subscriptionTemplate(data), data.RandomString)
+`, r.subscriptionTemplate(), data.RandomString)
 }
 
 func (r RoleManagementPolicyResource) resourceGroupActivationRules(data acceptance.TestData, requireApproval bool) string {

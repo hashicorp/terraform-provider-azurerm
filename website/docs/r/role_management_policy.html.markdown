@@ -166,7 +166,7 @@ One of `expiration_required` or `expire_after` must be provided.
 
 An `approval_stage` block supports the following:
 
-* One or more `primary_approver` blocks as defined below.
+* One or more `primary_approver` - blocks as defined below.
 
 ---
 
