@@ -415,6 +415,33 @@ function Show-SafetyViolation {
     }
 }
 
+function Show-WorkspaceValidationError {
+    <#
+    .SYNOPSIS
+    Display workspace validation error message
+
+    .DESCRIPTION
+    Shows a standardized workspace validation error message when the workspace
+    is not a valid terraform-provider-azurerm repository.
+    #>
+    param(
+        [string]$Reason = "Unknown validation error",
+        [switch]$FromUserProfile
+    )
+
+    Write-Host ""
+    Write-Host " WORKSPACE VALIDATION FAILED: $Reason" -ForegroundColor Red
+    Write-Host ""
+    # Context-aware error message based on how the script was invoked
+    if ($FromUserProfile) {
+        Write-Host " Please ensure the -RepoDirectory argument is pointing to a valid GitHub terraform-provider-azurerm repository." -ForegroundColor Yellow
+    } else {
+        Write-Host " Please ensure you are running this script from within a terraform-provider-azurerm repository." -ForegroundColor Yellow
+    }
+    Write-Host ""
+    Write-Separator
+}
+
 function Show-OperationSummary {
     <#
     .SYNOPSIS
@@ -537,6 +564,7 @@ Export-ModuleMember -Function @(
     'Show-SourceBranchHelp',
     'Show-SourceBranchWelcome',
     'Show-SafetyViolation',
+    'Show-WorkspaceValidationError',
     'Show-BootstrapNextSteps',
     'Show-AIInstallerNotFoundError',
     'Show-OperationSummary'

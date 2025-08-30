@@ -260,17 +260,7 @@ function Main {
 
         # For all other operations, workspace must be valid
         if (-not $workspaceValidation.Valid) {
-            Write-Host ""
-            Write-Host " WORKSPACE VALIDATION FAILED: $($workspaceValidation.Reason)" -ForegroundColor Red
-
-            # Context-aware error message based on how the script was invoked
-            if ($RepoDirectory) {
-                Write-Host " Please ensure the -RepoDirectory argument is pointing to a valid GitHub terraform-provider-azurerm repository." -ForegroundColor Yellow
-            } else {
-                Write-Host " Please ensure you are running this script from within a terraform-provider-azurerm repository." -ForegroundColor Yellow
-            }
-            Write-Host ""
-            Write-Separator
+            Show-WorkspaceValidationError -Reason $workspaceValidation.Reason -FromUserProfile:([bool]$RepoDirectory)
 
             # Show help menu for guidance
             Show-Help -BranchType $branchType -WorkspaceValid $false -WorkspaceIssue $workspaceValidation.Reason
