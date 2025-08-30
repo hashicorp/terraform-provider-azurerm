@@ -328,7 +328,7 @@ parse_arguments() {
                 shift
                 ;;
             -repo-directory)
-                if [[ -z "$2" || "$2" == -* ]]; then
+                if [[ $# -lt 2 ]] || [[ "${2:-}" == -* ]]; then
                     write_error_message "Option -repo-directory requires a directory path"
                     exit 1
                 fi

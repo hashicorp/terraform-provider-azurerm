@@ -587,7 +587,6 @@ show_next_steps() {
 }
 
 # Function to show bootstrap completion summary
-# Function to show bootstrap location error (matches PowerShell Show-BootstrapLocationError)
 show_bootstrap_location_error() {
     local current_location="$1"
     local expected_location="$2"
@@ -870,11 +869,43 @@ show_repository_directory_required_error() {
     echo ""
 }
 
+# Function to display safety violation message for source branch operations
+show_safety_violation() {
+    local branch_name="${1:-exp/terraform_copilot}"
+    local operation="${2:-operation}"
+    local from_user_profile="${3:-false}"
+
+    write_red "SAFETY VIOLATION: Cannot perform operations on source branch"
+    print_separator 60 "${CYAN}" "="
+    echo ""
+    write_yellow "The -repo-directory points to the source branch '${branch_name}'."
+    write_yellow "Operations other than -verify, -help, and -bootstrap are not allowed on the source branch."
+    echo ""
+    write_cyan "SOLUTION:"
+    write_cyan "  Switch to a feature branch in your target repository:"
+
+    if [[ "${from_user_profile}" == "true" ]]; then
+        write_gray "    cd \"<path-to-your-terraform-provider-azurerm>\""
+    else
+        write_gray "    cd \"\${workspace_root:-\$PWD}\""
+    fi
+
+    write_gray "    git checkout -b feature/your-branch-name"
+    echo ""
+
+    if [[ "${from_user_profile}" == "true" ]]; then
+        write_cyan "  Then run the installer from your user profile:"
+        write_gray "    cd \"\$HOME/.terraform-ai-installer\""
+        write_gray "    ./install-copilot-setup.sh -repo-directory \"<path-to-your-terraform-provider-azurerm>\""
+        echo ""
+    fi
+}
+
 # Export all UI functions for use in other scripts
 export -f write_cyan write_green write_yellow write_white write_red write_blue write_gray
 export -f write_plain write_label write_colored_label write_section_header write_section
 export -f write_header write_operation_status
 export -f write_error_message write_warning_message write_success_message
-export -f write_file_operation_status show_completion_summary
+export -f write_file_operation_status show_completion_summary show_safety_violation
 export -f show_usage show_source_branch_welcome
 export -f print_separator get_user_profile format_aligned_label_spacing calculate_max_filename_length
