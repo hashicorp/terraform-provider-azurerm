@@ -31,13 +31,14 @@ func (r UserAssignedIdentityResource) ModelObject() interface{} {
 }
 
 type UserAssignedIdentityResourceSchema struct {
-	ClientId          string                 `tfschema:"client_id"`
-	Location          string                 `tfschema:"location"`
-	Name              string                 `tfschema:"name"`
-	PrincipalId       string                 `tfschema:"principal_id"`
-	ResourceGroupName string                 `tfschema:"resource_group_name"`
-	Tags              map[string]interface{} `tfschema:"tags"`
-	TenantId          string                 `tfschema:"tenant_id"`
+	   ClientId          string                 `tfschema:"client_id"`
+	   Location          string                 `tfschema:"location"`
+	   Name              string                 `tfschema:"name"`
+	   PrincipalId       string                 `tfschema:"principal_id"`
+	   ResourceGroupName string                 `tfschema:"resource_group_name"`
+	   SubscriptionId    string                 `tfschema:"subscription_id"`
+	   Tags              map[string]interface{} `tfschema:"tags"`
+	   TenantId          string                 `tfschema:"tenant_id"`
 }
 
 func (r UserAssignedIdentityResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
@@ -49,16 +50,21 @@ func (r UserAssignedIdentityResource) ResourceType() string {
 }
 
 func (r UserAssignedIdentityResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"location": commonschema.Location(),
-		"name": {
-			ForceNew: true,
-			Required: true,
-			Type:     pluginsdk.TypeString,
-		},
-		"resource_group_name": commonschema.ResourceGroupName(),
-		"tags":                commonschema.Tags(),
-	}
+	   return map[string]*pluginsdk.Schema{
+			   "location": commonschema.Location(),
+			   "name": {
+					   ForceNew: true,
+					   Required: true,
+					   Type:     pluginsdk.TypeString,
+			   },
+			   "resource_group_name": commonschema.ResourceGroupName(),
+			   "subscription_id": {
+					   Optional: true,
+					   Computed: true,
+					   Type:     pluginsdk.TypeString,
+			   },
+			   "tags": commonschema.Tags(),
+	   }
 }
 
 func (r UserAssignedIdentityResource) Attributes() map[string]*pluginsdk.Schema {
@@ -89,9 +95,11 @@ func (r UserAssignedIdentityResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			subscriptionId := metadata.Client.Account.SubscriptionId
-
-			id := commonids.NewUserAssignedIdentityID(subscriptionId, config.ResourceGroupName, config.Name)
+			   subscriptionId := config.SubscriptionId
+			   if subscriptionId == "" {
+					   subscriptionId = metadata.Client.Account.SubscriptionId
+			   }
+			   id := commonids.NewUserAssignedIdentityID(subscriptionId, config.ResourceGroupName, config.Name)
 
 			existing, err := client.UserAssignedIdentitiesGet(ctx, id)
 			if err != nil {
@@ -130,7 +138,8 @@ func (r UserAssignedIdentityResource) Read() sdk.ResourceFunc {
 				return err
 			}
 
-			resp, err := client.UserAssignedIdentitiesGet(ctx, *id)
+			   schema.SubscriptionId = id.SubscriptionId
+			   resp, err := client.UserAssignedIdentitiesGet(ctx, *id)
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return metadata.MarkAsGone(*id)
@@ -138,15 +147,14 @@ func (r UserAssignedIdentityResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", *id, err)
 			}
 
-			if model := resp.Model; model != nil {
-				schema.Name = id.UserAssignedIdentityName
-				schema.ResourceGroupName = id.ResourceGroupName
-				if err := r.mapIdentityToUserAssignedIdentityResourceSchema(*model, &schema); err != nil {
-					return fmt.Errorf("flattening model: %+v", err)
-				}
-			}
-
-			return metadata.Encode(&schema)
+			   if model := resp.Model; model != nil {
+					   schema.Name = id.UserAssignedIdentityName
+					   schema.ResourceGroupName = id.ResourceGroupName
+					   if err := r.mapIdentityToUserAssignedIdentityResourceSchema(*model, &schema); err != nil {
+							   return fmt.Errorf("flattening model: %+v", err)
+					   }
+			   }
+			   return metadata.Encode(&schema)
 		},
 	}
 }

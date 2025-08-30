@@ -38,11 +38,15 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the User Assigned Identity.
 
+* `subscription_id` - (Optional) The ID of the subscription in which to create the User Assigned Identity.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the User Assigned Identity.
+
+* `subscription_id` - The ID of the subscription associated with the User Assigned Identity.
 
 * `client_id` - The ID of the app associated with the Identity.
 
