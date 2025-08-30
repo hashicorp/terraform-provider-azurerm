@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/certificates"
@@ -18,18 +19,26 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 )
 
 type ContainerAppEnvironmentCertificateResource struct{}
+
+type CertificateKeyVaultModel struct {
+	Identity    string `tfschema:"identity"`
+	KeyVaultUrl string `tfschema:"key_vault_url"`
+}
 
 type ContainerAppCertificateModel struct {
 	Name                 string                 `tfschema:"name"`
 	ManagedEnvironmentId string                 `tfschema:"container_app_environment_id"`
 	Tags                 map[string]interface{} `tfschema:"tags"`
 
-	// Write only?
+	// Certificate blob/password (mutually exclusive with Key Vault)
 	CertificatePassword string `tfschema:"certificate_password"`
 	CertificateBlob     string `tfschema:"certificate_blob_base64"`
+
+	CertificateKeyVault []CertificateKeyVaultModel `tfschema:"certificate_key_vault"`
 
 	// Read Only
 	SubjectName    string `tfschema:"subject_name"`
@@ -72,19 +81,53 @@ func (r ContainerAppEnvironmentCertificateResource) Arguments() map[string]*plug
 		},
 
 		"certificate_blob_base64": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsBase64,
-			Description:  "The Certificate Private Key as a base64 encoded PFX or PEM.",
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			ValidateFunc:  validation.StringIsBase64,
+			Description:   "The Certificate Private Key as a base64 encoded PFX or PEM.",
+			ConflictsWith: []string{"certificate_key_vault"},
+			AtLeastOneOf:  []string{"certificate_key_vault", "certificate_blob_base64"},
 		},
 
 		"certificate_password": {
-			Type:        pluginsdk.TypeString,
-			Required:    true,
-			ForceNew:    true,
-			Sensitive:   true,
-			Description: "The password for the Certificate.",
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			ForceNew:      true,
+			Sensitive:     true,
+			Description:   "The password for the Certificate.",
+			RequiredWith:  []string{"certificate_blob_base64"},
+		},
+
+		"certificate_key_vault": {
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			ForceNew:      true,
+			MaxItems:      1,
+			Description:   "Import Certificate from Key Vault",
+			ConflictsWith: []string{"certificate_password", "certificate_blob_base64"},
+			AtLeastOneOf:  []string{"certificate_key_vault", "certificate_blob_base64"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"identity": {
+						Type:        pluginsdk.TypeString,
+						Required:    true,
+						ForceNew:    true,
+						Description: "The Resource ID of a managed identity to authenticate with Azure Key Vault, or 'system' to use a system-assigned identity.",
+						ValidateFunc: validation.Any(
+							validation.StringInSlice([]string{"system"}, false),
+							commonids.ValidateUserAssignedIdentityID,
+						),
+					},
+					"key_vault_url": {
+						Type:        pluginsdk.TypeString,
+						Required:    true,
+						ForceNew:    true,
+						Description: "The URL of the Key Vault secret that holds the certificate",
+						ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+					},
+				},
+			},
 		},
 
 		"tags": commonschema.Tags(),
@@ -150,13 +193,22 @@ func (r ContainerAppEnvironmentCertificateResource) Create() sdk.ResourceFunc {
 			}
 
 			model := certificates.Certificate{
-				Location: env.Model.Location,
-				Name:     pointer.To(id.CertificateName),
-				Properties: &certificates.CertificateProperties{
-					Password: pointer.To(cert.CertificatePassword),
-					Value:    pointer.To(cert.CertificateBlob),
-				},
-				Tags: tags.Expand(cert.Tags),
+				Location:   env.Model.Location,
+				Name:       pointer.To(id.CertificateName),
+				Properties: &certificates.CertificateProperties{},
+				Tags:       tags.Expand(cert.Tags),
+			}
+
+			hasBlobAuth := cert.CertificateBlob != "" && cert.CertificatePassword != ""
+			if hasBlobAuth {
+				model.Properties.Password = pointer.To(cert.CertificatePassword)
+				model.Properties.Value = pointer.To(cert.CertificateBlob)
+			} else if len(cert.CertificateKeyVault) > 0 {
+				kvConfig := cert.CertificateKeyVault[0]
+				model.Properties.CertificateKeyVaultProperties = &certificates.CertificateKeyVaultProperties{
+					Identity:    pointer.To(kvConfig.Identity),
+					KeyVaultURL: pointer.To(kvConfig.KeyVaultUrl),
+				}
 			}
 
 			if _, err := client.CreateOrUpdate(ctx, id, model); err != nil {
@@ -212,6 +264,14 @@ func (r ContainerAppEnvironmentCertificateResource) Read() sdk.ResourceFunc {
 					state.IssueDate = pointer.From(props.IssueDate)
 					state.ExpirationDate = pointer.From(props.ExpirationDate)
 					state.Thumbprint = pointer.From(props.Thumbprint)
+
+					if kvProps := props.CertificateKeyVaultProperties; kvProps != nil {
+						keyVaultConfig := CertificateKeyVaultModel{
+							Identity:    pointer.From(kvProps.Identity),
+							KeyVaultUrl: pointer.From(kvProps.KeyVaultURL),
+						}
+						state.CertificateKeyVault = []CertificateKeyVaultModel{keyVaultConfig}
+					}
 				}
 			}
 
