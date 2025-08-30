@@ -163,6 +163,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 -> **Note:** `node_os_upgrade_channel` must be set to `NodeImage` if `automatic_upgrade_channel` has been set to `node-image`
 
+* `node_provisioning_profile` - (Optional) A `node_provisioning_profile` block as defined below. For more details about the node provisioning profile, see [Node Auto Provisioning](https://learn.microsoft.com/en-us/azure/aks/node-autoprovision) for more information.
+
 * `node_resource_group` - (Optional) The name of the Resource Group where the Kubernetes Nodes should exist. Changing this forces a new resource to be created.
 
 -> **Note:** Azure requires that a new, non-existent Resource Group is used, as otherwise, the provisioning of the Kubernetes Service will fail.
@@ -1148,6 +1150,17 @@ The `web_app_routing_identity` block exports the following:
 * `user_assigned_identity_id` - The ID of the User Assigned Identity used for Web App Routing.
 
 ---
+
+The `node_provisioning_profile` block supports the following:
+
+* `mode` - (Optional) Mode to use for node provisioning. Currently supported values are `Manual` and `Auto`. Defaults to `Manual`.
+
+* `default_node_pool` - (Optional) Whether to create default autoprovisioning node pools. This attribute has no effect unless `mode` is `Auto`. Possible values are `None` and `Auto`. Defaults to `Auto`.
+
+-> **Note:** Changing this from Auto to None on an existing cluster will cause the default node pools to be deleted, which will drain and delete the nodes associated with those pools.
+
+---
+
 
 ## Timeouts
 

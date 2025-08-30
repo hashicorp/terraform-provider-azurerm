@@ -98,6 +98,8 @@ The following attributes are exported:
 
 * `network_profile` - A `network_profile` block as documented below.
 
+* `node_provisioning_profile` - A `node_provisioning_profile` block as documented below.
+
 * `node_resource_group` - Auto-generated Resource Group containing AKS Cluster resources.
 
 * `node_resource_group_id` - The ID of the Resource Group containing the resources for this Managed Kubernetes Cluster.
@@ -395,6 +397,15 @@ A `certificate_authority` block exports the following:
 * `key_object_name` - The intermediate certificate private key object name in Azure Key Vault.
 
 ---
+
+The `node_provisioning_profile` block exports the following:
+
+* `mode` - Mode of node provisioning. Possible values are `Manual` and `Auto`.
+
+* `default_node_pool` - Whether default autoprovisioning node pools are created. This attribute is not applicable unless `mode` is `Auto`. Possible values are `None` and `Auto`.
+
+---
+
 
 ## Timeouts
 
