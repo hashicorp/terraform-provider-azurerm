@@ -389,11 +389,11 @@ function Show-SafetyViolation {
         [switch]$FromUserProfile
     )
 
-    Write-Host "SAFETY VIOLATION: Cannot perform operations on source branch" -ForegroundColor Red
+    Write-Host " SAFETY VIOLATION: Cannot perform operations on source branch" -ForegroundColor Red
     Write-Separator
     Write-Host ""
-    Write-Host "The -RepoDirectory points to the source branch '$BranchName'." -ForegroundColor Yellow
-    Write-Host "Operations other than -Verify, -Help, and -Bootstrap are not allowed on the source branch." -ForegroundColor Yellow
+    Write-Host " The -RepoDirectory points to the source branch '$BranchName'." -ForegroundColor Yellow
+    Write-Host " Operations other than -Verify, -Help, and -Bootstrap are not allowed on the source branch." -ForegroundColor Yellow
     Write-Host ""
     Write-Host "SOLUTION:" -ForegroundColor Cyan
     Write-Host "  Switch to a feature branch in your target repository:" -ForegroundColor DarkCyan

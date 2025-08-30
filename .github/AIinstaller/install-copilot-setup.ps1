@@ -105,8 +105,8 @@ try {
     Import-RequiredModules -ModulesPath $ModulesPath
 }
 catch {
-    Write-Host "FATAL ERROR: $($_.Exception.Message)" -ForegroundColor Red
-    Write-Host "Cannot continue without required modules." -ForegroundColor Red
+    Write-Host " FATAL ERROR: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host " Cannot continue without required modules." -ForegroundColor Red
     exit 1
 }
 
@@ -265,9 +265,9 @@ function Main {
 
             # Context-aware error message based on how the script was invoked
             if ($RepoDirectory) {
-                Write-Host " Please ensure the -RepoDirectory argument is pointing to a valid GitHub terraform-provider-azurerm repository." -ForegroundColor Red
+                Write-Host " Please ensure the -RepoDirectory argument is pointing to a valid GitHub terraform-provider-azurerm repository." -ForegroundColor Yellow
             } else {
-                Write-Host " Please ensure you are running this script from within a terraform-provider-azurerm repository." -ForegroundColor Red
+                Write-Host " Please ensure you are running this script from within a terraform-provider-azurerm repository." -ForegroundColor Yellow
             }
             Write-Host ""
             Write-Separator
@@ -305,7 +305,7 @@ function Main {
     }
     catch {
         Write-Host ""
-        Write-Host "ERROR: $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host " ERROR: $($_.Exception.Message)" -ForegroundColor Red
         Write-Host ""
         exit 1
     }
