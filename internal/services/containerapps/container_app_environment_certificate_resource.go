@@ -34,7 +34,7 @@ type ContainerAppCertificateModel struct {
 	ManagedEnvironmentId string                 `tfschema:"container_app_environment_id"`
 	Tags                 map[string]interface{} `tfschema:"tags"`
 
-	// Certificate blob/password (mutually exclusive with Key Vault)
+	// Write only?
 	CertificatePassword string `tfschema:"certificate_password"`
 	CertificateBlob     string `tfschema:"certificate_blob_base64"`
 
