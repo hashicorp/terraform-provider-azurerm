@@ -165,10 +165,13 @@ main() {
     # Main entry point for the installer - matches PowerShell structure
     #
 
-    # STEP 1: Parse command line arguments
+    # STEP 1: Show UI header first - before any argument parsing
+    write_header "Terraform AzureRM Provider - AI Infrastructure Installer" "${VERSION}"
+
+    # STEP 2: Parse command line arguments (errors will now show after header)
     parse_arguments "$@"
 
-    # STEP 2: Early safety check - fail fast if on source branch with repo directory
+    # STEP 3: Early safety check - fail fast if on source branch with repo directory
     if [[ -n "${REPO_DIRECTORY}" ]]; then
         # Get current branch of the target repository quickly
         local current_branch
@@ -190,16 +193,19 @@ main() {
         done
 
         if [[ "${is_source_branch}" == "true" ]] && [[ "${VERIFY}" != "true" ]] && [[ "${HELP}" != "true" ]] && [[ "${BOOTSTRAP}" != "true" ]]; then
+            # Branch detection and safety violation (header already shown)
+            show_branch_detection "${current_branch}" "${REPO_DIRECTORY}"
+            echo ""
             show_safety_violation "${current_branch}" "Install" "true"
             exit 1
         fi
     fi
 
-    # STEP 3: Initialize workspace and validate it's a proper terraform-provider-azurerm repo
+    # STEP 4: Initialize workspace and validate it's a proper terraform-provider-azurerm repo
     local workspace_root
     workspace_root="$(get_workspace_root "${REPO_DIRECTORY}" "${SCRIPT_DIR}")"
 
-    # STEP 4: Early workspace validation before doing anything else
+    # STEP 5: Early workspace validation before doing anything else
     local workspace_valid workspace_reason
     if validate_repository "${workspace_root}"; then
         workspace_valid=true
@@ -209,7 +215,7 @@ main() {
         workspace_reason="Missing required files"
     fi
 
-    # STEP 5: Get branch information for consistent display
+    # STEP 6: Get branch information for consistent display
     local current_branch branch_type
     if [[ -n "${REPO_DIRECTORY}" ]]; then
         if [[ -d "${workspace_root}/.git" ]]; then
@@ -235,17 +241,16 @@ main() {
             ;;
     esac
 
-    # STEP 6: CONSISTENT PATTERN - Every operation gets the same header and branch detection
-    write_header "Terraform AzureRM Provider - AI Infrastructure Installer" "${VERSION}"
+    # STEP 7: Show branch detection now that we have all the context
     show_branch_detection "${current_branch}" "${workspace_root}"
 
-    # STEP 7: Simple parameter handling (like PowerShell)
+    # STEP 8: Simple parameter handling (like PowerShell)
     if [[ "${HELP}" == "true" ]]; then
         show_usage "${branch_type}" "${workspace_valid}" "${workspace_reason}"
         exit 0
     fi
 
-    # STEP 8: For all other operations, workspace must be valid
+    # STEP 9: For all other operations, workspace must be valid
     if [[ "${workspace_valid}" != "true" ]]; then
         echo ""
         write_error_message "WORKSPACE VALIDATION FAILED: ${workspace_reason}"
@@ -253,9 +258,9 @@ main() {
 
         # Context-aware error message based on how the script was invoked
         if [[ -n "${REPO_DIRECTORY}" ]]; then
-            write_plain " Please ensure the -repo-directory argument is pointing to a valid GitHub terraform-provider-azurerm repository."
+            write_yellow " Please ensure the -repo-directory argument is pointing to a valid GitHub terraform-provider-azurerm repository."
         else
-            write_plain " Please ensure you are running this script from within a terraform-provider-azurerm repository."
+            write_yellow " Please ensure you are running this script from within a terraform-provider-azurerm repository."
         fi
         echo ""
         print_separator

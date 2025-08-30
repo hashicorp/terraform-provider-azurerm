@@ -340,7 +340,7 @@ write_section() {
 # Function to display error messages
 write_error_message() {
     local message="$1"
-    echo -e "${RED}${message}${NC}" >&2
+    echo -e "${RED} ${message}${NC}" >&2
 }
 
 # Function to display warning messages
@@ -875,11 +875,12 @@ show_safety_violation() {
     local operation="${2:-operation}"
     local from_user_profile="${3:-false}"
 
-    write_red "SAFETY VIOLATION: Cannot perform operations on source branch"
-    print_separator 60 "${CYAN}" "="
+    write_red " SAFETY VIOLATION: Cannot perform operations on source branch"
     echo ""
-    write_yellow "The -repo-directory points to the source branch '${branch_name}'."
-    write_yellow "Operations other than -verify, -help, and -bootstrap are not allowed on the source branch."
+    write_yellow " The -repo-directory points to the source branch '${branch_name}'."
+    write_yellow " Operations other than -verify, -help, and -bootstrap are not allowed on the source branch."
+    echo ""
+    print_separator 60 "${CYAN}" "="
     echo ""
     write_cyan "SOLUTION:"
     write_cyan "  Switch to a feature branch in your target repository:"
