@@ -159,11 +159,7 @@ test_system_requirements_basic() {
     done
 
     if [[ ${#missing_tools[@]} -gt 0 ]]; then
-        if declare -f write_error >/dev/null 2>&1; then
-            write_error "Missing required system tools: ${missing_tools[*]}"
-        else
-            echo -e "\033[0;31m[ERROR]\033[0m Missing required system tools: ${missing_tools[*]}"
-        fi
+        write_error_message "Missing required system tools: ${missing_tools[*]}"
         return 1
     fi
 
@@ -185,22 +181,14 @@ test_git_repository() {
 
     if [[ ! -d "${repo_dir}/.git" ]]; then
         reason="Not a Git repository: ${repo_dir}"
-        if declare -f write_warning >/dev/null 2>&1; then
-            write_warning "${reason}"
-        else
-            echo -e "\033[1;33m[WARNING]\033[0m ${reason}"
-        fi
+            write_warning_message "${reason}"
     else
         is_git_repo=true
 
         # Check if git command is available
         if ! command -v git >/dev/null 2>&1; then
             reason="Git command not available"
-            if declare -f write_warning >/dev/null 2>&1; then
-                write_warning "${reason}"
-            else
-                echo -e "\033[1;33m[WARNING]\033[0m ${reason}"
-            fi
+            write_warning_message "${reason}"
         else
             # Get current branch
             current_branch=$(cd "${repo_dir}" && git branch --show-current 2>/dev/null || echo "Unknown")
@@ -362,16 +350,19 @@ verify_installation() {
     local workspace_root="${1:-$(get_workspace_root)}"
 
     if declare -f write_section >/dev/null 2>&1; then
-                write_section "Verifying AI infrastructure files"
+                write_section "Workspace Verification"
     else
         echo "============================================================"
-        echo " Verifying AI infrastructure files"
+        echo " Workspace Verification"
         echo "============================================================"
         echo ""
     fi
 
     local all_good=true
     local manifest_file="${HOME}/.terraform-ai-installer/file-manifest.config"
+    local files_checked=0
+    local files_passed=0
+    local files_failed=0
 
     # Check main files
     local main_files
@@ -380,10 +371,13 @@ verify_installation() {
         while IFS= read -r file; do
             [[ -z "${file}" ]] && continue
             local full_path="${workspace_root}/${file}"
+            files_checked=$((files_checked + 1))
             if [[ -f "${full_path}" ]]; then
-                printf "\033[0;32m  [FOUND] %s\033[0m\n" "${file}"
+                write_green "  [FOUND] ${file}"
+                files_passed=$((files_passed + 1))
             else
-                printf "\033[0;31m  [MISSING] %s\033[0m\n" "${file}"
+                write_red "  [MISSING] ${file}"
+                files_failed=$((files_failed + 1))
                 all_good=false
             fi
         done <<< "${main_files}"
@@ -395,22 +389,28 @@ verify_installation() {
     if [[ $? -eq 0 && -n "${instruction_files}" ]]; then
         # Check if instructions directory exists
         local instructions_dir="${workspace_root}/.github/instructions"
+        files_checked=$((files_checked + 1))
         if [[ -d "${instructions_dir}" ]]; then
-            printf "\033[0;32m  [FOUND] .github/instructions/\033[0m\n"
+            write_green "  [FOUND] .github/instructions/"
+            files_passed=$((files_passed + 1))
 
             while IFS= read -r file; do
                 [[ -z "${file}" ]] && continue
                 local full_path="${workspace_root}/${file}"
                 local filename=$(basename "${file}")
+                files_checked=$((files_checked + 1))
                 if [[ -f "${full_path}" ]]; then
-                    printf "\033[0;32m    [FOUND] .github/instructions/%s\033[0m\n" "${filename}"
+                    write_green "    [FOUND] .github/instructions/${filename}"
+                    files_passed=$((files_passed + 1))
                 else
-                    printf "\033[0;31m    [MISSING] .github/instructions/%s\033[0m\n" "${filename}"
+                    write_red "    [MISSING] .github/instructions/${filename}"
+                    files_failed=$((files_failed + 1))
                     all_good=false
                 fi
             done <<< "${instruction_files}"
         else
-            printf "\033[0;31m  [MISSING] .github/instructions/\033[0m\n"
+            write_red "  [MISSING] .github/instructions/"
+            files_failed=$((files_failed + 1))
             all_good=false
         fi
     fi
@@ -421,22 +421,28 @@ verify_installation() {
     if [[ $? -eq 0 && -n "${prompt_files}" ]]; then
         # Check if prompts directory exists
         local prompts_dir="${workspace_root}/.github/prompts"
+        files_checked=$((files_checked + 1))
         if [[ -d "${prompts_dir}" ]]; then
-            printf "\033[0;32m  [FOUND] .github/prompts/\033[0m\n"
+            write_green "  [FOUND] .github/prompts/"
+            files_passed=$((files_passed + 1))
 
             while IFS= read -r file; do
                 [[ -z "${file}" ]] && continue
                 local full_path="${workspace_root}/${file}"
                 local filename=$(basename "${file}")
+                files_checked=$((files_checked + 1))
                 if [[ -f "${full_path}" ]]; then
-                    printf "\033[0;32m    [FOUND] .github/prompts/%s\033[0m\n" "${filename}"
+                    write_green "    [FOUND] .github/prompts/${filename}"
+                    files_passed=$((files_passed + 1))
                 else
-                    printf "\033[0;31m    [MISSING] .github/prompts/%s\033[0m\n" "${filename}"
+                    write_red "    [MISSING] .github/prompts/${filename}"
+                    files_failed=$((files_failed + 1))
                     all_good=false
                 fi
             done <<< "${prompt_files}"
         else
-            printf "\033[0;31m  [MISSING] .github/prompts/\033[0m\n"
+            write_red "  [MISSING] .github/prompts/"
+            files_failed=$((files_failed + 1))
             all_good=false
         fi
     fi
@@ -451,12 +457,25 @@ verify_installation() {
             local dir_path=$(dirname "${file}")
             local filename=$(basename "${file}")
 
-            if [[ -f "${full_path}" ]]; then
-                printf "\033[0;32m  [FOUND] %s\033[0m\n" "${dir_path}/"
-                printf "\033[0;32m    [FOUND] %s\033[0m\n" "${filename}"
+            # Count directory first (like PowerShell does)
+            files_checked=$((files_checked + 1))
+            if [[ -d "${workspace_root}/${dir_path}" ]]; then
+                write_green "  [FOUND] ${dir_path}/"
+                files_passed=$((files_passed + 1))
             else
-                printf "\033[0;31m  [MISSING] %s\033[0m\n" "${dir_path}/"
-                printf "\033[0;31m    [MISSING] %s\033[0m\n" "${filename}"
+                write_red "  [MISSING] ${dir_path}/"
+                files_failed=$((files_failed + 1))
+                all_good=false
+            fi
+
+            # Count file separately (like PowerShell does)
+            files_checked=$((files_checked + 1))
+            if [[ -f "${full_path}" ]]; then
+                write_green "    [FOUND] ${filename}"
+                files_passed=$((files_passed + 1))
+            else
+                write_red "    [MISSING] ${filename}"
+                files_failed=$((files_failed + 1))
                 all_good=false
             fi
         done <<< "${universal_files}"
@@ -464,13 +483,68 @@ verify_installation() {
 
     echo ""
     if [[ "${all_good}" == "true" ]]; then
-        printf "\033[0;32mAll AI infrastructure files are present in the source repository!\033[0m\n"
+        # Show verification summary using dynamic show_operation_summary
+        if declare -f show_operation_summary >/dev/null 2>&1; then
+            # Get dynamic branch information
+            local current_branch="unknown"
+            local branch_type="feature"
+            if command -v git >/dev/null 2>&1 && [[ -d "${workspace_root}/.git" ]]; then
+                current_branch=$(cd "${workspace_root}" && git branch --show-current 2>/dev/null || echo "unknown")
+                # Determine branch type
+                local source_branches=("main" "master" "exp/terraform_copilot")
+                for branch in "${source_branches[@]}"; do
+                    if [[ "$current_branch" == "$branch" ]]; then
+                        branch_type="source"
+                        break
+                    fi
+                done
+            fi
+            local issues_found=$((files_checked - files_passed))
+
+            # Match PowerShell order: Branch Type, Target Branch, Issues Found, Files Verified, Items Successful, Location
+            show_operation_summary "Verification" "true" "false" \
+                "Branch Type:${branch_type}" \
+                "Target Branch:${current_branch}" \
+                "Issues Found:${issues_found}" \
+                "Files Verified:${files_checked}" \
+                "Items Successful:${files_passed}" \
+                "Location:${workspace_root}"
+        fi
     else
-        printf "\033[0;31mSome AI infrastructure files are missing!\033[0m\n"
-        echo ""
-        echo "Run the installer to restore missing files."
+        write_red "Some AI infrastructure files are missing!"
+
+        # Show verification summary using dynamic show_operation_summary
+        if declare -f show_operation_summary >/dev/null 2>&1; then
+            # Get dynamic branch information
+            local current_branch="unknown"
+            local branch_type="feature"
+            if command -v git >/dev/null 2>&1 && [[ -d "${workspace_root}/.git" ]]; then
+                current_branch=$(cd "${workspace_root}" && git branch --show-current 2>/dev/null || echo "unknown")
+                # Determine branch type
+                local source_branches=("main" "master" "exp/terraform_copilot")
+                for branch in "${source_branches[@]}"; do
+                    if [[ "$current_branch" == "$branch" ]]; then
+                        branch_type="source"
+                        break
+                    fi
+                done
+            fi
+            local issues_found=$((files_checked - files_passed))
+
+            show_operation_summary "Verification" "false" "false" \
+                "Branch Type:${branch_type}" \
+                "Target Branch:${current_branch}" \
+                "Issues Found:${issues_found}" \
+                "Files Verified:${files_checked}" \
+                "Items Successful:${files_passed}" \
+                "Location:${workspace_root}" \
+                --next-steps \
+                "Run installation if components are missing" \
+                "Use -clean option to remove installation if needed"
+        else
+            echo "Run the installer to restore missing files."
+        fi
     fi
-    echo ""
 }
 
 # Export functions for use in other scripts

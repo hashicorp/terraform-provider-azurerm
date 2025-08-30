@@ -66,6 +66,46 @@ write_gray() {
     echo -e "${GRAY}${message}${NC}"
 }
 
+# Helper functions for common label patterns
+write_label() {
+    local label="$1"
+    local value="$2"
+    echo -e "${CYAN}${label}: ${NC}${value}"
+}
+
+write_colored_label() {
+    local label="$1"
+    local value="$2"
+    local value_color="$3"
+    echo -e "${CYAN}${label}: ${value_color}${value}${NC}"
+}
+
+write_section_header() {
+    local header="$1"
+    echo -e "${CYAN}${header}:${NC}"
+}
+
+write_file_operation_status() {
+    local operation="$1"
+    local filename="$2"
+    local status="$3"
+
+    case "${status}" in
+        "OK"|"SUCCESS")
+            echo -e "   ${CYAN}${operation}: ${NC}${filename} ${GREEN}[OK]${NC}"
+            ;;
+        "FAILED"|"ERROR")
+            echo -e "   ${CYAN}${operation}: ${NC}${filename} ${RED}[FAILED]${NC}"
+            ;;
+        "SKIPPED"|"EXISTS")
+            echo -e "   ${CYAN}${operation}: ${NC}${filename} ${YELLOW}[SKIPPED]${NC}"
+            ;;
+        *)
+            echo -e "   ${CYAN}${operation}: ${NC}${filename} [${status}]"
+            ;;
+    esac
+}
+
 # Function to show operation summary (generic function for all operations - matches PowerShell Show-OperationSummary)
 show_operation_summary() {
     local operation_name="$1"
@@ -73,16 +113,28 @@ show_operation_summary() {
     local dry_run="${3:-false}"
     shift 3
 
-    # Parse remaining arguments as details (key:value pairs)
+    # Parse arguments for details and next steps
     local -A details_hash
+    local -a ordered_keys  # Array to preserve order
     local longest_key=""
+    local next_steps=()
+    local parsing_steps=false
 
-    # Process details arguments
+    # Process all remaining arguments
     while [[ $# -gt 0 ]]; do
-        if [[ "$1" =~ ^([^:]+):[[:space:]]*(.+)$ ]]; then
-            local key="${BASH_REMATCH[1]// /}"  # Remove spaces from key
+        if [[ "$1" == "--next-steps" ]]; then
+            parsing_steps=true
+            shift
+            continue
+        fi
+
+        if [[ "$parsing_steps" == true ]]; then
+            next_steps+=("$1")
+        elif [[ "$1" =~ ^([^:]+):[[:space:]]*(.+)$ ]]; then
+            local key="${BASH_REMATCH[1]}"  # Preserve spaces in key names
             local value="${BASH_REMATCH[2]}"
             details_hash["$key"]="$value"
+            ordered_keys+=("$key")  # Preserve insertion order
 
             # Track longest key for alignment
             if [[ ${#key} -gt ${#longest_key} ]]; then
@@ -91,8 +143,6 @@ show_operation_summary() {
         fi
         shift
     done
-
-    echo ""
 
     # Show operation completion with consistent formatting
     local status_text
@@ -112,6 +162,7 @@ show_operation_summary() {
         completion_message=" ${operation_name} ${status_text}"
     fi
 
+    echo ""
     echo -e "${color}${completion_message}${NC}"
     echo ""
 
@@ -119,13 +170,13 @@ show_operation_summary() {
     if [[ ${#details_hash[@]} -gt 0 ]]; then
         # Summary section with cyan headers (matches PowerShell structure)
         print_separator 60 "${CYAN}" "="
-        echo -e "${CYAN} ${operation_name^^} SUMMARY:${NC}"
+        write_cyan " ${operation_name^^} SUMMARY:"
         print_separator 60 "${CYAN}" "="
         echo ""
-        echo -e "${CYAN}DETAILS:${NC}"
+        write_section_header "DETAILS"
 
-        # Display each detail with consistent alignment
-        for key in "${!details_hash[@]}"; do
+        # Display each detail with consistent alignment (preserve order)
+        for key in "${ordered_keys[@]}"; do
             local value="${details_hash[$key]}"
 
             # Calculate required spacing for alignment
@@ -143,58 +194,25 @@ show_operation_summary() {
             # Determine value color based on content
             if [[ "$value" =~ ^[0-9]+$ ]] || [[ "$value" =~ ^[0-9]+(\.[0-9]+)?[[:space:]]*(KB|MB|GB|TB|B)$ ]]; then
                 # Numbers and file sizes in green
-                echo -e "${GREEN}${value}${NC}"
+                write_green "${value}"
             else
                 # Text values in yellow
-                echo -e "${YELLOW}${value}${NC}"
+                write_yellow "${value}"
             fi
         done
+        echo ""  # Add newline after DETAILS section
     fi
-}
-
-# Enhanced show_operation_summary function with next steps support (matches PowerShell exactly)
-show_operation_summary_with_steps() {
-    local operation_name="$1"
-    local success="$2"
-    local dry_run="${3:-false}"
-    shift 3
-
-    # Parse arguments for details and next steps
-    local details=()
-    local next_steps=()
-    local parsing_steps=false
-
-    while [[ $# -gt 0 ]]; do
-        if [[ "$1" == "--next-steps" ]]; then
-            parsing_steps=true
-            shift
-            continue
-        fi
-
-        if [[ "$parsing_steps" == true ]]; then
-            next_steps+=("$1")
-        else
-            details+=("$1")
-        fi
-        shift
-    done
-
-    # Call the base operation summary function
-    show_operation_summary "$operation_name" "$success" "$dry_run" "${details[@]}"
 
     # Add next steps if provided
     if [[ ${#next_steps[@]} -gt 0 ]]; then
+        write_cyan "NEXT STEPS:"
         echo ""
-        echo -e "${CYAN}NEXT STEPS:${NC}"
+        write_cyan "  1. Switch to your feature branch:"
+        write_white "     git checkout feature/your-branch-name"
         echo ""
-        for i in "${!next_steps[@]}"; do
-            local step_num=$((i + 1))
-            echo -e "  ${CYAN}${step_num}. ${next_steps[i]}${NC}"
-            # Add newline between steps, but not after the last step
-            if [[ $i -lt $((${#next_steps[@]} - 1)) ]]; then
-                echo ""
-            fi
-        done
+        write_cyan "  2. Run the installer from your user profile:"
+        write_white "     cd \"\$HOME/.terraform-ai-installer\""
+        write_white "     ./install-copilot-setup.sh -repo-directory \"<path-to-your-terraform-provider-azurerm>\""
         echo ""
     fi
 }
@@ -209,75 +227,9 @@ show_bootstrap_next_steps() {
     write_white "     git checkout feature/your-branch-name"
     echo ""
     write_cyan "  2. Run the installer from your user profile:"
-    write_white "     cd \"$HOME/.terraform-ai-installer\""
-    write_white "     ./install-copilot-setup.sh -repo-directory \"<path-to-your-terraform-provider-azurerm>\""
+    write_white "     cd \"\$HOME/.terraform-ai-installer\""
+    write_white "     ./install-copilot-setup.sh -RepoDirectory \"<path-to-your-terraform-provider-azurerm>\""
     echo ""
-}
-
-# Convenience function for bootstrap completion (uses generic summary with next steps)
-show_bootstrap_completion() {
-    local files_copied="$1"
-    local size_info="$2"
-    local user_profile="$3"
-    local workspace_root="$4"
-
-    # Use the enhanced generic function with next steps
-    show_operation_summary_with_steps "Bootstrap" "true" "false" \
-        "Files Copied:${files_copied}" \
-        "Total Size:${size_info}" \
-        "Location:${user_profile}" \
-        --next-steps \
-        "Switch to your feature branch:\n     ${WHITE}git checkout feature/your-branch-name${NC}" \
-        "Run the installer from your user profile:\n     ${WHITE}cd ~/.terraform-ai-installer${NC}\n     ${WHITE}./install-copilot-setup.sh -repo-directory \"<path-to-your-terraform-provider-azurerm>\"${NC}"
-}
-
-# Convenience function for installation summary (matches PowerShell pattern)
-show_installation_summary() {
-    local files_installed="$1"
-    local install_location="$2"
-    local total_size="${3:-}"
-    local success="${4:-true}"
-
-    local details=("Files Installed:${files_installed}" "Location:${install_location}")
-    if [[ -n "$total_size" ]]; then
-        details+=("Total Size:${total_size}")
-    fi
-
-    show_operation_summary_with_steps "Installation" "$success" "false" \
-        "${details[@]}" \
-        --next-steps \
-        "Restart your development environment to activate AI features" \
-        "Check GitHub Copilot extension for enhanced Terraform suggestions"
-}
-
-# Convenience function for verification summary (matches PowerShell pattern)
-show_verification_summary() {
-    local items_checked="$1"
-    local items_passed="$2"
-    local items_failed="$3"
-    local success="$4"
-
-    show_operation_summary_with_steps "Verification" "$success" "false" \
-        "Items Checked:${items_checked}" \
-        "Items Passed:${items_passed}" \
-        "Items Failed:${items_failed}" \
-        --next-steps \
-        "Run installation if components are missing" \
-        "Use -clean option to remove installation if needed"
-}
-
-# Convenience function for cleanup summary (matches PowerShell pattern)
-show_cleanup_summary() {
-    local files_removed="$1"
-    local cleanup_location="$2"
-    local success="${3:-true}"
-
-    show_operation_summary_with_steps "Cleanup" "$success" "false" \
-        "Files Removed:${files_removed}" \
-        "Location:${cleanup_location}" \
-        --next-steps \
-        "AI infrastructure has been completely removed" \
-        "Run bootstrap and installation to restore features"
 }
 
 # Helper function to print colored separator line
@@ -300,8 +252,8 @@ write_header() {
 
     echo ""
     print_separator
-    echo -e "${CYAN} ${title}${NC}"
-    echo -e "${CYAN} Version: ${version}${NC}"
+    write_cyan " ${title}"
+    write_cyan " Version: ${version}"
     print_separator
     echo ""
 }
@@ -380,7 +332,7 @@ show_branch_detection() {
 write_section() {
     local section_title="$1"
 
-    echo -e "${CYAN} ${section_title}${NC}"
+    write_cyan " ${section_title}"
     print_separator
     echo ""
 }
@@ -409,29 +361,6 @@ write_plain() {
     echo "${message}"
 }
 
-# Function to show path information during bootstrap
-show_path_info() {
-    local user_profile="$1"
-
-    echo "Target Directory: ${user_profile}"
-
-    # Show if directory exists and is writable
-    if [[ -d "${user_profile}" ]]; then
-        echo "Directory status: ${GREEN}exists${NC}"
-    else
-        echo "Directory status: ${YELLOW}will be created${NC}"
-    fi
-
-    # Check write permissions
-    local parent_dir
-    parent_dir="$(dirname "${user_profile}")"
-    if [[ -w "${parent_dir}" ]]; then
-        echo "Write access: ${GREEN}confirmed${NC}"
-    else
-        echo "Write access: ${RED}denied${NC}"
-    fi
-}
-
 # Function to show bootstrap location error
 show_bootstrap_location_error() {
     local current_dir="$1"
@@ -445,7 +374,7 @@ show_bootstrap_location_error() {
     write_plain "Bootstrap is designed to copy files TO the user profile, not FROM it."
     write_plain "Current location: ${current_dir}"
     echo ""
-    write_plain "${YELLOW}CORRECT USAGE:${NC}"
+    write_yellow "CORRECT USAGE:"
     write_plain "  Run bootstrap from the source repository:"
     write_plain "  cd ${expected_location}"
     write_plain "  ./install-copilot-setup.sh -bootstrap"
@@ -457,70 +386,6 @@ get_user_profile() {
     echo "${HOME}/.terraform-ai-installer"
 }
 
-# Function to display success message
-write_success() {
-    local message="$1"
-    local prefix="${2:-[SUCCESS]}"
-
-    if [[ "$prefix" == "[SUCCESS]" ]]; then
-        write_operation_status "$message" "Success"
-    else
-        echo -e "${GREEN}${prefix} ${message}${NC}"
-    fi
-}
-
-# Function to display warning message
-write_warning() {
-    local message="$1"
-    local prefix="${2:-[WARNING]}"
-
-    if [[ "$prefix" == "[WARNING]" ]]; then
-        write_operation_status "$message" "Warning"
-    else
-        echo -e "${YELLOW}${prefix} ${message}${NC}"
-    fi
-}
-
-# Function to display error message
-write_error() {
-    local message="$1"
-    local prefix="${2:-[ERROR]}"
-
-    if [[ "$prefix" == "[ERROR]" ]]; then
-        write_operation_status "$message" "Error"
-    else
-        echo -e "${RED}${prefix} ${message}${NC}" >&2
-    fi
-}
-
-# Function to display info message
-write_info() {
-    local message="$1"
-    local prefix="${2:-[INFO]}"
-
-    if [[ "$prefix" == "[INFO]" ]]; then
-        write_operation_status "$message" "Info"
-    else
-        echo -e "${BLUE}${prefix} ${message}${NC}"
-    fi
-}
-
-# Unified message functions (matches PowerShell Write-WarningMessage, Write-ErrorMessage, etc.)
-write_warning_message() {
-    local message="$1"
-    echo -e "${YELLOW}[WARNING] ${message}${NC}"
-}
-
-write_error_message() {
-    local message="$1"
-    echo -e "${RED}[ERROR] ${message}${NC}" >&2
-}
-
-write_verbose_message() {
-    local message="$1"
-    echo -e "${BLUE}[VERBOSE] ${message}${NC}"
-}
-
 # Function to write operation status with consistent formatting
 write_operation_status() {
     local message="$1"
@@ -528,16 +393,16 @@ write_operation_status() {
 
     case "$status" in
         "Success")
-            echo -e "${GREEN}[SUCCESS] ${message}${NC}"
+            echo -e "${GREEN} [SUCCESS] ${message}${NC}"
             ;;
         "Warning")
-            echo -e "${YELLOW}[WARNING] ${message}${NC}"
+            echo -e "${YELLOW} [WARNING] ${message}${NC}"
             ;;
         "Error")
-            echo -e "${RED}[ERROR] ${message}${NC}" >&2
+            echo -e "${RED} [ERROR] ${message}${NC}" >&2
             ;;
         "Info"|*)
-            echo -e "${BLUE}[INFO] ${message}${NC}"
+            echo -e "${BLUE} [INFO] ${message}${NC}"
             ;;
     esac
 }
@@ -597,13 +462,13 @@ show_file_operation() {
 
     case "${status}" in
         "OK"|"SUCCESS")
-            echo -e "   ${CYAN}${operation}: ${NC}${formatted_filename} ${GREEN}[OK]${NC}"
+            write_file_operation_status "${operation}" "${formatted_filename}" "OK"
             ;;
         "FAILED"|"ERROR")
-            echo -e "   ${CYAN}${operation}: ${NC}${formatted_filename} ${RED}[FAILED]${NC}"
+            write_file_operation_status "${operation}" "${formatted_filename}" "FAILED"
             ;;
         "SKIPPED"|"EXISTS")
-            echo -e "   ${CYAN}${operation}: ${NC}${formatted_filename} ${YELLOW}[SKIPPED]${NC}"
+            write_file_operation_status "${operation}" "${formatted_filename}" "SKIPPED"
             ;;
         *)
             echo -e "   ${CYAN}${operation}: ${NC}${formatted_filename} [${status}]"
@@ -619,30 +484,30 @@ show_error_block() {
     local additional_info="${4:-}"
 
     echo ""
-    echo -e "${RED}ISSUE:${NC}"
-    echo "  ${issue}"
+    write_red "ISSUE:"
+    write_plain "  ${issue}"
     echo ""
 
     if [[ -n "${solutions_str}" ]]; then
-        echo -e "${YELLOW}SOLUTIONS:${NC}"
+        write_yellow "SOLUTIONS:"
         # Split solutions by semicolon and display each
         IFS=';' read -ra solutions_array <<< "${solutions_str}"
         for solution in "${solutions_array[@]}"; do
             solution="${solution# }"  # Remove leading space
-            echo "  â€¢ ${solution}"
+            write_plain "  - ${solution}"
         done
         echo ""
     fi
 
     if [[ -n "${example_usage}" ]]; then
-        echo -e "${GREEN}EXAMPLE:${NC}"
-        echo "  ${example_usage}"
+        write_green "EXAMPLE:"
+        write_plain "  ${example_usage}"
         echo ""
     fi
 
     if [[ -n "${additional_info}" ]]; then
-        echo -e "${CYAN}ADDITIONAL INFO:${NC}"
-        echo "  ${additional_info}"
+        write_cyan "ADDITIONAL INFO:"
+        write_plain "  ${additional_info}"
         echo ""
     fi
 }
@@ -661,36 +526,6 @@ show_repository_info() {
     fi
 }
 
-# Function to prompt user for confirmation
-prompt_confirmation() {
-    local message="$1"
-    local default="${2:-n}"
-
-    local prompt_text
-    if [[ "${default}" == "y" ]]; then
-        prompt_text="${message} [Y/n]: "
-    else
-        prompt_text="${message} [y/N]: "
-    fi
-
-    echo -n -e "${YELLOW}${prompt_text}${NC}"
-    read -r response
-
-    # Use default if no response
-    if [[ -z "${response}" ]]; then
-        response="${default}"
-    fi
-
-    case "${response}" in
-        [Yy]|[Yy][Ee][Ss])
-            return 0
-            ;;
-        *)
-            return 1
-            ;;
-    esac
-}
-
 # Function to display completion summary (enhanced to match PowerShell quality)
 show_completion_summary() {
     local operation="$1"
@@ -703,7 +538,7 @@ show_completion_summary() {
     local branch_type="${8:-feature}"
 
     echo ""
-    echo -e "${GREEN}INSTALLATION COMPLETE${NC}"
+    write_green "INSTALLATION COMPLETE"
     print_separator 40 "${GREEN}" "="
     echo ""
 
@@ -714,16 +549,16 @@ show_completion_summary() {
     fi
 
     # Show summary statistics
-    echo -e "${CYAN}SUMMARY:${NC}"
-    echo -e "  ${GREEN}Files copied${NC} : ${files_succeeded}"
+    write_cyan "SUMMARY:"
+    write_label "  Files copied" "${files_succeeded}"
     if [[ "${files_failed}" -gt 0 ]]; then
-        echo -e "  ${RED}Files failed${NC} : ${files_failed}"
+        write_colored_label "  Files failed" "${files_failed}" "${RED}"
     fi
     if [[ -n "${total_size}" ]]; then
-        echo -e "  ${CYAN}Total size${NC}   : ${total_size}"
+        write_label "  Total size" "${total_size}"
     fi
     if [[ -n "${install_location}" ]]; then
-        echo -e "  ${CYAN}Location${NC}     : ${install_location}"
+        write_label "  Location" "${install_location}"
     fi
     echo ""
 }
@@ -732,7 +567,7 @@ show_completion_summary() {
 show_key_value() {
     local key="$1"
     local value="$2"
-    echo -e "${CYAN}${key}: ${NC}${value}"
+    write_label "${key}" "${value}"
 }
 
 # Function to show next steps (matches PowerShell formatting)
@@ -740,23 +575,15 @@ show_next_steps() {
     local steps=("$@")
 
     if [[ ${#steps[@]} -gt 0 ]]; then
-        echo -e "${CYAN}NEXT STEPS:${NC}"
+        write_cyan "NEXT STEPS:"
         echo ""
 
         for i in "${!steps[@]}"; do
             local step_num=$((i + 1))
-            echo -e "  ${step_num}. ${steps[i]}"
+            write_plain "  ${step_num}. ${steps[i]}"
         done
         echo ""
     fi
-}
-
-# Function to show path information (matches PowerShell output)
-show_path_info() {
-    local path="$1"
-
-    echo -e "${CYAN}PATH: ${YELLOW}${path}${NC}"
-    echo ""
 }
 
 # Function to show bootstrap completion summary
@@ -769,12 +596,12 @@ show_bootstrap_location_error() {
     echo ""
     write_operation_status "Bootstrap must be run from the source repository, not from user profile directory." "Error"
     echo ""
-    echo -e "${CYAN}CORRECT USAGE:${NC}"
-    echo -e "  ${GRAY}cd /path/to/terraform-provider-azurerm${NC}"
-    echo -e "  ${GRAY}./.github/AIinstaller/install-copilot-setup.sh -bootstrap${NC}"
+    write_cyan "CORRECT USAGE:"
+    write_gray "  cd /path/to/terraform-provider-azurerm"
+    write_gray "  ./.github/AIinstaller/install-copilot-setup.sh -bootstrap"
     echo ""
-    echo -e "${CYAN}CURRENT LOCATION: ${YELLOW}${current_location}${NC}"
-    echo -e "${CYAN}EXPECTED LOCATION: ${GREEN}${expected_location}${NC}"
+    write_colored_label "CURRENT LOCATION" "${current_location}" "${YELLOW}"
+    write_colored_label "EXPECTED LOCATION" "${expected_location}" "${GREEN}"
     echo ""
 }
 
@@ -787,7 +614,6 @@ show_divider() {
 }
 
 # Function to display dynamic help based on branch type and context
-# Function to display dynamic help based on branch type and context
 show_usage() {
     local branch_type="${1:-feature}"
     local workspace_valid="${2:-true}"
@@ -795,8 +621,8 @@ show_usage() {
 
     echo ""
     write_cyan "DESCRIPTION:"
-    echo "  Interactive installer for AI-assisted development infrastructure that enhances"
-    echo "  GitHub Copilot with Terraform-specific knowledge, patterns, and best practices."
+    write_plain "  Interactive installer for AI-assisted development infrastructure that enhances"
+    write_plain "  GitHub Copilot with Terraform-specific knowledge, patterns, and best practices."
     echo ""
 
     # Dynamic options and examples based on branch type
@@ -819,67 +645,67 @@ show_usage() {
 # Function to show source branch specific help
 show_source_branch_help() {
     write_cyan "USAGE:"
-    echo "  ./install-copilot-setup.sh [OPTIONS]"
+    write_plain "  ./install-copilot-setup.sh [OPTIONS]"
     echo ""
     write_cyan "AVAILABLE OPTIONS:"
-    echo "  -bootstrap        Copy installer to user profile (~/.terraform-ai-installer/)"
-    echo "                    Run this from the source branch to set up for feature branch use"
-    echo "  -verify           Check current workspace status and validate setup"
-    echo "  -help             Show this help information"
+    write_plain "  -bootstrap        Copy installer to user profile (~/.terraform-ai-installer/)"
+    write_plain "                    Run this from the source branch to set up for feature branch use"
+    write_plain "  -verify           Check current workspace status and validate setup"
+    write_plain "  -help             Show this help information"
     echo ""
     write_cyan "EXAMPLES:"
-    echo "  Bootstrap installer (run from source branch):"
-    echo "    ./install-copilot-setup.sh -bootstrap"
+    write_plain "  Bootstrap installer (run from source branch):"
+    write_plain "    ./install-copilot-setup.sh -bootstrap"
     echo ""
-    echo "  Verify setup:"
-    echo "    ./install-copilot-setup.sh -verify"
+    write_plain "  Verify setup:"
+    write_plain "    ./install-copilot-setup.sh -verify"
     echo ""
     write_cyan "BOOTSTRAP WORKFLOW:"
-    echo "  1. Run -bootstrap from source branch (exp/terraform_copilot) to copy installer to user profile"
-    echo "  2. Switch to your feature branch: git checkout feature/your-branch-name"
-    echo "  3. Navigate to user profile: cd ~/.terraform-ai-installer/"
-    echo "  4. Run installer: ./install-copilot-setup.sh -repo-directory "/path/to/your/feature/branch""
+    write_plain "  1. Run -bootstrap from source branch (exp/terraform_copilot) to copy installer to user profile"
+    write_plain "  2. Switch to your feature branch: git checkout feature/your-branch-name"
+    write_plain "  3. Navigate to user profile: cd ~/.terraform-ai-installer/"
+    write_plain "  4. Run installer: ./install-copilot-setup.sh -repo-directory \"/path/to/your/feature/branch\""
     echo ""
 }
 
 # Function to show feature branch specific help
 show_feature_branch_help() {
     write_cyan "USAGE:"
-    echo "  ./install-copilot-setup.sh [OPTIONS]"
+    write_plain "  ./install-copilot-setup.sh [OPTIONS]"
     echo ""
 
     write_cyan "AVAILABLE OPTIONS:"
-    echo "  -repo-directory   Repository path (path to your feature branch directory)"
-    echo "  -auto-approve     Overwrite existing files without prompting"
-    echo "  -dry-run          Show what would be done without making changes"
-    echo "  -verify           Check current workspace status and validate setup"
-    echo "  -clean            Remove AI infrastructure from workspace"
-    echo "  -help             Show this help information"
+    write_plain "  -repo-directory   Repository path (path to your feature branch directory)"
+    write_plain "  -auto-approve     Overwrite existing files without prompting"
+    write_plain "  -dry-run          Show what would be done without making changes"
+    write_plain "  -verify           Check current workspace status and validate setup"
+    write_plain "  -clean            Remove AI infrastructure from workspace"
+    write_plain "  -help             Show this help information"
     echo ""
 
     write_cyan "EXAMPLES:"
-    echo "  Install AI infrastructure:"
-    echo "    cd ~/.terraform-ai-installer/"
-    echo "    ./install-copilot-setup.sh -repo-directory "/path/to/your/feature/branch""
+    write_cyan "  Install AI infrastructure:"
+    write_plain "    cd ~/.terraform-ai-installer/"
+    write_plain "    ./install-copilot-setup.sh -repo-directory \"/path/to/your/feature/branch\""
     echo ""
-    echo "  Dry-Run (preview changes):"
-    echo "    cd ~/.terraform-ai-installer/"
-    echo "    ./install-copilot-setup.sh -repo-directory "/path/to/your/feature/branch" -dry-run"
+    write_cyan "  Dry-Run (preview changes):"
+    write_plain "    cd ~/.terraform-ai-installer/"
+    write_plain "    ./install-copilot-setup.sh -repo-directory \"/path/to/your/feature/branch\" -dry-run"
     echo ""
-    echo "  Auto-Approve installation:"
-    echo "    cd ~/.terraform-ai-installer/"
-    echo "    ./install-copilot-setup.sh -repo-directory "/path/to/your/feature/branch" -auto-approve"
+    write_cyan "  Auto-Approve installation:"
+    write_plain "    cd ~/.terraform-ai-installer/"
+    write_plain "    ./install-copilot-setup.sh -repo-directory \"/path/to/your/feature/branch\" -auto-approve"
     echo ""
-    echo "  Clean removal:"
-    echo "    cd ~/.terraform-ai-installer/"
-    echo "    ./install-copilot-setup.sh -repo-directory "/path/to/your/feature/branch" -clean"
+    write_cyan "  Clean removal:"
+    write_plain "    cd ~/.terraform-ai-installer/"
+    write_plain "    ./install-copilot-setup.sh -repo-directory \"/path/to/your/feature/branch\" -clean"
     echo ""
 
     write_cyan "WORKFLOW:"
-    echo "  1. Navigate to user profile installer directory: cd ~/.terraform-ai-installer/"
-    echo "  2. Run installer with path to your feature branch"
-    echo "  3. Start developing with enhanced GitHub Copilot AI features"
-    echo "  4. Use -clean to remove AI infrastructure when done"
+    write_plain "  1. Navigate to user profile installer directory: cd ~/.terraform-ai-installer/"
+    write_plain "  2. Run installer with path to your feature branch"
+    write_plain "  3. Start developing with enhanced GitHub Copilot AI features"
+    write_plain "  4. Use -clean to remove AI infrastructure when done"
     echo ""
 }
 
@@ -894,27 +720,27 @@ show_unknown_branch_help() {
         write_yellow "  ${workspace_issue}"
         echo ""
         write_cyan "SOLUTION:"
-        echo "  Navigate to a terraform-provider-azurerm repository, or use the -repo-directory parameter:"
-        echo "  ./install-copilot-setup.sh -repo-directory "/path/to/terraform-provider-azurerm" -help"
+        write_plain "  Navigate to a terraform-provider-azurerm repository, or use the -repo-directory parameter:"
+        write_plain "  ./install-copilot-setup.sh -repo-directory \"/path/to/terraform-provider-azurerm\" -help"
         echo ""
         print_separator
         echo ""
     fi
 
     write_cyan "GENERAL USAGE:"
-    echo "  ./install-copilot-setup.sh [OPTIONS]"
+    write_plain "  ./install-copilot-setup.sh [OPTIONS]"
     echo ""
 
     write_cyan "COMMON OPTIONS:"
-    echo "  -bootstrap        Copy installer to user profile (source branch only)"
-    echo "  -repo-directory   Repository path (for feature branch operations)"
-    echo "  -verify           Check current workspace status and validate setup"
-    echo "  -help             Show this help information"
+    write_plain "  -bootstrap        Copy installer to user profile (source branch only)"
+    write_plain "  -repo-directory   Repository path (for feature branch operations)"
+    write_plain "  -verify           Check current workspace status and validate setup"
+    write_plain "  -help             Show this help information"
     echo ""
 
     write_cyan "GETTING STARTED:"
-    echo "  1. From source branch: ./install-copilot-setup.sh -bootstrap"
-    echo "  2. From feature branch: use installer in ~/.terraform-ai-installer/"
+    write_plain "  1. From source branch: ./install-copilot-setup.sh -bootstrap"
+    write_plain "  2. From feature branch: use installer in ~/.terraform-ai-installer/"
     echo ""
 }
 
@@ -978,7 +804,7 @@ show_bootstrap_failure_error() {
     echo ""
     write_error_message "Bootstrap failed with ${files_failed} file(s) failing to copy"
     echo ""
-    write_plain "${YELLOW}TROUBLESHOOTING:${NC}"
+    write_yellow "TROUBLESHOOTING:"
     write_plain "  1. Check file permissions in source directory"
     write_plain "  2. Ensure sufficient disk space in ${user_profile}"
     write_plain "  3. Verify you're running from the correct directory"
@@ -1006,8 +832,8 @@ show_bootstrap_location_error() {
     write_plain "Current location: ${current_location}"
     write_plain "Expected location: ${expected_location}"
     echo ""
-    write_plain "${YELLOW}SOLUTION:${NC}"
-    write_plain "Navigate to your terraform-provider-azurerm repository and run:"
+    write_yellow "SOLUTION:"
+    write_cyan "Navigate to your terraform-provider-azurerm repository and run:"
     write_plain "  cd /path/to/terraform-provider-azurerm/.github/AIinstaller"
     write_plain "  ./install-copilot-setup.sh -bootstrap"
     echo ""
@@ -1021,7 +847,7 @@ show_bootstrap_directory_validation_error() {
     write_error_message "Bootstrap must be run from terraform-provider-azurerm root or .github/AIinstaller directory"
     echo ""
     write_plain "Current location: ${current_location}"
-    write_plain "Expected structure:"
+    write_cyan "Expected structure:"
     write_plain "  From repo root: .github/AIinstaller/install-copilot-setup.sh"
     write_plain "  From installer: install-copilot-setup.sh, modules/"
     echo ""
@@ -1044,14 +870,11 @@ show_repository_directory_required_error() {
     echo ""
 }
 
-# Export functions for use in other scripts
-export -f write_header write_operation_status write_success write_warning write_error write_info write_section write_plain
-export -f write_warning_message write_error_message write_verbose_message
+# Export all UI functions for use in other scripts
 export -f write_cyan write_green write_yellow write_white write_red write_blue write_gray
-export -f show_completion show_file_operation show_error_block show_repository_info
-export -f prompt_confirmation show_completion_summary show_key_value show_divider show_usage
-export -f show_branch_detection show_path_info show_bootstrap_completion show_bootstrap_next_steps show_bootstrap_location_error format_aligned_label
-export -f format_aligned_label_spacing show_next_steps print_separator calculate_max_filename_length show_bootstrap_directory_validation_error
-export -f show_repository_directory_required_error
-export -f show_operation_summary show_operation_summary_with_steps show_installation_summary show_verification_summary show_cleanup_summary
-export -f show_source_branch_help show_feature_branch_help show_unknown_branch_help show_source_branch_welcome
+export -f write_plain write_label write_colored_label write_section_header write_section
+export -f write_header write_operation_status
+export -f write_error_message write_warning_message write_success_message
+export -f write_file_operation_status show_completion_summary
+export -f show_usage show_source_branch_welcome
+export -f print_separator get_user_profile format_aligned_label_spacing calculate_max_filename_length

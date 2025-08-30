@@ -4,9 +4,8 @@
 
 # Main AI Infrastructure Installer for Terraform AzureRM Provider (macOS/Linux)
 # Version: 1.0.0
-# Description: Interactive installer for AI-powered development infrastructure
-
-#requires bash 4.0+
+# Description: Interactive installer for AI-powered development tools
+# Requires bash 4.0+
 
 set -euo pipefail
 
@@ -249,13 +248,14 @@ main() {
     # STEP 8: For all other operations, workspace must be valid
     if [[ "${workspace_valid}" != "true" ]]; then
         echo ""
-        write_error "WORKSPACE VALIDATION FAILED: ${workspace_reason}"
+        write_error_message "WORKSPACE VALIDATION FAILED: ${workspace_reason}"
+        echo ""
 
         # Context-aware error message based on how the script was invoked
         if [[ -n "${REPO_DIRECTORY}" ]]; then
-            echo " Please ensure the -repo-directory argument is pointing to a valid GitHub terraform-provider-azurerm repository."
+            write_plain " Please ensure the -repo-directory argument is pointing to a valid GitHub terraform-provider-azurerm repository."
         else
-            echo " Please ensure you are running this script from within a terraform-provider-azurerm repository."
+            write_plain " Please ensure you are running this script from within a terraform-provider-azurerm repository."
         fi
         echo ""
         print_separator
@@ -272,7 +272,30 @@ main() {
     fi
 
     if [[ "${BOOTSTRAP}" == "true" ]]; then
-        bootstrap_files_to_profile "${SCRIPT_DIR}" "$(get_user_profile)" "${SCRIPT_DIR}/file-manifest.config"
+        # Show operation title (main header already displayed)
+        write_section "Bootstrap - Copying Installer to User Profile"
+
+        # Execute the bootstrap operation
+        if bootstrap_files_to_profile "${SCRIPT_DIR}" "$(get_user_profile)" "${SCRIPT_DIR}/file-manifest.config"; then
+            # Show detailed summary with next steps
+            local user_profile
+            user_profile=$(get_user_profile)
+            local size_kb=$((BOOTSTRAP_STATS_TOTAL_SIZE / 1024))
+            show_operation_summary "Bootstrap" "true" "false" \
+                "Files Copied:${BOOTSTRAP_STATS_FILES_COPIED}" \
+                "Total Size:${size_kb} KB" \
+                "Location:${user_profile}" \
+                --next-steps \
+                "1. Switch to your feature branch:" \
+                "   git checkout feature/your-branch-name" \
+                "" \
+                "2. Run the installer from your user profile:" \
+                "   cd ~/.terraform-ai-installer" \
+                "   ./install-copilot-setup.sh -repo-directory \"<path-to-your-terraform-provider-azurerm>\""
+        else
+            write_error_message "Bootstrap operation failed"
+            exit 1
+        fi
         exit 0
     fi
 
@@ -291,11 +314,6 @@ main() {
     # STEP 11: Default - show source branch help and welcome
     show_source_repository_safety_error "./install-copilot-setup.sh"
     exit 0
-}
-
-# Function to get user profile directory
-get_user_profile() {
-    echo "${HOME}/.terraform-ai-installer"
 }
 
 # ============================================================================

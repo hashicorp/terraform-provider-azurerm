@@ -2,11 +2,6 @@
 # ConfigParser Module for Terraform AzureRM Provider AI Setup (Bash)
 # Handles configuration parsing, user profiles, and installation settings
 
-# Function to get user profile directory
-get_user_profile() {
-    echo "${HOME}/.terraform-ai-installer"
-}
-
 # Function to get source repository URL
 get_source_repository() {
     echo "${SOURCE_REPOSITORY:-https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm}"
@@ -22,11 +17,7 @@ read_manifest_config() {
     local manifest_file="${1:-${HOME}/.terraform-ai-installer/file-manifest.config}"
 
     if [[ ! -f "${manifest_file}" ]]; then
-        if declare -f write_error >/dev/null 2>&1; then
-            write_error "Manifest file not found: ${manifest_file}"
-        else
-            echo -e "\033[0;31m[ERROR]\033[0m Manifest file not found: ${manifest_file}"
-        fi
+        write_error_message "Manifest file not found: ${manifest_file}"
         echo "Please run with --bootstrap first to set up the installer."
         return 1
     fi
@@ -41,11 +32,7 @@ parse_manifest_section() {
     local section_name="$2"
 
     if [[ ! -f "${manifest_file}" ]]; then
-        if declare -f write_error >/dev/null 2>&1; then
-            write_error "Manifest file not found: ${manifest_file}"
-        else
-            echo -e "\033[0;31m[ERROR]\033[0m Manifest file not found: ${manifest_file}"
-        fi
+        write_error_message "Manifest file not found: ${manifest_file}"
         return 1
     fi
 
@@ -85,11 +72,7 @@ get_manifest_files() {
 
     # Require manifest file - no fallback
     if [[ ! -f "${manifest_file}" ]]; then
-        if declare -f write_error >/dev/null 2>&1; then
-            write_error "Manifest file not found: ${manifest_file}"
-        else
-            echo -e "\033[0;31m[ERROR]\033[0m Manifest file not found: ${manifest_file}"
-        fi
+        write_error_message "Manifest file not found: ${manifest_file}"
         echo "Please run with -bootstrap first to set up the installer."
         return 1
     fi
@@ -165,11 +148,7 @@ load_config() {
             fi
             return 0
         else
-            if declare -f write_warning >/dev/null 2>&1; then
-                write_warning "Failed to load configuration from: ${config_file}"
-            else
-                echo -e "\033[1;33m[WARNING]\033[0m Failed to load configuration from: ${config_file}"
-            fi
+            write_warning_message "Failed to load configuration from: ${config_file}"
             return 1
         fi
     fi
@@ -183,20 +162,12 @@ validate_config() {
 
     # Check required variables
     if [[ -z "${SOURCE_REPOSITORY:-}" ]]; then
-        if declare -f write_error >/dev/null 2>&1; then
-            write_error "SOURCE_REPOSITORY not configured"
-        else
-            echo -e "\033[0;31m[ERROR]\033[0m SOURCE_REPOSITORY not configured"
-        fi
+        write_error_message "SOURCE_REPOSITORY not configured"
         errors=$((errors + 1))
     fi
 
     if [[ -z "${BRANCH:-}" ]]; then
-        if declare -f write_warning >/dev/null 2>&1; then
-            write_warning "BRANCH not configured, using default"
-        else
-            echo -e "\033[1;33m[WARNING]\033[0m BRANCH not configured, using default"
-        fi
+        write_warning_message "BRANCH not configured, using default"
         BRANCH="exp/terraform_copilot"
     fi
 
@@ -296,11 +267,7 @@ get_manifest_config() {
     fi
 
     if [[ -z "${manifest_path}" ]] || [[ ! -f "${manifest_path}" ]]; then
-        if declare -f write_error >/dev/null 2>&1; then
-            write_error "Manifest file not found. Run with --bootstrap first."
-        else
-            echo -e "\033[0;31m[ERROR]\033[0m Manifest file not found. Run with --bootstrap first."
-        fi
+        write_error_message "Manifest file not found. Run with --bootstrap first."
         return 1
     fi
 
@@ -317,11 +284,7 @@ get_installer_config() {
     local manifest_output="$2"
 
     if [[ -z "${workspace_root}" ]]; then
-        if declare -f write_error >/dev/null 2>&1; then
-            write_error "Workspace root is required"
-        else
-            echo -e "\033[0;31m[ERROR]\033[0m Workspace root is required"
-        fi
+        write_error_message "Workspace root is required"
         return 1
     fi
 
@@ -340,7 +303,7 @@ get_installer_config() {
 }
 
 # Export functions for use in other scripts
-export -f get_user_profile get_source_repository get_source_branch read_manifest_config
+export -f get_source_repository get_source_branch read_manifest_config
 export -f get_manifest_files get_bootstrap_files get_files_for_cleanup create_default_config load_config
 export -f validate_config get_file_download_url convert_to_relative_path get_installer_version
 export -f get_temp_directory cleanup_temp_directory parse_manifest_section get_manifest_config get_installer_config

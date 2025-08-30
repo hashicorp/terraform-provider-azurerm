@@ -331,13 +331,13 @@ validate_operation_allowed() {
         # Check repository validation (returns 0 for valid, 1 for invalid)
         if ! validate_repository "${workspace_root}"; then
             echo ""
-            write_error "WORKSPACE VALIDATION FAILED: Missing required files"
+            write_error_message "WORKSPACE VALIDATION FAILED: Missing required files"
             echo ""
-            echo "Expected to find terraform-provider-azurerm structure"
-            echo "Directory: ${workspace_root}"
-            echo "Reason: Missing required files (go.mod with azurerm content, main.go, or internal/services directory)"
+            write_plain "Expected to find terraform-provider-azurerm structure"
+            write_plain "Directory: ${workspace_root}"
+            write_plain "Reason: Missing required files (go.mod with azurerm content, main.go, or internal/services directory)"
             echo ""
-            echo "Please ensure you are in the correct terraform-provider-azurerm repository directory."
+            write_plain "Please ensure you are in the correct terraform-provider-azurerm repository directory."
             echo "${operation_name^} cancelled due to invalid repository structure"
             echo ""
             print_separator
