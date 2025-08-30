@@ -71,8 +71,10 @@ func resourceArmPolicySetDefinition() *pluginsdk.Resource {
 						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
 					}
 
-					if len(*newParameters) < len(*oldParameters) {
-						return d.ForceNew("parameters")
+					for paramName := range *oldParameters {
+						if _, ok := (*newParameters)[paramName]; !ok {
+							return d.ForceNew("parameters")
+						}
 					}
 				}
 			}
@@ -1246,8 +1248,10 @@ func (r PolicySetDefinitionResource) CustomizeDiff() sdk.ResourceFunc {
 						return fmt.Errorf("expanding JSON for `parameters`: %+v", err)
 					}
 
-					if len(*newParameters) < len(*oldParameters) {
-						return metadata.ResourceDiff.ForceNew("parameters")
+					for paramName := range *oldParameters {
+						if _, ok := (*newParameters)[paramName]; !ok {
+							return metadata.ResourceDiff.ForceNew("parameters")
+						}
 					}
 				}
 			}
