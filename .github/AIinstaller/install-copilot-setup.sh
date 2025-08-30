@@ -129,96 +129,179 @@ if ! import_required_modules "${MODULES_PATH}"; then
     exit 1
 fi
 # ============================================================================
-# IMPLEMENTATION FUNCTIONS
+# WORKSPACE DETECTION - Simple and reliable
 # ============================================================================
+
+get_workspace_root() {
+    local repo_directory="$1"
+    local script_directory="$2"
+
+    # If repo_directory is provided, use it (validation happens later)
+    if [[ -n "${repo_directory}" ]]; then
+        echo "${repo_directory}"
+        return
+    fi
+
+    # Otherwise, find workspace root from script location
+    local current_path="${script_directory}"
+    while [[ -n "${current_path}" && "${current_path}" != "$(dirname "${current_path}")" ]]; do
+        if [[ -f "${current_path}/go.mod" ]]; then
+            echo "${current_path}"
+            return
+        fi
+        current_path="$(dirname "${current_path}")"
+    done
+
+    # If no workspace found, return the directory where the script was called from
+    # This allows help and other functions to work, with validation happening separately
+    pwd
+}
+
+# ============================================================================
+# MAIN EXECUTION - Clean and simple
+# ============================================================================
+
+main() {
+    #
+    # Main entry point for the installer - matches PowerShell structure
+    #
+
+    # STEP 1: Parse command line arguments
+    parse_arguments "$@"
+
+    # STEP 2: Early safety check - fail fast if on source branch with repo directory
+    if [[ -n "${REPO_DIRECTORY}" ]]; then
+        # Get current branch of the target repository quickly
+        local current_branch
+        if [[ -d "${REPO_DIRECTORY}/.git" ]]; then
+            current_branch=$(cd "${REPO_DIRECTORY}" && git branch --show-current 2>/dev/null || echo "unknown")
+        else
+            current_branch="unknown"
+        fi
+
+        # Block operations on source branch immediately (except verify, help, bootstrap)
+        # Source branches: main, master, exp/terraform_copilot
+        local source_branches=("main" "master" "exp/terraform_copilot")
+        local is_source_branch=false
+        for branch in "${source_branches[@]}"; do
+            if [[ "${current_branch}" == "${branch}" ]]; then
+                is_source_branch=true
+                break
+            fi
+        done
+
+        if [[ "${is_source_branch}" == "true" ]] && [[ "${VERIFY}" != "true" ]] && [[ "${HELP}" != "true" ]] && [[ "${BOOTSTRAP}" != "true" ]]; then
+            show_safety_violation "${current_branch}" "Install" "true"
+            exit 1
+        fi
+    fi
+
+    # STEP 3: Initialize workspace and validate it's a proper terraform-provider-azurerm repo
+    local workspace_root
+    workspace_root="$(get_workspace_root "${REPO_DIRECTORY}" "${SCRIPT_DIR}")"
+
+    # STEP 4: Early workspace validation before doing anything else
+    local workspace_valid workspace_reason
+    if validate_repository "${workspace_root}"; then
+        workspace_valid=true
+        workspace_reason=""
+    else
+        workspace_valid=false
+        workspace_reason="Missing required files"
+    fi
+
+    # STEP 5: Get branch information for consistent display
+    local current_branch branch_type
+    if [[ -n "${REPO_DIRECTORY}" ]]; then
+        if [[ -d "${workspace_root}/.git" ]]; then
+            current_branch=$(cd "${workspace_root}" && git branch --show-current 2>/dev/null || echo "unknown")
+        else
+            current_branch="unknown"
+        fi
+    else
+        current_branch=$(git branch --show-current 2>/dev/null || echo "unknown")
+    fi
+
+    # Determine branch type - be explicit about what we know vs don't know
+    case "${current_branch}" in
+        "main"|"master"|"exp/terraform_copilot")
+            branch_type="source"
+            ;;
+        "unknown"|"")
+            branch_type="unknown"
+            ;;
+        *)
+            # Any other valid branch name is a feature branch
+            branch_type="feature"
+            ;;
+    esac
+
+    # STEP 6: CONSISTENT PATTERN - Every operation gets the same header and branch detection
+    write_header "Terraform AzureRM Provider - AI Infrastructure Installer" "${VERSION}"
+    show_branch_detection "${current_branch}" "${workspace_root}"
+
+    # STEP 7: Simple parameter handling (like PowerShell)
+    if [[ "${HELP}" == "true" ]]; then
+        show_usage "${branch_type}" "${workspace_valid}" "${workspace_reason}"
+        exit 0
+    fi
+
+    # STEP 8: For all other operations, workspace must be valid
+    if [[ "${workspace_valid}" != "true" ]]; then
+        echo ""
+        write_error "WORKSPACE VALIDATION FAILED: ${workspace_reason}"
+
+        # Context-aware error message based on how the script was invoked
+        if [[ -n "${REPO_DIRECTORY}" ]]; then
+            echo " Please ensure the -repo-directory argument is pointing to a valid GitHub terraform-provider-azurerm repository."
+        else
+            echo " Please ensure you are running this script from within a terraform-provider-azurerm repository."
+        fi
+        echo ""
+        print_separator
+
+        # Show help menu for guidance
+        show_usage "${branch_type}" "false" "${workspace_reason}"
+        exit 1
+    fi
+
+    # STEP 9: Execute single operation based on parameters (like PowerShell)
+    if [[ "${VERIFY}" == "true" ]]; then
+        verify_installation "${workspace_root}"
+        exit 0
+    fi
+
+    if [[ "${BOOTSTRAP}" == "true" ]]; then
+        bootstrap_files_to_profile "${SCRIPT_DIR}" "$(get_user_profile)" "${SCRIPT_DIR}/file-manifest.config"
+        exit 0
+    fi
+
+    if [[ "${CLEAN}" == "true" ]]; then
+        clean_infrastructure "${workspace_root}"
+        exit 0
+    fi
+
+    # STEP 10: Installation path (when -repo-directory is provided and not other specific operations)
+    if [[ -n "${REPO_DIRECTORY}" ]] && [[ "${HELP}" != "true" ]] && [[ "${VERIFY}" != "true" ]] && [[ "${BOOTSTRAP}" != "true" ]] && [[ "${CLEAN}" != "true" ]]; then
+        # Proceed with installation
+        install_infrastructure "${workspace_root}"
+        exit 0
+    fi
+
+    # STEP 11: Default - show source branch help and welcome
+    show_source_repository_safety_error "./install-copilot-setup.sh"
+    exit 0
+}
 
 # Function to get user profile directory
 get_user_profile() {
     echo "${HOME}/.terraform-ai-installer"
 }
 
-# Function to bootstrap installer to user profile
-bootstrap_installer() {
-    write_section "Bootstrap - Copying Installer to User Profile"
-
-    # Validate that we're running from the right location
-    local current_location
-    current_location="$(pwd)"
-    local user_profile
-    user_profile="$(get_user_profile)"
-
-    # Prevent bootstrap from user profile (circular operation)
-    if [[ "${current_location}" == "${user_profile}"* ]]; then
-        show_bootstrap_location_error "${current_location}" "terraform-provider-azurerm/.github/AIinstaller"
-        return 1
-    fi
-
-    # Detect if we're in the repo root and adjust SCRIPT_DIR accordingly
-    local installer_dir
-    if [[ -f ".github/AIinstaller/install-copilot-setup.sh" ]] && [[ -d ".github/AIinstaller/modules" ]]; then
-        # Running from repo root - adjust SCRIPT_DIR to point to installer directory
-        installer_dir="$(pwd)/.github/AIinstaller"
-        SCRIPT_DIR="${installer_dir}"
-    elif [[ -f "install-copilot-setup.sh" ]] && [[ -d "modules" ]]; then
-        # Running from installer directory - use current SCRIPT_DIR
-        installer_dir="${SCRIPT_DIR}"
-    else
-        show_bootstrap_directory_validation_error "${current_location}"
-        return 1
-    fi
-
-    # Create directory if needed
-    if [[ ! -d "${user_profile}" ]]; then
-        if [[ "${DRY_RUN}" != "true" ]]; then
-            mkdir -p "${user_profile}"
-        fi
-    fi
-
-    # Delegate file operations to the file operations module
-    local manifest_file="${SCRIPT_DIR}/file-manifest.config"
-    if [[ ! -f "${manifest_file}" ]]; then
-        write_error_message "Configuration file not found: ${manifest_file}"
-        return 1
-    fi
-
-    # Perform bootstrap operation using file operations module
-    if bootstrap_files_to_profile "${SCRIPT_DIR}" "${user_profile}" "${manifest_file}"; then
-        # Calculate total size in KB (simple integer division)
-        local total_size_kb
-        total_size_kb=$((BOOTSTRAP_STATS_TOTAL_SIZE / 1024))
-
-        # Get current branch for intelligent next steps
-        local current_branch
-        current_branch=$(git branch --show-current 2>/dev/null || echo "unknown")
-
-        # Use the enhanced bootstrap completion function for consistent output
-        show_bootstrap_completion "${BOOTSTRAP_STATS_FILES_COPIED}" "${total_size_kb} KB" "${user_profile}" "$(get_workspace_root)" "${current_branch}"
-    else
-        show_bootstrap_failure_error "${BOOTSTRAP_STATS_FILES_FAILED}" "${user_profile}" "${0}"
-        return 1
-    fi
-}
-
-# Function to clean installation
-clean_installation() {
-    local workspace_root
-    if [[ -n "${REPO_DIRECTORY}" ]]; then
-        workspace_root="${REPO_DIRECTORY}"
-    else
-        workspace_root="$(get_workspace_root)"
-    fi
-
-    write_section "Cleaning AI Infrastructure"
-
-    # Use the fileoperations module function for cleanup
-    clean_infrastructure "${workspace_root}"
-}
-
 # ============================================================================
 # COMMAND LINE ARGUMENT PROCESSING
 # ============================================================================
 
-# Parse command line arguments
 parse_arguments() {
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -265,126 +348,8 @@ parse_arguments() {
 }
 
 # ============================================================================
-# MAIN EXECUTION LOGIC
-# ============================================================================
-
-# Main function with enhanced branch protection logic
-main() {
-    parse_arguments "$@"
-
-    # Display header and branch detection (matches PowerShell output)
-    write_header "Terraform AzureRM Provider - AI Infrastructure Installer" "${VERSION}"
-
-    # Get branch and workspace information with proper error handling
-    local current_branch workspace_root branch_type is_source_branch
-    if [[ -n "${REPO_DIRECTORY}" ]]; then
-        workspace_root="${REPO_DIRECTORY}"
-        if [[ -d "${workspace_root}/.git" ]]; then
-            current_branch=$(cd "${workspace_root}" && git branch --show-current 2>/dev/null || echo "unknown")
-        else
-            current_branch="unknown"
-        fi
-    else
-        # Check if we're in a valid terraform-provider-azurerm repository
-        local detected_root
-        detected_root="$(get_workspace_root)"
-
-        # If get_workspace_root returns current directory and we're not in a terraform repo, require -repo-directory
-        if [[ "${detected_root}" == "$(pwd)" ]] && ! is_source_repository "${detected_root}"; then
-            show_repository_directory_required_error "$(pwd)"
-            exit 1
-        fi
-
-        workspace_root="${detected_root}"
-        current_branch=$(git branch --show-current 2>/dev/null || echo "unknown")
-    fi
-
-    # Determine branch type early (like PowerShell version)
-    # Check if current branch is a source branch (main, master, or exp/terraform_copilot)
-    # Source branches are protected from AI infrastructure installation for safety
-    case "${current_branch}" in
-        "main"|"master"|"exp/terraform_copilot")
-            branch_type="source"
-            is_source_branch=true
-            ;;
-        *)
-            branch_type="feature"
-            is_source_branch=false
-            ;;
-    esac
-
-    # Show branch detection with consistent formatting
-    show_branch_detection "${current_branch}" "${workspace_root}"
-
-    # Handle help parameter first
-    if [[ "${HELP}" == "true" ]]; then
-        # Determine branch type for dynamic help
-        if [[ "${is_source_branch}" == "true" ]]; then
-            show_usage "source" "true" ""
-        else
-            show_usage "feature" "true" ""
-        fi
-        exit 0
-    fi
-
-    # Handle bootstrap parameter with proper safety checks
-    if [[ "${BOOTSTRAP}" == "true" ]]; then
-        # Enhanced location validation - prevent bootstrap from user profile
-        current_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-        local user_profile_dir
-        user_profile_dir="$(get_user_profile)"
-
-        if [[ "${current_dir}" == "${user_profile_dir}" ]]; then
-            show_bootstrap_location_error "${current_dir}" "<repo>/.github/AIinstaller/"
-            exit 1
-        fi
-
-        # Verify we're in the source repository for bootstrap
-        if [[ ! -f "${workspace_root}/go.mod" ]] || ! grep -q "terraform-provider-azurerm" "${workspace_root}/go.mod" 2>/dev/null; then
-            show_bootstrap_repository_validation_error "${workspace_root}"
-            exit 1
-        fi
-
-        bootstrap_installer
-        exit 0
-    fi
-
-    # Handle verify parameter
-    if [[ "${VERIFY}" == "true" ]]; then
-        verify_installation "${workspace_root}"
-        exit 0
-    fi
-
-    # Handle clean parameter (feature branch only)
-    if [[ "${CLEAN}" == "true" ]]; then
-        if [[ "${is_source_branch}" == "true" ]]; then
-            show_clean_unavailable_on_source_error
-            exit 1
-        fi
-
-        clean_installation
-        exit 0
-    fi
-
-    # Default installation with enhanced safety checks
-    if [[ "${is_source_branch}" == "true" ]]; then
-        # Show safety error for source repository protection
-        show_source_repository_safety_error "./install-copilot-setup.sh"
-        exit 1
-    fi
-
-    # Validate repository if using REPO_DIRECTORY
-    if [[ -n "${REPO_DIRECTORY}" ]]; then
-        validate_repository "${REPO_DIRECTORY}"
-    fi
-
-    # Call the install_infrastructure function from fileoperations module
-    install_infrastructure "${workspace_root}"
-}
-
-# ============================================================================
 # SCRIPT EXECUTION
 # ============================================================================
 
-# Run main function with all arguments
+# Run main function with all arguments - single entry point like PowerShell
 main "$@"

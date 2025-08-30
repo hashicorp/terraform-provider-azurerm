@@ -328,25 +328,26 @@ validate_operation_allowed() {
 
     # Repository structure validation using validation engine if available
     if declare -f validate_repository >/dev/null 2>&1; then
-        local validation_result
-        validation_result=$(validate_repository "${workspace_root}")
-
-        # Parse validation results
-        local valid=$(echo "${validation_result}" | grep "Valid=" | cut -d'=' -f2)
-
-        if [[ "${valid}" != "true" ]]; then
-            local reason=$(echo "${validation_result}" | grep "Reason=" | cut -d'=' -f2-)
-            write_warning "Target directory may not be a terraform-provider-azurerm repository"
+        # Check repository validation (returns 0 for valid, 1 for invalid)
+        if ! validate_repository "${workspace_root}"; then
+            echo ""
+            write_error "WORKSPACE VALIDATION FAILED: Missing required files"
+            echo ""
             echo "Expected to find terraform-provider-azurerm structure"
             echo "Directory: ${workspace_root}"
-            echo "Reason: ${reason}"
+            echo "Reason: Missing required files (go.mod with azurerm content, main.go, or internal/services directory)"
             echo ""
-            echo "Continue anyway? (y/N)"
-            read -r response
-            if [[ ! "${response}" =~ ^[Yy]$ ]]; then
-                echo "${operation_name^} cancelled by user"
-                return 1
+            echo "Please ensure you are in the correct terraform-provider-azurerm repository directory."
+            echo "${operation_name^} cancelled due to invalid repository structure"
+            echo ""
+            print_separator
+            echo ""
+
+            # Show help menu for guidance (matching PowerShell behavior)
+            if declare -f show_usage >/dev/null 2>&1; then
+                show_usage "${branch_type:-feature}" "false" "Missing required files"
             fi
+            return 1
         fi
     fi
 
