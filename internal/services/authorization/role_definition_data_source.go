@@ -21,13 +21,14 @@ type RoleDefinitionDataSource struct{}
 var _ sdk.DataSource = RoleDefinitionDataSource{}
 
 type RoleDefinitionDataSourceModel struct {
-	Name             string                      `tfschema:"name"`
-	RoleDefinitionId string                      `tfschema:"role_definition_id"`
-	Scope            string                      `tfschema:"scope"`
-	Description      string                      `tfschema:"description"`
-	Type             string                      `tfschema:"type"`
-	Permissions      []PermissionDataSourceModel `tfschema:"permissions"`
-	AssignableScopes []string                    `tfschema:"assignable_scopes"`
+	Name                     string                      `tfschema:"name"`
+	RoleDefinitionId         string                      `tfschema:"role_definition_id"`
+	Scope                    string                      `tfschema:"scope"`
+	Description              string                      `tfschema:"description"`
+	Type                     string                      `tfschema:"type"`
+	Permissions              []PermissionDataSourceModel `tfschema:"permissions"`
+	AssignableScopes         []string                    `tfschema:"assignable_scopes"`
+	RoleDefinitionResourceId string                      `tfschema:"role_definition_resource_id"`
 }
 
 type PermissionDataSourceModel struct {
@@ -142,6 +143,11 @@ func (a RoleDefinitionDataSource) Attributes() map[string]*pluginsdk.Schema {
 				Type: pluginsdk.TypeString,
 			},
 		},
+
+		"role_definition_resource_id": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
 	}
 }
 
@@ -192,7 +198,6 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 						return pluginsdk.NonRetryableError(fmt.Errorf("loading Role Definition List: values[0].NameD is nil '%s'", config.Name))
 					}
 
-					defId = *(*roleDefinitions.Model)[0].Id
 					id = roledefinitions.NewScopedRoleDefinitionID(config.Scope, *(*roleDefinitions.Model)[0].Name)
 					return nil
 				})
@@ -218,9 +223,11 @@ func (a RoleDefinitionDataSource) Read() sdk.ResourceFunc {
 			}
 
 			state := RoleDefinitionDataSourceModel{
-				Scope:            id.Scope,
-				RoleDefinitionId: defId,
+				Scope:                    id.Scope,
+				RoleDefinitionId:         id.RoleDefinitionId,
+				RoleDefinitionResourceId: pointer.From(role.Id),
 			}
+
 			if props := role.Properties; props != nil {
 				state.Name = pointer.From(props.RoleName)
 				state.Type = pointer.From(props.Type)
