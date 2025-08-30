@@ -572,31 +572,7 @@ func (s *server) GetResourceIdentitySchemas(ctx context.Context, protoReq *tfplu
 
 	ctx = tf6serverlogging.DownstreamRequest(ctx)
 
-	// TODO: Remove this check and error in preference of
-	// s.downstream.GetResourceIdentitySchemas below once ProviderServer interface
-	// implements this RPC method.
-	// nolint:staticcheck
-	resourceIdentityProviderServer, ok := s.downstream.(tfprotov6.ProviderServerWithResourceIdentity)
-	if !ok {
-		logging.ProtocolError(ctx, "ProviderServer does not implement GetResourceIdentitySchemas")
-
-		protoResp := &tfplugin6.GetResourceIdentitySchemas_Response{
-			Diagnostics: []*tfplugin6.Diagnostic{
-				{
-					Severity: tfplugin6.Diagnostic_ERROR,
-					Summary:  "Provider GetResourceIdentitySchemas Not Implemented",
-					Detail: "A GetResourceIdentitySchemas call was received by the provider, however the provider does not implement the call. " +
-						"Either upgrade the provider to a version that implements resource identity support or this is a bug in Terraform that should be reported to the Terraform maintainers.",
-				},
-			},
-		}
-
-		return protoResp, nil
-	}
-
-	// TODO: Update this to call downstream once optional interface is removed
-	// resp, err := s.downstream.GetResourceIdentitySchemas(ctx, req)
-	resp, err := resourceIdentityProviderServer.GetResourceIdentitySchemas(ctx, req)
+	resp, err := s.downstream.GetResourceIdentitySchemas(ctx, req)
 
 	if err != nil {
 		logging.ProtocolError(ctx, "Error from downstream", map[string]interface{}{logging.KeyError: err})
@@ -846,31 +822,7 @@ func (s *server) UpgradeResourceIdentity(ctx context.Context, protoReq *tfplugin
 
 	ctx = tf6serverlogging.DownstreamRequest(ctx)
 
-	// TODO: Remove this check and error in preference of
-	// s.downstream.UpgradeResourceIdentity below once ProviderServer interface
-	// implements this RPC method.
-	// nolint:staticcheck
-	resourceIdentityProviderServer, ok := s.downstream.(tfprotov6.ProviderServerWithResourceIdentity)
-	if !ok {
-		logging.ProtocolError(ctx, "ProviderServer does not implement UpgradeResourceIdentity")
-
-		protoResp := &tfplugin6.UpgradeResourceIdentity_Response{
-			Diagnostics: []*tfplugin6.Diagnostic{
-				{
-					Severity: tfplugin6.Diagnostic_ERROR,
-					Summary:  "Provider UpgradeResourceIdentity Not Implemented",
-					Detail: "A UpgradeResourceIdentity call was received by the provider, however the provider does not implement the call. " +
-						"Either upgrade the provider to a version that implements resource identity support or this is a bug in Terraform that should be reported to the Terraform maintainers.",
-				},
-			},
-		}
-
-		return protoResp, nil
-	}
-
-	// TODO: Update this to call downstream once optional interface is removed
-	// resp, err := s.downstream.UpgradeResourceIdentity(ctx, req)
-	resp, err := resourceIdentityProviderServer.UpgradeResourceIdentity(ctx, req)
+	resp, err := s.downstream.UpgradeResourceIdentity(ctx, req)
 
 	if err != nil {
 		logging.ProtocolError(ctx, "Error from downstream", map[string]interface{}{logging.KeyError: err})
