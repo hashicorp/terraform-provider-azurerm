@@ -61,5 +61,9 @@ func TestNumberOfIpAddresses(t *testing.T) {
 		if tc.ExpectError && !hasError {
 			t.Fatalf("Expected NumberOfIpAddresses to trigger a validation error for '%s'", tc.Input)
 		}
+
+		if !tc.ExpectError && hasError {
+			t.Fatalf("Encountered unexpected validation error for NumberOfIpAddresses '%s'", tc.Input)
+		}
 	}
 }
