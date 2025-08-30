@@ -156,20 +156,25 @@ function Main {
      try {
         # Step 1: EARLY SAFETY CHECK - Fail fast if on source branch with RepoDirectory
         if ($RepoDirectory) {
-            # Get current branch of the target repository quickly
+            # Get current branch of the target repository quickly (only if directory exists)
             $originalLocation = Get-Location
+            $currentBranch = "Unknown"
             try {
-                Set-Location $RepoDirectory
-                $currentBranch = git branch --show-current 2>$null
-                if (-not $currentBranch -or $currentBranch.Trim() -eq "") {
-                    $currentBranch = "Unknown"
+                if (Test-Path $RepoDirectory) {
+                    Set-Location $RepoDirectory
+                    $currentBranch = git branch --show-current 2>$null
+                    if (-not $currentBranch -or $currentBranch.Trim() -eq "") {
+                        $currentBranch = "Unknown"
+                    }
                 }
             }
             catch {
                 $currentBranch = "Unknown"
             }
             finally {
-                Set-Location $originalLocation
+                if (Test-Path $originalLocation) {
+                    Set-Location $originalLocation
+                }
             }
 
             # Block operations on source branch immediately (except Verify, Help, Bootstrap)
@@ -208,20 +213,25 @@ function Main {
 
         # Step 4: Simple branch safety check for -RepoDirectory operations
         if ($RepoDirectory) {
-            # Get current branch of the target repository
+            # Get current branch of the target repository (only if workspace exists)
             $originalLocation = Get-Location
+            $currentBranch = "Unknown"
             try {
-                Set-Location $Global:WorkspaceRoot
-                $currentBranch = git branch --show-current 2>$null
-                if (-not $currentBranch -or $currentBranch.Trim() -eq "") {
-                    $currentBranch = "Unknown"
+                if (Test-Path $Global:WorkspaceRoot) {
+                    Set-Location $Global:WorkspaceRoot
+                    $currentBranch = git branch --show-current 2>$null
+                    if (-not $currentBranch -or $currentBranch.Trim() -eq "") {
+                        $currentBranch = "Unknown"
+                    }
                 }
             }
             catch {
                 $currentBranch = "Unknown"
             }
             finally {
-                Set-Location $originalLocation
+                if (Test-Path $originalLocation) {
+                    Set-Location $originalLocation
+                }
             }
         } else {
             # Not using -RepoDirectory, get branch info from current location
