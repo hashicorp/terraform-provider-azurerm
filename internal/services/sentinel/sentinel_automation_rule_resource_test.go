@@ -112,6 +112,49 @@ func TestAccSentinelAutomationRule_trigger(t *testing.T) {
 	})
 }
 
+func TestAccSentinelAutomationRule_actionIncidentTask(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_sentinel_automation_rule", "test")
+	r := SentinelAutomationRuleResource{uuid: uuid.New().String()}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.actionIncidentTask(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.actionIncidentTaskUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.actionIncidentTaskComplete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccSentinelAutomationRule_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_sentinel_automation_rule", "test")
 	r := SentinelAutomationRuleResource{uuid: uuid.New().String()}
@@ -227,6 +270,12 @@ resource "azurerm_sentinel_automation_rule" "test" {
   action_incident {
     order    = 4
     owner_id = data.azurerm_client_config.current.object_id
+  }
+
+  action_incident_task {
+    order       = 5
+    title       = "test incident task title"
+    description = "test description"
   }
 
 }
@@ -427,4 +476,102 @@ resource "azurerm_sentinel_log_analytics_workspace_onboarding" "test" {
 
 
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (r SentinelAutomationRuleResource) actionIncidentTask(data acceptance.TestData) string {
+	template := r.template(data)
+	expDate := time.Now().AddDate(0, 1, 0).UTC().Format(time.RFC3339)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_sentinel_automation_rule" "test" {
+  name                       = "%s"
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
+  display_name               = "acctest-SentinelAutoRule-%d-update"
+  order                      = 2
+  enabled                    = false
+  expiration                 = "%s"
+
+  action_incident {
+    order  = 1
+    status = "Active"
+  }
+
+  action_incident_task {
+    order       = 5
+    title       = "test incident task title"
+    description = "test description"
+  }
+
+}
+`, template, r.uuid, data.RandomInteger, expDate)
+}
+
+func (r SentinelAutomationRuleResource) actionIncidentTaskUpdate(data acceptance.TestData) string {
+	template := r.template(data)
+	expDate := time.Now().AddDate(0, 1, 0).UTC().Format(time.RFC3339)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_sentinel_automation_rule" "test" {
+  name                       = "%s"
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
+  display_name               = "acctest-SentinelAutoRule-%d-update"
+  order                      = 2
+  enabled                    = false
+  expiration                 = "%s"
+
+  action_incident {
+    order  = 1
+    status = "Active"
+  }
+
+  action_incident_task {
+    order       = 3
+    title       = "test incident task title update"
+    description = "test description update"
+  }
+
+}
+`, template, r.uuid, data.RandomInteger, expDate)
+}
+
+func (r SentinelAutomationRuleResource) actionIncidentTaskComplete(data acceptance.TestData) string {
+	template := r.template(data)
+	expDate := time.Now().AddDate(0, 1, 0).UTC().Format(time.RFC3339)
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_client_config" "current" {}
+
+resource "azurerm_sentinel_automation_rule" "test" {
+  name                       = "%s"
+  log_analytics_workspace_id = azurerm_sentinel_log_analytics_workspace_onboarding.test.workspace_id
+  display_name               = "acctest-SentinelAutoRule-%d-update"
+  order                      = 2
+  enabled                    = false
+  expiration                 = "%s"
+
+  action_incident {
+    order  = 1
+    status = "Active"
+  }
+
+  action_incident_task {
+    order       = 3
+    title       = "test incident task title update"
+    description = "test description update"
+  }
+
+  action_incident_task {
+    order       = 4
+    title       = "test incident task title more"
+    description = "test description more"
+  }
+}
+`, template, r.uuid, data.RandomInteger, expDate)
 }
