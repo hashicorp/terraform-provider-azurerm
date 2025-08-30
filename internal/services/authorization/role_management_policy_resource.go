@@ -668,35 +668,24 @@ func (r RoleManagementPolicyResource) Delete() sdk.ResourceFunc {
 			if err != nil {
 				return err
 			}
-
 			policyId, err := FindRoleManagementPolicyId(ctx, metadata.Client.Authorization.RoleManagementPoliciesClient, id.Scope, id.RoleDefinitionId)
 			if err != nil {
 				return err
 			}
 			client := metadata.Client.Authorization.RoleManagementPoliciesClient
-
 			existing, err := client.Get(ctx, *policyId)
 			if err != nil {
 				return fmt.Errorf("retrieving existing %s: %+v", policyId, err)
 			}
-
-			// build our own model to pass to the buildRoleManagementPolicyForUpdate function
-			// the `metadata.Decode` doesn't work while we're in a delete operation since there is no resource data
-			model := RoleManagementPolicyModel{
-				Scope: *existing.Model.Properties.Scope,
-				Name:  policyId.ID(),
-			}
-
-			payload, err := buildRoleManagementPolicyForUpdate(pointer.To(metadata), existing.Model, model)
+			// Role Management Policies cannot be deleted, so we reset all properties back to default values
+			payload, err := buildRoleManagementPolicyForDelete(existing.Model)
 			if err != nil {
 				return fmt.Errorf("could not build update request, %+v", err)
 			}
-
 			if _, err := client.Update(ctx, *policyId, *payload); err != nil {
 				return err
 			}
 
-			// Role Management Policies cannot be deleted, so we'll just return without doing anything
 			return nil
 		},
 	}
