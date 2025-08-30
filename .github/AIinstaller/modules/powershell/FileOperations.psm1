@@ -12,7 +12,7 @@ function Assert-DirectoryExists {
         [Parameter(Mandatory)]
         [string]$Path
     )
-    
+
     if (-not (Test-Path $Path -PathType Container)) {
         try {
             New-Item -Path $Path -ItemType Directory -Force | Out-Null
@@ -23,7 +23,7 @@ function Assert-DirectoryExists {
             return $false
         }
     }
-    
+
     return $true
 }
 
@@ -39,18 +39,18 @@ function Install-AIFile {
     param(
         [Parameter(Mandatory)]
         [string]$FilePath,
-        
+
         [Parameter(Mandatory)]
         [string]$DownloadUrl,
-        
+
         [bool]$Force = $false,
-        
+
         [bool]$DryRun = $false,
-        
+
         [Parameter(Mandatory)]
         [string]$WorkspaceRoot
     )
-    
+
     $result = @{
         FilePath = $FilePath
         Success = $false
@@ -59,7 +59,7 @@ function Install-AIFile {
         Size = 0
         DebugInfo = @{}
     }
-    
+
     try {
         # Resolve the full file path by joining workspace root with relative path
         $resolvedFilePath = Join-Path $WorkspaceRoot $FilePath
@@ -67,60 +67,60 @@ function Install-AIFile {
         $result.DebugInfo.OriginalPath = $FilePath
         $result.DebugInfo.ResolvedPath = $resolvedFilePath
         $result.DebugInfo.PathMethod = "Join-Path"
-        
+
         # Update result with resolved path
         $result.FilePath = $resolvedFilePath
-        
+
         # Record initial state
         $result.DebugInfo.StartTime = Get-Date
         $result.DebugInfo.DownloadUrl = $DownloadUrl
         $result.DebugInfo.TargetPath = $resolvedFilePath
-        
+
         # Check if file already exists
         $fileExists = Test-Path $resolvedFilePath
         $result.DebugInfo.FileExisted = $fileExists
-        
+
         if ($fileExists -and -not $Force) {
             $result.Action = "Skipped"
             $result.Success = $true
             $result.Message = "File already exists (use -Force to overwrite)"
             return $result
         }
-        
+
         # Create directory if needed
         $directory = Split-Path $resolvedFilePath -Parent
         $result.DebugInfo.TargetDirectory = $directory
-        
+
         if ($directory -and -not (Assert-DirectoryExists $directory)) {
             $result.Message = "Failed to create directory: $directory"
             return $result
         }
-        
+
         if ($DryRun) {
             $result.Action = if ($fileExists) { "Would Overwrite" } else { "Would Download" }
             $result.Success = $true
             $result.Message = "Dry run - no changes made"
             return $result
         }
-        
+
         # Download file
         Write-Verbose "Downloading: $DownloadUrl"
-        
+
         $downloadStart = Get-Date
-        
+
         # Hide progress bar during download
         $originalProgressPreference = $ProgressPreference
         $ProgressPreference = 'SilentlyContinue'
-        
+
         try {
             $response = Invoke-WebRequest -Uri $DownloadUrl -UseBasicParsing -ErrorAction Stop
         }
         finally {
             $ProgressPreference = $originalProgressPreference
         }
-        
+
         $downloadEnd = Get-Date
-        
+
         if ($downloadEnd -and $downloadStart) {
             $result.DebugInfo.DownloadDuration = ($downloadEnd - $downloadStart).TotalMilliseconds
         } else {
@@ -128,7 +128,7 @@ function Install-AIFile {
         }
         $result.DebugInfo.ResponseSize = $response.Content.Length
         $result.DebugInfo.StatusCode = $response.StatusCode
-        
+
         # Save file (all AI infrastructure files are text-based)
         try {
             # Use UTF8 encoding without BOM for all text files
@@ -139,7 +139,7 @@ function Install-AIFile {
             $result.DebugInfo.SaveException = $_.Exception.Message
             throw
         }
-        
+
         # Verify file was created
         if (Test-Path $resolvedFilePath) {
             $fileInfo = Get-Item $resolvedFilePath
@@ -156,7 +156,7 @@ function Install-AIFile {
         $result.Message = "Download failed: $($_.Exception.Message)"
         $result.DebugInfo.Exception = $_.Exception.GetType().Name
         $result.DebugInfo.ExceptionMessage = $_.Exception.Message
-        
+
         # Additional debug for specific error types
         if ($_.Exception -is [System.Net.WebException]) {
             $webEx = $_.Exception
@@ -166,14 +166,14 @@ function Install-AIFile {
             }
         }
     }
-    
+
     $result.DebugInfo.EndTime = Get-Date
     if ($result.DebugInfo.EndTime -and $result.DebugInfo.StartTime) {
         $result.DebugInfo.TotalDuration = ($result.DebugInfo.EndTime - $result.DebugInfo.StartTime).TotalMilliseconds
     } else {
         $result.DebugInfo.TotalDuration = 0
     }
-    
+
     return $result
 }
 
@@ -189,16 +189,16 @@ function Install-AllAIFiles {
         [string]$WorkspaceRoot = $null,
         [hashtable]$ManifestConfig = $null
     )
-    
+
     # CRITICAL: Use centralized pre-installation validation (replaces scattered safety checks)
     Write-Host "Validating installation prerequisites..." -ForegroundColor Cyan
     $validation = Test-PreInstallation -AllowBootstrapOnSource:$false
-    
+
     if (-not $validation.OverallValid) {
         Write-Host ""
         Write-Host "Pre-installation validation failed!" -ForegroundColor Red
         Write-Host ""
-        
+
         # Show specific validation failures
         if (-not $validation.Git.Valid) {
             Write-Host "   Git Issue: $($validation.Git.Reason)" -ForegroundColor Yellow
@@ -209,10 +209,10 @@ function Install-AllAIFiles {
         if (-not $validation.SystemRequirements.OverallValid) {
             Write-Host "   System Issue: Missing requirements detected" -ForegroundColor Yellow
         }
-        
+
         Write-Host ""
         Write-Host "Fix these issues and try again." -ForegroundColor Cyan
-        
+
         return @{
             TotalFiles = 0
             Successful = 0
@@ -229,10 +229,10 @@ function Install-AllAIFiles {
             }
         }
     }
-    
+
     Write-Host "All prerequisites validated successfully!" -ForegroundColor Green
     Write-Host ""
-    
+
     # Use provided manifest configuration or get it directly
     if ($ManifestConfig) {
         $manifestConfig = $ManifestConfig
@@ -247,7 +247,7 @@ function Install-AllAIFiles {
     foreach ($section in $manifestConfig.Sections.Keys) {
         $allFiles += $manifestConfig.Sections[$section]
     }
-    
+
     $results = @{
         TotalFiles = $allFiles.Count
         Successful = 0
@@ -261,20 +261,20 @@ function Install-AllAIFiles {
             BaseUrl = $manifestConfig.BaseUrl
         }
     }
-    
+
     Write-Host "Preparing to install $($allFiles.Count) files..." -ForegroundColor Cyan
     Write-Host ""
-    
+
     $fileIndex = 0
     foreach ($filePath in $allFiles) {
         $fileIndex++
         $downloadUrl = "$($manifestConfig.BaseUrl)/$filePath"
-        
+
         # Debug: Show the constructed URL
         Write-Verbose "Constructed URL: $downloadUrl"
         Write-Verbose "Base URL       : $($manifestConfig.BaseUrl)"
         Write-Verbose "File Path      : $filePath"
-        
+
         if (-not $downloadUrl -or $downloadUrl -eq "/$filePath" -or [string]::IsNullOrWhiteSpace($manifestConfig.BaseUrl)) {
             Write-Warning "Could not determine download URL for file: $filePath (BaseUrl: '$($manifestConfig.BaseUrl)')"
             $results.Files[$filePath] = @{
@@ -290,7 +290,7 @@ function Install-AllAIFiles {
             }
             continue
         }
-        
+
         $percentComplete = [math]::Round(($fileIndex / $allFiles.Count) * 100)
         # Dynamic padding to align closing brackets (1-digit=2 spaces, 2-digit=1 space, 3-digit=0 spaces)
         $progressPadding = if ($percentComplete -lt 10) { "  " } elseif ($percentComplete -lt 100) { " " } else { "" }
@@ -299,10 +299,10 @@ function Install-AllAIFiles {
         Write-Host $progressText -ForegroundColor Green -NoNewline
         Write-Host ": " -ForegroundColor Cyan -NoNewline
         Write-Host $filePath -ForegroundColor White
-        
+
         $fileResult = Install-AIFile -FilePath $filePath -DownloadUrl $downloadUrl -Force $Force -DryRun $DryRun -WorkspaceRoot $WorkspaceRoot
         $results.Files[$filePath] = $fileResult
-        
+
         # Show error details if download failed
         if (-not $fileResult.Success) {
             Write-Host "   ERROR: $($fileResult.Message)" -ForegroundColor Red
@@ -310,17 +310,17 @@ function Install-AllAIFiles {
                 Write-Host "   DETAILS: $($fileResult.DebugInfo.ExceptionMessage)" -ForegroundColor Red
             }
         }
-        
+
         switch ($fileResult.Action) {
             { $_ -in @("Downloaded", "Overwritten") } { $results.Successful++ }
             "Skipped" { $results.Skipped++ }
-            default { 
+            default {
                 $results.Failed++
                 $results.OverallSuccess = $false
             }
         }
     }
-    
+
     # Show detailed debug summary
     $results.DebugInfo.EndTime = Get-Date
     if ($results.DebugInfo.StartTime -and $results.DebugInfo.EndTime) {
@@ -328,7 +328,7 @@ function Install-AllAIFiles {
     } else {
         $results.DebugInfo.TotalDuration = 0
     }
-    
+
     # Calculate total size of all processed files
     $totalSize = 0
     foreach ($fileResult in $results.Files.Values) {
@@ -349,26 +349,26 @@ function Remove-AIFile {
     param(
         [Parameter(Mandatory)]
         [string]$FilePath,
-        
+
         [bool]$DryRun = $false,
-        
+
         [string]$WorkspaceRoot = ""
     )
-    
+
     # Resolve file path relative to workspace root if provided
     $resolvedFilePath = if ($WorkspaceRoot -and -not [System.IO.Path]::IsPathRooted($FilePath)) {
         Join-Path $WorkspaceRoot $FilePath
     } else {
         $FilePath
     }
-    
+
     $result = @{
         FilePath = $resolvedFilePath
         Success = $false
         Action = "None"
         Message = ""
     }
-    
+
     try {
         if (-not (Test-Path $resolvedFilePath)) {
             $result.Action = "Not Found"
@@ -376,17 +376,17 @@ function Remove-AIFile {
             $result.Message = "File does not exist"
             return $result
         }
-        
+
         if ($DryRun) {
             $result.Action = "Would Remove"
             $result.Success = $true
             $result.Message = "Dry run - no changes made"
             return $result
         }
-        
+
         # Remove file
         Remove-Item -Path $resolvedFilePath -Force -ErrorAction Stop
-        
+
         $result.Action = "Removed"
         $result.Success = $true
         $result.Message = "File successfully removed"
@@ -394,7 +394,7 @@ function Remove-AIFile {
     catch {
         $result.Message = "Failed to remove file: $($_.Exception.Message)"
     }
-    
+
     return $result
 }
 
@@ -409,25 +409,25 @@ function Remove-AllAIFiles {
         [string]$WorkspaceRoot = "",
         [hashtable]$ManifestConfig = $null
     )
-    
+
     # CRITICAL: Use centralized pre-installation validation for source repository protection
     Write-Host "Validating cleanup prerequisites..." -ForegroundColor Yellow
     $validation = Test-PreInstallation -AllowBootstrapOnSource:$false
-    
+
     if (-not $validation.OverallValid) {
         # Build detailed error messages based on validation results
         $errorMessages = @()
-        
+
         if ($validation.Git.Reason -like "*SAFETY VIOLATION*") {
             $errorMessages += "SAFETY VIOLATION: Cannot run clean operation on source branch '$($validation.Git.CurrentBranch)'. Switch to a feature branch to clean the AI infrastructure"
         } elseif (-not $validation.Git.Valid) {
             $errorMessages += $validation.Git.Reason
         }
-        
+
         if (-not $validation.Workspace.Valid -and -not $validation.Workspace.Skipped) {
             $errorMessages += $validation.Workspace.Reason
         }
-        
+
         if (-not $validation.SystemRequirements.OverallValid) {
             if (-not $validation.SystemRequirements.PowerShell.Valid) {
                 $errorMessages += $validation.SystemRequirements.PowerShell.Reason
@@ -442,7 +442,7 @@ function Remove-AllAIFiles {
                 $errorMessages += $validation.SystemRequirements.Internet.Reason
             }
         }
-        
+
         # Fallback if no specific errors found
         if ($errorMessages.Count -eq 0) {
             $errorMessages += "Pre-cleanup validation failed"
@@ -453,7 +453,7 @@ function Remove-AllAIFiles {
         Write-Host "  1. Switch to a feature branch" -ForegroundColor White
         Write-Host "  2. Or run this command on a cloned repository" -ForegroundColor White
         Write-Host "  3. Or use -RepoDirectory to specify target directory" -ForegroundColor White
-        
+
         return @{
             Success = $false
             Issues = $errorMessages
@@ -463,10 +463,10 @@ function Remove-AllAIFiles {
             ValidationResults = $validation
         }
     }
-    
+
     Write-Host "Cleanup validation passed!" -ForegroundColor Green
     Write-Host ""
-    
+
     # Use provided manifest configuration or get it directly
     if ($ManifestConfig) {
         $manifestConfig = $ManifestConfig
@@ -481,11 +481,11 @@ function Remove-AllAIFiles {
     foreach ($section in $manifestConfig.Sections.Keys) {
         $allFiles += $manifestConfig.Sections[$section]
     }
-    
+
     # Dynamically determine directories to check based on manifest file paths
     $directoriesToCheck = @()
     $uniqueDirectories = @{}
-    
+
     # Directories that should NEVER be removed (important repository infrastructure)
     $protectedDirectories = @(
         ".github",           # Main GitHub directory contains workflows, issue templates, etc.
@@ -497,23 +497,23 @@ function Remove-AllAIFiles {
         "examples",          # Example configurations
         "helpers"            # Helper utilities
     )
-    
+
     foreach ($filePath in $allFiles) {
         $directory = Split-Path $filePath -Parent
         if ($directory -and -not $uniqueDirectories.ContainsKey($directory)) {
             # Skip protected directories - we only clean up specific AI subdirectories
             $isProtected = $false
-            
+
             # Allow specific AI directories under .github
             $allowedAIDirectories = @(
                 ".github/AIinstaller",
                 ".github/AIinstaller/modules",
                 ".github/AIinstaller/modules/powershell",
                 ".github/AIinstaller/modules/bash",
-                ".github/instructions", 
+                ".github/instructions",
                 ".github/prompts"
             )
-            
+
             $isAllowedAI = $false
             foreach ($allowed in $allowedAIDirectories) {
                 if ($directory -eq $allowed -or $directory.StartsWith("$allowed/")) {
@@ -521,7 +521,7 @@ function Remove-AllAIFiles {
                     break
                 }
             }
-            
+
             if (-not $isAllowedAI) {
                 # Check if it's a hidden directory (starts with .) - these often contain user settings
                 $dirName = Split-Path $directory -Leaf
@@ -537,43 +537,43 @@ function Remove-AllAIFiles {
                     }
                 }
             }
-            
+
             if (-not $isProtected) {
                 $uniqueDirectories[$directory] = $true
                 $directoriesToCheck += $directory
             }
         }
     }
-    
+
     # Sort directories by depth (deepest first) for proper cleanup order
     # This ensures subdirectories are cleaned before parent directories
     $directoriesToCheck = $directoriesToCheck | Sort-Object { ($_ -split '[/\\]').Count } -Descending | Sort-Object
-    
+
     # Calculate total work for accurate progress tracking
     $totalWork = $allFiles.Count + $directoriesToCheck.Count
     $workCompleted = 0
-    
+
     # Calculate the longest filename for perfect status alignment
     $maxFileNameLength = 0
     $maxDirNameLength = 0
-    
+
     foreach ($filePath in $allFiles) {
         $fileName = Split-Path $filePath -Leaf
         if ($fileName.Length -gt $maxFileNameLength) {
             $maxFileNameLength = $fileName.Length
         }
     }
-    
+
     foreach ($dir in $directoriesToCheck) {
         $dirName = Split-Path $dir -Leaf
         if ($dirName.Length -gt $maxDirNameLength) {
             $maxDirNameLength = $dirName.Length
         }
     }
-    
+
     # Use the longer of the two for universal alignment
     $maxNameLength = [math]::Max($maxFileNameLength, $maxDirNameLength)
-    
+
     $results = @{
         TotalFiles = $allFiles.Count
         Removed = 0
@@ -586,39 +586,39 @@ function Remove-AllAIFiles {
         DirectoriesCleaned = 0
         Issues = @()
     }
-    
+
     # Pre-scan: Check if any AI files actually exist
     Write-Host "Scanning for AI infrastructure files..." -ForegroundColor Cyan
     $existingFiles = @()
     $existingDirectories = @()
-    
+
     foreach ($filePath in $allFiles) {
         $fullPath = Join-Path $WorkspaceRoot $filePath
         if (Test-Path $fullPath) {
             $existingFiles += $filePath
         }
     }
-    
+
     foreach ($dirPath in $directoriesToCheck) {
         $fullDirPath = Join-Path $WorkspaceRoot $dirPath
         if (Test-Path $fullDirPath) {
             # Skip child directories of AIinstaller since we'll remove it recursively
-            # This includes direct children like .github/AIinstaller/modules 
+            # This includes direct children like .github/AIinstaller/modules
             # and deeper children like .github/AIinstaller/modules/bash
-            $isChildOfAIinstaller = ($dirPath.StartsWith(".github/AIinstaller/") -and $dirPath -ne ".github/AIinstaller") -or 
+            $isChildOfAIinstaller = ($dirPath.StartsWith(".github/AIinstaller/") -and $dirPath -ne ".github/AIinstaller") -or
                                    ($dirPath.StartsWith(".github\AIinstaller\") -and $dirPath -ne ".github\AIinstaller")
             if (-not $isChildOfAIinstaller) {
                 $existingDirectories += $dirPath
             }
         }
     }
-    
+
     # If nothing exists, show clean message and exit early
     if ($existingFiles.Count -eq 0 -and $existingDirectories.Count -eq 0) {
         Write-Host ""
         Write-Host "No AI infrastructure files found to remove." -ForegroundColor Green
         Write-Host "Workspace is already clean!" -ForegroundColor Green
-        
+
         return @{
             Success = $true
             Issues = @()
@@ -633,19 +633,19 @@ function Remove-AllAIFiles {
             CleanWorkspace = $true
         }
     }
-    
+
     # Show what was found
     Write-Host "Found $($existingFiles.Count) AI files and $($existingDirectories.Count) directories to remove." -ForegroundColor Yellow
     Write-Host ""
-    
+
     Write-Host "Removing AI Infrastructure Files" -ForegroundColor Cyan
     Write-Separator
-    
+
     # Remove files (only process existing ones)
     $fileIndex = 0
     $totalWork = $existingFiles.Count + $existingDirectories.Count
     $workCompleted = 0
-    
+
     # Calculate padding for clean display (only for existing files)
     $maxNameLength = 0
     foreach ($filePath in $existingFiles) {
@@ -654,7 +654,7 @@ function Remove-AllAIFiles {
             $maxNameLength = $fileName.Length
         }
     }
-    
+
     # Also check directory names for padding
     foreach ($dirPath in $existingDirectories) {
         $dirName = Split-Path $dirPath -Leaf
@@ -662,18 +662,18 @@ function Remove-AllAIFiles {
             $maxNameLength = $dirName.Length
         }
     }
-    
+
     foreach ($filePath in $existingFiles) {
         $fileIndex++
         $workCompleted++
         $percentComplete = [math]::Round(($workCompleted / $totalWork) * 100)
-        
+
         # Extract just the filename for cleaner display
         $fileName = Split-Path $filePath -Leaf
-        
+
         # Calculate padding needed to align status indicators
         $fileNamePadding = " " * ($maxNameLength - $fileName.Length)
-        
+
         # Pad "Removing File" to match "Removing Directory" length for perfect alignment
         # Dynamic padding to align closing brackets (1-digit=2 spaces, 2-digit=1 space, 3-digit=0 spaces)
         $progressPadding = if ($percentComplete -lt 10) { "  " } elseif ($percentComplete -lt 100) { " " } else { "" }
@@ -682,12 +682,12 @@ function Remove-AllAIFiles {
         Write-Host $progressText -ForegroundColor Green -NoNewline
         Write-Host ": " -ForegroundColor Cyan -NoNewline
         Write-Host "$fileName$fileNamePadding " -ForegroundColor White -NoNewline
-        
+
         $fileResult = Remove-AIFile -FilePath $filePath -DryRun $DryRun -WorkspaceRoot $WorkspaceRoot
         $results.Files[$filePath] = $fileResult
-        
+
         switch ($fileResult.Action) {
-            "Removed" { 
+            "Removed" {
                 $results.Removed++
                 $results.FilesRemoved++
                 Write-Host "[OK]" -ForegroundColor Green
@@ -697,11 +697,11 @@ function Remove-AllAIFiles {
                 $results.FilesRemoved++
                 Write-Host "[WOULD REMOVE]" -ForegroundColor Yellow
             }
-            "Not Found" { 
+            "Not Found" {
                 $results.NotFound++
                 Write-Host "[NOT FOUND]" -ForegroundColor Yellow
             }
-            default { 
+            default {
                 $results.Failed++
                 $results.Success = $false
                 Write-Host "[FAILED]" -ForegroundColor Red
@@ -711,20 +711,20 @@ function Remove-AllAIFiles {
             }
         }
     }
-    
+
     # Remove empty directories (only process existing ones)
     $dirIndex = 0
     foreach ($dir in $existingDirectories) {
         $dirIndex++
         $workCompleted++
         $percentComplete = [math]::Round(($workCompleted / $totalWork) * 100)
-        
+
         # Extract just the directory name for cleaner display
         $dirName = Split-Path $dir -Leaf
-        
+
         # Calculate padding needed to align status indicators (same as files)
         $dirNamePadding = " " * ($maxNameLength - $dirName.Length)
-        
+
         # "Removing Directory" is the longest operation name, so no padding needed
         # Dynamic padding to align closing brackets (1-digit=2 spaces, 2-digit=1 space, 3-digit=0 spaces)
         $progressPadding = if ($percentComplete -lt 10) { "  " } elseif ($percentComplete -lt 100) { " " } else { "" }
@@ -733,21 +733,21 @@ function Remove-AllAIFiles {
         Write-Host $progressText -ForegroundColor Green -NoNewline
         Write-Host ": " -ForegroundColor Cyan -NoNewline
         Write-Host "$dirName$dirNamePadding " -ForegroundColor White -NoNewline
-        
+
         # Resolve directory path relative to workspace root if provided
         $resolvedDirPath = if ($WorkspaceRoot -and -not [System.IO.Path]::IsPathRooted($dir)) {
             Join-Path $WorkspaceRoot $dir
         } else {
             $dir
         }
-        
+
         $dirResult = @{
             Path = $resolvedDirPath
             Action = "None"
             Success = $true
             Message = ""
         }
-        
+
         if (Test-Path $resolvedDirPath -PathType Container) {
             # Special handling for AIinstaller directory - just nuke it recursively
             $relativePath = if ($WorkspaceRoot) {
@@ -755,7 +755,7 @@ function Remove-AllAIFiles {
             } else {
                 $dir
             }
-            
+
             if ($relativePath -eq ".github/AIinstaller" -or $relativePath.StartsWith(".github/AIinstaller/")) {
                 # For AIinstaller, remove recursively with force
                 if ($DryRun) {
@@ -817,13 +817,13 @@ function Remove-AllAIFiles {
             $dirResult.Message = "Directory does not exist"
             Write-Host "[NOT FOUND]" -ForegroundColor Yellow
         }
-        
+
         $results.Directories[$resolvedDirPath] = $dirResult
     }
-    
+
     Write-Host ""
     Write-Host "Completed AI infrastructure removal." -ForegroundColor Green
-    
+
     return $results
 }
 
@@ -837,9 +837,9 @@ function Remove-EmptyParentDirectories {
         [string]$WorkspaceRoot,
         [bool]$DryRun = $false
     )
-    
+
     $cleanedCount = 0
-    
+
     # Get all unique directories that might be empty now
     $allDirs = @()
     foreach ($dir in $DirectoriesToCheck) {
@@ -848,32 +848,32 @@ function Remove-EmptyParentDirectories {
         } else {
             $dir
         }
-        
+
         # Add this directory and all its parents up to .github
         $currentDir = $resolvedDir
         while ($currentDir -and $currentDir -ne $WorkspaceRoot) {
             $relativePath = $currentDir.Replace($WorkspaceRoot, "").TrimStart('\', '/').Replace('\', '/')
-            
+
             # Only process directories under .github that are AI-related
-            if ($relativePath.StartsWith(".github/AIinstaller") -or 
-                $relativePath.StartsWith(".github/instructions") -or 
+            if ($relativePath.StartsWith(".github/AIinstaller") -or
+                $relativePath.StartsWith(".github/instructions") -or
                 $relativePath.StartsWith(".github/prompts")) {
                 $allDirs += $currentDir
             }
-            
+
             $currentDir = Split-Path $currentDir -Parent
         }
     }
-    
+
     # Remove duplicates and sort by depth (deepest first)
     $uniqueDirs = $allDirs | Sort-Object -Unique | Sort-Object { ($_ -split '[/\\]').Count } -Descending
-    
+
     # Remove empty directories
     foreach ($dir in $uniqueDirs) {
         if ((Test-Path $dir -PathType Container) -and ((Get-ChildItem $dir -Force).Count -eq 0)) {
             $dirName = Split-Path $dir -Leaf
             Write-Host "  Cleaning Directory: $dirName" -NoNewline
-            
+
             if ($DryRun) {
                 Write-Host " [WOULD REMOVE]" -ForegroundColor Yellow
                 $cleanedCount++
@@ -889,7 +889,7 @@ function Remove-EmptyParentDirectories {
             }
         }
     }
-    
+
     return $cleanedCount
 }
 
@@ -901,22 +901,22 @@ function Remove-DeprecatedFiles {
     param(
         [Parameter(Mandatory)]
         [hashtable]$ManifestConfig,
-        
+
         [Parameter(Mandatory)]
         [string]$WorkspaceRoot,
-        
+
         [bool]$DryRun = $false,
         [bool]$Quiet = $false
     )
-    
+
     $deprecatedFiles = @()
-    
+
     # Check for deprecated instruction files
     $instructionsDir = Join-Path $WorkspaceRoot ".github\instructions"
     if (Test-Path $instructionsDir -PathType Container) {
         $currentFiles = $ManifestConfig.Sections.INSTRUCTION_FILES
         $existingFiles = Get-ChildItem $instructionsDir -File | Where-Object { $_.Name -like "*.instructions.md" }
-        
+
         foreach ($existingFile in $existingFiles) {
             if ($existingFile.Name -notin $currentFiles) {
                 $deprecatedFiles += @{
@@ -928,13 +928,13 @@ function Remove-DeprecatedFiles {
             }
         }
     }
-    
+
     # Check for deprecated prompt files
     $promptsDir = Join-Path $WorkspaceRoot ".github\prompts"
     if (Test-Path $promptsDir -PathType Container) {
         $currentPrompts = $ManifestConfig.Sections.PROMPT_FILES
         $existingPrompts = Get-ChildItem $promptsDir -File | Where-Object { $_.Name -like "*.prompt.md" }
-        
+
         foreach ($existingPrompt in $existingPrompts) {
             if ($existingPrompt.Name -notin $currentPrompts) {
                 $deprecatedFiles += @{
@@ -946,7 +946,7 @@ function Remove-DeprecatedFiles {
             }
         }
     }
-    
+
     if ($deprecatedFiles.Count -gt 0) {
         if (-not $Quiet) {
             Write-Host ""
@@ -955,7 +955,7 @@ function Remove-DeprecatedFiles {
                 Write-Host "  [$($file.Type)] $($file.RelativePath)" -ForegroundColor Gray
             }
         }
-        
+
         if (-not $DryRun) {
             if (-not $Quiet) {
                 Write-Host ""
@@ -964,7 +964,7 @@ function Remove-DeprecatedFiles {
                 # Auto-approve in quiet mode (typically during installation)
                 $confirm = 'y'
             }
-            
+
             if ($confirm -eq 'y' -or $confirm -eq 'Y') {
                 $removedCount = 0
                 foreach ($file in $deprecatedFiles) {
@@ -994,7 +994,7 @@ function Remove-DeprecatedFiles {
     } elseif (-not $DryRun -and -not $Quiet) {
         Write-Host "No deprecated files found." -ForegroundColor Green
     }
-    
+
     return $deprecatedFiles
 }
 
@@ -1003,28 +1003,28 @@ function Invoke-Bootstrap {
     .SYNOPSIS
     Copy installer files to user profile for feature branch use
     #>
-    
+
     try {
         # Show operation title (main header already displayed by caller)
         Write-Host " Bootstrap - Copying Installer to User Profile" -ForegroundColor Cyan
         Write-Separator
-        
+
         # Create target directory
         $targetDirectory = Join-Path $env:USERPROFILE ".terraform-ai-installer"
         if (-not (Test-Path $targetDirectory)) {
             New-Item -ItemType Directory -Path $targetDirectory -Force | Out-Null
         }
-        
+
         # Files to bootstrap from configuration
         $filesToBootstrap = $Global:InstallerConfig.Files.InstallerFiles.Files
-        
+
         # CRITICAL: Always include the manifest file in bootstrap - it's required for user profile operations
         $manifestFile = "file-manifest.config"
         $manifestFileFullPath = ".github/AIinstaller/$manifestFile"
         if (($filesToBootstrap | Where-Object { $_ -like "*$manifestFile" }).Count -eq 0) {
             $filesToBootstrap += $manifestFileFullPath
         }
-        
+
         # Statistics
         $statistics = @{
             "Files Copied" = 0
@@ -1032,17 +1032,17 @@ function Invoke-Bootstrap {
             "Files Failed" = 0
             "Total Size" = 0
         }
-        
+
         # CRITICAL: Bootstrap should ONLY be allowed from the source branch (exp/terraform_copilot)
         # This ensures you're copying the correct, official installer files to your user profile
         # The validation in Test-PreInstallation should have already verified we're on the source branch
         $aiInstallerSourcePath = Join-Path $Global:WorkspaceRoot ".github/AIinstaller"
-        
+
         if (Test-Path $aiInstallerSourcePath) {
             Write-Host ""
             Write-Host "Copying installer files from current repository..." -ForegroundColor Cyan
             Write-Host ""
-            
+
             # Calculate maximum filename length for alignment
             $maxFileNameLength = 0
             foreach ($file in $filesToBootstrap) {
@@ -1051,7 +1051,7 @@ function Invoke-Bootstrap {
                     $maxFileNameLength = $fileName.Length
                 }
             }
-            
+
             # Copy files locally from source repository
             foreach ($file in $filesToBootstrap) {
                 try {
@@ -1063,9 +1063,9 @@ function Invoke-Bootstrap {
                         # This is a relative path - join with AIinstaller directory
                         $sourcePath = Join-Path $aiInstallerSourcePath $file
                     }
-                    
+
                     $fileName = Split-Path $file -Leaf
-                    
+
                     # Determine target path based on file type and maintain directory structure
                     if ($fileName.EndsWith('.psm1')) {
                         # PowerShell modules go in modules/powershell/ subdirectory
@@ -1090,18 +1090,18 @@ function Invoke-Bootstrap {
                         # Other files (PowerShell script, config files like file-manifest.config) go directly in target directory
                         $targetPath = Join-Path $targetDirectory $fileName
                     }
-                    
+
                     Write-Host "   Copying: " -ForegroundColor Cyan -NoNewline
                     Write-Host "$($fileName.PadRight($maxFileNameLength))" -ForegroundColor White -NoNewline
-                    
+
                     if (Test-Path $sourcePath) {
                         Copy-Item $sourcePath $targetPath -Force
-                        
+
                         if (Test-Path $targetPath) {
                             $fileSize = (Get-Item $targetPath).Length
                             $statistics["Files Copied"]++
                             $statistics["Total Size"] += $fileSize
-                            
+
                             Write-Host " [OK]" -ForegroundColor "Green"
                         } else {
                             Write-Host " [FAILED]" -ForegroundColor "Red"
@@ -1122,11 +1122,11 @@ function Invoke-Bootstrap {
             Show-AIInstallerNotFoundError
             exit 1
         }
-        
+
         # Prepare details for centralized summary
         $details = @()
         $totalSizeKB = [math]::Round($statistics["Total Size"] / 1KB, 1)
-        
+
         if ($statistics["Files Copied"] -gt 0) {
             $details += "Files Copied: $($statistics["Files Copied"])"
         }
@@ -1135,7 +1135,7 @@ function Invoke-Bootstrap {
         }
         $details += "Total Size: $totalSizeKB KB"
         $details += "Location: $targetDirectory"
-        
+
         if ($statistics["Files Failed"] -eq 0) {
             # Use centralized success reporting
             Show-OperationSummary -OperationName "Bootstrap" -Success $true -DryRun $false `
@@ -1143,10 +1143,10 @@ function Invoke-Bootstrap {
                 -ItemsSuccessful ($statistics["Files Copied"] + $statistics["Files Downloaded"]) `
                 -ItemsFailed $statistics["Files Failed"] `
                 -Details $details
-            
+
             # Show next steps using UI module function
             Show-BootstrapNextSteps
-            
+
             return @{
                 Success = $true
                 TargetDirectory = $targetDirectory
@@ -1159,7 +1159,7 @@ function Invoke-Bootstrap {
                 -ItemsSuccessful ($statistics["Files Copied"] + $statistics["Files Downloaded"]) `
                 -ItemsFailed $statistics["Files Failed"] `
                 -Details $details
-            
+
             return @{
                 Success = $false
                 Statistics = $statistics
@@ -1180,13 +1180,13 @@ function Invoke-CleanWorkspace {
     <#
     .SYNOPSIS
     High-level clean workspace operation with complete UI experience
-    
+
     .PARAMETER AutoApprove
     Skip confirmation prompts
-    
+
     .PARAMETER DryRun
     Show what would be done without making changes
-    
+
     .PARAMETER WorkspaceRoot
     Root directory of the workspace
     #>
@@ -1195,20 +1195,20 @@ function Invoke-CleanWorkspace {
         [bool]$DryRun,
         [string]$WorkspaceRoot
     )
-    
+
     Write-Host " Clean Workspace" -ForegroundColor Cyan
     Write-Separator
     Write-Host ""
-    
+
     if ($DryRun) {
         Write-Host "DRY RUN - No files will be deleted" -ForegroundColor Yellow
         Write-Host ""
     }
-    
+
     # Use the FileOperations module to properly remove all AI files
     try {
         $result = Remove-AllAIFiles -Force:$AutoApprove -DryRun:$DryRun -WorkspaceRoot $WorkspaceRoot
-        
+
         if ($result.Success) {
             # Check if this was a clean workspace (no files found)
             if ($result.CleanWorkspace) {
@@ -1223,14 +1223,14 @@ function Invoke-CleanWorkspace {
                 }
                 Write-Host "  Files Removed      : " -ForegroundColor Cyan -NoNewline
                 Write-Host "0" -ForegroundColor Green
-                Write-Host "  Directories Cleaned: " -ForegroundColor Cyan -NoNewline  
+                Write-Host "  Directories Cleaned: " -ForegroundColor Cyan -NoNewline
                 Write-Host "0" -ForegroundColor Green
                 Write-Host ""
             } else {
                 # Show completion details for actual removals
                 Write-Host ""
                 Write-Host "DETAILS:" -ForegroundColor Cyan
-                
+
                 # Find the longest key for proper alignment
                 $operationType = if ($DryRun) { "Dry run (simulation)" } else { "Live cleanup" }
                 $details = @{
@@ -1238,16 +1238,16 @@ function Invoke-CleanWorkspace {
                     "Files Removed" = $result.FilesRemoved
                     "Directories Cleaned" = $result.DirectoriesCleaned
                 }
-                
+
                 $longestKey = ($details.Keys | Sort-Object Length -Descending | Select-Object -First 1)
-                
+
                 # Display each detail with consistent alignment
                 foreach ($key in $details.Keys) {
                     $value = $details[$key]
                     $formattedLabel = Format-AlignedLabel -Label $key -LongestLabel $longestKey
-                    
+
                     Write-Host "  ${formattedLabel}: " -ForegroundColor Cyan -NoNewline
-                    
+
                     # Numbers in green, text in yellow
                     if ($value -match '^\d+$') {
                         Write-Host $value -ForegroundColor Green
@@ -1259,13 +1259,13 @@ function Invoke-CleanWorkspace {
             Write-Host ""
         } else {
             Write-Host ""
-            
+
             # Handle dry-run vs actual operation messaging differently
             if ($DryRun) {
                 # For dry-run, show positive confirmation that files were verified
                 $dryRunIssues = $result.Issues | Where-Object { $_ -match "Dry run - no changes made" }
                 $actualIssues = $result.Issues | Where-Object { $_ -notmatch "Dry run - no changes made" }
-                
+
                 if ($dryRunIssues.Count -gt 0) {
                     Write-Host "Dry run completed successfully - all $($dryRunIssues.Count) files verified and ready for removal" -ForegroundColor Green
                     Write-Host ""
@@ -1277,7 +1277,7 @@ function Invoke-CleanWorkspace {
                         Write-Host "  - $fileName" -ForegroundColor Gray
                     }
                 }
-                
+
                 # Show any actual issues (non-dry-run related)
                 if ($actualIssues.Count -gt 0) {
                     Write-Host "Actual Issues Encountered:" -ForegroundColor Cyan
@@ -1296,7 +1296,7 @@ function Invoke-CleanWorkspace {
                 Write-Host ""
             }
         }
-        
+
         return $result
     }
     catch {
@@ -1309,19 +1309,19 @@ function Invoke-InstallInfrastructure {
     <#
     .SYNOPSIS
     High-level install infrastructure operation with complete UI experience
-    
+
     .PARAMETER AutoApprove
     Skip confirmation prompts
-    
+
     .PARAMETER DryRun
     Show what would be done without making changes
-    
+
     .PARAMETER WorkspaceRoot
     Root directory of the workspace
-    
+
     .PARAMETER ManifestConfig
     Manifest configuration object
-    
+
     .PARAMETER TargetBranch
     Target repository branch name for summary display
     #>
@@ -1332,34 +1332,34 @@ function Invoke-InstallInfrastructure {
         [hashtable]$ManifestConfig,
         [string]$TargetBranch = "Unknown"
     )
-    
+
     Write-Host " Installing AI Infrastructure" -ForegroundColor Cyan
     Write-Separator
     Write-Host ""
-    
+
     if ($DryRun) {
         Write-Host "DRY RUN - No files will be created or removed" -ForegroundColor Yellow
         Write-Host ""
     }
-    
+
     # Step 1: Clean up deprecated files first (automatic part of installation)
     Write-Host "Checking for deprecated files..." -ForegroundColor Gray
     $deprecatedFiles = Remove-DeprecatedFiles -ManifestConfig $ManifestConfig -WorkspaceRoot $WorkspaceRoot -DryRun $DryRun -Quiet $true
-    
+
     if ($deprecatedFiles.Count -gt 0) {
         Write-Host "  Removed $($deprecatedFiles.Count) deprecated files" -ForegroundColor Green
     } else {
         Write-Host "  No deprecated files found" -ForegroundColor Cyan
     }
     Write-Host ""
-    
+
     # Step 2: Install/update current files
     Write-Host "Installing current AI infrastructure files..." -ForegroundColor Cyan
-    
+
     # Use the FileOperations module to actually install files
     try {
         $result = Install-AllAIFiles -Force:$AutoApprove -DryRun:$DryRun -WorkspaceRoot $WorkspaceRoot -ManifestConfig $ManifestConfig
-        
+
         if ($result.OverallSuccess) {
             # Use the superior completion summary function
             $nextSteps = @()
@@ -1368,23 +1368,23 @@ function Invoke-InstallInfrastructure {
             }
             $nextSteps += "Start using GitHub Copilot with your new AI-assisted infrastructure"
             $nextSteps += "Check the .github/instructions/ folder for detailed guidelines"
-            
+
             # Get branch information for completion summary - use target branch passed in
-            $currentBranch = if ($TargetBranch -and $TargetBranch -ne "Unknown") { 
-                $TargetBranch 
-            } else { 
-                "Unknown" 
+            $currentBranch = if ($TargetBranch -and $TargetBranch -ne "Unknown") {
+                $TargetBranch
+            } else {
+                "Unknown"
             }
-            
+
             # Determine branch type based on TARGET branch, not source repository
-            $branchType = if ($currentBranch -eq "exp/terraform_copilot") { 
-                "source" 
-            } elseif ($currentBranch -eq "Unknown") { 
-                "Unknown" 
-            } else { 
-                "feature" 
+            $branchType = if ($currentBranch -eq "exp/terraform_copilot") {
+                "source"
+            } elseif ($currentBranch -eq "Unknown") {
+                "Unknown"
+            } else {
+                "feature"
             }
-            
+
             # Prepare comprehensive details for installation summary
             $details = @()
             if ($result.Successful -gt 0) {
@@ -1399,18 +1399,18 @@ function Invoke-InstallInfrastructure {
             $details += "Branch Type: $branchType"
             $details += "Target Branch: $currentBranch"
             $details += "Location: $WorkspaceRoot"
-            
+
             # Calculate total size if available in debug info
             if ($result.DebugInfo -and $result.DebugInfo.TotalSizeBytes) {
                 $totalSizeKB = [math]::Round($result.DebugInfo.TotalSizeBytes / 1KB, 1)
                 $details += "Total Size: $totalSizeKB KB"
             }
-            
+
             Show-OperationSummary -OperationName "Installation" -Success $true -ItemsSuccessful $result.Successful -ItemsFailed $result.Failed -Details $details
         } else {
             Show-InstallationResults -Results $result
         }
-        
+
         return @{ Success = $result.OverallSuccess; Details = $result }
     }
     catch {

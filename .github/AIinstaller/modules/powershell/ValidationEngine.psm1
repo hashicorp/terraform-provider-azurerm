@@ -13,17 +13,17 @@ function Find-WorkspaceRoot {
         [Parameter(Mandatory)]
         [string]$StartPath
     )
-    
+
     $currentPath = $StartPath
     $maxDepth = 10  # Prevent infinite loops
     $depth = 0
-    
+
     while ($depth -lt $maxDepth -and $currentPath) {
         $goModPath = Join-Path $currentPath "go.mod"
         if (Test-Path $goModPath) {
             return $currentPath
         }
-        
+
         # Move to parent directory
         $parentPath = Split-Path $currentPath -Parent
         if ($parentPath -eq $currentPath) {
@@ -33,7 +33,7 @@ function Find-WorkspaceRoot {
         $currentPath = $parentPath
         $depth++
     }
-    
+
     return $null
 }
 
@@ -42,18 +42,18 @@ function Test-PowerShellVersion {
     .SYNOPSIS
     Test if PowerShell version meets requirements
     #>
-    
+
     $minimumVersion = [Version]"5.1"
     $currentVersion = $PSVersionTable.PSVersion
-    
+
     return @{
         Valid = $currentVersion -ge $minimumVersion
         CurrentVersion = $currentVersion.ToString()
         MinimumVersion = $minimumVersion.ToString()
-        Reason = if ($currentVersion -ge $minimumVersion) { 
-            "PowerShell version is supported" 
-        } else { 
-            "PowerShell $minimumVersion or later is required" 
+        Reason = if ($currentVersion -ge $minimumVersion) {
+            "PowerShell version is supported"
+        } else {
+            "PowerShell $minimumVersion or later is required"
         }
     }
 }
@@ -63,10 +63,10 @@ function Test-ExecutionPolicy {
     .SYNOPSIS
     Test if execution policy allows script execution
     #>
-    
+
     $policy = Get-ExecutionPolicy -Scope CurrentUser
     $allowedPolicies = @("RemoteSigned", "Unrestricted", "Bypass")
-    
+
     return @{
         Valid = $policy -in $allowedPolicies
         CurrentPolicy = $policy.ToString()
@@ -84,11 +84,11 @@ function Test-RequiredCommands {
     .SYNOPSIS
     Test if required external commands are available
     #>
-    
+
     $requiredCommands = @("git")
     $results = @{}
     $allValid = $true
-    
+
     foreach ($command in $requiredCommands) {
         try {
             $commandInfo = Get-Command $command -ErrorAction Stop
@@ -98,7 +98,7 @@ function Test-RequiredCommands {
                 Path = $commandInfo.Source
                 Reason = "Command is available"
             }
-            
+
             # Try to get version for git
             if ($command -eq "git") {
                 try {
@@ -122,7 +122,7 @@ function Test-RequiredCommands {
             $allValid = $false
         }
     }
-    
+
     return @{
         Valid = $allValid
         Commands = $results
@@ -135,20 +135,20 @@ function Test-InternetConnectivity {
     .SYNOPSIS
     Test internet connectivity to required endpoints
     #>
-    
+
     $testUrls = @(
         "https://api.github.com",
         "https://raw.githubusercontent.com"
     )
-    
+
     $results = @{
         Connected = $false
         TestedEndpoints = @{}
         Reason = ""
     }
-    
+
     $successCount = 0
-    
+
     foreach ($url in $testUrls) {
         try {
             # Disable progress bar to prevent console flashing
@@ -173,14 +173,14 @@ function Test-InternetConnectivity {
             $ProgressPreference = 'Continue'
         }
     }
-    
+
     $results.Connected = $successCount -gt 0
     $results.Reason = if ($results.Connected) {
         "Internet connectivity verified ($successCount/$($testUrls.Count) endpoints reachable)"
     } else {
         "No internet connectivity detected. Check network connection and firewall settings."
     }
-    
+
     return $results
 }
 
@@ -193,7 +193,7 @@ function Test-GitRepository {
         [bool]$AllowBootstrapOnSource = $false,
         [string]$WorkspacePath = ""
     )
-    
+
     $results = @{
         Valid = $false
         IsGitRepo = $false
@@ -202,19 +202,19 @@ function Test-GitRepository {
         RemoteUrl = ""
         Reason = ""
     }
-    
+
     try {
         # Save current location and switch to workspace if provided
         $originalLocation = Get-Location
         if ($WorkspacePath -and (Test-Path $WorkspacePath)) {
             Set-Location $WorkspacePath
         }
-        
+
         try {
             # Test if we're in a git repository
             $null = git status --porcelain 2>$null
             $results.IsGitRepo = $LASTEXITCODE -eq 0
-            
+
             if ($results.IsGitRepo) {
                 # Get current branch
                 try {
@@ -226,7 +226,7 @@ function Test-GitRepository {
                 catch {
                     $results.CurrentBranch = "Unknown"
                 }
-                
+
                 # Get remote URL
                 try {
                     $results.RemoteUrl = git remote get-url origin 2>$null
@@ -235,13 +235,13 @@ function Test-GitRepository {
                 catch {
                     $results.HasRemote = $false
                 }
-                
+
                 # CRITICAL SAFETY CHECK: Prevent running on source branch (unless bootstrap)
                 $sourceBranches = @("main", "master", "exp/terraform_copilot")
                 $isSourceBranch = $results.CurrentBranch -in $sourceBranches
-                
+
                 $results.Valid = $results.IsGitRepo -and $results.HasRemote -and (-not $isSourceBranch -or $AllowBootstrapOnSource)
-                
+
                 if ($isSourceBranch -and -not $AllowBootstrapOnSource) {
                     $results.Reason = "SAFETY VIOLATION: Cannot run installer on source branch '$($results.CurrentBranch)'. Switch to a different branch to install AI infrastructure."
                 }
@@ -268,7 +268,7 @@ function Test-GitRepository {
     catch {
         $results.Reason = "Error checking git repository: $($_.Exception.Message)"
     }
-    
+
     return $results
 }
 
@@ -284,7 +284,7 @@ function Test-WorkspaceValid {
     param(
         [string]$WorkspacePath = ""
     )
-    
+
     # Smart workspace detection - use provided path or find from current location
     if ($WorkspacePath) {
         # When WorkspacePath is provided, check if it's already the workspace root
@@ -302,7 +302,7 @@ function Test-WorkspaceValid {
         $currentPath = Get-Location
         $workspaceRoot = Find-WorkspaceRoot -StartPath $currentPath.Path
     }
-    
+
     $results = @{
         Valid = $false
         Path = $workspaceRoot
@@ -319,11 +319,11 @@ function Test-WorkspaceValid {
     }    # Check for go.mod file in workspace root
     $goModPath = Join-Path $workspaceRoot "go.mod"
     $results.HasGoMod = Test-Path $goModPath
-    
-    # Check for main.go file in workspace root  
+
+    # Check for main.go file in workspace root
     $mainGoPath = Join-Path $workspaceRoot "main.go"
     $results.HasMainGo = Test-Path $mainGoPath
-    
+
     # Check if this is the terraform-provider-azurerm repository
     if ($results.HasGoMod) {
         try {
@@ -334,10 +334,10 @@ function Test-WorkspaceValid {
             $results.IsAzureRMProvider = $false
         }
     }
-    
+
     # Determine validity
     $results.Valid = $results.HasGoMod -and $results.HasMainGo -and $results.IsAzureRMProvider
-    
+
     if ($results.Valid) {
         $results.Reason = "Valid Terraform AzureRM provider workspace"
     }
@@ -353,7 +353,7 @@ function Test-WorkspaceValid {
     else {
         $results.Reason = "Workspace validation failed"
     }
-    
+
     return $results
 }
 
@@ -362,7 +362,7 @@ function Test-SystemRequirements {
     .SYNOPSIS
     Test all system requirements for the AI installer
     #>
-    
+
     $results = @{
         OverallValid = $true
         PowerShell = Test-PowerShellVersion
@@ -370,13 +370,13 @@ function Test-SystemRequirements {
         Commands = Test-RequiredCommands
         Internet = Test-InternetConnectivity
     }
-    
+
     # Check if any requirement failed
-    $results.OverallValid = $results.PowerShell.Valid -and 
-                           $results.ExecutionPolicy.Valid -and 
-                           $results.Commands.Valid -and 
+    $results.OverallValid = $results.PowerShell.Valid -and
+                           $results.ExecutionPolicy.Valid -and
+                           $results.Commands.Valid -and
                            $results.Internet.Connected
-    
+
     return $results
 }
 
@@ -388,7 +388,7 @@ function Test-PreInstallation {
     param(
         [bool]$AllowBootstrapOnSource = $false
     )
-    
+
     $results = @{
         OverallValid = $true
         Git = $null
@@ -396,39 +396,39 @@ function Test-PreInstallation {
         SystemRequirements = $null
         Timestamp = Get-Date
     }
-    
+
     # CRITICAL: Check Git first for branch safety
     # Use the workspace root for git operations if available
     $gitPath = if ($Global:WorkspaceRoot) { $Global:WorkspaceRoot } else { (Get-Location).Path }
     $results.Git = Test-GitRepository -AllowBootstrapOnSource $AllowBootstrapOnSource -WorkspacePath $gitPath
-    
+
     # If Git validation fails due to branch safety, short-circuit other validations
     # This prevents running unnecessary tests when we know we can't proceed
     if (-not $results.Git.Valid -and $results.Git.Reason -like "*SAFETY VIOLATION*") {
         $results.OverallValid = $false
-        
+
         # Still run system requirements (these are always safe to check)
         $results.SystemRequirements = Test-SystemRequirements
-        
+
         # Skip workspace and detailed checks due to safety violation
         $results.Workspace = @{
             Valid = $false
             Reason = "Skipped due to Git branch safety violation"
             Skipped = $true
         }
-        
+
         return $results
     }
-    
+
     # Continue with full validation if Git is safe
     $results.Workspace = Test-WorkspaceValid -WorkspacePath $Global:WorkspaceRoot
     $results.SystemRequirements = Test-SystemRequirements
-    
+
     # Check overall validity - Git validation (including branch safety) is critical
     $results.OverallValid = $results.Git.Valid -and
                            $results.Workspace.Valid -and
                            $results.SystemRequirements.OverallValid
-    
+
     return $results
 }
 
@@ -436,21 +436,21 @@ function Test-SourceRepository {
     <#
     .SYNOPSIS
     Determines if we're running on the source repository vs a target repository
-    
+
     .DESCRIPTION
     Checks various indicators to determine if this is the source repository where
     AI infrastructure files are maintained vs a target repository where they
     would be installed.
-    
+
     .OUTPUTS
     Boolean - True if this is the source repository, False if target
-    
+
     .NOTES
     CRITICAL FUNCTION: This provides essential source repository protection.
     The logic here determines whether files should be copied locally or downloaded
     remotely, preventing accidental overwriting of source files.
     #>
-    
+
     # Check if we're on a source branch (main, master, exp/terraform_copilot)
     try {
         Push-Location $Global:WorkspaceRoot
@@ -464,25 +464,25 @@ function Test-SourceRepository {
     } finally {
         Pop-Location
     }
-    
+
     # Check if AIinstaller directory exists (only in source)
     $aiInstallerPath = Join-Path $Global:WorkspaceRoot ".github/AIinstaller"
     if (Test-Path $aiInstallerPath) {
         return $true
     }
-    
+
     # Check if this directory structure looks like the source
     $copilotInstructionsPath = Join-Path $Global:WorkspaceRoot ".github/copilot-instructions.md"
     $instructionsPath = Join-Path $Global:WorkspaceRoot ".github/instructions"
     $promptsPath = Join-Path $Global:WorkspaceRoot ".github/prompts"
-    
-    if ((Test-Path $copilotInstructionsPath) -and 
-        (Test-Path $instructionsPath) -and 
+
+    if ((Test-Path $copilotInstructionsPath) -and
+        (Test-Path $instructionsPath) -and
         (Test-Path $promptsPath) -and
         (Test-Path $aiInstallerPath)) {
         return $true
     }
-    
+
     return $false
 }
 
@@ -490,20 +490,20 @@ function Invoke-VerifyWorkspace {
     <#
     .SYNOPSIS
     Verifies the presence of AI infrastructure files in the workspace
-    
+
     .DESCRIPTION
     Checks for all required AI infrastructure files including:
     - Main copilot instructions
     - Detailed instruction files
     - Prompts directory
     - VS Code settings
-    
+
     .PARAMETER BranchType
     The type of branch (source, feature, Unknown) for dynamic spacing calculation
-    
+
     .OUTPUTS
     Returns verification results and displays status to console
-    
+
     .NOTES
     This function maintains source repository awareness and provides different
     behavior for source vs target repositories.
@@ -512,15 +512,15 @@ function Invoke-VerifyWorkspace {
         [ValidateSet("source", "feature", "Unknown")]
         [string]$BranchType = "feature"
     )
-    
+
     # Use the dynamically determined workspace root
     $workspaceRoot = $Global:WorkspaceRoot
     Push-Location $workspaceRoot
-    
+
     try {
         # CRITICAL: Use centralized validation (replaces Test-SourceRepository)
         $validation = Test-PreInstallation -AllowBootstrapOnSource:$true  # Allow verification on source
-        
+
         $results = @{
             Success = $validation.OverallValid
             Files = @()
@@ -528,7 +528,7 @@ function Invoke-VerifyWorkspace {
             IsSourceRepo = ($validation.Git.CurrentBranch -in @("main", "master", "exp/terraform_copilot"))
             ValidationResults = $validation
         }
-        
+
         # If basic validation failed, show that first
         if (-not $validation.OverallValid) {
             $results.Issues += "Workspace validation failed: $($validation.Git.Reason)"
@@ -536,11 +536,11 @@ function Invoke-VerifyWorkspace {
             Write-Host "   $($validation.Git.Reason)" -ForegroundColor Yellow
             return $results
         }
-        
+
         Write-Host " Workspace Verification" -ForegroundColor Cyan
         Write-Separator
         Write-Host ""
-        
+
         # Check main instructions file
         $instructionsFile = $Global:InstallerConfig.Files.Instructions.Target
         if (Test-Path $instructionsFile) {
@@ -559,7 +559,7 @@ function Invoke-VerifyWorkspace {
             $results.Issues += "Missing: $instructionsFile"
             Write-Host "  [MISSING] $(Resolve-Path $instructionsFile -Relative -ErrorAction SilentlyContinue)" -ForegroundColor Red
         }
-        
+
         # Check instructions directory
         $instructionsDir = $Global:InstallerConfig.Files.InstructionFiles.Target
         if (Test-Path $instructionsDir -PathType Container) {
@@ -569,10 +569,10 @@ function Invoke-VerifyWorkspace {
                 Description = "Instructions directory"
             }
             Write-Host "  [FOUND] $(Resolve-Path $instructionsDir -Relative)/" -ForegroundColor Green
-            
+
             # Check specific instruction files
             $requiredFiles = $Global:InstallerConfig.Files.InstructionFiles.Files
-            
+
             foreach ($file in $requiredFiles) {
                 # Handle full repository paths vs relative paths
                 if ($file.StartsWith('.github/')) {
@@ -582,7 +582,7 @@ function Invoke-VerifyWorkspace {
                     # This is a relative path - join with target directory
                     $filePath = Join-Path $instructionsDir $file
                 }
-                
+
                 if (Test-Path $filePath) {
                     $results.Files += @{
                         Path = $file
@@ -604,7 +604,7 @@ function Invoke-VerifyWorkspace {
             $results.Issues += "Missing: $instructionsDir"
             Write-Host "  [MISSING] $(Resolve-Path $instructionsDir -Relative -ErrorAction SilentlyContinue)/" -ForegroundColor Red
         }
-        
+
         # Check prompts directory
         $promptsDir = $Global:InstallerConfig.Files.PromptFiles.Target
         if (Test-Path $promptsDir -PathType Container) {
@@ -614,10 +614,10 @@ function Invoke-VerifyWorkspace {
                 Description = "Prompts directory"
             }
             Write-Host "  [FOUND] $(Resolve-Path $promptsDir -Relative)/" -ForegroundColor Green
-            
+
             # Check specific prompt files
             $requiredPrompts = $Global:InstallerConfig.Files.PromptFiles.Files
-            
+
             foreach ($file in $requiredPrompts) {
                 # Handle full repository paths vs relative paths
                 if ($file.StartsWith('.github/')) {
@@ -627,7 +627,7 @@ function Invoke-VerifyWorkspace {
                     # This is a relative path - join with target directory
                     $filePath = Join-Path $promptsDir $file
                 }
-                
+
                 if (Test-Path $filePath) {
                     $results.Files += @{
                         Path = $file
@@ -649,7 +649,7 @@ function Invoke-VerifyWorkspace {
             $results.Issues += "Missing: $promptsDir"
             Write-Host "  [MISSING] $(Resolve-Path $promptsDir -Relative -ErrorAction SilentlyContinue)/" -ForegroundColor Red
         }
-        
+
         # Check .vscode directory and settings
         $vscodeDir = Join-Path $workspaceRoot ".vscode"
         if (Test-Path $vscodeDir -PathType Container) {
@@ -659,7 +659,7 @@ function Invoke-VerifyWorkspace {
                 Description = "VSCode directory"
             }
             Write-Host "  [FOUND] .vscode/" -ForegroundColor Green
-            
+
             $settingsFile = Join-Path $vscodeDir "settings.json"
             if (Test-Path $settingsFile) {
                 $results.Files += @{
@@ -676,7 +676,7 @@ function Invoke-VerifyWorkspace {
             Write-Host "  [MISSING] .vscode/" -ForegroundColor Red
             $results.Issues += "Missing: $vscodeDir"
         }
-        
+
         # Show results summary
         if ($results.Issues.Count -gt 0) {
             $results.Success = $false
@@ -684,42 +684,42 @@ function Invoke-VerifyWorkspace {
             foreach ($issue in $results.Issues) {
                 Write-Host "  - $issue" -ForegroundColor Red
             }
-            
+
             if (-not $results.IsSourceRepo) {
                 Write-Host ""
                 Write-Host "TIP: To install missing files, run the installer from user profile" -ForegroundColor Cyan
             }
         }
-        
+
         # Prepare details for centralized summary
         $details = @()
         $filesFound = $results.Files.Count
         $issuesFound = $results.Issues.Count
-        
+
         # Determine branch type based on current branch (same logic as installation)
         $currentBranch = $validation.Git.CurrentBranch
         $sourceBranches = @("main", "master", "exp/terraform_copilot")
-        $branchType = if ($currentBranch -in $sourceBranches) { 
-            "source" 
-        } elseif ($currentBranch -eq "Unknown") { 
-            "Unknown" 
-        } else { 
-            "feature" 
+        $branchType = if ($currentBranch -in $sourceBranches) {
+            "source"
+        } elseif ($currentBranch -eq "Unknown") {
+            "Unknown"
+        } else {
+            "feature"
         }
-        
+
         $details += "Branch Type: $branchType"
         $details += "Target Branch: $currentBranch"
         $details += "Files Verified: $filesFound"
         $details += "Issues Found: $issuesFound"
         $details += "Location: $workspaceRoot"
-        
+
         # Use centralized success reporting
         Show-OperationSummary -OperationName "Verification" -Success ($issuesFound -eq 0) -DryRun $false `
             -ItemsProcessed $filesFound `
             -ItemsSuccessful $filesFound `
             -ItemsFailed $issuesFound `
             -Details $details
-        
+
         return $results
     }
     finally {

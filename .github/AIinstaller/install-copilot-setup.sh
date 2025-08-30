@@ -300,15 +300,18 @@ main() {
     fi
     
     # Determine branch type early (like PowerShell version)
-    # Compare against the actual source branch that contains AI infrastructure
-    local source_branch_name="${BRANCH}"  # Use the configured branch name
-    if [[ "${current_branch}" == "${source_branch_name}" ]]; then
-        branch_type="source"
-        is_source_branch=true
-    else
-        branch_type="feature"
-        is_source_branch=false
-    fi
+    # Check if current branch is a source branch (main, master, or exp/terraform_copilot)
+    # Source branches are protected from AI infrastructure installation for safety
+    case "${current_branch}" in
+        "main"|"master"|"exp/terraform_copilot")
+            branch_type="source"
+            is_source_branch=true
+            ;;
+        *)
+            branch_type="feature"
+            is_source_branch=false
+            ;;
+    esac
     
     # Show branch detection with consistent formatting
     show_branch_detection "${current_branch}" "${workspace_root}"

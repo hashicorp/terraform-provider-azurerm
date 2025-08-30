@@ -123,7 +123,7 @@ Choose your platform and follow the two-step process:
 **Phase 1 - Bootstrap (one-time setup):**
 Choose your platform:
 
-- **Windows**: `.\install-copilot-setup.ps1 -Bootstrap`  
+- **Windows**: `.\install-copilot-setup.ps1 -Bootstrap`
 - **macOS/Linux**: `./install-copilot-setup.sh -bootstrap`
 
 > 💡 **Windows Tip**: If PowerShell blocks script execution, add `-ExecutionPolicy Bypass` (see troubleshooting below)
@@ -409,7 +409,7 @@ When running the installer **from your user profile** (after bootstrap), you **M
 
 **Why is this required?**
 - The installer needs to know where your git repository is located
-- Enables proper branch detection and workspace validation  
+- Enables proper branch detection and workspace validation
 - Ensures files are installed in the correct repository directory
 
 ## 🌊 Workflow Overview
@@ -566,7 +566,7 @@ Combine multiple commands for complex tasks:
 **Solution**: Switch to a feature branch before running clean operations.
 
 #### ❌ "DIRECTORY NOT FOUND: The specified RepoDirectory does not exist"
-**Solution**: 
+**Solution**:
 - Check the path spelling and ensure it exists
 - Use an absolute path (e.g., `C:\path\to\repo`)
 - Ensure you have permissions to access the directory

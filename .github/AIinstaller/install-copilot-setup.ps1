@@ -173,7 +173,9 @@ function Main {
             }
             
             # Block operations on source branch immediately (except Verify, Help, Bootstrap)
-            if ($currentBranch -eq "exp/terraform_copilot" -and -not ($Verify -or $Help -or $Bootstrap)) {
+            # Source branches: main, master, exp/terraform_copilot
+            $sourceBranches = @("main", "master", "exp/terraform_copilot")
+            if ($currentBranch -in $sourceBranches -and -not ($Verify -or $Help -or $Bootstrap)) {
                 Show-SafetyViolation -BranchName $currentBranch -Operation "Install" -FromUserProfile
                 exit 1
             }
@@ -234,7 +236,10 @@ function Main {
             }
         }
         
-        $isSourceRepo = ($currentBranch -eq "exp/terraform_copilot")
+        # Check if current branch is a source branch (main, master, or exp/terraform_copilot)
+        # Source branches are protected from AI infrastructure installation for safety
+        $sourceBranches = @("main", "master", "exp/terraform_copilot")
+        $isSourceRepo = ($currentBranch -in $sourceBranches)
         $branchType = if ($isSourceRepo) { "source" } else { 
             if ($currentBranch -eq "Unknown") { "Unknown" } else { "feature" }
         }
