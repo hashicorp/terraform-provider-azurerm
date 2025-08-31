@@ -374,7 +374,6 @@ Simply use slash commands to invoke the prompts directly:
 | Parameter | Description | Required When | Example |
 |-----------|-------------|---------------|---------|
 | `-RepoDirectory` | **Specify repository path** | Running from user profile | `-RepoDirectory "C:\path\to\terraform-provider-azurerm"` |
-| `-Auto-Approve` | Skip confirmation prompts | Optional | `-Auto-Approve` |
 | `-Dry-Run` | Preview changes without applying | Optional | `-Dry-Run` |
 
 **macOS/Linux (Bash):**
@@ -382,7 +381,6 @@ Simply use slash commands to invoke the prompts directly:
 | Parameter | Description | Required When | Example |
 |-----------|-------------|---------------|---------|
 | `-repo-directory` | **Specify repository path** | Running from user profile | `-repo-directory "/path/to/terraform-provider-azurerm"` |
-| `-auto-approve` | Skip confirmation prompts | Optional | `-auto-approve` |
 | `-dry-run` | Preview changes without applying | Optional | `-dry-run` |
 
 ### 🚨 Important: Repository Directory Parameter
@@ -477,6 +475,81 @@ graph TD
     F --> G
 ```
 
+## 🔄 Automated Deprecation Management
+
+The installer includes **intelligent deprecation management** that automatically maintains your AI development environment:
+
+### ✨ Smart File Lifecycle Management
+
+During each installation, the tool automatically:
+
+- **🔍 Scans** existing instruction and prompt files in your workspace
+- **📋 Compares** them against the current manifest from the source branch
+- **🗑️ Removes** deprecated files that are no longer part of the AI infrastructure
+- **✅ Preserves** current files that remain active
+
+### 🎯 What Gets Managed
+
+**Instruction Files** (`.github/instructions/`)
+- `*.instructions.md` files for AI coding guidelines
+- Automatic removal of outdated instruction patterns
+- Ensures you always have the latest AI development guidance
+
+**Prompt Files** (`.github/prompts/`)
+- `*.prompt.md` files for AI interaction templates
+- Removes obsolete prompt templates
+- Keeps your prompt library current and effective
+
+### 💡 How It Works
+
+**Automatic During Installation:**
+```powershell
+# Windows - deprecation check runs automatically
+.\install-copilot-setup.ps1 -RepoDirectory "C:\path\to\repo"
+
+# Output example:
+# Checking for deprecated files...
+#   Removed deprecated instruction file: old-pattern.instructions.md
+#   Removed deprecated prompt file: legacy-prompt.prompt.md
+#   Removed 2 deprecated file(s)
+```
+
+```bash
+# macOS/Linux - deprecation check runs automatically
+./install-copilot-setup.sh -repo-directory "/path/to/repo"
+
+# Output example:
+# Checking for deprecated files...
+#   Removed deprecated instruction file: old-pattern.instructions.md
+#   Removed deprecated prompt file: legacy-prompt.prompt.md
+#   Removed 2 deprecated file(s)
+```
+
+**Dry-Run Preview:**
+```powershell
+# Preview what would be removed (Windows)
+.\install-copilot-setup.ps1 -Dry-Run -RepoDirectory "C:\path\to\repo"
+
+# Output example:
+# [DRY-RUN] Would remove instruction file: old-pattern.instructions.md
+# [DRY-RUN] Would remove prompt file: legacy-prompt.prompt.md
+# Found 2 deprecated file(s) that would be removed
+```
+
+### 🛡️ Safety Features
+
+- **Non-destructive preview** with `-Dry-Run` / `-dry-run` flag
+- **Branch protection** - Only operates on feature branches, never on source branch
+- **Manifest validation** - Only removes files not in current official manifest
+- **Error handling** - Graceful handling of permission issues or file locks
+
+### 🚀 Benefits
+
+- **🎯 Always Current**: Your AI environment stays synchronized with the latest patterns
+- **🧹 Clean Workspace**: No accumulation of obsolete AI guidance files
+- **⚡ Zero Maintenance**: Fully automatic - no manual cleanup required
+- **🔄 Version Sync**: Ensures your local environment matches the source branch requirements
+
 ## 🎯 AI Prompt Usage Patterns
 
 ### Quick Start with Prompts
@@ -535,9 +608,6 @@ Combine multiple commands for complex tasks:
 ```powershell
 # After bootstrap - run from anywhere using user profile installer
 & "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -Clean -RepoDirectory "C:\github.com\hashicorp\terraform-provider-azurerm"
-
-# Remove without prompts
-& "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -Clean -Auto-Approve -RepoDirectory "C:\github.com\hashicorp\terraform-provider-azurerm"
 
 # Preview what would be removed
 & "$env:USERPROFILE\.terraform-ai-installer\install-copilot-setup.ps1" -Clean -Dry-Run -RepoDirectory "C:\github.com\hashicorp\terraform-provider-azurerm"

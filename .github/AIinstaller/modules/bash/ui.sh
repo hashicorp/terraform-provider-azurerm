@@ -692,7 +692,6 @@ show_feature_branch_help() {
 
     write_cyan "AVAILABLE OPTIONS:"
     write_plain "  -repo-directory   Repository path (path to your feature branch directory)"
-    write_plain "  -auto-approve     Overwrite existing files without prompting"
     write_plain "  -dry-run          Show what would be done without making changes"
     write_plain "  -verify           Check current workspace status and validate setup"
     write_plain "  -clean            Remove AI infrastructure from workspace"
@@ -707,10 +706,6 @@ show_feature_branch_help() {
     write_cyan "  Dry-Run (preview changes):"
     write_plain "    cd ~/.terraform-ai-installer/"
     write_plain "    ./install-copilot-setup.sh -repo-directory \"/path/to/your/feature/branch\" -dry-run"
-    echo ""
-    write_cyan "  Auto-Approve installation:"
-    write_plain "    cd ~/.terraform-ai-installer/"
-    write_plain "    ./install-copilot-setup.sh -repo-directory \"/path/to/your/feature/branch\" -auto-approve"
     echo ""
     write_cyan "  Clean removal:"
     write_plain "    cd ~/.terraform-ai-installer/"
@@ -787,7 +782,8 @@ show_unknown_branch_help() {
 show_source_branch_welcome() {
     local branch_name="${1:-exp/terraform_copilot}"
 
-    write_green "WELCOME TO AI-ASSISTED AZURERM TERRAFORM DEVELOPMENT"
+    echo ""
+    write_green " WELCOME TO AI-ASSISTED AZURERM TERRAFORM DEVELOPMENT"
     echo ""
     write_cyan "Use the contextual help system above to get started."
     echo ""

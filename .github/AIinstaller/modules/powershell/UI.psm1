@@ -195,7 +195,6 @@ function Show-FeatureBranchHelp {
 
     Write-Host "AVAILABLE OPTIONS:" -ForegroundColor Cyan
     Write-Host "  -RepoDirectory    Repository path (path to your feature branch directory)"
-    Write-Host "  -Auto-Approve     Overwrite existing files without prompting"
     Write-Host "  -Dry-Run          Show what would be done without making changes"
     Write-Host "  -Verify           Check current workspace status and validate setup"
     Write-Host "  -Clean            Remove AI infrastructure from workspace"
@@ -210,10 +209,6 @@ function Show-FeatureBranchHelp {
     Write-Host "  Dry-Run (preview changes):"
     Write-Host "    cd `"`$env:USERPROFILE\.terraform-ai-installer`""
     Write-Host "    .\install-copilot-setup.ps1 -RepoDirectory `"C:\path\to\your\feature\branch`" -Dry-Run"
-    Write-Host ""
-    Write-Host "  Auto-Approve installation:"
-    Write-Host "    cd `"`$env:USERPROFILE\.terraform-ai-installer`""
-    Write-Host "    .\install-copilot-setup.ps1 -RepoDirectory `"C:\path\to\your\feature\branch`" -Auto-Approve"
     Write-Host ""
     Write-Host "  Clean removal:"
     Write-Host "    cd `"`$env:USERPROFILE\.terraform-ai-installer`""
@@ -270,7 +265,6 @@ function Show-UnknownBranchHelp {
     Write-Host "ALL OPTIONS:" -ForegroundColor Cyan
     Write-Host "  -Bootstrap        Copy installer to user profile (~\.terraform-ai-installer\)"
     Write-Host "  -RepoDirectory    Repository path for git operations (when running from user profile)"
-    Write-Host "  -Auto-Approve     Overwrite existing files without prompting"
     Write-Host "  -Dry-Run          Show what would be done without making changes"
     Write-Host "  -Verify           Check current workspace status and validate setup"
     Write-Host "  -Clean            Remove AI infrastructure from workspace"
@@ -305,7 +299,7 @@ function Show-InstallationResults {
     if ($Results.OverallSuccess) {
         Write-Host "[SUCCESS] Successfully installed $($Results.Successful) files" -ForegroundColor Green
         if ($Results.Skipped -gt 0) {
-            Write-Host "[WARNING] Skipped $($Results.Skipped) existing files (use -Auto-Approve to overwrite)" -ForegroundColor Yellow
+            Write-Host "[INFO] Skipped $($Results.Skipped) files (already up-to-date)" -ForegroundColor Cyan
         }
     } else {
         Write-Host "[WARNING] Installation completed with some failures:" -ForegroundColor Yellow
@@ -325,7 +319,8 @@ function Show-SourceBranchWelcome {
         [string]$BranchName
     )
 
-    Write-Host "WELCOME TO AI-ASSISTED AZURERM TERRAFORM DEVELOPMENT" -ForegroundColor Green
+    Write-Host ""
+    Write-Host " WELCOME TO AI-ASSISTED AZURERM TERRAFORM DEVELOPMENT" -ForegroundColor Green
     Write-Host ""
     Write-Host "Use the contextual help system above to get started." -ForegroundColor Cyan
     Write-Host ""

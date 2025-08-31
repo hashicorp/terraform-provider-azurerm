@@ -1,32 +1,109 @@
 #!/usr/bin/env bash
 # ConfigParser Module for Terraform AzureRM Provider AI Setup (Bash)
-# Handles configuration parsing, user profiles, and installation settings
+# STREAMLINED VERSION - Contains only functions actually used by main script
 
-# Function to get source repository URL
-get_source_repository() {
-    echo "${SOURCE_REPOSITORY:-https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm}"
-}
+# Function to get manifest configuration - equivalent to PowerShell Get-ManifestConfig
+get_manifest_config() {
+    local manifest_path="${1:-}"
+    local branch="${2:-exp/terraform_copilot}"
 
-# Function to get current branch
-get_source_branch() {
-    echo "${BRANCH:-exp/terraform_copilot}"
-}
+    # Find manifest file if not specified
+    if [[ -z "${manifest_path}" ]]; then
+        # Try multiple locations (equivalent to PowerShell logic)
+        local possible_paths=(
+            "${HOME}/.terraform-ai-installer/file-manifest.config"
+            "$(dirname "$(dirname "$0")")/file-manifest.config"
+            "$(dirname "$(dirname "$(dirname "$0")")")/file-manifest.config"
+        )
 
-# Function to read manifest configuration
-read_manifest_config() {
-    local manifest_file="${1:-${HOME}/.terraform-ai-installer/file-manifest.config}"
+        for path in "${possible_paths[@]}"; do
+            if [[ -f "${path}" ]]; then
+                manifest_path="${path}"
+                break
+            fi
+        done
 
-    if [[ ! -f "${manifest_file}" ]]; then
-        write_error_message "Manifest file not found: ${manifest_file}"
-        echo "Please run with --bootstrap first to set up the installer."
+        # Fallback
+        if [[ -z "${manifest_path}" ]]; then
+            local script_root="$(dirname "$(dirname "$0")")"
+            manifest_path="${script_root}/file-manifest.config"
+        fi
+    fi
+
+    if [[ ! -f "${manifest_path}" ]]; then
+        write_error_message "Manifest file not found: ${manifest_path}"
         return 1
     fi
 
-    # For now, return success - in future could parse actual manifest
+    # Parse manifest sections (simplified - just check if file exists and is readable)
+    local has_instructions=false
+    local has_universal=false
+
+    if grep -q "\[INSTRUCTION_FILES\]" "${manifest_path}" 2>/dev/null; then
+        has_instructions=true
+    fi
+
+    if grep -q "\[UNIVERSAL_FILES\]" "${manifest_path}" 2>/dev/null; then
+        has_universal=true
+    fi
+
+    # Return structured data (equivalent to PowerShell PSCustomObject)
+    echo "ManifestPath=${manifest_path}"
+    echo "Branch=${branch}"
+    echo "HasInstructions=${has_instructions}"
+    echo "HasUniversal=${has_universal}"
+    echo "SourceRepository=https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm"
+
     return 0
 }
 
-# Function to parse manifest section (simplified to match PowerShell implementation)
+# Function to get installer configuration - equivalent to PowerShell Get-InstallerConfig
+get_installer_config() {
+    local workspace_root="${1:-}"
+
+    if [[ -z "${workspace_root}" ]]; then
+        workspace_root="$(get_workspace_root)"
+    fi
+
+    if [[ -z "${workspace_root}" ]]; then
+        write_error_message "Could not determine workspace root"
+        return 1
+    fi
+
+    # Return installer configuration (equivalent to PowerShell logic)
+    echo "WorkspaceRoot=${workspace_root}"
+    echo "Repository=hashicorp/terraform-provider-azurerm"
+    echo "InstallationPath=${HOME}/.terraform-ai-installer"
+
+    return 0
+}
+
+# Helper function to get workspace root (used by get_installer_config)
+get_workspace_root() {
+    # Try to find .git directory to determine workspace root
+    local current_dir="$(pwd)"
+    local search_dir="${current_dir}"
+
+    # Search up to 10 levels for .git directory
+    for i in {1..10}; do
+        if [[ -d "${search_dir}/.git" ]]; then
+            echo "${search_dir}"
+            return 0
+        fi
+
+        local parent_dir="$(dirname "${search_dir}")"
+        if [[ "${parent_dir}" == "${search_dir}" ]]; then
+            break  # Reached filesystem root
+        fi
+        search_dir="${parent_dir}"
+    done
+
+    # Fallback to current directory
+    echo "${current_dir}"
+    return 0
+}
+
+# Function to parse manifest section (used by get_manifest_files)
 parse_manifest_section() {
     local manifest_file="$1"
     local section_name="$2"
@@ -65,7 +142,7 @@ parse_manifest_section() {
     done < "${manifest_file}"
 }
 
-# Function to get files from manifest by section
+# Function to get files from manifest by section (used by fileoperations module)
 get_manifest_files() {
     local section_name="$1"
     local manifest_file="${2:-${HOME}/.terraform-ai-installer/file-manifest.config}"
@@ -81,229 +158,5 @@ get_manifest_files() {
     parse_manifest_section "${manifest_file}" "${section_name}"
 }
 
-# Function to get bootstrap files list
-get_bootstrap_files() {
-    local -a files=(
-        "file-manifest.config"
-        "install-copilot-setup.sh"
-    )
-
-    printf '%s\n' "${files[@]}"
-}
-
-# Function to create default configuration
-create_default_config() {
-    local config_dir="${1:-$(get_user_profile)}"
-    local config_file="${config_dir}/installer.config"
-
-    if [[ "${DRY_RUN:-false}" == "true" ]]; then
-        echo "  [DRY-RUN] Would create default configuration: ${config_file}"
-        return 0
-    fi
-
-    # Create config directory if it doesn't exist
-    mkdir -p "${config_dir}"
-
-    # Create basic configuration file
-    cat > "${config_file}" << 'EOF'
-# Terraform AzureRM Provider AI Installer Configuration
-# Generated automatically - modify as needed
-
-# Installation settings
-DEFAULT_BRANCH=exp/terraform_copilot
-SOURCE_REPOSITORY=https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm
-DOWNLOAD_TIMEOUT=30
-RETRY_COUNT=3
-
-# Directory settings
-BACKUP_SUFFIX=.backup
-CREATE_BACKUPS=true
-VERIFY_DOWNLOADS=true
-
-# Logging settings
-VERBOSE_MODE=false
-DEBUG_MODE=false
-LOG_FILE_OPERATIONS=true
-EOF
-
-    if [[ -f "${config_file}" ]]; then
-        echo "  Created default configuration: ${config_file} [OK]"
-        return 0
-    else
-        echo "  Created default configuration: ${config_file} [FAILED]"
-        return 1
-    fi
-}
-
-# Function to load configuration from file
-load_config() {
-    local config_file="${1:-$(get_user_profile)/installer.config}"
-
-    if [[ -f "${config_file}" ]]; then
-        # Source the configuration file to load variables
-        # Note: This is safe because we control the config file content
-        if source "${config_file}" 2>/dev/null; then
-            if declare -f write_plain >/dev/null 2>&1; then
-                write_plain "Loaded configuration from: ${config_file}"
-            fi
-            return 0
-        else
-            write_warning_message "Failed to load configuration from: ${config_file}"
-            return 1
-        fi
-    fi
-
-    return 0
-}
-
-# Function to validate configuration
-validate_config() {
-    local errors=0
-
-    # Check required variables
-    if [[ -z "${SOURCE_REPOSITORY:-}" ]]; then
-        write_error_message "SOURCE_REPOSITORY not configured"
-        errors=$((errors + 1))
-    fi
-
-    if [[ -z "${BRANCH:-}" ]]; then
-        write_warning_message "BRANCH not configured, using default"
-        BRANCH="exp/terraform_copilot"
-    fi
-
-    return ${errors}
-}
-
-# Function to get file download URL
-get_file_download_url() {
-    local file_path="$1"
-    local repository="${SOURCE_REPOSITORY:-https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm}"
-    local branch="${BRANCH:-exp/terraform_copilot}"
-
-    echo "${repository}/${branch}/${file_path}"
-}
-
-# Function to convert to relative path (helper function)
-convert_to_relative_path() {
-    local full_path="$1"
-    local base_path="${2:-$(pwd)}"
-
-    # Simple relative path conversion
-    if [[ "${full_path}" == "${base_path}"* ]]; then
-        echo "${full_path#${base_path}/}"
-    else
-        echo "${full_path}"
-    fi
-}
-
-# Function to get installer version
-get_installer_version() {
-    echo "${VERSION:-1.0.0}"
-}
-
-# Function to get temp directory for downloads
-get_temp_directory() {
-    local temp_base="${TMPDIR:-/tmp}"
-    local temp_dir="${temp_base}/terraform-ai-installer-$$"
-
-    mkdir -p "${temp_dir}"
-    echo "${temp_dir}"
-}
-
-# Function to get all user-facing files for clean operations
-get_files_for_cleanup() {
-    local workspace_root="${1:-$(pwd)}"
-    local manifest_file="${HOME}/.terraform-ai-installer/file-manifest.config"
-
-    # The manifest file should only exist in the user's home directory
-    # The AIinstaller directory is not copied to feature branches
-    if [[ ! -f "${manifest_file}" ]]; then
-        write_error_message "Manifest file not found: ${manifest_file}"
-        write_error_message "Please run with -bootstrap first to set up the installer."
-        return 1
-    fi
-
-    # Get files from all user-facing sections
-    local sections=("MAIN_FILES" "INSTRUCTION_FILES" "PROMPT_FILES" "UNIVERSAL_FILES")
-    local all_files=()
-
-    for section in "${sections[@]}"; do
-        local section_files
-        section_files=($(parse_manifest_section "${manifest_file}" "${section}"))
-        all_files+=("${section_files[@]}")
-    done
-
-    printf '%s\n' "${all_files[@]}"
-}
-
-# Function to cleanup temp directory
-cleanup_temp_directory() {
-    local temp_dir="$1"
-
-    if [[ -n "${temp_dir}" ]] && [[ "${temp_dir}" =~ /tmp/terraform-ai-installer- ]]; then
-        rm -rf "${temp_dir}" 2>/dev/null || true
-    fi
-}
-
-# Function to get manifest configuration (wrapper around read_manifest_config)
-get_manifest_config() {
-    local branch="${1:-exp/terraform_copilot}"
-    local manifest_path="$2"
-
-    # Find manifest file if not specified
-    if [[ -z "${manifest_path}" ]]; then
-        local possible_paths=(
-            "${HOME}/.terraform-ai-installer/file-manifest.config"
-            "$(dirname "${BASH_SOURCE[0]}")/../file-manifest.config"
-            "$(dirname "$(dirname "${BASH_SOURCE[0]}")")/file-manifest.config"
-        )
-
-        for path in "${possible_paths[@]}"; do
-            if [[ -f "${path}" ]]; then
-                manifest_path="${path}"
-                break
-            fi
-        done
-    fi
-
-    if [[ -z "${manifest_path}" ]] || [[ ! -f "${manifest_path}" ]]; then
-        write_error_message "Manifest file not found. Run with --bootstrap first."
-        return 1
-    fi
-
-    # Return manifest configuration data
-    echo "ManifestPath=${manifest_path}"
-    echo "Branch=${branch}"
-    echo "Found=true"
-    return 0
-}
-
-# Function to get installer configuration
-get_installer_config() {
-    local workspace_root="$1"
-    local manifest_output="$2"
-
-    if [[ -z "${workspace_root}" ]]; then
-        write_error_message "Workspace root is required"
-        return 1
-    fi
-
-    # Parse manifest output
-    local branch="exp/terraform_copilot"
-    if [[ -n "${manifest_output}" ]]; then
-        branch=$(echo "${manifest_output}" | grep "Branch=" | cut -d'=' -f2 || echo "exp/terraform_copilot")
-    fi
-
-    # Return installer configuration
-    echo "Version=1.0.0"
-    echo "Branch=${branch}"
-    echo "WorkspaceRoot=${workspace_root}"
-    echo "Repository=hashicorp/terraform-provider-azurerm"
-    return 0
-}
-
-# Export functions for use in other scripts
-export -f get_source_repository get_source_branch read_manifest_config
-export -f get_manifest_files get_bootstrap_files get_files_for_cleanup create_default_config load_config
-export -f validate_config get_file_download_url convert_to_relative_path get_installer_version
-export -f get_temp_directory cleanup_temp_directory parse_manifest_section get_manifest_config get_installer_config
+# Export functions used by the installer and fileoperations modules
+export -f get_manifest_config get_installer_config get_workspace_root parse_manifest_section get_manifest_files

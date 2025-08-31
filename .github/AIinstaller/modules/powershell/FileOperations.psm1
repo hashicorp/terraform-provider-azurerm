@@ -43,8 +43,6 @@ function Install-AIFile {
         [Parameter(Mandatory)]
         [string]$DownloadUrl,
 
-        [bool]$Force = $false,
-
         [bool]$DryRun = $false,
 
         [Parameter(Mandatory)]
@@ -76,15 +74,66 @@ function Install-AIFile {
         $result.DebugInfo.DownloadUrl = $DownloadUrl
         $result.DebugInfo.TargetPath = $resolvedFilePath
 
-        # Check if file already exists
+        # Check if file already exists and get file info for comparison
         $fileExists = Test-Path $resolvedFilePath
         $result.DebugInfo.FileExisted = $fileExists
 
-        if ($fileExists -and -not $Force) {
-            $result.Action = "Skipped"
-            $result.Success = $true
-            $result.Message = "File already exists (use -Force to overwrite)"
-            return $result
+        if ($fileExists) {
+            # Get local file information
+            $localFile = Get-Item $resolvedFilePath
+            $localLastWrite = $localFile.LastWriteTime
+            $result.DebugInfo.LocalLastWrite = $localLastWrite
+
+            # Download file headers to check remote file timestamp
+            try {
+                $headResponse = Invoke-WebRequest -Uri $DownloadUrl -Method Head -UseBasicParsing -ErrorAction Stop
+                $remoteLastModified = $null
+
+                # Try to parse Last-Modified header
+                if ($headResponse.Headers['Last-Modified']) {
+                    try {
+                        $remoteLastModified = [DateTime]::ParseExact($headResponse.Headers['Last-Modified'], "ddd, dd MMM yyyy HH:mm:ss 'GMT'", [System.Globalization.CultureInfo]::InvariantCulture)
+                        $result.DebugInfo.RemoteLastModified = $remoteLastModified
+                    }
+                    catch {
+                        Write-Verbose "Could not parse Last-Modified header: $($headResponse.Headers['Last-Modified'])"
+                    }
+                }
+
+                # If we have both timestamps, compare them
+                if ($remoteLastModified) {
+                    $isRemoteNewer = $remoteLastModified -gt $localLastWrite
+                    $result.DebugInfo.IsRemoteNewer = $isRemoteNewer
+
+                    if (-not $isRemoteNewer) {
+                        $result.Action = "Skipped"
+                        $result.Success = $true
+                        $result.Message = "Local file is up-to-date"
+                        return $result
+                    }
+                }
+                else {
+                    # If we can't determine remote timestamp, check file size as fallback
+                    $contentLengthHeader = $headResponse.Headers['Content-Length']
+                    if ($contentLengthHeader) {
+                        $remoteSize = [int64]$contentLengthHeader
+                        $localSize = $localFile.Length
+                        $result.DebugInfo.RemoteSize = $remoteSize
+                        $result.DebugInfo.LocalSize = $localSize
+
+                        if ($remoteSize -eq $localSize) {
+                            $result.Action = "Skipped"
+                            $result.Success = $true
+                            $result.Message = "File appears up-to-date (same size)"
+                            return $result
+                        }
+                    }
+                }
+            }
+            catch {
+                Write-Verbose "Could not check remote file metadata: $_"
+                # If we can't check remote metadata, proceed with download to be safe
+            }
         }
 
         # Create directory if needed
@@ -183,7 +232,6 @@ function Install-AllAIFiles {
     Install all AI infrastructure files
     #>
     param(
-        [bool]$Force = $false,
         [bool]$DryRun = $false,
         [string]$Branch = "exp/terraform_copilot",
         [string]$WorkspaceRoot = $null,
@@ -300,7 +348,7 @@ function Install-AllAIFiles {
         Write-Host ": " -ForegroundColor Cyan -NoNewline
         Write-Host $filePath -ForegroundColor White
 
-        $fileResult = Install-AIFile -FilePath $filePath -DownloadUrl $downloadUrl -Force $Force -DryRun $DryRun -WorkspaceRoot $WorkspaceRoot
+        $fileResult = Install-AIFile -FilePath $filePath -DownloadUrl $downloadUrl -DryRun $DryRun -WorkspaceRoot $WorkspaceRoot
         $results.Files[$filePath] = $fileResult
 
         # Show error details if download failed
@@ -868,38 +916,25 @@ function Remove-DeprecatedFiles {
         }
 
         if (-not $DryRun) {
+            # Automatically remove deprecated files without prompting
+            $removedCount = 0
+            foreach ($file in $deprecatedFiles) {
+                try {
+                    Remove-Item -Path $file.Path -Force
+                    if (-not $Quiet) {
+                        Write-Host "  Removed: $($file.RelativePath)" -ForegroundColor Green
+                    }
+                    $removedCount++
+                }
+                catch {
+                    if (-not $Quiet) {
+                        Write-Host "  Failed to remove: $($file.RelativePath) - $($_.Exception.Message)" -ForegroundColor Red
+                    }
+                }
+            }
             if (-not $Quiet) {
                 Write-Host ""
-                $confirm = Read-Host "Remove deprecated files? (y/N)"
-            } else {
-                # Auto-approve in quiet mode (typically during installation)
-                $confirm = 'y'
-            }
-
-            if ($confirm -eq 'y' -or $confirm -eq 'Y') {
-                $removedCount = 0
-                foreach ($file in $deprecatedFiles) {
-                    try {
-                        Remove-Item -Path $file.Path -Force
-                        if (-not $Quiet) {
-                            Write-Host "  Removed: $($file.RelativePath)" -ForegroundColor Green
-                        }
-                        $removedCount++
-                    }
-                    catch {
-                        if (-not $Quiet) {
-                            Write-Host "  Failed to remove: $($file.RelativePath) - $($_.Exception.Message)" -ForegroundColor Red
-                        }
-                    }
-                }
-                if (-not $Quiet) {
-                    Write-Host ""
-                    Write-Host "Removed $removedCount deprecated files." -ForegroundColor Green
-                }
-            } else {
-                if (-not $Quiet) {
-                    Write-Host "Deprecated files kept." -ForegroundColor Yellow
-                }
+                Write-Host "Removed $removedCount deprecated files." -ForegroundColor Green
             }
         }
     } elseif (-not $DryRun -and -not $Quiet) {
@@ -1092,9 +1127,6 @@ function Invoke-CleanWorkspace {
     .SYNOPSIS
     High-level clean workspace operation with complete UI experience
 
-    .PARAMETER AutoApprove
-    Skip confirmation prompts
-
     .PARAMETER DryRun
     Show what would be done without making changes
 
@@ -1105,7 +1137,6 @@ function Invoke-CleanWorkspace {
     Indicates if the operation is running from user profile (with -RepoDirectory)
     #>
     param(
-        [bool]$AutoApprove,
         [bool]$DryRun,
         [string]$WorkspaceRoot,
         [bool]$FromUserProfile = $false
@@ -1131,7 +1162,7 @@ function Invoke-CleanWorkspace {
 
     # Use the FileOperations module to properly remove all AI files
     try {
-        $result = Remove-AllAIFiles -Force:$AutoApprove -DryRun:$DryRun -WorkspaceRoot $WorkspaceRoot
+        $result = Remove-AllAIFiles -DryRun:$DryRun -WorkspaceRoot $WorkspaceRoot
 
         if ($result.Success) {
             # Check if this was a clean workspace (no files found)
@@ -1234,9 +1265,6 @@ function Invoke-InstallInfrastructure {
     .SYNOPSIS
     High-level install infrastructure operation with complete UI experience
 
-    .PARAMETER AutoApprove
-    Skip confirmation prompts
-
     .PARAMETER DryRun
     Show what would be done without making changes
 
@@ -1250,7 +1278,6 @@ function Invoke-InstallInfrastructure {
     Target repository branch name for summary display
     #>
     param(
-        [bool]$AutoApprove,
         [bool]$DryRun,
         [string]$WorkspaceRoot,
         [hashtable]$ManifestConfig,
@@ -1282,13 +1309,13 @@ function Invoke-InstallInfrastructure {
 
     # Use the FileOperations module to actually install files
     try {
-        $result = Install-AllAIFiles -Force:$AutoApprove -DryRun:$DryRun -WorkspaceRoot $WorkspaceRoot -ManifestConfig $ManifestConfig
+        $result = Install-AllAIFiles -DryRun:$DryRun -WorkspaceRoot $WorkspaceRoot -ManifestConfig $ManifestConfig
 
         if ($result.OverallSuccess) {
             # Use the superior completion summary function
             $nextSteps = @()
             if ($result.Skipped -gt 0) {
-                $nextSteps += "Review skipped files and use -Auto-Approve if needed"
+                $nextSteps += "Review skipped files (already up-to-date)"
             }
             $nextSteps += "Start using GitHub Copilot with your new AI-assisted infrastructure"
             $nextSteps += "Check the .github/instructions/ folder for detailed guidelines"

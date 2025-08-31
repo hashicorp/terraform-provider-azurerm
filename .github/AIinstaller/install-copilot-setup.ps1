@@ -11,9 +11,6 @@ param(
     [Parameter(HelpMessage = "Path to the repository directory for git operations (when running from user profile)")]
     [string]$RepoDirectory,
 
-    [Parameter(HelpMessage = "Overwrite existing files without prompting")]
-    [switch]${Auto-Approve},
-
     [Parameter(HelpMessage = "Show what would be done without making changes")]
     [switch]${Dry-Run},
 
@@ -228,7 +225,6 @@ function Main {
         }
 
         # Convert hyphenated parameter names to camelCase variables
-        $AutoApprove = ${Auto-Approve}
         $DryRun = ${Dry-Run}
 
         # CONSISTENT PATTERN: Every operation gets the same header and branch detection
@@ -255,7 +251,6 @@ function Main {
         elseif ($Clean) { $attemptedCommand = "-Clean" }
         elseif ($Help) { $attemptedCommand = "-Help" }
         elseif ($DryRun) { $attemptedCommand = "-Dry-Run" }
-        elseif ($AutoApprove) { $attemptedCommand = "-Auto-Approve" }
         elseif ($RepoDirectory -and -not ($Help -or $Verify -or $Bootstrap -or $Clean)) {
             $attemptedCommand = "-RepoDirectory `"$RepoDirectory`""
         }
@@ -281,19 +276,19 @@ function Main {
         }
 
         if ($Bootstrap) {
-            Invoke-Bootstrap -AutoApprove $AutoApprove -DryRun $DryRun | Out-Null
+            Invoke-Bootstrap -DryRun $DryRun | Out-Null
             return
         }
 
         if ($Clean) {
-            Invoke-CleanWorkspace -AutoApprove $AutoApprove -DryRun $DryRun -WorkspaceRoot $Global:WorkspaceRoot -FromUserProfile:([bool]$RepoDirectory) | Out-Null
+            Invoke-CleanWorkspace -DryRun $DryRun -WorkspaceRoot $Global:WorkspaceRoot -FromUserProfile:([bool]$RepoDirectory) | Out-Null
             return
         }
 
         # Installation path (when -RepoDirectory is provided and not other specific operations)
         if ($RepoDirectory -and -not ($Help -or $Verify -or $Bootstrap -or $Clean)) {
             # Proceed with installation
-            Invoke-InstallInfrastructure -AutoApprove $AutoApprove -DryRun $DryRun -WorkspaceRoot $Global:WorkspaceRoot -ManifestConfig $Global:ManifestConfig -TargetBranch $currentBranch | Out-Null
+            Invoke-InstallInfrastructure -DryRun $DryRun -WorkspaceRoot $Global:WorkspaceRoot -ManifestConfig $Global:ManifestConfig -TargetBranch $currentBranch | Out-Null
             return
         }
 

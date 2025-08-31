@@ -76,6 +76,48 @@ download_file() {
         return 0
     fi
 
+    # Check if file already exists and compare freshness
+    if [[ -f "${target_path}" ]]; then
+        local local_timestamp
+        local remote_timestamp
+
+        # Get local file modification time
+        if command -v stat >/dev/null 2>&1; then
+            # Try GNU stat first, then BSD stat
+            local_timestamp=$(stat -c%Y "${target_path}" 2>/dev/null || stat -f%m "${target_path}" 2>/dev/null || echo "0")
+        else
+            local_timestamp="0"
+        fi
+
+        # Try to get remote file timestamp using HEAD request
+        local is_remote_newer=true  # Default to downloading if we can't determine
+
+        if command -v curl >/dev/null 2>&1; then
+            # Get Last-Modified header from remote file
+            local last_modified_header
+            last_modified_header=$(curl -sI "${url}" 2>/dev/null | grep -i "last-modified:" | cut -d' ' -f2- | tr -d '\r\n')
+
+            if [[ -n "${last_modified_header}" ]]; then
+                # Convert HTTP date to timestamp (this is a simplified approach)
+                if command -v date >/dev/null 2>&1; then
+                    # Try to parse the HTTP date format
+                    remote_timestamp=$(date -d "${last_modified_header}" +%s 2>/dev/null || echo "0")
+
+                    if [[ "${remote_timestamp}" != "0" && "${local_timestamp}" != "0" ]]; then
+                        if [[ "${remote_timestamp}" -le "${local_timestamp}" ]]; then
+                            is_remote_newer=false
+                        fi
+                    fi
+                fi
+            fi
+        fi
+
+        # If local file is up-to-date, skip download
+        if [[ "${is_remote_newer}" == "false" ]]; then
+            return 0  # File is up-to-date, no need to download
+        fi
+    fi
+
     # Create target directory if it doesn't exist
     mkdir -p "$(dirname "${target_path}")"
 
@@ -371,6 +413,103 @@ validate_operation_allowed() {
     return 0
 }
 
+# Function to remove deprecated files (equivalent to PowerShell Remove-DeprecatedFiles)
+remove_deprecated_files() {
+    local workspace_root="$1"
+    local manifest_file="${2:-${HOME}/.terraform-ai-installer/file-manifest.config}"
+    local dry_run="${3:-false}"
+    local quiet="${4:-false}"
+
+    local deprecated_count=0
+    local deprecated_files=()
+
+    # Ensure manifest file exists
+    if [[ ! -f "${manifest_file}" ]]; then
+        if [[ "${quiet}" == "false" ]]; then
+            write_error_message "Manifest file not found: ${manifest_file}"
+        fi
+        return 1
+    fi
+
+    # Get current manifest files
+    local current_instruction_files current_prompt_files
+    readarray -t current_instruction_files < <(get_manifest_files "INSTRUCTION_FILES" "${manifest_file}")
+    readarray -t current_prompt_files < <(get_manifest_files "PROMPT_FILES" "${manifest_file}")
+
+    # Check existing instruction files in workspace
+    local instructions_dir="${workspace_root}/.github/instructions"
+    if [[ -d "${instructions_dir}" ]]; then
+        while IFS= read -r -d '' existing_file; do
+            if [[ -f "${existing_file}" && "${existing_file}" == *.instructions.md ]]; then
+                local basename_file=$(basename "${existing_file}")
+                local is_current=false
+
+                # Check if this file is in current manifest
+                for current_file in "${current_instruction_files[@]}"; do
+                    if [[ "$(basename "${current_file}")" == "${basename_file}" ]]; then
+                        is_current=true
+                        break
+                    fi
+                done
+
+                # If not in current manifest, mark for removal
+                if [[ "${is_current}" == "false" ]]; then
+                    deprecated_files+=("${existing_file}:Instruction:${basename_file}")
+
+                    if [[ "${dry_run}" == "false" ]]; then
+                        if rm -f "${existing_file}" 2>/dev/null; then
+                            [[ "${quiet}" == "false" ]] && echo "  Removed deprecated instruction file: ${basename_file}"
+                        else
+                            [[ "${quiet}" == "false" ]] && write_error_message "  Failed to remove: ${existing_file}"
+                        fi
+                    else
+                        [[ "${quiet}" == "false" ]] && echo "  [DRY-RUN] Would remove instruction file: ${basename_file}"
+                    fi
+                    ((deprecated_count++))
+                fi
+            fi
+        done < <(find "${instructions_dir}" -name "*.instructions.md" -print0 2>/dev/null)
+    fi
+
+    # Check existing prompt files in workspace
+    local prompts_dir="${workspace_root}/.github/prompts"
+    if [[ -d "${prompts_dir}" ]]; then
+        while IFS= read -r -d '' existing_file; do
+            if [[ -f "${existing_file}" && "${existing_file}" == *.prompt.md ]]; then
+                local basename_file=$(basename "${existing_file}")
+                local is_current=false
+
+                # Check if this file is in current manifest
+                for current_file in "${current_prompt_files[@]}"; do
+                    if [[ "$(basename "${current_file}")" == "${basename_file}" ]]; then
+                        is_current=true
+                        break
+                    fi
+                done
+
+                # If not in current manifest, mark for removal
+                if [[ "${is_current}" == "false" ]]; then
+                    deprecated_files+=("${existing_file}:Prompt:${basename_file}")
+
+                    if [[ "${dry_run}" == "false" ]]; then
+                        if rm -f "${existing_file}" 2>/dev/null; then
+                            [[ "${quiet}" == "false" ]] && echo "  Removed deprecated prompt file: ${basename_file}"
+                        else
+                            [[ "${quiet}" == "false" ]] && write_error_message "  Failed to remove: ${existing_file}"
+                        fi
+                    else
+                        [[ "${quiet}" == "false" ]] && echo "  [DRY-RUN] Would remove prompt file: ${basename_file}"
+                    fi
+                    ((deprecated_count++))
+                fi
+            fi
+        done < <(find "${prompts_dir}" -name "*.prompt.md" -print0 2>/dev/null)
+    fi
+
+    # Return count of deprecated files found/removed
+    echo "${deprecated_count}"
+}
+
 # Note: Function exports moved to end of script
 
 # Function to install AI infrastructure (moved from main script)
@@ -400,8 +539,20 @@ install_infrastructure() {
 
     # Step 2: Check for deprecated files (automatic part of installation)
     write_cyan "Checking for deprecated files..."
-    # TODO: Implement deprecated file removal when available
-    write_cyan "  No deprecated files found"
+
+    # Remove deprecated files automatically
+    local deprecated_count
+    deprecated_count=$(remove_deprecated_files "${workspace_root}" "${manifest_file}" "${DRY_RUN:-false}" false)
+
+    if [[ "${deprecated_count}" -gt 0 ]]; then
+        if [[ "${DRY_RUN:-false}" == "true" ]]; then
+            write_cyan "  Found ${deprecated_count} deprecated file(s) that would be removed"
+        else
+            write_cyan "  Removed ${deprecated_count} deprecated file(s)"
+        fi
+    else
+        write_cyan "  No deprecated files found"
+    fi
     echo ""
 
     # Step 3: Installing current AI infrastructure files message
@@ -800,4 +951,4 @@ bootstrap_files_to_profile() {
 export -f get_workspace_root is_source_repository validate_operation_allowed
 export -f copy_file download_file get_file_size get_directory_size create_directory_structure
 export -f remove_path backup_file verify_file make_executable copy_files_with_stats
-export -f install_infrastructure clean_infrastructure bootstrap_files_to_profile
+export -f remove_deprecated_files install_infrastructure clean_infrastructure bootstrap_files_to_profile

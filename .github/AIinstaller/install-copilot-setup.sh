@@ -21,7 +21,6 @@ SOURCE_REPOSITORY="https://raw.githubusercontent.com/hashicorp/terraform-provide
 # Command line parameters with help text
 BOOTSTRAP=false           # Copy installer to user profile for feature branch use
 REPO_DIRECTORY=""         # Path to the repository directory for git operations (when running from user profile)
-AUTO_APPROVE=false        # Overwrite existing files without prompting
 DRY_RUN=false             # Show what would be done without making changes
 VERIFY=false              # Check the current state of the workspace
 CLEAN=false               # Remove AI infrastructure from the workspace
@@ -256,8 +255,6 @@ main() {
         attempted_command="-help"
     elif [[ "${DRY_RUN}" == "true" ]]; then
         attempted_command="-dry-run"
-    elif [[ "${AUTO_APPROVE}" == "true" ]]; then
-        attempted_command="-auto-approve"
     elif [[ -n "${REPO_DIRECTORY}" && "${HELP}" != "true" && "${VERIFY}" != "true" && "${BOOTSTRAP}" != "true" && "${CLEAN}" != "true" ]]; then
         attempted_command="-repo-directory \"${REPO_DIRECTORY}\""
     fi
@@ -347,10 +344,6 @@ parse_arguments() {
                 fi
                 REPO_DIRECTORY="$2"
                 shift 2
-                ;;
-            -auto-approve)
-                AUTO_APPROVE=true
-                shift
                 ;;
             -dry-run)
                 DRY_RUN=true
