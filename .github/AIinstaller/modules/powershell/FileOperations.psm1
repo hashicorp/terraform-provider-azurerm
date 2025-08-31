@@ -1142,7 +1142,8 @@ function Invoke-CleanWorkspace {
         [bool]$FromUserProfile = $false
     )
 
-    # CRITICAL: Check for safety violations BEFORE showing any operation headers
+    # CRITICAL: Clean operations are FORBIDDEN on source branches for safety
+    # This applies regardless of whether -RepoDirectory is used or not
     $validation = Test-PreInstallation -AllowBootstrapOnSource:$false
 
     if (-not $validation.OverallValid -and $validation.Git.Reason -like "*SAFETY VIOLATION*") {
