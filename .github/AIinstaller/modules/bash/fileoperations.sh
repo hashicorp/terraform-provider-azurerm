@@ -758,6 +758,64 @@ show_installation_summary() {
         "Location:${workspace_root}"
 }
 
+# Function to get all files that should be cleaned up from manifest
+get_files_for_cleanup() {
+    local workspace_root="$1"
+    local manifest_file="${HOME}/.terraform-ai-installer/file-manifest.config"
+
+    # Check if manifest file exists
+    if [[ ! -f "${manifest_file}" ]]; then
+        write_error_message "Manifest file not found: ${manifest_file}"
+        return 1
+    fi
+
+    # Get all file sections from manifest
+    local all_files=()
+
+    # Get files from each section
+    local main_files instruction_files prompt_files universal_files
+    readarray -t main_files < <(get_manifest_files "MAIN_FILES" "${manifest_file}" 2>/dev/null || true)
+    readarray -t instruction_files < <(get_manifest_files "INSTRUCTION_FILES" "${manifest_file}" 2>/dev/null || true)
+    readarray -t prompt_files < <(get_manifest_files "PROMPT_FILES" "${manifest_file}" 2>/dev/null || true)
+    readarray -t universal_files < <(get_manifest_files "UNIVERSAL_FILES" "${manifest_file}" 2>/dev/null || true)
+
+    # Combine all files into one list
+    all_files+=("${main_files[@]}")
+    all_files+=("${instruction_files[@]}")
+    all_files+=("${prompt_files[@]}")
+    all_files+=("${universal_files[@]}")
+
+    # Remove duplicates and empty entries
+    local unique_files=()
+    local seen_files=()
+
+    for file in "${all_files[@]}"; do
+        # Skip empty entries
+        if [[ -z "${file}" ]]; then
+            continue
+        fi
+
+        # Skip if already seen
+        local already_seen=false
+        for seen in "${seen_files[@]}"; do
+            if [[ "${file}" == "${seen}" ]]; then
+                already_seen=true
+                break
+            fi
+        done
+
+        if [[ "${already_seen}" == "false" ]]; then
+            unique_files+=("${file}")
+            seen_files+=("${file}")
+        fi
+    done
+
+    # Output the unique files
+    for file in "${unique_files[@]}"; do
+        echo "${file}"
+    done
+}
+
 # Function to clean AI infrastructure files with empty directory cleanup
 clean_infrastructure() {
     local workspace_root="$1"

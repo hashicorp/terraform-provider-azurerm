@@ -4,25 +4,120 @@
 
 #requires -version 5.1
 
-param(
-    [Parameter(HelpMessage = "Copy installer to user profile for feature branch use")]
-    [switch]$Bootstrap,
+# Manual parameter parsing to handle edge cases like bare "-"
+# Initialize variables
+$Bootstrap = $false
+$RepoDirectory = ""
+$DryRun = $false
+$Verify = $false
+$Clean = $false
+$Help = $false
 
-    [Parameter(HelpMessage = "Path to the repository directory for git operations (when running from user profile)")]
-    [string]$RepoDirectory,
+# Function to check for parameter typos and suggest corrections
+function Test-ParameterTypos {
+    param([string]$param)
 
-    [Parameter(HelpMessage = "Show what would be done without making changes")]
-    [switch]${Dry-Run},
+    $suggestion = $null
 
-    [Parameter(HelpMessage = "Check the current state of the workspace")]
-    [switch]$Verify,
+    # Handle bare dash edge case
+    if ($param -eq '-' -or $param -eq '--') {
+        Write-Host ""
+        Write-Host " ERROR: Invalid parameter '$param' (incomplete parameter)" -ForegroundColor Red
+        Write-Host ""
+        Write-Host " Valid parameters:" -ForegroundColor Cyan
+        Write-Host "   -Bootstrap, -Verify, -Clean, -Help, -Dry-Run, -RepoDirectory <path>"
+        Write-Host ""
+        Write-Host " Examples:" -ForegroundColor Green
+        Write-Host "   .\install-copilot-setup.ps1 -Help"
+        Write-Host "   .\install-copilot-setup.ps1 -Bootstrap"
+        Write-Host ""
+        exit 1
+    }
 
-    [Parameter(HelpMessage = "Remove AI infrastructure from the workspace")]
-    [switch]$Clean,
+    # Remove leading dashes and convert to lowercase
+    $paramName = $param.TrimStart('-')
+    $lowerParam = $paramName.ToLower()
 
-    [Parameter(HelpMessage = "Show detailed help information")]
-    [switch]$Help
-)
+    # Direct prefix matching (higher priority)
+    if ($lowerParam -match '^cl') { $suggestion = 'Clean' }
+    elseif ($lowerParam -match '^bo') { $suggestion = 'Bootstrap' }
+    elseif ($lowerParam -match '^ve') { $suggestion = 'Verify' }
+    elseif ($lowerParam -match '^he') { $suggestion = 'Help' }
+    elseif ($lowerParam -match '^dr') { $suggestion = 'Dry-Run' }
+    elseif ($lowerParam -match '^re') { $suggestion = 'RepoDirectory' }
+    # Fuzzy matching (lower priority)
+    elseif ($lowerParam -like '*cle*') { $suggestion = 'Clean' }
+    elseif ($lowerParam -like '*boo*') { $suggestion = 'Bootstrap' }
+    elseif ($lowerParam -like '*ver*') { $suggestion = 'Verify' }
+    elseif ($lowerParam -like '*hel*') { $suggestion = 'Help' }
+    elseif ($lowerParam -like '*dry*') { $suggestion = 'Dry-Run' }
+    elseif ($lowerParam -like '*repo*') { $suggestion = 'RepoDirectory' }
+
+    if ($suggestion) {
+        Write-Host ""
+        Write-Host " ERROR: Invalid parameter '$param'" -ForegroundColor Red
+        Write-Host " Did you mean: -$suggestion" -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host " Valid parameters:" -ForegroundColor Cyan
+        Write-Host "   -Bootstrap, -Verify, -Clean, -Help, -Dry-Run, -RepoDirectory <path>"
+        Write-Host ""
+        Write-Host " Examples:" -ForegroundColor Green
+        Write-Host "   .\install-copilot-setup.ps1 -Help"
+        Write-Host "   .\install-copilot-setup.ps1 -Bootstrap"
+        Write-Host ""
+        exit 1
+    }
+}
+
+# Manual argument parsing (like bash version)
+$i = 0
+while ($i -lt $args.Count) {
+    switch ($args[$i].ToLower()) {
+        '-bootstrap' {
+            $Bootstrap = $true
+            $i++
+        }
+        '-repodirectory' {
+            if (($i + 1) -ge $args.Count -or $args[$i + 1].StartsWith('-')) {
+                Write-Host ""
+                Write-Host " ERROR: Option -RepoDirectory requires a directory path" -ForegroundColor Red
+                Write-Host ""
+                exit 1
+            }
+            $RepoDirectory = $args[$i + 1]
+            $i += 2
+        }
+        '-dry-run' {
+            $DryRun = $true
+            $i++
+        }
+        '-verify' {
+            $Verify = $true
+            $i++
+        }
+        '-clean' {
+            $Clean = $true
+            $i++
+        }
+        '-help' {
+            $Help = $true
+            $i++
+        }
+        default {
+            # Check for typos before showing generic error
+            if ($args[$i].StartsWith('-')) {
+                Test-ParameterTypos $args[$i]
+            }
+
+            Write-Host ""
+            Write-Host " ERROR: Unknown option: $($args[$i])" -ForegroundColor Red
+            Write-Host ""
+            Write-Host " Use -Help for usage information" -ForegroundColor Cyan
+            Write-Host ""
+            exit 1
+        }
+    }
+}
 
 # ============================================================================
 # MODULE LOADING - This must succeed or the script cannot continue
@@ -126,13 +221,19 @@ function Get-WorkspaceRoot {
         return $RepoDirectory
     }
 
-    # Otherwise, if no RepoDirectory provided, just use current directory
+    # When running from AIinstaller directory, find the repository root
+    # Start from script directory and walk up to find go.mod
+    $currentPath = $ScriptDirectory
+    while ($currentPath -and $currentPath -ne (Split-Path $currentPath -Parent)) {
+        if (Test-Path (Join-Path $currentPath "go.mod")) {
+            return $currentPath
+        }
+        $currentPath = Split-Path $currentPath -Parent
+    }
+
+    # Fallback: use current directory
     # This allows fast-fail workspace validation to handle invalid directories
     return Get-Location
-
-    # If no workspace found, return the directory where the script was called from
-    # This allows help and other functions to work, with validation happening separately
-    return (Get-Location).Path
 }
 
 # ============================================================================
@@ -223,9 +324,6 @@ function Main {
         $branchType = if ($isSourceRepo) { "source" } else {
             if ($currentBranch -eq "Unknown") { "Unknown" } else { "feature" }
         }
-
-        # Convert hyphenated parameter names to camelCase variables
-        $DryRun = ${Dry-Run}
 
         # CONSISTENT PATTERN: Every operation gets the same header and branch detection
         Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version

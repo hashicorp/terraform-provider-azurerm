@@ -330,6 +330,72 @@ main() {
 # COMMAND LINE ARGUMENT PROCESSING
 # ============================================================================
 
+check_typos() {
+    local param="$1"
+    local suggestion=""
+
+    # Handle bare dash edge case
+    if [[ "${param}" == "-" ]] || [[ "${param}" == "--" ]]; then
+        write_red " ERROR: Invalid parameter '${param}' (incomplete parameter)"
+        echo ""
+        write_cyan " Valid parameters:"
+        echo "   -bootstrap, -verify, -clean, -help, -dry-run, -repo-directory <path>"
+        echo ""
+        write_cyan " Examples:"
+        echo "   $0 -help"
+        echo "   $0 -bootstrap"
+        echo ""
+        exit 1
+    fi
+
+    # Remove leading dashes and convert to lowercase
+    local clean_param="${param#-}"
+    clean_param="${clean_param#-}"
+    local lower_param="${clean_param,,}"
+
+    # Direct prefix matching (higher priority)
+    if [[ "${lower_param}" =~ ^cl ]]; then
+        suggestion="clean"
+    elif [[ "${lower_param}" =~ ^bo ]]; then
+        suggestion="bootstrap"
+    elif [[ "${lower_param}" =~ ^ve ]]; then
+        suggestion="verify"
+    elif [[ "${lower_param}" =~ ^he ]]; then
+        suggestion="help"
+    elif [[ "${lower_param}" =~ ^dr ]]; then
+        suggestion="dry-run"
+    elif [[ "${lower_param}" =~ ^re ]]; then
+        suggestion="repo-directory"
+    # Fuzzy matching (lower priority)
+    elif [[ "${lower_param}" == *cle* ]]; then
+        suggestion="clean"
+    elif [[ "${lower_param}" == *boo* ]]; then
+        suggestion="bootstrap"
+    elif [[ "${lower_param}" == *ver* ]]; then
+        suggestion="verify"
+    elif [[ "${lower_param}" == *hel* ]]; then
+        suggestion="help"
+    elif [[ "${lower_param}" == *dry* ]]; then
+        suggestion="dry-run"
+    elif [[ "${lower_param}" == *repo* ]]; then
+        suggestion="repo-directory"
+    fi
+
+    if [[ -n "${suggestion}" ]]; then
+        write_red " ERROR: Invalid parameter '${param}'"
+        write_yellow " Did you mean: -${suggestion}"
+        echo ""
+        write_cyan " Valid parameters:"
+        echo "   -bootstrap, -verify, -clean, -help, -dry-run, -repo-directory <path>"
+        echo ""
+        write_green " Examples:"
+        echo "   $0 -help"
+        echo "   $0 -bootstrap"
+        echo ""
+        exit 1
+    fi
+}
+
 parse_arguments() {
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -339,7 +405,7 @@ parse_arguments() {
                 ;;
             -repo-directory)
                 if [[ $# -lt 2 ]] || [[ "${2:-}" == -* ]]; then
-                    write_error_message "Option -repo-directory requires a directory path"
+                    write_error_message " Option -repo-directory requires a directory path"
                     exit 1
                 fi
                 REPO_DIRECTORY="$2"
@@ -362,9 +428,15 @@ parse_arguments() {
                 shift
                 ;;
             *)
+                # Check for typos before showing generic error
+                if [[ "$1" == -* ]]; then
+                    check_typos "$1"
+                fi
+
                 write_error_message "Unknown option: $1"
                 echo ""
-                echo "Use -help for usage information"
+                echo " Use -help for usage information"
+                echo ""
                 exit 1
                 ;;
         esac
