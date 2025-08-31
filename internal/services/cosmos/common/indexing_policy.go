@@ -92,6 +92,24 @@ func ExpandAzureRmCosmosDBIndexingPolicySpatialIndexes(input []interface{}) *[]c
 	return &indexes
 }
 
+func ExpandAzureRmCosmosDBIndexingPolicyVectorIndexes(input []interface{}) *[]cosmosdb.VectorIndex {
+	if len(input) == 0 || input[0] == nil {
+		return nil
+	}
+
+	indexes := make([]cosmosdb.VectorIndex, 0)
+	for _, i := range input {
+		indexPair := i.(map[string]interface{})
+		vectorIndexType := cosmosdb.VectorIndexType(indexPair["type"].(string))
+		indexes = append(indexes, cosmosdb.VectorIndex{
+			Path: indexPair["path"].(string),
+			Type: vectorIndexType,
+		})
+	}
+
+	return &indexes
+}
+
 func ExpandAzureRmCosmosDbIndexingPolicy(d *pluginsdk.ResourceData) *cosmosdb.IndexingPolicy {
 	i := d.Get("indexing_policy").([]interface{})
 
@@ -114,6 +132,10 @@ func ExpandAzureRmCosmosDbIndexingPolicy(d *pluginsdk.ResourceData) *cosmosdb.In
 	}
 
 	policy.SpatialIndexes = ExpandAzureRmCosmosDBIndexingPolicySpatialIndexes(input["spatial_index"].([]interface{}))
+
+	if v, ok := input["vector_index"].([]interface{}); ok {
+		policy.VectorIndexes = ExpandAzureRmCosmosDBIndexingPolicyVectorIndexes(v)
+	}
 
 	return policy
 }
@@ -228,6 +250,23 @@ func flattenCosmosDBIndexingPolicySpatialIndexesTypes(input *[]cosmosdb.SpatialT
 	return types
 }
 
+func FlattenCosmosDBIndexingPolicyVectorIndexes(input *[]cosmosdb.VectorIndex) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	indexes := make([]interface{}, 0)
+
+	for _, v := range *input {
+		indexes = append(indexes, map[string]interface{}{
+			"path": v.Path,
+			"type": string(v.Type),
+		})
+	}
+
+	return indexes
+}
+
 func FlattenAzureRmCosmosDbIndexingPolicy(indexingPolicy *cosmosdb.IndexingPolicy) []interface{} {
 	results := make([]interface{}, 0)
 	if indexingPolicy == nil {
@@ -240,6 +279,7 @@ func FlattenAzureRmCosmosDbIndexingPolicy(indexingPolicy *cosmosdb.IndexingPolic
 	result["excluded_path"] = flattenCosmosDBIndexingPolicyExcludedPaths(indexingPolicy.ExcludedPaths)
 	result["composite_index"] = FlattenCosmosDBIndexingPolicyCompositeIndexes(indexingPolicy.CompositeIndexes)
 	result["spatial_index"] = FlattenCosmosDBIndexingPolicySpatialIndexes(indexingPolicy.SpatialIndexes)
+	result["vector_index"] = FlattenCosmosDBIndexingPolicyVectorIndexes(indexingPolicy.VectorIndexes)
 
 	results = append(results, result)
 	return results
