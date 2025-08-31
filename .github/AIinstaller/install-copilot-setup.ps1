@@ -13,15 +13,22 @@ $Verify = $false
 $Clean = $false
 $Help = $false
 
-# Function to check for parameter typos and suggest corrections
-function Test-ParameterTypos {
-    param([string]$param)
+# Function to show error header (used before modules are loaded)
+function Show-ErrorHeader {
+    Write-Host ""
+    Write-Host "============================================================" -ForegroundColor Cyan
+    Write-Host " Terraform AzureRM Provider - AI Infrastructure Installer" -ForegroundColor Cyan
+    Write-Host " Version: 1.0.0" -ForegroundColor Cyan
+    Write-Host "============================================================" -ForegroundColor Cyan
+    Write-Host ""
+}
 
-    $suggestion = $null
+# Function to get parameter suggestion without exiting
+function Get-ParameterSuggestion {
+    param([string]$param)
 
     # Handle bare dash edge case
     if ($param -eq '-' -or $param -eq '--') {
-        Write-Host ""
         Write-Host " ERROR: Invalid parameter '$param' (incomplete parameter)" -ForegroundColor Red
         Write-Host ""
         Write-Host " Valid parameters:" -ForegroundColor Cyan
@@ -34,29 +41,37 @@ function Test-ParameterTypos {
         exit 1
     }
 
-    # Remove leading dashes and convert to lowercase
-    $paramName = $param.TrimStart('-')
-    $lowerParam = $paramName.ToLower()
+    $lowerParam = $param.ToLower()
+    $suggestion = $null
 
-    # Direct prefix matching (higher priority)
-    if ($lowerParam -match '^cl') { $suggestion = 'Clean' }
-    elseif ($lowerParam -match '^bo') { $suggestion = 'Bootstrap' }
-    elseif ($lowerParam -match '^ve') { $suggestion = 'Verify' }
-    elseif ($lowerParam -match '^he') { $suggestion = 'Help' }
-    elseif ($lowerParam -match '^dr') { $suggestion = 'Dry-Run' }
-    elseif ($lowerParam -match '^re') { $suggestion = 'RepoDirectory' }
+    # Remove leading dashes for comparison
+    $cleanParam = $lowerParam.TrimStart('-')
+
+    # Prefix matching (higher priority)
+    if ($cleanParam -match '^bo') { $suggestion = 'Bootstrap' }
+    elseif ($cleanParam -match '^cl') { $suggestion = 'Clean' }
+    elseif ($cleanParam -match '^ve') { $suggestion = 'Verify' }
+    elseif ($cleanParam -match '^he') { $suggestion = 'Help' }
+    elseif ($cleanParam -match '^dr') { $suggestion = 'Dry-Run' }
+    elseif ($cleanParam -match '^re') { $suggestion = 'RepoDirectory' }
     # Fuzzy matching (lower priority)
-    elseif ($lowerParam -like '*cle*') { $suggestion = 'Clean' }
-    elseif ($lowerParam -like '*boo*') { $suggestion = 'Bootstrap' }
-    elseif ($lowerParam -like '*ver*') { $suggestion = 'Verify' }
-    elseif ($lowerParam -like '*hel*') { $suggestion = 'Help' }
-    elseif ($lowerParam -like '*dry*') { $suggestion = 'Dry-Run' }
-    elseif ($lowerParam -like '*repo*') { $suggestion = 'RepoDirectory' }
+    elseif ($cleanParam -like '*cle*') { $suggestion = 'Clean' }
+    elseif ($cleanParam -like '*boo*') { $suggestion = 'Bootstrap' }
+    elseif ($cleanParam -like '*ver*') { $suggestion = 'Verify' }
+    elseif ($cleanParam -like '*hel*') { $suggestion = 'Help' }
+    elseif ($cleanParam -like '*dry*') { $suggestion = 'Dry-Run' }
+    elseif ($cleanParam -like '*repo*') { $suggestion = 'RepoDirectory' }
 
-    if ($suggestion) {
-        Write-Host ""
-        Write-Host " ERROR: Invalid parameter '$param'" -ForegroundColor Red
-        Write-Host " Did you mean: -$suggestion" -ForegroundColor Yellow
+    return $suggestion
+}
+
+# Function to check for parameter typos and suggest corrections
+function Test-ParameterTypos {
+    param([string]$param)
+
+    # Handle bare dash edge case
+    if ($param -eq '-' -or $param -eq '--') {
+        Write-Host " ERROR: Invalid parameter '$param' (incomplete parameter)" -ForegroundColor Red
         Write-Host ""
         Write-Host " Valid parameters:" -ForegroundColor Cyan
         Write-Host "   -Bootstrap, -Verify, -Clean, -Help, -Dry-Run, -RepoDirectory <path>"
@@ -64,6 +79,24 @@ function Test-ParameterTypos {
         Write-Host " Examples:" -ForegroundColor Green
         Write-Host "   .\install-copilot-setup.ps1 -Help"
         Write-Host "   .\install-copilot-setup.ps1 -Bootstrap"
+        Write-Host ""
+        exit 1
+    }
+
+    # Use the new Get-ParameterSuggestion function
+    $suggestion = Get-ParameterSuggestion $param
+
+    if ($suggestion) {
+        Write-Host " Error:" -ForegroundColor Red -NoNewline
+        Write-Host " Failed to parse command-line argument:" -ForegroundColor Cyan
+        Write-Host " Argument provided but not defined: " -ForegroundColor Cyan -NoNewline
+        Write-Host "$param" -ForegroundColor Yellow
+        Write-Host " Did you mean: " -ForegroundColor Cyan -NoNewline
+        Write-Host "-$suggestion" -ForegroundColor Green -NoNewline
+        Write-Host "?" -ForegroundColor Cyan
+        Write-Host ""
+        Write-Host " For more help on using this command, run:" -ForegroundColor Cyan
+        Write-Host "   .\install-copilot-setup.ps1 -Help" -ForegroundColor White
         Write-Host ""
         exit 1
     }
@@ -104,15 +137,35 @@ while ($i -lt $args.Count) {
             $i++
         }
         default {
-            # Check for typos before showing generic error
+            # Show header for error cases (hardcoded since modules aren't loaded yet)
+            Show-ErrorHeader
+
+            # Check for typos and if found, show suggestion and exit
             if ($args[$i].StartsWith('-')) {
-                Test-ParameterTypos $args[$i]
+                $suggestion = Get-ParameterSuggestion $args[$i]
+                if ($suggestion) {
+                    Write-Host " Error:" -ForegroundColor Red -NoNewline
+                    Write-Host " Failed to parse command-line argument:" -ForegroundColor Cyan
+                    Write-Host " Argument provided but not defined: " -ForegroundColor Cyan -NoNewline
+                    Write-Host "$($args[$i])" -ForegroundColor Yellow
+                    Write-Host " Did you mean: " -ForegroundColor Cyan -NoNewline
+                    Write-Host "-${suggestion}" -ForegroundColor Green -NoNewline
+                    Write-Host "?" -ForegroundColor Cyan
+                    Write-Host ""
+                    Write-Host " For more help on using this command, run:" -ForegroundColor Cyan
+                    Write-Host "   .\install-copilot-setup.ps1 -Help" -ForegroundColor White
+                    Write-Host ""
+                    exit 1
+                }
             }
 
+            Write-Host " Error:" -ForegroundColor Red -NoNewline
+            Write-Host " Failed to parse command-line argument:" -ForegroundColor Cyan
+            Write-Host " Unknown option: " -ForegroundColor Cyan -NoNewline
+            Write-Host "$($args[$i])" -ForegroundColor Yellow
             Write-Host ""
-            Write-Host " ERROR: Unknown option: $($args[$i])" -ForegroundColor Red
-            Write-Host ""
-            Write-Host " Use -Help for usage information" -ForegroundColor Cyan
+            Write-Host " For more help on using this command, run:" -ForegroundColor Cyan
+            Write-Host "   .\install-copilot-setup.ps1 -Help" -ForegroundColor White
             Write-Host ""
             exit 1
         }

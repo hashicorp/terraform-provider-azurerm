@@ -336,14 +336,11 @@ check_typos() {
 
     # Handle bare dash edge case
     if [[ "${param}" == "-" ]] || [[ "${param}" == "--" ]]; then
-        write_red " ERROR: Invalid parameter '${param}' (incomplete parameter)"
+        printf " \033[31mError:\033[0m\033[36m Failed to parse command-line argument:\033[0m\n"
+        printf " \033[36mArgument provided but not defined:\033[0m \033[33m${param}\033[0m\n"
         echo ""
-        write_cyan " Valid parameters:"
-        echo "   -bootstrap, -verify, -clean, -help, -dry-run, -repo-directory <path>"
-        echo ""
-        write_cyan " Examples:"
-        echo "   $0 -help"
-        echo "   $0 -bootstrap"
+        printf " \033[36mFor more help on using this command, run:\033[0m\n"
+        printf "   \033[37m$0 -help\033[0m\n"
         echo ""
         exit 1
     fi
@@ -382,15 +379,12 @@ check_typos() {
     fi
 
     if [[ -n "${suggestion}" ]]; then
-        write_red " ERROR: Invalid parameter '${param}'"
-        write_yellow " Did you mean: -${suggestion}"
+        printf " \033[31mError:\033[0m\033[36m Failed to parse command-line argument:\033[0m\n"
+        printf " \033[36mArgument provided but not defined:\033[0m \033[33m${param}\033[0m\n"
+        printf " \033[36mDid you mean:\033[0m \033[32m-${suggestion}\033[0m\033[36m?\033[0m\n"
         echo ""
-        write_cyan " Valid parameters:"
-        echo "   -bootstrap, -verify, -clean, -help, -dry-run, -repo-directory <path>"
-        echo ""
-        write_green " Examples:"
-        echo "   $0 -help"
-        echo "   $0 -bootstrap"
+        printf " \033[36mFor more help on using this command, run:\033[0m\n"
+        printf "   \033[37m$0 -help\033[0m\n"
         echo ""
         exit 1
     fi
@@ -433,9 +427,11 @@ parse_arguments() {
                     check_typos "$1"
                 fi
 
-                write_error_message "Unknown option: $1"
+                printf " \033[31mError:\033[0m\033[36m Failed to parse command-line argument:\033[0m\n"
+                printf " \033[36mUnknown option:\033[0m \033[33m$1\033[0m\n"
                 echo ""
-                echo " Use -help for usage information"
+                printf " \033[36mFor more help on using this command, run:\033[0m\n"
+                printf "   \033[37m$0 -help\033[0m\n"
                 echo ""
                 exit 1
                 ;;
