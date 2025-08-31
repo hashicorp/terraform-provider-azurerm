@@ -383,7 +383,10 @@ show_bootstrap_location_error() {
 
 # Function to get user profile directory
 get_user_profile() {
-    echo "${HOME}/.terraform-ai-installer"
+    # Return the full expanded path (not using ~ shorthand) to match PowerShell behavior
+    local expanded_home
+    expanded_home="${HOME:-/home/$(whoami)}"
+    echo "${expanded_home}/.terraform-ai-installer"
 }
 
 # Function to write operation status with consistent formatting
