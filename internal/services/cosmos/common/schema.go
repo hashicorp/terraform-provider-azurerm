@@ -145,6 +145,8 @@ func CosmosDbIndexingPolicySchema() *pluginsdk.Schema {
 				"composite_index": CosmosDbIndexingPolicyCompositeIndexSchema(),
 
 				"spatial_index": CosmosDbIndexingPolicySpatialIndexSchema(),
+
+				"vector_index": CosmosDbIndexingPolicyVectorIndexSchema(),
 			},
 		},
 	}
@@ -237,6 +239,114 @@ func CosmosDbIndexingPolicySpatialIndexSchema() *pluginsdk.Schema {
 					Computed: true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
+					},
+				},
+			},
+		},
+	}
+}
+
+func CosmosDbIndexingPolicyVectorIndexSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"path": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"type": {
+					Type:     pluginsdk.TypeString,
+					Required: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"flat",
+						"diskANN",
+						"quantizedFlat",
+					}, false),
+				},
+			},
+		},
+	}
+}
+
+func CosmosDbVectorEmbeddingPolicySchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"vector_embedding": {
+					Type:     pluginsdk.TypeList,
+					Required: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"path": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"data_type": {
+								Type:     pluginsdk.TypeString,
+								Required: true,
+								ValidateFunc: validation.StringInSlice([]string{
+									"float32",
+									"uint8",
+									"int8",
+								}, false),
+							},
+							"distance_function": {
+								Type:     pluginsdk.TypeString,
+								Required: true,
+								ValidateFunc: validation.StringInSlice([]string{
+									"euclidean",
+									"cosine",
+									"dotproduct",
+								}, false),
+							},
+							"dimensions": {
+								Type:         pluginsdk.TypeInt,
+								Required:     true,
+								ValidateFunc: validation.IntAtLeast(1),
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func CosmosDbFullTextPolicySchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"default_language": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"full_text_path": {
+					Type:     pluginsdk.TypeList,
+					Required: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"path": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"language": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+						},
 					},
 				},
 			},
