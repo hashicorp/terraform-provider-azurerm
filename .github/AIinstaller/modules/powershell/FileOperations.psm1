@@ -983,8 +983,8 @@ function Invoke-Bootstrap {
             New-Item -ItemType Directory -Path $targetDirectory -Force | Out-Null
         }
 
-        # Files to bootstrap from configuration
-        $filesToBootstrap = $Global:InstallerConfig.Files.InstallerFiles.Files
+        # Files to bootstrap - access directly from manifest config to avoid verify validation issues
+        $filesToBootstrap = $Global:ManifestConfig.Sections.INSTALLER_FILES_BOOTSTRAP
 
         # CRITICAL: Always include the manifest file in bootstrap - it's required for user profile operations
         $manifestFile = "file-manifest.config"
