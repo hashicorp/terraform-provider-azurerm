@@ -244,18 +244,36 @@ main() {
     # STEP 7: Show branch detection now that we have all the context
     show_branch_detection "${current_branch}" "${workspace_root}"
 
-    # STEP 8: Simple parameter handling (like PowerShell)
+    # STEP 8: Detect what command was attempted (for better error messages)
+    local attempted_command=""
+    if [[ "${BOOTSTRAP}" == "true" ]]; then
+        attempted_command="-bootstrap"
+    elif [[ "${VERIFY}" == "true" ]]; then
+        attempted_command="-verify"
+    elif [[ "${CLEAN}" == "true" ]]; then
+        attempted_command="-clean"
+    elif [[ "${HELP}" == "true" ]]; then
+        attempted_command="-help"
+    elif [[ "${DRY_RUN}" == "true" ]]; then
+        attempted_command="-dry-run"
+    elif [[ "${AUTO_APPROVE}" == "true" ]]; then
+        attempted_command="-auto-approve"
+    elif [[ -n "${REPO_DIRECTORY}" && "${HELP}" != "true" && "${VERIFY}" != "true" && "${BOOTSTRAP}" != "true" && "${CLEAN}" != "true" ]]; then
+        attempted_command="-repo-directory \"${REPO_DIRECTORY}\""
+    fi
+
+    # STEP 9: Simple parameter handling (like PowerShell)
     if [[ "${HELP}" == "true" ]]; then
-        show_usage "${branch_type}" "${workspace_valid}" "${workspace_reason}"
+        show_usage "${branch_type}" "${workspace_valid}" "${workspace_reason}" "${attempted_command}"
         exit 0
     fi
 
-    # STEP 9: For all other operations, workspace must be valid
+    # STEP 10: For all other operations, workspace must be valid
     if [[ "${workspace_valid}" != "true" ]]; then
         show_workspace_validation_error "${workspace_reason}" "$([[ -n "${REPO_DIRECTORY}" ]] && echo "true" || echo "false")"
 
         # Show help menu for guidance
-        show_usage "${branch_type}" "false" "${workspace_reason}"
+        show_usage "${branch_type}" "false" "${workspace_reason}" "${attempted_command}"
         exit 1
     fi
 

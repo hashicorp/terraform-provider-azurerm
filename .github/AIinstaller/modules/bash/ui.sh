@@ -617,6 +617,7 @@ show_usage() {
     local branch_type="${1:-feature}"
     local workspace_valid="${2:-true}"
     local workspace_issue="${3:-}"
+    local attempted_command="${4:-}"
 
     echo ""
     write_cyan "DESCRIPTION:"
@@ -627,13 +628,13 @@ show_usage() {
     # Dynamic options and examples based on branch type
     case "${branch_type}" in
         "source")
-            show_source_branch_help
+            show_source_branch_help "${attempted_command}"
             ;;
         "feature")
-            show_feature_branch_help
+            show_feature_branch_help "${attempted_command}"
             ;;
         *)
-            show_unknown_branch_help "${workspace_valid}" "${workspace_issue}"
+            show_unknown_branch_help "${workspace_valid}" "${workspace_issue}" "${attempted_command}"
             ;;
     esac
 
@@ -643,6 +644,8 @@ show_usage() {
 
 # Function to show source branch specific help
 show_source_branch_help() {
+    local attempted_command="${1:-}"
+
     write_cyan "USAGE:"
     write_plain "  ./install-copilot-setup.sh [OPTIONS]"
     echo ""
@@ -659,6 +662,15 @@ show_source_branch_help() {
     write_plain "  Verify setup:"
     write_plain "    ./install-copilot-setup.sh -verify"
     echo ""
+
+    # Show command-specific help if a command was attempted
+    if [[ -n "${attempted_command}" ]]; then
+        echo ""
+        write_yellow "NOTE: You tried to run '${attempted_command}' but this is a source branch."
+        write_plain "      Use -bootstrap first to copy the installer to your user profile,"
+        write_plain "      then switch to a feature branch for installation operations."
+    fi
+
     write_cyan "BOOTSTRAP WORKFLOW:"
     write_plain "  1. Run -bootstrap from source branch (exp/terraform_copilot) to copy installer to user profile"
     write_plain "  2. Switch to your feature branch: git checkout feature/your-branch-name"
@@ -669,6 +681,8 @@ show_source_branch_help() {
 
 # Function to show feature branch specific help
 show_feature_branch_help() {
+    local attempted_command="${1:-}"
+
     write_cyan "USAGE:"
     write_plain "  ./install-copilot-setup.sh [OPTIONS]"
     echo ""
@@ -700,6 +714,24 @@ show_feature_branch_help() {
     write_plain "    ./install-copilot-setup.sh -repo-directory \"/path/to/your/feature/branch\" -clean"
     echo ""
 
+    # Show command-specific help if a command was attempted
+    if [[ -n "${attempted_command}" ]]; then
+        echo ""
+        write_yellow "NOTE: You tried to run '${attempted_command}'."
+        case "${attempted_command}" in
+            "-repo-directory"*)
+                write_plain "      This is correct! You're trying to install AI infrastructure."
+                write_plain "      Make sure you're running from ~/.terraform-ai-installer/ directory."
+                ;;
+            "-bootstrap")
+                write_plain "      Bootstrap is for source branches only. Use -repo-directory instead."
+                ;;
+            *)
+                write_plain "      For feature branches, use -repo-directory to specify your workspace."
+                ;;
+        esac
+    fi
+
     write_cyan "WORKFLOW:"
     write_plain "  1. Navigate to user profile installer directory: cd ~/.terraform-ai-installer/"
     write_plain "  2. Run installer with path to your feature branch"
@@ -712,6 +744,7 @@ show_feature_branch_help() {
 show_unknown_branch_help() {
     local workspace_valid="${1:-true}"
     local workspace_issue="${2:-}"
+    local attempted_command="${3:-}"
 
     # Show workspace issue if detected
     if [[ "${workspace_valid}" != "true" && -n "${workspace_issue}" ]]; then
@@ -719,8 +752,12 @@ show_unknown_branch_help() {
         write_yellow "  ${workspace_issue}"
         echo ""
         write_cyan "SOLUTION:"
+
+        # Use dynamic command or default to -help
+        local command_example="${attempted_command:-"-help"}"
+
         write_plain "  Navigate to a terraform-provider-azurerm repository, or use the -repo-directory parameter:"
-        write_plain "  ./install-copilot-setup.sh -repo-directory \"/path/to/terraform-provider-azurerm\" -help"
+        write_plain "  ./install-copilot-setup.sh -repo-directory \"/path/to/terraform-provider-azurerm\" ${command_example}"
         echo ""
         print_separator
         echo ""
