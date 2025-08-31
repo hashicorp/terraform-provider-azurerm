@@ -125,11 +125,6 @@ function Get-InstallerConfig {
                 Description = "AI prompt templates for development workflows"
                 Files = $ManifestConfig.Sections.PROMPT_FILES
             }
-            InstallerFiles = @{
-                Target = "$env:USERPROFILE\.terraform-ai-installer"
-                Description = "Cross-platform installer scripts and modules (PowerShell + Bash) for bootstrap functionality"
-                Files = $ManifestConfig.Sections.INSTALLER_FILES_BOOTSTRAP
-            }
             UniversalFiles = @{
                 Target = (Join-Path $WorkspaceRoot ".vscode")
                 Description = "Platform-independent configuration files"

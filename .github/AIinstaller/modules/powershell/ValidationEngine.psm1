@@ -272,6 +272,35 @@ function Test-GitRepository {
     return $results
 }
 
+function Get-RelativePath {
+    <#
+    .SYNOPSIS
+    Get relative path from workspace root, handling both existing and non-existing paths
+    #>
+    param(
+        [string]$Path,
+        [string]$WorkspaceRoot = (Get-Location).Path
+    )
+
+    try {
+        # For existing paths, use Resolve-Path
+        if (Test-Path $Path) {
+            return Resolve-Path $Path -Relative
+        }
+
+        # For non-existing paths, manually construct relative path
+        $absolutePath = if ([System.IO.Path]::IsPathRooted($Path)) { $Path } else { Join-Path $WorkspaceRoot $Path }
+        $relativePath = [System.IO.Path]::GetRelativePath($WorkspaceRoot, $absolutePath)
+
+        # Keep Windows-style backslashes for PowerShell output
+        return $relativePath
+    }
+    catch {
+        # Fallback: just return the filename or last part of the path
+        return Split-Path $Path -Leaf
+    }
+}
+
 #endregion
 
 #region Public Functions
@@ -544,7 +573,7 @@ function Invoke-VerifyWorkspace {
         # If basic validation failed, show that first
         if (-not $validation.OverallValid) {
             $results.Issues += "Workspace validation failed: $($validation.Git.Reason)"
-            Write-Host "❌ Workspace validation failed!" -ForegroundColor Red
+            Write-Host " Workspace validation failed!" -ForegroundColor Red
             Write-Host "   $($validation.Git.Reason)" -ForegroundColor Yellow
             return $results
         }
@@ -561,15 +590,15 @@ function Invoke-VerifyWorkspace {
                 Status = "Present"
                 Description = "Main Copilot instructions"
             }
-            Write-Host "  [FOUND] $(Resolve-Path $instructionsFile -Relative)" -ForegroundColor Green
+            Write-Host "  [FOUND  ] $(Get-RelativePath $instructionsFile)" -ForegroundColor Green
         } else {
             $results.Files += @{
                 Path = $instructionsFile
                 Status = "Missing"
                 Description = "Main Copilot instructions"
             }
-            $results.Issues += "Missing: $instructionsFile"
-            Write-Host "  [MISSING] $(Resolve-Path $instructionsFile -Relative -ErrorAction SilentlyContinue)" -ForegroundColor Red
+            $results.Issues += "MISSING: $instructionsFile"
+            Write-Host "  [MISSING] $(Get-RelativePath $instructionsFile)" -ForegroundColor Red
         }
 
         # Check instructions directory
@@ -580,7 +609,7 @@ function Invoke-VerifyWorkspace {
                 Status = "Present"
                 Description = "Instructions directory"
             }
-            Write-Host "  [FOUND] $(Resolve-Path $instructionsDir -Relative)/" -ForegroundColor Green
+            Write-Host "  [FOUND  ] $(Get-RelativePath $instructionsDir)/" -ForegroundColor Green
 
             # Check specific instruction files
             $requiredFiles = $Global:InstallerConfig.Files.InstructionFiles.Files
@@ -601,10 +630,10 @@ function Invoke-VerifyWorkspace {
                         Status = "Present"
                         Description = "Instruction file"
                     }
-                    Write-Host "    [FOUND] $file" -ForegroundColor Green
+                    Write-Host "    [FOUND  ] $file" -ForegroundColor Green
                 } else {
                     Write-Host "    [MISSING] $file" -ForegroundColor Red
-                    $results.Issues += "Missing: $filePath"
+                    $results.Issues += "MISSING: $filePath"
                 }
             }
         } else {
@@ -613,8 +642,8 @@ function Invoke-VerifyWorkspace {
                 Status = "Missing"
                 Description = "Instructions directory"
             }
-            $results.Issues += "Missing: $instructionsDir"
-            Write-Host "  [MISSING] $(Resolve-Path $instructionsDir -Relative -ErrorAction SilentlyContinue)/" -ForegroundColor Red
+            $results.Issues += "MISSING: $instructionsDir"
+            Write-Host "  [MISSING] $(Get-RelativePath $instructionsDir)/" -ForegroundColor Red
         }
 
         # Check prompts directory
@@ -625,7 +654,7 @@ function Invoke-VerifyWorkspace {
                 Status = "Present"
                 Description = "Prompts directory"
             }
-            Write-Host "  [FOUND] $(Resolve-Path $promptsDir -Relative)/" -ForegroundColor Green
+            Write-Host "  [FOUND  ] $(Get-RelativePath $promptsDir)/" -ForegroundColor Green
 
             # Check specific prompt files
             $requiredPrompts = $Global:InstallerConfig.Files.PromptFiles.Files
@@ -646,10 +675,10 @@ function Invoke-VerifyWorkspace {
                         Status = "Present"
                         Description = "Prompt file"
                     }
-                    Write-Host "    [FOUND] $file" -ForegroundColor Green
+                    Write-Host "    [FOUND  ] $file" -ForegroundColor Green
                 } else {
                     Write-Host "    [MISSING] $file" -ForegroundColor Red
-                    $results.Issues += "Missing: $filePath"
+                    $results.Issues += "MISSING: $filePath"
                 }
             }
         } else {
@@ -658,8 +687,8 @@ function Invoke-VerifyWorkspace {
                 Status = "Missing"
                 Description = "Prompts directory"
             }
-            $results.Issues += "Missing: $promptsDir"
-            Write-Host "  [MISSING] $(Resolve-Path $promptsDir -Relative -ErrorAction SilentlyContinue)/" -ForegroundColor Red
+            $results.Issues += "MISSING: $promptsDir"
+            Write-Host "  [MISSING] $(Get-RelativePath $promptsDir)/" -ForegroundColor Red
         }
 
         # Check .vscode directory and settings
@@ -670,7 +699,7 @@ function Invoke-VerifyWorkspace {
                 Status = "Present"
                 Description = "VSCode directory"
             }
-            Write-Host "  [FOUND] .vscode/" -ForegroundColor Green
+            Write-Host "  [FOUND  ] .vscode/" -ForegroundColor Green
 
             $settingsFile = Join-Path $vscodeDir "settings.json"
             if (Test-Path $settingsFile) {
@@ -679,27 +708,31 @@ function Invoke-VerifyWorkspace {
                     Status = "Present"
                     Description = "VSCode settings file"
                 }
-                Write-Host "    [FOUND] settings.json" -ForegroundColor Green
+                Write-Host "    [FOUND  ] settings.json" -ForegroundColor Green
             } else {
                 Write-Host "    [MISSING] settings.json" -ForegroundColor Red
-                $results.Issues += "Missing: $settingsFile"
+                $results.Issues += "MISSING: $settingsFile"
             }
         } else {
             Write-Host "  [MISSING] .vscode/" -ForegroundColor Red
-            $results.Issues += "Missing: $vscodeDir"
+            $results.Issues += "MISSING: $vscodeDir"
         }
 
         # Show results summary
         if ($results.Issues.Count -gt 0) {
             $results.Success = $false
-            Write-Host "Issues Found:" -ForegroundColor Yellow
+            Write-Host ""
+            Write-Host " Some AI infrastructure files are missing!" -ForegroundColor Red
+            Write-Host ""
+            Write-Host " Issues Found:" -ForegroundColor Yellow
+            Write-Host ""
             foreach ($issue in $results.Issues) {
                 Write-Host "  - $issue" -ForegroundColor Red
             }
 
             if (-not $results.IsSourceRepo) {
                 Write-Host ""
-                Write-Host "TIP: To install missing files, run the installer from user profile" -ForegroundColor Cyan
+                Write-Host " TIP: To install missing files, run the bootstrapped installer from the user profile" -ForegroundColor Cyan
             }
         }
 

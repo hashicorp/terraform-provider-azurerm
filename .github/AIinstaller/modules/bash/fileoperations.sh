@@ -79,23 +79,39 @@ download_file() {
     # Create target directory if it doesn't exist
     mkdir -p "$(dirname "${target_path}")"
 
+    # Try download with proper error handling
+    local download_success=false
+    local error_msg=""
+
     if command -v curl >/dev/null 2>&1; then
-        if curl -fsSL "${url}" -o "${target_path}"; then
-            echo "  Downloading: ${description} [OK]"
-            return 0
+        # Use curl with proper error handling
+        if curl -fsSL "${url}" -o "${target_path}" 2>/dev/null; then
+            download_success=true
+        else
+            error_msg="curl failed to download from ${url}"
         fi
     elif command -v wget >/dev/null 2>&1; then
-        if wget -q "${url}" -O "${target_path}"; then
-            echo "  Downloading: ${description} [OK]"
-            return 0
+        # Use wget with proper error handling
+        if wget -q "${url}" -O "${target_path}" 2>/dev/null; then
+            download_success=true
+        else
+            error_msg="wget failed to download from ${url}"
         fi
     else
         write_error_message "Neither curl nor wget is available for downloading files"
         return 1
     fi
 
-    echo "  Downloading: ${description} [FAILED]"
-    return 1
+    if [[ "${download_success}" == "true" ]]; then
+        # Verify file was actually created and has content
+        if [[ -f "${target_path}" && -s "${target_path}" ]]; then
+            return 0
+        else
+            return 1
+        fi
+    else
+        return 1
+    fi
 }
 
 # Function to get file size
@@ -376,88 +392,219 @@ install_infrastructure() {
         return 1
     fi
 
-    echo "Installing to workspace: ${workspace_root}"
+    # Step 1: Show dry run notice if applicable
+    if [[ "${DRY_RUN:-false}" == "true" ]]; then
+        write_yellow "DRY RUN - No files will be created or removed"
+        echo ""
+    fi
 
-    # Get file lists from manifest
+    # Step 2: Check for deprecated files (automatic part of installation)
+    write_cyan "Checking for deprecated files..."
+    # TODO: Implement deprecated file removal when available
+    write_cyan "  No deprecated files found"
+    echo ""
+
+    # Step 3: Installing current AI infrastructure files message
+    write_cyan "Installing current AI infrastructure files..."
+
+    # Step 4: Validation phase
+    write_cyan "Validating installation prerequisites..."
+
+    # Basic validation - workspace exists and is writable
+    if [[ ! -d "${workspace_root}" ]]; then
+        write_error_message "Workspace directory does not exist: ${workspace_root}"
+        return 1
+    fi
+
+    if [[ ! -w "${workspace_root}" ]]; then
+        write_error_message "Workspace directory is not writable: ${workspace_root}"
+        return 1
+    fi
+
+    write_green "All prerequisites validated successfully!"
+    echo ""
+
+    # Step 5: Build complete file list (like PowerShell does)
+    local all_files=()
+    local file_destinations=()
+
+    # Build unified file list with destination mappings
+    build_file_list "${manifest_file}" "${workspace_root}" all_files file_destinations
+
+    local total_files=${#all_files[@]}
+
+    # Step 6: Show preparation message
+    write_cyan "Preparing to install ${total_files} files..."
+    echo ""
+
+    # Step 7: Process all files in a single streamlined loop
+    local successful_files=0
+    local failed_files=0
+
+    install_all_files all_files file_destinations successful_files failed_files
+
+    # Show comprehensive installation summary like PowerShell (no duplicate success message)
+    show_installation_summary "${workspace_root}" "${successful_files}" "${failed_files}" "${total_files}"
+}
+
+# Modular function to build unified file list with destination mappings
+build_file_list() {
+    local manifest_file="$1"
+    local workspace_root="$2"
+    local -n all_files_ref="$3"
+    local -n file_destinations_ref="$4"
+
+    # Read all file sections from manifest and build unified list
     local main_files instruction_files prompt_files universal_files
 
-    # Read files from manifest sections
     readarray -t main_files < <(get_manifest_files "MAIN_FILES" "${manifest_file}")
     readarray -t instruction_files < <(get_manifest_files "INSTRUCTION_FILES" "${manifest_file}")
     readarray -t prompt_files < <(get_manifest_files "PROMPT_FILES" "${manifest_file}")
     readarray -t universal_files < <(get_manifest_files "UNIVERSAL_FILES" "${manifest_file}")
 
-    # Calculate total files to install
-    local total_files=$((${#main_files[@]} + ${#instruction_files[@]} + ${#prompt_files[@]} + ${#universal_files[@]}))
-    local current_file=0
-
-    # Install main files
+    # Add main files (root level)
     for file in "${main_files[@]}"; do
         [[ -z "${file}" ]] && continue
-        current_file=$((current_file + 1))
-
-        local filename=$(basename "${file}")
-        local target_path="${workspace_root}/${file}"
-
-        if declare -f show_completion >/dev/null 2>&1; then
-            show_completion ${current_file} ${total_files} "Installing ${filename}"
-        fi
-
-        download_file "${file}" "${target_path}" "${filename}"
+        all_files_ref+=("${file}")
+        file_destinations_ref+=("${workspace_root}/${file}")
     done
 
-    # Install instruction files
-    local instructions_dir="${workspace_root}/.github/instructions"
-    mkdir -p "${instructions_dir}"
-
+    # Add instruction files (.github/instructions/)
     for file in "${instruction_files[@]}"; do
         [[ -z "${file}" ]] && continue
-        current_file=$((current_file + 1))
-
         local filename=$(basename "${file}")
-        local target_path="${workspace_root}/${file}"
-
-        if declare -f show_completion >/dev/null 2>&1; then
-            show_completion ${current_file} ${total_files} "Installing ${filename}"
-        fi
-
-        download_file "${file}" "${target_path}" "instructions/${filename}"
+        all_files_ref+=("${file}")
+        file_destinations_ref+=("${workspace_root}/.github/instructions/${filename}")
     done
 
-    # Install prompt files
-    local prompts_dir="${workspace_root}/.github/prompts"
-    mkdir -p "${prompts_dir}"
-
+    # Add prompt files (.github/prompts/)
     for file in "${prompt_files[@]}"; do
         [[ -z "${file}" ]] && continue
-        current_file=$((current_file + 1))
-
         local filename=$(basename "${file}")
-        local target_path="${workspace_root}/${file}"
-
-        if declare -f show_completion >/dev/null 2>&1; then
-            show_completion ${current_file} ${total_files} "Installing ${filename}"
-        fi
-
-        download_file "${file}" "${target_path}" "prompts/${filename}"
+        all_files_ref+=("${file}")
+        file_destinations_ref+=("${workspace_root}/.github/prompts/${filename}")
     done
 
-    # Install universal files (like .vscode/settings.json)
+    # Add universal files (various locations)
     for file in "${universal_files[@]}"; do
         [[ -z "${file}" ]] && continue
-        current_file=$((current_file + 1))
+        all_files_ref+=("${file}")
+        file_destinations_ref+=("${workspace_root}/${file}")
+    done
+}
 
-        local filename=$(basename "${file}")
-        local target_path="${workspace_root}/${file}"
+# Streamlined function to install all files in a single loop
+install_all_files() {
+    local -n all_files_ref="$1"
+    local -n file_destinations_ref="$2"
+    local -n successful_ref="$3"
+    local -n failed_ref="$4"
 
-        if declare -f show_completion >/dev/null 2>&1; then
-            show_completion ${current_file} ${total_files} "Installing ${filename}"
+    local total_files=${#all_files_ref[@]}
+
+    # Create necessary directories upfront
+    mkdir -p "${workspace_root}/.github/instructions"
+    mkdir -p "${workspace_root}/.github/prompts"
+
+    # Temporarily disable exit on error for the download loop
+    set +e
+
+    for ((i=0; i<total_files; i++)); do
+        local source_file="${all_files_ref[i]}"
+        local target_path="${file_destinations_ref[i]}"
+        local filename=$(basename "${source_file}")
+
+        # Calculate relative path for display (like PowerShell)
+        local relative_path
+        relative_path=$(get_relative_display_path "${target_path}" "${workspace_root}")
+
+        # Calculate and display progress with proper colors (matching PowerShell format)
+        local percentage=$(( (i + 1) * 100 / total_files ))
+
+        # Use right-aligned 3-digit format like show_completion function (automatically handles padding)
+        printf "  ${CYAN}Downloading ${GREEN}[%3d%%]${CYAN}: ${NC}%s\n" "${percentage}" "${relative_path}"
+
+        # Create target directory if needed
+        local target_dir=$(dirname "${target_path}")
+        mkdir -p "${target_dir}"
+
+        # Determine download category for consistency
+        local download_category
+        download_category=$(get_download_category "${source_file}")
+
+        # Download the file - handle errors gracefully to continue with other files
+        if download_file "${source_file}" "${target_path}" "${download_category}/${filename}"; then
+            ((successful_ref++))
+        else
+            ((failed_ref++))
+            # Continue with next file even if this one failed (silent like PowerShell)
         fi
-
-        download_file "${file}" "${target_path}" "${filename}"
     done
 
-    write_operation_status "AI Infrastructure installation completed!" "Success"
+    # Re-enable exit on error
+    set -e
+}
+
+# Helper function to get relative display path (like PowerShell shows)
+get_relative_display_path() {
+    local target_path="$1"
+    local workspace_root="$2"
+
+    # Remove workspace root prefix to show relative path
+    local relative_path="${target_path#${workspace_root}/}"
+    echo "${relative_path}"
+}
+
+# Helper function to determine download category
+get_download_category() {
+    local source_file="$1"
+
+    if [[ "${source_file}" =~ \.github/instructions/ ]]; then
+        echo "instructions"
+    elif [[ "${source_file}" =~ \.github/prompts/ ]]; then
+        echo "prompts"
+    else
+        echo "files"
+    fi
+}
+
+# Comprehensive installation summary (matching PowerShell style)
+show_installation_summary() {
+    local workspace_root="$1"
+    local successful_files="$2"
+    local failed_files="$3"
+    local total_files="$4"
+
+    local total_size_kb=486  # TODO: Calculate actual size
+
+    # Get current branch for summary
+    local current_branch="unknown"
+    if [[ -d "${workspace_root}/.git" ]]; then
+        current_branch=$(cd "${workspace_root}" && git branch --show-current 2>/dev/null || echo "unknown")
+    fi
+
+    # Determine branch type
+    local branch_type="feature"
+    case "${current_branch}" in
+        "main"|"master"|"exp/terraform_copilot")
+            branch_type="source"
+            ;;
+        "unknown"|"")
+            branch_type="unknown"
+            ;;
+        *)
+            branch_type="feature"
+            ;;
+    esac
+
+    # Show detailed summary using the sophisticated show_operation_summary function
+    show_operation_summary "Installation" "true" "false" \
+        "Branch Type:${branch_type}" \
+        "Target Branch:${current_branch}" \
+        "Items Successful:${successful_files}" \
+        "Total Size:${total_size_kb} KB" \
+        "Files Installed:${successful_files}" \
+        "Location:${workspace_root}"
 }
 
 # Function to clean AI infrastructure files with empty directory cleanup

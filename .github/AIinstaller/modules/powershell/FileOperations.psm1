@@ -478,8 +478,19 @@ function Remove-AllAIFiles {
         $manifestConfig = Get-ManifestConfig -Branch $Branch
     }
     $allFiles = @()
-    foreach ($section in $manifestConfig.Sections.Keys) {
-        $allFiles += $manifestConfig.Sections[$section]
+    # Only include infrastructure files, not bootstrap installer files
+    # This matches the installation process logic
+    if ($manifestConfig.Sections.MAIN_FILES) {
+        $allFiles += $manifestConfig.Sections.MAIN_FILES
+    }
+    if ($manifestConfig.Sections.INSTRUCTION_FILES) {
+        $allFiles += $manifestConfig.Sections.INSTRUCTION_FILES
+    }
+    if ($manifestConfig.Sections.PROMPT_FILES) {
+        $allFiles += $manifestConfig.Sections.PROMPT_FILES
+    }
+    if ($manifestConfig.Sections.UNIVERSAL_FILES) {
+        $allFiles += $manifestConfig.Sections.UNIVERSAL_FILES
     }
 
     # Dynamically determine directories to check based on manifest file paths
@@ -504,12 +515,9 @@ function Remove-AllAIFiles {
             # Skip protected directories - we only clean up specific AI subdirectories
             $isProtected = $false
 
-            # Allow specific AI directories under .github
+            # Allow specific AI infrastructure directories under .github
+            # Note: AIinstaller directories are only handled during bootstrap, not main installation
             $allowedAIDirectories = @(
-                ".github/AIinstaller",
-                ".github/AIinstaller/modules",
-                ".github/AIinstaller/modules/powershell",
-                ".github/AIinstaller/modules/bash",
                 ".github/instructions",
                 ".github/prompts"
             )
@@ -602,14 +610,7 @@ function Remove-AllAIFiles {
     foreach ($dirPath in $directoriesToCheck) {
         $fullDirPath = Join-Path $WorkspaceRoot $dirPath
         if (Test-Path $fullDirPath) {
-            # Skip child directories of AIinstaller since we'll remove it recursively
-            # This includes direct children like .github/AIinstaller/modules
-            # and deeper children like .github/AIinstaller/modules/bash
-            $isChildOfAIinstaller = ($dirPath.StartsWith(".github/AIinstaller/") -and $dirPath -ne ".github/AIinstaller") -or
-                                   ($dirPath.StartsWith(".github\AIinstaller\") -and $dirPath -ne ".github\AIinstaller")
-            if (-not $isChildOfAIinstaller) {
-                $existingDirectories += $dirPath
-            }
+            $existingDirectories += $dirPath
         }
     }
 
@@ -749,25 +750,19 @@ function Remove-AllAIFiles {
         }
 
         if (Test-Path $resolvedDirPath -PathType Container) {
-            # Special handling for AIinstaller directory - just nuke it recursively
-            $relativePath = if ($WorkspaceRoot) {
-                $resolvedDirPath.Replace($WorkspaceRoot, "").TrimStart('\', '/').Replace('\', '/')
-            } else {
-                $dir
-            }
-
-            if ($relativePath -eq ".github/AIinstaller" -or $relativePath.StartsWith(".github/AIinstaller/")) {
-                # For AIinstaller, remove recursively with force
+            # Check if directory is empty first
+            $dirContents = Get-ChildItem $resolvedDirPath -Force
+            if ($dirContents.Count -eq 0) {
                 if ($DryRun) {
                     $dirResult.Action = "Would Remove"
-                    $dirResult.Message = "Directory would be removed recursively"
+                    $dirResult.Message = "Empty directory would be removed"
                     $results.DirectoriesCleaned++
                     Write-Host "[WOULD REMOVE]" -ForegroundColor Yellow
                 } else {
                     try {
-                        Remove-Item -Path $resolvedDirPath -Recurse -Force -ErrorAction Stop
+                        Remove-Item -Path $resolvedDirPath -Force -ErrorAction Stop
                         $dirResult.Action = "Removed"
-                        $dirResult.Message = "Directory removed recursively"
+                        $dirResult.Message = "Empty directory removed"
                         $results.DirectoriesCleaned++
                         Write-Host "[OK]" -ForegroundColor Green
                     }
@@ -781,36 +776,9 @@ function Remove-AllAIFiles {
                     }
                 }
             } else {
-                # For other directories, check if empty first
-                $dirContents = Get-ChildItem $resolvedDirPath -Force
-                if ($dirContents.Count -eq 0) {
-                    if ($DryRun) {
-                        $dirResult.Action = "Would Remove"
-                        $dirResult.Message = "Empty directory would be removed"
-                        $results.DirectoriesCleaned++
-                        Write-Host "[WOULD REMOVE]" -ForegroundColor Yellow
-                    } else {
-                        try {
-                            Remove-Item -Path $resolvedDirPath -Force -ErrorAction Stop
-                            $dirResult.Action = "Removed"
-                            $dirResult.Message = "Empty directory removed"
-                            $results.DirectoriesCleaned++
-                            Write-Host "[OK]" -ForegroundColor Green
-                        }
-                        catch {
-                            $dirResult.Action = "Failed"
-                            $dirResult.Success = $false
-                            $dirResult.Message = "Failed to remove directory: $($_.Exception.Message)"
-                            $results.Success = $false
-                            $results.Issues += "Failed to remove directory ${resolvedDirPath}: $($_.Exception.Message)"
-                            Write-Host "[FAILED]" -ForegroundColor Red
-                        }
-                    }
-                } else {
-                    $dirResult.Action = "Not Empty"
-                    $dirResult.Message = "Directory contains other files"
-                    Write-Host "[NOT EMPTY]" -ForegroundColor Yellow
-                }
+                $dirResult.Action = "Not Empty"
+                $dirResult.Message = "Directory contains other files"
+                Write-Host "[NOT EMPTY]" -ForegroundColor Yellow
             }
         } else {
             $dirResult.Action = "Not Found"
@@ -1343,7 +1311,7 @@ function Invoke-InstallInfrastructure {
     }
 
     # Step 1: Clean up deprecated files first (automatic part of installation)
-    Write-Host "Checking for deprecated files..." -ForegroundColor Gray
+    Write-Host "Checking for deprecated files..." -ForegroundColor Cyan
     $deprecatedFiles = Remove-DeprecatedFiles -ManifestConfig $ManifestConfig -WorkspaceRoot $WorkspaceRoot -DryRun $DryRun -Quiet $true
 
     if ($deprecatedFiles.Count -gt 0) {

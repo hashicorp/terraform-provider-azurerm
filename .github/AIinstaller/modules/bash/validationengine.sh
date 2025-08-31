@@ -349,20 +349,16 @@ test_internet_connectivity() {
 verify_installation() {
     local workspace_root="${1:-$(get_workspace_root)}"
 
-    if declare -f write_section >/dev/null 2>&1; then
-                write_section "Workspace Verification"
-    else
-        echo "============================================================"
-        echo " Workspace Verification"
-        echo "============================================================"
-        echo ""
-    fi
+    write_cyan " Workspace Verification"
+    print_separator
+    echo ""
 
     local all_good=true
     local manifest_file="${HOME}/.terraform-ai-installer/file-manifest.config"
     local files_checked=0
     local files_passed=0
     local files_failed=0
+    local missing_items=()  # Array to track specific missing files/directories
 
     # Check main files
     local main_files
@@ -373,11 +369,12 @@ verify_installation() {
             local full_path="${workspace_root}/${file}"
             files_checked=$((files_checked + 1))
             if [[ -f "${full_path}" ]]; then
-                write_green "  [FOUND] ${file}"
+                write_green "  [FOUND  ] ${file}"
                 files_passed=$((files_passed + 1))
             else
                 write_red "  [MISSING] ${file}"
                 files_failed=$((files_failed + 1))
+                missing_items+=("MISSING: ${full_path}")
                 all_good=false
             fi
         done <<< "${main_files}"
@@ -391,7 +388,7 @@ verify_installation() {
         local instructions_dir="${workspace_root}/.github/instructions"
         files_checked=$((files_checked + 1))
         if [[ -d "${instructions_dir}" ]]; then
-            write_green "  [FOUND] .github/instructions/"
+            write_green "  [FOUND  ] .github/instructions/"
             files_passed=$((files_passed + 1))
 
             while IFS= read -r file; do
@@ -400,17 +397,19 @@ verify_installation() {
                 local filename=$(basename "${file}")
                 files_checked=$((files_checked + 1))
                 if [[ -f "${full_path}" ]]; then
-                    write_green "    [FOUND] .github/instructions/${filename}"
+                    write_green "    [FOUND  ] ${filename}"
                     files_passed=$((files_passed + 1))
                 else
-                    write_red "    [MISSING] .github/instructions/${filename}"
+                    write_red "    [MISSING] ${filename}"
                     files_failed=$((files_failed + 1))
+                    missing_items+=("MISSING: ${full_path}")
                     all_good=false
                 fi
             done <<< "${instruction_files}"
         else
             write_red "  [MISSING] .github/instructions/"
             files_failed=$((files_failed + 1))
+            missing_items+=("MISSING: ${instructions_dir}")
             all_good=false
         fi
     fi
@@ -423,7 +422,7 @@ verify_installation() {
         local prompts_dir="${workspace_root}/.github/prompts"
         files_checked=$((files_checked + 1))
         if [[ -d "${prompts_dir}" ]]; then
-            write_green "  [FOUND] .github/prompts/"
+            write_green "  [FOUND  ] .github/prompts/"
             files_passed=$((files_passed + 1))
 
             while IFS= read -r file; do
@@ -432,17 +431,19 @@ verify_installation() {
                 local filename=$(basename "${file}")
                 files_checked=$((files_checked + 1))
                 if [[ -f "${full_path}" ]]; then
-                    write_green "    [FOUND] .github/prompts/${filename}"
+                    write_green "    [FOUND  ] ${filename}"
                     files_passed=$((files_passed + 1))
                 else
-                    write_red "    [MISSING] .github/prompts/${filename}"
+                    write_red "    [MISSING] ${filename}"
                     files_failed=$((files_failed + 1))
+                    missing_items+=("MISSING: ${full_path}")
                     all_good=false
                 fi
             done <<< "${prompt_files}"
         else
             write_red "  [MISSING] .github/prompts/"
             files_failed=$((files_failed + 1))
+            missing_items+=("MISSING: ${prompts_dir}")
             all_good=false
         fi
     fi
@@ -457,26 +458,56 @@ verify_installation() {
             local dir_path=$(dirname "${file}")
             local filename=$(basename "${file}")
 
-            # Count directory first (like PowerShell does)
-            files_checked=$((files_checked + 1))
-            if [[ -d "${workspace_root}/${dir_path}" ]]; then
-                write_green "  [FOUND] ${dir_path}/"
-                files_passed=$((files_passed + 1))
-            else
-                write_red "  [MISSING] ${dir_path}/"
-                files_failed=$((files_failed + 1))
-                all_good=false
-            fi
+            # Special handling for .vscode/settings.json
+            if [[ "${file}" == ".vscode/settings.json" ]]; then
+                files_checked=$((files_checked + 1))
+                if [[ -d "${workspace_root}/.vscode" ]]; then
+                    write_green "  [FOUND  ] .vscode/"
+                    files_passed=$((files_passed + 1))
 
-            # Count file separately (like PowerShell does)
-            files_checked=$((files_checked + 1))
-            if [[ -f "${full_path}" ]]; then
-                write_green "    [FOUND] ${filename}"
-                files_passed=$((files_passed + 1))
+                    # Now check the settings.json file
+                    files_checked=$((files_checked + 1))
+                    if [[ -f "${full_path}" ]]; then
+                        write_green "    [FOUND  ] settings.json"
+                        files_passed=$((files_passed + 1))
+                    else
+                        write_red "    [MISSING] settings.json"
+                        files_failed=$((files_failed + 1))
+                        missing_items+=("MISSING: ${full_path}")
+                        all_good=false
+                    fi
+                else
+                    # Directory doesn't exist - show as single error
+                    write_red "  [MISSING] .vscode/ (includes settings.json)"
+                    files_failed=$((files_failed + 1))
+                    missing_items+=("MISSING: ${workspace_root}/.vscode")
+                    all_good=false
+                fi
             else
-                write_red "    [MISSING] ${filename}"
-                files_failed=$((files_failed + 1))
-                all_good=false
+                # Regular file processing
+                # Count directory first (like PowerShell does)
+                files_checked=$((files_checked + 1))
+                if [[ -d "${workspace_root}/${dir_path}" ]]; then
+                    write_green "  [FOUND  ] ${dir_path}/"
+                    files_passed=$((files_passed + 1))
+                else
+                    write_red "  [MISSING] ${dir_path}/"
+                    files_failed=$((files_failed + 1))
+                    missing_items+=("MISSING: ${workspace_root}/${dir_path}")
+                    all_good=false
+                fi
+
+                # Count file separately (like PowerShell does)
+                files_checked=$((files_checked + 1))
+                if [[ -f "${full_path}" ]]; then
+                    write_green "    [FOUND  ] ${filename}"
+                    files_passed=$((files_passed + 1))
+                else
+                    write_red "    [MISSING] ${filename}"
+                    files_failed=$((files_failed + 1))
+                    missing_items+=("MISSING: ${full_path}")
+                    all_good=false
+                fi
             fi
         done <<< "${universal_files}"
     fi
@@ -498,19 +529,29 @@ verify_installation() {
                     fi
                 done
             fi
-            local issues_found=$((files_checked - files_passed))
+            local issues_found=0
 
-            # Match PowerShell order: Branch Type, Target Branch, Issues Found, Files Verified, Items Successful, Location
+            # Match PowerShell order: Branch Type, Target Branch, Files Verified, Issues Found, Location
             show_operation_summary "Verification" "true" "false" \
                 "Branch Type:${branch_type}" \
                 "Target Branch:${current_branch}" \
-                "Issues Found:${issues_found}" \
                 "Files Verified:${files_checked}" \
-                "Items Successful:${files_passed}" \
+                "Issues Found:${issues_found}" \
                 "Location:${workspace_root}"
         fi
     else
-        write_red "Some AI infrastructure files are missing!"
+        echo ""
+        write_red " Some AI infrastructure files are missing!"
+        echo ""
+        write_yellow " Issues Found:"
+        echo ""
+
+        # List specific missing files/directories
+        for item in "${missing_items[@]}"; do
+            write_red "  - ${item}"
+        done
+        echo ""
+        write_cyan " TIP: To install missing files, run the installer from user profile"
 
         # Show verification summary using dynamic show_operation_summary
         if declare -f show_operation_summary >/dev/null 2>&1; then
@@ -528,14 +569,13 @@ verify_installation() {
                     fi
                 done
             fi
-            local issues_found=$((files_checked - files_passed))
 
+            local issues_found=${#missing_items[@]}
             show_operation_summary "Verification" "false" "false" \
                 "Branch Type:${branch_type}" \
                 "Target Branch:${current_branch}" \
-                "Issues Found:${issues_found}" \
                 "Files Verified:${files_checked}" \
-                "Items Successful:${files_passed}" \
+                "Issues Found:${issues_found}" \
                 "Location:${workspace_root}" \
                 --next-steps \
                 "Run installation if components are missing" \
