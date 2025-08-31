@@ -410,63 +410,6 @@ function Remove-AllAIFiles {
         [hashtable]$ManifestConfig = $null
     )
 
-    # CRITICAL: Use centralized pre-installation validation for source repository protection
-    Write-Host "Validating cleanup prerequisites..." -ForegroundColor Yellow
-    $validation = Test-PreInstallation -AllowBootstrapOnSource:$false
-
-    if (-not $validation.OverallValid) {
-        # Build detailed error messages based on validation results
-        $errorMessages = @()
-
-        if ($validation.Git.Reason -like "*SAFETY VIOLATION*") {
-            $errorMessages += "SAFETY VIOLATION: Cannot run clean operation on source branch '$($validation.Git.CurrentBranch)'. Switch to a feature branch to clean the AI infrastructure"
-        } elseif (-not $validation.Git.Valid) {
-            $errorMessages += $validation.Git.Reason
-        }
-
-        if (-not $validation.Workspace.Valid -and -not $validation.Workspace.Skipped) {
-            $errorMessages += $validation.Workspace.Reason
-        }
-
-        if (-not $validation.SystemRequirements.OverallValid) {
-            if (-not $validation.SystemRequirements.PowerShell.Valid) {
-                $errorMessages += $validation.SystemRequirements.PowerShell.Reason
-            }
-            if (-not $validation.SystemRequirements.ExecutionPolicy.Valid) {
-                $errorMessages += $validation.SystemRequirements.ExecutionPolicy.Reason
-            }
-            if (-not $validation.SystemRequirements.Commands.Valid) {
-                $errorMessages += $validation.SystemRequirements.Commands.Reason
-            }
-            if (-not $validation.SystemRequirements.Internet.Connected) {
-                $errorMessages += $validation.SystemRequirements.Internet.Reason
-            }
-        }
-
-        # Fallback if no specific errors found
-        if ($errorMessages.Count -eq 0) {
-            $errorMessages += "Pre-cleanup validation failed"
-        }
-
-        Write-Host ""
-        Write-Host "To Clean a Target Repository:" -ForegroundColor Cyan
-        Write-Host "  1. Switch to a feature branch" -ForegroundColor White
-        Write-Host "  2. Or run this command on a cloned repository" -ForegroundColor White
-        Write-Host "  3. Or use -RepoDirectory to specify target directory" -ForegroundColor White
-
-        return @{
-            Success = $false
-            Issues = $errorMessages
-            FilesRemoved = 0
-            DirectoriesCleaned = 0
-            SourceRepoProtection = $true
-            ValidationResults = $validation
-        }
-    }
-
-    Write-Host "Cleanup validation passed!" -ForegroundColor Green
-    Write-Host ""
-
     # Use provided manifest configuration or get it directly
     if ($ManifestConfig) {
         $manifestConfig = $ManifestConfig
@@ -1157,12 +1100,25 @@ function Invoke-CleanWorkspace {
 
     .PARAMETER WorkspaceRoot
     Root directory of the workspace
+
+    .PARAMETER FromUserProfile
+    Indicates if the operation is running from user profile (with -RepoDirectory)
     #>
     param(
         [bool]$AutoApprove,
         [bool]$DryRun,
-        [string]$WorkspaceRoot
+        [string]$WorkspaceRoot,
+        [bool]$FromUserProfile = $false
     )
+
+    # CRITICAL: Check for safety violations BEFORE showing any operation headers
+    $validation = Test-PreInstallation -AllowBootstrapOnSource:$false
+
+    if (-not $validation.OverallValid -and $validation.Git.Reason -like "*SAFETY VIOLATION*") {
+        # Use standardized safety violation UI for all cases
+        Show-SafetyViolation -BranchName $validation.Git.CurrentBranch -Operation "Clean" -FromUserProfile:$FromUserProfile
+        exit 1
+    }
 
     Write-Host " Clean Workspace" -ForegroundColor Cyan
     Write-Separator

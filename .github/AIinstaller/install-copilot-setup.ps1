@@ -129,14 +129,9 @@ function Get-WorkspaceRoot {
         return $RepoDirectory
     }
 
-    # Otherwise, find workspace root from script location
-    $currentPath = $ScriptDirectory
-    while ($currentPath -and $currentPath -ne (Split-Path $currentPath -Parent)) {
-        if (Test-Path (Join-Path $currentPath "go.mod")) {
-            return $currentPath
-        }
-        $currentPath = Split-Path $currentPath -Parent
-    }
+    # Otherwise, if no RepoDirectory provided, just use current directory
+    # This allows fast-fail workspace validation to handle invalid directories
+    return Get-Location
 
     # If no workspace found, return the directory where the script was called from
     # This allows help and other functions to work, with validation happening separately
@@ -154,64 +149,42 @@ function Main {
     #>
 
      try {
-        # Step 1: EARLY SAFETY CHECK - Fail fast if on source branch with RepoDirectory
-        if ($RepoDirectory) {
-            # Get current branch of the target repository quickly (only if directory exists)
-            $originalLocation = Get-Location
-            $currentBranch = "Unknown"
-            try {
-                if (Test-Path $RepoDirectory) {
-                    Set-Location $RepoDirectory
-                    $currentBranch = git branch --show-current 2>$null
-                    if (-not $currentBranch -or $currentBranch.Trim() -eq "") {
-                        $currentBranch = "Unknown"
-                    }
-                }
-            }
-            catch {
-                $currentBranch = "Unknown"
-            }
-            finally {
-                if (Test-Path $originalLocation) {
-                    Set-Location $originalLocation
-                }
-            }
-
-            # Block operations on source branch immediately (except Verify, Help, Bootstrap)
-            # Source branches: main, master, exp/terraform_copilot
-            $sourceBranches = @("main", "master", "exp/terraform_copilot")
-            if ($currentBranch -in $sourceBranches -and -not ($Verify -or $Help -or $Bootstrap)) {
-                Show-SafetyViolation -BranchName $currentBranch -Operation "Install" -FromUserProfile
-                exit 1
-            }
-        }
-
-        # Step 2: Initialize workspace and validate it's a proper terraform-provider-azurerm repo
+        # Step 1: Initialize workspace and validate it's a proper terraform-provider-azurerm repo
         $Global:WorkspaceRoot = Get-WorkspaceRoot -RepoDirectory $RepoDirectory -ScriptDirectory $ScriptDirectory
 
         # Step 2: Early workspace validation before doing anything else
         $workspaceValidation = Test-WorkspaceValid -WorkspacePath $Global:WorkspaceRoot
 
-        # Initialize configuration based on workspace validity
+        # Step 3: Initialize global configuration
         if ($workspaceValidation.Valid) {
-            # Step 3: Initialize configuration (this sets up global branch info)
-            # CRITICAL: Manifest file should be in the installer directory, not the target repository
+            # Only load manifest if workspace is valid
             if ($RepoDirectory) {
-                # Running from user profile - manifest is in the installer directory (where this script is)
-                $manifestPath = Join-Path $ScriptDirectory "file-manifest.config"
+                # Running from user profile with -RepoDirectory - manifest is in the current user directory
+                $manifestPath = Join-Path (Get-Location) "file-manifest.config"
             } else {
-                # Running from source repository - manifest is in the repository's AIinstaller directory
-                $manifestPath = Join-Path $Global:WorkspaceRoot ".github/AIinstaller/file-manifest.config"
+                # Running from source repository - manifest is in the source AIinstaller directory
+                $manifestPath = Join-Path $ScriptDirectory "file-manifest.config"
             }
             $Global:ManifestConfig = Get-ManifestConfig -ManifestPath $manifestPath
             $Global:InstallerConfig = Get-InstallerConfig -WorkspaceRoot $Global:WorkspaceRoot -ManifestConfig $Global:ManifestConfig
         } else {
-            # Invalid workspace - provide minimal configuration for help
+            # Invalid workspace - provide minimal configuration for UI display
             $Global:InstallerConfig = @{ Version = "1.0.0" }
             $Global:ManifestConfig = @{}
         }
 
-        # Step 4: Simple branch safety check for -RepoDirectory operations
+        # Step 4: Get branch information - simple and direct
+        try {
+            $currentBranch = git branch --show-current 2>$null
+            if (-not $currentBranch -or $currentBranch.Trim() -eq "") {
+                $currentBranch = "Unknown"
+            }
+        }
+        catch {
+            $currentBranch = "Unknown"
+        }
+
+        # Step 4: Get branch information for UI display and safety checks
         if ($RepoDirectory) {
             # Get current branch of the target repository (only if workspace exists)
             $originalLocation = Get-Location
@@ -262,18 +235,43 @@ function Main {
         Write-Header -Title "Terraform AzureRM Provider - AI Infrastructure Installer" -Version $Global:InstallerConfig.Version
         Show-BranchDetection -BranchName $currentBranch -BranchType $branchType
 
+        # SAFETY CHECK - Block operations on source branch when using -RepoDirectory (except Verify, Help, Bootstrap)
+        if ($RepoDirectory) {
+            if ($currentBranch -in $sourceBranches -and -not ($Verify -or $Help -or $Bootstrap)) {
+                Show-SafetyViolation -BranchName $currentBranch -Operation "Install" -FromUserProfile
+                exit 1
+            }
+        }
+
+        # Detect if we're running from user profile directory (needed for all help contexts)
+        $currentDir = Get-Location
+        $userProfileInstallerDir = Join-Path $env:USERPROFILE ".terraform-ai-installer"
+        $isFromUserProfile = $currentDir.Path -eq $userProfileInstallerDir -or [bool]$RepoDirectory
+
+        # Detect what command was attempted (for better error messages)
+        $attemptedCommand = ""
+        if ($Bootstrap) { $attemptedCommand = "-Bootstrap" }
+        elseif ($Verify) { $attemptedCommand = "-Verify" }
+        elseif ($Clean) { $attemptedCommand = "-Clean" }
+        elseif ($Help) { $attemptedCommand = "-Help" }
+        elseif ($DryRun) { $attemptedCommand = "-Dry-Run" }
+        elseif ($AutoApprove) { $attemptedCommand = "-Auto-Approve" }
+        elseif ($RepoDirectory -and -not ($Help -or $Verify -or $Bootstrap -or $Clean)) {
+            $attemptedCommand = "-RepoDirectory `"$RepoDirectory`""
+        }
+
         # Simple parameter handling
         if ($Help) {
-            Show-Help -BranchType $branchType -WorkspaceValid $workspaceValidation.Valid -WorkspaceIssue $workspaceValidation.Reason
+            Show-Help -BranchType $branchType -WorkspaceValid $workspaceValidation.Valid -WorkspaceIssue $workspaceValidation.Reason -FromUserProfile $isFromUserProfile -AttemptedCommand $attemptedCommand
             return
         }
 
         # For all other operations, workspace must be valid
         if (-not $workspaceValidation.Valid) {
-            Show-WorkspaceValidationError -Reason $workspaceValidation.Reason -FromUserProfile:([bool]$RepoDirectory)
+            Show-WorkspaceValidationError -Reason $workspaceValidation.Reason -FromUserProfile:$isFromUserProfile
 
             # Show help menu for guidance
-            Show-Help -BranchType $branchType -WorkspaceValid $false -WorkspaceIssue $workspaceValidation.Reason
+            Show-Help -BranchType $branchType -WorkspaceValid $false -WorkspaceIssue $workspaceValidation.Reason -FromUserProfile $isFromUserProfile -AttemptedCommand $attemptedCommand
             exit 1
         }
 
@@ -288,7 +286,7 @@ function Main {
         }
 
         if ($Clean) {
-            Invoke-CleanWorkspace -AutoApprove $AutoApprove -DryRun $DryRun -WorkspaceRoot $Global:WorkspaceRoot | Out-Null
+            Invoke-CleanWorkspace -AutoApprove $AutoApprove -DryRun $DryRun -WorkspaceRoot $Global:WorkspaceRoot -FromUserProfile:([bool]$RepoDirectory) | Out-Null
             return
         }
 

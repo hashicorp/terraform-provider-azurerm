@@ -125,7 +125,9 @@ function Show-Help {
     param(
         [string]$BranchType = "Unknown",
         [bool]$WorkspaceValid = $true,
-        [string]$WorkspaceIssue = ""
+        [string]$WorkspaceIssue = "",
+        [bool]$FromUserProfile = $false,
+        [string]$AttemptedCommand = ""
     )
 
     Write-Host ""
@@ -143,7 +145,7 @@ function Show-Help {
             Show-FeatureBranchHelp
         }
         default {
-            Show-UnknownBranchHelp -WorkspaceValid $WorkspaceValid -WorkspaceIssue $WorkspaceIssue
+            Show-UnknownBranchHelp -WorkspaceValid $WorkspaceValid -WorkspaceIssue $WorkspaceIssue -FromUserProfile $FromUserProfile
         }
     }
 
@@ -233,7 +235,8 @@ function Show-UnknownBranchHelp {
     #>
     param(
         [bool]$WorkspaceValid = $true,
-        [string]$WorkspaceIssue = ""
+        [string]$WorkspaceIssue = "",
+        [bool]$FromUserProfile = $false
     )
 
     # Show workspace issue if detected
@@ -242,8 +245,19 @@ function Show-UnknownBranchHelp {
         Write-Host "  $WorkspaceIssue" -ForegroundColor Yellow
         Write-Host ""
         Write-Host "SOLUTION:" -ForegroundColor Cyan
-        Write-Host "  Navigate to a terraform-provider-azurerm repository, or use the -RepoDirectory parameter:"
-        Write-Host "  .\install-copilot-setup.ps1 -RepoDirectory `"C:\path\to\terraform-provider-azurerm`" -Help"
+
+        if ($FromUserProfile) {
+            # User is running from ~/.terraform-ai-installer, they need -RepoDirectory
+            Write-Host "  Use the -RepoDirectory parameter to specify your repository path:"
+            $commandExample = if ($AttemptedCommand) { $AttemptedCommand } else { "-Help" }
+            Write-Host "  .\install-copilot-setup.ps1 -RepoDirectory `"C:\path\to\terraform-provider-azurerm`" $commandExample"
+        } else {
+            # User is running from somewhere else, they need to navigate to a repo or use -RepoDirectory
+            Write-Host "  Navigate to a terraform-provider-azurerm repository, or use the -RepoDirectory parameter:"
+            $commandExample = if ($AttemptedCommand) { $AttemptedCommand } else { "-Help" }
+            Write-Host "  .\install-copilot-setup.ps1 -RepoDirectory `"C:\path\to\terraform-provider-azurerm`" $commandExample"
+        }
+
         Write-Host ""
         Write-Separator
         Write-Host ""
@@ -391,7 +405,13 @@ function Show-SafetyViolation {
     Write-Host " SAFETY VIOLATION: Cannot perform operations on source branch" -ForegroundColor Red
     Write-Separator
     Write-Host ""
-    Write-Host " The -RepoDirectory points to the source branch '$BranchName'." -ForegroundColor Yellow
+
+    if ($FromUserProfile) {
+        Write-Host " The -RepoDirectory points to the source branch '$BranchName'." -ForegroundColor Yellow
+    } else {
+        Write-Host " You are currently in the source branch '$BranchName'." -ForegroundColor Yellow
+    }
+
     Write-Host " Operations other than -Verify, -Help, and -Bootstrap are not allowed on the source branch." -ForegroundColor Yellow
     Write-Host ""
     Write-Host "SOLUTION:" -ForegroundColor Cyan
