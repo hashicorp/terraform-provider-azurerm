@@ -902,11 +902,30 @@ show_safety_violation() {
     fi
 }
 
+# Function to display workspace validation error message
+show_workspace_validation_error() {
+    local reason="${1:-Unknown validation error}"
+    local from_user_profile="${2:-false}"
+
+    echo ""
+    write_error_message "WORKSPACE VALIDATION FAILED: ${reason}"
+    echo ""
+
+    # Context-aware error message based on how the script was invoked
+    if [[ "${from_user_profile}" == "true" ]]; then
+        write_yellow " Please ensure the -repo-directory argument is pointing to a valid GitHub terraform-provider-azurerm repository."
+    else
+        write_yellow " Please ensure you are running this script from within a terraform-provider-azurerm repository."
+    fi
+    echo ""
+    print_separator
+}
+
 # Export all UI functions for use in other scripts
 export -f write_cyan write_green write_yellow write_white write_red write_blue write_gray
 export -f write_plain write_label write_colored_label write_section_header write_section
 export -f write_header write_operation_status
 export -f write_error_message write_warning_message write_success_message
 export -f write_file_operation_status show_completion_summary show_safety_violation
-export -f show_usage show_source_branch_welcome
+export -f show_usage show_source_branch_welcome show_workspace_validation_error
 export -f print_separator get_user_profile format_aligned_label_spacing calculate_max_filename_length

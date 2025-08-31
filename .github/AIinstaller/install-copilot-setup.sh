@@ -252,18 +252,7 @@ main() {
 
     # STEP 9: For all other operations, workspace must be valid
     if [[ "${workspace_valid}" != "true" ]]; then
-        echo ""
-        write_error_message "WORKSPACE VALIDATION FAILED: ${workspace_reason}"
-        echo ""
-
-        # Context-aware error message based on how the script was invoked
-        if [[ -n "${REPO_DIRECTORY}" ]]; then
-            write_yellow " Please ensure the -repo-directory argument is pointing to a valid GitHub terraform-provider-azurerm repository."
-        else
-            write_yellow " Please ensure you are running this script from within a terraform-provider-azurerm repository."
-        fi
-        echo ""
-        print_separator
+        show_workspace_validation_error "${workspace_reason}" "$([[ -n "${REPO_DIRECTORY}" ]] && echo "true" || echo "false")"
 
         # Show help menu for guidance
         show_usage "${branch_type}" "false" "${workspace_reason}"
@@ -317,7 +306,8 @@ main() {
     fi
 
     # STEP 11: Default - show source branch help and welcome
-    show_source_repository_safety_error "./install-copilot-setup.sh"
+    show_source_branch_help
+    show_source_branch_welcome "${current_branch}"
     exit 0
 }
 
