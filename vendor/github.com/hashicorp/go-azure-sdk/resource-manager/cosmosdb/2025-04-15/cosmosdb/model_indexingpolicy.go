@@ -10,4 +10,5 @@ type IndexingPolicy struct {
 	IncludedPaths    *[]IncludedPath    `json:"includedPaths,omitempty"`
 	IndexingMode     *IndexingMode      `json:"indexingMode,omitempty"`
 	SpatialIndexes   *[]SpatialSpec     `json:"spatialIndexes,omitempty"`
+	VectorIndexes    *[]VectorIndex     `json:"vectorIndexes,omitempty"`
 }
