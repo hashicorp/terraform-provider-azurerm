@@ -5,6 +5,7 @@ package common
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2025-04-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -250,6 +251,7 @@ func CosmosDbIndexingPolicyVectorIndexSchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
+		ForceNew: true,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
 				"path": {
@@ -258,14 +260,11 @@ func CosmosDbIndexingPolicyVectorIndexSchema() *pluginsdk.Schema {
 					ValidateFunc: validation.StringIsNotEmpty,
 				},
 				"type": {
-					Type:     pluginsdk.TypeString,
-					Required: true,
-					ValidateFunc: validation.StringInSlice([]string{
-						"flat",
-						"diskANN",
-						"quantizedFlat",
-					}, false),
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForVectorIndexType(), false),
 				},
+				// "quantizationByteSize": 64,
 			},
 		},
 	}
@@ -275,6 +274,7 @@ func CosmosDbVectorEmbeddingPolicySchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
+		ForceNew: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
@@ -289,22 +289,14 @@ func CosmosDbVectorEmbeddingPolicySchema() *pluginsdk.Schema {
 								ValidateFunc: validation.StringIsNotEmpty,
 							},
 							"data_type": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									"float32",
-									"uint8",
-									"int8",
-								}, false),
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForVectorDataType(), false),
 							},
 							"distance_function": {
-								Type:     pluginsdk.TypeString,
-								Required: true,
-								ValidateFunc: validation.StringInSlice([]string{
-									"euclidean",
-									"cosine",
-									"dotproduct",
-								}, false),
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForDistanceFunction(), false),
 							},
 							"dimensions": {
 								Type:         pluginsdk.TypeInt,
@@ -323,6 +315,7 @@ func CosmosDbFullTextPolicySchema() *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeList,
 		Optional: true,
+		ForceNew: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
 			Schema: map[string]*pluginsdk.Schema{
