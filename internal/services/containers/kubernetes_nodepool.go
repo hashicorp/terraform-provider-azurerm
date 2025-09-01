@@ -17,9 +17,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/snapshots"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/applicationsecuritygroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/publicipprefixes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -99,6 +99,13 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 							string(managedclusters.GPUInstanceProfileMIGFourg),
 							string(managedclusters.GPUInstanceProfileMIGSeveng),
 						}, false),
+					},
+
+					"gpu_driver": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ForceNew:     true,
+						ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForGPUDriver(), false),
 					},
 
 					"kubelet_disk_type": {
@@ -934,6 +941,12 @@ func ExpandDefaultNodePool(d *pluginsdk.ResourceData) (*[]managedclusters.Manage
 		profile.GpuInstanceProfile = pointer.To(managedclusters.GPUInstanceProfile(gpuInstanceProfile))
 	}
 
+	if gpuDriver := raw["gpu_driver"].(string); gpuDriver != "" {
+		profile.GpuProfile = &managedclusters.GPUProfile{
+			Driver: pointer.To(managedclusters.GPUDriver(gpuDriver)),
+		}
+	}
+
 	if messageOfTheDay := raw["message_of_the_day"].(string); messageOfTheDay != "" {
 		encoded := base64.StdEncoding.EncodeToString([]byte(messageOfTheDay))
 		profile.MessageOfTheDay = pointer.To(encoded)
@@ -1226,6 +1239,11 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		gpuInstanceProfile = string(*agentPool.GpuInstanceProfile)
 	}
 
+	gpuDriver := ""
+	if agentPool.GpuProfile != nil {
+		gpuDriver = string(pointer.From(agentPool.GpuProfile.Driver))
+	}
+
 	maxCount := 0
 	if agentPool.MaxCount != nil {
 		maxCount = int(*agentPool.MaxCount)
@@ -1369,6 +1387,7 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"auto_scaling_enabled":          enableAutoScaling,
 		"fips_enabled":                  enableFIPS,
 		"gpu_instance":                  gpuInstanceProfile,
+		"gpu_driver":                    gpuDriver,
 		"host_encryption_enabled":       enableHostEncryption,
 		"host_group_id":                 hostGroupID,
 		"kubelet_disk_type":             kubeletDiskType,

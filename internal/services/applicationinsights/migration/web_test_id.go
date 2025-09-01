@@ -9,7 +9,6 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2022-06-15/webtestsapis"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -101,7 +100,7 @@ func webTestSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 			Required: true,
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 
 		"synthetic_monitor_id": {
 			Type:     pluginsdk.TypeString,

@@ -36,11 +36,11 @@ resource "azurerm_storage_queue" "example" {
 }
 
 resource "azurerm_eventgrid_system_topic" "example" {
-  name                   = "example-system-topic"
-  location               = "Global"
-  resource_group_name    = azurerm_resource_group.example.name
-  source_arm_resource_id = azurerm_resource_group.example.id
-  topic_type             = "Microsoft.Resources.ResourceGroups"
+  name                = "example-system-topic"
+  location            = "Global"
+  resource_group_name = azurerm_resource_group.example.name
+  source_resource_id  = azurerm_resource_group.example.id
+  topic_type          = "Microsoft.Resources.ResourceGroups"
 }
 
 resource "azurerm_eventgrid_system_topic_event_subscription" "example" {

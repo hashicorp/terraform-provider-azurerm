@@ -54,6 +54,10 @@ This deprecated resource has been superseded/retired and has been removed from t
 
 * This deprecated resource has been retired and has been removed from the Azure Provider.
 
+### `azurerm_logic_app_standard`
+
+* The `client_certificate_mode` property now defaults to `Required` aligning with the service default for this value.
+
 ### `azurerm_maps_creator`
 
 * This deprecated resource has been removed from the Azure Provider. Please see the [documentation for more details](https://aka.ms/AzureMapsCreatorDeprecation).
@@ -124,6 +128,7 @@ This deprecated data source has been superseded/retired and has been removed fro
 ### `azurerm_logic_app_standard`
 
 * The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
+* The `client_certificate_mode` property now defaults to `Required` to match API default value.
 
 ### `azurerm_postgresql_server`
 
@@ -223,8 +228,14 @@ Please follow the format in the example below for listing breaking changes in re
 
 * Validation for `azure_function.function_id` has been changed to validate for an Azure Function resource ID (case-sensitive) rather than validating for an Azure resource ID.
 
+### `azurerm_eventgrid_system_topic`
+
+* The deprecated `source_arm_resource_id` property has been removed in favour of the `source_resource_id` property.
+* The deprecated `metric_arm_resource_id` property has been removed in favour of the `metric_resource_id` property.
+
 ### `azurerm_eventgrid_system_topic_event_subscription`
 
+* The deprecated `source_arm_resource_id` property has been removed in favour of the `source_resource_id` property.
 * Validation for `azure_function.function_id` has been changed to validate for an Azure Function resource ID (case-sensitive) rather than validating for an Azure resource ID.
 
 ### `azurerm_eventhub`
@@ -261,6 +272,19 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `virtual_network_configuration` block has been removed as it is no longer supported by the resource.
 
+### `azurerm_lb`
+
+* The following properties are no longer Computed: `subnet_id`, `public_ip_address_id`
+
+### `azurerm_lb_nat_rule`
+
+* The deprecated `enable_floating_ip` property has been removed in favour of the `floating_ip_enabled` property.
+* The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
+
+### `azurerm_lb_outbound_rule`
+
+* The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
+
 ### `azurerm_linux_function_app`
 
 * The `remote_debugging_version` property no longer accepts `VS2017` and `VS2019` as a value.
@@ -290,6 +314,10 @@ Please follow the format in the example below for listing breaking changes in re
 * The deprecated `site_config.public_network_access_enabled` property has been removed and superseded by the `public_network_access` property.
 * The `site_config.min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
 * The `site_config.scm_min_tls_version` property no longer accepts `1.0` or `1.1` as a value.
+
+### `azurerm_mobile_network_slice`
+
+* The `single_network_slice_selection_assistance_information` has been removed and its properties, `slice_differentiator` and `slice_service_type` have been moved to the top level.
 
 ### `azurerm_monitor_aad_diagnostic_setting`
 
@@ -436,6 +464,24 @@ Please follow the format in the example below for listing breaking changes in da
 
 * The deprecated `template.container.liveness_probe.termination_grace_period_seconds` property has been removed.
 * The deprecated `template.container.startup_probe.termination_grace_period_seconds` property has been removed.
+
+### `azurerm_eventgrid_system_topic`
+
+* The deprecated `source_arm_resource_id` property has been removed in favour of the `source_resource_id` property.
+* The deprecated `metric_arm_resource_id` property has been removed in favour of the `metric_resource_id` property.
+
+### `azurerm_lb_outbound_rule`
+
+* The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
+
+### `azurerm_lb_rule`
+
+* The deprecated `enable_floating_ip` property has been removed in favour of the `floating_ip_enabled` property.
+* The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
+
+### `azurerm_key_vault`
+
+* The deprecated `enable_rbac_authorization` property has been removed in favour of the `rbac_authorization_enabled` property.
 
 ### `azurerm_logic_app_standard`
 
