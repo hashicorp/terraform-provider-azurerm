@@ -42,21 +42,28 @@ func TestAccApiManagementBackend_circuitBreakerRule(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.circuitBreakerRule(data),
+			Config: r.circuitBreakerRuleComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.circuitBreakerRuleUpdate(data),
+			Config: r.circuitBreakerRuleCompleteUpdate(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.circuitBreakerRule(data),
+			Config: r.circuitBreakerRuleBasic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.circuitBreakerRuleComplete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -280,7 +287,7 @@ resource "azurerm_api_management_backend" "test" {
 `, r.template(data, testName), data.RandomInteger)
 }
 
-func (r ApiManagementAuthorizationBackendResource) circuitBreakerRule(data acceptance.TestData) string {
+func (r ApiManagementAuthorizationBackendResource) circuitBreakerRuleBasic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_api_management_backend" "test" {
@@ -292,22 +299,22 @@ resource "azurerm_api_management_backend" "test" {
   description         = "Test backend with circuit breaker rule"
 
   circuit_breaker_rule {
-    name                                = "test-circuit-breaker"
-    trip_duration                       = "PT30S"
-    accept_retry_after_enabled          = true
-    failure_condition_count             = 5
-    failure_condition_interval_duration = "PT1M"
-    failure_condition_status_code_range {
-      min = 200
-      max = 599
+    name          = "test-circuit-breaker"
+    trip_duration = "PT30S"
+    failure_condition {
+      count             = 5
+      interval_duration = "PT1M"
+      status_code_range {
+        min = 200
+        max = 299
+      }
     }
-    failure_condition_error_reasons = ["SubscriptionKeyInvalid", "ClientConnectionFailure", "OperationNotFound"]
   }
 }
 `, r.template(data, "circuitbreaker"), data.RandomInteger)
 }
 
-func (r ApiManagementAuthorizationBackendResource) circuitBreakerRuleUpdate(data acceptance.TestData) string {
+func (r ApiManagementAuthorizationBackendResource) circuitBreakerRuleComplete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 resource "azurerm_api_management_backend" "test" {
@@ -319,20 +326,51 @@ resource "azurerm_api_management_backend" "test" {
   description         = "Test backend with circuit breaker rule"
 
   circuit_breaker_rule {
-    name                                = "test-circuit-breaker-update"
-    trip_duration                       = "PT40S"
-    accept_retry_after_enabled          = false
-    failure_condition_percentage        = 2
-    failure_condition_interval_duration = "PT2M"
-    failure_condition_status_code_range {
-      min = 300
-      max = 399
+    name                       = "test-circuit-breaker"
+    trip_duration              = "PT30S"
+    accept_retry_after_enabled = true
+    failure_condition {
+      count             = 5
+      interval_duration = "PT1M"
+      status_code_range {
+        min = 200
+        max = 299
+      }
+      status_code_range {
+        min = 300
+        max = 399
+      }
+      error_reasons = ["SubscriptionKeyInvalid", "ClientConnectionFailure", "OperationNotFound"]
     }
-    failure_condition_status_code_range {
-      min = 300
-      max = 399
+  }
+}
+`, r.template(data, "circuitbreaker"), data.RandomInteger)
+}
+
+func (r ApiManagementAuthorizationBackendResource) circuitBreakerRuleCompleteUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+resource "azurerm_api_management_backend" "test" {
+  name                = "acctestapi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  protocol            = "http"
+  url                 = "https://acctest"
+  description         = "Test backend with circuit breaker rule"
+
+  circuit_breaker_rule {
+    name                       = "test-circuit-breaker-update"
+    trip_duration              = "PT40S"
+    accept_retry_after_enabled = false
+    failure_condition {
+      percentage        = 2
+      interval_duration = "PT2M"
+      status_code_range {
+        min = 300
+        max = 399
+      }
+      error_reasons = ["BackendConnectionFailure"]
     }
-    failure_condition_error_reasons = ["BackendConnectionFailure"]
   }
 }
 `, r.template(data, "circuitbreaker"), data.RandomInteger)

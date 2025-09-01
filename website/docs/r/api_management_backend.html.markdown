@@ -36,16 +36,16 @@ resource "azurerm_api_management_backend" "example" {
   url                 = "https://backend.com/api"
 
   circuit_breaker_rule {
-    name                                = "example-circuit-breaker"
-    trip_duration                       = "PT30S"
-    accept_retry_after_enabled          = true
-    failure_condition_count             = 5
-    failure_condition_interval_duration = "PT1M"
-    failure_condition_status_code_range {
+    name                       = "example-circuit-breaker"
+    trip_duration              = "PT30S"
+    accept_retry_after_enabled = true
+    count                      = 5
+    interval_duration          = "PT1M"
+    status_code_range {
       min = 200
       max = 299
     }
-    failure_condition_error_reasons = ["SubscriptionKeyInvalid", "ClientConnectionFailure", "OperationNotFound"]
+    error_reasons = ["SubscriptionKeyInvalid", "ClientConnectionFailure", "OperationNotFound"]
   }
 }
 ```
@@ -64,9 +64,7 @@ The following arguments are supported:
 
 * `url` - (Required) The backend host URL should be specified in the format `"https://backend.com/api"`, avoiding trailing slashes (/) to minimize misconfiguration risks. Azure API Management instance will append the backend resource name to this URL. This URL typically serves as the `base-url` in the [`set-backend-service`](https://learn.microsoft.com/azure/api-management/set-backend-service-policy) policy, enabling seamless transitions from frontend to backend.
 
----
-
-* `circuit_breaker_rule` - (Optional) A `circuit_breaker_rule` block as defined below.
+* `circuit_breaker_rule` - (Optional) A `circuit_breaker_rule` block as documented below.
 
 * `credentials` - (Optional) A `credentials` block as documented below.
 
@@ -154,25 +152,35 @@ A `circuit_breaker_rule` block supports the following:
 
 * `trip_duration` - (Required) Specifies the duration for which the circuit remains open before retrying, in ISO 8601 format.
 
-* `accept_retry_after_enabled` - (Optional) Specifies whether the circuit breaker should honor `Retry-After` requests. Defaults to `false`.
+* `failure_condition` (Required) A `failure_condition` block as defined below.
 
-* `failure_condition_count` - (Optional) Specifies the number of failures within the specified interval that will trigger the circuit breaker. Possible values are between `1` and `10000`.
-
-* `failure_condition_error_reasons` - (Optional) Specifies a list of error reasons to consider as failures. Possible values are between `1` and `200` characters per item.
-
-* `failure_condition_interval_duration` - (Optional) Specifies the time window over which failures are counted, in ISO 8601 format.
-
-* `failure_condition_percentage` - (Optional) Specifies the percentage of failures within the specified interval that will trigger the circuit breaker. Possible values are between `1` and `100`.
-
-* `failure_condition_status_code_range` - (Optional) One or more `failure_condition_status_code_range` blocks as defined below.
+* `accept_retry_after_enabled` - (Optional) Specifies whether the circuit breaker should honor `Retry-After` requests.
 
 ---
 
-A `failure_condition_status_code_range` block supports the following:
+A `failure_condition` block supports the following:
 
-* `min` - (Optional) Specifies the minimum HTTP status code to consider as a failure. Possible values are between `200` and `599`.
+* `interval_duration` - (Required) Specifies the time window over which failures are counted, in ISO 8601 format.
 
-* `max` - (Optional) Specifies the maximum HTTP status code to consider as a failure. Possible values are between `200` and `599`.
+* `count` - (Optional)  Specifies the number of failures within the specified interval that will trigger the circuit breaker. Possible values are between `1` and `10000`.
+
+* `percentage` - (Optional) Specifies the percentage of failures within the specified interval that will trigger the circuit breaker. Possible values are between `1` and `100`.
+
+~> **Note:** Exactly one of `percentage` or `count` must be specified.
+
+* `error_reasons` - (Optional) Specifies a list of error reasons to consider as failures. Possible values are between `1` and `200` characters per item.
+
+* `status_code_range` - (Optional) One or more `status_code_range` blocks as defined below.
+
+~> **Note:** At least one of `status_code_range`, and `error_reasons` must be set.
+
+---
+
+A `status_code_range` block supports the following:
+
+* `min` - (Required) Specifies the minimum HTTP status code to consider as a failure. Possible values are between `200` and `599`.
+
+* `max` - (Required) Specifies the maximum HTTP status code to consider as a failure. Possible values are between `200` and `599`.
 
 ---
 

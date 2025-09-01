@@ -79,47 +79,58 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
-						"failure_condition_count": {
-							Type:          pluginsdk.TypeInt,
-							Optional:      true,
-							ConflictsWith: []string{"circuit_breaker_rule.0.failure_condition_percentage"},
-							ValidateFunc:  validation.IntBetween(1, 10000),
-						},
-						"failure_condition_error_reasons": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							MaxItems: 10,
-							Elem: &pluginsdk.Schema{
-								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringLenBetween(1, 200),
-							},
-						},
-						"failure_condition_interval_duration": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: azValidate.ISO8601Duration,
-						},
-						"failure_condition_percentage": {
-							Type:          pluginsdk.TypeInt,
-							Optional:      true,
-							ConflictsWith: []string{"circuit_breaker_rule.0.failure_condition_count"},
-							ValidateFunc:  validation.IntBetween(1, 100),
-						},
-						"failure_condition_status_code_range": {
-							Type:     pluginsdk.TypeSet,
-							Optional: true,
-							MaxItems: 10,
+						"failure_condition": {
+							Type:     pluginsdk.TypeList,
+							Required: true,
+							MaxItems: 1,
 							Elem: &pluginsdk.Resource{
 								Schema: map[string]*pluginsdk.Schema{
-									"min": {
-										Type:         pluginsdk.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntBetween(200, 599),
+									"interval_duration": {
+										Type:         pluginsdk.TypeString,
+										Required:     true,
+										ValidateFunc: azValidate.ISO8601Duration,
 									},
-									"max": {
+									"count": {
 										Type:         pluginsdk.TypeInt,
 										Optional:     true,
-										ValidateFunc: validation.IntBetween(200, 599),
+										ExactlyOneOf: []string{"circuit_breaker_rule.0.failure_condition.0.count", "circuit_breaker_rule.0.failure_condition.0.percentage"},
+										ValidateFunc: validation.IntBetween(1, 10000),
+									},
+									"error_reasons": {
+										Type:         pluginsdk.TypeList,
+										Optional:     true,
+										MaxItems:     10,
+										AtLeastOneOf: []string{"circuit_breaker_rule.0.failure_condition.0.status_code_range", "circuit_breaker_rule.0.failure_condition.0.error_reasons"},
+										Elem: &pluginsdk.Schema{
+											Type:         pluginsdk.TypeString,
+											ValidateFunc: validation.StringLenBetween(1, 200),
+										},
+									},
+									"percentage": {
+										Type:         pluginsdk.TypeInt,
+										Optional:     true,
+										ExactlyOneOf: []string{"circuit_breaker_rule.0.failure_condition.0.count", "circuit_breaker_rule.0.failure_condition.0.percentage"},
+										ValidateFunc: validation.IntBetween(1, 100),
+									},
+									"status_code_range": {
+										Type:         pluginsdk.TypeList,
+										Optional:     true,
+										MaxItems:     10,
+										AtLeastOneOf: []string{"circuit_breaker_rule.0.failure_condition.0.status_code_range", "circuit_breaker_rule.0.failure_condition.0.error_reasons"},
+										Elem: &pluginsdk.Resource{
+											Schema: map[string]*pluginsdk.Schema{
+												"min": {
+													Type:         pluginsdk.TypeInt,
+													Required:     true,
+													ValidateFunc: validation.IntBetween(200, 599),
+												},
+												"max": {
+													Type:         pluginsdk.TypeInt,
+													Required:     true,
+													ValidateFunc: validation.IntBetween(200, 599),
+												},
+											},
+										},
 									},
 								},
 							},
@@ -619,56 +630,14 @@ func expandApiManagementBackendCircuitBreaker(input []interface{}) *backend.Back
 	rules := make([]backend.CircuitBreakerRule, 0)
 
 	v := input[0].(map[string]interface{})
-	rule := backend.CircuitBreakerRule{}
-
-	if name := v["name"]; name != nil && name.(string) != "" {
-		rule.Name = pointer.To(name.(string))
-	}
-
-	if tripDuration, ok := v["trip_duration"]; ok && tripDuration.(string) != "" {
-		rule.TripDuration = pointer.To(tripDuration.(string))
+	rule := backend.CircuitBreakerRule{
+		Name:             pointer.To(v["name"].(string)),
+		TripDuration:     pointer.To(v["trip_duration"].(string)),
+		FailureCondition: expandApiManagementBackendCircuitBreakerFailureCondition(v["failure_condition"].([]interface{})),
 	}
 
 	if acceptRetryAfter, ok := v["accept_retry_after_enabled"]; ok {
 		rule.AcceptRetryAfter = pointer.To(acceptRetryAfter.(bool))
-	}
-
-	condition := backend.CircuitBreakerFailureCondition{}
-	hasCondition := false
-
-	if count, ok := v["failure_condition_count"]; ok && count.(int) > 0 {
-		condition.Count = pointer.To(int64(count.(int)))
-		hasCondition = true
-	}
-
-	if percentage, ok := v["failure_condition_percentage"]; ok && percentage.(int) > 0 {
-		condition.Percentage = pointer.To(int64(percentage.(int)))
-		hasCondition = true
-	}
-
-	if interval, ok := v["failure_condition_interval_duration"]; ok && interval.(string) != "" {
-		condition.Interval = pointer.To(interval.(string))
-		hasCondition = true
-	}
-
-	if statusCodeRanges, ok := v["failure_condition_status_code_range"]; ok {
-		ranges := statusCodeRanges.(*pluginsdk.Set).List()
-		if len(ranges) > 0 {
-			condition.StatusCodeRanges = expandApiManagementBackendCircuitBreakerStatusCodeRanges(ranges)
-			hasCondition = true
-		}
-	}
-
-	if errorReasons, ok := v["failure_condition_error_reasons"]; ok {
-		reasons := errorReasons.(*pluginsdk.Set).List()
-		if len(reasons) > 0 {
-			condition.ErrorReasons = utils.ExpandStringSlice(reasons)
-			hasCondition = true
-		}
-	}
-
-	if hasCondition {
-		rule.FailureCondition = pointer.To(condition)
 	}
 
 	rules = append(rules, rule)
@@ -678,53 +647,71 @@ func expandApiManagementBackendCircuitBreaker(input []interface{}) *backend.Back
 	}
 }
 
+func expandApiManagementBackendCircuitBreakerFailureCondition(input []interface{}) *backend.CircuitBreakerFailureCondition {
+	if len(input) == 0 {
+		return nil
+	}
+
+	v := input[0].(map[string]interface{})
+	condition := backend.CircuitBreakerFailureCondition{
+		Interval: pointer.To(v["interval_duration"].(string)),
+	}
+
+	if count, ok := v["count"]; ok && count.(int) > 0 {
+		condition.Count = pointer.To(int64(count.(int)))
+	}
+
+	if percentage, ok := v["percentage"]; ok && percentage.(int) > 0 {
+		condition.Percentage = pointer.To(int64(percentage.(int)))
+	}
+
+	if statusCodeRanges, ok := v["status_code_range"]; ok {
+		ranges := statusCodeRanges.([]interface{})
+		if len(ranges) > 0 {
+			condition.StatusCodeRanges = expandApiManagementBackendCircuitBreakerStatusCodeRanges(ranges)
+		}
+	}
+
+	if errorReasons, ok := v["error_reasons"]; ok {
+		reasons := errorReasons.([]interface{})
+		if len(reasons) > 0 {
+			condition.ErrorReasons = utils.ExpandStringSlice(reasons)
+		}
+	}
+
+	return &condition
+}
+
 func expandApiManagementBackendCircuitBreakerStatusCodeRanges(input []interface{}) *[]backend.FailureStatusCodeRange {
 	if len(input) == 0 {
 		return nil
 	}
 
-	results := make([]backend.FailureStatusCodeRange, 0)
+	codeRanges := make([]backend.FailureStatusCodeRange, 0)
 	for _, item := range input {
 		v := item.(map[string]interface{})
-		statusCodeRange := backend.FailureStatusCodeRange{}
-
-		if min, ok := v["min"]; ok {
-			statusCodeRange.Min = pointer.To(int64(min.(int)))
+		codeRange := backend.FailureStatusCodeRange{
+			Max: pointer.To(int64(v["max"].(int))),
+			Min: pointer.To(int64(v["min"].(int))),
 		}
-
-		if max, ok := v["max"]; ok {
-			statusCodeRange.Max = pointer.To(int64(max.(int)))
-		}
-
-		results = append(results, statusCodeRange)
+		codeRanges = append(codeRanges, codeRange)
 	}
 
-	return &results
+	return &codeRanges
 }
 
 func flattenApiManagementBackendCircuitBreaker(input *backend.BackendCircuitBreaker) []interface{} {
 	results := make([]interface{}, 0)
-	if input == nil || input.Rules == nil || len(*input.Rules) == 0 {
+	if input == nil || input.Rules == nil {
 		return results
 	}
 
 	for _, rule := range *input.Rules {
 		result := make(map[string]interface{})
-
 		result["name"] = pointer.From(rule.Name)
 		result["trip_duration"] = pointer.From(rule.TripDuration)
 		result["accept_retry_after_enabled"] = pointer.From(rule.AcceptRetryAfter)
-
-		if rule.FailureCondition != nil {
-			condition := rule.FailureCondition
-
-			result["failure_condition_count"] = pointer.From(condition.Count)
-			result["failure_condition_percentage"] = pointer.From(condition.Percentage)
-			result["failure_condition_interval_duration"] = pointer.From(condition.Interval)
-			result["failure_condition_status_code_range"] = flattenApiManagementBackendCircuitBreakerStatusCodeRanges(condition.StatusCodeRanges)
-			result["failure_condition_error_reasons"] = pointer.From(condition.ErrorReasons)
-		}
-
+		result["failure_condition"] = flattenApiManagementBackendCircuitBreakerFailureCondition(rule.FailureCondition)
 		results = append(results, result)
 	}
 
@@ -745,6 +732,22 @@ func flattenApiManagementBackendCircuitBreakerStatusCodeRanges(input *[]backend.
 	}
 
 	return results
+}
+
+func flattenApiManagementBackendCircuitBreakerFailureCondition(input *backend.CircuitBreakerFailureCondition) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+	result := make(map[string]interface{})
+
+	result["count"] = pointer.From(input.Count)
+	result["percentage"] = pointer.From(input.Percentage)
+	result["interval_duration"] = pointer.From(input.Interval)
+	result["status_code_range"] = flattenApiManagementBackendCircuitBreakerStatusCodeRanges(input.StatusCodeRanges)
+	result["error_reasons"] = pointer.From(input.ErrorReasons)
+
+	return append(results, result)
 }
 
 func flattenApiManagementBackendCredentials(input *backend.BackendCredentialsContract) []interface{} {
