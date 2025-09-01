@@ -116,6 +116,8 @@ A `override_selector` block supports the following:
 
 * `in` - (Optional) Specify the list of policy reference id values to filter in. Cannot be used with `not_in`.
 
+* `kind` - (Optional) Specifies which characteristic will narrow down the set of evaluated resources. Possible values are `resourceLocation`, and `policyDefinitionReferenceId`. Defaults to `policyDefinitionReferenceId`.
+
 * `not_in` - (Optional) Specify the list of policy reference id values to filter out. Cannot be used with `in`.
 
 ---
