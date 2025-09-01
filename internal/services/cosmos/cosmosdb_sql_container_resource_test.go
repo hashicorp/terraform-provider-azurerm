@@ -661,31 +661,29 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   database_name       = azurerm_cosmosdb_sql_database.test.name
   partition_key_paths = ["/definition/id"]
 
-  # must first enable the EnableNoSQLVectorSearch capability on the Cosmos DB account
   vector_embedding_policy {
     vector_embedding {
       path              = "/vector1"
       data_type         = "float32"
       distance_function = "cosine"
-      dimensions        = 505 # maximum
+      dimensions        = 505
     }
     vector_embedding {
       path              = "/vector2"
       data_type         = "uint8"
       distance_function = "euclidean"
-      dimensions        = 505 # maximum
+      dimensions        = 4096
     }
   }
 
-  # must first enable the EnableNoSQLFullTextSearch capability on the Cosmos DB account
   full_text_policy {
-    default_language = "en-US" # As of 2025-08-31, en-US is the only supported language
+    default_language = "en-US"
     full_text_path {
       path = "/text"
     }
     full_text_path {
       path     = "/title"
-      language = "en-US" # As of 2025-08-31, en-US is the only supported language
+      language = "en-US"
     }
   }
 
@@ -698,12 +696,12 @@ resource "azurerm_cosmosdb_sql_container" "test" {
 
     vector_index {
       path = "/vector1"
-      type = "flat" # max dimensions for flat: 505
+      type = "flat"
     }
 
     vector_index {
       path = "/vector2"
-      type = "quantizedFlat" # max dimensions for quantizedFlat: 4096
+      type = "quantizedFlat"
     }
   }
 }
@@ -729,11 +727,11 @@ resource "azurerm_cosmosdb_account" "test" {
   kind                = "GlobalDocumentDB"
 
   capabilities {
-    name = "EnableNoSQLVectorSearch" # Required for vector search
+    name = "EnableNoSQLVectorSearch"
   }
 
   capabilities {
-    name = "EnableNoSQLFullTextSearch" # Required for full text search
+    name = "EnableNoSQLFullTextSearch"
   }
 
   consistency_policy {
