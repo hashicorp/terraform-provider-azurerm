@@ -126,7 +126,7 @@ func (r KubernetesFleetManagerResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			params := &fleets.Fleet{
+			params := fleets.Fleet{
 				Location: location.Normalize(model.Location),
 				Tags:     pointer.To(model.Tags),
 				Properties: &fleets.FleetProperties{
