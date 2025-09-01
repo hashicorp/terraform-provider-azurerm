@@ -85,6 +85,14 @@ The following arguments are supported:
 
 * `indexing_policy` - (Optional) An `indexing_policy` block as defined below.
 
+* `vector_embedding_policy` - (Optional) A `vector_embedding_policy` block as defined below.
+
+~> **Note:** The `EnableNoSQLVectorSearch` capability must first be enabled on the Cosmos DB account before configuring a `vector_embedding_policy`.
+
+* `full_text_policy` - (Optional) A `full_text_policy` block as defined below.
+
+~> **Note:** The `EnableNoSQLFullTextSearch` capability must first be enabled on the Cosmos DB account before configuring a `full_text_policy`.
+
 * `default_ttl` - (Optional) The default time to live of SQL container. If missing, items are not expired automatically. If present and the value is set to `-1`, it is equal to infinity, and items don’t expire by default. If present and the value is set to some number `n` – items will expire `n` seconds after their last modified time.
 
 * `analytical_storage_ttl` - (Optional) The default time to live of Analytical Storage for this SQL container. If present and the value is set to `-1`, it is equal to infinity, and items don’t expire by default. If present and the value is set to some number `n` – items will expire `n` seconds after their last modified time.
@@ -98,11 +106,13 @@ An `autoscale_settings` block supports the following:
 * `max_throughput` - (Optional) The maximum throughput of the SQL container (RU/s). Must be between `1,000` and `1,000,000`. Must be set in increments of `1,000`. Conflicts with `throughput`.
 
 ---
+
 A `unique_key` block supports the following:
 
 * `paths` - (Required) A list of paths to use for this unique key. Changing this forces a new resource to be created.
 
 ---
+
 An `indexing_policy` block supports the following:
 
 * `indexing_mode` - (Optional) Indicates the indexing mode. Possible values include: `consistent` and `none`. Defaults to `consistent`.
@@ -114,6 +124,50 @@ An `indexing_policy` block supports the following:
 * `composite_index` - (Optional) One or more `composite_index` blocks as defined below.
 
 * `spatial_index` - (Optional) One or more `spatial_index` blocks as defined below.
+
+* `vector_index` - (Optional) One or more `vector_index` blocks as defined below.
+
+---
+
+A `vector_index` block supports the following:
+
+* `path` - (Required) The path to the vector field in the document. Changing this forces a new resource to be created.
+
+* `type` - (Required) The index type of the vector. Possible values are `diskANN`, `flat` and `quantizedFlat`. Changing this forces a new resource to be created.
+
+---
+
+A `vector_embedding_policy` block supports the following:
+
+* `vector_embedding` - (Required) One or more `vector_embedding` blocks as defined below. Changing this forces a new resource to be created.
+
+---
+
+A `vector_embedding` block supports the following:
+
+* `path` - (Required) The path to the vector field in the document. Changing this forces a new resource to be created.
+
+* `data_type` - (Required) The data type of the vector. Possible values are `float32`, `int8`, and `uint8`. Changing this forces a new resource to be created.
+
+* `distance_function` - (Required) The distance function to use for distance calculation between vectors. Possible values are `cosine`, `dotproduct`, and `euclidean`. Changing this forces a new resource to be created.
+
+* `dimensions` - (Required) The number of dimensions in the vector. For supported values, see [Vector Search in Azure Cosmos DB for NoSQL: Vector indexing policies](https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/vector-search#vector-indexing-policies). Changing this forces a new resource to be created.
+
+---
+
+A `full_text_policy` block supports the following:
+
+* `default_language` - (Optional) The default language for full text paths. At this time the only possible value is `en-US`.
+
+* `full_text_path` - (Required) One or more `full_text_path` blocks as defined below. Changing this forces a new resource to be created.
+
+---
+
+A `full_text_path` block supports the following:
+
+* `path` - (Required) The path to the full text field in the document. Changing this forces a new resource to be created.
+
+* `language` - (Optional) The language of the full text field in the document. Changing this forces a new resource to be created.  At this time the only possible value is `en-US`.
 
 ---
 
