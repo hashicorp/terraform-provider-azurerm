@@ -19,14 +19,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/capacityreservationgroups"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2022-03-01/proximityplacementgroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/managedclusters"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-09-01/subnets"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/managedclusters"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/snapshots"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	computeValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/compute/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containers/parse"
@@ -191,6 +191,13 @@ func resourceKubernetesClusterNodePoolSchema() map[string]*pluginsdk.Schema {
 				string(managedclusters.GPUInstanceProfileMIGFourg),
 				string(managedclusters.GPUInstanceProfileMIGSeveng),
 			}, false),
+		},
+
+		"gpu_driver": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(agentpools.PossibleValuesForGPUDriver(), false),
 		},
 
 		"kubelet_disk_type": {
@@ -437,12 +444,21 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		return err
 	}
 
-	var subnetID *commonids.SubnetId
-	if subnetIDValue, ok := d.GetOk("vnet_subnet_id"); ok {
-		subnetID, err = commonids.ParseSubnetIDInsensitively(subnetIDValue.(string))
-		if err != nil {
-			return err
+	parseOptionalSubnetID := func(d *pluginsdk.ResourceData, key string) (*commonids.SubnetId, error) {
+		if value, ok := d.GetOk(key); ok {
+			return commonids.ParseSubnetID(value.(string))
 		}
+		return nil, nil
+	}
+
+	nodeSubnetID, err := parseOptionalSubnetID(d, "vnet_subnet_id")
+	if err != nil {
+		return err
+	}
+
+	podSubnetID, err := parseOptionalSubnetID(d, "pod_subnet_id")
+	if err != nil {
+		return err
 	}
 
 	id := agentpools.NewAgentPoolID(clusterId.SubscriptionId, clusterId.ResourceGroupName, clusterId.ManagedClusterName, d.Get("name").(string))
@@ -522,6 +538,12 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.GpuInstanceProfile = pointer.To(agentpools.GPUInstanceProfile(gpuInstanceProfile))
 	}
 
+	if gpuDriver := d.Get("gpu_driver").(string); gpuDriver != "" {
+		profile.GpuProfile = &agentpools.GPUProfile{
+			Driver: pointer.To(agentpools.GPUDriver(gpuDriver)),
+		}
+	}
+
 	if osSku := d.Get("os_sku").(string); osSku != "" {
 		profile.OsSKU = pointer.To(agentpools.OSSKU(osSku))
 	}
@@ -592,13 +614,20 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		profile.OsDiskType = pointer.To(agentpools.OSDiskType(osDiskType))
 	}
 
-	if podSubnetID := d.Get("pod_subnet_id").(string); podSubnetID != "" {
-		profile.PodSubnetID = pointer.To(podSubnetID)
+	subnetsToLock := make([]string, 0)
+	if podSubnetID != nil {
+		// Lock pod subnet to avoid race condition with AKS
+		profile.PodSubnetID = pointer.To(podSubnetID.ID())
+		subnetsToLock = append(subnetsToLock, podSubnetID.SubnetName)
 	}
 
-	if subnetID != nil {
-		profile.VnetSubnetID = pointer.To(subnetID.ID())
+	if nodeSubnetID != nil {
+		// Lock node subnet to avoid race condition with AKS
+		profile.VnetSubnetID = pointer.To(nodeSubnetID.ID())
+		subnetsToLock = append(subnetsToLock, nodeSubnetID.SubnetName)
 	}
+	locks.MultipleByName(&subnetsToLock, network.SubnetResourceName)
+	defer locks.UnlockMultipleByName(&subnetsToLock, network.SubnetResourceName)
 
 	if hostGroupID := d.Get("host_group_id").(string); hostGroupID != "" {
 		profile.HostGroupID = pointer.To(hostGroupID)
@@ -660,7 +689,6 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 			SourceResourceId: pointer.To(snapshotId),
 		}
 	}
-
 	parameters := agentpools.AgentPool{
 		Name:       pointer.To(id.AgentPoolName),
 		Properties: &profile,
@@ -671,35 +699,24 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	if subnetID != nil {
-		// Wait for vnet to come back to Succeeded before releasing any locks
-		timeout, ok := ctx.Deadline()
-		if !ok {
-			return fmt.Errorf("internal-error: context had no deadline")
+	// Wait for vnet and node subnet to come back to Succeeded before releasing any locks
+	timeout, ok := ctx.Deadline()
+	if !ok {
+		return fmt.Errorf("internal-error: context had no deadline")
+	}
+	if nodeSubnetID != nil {
+		// Wait for vnet and node subnet to come back to Succeeded before releasing any locks
+		err = network.NewSubnetAndVnetPoller(subnetClient, vnetClient, nodeSubnetID, timeout).Poll(ctx)
+		if err != nil {
+			return fmt.Errorf("waiting for provisioning state of subnet for AKS Node Pool creation %s: %+v", *nodeSubnetID, err)
 		}
+	}
 
-		// TODO: refactor this into a `custompoller` within the `network` package
-		stateConf := &pluginsdk.StateChangeConf{
-			Pending:    []string{string(subnets.ProvisioningStateUpdating)},
-			Target:     []string{string(subnets.ProvisioningStateSucceeded)},
-			Refresh:    network.SubnetProvisioningStateRefreshFunc(ctx, subnetClient, *subnetID),
-			MinTimeout: 1 * time.Minute,
-			Timeout:    time.Until(timeout),
-		}
-		if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("waiting for provisioning state of subnet for AKS Node Pool creation %s: %+v", *subnetID, err)
-		}
-
-		vnetId := commonids.NewVirtualNetworkID(subnetID.SubscriptionId, subnetID.ResourceGroupName, subnetID.VirtualNetworkName)
-		vnetStateConf := &pluginsdk.StateChangeConf{
-			Pending:    []string{string(subnets.ProvisioningStateUpdating)},
-			Target:     []string{string(subnets.ProvisioningStateSucceeded)},
-			Refresh:    network.VirtualNetworkProvisioningStateRefreshFunc(ctx, vnetClient, vnetId),
-			MinTimeout: 1 * time.Minute,
-			Timeout:    time.Until(timeout),
-		}
-		if _, err = vnetStateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("waiting for provisioning state of virtual network for AKS Node Pool creation %s: %+v", vnetId, err)
+	if podSubnetID != nil {
+		// Wait for vnet and pod subnet to come back to Succeeded before releasing any locks
+		err = network.NewSubnetAndVnetPoller(subnetClient, vnetClient, podSubnetID, timeout).Poll(ctx)
+		if err != nil {
+			return fmt.Errorf("waiting for provisioning state of the pod subnet for AKS Node Pool creation %s: %+v", *podSubnetID, err)
 		}
 	}
 
@@ -1065,6 +1082,10 @@ func resourceKubernetesClusterNodePoolRead(d *pluginsdk.ResourceData, meta inter
 
 		if v := props.GpuInstanceProfile; v != nil {
 			d.Set("gpu_instance", string(*v))
+		}
+
+		if v := props.GpuProfile; v != nil {
+			d.Set("gpu_driver", string(pointer.From(v.Driver)))
 		}
 
 		if props.CreationData != nil {

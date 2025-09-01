@@ -16,11 +16,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/backups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/poolchange"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/snapshots"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumes"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumesreplication"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/backups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/poolchange"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumesreplication"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
@@ -92,6 +92,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 					string(volumes.ServiceLevelPremium),
 					string(volumes.ServiceLevelStandard),
 					string(volumes.ServiceLevelUltra),
+					string(volumes.ServiceLevelFlexible),
 				}, false),
 			},
 
