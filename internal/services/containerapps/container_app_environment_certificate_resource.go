@@ -25,8 +25,8 @@ import (
 type ContainerAppEnvironmentCertificateResource struct{}
 
 type CertificateKeyVaultModel struct {
-	Identity    string `tfschema:"identity"`
-	KeyVaultUrl string `tfschema:"key_vault_url"`
+	Identity         string `tfschema:"identity"`
+	KeyVaultSecretId string `tfschema:"key_vault_secret_id"`
 }
 
 type ContainerAppCertificateModel struct {
@@ -113,18 +113,18 @@ func (r ContainerAppEnvironmentCertificateResource) Arguments() map[string]*plug
 						Type:        pluginsdk.TypeString,
 						Required:    true,
 						ForceNew:    true,
-						Description: "The Resource ID of a managed identity to authenticate with Azure Key Vault, or 'system' to use a system-assigned identity.",
+						Description: "The Resource ID of a managed identity to authenticate with Azure Key Vault, or 'System' to use a system-assigned identity.",
 						ValidateFunc: validation.Any(
-							validation.StringInSlice([]string{"system"}, false),
+							validation.StringInSlice([]string{"System"}, false),
 							commonids.ValidateUserAssignedIdentityID,
 						),
 					},
-					"key_vault_url": {
+					"key_vault_secret_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						Description:  "The URL of the Key Vault secret that holds the certificate",
-						ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
+						Description:  "The Base ID of the Key Vault Secret containing the certificate",
+						ValidateFunc: keyVaultValidate.VersionlessNestedItemId,
 					},
 				},
 			},
@@ -207,7 +207,7 @@ func (r ContainerAppEnvironmentCertificateResource) Create() sdk.ResourceFunc {
 				kvConfig := cert.CertificateKeyVault[0]
 				model.Properties.CertificateKeyVaultProperties = &certificates.CertificateKeyVaultProperties{
 					Identity:    pointer.To(kvConfig.Identity),
-					KeyVaultURL: pointer.To(kvConfig.KeyVaultUrl),
+					KeyVaultURL: pointer.To(kvConfig.KeyVaultSecretId),
 				}
 			}
 
@@ -267,8 +267,8 @@ func (r ContainerAppEnvironmentCertificateResource) Read() sdk.ResourceFunc {
 
 					if kvProps := props.CertificateKeyVaultProperties; kvProps != nil {
 						keyVaultConfig := CertificateKeyVaultModel{
-							Identity:    pointer.From(kvProps.Identity),
-							KeyVaultUrl: pointer.From(kvProps.KeyVaultURL),
+							Identity:         pointer.From(kvProps.Identity),
+							KeyVaultSecretId: pointer.From(kvProps.KeyVaultURL),
 						}
 						state.CertificateKeyVault = []CertificateKeyVaultModel{keyVaultConfig}
 					}
