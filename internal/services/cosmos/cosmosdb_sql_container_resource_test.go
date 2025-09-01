@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2025-04-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type CosmosSqlContainerResource struct{}
@@ -245,6 +245,21 @@ func TestAccCosmosDbSqlContainer_hierarchicalPartitionKeys(t *testing.T) {
 	})
 }
 
+func TestAccCosmosDbSqlContainer_vectorPolicies(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cosmosdb_sql_container", "test")
+	r := CosmosSqlContainerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vectorPolicies(data),
+			Check: acceptance.ComposeAggregateTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t CosmosSqlContainerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := cosmosdb.ParseContainerID(state.ID)
 	if err != nil {
@@ -256,7 +271,7 @@ func (t CosmosSqlContainerResource) Exists(ctx context.Context, clients *clients
 		return nil, fmt.Errorf("reading Cosmos SQL Container (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (CosmosSqlContainerResource) basic(data acceptance.TestData) string {
@@ -633,4 +648,108 @@ resource "azurerm_cosmosdb_sql_container" "test" {
   partition_key_version = 2
 }
 `, CosmosSqlDatabaseResource{}.basic(data), data.RandomInteger)
+}
+
+func (CosmosSqlContainerResource) vectorPolicies(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_cosmosdb_sql_container" "test" {
+  name                = "acctest-CSQLC-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+  database_name       = azurerm_cosmosdb_sql_database.test.name
+  partition_key_paths = ["/definition/id"]
+
+  # must first enable the EnableNoSQLVectorSearch capability on the Cosmos DB account
+  vector_embedding_policy {
+    vector_embedding {
+      path              = "/vector1"
+      data_type         = "float32"
+      distance_function = "cosine"
+      dimensions        = 505 # maximum
+    }
+    vector_embedding {
+      path              = "/vector2"
+      data_type         = "uint8"
+      distance_function = "euclidean"
+      dimensions        = 505 # maximum
+    }
+  }
+
+  # must first enable the EnableNoSQLFullTextSearch capability on the Cosmos DB account
+  full_text_policy {
+    default_language = "en-US" # As of 2025-08-31, en-US is the only supported language
+    full_text_path {
+      path = "/text"
+    }
+    full_text_path {
+      path     = "/title"
+      language = "en-US" # As of 2025-08-31, en-US is the only supported language
+    }
+  }
+
+  indexing_policy {
+    indexing_mode = "consistent"
+
+    included_path {
+      path = "/*"
+    }
+
+    vector_index {
+      path = "/vector1"
+      type = "flat" # max dimensions for flat: 505
+    }
+
+    vector_index {
+      path = "/vector2"
+      type = "quantizedFlat" # max dimensions for quantizedFlat: 4096
+    }
+  }
+}
+`, CosmosSqlContainerResource{}.vectorTemplate(data), data.RandomInteger)
+}
+
+func (CosmosSqlContainerResource) vectorTemplate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cosmos-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_cosmosdb_account" "test" {
+  name                = "acctest-ca-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
+
+  capabilities {
+    name = "EnableNoSQLVectorSearch" # Required for vector search
+  }
+
+  capabilities {
+    name = "EnableNoSQLFullTextSearch" # Required for full text search
+  }
+
+  consistency_policy {
+    consistency_level = "Session"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.test.location
+    failover_priority = 0
+  }
+}
+
+resource "azurerm_cosmosdb_sql_database" "test" {
+  name                = "acctest-%[2]d"
+  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
+  account_name        = azurerm_cosmosdb_account.test.name
+}
+`, data.Locations.Primary, data.RandomInteger)
 }
