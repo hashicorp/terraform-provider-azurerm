@@ -134,7 +134,7 @@ func (r KubernetesFleetManagerResource) Create() sdk.ResourceFunc {
 				},
 			}
 
-			if err := client.CreateOrUpdateThenPoll(ctx, id, *params, fleets.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			if err := client.CreateOrUpdateThenPoll(ctx, id, params, fleets.DefaultCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
