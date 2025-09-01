@@ -158,6 +158,9 @@ func (r {{ToCamel .Name }}Resource) Create(ctx context.Context, _ resource.Creat
 func (r {{ToCamel .Name }}Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse, metadata sdk.ResourceMetadata, decodedState any) {
 	client := metadata.Client.{{ .ServicePackageName }}.{{ .ClientName }}
 	state := sdk.AssertResourceModelType[{{ToCamel .Name }}ResourceModel](decodedState, resp)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	id, err := {{ index .IdTypeParts 0 }}.Parse{{ IdToID (index .IdTypeParts 1) }}(state.ID.ValueString())
 	if err != nil {
@@ -189,6 +192,9 @@ func (r {{ToCamel .Name }}Resource) Update(ctx context.Context, _ resource.Updat
 	// TODO - uncomment the following line to access the plan data
 	// plan := sdk.AssertResourceModelType[{{ToCamel .Name }}ResourceModel](decodedPlan, resp)
 	state := sdk.AssertResourceModelType[{{ToCamel .Name }}ResourceModel](decodedState, resp)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
 	id, err := {{ index .IdTypeParts 0 }}.Parse{{ IdToID (index .IdTypeParts 1) }}(state.ID.ValueString())
 	if err != nil {
@@ -212,6 +218,9 @@ func (r {{ToCamel .Name }}Resource) Update(ctx context.Context, _ resource.Updat
 func (r {{ToCamel .Name }}Resource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse, metadata sdk.ResourceMetadata, decodedState any) {
 	client := metadata.Client.{{ .ServicePackageName }}.{{ .ClientName }}
 	state := sdk.AssertResourceModelType[{{ToCamel .Name }}ResourceModel](decodedState, resp)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 	id, err := {{ index .IdTypeParts 0 }}.Parse{{ IdToID (index .IdTypeParts 1) }}(state.ID.ValueString())
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(resp, "ID parsing error", err)
