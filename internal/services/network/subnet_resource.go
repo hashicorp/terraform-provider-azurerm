@@ -111,6 +111,16 @@ func resourceSubnet() *pluginsdk.Resource {
 		Delete:   resourceSubnetDelete,
 		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.SubnetId{}),
 
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				// Validate `sharing_scope` cannot be set when `default_outbound_access_enabled` is true.
+				if diff.Get("sharing_scope").(string) != "" && diff.Get("default_outbound_access_enabled").(bool) {
+					return fmt.Errorf("`sharing_scope` cannot be set if `default_outbound_access_enabled` is set to `true`")
+				}
+				return nil
+			}),
+		),
+
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
 			Read:   pluginsdk.DefaultTimeout(5 * time.Minute),
@@ -342,11 +352,7 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
 	properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
 
-	sharingScope := d.Get("sharing_scope").(string)
-	if sharingScope != "" && d.Get("default_outbound_access_enabled").(bool) {
-		return fmt.Errorf("`sharing_scope` cannot be set if `default_outbound_access_enabled` is set to `true`")
-	}
-	properties.SharingScope = pointer.To(subnets.SharingScope(sharingScope))
+	properties.SharingScope = pointer.To(subnets.SharingScope(d.Get("sharing_scope").(string)))
 
 	properties.DefaultOutboundAccess = pointer.To(d.Get("default_outbound_access_enabled").(bool))
 
@@ -489,12 +495,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("sharing_scope") {
-		sharingScope := d.Get("sharing_scope").(string)
-		if sharingScope != "" && d.Get("default_outbound_access_enabled").(bool) {
-			return fmt.Errorf("`sharing_scope` cannot be set if `default_outbound_access_enabled` is set to `true`")
-		}
-
-		props.SharingScope = pointer.To(subnets.SharingScope(sharingScope))
+		props.SharingScope = pointer.To(subnets.SharingScope(d.Get("sharing_scope").(string)))
 	}
 
 	if d.HasChange("service_endpoints") {
