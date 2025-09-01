@@ -181,7 +181,7 @@ data "azuread_service_principal" "test" {
 resource "azurerm_role_assignment" "test" {
   scope                = azurerm_storage_account.test.id
   role_definition_name = "Storage Account Key Operator Service Role"
-  principal_id         = data.azuread_service_principal.test.id
+  principal_id         = data.azuread_service_principal.test.object_id
 }
 
 resource "azurerm_key_vault_managed_storage_account" "test" {

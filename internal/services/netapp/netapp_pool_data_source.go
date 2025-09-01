@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/capacitypools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -62,6 +62,11 @@ func dataSourceNetAppPool() *pluginsdk.Resource {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
+
+			"custom_throughput_mibps": {
+				Type:     pluginsdk.TypeInt,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -95,6 +100,7 @@ func dataSourceNetAppPoolRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("size_in_tb", props.Size/1099511627776)
 		d.Set("encryption_type", string(pointer.From(props.EncryptionType)))
 		d.Set("cool_access_enabled", pointer.From(props.CoolAccess))
+		d.Set("custom_throughput_mibps", int(pointer.From(props.CustomThroughputMibps)))
 	}
 
 	return nil

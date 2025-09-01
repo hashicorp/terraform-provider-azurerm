@@ -15,13 +15,14 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/systemtopics"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func dataSourceEventGridSystemTopic() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Read: dataSourceEventGridSystemTopicRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -47,7 +48,7 @@ func dataSourceEventGridSystemTopic() *pluginsdk.Resource {
 
 			"location": commonschema.LocationComputed(),
 
-			"source_arm_resource_id": {
+			"source_resource_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -57,7 +58,7 @@ func dataSourceEventGridSystemTopic() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"metric_arm_resource_id": {
+			"metric_resource_id": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
 			},
@@ -65,6 +66,19 @@ func dataSourceEventGridSystemTopic() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["source_arm_resource_id"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		}
+		resource.Schema["metric_arm_resource_id"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		}
+	}
+
+	return resource
 }
 
 func dataSourceEventGridSystemTopicRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -91,9 +105,13 @@ func dataSourceEventGridSystemTopicRead(d *pluginsdk.ResourceData, meta interfac
 		d.Set("location", location.Normalize(model.Location))
 
 		if props := model.Properties; props != nil {
-			d.Set("metric_arm_resource_id", props.MetricResourceId)
-			d.Set("source_arm_resource_id", props.Source)
+			d.Set("metric_resource_id", props.MetricResourceId)
+			d.Set("source_resource_id", props.Source)
 			d.Set("topic_type", props.TopicType)
+			if !features.FivePointOh() {
+				d.Set("metric_arm_resource_id", props.MetricResourceId)
+				d.Set("source_arm_resource_id", props.Source)
+			}
 		}
 
 		flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMap(model.Identity)

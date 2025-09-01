@@ -334,7 +334,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 						"geo_backup_key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: keyVaultValidate.NestedItemId,
+							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 							RequiredWith: []string{
 								"identity",
 								"customer_managed_key.0.geo_backup_user_assigned_identity_id",
@@ -692,6 +692,7 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("zone", props.AvailabilityZone)
 			d.Set("version", pointer.From(props.Version))
 			d.Set("fqdn", props.FullyQualifiedDomainName)
+			d.Set("source_server_id", props.SourceServerResourceId)
 
 			// Currently, `replicationRole` is set to `Primary` when `createMode` is `Replica` and `replicationRole` is updated to `None`. Service team confirmed it should be set to `None` for this scenario. See more details from https://github.com/Azure/azure-rest-api-specs/issues/22499
 			d.Set("replication_role", d.Get("replication_role").(string))
@@ -963,13 +964,19 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if requireUpdateOnLogin {
 		updateMode := servers.CreateModeUpdate
+		// Login password can be set using `administrator_password` or `administrator_password_wo`
+		loginPassword := d.Get("administrator_password").(string)
+		if !woPassword.IsNull() {
+			loginPassword = woPassword.AsString()
+		}
+
 		loginParameters := servers.Server{
 			Location: location.Normalize(d.Get("location").(string)),
 			Properties: &servers.ServerProperties{
 				CreateMode:                 &updateMode,
 				AuthConfig:                 expandFlexibleServerAuthConfig(d.Get("authentication").([]interface{})),
 				AdministratorLogin:         pointer.To(d.Get("administrator_login").(string)),
-				AdministratorLoginPassword: pointer.To(d.Get("administrator_password").(string)),
+				AdministratorLoginPassword: &loginPassword,
 				Network:                    expandArmServerNetwork(d),
 			},
 		}

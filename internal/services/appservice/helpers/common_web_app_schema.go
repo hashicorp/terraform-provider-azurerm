@@ -1219,7 +1219,7 @@ func FlattenLogsConfig(logsConfig *webapps.SiteLogsConfig) []LogsConfig {
 					}
 				},
 			*/
-			if !strings.EqualFold(string(pointer.From(appLogs.FileSystem.Level)), string(webapps.LogLevelOff)) && len(applicationLog.AzureBlobStorage) > 0 {
+			if !strings.EqualFold(string(pointer.From(appLogs.FileSystem.Level)), string(webapps.LogLevelOff)) || len(applicationLog.AzureBlobStorage) > 0 {
 				logs.ApplicationLogs = []ApplicationLog{applicationLog}
 			}
 		}

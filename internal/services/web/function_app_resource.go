@@ -193,7 +193,7 @@ func resourceFunctionApp() *pluginsdk.Resource {
 				Default:  "~1",
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			// Computed Only
 

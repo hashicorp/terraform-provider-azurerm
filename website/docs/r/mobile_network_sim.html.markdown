@@ -33,13 +33,10 @@ resource "azurerm_mobile_network_sim_group" "example" {
 }
 
 resource "azurerm_mobile_network_slice" "example" {
-  name              = "example-slice"
-  mobile_network_id = azurerm_mobile_network.example.id
-  location          = azurerm_resource_group.example.location
-
-  single_network_slice_selection_assistance_information {
-    slice_service_type = 1
-  }
+  name               = "example-slice"
+  mobile_network_id  = azurerm_mobile_network.example.id
+  location           = azurerm_resource_group.example.location
+  slice_service_type = 1
 }
 
 resource "azurerm_mobile_network_attached_data_network" "example" {

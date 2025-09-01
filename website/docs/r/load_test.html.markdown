@@ -6,8 +6,6 @@ description: |-
   Manages a Load Test.
 ---
 
-<!-- Note: This documentation is generated. Any manual changes will be overwritten -->
-
 # azurerm_load_test
 
 Manages a Load Test Service.
@@ -35,17 +33,17 @@ resource "azurerm_load_test" "example" {
 
 The following arguments are supported:
 
-* `location` - (Required) The Azure Region where the Load Test should exist. Changing this forces a new Load Test to be created.
-
 * `name` - (Required) Specifies the name of this Load Test. Changing this forces a new Load Test to be created.
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group within which this Load Test should exist. Changing this forces a new Load Test to be created.
 
+* `location` - (Required) The Azure Region where the Load Test should exist. Changing this forces a new Load Test to be created.
+
 * `description` - (Optional) Description of the resource.
 
-* `identity` - (Optional) An `identity` block as defined below. Specifies the Managed Identity which should be assigned to this Load Test.
-
 * `encryption` - (Optional) An `encryption` block as defined below. Changing this forces a new Load Test to be created.
+
+* `identity` - (Optional) An `identity` block as defined below. Specifies the Managed Identity which should be assigned to this Load Test.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Load Test.
 
@@ -60,7 +58,7 @@ The `identity` block supports the following arguments:
 In addition to the arguments defined above, the `identity` block exports the following attributes:
 
 * `principal_id` - The Principal ID for the System-Assigned Managed Identity assigned to this Load Test.
-* 
+
 * `tenant_id` - The Tenant ID for the System-Assigned Managed Identity assigned to this Load Test.
 
 ---
@@ -78,6 +76,8 @@ The `identity` block for `encryption` supports the following arguments:
 * `type` - (Required) Specifies the type of Managed Identity that should be assigned to this Load Test Encryption. Possible values are `SystemAssigned` or `UserAssigned`. Changing this forces a new Load Test to be created.
 
 * `identity_id` - (Required) The User Assigned Identity ID that should be assigned to this Load Test Encryption. Changing this forces a new Load Test to be created.
+
+~> **Note:** The User Assigned Identity ID specified here must also exist in `identity.identity_ids`.
 
 
 ## Attributes Reference

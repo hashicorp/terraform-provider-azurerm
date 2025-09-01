@@ -39,6 +39,7 @@ type DevCenterProjectPoolResourceModel struct {
 	LocalAdministratorEnabled          bool              `tfschema:"local_administrator_enabled"`
 	DevCenterAttachedNetworkName       string            `tfschema:"dev_center_attached_network_name"`
 	ManagedVirtualNetworkRegions       []string          `tfschema:"managed_virtual_network_regions"`
+	SingleSignOnEnabled                bool              `tfschema:"single_sign_on_enabled"`
 	StopOnDisconnectGracePeriodMinutes int64             `tfschema:"stop_on_disconnect_grace_period_minutes"`
 	Tags                               map[string]string `tfschema:"tags"`
 }
@@ -91,6 +92,12 @@ func (r DevCenterProjectPoolResource) Arguments() map[string]*pluginsdk.Schema {
 				StateFunc:        location.StateFunc,
 				DiffSuppressFunc: location.DiffSuppressFunc,
 			},
+		},
+
+		"single_sign_on_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Default:  false,
 		},
 
 		"stop_on_disconnect_grace_period_minutes": {
@@ -159,6 +166,11 @@ func (r DevCenterProjectPoolResource) Create() sdk.ResourceFunc {
 				parameters.Properties.LocalAdministrator = pointer.To(pools.LocalAdminStatusDisabled)
 			}
 
+			parameters.Properties.SingleSignOnStatus = pointer.To(pools.SingleSignOnStatusDisabled)
+			if model.SingleSignOnEnabled {
+				parameters.Properties.SingleSignOnStatus = pointer.To(pools.SingleSignOnStatusEnabled)
+			}
+
 			if err := client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
@@ -202,6 +214,7 @@ func (r DevCenterProjectPoolResource) Read() sdk.ResourceFunc {
 					state.LocalAdministratorEnabled = pointer.From(props.LocalAdministrator) == pools.LocalAdminStatusEnabled
 					state.DevCenterAttachedNetworkName = pointer.From(props.NetworkConnectionName)
 					state.ManagedVirtualNetworkRegions = flattenDevCenterProjectManagedVirtualNetworkRegions(props.ManagedVirtualNetworkRegions)
+					state.SingleSignOnEnabled = pointer.From(props.SingleSignOnStatus) == pools.SingleSignOnStatusEnabled
 					state.StopOnDisconnectGracePeriodMinutes = flattenDevCenterProjectPoolStopOnDisconnect(props.StopOnDisconnect)
 				}
 			}
@@ -253,6 +266,13 @@ func (r DevCenterProjectPoolResource) Update() sdk.ResourceFunc {
 
 				if len(model.ManagedVirtualNetworkRegions) != 0 {
 					parameters.Properties.VirtualNetworkType = pointer.To(pools.VirtualNetworkTypeManaged)
+				}
+			}
+
+			if metadata.ResourceData.HasChange("single_sign_on_enabled") {
+				parameters.Properties.SingleSignOnStatus = pointer.To(pools.SingleSignOnStatusDisabled)
+				if model.SingleSignOnEnabled {
+					parameters.Properties.SingleSignOnStatus = pointer.To(pools.SingleSignOnStatusEnabled)
 				}
 			}
 

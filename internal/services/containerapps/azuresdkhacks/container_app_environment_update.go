@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/systemdata"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/managedenvironments"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
@@ -79,14 +80,15 @@ func (c ManagedEnvironmentsClient) UpdateThenPoll(ctx context.Context, id manage
 }
 
 type ManagedEnvironment struct {
-	Id         *string                       `json:"id,omitempty"`
-	Kind       *string                       `json:"kind,omitempty"`
-	Location   string                        `json:"location"`
-	Name       *string                       `json:"name,omitempty"`
-	Properties *ManagedEnvironmentProperties `json:"properties,omitempty"`
-	SystemData *systemdata.SystemData        `json:"systemData,omitempty"`
-	Tags       *map[string]string            `json:"tags,omitempty"`
-	Type       *string                       `json:"type,omitempty"`
+	Id         *string                                  `json:"id,omitempty"`
+	Identity   *identity.LegacySystemAndUserAssignedMap `json:"identity,omitempty"`
+	Kind       *string                                  `json:"kind,omitempty"`
+	Location   string                                   `json:"location"`
+	Name       *string                                  `json:"name,omitempty"`
+	Properties *ManagedEnvironmentProperties            `json:"properties,omitempty"`
+	SystemData *systemdata.SystemData                   `json:"systemData,omitempty"`
+	Tags       *map[string]string                       `json:"tags,omitempty"`
+	Type       *string                                  `json:"type,omitempty"`
 }
 
 type ManagedEnvironmentProperties struct {

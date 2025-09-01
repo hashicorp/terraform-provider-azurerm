@@ -109,7 +109,7 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedIdentityOptional(),
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(

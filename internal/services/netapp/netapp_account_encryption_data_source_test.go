@@ -27,6 +27,7 @@ func TestAccNetAppAccountEncryptionDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("netapp_account_id").Exists(),
 				check.That(data.ResourceName).Key("system_assigned_identity_principal_id").IsSet(),
 				check.That(data.ResourceName).Key("encryption_key").IsSet(),
+				check.That(data.ResourceName).Key("cross_tenant_key_vault_resource_id").IsEmpty(),
 			),
 		},
 	})

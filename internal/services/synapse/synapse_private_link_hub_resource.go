@@ -53,7 +53,7 @@ func resourceSynapsePrivateLinkHub() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }

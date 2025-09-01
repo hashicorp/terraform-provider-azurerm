@@ -67,4 +67,4 @@ terraform import azurerm_netapp_backup_vault.example /subscriptions/00000000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.NetApp` - 2025-01-01
+* `Microsoft.NetApp` - 2025-06-01

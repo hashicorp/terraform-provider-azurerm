@@ -418,7 +418,9 @@ An `encryption` block supports the following:
 
 An `managed_network` block supports the following:
 
-* `isolation_mode` - (Optional) The isolation mode of the Machine Learning Workspace. Possible values are `Disabled`, `AllowOnlyApprovedOutbound`, and `AllowInternetOutbound`
+* `isolation_mode` - (Optional) The isolation mode of the Machine Learning Workspace. Possible values are `Disabled`, `AllowOnlyApprovedOutbound`, and `AllowInternetOutbound`.
+
+* `provision_on_creation_enabled` - (Optional) Set to trigger the provisioning of the managed VNet with the default options when creating a Machine Learning Workspace with the managed VNet enabled. Defaults to `false`. Changing this forces a new resource to be created.
 
 ---
 
@@ -482,4 +484,4 @@ terraform import azurerm_machine_learning_workspace.example /subscriptions/00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.MachineLearningServices` - 2024-04-01
+* `Microsoft.MachineLearningServices` - 2025-06-01

@@ -430,7 +430,7 @@ func resourceMonitorAutoScaleSetting() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }

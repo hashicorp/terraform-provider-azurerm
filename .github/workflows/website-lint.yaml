@@ -11,6 +11,7 @@ on:
     paths:
       - ".github/workflows/website-lint.yaml"
       - "website/**"
+      - "internal/services/**"
 
 jobs:
   website-lint:

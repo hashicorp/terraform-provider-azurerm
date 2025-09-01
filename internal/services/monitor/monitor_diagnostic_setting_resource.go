@@ -56,10 +56,13 @@ func resourceMonitorDiagnosticSetting() *pluginsdk.Resource {
 			},
 
 			"target_resource_id": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				ValidateFunc: azure.ValidateResourceID,
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ForceNew: true,
+				ValidateFunc: validation.Any(
+					azure.ValidateResourceID,
+					commonids.ValidateManagementGroupID,
+				),
 			},
 
 			"eventhub_name": {
