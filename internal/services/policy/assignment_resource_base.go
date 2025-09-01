@@ -430,7 +430,6 @@ func (br assignmentBaseResource) arguments(fields map[string]*pluginsdk.Schema) 
 								"kind": {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
-									Computed: true,
 									Default:  policyassignments.SelectorKindPolicyDefinitionReferenceId,
 									ValidateFunc: validation.StringInSlice([]string{
 										string(policyassignments.SelectorKindPolicyDefinitionReferenceId),
