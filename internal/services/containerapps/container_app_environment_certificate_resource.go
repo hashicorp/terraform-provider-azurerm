@@ -17,9 +17,9 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-07-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/containerapps/validate"
+	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 )
 
 type ContainerAppEnvironmentCertificateResource struct{}
@@ -91,12 +91,12 @@ func (r ContainerAppEnvironmentCertificateResource) Arguments() map[string]*plug
 		},
 
 		"certificate_password": {
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			ForceNew:      true,
-			Sensitive:     true,
-			Description:   "The password for the Certificate.",
-			RequiredWith:  []string{"certificate_blob_base64"},
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			Sensitive:    true,
+			Description:  "The password for the Certificate.",
+			RequiredWith: []string{"certificate_blob_base64"},
 		},
 
 		"certificate_key_vault": {
@@ -120,10 +120,10 @@ func (r ContainerAppEnvironmentCertificateResource) Arguments() map[string]*plug
 						),
 					},
 					"key_vault_url": {
-						Type:        pluginsdk.TypeString,
-						Required:    true,
-						ForceNew:    true,
-						Description: "The URL of the Key Vault secret that holds the certificate",
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						Description:  "The URL of the Key Vault secret that holds the certificate",
 						ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 					},
 				},

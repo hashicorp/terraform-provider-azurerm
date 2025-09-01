@@ -80,12 +80,12 @@ resource "azurerm_container_app_environment" "example" {
 }
 
 resource "azurerm_key_vault" "example" {
-  name                       = "example-keyvault"
-  location                   = azurerm_resource_group.example.location
-  resource_group_name        = azurerm_resource_group.example.name
-  tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "standard"
-  enable_rbac_authorization  = true
+  name                      = "example-keyvault"
+  location                  = azurerm_resource_group.example.location
+  resource_group_name       = azurerm_resource_group.example.name
+  tenant_id                 = data.azurerm_client_config.current.tenant_id
+  sku_name                  = "standard"
+  enable_rbac_authorization = true
 }
 
 resource "azurerm_role_assignment" "user_keyvault_admin" {

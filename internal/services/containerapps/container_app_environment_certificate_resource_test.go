@@ -58,17 +58,17 @@ func TestAccContainerAppEnvironmentCertificate_basicUpdateTags(t *testing.T) {
 
 func TestAccContainerAppEnvironmentCertificate_keyVaultSystemAssigned(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_environment_certificate", "test")
-    r := ContainerAppEnvironmentCertificateResource{}
+	r := ContainerAppEnvironmentCertificateResource{}
 
-    data.ResourceTest(t, r, []acceptance.TestStep{
-        {
-            Config: r.keyVaultSystemAssigned(data),
-            Check: acceptance.ComposeTestCheckFunc(
-                check.That(data.ResourceName).ExistsInAzure(r),
-            ),
-        },
-        data.ImportStep(),
-    })
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.keyVaultSystemAssigned(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
 }
 
 func TestAccContainerAppEnvironmentCertificate_keyVaultUserAssigned(t *testing.T) {
