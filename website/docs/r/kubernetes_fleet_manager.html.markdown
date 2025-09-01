@@ -50,7 +50,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - The ID of the Kubernetes Fleet Manager.
 
-* `hub_profile` - (Optional) A hub_profile block as defined below.
+* `hub_profile` - A `hub_profile` block as defined below.
 
 ---
 
