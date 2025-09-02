@@ -85,11 +85,20 @@ The following arguments are supported:
 * `storage_container_id` - (Required) The ID of the Storage Account Container. Changing this forces a new Machine Learning DataStore to be created.
 
 ---
-* `account_key` - (Optional) The access key of the Storage Account. Conflicts with `shared_access_signature`.
 
-* `shared_access_signature` - (Optional) The Shared Access Signature of the Storage Account. Conflicts with `account_key`.
+~> **Note:** One authentication method must be specified when `service_data_auth_identity` is set to `None` or omitted. You can choose either traditional credentials (`account_key` or `shared_access_signature`) or Service Principal authentication (`client_id`, `client_secret`, `tenant_id`), but not both.
 
-~> **Note:** If `service_data_auth_identity` is set to `None` or omitted, one of `account_key` or `shared_access_signature` must be specified.
+* `account_key` - (Optional) The access key of the Storage Account. Conflicts with `shared_access_signature` and all Service Principal arguments.
+
+* `shared_access_signature` - (Optional) The Shared Access Signature of the Storage Account. Conflicts with `account_key` and all Service Principal arguments.
+
+* `client_id` - (Optional) The Client ID of the Service Principal. Required if using Service Principal authentication.
+
+* `client_secret` - (Optional) The Secret of the Service Principal. Required if using Service Principal authentication.
+
+* `tenant_id` - (Optional) The Tenant ID of the Service Principal. Required if using Service Principal authentication.
+
+---
 
 * `description` - (Optional) Text used to describe the asset. Changing this forces a new Machine Learning DataStore to be created.
 

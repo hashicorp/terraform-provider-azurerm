@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/datastore"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MachineLearningDataStoreBlobStorage struct{}
@@ -100,6 +100,21 @@ func TestAccMachineLearningDataStoreBlobStorage_Update(t *testing.T) {
 	})
 }
 
+func TestAccMachineLearningDataStoreBlobStorage_servicePrincipal(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore_blobstorage", "test")
+	r := MachineLearningDataStoreBlobStorage{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.blobStorageServicePrincipal(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("client_secret"),
+	})
+}
+
 func TestAccMachineLearningDataStoreBlobStorage_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_datastore_blobstorage", "test")
 	r := MachineLearningDataStoreBlobStorage{}
@@ -125,12 +140,12 @@ func (r MachineLearningDataStoreBlobStorage) Exists(ctx context.Context, client 
 	resp, err := dataStoreClient.Get(ctx, *id)
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
-			return utils.Bool(false), nil
+			return pointer.To(false), nil
 		}
 		return nil, fmt.Errorf("retrieving Machine Learning Data Store %q: %+v", state.ID, err)
 	}
 
-	return utils.Bool(resp.Model.Properties != nil), nil
+	return pointer.To(resp.Model.Properties != nil), nil
 }
 
 func (r MachineLearningDataStoreBlobStorage) blobStorageAccountKey(data acceptance.TestData) string {
@@ -282,6 +297,28 @@ resource "azurerm_machine_learning_datastore_blobstorage" "test" {
   workspace_id            = azurerm_machine_learning_workspace.test.id
   storage_container_id    = azurerm_storage_container.test.resource_manager_id
   shared_access_signature = data.azurerm_storage_account_sas.test.sas
+}
+`, template, data.RandomInteger)
+}
+
+func (r MachineLearningDataStoreBlobStorage) blobStorageServicePrincipal(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_storage_container" "test" {
+  name                  = "acctestcontainer%[2]d"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+resource "azurerm_machine_learning_datastore_blobstorage" "test" {
+  name                 = "accdatastore%[2]d"
+  workspace_id         = azurerm_machine_learning_workspace.test.id
+  storage_container_id = azurerm_storage_container.test.resource_manager_id
+  client_id            = data.azurerm_client_config.current.client_id
+  client_secret        = "test-secret"
+  tenant_id            = data.azurerm_client_config.current.tenant_id
 }
 `, template, data.RandomInteger)
 }
