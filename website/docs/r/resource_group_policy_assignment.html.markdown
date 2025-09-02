@@ -89,7 +89,7 @@ The following arguments are supported:
 
 * `parameters` - (Optional) A JSON mapping of any Parameters for this Policy.
 
-* `overrides` - (Optional) One or more `overrides` blocks as defined below. More detail about `overrides` and `resource_selectors` see [policy assignment structure](https://learn.microsoft.com/en-us/azure/governance/policy/concepts/assignment-structure#resource-selectors-preview)
+* `overrides` - (Optional) One or more `overrides` blocks as defined below. More detail about `overrides` and `resource_selectors` see [policy assignment structure](https://learn.microsoft.com/en-us/azure/governance/policy/concepts/assignment-structure)
 
 * `resource_selectors` - (Optional) One or more `resource_selectors` blocks as defined below to filter polices by resource properties.
 
