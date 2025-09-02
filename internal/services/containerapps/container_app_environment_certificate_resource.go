@@ -86,8 +86,8 @@ func (r ContainerAppEnvironmentCertificateResource) Arguments() map[string]*plug
 			ForceNew:      true,
 			ValidateFunc:  validation.StringIsBase64,
 			Description:   "The Certificate Private Key as a base64 encoded PFX or PEM.",
-			ConflictsWith: []string{"certificate_key_vault"},
-			AtLeastOneOf:  []string{"certificate_key_vault", "certificate_blob_base64"},
+			ExactlyOneOf: []string{"certificate_key_vault", "certificate_blob_base64"},
+			RequiredWith: []string{"certificate_password"},
 		},
 
 		"certificate_password": {
@@ -105,8 +105,7 @@ func (r ContainerAppEnvironmentCertificateResource) Arguments() map[string]*plug
 			ForceNew:      true,
 			MaxItems:      1,
 			Description:   "Import Certificate from Key Vault",
-			ConflictsWith: []string{"certificate_password", "certificate_blob_base64"},
-			AtLeastOneOf:  []string{"certificate_key_vault", "certificate_blob_base64"},
+			ExactlyOneOf:  []string{"certificate_key_vault", "certificate_blob_base64"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"identity": {
@@ -123,7 +122,7 @@ func (r ContainerAppEnvironmentCertificateResource) Arguments() map[string]*plug
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ForceNew:     true,
-						Description:  "The Base ID of the Key Vault Secret containing the certificate",
+						Description:  "The Base ID of the Key Vault Secret containing the certificate.",
 						ValidateFunc: keyVaultValidate.VersionlessNestedItemId,
 					},
 				},
