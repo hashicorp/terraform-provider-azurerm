@@ -1823,6 +1823,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size                     = "%s"
   node_count                  = 1
   temporary_name_for_rotation = "temporal"
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.templateConfig(data), sku)
 }

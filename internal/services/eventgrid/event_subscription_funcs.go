@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/eventsubscriptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/eventsubscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -93,11 +93,11 @@ func expandEventGridEventSubscriptionWebhook(input []interface{}, deliveryMappin
 	}
 
 	if v, ok := config["active_directory_tenant_id"]; ok && v != "" {
-		props.AzureActiveDirectoryTenantId = pointer.To(v.(string))
+		props.AzureActiveDirectoryTenantId = utils.String(v.(string))
 	}
 
 	if v, ok := config["active_directory_app_id_or_uri"]; ok && v != "" {
-		props.AzureActiveDirectoryApplicationIdOrUri = pointer.To(v.(string))
+		props.AzureActiveDirectoryApplicationIdOrUri = utils.String(v.(string))
 	}
 
 	return webhookDestination
