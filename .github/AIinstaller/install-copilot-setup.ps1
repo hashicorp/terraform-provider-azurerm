@@ -433,7 +433,6 @@ function Main {
             if ($result.Success) {
                 exit 0
             } else {
-                Write-Host "Bootstrap failed: $($result.Error)" -ForegroundColor Red
                 exit 1
             }
         }
