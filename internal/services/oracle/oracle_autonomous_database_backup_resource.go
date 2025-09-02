@@ -209,7 +209,7 @@ func (r AutonomousDatabaseBackupResource) Update() sdk.ResourceFunc {
 
 			_, err = getBackupFromOCI(ctx, client, adbId, backupId)
 			if err != nil {
-				return fmt.Errorf("checking for existing backup: %+v", err)
+				return fmt.Errorf("retrieving %s: %+v", backupId, err)
 			}
 
 			update := autonomousdatabasebackups.AutonomousDatabaseBackupUpdate{
