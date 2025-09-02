@@ -1312,7 +1312,13 @@ function Invoke-InstallInfrastructure {
             # Location always goes at the bottom
             $details["Location"] = $WorkspaceRoot
 
-            Show-OperationSummary -OperationName "Installation" -Success $true -ItemsSuccessful $result.Successful -ItemsFailed $result.Failed -Details $details
+            # Convert hashtable to string array format expected by Show-OperationSummary
+            $detailsArray = @()
+            foreach ($key in $details.Keys) {
+                $detailsArray += "$key`: $($details[$key])"
+            }
+
+            Show-OperationSummary -OperationName "Installation" -Success $true -Details $detailsArray
         } else {
             Show-InstallationResults -Results $result
         }
