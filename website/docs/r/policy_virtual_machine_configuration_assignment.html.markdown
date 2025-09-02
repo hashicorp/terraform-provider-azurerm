@@ -136,7 +136,7 @@ A `configuration` block supports the following:
 
 * `content_hash` - (Optional) The content hash for the Guest Configuration package.
 
-~> **Note:** The value for `content_hash` should be the SH256SUM for the zip file in the `content_uri` and must be in upper case. 
+~> **Note:** The value for `content_hash` should be the SH256SUM for the zip file in the `content_uri` and must be in upper case.
 
 * `content_uri` - (Optional) The content URI where the Guest Configuration package is stored.
 
