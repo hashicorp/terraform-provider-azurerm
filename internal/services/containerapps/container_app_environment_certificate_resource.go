@@ -81,11 +81,11 @@ func (r ContainerAppEnvironmentCertificateResource) Arguments() map[string]*plug
 		},
 
 		"certificate_blob_base64": {
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			ForceNew:      true,
-			ValidateFunc:  validation.StringIsBase64,
-			Description:   "The Certificate Private Key as a base64 encoded PFX or PEM.",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringIsBase64,
+			Description:  "The Certificate Private Key as a base64 encoded PFX or PEM.",
 			ExactlyOneOf: []string{"certificate_key_vault", "certificate_blob_base64"},
 			RequiredWith: []string{"certificate_password"},
 		},
@@ -100,12 +100,12 @@ func (r ContainerAppEnvironmentCertificateResource) Arguments() map[string]*plug
 		},
 
 		"certificate_key_vault": {
-			Type:          pluginsdk.TypeList,
-			Optional:      true,
-			ForceNew:      true,
-			MaxItems:      1,
-			Description:   "Import Certificate from Key Vault",
-			ExactlyOneOf:  []string{"certificate_key_vault", "certificate_blob_base64"},
+			Type:         pluginsdk.TypeList,
+			Optional:     true,
+			ForceNew:     true,
+			MaxItems:     1,
+			Description:  "Import Certificate from Key Vault",
+			ExactlyOneOf: []string{"certificate_key_vault", "certificate_blob_base64"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"identity": {
