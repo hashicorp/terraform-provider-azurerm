@@ -1573,11 +1573,13 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForNodeProvisioningMode(), false),
+							AtLeastOneOf: []string{"node_provisioning_profile.0.mode", "node_provisioning_profile.0.default_node_pools"},
 						},
 						"default_node_pools": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
 							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForNodeProvisioningDefaultNodePools(), false),
+							AtLeastOneOf: []string{"node_provisioning_profile.0.mode", "node_provisioning_profile.0.default_node_pools"},
 						},
 					},
 				},
@@ -3224,7 +3226,7 @@ func expandKubernetesClusterWorkloadAutoscalerProfile(input []interface{}, d *pl
 }
 
 func expandKubernetesClusterNodeProvisioningProfile(input []interface{}) *managedclusters.ManagedClusterNodeProvisioningProfile {
-	if len(input) == 0 {
+	if len(input) == 0 || input[0] == nil {
 		return nil
 	}
 	config := input[0].(map[string]interface{})
@@ -3236,10 +3238,6 @@ func expandKubernetesClusterNodeProvisioningProfile(input []interface{}) *manage
 	if v := config["default_node_pools"].(string); v != "" {
 		dv := managedclusters.NodeProvisioningDefaultNodePools(v)
 		profile.DefaultNodePools = &dv
-	}
-	// If both fields are empty treat as nil to avoid sending empty object
-	if profile.Mode == nil && profile.DefaultNodePools == nil {
-		return nil
 	}
 	return profile
 }
@@ -3320,7 +3318,7 @@ func flattenKubernetesClusterWorkloadAutoscalerProfile(profile *managedclusters.
 }
 
 func flattenKubernetesClusterNodeProvisioningProfile(profile *managedclusters.ManagedClusterNodeProvisioningProfile) []interface{} {
-	if profile == nil || (profile.Mode == nil && profile.DefaultNodePools == nil) {
+	if profile == nil {
 		return []interface{}{}
 	}
 	mode := ""
