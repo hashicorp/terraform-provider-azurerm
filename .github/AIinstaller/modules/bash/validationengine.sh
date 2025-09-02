@@ -532,12 +532,15 @@ verify_installation() {
             local issues_found=0
 
             # Match PowerShell order: Branch Type, Target Branch, Files Verified, Issues Found, Location
+            # Clean branch_type variable to remove any potential line breaks or whitespace
+            branch_type=$(echo "${branch_type}" | tr -d '\r\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
             show_operation_summary "Verification" "true" "false" \
-                "Branch Type:${branch_type}" \
-                "Target Branch:${current_branch}" \
-                "Files Verified:${files_checked}" \
-                "Issues Found:${issues_found}" \
-                "Location:${workspace_root}"
+                "Branch Type: ${branch_type}" \
+                "Target Branch: ${current_branch}" \
+                "Files Verified: ${files_checked}" \
+                "Issues Found: ${issues_found}" \
+                "Location: ${workspace_root}"
         fi
     else
         echo ""
@@ -571,12 +574,15 @@ verify_installation() {
             fi
 
             local issues_found=${#missing_items[@]}
+            # Clean branch_type variable to remove any potential line breaks or whitespace
+            branch_type=$(echo "${branch_type}" | tr -d '\r\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
             show_operation_summary "Verification" "false" "false" \
-                "Branch Type:${branch_type}" \
-                "Target Branch:${current_branch}" \
-                "Files Verified:${files_checked}" \
-                "Issues Found:${issues_found}" \
-                "Location:${workspace_root}" \
+                "Branch Type: ${branch_type}" \
+                "Target Branch: ${current_branch}" \
+                "Files Verified: ${files_checked}" \
+                "Issues Found: ${issues_found}" \
+                "Location: ${workspace_root}" \
                 --next-steps \
                 "Run installation if components are missing" \
                 "Use -clean option to remove installation if needed"

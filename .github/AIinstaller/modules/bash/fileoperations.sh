@@ -371,15 +371,7 @@ validate_operation_allowed() {
 
     case "${current_branch}" in
         "main"|"master"|"exp/terraform_copilot")
-            write_error_message "${operation_name^^} BLOCKED: Cannot perform ${operation_name} on source branch '${current_branch}'"
-            echo ""
-            write_plain "Source branches (main, master, exp/terraform_copilot) are protected from ${operation_name}."
-            write_plain "This prevents accidental modification of the source repository."
-            echo ""
-            write_plain "${YELLOW}REQUIRED ACTIONS:${NC}"
-            write_plain "  1. Switch to a feature branch: git checkout -b feature/your-branch-name"
-            write_plain "  2. Run ${operation_name} from the feature branch"
-            echo ""
+            show_safety_violation "${current_branch}" "${operation_name}" "false" "${workspace_root}"
             return 1
             ;;
     esac
@@ -749,13 +741,16 @@ show_installation_summary() {
     esac
 
     # Show detailed summary using the sophisticated show_operation_summary function
+    # Clean branch_type variable to remove any potential line breaks or whitespace
+    branch_type=$(echo "${branch_type}" | tr -d '\r\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
     show_operation_summary "Installation" "true" "false" \
-        "Branch Type:${branch_type}" \
-        "Target Branch:${current_branch}" \
-        "Items Successful:${successful_files}" \
-        "Total Size:${total_size_kb} KB" \
-        "Files Installed:${successful_files}" \
-        "Location:${workspace_root}"
+        "Branch Type: ${branch_type}" \
+        "Target Branch: ${current_branch}" \
+        "Items Successful: ${successful_files}" \
+        "Total Size: ${total_size_kb} KB" \
+        "Files Installed: ${successful_files}" \
+        "Location: ${workspace_root}"
 }
 
 # Function to get all files that should be cleaned up from manifest
@@ -1019,10 +1014,13 @@ clean_infrastructure() {
     local success_status="true"  # Cleanup operations are considered successful unless there was an error
 
     # Show detailed cleanup summary using the sophisticated show_operation_summary function
+    # Clean branch_type variable to remove any potential line breaks or whitespace
+    branch_type=$(echo "${branch_type}" | tr -d '\r\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
     show_operation_summary "Cleanup" "${success_status}" "${DRY_RUN:-false}" \
-        "Branch Type:${branch_type}" \
-        "Target Branch:${current_branch}" \
-        "Files Removed:${files_removed}" \
+        "Branch Type: ${branch_type}" \
+        "Target Branch: ${current_branch}" \
+        "Files Removed: ${files_removed}" \
         "Directories Cleaned:${dirs_removed}" \
         "Operation Type:$(if [[ "${DRY_RUN:-false}" == "true" ]]; then echo "Dry run cleanup"; else echo "Live cleanup"; fi)" \
         "Location:${workspace_root}"

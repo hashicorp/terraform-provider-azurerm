@@ -175,8 +175,42 @@ show_operation_summary() {
         echo ""
         write_section_header "DETAILS"
 
-        # Display each detail with consistent alignment (preserve order)
+        # Define expected order based on operation type
+        local -a expected_order
+        if [[ "${operation_name,,}" == "verification" ]]; then
+            expected_order=("Branch Type" "Target Branch" "Files Verified" "Issues Found" "Location")
+        else
+            # Installation operation order
+            expected_order=("Branch Type" "Target Branch" "Files Installed" "Items Successful" "Total Size" "Location")
+        fi
+
+        # Create ordered display array
+        local -a display_keys
+        # First add keys that are in the expected order
+        for expected_key in "${expected_order[@]}"; do
+            for key in "${ordered_keys[@]}"; do
+                if [[ "$key" == "$expected_key" ]]; then
+                    display_keys+=("$key")
+                    break
+                fi
+            done
+        done
+        # Then add any remaining keys not in expected order
         for key in "${ordered_keys[@]}"; do
+            local found=false
+            for display_key in "${display_keys[@]}"; do
+                if [[ "$key" == "$display_key" ]]; then
+                    found=true
+                    break
+                fi
+            done
+            if [[ "$found" == false ]]; then
+                display_keys+=("$key")
+            fi
+        done
+
+        # Display each detail with consistent alignment (use ordered display)
+        for key in "${display_keys[@]}"; do
             local value="${details_hash[$key]}"
 
             # Calculate required spacing for alignment
@@ -789,47 +823,6 @@ show_source_branch_welcome() {
     echo ""
 }
 
-# Function to show source repository safety error
-show_source_repository_safety_error() {
-    local script_name="$1"
-
-    echo ""
-    write_error_message "SAFETY CHECK FAILED: Cannot install to source repository directory"
-    echo ""
-    write_plain "This appears to be the terraform-provider-azurerm source repository."
-    write_plain "Installing here would overwrite your local changes with remote files."
-    echo ""
-    write_cyan "SAFE OPTIONS:"
-    write_cyan "  1. Bootstrap installer to user profile:"
-    write_plain "     ${script_name} -bootstrap"
-    echo ""
-    write_cyan "  2. Install to a different repository:"
-    write_plain "     ${script_name} -repo-directory /path/to/target/repository"
-    echo ""
-    write_cyan "For help: ${script_name} -help"
-    echo ""
-}
-
-# Function to show clean operation unavailable error for source branch
-show_clean_unavailable_on_source_error() {
-    echo ""
-    write_error_message "Clean operation not available on source branch"
-    echo ""
-    write_plain "This would remove development files from the source repository."
-    write_plain "Use clean only on feature branches to remove AI infrastructure."
-    echo ""
-}
-
-# Function to show bootstrap repository validation error
-show_bootstrap_repository_validation_error() {
-    local workspace_root="$1"
-
-    write_error_message "Bootstrap must be run from terraform-provider-azurerm repository"
-    echo ""
-    write_plain "Expected to find go.mod with terraform-provider-azurerm content"
-    write_plain "Current directory: ${workspace_root}"
-}
-
 # Function to show bootstrap failure error with troubleshooting
 show_bootstrap_failure_error() {
     local files_failed="$1"
@@ -910,32 +903,29 @@ show_safety_violation() {
     local branch_name="${1:-exp/terraform_copilot}"
     local operation="${2:-operation}"
     local from_user_profile="${3:-false}"
+    local workspace_root="${4:-$PWD}"
 
     write_red " SAFETY VIOLATION: Cannot perform operations on source branch"
-    echo ""
-    write_yellow " The -repo-directory points to the source branch '${branch_name}'."
-    write_yellow " Operations other than -verify, -help, and -bootstrap are not allowed on the source branch."
-    echo ""
     print_separator 60 "${CYAN}" "="
+    echo ""
+
+    if [[ "${from_user_profile}" == "true" ]]; then
+        write_yellow " The -RepoDirectory points to the source branch '${branch_name}'."
+    else
+        write_yellow " You are currently in the source branch '${branch_name}'."
+    fi
+
+    write_yellow " Operations other than -Verify, -Help, and -Bootstrap are not allowed on the source branch."
     echo ""
     write_cyan "SOLUTION:"
     write_cyan "  Switch to a feature branch in your target repository:"
-
-    if [[ "${from_user_profile}" == "true" ]]; then
-        write_gray "    cd \"<path-to-your-terraform-provider-azurerm>\""
-    else
-        write_gray "    cd \"\${workspace_root:-\$PWD}\""
-    fi
-
-    write_gray "    git checkout -b feature/your-branch-name"
+    write_plain "    cd \"<path-to-your-terraform-provider-azurerm>\""
+    write_plain "    git checkout -b feature/your-branch-name"
     echo ""
-
-    if [[ "${from_user_profile}" == "true" ]]; then
-        write_cyan "  Then run the installer from your user profile:"
-        write_gray "    cd \"\$HOME/.terraform-ai-installer\""
-        write_gray "    ./install-copilot-setup.sh -repo-directory \"<path-to-your-terraform-provider-azurerm>\""
-        echo ""
-    fi
+    write_cyan "  Then run the installer from your user profile:"
+    write_plain "    cd \"\$HOME/.terraform-ai-installer\""
+    write_plain "    ./install-copilot-setup.sh -RepoDirectory \"<path-to-your-terraform-provider-azurerm>\""
+    echo ""
 }
 
 # Function to display workspace validation error message
@@ -957,174 +947,7 @@ show_workspace_validation_error() {
     print_separator
 }
 
-# Function to display operation summary with standardized formatting
-show_operation_summary() {
-    local operation_name="$1"
-    local success="$2"
-    local dry_run="$3"
-    shift 3  # Remove first 3 arguments, rest are details
 
-    echo ""
-
-    # Show operation completion with consistent formatting for all operations
-    local status_text
-    if [[ "${success}" == "true" ]]; then
-        status_text="completed successfully"
-    else
-        status_text="failed"
-    fi
-
-    local completion_message
-    if [[ "${dry_run}" == "true" ]]; then
-        completion_message=" ${operation_name} ${status_text} (dry run)"
-    else
-        completion_message=" ${operation_name} ${status_text}"
-    fi
-
-    if [[ "${success}" == "true" ]]; then
-        write_green "${completion_message}"
-    else
-        write_red "${completion_message}"
-    fi
-    echo ""
-
-    # Process details and next steps if provided
-    if [[ $# -gt 0 ]]; then
-        # Check if --next-steps is in the arguments
-        local has_next_steps=false
-        local next_steps_start_index=-1
-        local args=("$@")
-
-        for i in "${!args[@]}"; do
-            if [[ "${args[$i]}" == "--next-steps" ]]; then
-                has_next_steps=true
-                next_steps_start_index=$((i + 1))
-                break
-            fi
-        done
-
-        # Process details (everything before --next-steps)
-        local details_end_index
-        if [[ "${has_next_steps}" == true ]]; then
-            details_end_index=$((next_steps_start_index - 1))
-        else
-            details_end_index=${#args[@]}
-        fi
-
-        # Parse details into hashtable if we have any
-        declare -A details_hash
-        declare -a ordered_keys
-        local has_details=false
-
-        for ((i=0; i<details_end_index; i++)); do
-            local detail="${args[$i]}"
-            if [[ "${detail}" =~ ^([^:]+):\s*(.+)$ ]]; then
-                local key="${BASH_REMATCH[1]}"
-                key="${key## }"  # Remove leading spaces
-                key="${key%% }"  # Remove trailing spaces
-                local value="${BASH_REMATCH[2]}"
-                value="${value## }"  # Remove leading spaces from value
-                details_hash["${key}"]="${value}"
-                ordered_keys+=("${key}")
-                has_details=true
-            fi
-        done
-
-        # Display details section if we have any
-        if [[ "${has_details}" == true ]]; then
-            print_separator 60 "${CYAN}" "="
-            write_cyan " ${operation_name^^} SUMMARY:"
-            print_separator 60 "${CYAN}" "="
-            echo ""
-            write_cyan "DETAILS:"
-
-            # Define expected order for standard operation details (matching PowerShell output)
-            local expected_order=("Items Successful" "Total Size" "Location" "Files Copied" "Branch Type" "Target Branch")
-            declare -a final_order
-
-            # Add standard fields in expected order if they exist
-            for expected_key in "${expected_order[@]}"; do
-                if [[ -n "${details_hash[$expected_key]:-}" ]]; then
-                    final_order+=("${expected_key}")
-                fi
-            done
-
-            # Add any additional fields that aren't in the standard order
-            for key in "${ordered_keys[@]}"; do
-                local found_in_standard=false
-                for expected_key in "${expected_order[@]}"; do
-                    if [[ "${key}" == "${expected_key}" ]]; then
-                        found_in_standard=true
-                        break
-                    fi
-                done
-                if [[ "${found_in_standard}" == false ]]; then
-                    final_order+=("${key}")
-                fi
-            done
-
-            # Find the longest key for proper alignment (following UI standards)
-            local max_key_length=0
-            for key in "${final_order[@]}"; do
-                if [[ ${#key} -gt ${max_key_length} ]]; then
-                    max_key_length=${#key}
-                fi
-            done
-
-            # Display each detail in the correct order with consistent alignment
-            for key in "${final_order[@]}"; do
-                local value="${details_hash[$key]}"
-
-                # Calculate padding for alignment (matching Format-AlignedLabel from PowerShell)
-                local padding_needed=$((max_key_length - ${#key}))
-                local formatted_label="${key}"
-                if [[ ${padding_needed} -gt 0 ]]; then
-                    for ((i=0; i<padding_needed; i++)); do
-                        formatted_label+=" "
-                    done
-                fi
-
-                # Write key with consistent formatting
-                printf "  ${CYAN}%s:${NC} " "${formatted_label}"
-
-                # Determine value color based on content (matching PowerShell logic)
-                if [[ "${value}" =~ ^[0-9]+$ ]] || [[ "${value}" =~ ^[0-9]+(\.[0-9]+)?[[:space:]]*(KB|MB|GB|TB|B)$ ]]; then
-                    # Numbers and file sizes in green (like PowerShell)
-                    echo -e "${GREEN}${value}${NC}"
-                else
-                    # Text values in yellow
-                    echo -e "${YELLOW}${value}${NC}"
-                fi
-            done
-        fi
-
-        # Display next steps section if provided
-        if [[ "${has_next_steps}" == true ]]; then
-            echo ""
-            write_cyan "NEXT STEPS:"
-            echo ""
-
-            # Display next steps content (everything after --next-steps)
-            for ((i=next_steps_start_index; i<${#args[@]}; i++)); do
-                local step="${args[$i]}"
-                if [[ -n "${step}" ]]; then
-                    # Check if this line starts with a number followed by a period and description (like "1. Switch to your feature branch:")
-                    if [[ "${step}" =~ ^([[:space:]]*[0-9]+\..*)$ ]]; then
-                        # This is a numbered step - display in cyan
-                        echo -e "  ${CYAN}${step}${NC}"
-                    else
-                        # This is an indented command or other content - display in plain white
-                        echo "  ${step}"
-                    fi
-                else
-                    echo ""
-                fi
-            done
-        fi
-    fi
-
-    echo ""
-}
 
 # Export all UI functions for use in other scripts
 export -f write_cyan write_green write_yellow write_white write_red write_blue write_gray

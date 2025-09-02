@@ -168,13 +168,10 @@ main() {
     # Main entry point for the installer - matches PowerShell structure
     #
 
-    # STEP 1: Show UI header first - before any argument parsing
-    write_header "Terraform AzureRM Provider - AI Infrastructure Installer" "${VERSION}"
-
-    # STEP 2: Parse command line arguments (errors will now show after header)
+    # STEP 1: Parse command line arguments first
     parse_arguments "$@"
 
-    # STEP 3: Early safety check - fail fast if on source branch with repo directory
+    # STEP 2: Early safety check - fail fast if on source branch with repo directory
     if [[ -n "${REPO_DIRECTORY}" ]]; then
         # Get current branch of the target repository quickly
         local current_branch
@@ -196,19 +193,17 @@ main() {
         done
 
         if [[ "${is_source_branch}" == "true" ]] && [[ "${VERIFY}" != "true" ]] && [[ "${HELP}" != "true" ]] && [[ "${BOOTSTRAP}" != "true" ]]; then
-            # Branch detection and safety violation (header already shown)
-            show_branch_detection "${current_branch}" "${REPO_DIRECTORY}"
-            echo ""
+            # Safety violation - header will be shown later with branch detection
             show_safety_violation "${current_branch}" "Install" "true"
             exit 1
         fi
     fi
 
-    # STEP 4: Initialize workspace and validate it's a proper terraform-provider-azurerm repo
+    # STEP 3: Initialize workspace and validate it's a proper terraform-provider-azurerm repo
     local workspace_root
     workspace_root="$(get_workspace_root "${REPO_DIRECTORY}" "${SCRIPT_DIR}")"
 
-    # STEP 5: Early workspace validation before doing anything else
+    # STEP 4: Early workspace validation before doing anything else
     local workspace_valid workspace_reason
     if validate_repository "${workspace_root}"; then
         workspace_valid=true
@@ -218,7 +213,7 @@ main() {
         workspace_reason="Missing required files"
     fi
 
-    # STEP 6: Get branch information for consistent display
+    # STEP 5: Get branch information for consistent display
     local current_branch branch_type
     if [[ -n "${REPO_DIRECTORY}" ]]; then
         if [[ -d "${workspace_root}/.git" ]]; then
@@ -244,10 +239,11 @@ main() {
             ;;
     esac
 
-    # STEP 7: Show branch detection now that we have all the context
+    # STEP 6: Show header and branch detection now that we have all the context
+    write_header "Terraform AzureRM Provider - AI Infrastructure Installer" "${VERSION}"
     show_branch_detection "${current_branch}" "${workspace_root}"
 
-    # STEP 8: Detect what command was attempted (for better error messages)
+    # STEP 7: Detect what command was attempted (for better error messages)
     local attempted_command=""
     if [[ "${BOOTSTRAP}" == "true" ]]; then
         attempted_command="-bootstrap"
@@ -263,13 +259,13 @@ main() {
         attempted_command="-repo-directory \"${REPO_DIRECTORY}\""
     fi
 
-    # STEP 9: Simple parameter handling (like PowerShell)
+    # STEP 8: Simple parameter handling (like PowerShell)
     if [[ "${HELP}" == "true" ]]; then
         show_usage "${branch_type}" "${workspace_valid}" "${workspace_reason}" "${attempted_command}"
         exit 0
     fi
 
-    # STEP 10: For all other operations, workspace must be valid
+    # STEP 9: For all other operations, workspace must be valid
     if [[ "${workspace_valid}" != "true" ]]; then
         show_workspace_validation_error "${workspace_reason}" "$([[ -n "${REPO_DIRECTORY}" ]] && echo "true" || echo "false")"
 
@@ -278,7 +274,7 @@ main() {
         exit 1
     fi
 
-    # STEP 9: Execute single operation based on parameters (like PowerShell)
+    # STEP 10: Execute single operation based on parameters (like PowerShell)
     if [[ "${VERIFY}" == "true" ]]; then
         verify_installation "${workspace_root}"
         exit 0
@@ -318,14 +314,14 @@ main() {
         exit 0
     fi
 
-    # STEP 10: Installation path (when -repo-directory is provided and not other specific operations)
+    # STEP 11: Installation path (when -repo-directory is provided and not other specific operations)
     if [[ -n "${REPO_DIRECTORY}" ]] && [[ "${HELP}" != "true" ]] && [[ "${VERIFY}" != "true" ]] && [[ "${BOOTSTRAP}" != "true" ]] && [[ "${CLEAN}" != "true" ]]; then
         # Proceed with installation
         install_infrastructure "${workspace_root}"
         exit 0
     fi
 
-    # STEP 11: Default - show source branch help and welcome
+    # STEP 12: Default - show source branch help and welcome
     show_source_branch_help
     show_source_branch_welcome "${current_branch}"
     exit 0
