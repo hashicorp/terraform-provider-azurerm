@@ -555,15 +555,15 @@ function Show-OperationSummary {
     }
 
     # Add standard metrics only if they're not already in the details
-    if ($ItemsSuccessful -gt 0 -and -not $detailsHash.ContainsKey("Items Successful")) {
+    if ($ItemsSuccessful -gt 0 -and -not $detailsHash.Contains("Items Successful")) {
         $detailsHash["Items Successful"] = $ItemsSuccessful
         $detailsOrder += "Items Successful"
     }
-    if ($ItemsFailed -gt 0 -and -not $detailsHash.ContainsKey("Items Failed")) {
+    if ($ItemsFailed -gt 0 -and -not $detailsHash.Contains("Items Failed")) {
         $detailsHash["Items Failed"] = $ItemsFailed
         $detailsOrder += "Items Failed"
     }
-    if ($ItemsProcessed -gt 0 -and $ItemsProcessed -ne $ItemsSuccessful -and -not $detailsHash.ContainsKey("Items Processed")) {
+    if ($ItemsProcessed -gt 0 -and $ItemsProcessed -ne $ItemsSuccessful -and -not $detailsHash.Contains("Items Processed")) {
         $detailsHash["Items Processed"] = $ItemsProcessed
         $detailsOrder += "Items Processed"
     }
