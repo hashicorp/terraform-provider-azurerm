@@ -531,7 +531,7 @@ func (r RoleManagementPolicyResource) Read() sdk.ResourceFunc {
 						case rolemanagementpolicies.RoleManagementPolicyNotificationRule:
 							if rule.Id != nil {
 								// If the rule has the default values, don't set it into state
-								if pointer.From(rule.NotificationLevel) == "All" && pointer.From(rule.IsDefaultRecipientsEnabled) && len(pointer.From(rule.NotificationRecipients)) == 0 {
+								if pointer.From(rule.NotificationLevel) == rolemanagementpolicies.NotificationLevelAll && pointer.From(rule.IsDefaultRecipientsEnabled) && len(pointer.From(rule.NotificationRecipients)) == 0 {
 									continue
 								} else if len(state.NotificationRules) == 0 {
 									state.NotificationRules = make([]RoleManagementPolicyNotificationEvents, 1)
@@ -731,7 +731,7 @@ func notificationSettingsSchema() map[string]*pluginsdk.Schema {
 			Description:  "What level of notifications are sent",
 			Type:         pluginsdk.TypeString,
 			Required:     true,
-			ValidateFunc: validation.StringInSlice([]string{"All", "Critical"}, false),
+			ValidateFunc: validation.StringInSlice(rolemanagementpolicies.PossibleValuesForNotificationLevel(), false),
 		},
 
 		"default_recipients": {

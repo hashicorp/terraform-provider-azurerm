@@ -14,6 +14,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
+var defaultNotificationSettings = RoleManagementPolicyNotificationSettings{
+	NotificationLevel:    string(rolemanagementpolicies.NotificationLevelAll),
+	DefaultRecipients:    true,
+	AdditionalRecipients: []string{},
+}
+
 func FindRoleManagementPolicyId(ctx context.Context, client *rolemanagementpolicies.RoleManagementPoliciesClient, scope string, roleDefinitionId string) (*rolemanagementpolicies.ScopedRoleManagementPolicyId, error) {
 	// List role management policies to find the latest policy for the provided scope and role definition
 	options := rolemanagementpolicies.ListForScopeOperationOptions{
@@ -75,6 +81,13 @@ func buildRoleManagementPolicyForDelete(rolePolicy *rolemanagementpolicies.RoleM
 
 func buildRoleManagementPolicyInternal(metadata *sdk.ResourceMetaData, rolePolicy *rolemanagementpolicies.RoleManagementPolicy, model *RoleManagementPolicyModel) (*rolemanagementpolicies.RoleManagementPolicy, error) {
 	existingRules := make(map[string]rolemanagementpolicies.RoleManagementPolicyRule)
+	policies := &rolemanagementpolicies.RoleManagementPolicy{
+		Id:         rolePolicy.Id,
+		Name:       rolePolicy.Name,
+		Type:       rolePolicy.Type,
+		Properties: &rolemanagementpolicies.RoleManagementPolicyProperties{},
+	}
+
 	if props := rolePolicy.Properties; props != nil {
 		if props.Rules != nil {
 			for _, r := range *rolePolicy.Properties.Rules {
@@ -86,184 +99,9 @@ func buildRoleManagementPolicyInternal(metadata *sdk.ResourceMetaData, rolePolic
 	}
 
 	updatedRules := make([]rolemanagementpolicies.RoleManagementPolicyRule, 0)
-
-	if model == nil {
-		model = &RoleManagementPolicyModel{}
-	}
-
-	if metadata == nil || metadata.ResourceData.HasChange("eligible_assignment_rules") {
-		if expirationAdminEligibilityBase, ok := existingRules["Expiration_Admin_Eligibility"]; ok {
-			if expirationAdminEligibility, ok := expirationAdminEligibilityBase.(rolemanagementpolicies.RoleManagementPolicyExpirationRule); ok {
-				expirationRequired := pointer.From(expirationAdminEligibility.IsExpirationRequired)
-				maximumDuration := pointer.From(expirationAdminEligibility.MaximumDuration)
-
-				if len(model.EligibleAssignmentRules) == 1 {
-					if expirationRequired != model.EligibleAssignmentRules[0].ExpirationRequired {
-						expirationAdminEligibility.IsExpirationRequired = pointer.To(model.EligibleAssignmentRules[0].ExpirationRequired)
-					}
-					if maximumDuration != model.EligibleAssignmentRules[0].ExpireAfter &&
-						model.EligibleAssignmentRules[0].ExpireAfter != "" {
-						expirationAdminEligibility.MaximumDuration = pointer.To(model.EligibleAssignmentRules[0].ExpireAfter)
-					}
-				}
-
-				updatedRules = append(updatedRules, expirationAdminEligibility)
-			}
-		}
-	}
-
-	if metadata == nil || metadata.ResourceData.HasChange("active_assignment_rules.0.require_multifactor_authentication") ||
-		metadata.ResourceData.HasChange("active_assignment_rules.0.require_justification") ||
-		metadata.ResourceData.HasChange("active_assignment_rules.0.require_ticket_info") {
-		if enablementAdminEligibilityBase, ok := existingRules["Enablement_Admin_Assignment"]; ok {
-			if enablementAdminEligibility, ok := enablementAdminEligibilityBase.(rolemanagementpolicies.RoleManagementPolicyEnablementRule); ok {
-				enabledRules := make([]rolemanagementpolicies.EnablementRules, 0)
-				if len(model.ActiveAssignmentRules) == 1 {
-					if model.ActiveAssignmentRules[0].RequireMultiFactorAuth {
-						enabledRules = append(enabledRules, rolemanagementpolicies.EnablementRulesMultiFactorAuthentication)
-					}
-					if model.ActiveAssignmentRules[0].RequireJustification {
-						enabledRules = append(enabledRules, rolemanagementpolicies.EnablementRulesJustification)
-					}
-					if model.ActiveAssignmentRules[0].RequireTicketInfo {
-						enabledRules = append(enabledRules, rolemanagementpolicies.EnablementRulesTicketing)
-					}
-				}
-				enablementAdminEligibility.EnabledRules = pointer.To(enabledRules)
-				updatedRules = append(updatedRules, enablementAdminEligibility)
-			}
-		}
-	}
-
-	if metadata == nil || metadata.ResourceData.HasChange("active_assignment_rules.0.expiration_required") ||
-		metadata.ResourceData.HasChange("active_assignment_rules.0.expire_after") {
-		if expirationAdminAssignmentBase, ok := existingRules["Expiration_Admin_Assignment"]; ok {
-			if expirationAdminAssignment, ok := expirationAdminAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyExpirationRule); ok {
-				expirationRequired := pointer.From(expirationAdminAssignment.IsExpirationRequired)
-				maximumDuration := pointer.From(expirationAdminAssignment.MaximumDuration)
-
-				if len(model.ActiveAssignmentRules) == 1 {
-					if expirationRequired != model.ActiveAssignmentRules[0].ExpirationRequired {
-						expirationAdminAssignment.IsExpirationRequired = pointer.To(model.ActiveAssignmentRules[0].ExpirationRequired)
-					}
-					if maximumDuration != model.ActiveAssignmentRules[0].ExpireAfter &&
-						model.ActiveAssignmentRules[0].ExpireAfter != "" {
-						expirationAdminAssignment.MaximumDuration = pointer.To(model.ActiveAssignmentRules[0].ExpireAfter)
-					}
-				}
-
-				updatedRules = append(updatedRules, expirationAdminAssignment)
-			}
-		}
-	}
-
-	if metadata == nil || metadata.ResourceData.HasChange("activation_rules.0.maximum_duration") {
-		if expirationEndUserAssignmentBase, ok := existingRules["Expiration_EndUser_Assignment"]; ok {
-			if expirationEndUserAssignment, ok := expirationEndUserAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyExpirationRule); ok {
-				if len(model.ActivationRules) == 1 {
-					expirationEndUserAssignment.MaximumDuration = pointer.To(model.ActivationRules[0].MaximumDuration)
-				}
-
-				updatedRules = append(updatedRules, expirationEndUserAssignment)
-			}
-		}
-	}
-
-	if metadata == nil || metadata.ResourceData.HasChange("activation_rules.0.require_approval") ||
-		metadata.ResourceData.HasChange("activation_rules.0.approval_stage") {
-		if approvalEndUserAssignmentBase, ok := existingRules["Approval_EndUser_Assignment"]; ok {
-			if approvalEndUserAssignment, ok := approvalEndUserAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyApprovalRule); ok {
-				if len(model.ActivationRules) == 1 {
-					if model.ActivationRules[0].RequireApproval && len(model.ActivationRules[0].ApprovalStages) != 1 {
-						return nil, fmt.Errorf("require_approval is true, but no approval_stages are provided")
-					}
-				}
-
-				if settings := approvalEndUserAssignment.Setting; settings != nil {
-					if len(model.ActivationRules) == 1 {
-						if pointer.From(settings.IsApprovalRequired) != model.ActivationRules[0].RequireApproval {
-							settings.IsApprovalRequired = pointer.To(model.ActivationRules[0].RequireApproval)
-						}
-					}
-
-					if metadata == nil || metadata.ResourceData.HasChange("activation_rules.0.approval_stage") {
-						if len(model.ActivationRules) == 1 {
-							approvalStages := make([]rolemanagementpolicies.ApprovalStage, len(model.ActivationRules[0].ApprovalStages))
-							for i, stage := range model.ActivationRules[0].ApprovalStages {
-								primaryApprovers := make([]rolemanagementpolicies.UserSet, len(stage.PrimaryApprovers))
-								for ia, approver := range stage.PrimaryApprovers {
-									primaryApprovers[ia] = rolemanagementpolicies.UserSet{
-										Id:       pointer.To(approver.ID),
-										UserType: pointer.To(rolemanagementpolicies.UserType(approver.Type)),
-									}
-								}
-
-								approvalStages[i] = rolemanagementpolicies.ApprovalStage{
-									PrimaryApprovers: &primaryApprovers,
-								}
-							}
-							settings.ApprovalStages = &approvalStages
-						}
-					}
-				}
-
-				updatedRules = append(updatedRules, approvalEndUserAssignment)
-			}
-		}
-	}
-
-	if metadata == nil || metadata.ResourceData.HasChange("activation_rules.0.required_conditional_access_authentication_context") {
-		if authEndUserAssignmentBase, ok := existingRules["AuthenticationContext_EndUser_Assignment"]; ok {
-			if authEndUserAssignment, ok := authEndUserAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyAuthenticationContextRule); ok {
-				if metadata == nil {
-					authEndUserAssignment.IsEnabled = pointer.To(false)
-					authEndUserAssignment.ClaimValue = pointer.To("")
-				} else if _, ok := metadata.ResourceData.GetOk("activation_rules.0.required_conditional_access_authentication_context"); ok {
-					authEndUserAssignment.IsEnabled = pointer.To(true)
-					if len(model.ActivationRules) == 1 {
-						authEndUserAssignment.ClaimValue = pointer.To(model.ActivationRules[0].RequireConditionalAccessContext)
-					}
-				}
-
-				updatedRules = append(updatedRules, authEndUserAssignment)
-			}
-		}
-	}
-
-	if metadata == nil || metadata.ResourceData.HasChange("activation_rules.0.require_multifactor_authentication") ||
-		metadata.ResourceData.HasChange("activation_rules.0.require_justification") ||
-		metadata.ResourceData.HasChange("activation_rules.0.require_ticket_info") {
-		if enablementEndUserAssignmentBase, ok := existingRules["Enablement_EndUser_Assignment"]; ok {
-			if enablementEndUserAssignment, ok := enablementEndUserAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyEnablementRule); ok {
-				enabledRules := make([]rolemanagementpolicies.EnablementRules, 0)
-				if len(model.ActivationRules) == 1 {
-					if model.ActivationRules[0].RequireMultiFactorAuth {
-						enabledRules = append(enabledRules, rolemanagementpolicies.EnablementRulesMultiFactorAuthentication)
-					}
-					if model.ActivationRules[0].RequireJustification {
-						enabledRules = append(enabledRules, rolemanagementpolicies.EnablementRulesJustification)
-					}
-					if model.ActivationRules[0].RequireTicketInfo {
-						enabledRules = append(enabledRules, rolemanagementpolicies.EnablementRulesTicketing)
-					}
-				}
-				enablementEndUserAssignment.EnabledRules = &enabledRules
-
-				updatedRules = append(updatedRules, enablementEndUserAssignment)
-			}
-		}
-	}
-
-	defaultSettings := RoleManagementPolicyNotificationSettings{
-		NotificationLevel:    "All",
-		DefaultRecipients:    true,
-		AdditionalRecipients: []string{},
-	}
-
-	hasNotificationRules := len(model.NotificationRules) == 1
-	var notificationRules *RoleManagementPolicyNotificationEvents
-	if hasNotificationRules {
-		notificationRules = &model.NotificationRules[0]
+	var notificationRules RoleManagementPolicyNotificationEvents
+	if model != nil && len(model.NotificationRules) == 1 {
+		notificationRules = model.NotificationRules[0]
 	}
 
 	notificationRulesConfig := []struct {
@@ -272,58 +110,58 @@ func buildRoleManagementPolicyInternal(metadata *sdk.ResourceMetaData, rolePolic
 		getModelSettings   func() RoleManagementPolicyNotificationSettings
 	}{
 		{"notification_rules.0.eligible_assignments.0.admin_notifications", "Notification_Admin_Admin_Eligibility", func() RoleManagementPolicyNotificationSettings {
-			if hasNotificationRules && len(notificationRules.EligibleAssignments) == 1 && len(notificationRules.EligibleAssignments[0].AdminNotifications) == 1 {
+			if model != nil && len(notificationRules.EligibleAssignments) == 1 && len(notificationRules.EligibleAssignments[0].AdminNotifications) == 1 {
 				return notificationRules.EligibleAssignments[0].AdminNotifications[0]
 			}
-			return defaultSettings
+			return defaultNotificationSettings
 		}},
 		{"notification_rules.0.active_assignments.0.admin_notifications", "Notification_Admin_Admin_Assignment", func() RoleManagementPolicyNotificationSettings {
-			if hasNotificationRules && len(notificationRules.ActiveAssignments) == 1 && len(notificationRules.ActiveAssignments[0].AdminNotifications) == 1 {
+			if model != nil && len(notificationRules.ActiveAssignments) == 1 && len(notificationRules.ActiveAssignments[0].AdminNotifications) == 1 {
 				return notificationRules.ActiveAssignments[0].AdminNotifications[0]
 			}
-			return defaultSettings
+			return defaultNotificationSettings
 		}},
 		{"notification_rules.0.eligible_activations.0.admin_notifications", "Notification_Admin_EndUser_Assignment", func() RoleManagementPolicyNotificationSettings {
-			if hasNotificationRules && len(notificationRules.EligibleActivations) == 1 && len(notificationRules.EligibleActivations[0].AdminNotifications) == 1 {
+			if model != nil && len(notificationRules.EligibleActivations) == 1 && len(notificationRules.EligibleActivations[0].AdminNotifications) == 1 {
 				return notificationRules.EligibleActivations[0].AdminNotifications[0]
 			}
-			return defaultSettings
+			return defaultNotificationSettings
 		}},
 		{"notification_rules.0.eligible_assignments.0.approver_notifications", "Notification_Approver_Admin_Eligibility", func() RoleManagementPolicyNotificationSettings {
-			if hasNotificationRules && len(notificationRules.EligibleAssignments) == 1 && len(notificationRules.EligibleAssignments[0].ApproverNotifications) == 1 {
+			if model != nil && len(notificationRules.EligibleAssignments) == 1 && len(notificationRules.EligibleAssignments[0].ApproverNotifications) == 1 {
 				return notificationRules.EligibleAssignments[0].ApproverNotifications[0]
 			}
-			return defaultSettings
+			return defaultNotificationSettings
 		}},
 		{"notification_rules.0.active_assignments.0.approver_notifications", "Notification_Approver_Admin_Assignment", func() RoleManagementPolicyNotificationSettings {
-			if hasNotificationRules && len(notificationRules.ActiveAssignments) == 1 && len(notificationRules.ActiveAssignments[0].ApproverNotifications) == 1 {
+			if model != nil && len(notificationRules.ActiveAssignments) == 1 && len(notificationRules.ActiveAssignments[0].ApproverNotifications) == 1 {
 				return notificationRules.ActiveAssignments[0].ApproverNotifications[0]
 			}
-			return defaultSettings
+			return defaultNotificationSettings
 		}},
 		{"notification_rules.0.eligible_activations.0.approver_notifications", "Notification_Approver_EndUser_Assignment", func() RoleManagementPolicyNotificationSettings {
-			if hasNotificationRules && len(notificationRules.EligibleActivations) == 1 && len(notificationRules.EligibleActivations[0].ApproverNotifications) == 1 {
+			if model != nil && len(notificationRules.EligibleActivations) == 1 && len(notificationRules.EligibleActivations[0].ApproverNotifications) == 1 {
 				return notificationRules.EligibleActivations[0].ApproverNotifications[0]
 			}
-			return defaultSettings
+			return defaultNotificationSettings
 		}},
 		{"notification_rules.0.eligible_assignments.0.assignee_notifications", "Notification_Requestor_Admin_Eligibility", func() RoleManagementPolicyNotificationSettings {
-			if hasNotificationRules && len(notificationRules.EligibleAssignments) == 1 && len(notificationRules.EligibleAssignments[0].AssigneeNotifications) == 1 {
+			if model != nil && len(notificationRules.EligibleAssignments) == 1 && len(notificationRules.EligibleAssignments[0].AssigneeNotifications) == 1 {
 				return notificationRules.EligibleAssignments[0].AssigneeNotifications[0]
 			}
-			return defaultSettings
+			return defaultNotificationSettings
 		}},
 		{"notification_rules.0.active_assignments.0.assignee_notifications", "Notification_Requestor_Admin_Assignment", func() RoleManagementPolicyNotificationSettings {
-			if hasNotificationRules && len(notificationRules.ActiveAssignments) == 1 && len(notificationRules.ActiveAssignments[0].AssigneeNotifications) == 1 {
+			if model != nil && len(notificationRules.ActiveAssignments) == 1 && len(notificationRules.ActiveAssignments[0].AssigneeNotifications) == 1 {
 				return notificationRules.ActiveAssignments[0].AssigneeNotifications[0]
 			}
-			return defaultSettings
+			return defaultNotificationSettings
 		}},
 		{"notification_rules.0.eligible_activations.0.assignee_notifications", "Notification_Requestor_EndUser_Assignment", func() RoleManagementPolicyNotificationSettings {
-			if hasNotificationRules && len(notificationRules.EligibleActivations) == 1 && len(notificationRules.EligibleActivations[0].AssigneeNotifications) == 1 {
+			if model != nil && len(notificationRules.EligibleActivations) == 1 && len(notificationRules.EligibleActivations[0].AssigneeNotifications) == 1 {
 				return notificationRules.EligibleActivations[0].AssigneeNotifications[0]
 			}
-			return defaultSettings
+			return defaultNotificationSettings
 		}},
 	}
 
@@ -344,14 +182,172 @@ func buildRoleManagementPolicyInternal(metadata *sdk.ResourceMetaData, rolePolic
 		}
 	}
 
-	return &rolemanagementpolicies.RoleManagementPolicy{
-		Id:   rolePolicy.Id,
-		Name: rolePolicy.Name,
-		Type: rolePolicy.Type,
-		Properties: &rolemanagementpolicies.RoleManagementPolicyProperties{
-			Rules: pointer.To(updatedRules),
-		},
-	}, nil
+	if metadata != nil && model != nil {
+		if metadata.ResourceData.HasChange("eligible_assignment_rules") {
+			if expirationAdminEligibilityBase, ok := existingRules["Expiration_Admin_Eligibility"]; ok {
+				if expirationAdminEligibility, ok := expirationAdminEligibilityBase.(rolemanagementpolicies.RoleManagementPolicyExpirationRule); ok {
+					expirationRequired := pointer.From(expirationAdminEligibility.IsExpirationRequired)
+					maximumDuration := pointer.From(expirationAdminEligibility.MaximumDuration)
+
+					if len(model.EligibleAssignmentRules) == 1 {
+						if expirationRequired != model.EligibleAssignmentRules[0].ExpirationRequired {
+							expirationAdminEligibility.IsExpirationRequired = pointer.To(model.EligibleAssignmentRules[0].ExpirationRequired)
+						}
+						if maximumDuration != model.EligibleAssignmentRules[0].ExpireAfter &&
+							model.EligibleAssignmentRules[0].ExpireAfter != "" {
+							expirationAdminEligibility.MaximumDuration = pointer.To(model.EligibleAssignmentRules[0].ExpireAfter)
+						}
+					}
+
+					updatedRules = append(updatedRules, expirationAdminEligibility)
+				}
+			}
+		}
+
+		if metadata.ResourceData.HasChange("active_assignment_rules.0.require_multifactor_authentication") ||
+			metadata.ResourceData.HasChange("active_assignment_rules.0.require_justification") ||
+			metadata.ResourceData.HasChange("active_assignment_rules.0.require_ticket_info") {
+			if enablementAdminEligibilityBase, ok := existingRules["Enablement_Admin_Assignment"]; ok {
+				if enablementAdminEligibility, ok := enablementAdminEligibilityBase.(rolemanagementpolicies.RoleManagementPolicyEnablementRule); ok {
+					enabledRules := make([]rolemanagementpolicies.EnablementRules, 0)
+					if len(model.ActiveAssignmentRules) == 1 {
+						if model.ActiveAssignmentRules[0].RequireMultiFactorAuth {
+							enabledRules = append(enabledRules, rolemanagementpolicies.EnablementRulesMultiFactorAuthentication)
+						}
+						if model.ActiveAssignmentRules[0].RequireJustification {
+							enabledRules = append(enabledRules, rolemanagementpolicies.EnablementRulesJustification)
+						}
+						if model.ActiveAssignmentRules[0].RequireTicketInfo {
+							enabledRules = append(enabledRules, rolemanagementpolicies.EnablementRulesTicketing)
+						}
+					}
+					enablementAdminEligibility.EnabledRules = pointer.To(enabledRules)
+					updatedRules = append(updatedRules, enablementAdminEligibility)
+				}
+			}
+		}
+
+		if metadata.ResourceData.HasChange("active_assignment_rules.0.expiration_required") ||
+			metadata.ResourceData.HasChange("active_assignment_rules.0.expire_after") {
+			if expirationAdminAssignmentBase, ok := existingRules["Expiration_Admin_Assignment"]; ok {
+				if expirationAdminAssignment, ok := expirationAdminAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyExpirationRule); ok {
+					expirationRequired := pointer.From(expirationAdminAssignment.IsExpirationRequired)
+					maximumDuration := pointer.From(expirationAdminAssignment.MaximumDuration)
+
+					if len(model.ActiveAssignmentRules) == 1 {
+						if expirationRequired != model.ActiveAssignmentRules[0].ExpirationRequired {
+							expirationAdminAssignment.IsExpirationRequired = pointer.To(model.ActiveAssignmentRules[0].ExpirationRequired)
+						}
+						if maximumDuration != model.ActiveAssignmentRules[0].ExpireAfter &&
+							model.ActiveAssignmentRules[0].ExpireAfter != "" {
+							expirationAdminAssignment.MaximumDuration = pointer.To(model.ActiveAssignmentRules[0].ExpireAfter)
+						}
+					}
+
+					updatedRules = append(updatedRules, expirationAdminAssignment)
+				}
+			}
+		}
+
+		if metadata.ResourceData.HasChange("activation_rules.0.maximum_duration") {
+			if expirationEndUserAssignmentBase, ok := existingRules["Expiration_EndUser_Assignment"]; ok {
+				if expirationEndUserAssignment, ok := expirationEndUserAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyExpirationRule); ok {
+					if len(model.ActivationRules) == 1 {
+						expirationEndUserAssignment.MaximumDuration = pointer.To(model.ActivationRules[0].MaximumDuration)
+					}
+
+					updatedRules = append(updatedRules, expirationEndUserAssignment)
+				}
+			}
+		}
+
+		if metadata.ResourceData.HasChange("activation_rules.0.require_approval") ||
+			metadata.ResourceData.HasChange("activation_rules.0.approval_stage") {
+			if approvalEndUserAssignmentBase, ok := existingRules["Approval_EndUser_Assignment"]; ok {
+				if approvalEndUserAssignment, ok := approvalEndUserAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyApprovalRule); ok {
+					if len(model.ActivationRules) == 1 {
+						if model.ActivationRules[0].RequireApproval && len(model.ActivationRules[0].ApprovalStages) != 1 {
+							return nil, fmt.Errorf("require_approval is true, but no approval_stages are provided")
+						}
+					}
+
+					if settings := approvalEndUserAssignment.Setting; settings != nil {
+						if len(model.ActivationRules) == 1 {
+							if pointer.From(settings.IsApprovalRequired) != model.ActivationRules[0].RequireApproval {
+								settings.IsApprovalRequired = pointer.To(model.ActivationRules[0].RequireApproval)
+							}
+						}
+
+						metadata.ResourceData.HasChange("activation_rules.0.approval_stage")
+						{
+							if len(model.ActivationRules) == 1 {
+								approvalStages := make([]rolemanagementpolicies.ApprovalStage, len(model.ActivationRules[0].ApprovalStages))
+								for i, stage := range model.ActivationRules[0].ApprovalStages {
+									primaryApprovers := make([]rolemanagementpolicies.UserSet, len(stage.PrimaryApprovers))
+									for ia, approver := range stage.PrimaryApprovers {
+										primaryApprovers[ia] = rolemanagementpolicies.UserSet{
+											Id:       pointer.To(approver.ID),
+											UserType: pointer.To(rolemanagementpolicies.UserType(approver.Type)),
+										}
+									}
+
+									approvalStages[i] = rolemanagementpolicies.ApprovalStage{
+										PrimaryApprovers: &primaryApprovers,
+									}
+								}
+								settings.ApprovalStages = &approvalStages
+							}
+						}
+					}
+
+					updatedRules = append(updatedRules, approvalEndUserAssignment)
+				}
+			}
+		}
+
+		if metadata.ResourceData.HasChange("activation_rules.0.required_conditional_access_authentication_context") {
+			if authEndUserAssignmentBase, ok := existingRules["AuthenticationContext_EndUser_Assignment"]; ok {
+				if authEndUserAssignment, ok := authEndUserAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyAuthenticationContextRule); ok {
+					if _, ok := metadata.ResourceData.GetOk("activation_rules.0.required_conditional_access_authentication_context"); ok {
+						authEndUserAssignment.IsEnabled = pointer.To(true)
+						if len(model.ActivationRules) == 1 {
+							authEndUserAssignment.ClaimValue = pointer.To(model.ActivationRules[0].RequireConditionalAccessContext)
+						}
+					}
+
+					updatedRules = append(updatedRules, authEndUserAssignment)
+				}
+			}
+		}
+
+		if metadata.ResourceData.HasChange("activation_rules.0.require_multifactor_authentication") ||
+			metadata.ResourceData.HasChange("activation_rules.0.require_justification") ||
+			metadata.ResourceData.HasChange("activation_rules.0.require_ticket_info") {
+			if enablementEndUserAssignmentBase, ok := existingRules["Enablement_EndUser_Assignment"]; ok {
+				if enablementEndUserAssignment, ok := enablementEndUserAssignmentBase.(rolemanagementpolicies.RoleManagementPolicyEnablementRule); ok {
+					enabledRules := make([]rolemanagementpolicies.EnablementRules, 0)
+					if len(model.ActivationRules) == 1 {
+						if model.ActivationRules[0].RequireMultiFactorAuth {
+							enabledRules = append(enabledRules, rolemanagementpolicies.EnablementRulesMultiFactorAuthentication)
+						}
+						if model.ActivationRules[0].RequireJustification {
+							enabledRules = append(enabledRules, rolemanagementpolicies.EnablementRulesJustification)
+						}
+						if model.ActivationRules[0].RequireTicketInfo {
+							enabledRules = append(enabledRules, rolemanagementpolicies.EnablementRulesTicketing)
+						}
+					}
+					enablementEndUserAssignment.EnabledRules = &enabledRules
+
+					updatedRules = append(updatedRules, enablementEndUserAssignment)
+				}
+			}
+		}
+	}
+
+	policies.Properties.Rules = pointer.To(updatedRules)
+
+	return policies, nil
 }
 
 func expandNotificationSettings(rule rolemanagementpolicies.RoleManagementPolicyNotificationRule, data RoleManagementPolicyNotificationSettings, recipientChange bool) rolemanagementpolicies.RoleManagementPolicyRule {
