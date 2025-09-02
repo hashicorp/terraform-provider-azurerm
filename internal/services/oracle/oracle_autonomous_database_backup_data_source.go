@@ -179,23 +179,25 @@ func (a AutonomousDatabaseBackupDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving backup: %+v", err)
 			}
 
-			if props := resp.Properties; props != nil {
+			if resp != nil {
 				state.Id = pointer.From(resp.Id)
-				state.DisplayName = pointer.From(props.DisplayName)
-				state.RetentionPeriodInDays = pointer.From(props.RetentionPeriodInDays)
-				state.AutonomousDatabaseOcid = pointer.From(props.AutonomousDatabaseOcid)
-				state.AutonomousDatabaseBackupOcid = pointer.From(props.Ocid)
-				state.Type = pointer.FromEnum(props.BackupType)
-				state.DatabaseVersion = pointer.From(props.DbVersion)
-				state.BackupSizeInTbs = pointer.From(props.DatabaseSizeInTbs)
-				state.Automatic = pointer.From(props.IsAutomatic)
-				state.Restorable = pointer.From(props.IsRestorable)
-				state.LifecycleDetails = pointer.From(props.LifecycleDetails)
-				state.LifecycleState = pointer.FromEnum(props.LifecycleState)
-				state.ProvisioningState = pointer.FromEnum(props.ProvisioningState)
-				state.TimeAvailableTil = pointer.From(props.TimeAvailableTil)
-				state.TimeEnded = pointer.From(props.TimeEnded)
-				state.TimeStarted = pointer.From(props.TimeStarted)
+				if props := resp.Properties; props != nil {
+					state.DisplayName = pointer.From(props.DisplayName)
+					state.RetentionPeriodInDays = pointer.From(props.RetentionPeriodInDays)
+					state.AutonomousDatabaseOcid = pointer.From(props.AutonomousDatabaseOcid)
+					state.AutonomousDatabaseBackupOcid = pointer.From(props.Ocid)
+					state.Type = pointer.FromEnum(props.BackupType)
+					state.DatabaseVersion = pointer.From(props.DbVersion)
+					state.BackupSizeInTbs = pointer.From(props.DatabaseSizeInTbs)
+					state.Automatic = pointer.From(props.IsAutomatic)
+					state.Restorable = pointer.From(props.IsRestorable)
+					state.LifecycleDetails = pointer.From(props.LifecycleDetails)
+					state.LifecycleState = pointer.FromEnum(props.LifecycleState)
+					state.ProvisioningState = pointer.FromEnum(props.ProvisioningState)
+					state.TimeAvailableTil = pointer.From(props.TimeAvailableTil)
+					state.TimeEnded = pointer.From(props.TimeEnded)
+					state.TimeStarted = pointer.From(props.TimeStarted)
+				}
 			}
 
 			metadata.SetID(id)
