@@ -775,9 +775,7 @@ function Invoke-VerifyWorkspace {
 
         $details += "Branch Type: $branchType"
         $details += "Target Branch: $currentBranch"
-        $details += "Items Failed: $issuesFound"
         $details += "Files Verified: $totalItemsChecked"
-        $details += "Items Successful: $itemsSuccessful"
         $details += "Issues Found: $issuesFound"
         $details += "Location: $workspaceRoot"
 
