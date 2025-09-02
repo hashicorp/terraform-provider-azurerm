@@ -738,8 +738,9 @@ function Invoke-VerifyWorkspace {
 
         # Prepare details for centralized summary
         $details = @()
-        $filesFound = $results.Files.Count
+        $totalItemsChecked = $results.Files.Count
         $issuesFound = $results.Issues.Count
+        $itemsSuccessful = $totalItemsChecked - $issuesFound
 
         # Determine branch type based on current branch (same logic as installation)
         $currentBranch = $validation.Git.CurrentBranch
@@ -754,14 +755,16 @@ function Invoke-VerifyWorkspace {
 
         $details += "Branch Type: $branchType"
         $details += "Target Branch: $currentBranch"
-        $details += "Files Verified: $filesFound"
+        $details += "Items Failed: $issuesFound"
+        $details += "Files Verified: $totalItemsChecked"
+        $details += "Items Successful: $itemsSuccessful"
         $details += "Issues Found: $issuesFound"
         $details += "Location: $workspaceRoot"
 
         # Use centralized success reporting
         Show-OperationSummary -OperationName "Verification" -Success ($issuesFound -eq 0) -DryRun $false `
-            -ItemsProcessed $filesFound `
-            -ItemsSuccessful $filesFound `
+            -ItemsProcessed $totalItemsChecked `
+            -ItemsSuccessful $itemsSuccessful `
             -ItemsFailed $issuesFound `
             -Details $details
 
