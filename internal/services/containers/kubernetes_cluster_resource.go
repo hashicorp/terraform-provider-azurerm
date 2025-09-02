@@ -3156,9 +3156,7 @@ func expandKubernetesClusterAPIAccessProfile(d *pluginsdk.ResourceData) *managed
 		}
 	}
 
-	if v, ok := config["vnet_integration_enabled"]; ok {
-		apiAccessProfile.EnableVnetIntegration = pointer.To(v.(bool))
-	}
+	apiAccessProfile.EnableVnetIntegration = pointer.To(config["vnet_integration_enabled"].(bool))
 
 	if v, ok := config["subnet_id"]; ok {
 		if s := v.(string); s != "" {
@@ -3175,16 +3173,8 @@ func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedCl
 	}
 
 	apiServerAuthorizedIPRanges := utils.FlattenStringSlice(profile.AuthorizedIPRanges)
-
-	enableVnetIntegration := false
-	if profile.EnableVnetIntegration != nil {
-		enableVnetIntegration = *profile.EnableVnetIntegration
-	}
+	enableVnetIntegration := pointer.From(profile.EnableVnetIntegration)
 	subnetId := pointer.From(profile.SubnetId)
-
-	if len(apiServerAuthorizedIPRanges) == 0 && !enableVnetIntegration && subnetId == "" {
-		return []interface{}{}
-	}
 
 	return []interface{}{map[string]interface{}{
 		"authorized_ip_ranges":     apiServerAuthorizedIPRanges,
