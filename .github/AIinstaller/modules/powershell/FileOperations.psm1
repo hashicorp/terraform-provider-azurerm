@@ -1287,26 +1287,30 @@ function Invoke-InstallInfrastructure {
                 "feature"
             }
 
-            # Prepare comprehensive details for installation summary
-            $details = @()
+            # Prepare comprehensive details for installation summary using ordered hashtable
+            $details = [ordered]@{}
+            $details["Branch Type"] = $branchType
+            $details["Target Branch"] = $currentBranch
             if ($result.Successful -gt 0) {
-                $details += "Files Installed: $($result.Successful)"
+                $details["Files Installed"] = $result.Successful
             }
-            if ($result.Failed -gt 0) {
-                $details += "Files Failed: $($result.Failed)"
-            }
-            if ($result.Skipped -gt 0) {
-                $details += "Files Skipped: $($result.Skipped)"
-            }
-            $details += "Branch Type: $branchType"
-            $details += "Target Branch: $currentBranch"
-            $details += "Location: $WorkspaceRoot"
 
             # Calculate total size if available in debug info
             if ($result.DebugInfo -and $result.DebugInfo.TotalSizeBytes) {
                 $totalSizeKB = [math]::Round($result.DebugInfo.TotalSizeBytes / 1KB, 1)
-                $details += "Total Size: $totalSizeKB KB"
+                $details["Total Size"] = "$totalSizeKB KB"
             }
+
+            # Add failure/skip counts if any
+            if ($result.Failed -gt 0) {
+                $details["Files Failed"] = $result.Failed
+            }
+            if ($result.Skipped -gt 0) {
+                $details["Files Skipped"] = $result.Skipped
+            }
+
+            # Location always goes at the bottom
+            $details["Location"] = $WorkspaceRoot
 
             Show-OperationSummary -OperationName "Installation" -Success $true -ItemsSuccessful $result.Successful -ItemsFailed $result.Failed -Details $details
         } else {
