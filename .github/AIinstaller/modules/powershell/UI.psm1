@@ -540,26 +540,32 @@ function Show-OperationSummary {
     Write-Host $completionMessage -ForegroundColor $(if ($Success) { "Green" } else { "Red" })
     Write-Host ""
 
-    # Initialize details hashtable
-    $detailsHash = @{}
+    # Initialize details hashtable with ordered preservation
+    $detailsHash = [ordered]@{}
+    $detailsOrder = @()
 
     # Add standard metrics to details
     if ($ItemsSuccessful -gt 0) {
         $detailsHash["Items Successful"] = $ItemsSuccessful
+        $detailsOrder += "Items Successful"
     }
     if ($ItemsFailed -gt 0) {
         $detailsHash["Items Failed"] = $ItemsFailed
+        $detailsOrder += "Items Failed"
     }
     if ($ItemsProcessed -gt 0 -and $ItemsProcessed -ne $ItemsSuccessful) {
         $detailsHash["Items Processed"] = $ItemsProcessed
+        $detailsOrder += "Items Processed"
     }
 
     # Add passed details to details hash (passed details take precedence over standard metrics)
+    # Preserve the original order from the Details array
     foreach ($detail in $Details) {
         if ($detail -match '^([^:]+):\s*(.+)$') {
             $key = $matches[1].Trim()
             $value = $matches[2].Trim()
             $detailsHash[$key] = $value
+            $detailsOrder += $key
         }
     }
 
@@ -575,7 +581,8 @@ function Show-OperationSummary {
         $longestKey = ($detailsHash.Keys | Sort-Object Length -Descending | Select-Object -First 1)
 
         # Display each detail with consistent alignment using Format-AlignedLabel
-        foreach ($key in $detailsHash.Keys) {
+        # Use the preserved order from detailsOrder to maintain the original sequence
+        foreach ($key in $detailsOrder) {
             $value = $detailsHash[$key]
             $formattedLabel = Format-AlignedLabel -Label $key -LongestLabel $longestKey
 
