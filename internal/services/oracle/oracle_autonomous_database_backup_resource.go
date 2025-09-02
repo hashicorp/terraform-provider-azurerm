@@ -56,6 +56,7 @@ func (AutonomousDatabaseBackupResource) Arguments() map[string]*pluginsdk.Schema
 		"type": {
 			Type:     schema.TypeString,
 			Optional: true,
+			ForceNew: true,
 			Default:  string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeLongTerm),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(autonomousdatabasebackups.AutonomousDatabaseBackupTypeLongTerm),
@@ -64,7 +65,7 @@ func (AutonomousDatabaseBackupResource) Arguments() map[string]*pluginsdk.Schema
 	}
 }
 
-func (r AutonomousDatabaseBackupResource) Attributes() map[string]*schema.Schema {
+func (r AutonomousDatabaseBackupResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
@@ -157,6 +158,14 @@ func (r AutonomousDatabaseBackupResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving backup: %+v", err)
 			}
 
+			if backup == nil {
+				err := metadata.MarkAsGone(id)
+				if err != nil {
+					return err
+				}
+				return nil
+			}
+
 			state := AutonomousDatabaseBackupResourceModel{
 				Name:                 id.AutonomousDatabaseBackupName,
 				AutonomousDatabaseId: adbId.ID(),
@@ -195,7 +204,7 @@ func (r AutonomousDatabaseBackupResource) Update() sdk.ResourceFunc {
 
 			var model AutonomousDatabaseBackupResourceModel
 			if err = metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
+				return fmt.Errorf("retrieving %s: %+v", backupId, err)
 			}
 
 			_, err = getBackupFromOCI(ctx, client, adbId, backupId)
