@@ -53,13 +53,13 @@ type AutonomousDatabaseCloneResourceModel struct {
 	NationalCharacterSet         string   `tfschema:"national_character_set"`
 	SubnetId                     string   `tfschema:"subnet_id"`
 	VnetId                       string   `tfschema:"virtual_network_id"`
-	AllowedIps                   []string `tfschema:"allowed_ips"`
+	AllowedIpAddresses           []string `tfschema:"allowed_ip_addresses"`
 
 	// Optional for Clone
 
-	CustomerContacts   []string `tfschema:"customer_contacts"`
-	RefreshableModel   string   `tfschema:"refreshable_model"`
-	TimeUntilReconnect string   `tfschema:"time_until_reconnect"`
+	CustomerContacts      []string `tfschema:"customer_contacts"`
+	RefreshableModel      string   `tfschema:"refreshable_model"`
+	TimeUntilReconnectUtc string   `tfschema:"time_until_reconnect_utc"`
 }
 
 func (AutonomousDatabaseCloneFromDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
@@ -98,7 +98,7 @@ func (AutonomousDatabaseCloneFromDatabaseResource) Arguments() map[string]*plugi
 			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForRefreshableModelType(), false),
 		},
 
-		"time_until_reconnect": {
+		"time_until_reconnect_utc": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
@@ -217,7 +217,7 @@ func (AutonomousDatabaseCloneFromDatabaseResource) Arguments() map[string]*plugi
 
 		"virtual_network_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.VirtualNetworkId{}),
 
-		"allowed_ips": {
+		"allowed_ip_addresses": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
 			MaxItems: 1024,
@@ -283,7 +283,7 @@ func (r AutonomousDatabaseCloneFromDatabaseResource) Create() sdk.ResourceFunc {
 				SourceId:                       model.SourceAutonomousDatabaseId,
 				Source:                         pointer.To(autonomousdatabases.SourceTypeDatabase),
 				DataBaseType:                   autonomousdatabases.DataBaseTypeClone,
-				TimeUntilReconnectCloneEnabled: pointer.To(model.TimeUntilReconnect),
+				TimeUntilReconnectCloneEnabled: pointer.To(model.TimeUntilReconnectUtc),
 
 				// Base properties
 				AdminPassword:                  pointer.To(model.AdminPassword),
@@ -301,7 +301,7 @@ func (r AutonomousDatabaseCloneFromDatabaseResource) Create() sdk.ResourceFunc {
 				IsMtlsConnectionRequired:       pointer.To(model.MtlsConnectionRequired),
 				LicenseModel:                   pointer.To(autonomousdatabases.LicenseModel(model.LicenseModel)),
 				NcharacterSet:                  pointer.To(model.NationalCharacterSet),
-				WhitelistedIPs:                 pointer.To(model.AllowedIps),
+				WhitelistedIPs:                 pointer.To(model.AllowedIpAddresses),
 			}
 
 			properties := param.Properties.(*autonomousdatabases.AutonomousDatabaseCloneProperties)
@@ -357,34 +357,36 @@ func (r AutonomousDatabaseCloneFromDatabaseResource) Read() sdk.ResourceFunc {
 				state.Name = id.AutonomousDatabaseName
 				state.ResourceGroupName = id.ResourceGroupName
 
-				props, ok := model.Properties.(autonomousdatabases.AutonomousDatabaseCloneProperties)
-				if !ok {
-					return fmt.Errorf("%s was not of type `Clone`", id)
-				}
-				state.CloneType = string(props.CloneType)
-				state.TimeUntilReconnect = pointer.From(props.TimeUntilReconnectCloneEnabled)
-				state.SourceAutonomousDatabaseId = props.SourceId
+				if cloneProps := model.Properties; cloneProps != nil {
+					props, ok := cloneProps.(autonomousdatabases.AutonomousDatabaseCloneProperties)
+					if !ok {
+						return fmt.Errorf("%s was not of type `Clone`", id)
+					}
+					state.CloneType = string(props.CloneType)
+					state.TimeUntilReconnectUtc = pointer.From(props.TimeUntilReconnectCloneEnabled)
+					state.SourceAutonomousDatabaseId = props.SourceId
 
-				// Base properties
-				state.AdminPassword = metadata.ResourceData.Get("admin_password").(string)
-				state.BackupRetentionPeriodInDays = pointer.From(props.BackupRetentionPeriodInDays)
-				state.CharacterSet = pointer.From(props.CharacterSet)
-				state.ComputeCount = pointer.From(props.ComputeCount)
-				state.ComputeModel = pointer.FromEnum(props.ComputeModel)
-				state.DataStorageSizeInTb = pointer.From(props.DataStorageSizeInTbs)
-				state.DatabaseVersion = pointer.From(props.DbVersion)
-				state.DatabaseVersion = pointer.From(props.DbVersion)
-				state.DatabaseWorkload = pointer.FromEnum(props.DbWorkload)
-				state.DisplayName = pointer.From(props.DisplayName)
-				state.AutoScalingEnabled = pointer.From(props.IsAutoScalingEnabled)
-				state.AutoScalingForStorageEnabled = pointer.From(props.IsAutoScalingForStorageEnabled)
-				state.MtlsConnectionRequired = pointer.From(props.IsMtlsConnectionRequired)
-				state.LicenseModel = pointer.FromEnum(props.LicenseModel)
-				state.NationalCharacterSet = pointer.From(props.NcharacterSet)
-				state.AllowedIps = pointer.From(props.WhitelistedIPs)
-				state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
-				state.SubnetId = pointer.From(props.SubnetId)
-				state.VnetId = pointer.From(props.VnetId)
+					// Base properties
+					state.AdminPassword = metadata.ResourceData.Get("admin_password").(string)
+					state.BackupRetentionPeriodInDays = pointer.From(props.BackupRetentionPeriodInDays)
+					state.CharacterSet = pointer.From(props.CharacterSet)
+					state.ComputeCount = pointer.From(props.ComputeCount)
+					state.ComputeModel = pointer.FromEnum(props.ComputeModel)
+					state.DataStorageSizeInTb = pointer.From(props.DataStorageSizeInTbs)
+					state.DatabaseVersion = pointer.From(props.DbVersion)
+					state.DatabaseVersion = pointer.From(props.DbVersion)
+					state.DatabaseWorkload = pointer.FromEnum(props.DbWorkload)
+					state.DisplayName = pointer.From(props.DisplayName)
+					state.AutoScalingEnabled = pointer.From(props.IsAutoScalingEnabled)
+					state.AutoScalingForStorageEnabled = pointer.From(props.IsAutoScalingForStorageEnabled)
+					state.MtlsConnectionRequired = pointer.From(props.IsMtlsConnectionRequired)
+					state.LicenseModel = pointer.FromEnum(props.LicenseModel)
+					state.NationalCharacterSet = pointer.From(props.NcharacterSet)
+					state.AllowedIpAddresses = pointer.From(props.WhitelistedIPs)
+					state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
+					state.SubnetId = pointer.From(props.SubnetId)
+					state.VnetId = pointer.From(props.VnetId)
+				}
 			}
 
 			return metadata.Encode(&state)
@@ -480,7 +482,7 @@ func getSourceWorkloadforClone(ctx context.Context, sourceId string, metadata sd
 	}
 
 	if resp.Model.Properties == nil {
-		return "", fmt.Errorf("retrieving %s: `model.Properties` was nil", id)
+		return "", fmt.Errorf("retrieving %s: `properties` was nil", id)
 	}
 
 	props := resp.Model.Properties.AutonomousDatabaseBaseProperties()

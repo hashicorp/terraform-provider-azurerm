@@ -30,7 +30,7 @@ type AutonomousDatabaseCloneFromBackupDataSourceModel struct {
 	SourceAutonomousDatabaseId string `tfschema:"source_autonomous_database_id"`
 
 	// Base properties (computed)
-	AllowedIps                                    []string                        `tfschema:"allowed_ips"`
+	AllowedIpAddresses                            []string                        `tfschema:"allowed_ip_addresses"`
 	BackupRetentionPeriodInDays                   int64                           `tfschema:"backup_retention_period_in_days"`
 	CharacterSet                                  string                          `tfschema:"character_set"`
 	ComputeCount                                  float64                         `tfschema:"compute_count"`
@@ -123,7 +123,7 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Attributes() map[string]*plug
 			Computed: true,
 		},
 
-		"allowed_ips": {
+		"allowed_ip_addresses": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Schema{
@@ -463,8 +463,8 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			subscriptionId := metadata.Client.Account.SubscriptionId
 			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var state AutonomousDatabaseCloneFromBackupDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
@@ -493,7 +493,7 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Read() sdk.ResourceFunc {
 				// Base properties
 				state.ActualUsedDataStorageSizeInTb = pointer.From(props.ActualUsedDataStorageSizeInTbs)
 				state.AllocatedStorageSizeInTb = pointer.From(props.AllocatedStorageSizeInTbs)
-				state.AllowedIps = pointer.From(props.WhitelistedIPs)
+				state.AllowedIpAddresses = pointer.From(props.WhitelistedIPs)
 				state.AutoScalingEnabled = pointer.From(props.IsAutoScalingEnabled)
 				state.AutoScalingForStorageEnabled = pointer.From(props.IsAutoScalingForStorageEnabled)
 				state.AvailableUpgradeVersions = pointer.From(props.AvailableUpgradeVersions)

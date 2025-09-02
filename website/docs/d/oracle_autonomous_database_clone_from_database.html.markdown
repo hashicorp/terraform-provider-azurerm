@@ -41,7 +41,7 @@ In addition to the Arguments listed above—the following Attributes are exporte
 
 * `allocated_storage_size_in_tb` - The amount of storage currently allocated for the database tables and billed for, rounded up. When auto-scaling is not enabled, this value is equal to the `dataStorageSizeInTBs` value. You can compare this value to the `actualUsedDataStorageSizeInTBs` value to determine if a manual shrink operation is appropriate for your allocated storage.
 
-* `allowed_ips` - A list of IP addresses on the access control list.
+* `allowed_ip_addresses` - A list of IP addresses on the access control list.
 
 * `auto_scaling_enabled` - Indicates if auto scaling is enabled for the Autonomous Database CPU core count.
 
@@ -89,7 +89,7 @@ In addition to the Arguments listed above—the following Attributes are exporte
 
 * `oci_url` -  The URL of the resource in the OCI console.
 
-* `ocid` - The [OCID](https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm) of the autonomous database.
+* `ocid` - The [OCID](https://docs.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the autonomous database.
 
 * `peer_database_ids` - The list of [OCIDs](https://docs.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of standby databases located in Autonomous Data Guard remote regions that are associated with the source database. Note that for Autonomous Database Serverless instances, standby databases located in the same region as the source primary database do not have OCIDs.
 
@@ -115,7 +115,7 @@ In addition to the Arguments listed above—the following Attributes are exporte
 
 * `service_console_url` - The URL of the Service Console for the Autonomous Database.
 
-* `source_id` - The ID of the source Autonomous Database that was cloned.
+* `source_autonomous_database_id` - The ID of the source Autonomous Database from which this clone was created.
 
 * `sql_web_developer_url` - The URL of the SQL web developer portal.
 
@@ -147,7 +147,7 @@ In addition to the Arguments listed above—the following Attributes are exporte
 
 * `time_reclamation_of_free_autonomous_database_utc` - The timestamp the Always Free database will be stopped because of inactivity. If this time is reached without any database activity, the database will automatically be put into the STOPPED state.
 
-* `time_until_reconnect_clone_utc` - The time until reconnect clone is enabled.
+* `time_until_reconnect_utc_clone_utc` - The time until reconnect clone is enabled.
 
 * `used_data_storage_size_in_gb` - The storage space consumed by Autonomous Database in GBs.
 

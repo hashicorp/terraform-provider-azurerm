@@ -34,12 +34,12 @@ type AutonomousDatabaseCloneFromDatabaseDataSourceModel struct {
 	RefreshableClone           bool   `tfschema:"refreshable_clone"`
 	RefreshableModel           string `tfschema:"refreshable_model"`
 	RefreshableStatus          string `tfschema:"refreshable_status"`
-	TimeUntilReconnectCloneUtc string `tfschema:"time_until_reconnect_clone_utc"`
+	TimeUntilReconnectUtc      string `tfschema:"time_until_reconnect_utc"`
 
 	// Base properties (computed)
 	ActualUsedDataStorageSizeInTb                 float64                         `tfschema:"actual_used_data_storage_size_in_tb"`
 	AllocatedStorageSizeInTb                      float64                         `tfschema:"allocated_storage_size_in_tb"`
-	AllowedIps                                    []string                        `tfschema:"allowed_ips"`
+	AllowedIpAddresses                            []string                        `tfschema:"allowed_ip_addresses"`
 	AutoScalingEnabled                            bool                            `tfschema:"auto_scaling_enabled"`
 	AutoScalingForStorageEnabled                  bool                            `tfschema:"auto_scaling_for_storage_enabled"`
 	AvailableUpgradeVersions                      []string                        `tfschema:"available_upgrade_versions"`
@@ -147,7 +147,7 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Attributes() map[string]*pl
 			Computed: true,
 		},
 
-		"time_until_reconnect_clone_utc": {
+		"time_until_reconnect_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -163,7 +163,7 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Attributes() map[string]*pl
 			Computed: true,
 		},
 
-		"allowed_ips": {
+		"allowed_ip_addresses": {
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Schema{
@@ -503,8 +503,8 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			subscriptionId := metadata.Client.Account.SubscriptionId
 			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
+			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var state AutonomousDatabaseCloneFromDatabaseDataSourceModel
 			if err := metadata.Decode(&state); err != nil {
@@ -530,10 +530,10 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Read() sdk.ResourceFunc {
 				state.SourceAutonomousDatabaseId = props.SourceId
 				state.ReconnectCloneEnabled = pointer.From(props.IsReconnectCloneEnabled)
 				state.RefreshableClone = pointer.From(props.IsRefreshableClone)
-				state.TimeUntilReconnectCloneUtc = pointer.From(props.TimeUntilReconnectCloneEnabled)
+				state.TimeUntilReconnectUtc = pointer.From(props.TimeUntilReconnectCloneEnabled)
 				state.RefreshableModel = pointer.FromEnum(props.RefreshableModel)
 				state.RefreshableStatus = pointer.FromEnum(props.RefreshableStatus)
-				state.AllowedIps = pointer.From(props.WhitelistedIPs)
+				state.AllowedIpAddresses = pointer.From(props.WhitelistedIPs)
 				state.BackupRetentionPeriodInDays = pointer.From(props.BackupRetentionPeriodInDays)
 				state.CharacterSet = pointer.From(props.CharacterSet)
 				state.ComputeCount = pointer.From(props.ComputeCount)

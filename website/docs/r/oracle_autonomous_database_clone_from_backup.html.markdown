@@ -114,7 +114,7 @@ The following arguments are supported:
 
 ---
 
-* `allowed_ips` - (Optional) Defines the network access type for the Autonomous Database. If the property is explicitly set to an empty list, it allows secure public access to the database from any IP address. If specific ACL (Access Control List) values are provided, access will be restricted to only the specified IP addresses.
+* `allowed_ip_addresses` - (Optional) Defines the network access type for the Autonomous Database. If the property is explicitly set to an empty list, it allows secure public access to the database from any IP address. If specific ACL (Access Control List) values are provided, access will be restricted to only the specified IP addresses.
 
 * `backup_timestamp` - (Optional) The autonomous database backup time stamp to be used for a cloning autonomous database. Changing this forces a new autonomous database clone from backup to be created.
 
@@ -124,7 +124,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the autonomous database clone from backup.
 
-* `use_latest_available_backup_time_stamp` - (Optional) Setting this value to true will initiate cloning from latest backup time stamp. Changing this forces a new autonomous database clone from backup to be created.
+* `use_latest_available_backup_timestamp_enabled` - (Optional) Setting this value to true will initiate cloning from latest backup time stamp. Changing this forces a new autonomous database clone from backup to be created.
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network this Autonomous Database Clone should be created in. Changing this forces a new autonomous database clone from backup to be created.
 

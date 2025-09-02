@@ -85,8 +85,6 @@ The following arguments are supported:
 
 * `compute_model` - (Required) The compute model of the Autonomous Database. Changing this forces a new Autonomous Database Clone to be created.
 
-* `customer_contacts` - (Optional) Customer contact email addresses. Changing this forces a new Autonomous Database Clone to be created.
-
 * `database_version` - (Required) A valid Oracle Database version for Autonomous Database. Changing this forces a new Autonomous Database Clone to be created.
 
 * `data_storage_size_in_tb` - (Required) The maximum storage that can be allocated for the database, in terabytes. Possible values are between `1` and `384`.
@@ -97,7 +95,7 @@ The following arguments are supported:
   * AJD - indicates an Autonomous JSON Database
   * APEX - indicates an Autonomous Database with the Oracle APEX Application Development workload type.
 
-~> **Note:** To clone the database with a different `database_workload` type, please refer to the documentation [here](https://docs.public.oneportal.content.oci.oraclecloud.com/en-us/iaas/autonomous-database-serverless/doc/autonomous-clone-cross-workload-type.html#GUID-527A712D-FF82-498B-AB35-8A1623E36EDD) for correct configuration steps.
+~> **Note:** To clone the database with a different `database_workload` type, please refer to the documentation [here](https://docs.public.oneportal.content.oci.oraclecloud.com/iaas/autonomous-database-serverless/doc/autonomous-clone-cross-workload-type.html#GUID-527A712D-FF82-498B-AB35-8A1623E36EDD) for correct configuration steps.
 
 * `display_name` - (Required) The user-friendly name for the Autonomous Database. Changing this forces a new Autonomous Database Clone to be created.
 
@@ -115,7 +113,7 @@ The following arguments are supported:
 
 ---
 
-* `allowed_ips` - (Optional) Defines the network access type for the Autonomous Database. If the property is explicitly set to an empty list, it allows secure public access to the database from any IP address. If specific ACL (Access Control List) values are provided, access will be restricted to only the specified IP addresses.
+* `allowed_ip_addresses` - (Optional) Defines the network access type for the Autonomous Database. If the property is explicitly set to an empty list, it allows secure public access to the database from any IP address. If specific ACL (Access Control List) values are provided, access will be restricted to only the specified IP addresses.
 
 * `customer_contacts` - (Optional) Specifies a list of customer contacts as email addresses. Changing this forces a new Autonomous Database to be created.
 
@@ -125,7 +123,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the Autonomous Database Clone.
 
-* `time_until_reconnect` - (Optional) The time until reconnect clone is enabled. Must be in RFC3339 format.
+* `time_until_reconnect_utc` - (Optional) The time until reconnect clone is enabled. Must be in RFC3339 format.
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network this Autonomous Database Clone should be created in. Changing this forces a new Autonomous Database Clone to be created.
 

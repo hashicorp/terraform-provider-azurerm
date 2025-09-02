@@ -41,7 +41,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `allocated_storage_size_in_tb` - The amount of storage currently allocated for the database tables and billed for, rounded up. When auto-scaling is not enabled, this value is equal to the `data_storage_size_in_tb` value. You can compare this value to the `data_storage_size_in_gb` value to determine if a manual shrink operation is appropriate for your allocated storage.
 
-* `allowed_ips` - A list of IP addresses on the access control list.
+* `allowed_ip_addresses` - A list of IP addresses on the access control list.
 
 * `auto_scaling_enabled` - Whether auto-scaling is enabled for the Autonomous Database CPU core count.
 
@@ -101,7 +101,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `private_endpoint_url` - The private endpoint for the resource.
 
-* `private_endpoint_ip` - The private endpoint Ip address for the resource.
+* `private_endpoint_ip` - The private endpoint IP address for the resource.
 
 * `private_endpoint_label` - The private endpoint label for the resource.
 
@@ -111,7 +111,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `service_console_url` - The URL of the Service Console for the Autonomous Database.
 
-* `source_autonomous_database_id` - The Id of the source Autonomous Database from which this clone was created.
+* `source_autonomous_database_id` - The ID of the source Autonomous Database from which this clone was created.
 
 * `sql_web_developer_url` - The URL of the SQL web developer portal.
 

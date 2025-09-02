@@ -38,7 +38,7 @@ type AutonomousDatabaseCloneFromBackupResourceModel struct {
 	// Required (inherited from base)
 
 	AdminPassword                string   `tfschema:"admin_password"`
-	AllowedIps                   []string `tfschema:"allowed_ips"`
+	AllowedIpAddresses           []string `tfschema:"allowed_ip_addresses"`
 	BackupRetentionPeriodInDays  int64    `tfschema:"backup_retention_period_in_days"`
 	CharacterSet                 string   `tfschema:"character_set"`
 	ComputeCount                 float64  `tfschema:"compute_count"`
@@ -57,9 +57,9 @@ type AutonomousDatabaseCloneFromBackupResourceModel struct {
 
 	// Optional
 
-	BackupTimestamp                   string   `tfschema:"backup_timestamp"`
-	CustomerContacts                  []string `tfschema:"customer_contacts"`
-	UseLatestAvailableBackupTimestamp bool     `tfschema:"use_latest_available_backup_timestamp"`
+	BackupTimestamp                          string   `tfschema:"backup_timestamp"`
+	CustomerContacts                         []string `tfschema:"customer_contacts"`
+	UseLatestAvailableBackupTimestampEnabled bool     `tfschema:"use_latest_available_backup_timestamp_enabled"`
 }
 
 func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*pluginsdk.Schema {
@@ -89,21 +89,6 @@ func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*plugins
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForCloneType(), false),
 		},
-		// optional
-
-		"use_latest_available_backup_timestamp": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			ForceNew: true,
-		},
-		"backup_timestamp": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.IsRFC3339Time,
-		},
-
-		// Required (inherited from base)
 
 		"admin_password": {
 			Type:         pluginsdk.TypeString,
@@ -202,20 +187,7 @@ func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*plugins
 		},
 
 		// Optional clone-specific fields
-		"customer_contacts": {
-			Type:     pluginsdk.TypeList,
-			Optional: true,
-			ForceNew: true,
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validate.CustomerContactEmail,
-			},
-		},
-		"subnet_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.SubnetId{}),
-
-		"virtual_network_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.VirtualNetworkId{}),
-
-		"allowed_ips": {
+		"allowed_ip_addresses": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
 			MaxItems: 1024,
@@ -228,8 +200,32 @@ func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*plugins
 				),
 			},
 		},
+		"backup_timestamp": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IsRFC3339Time,
+		},
+		"customer_contacts": {
+			Type:     pluginsdk.TypeList,
+			Optional: true,
+			ForceNew: true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validate.CustomerContactEmail,
+			},
+		},
+		"subnet_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.SubnetId{}),
 
 		"tags": commonschema.TagsForceNew(),
+
+		"use_latest_available_backup_timestamp_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			ForceNew: true,
+		},
+
+		"virtual_network_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.VirtualNetworkId{}),
 	}
 }
 
@@ -279,7 +275,7 @@ func (r AutonomousDatabaseCloneFromBackupResource) Create() sdk.ResourceFunc {
 				Source:       autonomousdatabases.Source(autonomousdatabases.SourceTypeBackupFromTimestamp),
 				DataBaseType: autonomousdatabases.DataBaseTypeCloneFromBackupTimestamp,
 
-				UseLatestAvailableBackupTimeStamp: pointer.To(model.UseLatestAvailableBackupTimestamp),
+				UseLatestAvailableBackupTimeStamp: pointer.To(model.UseLatestAvailableBackupTimestampEnabled),
 
 				// Base properties
 				AdminPassword:                  pointer.To(model.AdminPassword),
@@ -297,7 +293,7 @@ func (r AutonomousDatabaseCloneFromBackupResource) Create() sdk.ResourceFunc {
 				IsMtlsConnectionRequired:       pointer.To(model.MtlsConnectionRequired),
 				LicenseModel:                   pointer.To(autonomousdatabases.LicenseModel(model.LicenseModel)),
 				NcharacterSet:                  pointer.To(model.NationalCharacterSet),
-				WhitelistedIPs:                 pointer.To(model.AllowedIps),
+				WhitelistedIPs:                 pointer.To(model.AllowedIpAddresses),
 			}
 			properties := param.Properties.(*autonomousdatabases.AutonomousDatabaseFromBackupTimestampProperties)
 			if model.BackupTimestamp != "" {
@@ -341,8 +337,8 @@ func (r AutonomousDatabaseCloneFromBackupResource) Read() sdk.ResourceFunc {
 
 			var state AutonomousDatabaseCloneFromBackupResourceModel
 
-			if v, ok := metadata.ResourceData.GetOk("use_latest_available_backup_time_stamp"); ok {
-				state.UseLatestAvailableBackupTimestamp = v.(bool)
+			if v, ok := metadata.ResourceData.GetOk("use_latest_available_backup_timestamp_enabled"); ok {
+				state.UseLatestAvailableBackupTimestampEnabled = v.(bool)
 			}
 			if v, ok := metadata.ResourceData.GetOk("backup_timestamp"); ok {
 				state.BackupTimestamp = v.(string)
@@ -354,31 +350,34 @@ func (r AutonomousDatabaseCloneFromBackupResource) Read() sdk.ResourceFunc {
 				state.Name = id.AutonomousDatabaseName
 				state.ResourceGroupName = id.ResourceGroupName
 
-				props, ok := model.Properties.(autonomousdatabases.AutonomousDatabaseFromBackupTimestampProperties)
-				if !ok {
-					return fmt.Errorf("%s was not of type `CloneFromBackupTimestamp`", id)
-				}
-				state.CloneType = string(props.CloneType)
-				state.SourceAutonomousDatabaseId = props.SourceId
+				if cloneProps := model.Properties; cloneProps != nil {
+					props, ok := model.Properties.(autonomousdatabases.AutonomousDatabaseFromBackupTimestampProperties)
+					if !ok {
+						return fmt.Errorf("%s was not of type `CloneFromBackupTimestamp`", id)
+					}
 
-				state.AdminPassword = metadata.ResourceData.Get("admin_password").(string)
-				state.BackupRetentionPeriodInDays = pointer.From(props.BackupRetentionPeriodInDays)
-				state.CharacterSet = pointer.From(props.CharacterSet)
-				state.ComputeCount = pointer.From(props.ComputeCount)
-				state.ComputeModel = pointer.FromEnum(props.ComputeModel)
-				state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
-				state.DataStorageSizeInTb = pointer.From(props.DataStorageSizeInTbs)
-				state.DatabaseVersion = pointer.From(props.DbVersion)
-				state.DatabaseWorkload = pointer.FromEnum(props.DbWorkload)
-				state.DisplayName = pointer.From(props.DisplayName)
-				state.AutoScalingEnabled = pointer.From(props.IsAutoScalingEnabled)
-				state.AutoScalingForStorageEnabled = pointer.From(props.IsAutoScalingForStorageEnabled)
-				state.MtlsConnectionRequired = pointer.From(props.IsMtlsConnectionRequired)
-				state.LicenseModel = pointer.FromEnum(props.LicenseModel)
-				state.NationalCharacterSet = pointer.From(props.NcharacterSet)
-				state.AllowedIps = pointer.From(props.WhitelistedIPs)
-				state.SubnetId = pointer.From(props.SubnetId)
-				state.VnetId = pointer.From(props.VnetId)
+					state.CloneType = string(props.CloneType)
+					state.SourceAutonomousDatabaseId = props.SourceId
+
+					state.AdminPassword = metadata.ResourceData.Get("admin_password").(string)
+					state.BackupRetentionPeriodInDays = pointer.From(props.BackupRetentionPeriodInDays)
+					state.CharacterSet = pointer.From(props.CharacterSet)
+					state.ComputeCount = pointer.From(props.ComputeCount)
+					state.ComputeModel = pointer.FromEnum(props.ComputeModel)
+					state.CustomerContacts = flattenAdbsCustomerContacts(props.CustomerContacts)
+					state.DataStorageSizeInTb = pointer.From(props.DataStorageSizeInTbs)
+					state.DatabaseVersion = pointer.From(props.DbVersion)
+					state.DatabaseWorkload = pointer.FromEnum(props.DbWorkload)
+					state.DisplayName = pointer.From(props.DisplayName)
+					state.AutoScalingEnabled = pointer.From(props.IsAutoScalingEnabled)
+					state.AutoScalingForStorageEnabled = pointer.From(props.IsAutoScalingForStorageEnabled)
+					state.MtlsConnectionRequired = pointer.From(props.IsMtlsConnectionRequired)
+					state.LicenseModel = pointer.FromEnum(props.LicenseModel)
+					state.NationalCharacterSet = pointer.From(props.NcharacterSet)
+					state.AllowedIpAddresses = pointer.From(props.WhitelistedIPs)
+					state.SubnetId = pointer.From(props.SubnetId)
+					state.VnetId = pointer.From(props.VnetId)
+				}
 			}
 
 			return metadata.Encode(&state)
