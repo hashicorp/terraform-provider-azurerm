@@ -1,6 +1,8 @@
 # FileOperations Module for Terraform AzureRM Provider AI Setup
 # STREAMLINED VERSION - Contains only functions actually used by main script
 
+# Note: CommonUtilities module is imported globally by the main script
+
 #region Private Functions
 
 function Assert-DirectoryExists {
@@ -890,7 +892,7 @@ function Test-BootstrapPrerequisites {
     )
 
     # Rule 1: Must NOT be running from user profile directory
-    $userProfileInstallerPath = Join-Path $env:USERPROFILE ".terraform-ai-installer"
+    $userProfileInstallerPath = Join-Path (Get-UserHomeDirectory) ".terraform-ai-installer"
     if ($ScriptDirectory -like "*$userProfileInstallerPath*") {
         Show-BootstrapViolation -ScriptDirectory $ScriptDirectory
         return $false
@@ -928,7 +930,7 @@ function Invoke-Bootstrap {
         Write-Separator
 
         # Create target directory
-        $targetDirectory = Join-Path $env:USERPROFILE ".terraform-ai-installer"
+        $targetDirectory = Join-Path (Get-UserHomeDirectory) ".terraform-ai-installer"
         if (-not (Test-Path $targetDirectory)) {
             New-Item -ItemType Directory -Path $targetDirectory -Force | Out-Null
         }

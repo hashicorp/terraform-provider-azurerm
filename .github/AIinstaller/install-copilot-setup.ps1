@@ -1,6 +1,7 @@
 ﻿# Main AI Infrastructure Installer for Terraform AzureRM Provider
 # Version: 1.0.0
 # Description: Interactive installer for AI-powered development infrastructure
+# Platform: Cross-platform (Windows, macOS, Linux with PowerShell Core)
 
 #requires -version 5.1
 
@@ -173,6 +174,21 @@ while ($i -lt $args.Count) {
 }
 
 # ============================================================================
+# CROSS-PLATFORM UTILITIES
+# ============================================================================
+
+function Get-UserHomeDirectory {
+    # Cross-platform home directory detection
+    if ($IsWindows -or $env:OS -eq "Windows_NT" -or (-not $PSVersionTable.Platform)) {
+        # Windows (including PowerShell 5.1 which doesn't have $IsWindows)
+        return $env:USERPROFILE
+    } else {
+        # macOS and Linux
+        return $env:HOME
+    }
+}
+
+# ============================================================================
 # MODULE LOADING - This must succeed or the script cannot continue
 # ============================================================================
 
@@ -202,6 +218,7 @@ function Import-RequiredModules {
 
     # Define all required modules in dependency order
     $modules = @(
+        "CommonUtilities",
         "ConfigParser",
         "UI",
         "ValidationEngine",
@@ -394,7 +411,7 @@ function Main {
 
         # Detect if we're running from user profile directory (needed for all help contexts)
         $currentDir = Get-Location
-        $userProfileInstallerDir = Join-Path $env:USERPROFILE ".terraform-ai-installer"
+        $userProfileInstallerDir = Join-Path (Get-UserHomeDirectory) ".terraform-ai-installer"
         $isFromUserProfile = $currentDir.Path -eq $userProfileInstallerDir -or [bool]$RepoDirectory
 
         # Detect what command was attempted (for better error messages)

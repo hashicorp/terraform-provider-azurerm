@@ -6,7 +6,10 @@ This installer provides GitHub Copilot instructions, VS Code configurations, and
 
 ## 🌍 Cross-Platform Support
 
-The installer supports **Windows**, **macOS**, and **Linux** with two simple platform choices:
+The installer supports **Windows**, **macOS**, and **Linux** with flexible platform options:
+
+- **PowerShell** (Cross-platform): Works on Windows, macOS, and Linux
+- **Bash** (Unix-like): Traditional option for macOS and Linux
 
 ### 🪟 Windows (PowerShell)
 **Recommended for Windows environments:**
@@ -18,8 +21,20 @@ The installer supports **Windows**, **macOS**, and **Linux** with two simple pla
 
 > ⚠️ **Note**: If you encounter PowerShell execution policy errors, see [Windows PowerShell Execution Policy](#windows---powershell-execution-policy) section below.
 
-### 🐧 macOS/Linux (Bash)
-**Recommended for Unix-like environments:**
+### 🐧 macOS/Linux
+
+**Option 1: PowerShell Core (Cross-Platform)**
+```bash
+# Install PowerShell Core
+brew install powershell
+
+# Run the installer
+pwsh ./install-copilot-setup.ps1 -Help
+pwsh ./install-copilot-setup.ps1 -Bootstrap
+pwsh ./install-copilot-setup.ps1 -RepoDirectory "/path/to/repo"
+```
+
+**Option 2: Bash (Traditional)**
 ```bash
 ./install-copilot-setup.sh -help
 ./install-copilot-setup.sh -bootstrap
@@ -29,6 +44,19 @@ The installer supports **Windows**, **macOS**, and **Linux** with two simple pla
 ### 🔧 Installation Paths
 - **Windows**: `%USERPROFILE%\.terraform-ai-installer`
 - **macOS/Linux**: `~/.terraform-ai-installer`
+
+### 🚀 Quick Start for macOS
+
+If you're on macOS and want to use the PowerShell version:
+
+```bash
+# 1. Install PowerShell Core (one-time setup)
+brew install powershell
+
+# 2. Run the installer
+pwsh ./install-copilot-setup.ps1 -Help
+pwsh ./install-copilot-setup.ps1 -Bootstrap
+```
 
 ## ✨ User Experience
 
@@ -141,6 +169,22 @@ Run from your user profile:
 Works from any directory, any branch
 
 ### 📋 Prerequisites
+
+#### System Requirements
+
+**For Windows:**
+- Windows PowerShell 5.1+ or PowerShell Core 7+
+- Git (standard installation)
+
+**For macOS Users (PowerShell Option):**
+- **PowerShell Core 7+** installed (via `brew install powershell`)
+- Standard Unix tools (git, which are typically available)
+
+**For macOS/Linux Users (Bash Option):**
+- Bash shell environment
+- Standard Unix tools (git, curl, which are typically available)
+
+#### VS Code Extensions
 
 Before using the AI-powered development features, ensure you have the following VS Code extensions installed:
 

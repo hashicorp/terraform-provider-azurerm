@@ -1,6 +1,8 @@
 # UI Module for Terraform AzureRM Provider AI Setup
 # STREAMLINED VERSION - Contains only functions actually used by main script and dependencies
 
+# Note: CommonUtilities module is imported globally by the main script
+
 #region Public Functions
 
 function Write-Separator {
@@ -179,8 +181,8 @@ function Show-SourceBranchHelp {
     Write-Host "BOOTSTRAP WORKFLOW:" -ForegroundColor Cyan
     Write-Host "  1. Run -Bootstrap from source branch (exp/terraform_copilot) to copy installer to user profile"
     Write-Host "  2. Switch to your feature branch: git checkout feature/your-branch-name"
-    Write-Host "  3. Navigate to user profile: cd `"`$env:USERPROFILE\.terraform-ai-installer`""
-    Write-Host "  4. Run installer: .\install-copilot-setup.ps1 -RepoDirectory `"C:\path\to\your\feature\branch`""
+    Write-Host "  3. Navigate to user profile: cd $(Get-CrossPlatformInstallerPath)"
+    Write-Host "  4. Run installer: .\install-copilot-setup.ps1 -RepoDirectory `"/path/to/your/feature/branch`""
 }
 
 function Show-FeatureBranchHelp {
@@ -203,20 +205,20 @@ function Show-FeatureBranchHelp {
 
     Write-Host "EXAMPLES:" -ForegroundColor Cyan
     Write-Host "  Install AI infrastructure:"
-    Write-Host "    cd `"`$env:USERPROFILE\.terraform-ai-installer`""
-    Write-Host "    .\install-copilot-setup.ps1 -RepoDirectory `"C:\path\to\your\feature\branch`""
+    Write-Host "    cd $(Get-CrossPlatformInstallerPath)"
+    Write-Host "    .\install-copilot-setup.ps1 -RepoDirectory `"/path/to/your/feature/branch`""
     Write-Host ""
     Write-Host "  Dry-Run (preview changes):"
-    Write-Host "    cd `"`$env:USERPROFILE\.terraform-ai-installer`""
-    Write-Host "    .\install-copilot-setup.ps1 -RepoDirectory `"C:\path\to\your\feature\branch`" -Dry-Run"
+    Write-Host "    cd $(Get-CrossPlatformInstallerPath)"
+    Write-Host "    .\install-copilot-setup.ps1 -RepoDirectory `"/path/to/your/feature/branch`" -Dry-Run"
     Write-Host ""
     Write-Host "  Clean removal:"
-    Write-Host "    cd `"`$env:USERPROFILE\.terraform-ai-installer`""
-    Write-Host "    .\install-copilot-setup.ps1 -RepoDirectory `"C:\path\to\your\feature\branch`" -Clean"
+    Write-Host "    cd $(Get-CrossPlatformInstallerPath)"
+    Write-Host "    .\install-copilot-setup.ps1 -RepoDirectory `"/path/to/your/feature/branch`" -Clean"
     Write-Host ""
 
     Write-Host "WORKFLOW:" -ForegroundColor Cyan
-    Write-Host "  1. Navigate to user profile installer directory: cd `"`$env:USERPROFILE\.terraform-ai-installer`""
+    Write-Host "  1. Navigate to user profile installer directory: cd $(Get-CrossPlatformInstallerPath)"
     Write-Host "  2. Run installer with path to your feature branch"
     Write-Host "  3. Start developing with enhanced GitHub Copilot AI features"
     Write-Host "  4. Use -Clean to remove AI infrastructure when done"
@@ -277,9 +279,9 @@ function Show-UnknownBranchHelp {
     Write-Host "    .\install-copilot-setup.ps1 -Verify"
     Write-Host ""
     Write-Host "  Feature Branch Operations:" -ForegroundColor DarkCyan
-    Write-Host "    cd `"`$env:USERPROFILE\.terraform-ai-installer`""
-    Write-Host "    .\install-copilot-setup.ps1 -RepoDirectory `"C:\path\to\your\feature\branch`""
-    Write-Host "    .\install-copilot-setup.ps1 -RepoDirectory `"C:\path\to\your\feature\branch`" -Clean"
+    Write-Host "    cd $(Get-CrossPlatformInstallerPath)"
+    Write-Host "    .\install-copilot-setup.ps1 -RepoDirectory `"/path/to/your/feature/branch`""
+    Write-Host "    .\install-copilot-setup.ps1 -RepoDirectory `"/path/to/your/feature/branch`" -Clean"
     Write-Host ""
 
     Write-Host "BRANCH DETECTION:" -ForegroundColor Cyan
@@ -333,7 +335,7 @@ function Show-BootstrapNextSteps {
     successfully copied to their user profile.
     #>
     param(
-        [string]$TargetDirectory = "$env:USERPROFILE\.terraform-ai-installer"
+        [string]$TargetDirectory = (Join-Path (Get-UserHomeDirectory) ".terraform-ai-installer")
     )
 
     Write-Host "NEXT STEPS:" -ForegroundColor "Cyan"
@@ -342,7 +344,7 @@ function Show-BootstrapNextSteps {
     Write-Host "     git checkout feature/your-branch-name" -ForegroundColor "White"
     Write-Host ""
     Write-Host "  2. Run the installer from your user profile:" -ForegroundColor "Cyan"
-    Write-Host "     cd `"`$env:USERPROFILE\.terraform-ai-installer`"" -ForegroundColor "White"
+    Write-Host "     cd $(Get-CrossPlatformInstallerPath)" -ForegroundColor "White"
     Write-Host "     .\install-copilot-setup.ps1 -RepoDirectory `"<path-to-your-terraform-provider-azurerm>`"" -ForegroundColor "White"
     Write-Host ""
 }
@@ -452,7 +454,7 @@ function Show-SafetyViolation {
 
     if ($FromUserProfile) {
         Write-Host "  Then run the installer from your user profile:" -ForegroundColor DarkCyan
-        Write-Host "    cd `"$env:USERPROFILE\.terraform-ai-installer`"" -ForegroundColor Gray
+        Write-Host "    cd $(Get-CrossPlatformInstallerPath)" -ForegroundColor Gray
         Write-Host "    .\install-copilot-setup.ps1 -RepoDirectory `"<path-to-your-terraform-provider-azurerm>`"" -ForegroundColor Gray
         Write-Host ""
     }

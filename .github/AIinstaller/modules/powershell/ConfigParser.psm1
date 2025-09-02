@@ -2,6 +2,8 @@
 # Handles configuration file parsing, validation, and management
 # STREAMLINED VERSION - Contains only functions actually used by main script
 
+# Note: CommonUtilities module is imported globally by the main script
+
 #region Public Functions
 
 function Get-ManifestConfig {
@@ -25,7 +27,7 @@ function Get-ManifestConfig {
         # Try to find manifest file in multiple locations
         $possiblePaths = @(
             # User profile installer directory (when running from bootstrapped copy)
-            (Join-Path $env:USERPROFILE ".terraform-ai-installer\file-manifest.config"),
+            (Join-Path (Get-UserHomeDirectory) ".terraform-ai-installer" | Join-Path -ChildPath "file-manifest.config"),
             # Current script directory (when running from user profile)
             (Join-Path (Split-Path $PSScriptRoot -Parent) "file-manifest.config"),
             # Original repository structure (when running from source)
