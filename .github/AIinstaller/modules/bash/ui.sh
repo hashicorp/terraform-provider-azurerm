@@ -957,6 +957,175 @@ show_workspace_validation_error() {
     print_separator
 }
 
+# Function to display operation summary with standardized formatting
+show_operation_summary() {
+    local operation_name="$1"
+    local success="$2"
+    local dry_run="$3"
+    shift 3  # Remove first 3 arguments, rest are details
+
+    echo ""
+
+    # Show operation completion with consistent formatting for all operations
+    local status_text
+    if [[ "${success}" == "true" ]]; then
+        status_text="completed successfully"
+    else
+        status_text="failed"
+    fi
+
+    local completion_message
+    if [[ "${dry_run}" == "true" ]]; then
+        completion_message=" ${operation_name} ${status_text} (dry run)"
+    else
+        completion_message=" ${operation_name} ${status_text}"
+    fi
+
+    if [[ "${success}" == "true" ]]; then
+        write_green "${completion_message}"
+    else
+        write_red "${completion_message}"
+    fi
+    echo ""
+
+    # Process details and next steps if provided
+    if [[ $# -gt 0 ]]; then
+        # Check if --next-steps is in the arguments
+        local has_next_steps=false
+        local next_steps_start_index=-1
+        local args=("$@")
+
+        for i in "${!args[@]}"; do
+            if [[ "${args[$i]}" == "--next-steps" ]]; then
+                has_next_steps=true
+                next_steps_start_index=$((i + 1))
+                break
+            fi
+        done
+
+        # Process details (everything before --next-steps)
+        local details_end_index
+        if [[ "${has_next_steps}" == true ]]; then
+            details_end_index=$((next_steps_start_index - 1))
+        else
+            details_end_index=${#args[@]}
+        fi
+
+        # Parse details into hashtable if we have any
+        declare -A details_hash
+        declare -a ordered_keys
+        local has_details=false
+
+        for ((i=0; i<details_end_index; i++)); do
+            local detail="${args[$i]}"
+            if [[ "${detail}" =~ ^([^:]+):\s*(.+)$ ]]; then
+                local key="${BASH_REMATCH[1]}"
+                key="${key## }"  # Remove leading spaces
+                key="${key%% }"  # Remove trailing spaces
+                local value="${BASH_REMATCH[2]}"
+                value="${value## }"  # Remove leading spaces from value
+                details_hash["${key}"]="${value}"
+                ordered_keys+=("${key}")
+                has_details=true
+            fi
+        done
+
+        # Display details section if we have any
+        if [[ "${has_details}" == true ]]; then
+            print_separator 60 "${CYAN}" "="
+            write_cyan " ${operation_name^^} SUMMARY:"
+            print_separator 60 "${CYAN}" "="
+            echo ""
+            write_cyan "DETAILS:"
+
+            # Define expected order for standard operation details (matching PowerShell output)
+            local expected_order=("Items Successful" "Total Size" "Location" "Files Copied" "Branch Type" "Target Branch")
+            declare -a final_order
+
+            # Add standard fields in expected order if they exist
+            for expected_key in "${expected_order[@]}"; do
+                if [[ -n "${details_hash[$expected_key]:-}" ]]; then
+                    final_order+=("${expected_key}")
+                fi
+            done
+
+            # Add any additional fields that aren't in the standard order
+            for key in "${ordered_keys[@]}"; do
+                local found_in_standard=false
+                for expected_key in "${expected_order[@]}"; do
+                    if [[ "${key}" == "${expected_key}" ]]; then
+                        found_in_standard=true
+                        break
+                    fi
+                done
+                if [[ "${found_in_standard}" == false ]]; then
+                    final_order+=("${key}")
+                fi
+            done
+
+            # Find the longest key for proper alignment (following UI standards)
+            local max_key_length=0
+            for key in "${final_order[@]}"; do
+                if [[ ${#key} -gt ${max_key_length} ]]; then
+                    max_key_length=${#key}
+                fi
+            done
+
+            # Display each detail in the correct order with consistent alignment
+            for key in "${final_order[@]}"; do
+                local value="${details_hash[$key]}"
+
+                # Calculate padding for alignment (matching Format-AlignedLabel from PowerShell)
+                local padding_needed=$((max_key_length - ${#key}))
+                local formatted_label="${key}"
+                if [[ ${padding_needed} -gt 0 ]]; then
+                    for ((i=0; i<padding_needed; i++)); do
+                        formatted_label+=" "
+                    done
+                fi
+
+                # Write key with consistent formatting
+                printf "  ${CYAN}%s:${NC} " "${formatted_label}"
+
+                # Determine value color based on content (matching PowerShell logic)
+                if [[ "${value}" =~ ^[0-9]+$ ]] || [[ "${value}" =~ ^[0-9]+(\.[0-9]+)?[[:space:]]*(KB|MB|GB|TB|B)$ ]]; then
+                    # Numbers and file sizes in green (like PowerShell)
+                    echo -e "${GREEN}${value}${NC}"
+                else
+                    # Text values in yellow
+                    echo -e "${YELLOW}${value}${NC}"
+                fi
+            done
+        fi
+
+        # Display next steps section if provided
+        if [[ "${has_next_steps}" == true ]]; then
+            echo ""
+            write_cyan "NEXT STEPS:"
+            echo ""
+
+            # Display next steps content (everything after --next-steps)
+            for ((i=next_steps_start_index; i<${#args[@]}; i++)); do
+                local step="${args[$i]}"
+                if [[ -n "${step}" ]]; then
+                    # Check if this line starts with a number followed by a period and description (like "1. Switch to your feature branch:")
+                    if [[ "${step}" =~ ^([[:space:]]*[0-9]+\..*)$ ]]; then
+                        # This is a numbered step - display in cyan
+                        echo -e "  ${CYAN}${step}${NC}"
+                    else
+                        # This is an indented command or other content - display in plain white
+                        echo "  ${step}"
+                    fi
+                else
+                    echo ""
+                fi
+            done
+        fi
+    fi
+
+    echo ""
+}
+
 # Export all UI functions for use in other scripts
 export -f write_cyan write_green write_yellow write_white write_red write_blue write_gray
 export -f write_plain write_label write_colored_label write_section_header write_section
@@ -964,4 +1133,5 @@ export -f write_header write_operation_status
 export -f write_error_message write_warning_message write_success_message
 export -f write_file_operation_status show_completion_summary show_safety_violation
 export -f show_usage show_source_branch_welcome show_workspace_validation_error
+export -f show_operation_summary
 export -f print_separator get_user_profile format_aligned_label_spacing calculate_max_filename_length

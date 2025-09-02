@@ -26,6 +26,10 @@ VERIFY=false              # Check the current state of the workspace
 CLEAN=false               # Remove AI infrastructure from the workspace
 HELP=false                # Show detailed help information
 
+# Export variables that need to be accessible to modules as global variables
+# Note: Other variables are passed as function parameters, so they don't need to be exported
+export DRY_RUN
+
 # ============================================================================
 # MODULE LOADING - This must succeed or the script cannot continue
 # ============================================================================
@@ -291,9 +295,10 @@ main() {
             user_profile=$(get_user_profile)
             local size_kb=$((BOOTSTRAP_STATS_TOTAL_SIZE / 1024))
             show_operation_summary "Bootstrap" "true" "false" \
-                "Files Copied:${BOOTSTRAP_STATS_FILES_COPIED}" \
+                "Items Successful:${BOOTSTRAP_STATS_FILES_COPIED}" \
                 "Total Size:${size_kb} KB" \
                 "Location:${user_profile}" \
+                "Files Copied:${BOOTSTRAP_STATS_FILES_COPIED}" \
                 --next-steps \
                 "1. Switch to your feature branch:" \
                 "   git checkout feature/your-branch-name" \
@@ -407,6 +412,7 @@ parse_arguments() {
                 ;;
             -dry-run)
                 DRY_RUN=true
+                export DRY_RUN
                 shift
                 ;;
             -verify)
