@@ -215,7 +215,7 @@ func resourceFunctionAppSlot() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
