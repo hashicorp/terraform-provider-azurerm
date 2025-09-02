@@ -156,15 +156,13 @@ func (r MachineLearningDataStoreBlobStorage) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 10 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			serviceDataAuthIdentity := metadata.ResourceDiff.Get("service_data_auth_identity").(string)
+			accountKey := metadata.ResourceDiff.GetRawConfig().AsValueMap()["account_key"]
+			sharedAccessSignature := metadata.ResourceDiff.GetRawConfig().AsValueMap()["shared_access_signature"]
+			client_id := metadata.ResourceDiff.GetRawConfig().AsValueMap()["client_id"]
 
-			if serviceDataAuthIdentity == string(datastore.ServiceDataAccessAuthIdentityNone) {
-				hasAccountKey := !metadata.ResourceDiff.GetRawConfig().AsValueMap()["account_key"].IsNull()
-				hasSAS := !metadata.ResourceDiff.GetRawConfig().AsValueMap()["shared_access_signature"].IsNull()
-				hasClientID := !metadata.ResourceDiff.GetRawConfig().AsValueMap()["client_id"].IsNull()
-
-				if !hasAccountKey && !hasSAS && !hasClientID {
-					return fmt.Errorf("one of `account_key`, `shared_access_signature`, or ServicePrincipal credentials (`client_id`, `client_secret`, `tenant_id`) must be specified when `service_data_auth_identity` is `None`")
+			if metadata.ResourceDiff.Get("service_data_auth_identity").(string) == string(datastore.ServiceDataAccessAuthIdentityNone) {
+				if accountKey.IsNull() && sharedAccessSignature.IsNull() && client_id.IsNull() {
+					return fmt.Errorf("one of `account_key`, `shared_access_signature`, or `client_id` must be specified when `service_data_auth_identity` is set to `None`")
 				}
 			}
 
