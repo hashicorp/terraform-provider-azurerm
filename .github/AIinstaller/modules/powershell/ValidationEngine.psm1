@@ -632,6 +632,11 @@ function Invoke-VerifyWorkspace {
                     }
                     Write-Host "    [FOUND  ] $file" -ForegroundColor Green
                 } else {
+                    $results.Files += @{
+                        Path = $file
+                        Status = "Missing"
+                        Description = "Instruction file"
+                    }
                     Write-Host "    [MISSING] $file" -ForegroundColor Red
                     $results.Issues += "MISSING: $filePath"
                 }
@@ -677,6 +682,11 @@ function Invoke-VerifyWorkspace {
                     }
                     Write-Host "    [FOUND  ] $file" -ForegroundColor Green
                 } else {
+                    $results.Files += @{
+                        Path = $file
+                        Status = "Missing"
+                        Description = "Prompt file"
+                    }
                     Write-Host "    [MISSING] $file" -ForegroundColor Red
                     $results.Issues += "MISSING: $filePath"
                 }
@@ -710,10 +720,20 @@ function Invoke-VerifyWorkspace {
                 }
                 Write-Host "    [FOUND  ] settings.json" -ForegroundColor Green
             } else {
+                $results.Files += @{
+                    Path = ".vscode/settings.json"
+                    Status = "Missing"
+                    Description = "VSCode settings file"
+                }
                 Write-Host "    [MISSING] settings.json" -ForegroundColor Red
                 $results.Issues += "MISSING: $settingsFile"
             }
         } else {
+            $results.Files += @{
+                Path = ".vscode/"
+                Status = "Missing"
+                Description = "VSCode directory"
+            }
             Write-Host "  [MISSING] .vscode/" -ForegroundColor Red
             $results.Issues += "MISSING: $vscodeDir"
         }
