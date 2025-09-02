@@ -1,6 +1,7 @@
 ## 4.43.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `eventgrid` - upgrade to API version `2025-02-15` [GH-30481]
 * `azurerm_subnet` - support `sharing_scope` property [GH-30316]
 * `azurerm_dev_center_project_pool` - add support for the `single_sign_on_enabled` property [GH-30440]
 * Data Source: `azurerm_dev_center_project_pool` - add support for the `single_sign_on_enabled` property [GH-30440]
