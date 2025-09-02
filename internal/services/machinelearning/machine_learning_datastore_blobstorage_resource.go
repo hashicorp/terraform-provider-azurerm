@@ -6,6 +6,7 @@ package machinelearning
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -226,8 +227,10 @@ func (r MachineLearningDataStoreBlobStorage) Create() sdk.ResourceFunc {
 			clientSecret := model.ClientSecret
 			tenantID := model.TenantID
 
-			props.Credentials = datastore.BaseDatastoreCredentialsImpl{
-				CredentialsType: datastore.CredentialsTypeNone,
+			if slices.Contains([]string{string(datastore.ServiceDataAccessAuthIdentityWorkspaceSystemAssignedIdentity), string(datastore.ServiceDataAccessAuthIdentityWorkspaceUserAssignedIdentity)}, model.ServiceDataAuthIdentity) {
+				props.Credentials = datastore.BaseDatastoreCredentialsImpl{
+					CredentialsType: datastore.CredentialsTypeNone,
+				}
 			}
 
 			switch {
@@ -307,8 +310,10 @@ func (r MachineLearningDataStoreBlobStorage) Update() sdk.ResourceFunc {
 			clientSecret := state.ClientSecret
 			tenantID := state.TenantID
 
-			props.Credentials = datastore.BaseDatastoreCredentialsImpl{
-				CredentialsType: datastore.CredentialsTypeNone,
+			if slices.Contains([]string{string(datastore.ServiceDataAccessAuthIdentityWorkspaceSystemAssignedIdentity), string(datastore.ServiceDataAccessAuthIdentityWorkspaceUserAssignedIdentity)}, state.ServiceDataAuthIdentity) {
+				props.Credentials = datastore.BaseDatastoreCredentialsImpl{
+					CredentialsType: datastore.CredentialsTypeNone,
+				}
 			}
 
 			switch {
@@ -403,8 +408,10 @@ func (r MachineLearningDataStoreBlobStorage) Read() sdk.ResourceFunc {
 				}
 			}
 
-			model.ClientID = data.Credentials.(datastore.ServicePrincipalDatastoreCredentials).ClientId
-			model.TenantID = data.Credentials.(datastore.ServicePrincipalDatastoreCredentials).TenantId
+			if v, ok := data.Credentials.(datastore.ServicePrincipalDatastoreCredentials); ok {
+				model.ClientID = v.ClientId
+				model.TenantID = v.TenantId
+			}
 
 			if v, ok := metadata.ResourceData.GetOk("client_secret"); ok {
 				if v.(string) != "" {

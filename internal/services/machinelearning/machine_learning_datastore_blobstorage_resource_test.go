@@ -155,7 +155,7 @@ func (r MachineLearningDataStoreBlobStorage) blobStorageAccountKey(data acceptan
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestcontainer%[2]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -175,7 +175,7 @@ func (r MachineLearningDataStoreBlobStorage) serviceDataAuthIdentity(data accept
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestcontainer%[2]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -195,7 +195,7 @@ func (r MachineLearningDataStoreBlobStorage) serviceDataAuthIdentityUpdate(data 
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestcontainer%[2]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -253,7 +253,7 @@ func (r MachineLearningDataStoreBlobStorage) blobStorageSas(data acceptance.Test
 
 resource "azurerm_storage_container" "test" {
   name                  = "acctestcontainer%[2]d"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
