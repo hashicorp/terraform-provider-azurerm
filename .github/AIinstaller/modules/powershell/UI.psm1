@@ -544,22 +544,7 @@ function Show-OperationSummary {
     $detailsHash = [ordered]@{}
     $detailsOrder = @()
 
-    # Add standard metrics to details
-    if ($ItemsSuccessful -gt 0) {
-        $detailsHash["Items Successful"] = $ItemsSuccessful
-        $detailsOrder += "Items Successful"
-    }
-    if ($ItemsFailed -gt 0) {
-        $detailsHash["Items Failed"] = $ItemsFailed
-        $detailsOrder += "Items Failed"
-    }
-    if ($ItemsProcessed -gt 0 -and $ItemsProcessed -ne $ItemsSuccessful) {
-        $detailsHash["Items Processed"] = $ItemsProcessed
-        $detailsOrder += "Items Processed"
-    }
-
-    # Add passed details to details hash (passed details take precedence over standard metrics)
-    # Preserve the original order from the Details array
+    # First, process the passed Details array to preserve their order
     foreach ($detail in $Details) {
         if ($detail -match '^([^:]+):\s*(.+)$') {
             $key = $matches[1].Trim()
@@ -567,6 +552,20 @@ function Show-OperationSummary {
             $detailsHash[$key] = $value
             $detailsOrder += $key
         }
+    }
+
+    # Add standard metrics only if they're not already in the details
+    if ($ItemsSuccessful -gt 0 -and -not $detailsHash.ContainsKey("Items Successful")) {
+        $detailsHash["Items Successful"] = $ItemsSuccessful
+        $detailsOrder += "Items Successful"
+    }
+    if ($ItemsFailed -gt 0 -and -not $detailsHash.ContainsKey("Items Failed")) {
+        $detailsHash["Items Failed"] = $ItemsFailed
+        $detailsOrder += "Items Failed"
+    }
+    if ($ItemsProcessed -gt 0 -and $ItemsProcessed -ne $ItemsSuccessful -and -not $detailsHash.ContainsKey("Items Processed")) {
+        $detailsHash["Items Processed"] = $ItemsProcessed
+        $detailsOrder += "Items Processed"
     }
 
     # Display details using consistent UI formatting
