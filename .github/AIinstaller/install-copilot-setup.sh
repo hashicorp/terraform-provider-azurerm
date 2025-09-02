@@ -310,14 +310,14 @@ main() {
     fi
 
     if [[ "${CLEAN}" == "true" ]]; then
-        clean_infrastructure "${workspace_root}"
+        clean_infrastructure "${workspace_root}" "${current_branch}" "${branch_type}"
         exit 0
     fi
 
     # STEP 11: Installation path (when -repo-directory is provided and not other specific operations)
     if [[ -n "${REPO_DIRECTORY}" ]] && [[ "${HELP}" != "true" ]] && [[ "${VERIFY}" != "true" ]] && [[ "${BOOTSTRAP}" != "true" ]] && [[ "${CLEAN}" != "true" ]]; then
         # Proceed with installation
-        install_infrastructure "${workspace_root}"
+        install_infrastructure "${workspace_root}" "${current_branch}" "${branch_type}"
         exit 0
     fi
 

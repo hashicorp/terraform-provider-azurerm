@@ -432,7 +432,7 @@ function Main {
         }
 
         if ($Clean) {
-            Invoke-CleanWorkspace -DryRun $DryRun -WorkspaceRoot $Global:WorkspaceRoot -FromUserProfile:([bool]$RepoDirectory) | Out-Null
+            Invoke-CleanWorkspace -DryRun $DryRun -WorkspaceRoot $Global:WorkspaceRoot -CurrentBranch $currentBranch -BranchType $branchType -FromUserProfile:([bool]$RepoDirectory) | Out-Null
             return
         }
 

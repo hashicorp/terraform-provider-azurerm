@@ -499,18 +499,6 @@ function Remove-AllAIFiles {
     $directoriesToCheck = @()
     $uniqueDirectories = @{}
 
-    # Directories that should NEVER be removed (important repository infrastructure)
-    $protectedDirectories = @(
-        ".github",           # Main GitHub directory contains workflows, issue templates, etc.
-        ".vscode",           # VS Code workspace settings and configurations
-        "internal",          # Core provider code
-        "vendor",            # Go dependencies
-        "scripts",           # Build and maintenance scripts
-        "website",           # Documentation
-        "examples",          # Example configurations
-        "helpers"            # Helper utilities
-    )
-
     foreach ($filePath in $allFiles) {
         $directory = Split-Path $filePath -Parent
         if ($directory -and -not $uniqueDirectories.ContainsKey($directory)) {
@@ -605,8 +593,8 @@ function Remove-AllAIFiles {
     # If nothing exists, show clean message and exit early
     if ($existingFiles.Count -eq 0 -and $existingDirectories.Count -eq 0) {
         Write-Host ""
-        Write-Host "No AI infrastructure files found to remove." -ForegroundColor Green
-        Write-Host "Workspace is already clean!" -ForegroundColor Green
+        Write-Host " No AI infrastructure files found to remove." -ForegroundColor Green
+        Write-Host " Workspace is already clean!" -ForegroundColor Green
 
         return @{
             Success = $true
@@ -1066,11 +1054,19 @@ function Invoke-CleanWorkspace {
 
     .PARAMETER FromUserProfile
     Indicates if the operation is running from user profile (with -RepoDirectory)
+
+    .PARAMETER CurrentBranch
+    Current branch name for summary display
+
+    .PARAMETER BranchType
+    Type of branch (source/feature/unknown) for summary display
     #>
     param(
         [bool]$DryRun,
         [string]$WorkspaceRoot,
-        [bool]$FromUserProfile = $false
+        [bool]$FromUserProfile = $false,
+        [string]$CurrentBranch = "unknown",
+        [string]$BranchType = "unknown"
     )
 
     # CRITICAL: Clean operations are FORBIDDEN on source branches for safety
@@ -1097,52 +1093,17 @@ function Invoke-CleanWorkspace {
         $result = Remove-AllAIFiles -DryRun:$DryRun -WorkspaceRoot $WorkspaceRoot
 
         if ($result.Success) {
-            # Check if this was a clean workspace (no files found)
-            if ($result.CleanWorkspace) {
-                # Simple, friendly message for already clean workspace - matches UX pattern
-                Write-Host ""
-                Write-Host "DETAILS:" -ForegroundColor Cyan
-                Write-Host "  Operation Type     : " -ForegroundColor Cyan -NoNewline
-                if ($DryRun) {
-                    Write-Host "Dry run (simulation)" -ForegroundColor Yellow
-                } else {
-                    Write-Host "Live cleanup" -ForegroundColor Yellow
-                }
-                Write-Host "  Files Removed      : " -ForegroundColor Cyan -NoNewline
-                Write-Host "0" -ForegroundColor Green
-                Write-Host "  Directories Cleaned: " -ForegroundColor Cyan -NoNewline
-                Write-Host "0" -ForegroundColor Green
-                Write-Host ""
-            } else {
-                # Show completion details for actual removals
-                Write-Host ""
-                Write-Host "DETAILS:" -ForegroundColor Cyan
+            # Use Show-OperationSummary for consistent format
+            $details = @(
+                "Branch Type: $BranchType",
+                "Target Branch: $CurrentBranch",
+                "Operation Type: $(if ($DryRun) { 'Dry run cleanup' } else { 'Live cleanup' })",
+                "Files Removed: $($result.FilesRemoved)",
+                "Directories Cleaned: $($result.DirectoriesCleaned)",
+                "Location: $WorkspaceRoot"
+            )
 
-                # Find the longest key for proper alignment
-                $operationType = if ($DryRun) { "Dry run (simulation)" } else { "Live cleanup" }
-                $details = @{
-                    "Operation Type" = $operationType
-                    "Files Removed" = $result.FilesRemoved
-                    "Directories Cleaned" = $result.DirectoriesCleaned
-                }
-
-                $longestKey = ($details.Keys | Sort-Object Length -Descending | Select-Object -First 1)
-
-                # Display each detail with consistent alignment
-                foreach ($key in $details.Keys) {
-                    $value = $details[$key]
-                    $formattedLabel = Format-AlignedLabel -Label $key -LongestLabel $longestKey
-
-                    Write-Host "  ${formattedLabel}: " -ForegroundColor Cyan -NoNewline
-
-                    # Numbers in green, text in yellow
-                    if ($value -match '^\d+$') {
-                        Write-Host $value -ForegroundColor Green
-                    } else {
-                        Write-Host $value -ForegroundColor Yellow
-                    }
-                }
-            }
+            Show-OperationSummary -OperationName "Cleanup" -Success $true -DryRun $DryRun -Details $details
             Write-Host ""
         } else {
             Write-Host ""

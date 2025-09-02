@@ -363,12 +363,11 @@ copy_files_with_stats() {
 validate_operation_allowed() {
     local workspace_root="$1"
     local operation_name="${2:-operation}"
+    local current_branch="$3"
+    local branch_type="$4"
 
     # CRITICAL: Source branch protection - prevent operations on source branches
     # Check if we're on a protected source branch (main, master, exp/terraform_copilot)
-    local current_branch
-    current_branch=$(cd "${workspace_root}" && git branch --show-current 2>/dev/null || echo "Unknown")
-
     case "${current_branch}" in
         "main"|"master"|"exp/terraform_copilot")
             show_safety_violation "${current_branch}" "${operation_name}" "false" "${workspace_root}"
@@ -507,11 +506,13 @@ remove_deprecated_files() {
 # Function to install AI infrastructure (moved from main script)
 install_infrastructure() {
     local workspace_root="$1"
+    local current_branch="$2"
+    local branch_type="$3"
 
     write_section "Installing AI Infrastructure"
 
     # Validate operation is allowed on current branch
-    if ! validate_operation_allowed "${workspace_root}" "installation"; then
+    if ! validate_operation_allowed "${workspace_root}" "installation" "${current_branch}" "${branch_type}"; then
         return 1
     fi
 
@@ -587,7 +588,7 @@ install_infrastructure() {
     install_all_files all_files file_destinations successful_files failed_files
 
     # Show comprehensive installation summary like PowerShell (no duplicate success message)
-    show_installation_summary "${workspace_root}" "${successful_files}" "${failed_files}" "${total_files}"
+    show_installation_summary "${workspace_root}" "${successful_files}" "${failed_files}" "${total_files}" "${current_branch}" "${branch_type}"
 }
 
 # Modular function to build unified file list with destination mappings
@@ -717,28 +718,10 @@ show_installation_summary() {
     local successful_files="$2"
     local failed_files="$3"
     local total_files="$4"
+    local current_branch="$5"
+    local branch_type="$6"
 
     local total_size_kb=486  # TODO: Calculate actual size
-
-    # Get current branch for summary
-    local current_branch="unknown"
-    if [[ -d "${workspace_root}/.git" ]]; then
-        current_branch=$(cd "${workspace_root}" && git branch --show-current 2>/dev/null || echo "unknown")
-    fi
-
-    # Determine branch type
-    local branch_type="feature"
-    case "${current_branch}" in
-        "main"|"master"|"exp/terraform_copilot")
-            branch_type="source"
-            ;;
-        "unknown"|"")
-            branch_type="unknown"
-            ;;
-        *)
-            branch_type="feature"
-            ;;
-    esac
 
     # Show detailed summary using the sophisticated show_operation_summary function
     # Clean branch_type variable to remove any potential line breaks or whitespace
@@ -814,6 +797,11 @@ get_files_for_cleanup() {
 # Function to clean AI infrastructure files with empty directory cleanup
 clean_infrastructure() {
     local workspace_root="$1"
+    local current_branch="$2"
+    local branch_type="$3"
+
+    # Show section header for cleanup operation
+    write_section "Clean Workspace"
 
     if [[ -z "${workspace_root}" ]]; then
         write_error_message "Workspace root directory not specified"
@@ -821,7 +809,7 @@ clean_infrastructure() {
     fi
 
     # Validate operation is allowed on current branch
-    if ! validate_operation_allowed "${workspace_root}" "cleanup"; then
+    if ! validate_operation_allowed "${workspace_root}" "cleanup" "${current_branch}" "${branch_type}"; then
         return 1
     fi
 
@@ -839,6 +827,24 @@ clean_infrastructure() {
     local directories_to_check=()
     local existing_directories=()
 
+    # Directories that should NEVER be removed (important repository infrastructure)
+    local protected_directories=(
+        ".github"           # Main GitHub directory contains workflows, issue templates, etc.
+        ".vscode"           # VS Code workspace settings and configurations
+        "internal"          # Core provider code
+        "vendor"            # Go dependencies
+        "scripts"           # Build and maintenance scripts
+        "website"           # Documentation
+        "examples"          # Example configurations
+        "helpers"           # Helper utilities
+    )
+
+    # AI directories that are safe to clean up (matches PowerShell version)
+    local ai_directories=(
+        ".github/instructions"
+        ".github/prompts"
+    )
+
     # Prepare file and directory lists
     for file in "${cleanup_files[@]}"; do
         local full_path="${workspace_root}/${file}"
@@ -852,7 +858,22 @@ clean_infrastructure() {
         # Add parent directory to list for empty directory cleanup
         local parent_dir="$(dirname "${full_path}")"
         if [[ "${parent_dir}" != "${workspace_root}" ]]; then
-            directories_to_check+=("${parent_dir}")
+            # Only allow cleanup of specific AI infrastructure directories
+            # This prevents accidental removal of important repository directories
+            local relative_dir="${parent_dir#${workspace_root}/}"
+            local allowed_for_cleanup=false
+
+            # Check if directory is in our safe AI directories list
+            for ai_dir in "${ai_directories[@]}"; do
+                if [[ "${relative_dir}" == "${ai_dir}" ]] || [[ "${relative_dir}" == "${ai_dir}/"* ]]; then
+                    allowed_for_cleanup=true
+                    break
+                fi
+            done
+
+            if [[ "${allowed_for_cleanup}" == "true" ]]; then
+                directories_to_check+=("${parent_dir}")
+            fi
         fi
     done
 
@@ -867,19 +888,27 @@ clean_infrastructure() {
     local unique_dirs=($(printf '%s\n' "${existing_directories[@]}" | sort -u))
     existing_directories=("${unique_dirs[@]}")
 
-    # If nothing exists, show clean message and exit early
+    # If nothing exists, show clean message and exit early (match PowerShell behavior)
     if [[ ${#existing_files[@]} -eq 0 ]] && [[ ${#existing_directories[@]} -eq 0 ]]; then
-        echo ""
-        write_green "No AI infrastructure files found to remove."
-        write_green "Workspace is already clean!"
-        echo ""
+        write_green " No AI infrastructure files found to remove."
+        write_green " Workspace is already clean!"
+
+        # Show detailed cleanup summary using the sophisticated show_operation_summary function
+        # for "already clean" scenario - follows PowerShell master order
+        show_operation_summary "Cleanup" "true" "${DRY_RUN:-false}" \
+            "Branch Type: ${branch_type}" \
+            "Target Branch: ${current_branch}" \
+            "Operation Type: $(if [[ "${DRY_RUN:-false}" == "true" ]]; then echo "Dry run cleanup"; else echo "Live cleanup"; fi)" \
+            "Files Removed: 0" \
+            "Directories Cleaned: 0" \
+            "Location: ${workspace_root}"
+
         return 0
     fi
 
     # Show scanning message
     write_cyan "Scanning for AI infrastructure files..."
     write_yellow "Found ${#existing_files[@]} AI files and ${#existing_directories[@]} directories to remove."
-    echo ""
 
     # Calculate maximum filename length for aligned output
     local max_name_length=0
@@ -909,15 +938,6 @@ clean_infrastructure() {
     local total_work=$((${#existing_files[@]} + ${#existing_directories[@]}))
     local work_completed=0
 
-    # Safety check to prevent division by zero
-    if [[ $total_work -eq 0 ]]; then
-        echo ""
-        write_green "No AI infrastructure files found to remove."
-        write_green "Workspace is already clean!"
-        echo ""
-        return 0
-    fi
-
     # Remove files (only process existing ones)
     for file in "${existing_files[@]}"; do
         # Increment work completed
@@ -933,97 +953,108 @@ clean_infrastructure() {
         local filename=$(basename "${file}")
         local full_path="${workspace_root}/${file}"
 
-        # Calculate padding for alignment
+        # Calculate padding for filename alignment (same as PowerShell)
         local filename_padding=""
         local padding_needed=$((max_name_length - ${#filename}))
         if [[ $padding_needed -gt 0 ]]; then
-            for ((i=0; i<padding_needed; i++)); do
-                filename_padding+=" "
-            done
+            filename_padding=$(printf "%*s" $padding_needed "")
         fi
 
-        # Display removal operation using PowerShell-matching format
-        printf "  Removing File      [%-3s]: %-50s" "${percent_complete}%" "${filename}"
+        # Dynamic padding for progress percentage alignment (matches PowerShell)
+        local progress_padding=""
+        if [[ $percent_complete -lt 10 ]]; then
+            progress_padding="  "  # 1-digit: 2 spaces
+        elif [[ $percent_complete -lt 100 ]]; then
+            progress_padding=" "   # 2-digit: 1 space
+        else
+            progress_padding=""    # 3-digit: 0 spaces
+        fi
+
+        # Display removal operation using exact PowerShell format
+        printf "  ${CYAN}Removing File      ${GREEN}[%s%%%s]${CYAN}: ${NC}%s%s " "${percent_complete}" "${progress_padding}" "${filename}" "${filename_padding}"
 
         if [[ "${DRY_RUN:-false}" == "true" ]]; then
-            echo -e " ${YELLOW}[WOULD REMOVE]${NC}"
+            echo -e "${YELLOW}[WOULD REMOVE]${NC}"
         else
             if rm -rf "${full_path}" 2>/dev/null; then
-                echo -e " ${GREEN}[OK]${NC}"
+                echo -e "${GREEN}[OK]${NC}"
             else
-                echo -e " ${RED}[FAILED]${NC}"
+                echo -e "${RED}[FAILED]${NC}"
             fi
         fi
     done
 
-    # Remove empty parent directories (only if not in dry-run mode)
-    if [[ "${DRY_RUN}" != "true" ]]; then
-        # Sort directories by depth (deepest first) to remove from bottom up
-        local sorted_dirs=($(printf '%s\n' "${existing_directories[@]}" | sort -r))
+    # Process directories (show progress in both dry-run and live modes)
+    # Sort directories by depth (deepest first) to remove from bottom up
+    local sorted_dirs=($(printf '%s\n' "${existing_directories[@]}" | sort -r))
 
-        for dir in "${sorted_dirs[@]}"; do
-            # Only remove if directory exists and is empty
+    for dir in "${sorted_dirs[@]}"; do
+        # Always increment work_completed for progress tracking (whether we remove or skip)
+        work_completed=$((work_completed + 1))
+
+        # Safe arithmetic with explicit error handling
+        local percent_complete=0
+        if [[ $total_work -gt 0 ]]; then
+            percent_complete=$(( (work_completed * 100) / total_work ))
+        fi
+
+        local dirname=$(basename "${dir}")
+
+        # Calculate padding for directory name alignment (same as files)
+        local dirname_padding=""
+        local padding_needed=$((max_name_length - ${#dirname}))
+        if [[ $padding_needed -gt 0 ]]; then
+            dirname_padding=$(printf "%*s" $padding_needed "")
+        fi
+
+        # Dynamic padding for progress percentage alignment (matches PowerShell)
+        local progress_padding=""
+        if [[ $percent_complete -lt 10 ]]; then
+            progress_padding="  "  # 1-digit: 2 spaces
+        elif [[ $percent_complete -lt 100 ]]; then
+            progress_padding=" "   # 2-digit: 1 space
+        else
+            progress_padding=""    # 3-digit: 0 spaces
+        fi
+
+        # Display directory removal using exact PowerShell format
+        printf "  ${CYAN}Removing Directory ${GREEN}[%s%%%s]${CYAN}: ${NC}%s%s " "${percent_complete}" "${progress_padding}" "${dirname}" "${dirname_padding}"
+
+        if [[ "${DRY_RUN:-false}" == "true" ]]; then
+            echo -e "${YELLOW}[WOULD REMOVE]${NC}"
+        else
+            # Only actually try to remove if directory exists and is empty (live mode only)
             if [[ -d "${dir}" ]] && [[ -z "$(ls -A "${dir}" 2>/dev/null)" ]]; then
-                work_completed=$((work_completed + 1))
-
-                # Safe arithmetic with explicit error handling
-                local percent_complete=0
-                if [[ $total_work -gt 0 ]]; then
-                    percent_complete=$(( (work_completed * 100) / total_work ))
-                fi
-
-                local dirname=$(basename "${dir}")
-
-                # Display directory removal using PowerShell-matching format
-                printf "  Removing Directory [%-3s]: %-50s" "${percent_complete}%" "${dirname}"
-
                 if rmdir "${dir}" 2>/dev/null; then
-                    echo -e " ${GREEN}[OK]${NC}"
+                    echo -e "${GREEN}[OK]${NC}"
                 else
-                    echo -e " ${YELLOW}[NOT EMPTY]${NC}"
+                    echo -e "${YELLOW}[NOT EMPTY]${NC}"
                 fi
+            else
+                # Directory doesn't exist or isn't empty - show as skipped
+                echo -e "${YELLOW}[SKIPPED]${NC}"
             fi
-        done
-    fi
+        fi
+    done
 
     # Count actual removed items for summary
     local files_removed=${#existing_files[@]}
     local dirs_removed=${#existing_directories[@]}
 
-    # Get current branch for summary
-    local current_branch="unknown"
-    if [[ -d "${workspace_root}/.git" ]]; then
-        current_branch=$(cd "${workspace_root}" && git branch --show-current 2>/dev/null || echo "unknown")
-    fi
-
-    # Determine branch type
-    local branch_type="feature"
-    case "${current_branch}" in
-        "main"|"master"|"exp/terraform_copilot")
-            branch_type="source"
-            ;;
-        "unknown"|"")
-            branch_type="unknown"
-            ;;
-        *)
-            branch_type="feature"
-            ;;
-    esac
-
     # Determine success status
     local success_status="true"  # Cleanup operations are considered successful unless there was an error
 
     # Show detailed cleanup summary using the sophisticated show_operation_summary function
-    # Clean branch_type variable to remove any potential line breaks or whitespace
+    # follows PowerShell master order
     branch_type=$(echo "${branch_type}" | tr -d '\r\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
     show_operation_summary "Cleanup" "${success_status}" "${DRY_RUN:-false}" \
         "Branch Type: ${branch_type}" \
         "Target Branch: ${current_branch}" \
+        "Operation Type: $(if [[ "${DRY_RUN:-false}" == "true" ]]; then echo "Dry run cleanup"; else echo "Live cleanup"; fi)" \
         "Files Removed: ${files_removed}" \
-        "Directories Cleaned:${dirs_removed}" \
-        "Operation Type:$(if [[ "${DRY_RUN:-false}" == "true" ]]; then echo "Dry run cleanup"; else echo "Live cleanup"; fi)" \
-        "Location:${workspace_root}"
+        "Directories Cleaned: ${dirs_removed}" \
+        "Location: ${workspace_root}"
 
     # Disable error tracing
     set +e

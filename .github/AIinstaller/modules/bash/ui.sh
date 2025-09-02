@@ -179,6 +179,9 @@ show_operation_summary() {
         local -a expected_order
         if [[ "${operation_name,,}" == "verification" ]]; then
             expected_order=("Branch Type" "Target Branch" "Files Verified" "Issues Found" "Location")
+        elif [[ "${operation_name,,}" == "cleanup" ]]; then
+            # Always use full cleanup order - follows PowerShell master order
+            expected_order=("Branch Type" "Target Branch" "Operation Type" "Files Removed" "Directories Cleaned" "Location")
         else
             # Installation operation order
             expected_order=("Branch Type" "Target Branch" "Files Installed" "Items Successful" "Total Size" "Location")
