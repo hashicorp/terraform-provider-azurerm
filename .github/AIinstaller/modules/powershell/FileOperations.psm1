@@ -524,8 +524,11 @@ function Remove-AllAIFiles {
                 ".github/prompts"
             )
 
+            # Normalize path separators for cross-platform compatibility
+            $normalizedDirectory = $directory -replace '\\', '/'
+
             foreach ($aiDir in $aiDirectories) {
-                if ($directory -eq $aiDir -or $directory.StartsWith("$aiDir/")) {
+                if ($normalizedDirectory -eq $aiDir -or $normalizedDirectory.StartsWith("$aiDir/")) {
                     $allowedForCleanup = $true
                     break
                 }
