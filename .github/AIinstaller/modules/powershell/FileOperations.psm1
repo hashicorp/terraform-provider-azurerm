@@ -1056,12 +1056,7 @@ function Invoke-Bootstrap {
 
         if ($statistics["Files Failed"] -eq 0) {
             # Use centralized success reporting
-            $totalProcessed = ($statistics["Files Copied"] + $statistics["Files Downloaded"])
-            Show-OperationSummary -OperationName "Bootstrap" -Success $true -DryRun $false `
-                -ItemsProcessed $totalProcessed `
-                -ItemsSuccessful $totalProcessed `
-                -ItemsFailed $statistics["Files Failed"] `
-                -Details $details
+            Show-OperationSummary -OperationName "Bootstrap" -Success $true -DryRun $false -Details $details
 
             # Show next steps using UI module function
             Show-BootstrapNextSteps
@@ -1076,12 +1071,7 @@ function Invoke-Bootstrap {
             }
         } else {
             # Use centralized failure reporting
-            $totalProcessed = ($statistics["Files Copied"] + $statistics["Files Downloaded"] + $statistics["Files Failed"])
-            Show-OperationSummary -OperationName "Bootstrap" -Success $false -DryRun $false `
-                -ItemsProcessed $totalProcessed `
-                -ItemsSuccessful ($statistics["Files Copied"] + $statistics["Files Downloaded"]) `
-                -ItemsFailed $statistics["Files Failed"] `
-                -Details $details
+            Show-OperationSummary -OperationName "Bootstrap" -Success $false -DryRun $false -Details $details
 
             return @{
                 Success = $false

@@ -780,11 +780,7 @@ function Invoke-VerifyWorkspace {
         $details += "Location: $workspaceRoot"
 
         # Use centralized success reporting
-        Show-OperationSummary -OperationName "Verification" -Success ($issuesFound -eq 0) -DryRun $false `
-            -ItemsProcessed $totalItemsChecked `
-            -ItemsSuccessful $itemsSuccessful `
-            -ItemsFailed $issuesFound `
-            -Details $details
+        Show-OperationSummary -OperationName "Verification" -Success ($issuesFound -eq 0) -DryRun $false -Details $details
 
         return $results
     }
