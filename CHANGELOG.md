@@ -11,6 +11,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+* `azurerm_virtual_machine` - fix potential panic caused by the hash function for the `os_profile_linux_config` block [GH-30456]
 * `azurerm_kubernetes_cluster`, `azurerm_kubernetes_cluster_node_pool` - remove read-only field `NodeImageVersion` when cycle node pool [GH-30416]
 
 ## 4.42.0 (August 28, 2025)
