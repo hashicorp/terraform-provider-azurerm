@@ -257,6 +257,7 @@ catch {
 
 # Initialize workspace root after module loading
 $Global:WorkspaceRoot = $null
+$Global:ScriptRoot = $null
 
 # Configuration will be loaded on-demand in functions that need it
 $Global:ManifestConfig = $null
@@ -302,6 +303,7 @@ function Main {
      try {
         # Step 1: Initialize workspace and validate it's a proper terraform-provider-azurerm repo
         $Global:WorkspaceRoot = Get-WorkspaceRoot -RepoDirectory $RepoDirectory -ScriptDirectory $ScriptDirectory
+        $Global:ScriptRoot = $ScriptDirectory
 
         # Step 2: Early workspace validation before doing anything else
         $workspaceValidation = Test-WorkspaceValid -WorkspacePath $Global:WorkspaceRoot
@@ -427,8 +429,13 @@ function Main {
         }
 
         if ($Bootstrap) {
-            Invoke-Bootstrap -CurrentBranch $currentBranch -BranchType $branchType | Out-Null
-            return
+            $result = Invoke-Bootstrap -CurrentBranch $currentBranch -BranchType $branchType
+            if ($result.Success) {
+                exit 0
+            } else {
+                Write-Host "Bootstrap failed: $($result.Error)" -ForegroundColor Red
+                exit 1
+            }
         }
 
         if ($Clean) {
@@ -446,6 +453,7 @@ function Main {
         # Default: show source branch help and welcome
         Show-SourceBranchHelp
         Show-SourceBranchWelcome -BranchName $currentBranch
+        return
     }
     catch {
         Write-Host ""

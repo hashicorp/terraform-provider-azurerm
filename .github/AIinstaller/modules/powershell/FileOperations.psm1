@@ -881,11 +881,9 @@ function Test-BootstrapPrerequisites {
     $true if validation passes, $false if validation fails
     #>
     param(
-        [Parameter(Mandatory)]
-        [string]$CurrentBranch,
+        [string]$CurrentBranch = "unknown",
 
-        [Parameter(Mandatory)]
-        [string]$BranchType,
+        [string]$BranchType = "unknown",
 
         [Parameter(Mandatory)]
         [string]$ScriptDirectory
@@ -936,7 +934,6 @@ function Invoke-Bootstrap {
         if (-not (Test-BootstrapPrerequisites -CurrentBranch $CurrentBranch -BranchType $BranchType -ScriptDirectory $Global:ScriptRoot)) {
             return @{
                 Success = $false
-                Error = "Bootstrap validation failed"
             }
         }
 
@@ -1083,7 +1080,7 @@ function Invoke-Bootstrap {
             Show-BootstrapNextSteps
 
             # Show welcome message after successful bootstrap
-            Show-SourceBranchWelcome
+            Show-SourceBranchWelcome -BranchName $CurrentBranch
 
             return @{
                 Success = $true
