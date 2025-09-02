@@ -1397,8 +1397,7 @@ func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUp
 		setting.NodeSoakDurationInMinutes = pointer.To(int64(nodeSoakDurationInMinutesRaw))
 	}
 	if undrainableNodeBehaviorRaw, ok := v["undrainable_node_behavior"].(string); ok && undrainableNodeBehaviorRaw != "" {
-		parsed := agentpools.UndrainableNodeBehavior(undrainableNodeBehaviorRaw)
-		setting.UndrainableNodeBehavior = &parsed
+		setting.UndrainableNodeBehavior = pointer.To(agentpools.UndrainableNodeBehavior(undrainableNodeBehaviorRaw))
 	}
 	return setting
 }

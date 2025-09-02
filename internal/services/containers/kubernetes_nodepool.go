@@ -793,8 +793,7 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 			agentpool.Properties.UpgradeSettings.NodeSoakDurationInMinutes = upgradeSettingsNodePool.NodeSoakDurationInMinutes
 		}
 		if upgradeSettingsNodePool.UndrainableNodeBehavior != nil {
-			behavior := agentpools.UndrainableNodeBehavior(*upgradeSettingsNodePool.UndrainableNodeBehavior)
-			agentpool.Properties.UpgradeSettings.UndrainableNodeBehavior = &behavior
+			agentpool.Properties.UpgradeSettings.UndrainableNodeBehavior = pointer.To(agentpools.UndrainableNodeBehavior(*upgradeSettingsNodePool.UndrainableNodeBehavior))
 		}
 	}
 	if workloadRuntimeNodePool := defaultCluster.WorkloadRuntime; workloadRuntimeNodePool != nil {
@@ -1814,8 +1813,7 @@ func expandClusterNodePoolUpgradeSettings(input []interface{}) *managedclusters.
 		setting.NodeSoakDurationInMinutes = pointer.To(int64(nodeSoakDurationInMinutesRaw))
 	}
 	if undrainableNodeBehaviorRaw, ok := v["undrainable_node_behavior"].(string); ok && undrainableNodeBehaviorRaw != "" {
-		parsed := managedclusters.UndrainableNodeBehavior(undrainableNodeBehaviorRaw)
-		setting.UndrainableNodeBehavior = &parsed
+		setting.UndrainableNodeBehavior = pointer.To(managedclusters.UndrainableNodeBehavior(undrainableNodeBehaviorRaw))
 	}
 
 	return setting
