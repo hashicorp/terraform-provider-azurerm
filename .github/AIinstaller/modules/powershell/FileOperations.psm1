@@ -292,8 +292,19 @@ function Install-AllAIFiles {
         $manifestConfig = Get-ManifestConfig -Branch $Branch
     }
     $allFiles = @()
-    foreach ($section in $manifestConfig.Sections.Keys) {
-        $allFiles += $manifestConfig.Sections[$section]
+    # Only include infrastructure files, not bootstrap installer files
+    # This matches the cleanup process logic
+    if ($manifestConfig.Sections.MAIN_FILES) {
+        $allFiles += $manifestConfig.Sections.MAIN_FILES
+    }
+    if ($manifestConfig.Sections.INSTRUCTION_FILES) {
+        $allFiles += $manifestConfig.Sections.INSTRUCTION_FILES
+    }
+    if ($manifestConfig.Sections.PROMPT_FILES) {
+        $allFiles += $manifestConfig.Sections.PROMPT_FILES
+    }
+    if ($manifestConfig.Sections.UNIVERSAL_FILES) {
+        $allFiles += $manifestConfig.Sections.UNIVERSAL_FILES
     }
 
     $results = @{
@@ -503,41 +514,24 @@ function Remove-AllAIFiles {
     foreach ($filePath in $allFiles) {
         $directory = Split-Path $filePath -Parent
         if ($directory -and -not $uniqueDirectories.ContainsKey($directory)) {
-            # Skip protected directories - we only clean up specific AI subdirectories
-            $isProtected = $false
+            # Only allow cleanup of specific AI infrastructure directories
+            # This prevents accidental removal of important repository directories
+            $allowedForCleanup = $false
 
-            # Allow specific AI infrastructure directories under .github
-            # Note: AIinstaller directories are only handled during bootstrap, not main installation
-            $allowedAIDirectories = @(
+            # AI directories that are safe to clean up
+            $aiDirectories = @(
                 ".github/instructions",
                 ".github/prompts"
             )
 
-            $isAllowedAI = $false
-            foreach ($allowed in $allowedAIDirectories) {
-                if ($directory -eq $allowed -or $directory.StartsWith("$allowed/")) {
-                    $isAllowedAI = $true
+            foreach ($aiDir in $aiDirectories) {
+                if ($directory -eq $aiDir -or $directory.StartsWith("$aiDir/")) {
+                    $allowedForCleanup = $true
                     break
                 }
             }
 
-            if (-not $isAllowedAI) {
-                # Check if it's a hidden directory (starts with .) - these often contain user settings
-                $dirName = Split-Path $directory -Leaf
-                if ($dirName.StartsWith(".")) {
-                    $isProtected = $true
-                } else {
-                    # Check against explicit protected directories list
-                    foreach ($protected in $protectedDirectories) {
-                        if ($directory -eq $protected) {
-                            $isProtected = $true
-                            break
-                        }
-                    }
-                }
-            }
-
-            if (-not $isProtected) {
+            if ($allowedForCleanup) {
                 $uniqueDirectories[$directory] = $true
                 $directoriesToCheck += $directory
             }
@@ -784,72 +778,6 @@ function Remove-AllAIFiles {
     Write-Host "Completed AI infrastructure removal." -ForegroundColor Green
 
     return $results
-}
-
-function Remove-EmptyParentDirectories {
-    <#
-    .SYNOPSIS
-    Simple cleanup of empty directories after files are removed
-    #>
-    param(
-        [string[]]$DirectoriesToCheck,
-        [string]$WorkspaceRoot,
-        [bool]$DryRun = $false
-    )
-
-    $cleanedCount = 0
-
-    # Get all unique directories that might be empty now
-    $allDirs = @()
-    foreach ($dir in $DirectoriesToCheck) {
-        $resolvedDir = if ($WorkspaceRoot -and -not [System.IO.Path]::IsPathRooted($dir)) {
-            Join-Path $WorkspaceRoot $dir
-        } else {
-            $dir
-        }
-
-        # Add this directory and all its parents up to .github
-        $currentDir = $resolvedDir
-        while ($currentDir -and $currentDir -ne $WorkspaceRoot) {
-            $relativePath = $currentDir.Replace($WorkspaceRoot, "").TrimStart('\', '/').Replace('\', '/')
-
-            # Only process directories under .github that are AI-related
-            if ($relativePath.StartsWith(".github/AIinstaller") -or
-                $relativePath.StartsWith(".github/instructions") -or
-                $relativePath.StartsWith(".github/prompts")) {
-                $allDirs += $currentDir
-            }
-
-            $currentDir = Split-Path $currentDir -Parent
-        }
-    }
-
-    # Remove duplicates and sort by depth (deepest first)
-    $uniqueDirs = $allDirs | Sort-Object -Unique | Sort-Object { ($_ -split '[/\\]').Count } -Descending
-
-    # Remove empty directories
-    foreach ($dir in $uniqueDirs) {
-        if ((Test-Path $dir -PathType Container) -and ((Get-ChildItem $dir -Force).Count -eq 0)) {
-            $dirName = Split-Path $dir -Leaf
-            Write-Host "  Cleaning Directory: $dirName" -NoNewline
-
-            if ($DryRun) {
-                Write-Host " [WOULD REMOVE]" -ForegroundColor Yellow
-                $cleanedCount++
-            } else {
-                try {
-                    Remove-Item -Path $dir -Force -ErrorAction Stop
-                    Write-Host " [OK]" -ForegroundColor Green
-                    $cleanedCount++
-                }
-                catch {
-                    Write-Host " [FAILED]" -ForegroundColor Red
-                }
-            }
-        }
-    }
-
-    return $cleanedCount
 }
 
 function Remove-DeprecatedFiles {
