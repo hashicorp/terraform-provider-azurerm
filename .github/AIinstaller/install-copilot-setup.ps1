@@ -427,7 +427,7 @@ function Main {
         }
 
         if ($Bootstrap) {
-            Invoke-Bootstrap -DryRun $DryRun | Out-Null
+            Invoke-Bootstrap -CurrentBranch $currentBranch -BranchType $branchType | Out-Null
             return
         }
 

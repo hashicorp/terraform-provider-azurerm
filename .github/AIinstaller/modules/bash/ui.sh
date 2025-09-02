@@ -819,10 +819,7 @@ show_unknown_branch_help() {
 show_source_branch_welcome() {
     local branch_name="${1:-exp/terraform_copilot}"
 
-    echo ""
-    write_green " WELCOME TO AI-ASSISTED AZURERM TERRAFORM DEVELOPMENT"
-    echo ""
-    write_cyan "Use the contextual help system above to get started."
+    write_green " WELCOME TO AI-ASSISTED TERRAFORM AZURERM DEVELOPMENT"
     echo ""
 }
 

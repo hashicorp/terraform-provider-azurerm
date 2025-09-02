@@ -863,13 +863,72 @@ function Remove-DeprecatedFiles {
     return $deprecatedFiles
 }
 
+function Test-BootstrapPrerequisites {
+    <#
+    .SYNOPSIS
+    Validates that bootstrap operation is allowed under current conditions
+
+    .PARAMETER CurrentBranch
+    Current git branch name
+
+    .PARAMETER BranchType
+    Type of branch (source/feature/unknown)
+
+    .PARAMETER ScriptDirectory
+    Directory where the script is located
+
+    .RETURNS
+    $true if validation passes, $false if validation fails
+    #>
+    param(
+        [Parameter(Mandatory)]
+        [string]$CurrentBranch,
+
+        [Parameter(Mandatory)]
+        [string]$BranchType,
+
+        [Parameter(Mandatory)]
+        [string]$ScriptDirectory
+    )
+
+    # Rule 1: Must be on exp/terraform_copilot branch
+    if ($CurrentBranch -ne "exp/terraform_copilot") {
+        Write-Host ""
+        Write-Host " ERROR: Bootstrap operation is only allowed from the exp/terraform_copilot branch" -ForegroundColor Red
+        Write-Host " Current branch: '$CurrentBranch'" -ForegroundColor Red
+        Write-Host ""
+        Write-Host " Switch to the correct branch: git checkout exp/terraform_copilot" -ForegroundColor Cyan
+        return $false
+    }
+
+    return $true
+}
+
 function Invoke-Bootstrap {
     <#
     .SYNOPSIS
     Copy installer files to user profile for feature branch use
+
+    .PARAMETER CurrentBranch
+    Current git branch name
+
+    .PARAMETER BranchType
+    Type of branch (source/feature/unknown)
     #>
+    param(
+        [string]$CurrentBranch = "unknown",
+        [string]$BranchType = "unknown"
+    )
 
     try {
+        # Validate bootstrap prerequisites before proceeding
+        if (-not (Test-BootstrapPrerequisites -CurrentBranch $CurrentBranch -BranchType $BranchType -ScriptDirectory $Global:ScriptRoot)) {
+            return @{
+                Success = $false
+                Error = "Bootstrap validation failed"
+            }
+        }
+
         # Show operation title (main header already displayed by caller)
         Write-Host " Bootstrap - Copying Installer to User Profile" -ForegroundColor Cyan
         Write-Separator
@@ -1011,6 +1070,9 @@ function Invoke-Bootstrap {
 
             # Show next steps using UI module function
             Show-BootstrapNextSteps
+
+            # Show welcome message after successful bootstrap
+            Show-SourceBranchWelcome
 
             return @{
                 Success = $true

@@ -265,7 +265,7 @@ main() {
         exit 0
     fi
 
-    # STEP 9: For all other operations, workspace must be valid
+    # STEP 9: For all operations, workspace must be valid (each operation handles its own specific validation)
     if [[ "${workspace_valid}" != "true" ]]; then
         show_workspace_validation_error "${workspace_reason}" "$([[ -n "${REPO_DIRECTORY}" ]] && echo "true" || echo "false")"
 
@@ -284,8 +284,8 @@ main() {
         # Show operation title (main header already displayed)
         write_section "Bootstrap - Copying Installer to User Profile"
 
-        # Execute the bootstrap operation
-        if bootstrap_files_to_profile "${SCRIPT_DIR}" "$(get_user_profile)" "${SCRIPT_DIR}/file-manifest.config"; then
+        # Execute the bootstrap operation with built-in validation
+        if bootstrap_files_to_profile "$(pwd)" "$(get_user_profile)" "${SCRIPT_DIR}/file-manifest.config" "${current_branch}" "${branch_type}" "${SCRIPT_DIR}"; then
             # Show detailed summary with next steps
             local user_profile
             user_profile=$(get_user_profile)
@@ -302,8 +302,10 @@ main() {
                 "2. Run the installer from your user profile:" \
                 "   cd ~/.terraform-ai-installer" \
                 "   ./install-copilot-setup.sh -repo-directory \"<path-to-your-terraform-provider-azurerm>\""
+
+            # Show welcome message after successful bootstrap
+            show_source_branch_welcome "${current_branch}"
         else
-            write_error_message "Bootstrap operation failed"
             exit 1
         fi
         exit 0

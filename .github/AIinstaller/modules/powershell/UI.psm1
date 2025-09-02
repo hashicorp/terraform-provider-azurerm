@@ -319,10 +319,7 @@ function Show-SourceBranchWelcome {
         [string]$BranchName
     )
 
-    Write-Host ""
-    Write-Host " WELCOME TO AI-ASSISTED AZURERM TERRAFORM DEVELOPMENT" -ForegroundColor Green
-    Write-Host ""
-    Write-Host "Use the contextual help system above to get started." -ForegroundColor Cyan
+    Write-Host " WELCOME TO AI-ASSISTED TERRAFORM AZURERM DEVELOPMENT" -ForegroundColor Green
     Write-Host ""
 }
 

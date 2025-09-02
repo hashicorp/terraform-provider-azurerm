@@ -39,6 +39,37 @@ is_source_repository() {
     return 1
 }
 
+# Function to validate bootstrap operation prerequisites
+validate_bootstrap_prerequisites() {
+    local current_dir="$1"
+    local user_profile="$2"
+    local current_branch="$3"
+    local branch_type="$4"
+
+    # Rule 1: CRITICAL - Must NOT be running from user profile directory
+    # Bootstrap should ONLY be run from the source repository, never from ~/.terraform-ai-installer
+    if [[ "${current_dir}" == *".terraform-ai-installer"* ]]; then
+        write_red " BOOTSTRAP VIOLATION: Cannot run bootstrap from user profile directory"
+        echo ""
+        write_yellow " Bootstrap must be run from the source terraform-provider-azurerm repository."
+        write_yellow " You are currently running from: '${current_dir}'"
+        echo ""
+        print_separator
+        echo ""
+        write_cyan "SOLUTION:"
+        write_cyan "  Navigate to the exp/terraform_copilot branch::"
+        write_plain "    cd \"<path-to-your-terraform-provider-azurerm>\""
+        write_plain "    git checkout exp/terraform_copilot"
+        echo ""
+        write_cyan "  Then run bootstrap from there:"
+        write_plain "    ./.github/AIinstaller/install-copilot-setup.sh -bootstrap"
+        echo ""
+        return 1
+    fi
+
+    return 0
+}
+
 # Function to copy file with progress
 copy_file() {
     local source="$1"
@@ -800,16 +831,16 @@ clean_infrastructure() {
     local current_branch="$2"
     local branch_type="$3"
 
-    # Show section header for cleanup operation
-    write_section "Clean Workspace"
-
-    if [[ -z "${workspace_root}" ]]; then
-        write_error_message "Workspace root directory not specified"
+    # CRITICAL: Clean operations are FORBIDDEN on source branches for safety
+    # Validate operation is allowed on current branch BEFORE showing section header
+    if ! validate_operation_allowed "${workspace_root}" "cleanup" "${current_branch}" "${branch_type}"; then
         return 1
     fi
 
-    # Validate operation is allowed on current branch
-    if ! validate_operation_allowed "${workspace_root}" "cleanup" "${current_branch}" "${branch_type}"; then
+    # Show section header for cleanup operation
+    write_section "Clean Workspace"
+    if [[ -z "${workspace_root}" ]]; then
+        write_error_message "Workspace root directory not specified"
         return 1
     fi
 
@@ -829,14 +860,14 @@ clean_infrastructure() {
 
     # Directories that should NEVER be removed (important repository infrastructure)
     local protected_directories=(
-        ".github"           # Main GitHub directory contains workflows, issue templates, etc.
-        ".vscode"           # VS Code workspace settings and configurations
-        "internal"          # Core provider code
-        "vendor"            # Go dependencies
-        "scripts"           # Build and maintenance scripts
-        "website"           # Documentation
-        "examples"          # Example configurations
-        "helpers"           # Helper utilities
+        ".github"  # Main GitHub directory contains workflows, issue templates, etc.
+        ".vscode"  # VS Code workspace settings and configurations
+        "internal" # Core provider code
+        "vendor"   # Go dependencies
+        "scripts"  # Build and maintenance scripts
+        "website"  # Documentation
+        "examples" # Example configurations
+        "helpers"  # Helper utilities
     )
 
     # AI directories that are safe to clean up (matches PowerShell version)
@@ -1065,9 +1096,17 @@ clean_infrastructure() {
 
 # Function to perform bootstrap operation (copy installer files to user profile)
 bootstrap_files_to_profile() {
-    local script_dir="$1"
+    local current_dir="$1"
     local user_profile="$2"
     local manifest_file="$3"
+    local current_branch="$4"
+    local branch_type="$5"
+    local script_dir="$6"
+
+    # Validate bootstrap prerequisites before proceeding
+    if ! validate_bootstrap_prerequisites "${current_dir}" "${user_profile}" "${current_branch}" "${branch_type}"; then
+        return 1
+    fi
 
     # Get bootstrap files from configuration
     local bootstrap_files_list
@@ -1181,7 +1220,7 @@ bootstrap_files_to_profile() {
 # ==============================================================================
 
 # Export all functions for use in other scripts
-export -f get_workspace_root is_source_repository validate_operation_allowed
+export -f get_workspace_root is_source_repository validate_operation_allowed validate_bootstrap_prerequisites
 export -f copy_file download_file get_file_size get_directory_size create_directory_structure
 export -f remove_path backup_file verify_file make_executable copy_files_with_stats
 export -f remove_deprecated_files install_infrastructure clean_infrastructure bootstrap_files_to_profile
