@@ -291,10 +291,9 @@ main() {
             user_profile=$(get_user_profile)
             local size_kb=$((BOOTSTRAP_STATS_TOTAL_SIZE / 1024))
             show_operation_summary "Bootstrap" "true" "false" \
-                "Items Successful:${BOOTSTRAP_STATS_FILES_COPIED}" \
+                "Files Copied:${BOOTSTRAP_STATS_FILES_COPIED}" \
                 "Total Size:${size_kb} KB" \
                 "Location:${user_profile}" \
-                "Files Copied:${BOOTSTRAP_STATS_FILES_COPIED}" \
                 --next-steps \
                 "1. Switch to your feature branch:" \
                 "   git checkout feature/your-branch-name" \

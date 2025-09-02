@@ -743,6 +743,82 @@ get_download_category() {
     fi
 }
 
+# Function to calculate total size of files in KB
+calculate_installed_files_size() {
+    local workspace_root="$1"
+    local manifest_file="${HOME}/.terraform-ai-installer/file-manifest.config"
+    local total_size_bytes=0
+
+    # Return 0 if manifest doesn't exist
+    if [[ ! -f "${manifest_file}" ]]; then
+        echo "0"
+        return
+    fi
+
+    # Get all file lists from manifest
+    local all_files=()
+    local main_files instruction_files prompt_files universal_files
+
+    readarray -t main_files < <(get_manifest_files "MAIN_FILES" "${manifest_file}" 2>/dev/null || true)
+    readarray -t instruction_files < <(get_manifest_files "INSTRUCTION_FILES" "${manifest_file}" 2>/dev/null || true)
+    readarray -t prompt_files < <(get_manifest_files "PROMPT_FILES" "${manifest_file}" 2>/dev/null || true)
+    readarray -t universal_files < <(get_manifest_files "UNIVERSAL_FILES" "${manifest_file}" 2>/dev/null || true)
+
+    # Calculate total size by checking each installed file
+    for file in "${main_files[@]}"; do
+        [[ -z "${file}" ]] && continue
+        local target_path="${workspace_root}/${file}"
+        if [[ -f "${target_path}" ]]; then
+            local file_size
+            file_size=$(stat -f%z "${target_path}" 2>/dev/null || stat -c%s "${target_path}" 2>/dev/null || echo "0")
+            total_size_bytes=$((total_size_bytes + file_size))
+        fi
+    done
+
+    # Check instruction files
+    for file in "${instruction_files[@]}"; do
+        [[ -z "${file}" ]] && continue
+        local filename=$(basename "${file}")
+        local target_path="${workspace_root}/.github/instructions/${filename}"
+        if [[ -f "${target_path}" ]]; then
+            local file_size
+            file_size=$(stat -f%z "${target_path}" 2>/dev/null || stat -c%s "${target_path}" 2>/dev/null || echo "0")
+            total_size_bytes=$((total_size_bytes + file_size))
+        fi
+    done
+
+    # Check prompt files
+    for file in "${prompt_files[@]}"; do
+        [[ -z "${file}" ]] && continue
+        local filename=$(basename "${file}")
+        local target_path="${workspace_root}/.github/prompts/${filename}"
+        if [[ -f "${target_path}" ]]; then
+            local file_size
+            file_size=$(stat -f%z "${target_path}" 2>/dev/null || stat -c%s "${target_path}" 2>/dev/null || echo "0")
+            total_size_bytes=$((total_size_bytes + file_size))
+        fi
+    done
+
+    # Check universal files
+    for file in "${universal_files[@]}"; do
+        [[ -z "${file}" ]] && continue
+        local target_path="${workspace_root}/${file}"
+        if [[ -f "${target_path}" ]]; then
+            local file_size
+            file_size=$(stat -f%z "${target_path}" 2>/dev/null || stat -c%s "${target_path}" 2>/dev/null || echo "0")
+            total_size_bytes=$((total_size_bytes + file_size))
+        fi
+    done
+
+    # Convert to KB (rounded up)
+    local total_size_kb=$((total_size_bytes / 1024))
+    if [[ $((total_size_bytes % 1024)) -gt 0 ]]; then
+        total_size_kb=$((total_size_kb + 1))
+    fi
+
+    echo "${total_size_kb}"
+}
+
 # Comprehensive installation summary (matching PowerShell style)
 show_installation_summary() {
     local workspace_root="$1"
@@ -752,7 +828,10 @@ show_installation_summary() {
     local current_branch="$5"
     local branch_type="$6"
 
-    local total_size_kb=486  # TODO: Calculate actual size
+    # Calculate actual total size of installed files
+    local total_size_kb
+    total_size_kb=$(calculate_installed_files_size "${workspace_root}")
+    local skipped_files=$((total_files - successful_files - failed_files))
 
     # Show detailed summary using the sophisticated show_operation_summary function
     # Clean branch_type variable to remove any potential line breaks or whitespace
@@ -761,9 +840,9 @@ show_installation_summary() {
     show_operation_summary "Installation" "true" "false" \
         "Branch Type: ${branch_type}" \
         "Target Branch: ${current_branch}" \
-        "Items Successful: ${successful_files}" \
-        "Total Size: ${total_size_kb} KB" \
         "Files Installed: ${successful_files}" \
+        "Total Size: ${total_size_kb} KB" \
+        "Files Skipped: ${skipped_files}" \
         "Location: ${workspace_root}"
 }
 

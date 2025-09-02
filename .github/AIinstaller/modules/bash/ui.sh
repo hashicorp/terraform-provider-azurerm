@@ -182,9 +182,12 @@ show_operation_summary() {
         elif [[ "${operation_name,,}" == "cleanup" ]]; then
             # Always use full cleanup order - follows PowerShell master order
             expected_order=("Branch Type" "Target Branch" "Operation Type" "Files Removed" "Directories Cleaned" "Location")
+        elif [[ "${operation_name,,}" == "bootstrap" ]]; then
+            # Bootstrap operation order (matches PowerShell)
+            expected_order=("Files Copied" "Total Size" "Location")
         else
             # Installation operation order
-            expected_order=("Branch Type" "Target Branch" "Files Installed" "Items Successful" "Total Size" "Location")
+            expected_order=("Branch Type" "Target Branch" "Files Installed" "Total Size" "Files Skipped" "Location")
         fi
 
         # Create ordered display array
