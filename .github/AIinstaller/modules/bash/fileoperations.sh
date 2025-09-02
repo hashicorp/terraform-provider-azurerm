@@ -57,11 +57,11 @@ validate_bootstrap_prerequisites() {
         print_separator
         echo ""
         write_cyan "SOLUTION:"
-        write_cyan "  Navigate to the exp/terraform_copilot branch::"
+        write_cyan "  1. Navigate to the exp/terraform_copilot branch::"
         write_plain "    cd \"<path-to-your-terraform-provider-azurerm>\""
         write_plain "    git checkout exp/terraform_copilot"
         echo ""
-        write_cyan "  Then run bootstrap from there:"
+        write_cyan "  2. Then run bootstrap from there:"
         write_plain "    ./.github/AIinstaller/install-copilot-setup.sh -bootstrap"
         echo ""
         return 1

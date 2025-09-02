@@ -891,13 +891,24 @@ function Test-BootstrapPrerequisites {
         [string]$ScriptDirectory
     )
 
-    # Rule 1: Must be on exp/terraform_copilot branch
-    if ($CurrentBranch -ne "exp/terraform_copilot") {
+    # Rule 1: Must NOT be running from user profile directory
+    $userProfileInstallerPath = Join-Path $env:USERPROFILE ".terraform-ai-installer"
+    if ($ScriptDirectory -like "*$userProfileInstallerPath*") {
+        Write-Host " BOOTSTRAP VIOLATION: Cannot run bootstrap from user profile directory" -ForegroundColor Red
         Write-Host ""
-        Write-Host " ERROR: Bootstrap operation is only allowed from the exp/terraform_copilot branch" -ForegroundColor Red
-        Write-Host " Current branch: '$CurrentBranch'" -ForegroundColor Red
+        Write-Host " Bootstrap must be run from the source terraform-provider-azurerm repository." -ForegroundColor Yellow
+        Write-Host " You are currently running from: '$ScriptDirectory'" -ForegroundColor Yellow
         Write-Host ""
-        Write-Host " Switch to the correct branch: git checkout exp/terraform_copilot" -ForegroundColor Cyan
+        Write-Separator
+        Write-Host ""
+        Write-Host "SOLUTION:" -ForegroundColor Cyan
+        Write-Host "  1. Navigate to the exp/terraform_copilot branch::" -ForegroundColor Cyan
+        Write-Host "    cd `"<path-to-your-terraform-provider-azurerm>`"" -ForegroundColor White
+        Write-Host "    git checkout exp/terraform_copilot" -ForegroundColor White
+        Write-Host ""
+        Write-Host "  2. Then run bootstrap from there:" -ForegroundColor Cyan
+        Write-Host "    .\.github\AIinstaller\install-copilot-setup.ps1 -Bootstrap" -ForegroundColor White
+        Write-Host ""
         return $false
     }
 
