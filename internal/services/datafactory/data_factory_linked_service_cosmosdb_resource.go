@@ -261,12 +261,12 @@ func resourceDataFactoryLinkedServiceCosmosDbRead(d *pluginsdk.ResourceData, met
 		}
 	}
 
-	accountEndpoint := cosmosdb.CosmosDbLinkedServiceTypeProperties.AccountEndpoint
+	accountEndpoint := cosmosdb.AccountEndpoint
 	if accountEndpoint != "" {
 		d.Set("account_endpoint", accountEndpoint)
 	}
 
-	databaseName := cosmosdb.CosmosDbLinkedServiceTypeProperties.Database
+	databaseName := cosmosdb.Database
 	d.Set("database", databaseName)
 
 	return nil
