@@ -21,7 +21,7 @@ func LinuxComputerNamePrefix(i interface{}, k string) (warnings []string, errors
 func LinuxComputerName(i interface{}, k string, maxLength int, allowDashSuffix bool) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
-		errors = append(errors, fmt.Errorf("expected %q to be a string but it wasn't!", k))
+		errors = append(errors, fmt.Errorf("expected %q to be a string but it wasn't", k))
 		return
 	}
 

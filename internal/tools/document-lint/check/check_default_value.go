@@ -23,9 +23,9 @@ func newDefaultDiff(checkBase checkBase, current string, defaultVaulue string) *
 
 func (c defaultDiff) String() string {
 	if c.Default == "" {
-		return fmt.Sprintf("%s should %s have default value", c.checkBase.Str(), util.Bold("NOT"))
+		return fmt.Sprintf("%s should %s have default value", c.Str(), util.Bold("NOT"))
 	}
-	return fmt.Sprintf("%s default value should be `%s`", c.checkBase.Str(), c.Default)
+	return fmt.Sprintf("%s default value should be `%s`", c.Str(), c.Default)
 }
 
 // Fix if value is "", then we should remove the default value part from the document

@@ -289,7 +289,7 @@ func resourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}) 
 		if props.ActiveKey != nil && props.ActiveKey.KeyURL != "" {
 			keyVaultURI := props.ActiveKey.KeyURL
 
-			isHSMURI, err, instanceName, domainSuffix := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
+			isHSMURI, instanceName, domainSuffix, err := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
 			if err != nil {
 				return err
 			}

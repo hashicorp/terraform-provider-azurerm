@@ -277,7 +277,7 @@ func resourceSubnet() *pluginsdk.Resource {
 
 // TODO: refactor the create/flatten functions
 func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
+	client := meta.(*clients.Client).Network.Subnets
 	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
@@ -379,7 +379,7 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
+	client := meta.(*clients.Client).Network.Subnets
 	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -524,7 +524,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
+	client := meta.(*clients.Client).Network.Subnets
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -596,7 +596,7 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceSubnetDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.Subnets
+	client := meta.(*clients.Client).Network.Subnets
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

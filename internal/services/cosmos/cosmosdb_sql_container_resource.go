@@ -153,7 +153,7 @@ func resourceCosmosDbSQLContainer() *pluginsdk.Resource {
 
 			pluginsdk.ForceNewIfChange("partition_key_version", func(ctx context.Context, old, new, _ interface{}) bool {
 				// The behavior of the Azure API is that `partition_key_version` can be updated to `1` when it is not set at creation time, but it can not be updated to `2`.
-				return !(old.(int) == 0 && new.(int) == 1)
+				return old.(int) != 0 || new.(int) != 1
 			}),
 		),
 	}

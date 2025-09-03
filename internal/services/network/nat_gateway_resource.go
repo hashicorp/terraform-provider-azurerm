@@ -94,7 +94,7 @@ func resourceNatGatewaySchema() map[string]*pluginsdk.Schema {
 }
 
 func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.NatGateways
+	client := meta.(*clients.Client).Network.NatGateways
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -140,7 +140,7 @@ func resourceNatGatewayCreate(d *pluginsdk.ResourceData, meta interface{}) error
 }
 
 func resourceNatGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.NatGateways
+	client := meta.(*clients.Client).Network.NatGateways
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -204,7 +204,7 @@ func resourceNatGatewayUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 }
 
 func resourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.NatGateways
+	client := meta.(*clients.Client).Network.NatGateways
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -247,7 +247,7 @@ func resourceNatGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error {
 }
 
 func resourceNatGatewayDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.NatGateways
+	client := meta.(*clients.Client).Network.NatGateways
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

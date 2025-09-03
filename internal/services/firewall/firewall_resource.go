@@ -831,7 +831,7 @@ func validateFirewallIPConfigurationSettings(configs []interface{}) error {
 	}
 
 	if subnetNumber != 1 {
-		return fmt.Errorf(`The "ip_configuration" is invalid, %d "subnet_id" have been set, one "subnet_id" should be set among all "ip_configuration" blocks`, subnetNumber)
+		return fmt.Errorf(`the "ip_configuration" is invalid, %d "subnet_id" have been set, one "subnet_id" should be set among all "ip_configuration" blocks`, subnetNumber)
 	}
 
 	return nil

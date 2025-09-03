@@ -99,15 +99,15 @@ func (p apiManagementPoller) Poll(ctx context.Context) (*pollers.PollResult, err
 
 	if resp.Response != nil {
 		var respBody []byte
-		respBody, err = io.ReadAll(resp.Response.Body)
+		respBody, err = io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, fmt.Errorf("parsing response body: %+v", err)
 		}
-		resp.Response.Body.Close()
+		resp.Body.Close()
 
-		resp.Response.Body = io.NopCloser(bytes.NewReader(respBody))
+		resp.Body = io.NopCloser(bytes.NewReader(respBody))
 
-		if s, ok := resp.Response.Header["Retry-After"]; ok {
+		if s, ok := resp.Header["Retry-After"]; ok {
 			if sleep, err := strconv.ParseInt(s[0], 10, 64); err == nil {
 				pollingDeleteInProgress.PollInterval = time.Second * time.Duration(sleep)
 			}
@@ -123,8 +123,8 @@ func (p apiManagementPoller) Poll(ctx context.Context) (*pollers.PollResult, err
 			return &pollingDeleteSuccess, nil
 		}
 
-		if resp.Response.StatusCode == http.StatusOK {
-			contentType := resp.Response.Header.Get("Content-Type")
+		if resp.StatusCode == http.StatusOK {
+			contentType := resp.Header.Get("Content-Type")
 			var op operationResult
 			if strings.Contains(strings.ToLower(contentType), "application/json") {
 				if err = json.Unmarshal(respBody, &op); err != nil {

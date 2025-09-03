@@ -433,7 +433,7 @@ func resourceKubernetesClusterNodePoolCreate(d *pluginsdk.ResourceData, meta int
 	containersClient := meta.(*clients.Client).Containers
 	clustersClient := containersClient.KubernetesClustersClient
 	poolsClient := containersClient.AgentPoolsClient
-	subnetClient := meta.(*clients.Client).Network.Client.Subnets
+	subnetClient := meta.(*clients.Client).Network.Subnets
 	vnetClient := meta.(*clients.Client).Network.VirtualNetworks
 
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)

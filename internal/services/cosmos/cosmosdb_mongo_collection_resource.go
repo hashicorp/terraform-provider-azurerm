@@ -190,21 +190,21 @@ func resourceCosmosDbMongoCollectionCreate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if analyticalStorageTTL, ok := d.GetOk("analytical_storage_ttl"); ok {
-		db.MongoDBCollectionCreateUpdateProperties.Resource.AnalyticalStorageTTL = pointer.To(int32(analyticalStorageTTL.(int)))
+		db.Resource.AnalyticalStorageTTL = pointer.To(int32(analyticalStorageTTL.(int)))
 	}
 
 	if throughput, hasThroughput := d.GetOk("throughput"); hasThroughput {
 		if throughput != 0 {
-			db.MongoDBCollectionCreateUpdateProperties.Options.Throughput = common.ConvertThroughputFromResourceDataLegacy(throughput)
+			db.Options.Throughput = common.ConvertThroughputFromResourceDataLegacy(throughput)
 		}
 	}
 
 	if _, hasAutoscaleSettings := d.GetOk("autoscale_settings"); hasAutoscaleSettings {
-		db.MongoDBCollectionCreateUpdateProperties.Options.AutoscaleSettings = common.ExpandCosmosDbAutoscaleSettingsLegacy(d)
+		db.Options.AutoscaleSettings = common.ExpandCosmosDbAutoscaleSettingsLegacy(d)
 	}
 
 	if shardKey := d.Get("shard_key").(string); shardKey != "" {
-		db.MongoDBCollectionCreateUpdateProperties.Resource.ShardKey = map[string]*string{
+		db.Resource.ShardKey = map[string]*string{
 			shardKey: utils.String("Hash"), // looks like only hash is supported for now
 		}
 	}
@@ -259,11 +259,11 @@ func resourceCosmosDbMongoCollectionUpdate(d *pluginsdk.ResourceData, meta inter
 	}
 
 	if analyticalStorageTTL, ok := d.GetOk("analytical_storage_ttl"); ok {
-		db.MongoDBCollectionCreateUpdateProperties.Resource.AnalyticalStorageTTL = pointer.To(int32(analyticalStorageTTL.(int)))
+		db.Resource.AnalyticalStorageTTL = pointer.To(int32(analyticalStorageTTL.(int)))
 	}
 
 	if shardKey := d.Get("shard_key").(string); shardKey != "" {
-		db.MongoDBCollectionCreateUpdateProperties.Resource.ShardKey = map[string]*string{
+		db.Resource.ShardKey = map[string]*string{
 			shardKey: utils.String("Hash"), // looks like only hash is supported for now
 		}
 	}

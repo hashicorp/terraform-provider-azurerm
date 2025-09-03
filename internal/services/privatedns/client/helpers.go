@@ -47,5 +47,5 @@ func (c *Client) FindPrivateDnsZoneId(ctx context.Context, resourceGroupsClient 
 		return parsed, nil
 	}
 
-	return nil, fmt.Errorf("No Private DNS Zones found with name: %q", name)
+	return nil, fmt.Errorf("no Private DNS Zones found with name: %q", name)
 }

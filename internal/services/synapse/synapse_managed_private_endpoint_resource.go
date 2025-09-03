@@ -90,10 +90,10 @@ func resourceSynapseManagedPrivateEndpointCreate(d *pluginsdk.ResourceData, meta
 	if err != nil {
 		return fmt.Errorf("retrieving Synapse workspace %q (Resource Group %q): %+v", workspaceId.Name, workspaceId.ResourceGroup, err)
 	}
-	if workspace.WorkspaceProperties == nil || workspace.WorkspaceProperties.ManagedVirtualNetwork == nil {
+	if workspace.WorkspaceProperties == nil || workspace.ManagedVirtualNetwork == nil {
 		return fmt.Errorf("empty or nil `ManagedVirtualNetwork` for Synapse workspace %q (Resource Group %q): %+v", workspaceId.Name, workspaceId.ResourceGroup, err)
 	}
-	virtualNetworkName := *workspace.WorkspaceProperties.ManagedVirtualNetwork
+	virtualNetworkName := *workspace.ManagedVirtualNetwork
 
 	id := parse.NewManagedPrivateEndpointID(workspaceId.SubscriptionId, workspaceId.ResourceGroup, workspaceId.Name, virtualNetworkName, d.Get("name").(string))
 	client, err := synapseClient.ManagedPrivateEndpointsClient(workspaceId.Name, *synapseDomainSuffix)

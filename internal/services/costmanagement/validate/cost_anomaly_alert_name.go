@@ -18,7 +18,7 @@ func CostAnomalyAlertName(i interface{}, k string) (_ []string, errors []error) 
 	// 1. can contain only lowercase letters, numbers and hyphens.
 
 	if !regexp.MustCompile(`^([a-z\d-]*)$`).MatchString(v) {
-		errors = append(errors, fmt.Errorf("%s must contain only lowercase letters, numbers and hyphens.", k))
+		errors = append(errors, fmt.Errorf("%s must contain only lowercase letters, numbers and hyphens", k))
 	}
 
 	return nil, errors

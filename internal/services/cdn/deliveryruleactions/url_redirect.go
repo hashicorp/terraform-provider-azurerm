@@ -4,7 +4,7 @@
 package deliveryruleactions
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cdn/validate"
@@ -107,7 +107,7 @@ func ExpandArmCdnEndpointActionUrlRedirect(input []interface{}) (*[]cdn.BasicDel
 func FlattenArmCdnEndpointActionUrlRedirect(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error) {
 	action, ok := input.AsURLRedirectAction()
 	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule url redirect action!")
+		return nil, errors.New("expected a delivery rule url redirect action")
 	}
 
 	customHostname := ""

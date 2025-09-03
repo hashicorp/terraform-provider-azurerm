@@ -561,14 +561,14 @@ func validatePrivateLinkNatIpConfiguration(d *pluginsdk.ResourceDiff) error {
 		if d.HasChange(p) {
 			o, n := d.GetChange(p)
 			if o != "" && n == "" {
-				return fmt.Errorf("Private Link Service %q (Resource Group %q) nat_ip_configuration %q private_ip_address once assigned can not be removed", name, resourceGroup, in)
+				return fmt.Errorf("for Private Link Service %q (Resource Group %q) nat_ip_configuration %q private_ip_address once assigned can not be removed", name, resourceGroup, in)
 			}
 		}
 
 		if isPrimary && d.HasChange(s) {
 			o, _ := d.GetChange(s)
 			if o != "" {
-				return fmt.Errorf("Private Link Service %q (Resource Group %q) nat_ip_configuration %q primary subnet_id once assigned can not be changed", name, resourceGroup, in)
+				return fmt.Errorf("for Private Link Service %q (Resource Group %q) nat_ip_configuration %q primary subnet_id once assigned can not be changed", name, resourceGroup, in)
 			}
 		}
 	}

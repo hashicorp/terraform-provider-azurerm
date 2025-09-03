@@ -5,6 +5,7 @@ package migration
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -52,7 +53,7 @@ func (FeatureResourceV0ToV1) UpgradeFunc() pluginsdk.StateUpgraderFunc {
 
 		domainSuffix, ok := meta.(*clients.Client).Account.Environment.AppConfiguration.DomainSuffix()
 		if !ok {
-			return rawState, fmt.Errorf("App Configuration is not supported in this Environment")
+			return rawState, errors.New("app configuration is not supported in this Environment")
 		}
 
 		configurationStoreEndpoint := fmt.Sprintf("https://%s.%s", configurationStoreId.ConfigurationStoreName, *domainSuffix)

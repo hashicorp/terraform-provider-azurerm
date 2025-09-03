@@ -249,7 +249,7 @@ func resourceFirewallApplicationRuleCollectionCreateUpdate(d *pluginsdk.Resource
 	}
 
 	if collectionID == "" {
-		return fmt.Errorf("Cannot find ID for Application Rule Collection %q (Azure Firewall %q / Resource Group %q)", name, firewallName, resourceGroup)
+		return fmt.Errorf("cannot find ID for Application Rule Collection %q (Azure Firewall %q / Resource Group %q)", name, firewallName, resourceGroup)
 	}
 	d.SetId(collectionID)
 

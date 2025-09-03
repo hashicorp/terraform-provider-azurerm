@@ -225,7 +225,7 @@ func resourceAppServiceSlotCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 	}
 
 	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
-		siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(v.(string))
+		siteEnvelope.KeyVaultReferenceIdentity = utils.String(v.(string))
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -283,11 +283,11 @@ func resourceAppServiceSlotUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	}
 	if v, ok := d.GetOk("client_affinity_enabled"); ok {
 		enabled := v.(bool)
-		siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(enabled)
+		siteEnvelope.ClientAffinityEnabled = utils.Bool(enabled)
 	}
 
 	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
-		siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(v.(string))
+		siteEnvelope.KeyVaultReferenceIdentity = utils.String(v.(string))
 	}
 
 	createFuture, err := client.CreateOrUpdateSlot(ctx, id.ResourceGroup, id.SiteName, siteEnvelope, id.SlotName)

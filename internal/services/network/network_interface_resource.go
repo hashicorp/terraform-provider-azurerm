@@ -4,6 +4,7 @@
 package network
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -610,7 +611,7 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]networkinte
 		}
 
 		if privateIpAddressVersion == networkinterfaces.IPVersionIPvFour && subnetId == "" {
-			return nil, fmt.Errorf("A Subnet ID must be specified for an IPv4 Network Interface.")
+			return nil, errors.New("a Subnet ID must be specified for an IPv4 Network Interface")
 		}
 
 		if subnetId != "" {
@@ -655,7 +656,7 @@ func expandNetworkInterfaceIPConfigurations(input []interface{}) (*[]networkinte
 		}
 
 		if !hasPrimary {
-			return nil, fmt.Errorf("If multiple `ip_configurations` are specified - one must be designated as `primary`.")
+			return nil, errors.New("if multiple `ip_configurations` are specified - one must be designated as `primary`")
 		}
 	}
 

@@ -188,7 +188,7 @@ func resourceNetworkSecurityGroup() *pluginsdk.Resource {
 }
 
 func resourceNetworkSecurityGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.NetworkSecurityGroups
+	client := meta.(*clients.Client).Network.NetworkSecurityGroups
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -233,7 +233,7 @@ func resourceNetworkSecurityGroupCreate(d *pluginsdk.ResourceData, meta interfac
 }
 
 func resourceNetworkSecurityGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.NetworkSecurityGroups
+	client := meta.(*clients.Client).Network.NetworkSecurityGroups
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -282,7 +282,7 @@ func resourceNetworkSecurityGroupUpdate(d *pluginsdk.ResourceData, meta interfac
 }
 
 func resourceNetworkSecurityGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.NetworkSecurityGroups
+	client := meta.(*clients.Client).Network.NetworkSecurityGroups
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -320,7 +320,7 @@ func resourceNetworkSecurityGroupRead(d *pluginsdk.ResourceData, meta interface{
 }
 
 func resourceNetworkSecurityGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.NetworkSecurityGroups
+	client := meta.(*clients.Client).Network.NetworkSecurityGroups
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
