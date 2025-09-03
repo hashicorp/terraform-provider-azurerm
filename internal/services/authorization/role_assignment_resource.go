@@ -387,6 +387,9 @@ func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, id parse.ScopedRoleAs
 				// we omit the err in lookupRoleAssignment and return the origin Create error
 				if existing := lookupRoleAssignment(ctx, roleAssignmentsClient, id, param.Properties); existing != nil && existing.Properties != nil {
 					existsID := roleassignments.NewScopedRoleAssignmentID(pointer.From(existing.Properties.Scope), pointer.From(existing.Name))
+					if configName := d.Get("name").(string); configName != "" && configName != pointer.From(existing.Name) {
+						return pluginsdk.NonRetryableError(fmt.Errorf("role assignment `%s` already exists with a different name: %s", id.ID(), pointer.From(existing.Name)))
+					}
 					return pluginsdk.NonRetryableError(tf.ImportAsExistsError("azurerm_role_assignment", existsID.ID()))
 				}
 				return pluginsdk.NonRetryableError(err)

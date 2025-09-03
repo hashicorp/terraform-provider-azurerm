@@ -6,6 +6,7 @@ package authorization_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/google/uuid"
@@ -91,8 +92,12 @@ func TestAccRoleAssignment_requiresImportAdvanced(t *testing.T) {
 			),
 		},
 		{
-			Config:      r.requiresImportConfigDifferenceName(id, uuid.New().String()),
+			Config:      r.requiresImportConfigWithoutName(id),
 			ExpectError: acceptance.RequiresImportError("azurerm_role_assignment"),
+		},
+		{
+			Config:      r.requiresImportConfigDupError(id, uuid.New().String()),
+			ExpectError: regexp.MustCompile("role assignment `.*` already exists with a different name:"),
 		},
 	})
 }
@@ -411,7 +416,19 @@ resource "azurerm_role_assignment" "import" {
 `, RoleAssignmentResource{}.roleNameConfig(id))
 }
 
-func (RoleAssignmentResource) requiresImportConfigDifferenceName(id, dupID string) string {
+func (RoleAssignmentResource) requiresImportConfigWithoutName(id string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_role_assignment" "import" {
+  scope                = azurerm_role_assignment.test.scope
+  role_definition_name = azurerm_role_assignment.test.role_definition_name
+  principal_id         = azurerm_role_assignment.test.principal_id
+}
+`, RoleAssignmentResource{}.roleNameConfig(id))
+}
+
+func (RoleAssignmentResource) requiresImportConfigDupError(id, dupID string) string {
 	return fmt.Sprintf(`
 %s
 
