@@ -254,6 +254,13 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
+
+						"chown_mode": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Computed:     true,
+							ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForChownMode(), false),
+						},
 					},
 				},
 			},
@@ -1235,8 +1242,15 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 			kerberos5pro := v["kerberos_5p_read_only_enabled"].(bool)
 			kerberos5prw := v["kerberos_5p_read_write_enabled"].(bool)
 
+			var chownMode *volumes.ChownMode
+			if chownModeRaw, ok := v["chown_mode"]; ok && chownModeRaw.(string) != "" {
+				chownModeValue := volumes.ChownMode(chownModeRaw.(string))
+				chownMode = &chownModeValue
+			}
+
 			result := volumes.ExportPolicyRule{
 				AllowedClients:      pointer.To(allowedClients),
+				ChownMode:           chownMode,
 				Cifs:                pointer.To(cifsEnabled),
 				Nfsv3:               pointer.To(nfsv3Enabled),
 				Nfsv41:              pointer.To(nfsv41Enabled),
@@ -1313,8 +1327,15 @@ func expandNetAppVolumeExportPolicyRulePatch(input []interface{}) *volumes.Volum
 			unixReadWrite := v["unix_read_write"].(bool)
 			rootAccessEnabled := v["root_access_enabled"].(bool)
 
+			var chownMode *volumes.ChownMode
+			if chownModeRaw, ok := v["chown_mode"]; ok && chownModeRaw.(string) != "" {
+				chownModeValue := volumes.ChownMode(chownModeRaw.(string))
+				chownMode = &chownModeValue
+			}
+
 			result := volumes.ExportPolicyRule{
 				AllowedClients: pointer.To(allowedClients),
+				ChownMode:      chownMode,
 				Cifs:           pointer.To(cifsEnabled),
 				Nfsv3:          pointer.To(nfsv3Enabled),
 				Nfsv41:         pointer.To(nfsv41Enabled),
@@ -1360,8 +1381,14 @@ func flattenNetAppVolumeExportPolicyRule(input *volumes.VolumePropertiesExportPo
 			protocolsEnabled = append(protocolsEnabled, "NFSv4.1")
 		}
 
+		chownMode := ""
+		if item.ChownMode != nil {
+			chownMode = string(*item.ChownMode)
+		}
+
 		result := map[string]interface{}{
 			"allowed_clients":                utils.FlattenStringSlice(&allowedClients),
+			"chown_mode":                     chownMode,
 			"kerberos_5_read_only_enabled":   pointer.From(item.Kerberos5ReadOnly),
 			"kerberos_5_read_write_enabled":  pointer.From(item.Kerberos5ReadWrite),
 			"kerberos_5i_read_only_enabled":  pointer.From(item.Kerberos5iReadOnly),
