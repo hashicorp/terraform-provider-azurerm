@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package helpers
+package templatehelpers
 
 import (
 	"errors"
@@ -25,10 +25,22 @@ func CallTerraform(opts ...string) ([]byte, error) {
 	return out, nil
 }
 
-// GoFmt calls `gofmt -w` over the specified file (including path)
-func GoFmt(file string) error {
-	cmd := exec.Command("gofmt", "-w", fmt.Sprintf("./%s", file))
-	if _, err := cmd.Output(); err != nil {
+// GoImports calls `goimports -w` over the specified file (including path)
+func GoImports(file string) error {
+	cmd := exec.Command("goimports", "-w", fmt.Sprintf("./%s", file))
+
+	if _, err := cmd.CombinedOutput(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// GoImports calls `goimports -w` over the specified path to process all *.go files.
+func GoImportsPath(path string) error {
+	cmd := exec.Command("goimports", "-w", path)
+
+	if _, err := cmd.CombinedOutput(); err != nil {
 		return err
 	}
 

@@ -1,7 +1,7 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package frameworkhelpers
+package typehelpers
 
 import (
 	"context"
