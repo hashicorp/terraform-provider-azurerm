@@ -1173,6 +1173,12 @@ func resourceStorageAccount() *pluginsdk.Resource {
 					}
 				}
 
+				isHnsEnabled := d.Get("is_hns_enabled").(bool)
+				accountKind := storageaccounts.Kind(d.Get("account_kind").(string))
+				if _, supportsHns := storageKindsSupportHns[accountKind]; !supportsHns && isHnsEnabled {
+					keys := sortedKeysFromSlice(storageKindsSupportHns)
+					return fmt.Errorf("`is_hns_enabled` can only be used for accounts with `kind` set to one of: %+v", strings.Join(keys, " / "))
+				}
 				return nil
 			}),
 			pluginsdk.ForceNewIfChange("account_replication_type", func(ctx context.Context, old, new, meta interface{}) bool {
@@ -1442,11 +1448,6 @@ func resourceStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) e
 			accessTier = string(storageaccounts.AccessTierHot)
 		}
 		payload.Properties.AccessTier = pointer.To(storageaccounts.AccessTier(accessTier.(string)))
-	}
-
-	if _, supportsHns := storageKindsSupportHns[accountKind]; !supportsHns && isHnsEnabled {
-		keys := sortedKeysFromSlice(storageKindsSupportHns)
-		return fmt.Errorf("`is_hns_enabled` can only be used for accounts with `kind` set to one of: %+v", strings.Join(keys, " / "))
 	}
 
 	// NFSv3 is supported for standard general-purpose v2 storage accounts and for premium block blob storage accounts.
