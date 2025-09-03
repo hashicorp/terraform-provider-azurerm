@@ -427,7 +427,6 @@ func lookupRoleAssignment(ctx context.Context, client *roleassignments.RoleAssig
 	listAssignments, err := client.ListForScopeComplete(ctx, commonids.NewScopeID(id.ScopedId.Scope), roleassignments.ListForScopeOperationOptions{
 		TenantId: pointer.To(id.TenantId),
 	})
-
 	if err != nil {
 		return nil
 	}
