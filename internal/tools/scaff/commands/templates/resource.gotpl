@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package {{ToLower .ServicePackageName }}
 
 import (
@@ -76,11 +79,13 @@ func (r {{ToCamel .Name }}Resource) Schema(ctx context.Context, _ resource.Schem
 				},
 			},
 
+			{{ if not .NoResourceGroup }}
 			commonschema.ResourceGroupName: commonschema.ResourceGroupNameAttribute(),
+			{{ end -}}
 
 			// TODO - Uncomment the following line if the resource supports location (i.e. can be different to the RG's location value)
 			// commonschema.Location: location.LocationAttribute(),
-			// TODO -  Tags are an assumed schema property - remove this if the resource does not support tags
+			// TODO - Tags are an assumed schema property - remove this if the resource does not support tags
 			commonschema.Tags: commonschema.TagsResourceAttribute(ctx),
 		},
 		// TODO - If there are no block type properties, this can be removed.
@@ -110,7 +115,7 @@ func (r {{ToCamel .Name }}Resource) Create(ctx context.Context, _ resource.Creat
 	existing, err := client.Get(ctx, id{{ if .UseReadOptions}}, {{ClientToPackageName .ClientName}}.DefaultGetOperationOptions(){{ end -}})
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("checking for presence of existing %s: %+v", id, err), err.Error())
+			sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("checking for presence of existing %s: %+v", id, err), err)
 			return
 		}
 	}
@@ -121,15 +126,16 @@ func (r {{ToCamel .Name }}Resource) Create(ctx context.Context, _ resource.Creat
 	}
 
 	// TODO - Code for creating the resource goes here - Recommended to use an exported function to build the payload for future feature compatibility
+
 	// TODO - Uncomment the below when the API_MODEL is known and initialised.
 	{{ if .UsesLROCRUD }}
 	// 	if err = client.CreateOrUpdateThenPoll(ctx, id{{ if .UseCreateOptions}}, {{ClientToPackageName .ClientName}}.DefaultCreateOrUpdateOperationOptions(){{ end -}}, API_MODEL); err != nil {
-	// 	  sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("creating %s:", *id), err.Error())
+	// 	  sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("creating %s:", id), err)
 	//	return
 	// }
 	{{ else }}
-	//  if _, err = client.CreateOrUpdate(ctx, id{{ if .UseCreateOptions}}, {{ClientToPackageName .ClientName}}.DefaultCreateOrUpdateOperationOptions(){{ end -}}); err != nil {
-	// 	  sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("creating %s:", id), err.Error())
+	//  if _, err = client.CreateOrUpdate(ctx, id{{ if .UseCreateOptions}}, {{ClientToPackageName .ClientName}}.DefaultCreateOrUpdateOperationOptions(){{ end -}}, API_MODEL); err != nil {
+	// 	  sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("creating %s:", id), err)
 	//  return
 	// }
 	{{ end -}}
@@ -137,7 +143,8 @@ func (r {{ToCamel .Name }}Resource) Create(ctx context.Context, _ resource.Creat
 
 	data.ID = types.StringValue(id.ID())
 
-	// Get computed values to satisfy known after Apply requirements
+	// TODO: Get computed values to satisfy known after Apply requirements
+	// If the resource has no computed properties, this step can be omitted.
 	existing, err = client.Get(ctx, id{{ if .UseReadOptions}}, {{ClientToPackageName .ClientName}}.DefaultGetOperationOptions(){{ end -}})
 	if err != nil {
 		if response.WasNotFound(existing.HttpResponse) {
@@ -157,6 +164,7 @@ func (r {{ToCamel .Name }}Resource) Create(ctx context.Context, _ resource.Creat
 
 func (r {{ToCamel .Name }}Resource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse, metadata sdk.ResourceMetadata, decodedState any) {
 	client := metadata.Client.{{ .ServicePackageName }}.{{ .ClientName }}
+
 	state := sdk.AssertResourceModelType[{{ToCamel .Name }}ResourceModel](decodedState, resp)
 	if resp.Diagnostics.HasError() {
 		return
@@ -205,13 +213,29 @@ func (r {{ToCamel .Name }}Resource) Update(ctx context.Context, _ resource.Updat
 	existing, err := client.Get(ctx, *id{{ if .UseReadOptions}}, {{ClientToPackageName .ClientName}}.DefaultGetOperationOptions(){{ end -}})
 	if err != nil {
 		if response.WasNotFound(existing.HttpResponse) {
-		metadata.MarkAsGone(id, &resp.State, &resp.Diagnostics)
+			metadata.MarkAsGone(id, &resp.State, &resp.Diagnostics)
+			return
+		}
+
+		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("retrieving %s:", id), err)
 		return
 	}
 
-	sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("retrieving %s:", id), err)
-	return
-}
+	// TODO - Code for updating the resource goes here - Recommended to use an exported function to build the payload for future feature compatibility
+
+	// TODO - Uncomment the below when the API_MODEL is known and initialised.
+	// `CreateOrUpdate` is assumed, if this resource requires a PATCH operation, replace it with `Update`
+	{{ if .UsesLROCRUD }}
+	// 	if err = client.CreateOrUpdateThenPoll(ctx, id{{ if .UseCreateOptions}}, {{ClientToPackageName .ClientName}}.DefaultCreateOrUpdateOperationOptions(){{ end -}}, API_MODEL); err != nil {
+	// 	  sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("updating %s:", *id), err)
+	//	return
+	// }
+	{{ else }}
+	//  if _, err = client.CreateOrUpdate(ctx, id{{ if .UseCreateOptions}}, {{ClientToPackageName .ClientName}}.DefaultCreateOrUpdateOperationOptions(){{ end -}}, API_MODEL); err != nil {
+	// 	  sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("updating %s:", *id), err)
+	//  return
+	// }
+	{{ end -}}
 
 }
 {{ end }}
@@ -230,16 +254,16 @@ func (r {{ToCamel .Name }}Resource) Delete(ctx context.Context, req resource.Del
 	// TODO - Some Delete operations use `Options`, if this is the case, add them to the client.Delete below or regenerate this file with the `UseDeleteOptions=true` set.
 	{{ if .UsesLROCRUD }}
 	if err = client.DeleteThenPoll(ctx, *id{{ if .UseDeleteOptions}}, {{ClientToPackageName .ClientName}}.DefaultDeleteOperationOptions(){{ end -}}); err != nil {
-		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("deleting %s:", *id), err.Error())
+		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("deleting %s:", *id), err)
 		return
 	}
 	{{ else }}
 	if _, err = client.Delete(ctx, *id{{ if .UseDeleteOptions}}, {{ClientToPackageName .ClientName}}.DefaultDeleteOperationOptions(){{ end -}}); err != nil {
-		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("deleting %s:", *id), err.Error())
+		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("deleting %s:", *id), err)
 	}
 	{{ end -}}
 }
 
-func (r {{ToCamel .Name }}Resource) Identity() (id resourceids.ResourceId, idType []sdk.ResourceTypeForIdentity) {
-	return &{{ index .IdTypeParts 0 }}.{{ index .IdTypeParts 1}}{}, []sdk.ResourceTypeForIdentity{sdk.ResourceTypeForIdentityDefault}
+func (r {{ToCamel .Name }}Resource) Identity() (id resourceids.ResourceId, idType sdk.ResourceTypeForIdentity) {
+	return &{{ index .IdTypeParts 0 }}.{{ index .IdTypeParts 1}}{}, sdk.ResourceTypeForIdentityDefault
 }

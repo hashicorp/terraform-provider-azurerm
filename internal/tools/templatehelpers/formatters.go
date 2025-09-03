@@ -99,7 +99,14 @@ func NewIDResourceIdentityFormatter(idType []string, idSegments []string, prefix
 
 	f := "%s.New%s(%s)"
 	out := make([]string, 0)
-	out = append(out, idSegments...)
+
+	if prefix != "" {
+		for _, segment := range idSegments {
+			out = append(out, fmt.Sprintf("%s.%s", prefix, segment))
+		}
+	} else {
+		out = append(out, idSegments...)
+	}
 
 	output := fmt.Sprintf(f, idType[0], IdToID(idType[1]), strings.Join(out, ", "))
 

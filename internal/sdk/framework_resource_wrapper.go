@@ -150,7 +150,7 @@ func (r *FrameworkResourceWrapper) Update(ctx context.Context, request resource.
 
 		fr.Update(ctx, request, response, r.ResourceMetadata, plan, state)
 
-		r.ResourceMetadata.EncodeUpdate(ctx, response, state)
+		r.ResourceMetadata.EncodeUpdate(ctx, response, plan)
 
 		return
 	} else {

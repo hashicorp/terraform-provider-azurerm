@@ -1,195 +1,238 @@
-// Copyright (c) HashiCorp, Inc.
-// SPDX-License-Identifier: MPL-2.0
-
 package mssql
 
 import (
 	"context"
 	"fmt"
-	"time"
 
+	"github.com/hashicorp/go-azure-helpers/framework/commonschema"
+	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sql/2023-08-01-preview/jobs"
+	"github.com/hashicorp/terraform-plugin-framework/path"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type MsSqlJobResource struct{}
 
-type MsSqlJobResourceModel struct {
-	Name        string `tfschema:"name"`
-	JobAgentID  string `tfschema:"job_agent_id"`
-	Description string `tfschema:"description"`
+var _ sdk.FrameworkWrappedResourceWithUpdate = &MsSqlJobResource{}
+
+func (r MsSqlJobResource) ModelObject() any {
+	return new(MsSqlJobResourceModel)
 }
 
-var _ sdk.ResourceWithUpdate = MsSqlJobResource{}
-
-func (MsSqlJobResource) Arguments() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-			ForceNew:     true,
-		},
-		"job_agent_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: jobs.ValidateJobAgentID,
-			ForceNew:     true,
-		},
-		"description": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-		},
-	}
-}
-
-func (MsSqlJobResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
-}
-
-func (MsSqlJobResource) ModelObject() interface{} {
-	return &MsSqlJobResourceModel{}
-}
-
-func (MsSqlJobResource) ResourceType() string {
+func (r MsSqlJobResource) ResourceType() string {
 	return "azurerm_mssql_job"
 }
 
-func (r MsSqlJobResource) Create() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQL.JobsClient
+func (r MsSqlJobResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse, metadata sdk.ResourceMetadata) {
+	if req.ID == "" {
+		resourceIdentity := &MsSqlJobResourceIdentityModel{}
+		req.Identity.Get(ctx, resourceIdentity)
+		id := pointer.To(jobs.NewJobID(resourceIdentity.SubscriptionId, resourceIdentity.ResourceGroupName, resourceIdentity.ServerName, resourceIdentity.JobAgentName, resourceIdentity.Name))
+		resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("id"), id.ID())...)
+	}
 
-			var model MsSqlJobResourceModel
-			if err := metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
+	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+}
 
-			jobAgent, err := jobs.ParseJobAgentID(model.JobAgentID)
-			if err != nil {
-				return err
-			}
+func (r MsSqlJobResource) Schema(ctx context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+	resp.Schema = schema.Schema{
+		Attributes: map[string]schema.Attribute{
+			commonschema.Name: schema.StringAttribute{
+				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					typehelpers.WrappedStringValidator{
+						Func: validation.StringIsNotEmpty,
+					},
+				},
+			},
 
-			id := jobs.NewJobID(jobAgent.SubscriptionId, jobAgent.ResourceGroupName, jobAgent.ServerName, jobAgent.JobAgentName, model.Name)
+			"job_agent_id": schema.StringAttribute{
+				Required: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.RequiresReplace(),
+				},
+				Validators: []validator.String{
+					typehelpers.WrappedStringValidator{
+						Func: jobs.ValidateJobAgentID,
+					},
+				},
+			},
 
-			existing, err := client.Get(ctx, id)
-			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
-			}
-
-			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
-			}
-
-			parameters := jobs.Job{
-				Name: pointer.To(model.Name),
-				Properties: pointer.To(jobs.JobProperties{
-					Description: pointer.To(model.Description),
-				}),
-			}
-
-			if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
-			}
-
-			metadata.SetID(id)
-			return nil
+			"description": schema.StringAttribute{
+				Optional: true,
+			},
 		},
 	}
 }
 
-func (MsSqlJobResource) Read() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 5 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQL.JobsClient
+func (r MsSqlJobResource) Create(ctx context.Context, _ resource.CreateRequest, resp *resource.CreateResponse, metadata sdk.ResourceMetadata, decodedPlan any) {
+	client := metadata.Client.MSSQL.JobsClient
+	subscriptionID := metadata.Client.Account.SubscriptionId
 
-			id, err := jobs.ParseJobID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
+	data := sdk.AssertResourceModelType[MsSqlJobResourceModel](decodedPlan, resp)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-			resp, err := client.Get(ctx, *id)
-			if err != nil {
-				if response.WasNotFound(resp.HttpResponse) {
-					return metadata.MarkAsGone(id)
-				}
+	jobAgentID, err := jobs.ParseJobAgentID(data.JobAgentID.ValueString())
+	if err != nil {
+		// TODO: what do we want to use as the summary for resource ID parsing errors? I think this should be standardised for consistency while we're migrating to FW
+		// - "ID Parsing Error" -- can be misleading if it's parsing a parent ID rather than resource's ID
+		// - "ID Parsing Error For `property`" -- meh
+		// - "`job_agent_id`" -- just the property that's being parsed? `err` already contains the relevant info I think
+		sdk.SetResponseErrorDiagnostic(resp, "`job_agent_id`", err)
+	}
 
-				return fmt.Errorf("retrieving %s: %+v", id, err)
-			}
+	id := jobs.NewJobID(subscriptionID, jobAgentID.ResourceGroupName, jobAgentID.ServerName, jobAgentID.JobAgentName, data.Name.ValueString())
 
-			state := MsSqlJobResourceModel{
-				Name:       id.JobName,
-				JobAgentID: jobs.NewJobAgentID(id.SubscriptionId, id.ResourceGroupName, id.ServerName, id.JobAgentName).ID(),
-			}
+	existing, err := client.Get(ctx, id)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("checking for presence of existing %s: %+v", id, err), err)
+			return
+		}
+	}
 
-			if model := resp.Model; model != nil {
-				if props := model.Properties; props != nil {
-					state.Description = pointer.From(props.Description)
-				}
-			}
+	if !response.WasNotFound(existing.HttpResponse) {
+		metadata.ResourceRequiresImport(r.ResourceType(), id, resp)
+		return
+	}
 
-			return metadata.Encode(&state)
-		},
+	payload := r.buildPayload(data, nil)
+
+	if _, err = client.CreateOrUpdate(ctx, id, payload); err != nil {
+		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("creating %s:", id), err)
+		return
+	}
+
+	data.ID = types.StringValue(id.ID())
+}
+
+func (r MsSqlJobResource) Read(ctx context.Context, _ resource.ReadRequest, resp *resource.ReadResponse, metadata sdk.ResourceMetadata, decodedState any) {
+	client := metadata.Client.MSSQL.JobsClient
+
+	state := sdk.AssertResourceModelType[MsSqlJobResourceModel](decodedState, resp)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	id, err := jobs.ParseJobID(state.ID.ValueString())
+	if err != nil {
+		sdk.SetResponseErrorDiagnostic(resp, "ID parsing error", err)
+		return
+	}
+
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		if response.WasNotFound(existing.HttpResponse) {
+			metadata.MarkAsGone(id, &resp.State, &resp.Diagnostics)
+			return
+		}
+
+		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("retrieving %s:", id), err)
+		return
+	}
+
+	state.Name = types.StringValue(id.JobName)
+	state.JobAgentID = types.StringValue(jobs.NewJobAgentID(id.SubscriptionId, id.ResourceGroupName, id.ServerName, id.JobAgentName).ID())
+
+	if model := existing.Model; model != nil {
+		if props := model.Properties; props != nil {
+			state.Description = types.StringPointerValue(props.Description)
+		}
 	}
 }
 
-func (MsSqlJobResource) Update() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQL.JobsClient
+func (r MsSqlJobResource) Update(ctx context.Context, _ resource.UpdateRequest, resp *resource.UpdateResponse, metadata sdk.ResourceMetadata, decodedPlan any, decodedState any) {
+	client := metadata.Client.MSSQL.JobsClient
 
-			id, err := jobs.ParseJobID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
+	plan := sdk.AssertResourceModelType[MsSqlJobResourceModel](decodedPlan, resp)
+	state := sdk.AssertResourceModelType[MsSqlJobResourceModel](decodedState, resp)
+	if resp.Diagnostics.HasError() {
+		return
+	}
 
-			var config MsSqlJobResourceModel
-			if err := metadata.Decode(&config); err != nil {
-				return fmt.Errorf("decoding: %+v", err)
-			}
+	id, err := jobs.ParseJobID(state.ID.ValueString())
+	if err != nil {
+		sdk.SetResponseErrorDiagnostic(resp, "ID parsing error", err)
+		return
+	}
 
-			param := jobs.Job{
-				Properties: pointer.To(jobs.JobProperties{
-					Description: pointer.To(config.Description),
-				}),
-			}
+	existing, err := client.Get(ctx, *id)
+	if err != nil {
+		if response.WasNotFound(existing.HttpResponse) {
+			metadata.MarkAsGone(id, &resp.State, &resp.Diagnostics)
+			return
+		}
 
-			if _, err := client.CreateOrUpdate(ctx, *id, param); err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
-			}
+		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("retrieving %s:", id), err)
+		return
+	}
 
-			return nil
-		},
+	// TODO: is there a `HasChange` equivalent for FW / do we even need it?
+	payload := r.buildPayload(plan, existing.Model)
+
+	if _, err = client.CreateOrUpdate(ctx, *id, payload); err != nil {
+		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("updating %s:", id), err)
+		return
 	}
 }
 
-func (MsSqlJobResource) Delete() sdk.ResourceFunc {
-	return sdk.ResourceFunc{
-		Timeout: 30 * time.Minute,
-		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.MSSQL.JobsClient
+func (r MsSqlJobResource) Delete(ctx context.Context, _ resource.DeleteRequest, resp *resource.DeleteResponse, metadata sdk.ResourceMetadata, decodedState any) {
+	client := metadata.Client.MSSQL.JobsClient
 
-			id, err := jobs.ParseJobID(metadata.ResourceData.Id())
-			if err != nil {
-				return err
-			}
+	state := sdk.AssertResourceModelType[MsSqlJobResourceModel](decodedState, resp)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	id, err := jobs.ParseJobID(state.ID.ValueString())
+	if err != nil {
+		sdk.SetResponseErrorDiagnostic(resp, "ID parsing error", err)
+		return
+	}
 
-			if _, err := client.Delete(ctx, *id); err != nil {
-				return fmt.Errorf("deleting %s: %+v", id, err)
-			}
-
-			return nil
-		},
+	if _, err = client.Delete(ctx, *id); err != nil {
+		sdk.SetResponseErrorDiagnostic(resp, fmt.Sprintf("deleting %s:", *id), err)
 	}
 }
 
-func (MsSqlJobResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
-	return jobs.ValidateJobID
+func (r MsSqlJobResource) Identity() (id resourceids.ResourceId, idType sdk.ResourceTypeForIdentity) {
+	return &jobs.JobId{}, sdk.ResourceTypeForIdentityDefault
+}
+
+func (r MsSqlJobResource) buildPayload(data *MsSqlJobResourceModel, existing *jobs.Job) jobs.Job {
+	// TODO: should create/update be separate? / is using existing even required anymore?
+	// current implementation (as in sdkv2) we use the config to update the existing model
+	// do we just default to pulling everything from `data` regardless of what's in existing?
+	// Or always pass `existing` (rename to `payload`?)
+	if existing == nil {
+		return jobs.Job{
+			Name: data.Name.ValueStringPointer(),
+			Properties: &jobs.JobProperties{
+				Description: data.Description.ValueStringPointer(),
+			},
+		}
+	}
+
+	// Only updatable property is `description`
+	if existing.Properties == nil {
+		existing.Properties = &jobs.JobProperties{}
+	}
+
+	existing.Properties.Description = data.Description.ValueStringPointer()
+
+	return *existing
 }
