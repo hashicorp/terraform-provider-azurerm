@@ -13,6 +13,7 @@ ENHANCEMENTS:
 * `azurerm_resource_group_policy_assignment` - `override.kind` can now be configured [GH-30524]
 * `azurerm_resource_policy_assignment` - `override.kind` can now be configured [GH-30524]
 * `azurerm_subscription_policy_assignment` - `override.kind` can now be configured [GH-30524]
+* `azurerm_monitor_activity_log_alert` - add support for the `Security` value in the `recommendation_category` property [GH-30192]
 
 
 FEATURES:
