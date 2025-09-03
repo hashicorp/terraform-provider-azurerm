@@ -8,6 +8,11 @@ ENHANCEMENTS:
 * Data Source: `azurerm_dev_center_project_pool` - add support for the `single_sign_on_enabled` property [GH-30440]
 * dependencies: `azurerm_api_management_backend` - upgrade API version to `2024-05-01` [GH-30500]
 * `azurerm_sentinel_automation_rule` - support for the a`ction_incident_task` block [GH-29295]
+* `azurerm_management_group_policy_assignment` - `override.kind` can now be configured [GH-30524]
+* `azurerm_resource_group_policy_assignment` - `override.kind` can now be configured [GH-30524]
+* `azurerm_resource_policy_assignment` - `override.kind` can now be configured [GH-30524]
+* `azurerm_subscription_policy_assignment` - `override.kind` can now be configured [GH-30524]
+
 
 FEATURES:
 
