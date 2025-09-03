@@ -1,6 +1,7 @@
 ## 4.43.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_postgresql_flexible_server_firewall_rule` - improve validation for the `start_ip_address` and `end_ip_address` properties to ensure the values are valid IPv4 addresses [GH-30514]
 * `azurerm_kubernetes_cluster`, `azurerm_kubernetes_cluster_node_pool` - support for the `undrainable_node_behavior` and `max_unavailable` properties [GH-30515]
 * `azurerm_kubernetes_cluster`, `azurerm_kubernetes_cluster_node_pool` - support for the `vnet_integration_enabled` and `subnet_id` properties [GH-30516]
 * dependencies: `eventgrid` - upgrade to API version `2025-02-15` [GH-30481]
