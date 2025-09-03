@@ -83,4 +83,4 @@ terraform import azurerm_capacity_reservation.example /subscriptions/00000000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Compute`: 2022-03-01
+* `Microsoft.Compute` - 2022-03-01

@@ -277,4 +277,4 @@ terraform import azurerm_monitor_action_group.example /subscriptions/00000000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Insights`: 2023-01-01
+* `Microsoft.Insights` - 2023-01-01

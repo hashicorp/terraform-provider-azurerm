@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -151,7 +150,7 @@ func devTestWindowsVirtualMachineSchemaForV0AndV1() map[string]*pluginsdk.Schema
 			Optional: true,
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 
 		"fqdn": {
 			Type:     pluginsdk.TypeString,

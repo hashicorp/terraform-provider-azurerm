@@ -59,4 +59,4 @@ terraform import azurerm_healthcare_workspace.example /subscriptions/12345678-12
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.HealthcareApis`: 2024-03-31
+* `Microsoft.HealthcareApis` - 2024-03-31

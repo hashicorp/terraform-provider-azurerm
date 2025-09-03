@@ -43,8 +43,8 @@ resource "azurerm_mssql_job_agent" "example" {
 resource "azurerm_mssql_job_credential" "example" {
   name         = "example-job-credential"
   job_agent_id = azurerm_mssql_job_agent.example.id
-  username     = "testusername"
-  password     = "testpassword"
+  username     = "exampleusername"
+  password     = "examplepassword"
 }
 
 resource "azurerm_mssql_job_target_group" "example" {
@@ -115,7 +115,7 @@ The following arguments are supported:
 
 * `retry_attempts` - (Optional) The number of retry attempts. Defaults to `10`.
 
-* `retry_interval_backoff_multiplier` - (Optional) The multiplier for time between retries. Defaults to `2`.
+* `retry_interval_backoff_multiplier` - (Optional) The multiplier for time between retries. Defaults to `2.0`.
 
 * `timeout_seconds` - (Optional) The execution timeout in seconds for this Elastic Job Step. Defaults to `43200`.
 
@@ -123,11 +123,11 @@ The following arguments are supported:
 
 A `output_target` block supports the following:
 
-* `job_credential_id` - (Required) The ID of the Elastic Job Credential to use when connecting to the output destination.
-
 * `mssql_database_id` - (Required) The ID of the output database.
 
 * `table_name` - (Required) The name of the output table.
+
+* `job_credential_id` - (Optional) The ID of the Elastic Job Credential to use when connecting to the output destination.
 
 * `schema_name` - (Optional) The name of the output schema. Defaults to `dbo`.
 
@@ -158,4 +158,4 @@ terraform import azurerm_mssql_job_step.example /subscriptions/00000000-0000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Sql`: 2023-08-01-preview
+* `Microsoft.Sql` - 2023-08-01-preview

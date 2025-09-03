@@ -43,8 +43,8 @@ jobs:
         with:
           go-version-file: ./.go-version
 
-      - name: Azure CLI login
-        run: az login --output none --username="${{ secrets.AZCLI_USERNAME }}" --password="${{ secrets.AZCLI_PASSWORD }}"
+#      - name: Azure CLI login
+#        run: az login --output none --username="${{ secrets.AZCLI_USERNAME }}" --password="${{ secrets.AZCLI_PASSWORD }}"
 
       - name: Set OIDC Token
         run: |

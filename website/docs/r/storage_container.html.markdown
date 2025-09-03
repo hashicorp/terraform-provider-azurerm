@@ -94,4 +94,4 @@ terraform import azurerm_storage_container.container1 /subscriptions/00000000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Storage`: 2023-05-01
+* `Microsoft.Storage` - 2023-05-01

@@ -98,8 +98,8 @@ func TestAccSynapseWorkspace_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
+			ExpectNonEmptyPlan: true, // removing workspace AAD admin also removes the SQL AAD admin and visa versa so it needs to be recreated
 		},
-		data.ImportStep("sql_administrator_login_password"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -353,7 +353,7 @@ resource "azurerm_synapse_workspace" "test" {
     ENV = "Test"
   }
 }
-`, template, data.RandomString, data.Locations.Secondary, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
+`, template, data.RandomString, data.Locations.Ternary, data.RandomString, data.RandomString, data.RandomInteger, data.RandomInteger)
 }
 
 func (r SynapseWorkspaceResource) withAadAdmin(data acceptance.TestData) string {
