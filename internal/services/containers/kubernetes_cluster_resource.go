@@ -680,26 +680,22 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 			"bootstrap_profile": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
+				// Note: O+C because the API returns a default value for `bootstrapProfile` when it is omitted in the API request
 				Computed: true,
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"artifact_source": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(managedclusters.ArtifactSourceCache),
-								string(managedclusters.ArtifactSourceDirect),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForArtifactSource(), false),
+							Default:      managedclusters.ArtifactSourceDirect,
 						},
 
 						"container_registry_id": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							ValidateFunc: validation.Any(
-								validation.StringIsEmpty,
-								registries.ValidateRegistryID,
-							),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: registries.ValidateRegistryID,
 						},
 					},
 				},
@@ -2408,11 +2404,15 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		bootstrapProfileRaw := d.Get("bootstrap_profile").([]interface{})
 		profile := expandBootstrapProfile(bootstrapProfileRaw)
 
-		// If profile is not specified than no reason to change.
-		if profile != nil {
-			updateCluster = true
-			existing.Model.Properties.BootstrapProfile = profile
+		// If profile is removed in the config, we should set ArtifactSource to Direct as it's the default value in the service side.
+		if profile == nil {
+			profile = &managedclusters.ManagedClusterBootstrapProfile{
+				ArtifactSource: pointer.To(managedclusters.ArtifactSourceDirect),
+			}
 		}
+
+		updateCluster = true
+		existing.Model.Properties.BootstrapProfile = profile
 	}
 
 	if d.HasChange("upgrade_override") {
@@ -2958,7 +2958,10 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 			d.Set("support_plan", pointer.From(props.SupportPlan))
 
-			bootstrapProfile := flattenBootstrapProfile(props.BootstrapProfile)
+			bootstrapProfile, err := flattenBootstrapProfile(props.BootstrapProfile)
+			if err != nil {
+				return fmt.Errorf("setting `bootstrap_profile`: %+v", err)
+			}
 			if err := d.Set("bootstrap_profile", bootstrapProfile); err != nil {
 				return fmt.Errorf("setting `bootstrap_profile`: %+v", err)
 			}
@@ -3213,34 +3216,42 @@ func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedCl
 	}
 }
 
-func expandBootstrapProfile(rawBootsrapProfile []interface{}) *managedclusters.ManagedClusterBootstrapProfile {
-	if len(rawBootsrapProfile) == 0 || rawBootsrapProfile[0] == nil {
+func expandBootstrapProfile(rawBootstrapProfile []interface{}) *managedclusters.ManagedClusterBootstrapProfile {
+	if len(rawBootstrapProfile) == 0 || rawBootstrapProfile[0] == nil {
 		return nil
 	}
 
-	config := rawBootsrapProfile[0].(map[string]interface{})
-	source := managedclusters.ArtifactSource(config["artifact_source"].(string))
+	config := rawBootstrapProfile[0].(map[string]interface{})
 	var containerRegistryID *string
 	if v, exists := config["container_registry_id"]; exists && v != "" {
 		containerRegistryID = pointer.To(v.(string))
 	}
 
 	return &managedclusters.ManagedClusterBootstrapProfile{
-		ArtifactSource:      &source,
+		ArtifactSource:      pointer.To(managedclusters.ArtifactSource(config["artifact_source"].(string))),
 		ContainerRegistryId: containerRegistryID,
 	}
 }
 
-func flattenBootstrapProfile(profile *managedclusters.ManagedClusterBootstrapProfile) []interface{} {
+func flattenBootstrapProfile(profile *managedclusters.ManagedClusterBootstrapProfile) ([]interface{}, error) {
 	if profile == nil || profile.ArtifactSource == nil {
-		return []interface{}{}
+		return []interface{}{}, nil
+	}
+
+	var containerRegistryID string
+	if profile.ContainerRegistryId != nil {
+		id, err := registries.ParseRegistryID(*profile.ContainerRegistryId)
+		if err != nil {
+			return nil, err
+		}
+		containerRegistryID = id.ID()
 	}
 	return []interface{}{
 		map[string]interface{}{
 			"artifact_source":       profile.ArtifactSource,
-			"container_registry_id": profile.ContainerRegistryId,
+			"container_registry_id": containerRegistryID,
 		},
-	}
+	}, nil
 }
 
 func expandKubernetesClusterWorkloadAutoscalerProfile(input []interface{}, d *pluginsdk.ResourceData) *managedclusters.ManagedClusterWorkloadAutoScalerProfile {

@@ -738,9 +738,11 @@ A `nat_gateway_profile` block supports the following:
 
 A `bootstrap_profile` block supports the following:
 
-* `artifact_source` - (Required) The artifact source. The source where the artifacts are downloaded from. Possible values are `Cache` and `Direct`. Defaults to `Direct`.
+* `artifact_source` - (Optional) The artifact source. The source where the artifacts are downloaded from. Possible values are `Cache` and `Direct`. Defaults to `Direct`.
 
-* `container_registry_id` - (Optional) The resource Id of Azure Container Registry. The registry must have private network access, premium SKU and zone redundancy.
+* `container_registry_id` - (Optional) The resource Id of Azure Container Registry.
+
+-> **Note:** The container registry must have private network access, premium SKU and zone redundancy.
 
 ---
 
