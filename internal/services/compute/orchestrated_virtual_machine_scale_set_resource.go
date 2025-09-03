@@ -42,7 +42,7 @@ const (
 )
 
 func orchestratedVirtualMachineScaleSetSkuProfileSchema() *pluginsdk.Schema {
-	baseSchema := map[string]*pluginsdk.Schema{
+	schema := map[string]*pluginsdk.Schema{
 		"allocation_strategy": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -51,27 +51,11 @@ func orchestratedVirtualMachineScaleSetSkuProfileSchema() *pluginsdk.Schema {
 				false,
 			),
 		},
-	}
 
-	if !features.FivePointOh() {
-		// Pre-5.0 mode: Include deprecated vm_sizes field and make vm_size optional
-		baseSchema["vm_sizes"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeSet,
-			Optional:      true,
-			MinItems:      1,
-			ConflictsWith: []string{"sku_profile.0.vm_size"},
-			Deprecated:    "The `vm_sizes` field has been deprecated and will be removed in v5.0 of the AzureRM Provider. Please use the `vm_size` field instead.",
-			Elem: &pluginsdk.Schema{
-				Type:         pluginsdk.TypeString,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
-		}
-
-		baseSchema["vm_size"] = &pluginsdk.Schema{
-			Type:          pluginsdk.TypeSet,
-			Optional:      true,
-			MinItems:      1,
-			ConflictsWith: []string{"sku_profile.0.vm_sizes"},
+		"vm_size": {
+			Type:     pluginsdk.TypeSet,
+			Required: true,
+			MinItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -86,13 +70,27 @@ func orchestratedVirtualMachineScaleSetSkuProfileSchema() *pluginsdk.Schema {
 					},
 				},
 			},
+		},
+	}
+
+	if !features.FivePointOh() {
+		schema["vm_sizes"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeSet,
+			Optional:      true,
+			MinItems:      1,
+			ConflictsWith: []string{"sku_profile.0.vm_size"},
+			Deprecated:    "The `vm_sizes` field has been deprecated and will be removed in v5.0 of the AzureRM Provider. Please use the `vm_size` block instead.",
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringIsNotEmpty,
+			},
 		}
-	} else {
-		// 5.0 mode: Only vm_size field, and it's required
-		baseSchema["vm_size"] = &pluginsdk.Schema{
-			Type:     pluginsdk.TypeSet,
-			Required: true,
-			MinItems: 1,
+
+		schema["vm_size"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeSet,
+			Optional:      true,
+			MinItems:      1,
+			ConflictsWith: []string{"sku_profile.0.vm_sizes"},
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"name": {
@@ -115,7 +113,7 @@ func orchestratedVirtualMachineScaleSetSkuProfileSchema() *pluginsdk.Schema {
 		Optional: true,
 		MaxItems: 1,
 		Elem: &pluginsdk.Resource{
-			Schema: baseSchema,
+			Schema: schema,
 		},
 	}
 }
@@ -1719,65 +1717,40 @@ func expandOrchestratedVirtualMachineScaleSetSkuProfile(d *pluginsdk.ResourceDat
 	v := input[0].(map[string]interface{})
 	allocationStrategy := v["allocation_strategy"].(string)
 	vmSizes := make([]virtualmachinescalesets.SkuProfileVMSize, 0)
+	vmSizeRaw := v["vm_size"].(*pluginsdk.Set).List()
 
 	if !features.FivePointOh() {
 		vmSizesRaw := v["vm_sizes"].(*pluginsdk.Set).List()
-		vmSizeRaw := v["vm_size"].(*pluginsdk.Set).List()
-
 		if len(vmSizesRaw) > 0 {
 			for _, vmSize := range vmSizesRaw {
 				vmSizes = append(vmSizes, virtualmachinescalesets.SkuProfileVMSize{
 					Name: pointer.To(vmSize.(string)),
 				})
 			}
-		} else if len(vmSizeRaw) > 0 {
-			for i, vmSizeRaw := range vmSizeRaw {
-				vmSizeMap := vmSizeRaw.(map[string]interface{})
-				vmSize := virtualmachinescalesets.SkuProfileVMSize{
-					Name: pointer.To(vmSizeMap["name"].(string)),
-				}
-
-				if rawConfig := d.GetRawConfig(); !rawConfig.IsNull() {
-					if skuProfile := rawConfig.AsValueMap()["sku_profile"]; !skuProfile.IsNull() {
-						if skuProfiles := skuProfile.AsValueSlice(); len(skuProfiles) > 0 && !skuProfiles[0].IsNull() {
-							if vmSizePath := skuProfiles[0].AsValueMap()["vm_size"]; !vmSizePath.IsNull() {
-								if vmSizes := vmSizePath.AsValueSlice(); len(vmSizes) > i && !vmSizes[i].IsNull() {
-									if rank := vmSizes[i].AsValueMap()["rank"]; !rank.IsNull() {
-										vmSize.Rank = pointer.To(int64(vmSizeMap["rank"].(int)))
-									}
-								}
-							}
-						}
-					}
-				}
-
-				vmSizes = append(vmSizes, vmSize)
-			}
 		}
-	} else {
-		vmSizeRaw := v["vm_size"].(*pluginsdk.Set).List()
-		for i, vmSizeRaw := range vmSizeRaw {
-			vmSizeMap := vmSizeRaw.(map[string]interface{})
-			vmSize := virtualmachinescalesets.SkuProfileVMSize{
-				Name: pointer.To(vmSizeMap["name"].(string)),
-			}
+	}
 
-			if rawConfig := d.GetRawConfig(); !rawConfig.IsNull() {
-				if skuProfile := rawConfig.AsValueMap()["sku_profile"]; !skuProfile.IsNull() {
-					if skuProfiles := skuProfile.AsValueSlice(); len(skuProfiles) > 0 && !skuProfiles[0].IsNull() {
-						if vmSizePath := skuProfiles[0].AsValueMap()["vm_size"]; !vmSizePath.IsNull() {
-							if vmSizes := vmSizePath.AsValueSlice(); len(vmSizes) > i && !vmSizes[i].IsNull() {
-								if rank := vmSizes[i].AsValueMap()["rank"]; !rank.IsNull() {
-									vmSize.Rank = pointer.To(int64(vmSizeMap["rank"].(int)))
-								}
+	for i, vmSizeRaw := range vmSizeRaw {
+		vmSizeMap := vmSizeRaw.(map[string]interface{})
+		vmSize := virtualmachinescalesets.SkuProfileVMSize{
+			Name: pointer.To(vmSizeMap["name"].(string)),
+		}
+
+		if rawConfig := d.GetRawConfig(); !rawConfig.IsNull() {
+			if skuProfile := rawConfig.AsValueMap()["sku_profile"]; !skuProfile.IsNull() {
+				if skuProfiles := skuProfile.AsValueSlice(); len(skuProfiles) > 0 && !skuProfiles[0].IsNull() {
+					if vmSizePath := skuProfiles[0].AsValueMap()["vm_size"]; !vmSizePath.IsNull() {
+						if vmSizes := vmSizePath.AsValueSlice(); len(vmSizes) > i && !vmSizes[i].IsNull() {
+							if rank := vmSizes[i].AsValueMap()["rank"]; !rank.IsNull() {
+								vmSize.Rank = pointer.To(int64(vmSizeMap["rank"].(int)))
 							}
 						}
 					}
 				}
 			}
-
-			vmSizes = append(vmSizes, vmSize)
 		}
+
+		vmSizes = append(vmSizes, vmSize)
 	}
 
 	return &virtualmachinescalesets.SkuProfile{
@@ -1791,33 +1764,35 @@ func flattenOrchestratedVirtualMachineScaleSetSkuProfile(config interface{}, inp
 		return []interface{}{}
 	}
 
-	var deprecated bool
+	result := map[string]interface{}{
+		"allocation_strategy": string(pointer.From(input.AllocationStrategy)),
+	}
+
+	var isVmSizes bool
 	if !features.FivePointOh() && config != nil {
 		configList := config.([]interface{})
 		if len(configList) > 0 && configList[0] != nil {
 			configMap := configList[0].(map[string]interface{})
 			if vmSizes, exists := configMap["vm_sizes"]; exists {
 				if vmSizesList, ok := vmSizes.(*pluginsdk.Set); ok && vmSizesList.Len() > 0 {
-					deprecated = true
+					isVmSizes = true
 				}
 			}
 		}
-	}
 
-	result := map[string]interface{}{
-		"allocation_strategy": string(pointer.From(input.AllocationStrategy)),
-	}
-
-	if !features.FivePointOh() && deprecated {
-		output := make([]string, 0)
-		for _, vmSize := range *input.VMSizes {
-			if vmSize.Name != nil {
-				output = append(output, pointer.From(vmSize.Name))
+		if isVmSizes {
+			output := make([]string, 0)
+			for _, vmSize := range *input.VMSizes {
+				if vmSize.Name != nil {
+					output = append(output, pointer.From(vmSize.Name))
+				}
 			}
-		}
 
-		result["vm_sizes"] = output
-	} else {
+			result["vm_sizes"] = output
+		}
+	}
+
+	if !isVmSizes {
 		output := make([]interface{}, 0)
 		if input.VMSizes != nil {
 			for _, vmSize := range *input.VMSizes {

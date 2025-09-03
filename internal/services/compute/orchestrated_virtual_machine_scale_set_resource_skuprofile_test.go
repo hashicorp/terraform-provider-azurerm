@@ -41,7 +41,7 @@ func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_basic(t *testing.T) {
 // configuration formats for the same Azure API data.
 func TestAccOrchestratedVirtualMachineScaleSet_skuProfile_vmSizesBackwardCompatibility(t *testing.T) {
 	if features.FivePointOh() {
-		t.Skipf("Skipping since `vm_sizes` field is deprecated and will be removed in v5.0")
+		t.Skipf("Skipping since `vm_sizes` field is deprecated and has been removed in v5.0")
 	}
 
 	data := acceptance.BuildTestData(t, "azurerm_orchestrated_virtual_machine_scale_set", "test")
