@@ -141,9 +141,9 @@ func buildRoleManagementPolicy(metadata *sdk.ResourceMetaData, rolePolicy *rolem
 	}
 
 	notificationRulesConfig := []struct {
-		changeDetectionKey string
-		ruleID             string
-		getModelSettings   func() RoleManagementPolicyNotificationSettings
+		propertyKey      string
+		ruleID           string
+		getModelSettings func() RoleManagementPolicyNotificationSettings
 	}{
 		{"notification_rules.0.eligible_assignments.0.admin_notifications", "Notification_Admin_Admin_Eligibility", func() RoleManagementPolicyNotificationSettings {
 			if len(notificationRules.EligibleAssignments) == 1 && len(notificationRules.EligibleAssignments[0].AdminNotifications) == 1 {
@@ -202,10 +202,10 @@ func buildRoleManagementPolicy(metadata *sdk.ResourceMetaData, rolePolicy *rolem
 	}
 
 	for _, ruleConfig := range notificationRulesConfig {
-		if _, ok := metadata.ResourceData.GetOk(ruleConfig.changeDetectionKey); ok {
+		if _, ok := metadata.ResourceData.GetOk(ruleConfig.propertyKey); ok {
 			if existingRuleBase, ok := existingRules[ruleConfig.ruleID]; ok {
 				if existingRule, ok := existingRuleBase.(rolemanagementpolicies.RoleManagementPolicyNotificationRule); ok {
-					recipientChange := metadata.ResourceData.HasChange(fmt.Sprintf("%s.0.additional_recipients", ruleConfig.changeDetectionKey))
+					recipientChange := metadata.ResourceData.HasChange(fmt.Sprintf("%s.0.additional_recipients", ruleConfig.propertyKey))
 					updatedRules = append(updatedRules,
 						expandNotificationSettings(
 							existingRule,
