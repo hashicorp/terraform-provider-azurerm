@@ -324,7 +324,7 @@ func resourceVPNServerConfigurationCreate(d *pluginsdk.ResourceData, meta interf
 			supportsRadius = true
 
 		default:
-			return fmt.Errorf("Unsupported `vpn_authentication_type`: %q", authType)
+			return fmt.Errorf("unsupported `vpn_authentication_type`: %q", authType)
 		}
 
 		vpnAuthenticationTypes = append(vpnAuthenticationTypes, authType)
@@ -523,7 +523,7 @@ func resourceVPNServerConfigurationUpdate(d *pluginsdk.ResourceData, meta interf
 			supportsRadius = true
 
 		default:
-			return fmt.Errorf("Unsupported `vpn_authentication_type`: %q", authType)
+			return fmt.Errorf("unsupported `vpn_authentication_type`: %q", authType)
 		}
 
 		vpnAuthenticationTypes = append(vpnAuthenticationTypes, authType)

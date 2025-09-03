@@ -120,7 +120,7 @@ func resourceSynapseSqlPoolExtendedAuditingPolicyCreateUpdate(d *pluginsdk.Resou
 	}
 
 	if v, ok := d.GetOk("storage_account_access_key"); ok {
-		params.ExtendedSQLPoolBlobAuditingPolicyProperties.StorageAccountAccessKey = utils.String(v.(string))
+		params.StorageAccountAccessKey = utils.String(v.(string))
 	}
 
 	_, err = client.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.SqlPoolName, params)

@@ -339,9 +339,10 @@ func flattenDataCollectionEndpointPublicNetworkAccess(input *datacollectionendpo
 		return false
 	}
 	var result bool
-	if *input == datacollectionendpoints.KnownPublicNetworkAccessOptionsEnabled {
+	switch *input {
+	case datacollectionendpoints.KnownPublicNetworkAccessOptionsEnabled:
 		result = true
-	} else if *input == datacollectionendpoints.KnownPublicNetworkAccessOptionsDisabled {
+	case datacollectionendpoints.KnownPublicNetworkAccessOptionsDisabled:
 		result = false
 	}
 	return result

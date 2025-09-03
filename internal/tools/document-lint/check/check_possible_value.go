@@ -52,7 +52,7 @@ func (p possibleValueDiff) String() string {
 		missInCode = fmt.Sprintf(" the following possible values are missing in the schema: %v.", possibleValueStr(p.Spare))
 	}
 	return fmt.Sprintf(`%s:%s%s`,
-		p.checkBase.Str(),
+		p.Str(),
 		missInDoc,
 		missInCode,
 	)

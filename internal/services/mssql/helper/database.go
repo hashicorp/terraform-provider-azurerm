@@ -5,6 +5,7 @@ package helper
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
@@ -147,7 +148,7 @@ func FindDatabaseReplicationPartners(ctx context.Context, databasesClient *datab
 					if partnerDatabase := partnerDatabase.Model; partnerDatabase != nil {
 						partnerDatabaseProps := partnerDatabase.Properties
 						if partnerDatabaseProps == nil {
-							return nil, fmt.Errorf("Partner SQL Database Properties were nil")
+							return nil, errors.New("the Partner SQL Database Properties were nil")
 						}
 
 						log.Printf("[INFO] Partner SQL Database Location: %q :: Replication Link Partner SQL Database Location: %q", location.Normalize(partnerDatabase.Location), location.Normalize(*linkProps.PartnerLocation))

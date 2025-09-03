@@ -1287,9 +1287,9 @@ func expandContainerGroupContainers(d *pluginsdk.ResourceData, addedEmptyDirs ma
 			port := int64(portConfig["port"].(int))
 			proto := portConfig["protocol"].(string)
 			if !cgpMap[port][containerinstance.ContainerGroupNetworkProtocol(proto)] {
-				return nil, nil, nil, fmt.Errorf("Port %d/%s is not exposed on any individual container in the container group.\n"+
-					"An exposed_ports block contains %d/%s, but no individual container has a ports block with the same port "+
-					"and protocol. Any ports exposed on the container group must also be exposed on an individual container.",
+				return nil, nil, nil, fmt.Errorf(`port %d/%s is not exposed on any individual container in the container group.
+					An exposed_ports block contains %d/%s, but no individual container has a ports block with the same port
+					and protocol. Any ports exposed on the container group must also be exposed on an individual container`,
 					port, proto, port, proto)
 			}
 			portProtocol := containerinstance.ContainerGroupNetworkProtocol(proto)

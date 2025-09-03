@@ -259,7 +259,7 @@ func resourceMsSqlManagedInstanceTransparentDataEncryptionRead(d *pluginsdk.Reso
 		hsmKey := ""
 		keyVaultKeyId := ""
 		if keyId != "" {
-			isHSMURI, err, _, _ := managedHsmHelpers.IsManagedHSMURI(env, keyId)
+			isHSMURI, _, _, err := managedHsmHelpers.IsManagedHSMURI(env, keyId)
 			if err != nil {
 				return err
 			}

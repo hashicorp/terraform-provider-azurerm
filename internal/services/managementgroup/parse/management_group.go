@@ -17,13 +17,13 @@ type ManagementGroupId struct {
 func ManagementGroupID(input string) (*ManagementGroupId, error) {
 	regex := regexp.MustCompile(`^/providers/[Mm]icrosoft\.[Mm]anagement/[Mm]anagement[Gg]roups/`)
 	if !regex.MatchString(input) {
-		return nil, fmt.Errorf("Unable to parse Management Group ID %q", input)
+		return nil, fmt.Errorf("unable to parse Management Group ID %q", input)
 	}
 
 	// Split the input ID by the regex
 	segments := regex.Split(input, -1)
 	if len(segments) != 2 {
-		return nil, fmt.Errorf("Unable to parse Management Group ID %q: expected id to have two segments after splitting", input)
+		return nil, fmt.Errorf("unable to parse Management Group ID %q: expected id to have two segments after splitting", input)
 	}
 
 	groupID := segments[1]
@@ -44,12 +44,12 @@ func ManagementGroupID(input string) (*ManagementGroupId, error) {
 func TenantScopedManagementGroupID(input string) (*ManagementGroupId, error) {
 	regex := regexp.MustCompile(`^/tenants/.*-.*-.*-.*-.*/providers/Microsoft\.Management/managementGroups/`)
 	if !regex.MatchString(input) {
-		return nil, fmt.Errorf("Unable to parse Management Group ID for System Topic %q, format should look like '/tenants/<tenantID>/providers/Microsoft.Management/managementGroups/<management_group_name>'", input)
+		return nil, fmt.Errorf("unable to parse Management Group ID for System Topic %q, format should look like '/tenants/<tenantID>/providers/Microsoft.Management/managementGroups/<management_group_name>'", input)
 	}
 
 	segments := strings.Split(input, "/")
 	if len(segments) != 7 {
-		return nil, fmt.Errorf("Unable to parse Management Group ID %q: expected id to have seven segments after splitting", input)
+		return nil, fmt.Errorf("unable to parse Management Group ID %q: expected id to have seven segments after splitting", input)
 	}
 
 	groupID := segments[len(segments)-1]

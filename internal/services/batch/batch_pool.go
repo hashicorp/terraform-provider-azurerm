@@ -5,6 +5,7 @@ package batch
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -591,7 +592,7 @@ func ExpandBatchPoolCertificateReferences(list []interface{}) (*[]pool.Certifica
 
 func expandBatchPoolCertificateReference(ref map[string]interface{}) (*pool.CertificateReference, error) {
 	if len(ref) == 0 {
-		return nil, fmt.Errorf("Error: storage image reference should be defined")
+		return nil, errors.New("storage image reference should be defined")
 	}
 
 	id := ref["id"].(string)

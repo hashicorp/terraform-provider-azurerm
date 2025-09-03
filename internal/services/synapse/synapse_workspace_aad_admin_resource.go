@@ -123,9 +123,9 @@ func resourceSynapseWorkspaceAADAdminRead(d *pluginsdk.ResourceData, meta interf
 	workspaceID := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName)
 
 	d.Set("synapse_workspace_id", workspaceID.ID())
-	d.Set("login", aadAdmin.AadAdminProperties.Login)
-	d.Set("object_id", aadAdmin.AadAdminProperties.Sid)
-	d.Set("tenant_id", aadAdmin.AadAdminProperties.TenantID)
+	d.Set("login", aadAdmin.Login)
+	d.Set("object_id", aadAdmin.Sid)
+	d.Set("tenant_id", aadAdmin.TenantID)
 
 	return nil
 }

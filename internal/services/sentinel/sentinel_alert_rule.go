@@ -75,7 +75,7 @@ func assertAlertRuleKind(rule alertrules.AlertRule, expectKind alertrules.AlertR
 		kind = alertrules.AlertRuleKindThreatIntelligence
 	}
 	if expectKind != kind {
-		return fmt.Errorf("Sentinel Alert Rule has mismatched kind, expected: %q, got %q", expectKind, kind)
+		return fmt.Errorf("'Sentinel Alert Rule' has mismatched kind, expected: %q, got %q", expectKind, kind)
 	}
 	return nil
 }

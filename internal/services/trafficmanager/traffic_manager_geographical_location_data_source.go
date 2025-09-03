@@ -58,7 +58,7 @@ func dataSourceArmTrafficManagerGeographicalLocationRead(d *pluginsdk.ResourceDa
 	}
 
 	if result == nil || result.Code == nil {
-		return fmt.Errorf("Couldn't find a Traffic Manager Geographic Location with the name %q", name)
+		return fmt.Errorf("couldn't find a Traffic Manager Geographic Location with the name %q", name)
 	}
 
 	// NOTE: @tombuildsstuff: this is a unique data source that outputs the location as the ID, so this is fine

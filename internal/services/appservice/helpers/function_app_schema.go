@@ -1925,7 +1925,7 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_URL", dockerConfig.RegistryURL, false)
 			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_USERNAME", dockerConfig.RegistryUsername, false)
 			appSettings = updateOrAppendAppSettings(appSettings, "DOCKER_REGISTRY_SERVER_PASSWORD", dockerConfig.RegistryPassword, false)
-			var dockerUrl string = dockerConfig.RegistryURL
+			dockerUrl := dockerConfig.RegistryURL
 			for _, prefix := range urlSchemes {
 				if strings.HasPrefix(dockerConfig.RegistryURL, prefix) {
 					dockerUrl = strings.TrimPrefix(dockerConfig.RegistryURL, prefix)

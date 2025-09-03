@@ -131,7 +131,7 @@ func (CustomIpPrefixResource) Exists(ctx context.Context, client *clients.Client
 		return nil, err
 	}
 
-	resp, err := client.Network.Client.CustomIPPrefixes.Get(ctx, *id, customipprefixes.DefaultGetOperationOptions())
+	resp, err := client.Network.CustomIPPrefixes.Get(ctx, *id, customipprefixes.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return pointer.To(false), nil

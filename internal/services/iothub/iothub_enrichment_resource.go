@@ -149,7 +149,7 @@ func resourceArmIotHubEnrichmentCreateUpdate(d *pluginsdk.ResourceData, meta int
 	if d.IsNewResource() {
 		enrichments = append(enrichments, enrichment)
 	} else if !alreadyExists {
-		return fmt.Errorf("Unable to find Enrichment %q defined for IotHub %q (Resource Group %q)", enrichmentKey, iothubName, resourceGroup)
+		return fmt.Errorf("unable to find Enrichment %q defined for IotHub %q (Resource Group %q)", enrichmentKey, iothubName, resourceGroup)
 	}
 	routing.Enrichments = &enrichments
 

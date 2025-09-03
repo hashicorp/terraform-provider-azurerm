@@ -131,9 +131,10 @@ func dataSourcePublicMaintenanceConfigurationsRead(d *pluginsdk.ResourceData, me
 
 	recurEveryFilterRaw := d.Get("recur_every").(string)
 	recurEveryFilter := recurEveryFilterRaw
-	if recurEveryFilterRaw == recurFridayToSunday {
+	switch recurEveryFilterRaw {
+	case recurFridayToSunday:
 		recurEveryFilter = "week Friday, Saturday, Sunday"
-	} else if recurEveryFilterRaw == recurMondayToThursday {
+	case recurMondayToThursday:
 		recurEveryFilter = "week Monday, Tuesday, Wednesday, Thursday"
 	}
 
