@@ -371,7 +371,7 @@ A `linux_configuration` block supports the following:
 
 * `password_authentication_enabled` - (Optional) Whether to enable the password authentication. Defaults to `false`. Changing this forces a new resource to be created.
 
--> **Note:** When an `admin_password` is specified `password_authentication_enabled` must be set to `true`. 
+-> **Note:** When an `admin_password` is specified `password_authentication_enabled` must be set to `true`.
 
 * `patch_mode` - (Optional)  Specifies the mode of in-guest patching of the virtual machines. Possible values are `AutomaticByPlatform` and `ImageDefault`. Changing this forces a new resource to be created.
 
@@ -565,3 +565,9 @@ Compute Fleets can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_compute_fleet.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AzureFleet/fleets/fleetName
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AzureFleet` - 2024-11-01
