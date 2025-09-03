@@ -68,9 +68,7 @@ output "contributor_role_definition_id" {
 
 * `permissions` - A `permissions` block as documented below.
 
-* `role_definition_id` - The Role Definition ID, a UUID/GUID.
-
-* `role_definition_resource_id` - The Azure Resource Manager ID for the resource.
+* `role_definition_uuid` - The Role Definition ID in UUID/GUID format.
 
 * `assignable_scopes` - One or more assignable scopes for this Role Definition, such as `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333`, `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup`, or `/subscriptions/0b1f6471-1bf0-4dda-aec3-111122223333/resourceGroups/myGroup/providers/Microsoft.Compute/virtualMachines/myVM`.
 

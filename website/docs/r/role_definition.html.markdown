@@ -100,7 +100,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `id` - This ID is specific to Terraform - and is of the format `{roleDefinitionId}|{scope}`.
 
-* `role_definition_id` - The Role Definition ID, a UUID/GUID.
+* `role_definition_id` - The Role Definition ID.
 
 * `role_definition_resource_id` - The Azure Resource Manager ID for the resource.
 
