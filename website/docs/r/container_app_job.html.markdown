@@ -134,11 +134,11 @@ A `container` block supports the following:
 
 * `name` - (Required) The name of the container.
 
-* `cpu` - (Required) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, `2.0`, `2.25`, `2.5`, `2.75`, `3.0`, `3.25`, `3.5`, `3.75` and `4.0`.
+* `cpu` - (Required) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, `2.0`, `2.25`, `2.5`, `2.75`, `3.0`, `3.25`, `3.5`, `3.75` and `4.0`. When there's a workload profile specified, there's no such constraint.
 
 ~> **Note:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
 
-* `memory` - (Required) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi`, `4Gi`, `4.5Gi`, `5Gi`, `5.5Gi`, `6Gi`, `6.5Gi`, `7Gi`, `7.5Gi` and `8Gi`.
+* `memory` - (Required) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi`, `4Gi`, `4.5Gi`, `5Gi`, `5.5Gi`, `6Gi`, `6.5Gi`, `7Gi`, `7.5Gi` and `8Gi`. When there's a workload profile specified, there's no such constraint.
 
 ~> **Note:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
 
@@ -168,11 +168,11 @@ An `init_container` block supports:
 
 * `name` - (Required) The name of the container.
 
-* `cpu` - (Required) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, `2.0`, `2.25`, `2.5`, `2.75`, `3.0`, `3.25`, `3.5`, `3.75` and `4.0`.
+* `cpu` - (Required) The amount of vCPU to allocate to the container. Possible values include `0.25`, `0.5`, `0.75`, `1.0`, `1.25`, `1.5`, `1.75`, `2.0`, `2.25`, `2.5`, `2.75`, `3.0`, `3.25`, `3.5`, `3.75` and `4.0`. When there's a workload profile specified, there's no such constraint.
 
 ~> **Note:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.0` / `2.0` or `0.5` / `1.0`
 
-* `memory` - (Required) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi`, `4Gi`, `4.5Gi`, `5Gi`, `5.5Gi`, `6Gi`, `6.5Gi`, `7Gi`, `7.5Gi` and `8Gi`.
+* `memory` - (Required) The amount of memory to allocate to the container. Possible values are `0.5Gi`, `1Gi`, `1.5Gi`, `2Gi`, `2.5Gi`, `3Gi`, `3.5Gi`, `4Gi`, `4.5Gi`, `5Gi`, `5.5Gi`, `6Gi`, `6.5Gi`, `7Gi`, `7.5Gi` and `8Gi`. When there's a workload profile specified, there's no such constraint.
 
 ~> **Note:** `cpu` and `memory` must be specified in `0.25'/'0.5Gi` combination increments. e.g. `1.25` / `2.5Gi` or `0.75` / `1.5Gi`
 
