@@ -369,21 +369,38 @@ resource "azurerm_role_management_policy" "test" {
   }
 
   notification_rules {
-    eligible_assignments {
+    active_assignments {
       approver_notifications {
         notification_level    = "Critical"
         default_recipients    = false
         additional_recipients = ["resource-group-approver@example.com"]
+      }
+      admin_notifications {
+        notification_level    = "Critical"
+        default_recipients    = false
+        additional_recipients = ["resource-group-admin@example.com"]
       }
       assignee_notifications {
         notification_level    = "All"
         default_recipients    = true
         additional_recipients = ["resource-group-assignee.else@example.com"]
       }
+    }
+    eligible_assignments {
+      approver_notifications {
+        notification_level    = "Critical"
+        default_recipients    = false
+        additional_recipients = ["resource-group-approver@example.com"]
+      }
       admin_notifications {
         notification_level    = "Critical"
         default_recipients    = false
         additional_recipients = ["resource-group-admin@example.com"]
+      }
+      assignee_notifications {
+        notification_level    = "All"
+        default_recipients    = true
+        additional_recipients = ["resource-group-assignee.else@example.com"]
       }
     }
     eligible_activations {
@@ -391,23 +408,6 @@ resource "azurerm_role_management_policy" "test" {
         notification_level    = "All"
         default_recipients    = true
         additional_recipients = ["resource-group-eligible.else@example.com"]
-      }
-      admin_notifications {
-        notification_level    = "Critical"
-        default_recipients    = false
-        additional_recipients = ["resource-group-admin@example.com"]
-      }
-    }
-    active_assignments {
-      approver_notifications {
-        notification_level    = "Critical"
-        default_recipients    = false
-        additional_recipients = ["resource-group-approver@example.com"]
-      }
-      assignee_notifications {
-        notification_level    = "All"
-        default_recipients    = true
-        additional_recipients = ["resource-group-assignee.else@example.com"]
       }
       admin_notifications {
         notification_level    = "Critical"
@@ -456,19 +456,39 @@ resource "azurerm_role_management_policy" "test" {
   }
 
   notification_rules {
-    eligible_assignments {
-      approver_notifications {
-        notification_level    = "Critical"
-        default_recipients    = false
-        additional_recipients = ["someone@example.com"]
-      }
-    }
     active_assignments {
       approver_notifications {
         notification_level    = "Critical"
         default_recipients    = false
         additional_recipients = ["resource-group-approver@example.com"]
       }
+      # admin_notifications {
+      #   notification_level    = "Critical"
+      #   default_recipients    = false
+      #   additional_recipients = ["resource-group-admin@example.com"]
+      # }
+      # assignee_notifications {
+      #   notification_level    = "All"
+      #   default_recipients    = true
+      #   additional_recipients = ["resource-group-assignee.else@example.com"]
+      # }
+    }
+    eligible_assignments {
+      approver_notifications {
+        notification_level    = "Critical"
+        default_recipients    = false
+        additional_recipients = ["someone@example.com"]
+      }
+      # admin_notifications {
+      #   notification_level    = "Critical"
+      #   default_recipients    = false
+      #   additional_recipients = ["resource-group-admin@example.com"]
+      # }
+      # assignee_notifications {
+      #   notification_level    = "All"
+      #   default_recipients    = true
+      #   additional_recipients = ["resource-group-assignee.else@example.com"]
+      # }
     }
     eligible_activations {
       assignee_notifications {
@@ -476,6 +496,11 @@ resource "azurerm_role_management_policy" "test" {
         default_recipients    = true
         additional_recipients = ["someone.else@example.com"]
       }
+      # admin_notifications {
+      #   notification_level    = "Critical"
+      #   default_recipients    = false
+      #   additional_recipients = ["resource-group-admin@example.com"]
+      # }
     }
   }
 }

@@ -678,11 +678,14 @@ func (r RoleManagementPolicyResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving existing %s: %+v", policyId, err)
 			}
 			// Role Management Policies cannot be deleted, so we reset all properties back to default values
-			payload, err := buildRoleManagementPolicyForDelete(existing.Model)
-			if err != nil {
-				return fmt.Errorf("could not build update request, %+v", err)
-			}
-			if _, err := client.Update(ctx, *policyId, *payload); err != nil {
+			if _, err := client.Update(ctx, *policyId, rolemanagementpolicies.RoleManagementPolicy{
+				Id:   existing.Model.Id,
+				Name: existing.Model.Name,
+				Properties: pointer.To(rolemanagementpolicies.RoleManagementPolicyProperties{
+					Rules: &defaultNotificationRules,
+				}),
+				Type: existing.Model.Type,
+			}); err != nil {
 				return err
 			}
 

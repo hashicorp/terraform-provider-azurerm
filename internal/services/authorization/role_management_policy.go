@@ -58,52 +58,6 @@ func FindRoleManagementPolicyId(ctx context.Context, client *rolemanagementpolic
 	return &id, nil
 }
 
-func buildRoleManagementPolicyForDelete(rolePolicy *rolemanagementpolicies.RoleManagementPolicy) (*rolemanagementpolicies.RoleManagementPolicy, error) {
-	if rolePolicy == nil {
-		return nil, fmt.Errorf("existing Role Management Policy was nil")
-	}
-
-	rules := make([]rolemanagementpolicies.RoleManagementPolicyRule, 0)
-
-	var levels []string
-	for _, recipient := range []string{"Admin", "Approver", "Requestor"} {
-		for _, caller := range []string{"Admin", "EndUser"} {
-			if caller == "Admin" {
-				levels = []string{"Assignment", "Eligibility"}
-			} else {
-				levels = []string{"Assignment"}
-			}
-			for _, level := range levels {
-				rules = append(rules, rolemanagementpolicies.RoleManagementPolicyNotificationRule{
-					Id:                         pointer.To(fmt.Sprintf("Notification_%s_%s_%s", recipient, caller, level)),
-					RecipientType:              pointer.To(rolemanagementpolicies.RecipientType(recipient)),
-					NotificationType:           pointer.To(rolemanagementpolicies.NotificationDeliveryMechanismEmail),
-					NotificationLevel:          pointer.To(rolemanagementpolicies.NotificationLevelAll),
-					IsDefaultRecipientsEnabled: pointer.To(true),
-					NotificationRecipients:     pointer.To([]string{}),
-					Target: &rolemanagementpolicies.RoleManagementPolicyRuleTarget{
-						Caller:              pointer.To(caller),
-						Level:               pointer.To(level),
-						Operations:          pointer.To([]string{"All"}),
-						TargetObjects:       pointer.To([]string{}),
-						EnforcedSettings:    pointer.To([]string{}),
-						InheritableSettings: pointer.To([]string{}),
-					},
-				})
-			}
-		}
-	}
-
-	return &rolemanagementpolicies.RoleManagementPolicy{
-		Id:   rolePolicy.Id,
-		Name: rolePolicy.Name,
-		Type: rolePolicy.Type,
-		Properties: &rolemanagementpolicies.RoleManagementPolicyProperties{
-			Rules: pointer.To(rules),
-		},
-	}, nil
-}
-
 func buildRoleManagementPolicy(metadata *sdk.ResourceMetaData, rolePolicy *rolemanagementpolicies.RoleManagementPolicy) (*rolemanagementpolicies.RoleManagementPolicy, error) {
 	if rolePolicy == nil {
 		return nil, fmt.Errorf("existing Role Management Policy was nil")
@@ -135,85 +89,143 @@ func buildRoleManagementPolicy(metadata *sdk.ResourceMetaData, rolePolicy *rolem
 	}
 
 	updatedRules := make([]rolemanagementpolicies.RoleManagementPolicyRule, 0)
+
 	var notificationRules RoleManagementPolicyNotificationEvents
-	if len(model.NotificationRules) == 1 {
+	if len(model.NotificationRules) >= 1 {
 		notificationRules = model.NotificationRules[0]
 	}
 
-	notificationRulesConfig := []struct {
-		propertyKey      string
-		ruleID           string
-		getModelSettings func() RoleManagementPolicyNotificationSettings
-	}{
-		{"notification_rules.0.eligible_assignments.0.admin_notifications", "Notification_Admin_Admin_Eligibility", func() RoleManagementPolicyNotificationSettings {
-			if len(notificationRules.EligibleAssignments) == 1 && len(notificationRules.EligibleAssignments[0].AdminNotifications) == 1 {
-				return notificationRules.EligibleAssignments[0].AdminNotifications[0]
+	if metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.admin_notifications") {
+		if existingRuleBase, ok := existingRules["Notification_Admin_Admin_Eligibility"]; ok {
+			if existingRule, ok := existingRuleBase.(rolemanagementpolicies.RoleManagementPolicyNotificationRule); ok {
+				var settings RoleManagementPolicyNotificationSettings
+				if len(notificationRules.EligibleAssignments) == 1 && len(notificationRules.EligibleAssignments[0].AdminNotifications) == 1 {
+					settings = notificationRules.EligibleAssignments[0].AdminNotifications[0]
+				} else {
+					settings = defaultNotificationSettings
+				}
+				recipientChange := metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.admin_notifications.0.additional_recipients")
+				updatedRules = append(updatedRules, expandNotificationSettings(existingRule, settings, recipientChange))
 			}
-			return defaultNotificationSettings
-		}},
-		{"notification_rules.0.active_assignments.0.admin_notifications", "Notification_Admin_Admin_Assignment", func() RoleManagementPolicyNotificationSettings {
-			if len(notificationRules.ActiveAssignments) == 1 && len(notificationRules.ActiveAssignments[0].AdminNotifications) == 1 {
-				return notificationRules.ActiveAssignments[0].AdminNotifications[0]
-			}
-			return defaultNotificationSettings
-		}},
-		{"notification_rules.0.eligible_activations.0.admin_notifications", "Notification_Admin_EndUser_Assignment", func() RoleManagementPolicyNotificationSettings {
-			if len(notificationRules.EligibleActivations) == 1 && len(notificationRules.EligibleActivations[0].AdminNotifications) == 1 {
-				return notificationRules.EligibleActivations[0].AdminNotifications[0]
-			}
-			return defaultNotificationSettings
-		}},
-		{"notification_rules.0.eligible_assignments.0.approver_notifications", "Notification_Approver_Admin_Eligibility", func() RoleManagementPolicyNotificationSettings {
-			if len(notificationRules.EligibleAssignments) == 1 && len(notificationRules.EligibleAssignments[0].ApproverNotifications) == 1 {
-				return notificationRules.EligibleAssignments[0].ApproverNotifications[0]
-			}
-			return defaultNotificationSettings
-		}},
-		{"notification_rules.0.active_assignments.0.approver_notifications", "Notification_Approver_Admin_Assignment", func() RoleManagementPolicyNotificationSettings {
-			if len(notificationRules.ActiveAssignments) == 1 && len(notificationRules.ActiveAssignments[0].ApproverNotifications) == 1 {
-				return notificationRules.ActiveAssignments[0].ApproverNotifications[0]
-			}
-			return defaultNotificationSettings
-		}},
-		{"notification_rules.0.eligible_activations.0.approver_notifications", "Notification_Approver_EndUser_Assignment", func() RoleManagementPolicyNotificationSettings {
-			if len(notificationRules.EligibleActivations) == 1 && len(notificationRules.EligibleActivations[0].ApproverNotifications) == 1 {
-				return notificationRules.EligibleActivations[0].ApproverNotifications[0]
-			}
-			return defaultNotificationSettings
-		}},
-		{"notification_rules.0.eligible_assignments.0.assignee_notifications", "Notification_Requestor_Admin_Eligibility", func() RoleManagementPolicyNotificationSettings {
-			if len(notificationRules.EligibleAssignments) == 1 && len(notificationRules.EligibleAssignments[0].AssigneeNotifications) == 1 {
-				return notificationRules.EligibleAssignments[0].AssigneeNotifications[0]
-			}
-			return defaultNotificationSettings
-		}},
-		{"notification_rules.0.active_assignments.0.assignee_notifications", "Notification_Requestor_Admin_Assignment", func() RoleManagementPolicyNotificationSettings {
-			if len(notificationRules.ActiveAssignments) == 1 && len(notificationRules.ActiveAssignments[0].AssigneeNotifications) == 1 {
-				return notificationRules.ActiveAssignments[0].AssigneeNotifications[0]
-			}
-			return defaultNotificationSettings
-		}},
-		{"notification_rules.0.eligible_activations.0.assignee_notifications", "Notification_Requestor_EndUser_Assignment", func() RoleManagementPolicyNotificationSettings {
-			if len(notificationRules.EligibleActivations) == 1 && len(notificationRules.EligibleActivations[0].AssigneeNotifications) == 1 {
-				return notificationRules.EligibleActivations[0].AssigneeNotifications[0]
-			}
-			return defaultNotificationSettings
-		}},
+		}
 	}
 
-	for _, ruleConfig := range notificationRulesConfig {
-		if _, ok := metadata.ResourceData.GetOk(ruleConfig.propertyKey); ok {
-			if existingRuleBase, ok := existingRules[ruleConfig.ruleID]; ok {
-				if existingRule, ok := existingRuleBase.(rolemanagementpolicies.RoleManagementPolicyNotificationRule); ok {
-					recipientChange := metadata.ResourceData.HasChange(fmt.Sprintf("%s.0.additional_recipients", ruleConfig.propertyKey))
-					updatedRules = append(updatedRules,
-						expandNotificationSettings(
-							existingRule,
-							ruleConfig.getModelSettings(),
-							recipientChange,
-						),
-					)
+	if metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.admin_notifications") {
+		if existingRuleBase, ok := existingRules["Notification_Admin_Admin_Assignment"]; ok {
+			if existingRule, ok := existingRuleBase.(rolemanagementpolicies.RoleManagementPolicyNotificationRule); ok {
+				var settings RoleManagementPolicyNotificationSettings
+				if len(notificationRules.ActiveAssignments) == 1 && len(notificationRules.ActiveAssignments[0].AdminNotifications) == 1 {
+					settings = notificationRules.ActiveAssignments[0].AdminNotifications[0]
+				} else {
+					settings = defaultNotificationSettings
 				}
+				recipientChange := metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.admin_notifications.0.additional_recipients")
+				updatedRules = append(updatedRules, expandNotificationSettings(existingRule, settings, recipientChange))
+			}
+		}
+	}
+
+	if metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.admin_notifications") {
+		if existingRuleBase, ok := existingRules["Notification_Admin_EndUser_Assignment"]; ok {
+			if existingRule, ok := existingRuleBase.(rolemanagementpolicies.RoleManagementPolicyNotificationRule); ok {
+				var settings RoleManagementPolicyNotificationSettings
+				if len(notificationRules.EligibleActivations) == 1 && len(notificationRules.EligibleActivations[0].AdminNotifications) == 1 {
+					settings = notificationRules.EligibleActivations[0].AdminNotifications[0]
+				} else {
+					settings = defaultNotificationSettings
+				}
+				recipientChange := metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.admin_notifications.0.additional_recipients")
+				updatedRules = append(updatedRules, expandNotificationSettings(existingRule, settings, recipientChange))
+			}
+		}
+	}
+
+	if metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.approver_notifications") {
+		if existingRuleBase, ok := existingRules["Notification_Approver_Admin_Eligibility"]; ok {
+			if existingRule, ok := existingRuleBase.(rolemanagementpolicies.RoleManagementPolicyNotificationRule); ok {
+				var settings RoleManagementPolicyNotificationSettings
+				if len(notificationRules.EligibleAssignments) == 1 && len(notificationRules.EligibleAssignments[0].ApproverNotifications) == 1 {
+					settings = notificationRules.EligibleAssignments[0].ApproverNotifications[0]
+				} else {
+					settings = defaultNotificationSettings
+				}
+				recipientChange := metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.approver_notifications.0.additional_recipients")
+				updatedRules = append(updatedRules, expandNotificationSettings(existingRule, settings, recipientChange))
+			}
+		}
+	}
+
+	if metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.approver_notifications") {
+		if existingRuleBase, ok := existingRules["Notification_Approver_Admin_Assignment"]; ok {
+			if existingRule, ok := existingRuleBase.(rolemanagementpolicies.RoleManagementPolicyNotificationRule); ok {
+				var settings RoleManagementPolicyNotificationSettings
+				if len(notificationRules.ActiveAssignments) == 1 && len(notificationRules.ActiveAssignments[0].ApproverNotifications) == 1 {
+					settings = notificationRules.ActiveAssignments[0].ApproverNotifications[0]
+				} else {
+					settings = defaultNotificationSettings
+				}
+				recipientChange := metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.approver_notifications.0.additional_recipients")
+				updatedRules = append(updatedRules, expandNotificationSettings(existingRule, settings, recipientChange))
+			}
+		}
+	}
+
+	if metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.approver_notifications") {
+		if existingRuleBase, ok := existingRules["Notification_Approver_EndUser_Assignment"]; ok {
+			if existingRule, ok := existingRuleBase.(rolemanagementpolicies.RoleManagementPolicyNotificationRule); ok {
+				var settings RoleManagementPolicyNotificationSettings
+				if len(notificationRules.EligibleActivations) == 1 && len(notificationRules.EligibleActivations[0].ApproverNotifications) == 1 {
+					settings = notificationRules.EligibleActivations[0].ApproverNotifications[0]
+				} else {
+					settings = defaultNotificationSettings
+				}
+				recipientChange := metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.approver_notifications.0.additional_recipients")
+				updatedRules = append(updatedRules, expandNotificationSettings(existingRule, settings, recipientChange))
+			}
+		}
+	}
+
+	if metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.assignee_notifications") {
+		if existingRuleBase, ok := existingRules["Notification_Requestor_Admin_Eligibility"]; ok {
+			if existingRule, ok := existingRuleBase.(rolemanagementpolicies.RoleManagementPolicyNotificationRule); ok {
+				var settings RoleManagementPolicyNotificationSettings
+				if len(notificationRules.EligibleAssignments) == 1 && len(notificationRules.EligibleAssignments[0].AssigneeNotifications) == 1 {
+					settings = notificationRules.EligibleAssignments[0].AssigneeNotifications[0]
+				} else {
+					settings = defaultNotificationSettings
+				}
+				recipientChange := metadata.ResourceData.HasChange("notification_rules.0.eligible_assignments.0.assignee_notifications.0.additional_recipients")
+				updatedRules = append(updatedRules, expandNotificationSettings(existingRule, settings, recipientChange))
+			}
+		}
+	}
+
+	if metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.assignee_notifications") {
+		if existingRuleBase, ok := existingRules["Notification_Requestor_Admin_Assignment"]; ok {
+			if existingRule, ok := existingRuleBase.(rolemanagementpolicies.RoleManagementPolicyNotificationRule); ok {
+				var settings RoleManagementPolicyNotificationSettings
+				if len(notificationRules.ActiveAssignments) == 1 && len(notificationRules.ActiveAssignments[0].AssigneeNotifications) == 1 {
+					settings = notificationRules.ActiveAssignments[0].AssigneeNotifications[0]
+				} else {
+					settings = defaultNotificationSettings
+				}
+				recipientChange := metadata.ResourceData.HasChange("notification_rules.0.active_assignments.0.assignee_notifications.0.additional_recipients")
+				updatedRules = append(updatedRules, expandNotificationSettings(existingRule, settings, recipientChange))
+			}
+		}
+	}
+
+	if metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.assignee_notifications") {
+		if existingRuleBase, ok := existingRules["Notification_Requestor_EndUser_Assignment"]; ok {
+			if existingRule, ok := existingRuleBase.(rolemanagementpolicies.RoleManagementPolicyNotificationRule); ok {
+				var settings RoleManagementPolicyNotificationSettings
+				if len(notificationRules.EligibleActivations) == 1 && len(notificationRules.EligibleActivations[0].AssigneeNotifications) == 1 {
+					settings = notificationRules.EligibleActivations[0].AssigneeNotifications[0]
+				} else {
+					settings = defaultNotificationSettings
+				}
+				recipientChange := metadata.ResourceData.HasChange("notification_rules.0.eligible_activations.0.assignee_notifications.0.additional_recipients")
+				updatedRules = append(updatedRules, expandNotificationSettings(existingRule, settings, recipientChange))
 			}
 		}
 	}
@@ -398,6 +410,153 @@ func expandNotificationSettings(rule rolemanagementpolicies.RoleManagementPolicy
 	}
 
 	return rule
+}
+
+var defaultNotificationRules = []rolemanagementpolicies.RoleManagementPolicyRule{
+	rolemanagementpolicies.RoleManagementPolicyNotificationRule{
+		Id:                         pointer.To(fmt.Sprintf("Notification_%s_%s_%s", "Admin", "Admin", "Assignment")),
+		RecipientType:              pointer.To(rolemanagementpolicies.RecipientType("Admin")),
+		NotificationType:           pointer.To(rolemanagementpolicies.NotificationDeliveryMechanismEmail),
+		NotificationLevel:          pointer.To(rolemanagementpolicies.NotificationLevelAll),
+		IsDefaultRecipientsEnabled: pointer.To(true),
+		NotificationRecipients:     pointer.To([]string{}),
+		Target: &rolemanagementpolicies.RoleManagementPolicyRuleTarget{
+			Caller:              pointer.To("Admin"),
+			Level:               pointer.To("Assignment"),
+			Operations:          pointer.To([]string{"All"}),
+			TargetObjects:       pointer.To([]string{}),
+			EnforcedSettings:    pointer.To([]string{}),
+			InheritableSettings: pointer.To([]string{}),
+		},
+	},
+	rolemanagementpolicies.RoleManagementPolicyNotificationRule{
+		Id:                         pointer.To(fmt.Sprintf("Notification_%s_%s_%s", "Admin", "Admin", "Eligibility")),
+		RecipientType:              pointer.To(rolemanagementpolicies.RecipientType("Admin")),
+		NotificationType:           pointer.To(rolemanagementpolicies.NotificationDeliveryMechanismEmail),
+		NotificationLevel:          pointer.To(rolemanagementpolicies.NotificationLevelAll),
+		IsDefaultRecipientsEnabled: pointer.To(true),
+		NotificationRecipients:     pointer.To([]string{}),
+		Target: &rolemanagementpolicies.RoleManagementPolicyRuleTarget{
+			Caller:              pointer.To("Admin"),
+			Level:               pointer.To("Eligibility"),
+			Operations:          pointer.To([]string{"All"}),
+			TargetObjects:       pointer.To([]string{}),
+			EnforcedSettings:    pointer.To([]string{}),
+			InheritableSettings: pointer.To([]string{}),
+		},
+	},
+	rolemanagementpolicies.RoleManagementPolicyNotificationRule{
+		Id:                         pointer.To(fmt.Sprintf("Notification_%s_%s_%s", "Admin", "EndUser", "Assignment")),
+		RecipientType:              pointer.To(rolemanagementpolicies.RecipientType("Admin")),
+		NotificationType:           pointer.To(rolemanagementpolicies.NotificationDeliveryMechanismEmail),
+		NotificationLevel:          pointer.To(rolemanagementpolicies.NotificationLevelAll),
+		IsDefaultRecipientsEnabled: pointer.To(true),
+		NotificationRecipients:     pointer.To([]string{}),
+		Target: &rolemanagementpolicies.RoleManagementPolicyRuleTarget{
+			Caller:              pointer.To("EndUser"),
+			Level:               pointer.To("Assignment"),
+			Operations:          pointer.To([]string{"All"}),
+			TargetObjects:       pointer.To([]string{}),
+			EnforcedSettings:    pointer.To([]string{}),
+			InheritableSettings: pointer.To([]string{}),
+		},
+	},
+	rolemanagementpolicies.RoleManagementPolicyNotificationRule{
+		Id:                         pointer.To(fmt.Sprintf("Notification_%s_%s_%s", "Approver", "Admin", "Assignment")),
+		RecipientType:              pointer.To(rolemanagementpolicies.RecipientType("Approver")),
+		NotificationType:           pointer.To(rolemanagementpolicies.NotificationDeliveryMechanismEmail),
+		NotificationLevel:          pointer.To(rolemanagementpolicies.NotificationLevelAll),
+		IsDefaultRecipientsEnabled: pointer.To(true),
+		NotificationRecipients:     pointer.To([]string{}),
+		Target: &rolemanagementpolicies.RoleManagementPolicyRuleTarget{
+			Caller:              pointer.To("Admin"),
+			Level:               pointer.To("Assignment"),
+			Operations:          pointer.To([]string{"All"}),
+			TargetObjects:       pointer.To([]string{}),
+			EnforcedSettings:    pointer.To([]string{}),
+			InheritableSettings: pointer.To([]string{}),
+		},
+	},
+	rolemanagementpolicies.RoleManagementPolicyNotificationRule{
+		Id:                         pointer.To(fmt.Sprintf("Notification_%s_%s_%s", "Approver", "Admin", "Eligibility")),
+		RecipientType:              pointer.To(rolemanagementpolicies.RecipientType("Approver")),
+		NotificationType:           pointer.To(rolemanagementpolicies.NotificationDeliveryMechanismEmail),
+		NotificationLevel:          pointer.To(rolemanagementpolicies.NotificationLevelAll),
+		IsDefaultRecipientsEnabled: pointer.To(true),
+		NotificationRecipients:     pointer.To([]string{}),
+		Target: &rolemanagementpolicies.RoleManagementPolicyRuleTarget{
+			Caller:              pointer.To("Admin"),
+			Level:               pointer.To("Eligibility"),
+			Operations:          pointer.To([]string{"All"}),
+			TargetObjects:       pointer.To([]string{}),
+			EnforcedSettings:    pointer.To([]string{}),
+			InheritableSettings: pointer.To([]string{}),
+		},
+	},
+	rolemanagementpolicies.RoleManagementPolicyNotificationRule{
+		Id:                         pointer.To(fmt.Sprintf("Notification_%s_%s_%s", "Approver", "EndUser", "Assignment")),
+		RecipientType:              pointer.To(rolemanagementpolicies.RecipientType("Approver")),
+		NotificationType:           pointer.To(rolemanagementpolicies.NotificationDeliveryMechanismEmail),
+		NotificationLevel:          pointer.To(rolemanagementpolicies.NotificationLevelAll),
+		IsDefaultRecipientsEnabled: pointer.To(true),
+		NotificationRecipients:     pointer.To([]string{}),
+		Target: &rolemanagementpolicies.RoleManagementPolicyRuleTarget{
+			Caller:              pointer.To("EndUser"),
+			Level:               pointer.To("Assignment"),
+			Operations:          pointer.To([]string{"All"}),
+			TargetObjects:       pointer.To([]string{}),
+			EnforcedSettings:    pointer.To([]string{}),
+			InheritableSettings: pointer.To([]string{}),
+		},
+	},
+	rolemanagementpolicies.RoleManagementPolicyNotificationRule{
+		Id:                         pointer.To(fmt.Sprintf("Notification_%s_%s_%s", "Requestor", "Admin", "Assignment")),
+		RecipientType:              pointer.To(rolemanagementpolicies.RecipientType("Requestor")),
+		NotificationType:           pointer.To(rolemanagementpolicies.NotificationDeliveryMechanismEmail),
+		NotificationLevel:          pointer.To(rolemanagementpolicies.NotificationLevelAll),
+		IsDefaultRecipientsEnabled: pointer.To(true),
+		NotificationRecipients:     pointer.To([]string{}),
+		Target: &rolemanagementpolicies.RoleManagementPolicyRuleTarget{
+			Caller:              pointer.To("Admin"),
+			Level:               pointer.To("Assignment"),
+			Operations:          pointer.To([]string{"All"}),
+			TargetObjects:       pointer.To([]string{}),
+			EnforcedSettings:    pointer.To([]string{}),
+			InheritableSettings: pointer.To([]string{}),
+		},
+	},
+	rolemanagementpolicies.RoleManagementPolicyNotificationRule{
+		Id:                         pointer.To(fmt.Sprintf("Notification_%s_%s_%s", "Requestor", "Admin", "Eligibility")),
+		RecipientType:              pointer.To(rolemanagementpolicies.RecipientType("Requestor")),
+		NotificationType:           pointer.To(rolemanagementpolicies.NotificationDeliveryMechanismEmail),
+		NotificationLevel:          pointer.To(rolemanagementpolicies.NotificationLevelAll),
+		IsDefaultRecipientsEnabled: pointer.To(true),
+		NotificationRecipients:     pointer.To([]string{}),
+		Target: &rolemanagementpolicies.RoleManagementPolicyRuleTarget{
+			Caller:              pointer.To("Admin"),
+			Level:               pointer.To("Eligibility"),
+			Operations:          pointer.To([]string{"All"}),
+			TargetObjects:       pointer.To([]string{}),
+			EnforcedSettings:    pointer.To([]string{}),
+			InheritableSettings: pointer.To([]string{}),
+		},
+	},
+	rolemanagementpolicies.RoleManagementPolicyNotificationRule{
+		Id:                         pointer.To(fmt.Sprintf("Notification_%s_%s_%s", "Requestor", "EndUser", "Assignment")),
+		RecipientType:              pointer.To(rolemanagementpolicies.RecipientType("Requestor")),
+		NotificationType:           pointer.To(rolemanagementpolicies.NotificationDeliveryMechanismEmail),
+		NotificationLevel:          pointer.To(rolemanagementpolicies.NotificationLevelAll),
+		IsDefaultRecipientsEnabled: pointer.To(true),
+		NotificationRecipients:     pointer.To([]string{}),
+		Target: &rolemanagementpolicies.RoleManagementPolicyRuleTarget{
+			Caller:              pointer.To("EndUser"),
+			Level:               pointer.To("Assignment"),
+			Operations:          pointer.To([]string{"All"}),
+			TargetObjects:       pointer.To([]string{}),
+			EnforcedSettings:    pointer.To([]string{}),
+			InheritableSettings: pointer.To([]string{}),
+		},
+	},
 }
 
 func flattenNotificationSettings(rule rolemanagementpolicies.RoleManagementPolicyNotificationRule) *RoleManagementPolicyNotificationSettings {
