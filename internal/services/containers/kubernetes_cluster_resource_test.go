@@ -251,7 +251,7 @@ func TestAccKubernetesCluster_bootstrapProfile(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.networkIsolatedBootstrapProfileArtifactSourceCache(data),
+			Config: r.networkIsolatedBootstrapProfileRemoved(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
