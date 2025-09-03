@@ -19,8 +19,11 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+* `azurerm_policy_set_definition` - fix an issue that caused API errors when `policy_definition_reference` blocks were added or removed [GH-30493]
+* `azurerm_management_group_policy_set_definition` - fix an issue that caused API errors when `policy_definition_reference` blocks were added or removed [GH-30493]
 * `azurerm_virtual_machine` - fix potential panic caused by the hash function for the `os_profile_linux_config` block [GH-30456]
-* `azurerm_kubernetes_cluster`, `azurerm_kubernetes_cluster_node_pool` - remove read-only field `NodeImageVersion` when cycle node pool [GH-30416]
+* `azurerm_kubernetes_cluster` - remove read-only field `NodeImageVersion` when cycling node pool [GH-30416]
+* `azurerm_kubernetes_cluster_node_pool` - remove read-only field `NodeImageVersion` when cycling node pool [GH-30416]
 
 ## 4.42.0 (August 28, 2025)
 
