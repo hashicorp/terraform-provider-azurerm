@@ -6,6 +6,7 @@ package monitor_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/insights/2020-10-01/activitylogalertsapis"
@@ -239,6 +240,18 @@ func TestAccMonitorActivityLogAlert_ResourceHealth_basicAndUpdate(t *testing.T) 
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccMonitorActivityLogAlert_ResourceHealth_wrongLevel(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_monitor_activity_log_alert", "test")
+	r := MonitorActivityLogAlertResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.resourceHealth_wrongLevel(data),
+			ExpectError: regexp.MustCompile("invalid `levels` for Resource Health alert criteria"),
+		},
 	})
 }
 
@@ -1170,6 +1183,41 @@ resource "azurerm_monitor_activity_log_alert" "test" {
   }
 }
 	`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomString, data.RandomInteger)
+}
+
+func (MonitorActivityLogAlertResource) resourceHealth_wrongLevel(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_monitor_activity_log_alert" "test" {
+  name                = "acctestActivityLogAlert-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  enabled             = true
+  description         = "This is just a test acceptance."
+  location            = "global"
+
+  scopes = [
+    azurerm_resource_group.test.id,
+  ]
+
+  criteria {
+    category = "ResourceHealth"
+    levels   = ["Verbose"]
+    resource_health {
+      current  = ["Degraded", "Unavailable"]
+      previous = ["Available", "Unknown"]
+      reason   = ["PlatformInitiated", "UserInitiated"]
+    }
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
 }
 
 func (MonitorActivityLogAlertResource) location(data acceptance.TestData) string {

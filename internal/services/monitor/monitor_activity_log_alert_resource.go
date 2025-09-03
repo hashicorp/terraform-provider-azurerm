@@ -424,13 +424,18 @@ func resourceMonitorActivityLogAlertCreateUpdate(d *pluginsdk.ResourceData, meta
 	actionRaw := d.Get("action").([]interface{})
 
 	t := d.Get("tags").(map[string]interface{})
+	criteria, err := expandMonitorActivityLogAlertCriteria(criteriaRaw)
+	if err != nil {
+		return fmt.Errorf("expanding `criteria`: %+v", err)
+	}
+
 	parameters := activitylogalertsapis.ActivityLogAlertResource{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Properties: &activitylogalertsapis.AlertRuleProperties{
 			Enabled:     utils.Bool(enabled),
 			Description: utils.String(description),
 			Scopes:      expandStringValues(scopesRaw),
-			Condition:   expandMonitorActivityLogAlertCriteria(criteriaRaw),
+			Condition:   *criteria,
 			Actions:     expandMonitorActivityLogAlertAction(actionRaw),
 		},
 		Tags: utils.ExpandPtrMapStringString(t),
@@ -516,11 +521,12 @@ func resourceMonitorActivityLogAlertDelete(d *pluginsdk.ResourceData, meta inter
 	return nil
 }
 
-func expandMonitorActivityLogAlertCriteria(input []interface{}) activitylogalertsapis.AlertRuleAllOfCondition {
+func expandMonitorActivityLogAlertCriteria(input []interface{}) (*activitylogalertsapis.AlertRuleAllOfCondition, error) {
 	conditions := make([]activitylogalertsapis.AlertRuleAnyOfOrLeafCondition, 0)
 	v := input[0].(map[string]interface{})
 
-	if category := v["category"].(string); category != "" {
+	category := v["category"].(string)
+	if category != "" {
 		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 			Field:  utils.String("category"),
 			Equals: utils.String(category),
@@ -542,6 +548,9 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) activitylogalert
 	}
 
 	if level := v["level"].(string); level != "" {
+		if strings.EqualFold(category, "ResourceHealth") && !strings.EqualFold(level, "Critical") && !strings.EqualFold(level, "Informational") {
+			return nil, fmt.Errorf("invalid `level` for Resource Health alert criteria: must be `Critical` or `Informational`, got `%v`", level)
+		}
 		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 			Field:  utils.String("level"),
 			Equals: utils.String(level),
@@ -549,6 +558,13 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) activitylogalert
 	}
 
 	if levels := v["levels"].([]interface{}); len(levels) > 0 {
+		if strings.EqualFold(category, "ResourceHealth") {
+			for _, level := range levels {
+				if !strings.EqualFold(level.(string), "Critical") && !strings.EqualFold(level.(string), "Informational") {
+					return nil, fmt.Errorf("invalid `levels` for Resource Health alert criteria: must be `Critical` or 'Informational`, got `%v`", level)
+				}
+			}
+		}
 		conditions = append(conditions, activitylogalertsapis.AlertRuleAnyOfOrLeafCondition{
 			AnyOf: expandAnyOfCondition(levels, "level"),
 		})
@@ -661,9 +677,9 @@ func expandMonitorActivityLogAlertCriteria(input []interface{}) activitylogalert
 		conditions = expandServiceHealth(serviceHealth, conditions)
 	}
 
-	return activitylogalertsapis.AlertRuleAllOfCondition{
+	return &activitylogalertsapis.AlertRuleAllOfCondition{
 		AllOf: conditions,
-	}
+	}, nil
 }
 
 func expandAnyOfCondition(input []interface{}, field string) *[]activitylogalertsapis.AlertRuleLeafCondition {
