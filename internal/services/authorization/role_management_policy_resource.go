@@ -382,7 +382,7 @@ func (r RoleManagementPolicyResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving existing %s: model was nil", policyId)
 			}
 
-			model, err := buildRoleManagementPolicyForUpdate(pointer.To(metadata), existing.Model)
+			model, err := buildRoleManagementPolicy(pointer.To(metadata), existing.Model)
 			if err != nil {
 				return err
 			}
@@ -646,7 +646,7 @@ func (r RoleManagementPolicyResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: model was nil", id)
 			}
 
-			model, err := buildRoleManagementPolicyForUpdate(pointer.To(metadata), existing.Model)
+			model, err := buildRoleManagementPolicy(pointer.To(metadata), existing.Model)
 			if err != nil {
 				return fmt.Errorf("could not build update request, %+v", err)
 			}
