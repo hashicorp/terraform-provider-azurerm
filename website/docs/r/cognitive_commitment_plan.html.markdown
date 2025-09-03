@@ -85,3 +85,9 @@ Cognitive Commitment Plan can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_cognitive_commitment_plan.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.CognitiveServices/accounts/account1/commitmentPlans/plan1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.CognitiveServices` - 2025-06-01
