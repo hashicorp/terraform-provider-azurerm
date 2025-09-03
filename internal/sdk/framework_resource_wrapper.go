@@ -143,7 +143,7 @@ func (r *FrameworkResourceWrapper) Update(ctx context.Context, request resource.
 		plan := r.FrameworkWrappedResource.ModelObject()
 		state := r.FrameworkWrappedResource.ModelObject()
 
-		r.ResourceMetadata.DecodeUpdate(ctx, request, response, &plan, &state)
+		r.ResourceMetadata.DecodeUpdate(ctx, request, response, plan, state)
 		if response.Diagnostics.HasError() {
 			return
 		}
