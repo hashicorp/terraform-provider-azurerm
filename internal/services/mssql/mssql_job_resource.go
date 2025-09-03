@@ -151,7 +151,11 @@ func (r MsSqlJobResource) Read(ctx context.Context, _ resource.ReadRequest, resp
 
 	if model := existing.Model; model != nil {
 		if props := model.Properties; props != nil {
-			state.Description = types.StringPointerValue(props.Description)
+			// API returns an empty string regardless
+			// and Terraform will show a non-empty plan with no visible changes if we store an empty string?
+			if pointer.From(props.Description) != "" {
+				state.Description = types.StringPointerValue(props.Description)
+			}
 		}
 	}
 }
