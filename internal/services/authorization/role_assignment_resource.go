@@ -388,7 +388,7 @@ func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, id parse.ScopedRoleAs
 				if existing := lookupRoleAssignment(ctx, roleAssignmentsClient, id, param.Properties); existing != nil && existing.Properties != nil {
 					existsID := roleassignments.NewScopedRoleAssignmentID(pointer.From(existing.Properties.Scope), pointer.From(existing.Name))
 					if configName := d.Get("name").(string); configName != "" && configName != pointer.From(existing.Name) {
-						return pluginsdk.NonRetryableError(fmt.Errorf("role assignment `%s` already exists with a different name: %s", id.ID(), pointer.From(existing.Name)))
+						return pluginsdk.NonRetryableError(fmt.Errorf("role assignment of `%s` already exists with a different id, modify the role assignment name and import with the exists id: `%s`", id.ID(), existsID.ID()))
 					}
 					return pluginsdk.NonRetryableError(tf.ImportAsExistsError("azurerm_role_assignment", existsID.ID()))
 				}
