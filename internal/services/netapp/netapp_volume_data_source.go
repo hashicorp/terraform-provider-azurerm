@@ -232,7 +232,7 @@ func dataSourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		d.Set("smb_access_based_enumeration_enabled", smbAccessBasedEnumeration)
 
-			d.Set("accept_grow_capacity_pool_for_short_term_clone_split", pointer.FromEnum(props.AcceptGrowCapacityPoolForShortTermCloneSplit))
+		d.Set("accept_grow_capacity_pool_for_short_term_clone_split", pointer.FromEnum(props.AcceptGrowCapacityPoolForShortTermCloneSplit))
 
 		protocolTypes := make([]string, 0)
 		if prtclTypes := props.ProtocolTypes; prtclTypes != nil {
