@@ -481,6 +481,7 @@ func TestAccFunctionAppFlexConsumption_httpConcurrencyUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("http_concurrency").HasValue("0"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -489,6 +490,7 @@ func TestAccFunctionAppFlexConsumption_httpConcurrencyUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("http_concurrency").HasValue("20"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -497,6 +499,7 @@ func TestAccFunctionAppFlexConsumption_httpConcurrencyUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("http_concurrency").HasValue("60"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),
@@ -505,6 +508,7 @@ func TestAccFunctionAppFlexConsumption_httpConcurrencyUpdate(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+				check.That(data.ResourceName).Key("http_concurrency").HasValue("0"),
 			),
 		},
 		data.ImportStep("site_credential.0.password"),

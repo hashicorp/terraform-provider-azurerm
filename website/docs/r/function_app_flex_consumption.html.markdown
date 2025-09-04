@@ -137,7 +137,7 @@ The following arguments are supported:
 
 * `http_concurrency` - (Optional) The Http concurrency of the instances on which your app runs. The supported value are from `1` to `1000`.
 
-~> **Note:** A value will be assigned by system if `http_concurrency` is not specified.
+~> **Note:** A value will be assigned by the system if `http_concurrency` is not specified.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
 
