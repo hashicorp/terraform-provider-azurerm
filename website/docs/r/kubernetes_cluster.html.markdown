@@ -288,7 +288,7 @@ An `api_server_access_profile` block supports the following:
 
 * `subnet_id` - (Optional) The ID of the Subnet where the API server endpoint is delegated to.
 
-* `vnet_integration_enabled` - (Optional) Should API Server VNet Integration be enabled? Defaults to `false`.
+* `virtual_network_integration_enabled` - (Optional) Whether Virtual Network Integration is enabled for the API server. Defaults to `false`.
 
 ---
 

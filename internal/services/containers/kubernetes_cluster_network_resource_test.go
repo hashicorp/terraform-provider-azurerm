@@ -4260,8 +4260,8 @@ resource "azurerm_kubernetes_cluster" "test" {
   }
 
   api_server_access_profile {
-    vnet_integration_enabled = true
-    subnet_id                = azurerm_subnet.test.id
+    virtual_network_integration_enabled = true
+    subnet_id                           = azurerm_subnet.test.id
   }
 }
 `, data.Locations.Primary, data.RandomInteger)
