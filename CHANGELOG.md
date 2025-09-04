@@ -3,8 +3,8 @@
 ENHANCEMENTS:
 * `azurerm_site_recovery_replicated_vm` - deprecate `network_interace.target_*` in favor of the new property `network_interface.ip_configuration.*` [GH-28833]
 * `azurerm_postgresql_flexible_server_firewall_rule` - improve validation for the `start_ip_address` and `end_ip_address` properties to ensure the values are valid IPv4 addresses [GH-30514]
-* `azurerm_kubernetes_cluster`, `azurerm_kubernetes_cluster_node_pool` - support for the `undrainable_node_behavior` and `max_unavailable` properties [GH-30515]
-* `azurerm_kubernetes_cluster`, `azurerm_kubernetes_cluster_node_pool` - support for the `vnet_integration_enabled` and `subnet_id` properties [GH-30516]
+* `azurerm_kubernetes_cluster`, `azurerm_kubernetes_cluster_node_pool` - add support for the `undrainable_node_behavior` and `max_unavailable` properties [GH-30515]
+* `azurerm_kubernetes_cluster`, `azurerm_kubernetes_cluster_node_pool` - add support for the `vnet_integration_enabled` and `subnet_id` properties [GH-30516]
 * dependencies: `eventgrid` - upgrade to API version `2025-02-15` [GH-30481]
 * `azurerm_dev_center_project_pool` - add support for the `single_sign_on_enabled` property [GH-30440]
 * Data Source: `azurerm_dev_center_project_pool` - add support for the `single_sign_on_enabled` property [GH-30440]
@@ -20,12 +20,13 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
-* `azurerm_role_assignment`: check role assignment exits for 409 error [GH-28694]
+* `azurerm_role_assignment` - check role assignment exits for 409 error [GH-28694]
 * `azurerm_policy_set_definition` - fix an issue that caused API errors when `policy_definition_reference` blocks were added or removed [GH-30493]
 * `azurerm_management_group_policy_set_definition` - fix an issue that caused API errors when `policy_definition_reference` blocks were added or removed [GH-30493]
 * `azurerm_virtual_machine` - fix potential panic caused by the hash function for the `os_profile_linux_config` block [GH-30456]
 * `azurerm_kubernetes_cluster` - remove read-only field `NodeImageVersion` when cycling node pool [GH-30416]
 * `azurerm_kubernetes_cluster_node_pool` - remove read-only field `NodeImageVersion` when cycling node pool [GH-30416]
+* `azurerm_flex_function_app` - fix `instance_memory_in_mb` update issue (GH-30489)
 
 ## 4.42.0 (August 28, 2025)
 
