@@ -312,6 +312,12 @@ A `upgrade_settings` block supports the following:
 
 * `max_surge` - (Required) The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
 
+* `max_unavailable` - (Optional) The maximum number or percentage of nodes which can be unavailable during the upgrade. 
+
+-> **Note:** `max_unavailable` conflicts with `max_surge`. Only one of them should be set. Using both with percentages that violate upgrade constraints is not supported.
+
+* `undrainable_node_behavior` - (Optional) Specifies the action when a node is undrainable during upgrade. Possible values are `Cordon` and `Schedule`.
+
 ---
 
 A `windows_profile` block supports the following:
@@ -347,4 +353,4 @@ terraform import azurerm_kubernetes_cluster_node_pool.pool1 /subscriptions/00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerService` - 2025-02-01
+* `Microsoft.ContainerService` - 2025-05-01

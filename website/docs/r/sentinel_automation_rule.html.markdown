@@ -61,6 +61,8 @@ The following arguments are supported:
 
 * `action_incident` - (Optional) One or more `action_incident` blocks as defined below.
 
+* `action_incident_task` - (Optional) One or more `action_incident_task` blocks as defined below.
+
 * `action_playbook` - (Optional) One or more `action_playbook` blocks as defined below.
 
 ~> **Note:** Either one `action_incident` block or `action_playbook` block has to be specified.
@@ -77,7 +79,7 @@ The following arguments are supported:
 
 ---
 
-A `action_incident` block supports the following:
+An `action_incident` block supports the following:
 
 * `order` - (Required) The execution order of this action.
 
@@ -101,7 +103,17 @@ A `action_incident` block supports the following:
 
 ---
 
-A `action_playbook` block supports the following:
+An `action_incident_task` block supports the following:
+
+* `order` - (Required) The execution order of this action.
+
+* `title` - (Required) The title of the incident task.
+
+* `description` - (Optional) The description of the incident task.
+
+---
+
+An `action_playbook` block supports the following:
 
 * `logic_app_id` - (Required) The ID of the Logic App that defines the playbook's logic.
 

@@ -505,12 +505,12 @@ func TestAccMySqlFlexibleServer_writeOnlyPassword(t *testing.T) {
 		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
 		Steps: []resource.TestStep{
 			{
-				Config: r.writeOnlyPassword(data, "a-secret-from-kv", 1),
+				Config: r.writeOnlyPassword(data, "A-secret-from-kv", 1),
 				Check:  check.That(data.ResourceName).ExistsInAzure(r),
 			},
 			data.ImportStep("administrator_password_wo_version"),
 			{
-				Config: r.writeOnlyPassword(data, "a-secret-from-kv-updated", 2),
+				Config: r.writeOnlyPassword(data, "A-secret-from-kv-updated", 2),
 				Check:  check.That(data.ResourceName).ExistsInAzure(r),
 			},
 			data.ImportStep("administrator_password_wo_version"),
@@ -534,7 +534,7 @@ func TestAccMySqlFlexibleServer_updateToWriteOnlyPassword(t *testing.T) {
 			},
 			data.ImportStep("administrator_password"),
 			{
-				Config: r.writeOnlyPassword(data, "a-secret-from-kv", 1),
+				Config: r.writeOnlyPassword(data, "A-secret-from-kv", 1),
 				Check:  check.That(data.ResourceName).ExistsInAzure(r),
 			},
 			data.ImportStep("administrator_password", "administrator_password_wo_version"),
