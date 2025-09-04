@@ -68,7 +68,7 @@ The following arguments are supported:
 
 * `metadata` - (Optional) The metadata for the Policy Set Definition in JSON format.
 
-* `parameters` - (Optional) The parameters for the Policy Set Definition in JSON format.
+* `parameters` - (Optional) The parameters for the Policy Set Definition in JSON format. Reducing the number of parameters forces a new resource to be created.
 
 * `policy_definition_group` - (Optional) One or more `policy_definition_group` blocks as defined below.
 
@@ -127,4 +127,4 @@ terraform import azurerm_management_group_policy_set_definition.example /provide
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Management`: 2025-01-01
+* `Microsoft.Management` - 2025-01-01

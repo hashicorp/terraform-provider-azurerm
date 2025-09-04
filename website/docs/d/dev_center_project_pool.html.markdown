@@ -43,6 +43,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `dev_center_attached_network_name` - The name of the Dev Center Attached Network in parent Project of the Dev Center Project Pool.
 
+* `single_sign_on_enabled` - Specifies whether Dev Boxes in the Pool will have SSO enabled or disabled.
+
 * `stop_on_disconnect_grace_period_minutes` - The specified time in minutes to wait before stopping a Dev Center Dev Box once disconnect is detected.
 
 * `location` - The Azure Region where the Dev Center Project Pool exists.
@@ -59,4 +61,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.DevCenter`: 2025-02-01
+* `Microsoft.DevCenter` - 2025-02-01

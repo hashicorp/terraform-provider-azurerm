@@ -96,10 +96,11 @@ func (av PreferWriteOnlyAttribute) Validate(ctx context.Context, req PreferWrite
 
 func (av PreferWriteOnlyAttribute) ValidateBool(ctx context.Context, req validator.BoolRequest, resp *validator.BoolResponse) {
 	validateReq := PreferWriteOnlyAttributeRequest{
-		Config:         req.Config,
-		ConfigValue:    req.ConfigValue,
-		Path:           req.Path,
-		PathExpression: req.PathExpression,
+		Config:             req.Config,
+		ConfigValue:        req.ConfigValue,
+		Path:               req.Path,
+		PathExpression:     req.PathExpression,
+		ClientCapabilities: req.ClientCapabilities,
 	}
 	validateResp := &PreferWriteOnlyAttributeResponse{}
 
@@ -110,10 +111,11 @@ func (av PreferWriteOnlyAttribute) ValidateBool(ctx context.Context, req validat
 
 func (av PreferWriteOnlyAttribute) ValidateDynamic(ctx context.Context, req validator.DynamicRequest, resp *validator.DynamicResponse) {
 	validateReq := PreferWriteOnlyAttributeRequest{
-		Config:         req.Config,
-		ConfigValue:    req.ConfigValue,
-		Path:           req.Path,
-		PathExpression: req.PathExpression,
+		Config:             req.Config,
+		ConfigValue:        req.ConfigValue,
+		Path:               req.Path,
+		PathExpression:     req.PathExpression,
+		ClientCapabilities: req.ClientCapabilities,
 	}
 	validateResp := &PreferWriteOnlyAttributeResponse{}
 
@@ -124,10 +126,11 @@ func (av PreferWriteOnlyAttribute) ValidateDynamic(ctx context.Context, req vali
 
 func (av PreferWriteOnlyAttribute) ValidateFloat32(ctx context.Context, req validator.Float32Request, resp *validator.Float32Response) {
 	validateReq := PreferWriteOnlyAttributeRequest{
-		Config:         req.Config,
-		ConfigValue:    req.ConfigValue,
-		Path:           req.Path,
-		PathExpression: req.PathExpression,
+		Config:             req.Config,
+		ConfigValue:        req.ConfigValue,
+		Path:               req.Path,
+		PathExpression:     req.PathExpression,
+		ClientCapabilities: req.ClientCapabilities,
 	}
 	validateResp := &PreferWriteOnlyAttributeResponse{}
 
@@ -138,10 +141,11 @@ func (av PreferWriteOnlyAttribute) ValidateFloat32(ctx context.Context, req vali
 
 func (av PreferWriteOnlyAttribute) ValidateFloat64(ctx context.Context, req validator.Float64Request, resp *validator.Float64Response) {
 	validateReq := PreferWriteOnlyAttributeRequest{
-		Config:         req.Config,
-		ConfigValue:    req.ConfigValue,
-		Path:           req.Path,
-		PathExpression: req.PathExpression,
+		Config:             req.Config,
+		ConfigValue:        req.ConfigValue,
+		Path:               req.Path,
+		PathExpression:     req.PathExpression,
+		ClientCapabilities: req.ClientCapabilities,
 	}
 	validateResp := &PreferWriteOnlyAttributeResponse{}
 
@@ -152,10 +156,11 @@ func (av PreferWriteOnlyAttribute) ValidateFloat64(ctx context.Context, req vali
 
 func (av PreferWriteOnlyAttribute) ValidateInt32(ctx context.Context, req validator.Int32Request, resp *validator.Int32Response) {
 	validateReq := PreferWriteOnlyAttributeRequest{
-		Config:         req.Config,
-		ConfigValue:    req.ConfigValue,
-		Path:           req.Path,
-		PathExpression: req.PathExpression,
+		Config:             req.Config,
+		ConfigValue:        req.ConfigValue,
+		Path:               req.Path,
+		PathExpression:     req.PathExpression,
+		ClientCapabilities: req.ClientCapabilities,
 	}
 	validateResp := &PreferWriteOnlyAttributeResponse{}
 
@@ -166,10 +171,11 @@ func (av PreferWriteOnlyAttribute) ValidateInt32(ctx context.Context, req valida
 
 func (av PreferWriteOnlyAttribute) ValidateInt64(ctx context.Context, req validator.Int64Request, resp *validator.Int64Response) {
 	validateReq := PreferWriteOnlyAttributeRequest{
-		Config:         req.Config,
-		ConfigValue:    req.ConfigValue,
-		Path:           req.Path,
-		PathExpression: req.PathExpression,
+		Config:             req.Config,
+		ConfigValue:        req.ConfigValue,
+		Path:               req.Path,
+		PathExpression:     req.PathExpression,
+		ClientCapabilities: req.ClientCapabilities,
 	}
 	validateResp := &PreferWriteOnlyAttributeResponse{}
 
@@ -180,10 +186,11 @@ func (av PreferWriteOnlyAttribute) ValidateInt64(ctx context.Context, req valida
 
 func (av PreferWriteOnlyAttribute) ValidateList(ctx context.Context, req validator.ListRequest, resp *validator.ListResponse) {
 	validateReq := PreferWriteOnlyAttributeRequest{
-		Config:         req.Config,
-		ConfigValue:    req.ConfigValue,
-		Path:           req.Path,
-		PathExpression: req.PathExpression,
+		Config:             req.Config,
+		ConfigValue:        req.ConfigValue,
+		Path:               req.Path,
+		PathExpression:     req.PathExpression,
+		ClientCapabilities: req.ClientCapabilities,
 	}
 	validateResp := &PreferWriteOnlyAttributeResponse{}
 
@@ -194,10 +201,11 @@ func (av PreferWriteOnlyAttribute) ValidateList(ctx context.Context, req validat
 
 func (av PreferWriteOnlyAttribute) ValidateMap(ctx context.Context, req validator.MapRequest, resp *validator.MapResponse) {
 	validateReq := PreferWriteOnlyAttributeRequest{
-		Config:         req.Config,
-		ConfigValue:    req.ConfigValue,
-		Path:           req.Path,
-		PathExpression: req.PathExpression,
+		Config:             req.Config,
+		ConfigValue:        req.ConfigValue,
+		Path:               req.Path,
+		PathExpression:     req.PathExpression,
+		ClientCapabilities: req.ClientCapabilities,
 	}
 	validateResp := &PreferWriteOnlyAttributeResponse{}
 
@@ -208,10 +216,11 @@ func (av PreferWriteOnlyAttribute) ValidateMap(ctx context.Context, req validato
 
 func (av PreferWriteOnlyAttribute) ValidateNumber(ctx context.Context, req validator.NumberRequest, resp *validator.NumberResponse) {
 	validateReq := PreferWriteOnlyAttributeRequest{
-		Config:         req.Config,
-		ConfigValue:    req.ConfigValue,
-		Path:           req.Path,
-		PathExpression: req.PathExpression,
+		Config:             req.Config,
+		ConfigValue:        req.ConfigValue,
+		Path:               req.Path,
+		PathExpression:     req.PathExpression,
+		ClientCapabilities: req.ClientCapabilities,
 	}
 	validateResp := &PreferWriteOnlyAttributeResponse{}
 
@@ -222,10 +231,11 @@ func (av PreferWriteOnlyAttribute) ValidateNumber(ctx context.Context, req valid
 
 func (av PreferWriteOnlyAttribute) ValidateObject(ctx context.Context, req validator.ObjectRequest, resp *validator.ObjectResponse) {
 	validateReq := PreferWriteOnlyAttributeRequest{
-		Config:         req.Config,
-		ConfigValue:    req.ConfigValue,
-		Path:           req.Path,
-		PathExpression: req.PathExpression,
+		Config:             req.Config,
+		ConfigValue:        req.ConfigValue,
+		Path:               req.Path,
+		PathExpression:     req.PathExpression,
+		ClientCapabilities: req.ClientCapabilities,
 	}
 	validateResp := &PreferWriteOnlyAttributeResponse{}
 
@@ -236,10 +246,11 @@ func (av PreferWriteOnlyAttribute) ValidateObject(ctx context.Context, req valid
 
 func (av PreferWriteOnlyAttribute) ValidateString(ctx context.Context, req validator.StringRequest, resp *validator.StringResponse) {
 	validateReq := PreferWriteOnlyAttributeRequest{
-		Config:         req.Config,
-		ConfigValue:    req.ConfigValue,
-		Path:           req.Path,
-		PathExpression: req.PathExpression,
+		Config:             req.Config,
+		ConfigValue:        req.ConfigValue,
+		Path:               req.Path,
+		PathExpression:     req.PathExpression,
+		ClientCapabilities: req.ClientCapabilities,
 	}
 	validateResp := &PreferWriteOnlyAttributeResponse{}
 

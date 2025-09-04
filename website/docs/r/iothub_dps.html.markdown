@@ -122,4 +122,4 @@ terraform import azurerm_iothub_dps.example /subscriptions/00000000-0000-0000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Devices`: 2022-02-05
+* `Microsoft.Devices` - 2022-02-05
