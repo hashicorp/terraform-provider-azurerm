@@ -395,7 +395,6 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
-			ForceNew:     false,
 			ValidateFunc: validation.StringIsNotEmpty,
 		}
 
@@ -404,7 +403,6 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
-			ForceNew:     false,
 			ValidateFunc: validation.StringIsNotEmpty,
 		}
 
@@ -413,7 +411,6 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
-			ForceNew:     false,
 			ValidateFunc: validation.StringIsNotEmpty,
 		}
 
@@ -422,7 +419,6 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
-			ForceNew:     false,
 			ValidateFunc: validation.StringIsNotEmpty,
 		}
 
@@ -431,7 +427,6 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
-			ForceNew:     false,
 			ValidateFunc: validation.StringIsNotEmpty,
 		}
 
@@ -459,7 +454,6 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
-			ForceNew:     false,
 			ValidateFunc: azure.ValidateResourceID,
 		}
 	}
