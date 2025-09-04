@@ -1115,13 +1115,14 @@ func resourceStorageAccount() *pluginsdk.Resource {
 			pluginsdk.CustomizeDiffShim(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
 				if d.HasChange("account_kind") {
 					accountKind, changedKind := d.GetChange("account_kind")
-
-					if accountKind != string(storageaccounts.KindStorage) && changedKind != string(storageaccounts.KindStorageVTwo) {
-						log.Printf("[DEBUG] recreate storage account, could't be migrated from %q to %q", accountKind, changedKind)
-						d.ForceNew("account_kind")
-						return nil
-					} else {
-						log.Printf("[DEBUG] storage account can be upgraded from %q to %q", accountKind, changedKind)
+					// Don't do the check for create case.
+					if accountKind != "" {
+						if accountKind != string(storageaccounts.KindStorage) && changedKind != string(storageaccounts.KindStorageVTwo) {
+							log.Printf("[DEBUG] recreate storage account, could't be migrated from %q to %q", accountKind, changedKind)
+							d.ForceNew("account_kind")
+						} else {
+							log.Printf("[DEBUG] storage account can be upgraded from %q to %q", accountKind, changedKind)
+						}
 					}
 				}
 
@@ -1177,7 +1178,7 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				accountKind := storageaccounts.Kind(d.Get("account_kind").(string))
 				if _, supportsHns := storageKindsSupportHns[accountKind]; !supportsHns && isHnsEnabled {
 					keys := sortedKeysFromSlice(storageKindsSupportHns)
-					return fmt.Errorf("`is_hns_enabled` can only be used for accounts with `kind` set to one of: %+v", strings.Join(keys, " / "))
+					return fmt.Errorf("`is_hns_enabled` can only be used for accounts with `account_kind` set to one of: %+v", strings.Join(keys, " / "))
 				}
 				return nil
 			}),
