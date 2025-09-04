@@ -5,6 +5,7 @@ package cognitive
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -336,22 +337,22 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 
 			if d.Get("project_management_enabled").(bool) {
 				if kind != "AIServices" {
-					return fmt.Errorf("`project_management_enabled` can only be enabled when kind is set to `AIServices`")
+					return errors.New("`project_management_enabled` can only be enabled when kind is set to `AIServices`")
 				}
 
 				if len(d.Get("identity").([]interface{})) == 0 {
-					return fmt.Errorf("for `project_management_enabled` to be enabled, a managed identity must be assigned. Please set `identity` to at least one SystemAssigned or UserAssigned identity")
+					return errors.New("for `project_management_enabled` to be enabled, a managed identity must be assigned. Please set `identity` to at least one SystemAssigned or UserAssigned identity")
 				}
 
 				if d.HasChange("customer_managed_key") && len(d.Get("customer_managed_key").([]interface{})) == 0 {
-					return fmt.Errorf("updating encryption mode from customer-managed keys to microsoft-managed keys is not supported when `project_management_enabled` is enabled")
+					return errors.New("updating encryption mode from customer-managed keys to microsoft-managed keys is not supported when `project_management_enabled` is enabled")
 				}
 			} else if d.HasChange("project_management_enabled") {
-				return fmt.Errorf("once `project_management_enabled` is enabled, it cannot be disabled")
+				return errors.New("once `project_management_enabled` is enabled, it cannot be disabled")
 			}
 
 			if d.Get("dynamic_throttling_enabled").(bool) && utils.SliceContainsValue([]string{"OpenAI", "AIServices"}, kind) {
-				return fmt.Errorf("`dynamic_throttling_enabled` is currently not supported when kind is set to `OpenAI` or `AIServices`")
+				return errors.New("`dynamic_throttling_enabled` is currently not supported when kind is set to `OpenAI` or `AIServices`")
 			}
 
 			if bypass, ok := d.GetOk("network_acls.0.bypass"); ok && bypass != "" && !utils.SliceContainsValue([]string{"OpenAI", "AIServices"}, kind) {
@@ -361,7 +362,9 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 			if d.HasChange("custom_subdomain_name") {
 				old, _ := d.GetChange("custom_subdomain_name")
 				if old != nil && old != "" {
-					return fmt.Errorf("once set, changing `custom_subdomain_name` is not supported")
+					if err := d.ForceNew("custom_subdomain_name"); err != nil {
+						return err
+					}
 				}
 			}
 			return nil
