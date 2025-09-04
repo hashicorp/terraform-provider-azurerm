@@ -6,6 +6,7 @@ package authorization_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/google/uuid"
@@ -73,6 +74,30 @@ func TestAccRoleAssignment_requiresImport(t *testing.T) {
 		{
 			Config:      r.requiresImportConfig(id),
 			ExpectError: acceptance.RequiresImportError("azurerm_role_assignment"),
+		},
+	})
+}
+
+func TestAccRoleAssignment_requiresImportAdvanced(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_role_assignment", "test")
+	id := uuid.New().String()
+
+	r := RoleAssignmentResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.roleNameConfig(id),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config:      r.requiresImportConfigWithoutName(id),
+			ExpectError: acceptance.RequiresImportError("azurerm_role_assignment"),
+		},
+		{
+			Config:      r.requiresImportConfigDupError(id, uuid.New().String()),
+			ExpectError: regexp.MustCompile("role assignment `.*` already exists with a different name:"),
 		},
 	})
 }
@@ -389,6 +414,31 @@ resource "azurerm_role_assignment" "import" {
   principal_id         = azurerm_role_assignment.test.principal_id
 }
 `, RoleAssignmentResource{}.roleNameConfig(id))
+}
+
+func (RoleAssignmentResource) requiresImportConfigWithoutName(id string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_role_assignment" "import" {
+  scope                = azurerm_role_assignment.test.scope
+  role_definition_name = azurerm_role_assignment.test.role_definition_name
+  principal_id         = azurerm_role_assignment.test.principal_id
+}
+`, RoleAssignmentResource{}.roleNameConfig(id))
+}
+
+func (RoleAssignmentResource) requiresImportConfigDupError(id, dupID string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_role_assignment" "import" {
+  name                 = "%s"
+  scope                = azurerm_role_assignment.test.scope
+  role_definition_name = azurerm_role_assignment.test.role_definition_name
+  principal_id         = azurerm_role_assignment.test.principal_id
+}
+`, RoleAssignmentResource{}.roleNameConfig(id), dupID)
 }
 
 func (RoleAssignmentResource) dataActionsConfig(id string) string {
