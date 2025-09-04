@@ -58,4 +58,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.ManagedIdentity` - 2023-01-31
+* `Microsoft.ManagedIdentity` - 2024-11-30
