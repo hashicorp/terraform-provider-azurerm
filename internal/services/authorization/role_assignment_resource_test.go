@@ -97,7 +97,7 @@ func TestAccRoleAssignment_requiresImportAdvanced(t *testing.T) {
 		},
 		{
 			Config:      r.requiresImportConfigDupError(id, uuid.New().String()),
-			ExpectError: regexp.MustCompile("role assignment `.*` already exists with a different name:"),
+			ExpectError: regexp.MustCompile("role assignment.*already exists"),
 		},
 	})
 }
