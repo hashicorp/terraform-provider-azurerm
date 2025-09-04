@@ -10,6 +10,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/firewallrules"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -18,6 +19,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
+
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name postgresql_flexible_server_firewall_rule -service-package-name postgres -properties "name" -compare-values "subscription_id:server_id,resource_group_name:server_id,flexible_server_name:server_id"
 
 func resourcePostgresqlFlexibleServerFirewallRule() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
@@ -33,10 +36,11 @@ func resourcePostgresqlFlexibleServerFirewallRule() *pluginsdk.Resource {
 			Delete: pluginsdk.DefaultTimeout(30 * time.Minute),
 		},
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := firewallrules.ParseFirewallRuleID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&firewallrules.FirewallRuleId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&firewallrules.FirewallRuleId{}),
+		},
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
@@ -56,13 +60,13 @@ func resourcePostgresqlFlexibleServerFirewallRule() *pluginsdk.Resource {
 			"end_ip_address": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validation.IsIPAddress,
+				ValidateFunc: validation.IsIPv4Address,
 			},
 
 			"start_ip_address": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validation.IsIPAddress,
+				ValidateFunc: validation.IsIPv4Address,
 			},
 		},
 	}
@@ -138,7 +142,7 @@ func resourcePostgresqlFlexibleServerFirewallRuleRead(d *pluginsdk.ResourceData,
 		d.Set("end_ip_address", model.Properties.EndIPAddress)
 		d.Set("start_ip_address", model.Properties.StartIPAddress)
 	}
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourcePostgresqlFlexibleServerFirewallRuleDelete(d *pluginsdk.ResourceData, meta interface{}) error {

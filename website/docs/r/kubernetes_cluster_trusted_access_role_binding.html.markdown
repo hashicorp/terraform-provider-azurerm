@@ -105,10 +105,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this Kubernetes Cluster Trusted Access Role Binding.
-* `delete` - (Defaults to 30 minutes) Used when deleting this Kubernetes Cluster Trusted Access Role Binding.
-* `read` - (Defaults to 5 minutes) Used when retrieving this Kubernetes Cluster Trusted Access Role Binding.
-* `update` - (Defaults to 30 minutes) Used when updating this Kubernetes Cluster Trusted Access Role Binding.
+* `create` - (Defaults to 30 minutes) Used when creating the Kubernetes Cluster Trusted Access Role Binding.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Kubernetes Cluster Trusted Access Role Binding.
+* `update` - (Defaults to 30 minutes) Used when updating the Kubernetes Cluster Trusted Access Role Binding.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Kubernetes Cluster Trusted Access Role Binding.
 
 ## Import
 
@@ -122,3 +122,9 @@ terraform import azurerm_kubernetes_cluster_trusted_access_role_binding.example 
 * Where `{resourceGroupName}` is the name of Resource Group where this Kubernetes Cluster Trusted Access Role Binding exists. For example `example-resource-group`.
 * Where `{managedClusterName}` is the name of the Managed Cluster. For example `managedClusterValue`.
 * Where `{trustedAccessRoleBindingName}` is the name of the Trusted Access Role Binding. For example `trustedAccessRoleBindingValue`.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ContainerService` - 2025-05-01

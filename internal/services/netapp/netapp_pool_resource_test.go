@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/capacitypools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/capacitypools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -121,6 +121,72 @@ func TestAccNetAppPool_doubleEncryption(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("encryption_type").HasValue("Double"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppPool_coolAccess(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_pool", "test")
+	r := NetAppPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.coolAccess(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppPool_flexibleServiceLevel(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_pool", "test")
+	r := NetAppPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.flexibleServiceLevel(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("service_level").HasValue("Flexible"),
+				check.That(data.ResourceName).Key("qos_type").HasValue("Manual"),
+				check.That(data.ResourceName).Key("custom_throughput_mibps").HasValue("256"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppPool_flexibleServiceLevelUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_pool", "test")
+	r := NetAppPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.flexibleServiceLevel(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("service_level").HasValue("Flexible"),
+				check.That(data.ResourceName).Key("custom_throughput_mibps").HasValue("256"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.flexibleServiceLevelUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("service_level").HasValue("Flexible"),
+				check.That(data.ResourceName).Key("custom_throughput_mibps").HasValue("512"),
 			),
 		},
 		data.ImportStep(),
@@ -310,6 +376,119 @@ resource "azurerm_netapp_pool" "test" {
 
   tags = {
     "CreatedOnDate" = "2022-07-08T23:50:21Z",
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (NetAppPoolResource) coolAccess(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-netapp-%d"
+  location = "%s"
+
+  tags = {
+    "SkipNRMSNSG" = "true"
+  }
+}
+
+resource "azurerm_netapp_account" "test" {
+  name                = "acctest-NetAppAccount-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_netapp_pool" "test" {
+  name                = "acctest-NetAppPool-%d"
+  account_name        = azurerm_netapp_account.test.name
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_level       = "Standard"
+  size_in_tb          = 2
+  cool_access_enabled = true
+
+  tags = {
+    "CreatedOnDate" = "2022-07-08T23:50:21Z",
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (NetAppPoolResource) flexibleServiceLevel(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-netapp-%d"
+  location = "%s"
+
+  tags = {
+    "SkipNRMSNSG" = "true"
+  }
+}
+
+resource "azurerm_netapp_account" "test" {
+  name                = "acctest-NetAppAccount-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_netapp_pool" "test" {
+  name                    = "acctest-NetAppPool-%d"
+  account_name            = azurerm_netapp_account.test.name
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  service_level           = "Flexible"
+  size_in_tb              = 4
+  qos_type                = "Manual"
+  custom_throughput_mibps = 256
+
+  tags = {
+    "CreatedOnDate" = "2022-07-08T23:50:21Z"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+}
+
+func (NetAppPoolResource) flexibleServiceLevelUpdate(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-netapp-%d"
+  location = "%s"
+
+  tags = {
+    "SkipNRMSNSG" = "true"
+  }
+}
+
+resource "azurerm_netapp_account" "test" {
+  name                = "acctest-NetAppAccount-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_netapp_pool" "test" {
+  name                    = "acctest-NetAppPool-%d"
+  account_name            = azurerm_netapp_account.test.name
+  location                = azurerm_resource_group.test.location
+  resource_group_name     = azurerm_resource_group.test.name
+  service_level           = "Flexible"
+  size_in_tb              = 4
+  qos_type                = "Manual"
+  custom_throughput_mibps = 512
+
+  tags = {
+    "CreatedOnDate" = "2022-07-08T23:50:21Z"
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)

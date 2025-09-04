@@ -87,7 +87,7 @@ The following arguments are supported:
 
 * `windows` - (Optional) A `windows` block as defined below.
 
-~> **NOTE:** One of `linux` or `windows` must be specified.
+~> **Note:** One of `linux` or `windows` must be specified.
 
 * `virtual_machine_ids` - (Optional) Specifies a list of Azure Resource IDs of azure virtual machines.
 
@@ -235,3 +235,9 @@ Automations Software Update Configuration can be imported using the `resource id
 ```shell
 terraform import azurerm_automation_software_update_configuration.example /subscriptions/12345678-1234-9876-4563-123456789012/resourceGroups/group1/providers/Microsoft.Automation/automationAccounts/account1/softwareUpdateConfigurations/suc1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Automation` - 2019-06-01

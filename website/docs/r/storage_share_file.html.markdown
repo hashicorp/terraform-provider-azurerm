@@ -10,7 +10,7 @@ description: |-
 
 Manages a File within an Azure Storage File Share.
 
--> **Note on Permissions** When using Azure Active Directory Authentication (i.e. setting the provider property `storage_use_azuread = true`), the principal running Terraform must have the *Storage File Data Privileged Contributor* IAM role assigned. The *Storage File Data SMB Share Contributor* does not have sufficient permissions to create files. Refer to [official documentation](https://learn.microsoft.com/en-us/rest/api/storageservices/authorize-with-azure-active-directory#permissions-for-file-service-operations) for more details.
+-> **Note:** When using Azure Active Directory Authentication (i.e. setting the provider property `storage_use_azuread = true`), the principal running Terraform must have the *Storage File Data Privileged Contributor* IAM role assigned. The *Storage File Data SMB Share Contributor* does not have sufficient permissions to create files. Refer to [official documentation](https://learn.microsoft.com/en-us/rest/api/storageservices/authorize-with-azure-active-directory#permissions-for-file-service-operations) for more details.
 
 ## Example Usage
 
@@ -53,13 +53,13 @@ The following arguments are supported:
 
 * `source` - (Optional) An absolute path to a file on the local system. Changing this forces a new resource to be created.
 
-~> **Note** The file specified with `source` can not be empty.
+~> **Note:** The file specified with `source` can not be empty.
 
 * `content_type` - (Optional) The content type of the share file. Defaults to `application/octet-stream`.
 
 * `content_md5` - (Optional) The MD5 sum of the file contents. Changing this forces a new resource to be created.
 
-~> **NOTE:** This property is intended to be used with the Terraform internal [filemd5](https://www.terraform.io/docs/configuration/functions/filemd5.html) and [md5](https://www.terraform.io/docs/configuration/functions/md5.html) functions when `source` is defined.
+~> **Note:** This property is intended to be used with the Terraform internal [filemd5](https://www.terraform.io/docs/configuration/functions/filemd5.html) and [md5](https://www.terraform.io/docs/configuration/functions/md5.html) functions when `source` is defined.
 
 * `content_encoding` - (Optional) Specifies which content encodings have been applied to the file.
 
@@ -79,8 +79,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Storage Share File.
-* `update` - (Defaults to 30 minutes) Used when updating the Storage Share File.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Storage Share File.
+* `update` - (Defaults to 30 minutes) Used when updating the Storage Share File.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Storage Share File.
 
 ## Import

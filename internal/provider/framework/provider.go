@@ -6,6 +6,7 @@ package framework
 import (
 	"context"
 
+	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -16,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/schema/validator"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
+	pluginsdkprovider "github.com/hashicorp/terraform-provider-azurerm/internal/provider"
 	providerfunction "github.com/hashicorp/terraform-provider-azurerm/internal/provider/function"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/resourceproviders"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk/frameworkhelpers"
-
-	pluginsdkprovider "github.com/hashicorp/terraform-provider-azurerm/internal/provider"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 )
 
 type azureRmFrameworkProvider struct {
@@ -161,9 +162,15 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 				Optional:    true,
 				Description: "Allow Managed Service Identity to be used for Authentication.",
 			},
+
 			"msi_endpoint": schema.StringAttribute{
 				Optional:    true,
-				Description: "The path to a custom endpoint for Managed Service Identity - in most circumstances this should be detected automatically. ",
+				Description: "The path to a custom endpoint for Managed Service Identity - in most circumstances this should be detected automatically.",
+			},
+
+			"msi_api_version": schema.StringAttribute{
+				Optional:    true,
+				Description: "The API version to use for Managed Service Identity (IMDS) - for cases where the default API version is not supported by the endpoint. e.g. for Azure Container Apps.",
 			},
 
 			// Azure CLI specific fields
@@ -225,7 +232,7 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 				Optional:    true,
 				Description: "A list of Resource Providers to explicitly register for the subscription, in addition to those specified by the `resource_provider_registrations` property.",
 				Validators: []validator.List{
-					frameworkhelpers.WrappedListValidator{
+					typehelpers.WrappedListValidator{
 						Func:         resourceproviders.EnhancedValidate,
 						Desc:         "EnhancedValidate returns a validation function which attempts to validate the Resource Provider against the list of Resource Provider supported by this Azure Environment.",
 						MarkdownDesc: "EnhancedValidate returns a validation function which attempts to validate the Resource Provider against the list of Resource Provider supported by this Azure Environment.",
@@ -369,9 +376,6 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 									"delete_os_disk_on_deletion": schema.BoolAttribute{
 										Optional: true,
 									},
-									"graceful_shutdown": schema.BoolAttribute{
-										Optional: true,
-									},
 									"skip_shutdown_and_force_delete": schema.BoolAttribute{
 										Optional: true,
 									},
@@ -491,10 +495,27 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 								},
 							},
 						},
+						"databricks_workspace": schema.ListNestedBlock{
+							NestedObject: schema.NestedBlockObject{
+								Attributes: map[string]schema.Attribute{
+									"force_delete": schema.BoolAttribute{
+										Optional:    true,
+										Description: "When enabled, the managed resource group that contains the Unity Catalog data will be forcibly deleted when the workspace is destroyed, regardless of contents.",
+									},
+								},
+							},
+						},
 					},
 				},
 			},
 		},
+	}
+
+	if !features.FivePointOh() {
+		response.Schema.Blocks["features"].(schema.ListNestedBlock).NestedObject.Blocks["virtual_machine"].(schema.ListNestedBlock).NestedObject.Attributes["graceful_shutdown"] = schema.BoolAttribute{
+			Optional:           true,
+			DeprecationMessage: "'graceful_shutdown' has been deprecated and will be removed from v5.0 of the AzureRM provider.",
+		}
 	}
 }
 
@@ -524,7 +545,14 @@ func (p *azureRmFrameworkProvider) DataSources(_ context.Context) []func() datas
 	var output []func() datasource.DataSource
 
 	for _, service := range pluginsdkprovider.SupportedFrameworkServices() {
-		output = append(output, service.FrameworkDataSources()...)
+		for _, d := range service.FrameworkDataSources() {
+			fwd := sdk.FrameworkDataSourceWrapper{
+				ResourceMetadata:           sdk.ResourceMetadata{},
+				FrameworkWrappedDataSource: d,
+			}
+
+			output = append(output, fwd.DataSource())
+		}
 	}
 
 	return output
@@ -534,7 +562,13 @@ func (p *azureRmFrameworkProvider) Resources(_ context.Context) []func() resourc
 	var output []func() resource.Resource
 
 	for _, service := range pluginsdkprovider.SupportedFrameworkServices() {
-		output = append(output, service.FrameworkResources()...)
+		for _, r := range service.FrameworkResources() {
+			fwr := sdk.FrameworkResourceWrapper{
+				ResourceMetadata:         sdk.ResourceMetadata{},
+				FrameworkWrappedResource: r,
+			}
+			output = append(output, fwr.Resource())
+		}
 	}
 
 	return output

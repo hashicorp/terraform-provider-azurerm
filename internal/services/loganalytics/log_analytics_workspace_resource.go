@@ -14,6 +14,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
@@ -22,6 +23,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/loganalytics/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
@@ -31,7 +33,7 @@ import (
 )
 
 func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceLogAnalyticsWorkspaceCreate,
 		Read:   resourceLogAnalyticsWorkspaceRead,
 		Update: resourceLogAnalyticsWorkspaceUpdate,
@@ -76,10 +78,10 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				Default:  true,
 			},
 
-			"local_authentication_disabled": {
+			"local_authentication_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
-				Default:  false,
+				Default:  true,
 			},
 
 			"cmk_for_query_forced": {
@@ -107,12 +109,14 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 				Optional: true,
 				Computed: true,
 				ValidateFunc: validation.StringInSlice([]string{
+					// creation with `Premium` and `Standard` is not allowed on API side, keep these values for existing resources.
 					string(workspaces.WorkspaceSkuNameEnumPerGBTwoZeroOneEight),
 					string(workspaces.WorkspaceSkuNameEnumPerNode),
 					string(workspaces.WorkspaceSkuNameEnumPremium),
 					string(workspaces.WorkspaceSkuNameEnumStandalone),
 					string(workspaces.WorkspaceSkuNameEnumStandard),
 					string(workspaces.WorkspaceSkuNameEnumCapacityReservation),
+					string(workspaces.WorkspaceSkuNameEnumLACluster),
 					"Unlimited", // TODO check if this is actually no longer valid, removed in v28.0.0 of the SDK
 				}, false),
 			},
@@ -177,9 +181,28 @@ func resourceLogAnalyticsWorkspace() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["local_authentication_disabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			Deprecated:    "`local_authentication_disabled` has been deprecated in favour of `local_authentication_enabled` and will be removed in v5.0 of the AzureRM Provider",
+			ConflictsWith: []string{"local_authentication_enabled"},
+		}
+
+		resource.Schema["local_authentication_enabled"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeBool,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"local_authentication_disabled"},
+		}
+	}
+
+	return resource
 }
 
-func resourceLogAnalyticsWorkspaceCustomDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+func resourceLogAnalyticsWorkspaceCustomDiff(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
 	// Since sku needs to be a force new if the sku changes we need to have this
 	// custom diff here because when you link the workspace to a cluster the
 	// cluster changes the sku to LACluster, so we need to ignore the change
@@ -198,6 +221,13 @@ func resourceLogAnalyticsWorkspaceCustomDiff(ctx context.Context, d *pluginsdk.R
 		if !changingFromCapacityReservationToPerGB && !changingFromLACluster && !changingFromPerGBToCapacityReservation {
 			d.ForceNew("sku")
 		}
+
+		// Creation or update workspace to `standard` or `premium` SKU is not allowed. Reference:
+		// https://learn.microsoft.com/en-us/azure/azure-monitor/logs/cost-logs#standard-and-premium-pricing-tiers
+		if strings.EqualFold(new.(string), string(workspaces.WorkspaceSkuNameEnumStandard)) ||
+			strings.EqualFold(new.(string), string(workspaces.WorkspaceSkuNameEnumPremium)) {
+			return fmt.Errorf("creation of log analytics workspaces with `Standard` or `Premium` SKUs is no longer supported by Azure - see https://learn.microsoft.com/en-us/azure/azure-monitor/logs/cost-logs#standard-and-premium-pricing-tiers")
+		}
 	}
 
 	return nil
@@ -205,6 +235,7 @@ func resourceLogAnalyticsWorkspaceCustomDiff(ctx context.Context, d *pluginsdk.R
 
 func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).LogAnalytics.WorkspaceClient
+	deletedWorkspaceClient := meta.(*clients.Client).LogAnalytics.DeletedWorkspacesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -226,9 +257,28 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 		return tf.ImportAsExistsError("azurerm_log_analytics_workspace", id.ID())
 	}
 
+	deleted, err := deletedWorkspaceClient.List(ctx, commonids.NewSubscriptionID(id.SubscriptionId))
+	if err != nil {
+		return fmt.Errorf("listing deleted Log Analytics Workspaces: %+v", err)
+	}
+
+	if model := deleted.Model; model != nil && model.Value != nil {
+		for _, v := range *model.Value {
+			if props := v.Properties; props != nil && props.Sku != nil {
+				if pointer.From(v.Name) == name && string(props.Sku.Name) == string(workspaces.WorkspaceSkuNameEnumLACluster) {
+					isLACluster = true
+				}
+			}
+		}
+	}
+
 	skuName := d.Get("sku").(string)
 	sku := &workspaces.WorkspaceSku{
 		Name: workspaces.WorkspaceSkuNameEnum(skuName),
+	}
+
+	if !isLACluster && strings.EqualFold(skuName, string(workspaces.WorkspaceSkuNameEnumLACluster)) {
+		return fmt.Errorf("`sku` cannot be set to `LACluster` during creation unless the workspace is in a soft-deleted state while linked to a Log Analytics Cluster")
 	}
 
 	if isLACluster {
@@ -249,7 +299,6 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 	}
 
 	allowResourceOnlyPermission := d.Get("allow_resource_only_permissions").(bool)
-	disableLocalAuth := d.Get("local_authentication_disabled").(bool)
 
 	parameters := workspaces.Workspace{
 		Name:     &name,
@@ -262,9 +311,15 @@ func resourceLogAnalyticsWorkspaceCreate(d *pluginsdk.ResourceData, meta interfa
 			RetentionInDays:                 pointer.To(int64(d.Get("retention_in_days").(int))),
 			Features: &workspaces.WorkspaceFeatures{
 				EnableLogAccessUsingOnlyResourcePermissions: pointer.To(allowResourceOnlyPermission),
-				DisableLocalAuth: pointer.To(disableLocalAuth),
+				DisableLocalAuth: pointer.To(!d.Get("local_authentication_enabled").(bool)),
 			},
 		},
+	}
+
+	if !features.FivePointOh() {
+		if v, ok := d.GetOk("local_authentication_disabled"); ok {
+			parameters.Properties.Features.DisableLocalAuth = pointer.To(v.(bool))
+		}
 	}
 
 	// nolint : staticcheck
@@ -356,8 +411,6 @@ func resourceLogAnalyticsWorkspaceUpdate(d *pluginsdk.ResourceData, meta interfa
 	defer cancel()
 	log.Printf("[INFO] preparing arguments for AzureRM Log Analytics Workspace update.")
 
-	var isLACluster bool
-
 	id, err := workspaces.ParseWorkspaceID(d.Id())
 	if err != nil {
 		return err
@@ -378,18 +431,22 @@ func resourceLogAnalyticsWorkspaceUpdate(d *pluginsdk.ResourceData, meta interfa
 	payload := existing.Model
 	props := payload.Properties
 
+	if props.Features == nil {
+		props.Features = &workspaces.WorkspaceFeatures{}
+	}
+
 	if d.HasChange("allow_resource_only_permissions") {
-		if props.Features == nil {
-			props.Features = &workspaces.WorkspaceFeatures{}
-		}
 		props.Features.EnableLogAccessUsingOnlyResourcePermissions = pointer.To(d.Get("allow_resource_only_permissions").(bool))
 	}
 
-	if d.HasChange("local_authentication_disabled") {
-		if props.Features == nil {
-			props.Features = &workspaces.WorkspaceFeatures{}
+	if d.HasChange("local_authentication_enabled") {
+		props.Features.DisableLocalAuth = pointer.To(!d.Get("local_authentication_enabled").(bool))
+	}
+
+	if !features.FivePointOh() {
+		if d.HasChange("local_authentication_disabled") {
+			props.Features.DisableLocalAuth = pointer.To(d.Get("local_authentication_disabled").(bool))
 		}
-		props.Features.DisableLocalAuth = pointer.To(d.Get("local_authentication_disabled").(bool))
 	}
 
 	if d.HasChange("cmk_for_query_forced") {
@@ -418,6 +475,7 @@ func resourceLogAnalyticsWorkspaceUpdate(d *pluginsdk.ResourceData, meta interfa
 		}
 	}
 
+	var isLACluster bool
 	if d.HasChange("sku") {
 		skuName := d.Get("sku").(string)
 		if sku := props.Sku; sku != nil {
@@ -559,15 +617,19 @@ func resourceLogAnalyticsWorkspaceRead(d *pluginsdk.ResourceData, meta interface
 			}
 
 			allowResourceOnlyPermissions := true
-			disableLocalAuth := false
 			purgeDataOnThirtyDays := false
-			if features := props.Features; features != nil {
-				allowResourceOnlyPermissions = pointer.From(features.EnableLogAccessUsingOnlyResourcePermissions)
-				disableLocalAuth = pointer.From(features.DisableLocalAuth)
-				purgeDataOnThirtyDays = pointer.From(features.ImmediatePurgeDataOn30Days)
+			if lawFeatures := props.Features; lawFeatures != nil {
+				allowResourceOnlyPermissions = pointer.From(lawFeatures.EnableLogAccessUsingOnlyResourcePermissions)
+				if lawFeatures.DisableLocalAuth != nil {
+					d.Set("local_authentication_enabled", !pointer.From(lawFeatures.DisableLocalAuth))
+
+					if !features.FivePointOh() {
+						d.Set("local_authentication_disabled", pointer.From(lawFeatures.DisableLocalAuth))
+					}
+				}
+				purgeDataOnThirtyDays = pointer.From(lawFeatures.ImmediatePurgeDataOn30Days)
 			}
 			d.Set("allow_resource_only_permissions", allowResourceOnlyPermissions)
-			d.Set("local_authentication_disabled", disableLocalAuth)
 			d.Set("immediate_data_purge_on_30_days_enabled", purgeDataOnThirtyDays)
 
 			defaultDataCollectionRuleResourceId := ""

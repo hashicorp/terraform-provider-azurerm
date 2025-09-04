@@ -6,8 +6,6 @@ description: |-
   Manages a Dev Center.
 ---
 
-<!-- Note: This documentation is generated. Any manual changes will be overwritten -->
-
 # azurerm_dev_center
 
 Manages a Dev Center.
@@ -40,6 +38,8 @@ The following arguments are supported:
 * `name` - (Required) Specifies the name of this Dev Center. Changing this forces a new Dev Center to be created.
 
 * `resource_group_name` - (Required) Specifies the name of the Resource Group within which this Dev Center should exist. Changing this forces a new Dev Center to be created.
+
+* `project_catalog_item_sync_enabled` - (Optional) Whether the project catalogs associated with projects in this Dev Center are allowed to sync catalog items. Defaults to `false`.
 
 * `identity` - (Optional) An `identity` block as defined below. Specifies the Managed Identity which should be assigned to this Dev Center.
 
@@ -75,10 +75,10 @@ In addition to the arguments defined above, the `identity` block exports the fol
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this Dev Center.
-* `delete` - (Defaults to 30 minutes) Used when deleting this Dev Center.
-* `read` - (Defaults to 5 minutes) Used when retrieving this Dev Center.
-* `update` - (Defaults to 30 minutes) Used when updating this Dev Center.
+* `create` - (Defaults to 30 minutes) Used when creating the Dev Center.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Dev Center.
+* `update` - (Defaults to 30 minutes) Used when updating the Dev Center.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Dev Center.
 
 ## Import
 
@@ -91,3 +91,9 @@ terraform import azurerm_dev_center.example /subscriptions/{subscriptionId}/reso
 * Where `{subscriptionId}` is the ID of the Azure Subscription where the Dev Center exists. For example `12345678-1234-9876-4563-123456789012`.
 * Where `{resourceGroupName}` is the name of Resource Group where this Dev Center exists. For example `example-resource-group`.
 * Where `{devCenterName}` is the name of the Dev Center. For example `devCenterValue`.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DevCenter` - 2025-02-01

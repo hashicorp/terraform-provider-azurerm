@@ -49,7 +49,7 @@ const (
 	//
 	// In the future, it may be possible to include this information directly
 	// in the protocol buffers rather than recreating a constant here.
-	protocolVersionMinor uint = 8
+	protocolVersionMinor uint = 9
 )
 
 // protocolVersion represents the combined major and minor version numbers of
@@ -104,6 +104,7 @@ type ServeConfig struct {
 	managedDebug                      bool
 	managedDebugReattachConfigTimeout time.Duration
 	managedDebugStopSignals           []os.Signal
+	managedDebugEnvFilePath           string
 
 	disableLogInitStderr bool
 	disableLogLocation   bool
@@ -174,6 +175,15 @@ func WithManagedDebugStopSignals(signals []os.Signal) ServeOpt {
 func WithManagedDebugReattachConfigTimeout(timeout time.Duration) ServeOpt {
 	return serveConfigFunc(func(in *ServeConfig) error {
 		in.managedDebugReattachConfigTimeout = timeout
+		return nil
+	})
+}
+
+// WithManagedDebugEnvFilePath returns a ServeOpt that will set the output path
+// for the managed debug process to write the reattach configuration into.
+func WithManagedDebugEnvFilePath(path string) ServeOpt {
+	return serveConfigFunc(func(in *ServeConfig) error {
+		in.managedDebugEnvFilePath = path
 		return nil
 	})
 }
@@ -380,6 +390,15 @@ func Serve(name string, serverFactory func() tfprotov6.ProviderServer, opts ...S
 
 	fmt.Println("")
 
+	if conf.managedDebugEnvFilePath != "" {
+		fmt.Printf("Writing reattach configuration to env file at path %s\n", conf.managedDebugEnvFilePath)
+
+		err = os.WriteFile(conf.managedDebugEnvFilePath, []byte(fmt.Sprintf("%s='%s'\n", envTfReattachProviders, strings.ReplaceAll(reattachStr, `'`, `'"'"'`))), 0644)
+		if err != nil {
+			return fmt.Errorf("Error writing to env file at path %s: %w", conf.managedDebugEnvFilePath, err)
+		}
+	}
+
 	// Wait for the server to be done.
 	<-conf.debugCloseCh
 
@@ -537,6 +556,32 @@ func (s *server) GetProviderSchema(ctx context.Context, protoReq *tfplugin6.GetP
 	tf6serverlogging.ServerCapabilities(ctx, resp.ServerCapabilities)
 
 	protoResp := toproto.GetProviderSchema_Response(resp)
+
+	return protoResp, nil
+}
+
+func (s *server) GetResourceIdentitySchemas(ctx context.Context, protoReq *tfplugin6.GetResourceIdentitySchemas_Request) (*tfplugin6.GetResourceIdentitySchemas_Response, error) {
+	rpc := "GetResourceIdentitySchemas"
+	ctx = s.loggingContext(ctx)
+	ctx = logging.RpcContext(ctx, rpc)
+	ctx = s.stoppableContext(ctx)
+	logging.ProtocolTrace(ctx, "Received request")
+	defer logging.ProtocolTrace(ctx, "Served request")
+
+	req := fromproto.GetResourceIdentitySchemasRequest(protoReq)
+
+	ctx = tf6serverlogging.DownstreamRequest(ctx)
+
+	resp, err := s.downstream.GetResourceIdentitySchemas(ctx, req)
+
+	if err != nil {
+		logging.ProtocolError(ctx, "Error from downstream", map[string]interface{}{logging.KeyError: err})
+		return nil, err
+	}
+
+	tf6serverlogging.DownstreamResponse(ctx, resp.Diagnostics)
+
+	protoResp := toproto.GetResourceIdentitySchemas_Response(resp)
 
 	return protoResp, nil
 }
@@ -760,6 +805,36 @@ func (s *server) UpgradeResourceState(ctx context.Context, protoReq *tfplugin6.U
 	logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Response", "UpgradedState", resp.UpgradedState)
 
 	protoResp := toproto.UpgradeResourceState_Response(resp)
+
+	return protoResp, nil
+}
+
+func (s *server) UpgradeResourceIdentity(ctx context.Context, protoReq *tfplugin6.UpgradeResourceIdentity_Request) (*tfplugin6.UpgradeResourceIdentity_Response, error) {
+	rpc := "UpgradeResourceIdentity"
+	ctx = s.loggingContext(ctx)
+	ctx = logging.RpcContext(ctx, rpc)
+	ctx = logging.ResourceContext(ctx, protoReq.TypeName)
+	ctx = s.stoppableContext(ctx)
+	logging.ProtocolTrace(ctx, "Received request")
+	defer logging.ProtocolTrace(ctx, "Served request")
+
+	req := fromproto.UpgradeResourceIdentityRequest(protoReq)
+
+	ctx = tf6serverlogging.DownstreamRequest(ctx)
+
+	resp, err := s.downstream.UpgradeResourceIdentity(ctx, req)
+
+	if err != nil {
+		logging.ProtocolError(ctx, "Error from downstream", map[string]interface{}{logging.KeyError: err})
+		return nil, err
+	}
+
+	tf6serverlogging.DownstreamResponse(ctx, resp.Diagnostics)
+	if resp.UpgradedIdentity != nil {
+		logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Response", "UpgradedResourceIdentity", resp.UpgradedIdentity.IdentityData)
+	}
+
+	protoResp := toproto.UpgradeResourceIdentity_Response(resp)
 
 	return protoResp, nil
 }

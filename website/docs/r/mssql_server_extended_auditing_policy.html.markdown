@@ -241,10 +241,6 @@ resource "azurerm_monitor_diagnostic_setting" "example" {
 
   metric {
     category = "AllMetrics"
-
-    retention_policy {
-      enabled = false
-    }
   }
 }
 ```
@@ -256,7 +252,7 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Whether to enable the extended auditing policy. Possible values are `true` and `false`. Defaults to `true`.
 
-->**NOTE:**  If `enabled` is `true`, `storage_endpoint` or `log_monitoring_enabled` are required.
+-> **Note:** If `enabled` is `true`, `storage_endpoint` or `log_monitoring_enabled` are required.
 
 * `storage_endpoint` - (Optional) The blob storage endpoint (e.g. <https://example.blob.core.windows.net>). This blob storage will hold all extended auditing logs.
 
@@ -296,3 +292,9 @@ MS SQL Server Extended Auditing Policies can be imported using the `resource id`
 ```shell
 terraform import azurerm_mssql_server_extended_auditing_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Sql/servers/sqlServer1/extendedAuditingSettings/default
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Sql` - 2023-08-01-preview

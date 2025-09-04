@@ -87,4 +87,10 @@ Associations between Network Interfaces and Application Security Groups can be i
 terraform import azurerm_network_interface_application_security_group_association.association1 "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/networkInterfaces/nic1|/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.Network/applicationSecurityGroups/securityGroup1"
 ```
 
--> **NOTE:** This ID is specific to Terraform - and is of the format `{networkInterfaceId}|{applicationSecurityGroupId}`.
+-> **Note:** This ID is specific to Terraform - and is of the format `{networkInterfaceId}|{applicationSecurityGroupId}`.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01
