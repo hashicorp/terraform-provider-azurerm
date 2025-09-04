@@ -93,7 +93,7 @@ func (r VaultGuardProxyResource) Create() sdk.ResourceFunc {
 				Id:   pointer.To(id.ID()),
 				Type: pointer.To(VaultGuardResourceType),
 				Properties: pointer.To(resourceguardproxy.ResourceGuardProxyBase{
-					ResourceGuardResourceId: pointer.To(plan.ResourceGuardId),
+					ResourceGuardResourceId: plan.ResourceGuardId,
 				}),
 			}
 
@@ -132,7 +132,7 @@ func (r VaultGuardProxyResource) Read() sdk.ResourceFunc {
 			}
 
 			if resp.Model != nil && resp.Model.Properties != nil {
-				state.ResourceGuardId = pointer.From(resp.Model.Properties.ResourceGuardResourceId)
+				state.ResourceGuardId = resp.Model.Properties.ResourceGuardResourceId
 			}
 
 			return metadata.Encode(&state)
