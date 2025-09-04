@@ -286,6 +286,10 @@ An `api_server_access_profile` block supports the following:
 
 * `authorized_ip_ranges` - (Optional) Set of authorized IP ranges to allow access to API server, e.g. ["198.51.100.0/24"].
 
+* `subnet_id` - (Optional) The ID of the Subnet where the API server endpoint is delegated to.
+
+* `vnet_integration_enabled` - (Optional) Should API Server VNet Integration be enabled? Defaults to `false`.
+
 ---
 
 An `auto_scaler_profile` block supports the following:
@@ -957,6 +961,9 @@ A `upgrade_settings` block supports the following:
 * `node_soak_duration_in_minutes` - (Optional) The amount of time in minutes to wait after draining a node and before reimaging and moving on to next node. Defaults to `0`. <!-- The 0 default happens in code, not in Schema -->
 
 * `max_surge` - (Required) The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
+
+
+* `undrainable_node_behavior` - (Optional) Specifies the action when a node is undrainable during upgrade. Possible values are `Cordon` and `Schedule`.
 
 -> **Note:** If a percentage is provided, the number of surge nodes is calculated from the `node_count` value on the current cluster. Node surge can allow a cluster to have more nodes than `max_count` during an upgrade. Ensure that your cluster has enough [IP space](https://docs.microsoft.com/azure/aks/upgrade-cluster#customize-node-surge-upgrade) during an upgrade.
 
