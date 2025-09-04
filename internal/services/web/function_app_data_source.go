@@ -138,7 +138,7 @@ func dataSourceFunctionApp() *pluginsdk.Resource {
 
 			"identity": commonschema.SystemAssignedUserAssignedIdentityComputed(),
 
-			"tags": commonschema.Tags(),
+			"tags": tags.Schema(),
 		},
 	}
 }

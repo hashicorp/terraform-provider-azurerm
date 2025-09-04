@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"regexp"
 	"strings"
 	"time"
@@ -382,17 +381,6 @@ func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, id parse.ScopedRoleAs
 				return pluginsdk.RetryableError(err)
 			case retryLinkedAuthorizationFailedError && response.WasForbidden(resp.HttpResponse) && strings.Contains(err.Error(), "LinkedAuthorizationFailed"):
 				return pluginsdk.RetryableError(err)
-			case response.WasStatusCode(resp.HttpResponse, http.StatusConflict) && strings.Contains(err.Error(), "RoleAssignmentExists"):
-				// find the existing role assignment and output it in error message
-				// we omit the err in lookupRoleAssignment and return the origin Create error
-				if existing := lookupRoleAssignment(ctx, roleAssignmentsClient, id, param.Properties); existing != nil && existing.Properties != nil {
-					existsID := roleassignments.NewScopedRoleAssignmentID(pointer.From(existing.Properties.Scope), pointer.From(existing.Name))
-					if configName := d.Get("name").(string); configName != "" && configName != pointer.From(existing.Name) {
-						return pluginsdk.NonRetryableError(fmt.Errorf("role assignment of `%s` already exists with a different id, modify the role assignment name and import with the exists id: `%s`", id.ID(), existsID.ID()))
-					}
-					return pluginsdk.NonRetryableError(tf.ImportAsExistsError("azurerm_role_assignment", existsID.ID()))
-				}
-				return pluginsdk.NonRetryableError(err)
 			default:
 				return pluginsdk.NonRetryableError(err)
 			}
@@ -421,25 +409,6 @@ func retryRoleAssignmentsClient(d *pluginsdk.ResourceData, id parse.ScopedRoleAs
 
 		return nil
 	}
-}
-
-func lookupRoleAssignment(ctx context.Context, client *roleassignments.RoleAssignmentsClient, id parse.ScopedRoleAssignmentId, target roleassignments.RoleAssignmentProperties) *roleassignments.RoleAssignment {
-	listAssignments, err := client.ListForScopeComplete(ctx, commonids.NewScopeID(id.ScopedId.Scope), roleassignments.ListForScopeOperationOptions{
-		TenantId: pointer.To(id.TenantId),
-	})
-	if err != nil {
-		return nil
-	}
-
-	for _, item := range listAssignments.Items {
-		if prop := item.Properties; prop != nil {
-			if prop.RoleDefinitionId == target.RoleDefinitionId && prop.PrincipalId == target.PrincipalId {
-				return &item
-			}
-		}
-	}
-
-	return nil
 }
 
 func roleAssignmentCreateStateRefreshFunc(ctx context.Context, client *roleassignments.RoleAssignmentsClient, id parse.ScopedRoleAssignmentId) pluginsdk.StateRefreshFunc {

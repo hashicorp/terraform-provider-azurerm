@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/dnsresolver/2022-07-01/dnsresolvers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -61,7 +62,7 @@ func (r PrivateDNSResolverDnsResolverDataSource) Attributes() map[string]*plugin
 			Computed: true,
 		},
 
-		"tags": commonschema.TagsDataSource(),
+		"tags": tags.SchemaDataSource(),
 	}
 }
 

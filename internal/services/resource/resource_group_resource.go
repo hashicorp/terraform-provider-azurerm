@@ -49,7 +49,7 @@ func resourceResourceGroup() *pluginsdk.Resource {
 
 			"location": commonschema.Location(),
 
-			"tags": commonschema.Tags(),
+			"tags": tags.Schema(),
 
 			"managed_by": {
 				Type:         pluginsdk.TypeString,

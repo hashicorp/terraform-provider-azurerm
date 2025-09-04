@@ -6,7 +6,6 @@ package oracle
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -22,7 +21,6 @@ type DbSystemShapesDataSource struct{}
 type DbSystemShapesModel struct {
 	DbSystemShapes []DbSystemShapeModel `tfschema:"db_system_shapes"`
 	Location       string               `tfschema:"location"`
-	Zone           string               `tfschema:"zone"`
 }
 
 type DbSystemShapeModel struct {
@@ -54,11 +52,6 @@ type DbSystemShapeModel struct {
 func (d DbSystemShapesDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"location": commonschema.Location(),
-		"zone": {
-			Type:        pluginsdk.TypeString,
-			Optional:    true,
-			Description: "Filter the versions by zone",
-		},
 	}
 }
 
@@ -195,17 +188,7 @@ func (d DbSystemShapesDataSource) Read() sdk.ResourceFunc {
 
 			id := dbsystemshapes.NewLocationID(subscriptionId, state.Location)
 
-			options := dbsystemshapes.ListByLocationOperationOptions{}
-
-			if state.Zone != "" {
-				options.Zone = &state.Zone
-			}
-
-			if state.Zone == "" {
-				log.Printf("[WARN] DbSystem shapes data source: Zone parameter is empty. This may result in unfiltered results from the API. Consider specifying Zone for more precise results in the desired zone.")
-			}
-
-			resp, err := client.ListByLocation(ctx, id, options)
+			resp, err := client.ListByLocation(ctx, id, dbsystemshapes.DefaultListByLocationOperationOptions())
 			if err != nil {
 				if response.WasNotFound(resp.HttpResponse) {
 					return fmt.Errorf("%s was not found", id)

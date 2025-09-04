@@ -156,7 +156,7 @@ func dataSourceSpringCloudService() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": commonschema.TagsDataSource(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }

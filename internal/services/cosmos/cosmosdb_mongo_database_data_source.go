@@ -41,7 +41,7 @@ func dataSourceCosmosDbMongoDatabase() *pluginsdk.Resource {
 
 			"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
 
-			"tags": commonschema.TagsDataSource(),
+			"tags": tags.SchemaDataSource(),
 		},
 	}
 }

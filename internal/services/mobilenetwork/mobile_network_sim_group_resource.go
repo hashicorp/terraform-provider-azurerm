@@ -171,13 +171,13 @@ func (r SimGroupResource) Update() sdk.ResourceFunc {
 				properties.Identity = identityValue
 			}
 
-			if metadata.ResourceData.HasChange("encryption_key_url") {
+			if metadata.ResourceData.HasChange("encryption_key") {
 				properties.Properties.EncryptionKey = &simgroup.KeyVaultKey{
 					KeyURL: &model.EncryptionKeyURL,
 				}
 			}
 
-			if metadata.ResourceData.HasChange("mobile_network_id") {
+			if metadata.ResourceData.HasChange("mobile_network") {
 				properties.Properties.MobileNetwork = &simgroup.MobileNetworkResourceId{
 					Id: model.MobileNetworkId,
 				}

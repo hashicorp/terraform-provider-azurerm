@@ -9,13 +9,12 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type KeyVaultResource struct{}
@@ -155,7 +154,7 @@ func TestAccKeyVault_update(t *testing.T) {
 				check.That(data.ResourceName).Key("enabled_for_deployment").HasValue("true"),
 				check.That(data.ResourceName).Key("enabled_for_disk_encryption").HasValue("true"),
 				check.That(data.ResourceName).Key("enabled_for_template_deployment").HasValue("true"),
-				check.That(data.ResourceName).Key("rbac_authorization_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("enable_rbac_authorization").HasValue("true"),
 				check.That(data.ResourceName).Key("tags.environment").HasValue("Staging"),
 			),
 		},
@@ -408,7 +407,7 @@ func (KeyVaultResource) Exists(ctx context.Context, clients *clients.Client, sta
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return pointer.To(resp.Model != nil), nil
+	return utils.Bool(resp.Model != nil), nil
 }
 
 func (KeyVaultResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
@@ -421,7 +420,7 @@ func (KeyVaultResource) Destroy(ctx context.Context, client *clients.Client, sta
 		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
-	return pointer.To(true), nil
+	return utils.Bool(true), nil
 }
 
 func (KeyVaultResource) basic(data acceptance.TestData) string {
@@ -718,7 +717,7 @@ resource "azurerm_key_vault" "test" {
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
-  rbac_authorization_enabled      = true
+  enable_rbac_authorization       = true
 
   tags = {
     environment = "Staging"
@@ -728,8 +727,7 @@ resource "azurerm_key_vault" "test" {
 }
 
 func (KeyVaultResource) noAccessPolicyBlocks(data acceptance.TestData) string {
-	if !features.FivePointOh() {
-		return fmt.Sprintf(`
+	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -755,40 +753,6 @@ resource "azurerm_key_vault" "test" {
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
   enable_rbac_authorization       = true
-
-  tags = {
-    environment = "Staging"
-  }
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
-	}
-
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-data "azurerm_client_config" "current" {
-}
-
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-%d"
-  location = "%s"
-}
-
-resource "azurerm_key_vault" "test" {
-  name                       = "acctestvault%d"
-  location                   = azurerm_resource_group.test.location
-  resource_group_name        = azurerm_resource_group.test.name
-  tenant_id                  = data.azurerm_client_config.current.tenant_id
-  sku_name                   = "standard"
-  soft_delete_retention_days = 7
-
-  public_network_access_enabled   = true
-  enabled_for_deployment          = true
-  enabled_for_disk_encryption     = true
-  enabled_for_template_deployment = true
-  rbac_authorization_enabled      = true
 
   tags = {
     environment = "Staging"
@@ -824,7 +788,7 @@ resource "azurerm_key_vault" "test" {
   enabled_for_deployment          = true
   enabled_for_disk_encryption     = true
   enabled_for_template_deployment = true
-  rbac_authorization_enabled      = true
+  enable_rbac_authorization       = true
 
   tags = {
     environment = "Staging"

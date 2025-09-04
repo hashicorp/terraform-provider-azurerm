@@ -307,6 +307,6 @@ func resourceAppServiceCertificateSchema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"tags": commonschema.Tags(),
+		"tags": tags.Schema(),
 	}
 }

@@ -146,7 +146,7 @@ func resourceAppServicePlan() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"tags": commonschema.Tags(),
+			"tags": tags.Schema(),
 		},
 	}
 }

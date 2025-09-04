@@ -160,7 +160,7 @@ func (r ManagementGroupPolicySetDefinitionResource) Create() sdk.ResourceFunc {
 			}
 
 			if len(model.PolicyDefinitionReference) > 0 {
-				expandedDefinitions, err := expandPolicyDefinitionReference(model.PolicyDefinitionReference, metadata)
+				expandedDefinitions, err := expandPolicyDefinitionReference(model.PolicyDefinitionReference)
 				if err != nil {
 					return fmt.Errorf("expanding `policy_definition_reference`: %+v", err)
 				}
@@ -306,7 +306,7 @@ func (r ManagementGroupPolicySetDefinitionResource) Update() sdk.ResourceFunc {
 			}
 
 			if metadata.ResourceData.HasChange("policy_definition_reference") {
-				expandedDefinitions, err := expandPolicyDefinitionReference(config.PolicyDefinitionReference, metadata)
+				expandedDefinitions, err := expandPolicyDefinitionReference(config.PolicyDefinitionReference)
 				if err != nil {
 					return fmt.Errorf("expanding `policy_definition_reference`: %+v", err)
 				}

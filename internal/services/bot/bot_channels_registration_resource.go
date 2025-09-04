@@ -156,7 +156,7 @@ func resourceBotChannelsRegistration() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"tags": commonschema.Tags(),
+			"tags": tags.Schema(),
 		},
 	}
 

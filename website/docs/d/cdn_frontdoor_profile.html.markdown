@@ -17,14 +17,6 @@ data "azurerm_cdn_frontdoor_profile" "example" {
   name                = "existing-cdn-profile"
   resource_group_name = "existing-resources"
 }
-
-output "front_door_id" {
-  value = data.azurerm_cdn_frontdoor_profile.example.id
-}
-
-output "log_scrubbing_match_variable" {
-  value = data.azurerm_cdn_frontdoor_profile.example.log_scrubbing_rule.0.match_variable
-}
 ```
 
 ## Argument Reference
@@ -35,23 +27,7 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where this Front Door Profile exists.
 
-## Attributes Reference
-
-In addition to the Arguments listed above - the following attributes are exported:
-
-* `id` - The ID of this Front Door Profile.
-
-* `identity` - An `identity` block as defined below.
-
-* `resource_guid` - The UUID of the Front Door Profile which will be sent in the HTTP Header as the `X-Azure-FDID` attribute.
-
-* `sku_name` - Specifies the SKU for this Front Door Profile.
-
-* `log_scrubbing_rule` - One or more `log_scrubbing_rule` blocks as defined below.
-
-* `response_timeout_seconds` - Specifies the maximum response timeout in seconds.
-
-* `tags` - Specifies a mapping of Tags assigned to this Front Door Profile.
+* `identity` - (Optional) An `identity` block as defined below.
 
 ---
 
@@ -63,9 +39,19 @@ An `identity` block exports the following:
 
 ---
 
-A `log_scrubbing_rule` block exports the following:
+## Attributes Reference
 
-* `match_variable` - The variable that is scrubbed from the logs.
+The following attributes are exported:
+
+* `id` - The ID of this Front Door Profile.
+
+* `resource_guid` - The UUID of the Front Door Profile which will be sent in the HTTP Header as the `X-Azure-FDID` attribute.
+
+* `sku_name` - Specifies the SKU for this Front Door Profile.
+
+* `response_timeout_seconds` - Specifies the maximum response timeout in seconds.
+
+* `tags` - Specifies a mapping of Tags assigned to this Front Door Profile.
 
 ## Timeouts
 

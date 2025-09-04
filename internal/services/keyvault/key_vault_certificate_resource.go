@@ -405,7 +405,7 @@ func resourceKeyVaultCertificate() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"tags": commonschema.Tags(),
+			"tags": tags.Schema(),
 		},
 	}
 }

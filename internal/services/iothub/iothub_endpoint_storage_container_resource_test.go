@@ -213,8 +213,6 @@ provider "azurerm" {
   features {}
 }
 
-data "azurerm_client_config" "current" {}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-iothub-%[1]d"
   location = "%[2]s"
@@ -265,7 +263,6 @@ resource "azurerm_iothub_endpoint_storage_container" "test" {
   batch_frequency_in_seconds = 60
   max_chunk_size_in_bytes    = 10485760
   encoding                   = "JSON"
-  subscription_id            = data.azurerm_client_config.current.subscription_id
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

@@ -10,20 +10,7 @@ import (
 
 type Registration struct{}
 
-func (r Registration) DataSources() []sdk.DataSource {
-	return []sdk.DataSource{}
-}
-
-func (r Registration) Resources() []sdk.Resource {
-	return []sdk.Resource{
-		LogicAppResource{},
-	}
-}
-
-var (
-	_ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
-	_ sdk.TypedServiceRegistration                   = Registration{}
-)
+var _ sdk.UntypedServiceRegistrationWithAGitHubLabel = Registration{}
 
 func (r Registration) AssociatedGitHubLabel() string {
 	return "service/logic"
@@ -68,6 +55,7 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_logic_app_trigger_http_request":                    resourceLogicAppTriggerHttpRequest(),
 		"azurerm_logic_app_trigger_recurrence":                      resourceLogicAppTriggerRecurrence(),
 		"azurerm_logic_app_workflow":                                resourceLogicAppWorkflow(),
+		"azurerm_logic_app_standard":                                resourceLogicAppStandard(),
 	}
 
 	return resources

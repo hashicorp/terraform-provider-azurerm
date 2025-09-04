@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devtestlab/2018-09-15/labs"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -57,7 +58,7 @@ func devTestLabSchemaForV0AndV1() map[string]*pluginsdk.Schema {
 			Optional: true,
 		},
 
-		"tags": commonschema.Tags(),
+		"tags": tags.Schema(),
 
 		"artifacts_storage_account_id": {
 			Type:     pluginsdk.TypeString,

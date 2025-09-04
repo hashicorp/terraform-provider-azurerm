@@ -98,7 +98,7 @@ func managementGroupTemplateDeploymentResource() *pluginsdk.Resource {
 				StateFunc: utils.NormalizeJson,
 			},
 
-			"tags": commonschema.Tags(),
+			"tags": tags.Schema(),
 
 			// Computed
 			"output_content": {

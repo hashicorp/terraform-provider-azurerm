@@ -360,7 +360,7 @@ func (r SimPolicyResource) Update() sdk.ResourceFunc {
 
 			model := *resp.Model
 
-			if metadata.ResourceData.HasChange("default_slice_id") {
+			if metadata.ResourceData.HasChange("default_slice") {
 				model.Properties.DefaultSlice = simpolicy.SliceResourceId{Id: plan.DefaultSliceId}
 			}
 

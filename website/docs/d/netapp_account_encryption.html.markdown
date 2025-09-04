@@ -36,10 +36,6 @@ The following arguments are supported:
 
 * `user_assigned_identity_id` - The ID of the User Assigned Managed Identity.
 
-* `federated_client_id` - The Client ID of the multi-tenant Entra ID application used to access cross-tenant key vaults.
-
-* `cross_tenant_key_vault_resource_id` - The full resource ID of the cross-tenant key vault.
-
 ---
 
 ## Attributes Reference
@@ -58,4 +54,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.NetApp` - 2025-06-01
+* `Microsoft.NetApp` - 2025-01-01

@@ -268,7 +268,7 @@ func resourceSynapseWorkspace() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"tags": commonschema.Tags(),
+			"tags": tags.Schema(),
 		},
 	}
 }

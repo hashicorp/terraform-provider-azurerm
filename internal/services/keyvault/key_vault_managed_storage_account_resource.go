@@ -81,7 +81,7 @@ func resourceKeyVaultManagedStorageAccount() *pluginsdk.Resource {
 				RequiredWith: []string{"regenerate_key_automatically"},
 			},
 
-			"tags": commonschema.TagsForceNew(),
+			"tags": tags.ForceNewSchema(),
 		},
 	}
 }

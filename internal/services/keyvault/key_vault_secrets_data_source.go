@@ -59,7 +59,7 @@ func dataSourceKeyVaultSecrets() *pluginsdk.Resource {
 							Computed: true,
 						},
 
-						"tags": commonschema.TagsDataSource(),
+						"tags": tags.SchemaDataSource(),
 					},
 				},
 			},

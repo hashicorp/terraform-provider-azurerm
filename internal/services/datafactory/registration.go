@@ -43,7 +43,6 @@ func (Registration) Resources() []sdk.Resource {
 		DataFactoryDatasetAzureSQLTableResource{},
 		DataFactoryCredentialServicePrincipalResource{},
 		DataFactoryCredentialUserAssignedManagedIdentityResource{},
-		DataFactoryCustomerManagedKeyResource{},
 	}
 }
 

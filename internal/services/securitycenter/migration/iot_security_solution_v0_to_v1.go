@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/securitycenter/parse"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/set"
 )
@@ -216,7 +217,7 @@ func (s SecurityCenterIotSecuritySolutionV0ToV1) Schema() map[string]*pluginsdk.
 			},
 		},
 
-		"tags": commonschema.Tags(),
+		"tags": tags.Schema(),
 	}
 }
 

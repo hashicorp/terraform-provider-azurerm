@@ -6,7 +6,7 @@ package validate
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 )
 
 func WorkbookTags(i interface{}, k string) (warnings []string, errors []error) {

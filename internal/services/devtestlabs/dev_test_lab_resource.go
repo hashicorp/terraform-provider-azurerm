@@ -60,7 +60,7 @@ func resourceDevTestLab() *pluginsdk.Resource {
 			// BUG: https://github.com/Azure/azure-rest-api-specs/issues/3964
 			"resource_group_name": azure.SchemaResourceGroupNameDiffSuppress(),
 
-			"tags": commonschema.Tags(),
+			"tags": tags.Schema(),
 
 			"artifacts_storage_account_id": {
 				Type:     pluginsdk.TypeString,

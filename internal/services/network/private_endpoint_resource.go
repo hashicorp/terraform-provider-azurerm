@@ -5,10 +5,8 @@ package network
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
-	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -27,7 +25,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatezones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/redis/2024-03-01/redis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
-	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -356,43 +353,27 @@ func resourcePrivateEndpointCreate(d *pluginsdk.ResourceData, meta interface{}) 
 	}
 
 	err = pluginsdk.Retry(d.Timeout(pluginsdk.TimeoutCreate), func() *pluginsdk.RetryError {
-		result, err := client.CreateOrUpdate(ctx, id, parameters)
-		if err != nil {
-			return &pluginsdk.RetryError{
-				Err:       fmt.Errorf("creating %s: %+v", id, err),
-				Retryable: false,
-			}
-		}
-
-		if err := result.Poller.PollUntilDone(ctx); err != nil {
-			var lroFailError pollers.PollingFailedError
-			if errors.As(err, &lroFailError) {
-				type lroErrorType struct {
-					Error struct {
-						Code    string `json:"code"`
-						Message string `json:"message"`
-					} `json:"error"`
-				}
-
-				var lroError lroErrorType
-				if err := lroFailError.HttpResponse.Unmarshal(&lroError); err != nil {
+		if err = client.CreateOrUpdateThenPoll(ctx, id, parameters); err != nil {
+			switch {
+			case strings.EqualFold(err.Error(), "is missing required parameter 'group Id'"):
+				{
 					return &pluginsdk.RetryError{
-						Err:       fmt.Errorf("unmarshaling lro error response: %v", err),
+						Err:       fmt.Errorf("creating %s due to missing 'group Id', ensure that the 'subresource_names' type is populated: %+v", id, err),
 						Retryable: false,
 					}
 				}
-
-				retryableErrorCodes := []string{"RetryableError", "StorageAccountOperationInProgress"}
-				if slices.Contains(retryableErrorCodes, lroError.Error.Code) {
-					log.Printf("[WARN] Retry polling %q on error code: %q", id, lroError.Error.Code)
+			case strings.Contains(err.Error(), "PrivateLinkServiceId Invalid private link service id"):
+				{
 					return &pluginsdk.RetryError{
+						Err:       fmt.Errorf("creating Private Endpoint %s: %+v", id, err),
 						Retryable: true,
 					}
 				}
-			}
-			return &pluginsdk.RetryError{
-				Err:       fmt.Errorf("waiting for the creation of %s: %+v", id, err),
-				Retryable: false,
+			default:
+				return &pluginsdk.RetryError{
+					Err:       fmt.Errorf("creating %s: %+v", id, err),
+					Retryable: false,
+				}
 			}
 		}
 

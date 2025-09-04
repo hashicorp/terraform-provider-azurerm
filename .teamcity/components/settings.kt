@@ -48,6 +48,9 @@ var serviceTestConfigurationOverrides = mapOf(
         // these tests all conflict with one another
         "authorization" to testConfiguration(parallelism = 1),
 
+        // Automanage tests use HCICluster, which is only available in certain locations
+        "automanage" to testConfiguration(locationOverride = LocationConfiguration("australiaeast", "eastus", "westeurope", true)),
+
         // HCICluster is only available in certain locations
         "azurestackhci" to testConfiguration(locationOverride = LocationConfiguration("australiaeast", "eastus", "westeurope", true)),
 
@@ -149,11 +152,8 @@ var serviceTestConfigurationOverrides = mapOf(
         // Network Regional Tire Public IP is only available in
         "network" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus", false), timeout = 24),
 
-        // oracle can't be schedule tested on the acctest subscription due to licencing limitations, results in build agent deadlock due to no tests.
-        "oracle" to testConfiguration(disableTriggers = true),
-
-        // Orbital is deprecated and can no longer be created - to be removed along with service ref: https://azure.microsoft.com/en-gb/updates?id=azure-orbital-ground-station-retirement
-        "orbital" to testConfiguration(locationOverride = LocationConfiguration("eastus", "southcentralus", "westus2", false), disableTriggers = true),
+        // Orbital is only available in certain locations
+        "orbital" to testConfiguration(locationOverride = LocationConfiguration("eastus", "southcentralus", "westus2", false)),
 
         "paloalto" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus", "westus", false)),
 

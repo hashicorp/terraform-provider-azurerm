@@ -405,11 +405,6 @@ type SiteCredential struct {
 	Password string `tfschema:"password"`
 }
 
-type SiteCredentialLogicApp struct {
-	Username string `tfschema:"username"`
-	Password string `tfschema:"password"`
-}
-
 func SiteCredentialSchema() *pluginsdk.Schema { // TODO - This can apparently be disabled as a security option for the service?
 	return &pluginsdk.Schema{
 		Type:      pluginsdk.TypeList,
@@ -1600,21 +1595,6 @@ func FlattenSiteCredentials(input *webapps.User) []SiteCredential {
 
 	userProps := *input.Properties
 	result = append(result, SiteCredential{
-		Username: userProps.PublishingUserName,
-		Password: pointer.From(userProps.PublishingPassword),
-	})
-
-	return result
-}
-
-func FlattenSiteCredentialsLogicApp(input *webapps.User) []SiteCredentialLogicApp {
-	var result []SiteCredentialLogicApp
-	if input == nil || input.Properties == nil {
-		return result
-	}
-
-	userProps := *input.Properties
-	result = append(result, SiteCredentialLogicApp{
 		Username: userProps.PublishingUserName,
 		Password: pointer.From(userProps.PublishingPassword),
 	})

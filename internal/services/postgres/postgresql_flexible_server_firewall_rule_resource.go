@@ -60,13 +60,13 @@ func resourcePostgresqlFlexibleServerFirewallRule() *pluginsdk.Resource {
 			"end_ip_address": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validation.IsIPv4Address,
+				ValidateFunc: validation.IsIPAddress,
 			},
 
 			"start_ip_address": {
 				Type:         pluginsdk.TypeString,
 				Required:     true,
-				ValidateFunc: validation.IsIPv4Address,
+				ValidateFunc: validation.IsIPAddress,
 			},
 		},
 	}

@@ -1,6 +1,0 @@
-.*
-!.gitignore
-!.github
-
-coverage.*
-profile.out

@@ -45,13 +45,13 @@ service/authorization:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(client_config|federated_identity_credential|marketplace_role_assignment|pim_|role_|user_assigned_identity)((.|\n)*)###'
 
 service/automanage:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(arc_machine_automanage_configuration_assignment|automanage_configuration|virtual_machine_automanage_configuration_assignment)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(arc_machine_automanage_configuration_assignment|automanage_configuration|stack_hci_cluster_automanage_configuration_assignment|virtual_machine_automanage_configuration_assignment)((.|\n)*)###'
 
 service/automation:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_automation_((.|\n)*)###'
 
 service/azure-stack-hci:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_stack_hci_((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(stack_hci_cluster\W+|stack_hci_cluster\W+|stack_hci_deployment_setting\W+|stack_hci_extension\W+|stack_hci_logical_network\W+|stack_hci_marketplace_gallery_image\W+|stack_hci_network_interface\W+|stack_hci_storage_path\W+|stack_hci_virtual_hard_disk\W+)((.|\n)*)###'
 
 service/batch:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_batch_((.|\n)*)###'
@@ -72,7 +72,7 @@ service/cognitive-services:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(ai_services|cognitive_)((.|\n)*)###'
 
 service/communication:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(communication_service|email_communication_service|gallery_application|managed_disks|orchestrated_virtual_machine_scale_set\W+|restore_point_collection|virtual_machine_gallery_application_assignment\W+|virtual_machine_implicit_data_disk_from_source\W+|virtual_machine_restore_point\W+|virtual_machine_restore_point_collection\W+|virtual_machine_run_command\W+|virtual_machine_scale_set_standby_pool\W+)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(communication_service|email_communication_service|gallery_application|orchestrated_virtual_machine_scale_set\W+|restore_point_collection|virtual_machine_gallery_application_assignment\W+|virtual_machine_implicit_data_disk_from_source\W+|virtual_machine_restore_point\W+|virtual_machine_restore_point_collection\W+|virtual_machine_run_command\W+|virtual_machine_scale_set_standby_pool\W+)((.|\n)*)###'
 
 service/connections:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(api_connection|managed_api)((.|\n)*)###'

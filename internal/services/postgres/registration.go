@@ -70,7 +70,6 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
-		PostgresqlFlexibleServerBackupResource{},
 		PostgresqlFlexibleServerVirtualEndpointResource{},
 	}
 }

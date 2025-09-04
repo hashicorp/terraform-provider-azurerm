@@ -174,6 +174,13 @@ func TestAccAzureRMLoadBalancer_zonesSingle(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.standard(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.zonesSingle(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
@@ -310,11 +317,11 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_lb" "test" {
-  name                = "acctestlb-%[1]d"
+  name                = "acctest-loadbalancer-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   sku                 = "Standard"
-  sku_tier            = "Regional"
+  sku_tier            = "Global"
 
   tags = {
     Environment = "production"
@@ -359,14 +366,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                = "acctest-ip-%d"
+  name                = "test-ip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
 }
 
 resource "azurerm_public_ip" "test1" {
-  name                = "acctest-ip2-%d"
+  name                = "another-test-ip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
@@ -378,12 +385,12 @@ resource "azurerm_lb" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   frontend_ip_configuration {
-    name                 = "acctest-fe1-%d"
+    name                 = "one-%d"
     public_ip_address_id = azurerm_public_ip.test.id
   }
 
   frontend_ip_configuration {
-    name                 = "acctest-fe2-%d"
+    name                 = "two-%d"
     public_ip_address_id = azurerm_public_ip.test1.id
   }
 }
@@ -402,14 +409,14 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                = "acctest-ip-%d"
+  name                = "test-ip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
 }
 
 resource "azurerm_public_ip" "test1" {
-  name                = "acctest-ip2-%d"
+  name                = "another-test-ip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
@@ -421,7 +428,7 @@ resource "azurerm_lb" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   frontend_ip_configuration {
-    name                 = "acctest-fe1-%d"
+    name                 = "one-%d"
     public_ip_address_id = azurerm_public_ip.test.id
   }
 }
@@ -440,7 +447,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip_prefix" "test" {
-  name                = "acctest-ip-prefix-%d"
+  name                = "test-ip-prefix-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   prefix_length       = 31
@@ -472,7 +479,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_public_ip" "test" {
-  name                = "acctest-ip-%d"
+  name                = "test-ip-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
   allocation_method   = "Static"
@@ -484,7 +491,7 @@ resource "azurerm_lb" "test" {
   resource_group_name = azurerm_resource_group.test.name
 
   frontend_ip_configuration {
-    name                 = "acctest-fe1-%d"
+    name                 = "one-%d"
     public_ip_address_id = azurerm_public_ip.test.id
   }
 }
@@ -604,7 +611,6 @@ resource "azurerm_lb" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Standard"
-  sku_tier            = "Regional"
 
   frontend_ip_configuration {
     name                          = "Internal"
@@ -648,7 +654,6 @@ resource "azurerm_lb" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku                 = "Standard"
-  sku_tier            = "Regional"
 
   frontend_ip_configuration {
     name                          = "Internal"
@@ -656,7 +661,6 @@ resource "azurerm_lb" "test" {
     private_ip_address_version    = "IPv4"
     private_ip_address            = "10.0.2.7"
     subnet_id                     = azurerm_subnet.test.id
-    zones                         = ["1"]
   }
 }
 `, data.RandomInteger, data.Locations.Primary)

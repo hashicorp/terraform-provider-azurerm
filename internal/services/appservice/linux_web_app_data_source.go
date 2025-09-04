@@ -19,6 +19,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -241,7 +242,7 @@ func (r LinuxWebAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"sticky_settings": helpers.StickySettingsComputedSchema(),
 
-		"tags": commonschema.TagsDataSource(),
+		"tags": tags.SchemaDataSource(),
 
 		"virtual_network_backup_restore_enabled": {
 			Type:     pluginsdk.TypeBool,

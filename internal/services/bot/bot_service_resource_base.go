@@ -152,7 +152,7 @@ func (br botBaseResource) arguments(fields map[string]*pluginsdk.Schema) map[str
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
-		"tags": commonschema.Tags(),
+		"tags": tags.Schema(),
 	}
 
 	for k, v := range fields {

@@ -15,14 +15,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/keyvault/2023-02-01/vaults"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
 func dataSourceKeyVault() *pluginsdk.Resource {
-	resource := &pluginsdk.Resource{
+	return &pluginsdk.Resource{
 		Read: dataSourceKeyVaultRead,
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -119,7 +118,8 @@ func dataSourceKeyVault() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"rbac_authorization_enabled": {
+			// TODO 4.0: change this from enable_* to *_enabled
+			"enable_rbac_authorization": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
 			},
@@ -168,16 +168,6 @@ func dataSourceKeyVault() *pluginsdk.Resource {
 			"tags": commonschema.TagsDataSource(),
 		},
 	}
-
-	if !features.FivePointOh() {
-		resource.Schema["enable_rbac_authorization"] = &pluginsdk.Schema{
-			Type:       pluginsdk.TypeBool,
-			Computed:   true,
-			Deprecated: "the `enable_rbac_authorization` property is deprecated in favour of `rbac_authorization_enabled` and will be removed in v5.0 of the AzureRM Provider.",
-		}
-	}
-
-	return resource
 }
 
 func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -207,10 +197,7 @@ func dataSourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 		d.Set("enabled_for_deployment", props.EnabledForDeployment)
 		d.Set("enabled_for_disk_encryption", props.EnabledForDiskEncryption)
 		d.Set("enabled_for_template_deployment", props.EnabledForTemplateDeployment)
-		d.Set("rbac_authorization_enabled", props.EnableRbacAuthorization)
-		if !features.FivePointOh() {
-			d.Set("enable_rbac_authorization", props.EnableRbacAuthorization)
-		}
+		d.Set("enable_rbac_authorization", props.EnableRbacAuthorization)
 		d.Set("purge_protection_enabled", props.EnablePurgeProtection)
 		if v := props.PublicNetworkAccess; v != nil {
 			d.Set("public_network_access_enabled", *v == "Enabled")

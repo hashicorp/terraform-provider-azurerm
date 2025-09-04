@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const (
@@ -102,7 +103,7 @@ func decodeApplicationStackLinux(fxString string) ApplicationStackLinux {
 
 func EncodeFunctionAppLinuxFxVersion(input []ApplicationStackLinuxFunctionApp) *string {
 	if len(input) == 0 || input[0].CustomHandler {
-		return pointer.To("")
+		return utils.String("")
 	}
 
 	appStack := input[0]
@@ -147,7 +148,7 @@ func EncodeFunctionAppLinuxFxVersion(input []ApplicationStackLinuxFunctionApp) *
 		}
 	}
 
-	return pointer.To(fmt.Sprintf("%s|%s", appType, appString))
+	return utils.String(fmt.Sprintf("%s|%s", appType, appString))
 }
 
 func DecodeFunctionAppLinuxFxVersion(input string) ([]ApplicationStackLinuxFunctionApp, error) {
@@ -306,7 +307,7 @@ func JavaLinuxFxStringBuilder(javaMajorVersion, javaServer, javaServerVersion st
 func EncodeDockerFxString(image string, registryUrl string) string {
 	template := "DOCKER|%s/%s"
 
-	registryUrl = trimURLScheme(strings.TrimSuffix(registryUrl, "/"))
+	registryUrl = trimURLScheme(registryUrl)
 
 	return fmt.Sprintf(template, registryUrl, image)
 }

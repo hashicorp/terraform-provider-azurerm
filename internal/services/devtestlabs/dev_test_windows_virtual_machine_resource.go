@@ -133,7 +133,7 @@ func resourceArmDevTestWindowsVirtualMachine() *pluginsdk.Resource {
 				Optional: true,
 			},
 
-			"tags": commonschema.Tags(),
+			"tags": tags.Schema(),
 
 			"fqdn": {
 				Type:     pluginsdk.TypeString,

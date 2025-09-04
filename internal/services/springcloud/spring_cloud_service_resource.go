@@ -419,7 +419,7 @@ func resourceSpringCloudService() *pluginsdk.Resource {
 				Default:  false,
 			},
 
-			"tags": commonschema.Tags(),
+			"tags": tags.Schema(),
 
 			"service_registry_id": {
 				Type:     pluginsdk.TypeString,
