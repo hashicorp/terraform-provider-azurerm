@@ -325,7 +325,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 
 	workspacePolicyClient, err := workspacepolicy.NewWorkspacePolicyClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
-		return nil, fmt.Errorf("building Policy client v2024-05-01: %+v", err)
+		return nil, fmt.Errorf("building Workspace Policy client: %+v", err)
 	}
 	o.Configure(workspacePolicyClient.Client, o.Authorizers.ResourceManager)
 

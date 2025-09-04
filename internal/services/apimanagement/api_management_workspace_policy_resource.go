@@ -156,16 +156,10 @@ func (r ApiManagementWorkspacePolicyResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `properties` was nil", id)
 			}
 
-			parameters := workspacepolicy.PolicyContract{
-				Properties: &workspacepolicy.PolicyContractProperties{
-					Format: resp.Model.Properties.Format,
-					Value:  resp.Model.Properties.Value,
-				},
-			}
-
+			payload := resp.Model
 			if metadata.ResourceData.HasChange("xml_link") {
 				if model.XmlLink != "" {
-					parameters.Properties = &workspacepolicy.PolicyContractProperties{
+					payload.Properties = &workspacepolicy.PolicyContractProperties{
 						Format: pointer.To(workspacepolicy.PolicyContentFormatRawxmlNegativelink),
 						Value:  model.XmlLink,
 					}
@@ -173,14 +167,14 @@ func (r ApiManagementWorkspacePolicyResource) Update() sdk.ResourceFunc {
 			}
 			if metadata.ResourceData.HasChange("xml_content") {
 				if model.XmlContent != "" {
-					parameters.Properties = &workspacepolicy.PolicyContractProperties{
+					payload.Properties = &workspacepolicy.PolicyContractProperties{
 						Format: pointer.To(workspacepolicy.PolicyContentFormatRawxml),
 						Value:  model.XmlContent,
 					}
 				}
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, id, parameters, workspacepolicy.DefaultCreateOrUpdateOperationOptions()); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, *payload, workspacepolicy.DefaultCreateOrUpdateOperationOptions()); err != nil {
 				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
