@@ -325,8 +325,7 @@ func buildRoleManagementPolicy(metadata *sdk.ResourceMetaData, rolePolicy *rolem
 						}
 					}
 
-					metadata.ResourceData.HasChange("activation_rules.0.approval_stage")
-					{
+					if metadata.ResourceData.HasChange("activation_rules.0.approval_stage") {
 						if len(model.ActivationRules) == 1 {
 							approvalStages := make([]rolemanagementpolicies.ApprovalStage, len(model.ActivationRules[0].ApprovalStages))
 							for i, stage := range model.ActivationRules[0].ApprovalStages {

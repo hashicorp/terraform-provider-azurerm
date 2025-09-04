@@ -122,7 +122,7 @@ resource "azurerm_role_management_policy" "example" {
 
 * `notification_rules` - (Optional) A `notification_rules` block as defined below.
 
-* ~> **Note:** The default notification rules, created by Azure, are not set into state. Removing the `notification_rules` - block or any of the nested blocks for `notification_rules` will reset the properties back to their default values.
+* ~> **Note:** Azure creates default notification rules (`notification_level = "All"`, `default_recipients = true`, no additional recipients) that are not stored in Terraform state. Removing notification rule blocks from your configuration resets them to these Azure defaults, ensuring no configuration drift occurs.
 
 * `role_definition_id` - (Required) The scoped Role Definition ID of the role for which this policy will apply. Changing this forces a new resource to be created.
 
