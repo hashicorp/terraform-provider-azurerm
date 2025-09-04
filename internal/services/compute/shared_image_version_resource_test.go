@@ -586,7 +586,7 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 func (r SharedImageVersionResource) imageVersionUefiSettingsTemplates(data acceptance.TestData, signatureTemplateNames string) string {
-	template := r.provision(data, "V2", "", "supported")
+	template := r.provision(data, "V2", "supported", "")
 	return fmt.Sprintf(`
 %s
 
@@ -611,7 +611,7 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 func (r SharedImageVersionResource) imageVersionUefiSettingsDb(data acceptance.TestData, signatureTemplateNames string, keyType string, certDataDb string) string {
-	template := r.provision(data, "V2", "", "supported")
+	template := r.provision(data, "V2", "supported", "")
 	return fmt.Sprintf(`
 %[1]s
 
@@ -642,7 +642,7 @@ resource "azurerm_shared_image_version" "test" {
 }
 
 func (r SharedImageVersionResource) imageVersionUefiSettingsPk(data acceptance.TestData, signatureTemplateNames string, keyType string, certDataDb string, certDataDbx string, certDataKek string, certDataPk string) string {
-	template := r.provision(data, "V2", "", "supported")
+	template := r.provision(data, "V2", "supported", "")
 	return fmt.Sprintf(`
 %[1]s
 
