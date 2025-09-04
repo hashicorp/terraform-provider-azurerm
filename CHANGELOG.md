@@ -19,6 +19,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+* `azurerm_role_assignment`: check role assignment exits for 409 error [GH-28694]
 * `azurerm_policy_set_definition` - fix an issue that caused API errors when `policy_definition_reference` blocks were added or removed [GH-30493]
 * `azurerm_management_group_policy_set_definition` - fix an issue that caused API errors when `policy_definition_reference` blocks were added or removed [GH-30493]
 * `azurerm_virtual_machine` - fix potential panic caused by the hash function for the `os_profile_linux_config` block [GH-30456]
