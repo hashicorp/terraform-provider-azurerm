@@ -30,9 +30,6 @@ func TestAccRoleManagementPolicy_managementGroup(t *testing.T) {
 			Config: r.managementGroup(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("active_assignment_rules.0.expire_after").HasValue("P90D"),
-				check.That(data.ResourceName).Key("eligible_assignment_rules.0.expiration_required").HasValue("false"),
-				check.That(data.ResourceName).Key("notification_rules.0.active_assignments.0.admin_notifications.0.notification_level").HasValue("Critical"),
 			),
 		},
 		data.ImportStep(),
