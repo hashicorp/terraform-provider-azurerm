@@ -1,28 +1,27 @@
-## 4.43.0 (Unreleased)
+## 4.43.0 (September 04, 2025)
 
 ENHANCEMENTS:
-* `azurerm_postgresql_flexible_server_firewall_rule` - improve validation for the `start_ip_address` and `end_ip_address` properties to ensure the values are valid IPv4 addresses [GH-30514]
-* dependencies: `eventgrid` - upgrade to API version `2025-02-15` [GH-30481]
-* `azurerm_dev_center_project_pool` - add support for the `single_sign_on_enabled` property [GH-30440]
-* Data Source: `azurerm_dev_center_project_pool` - add support for the `single_sign_on_enabled` property [GH-30440]
-* dependencies: `azurerm_api_management_backend` - upgrade API version to `2024-05-01` [GH-30500]
-* `azurerm_sentinel_automation_rule` - add support for the `action_incident_task` block [GH-29295]
-* `azurerm_management_group_policy_assignment` - `override.kind` can now be configured [GH-30524]
-* `azurerm_resource_group_policy_assignment` - `override.kind` can now be configured [GH-30524]
-* `azurerm_resource_policy_assignment` - `override.kind` can now be configured [GH-30524]
-* `azurerm_subscription_policy_assignment` - `override.kind` can now be configured [GH-30524]
-* `azurerm_monitor_activity_log_alert` - add support for the `Security` value in the `recommendation_category` property [GH-30192]
 
-
-FEATURES:
+* dependencies: `azurerm_api_management_backend` - upgrade API version to `2024-05-01` ([#30500](https://github.com/hashicorp/terraform-provider-azurerm/issues/30500))
+* dependencies: `eventgrid` - upgrade to API version `2025-02-15` ([#30481](https://github.com/hashicorp/terraform-provider-azurerm/issues/30481))
+* Data Source: `azurerm_dev_center_project_pool` - add support for the `single_sign_on_enabled` property ([#30440](https://github.com/hashicorp/terraform-provider-azurerm/issues/30440))
+* `azurerm_dev_center_project_pool` - add support for the `single_sign_on_enabled` property ([#30440](https://github.com/hashicorp/terraform-provider-azurerm/issues/30440))
+* `azurerm_management_group_policy_assignment` - `override.kind` can now be configured ([#30524](https://github.com/hashicorp/terraform-provider-azurerm/issues/30524))
+* `azurerm_monitor_activity_log_alert` - add support for the `Security` value in the `recommendation_category` property ([#30192](https://github.com/hashicorp/terraform-provider-azurerm/issues/30192))
+* `azurerm_postgresql_flexible_server_firewall_rule` - improve validation for the `start_ip_address` and `end_ip_address` properties to ensure the values are valid IPv4 addresses ([#30514](https://github.com/hashicorp/terraform-provider-azurerm/issues/30514))
+* `azurerm_resource_group_policy_assignment` - `override.kind` can now be configured ([#30524](https://github.com/hashicorp/terraform-provider-azurerm/issues/30524))
+* `azurerm_resource_policy_assignment` - `override.kind` can now be configured ([#30524](https://github.com/hashicorp/terraform-provider-azurerm/issues/30524))
+* `azurerm_sentinel_automation_rule` - add support for the `action_incident_task` block ([#29295](https://github.com/hashicorp/terraform-provider-azurerm/issues/29295))
+* `azurerm_subscription_policy_assignment` - `override.kind` can now be configured ([#30524](https://github.com/hashicorp/terraform-provider-azurerm/issues/30524))
 
 BUG FIXES:
-* `azurerm_policy_set_definition` - fix an issue that caused API errors when `policy_definition_reference` blocks were added or removed [GH-30493]
-* `azurerm_management_group_policy_set_definition` - fix an issue that caused API errors when `policy_definition_reference` blocks were added or removed [GH-30493]
-* `azurerm_virtual_machine` - fix potential panic caused by the hash function for the `os_profile_linux_config` block [GH-30456]
-* `azurerm_kubernetes_cluster` - remove read-only field `NodeImageVersion` when cycling node pool [GH-30416]
-* `azurerm_kubernetes_cluster_node_pool` - remove read-only field `NodeImageVersion` when cycling node pool [GH-30416]
+
 * `azurerm_flex_function_app` - fix `instance_memory_in_mb` update issue (GH-30489)
+* `azurerm_kubernetes_cluster` - remove read-only field `NodeImageVersion` when cycling node pool ([#30416](https://github.com/hashicorp/terraform-provider-azurerm/issues/30416))
+* `azurerm_kubernetes_cluster_node_pool` - remove read-only field `NodeImageVersion` when cycling node pool ([#30416](https://github.com/hashicorp/terraform-provider-azurerm/issues/30416))
+* `azurerm_management_group_policy_set_definition` - fix an issue that caused API errors when `policy_definition_reference` blocks were added or removed ([#30493](https://github.com/hashicorp/terraform-provider-azurerm/issues/30493))
+* `azurerm_policy_set_definition` - fix an issue that caused API errors when `policy_definition_reference` blocks were added or removed ([#30493](https://github.com/hashicorp/terraform-provider-azurerm/issues/30493))
+* `azurerm_virtual_machine` - fix potential panic caused by the hash function for the `os_profile_linux_config` block ([#30456](https://github.com/hashicorp/terraform-provider-azurerm/issues/30456))
 
 ## 4.42.0 (August 28, 2025)
 
