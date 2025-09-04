@@ -383,6 +383,8 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
+
+	return nil
 }
 
 func expandDiskExclusion(d *pluginsdk.ResourceData) *protecteditems.ExtendedProperties {
