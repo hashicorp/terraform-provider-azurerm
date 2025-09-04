@@ -195,6 +195,38 @@ func TestAccFunctionAppFlexConsumption_runtimeNode(t *testing.T) {
 	})
 }
 
+func TestAccFunctionAppFlexConsumption_instanceMemoryUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
+	r := FunctionAppFlexConsumptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.instanceMemoryUpdate(data, "20"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 func TestAccFunctionAppFlexConsumption_alwaysReadyUpdateName(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
 	r := FunctionAppFlexConsumptionResource{}
@@ -262,6 +294,38 @@ func TestAccFunctionAppFlexConsumption_alwaysReadyUpdate(t *testing.T) {
 		data.ImportStep("site_credential.0.password"),
 		{
 			Config: r.alwaysReadyInstanceCountUpdate(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
+func TestAccFunctionAppFlexConsumption_maxInstanceCount(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
+	r := FunctionAppFlexConsumptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.alwaysReadyInstanceCount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+		{
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("kind").HasValue("functionapp,linux"),
@@ -1074,6 +1138,40 @@ resource "azurerm_function_app_flex_consumption" "test" {
   runtime_version                   = "%s"
   maximum_instance_count            = 50
   instance_memory_in_mb             = 2048
+
+  site_config {}
+}
+`, r.template(data), data.RandomInteger, nodeVersion)
+}
+
+func (r FunctionAppFlexConsumptionResource) instanceMemoryUpdate(data acceptance.TestData, nodeVersion string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_user_assigned_identity" "test2" {
+  name                = "acctest-uai2-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_function_app_flex_consumption" "test" {
+  name                = "acctest-LFA-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  service_plan_id     = azurerm_service_plan.test.id
+
+  storage_container_type            = "blobContainer"
+  storage_container_endpoint        = "${azurerm_storage_account.test.primary_blob_endpoint}${azurerm_storage_container.test.name}"
+  storage_authentication_type       = "UserAssignedIdentity"
+  storage_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
+  runtime_name                      = "node"
+  runtime_version                   = "%s"
+  maximum_instance_count            = 50
+  instance_memory_in_mb             = 4096
 
   site_config {}
 }

@@ -9,14 +9,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/agentpools"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type KubernetesClusterResource struct{}
@@ -270,7 +270,7 @@ func (t KubernetesClusterResource) Exists(ctx context.Context, clients *clients.
 		return nil, fmt.Errorf("reading Kubernetes Cluster (%s): %+v", id.String(), err)
 	}
 
-	return utils.Bool(resp.Model != nil && resp.Model.Id != nil), nil
+	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
 func (KubernetesClusterResource) updateDefaultNodePoolAgentCount(nodeCount int) acceptance.ClientCheckFunc {
@@ -299,7 +299,7 @@ func (KubernetesClusterResource) updateDefaultNodePoolAgentCount(nodeCount int) 
 			return fmt.Errorf("Bad: Node Pool %q (Kubernetes Cluster %q / Resource Group: %q): `properties` was nil", nodePoolName, clusterName, resourceGroup)
 		}
 
-		nodePool.Model.Properties.Count = utils.Int64(int64(nodeCount))
+		nodePool.Model.Properties.Count = pointer.To(int64(nodeCount))
 
 		err = clients.Containers.AgentPoolsClient.CreateOrUpdateThenPoll(ctx, agentPoolId, *nodePool.Model, agentpools.DefaultCreateOrUpdateOperationOptions())
 		if err != nil {

@@ -87,4 +87,4 @@ terraform import azurerm_app_service_public_certificate.example /subscriptions/0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Web`: 2023-12-01
+* `Microsoft.Web` - 2023-12-01

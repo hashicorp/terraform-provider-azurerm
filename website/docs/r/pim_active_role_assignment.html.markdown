@@ -155,4 +155,4 @@ terraform import azurerm_pim_active_role_assignment.example /subscriptions/00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Authorization`: 2020-10-01
+* `Microsoft.Authorization` - 2020-10-01

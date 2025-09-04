@@ -131,7 +131,12 @@ func (r LogAnalyticsWorkspaceTableResource) Create() sdk.ResourceFunc {
 			}
 
 			if model.Plan == string(tables.TablePlanEnumAnalytics) {
-				updateInput.Properties.RetentionInDays = pointer.To(model.RetentionInDays)
+				// The service will return HTTP 400 if it's specified `0` in payload, to keep it as default, we need to pass `-1`
+				updateInput.Properties.RetentionInDays = pointer.FromInt64(-1)
+				// `0` is not a valid value for `retention_in_days`, so we can use it to validate if it's specified.
+				if model.RetentionInDays != 0 {
+					updateInput.Properties.RetentionInDays = pointer.To(model.RetentionInDays)
+				}
 			}
 
 			if model.TotalRetentionInDays != 0 {
@@ -185,6 +190,11 @@ func (r LogAnalyticsWorkspaceTableResource) Update() sdk.ResourceFunc {
 
 						if metadata.ResourceData.HasChange("retention_in_days") {
 							updateInput.Properties.RetentionInDays = pointer.To(state.RetentionInDays)
+							// `0` is not a valid value for `retention_in_days`, and the service will return HTTP 400
+							// to reset it to its default value, we need to pass `-1`
+							if state.RetentionInDays == 0 {
+								updateInput.Properties.RetentionInDays = pointer.FromInt64(-1)
+							}
 						}
 					}
 
@@ -192,7 +202,7 @@ func (r LogAnalyticsWorkspaceTableResource) Update() sdk.ResourceFunc {
 						updateInput.Properties.TotalRetentionInDays = pointer.To(state.TotalRetentionInDays)
 					}
 
-					if err := client.CreateOrUpdateThenPoll(ctx, *id, updateInput); err != nil {
+					if err := client.UpdateThenPoll(ctx, *id, updateInput); err != nil {
 						return fmt.Errorf("failed to update table: %s: %+v", id.TableName, err)
 					}
 				}

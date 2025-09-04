@@ -80,7 +80,7 @@ The following arguments are supported:
 
 * `parameters` - (Optional) A JSON mapping of any Parameters for this Policy.
 
-* `overrides` - (Optional) One or more `overrides` blocks as defined below. More detail about `overrides` and `resource_selectors` see [policy assignment structure](https://learn.microsoft.com/en-us/azure/governance/policy/concepts/assignment-structure#resource-selectors-preview)
+* `overrides` - (Optional) One or more `overrides` blocks as defined below. More detail about `overrides` and `resource_selectors` see [policy assignment structure](https://learn.microsoft.com/en-us/azure/governance/policy/concepts/assignment-structure)
 
 * `resource_selectors` - (Optional) One or more `resource_selectors` blocks as defined below to filter polices by resource properties.
 
@@ -115,6 +115,8 @@ A `overrides` block supports the following:
 A `override_selector` block supports the following:
 
 * `in` - (Optional) Specify the list of policy reference id values to filter in. Cannot be used with `not_in`.
+
+* `kind` - (Optional) Specifies which characteristic will narrow down the set of evaluated resources. Possible values are `resourceLocation`, and `policyDefinitionReferenceId`. Defaults to `policyDefinitionReferenceId`.
 
 * `not_in` - (Optional) Specify the list of policy reference id values to filter out. Cannot be used with `in`.
 
@@ -174,4 +176,4 @@ where `{resource}` is a Resource ID in the form `/subscriptions/00000000-0000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Authorization`: 2022-06-01
+* `Microsoft.Authorization` - 2022-06-01

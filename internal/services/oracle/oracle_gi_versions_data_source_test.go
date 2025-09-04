@@ -1,4 +1,5 @@
-// Copyright © 2024, Oracle and/or its affiliates. All rights reserved
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
 
 package oracle_test
 
@@ -19,6 +20,20 @@ func TestGiVersionsDataSource_basic(t *testing.T) {
 		{
 			Config: r.basic(),
 			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("versions.#").HasValue("10"),
+			),
+		},
+	})
+}
+
+func TestGiVersionsDataSource_complete(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_oracle_gi_versions", "test")
+	r := GiVersionsDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.complete(),
+			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("versions.#").HasValue("2"),
 			),
 		},
@@ -33,6 +48,20 @@ provider "azurerm" {
 
 data "azurerm_oracle_gi_versions" "test" {
   location = "eastus"
+}
+`
+}
+
+func (d GiVersionsDataSource) complete() string {
+	return `
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_oracle_gi_versions" "test" {
+  location = "eastus"
+  shape    = "Exadata.X9M"
+  zone     = "2"
 }
 `
 }
