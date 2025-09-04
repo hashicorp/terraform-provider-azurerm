@@ -11,6 +11,7 @@ import (
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/Azure/go-autorest/autorest/date"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -126,6 +127,30 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 				ValidateFunc: mssqlValidate.DatabaseCollation(),
 			},
 
+			"maintenance_schedule": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				// NOTE: O+C The default schedule set by the API seems to be random
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"primary_maintenance_window": {
+							Type:     pluginsdk.TypeList,
+							Required: true,
+							MaxItems: 1,
+							Elem:     sqlPoolMaintenanceWindowResource(),
+						},
+						"secondary_maintenance_window": {
+							Type:     pluginsdk.TypeList,
+							Required: true,
+							MaxItems: 1,
+							Elem:     sqlPoolMaintenanceWindowResource(),
+						},
+					},
+				},
+			},
+
 			"recovery_database_id": {
 				Type:          pluginsdk.TypeString,
 				Optional:      true,
@@ -181,7 +206,13 @@ func resourceSynapseSqlPool() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 
-		CustomizeDiff: pluginsdk.CustomizeDiffShim(synapseSqlPoolCustomizeDiff),
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			pluginsdk.CustomizeDiffShim(synapseSqlPoolCustomizeDiff),
+			// Maintenance schedule can't be removed once set
+			pluginsdk.ForceNewIfChange("maintenance_schedule", func(ctx context.Context, old, new, meta interface{}) bool {
+				return len(old.([]interface{})) > 0 && len(new.([]interface{})) == 0
+			}),
+		),
 	}
 }
 
@@ -196,6 +227,10 @@ func synapseSqlPoolCustomizeDiff(ctx context.Context, d *pluginsdk.ResourceDiff,
 		return fmt.Errorf("`geo_backup_policy_enabled` cannot be `true` if the `storage_account_type` is `LRS`")
 	}
 
+	if err := validateMaintenanceSchedule(d); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -204,6 +239,7 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
 	workspaceClient := meta.(*clients.Client).Synapse.WorkspaceClient
 	geoBackUpClient := meta.(*clients.Client).Synapse.SqlPoolGeoBackupPoliciesClient
+	sqlMaintenanceClient := meta.(*clients.Client).Synapse.SqlPoolMaintenanceWindowsClient
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -309,6 +345,13 @@ func resourceSynapseSqlPoolCreate(d *pluginsdk.ResourceData, meta interface{}) e
 		}
 	}
 
+	if v, ok := d.GetOk("maintenance_schedule"); ok && v != nil {
+		maintenanceWindows := expandSqlPoolMaintenanceSchedule(v.([]interface{}))
+		if _, err := sqlMaintenanceClient.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, "current", pointer.From(maintenanceWindows)); err != nil {
+			return fmt.Errorf("setting `maintenance_windows`: %+v", err)
+		}
+	}
+
 	d.SetId(id.ID())
 	return resourceSynapseSqlPoolRead(d, meta)
 }
@@ -317,6 +360,7 @@ func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	geoBackUpClient := meta.(*clients.Client).Synapse.SqlPoolGeoBackupPoliciesClient
 	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
+	sqlMaintenanceClient := meta.(*clients.Client).Synapse.SqlPoolMaintenanceWindowsClient
 	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -356,6 +400,16 @@ func resourceSynapseSqlPoolUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 
 		if _, err := geoBackUpClient.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, geoBackupParams); err != nil {
 			return fmt.Errorf("updating `geo_backup_policy_enabled`: %+v", err)
+		}
+	}
+
+	if d.HasChange("maintenance_schedule") {
+		maintenanceSchedule := d.Get("maintenance_schedule").([]interface{})
+		if len(maintenanceSchedule) > 0 && maintenanceSchedule[0] != nil {
+			maintenanceWindows := expandSqlPoolMaintenanceSchedule(maintenanceSchedule)
+			if _, err := sqlMaintenanceClient.CreateOrUpdate(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, "current", pointer.From(maintenanceWindows)); err != nil {
+				return fmt.Errorf("setting `maintenance_schedule`: %+v", err)
+			}
 		}
 	}
 
@@ -404,6 +458,7 @@ func resourceSynapseSqlPoolRead(d *pluginsdk.ResourceData, meta interface{}) err
 	sqlClient := meta.(*clients.Client).Synapse.SqlPoolClient
 	sqlPTDEClient := meta.(*clients.Client).Synapse.SqlPoolTransparentDataEncryptionClient
 	geoBackUpClient := meta.(*clients.Client).Synapse.SqlPoolGeoBackupPoliciesClient
+	sqlMaintenanceClient := meta.(*clients.Client).Synapse.SqlPoolMaintenanceWindowsClient
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -432,6 +487,17 @@ func resourceSynapseSqlPoolRead(d *pluginsdk.ResourceData, meta interface{}) err
 	if err != nil {
 		return fmt.Errorf("retrieving Geo Backup Policy of %s: %+v", *id, err)
 	}
+
+	maintenanceWindows, err := sqlMaintenanceClient.Get(ctx, id.ResourceGroup, id.WorkspaceName, id.Name, "current")
+	if err != nil {
+		return fmt.Errorf("retrieving Maintenance Windows of %s: %+v", *id, err)
+	}
+
+	maintenanceSchedule, err := flattenSqlPoolMaintenanceSchedule(maintenanceWindows)
+	if err != nil {
+		return fmt.Errorf("flattening Maintenance Windows of %s: %+v", *id, err)
+	}
+	d.Set("maintenance_schedule", maintenanceSchedule)
 
 	workspaceId := parse.NewWorkspaceID(id.SubscriptionId, id.ResourceGroup, id.WorkspaceName).ID()
 	d.Set("name", id.Name)

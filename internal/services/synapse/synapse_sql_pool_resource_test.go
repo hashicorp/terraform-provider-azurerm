@@ -162,6 +162,33 @@ func TestAccSynapseSqlPool_geoBackupInvalid(t *testing.T) {
 	})
 }
 
+func TestAccSynapseSqlPool_maintenanceSchedule(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool", "test")
+	r := SynapseSqlPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.maintenanceSchedule(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccSynapseSqlPool_maintenanceScheduleInvalid(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_synapse_sql_pool", "test")
+	r := SynapseSqlPoolResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.maintenanceScheduleInvalid(data),
+			ExpectError: regexp.MustCompile("`primary_maintenance_window` and `secondary_maintenance_window` must be in different date ranges: Saturday-Sunday and Tuesday-Thursday"),
+		},
+	})
+}
+
 func (r SynapseSqlPoolResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := parse.SqlPoolID(state.ID)
 	if err != nil {
@@ -311,4 +338,70 @@ resource "azurerm_synapse_sql_pool" "test" {
   storage_account_type      = "%s"
 }
 `, template, data.RandomString, geoBackupPolicy, accountType)
+}
+
+func (r SynapseSqlPoolResource) maintenanceSchedule(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_synapse_sql_pool" "test" {
+  name                 = "acctestSP%s"
+  synapse_workspace_id = azurerm_synapse_workspace.test.id
+  sku_name             = "DW100c"
+  create_mode          = "Default"
+  storage_account_type = "GRS"
+
+  maintenance_schedule {
+    primary_maintenance_window {
+      day_of_week       = "Sunday"
+      start_time_utc    = "00:00:00"
+      duration_in_hours = 7
+    }
+
+    secondary_maintenance_window {
+      day_of_week       = "Tuesday"
+      start_time_utc    = "23:00:00"
+      duration_in_hours = 5
+    }
+  }
+}
+`, template, data.RandomString)
+}
+
+func (r SynapseSqlPoolResource) maintenanceScheduleInvalid(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_synapse_sql_pool" "test" {
+  name                 = "acctestSP%s"
+  synapse_workspace_id = azurerm_synapse_workspace.test.id
+  sku_name             = "DW100c"
+  create_mode          = "Default"
+  storage_account_type = "GRS"
+
+  maintenance_schedule {
+    primary_maintenance_window {
+      day_of_week       = "Wednesday"
+      start_time_utc    = "00:00:00"
+      duration_in_hours = 7
+    }
+
+    secondary_maintenance_window {
+      day_of_week       = "Thursday"
+      start_time_utc    = "05:00:00"
+      duration_in_hours = 5
+    }
+  }
+}
+`, template, data.RandomString)
 }
