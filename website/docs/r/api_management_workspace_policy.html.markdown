@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `xml_link` - (Optional) Specifies a publicly accessible URL to a policy XML document.
 
-~> **Note:** One and only one of `xml_content` or `xml_link` must be specified. 
+~> **Note:** One and only one of `xml_content` or `xml_link` must be specified.
 
 ## Attributes Reference
 
