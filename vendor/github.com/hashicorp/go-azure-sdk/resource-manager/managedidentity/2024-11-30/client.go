@@ -1,4 +1,4 @@
-package v2023_01_31
+package v2024_11_30
 
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
@@ -6,7 +6,7 @@ package v2023_01_31
 import (
 	"fmt"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2023-01-31/managedidentities"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2024-11-30/managedidentities"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	sdkEnv "github.com/hashicorp/go-azure-sdk/sdk/environments"
 )
