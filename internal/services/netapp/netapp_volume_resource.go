@@ -753,7 +753,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	if acceptGrowCapacityPool != "" {
-		parameters.Properties.AcceptGrowCapacityPoolForShortTermCloneSplit = pointer.To(volumes.AcceptGrowCapacityPoolForShortTermCloneSplit(acceptGrowCapacityPool))
+		parameters.Properties.AcceptGrowCapacityPoolForShortTermCloneSplit = pointer.ToEnum[volumes.AcceptGrowCapacityPoolForShortTermCloneSplit](acceptGrowCapacityPool)
 	}
 
 	if throughputMibps, ok := d.GetOk("throughput_in_mibps"); ok {
