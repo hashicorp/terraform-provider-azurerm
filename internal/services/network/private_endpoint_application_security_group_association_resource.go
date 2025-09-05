@@ -127,7 +127,7 @@ func (p PrivateEndpointApplicationSecurityGroupAssociationResource) Create() sdk
 			}
 
 			if ASGInPE {
-				return fmt.Errorf("A resource with the ID %q already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information.", resourceId.ID(), "azurerm_private_endpoint_application_security_group_association")
+				return fmt.Errorf("a resource with the ID %q already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information", resourceId.ID(), "azurerm_private_endpoint_application_security_group_association")
 			}
 
 			if ASGList != nil {

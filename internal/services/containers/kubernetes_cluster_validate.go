@@ -41,7 +41,7 @@ func validateKubernetesCluster(d *pluginsdk.ResourceData, cluster *managedcluste
 				}
 
 				// if not All empty values or All set values.
-				if !(dnsServiceIP == "" && !isServiceCidrSet) && !(dnsServiceIP != "" && isServiceCidrSet) {
+				if (dnsServiceIP != "" || isServiceCidrSet) && (dnsServiceIP == "" || !isServiceCidrSet) {
 					return fmt.Errorf("`dns_service_ip` and `service_cidr` should all be empty or both should be set")
 				}
 
@@ -85,7 +85,7 @@ func validateKubernetesCluster(d *pluginsdk.ResourceData, cluster *managedcluste
 
 			// a non-MI Service Principal exists on the cluster, but not locally
 			if servicePrincipalExists {
-				return existingClusterServicePrincipalRemovedErr
+				return errExistingClusterServicePrincipalRemoved
 			}
 		}
 
@@ -103,7 +103,7 @@ func validateKubernetesCluster(d *pluginsdk.ResourceData, cluster *managedcluste
 		}
 
 		// if we have both a Service Principal and an Identity Block defined
-		return newClusterWithBothServicePrincipalAndMSIErr
+		return errNewClusterWithBothServicePrincipalAndMSI
 	} else {
 		// for an existing cluster
 		servicePrincipalIsMsi := false
@@ -117,7 +117,7 @@ func validateKubernetesCluster(d *pluginsdk.ResourceData, cluster *managedcluste
 
 		// the user has a Service Principal block defined, but the Cluster's been upgraded to use MSI
 		if servicePrincipalIsMsi {
-			return existingClusterHasBeenUpgradedErr
+			return errExistingClusterHasBeenUpgraded
 		}
 
 		hasIdentity := false
@@ -128,14 +128,14 @@ func validateKubernetesCluster(d *pluginsdk.ResourceData, cluster *managedcluste
 		if hasIdentity {
 			// there's a Service Principal block and an Identity block present - but it hasn't been upgraded
 			// tell the user to update it
-			return existingClusterRequiresUpgradingErr(resourceGroup, name)
+			return errExistingClusterRequiresUpgrading(resourceGroup, name)
 		}
 	}
 
 	return nil
 }
 
-var existingClusterCommonErr = `
+var errExistingClusterCommon = `
 Azure Kubernetes Service has recently made several breaking changes to Cluster Authentication as
 the Managed Identity Preview has concluded and entered General Availability.
 
@@ -148,11 +148,10 @@ and 'service_principal' block cannot be specified together.
 
 Existing clusters using Mixed-Mode authentication will be updated to use only Managed Identity for
 authentication when any change is made to the Cluster (but _not_ the Node Pool) - for example when
-a tag is added or removed from the Cluster.
-`
+a tag is added or removed from the Cluster`
 
 // existing cluster which has been switched to using MSI - user config needs updating
-var existingClusterHasBeenUpgradedErr = fmt.Errorf(`
+var errExistingClusterHasBeenUpgraded = fmt.Errorf(`
 %s
 
 It appears that this Kubernetes Cluster has been updated to use Managed Identity - as such it is
@@ -160,11 +159,10 @@ no longer possible to specify both a 'service_principal' and 'identity' block fo
 
 To be able to continue managing this cluster in Terraform - please remove the 'service_principal'
 block from the resource - which will match the changes made by Azure (where this cluster is now
-only using Managed Identity for Cluster Authentication).
-`, existingClusterCommonErr)
+only using Managed Identity for Cluster Authentication)`, errExistingClusterCommon)
 
 // existing cluster requires updating to using MI - then the user config needs updating
-var existingClusterRequiresUpgradingErr = func(resourceGroup, name string) error {
+var errExistingClusterRequiresUpgrading = func(resourceGroup, name string) error {
 	return fmt.Errorf(`
 %s
 
@@ -204,12 +202,11 @@ meaning that the cluster is using only a Managed Identity for Cluster Authentica
 
 Now that the Cluster has been updated - to continue using this Cluster in Terraform, remove the
 'service_principal' block from your Terraform Configuration (since this is no longer required), at
-which point this Cluster can be managed in Terraform as before.
-`, existingClusterCommonErr, resourceGroup, name, resourceGroup, name)
+which point this Cluster can be managed in Terraform as before`, errExistingClusterCommon, resourceGroup, name, resourceGroup, name)
 }
 
 // an existing cluster exists with an SP, but it's not defined in the config
-var existingClusterServicePrincipalRemovedErr = fmt.Errorf(`
+var errExistingClusterServicePrincipalRemoved = fmt.Errorf(`
 A Service Principal exists for this Kubernetes Cluster but has not been defined in the Terraform
 Configuration.
 
@@ -219,11 +216,10 @@ in this Github issue: https://github.com/Azure/AKS/issues/1520
 
 To be able to continue managing this Kubernetes Cluster in Terraform, please re-introduce the
 'service_principal' block. Alternatively you can re-create this Kubernetes Cluster by Tainting the
-resource in Terraform, which will cause all Pods running on this Kubernetes Cluster to be recreated.
-`)
+resource in Terraform, which will cause all Pods running on this Kubernetes Cluster to be recreated`)
 
 // users trying to create a new cluster with an SP & MSI
-var newClusterWithBothServicePrincipalAndMSIErr = fmt.Errorf(`
+var errNewClusterWithBothServicePrincipalAndMSI = fmt.Errorf(`
 Azure Kubernetes Service has recently made several breaking changes to Cluster Authentication as
 the Managed Identity Preview has concluded and entered General Availability.
 
@@ -236,11 +232,10 @@ and 'service_principal' block cannot be specified together. Instead you can eith
 Principal or Managed Identity for Cluster Authentication - but not both.
 
 In order to create this Kubernetes Cluster, please remove either the 'identity' block or the
-'service_principal' block.
-`)
+'service_principal' block`)
 
 // returned when the Control Plane for the AKS Cluster must be upgraded in order to deploy this version to the Node Pool
-var clusterControlPlaneMustBeUpgradedError = func(resourceGroup, clusterName, nodePoolName string, clusterVersion *string, desiredNodePoolVersion string, availableVersions []string) error {
+var errClusterControlPlaneMustBeUpgraded = func(resourceGroup, clusterName, nodePoolName string, clusterVersion *string, desiredNodePoolVersion string, availableVersions []string) error {
 	versions := make([]string, 0)
 	for _, version := range availableVersions {
 		versions = append(versions, fmt.Sprintf(" * %s", version))
@@ -263,8 +258,7 @@ The supported Orchestrator Versions for this Node Pool/supported by this Kuberne
 %s
 
 Node Pools cannot use a version of Kubernetes that is not supported on the Control Plane. More
-details can be found at https://aka.ms/version-skew-policy.
-`, desiredNodePoolVersion, nodePoolName, clusterName, resourceGroup, clusterVersionDetails, versionsList)
+details can be found at https://aka.ms/version-skew-policy`, desiredNodePoolVersion, nodePoolName, clusterName, resourceGroup, clusterVersionDetails, versionsList)
 }
 
 func validateNodePoolSupportsVersion(ctx context.Context, client *client.Client, currentNodePoolVersion string, defaultNodePoolId agentpools.AgentPoolId, desiredNodePoolVersion string) error {
@@ -313,7 +307,7 @@ func validateNodePoolSupportsVersion(ctx context.Context, client *client.Client,
 			clusterVersion = clusterModel.Properties.CurrentKubernetesVersion
 		}
 
-		return clusterControlPlaneMustBeUpgradedError(defaultNodePoolId.ResourceGroupName, defaultNodePoolId.ManagedClusterName, defaultNodePoolId.AgentPoolName, clusterVersion, desiredNodePoolVersion, supportedVersions)
+		return errClusterControlPlaneMustBeUpgraded(defaultNodePoolId.ResourceGroupName, defaultNodePoolId.ManagedClusterName, defaultNodePoolId.AgentPoolName, clusterVersion, desiredNodePoolVersion, supportedVersions)
 	}
 
 	return nil

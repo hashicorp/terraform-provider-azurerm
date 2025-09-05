@@ -33,7 +33,7 @@ func (c DataPlaneClient) GetKeyValuesComplete(ctx context.Context, key string, l
 		defer func() {
 			sc := -1
 			if result.Response().Response.Response != nil {
-				sc = result.page.Response().Response.Response.StatusCode
+				sc = result.page.Response().StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()
@@ -48,7 +48,7 @@ func (c DataPlaneClient) GetKeyValues(ctx context.Context, key string, label str
 		defer func() {
 			sc := -1
 			if result.kvlr.Response.Response != nil {
-				sc = result.kvlr.Response.Response.StatusCode
+				sc = result.kvlr.StatusCode
 			}
 			tracing.EndSpan(ctx, sc, err)
 		}()

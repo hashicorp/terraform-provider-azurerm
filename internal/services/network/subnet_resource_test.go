@@ -496,7 +496,7 @@ func (t SubnetResource) Exists(ctx context.Context, clients *clients.Client, sta
 		return nil, err
 	}
 
-	resp, err := clients.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	resp, err := clients.Network.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("reading Subnet (%s): %+v", id, err)
 	}
@@ -510,7 +510,7 @@ func (SubnetResource) Destroy(ctx context.Context, client *clients.Client, state
 		return nil, err
 	}
 
-	if err := client.Network.Client.Subnets.DeleteThenPoll(ctx, *id); err != nil {
+	if err := client.Network.Subnets.DeleteThenPoll(ctx, *id); err != nil {
 		return nil, fmt.Errorf("deleting Subnet %q: %+v", id, err)
 	}
 
@@ -526,7 +526,7 @@ func (SubnetResource) hasNoNatGateway(ctx context.Context, client *clients.Clien
 		return err
 	}
 
-	subnet, err := client.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	subnet, err := client.Network.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(subnet.HttpResponse) {
 			return fmt.Errorf("%s does not exist", id)
@@ -559,7 +559,7 @@ func (SubnetResource) hasNoNetworkSecurityGroup(ctx context.Context, client *cli
 		return err
 	}
 
-	resp, err := client.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	resp, err := client.Network.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s does not exist", id)
@@ -594,7 +594,7 @@ func (SubnetResource) hasNoRouteTable(ctx context.Context, client *clients.Clien
 		return err
 	}
 
-	resp, err := client.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	resp, err := client.Network.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%s does not exist", id)

@@ -318,10 +318,7 @@ func resourceEventHubNamespaceCreate(d *pluginsdk.ResourceData, meta interface{}
 		publicNetworkEnabled = namespaces.PublicNetworkAccessDisabled
 	}
 
-	disableLocalAuth := false
-	if !d.Get("local_authentication_enabled").(bool) {
-		disableLocalAuth = true
-	}
+	disableLocalAuth := !d.Get("local_authentication_enabled").(bool)
 
 	parameters := namespaces.EHNamespace{
 		Location: &location,
@@ -409,10 +406,7 @@ func resourceEventHubNamespaceUpdate(d *pluginsdk.ResourceData, meta interface{}
 		publicNetworkEnabled = namespaces.PublicNetworkAccessDisabled
 	}
 
-	disableLocalAuth := false
-	if !d.Get("local_authentication_enabled").(bool) {
-		disableLocalAuth = true
-	}
+	disableLocalAuth := !d.Get("local_authentication_enabled").(bool)
 
 	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
 	if err != nil {
@@ -734,10 +728,8 @@ func flattenEventHubNamespaceNetworkRuleset(ruleset networkrulesets.NamespacesGe
 
 	// TODO: fix this
 
-	publicNetworkAccess := true
-	if ruleset.Model.Properties.PublicNetworkAccess != nil && *ruleset.Model.Properties.PublicNetworkAccess == networkrulesets.PublicNetworkAccessFlagDisabled {
-		publicNetworkAccess = false
-	}
+	publicNetworkAccess := ruleset.Model.Properties.PublicNetworkAccess == nil || *ruleset.Model.Properties.PublicNetworkAccess != networkrulesets.PublicNetworkAccessFlagDisabled
+
 	return []interface{}{map[string]interface{}{
 		"default_action":                 string(*ruleset.Model.Properties.DefaultAction),
 		"public_network_access_enabled":  publicNetworkAccess,

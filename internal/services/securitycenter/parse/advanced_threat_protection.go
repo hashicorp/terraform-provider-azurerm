@@ -46,7 +46,7 @@ func AdvancedThreatProtectionID(input string) (*AdvancedThreatProtectionId, erro
 
 	parts := strings.Split(input, "/providers/Microsoft.Security/advancedThreatProtectionSettings/")
 	if len(parts) != 2 {
-		return nil, fmt.Errorf("Determining target resource ID, resource ID in unexpected format: %q", id)
+		return nil, fmt.Errorf("determining target resource ID, resource ID in unexpected format: %q", id)
 	}
 
 	return &AdvancedThreatProtectionId{

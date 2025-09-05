@@ -315,11 +315,11 @@ func expandSSLConfig(input []interface{}) *machinelearningcomputes.SslConfigurat
 	// SSL Certificate default values
 	sslStatus := "Disabled"
 
-	if !(v["cert"].(string) == "" && v["key"].(string) == "" && v["cname"].(string) == "") {
+	if v["cert"].(string) != "" || v["key"].(string) != "" || v["cname"].(string) != "" {
 		sslStatus = "Enabled"
 	}
 
-	if !(v["leaf_domain_label"].(string) == "") {
+	if v["leaf_domain_label"].(string) != "" {
 		sslStatus = "Auto"
 		v["cname"] = ""
 	}

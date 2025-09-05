@@ -4,6 +4,7 @@
 package dns
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -145,7 +146,7 @@ func resourceDnsAaaaRecordCreateUpdate(d *pluginsdk.ResourceData, meta interface
 
 	// TODO: this can be removed when the provider SDK is upgraded
 	if targetResourceId == "" && len(recordsRaw) == 0 {
-		return fmt.Errorf("One of either `records` or `target_resource_id` must be specified")
+		return errors.New("one of either `records` or `target_resource_id` must be specified")
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id, parameters, recordsets.DefaultCreateOrUpdateOperationOptions()); err != nil {

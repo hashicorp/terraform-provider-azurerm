@@ -247,7 +247,7 @@ func resourceFirewallNatRuleCollectionCreateUpdate(d *pluginsdk.ResourceData, me
 	}
 
 	if collectionID == "" {
-		return fmt.Errorf("Cannot find ID for NAT Rule Collection %q (Azure Firewall %q / Resource Group %q)", name, firewallName, resourceGroup)
+		return fmt.Errorf("cannot find ID for NAT Rule Collection %q (Azure Firewall %q / Resource Group %q)", name, firewallName, resourceGroup)
 	}
 	d.SetId(collectionID)
 

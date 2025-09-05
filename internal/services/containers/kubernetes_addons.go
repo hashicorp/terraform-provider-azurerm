@@ -426,7 +426,7 @@ func filterUnsupportedKubernetesAddOns(input map[string]managedclusters.ManagedC
 		output := input
 		if v, ok := output[key]; ok {
 			if v.Enabled {
-				return nil, fmt.Errorf("The addon %q is not supported for a Kubernetes Cluster located in %q", key, env.Name)
+				return nil, fmt.Errorf("the addon %q is not supported for a Kubernetes Cluster located in %q", key, env.Name)
 			}
 
 			// otherwise it's disabled by default, so just remove it

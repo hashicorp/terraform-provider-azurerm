@@ -246,9 +246,7 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 	query := d.Get("query").(string)
 	_, ok := d.GetOk("metric_trigger")
 	if ok {
-		if !(strings.Contains(query, "summarize") &&
-			strings.Contains(query, "AggregatedValue") &&
-			strings.Contains(query, "bin")) {
+		if !strings.Contains(query, "summarize") || !strings.Contains(query, "AggregatedValue") || !strings.Contains(query, "bin") {
 			return fmt.Errorf("in parameter values for %s: query must contain summarize, AggregatedValue, and bin when metric_trigger is specified", id)
 		}
 	}

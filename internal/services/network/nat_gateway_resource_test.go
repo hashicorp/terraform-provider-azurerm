@@ -81,7 +81,7 @@ func (t NatGatewayResource) Exists(ctx context.Context, clients *clients.Client,
 		return nil, err
 	}
 
-	resp, err := clients.Network.Client.NatGateways.Get(ctx, *id, natgateways.DefaultGetOperationOptions())
+	resp, err := clients.Network.NatGateways.Get(ctx, *id, natgateways.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}

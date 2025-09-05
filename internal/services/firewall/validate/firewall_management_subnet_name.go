@@ -17,7 +17,7 @@ func FirewallManagementSubnetName(v interface{}, k string) (warnings []string, e
 	}
 
 	if parsed.SubnetName != "AzureFirewallManagementSubnet" {
-		errors = append(errors, fmt.Errorf("The name of the management subnet for %q must be exactly 'AzureFirewallManagementSubnet' to be used for the Azure Firewall resource", k))
+		errors = append(errors, fmt.Errorf("the name of the management subnet for %q must be exactly 'AzureFirewallManagementSubnet' to be used for the Azure Firewall resource", k))
 	}
 
 	return warnings, errors

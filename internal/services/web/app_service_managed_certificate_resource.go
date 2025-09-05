@@ -115,10 +115,10 @@ func resourceAppServiceManagedCertificateCreateUpdate(d *pluginsdk.ResourceData,
 
 	name := customHostnameBindingId.Name
 
-	if appService.SiteProperties == nil || appService.SiteProperties.ServerFarmID == nil {
+	if appService.SiteProperties == nil || appService.ServerFarmID == nil {
 		return fmt.Errorf("could not get App Service Plan ID for Custom Hostname Binding %q (resource group %q)", customHostnameBindingId.Name, customHostnameBindingId.ResourceGroup)
 	}
-	appServicePlanIDRaw := *appService.SiteProperties.ServerFarmID
+	appServicePlanIDRaw := *appService.ServerFarmID
 
 	appServicePlanID, err := commonids.ParseAppServicePlanIDInsensitively(appServicePlanIDRaw)
 	if err != nil {

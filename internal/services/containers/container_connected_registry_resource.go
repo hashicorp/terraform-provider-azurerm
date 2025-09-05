@@ -500,9 +500,9 @@ func (r ContainerConnectedRegistryResource) flattenRepoNotifications(input []str
 			return nil, fmt.Errorf("parsing %q: %+v", e, err)
 		}
 		output = append(output, RepositoryNotification{
-			Name:   notification.Artifact.Name,
-			Tag:    notification.Artifact.Tag,
-			Digest: notification.Artifact.Digest,
+			Name:   notification.Name,
+			Tag:    notification.Tag,
+			Digest: notification.Digest,
 			Action: string(notification.Action),
 		})
 	}

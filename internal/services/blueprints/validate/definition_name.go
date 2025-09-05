@@ -16,7 +16,7 @@ func DefinitionName(i interface{}, k string) (warnings []string, errors []error)
 	}
 
 	if matched := regexp.MustCompile(`^[A-Za-z0-9-_]{1,48}$`).Match([]byte(v)); !matched {
-		errors = append(errors, fmt.Errorf("%s can include letters, numbers, underscores or dashes. Spaces and other special characters are not allowed.", k))
+		errors = append(errors, fmt.Errorf("%s can include letters, numbers, underscores or dashes. Spaces and other special characters are not allowed", k))
 	}
 
 	return warnings, errors

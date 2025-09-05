@@ -4,7 +4,7 @@
 package deliveryruleactions
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/Azure/azure-sdk-for-go/services/cdn/mgmt/2020-09-01/cdn" // nolint: staticcheck
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -66,7 +66,7 @@ func ExpandArmCdnEndpointActionModifyResponseHeader(input []interface{}) (*[]cdn
 func FlattenArmCdnEndpointActionModifyResponseHeader(input cdn.BasicDeliveryRuleAction) (*map[string]interface{}, error) {
 	action, ok := input.AsDeliveryRuleResponseHeaderAction()
 	if !ok {
-		return nil, fmt.Errorf("expected a delivery rule response header action!")
+		return nil, errors.New("expected a delivery rule response header action")
 	}
 
 	headerAction := ""
