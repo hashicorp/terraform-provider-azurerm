@@ -32,6 +32,8 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name managed_disk -service-package-name compute -properties "name,resource_group_name" -known-values "subscription_id:data.Subscriptions.Primary" -test-name "empty"
+
 func resourceManagedDisk() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
 		Create: resourceManagedDiskCreate,
@@ -44,10 +46,11 @@ func resourceManagedDisk() *pluginsdk.Resource {
 			0: migration.ManagedDiskV0ToV1{},
 		}),
 
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := commonids.ParseManagedDiskID(id)
-			return err
-		}),
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.ManagedDiskId{}),
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.ManagedDiskId{}),
+		},
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(30 * time.Minute),
@@ -612,7 +615,6 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 	onDemandBurstingEnabled := d.Get("on_demand_bursting_enabled").(bool)
 	shouldShutDown := false
 	shouldDetach := false
-	expandedDisk := virtualmachines.DataDisk{}
 
 	id, err := commonids.ParseManagedDiskID(d.Id())
 	if err != nil {
@@ -719,17 +721,15 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		if oldSize, newSize := d.GetChange("disk_size_gb"); newSize.(int) > oldSize.(int) {
 			canBeResizedWithoutDowntime := false
 			if meta.(*clients.Client).Features.ManagedDisk.ExpandWithoutDowntime {
-				diskSupportsNoDowntimeResize := determineIfDataDiskSupportsNoDowntimeResize(disk.Model, oldSize.(int), newSize.(int))
+				shouldDetach = determineIfDataDiskRequiresDetaching(disk.Model, oldSize.(int), newSize.(int))
+				diskSupportsNoDowntimeResize := determineIfDataDiskSupportsNoDowntimeResize(disk.Model, shouldDetach)
 
-				vmSkuSupportsNoDowntimeResize, err := determineIfVirtualMachineSkuSupportsNoDowntimeResize(ctx, disk.Model.ManagedBy, virtualMachinesClient, skusClient)
+				vmSupportsNoDowntimeResize, err := determineIfVirtualMachineSupportsNoDowntimeResize(ctx, disk.Model, virtualMachinesClient, skusClient)
 				if err != nil {
 					return fmt.Errorf("determining if the Virtual Machine the Disk is attached to supports no-downtime-resize: %+v", err)
 				}
 
-				// If a disk is 4 TiB or less, you can't expand it beyond 4 TiB without detaching it from the VM.
-				shouldDetach = oldSize.(int) < 4096 && newSize.(int) >= 4096
-
-				canBeResizedWithoutDowntime = *vmSkuSupportsNoDowntimeResize && *diskSupportsNoDowntimeResize
+				canBeResizedWithoutDowntime = *vmSupportsNoDowntimeResize && diskSupportsNoDowntimeResize
 			}
 			if !canBeResizedWithoutDowntime {
 				log.Printf("[INFO] The %s, or the Virtual Machine that it's attached to, doesn't support no-downtime-resizing - requiring that the VM should be shutdown", *id)
@@ -818,136 +818,12 @@ func resourceManagedDiskUpdate(d *pluginsdk.ResourceData, meta interface{}) erro
 		}
 		// check instanceView State
 
-		locks.ByName(name, VirtualMachineResourceName)
-		defer locks.UnlockByName(name, VirtualMachineResourceName)
+		locks.ByName(virtualMachineId.VirtualMachineName, VirtualMachineResourceName)
+		defer locks.UnlockByName(virtualMachineId.VirtualMachineName, VirtualMachineResourceName)
 
-		vm, err := virtualMachinesClient.Get(ctx, *virtualMachineId, virtualmachines.DefaultGetOperationOptions())
+		err = resourceManagedDiskUpdateWithVmShutDown(ctx, meta.(*clients.Client), id, virtualMachineId, diskUpdate, shouldDetach)
 		if err != nil {
-			return fmt.Errorf("retrieving %s: %+v", virtualMachineId, err)
-		}
-
-		instanceView, err := virtualMachinesClient.InstanceView(ctx, *virtualMachineId)
-		if err != nil {
-			return fmt.Errorf("retrieving InstanceView for %s: %+v", virtualMachineId, err)
-		}
-
-		shouldTurnBackOn := virtualMachineShouldBeStarted(instanceView.Model)
-		shouldDeallocate := true
-
-		if instanceView.Model != nil && instanceView.Model.Statuses != nil {
-			for _, status := range *instanceView.Model.Statuses {
-				if status.Code == nil {
-					continue
-				}
-
-				// could also be the provisioning state which we're not bothered with here
-				state := strings.ToLower(*status.Code)
-				if !strings.HasPrefix(state, "powerstate/") {
-					continue
-				}
-
-				state = strings.TrimPrefix(state, "powerstate/")
-				switch strings.ToLower(state) {
-				case "deallocated":
-					// VM already deallocated, no shutdown and deallocation needed anymore
-					shouldShutDown = false
-					shouldDeallocate = false
-				case "deallocating":
-					// VM is deallocating
-					// To make sure we do not start updating before this action has finished,
-					// only skip the shutdown and send another deallocation request if shouldDeallocate == true
-					shouldShutDown = false
-				case "stopped":
-					shouldShutDown = false
-				}
-			}
-		}
-
-		// Detach
-		if shouldDetach {
-			dataDisks := make([]virtualmachines.DataDisk, 0)
-			if vmModel := vm.Model; vmModel != nil && vmModel.Properties != nil && vmModel.Properties.StorageProfile != nil && vmModel.Properties.StorageProfile.DataDisks != nil {
-				for _, dataDisk := range *vmModel.Properties.StorageProfile.DataDisks {
-					// since this field isn't (and shouldn't be) case-sensitive; we're deliberately not using `strings.EqualFold`
-					if dataDisk.Name != nil && *dataDisk.Name != id.DiskName {
-						dataDisks = append(dataDisks, dataDisk)
-					} else {
-						if dataDisk.Caching != nil && *dataDisk.Caching != virtualmachines.CachingTypesNone {
-							return fmt.Errorf("`disk_size_gb` can't be increased above 4095GB when `caching` is set to anything other than `None`")
-						}
-						expandedDisk = dataDisk
-					}
-				}
-
-				vmModel.Properties.StorageProfile.DataDisks = &dataDisks
-
-				// fixes #2485
-				vmModel.Identity = nil
-				// fixes #1600
-				vmModel.Resources = nil
-
-				if err := virtualMachinesClient.CreateOrUpdateThenPoll(ctx, *virtualMachineId, *vm.Model, virtualmachines.DefaultCreateOrUpdateOperationOptions()); err != nil {
-					return fmt.Errorf("removing Disk %q from %s : %+v", id.DiskName, virtualMachineId, err)
-				}
-			}
-		}
-
-		// Shutdown
-		if shouldShutDown {
-			log.Printf("[DEBUG] Shutting Down %s", virtualMachineId)
-			options := virtualmachines.DefaultPowerOffOperationOptions()
-			options.SkipShutdown = pointer.To(false)
-			if err := virtualMachinesClient.PowerOffThenPoll(ctx, *virtualMachineId, options); err != nil {
-				return fmt.Errorf("sending Power Off to %s: %+v", virtualMachineId, err)
-			}
-
-			log.Printf("[DEBUG] Shut Down %s", virtualMachineId)
-		}
-
-		// De-allocate
-		if shouldDeallocate {
-			log.Printf("[DEBUG] Deallocating %s.", virtualMachineId)
-			// Upgrading to 2021-07-01 exposed a new hibernate paramater to the Deallocate method
-			if err := virtualMachinesClient.DeallocateThenPoll(ctx, *virtualMachineId, virtualmachines.DefaultDeallocateOperationOptions()); err != nil {
-				return fmt.Errorf("deallocating to %s: %+v", virtualMachineId, err)
-			}
-			log.Printf("[DEBUG] Deallocated %s", virtualMachineId)
-		}
-
-		// Update Disk
-		err = client.UpdateThenPoll(ctx, *id, diskUpdate)
-		if err != nil {
-			return fmt.Errorf("updating Managed Disk %q (Resource Group %q): %+v", name, resourceGroup, err)
-		}
-
-		// Reattach DataDisk
-		if shouldDetach && vm.Model.Properties.StorageProfile != nil {
-			disks := *vm.Model.Properties.StorageProfile.DataDisks
-
-			expandedDisk.DiskSizeGB = diskUpdate.Properties.DiskSizeGB
-			disks = append(disks, expandedDisk)
-
-			vm.Model.Properties.StorageProfile.DataDisks = &disks
-
-			// fixes #2485
-			vm.Model.Identity = nil
-			// fixes #1600
-			vm.Model.Resources = nil
-
-			// if there's too many disks we get a 409 back with:
-			//   `The maximum number of data disks allowed to be attached to a VM of this size is 1.`
-			// which we're intentionally not wrapping, since the errors good.
-			if err := virtualMachinesClient.CreateOrUpdateThenPoll(ctx, *virtualMachineId, *vm.Model, virtualmachines.DefaultCreateOrUpdateOperationOptions()); err != nil {
-				return fmt.Errorf("updating %s to reattach Disk %q: %+v", virtualMachineId, name, err)
-			}
-		}
-
-		if shouldTurnBackOn && (shouldShutDown || shouldDeallocate) {
-			log.Printf("[DEBUG] Starting %s", virtualMachineId)
-			if err := virtualMachinesClient.StartThenPoll(ctx, *virtualMachineId); err != nil {
-				return fmt.Errorf("starting %s: %+v", virtualMachineId, err)
-			}
-			log.Printf("[DEBUG] Started %s", virtualMachineId)
+			return err
 		}
 	} else { // otherwise, just update it
 		err := client.UpdateThenPoll(ctx, *id, diskUpdate)
@@ -1075,7 +951,7 @@ func resourceManagedDiskRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceManagedDiskDelete(d *pluginsdk.ResourceData, meta interface{}) error {

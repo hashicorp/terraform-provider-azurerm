@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `write_access_id` - (Optional) The ID of the writable Resource that will be linked to the workspace. This should be used for linking to a Log Analytics Cluster resource.
 
-~> **NOTE:** You must define at least one of the above access resource id attributes (e.g. `read_access_id` or `write_access_id`).
+~> **Note:** You must define at least one of the above access resource id attributes (e.g. `read_access_id` or `write_access_id`).
 
 ## Attributes Reference
 
@@ -71,14 +71,25 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Log Analytics Workspace.
-* `update` - (Defaults to 30 minutes) Used when updating the Log Analytics Workspace.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Log Analytics Workspace.
+* `update` - (Defaults to 30 minutes) Used when updating the Log Analytics Workspace.
 * `delete` - (Defaults to 30 minutes) Used when deleting the Log Analytics Workspace.
 
 ## Import
 
 Log Analytics Workspaces can be imported using the `resource id`, e.g.
 
+When `read_access_id` has been specified:
 ```shell
 terraform import azurerm_log_analytics_linked_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/linkedServices/Automation
 ```
+When `read_access_id` has been omitted:
+```shell
+terraform import azurerm_log_analytics_linked_service.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.OperationalInsights/workspaces/workspace1/linkedServices/Cluster
+```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.OperationalInsights` - 2020-08-01

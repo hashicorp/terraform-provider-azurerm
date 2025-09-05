@@ -5,6 +5,8 @@ package teststep
 
 import (
 	"context"
+	"fmt"
+	"hash/crc32"
 	"os"
 	"path/filepath"
 )
@@ -13,6 +15,9 @@ var _ Config = configurationDirectory{}
 
 type configurationDirectory struct {
 	directory string
+
+	// appendedConfig is a map of filenames to content
+	appendedConfig map[string]string
 }
 
 // HasConfigurationFiles is used during validation to ensure that
@@ -85,9 +90,38 @@ func (c configurationDirectory) Write(ctx context.Context, dest string) error {
 	}
 
 	err := copyFiles(configDirectory, dest)
-
 	if err != nil {
 		return err
+	}
+
+	err = c.writeAppendedConfig(dest)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c configurationDirectory) Append(config string) Config {
+	if c.appendedConfig == nil {
+		c.appendedConfig = make(map[string]string)
+	}
+
+	checksum := crc32.Checksum([]byte(config), crc32.IEEETable)
+	filename := fmt.Sprintf("terraform_plugin_test_%d.tf", checksum)
+
+	c.appendedConfig[filename] = config
+	return c
+}
+
+func (c configurationDirectory) writeAppendedConfig(dstPath string) error {
+	for filename, config := range c.appendedConfig {
+		outFilename := filepath.Join(dstPath, filename)
+
+		err := os.WriteFile(outFilename, []byte(config), 0700)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -103,6 +103,11 @@ func dataSourceVirtualHubConnection() *pluginsdk.Resource {
 							Computed: true,
 						},
 
+						"static_vnet_propagate_static_routes_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Computed: true,
+						},
+
 						// lintignore:XS003
 						"static_vnet_route": {
 							Type:     pluginsdk.TypeList,

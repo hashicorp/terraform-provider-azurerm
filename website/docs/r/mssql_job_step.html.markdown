@@ -43,8 +43,8 @@ resource "azurerm_mssql_job_agent" "example" {
 resource "azurerm_mssql_job_credential" "example" {
   name         = "example-job-credential"
   job_agent_id = azurerm_mssql_job_agent.example.id
-  username     = "testusername"
-  password     = "testpassword"
+  username     = "exampleusername"
+  password     = "examplepassword"
 }
 
 resource "azurerm_mssql_job_target_group" "example" {
@@ -89,8 +89,6 @@ The following arguments are supported:
 
 * `job_id` - (Required) The ID of the Elastic Job. Changing this forces a new Elastic Job Step to be created.
 
-* `job_credential_id` - (Required) The ID of the Elastic Job Credential to use when executing this Elastic Job Step.
-
 * `job_step_index` - (Required) The index at which to insert this Elastic Job Step into the Elastic Job.
 
 ~> **Note:** This value must be greater than or equal to 1 and less than or equal to the number of job steps in the Elastic Job.
@@ -105,6 +103,10 @@ The following arguments are supported:
 
 * `initial_retry_interval_seconds` - (Optional) The initial retry interval in seconds. Defaults to `1`.
 
+* `job_credential_id` - (Optional) The ID of the Elastic Job Credential to use when executing this Elastic Job Step. Omit this argument to run the step under the Job Agent's managed identity (user-assigned).
+
+!> **Note:** Once set, `job_credential_id` cannot be removed. Removing the credential will force a new resource to be created.
+
 * `maximum_retry_interval_seconds` - (Optional) The maximum retry interval in seconds. Defaults to `120`.
 
 ~> **Note:** `maximum_retry_interval_seconds` must be greater than `initial_retry_interval_seconds`.
@@ -113,7 +115,7 @@ The following arguments are supported:
 
 * `retry_attempts` - (Optional) The number of retry attempts. Defaults to `10`.
 
-* `retry_interval_backoff_multiplier` - (Optional) The multiplier for time between retries. Defaults to `2`.
+* `retry_interval_backoff_multiplier` - (Optional) The multiplier for time between retries. Defaults to `2.0`.
 
 * `timeout_seconds` - (Optional) The execution timeout in seconds for this Elastic Job Step. Defaults to `43200`.
 
@@ -121,11 +123,11 @@ The following arguments are supported:
 
 A `output_target` block supports the following:
 
-* `job_credential_id` - (Required) The ID of the Elastic Job Credential to use when connecting to the output destination.
-
 * `mssql_database_id` - (Required) The ID of the output database.
 
 * `table_name` - (Required) The name of the output table.
+
+* `job_credential_id` - (Optional) The ID of the Elastic Job Credential to use when connecting to the output destination.
 
 * `schema_name` - (Optional) The name of the output schema. Defaults to `dbo`.
 
@@ -151,3 +153,9 @@ Elastic Job Steps can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_mssql_job_step.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Sql/servers/myserver1/jobAgents/myjobagent1/jobs/myjob1/steps/myjobstep1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Sql` - 2023-08-01-preview

@@ -268,7 +268,7 @@ func resourceIotSecuritySolution() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }

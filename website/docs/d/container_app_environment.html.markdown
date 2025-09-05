@@ -36,7 +36,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `infrastructure_subnet_id` - The ID of the Subnet in use by the Container Apps Control Plane.
 
-~> **NOTE:** This will only be populated for Environments that have `internal_load_balancer_enabled` set to true.
+~> **Note:** This will only be populated for Environments that have `internal_load_balancer_enabled` set to true.
 
 * `custom_domain_verification_id` - The ID of the Custom Domain Verification for this Container App Environment.
 
@@ -44,7 +44,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `docker_bridge_cidr` - The network addressing in which the Container Apps in this Container App Environment will reside in CIDR notation.
 
-~> **NOTE:** This will only be populated for Environments that have `internal_load_balancer_enabled` set to true.
+~> **Note:** This will only be populated for Environments that have `internal_load_balancer_enabled` set to true.
 
 * `internal_load_balancer_enabled` - Does the Container App Environment operate in Internal Load Balancing Mode?
 
@@ -52,17 +52,19 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `log_analytics_workspace_name` - The name of the Log Analytics Workspace this Container Apps Managed Environment is linked to.
 
+~> **Note:** This will only be populated for Environments that have `logs_destination` set to `log-analytics` and the Log Analytics Workspace is in the same subscription as the Environment.
+
 * `platform_reserved_cidr` - The IP range, in CIDR notation, that is reserved for environment infrastructure IP addresses.
 
-~> **NOTE:** This will only be populated for Environments that have `internal_load_balancer_enabled` set to true.
+~> **Note:** This will only be populated for Environments that have `internal_load_balancer_enabled` set to true.
 
 * `platform_reserved_dns_ip_address` - The IP address from the IP range defined by `platform_reserved_cidr` that is reserved for the internal DNS server.
 
-~> **NOTE:** This will only be populated for Environments that have `internal_load_balancer_enabled` set to true.
+~> **Note:** This will only be populated for Environments that have `internal_load_balancer_enabled` set to true.
 
 * `static_ip_address` - The Static IP address of the Environment.
 
-~> **NOTE:** If `internal_load_balancer_enabled` is true, this will be a Private IP in the subnet, otherwise this will be allocated a Public IPv4 address. 
+~> **Note:** If `internal_load_balancer_enabled` is true, this will be a Private IP in the subnet, otherwise this will be allocated a Public IPv4 address.
 
 * `tags` - A mapping of tags assigned to the resource.
 
@@ -71,3 +73,11 @@ In addition to the Arguments listed above - the following Attributes are exporte
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container App Environment.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.App` - 2025-01-01
+
+* `Microsoft.OperationalInsights` - 2020-08-01

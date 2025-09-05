@@ -119,6 +119,8 @@ func (r PacketCoreControlPlaneResource) Arguments() map[string]*pluginsdk.Schema
 			Type:     pluginsdk.TypeList,
 			Required: true,
 			MinItems: 1,
+			MaxItems: 1,
+			ForceNew: true,
 			Elem: &pluginsdk.Schema{
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: site.ValidateSiteID,
@@ -426,10 +428,6 @@ func (r PacketCoreControlPlaneResource) Update() sdk.ResourceFunc {
 				model.Properties.LocalDiagnosticsAccess = expandPacketCoreControlLocalDiagnosticsAccessConfiguration(plan.LocalDiagnosticsAccess)
 			}
 
-			if metadata.ResourceData.HasChange("mobile_network_id") {
-				model.Properties.Sites = expandPacketCoreControlPlaneSites(plan.SiteIds)
-			}
-
 			if metadata.ResourceData.HasChange("platform") {
 				model.Properties.Platform = expandPlatformConfigurationModel(plan.Platform)
 			}
@@ -438,7 +436,7 @@ func (r PacketCoreControlPlaneResource) Update() sdk.ResourceFunc {
 				model.Properties.Sku = packetcorecontrolplane.BillingSku(plan.Sku)
 			}
 
-			if metadata.ResourceData.HasChange("version") && plan.SoftwareVersion != "" {
+			if metadata.ResourceData.HasChange("software_version") && plan.SoftwareVersion != "" {
 				model.Properties.Version = &plan.SoftwareVersion
 			}
 

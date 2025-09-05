@@ -33,7 +33,8 @@ func TestAccExpressRouteCircuit(t *testing.T) {
 			"allowClassicOperationsUpdate": testAccExpressRouteCircuit_allowClassicOperationsUpdate,
 			"requiresImport":               testAccExpressRouteCircuit_requiresImport,
 			"data_basic":                   testAccDataSourceExpressRoute_basicMetered,
-			"bandwidthReduction":           testAccExpressRouteCircuit_bandwidthReduction,
+			"bandwidthReduction":           testAccExpressRouteCircuit_bandwidthMbpsReduction,
+			"bandwidthUpdate":              testAccExpressRouteCircuit_bandwidthMbpsUpdate,
 			"port":                         testAccExpressRouteCircuit_withExpressRoutePort,
 			"updatePort":                   testAccExpressRouteCircuit_updateExpressRoutePort,
 			"authorizationKey":             testAccExpressRouteCircuit_authorizationKey,
@@ -258,7 +259,7 @@ func testAccExpressRouteCircuit_allowClassicOperationsUpdate(t *testing.T) {
 	})
 }
 
-func testAccExpressRouteCircuit_bandwidthReduction(t *testing.T) {
+func testAccExpressRouteCircuit_bandwidthMbpsReduction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
 	r := ExpressRouteCircuitResource{}
 
@@ -275,6 +276,28 @@ func testAccExpressRouteCircuit_bandwidthReduction(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("bandwidth_in_mbps").HasValue("50"),
+			),
+		},
+	})
+}
+
+func testAccExpressRouteCircuit_bandwidthMbpsUpdate(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_express_route_circuit", "test")
+	r := ExpressRouteCircuitResource{}
+
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.bandwidthReductionConfig(data, "2000"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("bandwidth_in_mbps").HasValue("2000"),
+			),
+		},
+		{
+			Config: r.bandwidthReductionConfig(data, "5000"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("bandwidth_in_mbps").HasValue("5000"),
 			),
 		},
 	})

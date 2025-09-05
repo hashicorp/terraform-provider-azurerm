@@ -38,7 +38,7 @@ resource "azurerm_servicebus_namespace" "example" {
 
 The following arguments are supported:
 
-* `name` - (Required) Specifies the name of the ServiceBus Namespace resource . Changing this forces a new resource to be created.
+* `name` - (Required) Specifies the name of the Service Bus Namespace resource . Changing this forces a new resource to be created.
 
 * `resource_group_name` - (Required) The name of the resource group in which to Changing this forces a new resource to be created.
     create the namespace.
@@ -53,7 +53,7 @@ The following arguments are supported:
 
 * `premium_messaging_partitions` - (Optional) Specifies the number messaging partitions. Only valid when `sku` is `Premium` and the minimum number is `1`. Possible values include `0`, `1`, `2`, and `4`. Defaults to `0` for Standard, Basic namespace. Changing this forces a new resource to be created.
 
--> **Note:** It's not possible to change the partitioning option on any existing namespace. The number of partitions can only be set during namespace creation. Please check the doc https://learn.microsoft.com/en-us/azure/service-bus-messaging/enable-partitions-premium for more feature restrictions. 
+-> **Note:** It's not possible to change the partitioning option on any existing namespace. The number of partitions can only be set during namespace creation. Please check the doc https://learn.microsoft.com/en-us/azure/service-bus-messaging/enable-partitions-premium for more feature restrictions.
 
 * `customer_managed_key` - (Optional) An `customer_managed_key` block as defined below.
 
@@ -63,7 +63,7 @@ The following arguments are supported:
 
 * `minimum_tls_version` - (Optional) The minimum supported TLS version for this Service Bus Namespace. Valid values are: `1.0`, `1.1` and `1.2`. Defaults to `1.2`.
 
-~> **NOTE:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
+~> **Note:** Azure Services will require TLS 1.2+ by August 2025, please see this [announcement](https://azure.microsoft.com/en-us/updates/v2/update-retirement-tls1-0-tls1-1-versions-azure-services/) for more.
 
 * `network_rule_set` - (Optional) An `network_rule_set` block as defined below.
 
@@ -73,21 +73,23 @@ The following arguments are supported:
 
 An `identity` block supports the following:
 
-* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this ServiceBus Namespace. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
+* `type` - (Required) Specifies the type of Managed Service Identity that should be configured on this Service Bus Namespace. Possible values are `SystemAssigned`, `UserAssigned`, `SystemAssigned, UserAssigned` (to enable both).
 
-* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this ServiceBus namespace.
+* `identity_ids` - (Optional) Specifies a list of User Assigned Managed Identity IDs to be assigned to this Service Bus namespace.
 
-~> **NOTE:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+~> **Note:** This is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
 ---
 
 -> **Note:** Once customer-managed key encryption has been enabled, it cannot be disabled.
 
+-> **Note:** The `customer_managed_key` block should only be used for Service Bus Namespaces with a User Assigned identity. To create a Customer Managed Key for a Service Bus Namespace with a System Assigned identity, use the `azurerm_servicebus_namespace_customer_managed_key` resource and add `customer_managed_key` to `ignore_changes`.
+
 ---
 
 A `customer_managed_key` block supports the following:
 
-* `key_vault_key_id` - (Required) The ID of the Key Vault Key which should be used to Encrypt the data in this ServiceBus Namespace.
+* `key_vault_key_id` - (Required) The ID of the Key Vault Key which should be used to Encrypt the data in this Service Bus Namespace.
 
 * `identity_id` - (Required) The ID of the User Assigned Identity that has access to the key.
 
@@ -105,7 +107,7 @@ A `network_rule_set` block supports the following:
 
 * `trusted_services_allowed` - (Optional) Are Azure Services that are known and trusted for this resource type are allowed to bypass firewall configuration? See [Trusted Microsoft Services](https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/service-bus-messaging/includes/service-bus-trusted-services.md)
 
-* `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access the ServiceBus Namespace.
+* `ip_rules` - (Optional) One or more IP Addresses, or CIDR Blocks which should be able to access the Service Bus Namespace.
 
 * `network_rules` - (Optional) One or more `network_rules` blocks as defined below.
 
@@ -113,27 +115,27 @@ A `network_rule_set` block supports the following:
 
 A `network_rules` block supports the following:
 
-* `subnet_id` - (Required) The Subnet ID which should be able to access this ServiceBus Namespace.
+* `subnet_id` - (Required) The Subnet ID which should be able to access this Service Bus Namespace.
 
-* `ignore_missing_vnet_service_endpoint` - (Optional) Should the ServiceBus Namespace Network Rule Set ignore missing Virtual Network Service Endpoint option in the Subnet? Defaults to `false`.
+* `ignore_missing_vnet_service_endpoint` - (Optional) Should the Service Bus Namespace Network Rule Set ignore missing Virtual Network Service Endpoint option in the Subnet? Defaults to `false`.
 
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ServiceBus Namespace ID.
+* `id` - The Service Bus Namespace ID.
 
-* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this ServiceBus Namespace.
+* `identity` - An `identity` block as defined below, which contains the Managed Service Identity information for this Service Bus Namespace.
 
-* `endpoint` - The URL to access the ServiceBus Namespace.
+* `endpoint` - The URL to access the Service Bus Namespace.
 
 ---
 
 A `identity` block exports the following:
 
-* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this ServiceBus Namespace.
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Service Bus Namespace.
 
-* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this ServiceBus Namespace.
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this Service Bus Namespace.
 
 ---
 
@@ -151,18 +153,18 @@ The following attributes are exported only if there is an authorization rule nam
 
 A `identity` block exports the following:
 
-* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this ServiceBus Namespace.
+* `principal_id` - The Principal ID for the Service Principal associated with the Managed Service Identity of this Service Bus Namespace.
 
-* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this ServiceBus Namespace.
+* `tenant_id` - The Tenant ID for the Service Principal associated with the Managed Service Identity of this Service Bus Namespace.
 
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the ServiceBus Namespace.
-* `update` - (Defaults to 30 minutes) Used when updating the ServiceBus Namespace.
-* `read` - (Defaults to 5 minutes) Used when retrieving the ServiceBus Namespace.
-* `delete` - (Defaults to 30 minutes) Used when deleting the ServiceBus Namespace.
+* `create` - (Defaults to 30 minutes) Used when creating the Service Bus Namespace.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Service Bus Namespace.
+* `update` - (Defaults to 30 minutes) Used when updating the Service Bus Namespace.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Service Bus Namespace.
 
 ## Import
 
@@ -171,3 +173,9 @@ Service Bus Namespace can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_servicebus_namespace.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ServiceBus/namespaces/sbns1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ServiceBus` - 2024-01-01

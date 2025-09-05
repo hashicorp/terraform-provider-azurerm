@@ -6,12 +6,13 @@ package containerapps_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2024-03-01/managedenvironments"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerapps/2025-01-01/managedenvironments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -20,11 +21,74 @@ import (
 
 type ContainerAppEnvironmentResource struct{}
 
+type containerAPpEnvironmentAlternateSubscription struct {
+	tenant_id       string
+	subscription_id string
+}
+
 func TestAccContainerAppEnvironment_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
 	r := ContainerAppEnvironmentResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppEnvironment_withUserIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
+	r := ContainerAppEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withUserIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccContainerAppEnvironment_updateIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
+	r := ContainerAppEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withUserIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withSystemIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.withSystemAssignedUserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -65,6 +129,21 @@ func TestAccContainerAppEnvironment_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccContainerAppEnvironment_requiresImportWithConsumptionProfile(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
+	r := ContainerAppEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.consumptionWorkloadProfile(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.RequiresImportErrorStep(r.requiresImport),
+	})
+}
+
 func TestAccContainerAppEnvironment_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
 	r := ContainerAppEnvironmentResource{}
@@ -72,6 +151,13 @@ func TestAccContainerAppEnvironment_complete(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.updateTags(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -238,6 +324,41 @@ func TestAccContainerAppEnvironment_infraResourceGroupWithoutName(t *testing.T) 
 	})
 }
 
+func TestAccContainerAppEnvironment_crossSubscriptionLogAnalyticsWorkspace(t *testing.T) {
+	altSubscription := altSubscriptionCheck()
+
+	if altSubscription == nil {
+		t.Skip("Skipping: Test requires `ARM_SUBSCRIPTION_ID_ALT` and `ARM_TENANT_ID` environment variables to be specified")
+	}
+
+	data := acceptance.BuildTestData(t, "azurerm_container_app_environment", "test")
+	r := ContainerAppEnvironmentResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.crossSubscriptionLogAnalyticsWorkspace(data, altSubscription),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("log_analytics_workspace_id"),
+	})
+}
+
+func altSubscriptionCheck() *containerAPpEnvironmentAlternateSubscription {
+	altSubscriptonID := os.Getenv("ARM_SUBSCRIPTION_ID_ALT")
+	altTenantID := os.Getenv("ARM_TENANT_ID")
+
+	if altSubscriptonID == "" || altTenantID == "" {
+		return nil
+	}
+
+	return &containerAPpEnvironmentAlternateSubscription{
+		tenant_id:       altTenantID,
+		subscription_id: altSubscriptonID,
+	}
+}
+
 func (r ContainerAppEnvironmentResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := managedenvironments.ParseManagedEnvironmentID(state.ID)
 	if err != nil {
@@ -267,6 +388,80 @@ resource "azurerm_container_app_environment" "test" {
   name                = "acctest-CAEnv%[2]d"
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppEnvironmentResource) withUserIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_container_app_environment" "test" {
+  name                = "acctest-CAEnv%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppEnvironmentResource) withSystemIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_environment" "test" {
+  name                = "acctest-CAEnv%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ContainerAppEnvironmentResource) withSystemAssignedUserAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acct-%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_container_app_environment" "test" {
+  name                = "acctest-CAEnv%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -327,6 +522,57 @@ resource "azurerm_container_app_environment" "test" {
   tags = {
     Foo    = "Bar"
     secret = "sauce"
+  }
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name                       = "diagnostics"
+  target_resource_id         = azurerm_container_app_environment.test.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+
+  enabled_log {
+    category_group = "allLogs"
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled  = true
+  }
+}
+`, r.templateVNet(data), data.RandomInteger)
+}
+
+func (r ContainerAppEnvironmentResource) updateTags(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%[1]s
+
+resource "azurerm_container_app_environment" "test" {
+  name                       = "acctest-CAEnv%[2]d"
+  resource_group_name        = azurerm_resource_group.test.name
+  location                   = azurerm_resource_group.test.location
+  logs_destination           = "log-analytics"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+  infrastructure_subnet_id   = azurerm_subnet.control.id
+
+  internal_load_balancer_enabled = true
+  zone_redundancy_enabled        = true
+  mutual_tls_enabled             = true
+
+  workload_profile {
+    maximum_count         = 3
+    minimum_count         = 0
+    name                  = "D4-01"
+    workload_profile_type = "D4"
+  }
+
+  tags = {
+    Foo    = "Bar"
+    secret = "sauce"
+    Hello  = "World"
   }
 }
 
@@ -809,4 +1055,65 @@ resource "azurerm_container_app_environment" "test" {
   }
 }
 `, r.templateVNet(data), data.RandomInteger)
+}
+
+func (r ContainerAppEnvironmentResource) crossSubscriptionLogAnalyticsWorkspace(data acceptance.TestData, alt *containerAPpEnvironmentAlternateSubscription) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+provider "azurerm-alt" {
+  features {}
+
+  tenant_id       = "%[4]s"
+  subscription_id = "%[5]s"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-CAE-%[2]d"
+  location = "%[3]s"
+}
+
+resource "azurerm_resource_group" "law" {
+  provider = azurerm-alt
+
+  name     = "acctestRG-CAE-%[2]d"
+  location = "%[3]s"
+}
+
+resource "azurerm_log_analytics_workspace" "test" {
+  provider = azurerm-alt
+
+  name                = "acctestLAW-%[2]d"
+  location            = azurerm_resource_group.law.location
+  resource_group_name = azurerm_resource_group.law.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_container_app_environment" "test" {
+  name                = "acctest-CAEnv%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+
+  logs_destination           = "log-analytics"
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+}
+
+resource "azurerm_monitor_diagnostic_setting" "test" {
+  name                       = "diagnostics"
+  target_resource_id         = azurerm_container_app_environment.test.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.test.id
+
+  enabled_log {
+    category_group = "allLogs"
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled  = true
+  }
+}
+`, r.template(data), data.RandomInteger, data.Locations.Primary, alt.tenant_id, alt.subscription_id)
 }
