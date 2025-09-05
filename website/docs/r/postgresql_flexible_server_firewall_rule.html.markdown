@@ -51,9 +51,9 @@ The following arguments are supported:
 
 * `server_id` - (Required) The ID of the PostgreSQL Flexible Server from which to create this PostgreSQL Flexible Server Firewall Rule. Changing this forces a new PostgreSQL Flexible Server Firewall Rule to be created.
 
-* `start_ip_address` - (Required) The Start IP Address associated with this PostgreSQL Flexible Server Firewall Rule.
+* `start_ip_address` - (Required) The IPv4 Address defining the start of the range of addresses associated with this PostgreSQL Flexible Server Firewall Rule.
 
-* `end_ip_address` - (Required) The End IP Address associated with this PostgreSQL Flexible Server Firewall Rule.
+* `end_ip_address` - (Required) The IPv4 Address defining the end of the range of addresses associated with this PostgreSQL Flexible Server Firewall Rule.
 
 ## Attributes Reference
 
