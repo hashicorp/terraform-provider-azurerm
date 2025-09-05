@@ -17,7 +17,7 @@ func init() {
 
 var _ resourceids.ResourceId = &CustomIPPrefixId{}
 
-// CustomIPPrefixId is a struct representing the Resource ID for a Custom I P Prefix
+// CustomIPPrefixId is a struct representing the Resource ID for a Custom IP Prefix
 type CustomIPPrefixId struct {
 	SubscriptionId     string
 	ResourceGroupName  string
@@ -84,7 +84,7 @@ func (id *CustomIPPrefixId) FromParseResult(input resourceids.ParseResult) error
 	return nil
 }
 
-// ValidateCustomIPPrefixID checks that 'input' can be parsed as a Custom I P Prefix ID
+// ValidateCustomIPPrefixID checks that 'input' can be parsed as a Custom IP Prefix ID
 func ValidateCustomIPPrefixID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
@@ -99,13 +99,13 @@ func ValidateCustomIPPrefixID(input interface{}, key string) (warnings []string,
 	return
 }
 
-// ID returns the formatted Custom I P Prefix ID
+// ID returns the formatted Custom IP Prefix ID
 func (id CustomIPPrefixId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/customIPPrefixes/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.CustomIPPrefixName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Custom I P Prefix ID
+// Segments returns a slice of Resource ID Segments which comprise this Custom IP Prefix ID
 func (id CustomIPPrefixId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
@@ -119,12 +119,12 @@ func (id CustomIPPrefixId) Segments() []resourceids.Segment {
 	}
 }
 
-// String returns a human-readable description of this Custom I P Prefix ID
+// String returns a human-readable description of this Custom IP Prefix ID
 func (id CustomIPPrefixId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Custom I P Prefix Name: %q", id.CustomIPPrefixName),
+		fmt.Sprintf("Custom IP Prefix Name: %q", id.CustomIPPrefixName),
 	}
-	return fmt.Sprintf("Custom I P Prefix (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Custom IP Prefix (%s)", strings.Join(components, "\n"))
 }

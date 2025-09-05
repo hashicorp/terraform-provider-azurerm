@@ -17,7 +17,7 @@ func init() {
 
 var _ resourceids.ResourceId = &FrontendIPConfigurationId{}
 
-// FrontendIPConfigurationId is a struct representing the Resource ID for a Frontend I P Configuration
+// FrontendIPConfigurationId is a struct representing the Resource ID for a Frontend IP Configuration
 type FrontendIPConfigurationId struct {
 	SubscriptionId              string
 	ResourceGroupName           string
@@ -90,7 +90,7 @@ func (id *FrontendIPConfigurationId) FromParseResult(input resourceids.ParseResu
 	return nil
 }
 
-// ValidateFrontendIPConfigurationID checks that 'input' can be parsed as a Frontend I P Configuration ID
+// ValidateFrontendIPConfigurationID checks that 'input' can be parsed as a Frontend IP Configuration ID
 func ValidateFrontendIPConfigurationID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
@@ -105,13 +105,13 @@ func ValidateFrontendIPConfigurationID(input interface{}, key string) (warnings 
 	return
 }
 
-// ID returns the formatted Frontend I P Configuration ID
+// ID returns the formatted Frontend IP Configuration ID
 func (id FrontendIPConfigurationId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/loadBalancers/%s/frontendIPConfigurations/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.LoadBalancerName, id.FrontendIPConfigurationName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Frontend I P Configuration ID
+// Segments returns a slice of Resource ID Segments which comprise this Frontend IP Configuration ID
 func (id FrontendIPConfigurationId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
@@ -127,13 +127,13 @@ func (id FrontendIPConfigurationId) Segments() []resourceids.Segment {
 	}
 }
 
-// String returns a human-readable description of this Frontend I P Configuration ID
+// String returns a human-readable description of this Frontend IP Configuration ID
 func (id FrontendIPConfigurationId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Load Balancer Name: %q", id.LoadBalancerName),
-		fmt.Sprintf("Frontend I P Configuration Name: %q", id.FrontendIPConfigurationName),
+		fmt.Sprintf("Frontend IP Configuration Name: %q", id.FrontendIPConfigurationName),
 	}
-	return fmt.Sprintf("Frontend I P Configuration (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Frontend IP Configuration (%s)", strings.Join(components, "\n"))
 }
