@@ -159,7 +159,7 @@ resource "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "im
   source_id                           = azurerm_oracle_autonomous_database_cross_region_disaster_recovery.adbs_secondary_crdr.source_id
   source_ocid                         = azurerm_oracle_autonomous_database_cross_region_disaster_recovery.adbs_secondary_crdr.source_ocid
   remote_disaster_recovery_type       = azurerm_oracle_autonomous_database_cross_region_disaster_recovery.adbs_secondary_crdr.remote_disaster_recovery_type
-  replicate_automatic_backups_enabled = azurerm_oracle_autonomous_database_cross_region_disaster_recovery.adbs_secondary_crdr.replicate_automatic_backups
+  replicate_automatic_backups_enabled = azurerm_oracle_autonomous_database_cross_region_disaster_recovery.adbs_secondary_crdr.replicate_automatic_backups_enabled
   subnet_id                           = azurerm_oracle_autonomous_database_cross_region_disaster_recovery.adbs_secondary_crdr.subnet_id
   virtual_network_id                  = azurerm_oracle_autonomous_database_cross_region_disaster_recovery.adbs_secondary_crdr.virtual_network_id
   resource_group_name                 = azurerm_oracle_autonomous_database_cross_region_disaster_recovery.adbs_secondary_crdr.resource_group_name

@@ -1,9 +1,9 @@
 ---
 subcategory: "Oracle"
 layout: "azurerm"
-page_title: "Azure Resource Manager: Data Source: azurerm_oracle_autonomous_database"
+page_title: "Azure Resource Manager: Data Source: azurerm_oracle_autonomous_database_cross_region_disaster_recovery"
 description: |-
-  Gets information about an existing Autonomous Database.
+  Gets information about an existing Cross Region Disaster Recovery Autonomous Database.
 ---
 
 # Data Source: azurerm_oracle_autonomous_database_cross_region_disaster_recovery
