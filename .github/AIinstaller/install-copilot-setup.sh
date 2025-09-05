@@ -171,16 +171,29 @@ main() {
     # STEP 1: Parse command line arguments first
     parse_arguments "$@"
 
-    # STEP 2: Early safety check - fail fast if on source branch with repo directory
+    # STEP 2: Show header immediately for consistent user experience
+    write_header "Terraform AzureRM Provider - AI Infrastructure Installer" "${VERSION}"
+
+    # STEP 3: Get workspace root and branch information for display and safety checks
+    local workspace_root
+    workspace_root="$(get_workspace_root "${REPO_DIRECTORY}" "${SCRIPT_DIR}")"
+
+    local current_branch
     if [[ -n "${REPO_DIRECTORY}" ]]; then
-        # Get current branch of the target repository quickly
-        local current_branch
-        if [[ -d "${REPO_DIRECTORY}/.git" ]]; then
-            current_branch=$(cd "${REPO_DIRECTORY}" && git branch --show-current 2>/dev/null || echo "unknown")
+        if [[ -d "${workspace_root}/.git" ]]; then
+            current_branch=$(cd "${workspace_root}" && git branch --show-current 2>/dev/null || echo "unknown")
         else
             current_branch="unknown"
         fi
+    else
+        current_branch=$(git branch --show-current 2>/dev/null || echo "unknown")
+    fi
 
+    # STEP 4: Show branch detection immediately after getting branch info
+    show_branch_detection "${current_branch}" "${workspace_root}"
+
+    # STEP 5: Early safety check - fail fast if on source branch with repo directory
+    if [[ -n "${REPO_DIRECTORY}" ]]; then
         # Block operations on source branch immediately (except verify, help, bootstrap)
         # Source branches: main, master, exp/terraform_copilot
         local source_branches=("main" "master" "exp/terraform_copilot")
@@ -193,17 +206,13 @@ main() {
         done
 
         if [[ "${is_source_branch}" == "true" ]] && [[ "${VERIFY}" != "true" ]] && [[ "${HELP}" != "true" ]] && [[ "${BOOTSTRAP}" != "true" ]]; then
-            # Safety violation - header will be shown later with branch detection
+            # Safety violation - header and branch detection already shown above
             show_safety_violation "${current_branch}" "Install" "true"
             exit 1
         fi
     fi
 
-    # STEP 3: Initialize workspace and validate it's a proper terraform-provider-azurerm repo
-    local workspace_root
-    workspace_root="$(get_workspace_root "${REPO_DIRECTORY}" "${SCRIPT_DIR}")"
-
-    # STEP 4: Early workspace validation before doing anything else
+    # STEP 6: Initialize workspace validation (workspace_root already set above)
     local workspace_valid workspace_reason
     if validate_repository "${workspace_root}"; then
         workspace_valid=true
@@ -213,19 +222,8 @@ main() {
         workspace_reason="Missing required files"
     fi
 
-    # STEP 5: Get branch information for consistent display
-    local current_branch branch_type
-    if [[ -n "${REPO_DIRECTORY}" ]]; then
-        if [[ -d "${workspace_root}/.git" ]]; then
-            current_branch=$(cd "${workspace_root}" && git branch --show-current 2>/dev/null || echo "unknown")
-        else
-            current_branch="unknown"
-        fi
-    else
-        current_branch=$(git branch --show-current 2>/dev/null || echo "unknown")
-    fi
-
-    # Determine branch type - be explicit about what we know vs don't know
+    # STEP 7: Determine branch type - be explicit about what we know vs don't know
+    local branch_type
     case "${current_branch}" in
         "main"|"master"|"exp/terraform_copilot")
             branch_type="source"
@@ -239,11 +237,7 @@ main() {
             ;;
     esac
 
-    # STEP 6: Show header and branch detection now that we have all the context
-    write_header "Terraform AzureRM Provider - AI Infrastructure Installer" "${VERSION}"
-    show_branch_detection "${current_branch}" "${workspace_root}"
-
-    # STEP 7: Detect what command was attempted (for better error messages)
+    # STEP 8: Detect what command was attempted (for better error messages)
     local attempted_command=""
     if [[ "${BOOTSTRAP}" == "true" ]]; then
         attempted_command="-bootstrap"
@@ -259,13 +253,13 @@ main() {
         attempted_command="-repo-directory \"${REPO_DIRECTORY}\""
     fi
 
-    # STEP 8: Simple parameter handling (like PowerShell)
+    # STEP 9: Simple parameter handling (like PowerShell)
     if [[ "${HELP}" == "true" ]]; then
         show_usage "${branch_type}" "${workspace_valid}" "${workspace_reason}" "${attempted_command}"
         exit 0
     fi
 
-    # STEP 9: For all operations, workspace must be valid (each operation handles its own specific validation)
+    # STEP 10: For all operations, workspace must be valid (each operation handles its own specific validation)
     if [[ "${workspace_valid}" != "true" ]]; then
         show_workspace_validation_error "${workspace_reason}" "$([[ -n "${REPO_DIRECTORY}" ]] && echo "true" || echo "false")"
 
@@ -274,7 +268,7 @@ main() {
         exit 1
     fi
 
-    # STEP 10: Execute single operation based on parameters (like PowerShell)
+    # STEP 11: Execute single operation based on parameters (like PowerShell)
     if [[ "${VERIFY}" == "true" ]]; then
         verify_installation "${workspace_root}"
         exit 0
