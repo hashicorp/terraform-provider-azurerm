@@ -1025,9 +1025,7 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("large_volume_enabled", props.IsLargeVolume)
 
 		if props.AcceptGrowCapacityPoolForShortTermCloneSplit != nil {
-			d.Set("accept_grow_capacity_pool_for_short_term_clone_split", string(pointer.From(props.AcceptGrowCapacityPoolForShortTermCloneSplit)))
-		} else {
-			d.Set("accept_grow_capacity_pool_for_short_term_clone_split", "")
+			d.Set("accept_grow_capacity_pool_for_short_term_clone_split", pointer.FromEnum(props.AcceptGrowCapacityPoolForShortTermCloneSplit))
 		}
 
 		if pointer.From(props.CoolAccess) {
