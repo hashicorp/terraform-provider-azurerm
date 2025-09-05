@@ -4,8 +4,8 @@
 package common
 
 import (
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2025-04-15/cosmosdb"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func ExpandCosmosDbConflicResolutionPolicy(inputs []interface{}) *cosmosdb.ConflictResolutionPolicy {
@@ -20,11 +20,11 @@ func ExpandCosmosDbConflicResolutionPolicy(inputs []interface{}) *cosmosdb.Confl
 	}
 
 	if conflictResolutionPath, ok := input["conflict_resolution_path"].(string); ok {
-		conflict.ConflictResolutionPath = utils.String(conflictResolutionPath)
+		conflict.ConflictResolutionPath = pointer.To(conflictResolutionPath)
 	}
 
 	if conflictResolutionProcedure, ok := input["conflict_resolution_procedure"].(string); ok {
-		conflict.ConflictResolutionProcedure = utils.String(conflictResolutionProcedure)
+		conflict.ConflictResolutionProcedure = pointer.To(conflictResolutionProcedure)
 	}
 
 	return conflict

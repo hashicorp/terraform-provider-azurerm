@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2025-04-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func expandAzureRmCosmosDBIndexingPolicyIncludedPaths(input []interface{}) *[]cosmosdb.IncludedPath {
@@ -21,7 +21,7 @@ func expandAzureRmCosmosDBIndexingPolicyIncludedPaths(input []interface{}) *[]co
 	for _, v := range input {
 		includedPath := v.(map[string]interface{})
 		path := cosmosdb.IncludedPath{
-			Path: utils.String(includedPath["path"].(string)),
+			Path: pointer.To(includedPath["path"].(string)),
 		}
 
 		includedPaths = append(includedPaths, path)
@@ -39,7 +39,7 @@ func expandAzureRmCosmosDBIndexingPolicyExcludedPaths(input []interface{}) *[]co
 	for _, v := range input {
 		block := v.(map[string]interface{})
 		paths = append(paths, cosmosdb.ExcludedPath{
-			Path: utils.String(block["path"].(string)),
+			Path: pointer.To(block["path"].(string)),
 		})
 	}
 
@@ -57,7 +57,7 @@ func ExpandAzureRmCosmosDBIndexingPolicyCompositeIndexes(input []interface{}) *[
 
 			order := cosmosdb.CompositePathSortOrder(strings.ToLower(data["order"].(string)))
 			index := cosmosdb.CompositePath{
-				Path:  utils.String(data["path"].(string)),
+				Path:  pointer.To(data["path"].(string)),
 				Order: &order,
 			}
 			indexPairs = append(indexPairs, index)
@@ -85,7 +85,7 @@ func ExpandAzureRmCosmosDBIndexingPolicySpatialIndexes(input []interface{}) *[]c
 		indexPair := i.(map[string]interface{})
 		indexes = append(indexes, cosmosdb.SpatialSpec{
 			Types: &spatialTypes,
-			Path:  utils.String(indexPair["path"].(string)),
+			Path:  pointer.To(indexPair["path"].(string)),
 		})
 	}
 
