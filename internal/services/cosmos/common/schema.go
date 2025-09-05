@@ -264,7 +264,6 @@ func CosmosDbIndexingPolicyVectorIndexSchema() *pluginsdk.Schema {
 					Required:     true,
 					ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForVectorIndexType(), false),
 				},
-				// "quantizationByteSize": 64,
 			},
 		},
 	}
@@ -322,7 +321,7 @@ func CosmosDbFullTextPolicySchema() *pluginsdk.Schema {
 				"default_language": {
 					Type:         pluginsdk.TypeString,
 					Optional:     true,
-					ValidateFunc: validation.StringIsNotEmpty,
+					ValidateFunc: validation.StringInSlice([]string{"en-US"}, false),
 				},
 				"full_text_path": {
 					Type:     pluginsdk.TypeList,
@@ -337,7 +336,7 @@ func CosmosDbFullTextPolicySchema() *pluginsdk.Schema {
 							"language": {
 								Type:         pluginsdk.TypeString,
 								Optional:     true,
-								ValidateFunc: validation.StringIsNotEmpty,
+								ValidateFunc: validation.StringInSlice([]string{"en-US"}, false),
 							},
 						},
 					},

@@ -147,7 +147,6 @@ func flattenCosmosDBIndexingPolicyExcludedPaths(input *[]cosmosdb.ExcludedPath, 
 
 	excludedPaths := make([]interface{}, 0)
 
-	// Create a set of vector index paths with /* suffix for quick lookup
 	vectorExcludedPaths := make(map[string]bool)
 	if vectorIndexes != nil {
 		for _, vectorIndex := range *vectorIndexes {
@@ -157,15 +156,9 @@ func flattenCosmosDBIndexingPolicyExcludedPaths(input *[]cosmosdb.ExcludedPath, 
 	}
 
 	for _, v := range *input {
-		// _etag is automatically added by the server and should be excluded on flattening
-		// as the user isn't setting it and it will show changes in state.
-		if *v.Path == "/\"_etag\"/?" {
-			continue
-		}
-
-		// Vector index excluded paths are automatically added by Azure and should be excluded on flattening
-		// as the user isn't setting them and they will show changes in state.
-		if vectorExcludedPaths[*v.Path] {
+		// _etag and Vector index excluded paths are automatically added by the server and should be excluded on flainternal/services/cosmos/common/schema.gottening
+		// as the user isn't setting it and it will otherwise show changes in state.
+		if *v.Path == "/\"_etag\"/?" || vectorExcludedPaths[*v.Path] {
 			continue
 		}
 
