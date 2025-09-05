@@ -127,4 +127,4 @@ terraform import azurerm_machine_learning_datastore_datalake_gen2.example /subsc
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.MachineLearningServices`: 2024-04-01
+* `Microsoft.MachineLearningServices` - 2025-06-01

@@ -1,5 +1,6 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
+
 package ephemeral
 
 // MetadataRequest represents a request for the EphemeralResource to return metadata,

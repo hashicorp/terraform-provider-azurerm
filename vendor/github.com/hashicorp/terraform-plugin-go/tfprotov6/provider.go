@@ -22,6 +22,10 @@ type ProviderServer interface {
 	// and data sources.
 	GetProviderSchema(context.Context, *GetProviderSchemaRequest) (*GetProviderSchemaResponse, error)
 
+	// GetResourceIdentitySchemas is called when Terraform needs to know
+	// what the provider's resource identity schemas are.
+	GetResourceIdentitySchemas(context.Context, *GetResourceIdentitySchemasRequest) (*GetResourceIdentitySchemasResponse, error)
+
 	// ValidateProviderConfig is called to give a provider a chance to
 	// validate the configuration the user specified.
 	ValidateProviderConfig(context.Context, *ValidateProviderConfigRequest) (*ValidateProviderConfigResponse, error)
@@ -144,6 +148,26 @@ type GetProviderSchemaResponse struct {
 	// Diagnostics report errors or warnings related to returning the
 	// provider's schemas. Returning an empty slice indicates success, with
 	// no errors or warnings generated.
+	Diagnostics []*Diagnostic
+}
+
+// GetResourceIdentitySchemasRequest represents a Terraform RPC request for the
+// provider's resource identity schemas.
+type GetResourceIdentitySchemasRequest struct{}
+
+// GetResourceIdentitySchemasResponse represents a Terraform RPC response containing
+// the provider's resource identity schemas.
+type GetResourceIdentitySchemasResponse struct {
+	// IdentitySchemas is a map of resource names to the schema for the
+	// identity specified for the resource. The name should be a
+	// resource name, and should be prefixed with your provider's shortname
+	// and an underscore. It should match the first label after `resource`
+	// in a user's configuration.
+	IdentitySchemas map[string]*ResourceIdentitySchema
+
+	// Diagnostics report errors or warnings related to returning the
+	// provider's resource identity schemas. Returning an empty slice
+	// indicates success, with no errors or warnings generated.
 	Diagnostics []*Diagnostic
 }
 

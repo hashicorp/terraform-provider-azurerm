@@ -21,7 +21,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -50,6 +49,7 @@ type FunctionAppFlexConsumptionModel struct {
 	ClientCertExclusionPaths         string                     `tfschema:"client_certificate_exclusion_paths"`
 	ConnectionStrings                []helpers.ConnectionString `tfschema:"connection_string"`
 	PublicNetworkAccess              bool                       `tfschema:"public_network_access_enabled"`
+	HttpsOnly                        bool                       `tfschema:"https_only"`
 	VirtualNetworkSubnetID           string                     `tfschema:"virtual_network_subnet_id"`
 	ZipDeployFile                    string                     `tfschema:"zip_deploy_file"`
 	PublishingDeployBasicAuthEnabled bool                       `tfschema:"webdeploy_publish_basic_authentication_enabled"`
@@ -271,6 +271,13 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			Default:  true,
 		},
 
+		"https_only": {
+			Type:        pluginsdk.TypeBool,
+			Optional:    true,
+			Default:     false,
+			Description: "Can the Function App only be accessed via HTTPS?",
+		},
+
 		"webdeploy_publish_basic_authentication_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
@@ -291,7 +298,7 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 			Description:  "The local path and filename of the Zip packaged application to deploy to this Function App. **Note:** Using this value requires either `WEBSITE_RUN_FROM_PACKAGE=1` or `SCM_DO_BUILD_DURING_DEPLOYMENT=true` to be set on the App in `app_settings`.",
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }
 
@@ -494,6 +501,7 @@ func (r FunctionAppFlexConsumptionResource) Create() sdk.ResourceFunc {
 					ServerFarmId:      pointer.To(functionAppFlexConsumption.ServicePlanId),
 					Enabled:           pointer.To(functionAppFlexConsumption.Enabled),
 					SiteConfig:        siteConfig,
+					HTTPSOnly:         pointer.To(functionAppFlexConsumption.HttpsOnly),
 					FunctionAppConfig: flexFunctionAppConfig,
 					ClientCertEnabled: pointer.To(functionAppFlexConsumption.ClientCertEnabled),
 					ClientCertMode:    pointer.To(webapps.ClientCertMode(functionAppFlexConsumption.ClientCertMode)),
@@ -720,6 +728,8 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 
 				state.ClientCertEnabled = pointer.From(props.ClientCertEnabled)
 
+				state.HttpsOnly = pointer.From(props.HTTPSOnly)
+
 				if props.VirtualNetworkSubnetId != nil && pointer.From(props.VirtualNetworkSubnetId) != "" {
 					subnetId, err := commonids.ParseSubnetID(*props.VirtualNetworkSubnetId)
 					if err != nil {
@@ -886,6 +896,14 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				model.Properties.SiteConfig = siteConfig
 			}
 
+			if metadata.ResourceData.HasChange("maximum_instance_count") {
+				model.Properties.FunctionAppConfig.ScaleAndConcurrency.MaximumInstanceCount = pointer.To(state.MaximumInstanceCount)
+			}
+
+			if metadata.ResourceData.HasChange("instance_memory_in_mb") {
+				model.Properties.FunctionAppConfig.ScaleAndConcurrency.InstanceMemoryMB = pointer.To(state.InstanceMemoryInMB)
+			}
+
 			if metadata.ResourceData.HasChange("always_ready") {
 				arc, err := ExpandAlwaysReadyConfiguration(state.AlwaysReady, state.MaximumInstanceCount)
 				if err != nil {
@@ -914,6 +932,10 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				// (@jackofallops) - Values appear to need to be set in both SiteProperties and SiteConfig for now? https://github.com/Azure/azure-rest-api-specs/issues/24681
 				model.Properties.PublicNetworkAccess = pointer.To(pna)
 				model.Properties.SiteConfig.PublicNetworkAccess = model.Properties.PublicNetworkAccess
+			}
+
+			if metadata.ResourceData.HasChange("https_only") {
+				model.Properties.HTTPSOnly = pointer.To(state.HttpsOnly)
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {

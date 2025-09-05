@@ -139,4 +139,4 @@ terraform import azurerm_vmware_private_cloud.example /subscriptions/00000000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.AVS`: 2022-05-01
+* `Microsoft.AVS` - 2022-05-01

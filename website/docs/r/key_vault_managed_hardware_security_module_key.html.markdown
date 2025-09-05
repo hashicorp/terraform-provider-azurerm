@@ -12,6 +12,8 @@ Manages a Key Vault Managed Hardware Security Module Key.
 
 ~> **Note:** The Azure Provider includes a Feature Toggle which will purge a Key Vault Managed Hardware Security Module Key resource on destroy, rather than the default soft-delete. See [`purge_soft_deleted_hardware_security_modules_on_destroy`](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/features-block#purge_soft_deleted_hardware_security_module_keys_on_destroy) for more information.
 
+## Example Usage
+
 ```hcl
 data "azurerm_client_config" "current" {}
 
@@ -120,4 +122,4 @@ terraform import azurerm_key_vault_managed_hardware_security_module_key.example 
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.KeyVault`: 2023-07-01
+* `Microsoft.KeyVault` - 2023-07-01

@@ -115,6 +115,8 @@ The following arguments are supported:
 
 * `public_network_access_enabled` - (Optional) Should public network access be enabled for the Function App. Defaults to `true`.
 
+* `https_only` - (Optional) Is Https Connection enforced to the function app. Defaults to `false`
+
 * `identity` - (Optional) A `identity` block as defined below.
 
 * `sticky_settings` - (Optional) A `sticky_settings` block as defined below.
@@ -131,7 +133,7 @@ The following arguments are supported:
 
 * `maximum_instance_count` - (Optional) The number of workers this function app can scale out to.
 
-* `instance_memory_in_mb` - (Optional) The memory size of the instances on which your app runs. The [currently supported values](https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan#instance-memory) are `2048` or `4096`.
+* `instance_memory_in_mb` - (Optional) The memory size of the instances on which your app runs. Reference the Microsoft Documentation for the [currently supported values](https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan#instance-memory). Defaults to `2048`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
 
@@ -655,7 +657,9 @@ A `site_config` block supports the following:
 
 * `scm_use_main_ip_restriction` - (Optional) Should the Linux Function App `ip_restriction` configuration be used for the SCM also.
 
-* `use_32_bit_worker` - (Optional) Should the Linux Web App use a 32-bit worker. Defaults to `false`.
+* `use_32_bit_worker` - (Optional) Should the Linux Web App  Linux Function App use a 32-bit worker. Defaults to `false`.
+
+* `vnet_route_all_enabled` - (Optional) Should the Linux Function App route all traffic through the virtual network. Defaults to `false`.
 
 * `websockets_enabled` - (Optional) Should Web Sockets be enabled. Defaults to `false`.
 
@@ -742,4 +746,4 @@ terraform import azurerm_function_app_flex_consumption.example /subscriptions/12
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Web`: 2023-12-01, 2023-01-01
+* `Microsoft.Web` - 2023-12-01, 2023-01-01

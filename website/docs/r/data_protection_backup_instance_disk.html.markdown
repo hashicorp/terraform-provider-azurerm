@@ -85,6 +85,8 @@ The following arguments are supported:
 
 * `backup_policy_id` - (Required) The ID of the Backup Policy.
 
+* `snapshot_subscription_id` - (Optional) The subscription ID of the Resource Group where snapshots are stored. The default value is the subscription ID of the Backup Vault. Changing this forces a new Backup Instance Disk to be created.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -112,4 +114,4 @@ terraform import azurerm_data_protection_backup_instance_disk.example /subscript
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DataProtection`: 2024-04-01
+* `Microsoft.DataProtection` - 2024-04-01

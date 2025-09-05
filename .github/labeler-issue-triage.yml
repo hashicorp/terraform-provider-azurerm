@@ -72,7 +72,7 @@ service/cognitive-services:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(ai_services|cognitive_)((.|\n)*)###'
 
 service/communication:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(communication_service|email_communication_service|gallery_application|orchestrated_virtual_machine_scale_set\W+|restore_point_collection|virtual_machine_gallery_application_assignment\W+|virtual_machine_implicit_data_disk_from_source\W+|virtual_machine_restore_point\W+|virtual_machine_restore_point_collection\W+|virtual_machine_run_command\W+|virtual_machine_scale_set_standby_pool\W+)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(communication_service|email_communication_service|gallery_application|managed_disks|orchestrated_virtual_machine_scale_set\W+|restore_point_collection|virtual_machine_gallery_application_assignment\W+|virtual_machine_implicit_data_disk_from_source\W+|virtual_machine_restore_point\W+|virtual_machine_restore_point_collection\W+|virtual_machine_run_command\W+|virtual_machine_scale_set_standby_pool\W+)((.|\n)*)###'
 
 service/connections:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(api_connection|managed_api)((.|\n)*)###'
@@ -280,6 +280,9 @@ service/private-dns-resolver:
 
 service/purview:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_purview_account((.|\n)*)###'
+
+service/qumulo:
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_qumulo_file_system((.|\n)*)###'
 
 service/recovery-services:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(backup_|recovery_services_vault|site_recovery_)((.|\n)*)###'

@@ -29,7 +29,8 @@ type TagRulesResourceModel struct {
 }
 
 type MetricRule struct {
-	FilteringTags []FilteringTag `tfschema:"filtering_tag"`
+	FilteringTags  []FilteringTag `tfschema:"filtering_tag"`
+	SendingMetrics bool           `tfschema:"sending_metrics_enabled"`
 }
 
 type LogRule struct {
@@ -152,6 +153,11 @@ func (r TagRulesResource) Arguments() map[string]*schema.Schema {
 								},
 							},
 						},
+					},
+					"sending_metrics_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Optional: true,
+						Default:  false,
 					},
 				},
 			},

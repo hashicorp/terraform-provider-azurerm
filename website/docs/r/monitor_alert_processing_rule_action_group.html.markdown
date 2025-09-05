@@ -279,4 +279,4 @@ terraform import azurerm_monitor_alert_processing_rule_action_group.example /sub
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.AlertsManagement`: 2021-08-08
+* `Microsoft.AlertsManagement` - 2021-08-08

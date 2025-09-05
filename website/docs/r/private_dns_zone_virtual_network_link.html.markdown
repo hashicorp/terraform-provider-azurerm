@@ -52,6 +52,8 @@ The following arguments are supported:
 
 * `registration_enabled` - (Optional) Is auto-registration of virtual machine records in the virtual network in the Private DNS zone enabled? Defaults to `false`.
 
+* `resolution_policy` - (Optional) Specifies the resolution policy of the Private DNS Zone Virtual Network Link. Possible values are `Default` and `NxDomainRedirect`. 
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
@@ -81,4 +83,4 @@ terraform import azurerm_private_dns_zone_virtual_network_link.link1 /subscripti
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2024-06-01
+* `Microsoft.Network` - 2024-06-01

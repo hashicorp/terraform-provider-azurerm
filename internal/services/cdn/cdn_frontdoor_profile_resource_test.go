@@ -221,12 +221,12 @@ func TestAccCdnFrontDoorProfile_withSystemAndUserIdentity_update(t *testing.T) {
 	})
 }
 
-func TestAccCdnFrontDoorProfile_skuDowngradeError(t *testing.T) {
+func TestAccCdnFrontDoorProfile_skuDowngrade_validation(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
 	r := CdnFrontDoorProfileResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basicPremium(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -234,8 +234,37 @@ func TestAccCdnFrontDoorProfile_skuDowngradeError(t *testing.T) {
 		data.ImportStep(),
 		{
 			Config:      r.basic(data),
-			ExpectError: regexp.MustCompile(`downgrading from the "Premium_AzureFrontDoor" sku to the "Standard_AzureFrontDoor" sku is not supported`),
+			ExpectError: regexp.MustCompile("downgrading `sku_name` from `Premium_AzureFrontDoor` to `Standard_AzureFrontDoor` is not supported"),
 		},
+	})
+}
+
+func TestAccCdnFrontDoorProfile_logScrubbing_update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cdn_frontdoor_profile", "test")
+	r := CdnFrontDoorProfileResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.logScrubbing(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
@@ -256,6 +285,21 @@ func (r CdnFrontDoorProfileResource) Exists(ctx context.Context, clients *client
 	return utils.Bool(true), nil
 }
 
+func (r CdnFrontDoorProfileResource) template(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-cdn-afdx-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test" {
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "acctestAFD-%d"
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
 func (r CdnFrontDoorProfileResource) basic(data acceptance.TestData) string {
 	template := r.template(data)
 	return fmt.Sprintf(`
@@ -269,23 +313,10 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestprofile-%d"
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Standard_AzureFrontDoor"
-}
-`, template, data.RandomInteger)
-}
 
-func (r CdnFrontDoorProfileResource) basicPremium(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%s
-
-resource "azurerm_cdn_frontdoor_profile" "test" {
-  name                = "acctestprofile-%d"
-  resource_group_name = azurerm_resource_group.test.name
-  sku_name            = "Premium_AzureFrontDoor"
+  tags = {
+    environment = "Production"
+  }
 }
 `, template, data.RandomInteger)
 }
@@ -296,13 +327,20 @@ func (r CdnFrontDoorProfileResource) basicWithSystemIdentity(data acceptance.Tes
 provider "azurerm" {
   features {}
 }
+
 %s
+
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestprofile-%d"
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Standard_AzureFrontDoor"
+
   identity {
     type = "SystemAssigned"
+  }
+
+  tags = {
+    environment = "Production"
   }
 }
 `, template, data.RandomInteger)
@@ -314,14 +352,21 @@ func (r CdnFrontDoorProfileResource) basicWithUserIdentity(data acceptance.TestD
 provider "azurerm" {
   features {}
 }
+
 %s
+
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestprofile-%d"
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Standard_AzureFrontDoor"
+
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  tags = {
+    environment = "Production"
   }
 }
 `, template, data.RandomInteger)
@@ -333,14 +378,21 @@ func (r CdnFrontDoorProfileResource) basicWithSystemAndUserIdentity(data accepta
 provider "azurerm" {
   features {}
 }
+
 %s
+
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                = "acctestprofile-%d"
   resource_group_name = azurerm_resource_group.test.name
   sku_name            = "Standard_AzureFrontDoor"
+
   identity {
     type         = "SystemAssigned, UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  tags = {
+    environment = "Production"
   }
 }
 `, template, data.RandomInteger)
@@ -375,7 +427,7 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
   sku_name                 = "Premium_AzureFrontDoor"
 
   tags = {
-    ENV = "Test"
+    environment = "Production"
   }
 }
 `, template, data.RandomInteger)
@@ -398,7 +450,7 @@ resource "azurerm_cdn_frontdoor_profile" "test" {
   response_timeout_seconds = 120
 
   tags = {
-    ENV = "Production"
+    environment = "Production"
   }
 }
 `, template, data.RandomInteger)
@@ -410,17 +462,21 @@ func (r CdnFrontDoorProfileResource) updateWithSystemIdentity(data acceptance.Te
 provider "azurerm" {
   features {}
 }
+
 %s
+
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                     = "acctestprofile-%d"
   resource_group_name      = azurerm_resource_group.test.name
   sku_name                 = "Premium_AzureFrontDoor"
   response_timeout_seconds = 120
+
   identity {
     type = "SystemAssigned"
   }
+
   tags = {
-    ENV = "Production"
+    environment = "Production"
   }
 }
 `, template, data.RandomInteger)
@@ -432,57 +488,81 @@ func (r CdnFrontDoorProfileResource) updateWithUserIdentity(data acceptance.Test
 provider "azurerm" {
   features {}
 }
+
 %s
+
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                     = "acctestprofile-%d"
   resource_group_name      = azurerm_resource_group.test.name
   sku_name                 = "Premium_AzureFrontDoor"
   response_timeout_seconds = 120
+
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
+
   tags = {
-    ENV = "Production"
+    environment = "Production"
   }
 }
 `, template, data.RandomInteger)
 }
 
 func (r CdnFrontDoorProfileResource) updateWithSystemAndUserIdentity(data acceptance.TestData) string {
-	template := r.template(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
+
 %s
+
 resource "azurerm_cdn_frontdoor_profile" "test" {
   name                     = "acctestprofile-%d"
   resource_group_name      = azurerm_resource_group.test.name
   sku_name                 = "Premium_AzureFrontDoor"
   response_timeout_seconds = 120
+
   identity {
     type         = "SystemAssigned, UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.test.id]
   }
+
   tags = {
-    ENV = "Production"
+    environment = "Production"
   }
 }
-`, template, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
-func (CdnFrontDoorProfileResource) template(data acceptance.TestData) string {
+func (r CdnFrontDoorProfileResource) logScrubbing(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-resource "azurerm_resource_group" "test" {
-  name     = "acctestRG-cdn-afdx-%d"
-  location = "%s"
+provider "azurerm" {
+  features {}
 }
 
-resource "azurerm_user_assigned_identity" "test" {
+%s
+
+resource "azurerm_cdn_frontdoor_profile" "test" {
+  name                = "acctestprofile-%d"
   resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-  name                = "acctestAFD-%d"
+  sku_name            = "Premium_AzureFrontDoor"
+
+  log_scrubbing_rule {
+    match_variable = "QueryStringArgNames"
+  }
+
+  log_scrubbing_rule {
+    match_variable = "RequestIPAddress"
+  }
+
+  log_scrubbing_rule {
+    match_variable = "RequestUri"
+  }
+
+  tags = {
+    environment = "Production"
+  }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
