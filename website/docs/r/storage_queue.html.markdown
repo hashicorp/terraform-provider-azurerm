@@ -42,7 +42,7 @@ The following arguments are supported:
 
 * `storage_account_id` - (Optional) The name of the Storage Account where the Storage Queue should be created. Changing this forces a new resource to be created.
 
-~> **NOTE:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
+~> **Note:** One of `storage_account_name` or `storage_account_id` must be specified. When specifying `storage_account_id` the resource will use the Resource Manager API, rather than the Data Plane API.
 
 * `metadata` - (Optional) A mapping of MetaData which should be assigned to this Storage Queue.
 
@@ -80,3 +80,9 @@ If `storage_account_id` is used:
 ```shell
 terraform import azurerm_storage_queue.queue1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/myresourcegroup/providers/Microsoft.Storage/storageAccounts/myaccount/queueServices/default/queues
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Storage` - 2023-05-01

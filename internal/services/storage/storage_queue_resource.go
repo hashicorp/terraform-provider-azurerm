@@ -40,9 +40,11 @@ func resourceStorageQueue() *pluginsdk.Resource {
 					_, err := queueservice.ParseQueueID(id)
 					return err
 				}
+				_, err := queues.ParseQueueID(id, storageDomainSuffix)
+				return err
 			}
 
-			_, err := queues.ParseQueueID(id, storageDomainSuffix)
+			_, err := queueservice.ParseQueueID(id)
 			return err
 		}),
 
