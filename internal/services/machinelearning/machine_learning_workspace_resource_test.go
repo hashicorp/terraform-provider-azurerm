@@ -106,6 +106,21 @@ func TestAccMachineLearningWorkspace_complete(t *testing.T) {
 	})
 }
 
+func TestAccMachineLearningWorkspace_serviceSideEncryptionDisabled(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
+	r := WorkspaceResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.serviceSideEncryptionDisabled(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccMachineLearningWorkspace_completeUpdate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_machine_learning_workspace", "test")
 	r := WorkspaceResource{}
@@ -552,6 +567,81 @@ resource "azurerm_machine_learning_workspace" "test" {
   managed_network {
     isolation_mode                = "AllowInternetOutbound"
     provision_on_creation_enabled = true
+  }
+
+  tags = {
+    ENV = "Test"
+  }
+}
+`, template, data.RandomIntOfLength(16))
+}
+
+func (r WorkspaceResource) serviceSideEncryptionDisabled(data acceptance.TestData) string {
+	template := r.template(data)
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy       = false
+      purge_soft_deleted_keys_on_destroy = false
+    }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
+}
+
+%[1]s
+
+resource "azurerm_container_registry" "test" {
+  name                = "acctestacr%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku                 = "Premium"
+  admin_enabled       = true
+}
+
+resource "azurerm_key_vault_key" "test" {
+  name         = "acctest-kv-key-%[2]d"
+  key_vault_id = azurerm_key_vault.test.id
+  key_type     = "RSA"
+  key_size     = 2048
+
+  key_opts = [
+    "decrypt",
+    "encrypt",
+    "sign",
+    "unwrapKey",
+    "verify",
+    "wrapKey",
+  ]
+
+  depends_on = [azurerm_key_vault.test, azurerm_key_vault_access_policy.test]
+}
+
+resource "azurerm_machine_learning_workspace" "test" {
+  name                            = "acctest-MLW-%[2]d"
+  location                        = azurerm_resource_group.test.location
+  resource_group_name             = azurerm_resource_group.test.name
+  friendly_name                   = "test-workspace"
+  description                     = "Test machine learning workspace"
+  application_insights_id         = azurerm_application_insights.test.id
+  key_vault_id                    = azurerm_key_vault.test.id
+  storage_account_id              = azurerm_storage_account.test.id
+  container_registry_id           = azurerm_container_registry.test.id
+  sku_name                        = "Basic"
+  public_network_access_enabled   = true
+  image_build_compute_name        = "terraformCompute"
+  service_side_encryption_enabled = false
+  v1_legacy_mode_enabled          = false
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  encryption {
+    key_vault_id = azurerm_key_vault.test.id
+    key_id       = azurerm_key_vault_key.test.id
   }
 
   tags = {
