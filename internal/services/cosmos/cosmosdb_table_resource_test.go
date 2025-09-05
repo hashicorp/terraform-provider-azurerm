@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	
+
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2025-04-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"

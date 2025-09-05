@@ -79,4 +79,4 @@ terraform import azurerm_cosmosdb_sql_dedicated_gateway.example /subscriptions/0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DocumentDB` - 2022-05-15
+* `Microsoft.DocumentDB` - 2025-04-15
