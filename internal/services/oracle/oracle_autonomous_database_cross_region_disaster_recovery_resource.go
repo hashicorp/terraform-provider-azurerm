@@ -245,7 +245,7 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Attributes() map[st
 }
 
 func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) ModelObject() interface{} {
-	return &AutonomousDatabaseCrossRegionDisasterRecoveryResource{}
+	return &AutonomousDatabaseCrossRegionDisasterRecoveryResourceModel{}
 }
 
 func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) ResourceType() string {
@@ -261,7 +261,7 @@ func (r AutonomousDatabaseCrossRegionDisasterRecoveryResource) Create() sdk.Reso
 
 			var model AutonomousDatabaseCrossRegionDisasterRecoveryResourceModel
 			if err := metadata.Decode(&model); err != nil {
-				return err
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			id := autonomousdatabases.NewAutonomousDatabaseID(subscriptionId,
@@ -293,7 +293,7 @@ func (r AutonomousDatabaseCrossRegionDisasterRecoveryResource) Create() sdk.Reso
 					ComputeCount:                   pointer.To(model.ComputeCount),
 					ComputeModel:                   pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
 					CustomerContacts:               pointer.To(expandAdbsCustomerContacts25(model.CustomerContacts)),
-					DataBaseType:                   "CrossRegionDisasterRecovery",
+					DataBaseType:                   autonomousdatabases.DataBaseTypeCrossRegionDisasterRecovery,
 					DataStorageSizeInTbs:           pointer.To(model.DataStorageSizeInTbs),
 					DbWorkload:                     pointer.To(autonomousdatabases.WorkloadType(model.DbWorkload)),
 					DbVersion:                      pointer.To(model.DbVersion),
@@ -325,12 +325,12 @@ func (r AutonomousDatabaseCrossRegionDisasterRecoveryResource) Update() sdk.Reso
 			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
 			id, err := autonomousdatabases.ParseAutonomousDatabaseID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", id, err)
+				return fmt.Errorf("parsing %q: %+v", metadata.ResourceData.Id(), err)
 			}
 
 			var model AutonomousDatabaseCrossRegionDisasterRecoveryResourceModel
 			if err = metadata.Decode(&model); err != nil {
-				return fmt.Errorf("decoding err: %+v", err)
+				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			_, err = client.Get(ctx, *id)
@@ -359,7 +359,7 @@ func (r AutonomousDatabaseCrossRegionDisasterRecoveryResource) Update() sdk.Reso
 
 			err = client.UpdateThenPoll(ctx, *id, *update)
 			if err != nil {
-				return fmt.Errorf("updating %s: %v", id, err)
+				return fmt.Errorf("updating %s: %+v", id, err)
 			}
 
 			return nil
@@ -373,7 +373,7 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Read() sdk.Resource
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			id, err := autonomousdatabases.ParseAutonomousDatabaseID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", id, err)
+				return fmt.Errorf("parsing %q: %+v", metadata.ResourceData.Id(), err)
 			}
 
 			client := metadata.Client.Oracle.OracleClient.AutonomousDatabases
@@ -416,7 +416,6 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Read() sdk.Resource
 				state.DisplayName = pointer.From(props.DisplayName)
 				state.LicenseModel = pointer.FromEnum(props.LicenseModel)
 				state.Location = result.Model.Location
-				state.Name = pointer.ToString(result.Model.Name)
 				state.NationalCharacterSet = pointer.From(props.NcharacterSet)
 				state.SubnetId = pointer.From(props.SubnetId)
 				state.Tags = pointer.From(result.Model.Tags)
@@ -435,7 +434,7 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Delete() sdk.Resour
 
 			id, err := autonomousdatabases.ParseAutonomousDatabaseID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", id, err)
+				return fmt.Errorf("parsing %q: %+v", metadata.ResourceData.Id(), err)
 			}
 
 			if err = client.DeleteThenPoll(ctx, *id); err != nil {
