@@ -3172,6 +3172,11 @@ func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedCl
 		return []interface{}{}
 	}
 
+	// API access profile can be managed by other properties, only return it if one of the properties has been set
+	if profile.AuthorizedIPRanges == nil && profile.EnableVnetIntegration == nil && profile.SubnetId == nil {
+		return []interface{}{}
+	}
+
 	apiServerAuthorizedIPRanges := utils.FlattenStringSlice(profile.AuthorizedIPRanges)
 	enableVnetIntegration := pointer.From(profile.EnableVnetIntegration)
 	subnetId := pointer.From(profile.SubnetId)
