@@ -77,16 +77,16 @@ type AutonomousDatabaseCloneFromBackupDataSourceModel struct {
 	ProvisionableCPUs                             []int64                         `tfschema:"provisionable_cpus"`
 	RemoteDataGuardEnabled                        bool                            `tfschema:"remote_data_guard_enabled"`
 	SupportedRegionsToCloneTo                     []string                        `tfschema:"supported_regions_to_clone_to"`
-	TimeDataGuardRoleChangedUtc                   string                          `tfschema:"time_data_guard_role_changed_utc"`
-	TimeDeletionOfFreeAutonomousDatabaseUtc       string                          `tfschema:"time_deletion_of_free_autonomous_database_utc"`
-	TimeLocalDataGuardEnabledUtc                  string                          `tfschema:"time_local_data_guard_enabled_utc"`
-	TimeMaintenanceBeginUtc                       string                          `tfschema:"time_maintenance_begin_utc"`
-	TimeMaintenanceEndUtc                         string                          `tfschema:"time_maintenance_end_utc"`
-	TimeOfLastFailoverUtc                         string                          `tfschema:"time_of_last_failover_utc"`
-	TimeOfLastRefreshUtc                          string                          `tfschema:"time_of_last_refresh_utc"`
-	TimeOfLastRefreshPointUtc                     string                          `tfschema:"time_of_last_refresh_point_utc"`
-	TimeOfLastSwitchoverUtc                       string                          `tfschema:"time_of_last_switchover_utc"`
-	TimeReclamationOfFreeAutonomousDatabaseUtc    string                          `tfschema:"time_reclamation_of_free_autonomous_database_utc"`
+	TimeDataGuardRoleChangedInUtc                 string                          `tfschema:"time_data_guard_role_changed_in_utc"`
+	TimeDeletionOfFreeAutonomousDatabaseInUtc     string                          `tfschema:"time_deletion_of_free_autonomous_database_in_utc"`
+	TimeLocalDataGuardEnabledInUtc                string                          `tfschema:"time_local_data_guard_enabled_in_utc"`
+	TimeMaintenanceBeginInUtc                     string                          `tfschema:"time_maintenance_begin_in_utc"`
+	TimeMaintenanceEndInUtc                       string                          `tfschema:"time_maintenance_end_in_utc"`
+	TimeOfLastFailoverInUtc                       string                          `tfschema:"time_of_last_failover_in_utc"`
+	TimeOfLastRefreshInUtc                        string                          `tfschema:"time_of_last_refresh_in_utc"`
+	TimeOfLastRefreshPointInUtc                   string                          `tfschema:"time_of_last_refresh_point_in_utc"`
+	TimeOfLastSwitchoverInUtc                     string                          `tfschema:"time_of_last_switchover_in_utc"`
+	TimeReclamationOfFreeAutonomousDatabaseInUtc  string                          `tfschema:"time_reclamation_of_free_autonomous_database_in_utc"`
 	UsedDataStorageSizeInGb                       int64                           `tfschema:"used_data_storage_size_in_gb"`
 	UsedDataStorageSizeInTb                       int64                           `tfschema:"used_data_storage_size_in_tb"`
 }
@@ -384,52 +384,52 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Attributes() map[string]*plug
 			Computed: true,
 		},
 
-		"time_data_guard_role_changed_utc": {
+		"time_data_guard_role_changed_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"time_deletion_of_free_autonomous_database_utc": {
+		"time_deletion_of_free_autonomous_database_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"time_local_data_guard_enabled_utc": {
+		"time_local_data_guard_enabled_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"time_maintenance_begin_utc": {
+		"time_maintenance_begin_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"time_maintenance_end_utc": {
+		"time_maintenance_end_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"time_of_last_failover_utc": {
+		"time_of_last_failover_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"time_of_last_refresh_utc": {
+		"time_of_last_refresh_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"time_of_last_refresh_point_utc": {
+		"time_of_last_refresh_point_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"time_of_last_switchover_utc": {
+		"time_of_last_switchover_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"time_reclamation_of_free_autonomous_database_utc": {
+		"time_reclamation_of_free_autonomous_database_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -536,16 +536,16 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Read() sdk.ResourceFunc {
 				state.SubnetId = pointer.From(props.SubnetId)
 				state.SupportedRegionsToCloneTo = pointer.From(props.SupportedRegionsToCloneTo)
 				state.TimeCreatedUtc = pointer.From(props.TimeCreated)
-				state.TimeDataGuardRoleChangedUtc = pointer.From(props.TimeDataGuardRoleChanged)
-				state.TimeDeletionOfFreeAutonomousDatabaseUtc = pointer.From(props.TimeDeletionOfFreeAutonomousDatabase)
-				state.TimeLocalDataGuardEnabledUtc = pointer.From(props.TimeLocalDataGuardEnabled)
-				state.TimeMaintenanceBeginUtc = pointer.From(props.TimeMaintenanceBegin)
-				state.TimeMaintenanceEndUtc = pointer.From(props.TimeMaintenanceEnd)
-				state.TimeOfLastFailoverUtc = pointer.From(props.TimeOfLastFailover)
-				state.TimeOfLastRefreshUtc = pointer.From(props.TimeOfLastRefresh)
-				state.TimeOfLastRefreshPointUtc = pointer.From(props.TimeOfLastRefreshPoint)
-				state.TimeOfLastSwitchoverUtc = pointer.From(props.TimeOfLastSwitchover)
-				state.TimeReclamationOfFreeAutonomousDatabaseUtc = pointer.From(props.TimeReclamationOfFreeAutonomousDatabase)
+				state.TimeDataGuardRoleChangedInUtc = pointer.From(props.TimeDataGuardRoleChanged)
+				state.TimeDeletionOfFreeAutonomousDatabaseInUtc = pointer.From(props.TimeDeletionOfFreeAutonomousDatabase)
+				state.TimeLocalDataGuardEnabledInUtc = pointer.From(props.TimeLocalDataGuardEnabled)
+				state.TimeMaintenanceBeginInUtc = pointer.From(props.TimeMaintenanceBegin)
+				state.TimeMaintenanceEndInUtc = pointer.From(props.TimeMaintenanceEnd)
+				state.TimeOfLastFailoverInUtc = pointer.From(props.TimeOfLastFailover)
+				state.TimeOfLastRefreshInUtc = pointer.From(props.TimeOfLastRefresh)
+				state.TimeOfLastRefreshPointInUtc = pointer.From(props.TimeOfLastRefreshPoint)
+				state.TimeOfLastSwitchoverInUtc = pointer.From(props.TimeOfLastSwitchover)
+				state.TimeReclamationOfFreeAutonomousDatabaseInUtc = pointer.From(props.TimeReclamationOfFreeAutonomousDatabase)
 				state.UsedDataStorageSizeInGb = pointer.From(props.UsedDataStorageSizeInGbs)
 				state.UsedDataStorageSizeInTb = pointer.From(props.UsedDataStorageSizeInTbs)
 				state.VnetId = pointer.From(props.VnetId)

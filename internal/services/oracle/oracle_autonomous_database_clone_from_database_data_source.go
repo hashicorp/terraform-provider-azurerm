@@ -83,16 +83,16 @@ type AutonomousDatabaseCloneFromDatabaseDataSourceModel struct {
 	SubnetId                                      string                          `tfschema:"subnet_id"`
 	SupportedRegionsToCloneTo                     []string                        `tfschema:"supported_regions_to_clone_to"`
 	TimeCreatedUtc                                string                          `tfschema:"time_created_in_utc"`
-	TimeDataGuardRoleChangedUtc                   string                          `tfschema:"time_data_guard_role_changed_utc"`
-	TimeDeletionOfFreeAutonomousDatabaseUtc       string                          `tfschema:"time_deletion_of_free_autonomous_database_utc"`
-	TimeLocalDataGuardEnabledUtc                  string                          `tfschema:"time_local_data_guard_enabled_on_utc"`
-	TimeMaintenanceBeginUtc                       string                          `tfschema:"time_maintenance_begin_utc"`
-	TimeMaintenanceEndUtc                         string                          `tfschema:"time_maintenance_end_utc"`
-	TimeOfLastFailoverUtc                         string                          `tfschema:"time_of_last_failover_utc"`
-	TimeOfLastRefreshUtc                          string                          `tfschema:"time_of_last_refresh_utc"`
-	TimeOfLastRefreshPointUtc                     string                          `tfschema:"time_of_last_refresh_point_utc"`
-	TimeOfLastSwitchoverUtc                       string                          `tfschema:"time_of_last_switchover_utc"`
-	TimeReclamationOfFreeAutonomousDatabaseUtc    string                          `tfschema:"time_reclamation_of_free_autonomous_database_utc"`
+	TimeDataGuardRoleChangedInUtc                 string                          `tfschema:"time_data_guard_role_changed_in_utc"`
+	TimeDeletionOfFreeAutonomousDatabaseInUtc     string                          `tfschema:"time_deletion_of_free_autonomous_database_in_utc"`
+	TimeLocalDataGuardEnabledInUtc                string                          `tfschema:"time_local_data_guard_enabled_on_utc"`
+	TimeMaintenanceBeginInUtc                     string                          `tfschema:"time_maintenance_begin_in_utc"`
+	TimeMaintenanceEndInUtc                       string                          `tfschema:"time_maintenance_end_in_utc"`
+	TimeOfLastFailoverInUtc                       string                          `tfschema:"time_of_last_failover_in_utc"`
+	TimeOfLastRefreshInUtc                        string                          `tfschema:"time_of_last_refresh_in_utc"`
+	TimeOfLastRefreshPointInUtc                   string                          `tfschema:"time_of_last_refresh_point_in_utc"`
+	TimeOfLastSwitchoverInUtc                     string                          `tfschema:"time_of_last_switchover_in_utc"`
+	TimeReclamationOfFreeAutonomousDatabaseInUtc  string                          `tfschema:"time_reclamation_of_free_autonomous_database_in_utc"`
 	UsedDataStorageSizeInGb                       int64                           `tfschema:"used_data_storage_size_in_gb"`
 	UsedDataStorageSizeInTb                       int64                           `tfschema:"used_data_storage_size_in_tb"`
 	VnetId                                        string                          `tfschema:"virtual_network_id"`
@@ -424,12 +424,12 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Attributes() map[string]*pl
 			Computed: true,
 		},
 
-		"time_data_guard_role_changed_utc": {
+		"time_data_guard_role_changed_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"time_deletion_of_free_autonomous_database_utc": {
+		"time_deletion_of_free_autonomous_database_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -439,37 +439,37 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Attributes() map[string]*pl
 			Computed: true,
 		},
 
-		"time_maintenance_begin_utc": {
+		"time_maintenance_begin_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"time_maintenance_end_utc": {
+		"time_maintenance_end_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"time_of_last_failover_utc": {
+		"time_of_last_failover_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"time_of_last_refresh_utc": {
+		"time_of_last_refresh_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"time_of_last_refresh_point_utc": {
+		"time_of_last_refresh_point_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"time_of_last_switchover_utc": {
+		"time_of_last_switchover_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
 
-		"time_reclamation_of_free_autonomous_database_utc": {
+		"time_reclamation_of_free_autonomous_database_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},

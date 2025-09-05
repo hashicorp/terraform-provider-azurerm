@@ -123,25 +123,25 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `time_created_in_utc` - The timestamp the Autonomous Database was created.
 
-* `time_data_guard_role_changed_utc` - The timestamp the Autonomous Data Guard role was switched for the Autonomous Database. For databases that have standbys in both the primary Data Guard region and a remote Data Guard standby region, this is the latest timestamp of either the database using the "primary" role in the primary Data Guard region, or database located in the remote Data Guard standby region.
+* `time_data_guard_role_changed_in_utc` - The timestamp the Autonomous Data Guard role was switched for the Autonomous Database. For databases that have standbys in both the primary Data Guard region and a remote Data Guard standby region, this is the latest timestamp of either the database using the "primary" role in the primary Data Guard region, or database located in the remote Data Guard standby region.
 
-* `time_deletion_of_free_autonomous_database_utc` - The timestamp the Always Free database will be automatically deleted because of inactivity. If the database is in the STOPPED state and without activity until this time, it will be deleted.
+* `time_deletion_of_free_autonomous_database_in_utc` - The timestamp the Always Free database will be automatically deleted because of inactivity. If the database is in the STOPPED state and without activity until this time, it will be deleted.
 
 * `time_local_data_guard_enabled_on_utc` - The timestamp that Autonomous Data Guard was enabled for an Autonomous Database where the standby was provisioned in the same region as the primary database.
 
-* `time_maintenance_begin_utc` -  The timestamp when maintenance will begin.
+* `time_maintenance_begin_in_utc` -  The timestamp when maintenance will begin.
 
-* `time_maintenance_end_utc` -  The timestamp when maintenance will end.
+* `time_maintenance_end_in_utc` -  The timestamp when maintenance will end.
 
-* `time_of_last_failover_utc` - The timestamp of the last failover operation.
+* `time_of_last_failover_in_utc` - The timestamp of the last failover operation.
 
-* `time_of_last_refresh_utc` - The timestamp when last refresh happened.
+* `time_of_last_refresh_in_utc` - The timestamp when last refresh happened.
 
-* `time_of_last_refresh_point_utc` - The refresh point timestamp (UTC). The refresh point is the time to which the database was most recently refreshed. Data created after the refresh point is not included in the refresh.
+* `time_of_last_refresh_point_in_utc` - The refresh point timestamp (UTC). The refresh point is the time to which the database was most recently refreshed. Data created after the refresh point is not included in the refresh.
 
-* `time_of_last_switchover_utc` - The timestamp of the last switchover operation for the Autonomous Database.
+* `time_of_last_switchover_in_utc` - The timestamp of the last switchover operation for the Autonomous Database.
 
-* `time_reclamation_of_free_autonomous_database_utc` - The timestamp the Always Free database will be stopped because of inactivity. If this time is reached without any database activity, the database will automatically be put into the STOPPED state.
+* `time_reclamation_of_free_autonomous_database_in_utc` - The timestamp the Always Free database will be stopped because of inactivity. If this time is reached without any database activity, the database will automatically be put into the STOPPED state.
 
 * `used_data_storage_size_in_gb` - The storage space consumed by Autonomous Database in GBs.
 
