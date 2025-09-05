@@ -48,6 +48,7 @@ type ScheduledQueryRulesAlertV2Model struct {
 type ScheduledQueryRulesAlertV2ActionsModel struct {
 	ActionGroups     []string          `tfschema:"action_groups"`
 	CustomProperties map[string]string `tfschema:"custom_properties"`
+	EmailSubject     string            `tfschema:"email_subject"`
 }
 
 type ScheduledQueryRulesAlertV2CriteriaModel struct {
@@ -293,6 +294,11 @@ func (r ScheduledQueryRulesAlertV2Resource) Arguments() map[string]*pluginsdk.Sc
 						Elem: &pluginsdk.Schema{
 							Type: pluginsdk.TypeString,
 						},
+					},
+					"email_subject": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: validation.StringIsNotEmpty,
 					},
 				},
 			},
@@ -763,6 +769,16 @@ func expandScheduledQueryRulesAlertV2ActionsModel(inputList []ScheduledQueryRule
 		CustomProperties: &input.CustomProperties,
 	}
 
+	if input.EmailSubject != "" {
+		m := map[string]string{
+			"Email.Subject": input.EmailSubject,
+		}
+		output.ActionProperties = &m
+	} else {
+		m := map[string]string{}
+		output.ActionProperties = &m
+	}
+
 	return &output
 }
 
@@ -842,6 +858,12 @@ func flattenScheduledQueryRulesAlertV2ActionsModel(input *scheduledqueryrules.Ac
 
 	if input.CustomProperties != nil {
 		output.CustomProperties = *input.CustomProperties
+	}
+
+	if input.ActionProperties != nil {
+		if s, ok := (*input.ActionProperties)["Email.Subject"]; ok {
+			output.EmailSubject = s
+		}
 	}
 
 	return append(outputList, output)
