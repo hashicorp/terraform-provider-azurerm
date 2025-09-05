@@ -1,6 +1,7 @@
 ## 4.44.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_netapp_volume` - add support for `accept_grow_capacity_pool_for_short_term_clone_split`  [GH-30494]
 
 FEATURES:
 
