@@ -25,6 +25,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/postgres/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -185,6 +186,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 					string(servers.CreateModeDefault),
 					string(servers.CreateModePointInTimeRestore),
 					string(servers.CreateModeReplica),
+					string(servers.CreateModeReviveDropped),
 					string(servers.CreateModeGeoRestore),
 					string(servers.CreateModeUpdate),
 				}, false),
@@ -306,7 +308,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}, false),
 			},
 
-			"identity": commonschema.SystemOrUserAssignedIdentityOptional(),
+			"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
 
 			"customer_managed_key": {
 				Type:     pluginsdk.TypeList,
@@ -318,7 +320,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 						"key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: keyVaultValidate.NestedItemId,
+							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 							RequiredWith: []string{
 								"identity",
 								"customer_managed_key.0.primary_user_assigned_identity_id",
@@ -332,7 +334,7 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 						"geo_backup_key_vault_key_id": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: keyVaultValidate.NestedItemId,
+							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
 							RequiredWith: []string{
 								"identity",
 								"customer_managed_key.0.geo_backup_user_assigned_identity_id",
@@ -351,31 +353,17 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 		},
 
 		CustomizeDiff: pluginsdk.CustomDiffWithAll(func(ctx context.Context, d *pluginsdk.ResourceDiff, v interface{}) error {
-			createModeVal := d.Get("create_mode").(string)
-
-			if createModeVal == string(servers.CreateModeUpdate) {
+			if d.HasChange("version") {
 				oldVersionVal, newVersionVal := d.GetChange("version")
+				// `version` value has been validated already, ignore the parse errors is safe
+				oldVersion, _ := strconv.ParseInt(oldVersionVal.(string), 10, 32)
+				newVersion, _ := strconv.ParseInt(newVersionVal.(string), 10, 32)
 
-				if oldVersionVal != "" && newVersionVal != "" {
-					oldVersion, err := strconv.ParseInt(oldVersionVal.(string), 10, 32)
-					if err != nil {
-						return err
-					}
-
-					newVersion, err := strconv.ParseInt(newVersionVal.(string), 10, 32)
-					if err != nil {
-						return err
-					}
-
-					if oldVersion < newVersion {
-						return nil
-					}
+				if oldVersion > newVersion {
+					d.ForceNew("version")
 				}
+				return nil
 			}
-
-			d.ForceNew("create_mode")
-			d.ForceNew("version")
-
 			return nil
 		}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
 			oldLoginName, _ := diff.GetChange("administrator_login")
@@ -400,6 +388,11 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 
 			newMb = newStorageMbRaw.(int)
 			newTier = newTierRaw.(string)
+
+			// if newMb is smaller than oldStorageMb, it's a downgrade need to trigger a force new
+			if newMb > 0 && oldStorageMbRaw.(int) > newMb {
+				diff.ForceNew("storage_mb")
+			}
 
 			// if newMb or newTier values are empty,
 			// assign the default values that will
@@ -441,6 +434,27 @@ func resourcePostgresqlFlexibleServer() *pluginsdk.Resource {
 				}
 
 				return fmt.Errorf("invalid 'storage_tier' %q for defined 'storage_mb' size '%d', expected one of [%s]", newTier, newMb, azure.QuotedStringSlice(*storageTiers.ValidTiers))
+			}
+
+			return nil
+		}, func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			oldIdentityRaw, newIdentityRaw := diff.GetChange("identity")
+			oldIdentity := oldIdentityRaw.([]interface{})
+			oldIdentityType := string(identity.TypeNone)
+			if len(oldIdentity) > 0 {
+				oldIdentityBlock := oldIdentity[0].(map[string]interface{})
+				oldIdentityType = oldIdentityBlock["type"].(string)
+			}
+
+			newIdentity := newIdentityRaw.([]interface{})
+			newIdentityType := string(identity.TypeNone)
+			if len(newIdentity) > 0 {
+				newIdentityBlock := newIdentity[0].(map[string]interface{})
+				newIdentityType = newIdentityBlock["type"].(string)
+			}
+
+			if (oldIdentityType == string(identity.TypeUserAssigned) && newIdentityType == string(identity.TypeSystemAssigned)) || (oldIdentityType == string(identity.TypeUserAssigned) && newIdentityType == string(identity.TypeNone)) || (oldIdentityType == string(identity.TypeSystemAssignedUserAssigned) && newIdentityType == string(identity.TypeSystemAssigned)) || (oldIdentityType == string(identity.TypeSystemAssignedUserAssigned) && newIdentityType == string(identity.TypeNone)) {
+				diff.ForceNew("identity.0.type")
 			}
 
 			return nil
@@ -531,10 +545,7 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 		return fmt.Errorf("expanding `sku_name` for %s: %v", id, err)
 	}
 
-	storage, err := expandArmServerStorage(d)
-	if err != nil {
-		return err
-	}
+	storage := expandArmServerStorage(d)
 	var storageMb int
 
 	if storage.StorageSizeGB == nil || *storage.StorageSizeGB == 0 {
@@ -595,6 +606,11 @@ func resourcePostgresqlFlexibleServerCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if v, ok := d.GetOk("source_server_id"); ok && v.(string) != "" {
+		// The source server will be Updating status when creating a replica
+		sourceServerId, _ := servers.ParseFlexibleServerID(v.(string))
+		locks.ByName(sourceServerId.FlexibleServerName, postgresqlFlexibleServerResourceName)
+		defer locks.UnlockByName(sourceServerId.FlexibleServerName, postgresqlFlexibleServerResourceName)
+
 		parameters.Properties.SourceServerResourceId = pointer.To(v.(string))
 	}
 
@@ -676,6 +692,7 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("zone", props.AvailabilityZone)
 			d.Set("version", pointer.From(props.Version))
 			d.Set("fqdn", props.FullyQualifiedDomainName)
+			d.Set("source_server_id", props.SourceServerResourceId)
 
 			// Currently, `replicationRole` is set to `Primary` when `createMode` is `Replica` and `replicationRole` is updated to `None`. Service team confirmed it should be set to `None` for this scenario. See more details from https://github.com/Azure/azure-rest-api-specs/issues/22499
 			d.Set("replication_role", d.Get("replication_role").(string))
@@ -886,10 +903,7 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if d.HasChange("auto_grow_enabled") || d.HasChange("storage_mb") || d.HasChange("storage_tier") {
 		// TODO remove the additional update after https://github.com/Azure/azure-rest-api-specs/issues/22867 is fixed
-		storage, err := expandArmServerStorage(d)
-		if err != nil {
-			return err
-		}
+		storage := expandArmServerStorage(d)
 
 		storageUpdateParameters := servers.ServerForUpdate{
 			Properties: &servers.ServerPropertiesForUpdate{
@@ -950,13 +964,19 @@ func resourcePostgresqlFlexibleServerUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if requireUpdateOnLogin {
 		updateMode := servers.CreateModeUpdate
+		// Login password can be set using `administrator_password` or `administrator_password_wo`
+		loginPassword := d.Get("administrator_password").(string)
+		if !woPassword.IsNull() {
+			loginPassword = woPassword.AsString()
+		}
+
 		loginParameters := servers.Server{
 			Location: location.Normalize(d.Get("location").(string)),
 			Properties: &servers.ServerProperties{
 				CreateMode:                 &updateMode,
 				AuthConfig:                 expandFlexibleServerAuthConfig(d.Get("authentication").([]interface{})),
 				AdministratorLogin:         pointer.To(d.Get("administrator_login").(string)),
-				AdministratorLoginPassword: pointer.To(d.Get("administrator_password").(string)),
+				AdministratorLoginPassword: &loginPassword,
 				Network:                    expandArmServerNetwork(d),
 			},
 		}
@@ -1042,7 +1062,7 @@ func expandArmServerMaintenanceWindow(input []interface{}) *servers.MaintenanceW
 	return &maintenanceWindow
 }
 
-func expandArmServerStorage(d *pluginsdk.ResourceData) (*servers.Storage, error) {
+func expandArmServerStorage(d *pluginsdk.ResourceData) *servers.Storage {
 	storage := servers.Storage{}
 
 	autoGrow := servers.StorageAutoGrowDisabled
@@ -1050,12 +1070,6 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) (*servers.Storage, error)
 		autoGrow = servers.StorageAutoGrowEnabled
 	}
 	storage.AutoGrow = &autoGrow
-
-	// storage_mb can only be scaled up...
-	oldStorageMbRaw, newStorageMbRaw := d.GetChange("storage_mb")
-	if newStorageMbRaw.(int) < oldStorageMbRaw.(int) {
-		return nil, fmt.Errorf("'storage_mb' can only be scaled up, expected the new 'storage_mb' value (%d) to be larger than the previous 'storage_mb' value (%d)", newStorageMbRaw.(int), oldStorageMbRaw.(int))
-	}
 
 	if v, ok := d.GetOk("storage_mb"); ok {
 		storage.StorageSizeGB = pointer.FromInt64(int64(v.(int) / 1024))
@@ -1065,7 +1079,7 @@ func expandArmServerStorage(d *pluginsdk.ResourceData) (*servers.Storage, error)
 		storage.Tier = pointer.To(servers.AzureManagedDiskPerformanceTiers(v.(string)))
 	}
 
-	return &storage, nil
+	return &storage
 }
 
 func expandArmServerBackup(d *pluginsdk.ResourceData) *servers.Backup {

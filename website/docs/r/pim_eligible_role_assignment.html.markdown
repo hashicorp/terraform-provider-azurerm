@@ -103,7 +103,7 @@ The following arguments are supported:
 
 * `condition_version` - (Optional) The version of the condition. Supported values include `2.0`. Changing this forces a new resource to be created.
 
-~> **NOTE:** `condition_version` is required when specifying `condition` and vice versa.
+~> **Note:** `condition_version` is required when specifying `condition` and vice versa.
 
 ---
 
@@ -115,7 +115,7 @@ An `expiration` block supports the following:
 
 * `end_date_time` - (Optional) The end date/time of the role assignment. Changing this forces a new resource to be created.
 
-~> Note: Only one of `duration_days`, `duration_hours` or `end_date_time` should be specified.
+~> **Note:** Only one of `duration_days`, `duration_hours` or `end_date_time` should be specified.
 
 ---
 
@@ -157,3 +157,9 @@ terraform import azurerm_pim_eligible_role_assignment.example /subscriptions/000
 ```
 
 -> **Note:** This ID is specific to Terraform - and is of the format `{scope}|{roleDefinitionId}|{principalId}`, where the first segment is the scope of the role assignment, the second segment is the role definition ID, and the last segment is the principal object ID.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Authorization` - 2020-10-01

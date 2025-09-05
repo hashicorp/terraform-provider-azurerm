@@ -51,7 +51,7 @@ The following arguments are supported:
 
 * `type_handler_version` - (Optional) Specifies the version of the script handler.
 
--> **NOTE:** `type_handler_version` cannot be set when `automatic_upgrade_enabled` is set to `true`.
+-> **Note:** `type_handler_version` cannot be set when `automatic_upgrade_enabled` is set to `true`.
 
 ## Attributes Reference
 
@@ -75,3 +75,9 @@ Azure Stack HCI Extension can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_stack_hci_extension.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.AzureStackHCI/clusters/cluster1/arcSettings/default/extensions/extension1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.AzureStackHCI` - 2024-01-01

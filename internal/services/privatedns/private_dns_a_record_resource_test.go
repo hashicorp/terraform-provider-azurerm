@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/recordsets"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/privatedns/2024-06-01/privatedns"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type PrivateDnsARecordResource struct{}
@@ -92,17 +92,17 @@ func TestAccPrivateDnsARecord_withTags(t *testing.T) {
 }
 
 func (t PrivateDnsARecordResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	id, err := recordsets.ParseRecordTypeID(state.ID)
+	id, err := privatedns.ParseRecordTypeID(state.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := clients.PrivateDns.RecordSetsClient.Get(ctx, *id)
+	resp, err := clients.PrivateDns.RecordSetsClient.RecordSetsGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (PrivateDnsARecordResource) basic(data acceptance.TestData) string {

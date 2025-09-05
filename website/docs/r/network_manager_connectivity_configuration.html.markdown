@@ -103,7 +103,7 @@ An `applies_to_group` block supports the following:
  
 * `global_mesh_enabled` - (Optional) Indicates whether to global mesh is supported for this group. Possible values are `true` and `false`.
 
--> **NOTE:** A group can be global only if the `group_connectivity` is `DirectlyConnected`. 
+-> **Note:** A group can be global only if the `group_connectivity` is `DirectlyConnected`.
 
 * `use_hub_gateway` - (Optional) Indicates whether the hub gateway is used. Possible values are `true` and `false`.
 
@@ -137,3 +137,9 @@ Network Manager Connectivity Configuration can be imported using the `resource i
 ```shell
 terraform import azurerm_network_manager_connectivity_configuration.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Network/networkManagers/networkManager1/connectivityConfigurations/configuration1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

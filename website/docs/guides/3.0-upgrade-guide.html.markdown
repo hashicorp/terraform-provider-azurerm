@@ -320,7 +320,7 @@ The deprecated field `cmk_enabled` will be removed since it no longer exists in 
 
 ---
 
--> **NOTE:** This guide is a Work In Progress and as such Fields, Resources and Data Sources may be added to this guide until version 3.0 of the AzureRM Provider is released.
+-> **Note:** This guide is a Work In Progress and as such Fields, Resources and Data Sources may be added to this guide until version 3.0 of the AzureRM Provider is released.
 
 ### Resource: `azurerm_api_management_custom_domain`
 

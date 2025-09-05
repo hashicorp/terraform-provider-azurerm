@@ -33,13 +33,10 @@ resource "azurerm_mobile_network_sim_group" "example" {
 }
 
 resource "azurerm_mobile_network_slice" "example" {
-  name              = "example-slice"
-  mobile_network_id = azurerm_mobile_network.example.id
-  location          = azurerm_resource_group.example.location
-
-  single_network_slice_selection_assistance_information {
-    slice_service_type = 1
-  }
+  name               = "example-slice"
+  mobile_network_id  = azurerm_mobile_network.example.id
+  location           = azurerm_resource_group.example.location
+  slice_service_type = 1
 }
 
 resource "azurerm_mobile_network_attached_data_network" "example" {
@@ -132,3 +129,9 @@ Mobile Network Sim can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_mobile_network_sim.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.MobileNetwork/simGroups/simGroup1/sims/sim1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.MobileNetwork` - 2022-11-01

@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "example" {
 }
 
 resource "azurerm_fabric_capacity" "example" {
-  name                = "example-ffc"
+  name                = "exampleffc"
   resource_group_name = azurerm_resource_group.example.name
   location            = "West Europe"
 
@@ -86,3 +86,9 @@ Fabric Capacities can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_fabric_capacity.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.Fabric/capacities/capacity1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Fabric` - 2023-11-01

@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2024-03-01/backuppolicy"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/backuppolicy"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	netAppModels "github.com/hashicorp/terraform-provider-azurerm/internal/services/netapp/models"
@@ -68,17 +68,19 @@ func (r NetAppBackupPolicyResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"weekly_backups_to_keep": {
-			Type:         pluginsdk.TypeInt,
+			Type: pluginsdk.TypeInt,
+			// Default in API is 0 but initially set to 1 so keeping to avoid breaking changes
 			Default:      1,
 			Optional:     true,
-			ValidateFunc: validation.IntBetween(1, 1019),
+			ValidateFunc: validation.IntBetween(0, 1019),
 		},
 
 		"monthly_backups_to_keep": {
-			Type:         pluginsdk.TypeInt,
+			Type: pluginsdk.TypeInt,
+			// Default in API is 0 but initially set to 1 so keeping to avoid breaking changes
 			Default:      1,
 			Optional:     true,
-			ValidateFunc: validation.IntBetween(1, 1019),
+			ValidateFunc: validation.IntBetween(0, 1019),
 		},
 
 		"enabled": {
