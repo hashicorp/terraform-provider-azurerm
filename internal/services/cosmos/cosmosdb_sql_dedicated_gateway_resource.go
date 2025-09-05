@@ -98,8 +98,8 @@ func (r CosmosDbSqlDedicatedGatewayResource) Create() sdk.ResourceFunc {
 			serviceType := sqldedicatedgateway.ServiceTypeSqlDedicatedGateway
 
 			parameters := &sqldedicatedgateway.ServiceResourceCreateUpdateParameters{
-				Properties: &sqldedicatedgateway.ServiceResourceCreateUpdateProperties{
-					ServiceType:   &serviceType,
+				Properties: sqldedicatedgateway.BaseServiceResourceCreateUpdatePropertiesImpl{
+					ServiceType:   serviceType,
 					InstanceCount: &model.InstanceCount,
 					InstanceSize:  &model.InstanceSize,
 				},
@@ -144,8 +144,8 @@ func (r CosmosDbSqlDedicatedGatewayResource) Update() sdk.ResourceFunc {
 			serviceType := sqldedicatedgateway.ServiceTypeSqlDedicatedGateway
 
 			parameters := &sqldedicatedgateway.ServiceResourceCreateUpdateParameters{
-				Properties: &sqldedicatedgateway.ServiceResourceCreateUpdateProperties{
-					ServiceType:   &serviceType,
+				Properties: sqldedicatedgateway.BaseServiceResourceCreateUpdatePropertiesImpl{
+					ServiceType:   serviceType,
 					InstanceCount: &model.InstanceCount,
 					InstanceSize:  &model.InstanceSize,
 				},
