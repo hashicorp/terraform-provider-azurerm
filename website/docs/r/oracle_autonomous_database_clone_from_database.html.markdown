@@ -123,7 +123,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the Autonomous Database Clone.
 
-* `time_until_reconnect_utc` - (Optional) The time until reconnect clone is enabled. Must be in RFC3339 format.
+* `time_until_reconnect_in_utc` - (Optional) The time until reconnect clone is enabled. Must be in RFC3339 format.
 
 * `virtual_network_id` - (Optional) The ID of the Virtual Network this Autonomous Database Clone should be created in. Changing this forces a new Autonomous Database Clone to be created.
 

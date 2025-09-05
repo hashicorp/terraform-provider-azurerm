@@ -87,7 +87,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `national_character_set` - The national character set for the autonomous database.
 
-* `next_long_term_backup_time_stamp_in_utc_in_utc` -  The timestamp when the next long-term backup would be created.
+* `next_long_term_backup_time_stamp_in_utc` -  The timestamp when the next long-term backup would be created.
 
 * `oci_url` - The URL of the resource in the OCI console.
 
@@ -121,7 +121,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `tags` - A mapping of tags assigned to the autonomous database clone from backup.
 
-* `time_created_utc` - The timestamp the Autonomous Database was created.
+* `time_created_in_utc` - The timestamp the Autonomous Database was created.
 
 * `time_data_guard_role_changed_utc` - The timestamp the Autonomous Data Guard role was switched for the Autonomous Database. For databases that have standbys in both the primary Data Guard region and a remote Data Guard standby region, this is the latest timestamp of either the database using the "primary" role in the primary Data Guard region, or database located in the remote Data Guard standby region.
 

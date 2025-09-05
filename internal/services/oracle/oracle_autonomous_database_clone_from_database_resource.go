@@ -59,7 +59,7 @@ type AutonomousDatabaseCloneResourceModel struct {
 
 	CustomerContacts      []string `tfschema:"customer_contacts"`
 	RefreshableModel      string   `tfschema:"refreshable_model"`
-	TimeUntilReconnectUtc string   `tfschema:"time_until_reconnect_utc"`
+	TimeUntilReconnectUtc string   `tfschema:"time_until_reconnect_in_utc"`
 }
 
 func (AutonomousDatabaseCloneFromDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
@@ -98,7 +98,7 @@ func (AutonomousDatabaseCloneFromDatabaseResource) Arguments() map[string]*plugi
 			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForRefreshableModelType(), false),
 		},
 
-		"time_until_reconnect_utc": {
+		"time_until_reconnect_in_utc": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,

@@ -34,7 +34,7 @@ type AutonomousDatabaseCloneFromDatabaseDataSourceModel struct {
 	RefreshableClone           bool   `tfschema:"refreshable_clone"`
 	RefreshableModel           string `tfschema:"refreshable_model"`
 	RefreshableStatus          string `tfschema:"refreshable_status"`
-	TimeUntilReconnectUtc      string `tfschema:"time_until_reconnect_utc"`
+	TimeUntilReconnectUtc      string `tfschema:"time_until_reconnect_in_utc"`
 
 	// Base properties (computed)
 	ActualUsedDataStorageSizeInTb                 float64                         `tfschema:"actual_used_data_storage_size_in_tb"`
@@ -82,7 +82,7 @@ type AutonomousDatabaseCloneFromDatabaseDataSourceModel struct {
 	SqlWebDeveloperUrl                            string                          `tfschema:"sql_web_developer_url"`
 	SubnetId                                      string                          `tfschema:"subnet_id"`
 	SupportedRegionsToCloneTo                     []string                        `tfschema:"supported_regions_to_clone_to"`
-	TimeCreatedUtc                                string                          `tfschema:"time_created_utc"`
+	TimeCreatedUtc                                string                          `tfschema:"time_created_in_utc"`
 	TimeDataGuardRoleChangedUtc                   string                          `tfschema:"time_data_guard_role_changed_utc"`
 	TimeDeletionOfFreeAutonomousDatabaseUtc       string                          `tfschema:"time_deletion_of_free_autonomous_database_utc"`
 	TimeLocalDataGuardEnabledUtc                  string                          `tfschema:"time_local_data_guard_enabled_on_utc"`
@@ -147,7 +147,7 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Attributes() map[string]*pl
 			Computed: true,
 		},
 
-		"time_until_reconnect_utc": {
+		"time_until_reconnect_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},
@@ -419,7 +419,7 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Attributes() map[string]*pl
 			},
 		},
 
-		"time_created_utc": {
+		"time_created_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},

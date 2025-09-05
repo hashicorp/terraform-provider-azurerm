@@ -54,7 +54,7 @@ type AutonomousDatabaseCloneFromBackupDataSourceModel struct {
 	PrivateEndpointIp                             string                          `tfschema:"private_endpoint_ip"`
 	ServiceConsoleUrl                             string                          `tfschema:"service_console_url"`
 	SqlWebDeveloperUrl                            string                          `tfschema:"sql_web_developer_url"`
-	TimeCreatedUtc                                string                          `tfschema:"time_created_utc"`
+	TimeCreatedUtc                                string                          `tfschema:"time_created_in_utc"`
 	OciUrl                                        string                          `tfschema:"oci_url"`
 	ActualUsedDataStorageSizeInTb                 float64                         `tfschema:"actual_used_data_storage_size_in_tb"`
 	AllocatedStorageSizeInTb                      float64                         `tfschema:"allocated_storage_size_in_tb"`
@@ -379,7 +379,7 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Attributes() map[string]*plug
 			},
 		},
 
-		"time_created_utc": {
+		"time_created_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},

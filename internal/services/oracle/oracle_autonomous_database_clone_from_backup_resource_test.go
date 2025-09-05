@@ -71,7 +71,7 @@ func (r AutonomousDatabaseCloneFromBackupResource) Exists(ctx context.Context, c
 
 	resp, err := clients.Oracle.OracleClient.AutonomousDatabases.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil

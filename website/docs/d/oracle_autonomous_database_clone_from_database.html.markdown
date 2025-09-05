@@ -125,7 +125,7 @@ In addition to the Arguments listed above—the following Attributes are exporte
 
 * `tags` - A mapping of tags assigned to the autonomous database clone from database.
 
-* `time_created_utc` - The timestamp the Autonomous Database was created.
+* `time_created_in_utc` - The timestamp the Autonomous Database was created.
 
 * `time_data_guard_role_changed_utc` - The timestamp the Autonomous Data Guard role was switched for the Autonomous Database. For databases that have standbys in both the primary Data Guard region and a remote Data Guard standby region, this is the latest timestamp of either the database using the "primary" role in the primary Data Guard region, or database located in the remote Data Guard standby region.
 
@@ -147,7 +147,7 @@ In addition to the Arguments listed above—the following Attributes are exporte
 
 * `time_reclamation_of_free_autonomous_database_utc` - The timestamp the Always Free database will be stopped because of inactivity. If this time is reached without any database activity, the database will automatically be put into the STOPPED state.
 
-* `time_until_reconnect_utc_clone_utc` - The time until reconnect clone is enabled.
+* `time_until_reconnect_in_utc` - The time until reconnect clone is enabled.
 
 * `used_data_storage_size_in_gb` - The storage space consumed by Autonomous Database in GBs.
 
