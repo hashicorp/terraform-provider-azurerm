@@ -37,14 +37,14 @@ test_bash_version() {
     local bash_version="${BASH_VERSION}"
     local version_major=$(echo "${bash_version}" | cut -d. -f1)
 
-    if [[ ${version_major} -ge 4 ]]; then
+    if [[ ${version_major} -ge 3 ]]; then
         echo "Valid=true"
         echo "Version=${bash_version}"
         echo "Reason=Bash version ${bash_version} meets requirements"
     else
         echo "Valid=false"
         echo "Version=${bash_version}"
-        echo "Reason=Bash version ${bash_version} is too old. Minimum version 4.0 required"
+        echo "Reason=Bash version ${bash_version} is too old. Minimum version 3.2 required"
     fi
 }
 

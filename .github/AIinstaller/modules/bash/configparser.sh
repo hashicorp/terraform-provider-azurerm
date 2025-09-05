@@ -85,7 +85,8 @@ get_workspace_root() {
     local search_dir="${current_dir}"
 
     # Search up to 10 levels for .git directory
-    for i in {1..10}; do
+    local i=1
+    while [[ $i -le 10 ]]; do
         if [[ -d "${search_dir}/.git" ]]; then
             echo "${search_dir}"
             return 0
@@ -96,6 +97,7 @@ get_workspace_root() {
             break  # Reached filesystem root
         fi
         search_dir="${parent_dir}"
+        i=$((i + 1))
     done
 
     # Fallback to current directory
@@ -120,13 +122,13 @@ parse_manifest_section() {
         line=$(echo "${line}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
         # Skip empty lines and comments
-        if [[ -z "${line}" || "${line}" =~ ^# ]]; then
+        if [[ -z "${line}" ]] || echo "${line}" | grep -q '^#'; then
             continue
         fi
 
         # Check for section headers [SECTION_NAME]
-        if [[ "${line}" =~ ^\[([^]]+)\]$ ]]; then
-            local current_section="${BASH_REMATCH[1]}"
+        if echo "${line}" | grep -q '^\[[^]]*\]$'; then
+            local current_section="$(echo "${line}" | sed 's/^\[\([^]]*\)\]$/\1/')"
             if [[ "${current_section}" == "${section_name}" ]]; then
                 in_section=true
             else

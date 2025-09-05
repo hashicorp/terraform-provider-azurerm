@@ -113,11 +113,11 @@ show_operation_summary() {
     local dry_run="${3:-false}"
     shift 3
 
-    # Parse arguments for details and next steps
-    local -A details_hash
-    local -a ordered_keys  # Array to preserve order
+    # Parse arguments for details and next steps (bash 3.2 compatible)
+    local details_keys=""
+    local details_values=""
     local longest_key=""
-    local next_steps=()
+    local next_steps=""
     local parsing_steps=false
 
     # Process all remaining arguments
@@ -129,12 +129,23 @@ show_operation_summary() {
         fi
 
         if [[ "$parsing_steps" == true ]]; then
-            next_steps+=("$1")
-        elif [[ "$1" =~ ^([^:]+):[[:space:]]*(.+)$ ]]; then
-            local key="${BASH_REMATCH[1]}"  # Preserve spaces in key names
-            local value="${BASH_REMATCH[2]}"
-            details_hash["$key"]="$value"
-            ordered_keys+=("$key")  # Preserve insertion order
+            if [[ -n "$next_steps" ]]; then
+                next_steps="${next_steps}|$1"
+            else
+                next_steps="$1"
+            fi
+        elif echo "$1" | grep -q '^[^:]\+:[[:space:]]*.\+$'; then
+            local key="$(echo "$1" | sed 's/^\([^:]\+\):[[:space:]]*.\+$/\1/')"  # Preserve spaces in key names
+            local value="$(echo "$1" | sed 's/^[^:]\+:[[:space:]]*\(.\+\)$/\1/')"
+
+            # Store key-value pairs using delimited strings
+            if [[ -n "$details_keys" ]]; then
+                details_keys="${details_keys}|${key}"
+                details_values="${details_values}|${value}"
+            else
+                details_keys="${key}"
+                details_values="${value}"
+            fi
 
             # Track longest key for alignment
             if [[ ${#key} -gt ${#longest_key} ]]; then
@@ -167,57 +178,45 @@ show_operation_summary() {
     echo ""
 
     # Display details if any exist
-    if [[ ${#details_hash[@]} -gt 0 ]]; then
+    if [[ -n "$details_keys" ]]; then
         # Summary section with cyan headers (matches PowerShell structure)
         print_separator 60 "${CYAN}" "="
-        write_cyan " ${operation_name^^} SUMMARY:"
+        write_cyan " $(echo "${operation_name}" | tr '[:lower:]' '[:upper:]') SUMMARY:"
         print_separator 60 "${CYAN}" "="
         echo ""
         write_section_header "DETAILS"
 
-        # Define expected order based on operation type
-        local -a expected_order
-        if [[ "${operation_name,,}" == "verification" ]]; then
-            expected_order=("Branch Type" "Target Branch" "Files Verified" "Issues Found" "Location")
-        elif [[ "${operation_name,,}" == "cleanup" ]]; then
+        # Define expected order based on operation type (bash 3.2 compatible)
+        local expected_order=""
+        local operation_lower="$(echo "${operation_name}" | tr '[:upper:]' '[:lower:]')"
+        if [[ "${operation_lower}" == "verification" ]]; then
+            expected_order="Branch Type|Target Branch|Files Verified|Issues Found|Location"
+        elif [[ "${operation_lower}" == "cleanup" ]]; then
             # Always use full cleanup order - follows PowerShell master order
-            expected_order=("Branch Type" "Target Branch" "Operation Type" "Files Removed" "Directories Cleaned" "Location")
-        elif [[ "${operation_name,,}" == "bootstrap" ]]; then
+            expected_order="Branch Type|Target Branch|Operation Type|Files Removed|Directories Cleaned|Location"
+        elif [[ "${operation_lower}" == "bootstrap" ]]; then
             # Bootstrap operation order (matches PowerShell)
-            expected_order=("Files Copied" "Total Size" "Location")
+            expected_order="Files Copied|Total Size|Location"
         else
             # Installation operation order
-            expected_order=("Branch Type" "Target Branch" "Files Installed" "Total Size" "Files Skipped" "Location")
+            expected_order="Branch Type|Target Branch|Files Installed|Total Size|Files Skipped|Location"
         fi
 
-        # Create ordered display array
-        local -a display_keys
-        # First add keys that are in the expected order
-        for expected_key in "${expected_order[@]}"; do
-            for key in "${ordered_keys[@]}"; do
-                if [[ "$key" == "$expected_key" ]]; then
-                    display_keys+=("$key")
-                    break
-                fi
-            done
-        done
-        # Then add any remaining keys not in expected order
-        for key in "${ordered_keys[@]}"; do
-            local found=false
-            for display_key in "${display_keys[@]}"; do
-                if [[ "$key" == "$display_key" ]]; then
-                    found=true
-                    break
-                fi
-            done
-            if [[ "$found" == false ]]; then
-                display_keys+=("$key")
-            fi
-        done
+        # Split the keys and values for processing
+        local IFS='|'
+        set -- $details_keys
+        local keys=("$@")
+        set -- $details_values
+        local values=("$@")
 
-        # Display each detail with consistent alignment (use ordered display)
-        for key in "${display_keys[@]}"; do
-            local value="${details_hash[$key]}"
+        # Reset IFS
+        IFS=' '
+
+        # Display each detail with consistent alignment
+        local i=0
+        while [[ $i -lt ${#keys[@]} ]]; do
+            local key="${keys[$i]}"
+            local value="${values[$i]}"
 
             # Calculate required spacing for alignment
             local label_length=${#key}
@@ -232,27 +231,47 @@ show_operation_summary() {
             printf "  ${CYAN} %s%*s :${NC} " "${key}" ${required_width} ""
 
             # Determine value color based on content
-            if [[ "$value" =~ ^[0-9]+$ ]] || [[ "$value" =~ ^[0-9]+(\.[0-9]+)?[[:space:]]*(KB|MB|GB|TB|B)$ ]]; then
+            if echo "$value" | grep -q '^[0-9]\+$' || echo "$value" | grep -q '^[0-9]\+\(\.[0-9]\+\)\?[[:space:]]*\(KB\|MB\|GB\|TB\|B\)$'; then
                 # Numbers and file sizes in green
                 write_green "${value}"
             else
                 # Text values in yellow
                 write_yellow "${value}"
             fi
+
+            i=$((i + 1))
         done
         echo ""  # Add newline after DETAILS section
     fi
 
     # Add next steps if provided
-    if [[ ${#next_steps[@]} -gt 0 ]]; then
+    if [[ -n "$next_steps" ]]; then
         write_cyan "NEXT STEPS:"
         echo ""
-        write_cyan "  1. Switch to your feature branch:"
-        write_white "     git checkout feature/your-branch-name"
-        echo ""
-        write_cyan "  2. Run the installer from your user profile:"
-        write_white "     cd \"\$HOME/.terraform-ai-installer\""
-        write_white "     ./install-copilot-setup.sh -repo-directory \"<path-to-your-terraform-provider-azurerm>\""
+
+        # Split next steps and display them - no automatic numbering since input is pre-formatted
+        local IFS='|'
+        set -- $next_steps
+        local steps=("$@")
+        IFS=' '
+
+        local j=0
+        while [[ $j -lt ${#steps[@]} ]]; do
+            local step="${steps[$j]}"
+            # Display step with appropriate coloring
+            if [[ -n "$step" ]]; then
+                # Check if step starts with optional whitespace followed by a number - display in cyan
+                if echo "$step" | grep -q '^ *[0-9][0-9]*\.'; then
+                    write_cyan "$step"
+                else
+                    # Indented step or continuation - display in white
+                    write_white "$step"
+                fi
+            else
+                echo ""  # Empty line for spacing
+            fi
+            j=$((j + 1))
+        done
         echo ""
     fi
 }
@@ -478,10 +497,9 @@ show_completion() {
 
 # Function to calculate maximum filename length for dynamic spacing (matches PowerShell)
 calculate_max_filename_length() {
-    local -a filenames=("$@")
     local max_length=0
 
-    for filename in "${filenames[@]}"; do
+    for filename in "$@"; do
         local length=${#filename}
         if [[ $length -gt $max_length ]]; then
             max_length=$length

@@ -5,7 +5,7 @@
 # Main AI Infrastructure Installer for Terraform AzureRM Provider (macOS/Linux)
 # Version: 1.0.0
 # Description: Interactive installer for AI-powered development tools
-# Requires bash 4.0+
+# Requires bash 3.2+ (compatible with macOS default bash)
 
 set -euo pipefail
 
@@ -295,12 +295,12 @@ main() {
                 "Total Size:${size_kb} KB" \
                 "Location:${user_profile}" \
                 --next-steps \
-                "1. Switch to your feature branch:" \
-                "   git checkout feature/your-branch-name" \
+                " 1. Switch to your feature branch:" \
+                "    git checkout feature/your-branch-name" \
                 "" \
-                "2. Run the installer from your user profile:" \
-                "   cd ~/.terraform-ai-installer" \
-                "   ./install-copilot-setup.sh -repo-directory \"<path-to-your-terraform-provider-azurerm>\""
+                " 2. Run the installer from your user profile:" \
+                "    cd ~/.terraform-ai-installer" \
+                "    ./install-copilot-setup.sh -repo-directory \"<path-to-your-terraform-provider-azurerm>\""
 
             # Show welcome message after successful bootstrap
             show_source_branch_welcome "${current_branch}"
@@ -350,20 +350,20 @@ check_typos() {
     # Remove leading dashes and convert to lowercase
     local clean_param="${param#-}"
     clean_param="${clean_param#-}"
-    local lower_param="${clean_param,,}"
+    local lower_param="$(echo "${clean_param}" | tr '[:upper:]' '[:lower:]')"
 
     # Direct prefix matching (higher priority)
-    if [[ "${lower_param}" =~ ^cl ]]; then
+    if echo "${lower_param}" | grep -q '^cl'; then
         suggestion="clean"
-    elif [[ "${lower_param}" =~ ^bo ]]; then
+    elif echo "${lower_param}" | grep -q '^bo'; then
         suggestion="bootstrap"
-    elif [[ "${lower_param}" =~ ^ve ]]; then
+    elif echo "${lower_param}" | grep -q '^ve'; then
         suggestion="verify"
-    elif [[ "${lower_param}" =~ ^he ]]; then
+    elif echo "${lower_param}" | grep -q '^he'; then
         suggestion="help"
-    elif [[ "${lower_param}" =~ ^dr ]]; then
+    elif echo "${lower_param}" | grep -q '^dr'; then
         suggestion="dry-run"
-    elif [[ "${lower_param}" =~ ^re ]]; then
+    elif echo "${lower_param}" | grep -q '^re'; then
         suggestion="repo-directory"
     # Fuzzy matching (lower priority)
     elif [[ "${lower_param}" == *cle* ]]; then

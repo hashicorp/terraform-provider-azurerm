@@ -2,6 +2,30 @@
 # FileOperations Module for Terraform AzureRM Provider AI Setup (Bash)
 # Handles file operations, downloads, and installation tasks
 
+# Bash 3.2 compatible function to read command output into array
+# Usage: read_into_array array_name "command"
+read_into_array() {
+    local array_name="$1"
+    local command="$2"
+    local temp_file
+    temp_file=$(mktemp)
+
+    # Execute command and store output in temp file
+    eval "$command" > "$temp_file"
+
+    # Read lines into array using a counter
+    local counter=0
+    while IFS= read -r line; do
+        eval "${array_name}[$counter]=\"\$line\""
+        counter=$((counter + 1))
+    done < "$temp_file"
+
+    # Store array size for iteration
+    eval "${array_name}_size=$counter"
+
+    rm -f "$temp_file"
+}
+
 # Function to get workspace root directory
 get_workspace_root() {
     local current_dir="$(pwd)"
@@ -453,10 +477,10 @@ remove_deprecated_files() {
         return 1
     fi
 
-    # Get current manifest files
+    # Get current manifest files using bash 3.2 compatible method
     local current_instruction_files current_prompt_files
-    readarray -t current_instruction_files < <(get_manifest_files "INSTRUCTION_FILES" "${manifest_file}")
-    readarray -t current_prompt_files < <(get_manifest_files "PROMPT_FILES" "${manifest_file}")
+    read_into_array current_instruction_files "get_manifest_files \"INSTRUCTION_FILES\" \"${manifest_file}\""
+    read_into_array current_prompt_files "get_manifest_files \"PROMPT_FILES\" \"${manifest_file}\""
 
     # Check existing instruction files in workspace
     local instructions_dir="${workspace_root}/.github/instructions"
@@ -466,12 +490,16 @@ remove_deprecated_files() {
                 local basename_file=$(basename "${existing_file}")
                 local is_current=false
 
-                # Check if this file is in current manifest
-                for current_file in "${current_instruction_files[@]}"; do
+                # Check if this file is in current manifest (bash 3.2 compatible)
+                local i=0
+                while [[ $i -lt $current_instruction_files_size ]]; do
+                    local current_file_var="current_instruction_files[$i]"
+                    local current_file="${!current_file_var}"
                     if [[ "$(basename "${current_file}")" == "${basename_file}" ]]; then
                         is_current=true
                         break
                     fi
+                    i=$((i + 1))
                 done
 
                 # If not in current manifest, mark for removal
@@ -501,12 +529,16 @@ remove_deprecated_files() {
                 local basename_file=$(basename "${existing_file}")
                 local is_current=false
 
-                # Check if this file is in current manifest
-                for current_file in "${current_prompt_files[@]}"; do
+                # Check if this file is in current manifest (bash 3.2 compatible)
+                local j=0
+                while [[ $j -lt $current_prompt_files_size ]]; do
+                    local current_file_var="current_prompt_files[$j]"
+                    local current_file="${!current_file_var}"
                     if [[ "$(basename "${current_file}")" == "${basename_file}" ]]; then
                         is_current=true
                         break
                     fi
+                    j=$((j + 1))
                 done
 
                 # If not in current manifest, mark for removal
@@ -629,13 +661,13 @@ build_file_list() {
     local -n all_files_ref="$3"
     local -n file_destinations_ref="$4"
 
-    # Read all file sections from manifest and build unified list
+    # Read all file sections from manifest and build unified list (bash 3.2 compatible)
     local main_files instruction_files prompt_files universal_files
 
-    readarray -t main_files < <(get_manifest_files "MAIN_FILES" "${manifest_file}")
-    readarray -t instruction_files < <(get_manifest_files "INSTRUCTION_FILES" "${manifest_file}")
-    readarray -t prompt_files < <(get_manifest_files "PROMPT_FILES" "${manifest_file}")
-    readarray -t universal_files < <(get_manifest_files "UNIVERSAL_FILES" "${manifest_file}")
+    read_into_array main_files "get_manifest_files \"MAIN_FILES\" \"${manifest_file}\""
+    read_into_array instruction_files "get_manifest_files \"INSTRUCTION_FILES\" \"${manifest_file}\""
+    read_into_array prompt_files "get_manifest_files \"PROMPT_FILES\" \"${manifest_file}\""
+    read_into_array universal_files "get_manifest_files \"UNIVERSAL_FILES\" \"${manifest_file}\""
 
     # Add main files (root level)
     for file in "${main_files[@]}"; do
@@ -734,13 +766,18 @@ get_relative_display_path() {
 get_download_category() {
     local source_file="$1"
 
-    if [[ "${source_file}" =~ \.github/instructions/ ]]; then
-        echo "instructions"
-    elif [[ "${source_file}" =~ \.github/prompts/ ]]; then
-        echo "prompts"
-    else
-        echo "files"
-    fi
+    # Use pattern matching instead of regex for bash 3.2 compatibility
+    case "${source_file}" in
+        *.github/instructions/*)
+            echo "instructions"
+            ;;
+        *.github/prompts/*)
+            echo "prompts"
+            ;;
+        *)
+            echo "files"
+            ;;
+    esac
 }
 
 # Function to calculate total size of files in KB
@@ -755,29 +792,36 @@ calculate_installed_files_size() {
         return
     fi
 
-    # Get all file lists from manifest
+    # Get all file lists from manifest (bash 3.2 compatible)
     local all_files=()
     local main_files instruction_files prompt_files universal_files
 
-    readarray -t main_files < <(get_manifest_files "MAIN_FILES" "${manifest_file}" 2>/dev/null || true)
-    readarray -t instruction_files < <(get_manifest_files "INSTRUCTION_FILES" "${manifest_file}" 2>/dev/null || true)
-    readarray -t prompt_files < <(get_manifest_files "PROMPT_FILES" "${manifest_file}" 2>/dev/null || true)
-    readarray -t universal_files < <(get_manifest_files "UNIVERSAL_FILES" "${manifest_file}" 2>/dev/null || true)
+    read_into_array main_files "get_manifest_files \"MAIN_FILES\" \"${manifest_file}\" 2>/dev/null || true"
+    read_into_array instruction_files "get_manifest_files \"INSTRUCTION_FILES\" \"${manifest_file}\" 2>/dev/null || true"
+    read_into_array prompt_files "get_manifest_files \"PROMPT_FILES\" \"${manifest_file}\" 2>/dev/null || true"
+    read_into_array universal_files "get_manifest_files \"UNIVERSAL_FILES\" \"${manifest_file}\" 2>/dev/null || true"
 
-    # Calculate total size by checking each installed file
-    for file in "${main_files[@]}"; do
-        [[ -z "${file}" ]] && continue
+    # Calculate total size by checking each installed file (bash 3.2 compatible)
+    local i=0
+    while [[ $i -lt $main_files_size ]]; do
+        local file_var="main_files[$i]"
+        local file="${!file_var}"
+        [[ -z "${file}" ]] && { i=$((i + 1)); continue; }
         local target_path="${workspace_root}/${file}"
         if [[ -f "${target_path}" ]]; then
             local file_size
             file_size=$(stat -f%z "${target_path}" 2>/dev/null || stat -c%s "${target_path}" 2>/dev/null || echo "0")
             total_size_bytes=$((total_size_bytes + file_size))
         fi
+        i=$((i + 1))
     done
 
     # Check instruction files
-    for file in "${instruction_files[@]}"; do
-        [[ -z "${file}" ]] && continue
+    i=0
+    while [[ $i -lt $instruction_files_size ]]; do
+        local file_var="instruction_files[$i]"
+        local file="${!file_var}"
+        [[ -z "${file}" ]] && { i=$((i + 1)); continue; }
         local filename=$(basename "${file}")
         local target_path="${workspace_root}/.github/instructions/${filename}"
         if [[ -f "${target_path}" ]]; then
@@ -785,11 +829,15 @@ calculate_installed_files_size() {
             file_size=$(stat -f%z "${target_path}" 2>/dev/null || stat -c%s "${target_path}" 2>/dev/null || echo "0")
             total_size_bytes=$((total_size_bytes + file_size))
         fi
+        i=$((i + 1))
     done
 
     # Check prompt files
-    for file in "${prompt_files[@]}"; do
-        [[ -z "${file}" ]] && continue
+    i=0
+    while [[ $i -lt $prompt_files_size ]]; do
+        local file_var="prompt_files[$i]"
+        local file="${!file_var}"
+        [[ -z "${file}" ]] && { i=$((i + 1)); continue; }
         local filename=$(basename "${file}")
         local target_path="${workspace_root}/.github/prompts/${filename}"
         if [[ -f "${target_path}" ]]; then
@@ -797,17 +845,22 @@ calculate_installed_files_size() {
             file_size=$(stat -f%z "${target_path}" 2>/dev/null || stat -c%s "${target_path}" 2>/dev/null || echo "0")
             total_size_bytes=$((total_size_bytes + file_size))
         fi
+        i=$((i + 1))
     done
 
     # Check universal files
-    for file in "${universal_files[@]}"; do
-        [[ -z "${file}" ]] && continue
+    i=0
+    while [[ $i -lt $universal_files_size ]]; do
+        local file_var="universal_files[$i]"
+        local file="${!file_var}"
+        [[ -z "${file}" ]] && { i=$((i + 1)); continue; }
         local target_path="${workspace_root}/${file}"
         if [[ -f "${target_path}" ]]; then
             local file_size
             file_size=$(stat -f%z "${target_path}" 2>/dev/null || stat -c%s "${target_path}" 2>/dev/null || echo "0")
             total_size_bytes=$((total_size_bytes + file_size))
         fi
+        i=$((i + 1))
     done
 
     # Convert to KB (rounded up)
@@ -860,48 +913,29 @@ get_files_for_cleanup() {
     # Get all file sections from manifest
     local all_files=()
 
-    # Get files from each section
+    # Get files from each section (bash 3.2 compatible)
     local main_files instruction_files prompt_files universal_files
-    readarray -t main_files < <(get_manifest_files "MAIN_FILES" "${manifest_file}" 2>/dev/null || true)
-    readarray -t instruction_files < <(get_manifest_files "INSTRUCTION_FILES" "${manifest_file}" 2>/dev/null || true)
-    readarray -t prompt_files < <(get_manifest_files "PROMPT_FILES" "${manifest_file}" 2>/dev/null || true)
-    readarray -t universal_files < <(get_manifest_files "UNIVERSAL_FILES" "${manifest_file}" 2>/dev/null || true)
+    read_into_array main_files "get_manifest_files \"MAIN_FILES\" \"${manifest_file}\" 2>/dev/null || true"
+    read_into_array instruction_files "get_manifest_files \"INSTRUCTION_FILES\" \"${manifest_file}\" 2>/dev/null || true"
+    read_into_array prompt_files "get_manifest_files \"PROMPT_FILES\" \"${manifest_file}\" 2>/dev/null || true"
+    read_into_array universal_files "get_manifest_files \"UNIVERSAL_FILES\" \"${manifest_file}\" 2>/dev/null || true"
 
-    # Combine all files into one list
-    all_files+=("${main_files[@]}")
-    all_files+=("${instruction_files[@]}")
-    all_files+=("${prompt_files[@]}")
-    all_files+=("${universal_files[@]}")
-
-    # Remove duplicates and empty entries
-    local unique_files=()
-    local seen_files=()
-
-    for file in "${all_files[@]}"; do
+    # Combine all files into one list (bash 3.2 compatible)
+    # Get all files and combine them in one output
+    {
+        get_manifest_files "MAIN_FILES" "${manifest_file}" 2>/dev/null || true
+        get_manifest_files "INSTRUCTION_FILES" "${manifest_file}" 2>/dev/null || true
+        get_manifest_files "PROMPT_FILES" "${manifest_file}" 2>/dev/null || true
+        get_manifest_files "UNIVERSAL_FILES" "${manifest_file}" 2>/dev/null || true
+    } | while IFS= read -r file; do
         # Skip empty entries
         if [[ -z "${file}" ]]; then
             continue
         fi
 
-        # Skip if already seen
-        local already_seen=false
-        for seen in "${seen_files[@]}"; do
-            if [[ "${file}" == "${seen}" ]]; then
-                already_seen=true
-                break
-            fi
-        done
-
-        if [[ "${already_seen}" == "false" ]]; then
-            unique_files+=("${file}")
-            seen_files+=("${file}")
-        fi
-    done
-
-    # Output the unique files
-    for file in "${unique_files[@]}"; do
+        # Output unique files only
         echo "${file}"
-    done
+    done | sort -u
 }
 
 # Function to clean AI infrastructure files with empty directory cleanup
