@@ -118,7 +118,7 @@ The following arguments are supported:
 
 * `cluster_name` - (Optional) The cluster name for Cloud VM Cluster. Changing this forces a new Cloud VM Cluster to be created.
 
-* `data_collection_options` - (Optional) A `data_collection_options` block as defined below. Changing this forces a new Cloud VM Cluster to be created.
+* `data_collection_option` - (Optional) A `data_collection_option` block as defined below. Changing this forces a new Cloud VM Cluster to be created.
 
 * `data_storage_percentage` - (Optional) The percentage assigned to DATA storage (user data and database files). Changing this forces a new Cloud VM Cluster to be created. The remaining percentage is assigned to RECO storage (database redo logs, archive logs, and recovery manager backups). Accepted values are `35`, `40`, `60` and `80`.
 
@@ -150,7 +150,7 @@ The following arguments are supported:
 
 ---
 
-A `data_collection_options` block supports the following:
+A `data_collection_option` block supports the following:
 
 * `diagnostics_events_enabled` - (Optional) Indicates whether diagnostic collection is enabled for the VM Cluster/Cloud VM Cluster/VMBM DBCS. Enabling diagnostic collection allows you to receive Events service notifications for guest VM issues. Diagnostic collection also allows Oracle to provide enhanced service and proactive support for your Exadata system. You can enable diagnostic collection during VM Cluster/Cloud VM Cluster provisioning. You can also disable or enable it at any time using the `UpdateVmCluster` or `updateCloudVmCluster` API. Changing this forces a new Cloud VM Cluster to be created.
 
