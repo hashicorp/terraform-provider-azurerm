@@ -58,7 +58,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the API Management Gateway Config Connection. Changing this forces a new resource to be created.
 
-* `api_management_gateway_id` - (Required) The ID of the API management gateway that this connection belongs to. Changing this forces a new resource to be created.
+* `api_management_gateway_id` - (Required) The ID of the API Management gateway that this connection belongs to. Changing this forces a new resource to be created.
 
 * `source_id` - (Required) The ID of the workspace that the API Management Gateway Config Connection will connect to. Changing this forces a new resource to be created.
 

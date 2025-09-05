@@ -57,12 +57,7 @@ func (r ApiManagementGatewayConfigConnectionResource) Arguments() map[string]*pl
 
 		"api_management_gateway_id": commonschema.ResourceIDReferenceRequiredForceNew(&apigateway.GatewayId{}),
 
-		"source_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: workspace.ValidateWorkspaceID,
-		},
+		"source_id": commonschema.ResourceIDReferenceRequiredForceNew(&workspace.WorkspaceId{}),
 
 		"hostnames": {
 			Type:     pluginsdk.TypeSet,
