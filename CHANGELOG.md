@@ -1,3 +1,13 @@
+## 4.44.0 (Unreleased)
+
+ENHANCEMENTS:
+* `azurerm_netapp_volume` - add support for `accept_grow_capacity_pool_for_short_term_clone_split`  [GH-30494]
+
+FEATURES:
+
+BUG FIXES:
+`azurerm_application_insights_standard_web_test` - prevent Resource ID errors when parsing `hidden-link` tags [GH-28034]
+
 ## 4.43.0 (September 04, 2025)
 
 ENHANCEMENTS:
@@ -32,6 +42,8 @@ NOTES:
 FEATURES:
 
 * **New Data Source:** `azurerm_managed_disks` ([#30394](https://github.com/hashicorp/terraform-provider-azurerm/issues/30394))
+* **New Data Source**: `azurerm_oracle_autonomous_database_backup_data_source` [GH-30201]
+* **New Resource**: `azurerm_oracle_autonomous_database_backup` [GH-30201]
 
 ENHANCEMENTS:
 
