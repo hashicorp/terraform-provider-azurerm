@@ -8,13 +8,13 @@ description: |-
 
 # azurerm_oracle_autonomous_database_cross_region_disaster_recovery
 
-Manages an Cross Region Disaster Recovery Autonomous Database.
-Cross Region Disaster Recovery Autonomous Database is an Autonomous Database with specific Cross Region Disaster Recovery role. It must be an exact copy of Autonomous Database for which you want to create a Disaster Recovery instance. Cross Region Disaster Recovery Autonomous Database must reside in a region that is different from region of main Autonomous Database. You must create a separate virtual network and subnet in this second region for Cross Region Disaster Recovery Autonomous Database to be able to communicate with it's original database. All parameters, except "name" and "display_name" must be exactly the same as for original database or creation of Cross Region Disaster Recovery Autonomous Database will fail.
+Manages Cross Region Disaster Recovery Autonomous Database.
+Cross Region Disaster Recovery Autonomous Database is an Autonomous Database with a specific Cross-Region Disaster Recovery role. It must be an exact copy of Autonomous Database for which you want to create a Disaster Recovery instance. Cross Region Disaster Recovery Autonomous Database must reside in a region that is different from region of main Autonomous Database. You must create a separate virtual network and subnet in this second region for Cross Region Disaster Recovery Autonomous Database to be able to communicate with it's original database. All parameters, except "name" and "display_name" must be exactly the same as for original database or creation of Cross Region Disaster Recovery Autonomous Database will fail.
 
 ## Example Usage
 
 ```hcl
-resource "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "adbs_secondary_crdr" {
+resource "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "example" {
   name                                = "example"
   display_name                        = "example_display_name"
   location                            = "westus"

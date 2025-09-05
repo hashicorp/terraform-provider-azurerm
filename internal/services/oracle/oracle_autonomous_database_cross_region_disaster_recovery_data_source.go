@@ -115,10 +115,6 @@ func (d AutonomousDatabaseCrossRegionDisasterRecoveryDataSource) Attributes() ma
 			Type:     pluginsdk.TypeBool,
 			Computed: true,
 		},
-		"database_type": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
 		"source": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -418,7 +414,7 @@ func (d AutonomousDatabaseCrossRegionDisasterRecoveryDataSource) Attributes() ma
 			Type:     pluginsdk.TypeList,
 			Computed: true,
 			Elem: &pluginsdk.Schema{
-				Type: pluginsdk.TypeInt,
+				Type: pluginsdk.TypeString,
 			},
 		},
 
