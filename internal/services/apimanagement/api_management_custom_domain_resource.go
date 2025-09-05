@@ -171,7 +171,7 @@ func apiManagementCustomDomainCreate(d *pluginsdk.ResourceData, meta interface{}
 			}
 
 			if err := client.UpdateThenPoll(ctx, *apiMgmtId, params); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
+				return fmt.Errorf("creating managed certificate configurations %s: %+v", id, err)
 			}
 		}
 	}

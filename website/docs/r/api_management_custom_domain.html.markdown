@@ -158,7 +158,7 @@ A `gateway` block supports the following:
 
 * `certificate_source` - (Optional) The source of the Custom Domain certificate. The only possible value is `Managed`.
 
--> **NOTE:** Please check the [Limitations](https://learn.microsoft.com/en-us/azure/api-management/configure-custom-domain?WT.mc_id=Portal-fx&tabs=managed#limitations) of `Managed` certificate for details.
+-> **NOTE:** Please see the [product documentation](https://learn.microsoft.com/en-us/azure/api-management/configure-custom-domain?WT.mc_id=Portal-fx&tabs=managed#limitations) for  `Managed Certificate` limitations.
 
 * `default_ssl_binding` - (Optional) Is the certificate associated with this Hostname the Default SSL Certificate? This is used when an SNI header isn't specified by a client. Defaults to `false`.
 
