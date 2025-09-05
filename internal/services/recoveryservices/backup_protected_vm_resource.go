@@ -136,7 +136,7 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, item, protecteditems.DefaultCreateOrUpdateOperationOptions()); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, item); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -163,7 +163,7 @@ func resourceRecoveryServicesBackupProtectedVMCreate(d *pluginsdk.ResourceData, 
 			},
 		}
 
-		if _, err := client.CreateOrUpdate(ctx, id, updateInput, protecteditems.DefaultCreateOrUpdateOperationOptions()); err != nil {
+		if err := client.CreateOrUpdateThenPoll(ctx, id, updateInput); err != nil {
 			return fmt.Errorf("creating %s: %+v", id, err)
 		}
 	}
@@ -285,7 +285,7 @@ func resourceRecoveryServicesBackupProtectedVMUpdate(d *pluginsdk.ResourceData, 
 	}
 	model.Properties = properties
 
-	if _, err := client.CreateOrUpdate(ctx, *id, model, protecteditems.DefaultCreateOrUpdateOperationOptions()); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, *id, model); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 
@@ -332,7 +332,7 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 						},
 					}
 
-					if _, err := client.CreateOrUpdate(ctx, *id, updateInput, protecteditems.DefaultCreateOrUpdateOperationOptions()); err != nil {
+					if err := client.CreateOrUpdateThenPoll(ctx, *id, updateInput); err != nil {
 						return fmt.Errorf("setting protection to %s and retaining data for %s: %+v", desiredState, *id, err)
 					}
 
@@ -344,7 +344,7 @@ func resourceRecoveryServicesBackupProtectedVMDelete(d *pluginsdk.ResourceData, 
 
 	log.Printf("[DEBUG] Deleting %s", *id)
 
-	if _, err := client.Delete(ctx, *id); err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", *id, err)
 	}
 
@@ -391,7 +391,7 @@ func resourceRecoveryServicesVaultBackupProtectedVMRecoverSoftDeleted(ctx contex
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, payload, protecteditems.DefaultCreateOrUpdateOperationOptions()); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, payload); err != nil {
 		return fmt.Errorf("recovering soft-deleted %s: %+v", id, err)
 	}
 

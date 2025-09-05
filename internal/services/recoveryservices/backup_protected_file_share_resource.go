@@ -241,7 +241,7 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 		},
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, id, item, protecteditems.CreateOrUpdateOperationOptions{}); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, item); err != nil {
 		return fmt.Errorf("creating/updating Recovery Service Protected File Share %q (Resource Group %q): %+v", fileShareName, resourceGroup, err)
 	}
 
@@ -306,7 +306,7 @@ func resourceBackupProtectedFileShareDelete(d *pluginsdk.ResourceData, meta inte
 
 	log.Printf("[DEBUG] Deleting %s", *id)
 
-	if _, err := client.Delete(ctx, *id); err != nil {
+	if err := client.DeleteThenPoll(ctx, *id); err != nil {
 		return fmt.Errorf("deleting %s: %+v", id, err)
 	}
 
