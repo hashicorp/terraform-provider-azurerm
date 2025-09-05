@@ -31,7 +31,7 @@ func TestAccStorageQueue_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("url").HasValue(fmt.Sprintf("https://acctestacc%s.queue.core.windows.net/mysamplequeue-%d", data.RandomString, data.RandomInteger)),
+				check.That(data.ResourceName).Key("url").HasValue(fmt.Sprintf("https://acctestacc%s.queue.core.windows.net/acctestmysamplequeue-%d", data.RandomString, data.RandomInteger)),
 			),
 		},
 		data.ImportStep(),
@@ -51,7 +51,7 @@ func TestAccStorageQueue_basicDeprecated(t *testing.T) {
 			Config: r.basicDeprecated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("url").HasValue(fmt.Sprintf("https://acctestacc%s.queue.core.windows.net/mysamplequeue-%d", data.RandomString, data.RandomInteger)),
+				check.That(data.ResourceName).Key("url").HasValue(fmt.Sprintf("https://acctestacc%s.queue.core.windows.net/acctestmysamplequeue-%d", data.RandomString, data.RandomInteger)),
 			),
 		},
 		data.ImportStep(),
@@ -216,7 +216,7 @@ func (r StorageQueueResource) basic(data acceptance.TestData) string {
 %s
 
 resource "azurerm_storage_queue" "test" {
-  name               = "mysamplequeue-%d"
+  name               = "acctestmysamplequeue-%d"
   storage_account_id = azurerm_storage_account.test.id
 }
 `, template, data.RandomInteger)
@@ -228,7 +228,7 @@ func (r StorageQueueResource) basicDeprecated(data acceptance.TestData) string {
 %s
 
 resource "azurerm_storage_queue" "test" {
-  name                 = "mysamplequeue-%d"
+  name                 = "acctestmysamplequeue-%d"
   storage_account_name = azurerm_storage_account.test.name
 }
 `, template, data.RandomInteger)
@@ -259,7 +259,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_queue" "test" {
-  name               = "mysamplequeue-%d"
+  name               = "acctestmysamplequeue-%d"
   storage_account_id = azurerm_storage_account.test.id
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
@@ -290,7 +290,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 resource "azurerm_storage_queue" "test" {
-  name                 = "mysamplequeue-%d"
+  name                 = "acctestmysamplequeue-%d"
   storage_account_name = azurerm_storage_account.test.name
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString, data.RandomInteger)
@@ -326,7 +326,7 @@ func (r StorageQueueResource) metaData(data acceptance.TestData) string {
 %s
 
 resource "azurerm_storage_queue" "test" {
-  name               = "mysamplequeue-%d"
+  name               = "acctestmysamplequeue-%d"
   storage_account_id = azurerm_storage_account.test.id
 
   metadata = {
@@ -342,7 +342,7 @@ func (r StorageQueueResource) metaDataDeprecated(data acceptance.TestData) strin
 %s
 
 resource "azurerm_storage_queue" "test" {
-  name                 = "mysamplequeue-%d"
+  name                 = "acctestmysamplequeue-%d"
   storage_account_name = azurerm_storage_account.test.name
 
   metadata = {
@@ -358,7 +358,7 @@ func (r StorageQueueResource) metaDataUpdated(data acceptance.TestData) string {
 %s
 
 resource "azurerm_storage_queue" "test" {
-  name               = "mysamplequeue-%d"
+  name               = "acctestmysamplequeue-%d"
   storage_account_id = azurerm_storage_account.test.id
 
   metadata = {
@@ -375,7 +375,7 @@ func (r StorageQueueResource) metaDataUpdatedDeprecated(data acceptance.TestData
 %s
 
 resource "azurerm_storage_queue" "test" {
-  name                 = "mysamplequeue-%d"
+  name                 = "acctestmysamplequeue-%d"
   storage_account_name = azurerm_storage_account.test.name
 
   metadata = {

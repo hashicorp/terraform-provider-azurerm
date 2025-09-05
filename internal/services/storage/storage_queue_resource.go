@@ -40,8 +40,6 @@ func resourceStorageQueue() *pluginsdk.Resource {
 					_, err := queueservice.ParseQueueID(id)
 					return err
 				}
-				_, err := queues.ParseQueueID(id, storageDomainSuffix)
-				return err
 			}
 
 			_, err := queues.ParseQueueID(id, storageDomainSuffix)
@@ -105,7 +103,7 @@ func resourceStorageQueue() *pluginsdk.Resource {
 		r.Schema["resource_manager_id"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeString,
 			Computed:   true,
-			Deprecated: "this property has been deprecated in favour of `id` and will be removed in version 5.0 of the Provider.",
+			Deprecated: "the `resource_manager_id` property has been deprecated in favour of `id` and will be removed in version 5.0 of the Provider.",
 		}
 	}
 
