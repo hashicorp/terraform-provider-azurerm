@@ -32,8 +32,8 @@ NOTES:
 FEATURES:
 
 * **New Data Source:** `azurerm_managed_disks` ([#30394](https://github.com/hashicorp/terraform-provider-azurerm/issues/30394))
-* **New Resource**: `azurerm_oracle_autonomous_database_backup` [GH-30201]
 * **New Data Source**: `azurerm_oracle_autonomous_database_backup_data_source` [GH-30201]
+* **New Resource**: `azurerm_oracle_autonomous_database_backup` [GH-30201]
 
 ENHANCEMENTS:
 
