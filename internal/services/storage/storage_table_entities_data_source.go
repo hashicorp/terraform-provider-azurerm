@@ -113,14 +113,13 @@ func (k storageTableEntitiesDataSource) Read() sdk.ResourceFunc {
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
 			var storageTableId *tables.TableId
-			var err error
 			if model.StorageTableId != "" {
-				storageTableId, err = tables.ParseTableID(model.StorageTableId, storageClient.StorageDomainSuffix)
+				id, err := tables.ParseTableID(model.StorageTableId, storageClient.StorageDomainSuffix)
 				if err != nil {
 					return err
 				}
+				storageTableId = id
 			}
-
 			if storageTableId == nil {
 				return fmt.Errorf("determining storage table ID")
 			}
@@ -138,35 +137,51 @@ func (k storageTableEntitiesDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("building Table Entity Client for %s: %+v", account.StorageAccountId, err)
 			}
 
-			input := entities.QueryEntitiesInput{
-				Filter:        &model.Filter,
-				MetaDataLevel: entities.MinimalMetaData,
-			}
-
+			// Always select PartitionKey & RowKey to ensure entities can be identified
+			var selectFields []string
 			if model.Select != nil {
-				model.Select = append(model.Select, "RowKey", "PartitionKey")
-				input.PropertyNamesToSelect = &model.Select
+				selectFields = append([]string{}, model.Select...)
+			}
+			selectFields = append(selectFields, "RowKey", "PartitionKey")
+
+			in := entities.QueryEntitiesInput{
+				Filter:                &model.Filter,
+				MetaDataLevel:         entities.MinimalMetaData,
+				PropertyNamesToSelect: &selectFields,
 			}
 
-			id := parse.NewStorageTableEntitiesId(storageTableId.AccountId.AccountName, storageClient.StorageDomainSuffix, storageTableId.TableName, model.Filter)
+			id := parse.NewStorageTableEntitiesId(
+				storageTableId.AccountId.AccountName,
+				storageClient.StorageDomainSuffix,
+				storageTableId.TableName,
+				model.Filter,
+			)
 
-			result, err := client.Query(ctx, storageTableId.TableName, input)
-			if err != nil {
-				return fmt.Errorf("retrieving Entities (Filter %q) (Table %q in %s): %+v", model.Filter, storageTableId.TableName, account.StorageAccountId, err)
-			}
-
-			var flattenedEntities []TableEntityDataSourceModel
-			for _, entity := range result.Entities {
-				flattenedEntity := flattenEntityWithMetadata(entity)
-				if len(flattenedEntity.Properties) == 0 {
-					// if we use selector, we get empty objects back, skip them
-					continue
+			var allEntities []TableEntityDataSourceModel
+			for {
+				result, err := client.Query(ctx, storageTableId.TableName, in)
+				if err != nil {
+					return fmt.Errorf("retrieving entities (filter %q) (table %q in %s): %+v", model.Filter, storageTableId.TableName, account.StorageAccountId, err)
 				}
-				flattenedEntities = append(flattenedEntities, flattenedEntity)
-			}
-			model.Items = flattenedEntities
-			metadata.SetID(id)
 
+				for _, entity := range result.Entities {
+					flattened := flattenEntityWithMetadata(entity)
+					if len(flattened.Properties) == 0 {
+						continue
+					}
+					allEntities = append(allEntities, flattened)
+				}
+
+				// Azure continuation requires both tokens; stop when both are empty
+				if result.NextPartitionKey == "" && result.NextRowKey == "" {
+					break
+				}
+				in.NextPartitionKey = &result.NextPartitionKey
+				in.NextRowKey = &result.NextRowKey
+			}
+
+			model.Items = allEntities
+			metadata.SetID(id)
 			return metadata.Encode(&model)
 		},
 	}
