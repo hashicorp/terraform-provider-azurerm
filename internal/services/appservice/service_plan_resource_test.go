@@ -93,6 +93,51 @@ func TestAccServicePlan_linuxPremiumAutoScaleFeatureUpdate(t *testing.T) {
 	})
 }
 
+func TestAccServicePlan_linuxPremiumV4(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
+	r := ServicePlanResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.linuxPremiumV4(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccServicePlan_linuxPremiumV4P0(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
+	r := ServicePlanResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.linuxPremiumV4P0(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccServicePlan_linuxPremiumV4MemoryOptimized(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
+	r := ServicePlanResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.linuxPremiumV4MemoryOptimized(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccServicePlan_linuxFlexConsumption(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_service_plan", "test")
 	r := ServicePlanResource{}
@@ -376,6 +421,84 @@ resource "azurerm_service_plan" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
   sku_name            = "P1v3"
+  os_type             = "Linux"
+
+  tags = {
+    environment = "AccTest"
+    Foo         = "bar"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r ServicePlanResource) linuxPremiumV4(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appserviceplan-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_service_plan" "test" {
+  name                = "acctest-SP-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "P1v4"
+  os_type             = "Linux"
+
+  tags = {
+    environment = "AccTest"
+    Foo         = "bar"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r ServicePlanResource) linuxPremiumV4P0(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appserviceplan-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_service_plan" "test" {
+  name                = "acctest-SP-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "P0v4"
+  os_type             = "Linux"
+
+  tags = {
+    environment = "AccTest"
+    Foo         = "bar"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (r ServicePlanResource) linuxPremiumV4MemoryOptimized(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-appserviceplan-%[1]d"
+  location = "%s"
+}
+
+resource "azurerm_service_plan" "test" {
+  name                = "acctest-SP-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+  sku_name            = "P1mv4"
   os_type             = "Linux"
 
   tags = {

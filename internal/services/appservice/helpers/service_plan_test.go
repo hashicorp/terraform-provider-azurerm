@@ -184,6 +184,18 @@ func TestPlanTypeFromSku(t *testing.T) {
 			expected: "premium",
 		},
 		{
+			name:     "P1v4",
+			expected: "premium",
+		},
+		{
+			name:     "P0v4",
+			expected: "premium",
+		},
+		{
+			name:     "P1mv4",
+			expected: "premium",
+		},
+		{
 			name:     "I1",
 			expected: "isolated",
 		},
