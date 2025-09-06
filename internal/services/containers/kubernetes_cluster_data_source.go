@@ -604,6 +604,23 @@ func dataSourceKubernetesCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
+			"node_provisioning_profile": {
+				Type:     pluginsdk.TypeList,
+				Computed: true,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"default_node_pool": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+						"mode": {
+							Type:     pluginsdk.TypeString,
+							Computed: true,
+						},
+					},
+				},
+			},
+
 			"oidc_issuer_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Computed: true,
@@ -822,6 +839,11 @@ func dataSourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}
 			networkProfile := flattenKubernetesClusterDataSourceNetworkProfile(props.NetworkProfile)
 			if err := d.Set("network_profile", networkProfile); err != nil {
 				return fmt.Errorf("setting `network_profile`: %+v", err)
+			}
+
+			nodeProvisioningProfile := flattenKubernetesClusterDataSourceNodeProvisioningProfile(props.NodeProvisioningProfile)
+			if err := d.Set("node_provisioning_profile", nodeProvisioningProfile); err != nil {
+				return fmt.Errorf("setting `node_provisioning_profile`: %+v", err)
 			}
 
 			oidcIssuerEnabled := false
@@ -1463,4 +1485,17 @@ func flattenKubernetesClusterDataSourceUpgradeSettings(input *managedclusters.Ag
 	}
 
 	return []interface{}{values}
+}
+
+func flattenKubernetesClusterDataSourceNodeProvisioningProfile(input *managedclusters.ManagedClusterNodeProvisioningProfile) []interface{} {
+	if input == nil || input.Mode == nil {
+		return []interface{}{}
+	}
+
+	return []interface{}{
+		map[string]interface{}{
+			"default_node_pool": pointer.From(input.DefaultNodePools),
+			"mode":              pointer.From(input.Mode),
+		},
+	}
 }
