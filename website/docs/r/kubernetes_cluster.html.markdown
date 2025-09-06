@@ -223,6 +223,8 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 * `service_mesh_profile` - (Optional) A `service_mesh_profile` block as defined below.
 
+* `node_provisioning_profile` - (Optional) A `node_provisioning_profile` block as defined below.
+
 * `workload_autoscaler_profile` - (Optional) A `workload_autoscaler_profile` block defined below.
 
 * `workload_identity_enabled` - (Optional) Specifies whether Azure AD Workload Identity should be enabled for the Cluster. Defaults to `false`.
@@ -923,6 +925,13 @@ A `gmsa` block supports the following:
 * `root_domain` - (Required) Specifies the root domain name for Windows gMSA. Set this to an empty string if you have configured the DNS server in the VNet which was used to create the managed cluster.
 
 -> **Note:** The properties `dns_server` and `root_domain` must both either be set or unset, i.e. empty.
+
+---
+
+A `node_provisioning_profile` block supports the following:
+
+* `mode` - (Optional) Specifies the provisioning mode for node pools created in this cluster. Possible values are `Auto` and `Manual`.
+* `default_node_pools` - (Optional) Specifies whether default node pools should be provisioned automatically. Possible values are `Auto` and `None`.
 
 ---
 
