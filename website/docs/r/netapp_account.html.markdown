@@ -33,6 +33,7 @@ resource "azurerm_netapp_account" "example" {
   name                = "netappaccount"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
+  nfsv4_id_domain     = "example.com"
 
   active_directory {
     username            = "aduser"
@@ -62,6 +63,8 @@ The following arguments are supported:
 * `resource_group_name` - (Required) The name of the resource group where the NetApp Account should be created. Changing this forces a new resource to be created.
 
 * `location` - (Required) Specifies the supported Azure location where the resource exists. Changing this forces a new resource to be created.
+
+* `nfsv4_id_domain` - (Optional) The NFSv4 ID domain for this NetApp Account.
 
 * `active_directory` - (Optional) A `active_directory` block as defined below.
 
