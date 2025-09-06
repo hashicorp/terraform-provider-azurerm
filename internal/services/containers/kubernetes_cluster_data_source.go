@@ -1454,12 +1454,20 @@ func flattenKubernetesClusterDataSourceUpgradeSettings(input *managedclusters.Ag
 		values["max_surge"] = *input.MaxSurge
 	}
 
+	if input.MaxUnavailable != nil {
+		values["max_unavailable"] = *input.MaxUnavailable
+	}
+
 	if input.DrainTimeoutInMinutes != nil {
 		values["drain_timeout_in_minutes"] = *input.DrainTimeoutInMinutes
 	}
 
 	if input.NodeSoakDurationInMinutes != nil {
 		values["node_soak_duration_in_minutes"] = *input.NodeSoakDurationInMinutes
+	}
+
+	if input.UndrainableNodeBehavior != nil {
+		values["undrainable_node_behavior"] = string(*input.UndrainableNodeBehavior)
 	}
 
 	return []interface{}{values}
