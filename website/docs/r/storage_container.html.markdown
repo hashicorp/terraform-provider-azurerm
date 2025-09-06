@@ -73,6 +73,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `resource_manager_id` - The Resource Manager ID of this Storage Container.
 
+* `url` - The data plane URL of the Storage Container in the format of `<storage blob endpoint>/<container name>`. E.g. `https://example.blob.core.windows.net/mycontainer`.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
