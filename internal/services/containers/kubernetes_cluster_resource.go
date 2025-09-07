@@ -2530,6 +2530,12 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 
 			tempAgentProfile := agentProfile
 			tempAgentProfile.Name = &temporaryNodePoolName
+			if tempAgentProfile.Properties != nil {
+				tempAgentProfile.Properties.NodeImageVersion = nil
+			}
+			if agentProfile.Properties != nil {
+				agentProfile.Properties.NodeImageVersion = nil
+			}
 			// if the temp node pool already exists due to a previous failure, don't bother spinning it up
 			if tempExisting.Model == nil {
 				if err := retryNodePoolCreation(ctx, nodePoolsClient, tempNodePoolId, tempAgentProfile); err != nil {
