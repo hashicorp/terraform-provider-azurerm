@@ -1033,6 +1033,18 @@ func TestAccKubernetesCluster_apiServerVnetIntegration(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_apiServerVnetIntegrationMissingSubnetId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.apiServerVnetIntegrationMissingSubnetIdConfig(data),
+			ExpectError: regexp.MustCompile("`subnet_id` is required when `virtual_network_integration_enabled` is set to `true`"),
+		},
+	})
+}
+
 func (KubernetesClusterResource) advancedNetworkingConfig(data acceptance.TestData, networkPlugin string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -4262,6 +4274,46 @@ resource "azurerm_kubernetes_cluster" "test" {
   api_server_access_profile {
     virtual_network_integration_enabled = true
     subnet_id                           = azurerm_subnet.test.id
+  }
+}
+`, data.Locations.Primary, data.RandomInteger)
+}
+
+func (KubernetesClusterResource) apiServerVnetIntegrationMissingSubnetIdConfig(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin    = "kubenet"
+    load_balancer_sku = "standard"
+  }
+
+  api_server_access_profile {
+    virtual_network_integration_enabled = true
+    # subnet_id is intentionally missing to trigger validation error
   }
 }
 `, data.Locations.Primary, data.RandomInteger)

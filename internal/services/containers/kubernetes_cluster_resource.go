@@ -3172,15 +3172,25 @@ func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedCl
 		return []interface{}{}
 	}
 
-	apiServerAuthorizedIPRanges := utils.FlattenStringSlice(profile.AuthorizedIPRanges)
-	enableVnetIntegration := pointer.From(profile.EnableVnetIntegration)
-	subnetId := pointer.From(profile.SubnetId)
+	result := map[string]interface{}{}
 
-	return []interface{}{map[string]interface{}{
-		"authorized_ip_ranges":                apiServerAuthorizedIPRanges,
-		"virtual_network_integration_enabled": enableVnetIntegration,
-		"subnet_id":                           subnetId,
-	}}
+	if profile.AuthorizedIPRanges != nil && len(*profile.AuthorizedIPRanges) > 0 {
+		result["authorized_ip_ranges"] = utils.FlattenStringSlice(profile.AuthorizedIPRanges)
+	}
+
+	if profile.EnableVnetIntegration != nil {
+		result["virtual_network_integration_enabled"] = *profile.EnableVnetIntegration
+	}
+
+	if profile.SubnetId != nil {
+		result["subnet_id"] = *profile.SubnetId
+	}
+
+	if len(result) == 0 {
+		return []interface{}{}
+	}
+
+	return []interface{}{result}
 }
 
 func expandKubernetesClusterWorkloadAutoscalerProfile(input []interface{}, d *pluginsdk.ResourceData) *managedclusters.ManagedClusterWorkloadAutoScalerProfile {
