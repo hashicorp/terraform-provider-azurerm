@@ -4,6 +4,7 @@
 package kusto
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -23,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -151,7 +153,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"language_extensions": {
+			"language_extension": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
@@ -226,6 +228,31 @@ func resourceKustoCluster() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
+		resource.Schema["language_extension"].ConflictsWith = []string{"language_extensions"}
+		resource.Schema["language_extension"].Computed = true
+
+		resource.Schema["language_extensions"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"language_extension"},
+			Deprecated:    "`language_extensions` has been deprecated in favour of `language_extension` and will be removed in v5.0 of the AzureRM provider",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionName(), false),
+					},
+					"image": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionImageName(), false),
+					},
+				},
+			},
+		}
+
 		resource.Schema["virtual_network_configuration"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeList,
 			Optional:   true,
@@ -253,6 +280,35 @@ func resourceKustoCluster() *pluginsdk.Resource {
 					},
 				},
 			},
+		}
+
+		resource.CustomizeDiff = func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+			rawLanguageExtensions, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("language_extensions"))
+			if diags.HasError() {
+				return nil
+			}
+
+			rawLanguageExtension, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("language_extension"))
+			if diags.HasError() {
+				return nil
+			}
+
+			// If neither the `language_extensions` nor the `language_extension` block is defined in config, set both to nil.
+			// This ensures removal of these blocks from config still triggers an update while these 2 blocks are O+C for 4.0.
+			if !rawLanguageExtensions.IsNull() && rawLanguageExtensions.IsKnown() && !rawLanguageExtension.IsNull() && rawLanguageExtension.IsKnown() {
+				if len(rawLanguageExtensions.AsValueSlice()) == 0 && len(rawLanguageExtension.AsValueSlice()) == 0 {
+					if err := d.SetNew("language_extensions", nil); err != nil {
+						return err
+					}
+
+					if err := d.SetNew("language_extensions", nil); err != nil {
+						return err
+					}
+				}
+
+			}
+
+			return nil
 		}
 	}
 
@@ -344,9 +400,14 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 	clusterProperties.RestrictOutboundNetworkAccess = &restrictOutboundNetworkAccess
 
-	if v, ok := d.GetOk("language_extensions"); ok {
-		extList := v.([]interface{})
-		clusterProperties.LanguageExtensions = expandKustoClusterLanguageExtensionList(extList)
+	if v, ok := d.GetOk("language_extension"); ok {
+		clusterProperties.LanguageExtensions = expandKustoClusterLanguageExtensionList(v.([]interface{}))
+	}
+
+	if !features.FivePointOh() {
+		if v, ok := d.GetOk("language_extensions"); ok {
+			clusterProperties.LanguageExtensions = expandKustoClusterLanguageExtensionList(v.([]interface{}))
+		}
 	}
 
 	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
@@ -362,9 +423,9 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		Tags:       tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	zones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
-	if len(zones) > 0 {
-		kustoCluster.Zones = &zones
+	expandedZones := zones.ExpandUntyped(d.Get("zones").(*schema.Set).List())
+	if len(expandedZones) > 0 {
+		kustoCluster.Zones = &expandedZones
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, kustoCluster, clusters.CreateOrUpdateOperationOptions{}); err != nil {
@@ -470,8 +531,35 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		props.EnableDoubleEncryption = pointer.To(d.Get("double_encryption_enabled").(bool))
 	}
 
-	if d.HasChange("language_extensions") {
-		props.LanguageExtensions = expandKustoClusterLanguageExtensionList(d.Get("language_extensions").([]interface{}))
+	if d.HasChange("language_extension") || !features.FivePointOh() {
+		if !features.FivePointOh() {
+			leRaw, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("language_extension"))
+			if diags.HasError() {
+				return fmt.Errorf("retrieving `language_extension`: %+v", err)
+			}
+
+			le, err := pluginsdk.GoValueFromTerraformValue[[]any](leRaw)
+			if err != nil {
+				return fmt.Errorf("retrieving `language_extension`: %+v", err)
+			}
+			props.LanguageExtensions = expandKustoClusterLanguageExtensionList(*le)
+		} else {
+			props.LanguageExtensions = expandKustoClusterLanguageExtensionList(d.Get("language_extension").([]interface{}))
+		}
+	}
+
+	// hasChange here is false when `SetNew` applies in the CustomizeDiff, how to trigger a "change" from a TF perspective?
+	if !features.FivePointOh() && d.HasChange("language_extensions") {
+		leRaw, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("language_extensions"))
+		if diags.HasError() {
+			return fmt.Errorf("retrieving `language_extensions`: %+v", err)
+		}
+
+		le, err := pluginsdk.GoValueFromTerraformValue[[]any](leRaw)
+		if err != nil {
+			return fmt.Errorf("retrieving `language_extensions`: %+v", err)
+		}
+		props.LanguageExtensions = expandKustoClusterLanguageExtensionList(*le)
 	}
 
 	if d.HasChange("outbound_network_access_restricted") {
@@ -610,7 +698,10 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 			d.Set("data_ingestion_uri", props.DataIngestionUri)
 			d.Set("public_ip_type", string(pointer.From(props.PublicIPType)))
 
-			d.Set("language_extensions", flattenKustoClusterLanguageExtensionList(props.LanguageExtensions))
+			d.Set("language_extension", flattenKustoClusterLanguageExtensionList(props.LanguageExtensions))
+			if !features.FivePointOh() {
+				d.Set("language_extensions", flattenKustoClusterLanguageExtensionList(props.LanguageExtensions))
+			}
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
