@@ -128,10 +128,10 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"key_vault_key_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: keyVaultValidate.NestedItemIdWithOptionalVersion,
-							ExactlyOneOf: []string{"customer_managed_key.0.managed_hsm_key_id", "customer_managed_key.0.key_vault_key_id"},
+							Type:          pluginsdk.TypeString,
+							Optional:      true,
+							ValidateFunc:  keyVaultValidate.NestedItemIdWithOptionalVersion,
+							ConflictsWith: []string{"customer_managed_key.0.managed_hsm_key_id"},
 							RequiredWith: []string{
 								"identity",
 								"customer_managed_key.0.primary_user_assigned_identity_id",
@@ -157,10 +157,10 @@ func resourceMysqlFlexibleServer() *pluginsdk.Resource {
 							ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 						},
 						"managed_hsm_key_id": {
-							Type:         pluginsdk.TypeString,
-							Optional:     true,
-							ValidateFunc: validation.Any(hsmValidate.ManagedHSMDataPlaneVersionedKeyID, hsmValidate.ManagedHSMDataPlaneVersionlessKeyID),
-							ExactlyOneOf: []string{"customer_managed_key.0.managed_hsm_key_id", "customer_managed_key.0.key_vault_key_id"},
+							Type:          pluginsdk.TypeString,
+							Optional:      true,
+							ValidateFunc:  validation.Any(hsmValidate.ManagedHSMDataPlaneVersionedKeyID, hsmValidate.ManagedHSMDataPlaneVersionlessKeyID),
+							ConflictsWith: []string{"customer_managed_key.0.key_vault_key_id"},
 							RequiredWith: []string{
 								"identity",
 								"customer_managed_key.0.primary_user_assigned_identity_id",
