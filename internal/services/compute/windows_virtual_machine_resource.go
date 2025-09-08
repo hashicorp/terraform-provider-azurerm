@@ -595,7 +595,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	if !woPassword.IsNull() {
 		adminPassword = woPassword.AsString()
 	}
-	
+
 	allowExtensionOperations := true
 	if !d.GetRawConfig().AsValueMap()["allow_extension_operations"].IsNull() {
 		allowExtensionOperations = d.Get("allow_extension_operations").(bool)
@@ -702,7 +702,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 		}
 
 		params.Properties.OsProfile = &virtualmachines.OSProfile{
-			AdminPassword:            pointer.To(d.Get("admin_password").(string)),
+			AdminPassword:            pointer.To(adminPassword),
 			AdminUsername:            pointer.To(d.Get("admin_username").(string)),
 			ComputerName:             pointer.To(computerName),
 			AllowExtensionOperations: pointer.To(allowExtensionOperations),
