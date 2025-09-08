@@ -595,9 +595,7 @@ func resourceWindowsVirtualMachineCreate(d *pluginsdk.ResourceData, meta interfa
 	if !woPassword.IsNull() {
 		adminPassword = woPassword.AsString()
 	}
-
-	adminUsername := d.Get("admin_username").(string)
-
+	
 	allowExtensionOperations := true
 	if !d.GetRawConfig().AsValueMap()["allow_extension_operations"].IsNull() {
 		allowExtensionOperations = d.Get("allow_extension_operations").(bool)
