@@ -60,12 +60,6 @@ func (r ApiManagementWorkspacePolicyResource) Arguments() map[string]*pluginsdk.
 			Optional:     true,
 			ExactlyOneOf: []string{"xml_link", "xml_content"},
 			ValidateFunc: validation.StringIsNotEmpty,
-			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
-				// Suppress spurious diffs during plan or import because the API does not return `xml_link` by design.
-				// This prevents Terraform from treating the missing API value as a difference, so the user-specified
-				// `xml_link` in the configuration is not marked for change.
-				return old == "" && d.Id() != "" && new != ""
-			},
 		},
 	}
 }
@@ -211,6 +205,7 @@ func (r ApiManagementWorkspacePolicyResource) Read() sdk.ResourceFunc {
 					// when you submit an `xml_link` to the API, the API downloads this link and stores it as `xml_content`
 					// as such there is no way to set `xml_link` and we'll let Terraform handle it
 					state.XmlContent = html.UnescapeString(props.Value)
+					state.XmlLink = metadata.ResourceData.Get("xml_link").(string)
 				}
 			}
 
