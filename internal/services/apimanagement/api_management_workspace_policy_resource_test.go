@@ -44,7 +44,7 @@ func TestAccApiManagementWorkspacePolicy_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("xml_link"),
 	})
 }
 
@@ -59,14 +59,14 @@ func TestAccApiManagementWorkspacePolicy_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("xml_link"),
 		{
 			Config: r.updated(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("xml_link"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -80,7 +80,7 @@ func TestAccApiManagementWorkspacePolicy_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("xml_link"),
 	})
 }
 
