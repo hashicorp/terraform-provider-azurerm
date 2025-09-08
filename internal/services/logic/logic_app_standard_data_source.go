@@ -6,6 +6,7 @@ package logic
 import (
 	"fmt"
 	"log"
+	"math"
 	"strings"
 	"time"
 
@@ -18,9 +19,11 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/web/2023-12-01/webapps"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/logic/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
@@ -98,7 +101,7 @@ func dataSourceLogicAppStandard() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"site_config": schemaLogicAppStandardSiteConfig(),
+			"site_config": schemaLogicAppStandardSiteConfigDataSource(),
 
 			"connection_string": {
 				Type:     pluginsdk.TypeSet,
@@ -427,4 +430,373 @@ func flattenLogicAppStandardDataSourceSiteConfig(input *webapps.SiteConfig) []in
 
 	results = append(results, result)
 	return results
+}
+
+func flattenLogicAppStandardSiteCredential(input *webapps.User) []interface{} {
+	results := make([]interface{}, 0)
+	result := make(map[string]interface{})
+
+	if input == nil || input.Properties == nil {
+		log.Printf("[DEBUG] UserProperties is nil")
+		return results
+	}
+
+	result["username"] = input.Properties.PublishingUserName
+
+	result["password"] = pointer.From(input.Properties.PublishingPassword)
+
+	return append(results, result)
+}
+
+func flattenLogicAppStandardCorsSettings(input *webapps.CorsSettings) []interface{} {
+	results := make([]interface{}, 0)
+	if input == nil {
+		return results
+	}
+
+	result := make(map[string]interface{})
+
+	allowedOrigins := make([]interface{}, 0)
+	if s := input.AllowedOrigins; s != nil {
+		for _, v := range *s {
+			allowedOrigins = append(allowedOrigins, v)
+		}
+	}
+	result["allowed_origins"] = pluginsdk.NewSet(pluginsdk.HashString, allowedOrigins)
+
+	if input.SupportCredentials != nil {
+		result["support_credentials"] = *input.SupportCredentials
+	}
+
+	return append(results, result)
+}
+
+func flattenHeaders(input map[string][]string) []interface{} {
+	output := make([]interface{}, 0)
+	headers := make(map[string]interface{})
+	if input == nil {
+		return output
+	}
+
+	if forwardedHost, ok := input["x-forwarded-host"]; ok && len(forwardedHost) > 0 {
+		headers["x_forwarded_host"] = forwardedHost
+	}
+	if forwardedFor, ok := input["x-forwarded-for"]; ok && len(forwardedFor) > 0 {
+		headers["x_forwarded_for"] = forwardedFor
+	}
+	if fdids, ok := input["x-azure-fdid"]; ok && len(fdids) > 0 {
+		headers["x_azure_fdid"] = fdids
+	}
+	if healthProbe, ok := input["x-fd-healthprobe"]; ok && len(healthProbe) > 0 {
+		headers["x_fd_health_probe"] = healthProbe
+	}
+
+	return append(output, headers)
+}
+
+func schemaLogicAppStandardSiteConfigDataSource() *pluginsdk.Schema {
+	schema := &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"always_on": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"cors": schemaLogicAppCorsSettingsDataSource(),
+
+				"ftps_state": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"http2_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+
+				"ip_restriction": schemaLogicAppStandardIpRestrictionDataSource(),
+
+				"linux_fx_version": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Computed: true,
+				},
+
+				"min_tls_version": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Computed: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(webapps.SupportedTlsVersionsOnePointTwo),
+					}, false),
+				},
+
+				"pre_warmed_instance_count": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.IntBetween(0, 20),
+				},
+
+				"scm_ip_restriction": schemaLogicAppStandardIpRestrictionDataSource(),
+
+				"scm_use_main_ip_restriction": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
+				"scm_min_tls_version": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Computed: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(webapps.SupportedTlsVersionsOnePointTwo),
+					}, false),
+				},
+
+				"scm_type": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Computed: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						string(webapps.ScmTypeBitbucketGit),
+						string(webapps.ScmTypeBitbucketHg),
+						string(webapps.ScmTypeCodePlexGit),
+						string(webapps.ScmTypeCodePlexHg),
+						string(webapps.ScmTypeDropbox),
+						string(webapps.ScmTypeExternalGit),
+						string(webapps.ScmTypeExternalHg),
+						string(webapps.ScmTypeGitHub),
+						string(webapps.ScmTypeLocalGit),
+						string(webapps.ScmTypeNone),
+						string(webapps.ScmTypeOneDrive),
+						string(webapps.ScmTypeTfs),
+						string(webapps.ScmTypeVSO),
+						string(webapps.ScmTypeVSTSRM),
+					}, false),
+				},
+
+				"use_32_bit_worker_process": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  true,
+				},
+
+				"websockets_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
+				"health_check_path": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+				},
+
+				"elastic_instance_minimum": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.IntBetween(0, 20),
+				},
+
+				"app_scale_limit": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.IntAtLeast(0),
+				},
+
+				"runtime_scale_monitoring_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Default:  false,
+				},
+
+				"dotnet_framework_version": {
+					Type:     pluginsdk.TypeString,
+					Optional: true,
+					Default:  "v4.0",
+					ValidateFunc: validation.StringInSlice([]string{
+						"v4.0",
+						"v5.0",
+						"v6.0",
+						"v8.0",
+					}, false),
+				},
+
+				"vnet_route_all_enabled": {
+					Type:     pluginsdk.TypeBool,
+					Optional: true,
+					Computed: true,
+				},
+
+				"auto_swap_slot_name": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+			},
+		},
+	}
+
+	if !features.FivePointOh() {
+		schema.Elem.(*pluginsdk.Resource).Schema["public_network_access_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "the `site_config.public_network_access_enabled` property has been superseded by the `public_network_access` property and will be removed in v5.0 of the AzureRM Provider.",
+		}
+		schema.Elem.(*pluginsdk.Resource).Schema["scm_min_tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(webapps.SupportedTlsVersionsOnePointZero),
+				string(webapps.SupportedTlsVersionsOnePointOne),
+				string(webapps.SupportedTlsVersionsOnePointTwo),
+			}, false),
+		}
+		schema.Elem.(*pluginsdk.Resource).Schema["min_tls_version"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Computed: true,
+			ValidateFunc: validation.StringInSlice([]string{
+				string(webapps.SupportedTlsVersionsOnePointZero),
+				string(webapps.SupportedTlsVersionsOnePointOne),
+				string(webapps.SupportedTlsVersionsOnePointTwo),
+			}, false),
+		}
+	}
+
+	return schema
+}
+
+func schemaLogicAppCorsSettingsDataSource() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"allowed_origins": {
+					Type:     pluginsdk.TypeSet,
+					Computed: true,
+					Elem:     &pluginsdk.Schema{Type: pluginsdk.TypeString},
+				},
+				"support_credentials": {
+					Type:     pluginsdk.TypeBool,
+					Computed: true,
+				},
+			},
+		},
+	}
+}
+
+func schemaLogicAppStandardIpRestrictionDataSource() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Computed: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"ip_address": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"service_tag": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"virtual_network_subnet_id": {
+					Type:     pluginsdk.TypeString,
+					Computed: true,
+				},
+
+				"name": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					Computed:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+
+				"priority": {
+					Type:         pluginsdk.TypeInt,
+					Optional:     true,
+					Default:      65000,
+					ValidateFunc: validation.IntBetween(1, math.MaxInt32),
+				},
+
+				"action": {
+					Type:     pluginsdk.TypeString,
+					Default:  "Allow",
+					Optional: true,
+					ValidateFunc: validation.StringInSlice([]string{
+						"Allow",
+						"Deny",
+					}, false),
+				},
+
+				// lintignore:XS003
+				"headers": {
+					Type:       pluginsdk.TypeList,
+					Optional:   true,
+					Computed:   true,
+					MaxItems:   1,
+					ConfigMode: pluginsdk.SchemaConfigModeAttr,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							// lintignore:S018
+							"x_forwarded_host": {
+								Type:     pluginsdk.TypeSet,
+								Optional: true,
+								MaxItems: 8,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+								},
+							},
+
+							// lintignore:S018
+							"x_forwarded_for": {
+								Type:     pluginsdk.TypeSet,
+								Optional: true,
+								MaxItems: 8,
+								Elem: &pluginsdk.Schema{
+									Type:         pluginsdk.TypeString,
+									ValidateFunc: validation.IsCIDR,
+								},
+							},
+
+							// lintignore:S018
+							"x_azure_fdid": {
+								Type:     pluginsdk.TypeSet,
+								Optional: true,
+								MaxItems: 8,
+								Elem: &pluginsdk.Schema{
+									Type:         pluginsdk.TypeString,
+									ValidateFunc: validation.IsUUID,
+								},
+							},
+
+							// lintignore:S018
+							"x_fd_health_probe": {
+								Type:     pluginsdk.TypeSet,
+								Optional: true,
+								MaxItems: 1,
+								Elem: &pluginsdk.Schema{
+									Type: pluginsdk.TypeString,
+									ValidateFunc: validation.StringInSlice([]string{
+										"1",
+									}, false),
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
 }

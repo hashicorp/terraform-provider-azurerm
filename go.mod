@@ -7,30 +7,31 @@ require (
 	github.com/Azure/go-autorest/autorest/to v0.4.0
 	github.com/Azure/go-autorest/autorest/validation v0.3.1
 	github.com/Azure/go-autorest/tracing v0.6.1
-	github.com/agiledragon/gomonkey/v2 v2.11.0
+	github.com/agiledragon/gomonkey/v2 v2.13.0
 	github.com/btubbs/datetime v0.1.1
-	github.com/dave/jennifer v1.6.0
+	github.com/dave/jennifer v1.7.1
 	github.com/davecgh/go-spew v1.1.1
 	github.com/fatih/color v1.18.0
 	github.com/gofrs/uuid v4.4.0+incompatible
 	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/google/go-cmp v0.7.0
 	github.com/google/uuid v1.6.0
-	github.com/hashicorp/go-azure-helpers v0.73.0
-	github.com/hashicorp/go-azure-sdk/resource-manager v0.20250728.1144148
-	github.com/hashicorp/go-azure-sdk/sdk v0.20250731.1142049
+	github.com/hashicorp/go-azure-helpers v0.74.0
+	github.com/hashicorp/go-azure-sdk/resource-manager v0.20250814.1105543
+	github.com/hashicorp/go-azure-sdk/sdk v0.20250814.1105543
 	github.com/hashicorp/go-cty v1.5.0
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-uuid v1.0.3
 	github.com/hashicorp/go-version v1.7.0
 	github.com/hashicorp/terraform-json v0.25.0
-	github.com/hashicorp/terraform-plugin-framework v1.15.0
+	github.com/hashicorp/terraform-plugin-framework v1.15.1
+	github.com/hashicorp/terraform-plugin-framework-timeouts v0.5.0
 	github.com/hashicorp/terraform-plugin-framework-validators v0.18.0
-	github.com/hashicorp/terraform-plugin-go v0.27.0
-	github.com/hashicorp/terraform-plugin-mux v0.19.0-alpha.1
+	github.com/hashicorp/terraform-plugin-go v0.28.0
+	github.com/hashicorp/terraform-plugin-mux v0.20.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.37.0
-	github.com/hashicorp/terraform-plugin-testing v1.13.1
+	github.com/hashicorp/terraform-plugin-testing v1.13.2
 	github.com/iancoleman/strcase v0.3.0
 	github.com/jackofallops/giovanni v0.28.0
 	github.com/jackofallops/kermit v0.20241010.1180132
@@ -96,7 +97,7 @@ require (
 	github.com/vmihailenco/msgpack v4.0.4+incompatible // indirect
 	github.com/vmihailenco/msgpack/v5 v5.4.1 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
-	github.com/zclconf/go-cty v1.16.2 // indirect
+	github.com/zclconf/go-cty v1.16.3 // indirect
 	golang.org/x/mod v0.26.0 // indirect
 	golang.org/x/net v0.42.0 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
