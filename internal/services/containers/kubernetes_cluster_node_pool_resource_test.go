@@ -1705,11 +1705,11 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
 
-  tags = {
-    environment = "Staging"
-  }
   upgrade_settings {
     max_surge = "10%%"
+  }
+  tags = {
+    environment = "Staging"
   }
 }
 `, r.templateConfig(data))
