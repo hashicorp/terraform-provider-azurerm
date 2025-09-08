@@ -322,7 +322,7 @@ func resourceRecoveryServicesVaultCreate(d *pluginsdk.ResourceData, meta interfa
 		StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
 	}
 
-	_, err = cfgsClient.Update(ctx, cfgId, cfg)
+	_, err = cfgsClient.Update(ctx, cfgId, cfg, backupresourcevaultconfigs.UpdateOperationOptions{})
 	if err != nil {
 		return err
 	}
@@ -534,7 +534,7 @@ func resourceRecoveryServicesVaultUpdate(d *pluginsdk.ResourceData, meta interfa
 		StateRefreshTargetStrings = []string{string(backupresourcevaultconfigs.SoftDeleteFeatureStateDisabled)}
 	}
 
-	_, err = cfgsClient.Update(ctx, cfgId, cfg)
+	_, err = cfgsClient.Update(ctx, cfgId, cfg, backupresourcevaultconfigs.UpdateOperationOptions{})
 	if err != nil {
 		return err
 	}

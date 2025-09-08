@@ -241,7 +241,7 @@ func resourceBackupProtectedFileShareCreateUpdate(d *pluginsdk.ResourceData, met
 		},
 	}
 
-	if err := client.CreateOrUpdateThenPoll(ctx, id, item); err != nil {
+	if err := client.CreateOrUpdateThenPoll(ctx, id, item, protecteditems.CreateOrUpdateOperationOptions{}); err != nil {
 		return fmt.Errorf("creating/updating Recovery Service Protected File Share %q (Resource Group %q): %+v", fileShareName, resourceGroup, err)
 	}
 
