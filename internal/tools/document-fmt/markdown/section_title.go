@@ -3,6 +3,8 @@
 
 package markdown
 
+import "regexp"
+
 type TitleSection struct {
 	heading Heading
 	content []string
@@ -11,7 +13,8 @@ type TitleSection struct {
 var _ SectionWithTemplate = &TitleSection{}
 
 func (s *TitleSection) Match(line string) bool {
-	panic("todo")
+	match, _ := regexp.MatchString(`#+[\s\t]*([\w\s\t]*:\s*)?\w*_+[\w_]*`, line)
+	return match
 }
 
 func (s *TitleSection) SetHeading(line string) {
@@ -31,6 +34,11 @@ func (s *TitleSection) GetContent() []string {
 }
 
 func (s *TitleSection) Template() string {
-	// TODO implement me
-	panic("implement me")
+	return `# {{ if eq .Type.String "Data Source" }}Data Source: {{ end }}{{ .Name }}
+{{ if eq .Type.String "Data Source" }}
+Use this data source to access information about an existing <brandName>.
+{{- else }}
+Manages a <brandName>.
+{{- end }}
+`
 }

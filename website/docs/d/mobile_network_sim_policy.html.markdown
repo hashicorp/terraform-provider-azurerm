@@ -6,7 +6,7 @@ description: |-
   Get information about a Mobile Network Sim Policy.
 ---
 
-# azurerm_mobile_network_sim_policy
+# Data Source: azurerm_mobile_network_sim_policy
 
 Get information about a Mobile Network Sim Policy.
 
