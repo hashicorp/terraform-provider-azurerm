@@ -2604,7 +2604,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_DS2_v2"
   auto_scaling_enabled  = true
   min_count             = 1
-  max_count             = 399
+  max_count             = 250
   node_count            = 1
   upgrade_settings {
     max_surge = "10%%"
@@ -3204,6 +3204,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_NC24ads_A100_v4"
   gpu_instance          = "MIG1g"
+  gpu_driver            = "Install"
   upgrade_settings {
     max_surge = "10%%"
   }
