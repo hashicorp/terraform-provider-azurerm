@@ -1,6 +1,7 @@
 ## 4.44.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `go-azure-sdk` - update to `v0.20250903.1204452` [GH-30557]
 * `azurerm_netapp_volume` - add support for `accept_grow_capacity_pool_for_short_term_clone_split`  [GH-30494]
 
 FEATURES:
