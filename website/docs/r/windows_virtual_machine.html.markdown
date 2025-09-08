@@ -107,6 +107,12 @@ The following arguments are supported:
 
 ---
 
+* `admin_password_wo` - (Optional, Write-Only) The Password which should be used for the local-administrator on this Virtual Machine.
+
+~> **Note:** One of `admin_password` or `admin_password_wo` must be specified.
+
+* `admin_password_wo_version` - (Optional) An integer value used to trigger an update for `admin_password_wo`. This property should be incremented when updating `admin_password_wo`.
+
 * `admin_password` - (Optional) The Password which should be used for the local-administrator on this Virtual Machine. Changing this forces a new resource to be created.
 
 * `admin_password_wo` - (Optional, Write-Only) The write-only Password which should be used for the local-administrator on this Virtual Machine. This property should be used when sensitive values should not be stored in state.
