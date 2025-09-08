@@ -2960,7 +2960,7 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 
 			bootstrapProfile, err := flattenBootstrapProfile(props.BootstrapProfile)
 			if err != nil {
-				return fmt.Errorf("setting `bootstrap_profile`: %+v", err)
+				return fmt.Errorf("flattening `bootstrap_profile`: %+v", err)
 			}
 			if err := d.Set("bootstrap_profile", bootstrapProfile); err != nil {
 				return fmt.Errorf("setting `bootstrap_profile`: %+v", err)
