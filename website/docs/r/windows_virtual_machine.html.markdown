@@ -93,16 +93,6 @@ resource "azurerm_windows_virtual_machine" "example" {
 
 The following arguments are supported:
 
-* `admin_password` - (Optional) The Password which should be used for the local-administrator on this Virtual Machine. Changing this forces a new resource to be created.
-
-* `admin_password_wo` - (Optional, Write-Only) The Password which should be used for the local-administrator on this Virtual Machine.
-
-~> **Note:** One of `admin_password` or `admin_password_wo` must be specified.
-
-* `admin_password_wo_version` - (Optional) An integer value used to trigger an update for `admin_password_wo`. This property should be incremented when updating `admin_password_wo`.
-
-* `admin_username` - (Required) The username of the local administrator used for the Virtual Machine. Changing this forces a new resource to be created.
-
 * `location` - (Required) The Azure location where the Windows Virtual Machine should exist. Changing this forces a new resource to be created.
 
 * `name` - (Required) The name of the Windows Virtual Machine. Changing this forces a new resource to be created.
@@ -116,6 +106,12 @@ The following arguments are supported:
 * `size` - (Required) The SKU which should be used for this Virtual Machine, such as `Standard_F2`.
 
 ---
+
+* `admin_password_wo` - (Optional, Write-Only) The Password which should be used for the local-administrator on this Virtual Machine.
+
+~> **Note:** One of `admin_password` or `admin_password_wo` must be specified.
+
+* `admin_password_wo_version` - (Optional) An integer value used to trigger an update for `admin_password_wo`. This property should be incremented when updating `admin_password_wo`.
 
 * `admin_password` - (Optional) The Password which should be used for the local-administrator on this Virtual Machine. Changing this forces a new resource to be created.
 
