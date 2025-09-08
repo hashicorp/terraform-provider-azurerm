@@ -6,6 +6,7 @@ ENHANCEMENTS:
 FEATURES:
 
 BUG FIXES:
+`azurerm_custom_ip_prefix` - fix an incorrect type-assertion that caused an error when attempting to read the API response [GH-30537]
 `azurerm_application_insights_standard_web_test` - prevent Resource ID errors when parsing `hidden-link` tags [GH-28034]
 
 ## 4.43.0 (September 04, 2025)
