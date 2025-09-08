@@ -13,7 +13,7 @@ type TitleSection struct {
 var _ SectionWithTemplate = &TitleSection{}
 
 func (s *TitleSection) Match(line string) bool {
-	match, _ := regexp.MatchString(`#+[\s\t]*([\w\s\t]*:\s*)?\w*_+[\w_]*`, line)
+	match, _ := regexp.MatchString(`#+\s*([a-zA-Z0-9\s]*:\s*)?\w*_[\w_]*`, line)
 	return match
 }
 
