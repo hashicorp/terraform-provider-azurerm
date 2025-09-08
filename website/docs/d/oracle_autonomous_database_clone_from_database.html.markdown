@@ -139,7 +139,7 @@ In addition to the Arguments listed above—the following Attributes are exporte
 
 * `time_of_last_failover_in_utc` - The timestamp of the last failover operation.
 
-* `time_of_last_refresh_in_utc` - The timestamp when last refresh happened.
+* `time_of_last_refresh_in_utc` - The timestamp when the last refresh happened.
 
 * `time_of_last_refresh_point_in_utc` - The refresh point timestamp (UTC). The refresh point is the time to which the database was most recently refreshed. Data created after the refresh point is not included in the refresh.
 

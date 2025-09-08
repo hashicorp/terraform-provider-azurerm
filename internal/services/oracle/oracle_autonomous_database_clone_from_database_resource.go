@@ -76,12 +76,7 @@ func (AutonomousDatabaseCloneFromDatabaseResource) Arguments() map[string]*plugi
 
 		// Clone-specific required fields
 
-		"source_autonomous_database_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: autonomousdatabases.ValidateAutonomousDatabaseID,
-		},
+		"source_autonomous_database_id": commonschema.ResourceIDReferenceRequiredForceNew(&autonomousdatabases.AutonomousDatabaseId{}),
 
 		"clone_type": {
 			Type:         pluginsdk.TypeString,
