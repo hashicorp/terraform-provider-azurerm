@@ -57,9 +57,8 @@ func (EventGridPartnerConfigurationResource) Arguments() map[string]*pluginsdk.S
 						ValidateFunc: validation.IsUUID,
 					},
 					"partner_name": &schema.Schema{
-						Type:         pluginsdk.TypeString,
-						Required:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						Type:     pluginsdk.TypeString,
+						Required: true,
 					},
 					"authorization_expiration_time_in_utc": &schema.Schema{
 						Type:         pluginsdk.TypeString,
