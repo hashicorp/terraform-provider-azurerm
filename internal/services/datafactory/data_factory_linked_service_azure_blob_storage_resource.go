@@ -302,25 +302,17 @@ func resourceDataFactoryLinkedServiceBlobStorageCreateUpdate(d *pluginsdk.Resour
 		blobStorageProperties.ConnectionString = v.(string)
 	}
 
-	if v, ok := d.GetOk("sas_uri"); ok {
-		if sasToken, ok := d.GetOk("sas_token_linked_key_vault_key"); ok {
-			blobStorageProperties.SasURI = pointer.To(v.(string))
-			blobStorageProperties.SasToken = expandAzureKeyVaultSecretReference(sasToken.([]interface{}))
+	if sasUri, ok := d.GetOk("sas_uri"); ok {
+		if sasTokenLinkedKeyVaultKey, sasTokenLinkedKeyVaultKeyOk := d.GetOk("sas_token_linked_key_vault_key"); sasTokenLinkedKeyVaultKeyOk {
+			blobStorageProperties.SasURI = pointer.To(sasUri.(string))
+			blobStorageProperties.SasToken = expandAzureKeyVaultSecretReference(sasTokenLinkedKeyVaultKey.([]interface{}))
+		} else if keyVaultSasToken, keyVaultSasTokenOk := d.GetOk("key_vault_sas_token"); !features.FivePointOh() && keyVaultSasTokenOk {
+			blobStorageProperties.SasURI = pointer.To(sasUri.(string))
+			blobStorageProperties.SasToken = expandAzureKeyVaultSecretReference(keyVaultSasToken.([]interface{}))
 		} else {
 			blobStorageProperties.SasURI = &datafactory.SecureString{
-				Value: pointer.To(v.(string)),
+				Value: pointer.To(sasUri.(string)),
 				Type:  datafactory.TypeSecureString,
-			}
-		}
-		if !features.FivePointOh() {
-			if sasToken, ok := d.GetOk("key_vault_sas_token"); ok {
-				blobStorageProperties.SasURI = pointer.To(v.(string))
-				blobStorageProperties.SasToken = expandAzureKeyVaultSecretReference(sasToken.([]interface{}))
-			} else {
-				blobStorageProperties.SasURI = &datafactory.SecureString{
-					Value: pointer.To(v.(string)),
-					Type:  datafactory.TypeSecureString,
-				}
 			}
 		}
 	}
