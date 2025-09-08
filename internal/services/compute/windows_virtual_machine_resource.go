@@ -78,9 +78,15 @@ func resourceWindowsVirtualMachine() *pluginsdk.Resource {
 				ForceNew:         true,
 				Sensitive:        true,
 				DiffSuppressFunc: adminPasswordDiffSuppressFunc,
-				ValidateFunc:     computeValidate.WindowsAdminPassword,
-				ConflictsWith:    []string{"admin_password_wo"},
-				ExactlyOneOf:     []string{"admin_password", "admin_password_wo"},
+				RequiredWith: []string{
+					"admin_username",
+				},
+				ConflictsWith: []string{
+					"os_managed_disk_id",
+					"admin_password_wo",
+				},
+				ValidateFunc: computeValidate.WindowsAdminPassword,
+				ExactlyOneOf: []string{"admin_password", "admin_password_wo"},
 			},
 
 			"admin_password_wo": {
