@@ -6,6 +6,7 @@ package apimanagement_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -99,6 +100,61 @@ func TestAccApiManagementWorkspaceApiVersionSet_complete(t *testing.T) {
 	})
 }
 
+func TestAccApiManagementWorkspaceApiVersionSet_versionHeaderNameMustBeSetIfSchemaIsHeaderError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_api_version_set", "test")
+	r := ApiManagementWorkspaceApiVersionSetResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.versionHeaderNameMustBeSetIfSchemaIsHeaderError(data),
+			ExpectError: regexp.MustCompile("`version_header_name` must be set if `versioning_schema` is `Header`"),
+		},
+	})
+}
+
+func TestAccApiManagementWorkspaceApiVersionSet_versionHeaderNameCanNotBeSetIfSchemaIsQueryError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_api_version_set", "test")
+	r := ApiManagementWorkspaceApiVersionSetResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.versionHeaderNameCanNotBeSetIfSchemaIsQueryError(data),
+			ExpectError: regexp.MustCompile("`version_header_name` can not be set if `versioning_schema` is `Query`"),
+		},
+	})
+}
+
+func TestAccApiManagementWorkspaceApiVersionSet_versionQueryNameMustBeSetIfSchemaIsQueryError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_api_version_set", "test")
+	r := ApiManagementWorkspaceApiVersionSetResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.versionQueryNameMustBeSetIfSchemaIsQueryError(data),
+			ExpectError: regexp.MustCompile("`version_query_name` must be set if `versioning_schema` is `Query`"),
+		},
+	})
+}
+
+func TestAccApiManagementWorkspaceApiVersionSet_versionHeaderNameCanNotBeSetIfSchemaIsSegmentError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_api_version_set", "test")
+	r := ApiManagementWorkspaceApiVersionSetResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.versionHeaderNameCanNotBeSetIfSchemaIsSegmentError(data),
+			ExpectError: regexp.MustCompile("`version_header_name` can not be set if `versioning_schema` is `Segment`"),
+		},
+	})
+}
+
+func TestAccApiManagementWorkspaceApiVersionSet_versionQueryNameCanNotBeSetIfSchemaIsSegmentError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_api_version_set", "test")
+	r := ApiManagementWorkspaceApiVersionSetResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.versionQueryNameCanNotBeSetIfSchemaIsSegmentError(data),
+			ExpectError: regexp.MustCompile("`version_query_name` can not be set if `versioning_schema` is `Segment`"),
+		},
+	})
+}
+
 func (ApiManagementWorkspaceApiVersionSetResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := apiversionset.ParseWorkspaceApiVersionSetID(state.ID)
 	if err != nil {
@@ -175,6 +231,99 @@ resource "azurerm_api_management_workspace_api_version_set" "test" {
   api_management_workspace_id = azurerm_api_management_workspace.test.id
   display_name                = "Complete API Version Set"
   versioning_scheme           = "Query"
+  description                 = "A complete API version set"
+  version_query_name          = "version"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ApiManagementWorkspaceApiVersionSetResource) versionHeaderNameMustBeSetIfSchemaIsHeaderError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_api_management_workspace_api_version_set" "test" {
+  name                        = "acctestAMWAVS-%d"
+  api_management_workspace_id = azurerm_api_management_workspace.test.id
+  display_name                = "Complete API Version Set"
+  versioning_scheme           = "Header"
+  description                 = "A complete API version set"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ApiManagementWorkspaceApiVersionSetResource) versionHeaderNameCanNotBeSetIfSchemaIsQueryError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_api_management_workspace_api_version_set" "test" {
+  name                        = "acctestAMWAVS-%d"
+  api_management_workspace_id = azurerm_api_management_workspace.test.id
+  display_name                = "Complete API Version Set"
+  versioning_scheme           = "Query"
+  description                 = "A complete API version set"
+  version_header_name         = "Api-Version"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ApiManagementWorkspaceApiVersionSetResource) versionQueryNameMustBeSetIfSchemaIsQueryError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_api_management_workspace_api_version_set" "test" {
+  name                        = "acctestAMWAVS-%d"
+  api_management_workspace_id = azurerm_api_management_workspace.test.id
+  display_name                = "Complete API Version Set"
+  versioning_scheme           = "Query"
+  description                 = "A complete API version set"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ApiManagementWorkspaceApiVersionSetResource) versionHeaderNameCanNotBeSetIfSchemaIsSegmentError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_api_management_workspace_api_version_set" "test" {
+  name                        = "acctestAMWAVS-%d"
+  api_management_workspace_id = azurerm_api_management_workspace.test.id
+  display_name                = "Complete API Version Set"
+  versioning_scheme           = "Segment"
+  description                 = "A complete API version set"
+  version_header_name         = "Api-Version"
+}
+`, r.template(data), data.RandomInteger)
+}
+
+func (r ApiManagementWorkspaceApiVersionSetResource) versionQueryNameCanNotBeSetIfSchemaIsSegmentError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+%s
+
+resource "azurerm_api_management_workspace_api_version_set" "test" {
+  name                        = "acctestAMWAVS-%d"
+  api_management_workspace_id = azurerm_api_management_workspace.test.id
+  display_name                = "Complete API Version Set"
+  versioning_scheme           = "Segment"
   description                 = "A complete API version set"
   version_query_name          = "version"
 }

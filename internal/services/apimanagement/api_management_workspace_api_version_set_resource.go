@@ -57,7 +57,7 @@ func (r ApiManagementWorkspaceApiVersionSetResource) Arguments() map[string]*plu
 			ForceNew: true,
 			ValidateFunc: validation.StringMatch(
 				regexp.MustCompile("^[a-zA-Z0-9]([a-zA-Z0-9-_]{0,78}[a-zA-Z0-9])?$"),
-				"The 'name' can only contain alphanumeric characters, underscores and dashes up to 80 characters in length.",
+				"The `name` can only contain alphanumeric characters, underscores and dashes up to 80 characters in length.",
 			),
 		},
 
@@ -307,9 +307,6 @@ func (r ApiManagementWorkspaceApiVersionSetResource) CustomizeDiff() sdk.Resourc
 			case apiversionset.VersioningSchemeHeader:
 				if !headerSet {
 					return errors.New("`version_header_name` must be set if `versioning_schema` is `Header`")
-				}
-				if querySet {
-					return errors.New("`version_query_name` can not be set if `versioning_schema` is `Header`")
 				}
 
 			case apiversionset.VersioningSchemeQuery:
