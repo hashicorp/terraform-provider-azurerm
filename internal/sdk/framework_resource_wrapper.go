@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package sdk
 
 import (
@@ -143,14 +146,14 @@ func (r *FrameworkResourceWrapper) Update(ctx context.Context, request resource.
 		plan := r.FrameworkWrappedResource.ModelObject()
 		state := r.FrameworkWrappedResource.ModelObject()
 
-		r.ResourceMetadata.DecodeUpdate(ctx, request, response, &plan, &state)
+		r.ResourceMetadata.DecodeUpdate(ctx, request, response, plan, state)
 		if response.Diagnostics.HasError() {
 			return
 		}
 
 		fr.Update(ctx, request, response, r.ResourceMetadata, plan, state)
 
-		r.ResourceMetadata.EncodeUpdate(ctx, response, state)
+		r.ResourceMetadata.EncodeUpdate(ctx, response, plan)
 
 		return
 	} else {

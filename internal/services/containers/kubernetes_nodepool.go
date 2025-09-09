@@ -250,7 +250,7 @@ func SchemaDefaultNodePool() *pluginsdk.Schema {
 						ValidateFunc: computeValidate.HostGroupID,
 					},
 
-					"upgrade_settings": upgradeSettingsSchemaClusterDefaultNodePool(),
+					"upgrade_settings": upgradeSettingsSchema(),
 
 					"workload_runtime": {
 						Type:     pluginsdk.TypeString,
@@ -791,9 +791,6 @@ func ConvertDefaultNodePoolToAgentPool(input *[]managedclusters.ManagedClusterAg
 		}
 		if upgradeSettingsNodePool.NodeSoakDurationInMinutes != nil {
 			agentpool.Properties.UpgradeSettings.NodeSoakDurationInMinutes = upgradeSettingsNodePool.NodeSoakDurationInMinutes
-		}
-		if upgradeSettingsNodePool.UndrainableNodeBehavior != nil {
-			agentpool.Properties.UpgradeSettings.UndrainableNodeBehavior = pointer.To(agentpools.UndrainableNodeBehavior(*upgradeSettingsNodePool.UndrainableNodeBehavior))
 		}
 	}
 	if workloadRuntimeNodePool := defaultCluster.WorkloadRuntime; workloadRuntimeNodePool != nil {
@@ -1412,7 +1409,8 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 }
 
 func flattenClusterNodePoolUpgradeSettings(input *managedclusters.AgentPoolUpgradeSettings) []interface{} {
-	if input == nil || (input.MaxSurge == nil && input.DrainTimeoutInMinutes == nil && input.NodeSoakDurationInMinutes == nil && input.UndrainableNodeBehavior == nil) {
+	// The API returns an empty upgrade settings object for spot node pools, so we need to explicitly check whether there's anything in it
+	if input == nil || (input.MaxSurge == nil && input.DrainTimeoutInMinutes == nil && input.NodeSoakDurationInMinutes == nil) {
 		return []interface{}{}
 	}
 
@@ -1428,10 +1426,6 @@ func flattenClusterNodePoolUpgradeSettings(input *managedclusters.AgentPoolUpgra
 
 	if input.NodeSoakDurationInMinutes != nil {
 		values["node_soak_duration_in_minutes"] = *input.NodeSoakDurationInMinutes
-	}
-
-	if input.UndrainableNodeBehavior != nil && *input.UndrainableNodeBehavior != "" {
-		values["undrainable_node_behavior"] = string(*input.UndrainableNodeBehavior)
 	}
 
 	return []interface{}{values}
@@ -1811,9 +1805,6 @@ func expandClusterNodePoolUpgradeSettings(input []interface{}) *managedclusters.
 	}
 	if nodeSoakDurationInMinutesRaw, ok := v["node_soak_duration_in_minutes"].(int); ok {
 		setting.NodeSoakDurationInMinutes = pointer.To(int64(nodeSoakDurationInMinutesRaw))
-	}
-	if undrainableNodeBehaviorRaw, ok := v["undrainable_node_behavior"].(string); ok && undrainableNodeBehaviorRaw != "" {
-		setting.UndrainableNodeBehavior = pointer.To(managedclusters.UndrainableNodeBehavior(undrainableNodeBehaviorRaw))
 	}
 
 	return setting

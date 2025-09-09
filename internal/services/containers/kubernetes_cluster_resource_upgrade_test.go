@@ -279,14 +279,14 @@ func TestAccKubernetesCluster_upgradeSettings(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.upgradeSettings(data, 10, 5, "Cordon"),
+			Config: r.upgradeSettings(data, 35, 18),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettings(data, 15, 10, "Schedule"),
+			Config: r.upgradeSettings(data, 5, 0),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -295,7 +295,7 @@ func TestAccKubernetesCluster_upgradeSettings(t *testing.T) {
 	})
 }
 
-func (r KubernetesClusterResource) upgradeSettings(data acceptance.TestData, drainTimeout int, nodeSoak int, undrainableBehavior string) string {
+func (r KubernetesClusterResource) upgradeSettings(data acceptance.TestData, drainTimeout int, nodeSoakDuration int) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -320,7 +320,6 @@ resource "azurerm_kubernetes_cluster" "test" {
       max_surge                     = "10%%"
       drain_timeout_in_minutes      = %d
       node_soak_duration_in_minutes = %d
-      undrainable_node_behavior     = %q
     }
   }
 
@@ -328,7 +327,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
 }
-  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, drainTimeout, nodeSoak, undrainableBehavior)
+  `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, drainTimeout, nodeSoakDuration)
 }
 
 func (KubernetesClusterResource) upgradeControlPlaneConfig(data acceptance.TestData, controlPlaneVersion string) string {
