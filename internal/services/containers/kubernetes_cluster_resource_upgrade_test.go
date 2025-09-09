@@ -409,6 +409,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   vm_size               = "Standard_DS2_v2"
   node_count            = 1
   orchestrator_version  = %q
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.upgradeControlPlaneDefaultNodePoolConfig(data, controlPlaneVersion, defaultNodePoolVersion), customNodePoolVersion)
 }
@@ -432,6 +435,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_taints = [
     "kubernetes.azure.com/scalesetpriority=spot:NoSchedule"
   ]
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 `, r.upgradeControlPlaneDefaultNodePoolConfig(data, controlPlaneVersion, defaultNodePoolVersion), customNodePoolVersion)
 }

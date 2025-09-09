@@ -6,7 +6,7 @@ description: |-
   Gets information about an existing Attestation Provider.
 ---
 
-# Data Source: azurerm_attestation
+# Data Source: azurerm_attestation_provider
 
 Use this data source to access information about an existing Attestation Provider.
 

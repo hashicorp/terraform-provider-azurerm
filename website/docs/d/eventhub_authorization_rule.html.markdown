@@ -6,7 +6,7 @@ description: |-
   Gets information about an Event Hubs Authorization Rule within an Event Hub.
 ---
 
-# azurerm_eventhub_authorization_rule
+# Data Source: azurerm_eventhub_authorization_rule
 
 Use this data source to access information about an existing Event Hubs Authorization Rule within an Event Hub.
 
