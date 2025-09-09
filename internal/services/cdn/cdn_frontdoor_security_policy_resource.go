@@ -294,13 +294,13 @@ func resourceCdnFrontdoorSecurityPolicyUpdate(d *pluginsdk.ResourceData, meta in
 	profileClient := meta.(*clients.Client).Cdn.FrontDoorProfilesClient
 	resp, err := profileClient.Get(ctx, pointer.From(profileId))
 	if err != nil {
-		return fmt.Errorf("unable to retrieve the 'sku_name' from the CDN FrontDoor Profile(Name: %q)': %+v", profileId.ProfileName, err)
+		return fmt.Errorf("unable to retrieve the `sku_name` from %s: %+v", *profileId, err)
 	}
 
 	profileModel := resp.Model
 
 	if profileModel == nil {
-		return fmt.Errorf("profileModel is 'nil'")
+		return errors.New("profileModel is 'nil'")
 	}
 
 	isStandardSku := true
