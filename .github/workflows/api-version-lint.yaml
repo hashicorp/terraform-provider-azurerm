@@ -1,0 +1,26 @@
+---
+name: API Version Linting
+
+permissions:
+  contents: read
+  pull-requests: read
+
+on:
+  pull_request:
+    types: ["opened", "synchronize"]
+    paths:
+      - ".github/workflows/api-version-lint.yaml"
+      - "internal/tools/api-version-lint/**"
+      - "vendor/**"
+
+jobs:
+  api-version-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        with:
+          go-version-file: ./.go-version
+  comment-on-fail:
+    if: ${{ needs.depscheck.result }} == 'failure'
+    uses: ./.github/workflows/comment-failure.yaml
