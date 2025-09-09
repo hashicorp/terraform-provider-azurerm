@@ -8,6 +8,7 @@ import (
 
 	paloalto_2022_08_29 "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2022-08-29"
 	paloalto_2023_09_01 "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2023-09-01"
+	paloalto_2025_05_23 "github.com/hashicorp/go-azure-sdk/resource-manager/paloaltonetworks/2025-05-23"
 	"github.com/hashicorp/go-azure-sdk/sdk/client/resourcemanager"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -15,6 +16,7 @@ import (
 type Client struct {
 	*paloalto_2022_08_29.Client
 	PaloAltoClient_v2023_09_01 *paloalto_2023_09_01.Client
+	PaloAltoClient_v2025_05_23 *paloalto_2025_05_23.Client
 }
 
 func NewClient(o *common.ClientOptions) (*Client, error) {
@@ -32,8 +34,16 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		return nil, err
 	}
 
+	paloAltoClient_v2025_05_23, err := paloalto_2025_05_23.NewClientWithBaseURI(o.Environment.ResourceManager, func(c *resourcemanager.Client) {
+		o.Configure(c, o.Authorizers.ResourceManager)
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	return &Client{
 		Client:                     client,
 		PaloAltoClient_v2023_09_01: paloAltoClient_v2023_09_01,
+		PaloAltoClient_v2025_05_23: paloAltoClient_v2025_05_23,
 	}, nil
 }
