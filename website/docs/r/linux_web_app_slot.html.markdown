@@ -182,7 +182,7 @@ An `application_stack` block supports the following:
 
 ~> **Note:** 10.x versions have been/are being deprecated so may cease to work for new resources in the future and may be removed from the provider.
 
-* `php_version` - (Optional) The version of PHP to run. Possible values are `7.4`, `8.0`, `8.1`, `8.2` and `8.3`.
+* `php_version` - (Optional) The version of PHP to run. Possible values are `7.4`, `8.0`, `8.1`, `8.2`, `8.3` and `8.4`.
 
 ~> **Note:** version `7.4` is deprecated and will be removed from the provider in a future version.
 
@@ -476,6 +476,8 @@ An `azure_blob_storage` block supports the following:
 
 * `sas_url` - (Required) SAS URL to an Azure blob container with read/write/list/delete permissions.
 
+~> **Note:** There isn't enough information to for the provider to generate the `sas_url` from `data.azurerm_storage_account_sas` and it should be built by hand (i.e. `https://${azurerm_storage_account.example.name}.blob.core.windows.net/${azurerm_storage_container.example.name}${data.azurerm_storage_account_sas.example.sas}&sr=b`).
+
 ---
 
 A `backup` block supports the following:
@@ -579,6 +581,8 @@ An `azure_blob_storage_http` block supports the following:
 * `retention_in_days` - (Optional) The time in days after which to remove blobs. A value of `0` means no retention.
 
 * `sas_url` - (Required) SAS url to an Azure blob container with read/write/list/delete permissions.
+
+~> **Note:** There isn't enough information to for the provider to generate the `sas_url` from `data.azurerm_storage_account_sas` and it should be built by hand (i.e. `https://${azurerm_storage_account.example.name}.blob.core.windows.net/${azurerm_storage_container.example.name}${data.azurerm_storage_account_sas.example.sas}&sr=b`).
 
 ---
 

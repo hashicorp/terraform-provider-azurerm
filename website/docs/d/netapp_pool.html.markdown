@@ -44,6 +44,8 @@ The following attributes are exported:
 
 * `size_in_tb` - Provisioned size of the pool in TB.
 
+* `custom_throughput_mibps` - The custom throughput for the pool in MiB/s.
+
 * `encryption_type` - The encryption type of the pool.
 
 * `cool_access_enabled` - Whether the NetApp Pool can hold cool access enabled volumes.
@@ -60,4 +62,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.NetApp` - 2025-01-01
+* `Microsoft.NetApp` - 2025-06-01

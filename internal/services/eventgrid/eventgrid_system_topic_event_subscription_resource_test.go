@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2022-06-15/eventsubscriptions"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/eventsubscriptions"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -483,7 +483,7 @@ resource "azurerm_storage_queue" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -498,11 +498,11 @@ resource "azurerm_storage_blob" "test" {
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                   = "acctesteg-%[1]d"
-  location               = "Global"
-  resource_group_name    = azurerm_resource_group.test.name
-  source_arm_resource_id = azurerm_resource_group.test.id
-  topic_type             = "Microsoft.Resources.ResourceGroups"
+  name                = "acctesteg-%[1]d"
+  location            = "Global"
+  resource_group_name = azurerm_resource_group.test.name
+  source_resource_id  = azurerm_resource_group.test.id
+  topic_type          = "Microsoft.Resources.ResourceGroups"
 }
 
 resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
@@ -560,7 +560,7 @@ resource "azurerm_storage_queue" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -575,11 +575,11 @@ resource "azurerm_storage_blob" "test" {
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                   = "acctesteg-%[1]d"
-  location               = "Global"
-  resource_group_name    = azurerm_resource_group.test.name
-  source_arm_resource_id = azurerm_resource_group.test.id
-  topic_type             = "Microsoft.Resources.ResourceGroups"
+  name                = "acctesteg-%[1]d"
+  location            = "Global"
+  resource_group_name = azurerm_resource_group.test.name
+  source_resource_id  = azurerm_resource_group.test.id
+  topic_type          = "Microsoft.Resources.ResourceGroups"
 
   identity {
     type = "SystemAssigned"
@@ -641,7 +641,7 @@ resource "azurerm_storage_queue" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -662,11 +662,11 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                   = "acctesteg-%[1]d"
-  location               = "Global"
-  resource_group_name    = azurerm_resource_group.test.name
-  source_arm_resource_id = azurerm_resource_group.test.id
-  topic_type             = "Microsoft.Resources.ResourceGroups"
+  name                = "acctesteg-%[1]d"
+  location            = "Global"
+  resource_group_name = azurerm_resource_group.test.name
+  source_resource_id  = azurerm_resource_group.test.id
+  topic_type          = "Microsoft.Resources.ResourceGroups"
 
   identity {
     type = "UserAssigned"
@@ -744,7 +744,7 @@ resource "azurerm_storage_queue" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -759,11 +759,11 @@ resource "azurerm_storage_blob" "test" {
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                   = "acctesteg-%[1]d"
-  location               = "Global"
-  resource_group_name    = azurerm_resource_group.test.name
-  source_arm_resource_id = azurerm_resource_group.test.id
-  topic_type             = "Microsoft.Resources.ResourceGroups"
+  name                = "acctesteg-%[1]d"
+  location            = "Global"
+  resource_group_name = azurerm_resource_group.test.name
+  source_resource_id  = azurerm_resource_group.test.id
+  topic_type          = "Microsoft.Resources.ResourceGroups"
 }
 
 resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
@@ -817,19 +817,18 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%[1]d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "acctesteventhub-%[1]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                   = "acctesteg-%[1]d"
-  location               = "Global"
-  resource_group_name    = azurerm_resource_group.test.name
-  source_arm_resource_id = azurerm_resource_group.test.id
-  topic_type             = "Microsoft.Resources.ResourceGroups"
+  name                = "acctesteg-%[1]d"
+  location            = "Global"
+  resource_group_name = azurerm_resource_group.test.name
+  source_resource_id  = azurerm_resource_group.test.id
+  topic_type          = "Microsoft.Resources.ResourceGroups"
 }
 
 resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
@@ -856,11 +855,11 @@ resource "azurerm_resource_group" "test" {
 }
 %[4]s
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                   = "acctesteg-%[1]d"
-  location               = azurerm_resource_group.test.location
-  resource_group_name    = azurerm_resource_group.test.name
-  source_arm_resource_id = azurerm_linux_function_app.test.id
-  topic_type             = "Microsoft.Web.Sites"
+  name                = "acctesteg-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  source_resource_id  = azurerm_linux_function_app.test.id
+  topic_type          = "Microsoft.Web.Sites"
 }
 
 resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
@@ -910,11 +909,11 @@ resource "azurerm_servicebus_queue" "test" {
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                   = "acctesteg-%[1]d"
-  location               = "Global"
-  resource_group_name    = azurerm_resource_group.test.name
-  source_arm_resource_id = azurerm_resource_group.test.id
-  topic_type             = "Microsoft.Resources.ResourceGroups"
+  name                = "acctesteg-%[1]d"
+  location            = "Global"
+  resource_group_name = azurerm_resource_group.test.name
+  source_resource_id  = azurerm_resource_group.test.id
+  topic_type          = "Microsoft.Resources.ResourceGroups"
 }
 
 resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
@@ -953,11 +952,11 @@ resource "azurerm_servicebus_topic" "test" {
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                   = "acctesteg-%[1]d"
-  location               = "Global"
-  resource_group_name    = azurerm_resource_group.test.name
-  source_arm_resource_id = azurerm_resource_group.test.id
-  topic_type             = "Microsoft.Resources.ResourceGroups"
+  name                = "acctesteg-%[1]d"
+  location            = "Global"
+  resource_group_name = azurerm_resource_group.test.name
+  source_resource_id  = azurerm_resource_group.test.id
+  topic_type          = "Microsoft.Resources.ResourceGroups"
 }
 
 resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
@@ -1000,11 +999,11 @@ resource "azurerm_storage_queue" "test" {
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                   = "acctesteg-%[1]d"
-  location               = "Global"
-  resource_group_name    = azurerm_resource_group.test.name
-  source_arm_resource_id = azurerm_resource_group.test.id
-  topic_type             = "Microsoft.Resources.ResourceGroups"
+  name                = "acctesteg-%[1]d"
+  location            = "Global"
+  resource_group_name = azurerm_resource_group.test.name
+  source_resource_id  = azurerm_resource_group.test.id
+  topic_type          = "Microsoft.Resources.ResourceGroups"
 }
 
 resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
@@ -1058,11 +1057,11 @@ resource "azurerm_storage_queue" "test" {
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                   = "acctesteg-%[1]d"
-  location               = "Global"
-  resource_group_name    = azurerm_resource_group.test.name
-  source_arm_resource_id = azurerm_resource_group.test.id
-  topic_type             = "Microsoft.Resources.ResourceGroups"
+  name                = "acctesteg-%[1]d"
+  location            = "Global"
+  resource_group_name = azurerm_resource_group.test.name
+  source_resource_id  = azurerm_resource_group.test.id
+  topic_type          = "Microsoft.Resources.ResourceGroups"
 }
 
 resource "azurerm_eventgrid_system_topic_event_subscription" "test1" {
@@ -1198,11 +1197,11 @@ resource "azurerm_storage_queue" "test" {
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                   = "acctesteg-%[1]d"
-  location               = "Global"
-  resource_group_name    = azurerm_resource_group.test.name
-  source_arm_resource_id = azurerm_resource_group.test.id
-  topic_type             = "Microsoft.Resources.ResourceGroups"
+  name                = "acctesteg-%[1]d"
+  location            = "Global"
+  resource_group_name = azurerm_resource_group.test.name
+  source_resource_id  = azurerm_resource_group.test.id
+  topic_type          = "Microsoft.Resources.ResourceGroups"
 }
 
 resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
@@ -1300,7 +1299,7 @@ resource "azurerm_storage_queue" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -1315,11 +1314,11 @@ resource "azurerm_storage_blob" "test" {
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                   = "acctesteg-%[1]d"
-  location               = "Global"
-  resource_group_name    = azurerm_resource_group.test.name
-  source_arm_resource_id = azurerm_resource_group.test.id
-  topic_type             = "Microsoft.Resources.ResourceGroups"
+  name                = "acctesteg-%[1]d"
+  location            = "Global"
+  resource_group_name = azurerm_resource_group.test.name
+  source_resource_id  = azurerm_resource_group.test.id
+  topic_type          = "Microsoft.Resources.ResourceGroups"
 
   identity {
     type = "SystemAssigned"
@@ -1399,7 +1398,7 @@ resource "azurerm_storage_queue" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "vhds"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "private"
 }
 
@@ -1420,11 +1419,11 @@ resource "azurerm_user_assigned_identity" "test" {
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                   = "acctesteg-%[1]d"
-  location               = "Global"
-  resource_group_name    = azurerm_resource_group.test.name
-  source_arm_resource_id = azurerm_resource_group.test.id
-  topic_type             = "Microsoft.Resources.ResourceGroups"
+  name                = "acctesteg-%[1]d"
+  location            = "Global"
+  resource_group_name = azurerm_resource_group.test.name
+  source_resource_id  = azurerm_resource_group.test.id
+  topic_type          = "Microsoft.Resources.ResourceGroups"
 
   identity {
     type = "UserAssigned"
@@ -1504,11 +1503,11 @@ resource "azurerm_servicebus_topic" "test" {
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                   = "acctesteg-%[1]d"
-  location               = "Global"
-  resource_group_name    = azurerm_resource_group.test.name
-  source_arm_resource_id = azurerm_resource_group.test.id
-  topic_type             = "Microsoft.Resources.ResourceGroups"
+  name                = "acctesteg-%[1]d"
+  location            = "Global"
+  resource_group_name = azurerm_resource_group.test.name
+  source_resource_id  = azurerm_resource_group.test.id
+  topic_type          = "Microsoft.Resources.ResourceGroups"
 }
 
 resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
@@ -1567,11 +1566,11 @@ resource "azurerm_servicebus_topic" "test" {
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                   = "acctesteg-%[1]d"
-  location               = "Global"
-  resource_group_name    = azurerm_resource_group.test.name
-  source_arm_resource_id = azurerm_resource_group.test.id
-  topic_type             = "Microsoft.Resources.ResourceGroups"
+  name                = "acctesteg-%[1]d"
+  location            = "Global"
+  resource_group_name = azurerm_resource_group.test.name
+  source_resource_id  = azurerm_resource_group.test.id
+  topic_type          = "Microsoft.Resources.ResourceGroups"
 }
 
 resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
@@ -1622,11 +1621,11 @@ resource "azurerm_servicebus_topic" "test" {
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                   = "acctesteg-%[1]d"
-  location               = "Global"
-  resource_group_name    = azurerm_resource_group.test.name
-  source_arm_resource_id = azurerm_resource_group.test.id
-  topic_type             = "Microsoft.Resources.ResourceGroups"
+  name                = "acctesteg-%[1]d"
+  location            = "Global"
+  resource_group_name = azurerm_resource_group.test.name
+  source_resource_id  = azurerm_resource_group.test.id
+  topic_type          = "Microsoft.Resources.ResourceGroups"
 }
 
 resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
@@ -1690,11 +1689,11 @@ resource "azurerm_servicebus_topic" "test" {
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                   = "acctesteg-%[1]d"
-  location               = "Global"
-  resource_group_name    = azurerm_resource_group.test.name
-  source_arm_resource_id = azurerm_resource_group.test.id
-  topic_type             = "Microsoft.Resources.ResourceGroups"
+  name                = "acctesteg-%[1]d"
+  location            = "Global"
+  resource_group_name = azurerm_resource_group.test.name
+  source_resource_id  = azurerm_resource_group.test.id
+  topic_type          = "Microsoft.Resources.ResourceGroups"
 }
 
 resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
@@ -1752,19 +1751,18 @@ resource "azurerm_eventhub_namespace" "test" {
 }
 
 resource "azurerm_eventhub" "test" {
-  name                = "acctesteventhub-%[1]d"
-  namespace_name      = azurerm_eventhub_namespace.test.name
-  resource_group_name = azurerm_resource_group.test.name
-  partition_count     = 2
-  message_retention   = 1
+  name              = "acctesteventhub-%[1]d"
+  namespace_id      = azurerm_eventhub_namespace.test.id
+  partition_count   = 2
+  message_retention = 1
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                   = "acctesteg-%[1]d"
-  location               = "Global"
-  resource_group_name    = azurerm_resource_group.test.name
-  source_arm_resource_id = azurerm_resource_group.test.id
-  topic_type             = "Microsoft.Resources.ResourceGroups"
+  name                = "acctesteg-%[1]d"
+  location            = "Global"
+  resource_group_name = azurerm_resource_group.test.name
+  source_resource_id  = azurerm_resource_group.test.id
+  topic_type          = "Microsoft.Resources.ResourceGroups"
 }
 
 resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
@@ -1810,11 +1808,11 @@ resource "azurerm_relay_hybrid_connection" "test" {
 }
 
 resource "azurerm_eventgrid_system_topic" "test" {
-  name                   = "acctesteg-%[1]d"
-  location               = "Global"
-  resource_group_name    = azurerm_resource_group.test.name
-  source_arm_resource_id = azurerm_resource_group.test.id
-  topic_type             = "Microsoft.Resources.ResourceGroups"
+  name                = "acctesteg-%[1]d"
+  location            = "Global"
+  resource_group_name = azurerm_resource_group.test.name
+  source_resource_id  = azurerm_resource_group.test.id
+  topic_type          = "Microsoft.Resources.ResourceGroups"
 }
 
 resource "azurerm_eventgrid_system_topic_event_subscription" "test" {

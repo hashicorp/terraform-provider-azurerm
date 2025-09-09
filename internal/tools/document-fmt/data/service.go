@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package data
 
 import (
@@ -46,7 +49,7 @@ func NewService(fs afero.Fs, providerDir string, providerServiceRegistration any
 		names = append(names, nameFunc(serviceName), labelFunc(s.AssociatedGitHubLabel()))
 	case sdk.TypedServiceRegistrationWithAGitHubLabel:
 		names = append(names, nameFunc(serviceName), labelFunc(s.AssociatedGitHubLabel()))
-	case sdk.UntypedServiceRegistration, sdk.FrameworkTypedServiceRegistration, sdk.TypedServiceRegistration:
+	case sdk.UntypedServiceRegistration, sdk.FrameworkServiceRegistration, sdk.TypedServiceRegistration:
 		names = append(names, nameFunc(serviceName))
 	default:
 		return nil, fmt.Errorf("unexpected service type `%T`", s)
