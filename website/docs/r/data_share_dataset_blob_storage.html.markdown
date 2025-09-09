@@ -131,4 +131,4 @@ terraform import azurerm_data_share_dataset_blob_storage.example /subscriptions/
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DataShare`: 2019-11-01
+* `Microsoft.DataShare` - 2019-11-01

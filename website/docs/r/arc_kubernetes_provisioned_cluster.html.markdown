@@ -132,4 +132,4 @@ terraform import azurerm_arc_kubernetes_provisioned_cluster.example /subscriptio
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Kubernetes`: 2024-01-01
+* `Microsoft.Kubernetes` - 2024-01-01

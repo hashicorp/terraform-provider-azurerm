@@ -125,4 +125,4 @@ terraform import azurerm_postgresql_server_key.example /subscriptions/00000000-0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DBforPostgreSQL`: 2020-01-01
+* `Microsoft.DBforPostgreSQL` - 2020-01-01

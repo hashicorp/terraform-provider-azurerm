@@ -102,6 +102,8 @@ The following arguments are supported:
 
 ~> **Note:** Currently only one region can be specified for `managed_virtual_network_regions`.
 
+* `single_sign_on_enabled` - (Optional) Specifies whether Dev Boxes in the Pool will have SSO enabled or disabled. Defaults to `false`.
+
 * `stop_on_disconnect_grace_period_minutes` - (Optional) The specified time in minutes to wait before stopping a Dev Center Dev Box once disconnect is detected. Possible values are between `60` and `480`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dev Center Project Pool.
@@ -133,4 +135,4 @@ terraform import azurerm_dev_center_project_pool.example /subscriptions/00000000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DevCenter`: 2025-02-01
+* `Microsoft.DevCenter` - 2025-02-01
