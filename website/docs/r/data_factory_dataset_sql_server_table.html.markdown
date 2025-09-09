@@ -6,7 +6,7 @@ description: |-
   Manages a SQL Server Table Dataset inside a Azure Data Factory.
 ---
 
-# azurerm_data_factory_dataset_sql_server
+# azurerm_data_factory_dataset_sql_server_table
 
 Manages a SQL Server Table Dataset inside a Azure Data Factory.
 
