@@ -48,7 +48,7 @@ func dataSourceIpGroup() *pluginsdk.Resource {
 }
 
 func dataSourceIpGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.IPGroups
+	client := meta.(*clients.Client).Network.IPGroups
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()

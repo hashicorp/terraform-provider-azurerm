@@ -139,7 +139,7 @@ func expandStreamAnalyticsOutputSerialization(input []interface{}) (outputs.Seri
 		}, nil
 	}
 
-	return nil, fmt.Errorf("Unsupported Output Type %q", outputType)
+	return nil, fmt.Errorf("unsupported Output Type %q", outputType)
 }
 
 func flattenStreamAnalyticsOutputSerialization(input outputs.Serialization) []interface{} {

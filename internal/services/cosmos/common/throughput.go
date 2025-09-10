@@ -56,13 +56,13 @@ func ExpandCosmosDBThroughputSettingsUpdateParametersLegacy(d *pluginsdk.Resourc
 	}
 
 	if v, exists := d.GetOk("throughput"); exists {
-		throughputParameters.ThroughputSettingsUpdateProperties.Resource.Throughput = ConvertThroughputFromResourceDataLegacy(v)
+		throughputParameters.Resource.Throughput = ConvertThroughputFromResourceDataLegacy(v)
 	}
 
 	if _, hasAutoscaleSettings := d.GetOk("autoscale_settings"); hasAutoscaleSettings {
 		// If updating the autoscale throughput, set the manual throughput to nil to ensure the autoscale throughput is applied
-		throughputParameters.ThroughputSettingsUpdateProperties.Resource.Throughput = nil
-		throughputParameters.ThroughputSettingsUpdateProperties.Resource.AutoscaleSettings = ExpandCosmosDbAutoscaleSettingsResourceLegacy(d)
+		throughputParameters.Resource.Throughput = nil
+		throughputParameters.Resource.AutoscaleSettings = ExpandCosmosDbAutoscaleSettingsResourceLegacy(d)
 	}
 
 	return &throughputParameters

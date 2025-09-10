@@ -252,7 +252,7 @@ func resourceBlueprintAssignmentRead(d *pluginsdk.ResourceData, meta interface{}
 			return nil
 		}
 
-		return fmt.Errorf("Read failed for Blueprint Assignment (%q): %+v", id.String(), err)
+		return fmt.Errorf("read failed for Blueprint Assignment (%q): %+v", id.String(), err)
 	}
 
 	d.Set("name", id.BlueprintAssignmentName)

@@ -963,7 +963,7 @@ func flattenFirewallPolicyRuleNat(input *[]firewallpolicyrulecollectiongroups.Fi
 		if rule.TranslatedPort != nil {
 			port, err := strconv.Atoi(*rule.TranslatedPort)
 			if err != nil {
-				return nil, fmt.Errorf(`The "translatedPort" property is not a valid integer (%s)`, *rule.TranslatedPort)
+				return nil, fmt.Errorf(`the "translatedPort" property is not a valid integer (%s)`, *rule.TranslatedPort)
 			}
 			translatedPort = port
 		}

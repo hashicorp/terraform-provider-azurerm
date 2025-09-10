@@ -113,7 +113,7 @@ func (l LocalRulestackDataSource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			client := metadata.Client.PaloAlto.Client.LocalRulestacks
+			client := metadata.Client.PaloAlto.LocalRulestacks
 
 			var state LocalRulestackDataSourceModel
 			if err := metadata.Decode(&state); err != nil {

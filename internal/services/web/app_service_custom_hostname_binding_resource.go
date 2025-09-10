@@ -120,7 +120,7 @@ func resourceAppServiceCustomHostnameBindingCreate(d *pluginsdk.ResourceData, me
 			return fmt.Errorf("`thumbprint` must be specified when `ssl_state` is set")
 		}
 
-		properties.HostNameBindingProperties.SslState = web.SslState(sslState)
+		properties.SslState = web.SslState(sslState)
 	}
 
 	if thumbprint != "" {
@@ -128,7 +128,7 @@ func resourceAppServiceCustomHostnameBindingCreate(d *pluginsdk.ResourceData, me
 			return fmt.Errorf("`ssl_state` must be specified when `thumbprint` is set")
 		}
 
-		properties.HostNameBindingProperties.Thumbprint = utils.String(thumbprint)
+		properties.Thumbprint = utils.String(thumbprint)
 	}
 
 	if _, err := client.CreateOrUpdateHostNameBinding(ctx, resourceGroup, appServiceName, hostname, properties); err != nil {
@@ -140,7 +140,7 @@ func resourceAppServiceCustomHostnameBindingCreate(d *pluginsdk.ResourceData, me
 		return fmt.Errorf("retrieving Custom Hostname Binding %q (App Service %q / Resource Group %q): %+v", hostname, appServiceName, resourceGroup, err)
 	}
 	if read.ID == nil {
-		return fmt.Errorf("Cannot read Hostname Binding %q (App Service %q / Resource Group %q) ID", hostname, appServiceName, resourceGroup)
+		return fmt.Errorf("cannot read Hostname Binding %q (App Service %q / Resource Group %q) ID", hostname, appServiceName, resourceGroup)
 	}
 
 	d.SetId(*read.ID)

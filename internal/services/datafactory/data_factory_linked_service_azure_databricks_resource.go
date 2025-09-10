@@ -624,7 +624,7 @@ func parseNumberOfWorkersProperties(numberOfWorkersProperty string) (int, int, e
 			max, err = strconv.Atoi(numOfWorkersParts[1])
 		}
 	default:
-		err = fmt.Errorf("Number of workers property has unknown format: %s", numberOfWorkersProperty)
+		err = fmt.Errorf("number of workers property has unknown format: %s", numberOfWorkersProperty)
 	}
 
 	return min, max, err

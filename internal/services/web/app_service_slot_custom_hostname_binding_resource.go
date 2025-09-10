@@ -118,11 +118,11 @@ func resourceAppServiceSlotCustomHostnameBindingCreate(d *pluginsdk.ResourceData
 	}
 
 	if sslState != "" {
-		properties.HostNameBindingProperties.SslState = web.SslState(sslState)
+		properties.SslState = web.SslState(sslState)
 	}
 
 	if thumbprint != "" {
-		properties.HostNameBindingProperties.Thumbprint = utils.String(thumbprint)
+		properties.Thumbprint = utils.String(thumbprint)
 	}
 
 	if _, err := client.CreateOrUpdateHostNameBindingSlot(ctx, id.ResourceGroup, id.SiteName, id.HostNameBindingName, properties, id.SlotName); err != nil {

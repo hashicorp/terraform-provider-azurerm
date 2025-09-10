@@ -4,6 +4,7 @@
 package network
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -583,7 +584,7 @@ func resourceNetworkConnectionMonitorRead(d *pluginsdk.ResourceData, meta interf
 
 		if props := model.Properties; props != nil {
 			if props.ConnectionMonitorType != nil && *props.ConnectionMonitorType == connectionmonitors.ConnectionMonitorTypeSingleSourceDestination {
-				return fmt.Errorf("the resource created via API version 2019-06-01 or before (a.k.a v1) isn't compatible to this version of provider. Please migrate to v2 pluginsdk.")
+				return errors.New("the resource created via API version 2019-06-01 or before (a.k.a v1) isn't compatible to this version of provider. Please migrate to v2 pluginsdk")
 			}
 			d.Set("notes", props.Notes)
 

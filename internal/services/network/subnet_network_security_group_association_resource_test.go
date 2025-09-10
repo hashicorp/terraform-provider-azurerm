@@ -100,7 +100,7 @@ func (SubnetNetworkSecurityGroupAssociationResource) Exists(ctx context.Context,
 		return nil, err
 	}
 
-	resp, err := clients.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	resp, err := clients.Network.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
@@ -128,7 +128,7 @@ func (SubnetNetworkSecurityGroupAssociationResource) destroy(ctx context.Context
 		return err
 	}
 
-	read, err := client.Network.Client.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
+	read, err := client.Network.Subnets.Get(ctx, *id, subnets.DefaultGetOperationOptions())
 	if err != nil {
 		if !response.WasNotFound(read.HttpResponse) {
 			return fmt.Errorf("retrieving %s: %+v", id, err)
@@ -137,7 +137,7 @@ func (SubnetNetworkSecurityGroupAssociationResource) destroy(ctx context.Context
 
 	read.Model.Properties.NetworkSecurityGroup = nil
 
-	if err := client.Network.Client.Subnets.CreateOrUpdateThenPoll(ctx, *id, *read.Model); err != nil {
+	if err := client.Network.Subnets.CreateOrUpdateThenPoll(ctx, *id, *read.Model); err != nil {
 		return fmt.Errorf("updating %s: %+v", id, err)
 	}
 

@@ -381,7 +381,7 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *pluginsdk.ResourceData, 
 		if sasToken := properties.SasToken; sasToken != nil {
 			if keyVaultPassword, ok := sasToken.AsAzureKeyVaultSecretReference(); ok {
 				if err := d.Set("key_vault_sas_token", flattenAzureKeyVaultSecretReference(keyVaultPassword)); err != nil {
-					return fmt.Errorf("Error setting `key_vault_sas_token`: %+v", err)
+					return fmt.Errorf("setting `key_vault_sas_token`: %+v", err)
 				}
 			}
 		}
@@ -389,7 +389,7 @@ func resourceDataFactoryLinkedServiceBlobStorageRead(d *pluginsdk.ResourceData, 
 		if spKey := properties.ServicePrincipalKey; spKey != nil {
 			if kvSPkey, ok := spKey.AsAzureKeyVaultSecretReference(); ok {
 				if err := d.Set("service_principal_linked_key_vault_key", flattenAzureKeyVaultSecretReference(kvSPkey)); err != nil {
-					return fmt.Errorf("Error setting `service_principal_linked_key_vault_key`: %+v", err)
+					return fmt.Errorf("setting `service_principal_linked_key_vault_key`: %+v", err)
 				}
 			}
 		}

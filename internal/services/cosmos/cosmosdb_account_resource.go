@@ -166,9 +166,10 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				for _, cap := range caps.(*pluginsdk.Set).List() {
 					m := cap.(map[string]interface{})
 					if v, ok := m["name"].(string); ok {
-						if v == "MongoDBv3.4" {
+						switch v {
+						case "MongoDBv3.4":
 							mongo34found = true
-						} else if v == "EnableMongo" {
+						case "EnableMongo":
 							enableMongo = true
 						}
 					}
