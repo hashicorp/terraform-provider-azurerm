@@ -1141,7 +1141,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     mode                             = "Istio"
     internal_ingress_gateway_enabled = %[3]t
     external_ingress_gateway_enabled = %[4]t
-    revisions                        = ["asm-1-22"]
+    revisions                        = ["asm-1-26"]
   }
 
 }
@@ -2161,7 +2161,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.application_id
 }
 
 resource "azuread_service_principal_password" "test" {
@@ -2790,7 +2790,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.application_id
 }
 
 resource "azuread_service_principal_password" "test" {
@@ -4065,7 +4065,6 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
   network_profile {
-    pod_cidr            = "192.168.0.0/16"
     network_plugin      = "azure"
     network_plugin_mode = "overlay"
   }
