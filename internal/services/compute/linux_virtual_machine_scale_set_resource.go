@@ -1408,22 +1408,16 @@ func resourceLinuxVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema {
 			},
 		},
 
-		// This field is Optional+Computed for:
-		// 1. Backward compatibility - existing scale sets won't show diffs when upgrading the provider
-		// The Computed attribute ensures Terraform reflects the actual Azure state.
 		"resilient_vm_creation_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Default:  false,
 		},
 
-		// This field is Optional+Computed for:
-		// 1. Backward compatibility - existing scale sets won't show diffs when upgrading the provider
-		// The Computed attribute ensures Terraform reflects the actual Azure state.
 		"resilient_vm_deletion_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
-			Computed: true,
+			Default:  false,
 		},
 
 		"rolling_upgrade_policy": VirtualMachineScaleSetRollingUpgradePolicySchema(),
