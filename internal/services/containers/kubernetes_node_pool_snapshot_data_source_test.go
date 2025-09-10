@@ -121,6 +121,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "source" {
   name                  = "source"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_D2s_v3"
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
  `, data.Locations.Primary, data.RandomInteger)
 }
@@ -158,6 +161,9 @@ resource "azurerm_kubernetes_cluster_node_pool" "source" {
   name                  = "source"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
   vm_size               = "Standard_D2s_v3"
+  upgrade_settings {
+    max_surge = "10%%"
+  }
 }
 
 

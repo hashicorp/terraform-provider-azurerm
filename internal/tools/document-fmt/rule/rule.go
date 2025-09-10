@@ -43,4 +43,5 @@ var Registration = map[string]Rule{
 	// section
 	S001{}.ID(): S001{}, // API Section
 	S002{}.ID(): S002{}, // Timeouts Section
+	S003{}.ID(): S003{}, // Title Section Heading
 }

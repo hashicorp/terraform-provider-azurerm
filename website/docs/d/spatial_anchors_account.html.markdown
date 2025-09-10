@@ -6,7 +6,7 @@ description: |-
   Get information about an Azure Spatial Anchors Account.
 ---
 
-# azurerm_spatial_anchors_account
+# Data Source: azurerm_spatial_anchors_account
 
 Get information about an Azure Spatial Anchors Account.
 

@@ -6,7 +6,7 @@ description: |-
   Get information about a Mobile Network Data Network.
 ---
 
-# azurerm_mobile_network_data_network
+# Data Source: azurerm_mobile_network_data_network
 
 Get information about a Mobile Network Data Network.
 

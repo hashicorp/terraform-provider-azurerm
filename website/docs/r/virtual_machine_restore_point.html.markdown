@@ -6,7 +6,7 @@ description: |-
   Manages a Virtual Machine Restore Point.
 ---
 
-# azurerm_restore_point
+# azurerm_virtual_machine_restore_point
 
 Manages a Virtual Machine Restore Point.
 

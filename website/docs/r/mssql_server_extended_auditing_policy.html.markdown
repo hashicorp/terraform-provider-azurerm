@@ -230,16 +230,11 @@ resource "azurerm_monitor_diagnostic_setting" "example" {
   eventhub_name                  = azurerm_eventhub.example.name
   log_analytics_workspace_id     = azurerm_log_analytics_workspace.example.id
 
-  log {
-    category = "SQLSecurityAuditEvents"
-    enabled  = true
-
-    retention_policy {
-      enabled = false
-    }
+  enabled_log {
+    category = "AuditEvent"
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 }
