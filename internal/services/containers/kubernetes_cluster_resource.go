@@ -3177,14 +3177,10 @@ func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedCl
 		return []interface{}{}
 	}
 
-	apiServerAuthorizedIPRanges := utils.FlattenStringSlice(profile.AuthorizedIPRanges)
-	enableVnetIntegration := pointer.From(profile.EnableVnetIntegration)
-	subnetId := pointer.From(profile.SubnetId)
-
 	return []interface{}{map[string]interface{}{
-		"authorized_ip_ranges":                apiServerAuthorizedIPRanges,
-		"virtual_network_integration_enabled": enableVnetIntegration,
-		"subnet_id":                           subnetId,
+		"authorized_ip_ranges":                utils.FlattenStringSlice(profile.AuthorizedIPRanges),
+		"virtual_network_integration_enabled": pointer.From(profile.EnableVnetIntegration),
+		"subnet_id":                           pointer.From(profile.SubnetId),
 	}}
 }
 
