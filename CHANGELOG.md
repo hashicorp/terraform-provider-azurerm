@@ -1,6 +1,7 @@
 ## 4.44.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `paloaltonetworks/firewalls` - update to API version `2025-05-23` [GH-30587]
 * `azurerm_service_plan` Add support for Premium V4 SKUs [GH-30163]
 * dependencies: `go-azure-sdk` - update to `v0.20250903.1204452` [GH-30557]
 * `azurerm_netapp_volume` - add support for `accept_grow_capacity_pool_for_short_term_clone_split`  [GH-30494]
