@@ -114,6 +114,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				// Once it is GA, an additional logic is needed to handle the uninstallation of network policy.
 				return old.(string) != ""
 			}),
+			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+				outboundType := d.Get("network_profile.0.outbound_type").(string)
+				artifactSource := d.Get("bootstrap_profile.0.artifact_source").(string)
+
+				if outboundType == string(managedclusters.OutboundTypeNone) && artifactSource != string(managedclusters.ArtifactSourceCache) {
+					return fmt.Errorf("when `network_profile.outbound_type` is set to `none`, `bootstrap_profile.artifact_source` must be set to `Cache`")
+				}
+
+				return nil
+			},
 		),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
