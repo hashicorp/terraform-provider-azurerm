@@ -1144,13 +1144,11 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 						"outbound_type": {
 							Type:     pluginsdk.TypeString,
 							Optional: true,
-							Default:  string(managedclusters.OutboundTypeLoadBalancer),
 							ValidateFunc: validation.StringInSlice([]string{
 								string(managedclusters.OutboundTypeLoadBalancer),
 								string(managedclusters.OutboundTypeUserDefinedRouting),
 								string(managedclusters.OutboundTypeManagedNATGateway),
 								string(managedclusters.OutboundTypeUserAssignedNATGateway),
-								string(managedclusters.OutboundTypeNone),
 							}, false),
 						},
 
@@ -1633,6 +1631,19 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				"always",
 				"madvise",
 				"never",
+			}, false),
+		}
+
+		resource.Schema["network_profile"].Elem.(*pluginsdk.Resource).Schema["outbound_type"] = &pluginsdk.Schema{
+			Type:     pluginsdk.TypeString,
+			Optional: true,
+			Default:  string(managedclusters.OutboundTypeLoadBalancer),
+			ValidateFunc: validation.StringInSlice([]string{
+				string(managedclusters.OutboundTypeLoadBalancer),
+				string(managedclusters.OutboundTypeUserDefinedRouting),
+				string(managedclusters.OutboundTypeManagedNATGateway),
+				string(managedclusters.OutboundTypeUserAssignedNATGateway),
+				string(managedclusters.OutboundTypeNone),
 			}, false),
 		}
 	}
@@ -3402,7 +3413,15 @@ func expandKubernetesClusterNetworkProfile(input []interface{}) (*managedcluster
 	loadBalancerProfileRaw := config["load_balancer_profile"].([]interface{})
 	loadBalancerSku := config["load_balancer_sku"].(string)
 	natGatewayProfileRaw := config["nat_gateway_profile"].([]interface{})
-	outboundType := config["outbound_type"].(string)
+
+	outboundType := string(managedclusters.OutboundTypeNone)
+	if v := config["outbound_type"].(string); v != "" {
+		outboundType = v
+	} else if !features.FivePointOh() {
+		// For backwards compatibility in v4.x, default to LoadBalancer when not specified
+		outboundType = string(managedclusters.OutboundTypeLoadBalancer)
+	}
+
 	ipVersions, err := expandIPVersions(config["ip_versions"].([]interface{}))
 	if err != nil {
 		return nil, err
@@ -3635,7 +3654,15 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 
 	outboundType := ""
 	if profile.OutboundType != nil {
-		outboundType = string(*profile.OutboundType)
+		if !features.FivePointOh() {
+			// In v4.x, always set the value for backward compatibility
+			outboundType = string(*profile.OutboundType)
+		} else {
+			// In v5.0, only set the value if it's not "none" (following the none pattern)
+			if *profile.OutboundType != managedclusters.OutboundTypeNone {
+				outboundType = string(*profile.OutboundType)
+			}
+		}
 	}
 
 	lbProfiles := make([]interface{}, 0)
