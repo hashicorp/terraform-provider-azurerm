@@ -4,6 +4,7 @@
 package cdn
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -168,12 +169,12 @@ func resourceCdnFrontdoorSecurityPolicyCreate(d *pluginsdk.ResourceData, meta in
 	profileModel := resp.Model
 
 	if profileModel == nil {
-		return fmt.Errorf("profileModel is 'nil'")
+		return errors.New("profileModel is 'nil'")
 	}
 
 	isStandardSku := true
 	if profileModel.Sku.Name != nil {
-		isStandardSku = strings.HasPrefix(strings.ToLower(string(pointer.From(profileModel.Sku.Name))), "standard")
+		isStandardSku = strings.HasPrefix(strings.ToLower(pointer.FromEnum(profileModel.Sku.Name)), "standard")
 	}
 
 	params, err := expandCdnFrontdoorFirewallPolicyParameters(d.Get("security_policies").([]interface{}), isStandardSku)
@@ -305,7 +306,7 @@ func resourceCdnFrontdoorSecurityPolicyUpdate(d *pluginsdk.ResourceData, meta in
 
 	isStandardSku := true
 	if profileModel.Sku.Name != nil {
-		isStandardSku = strings.HasPrefix(strings.ToLower(string(pointer.From(profileModel.Sku.Name))), "standard")
+		isStandardSku = strings.HasPrefix(strings.ToLower(pointer.FromEnum(profileModel.Sku.Name)), "standard")
 	}
 
 	params, err := expandCdnFrontdoorFirewallPolicyParameters(d.Get("security_policies").([]interface{}), isStandardSku)
