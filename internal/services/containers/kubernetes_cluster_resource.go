@@ -3657,7 +3657,7 @@ func flattenKubernetesClusterNetworkProfile(profile *managedclusters.ContainerSe
 		if !features.FivePointOh() {
 			// In v4.x, always set the value for backward compatibility
 			outboundType = string(*profile.OutboundType)
-		} else {
+		} else if features.FivePointOh() {
 			// In v5.0, only set the value if it's not "none" (following the none pattern)
 			if *profile.OutboundType != managedclusters.OutboundTypeNone {
 				outboundType = string(*profile.OutboundType)
