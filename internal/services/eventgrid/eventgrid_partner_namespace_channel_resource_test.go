@@ -244,8 +244,8 @@ resource "azurerm_eventgrid_partner_configuration" "test" {
   partner_authorization {
     partner_registration_id              = azurerm_eventgrid_partner_registration.test.partner_registration_id
     partner_name                         = ""
-    authorization_expiration_time_in_utc = "%[4]s"
+    authorization_expiration_time_in_utc = "%[3]s"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.Subscriptions.Primary, expiryTime)
+`, data.RandomInteger, data.Locations.Primary, expiryTime)
 }
