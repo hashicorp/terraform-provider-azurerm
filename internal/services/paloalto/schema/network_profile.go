@@ -392,7 +392,8 @@ func FlattenNetworkProfileVHub(input firewalls.NetworkProfile) (*NetworkProfileV
 
 	if v := input.VwanConfiguration; v != nil {
 		result.VHubID = pointer.From(v.VHub.ResourceId)
-		applianceID, err := networkvirtualappliances.ParseNetworkVirtualApplianceID(pointer.From(v.NetworkVirtualApplianceId))
+		// The API may return the static segments lowercased so we'll need to parse it insensitively and set the normalized result into state.
+		applianceID, err := networkvirtualappliances.ParseNetworkVirtualApplianceIDInsensitively(pointer.From(v.NetworkVirtualApplianceId))
 		if err != nil {
 			return nil, err
 		}
