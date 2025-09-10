@@ -227,7 +227,7 @@ resource "azurerm_policy_virtual_machine_configuration_assignment" "test" {
   configuration {
     version         = "1.1.1.1"
     assignment_type = "ApplyAndAutoCorrect"
-    content_hash    = "testcontenthash"
+    content_hash    = upper("db4d5cd43c59c756f9beb1f029c858bc341587bf75332288270a26493565f058")
     content_uri     = "https://testcontenturi/package"
 
     parameter {
@@ -251,7 +251,7 @@ resource "azurerm_policy_virtual_machine_configuration_assignment" "test" {
   configuration {
     version         = "1.1.1.1"
     assignment_type = "Audit"
-    content_hash    = "testcontenthash2"
+    content_hash    = upper("cde01f651f3a3055834753d42d73b44e2a505844ac34f9ccc35d3d6dfffcb2e4")
     content_uri     = "https://testcontenturi/package2"
 
     parameter {

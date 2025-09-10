@@ -29,7 +29,7 @@ func dataSourceResourceGroup() *pluginsdk.Resource {
 		Schema: map[string]*pluginsdk.Schema{
 			"name":     commonschema.ResourceGroupNameForDataSource(),
 			"location": commonschema.LocationComputed(),
-			"tags":     tags.SchemaDataSource(),
+			"tags":     commonschema.TagsDataSource(),
 			"managed_by": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,

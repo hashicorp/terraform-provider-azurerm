@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 
@@ -24,7 +25,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceComputeInstance() *pluginsdk.Resource {
@@ -194,10 +194,6 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 	}
 
-	if !d.Get("node_public_ip_enabled").(bool) && d.Get("subnet_resource_id").(string) == "" {
-		return fmt.Errorf("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false`")
-	}
-
 	// NOTE: The 'ComputeResource' struct contains the information
 	// which is related to the parent resource of the instance that is
 	// to be deployed (e.g., the workspace), which is why we need to
@@ -218,23 +214,29 @@ func resourceComputeInstanceCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		return fmt.Errorf("machine learning %s Workspace: model `Location` is nil", id)
 	}
 
+	if model.Properties == nil {
+		return fmt.Errorf("machine learning %s Workspace: model `Properties` is nil", id)
+	}
+	if !d.Get("node_public_ip_enabled").(bool) && d.Get("subnet_resource_id").(string) == "" && !hasManagedNetwork(model) {
+		return fmt.Errorf("`subnet_resource_id` must be set if `node_public_ip_enabled` is set to `false` and the workspace is NOT using a managed network (isolation_mode = \"Disabled\")")
+	}
+
 	parameters := machinelearningcomputes.ComputeResource{
 		Identity: identity,
 		Location: pointer.To(azure.NormalizeLocation(*model.Location)),
 		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	// NOTE: In 4.0 the 'location' field will be deprecated...
 	props := machinelearningcomputes.ComputeInstance{
 		Properties: &machinelearningcomputes.ComputeInstanceProperties{
-			VMSize:                          utils.String(d.Get("virtual_machine_size").(string)),
+			VMSize:                          pointer.To(d.Get("virtual_machine_size").(string)),
 			Subnet:                          subnet,
 			SshSettings:                     expandComputeSSHSetting(d.Get("ssh").([]interface{})),
 			PersonalComputeInstanceSettings: expandComputePersonalComputeInstanceSetting(d.Get("assign_to_user").([]interface{})),
 			EnableNodePublicIP:              pointer.To(d.Get("node_public_ip_enabled").(bool)),
 		},
-		Description:      utils.String(d.Get("description").(string)),
-		DisableLocalAuth: utils.Bool(!d.Get("local_auth_enabled").(bool)),
+		Description:      pointer.To(d.Get("description").(string)),
+		DisableLocalAuth: pointer.To(!d.Get("local_auth_enabled").(bool)),
 	}
 
 	// NOTE: The 'location' field is not supported for instances, "Compute clusters can be created in
@@ -316,16 +318,15 @@ func resourceComputeInstanceRead(d *pluginsdk.ResourceData, meta interface{}) er
 		d.Set("ssh", flattenComputeSSHSetting(props.Properties.SshSettings))
 		d.Set("assign_to_user", flattenComputePersonalComputeInstanceSetting(props.Properties.PersonalComputeInstanceSettings))
 
+		// Only save the subnet ID to state if the instance's workspace is NOT using managed networking.
+		// Azure does not allow instances to have a user-defined subnet ID if they are to run in a workspace with managed networking.
 		if props.Properties.Subnet != nil {
-			d.Set("subnet_resource_id", props.Properties.Subnet.Id)
+			if workspace, err := meta.(*clients.Client).MachineLearning.Workspaces.Get(ctx, workspaceId); err != nil || !hasManagedNetwork(workspace.Model) {
+				d.Set("subnet_resource_id", props.Properties.Subnet.Id)
+			}
 		}
 
-		enableNodePublicIP := true
-		if props.Properties.ConnectivityEndpoints.PublicIPAddress == nil {
-			enableNodePublicIP = false
-		}
-
-		d.Set("node_public_ip_enabled", enableNodePublicIP)
+		d.Set("node_public_ip_enabled", props.Properties.ConnectivityEndpoints != nil && props.Properties.ConnectivityEndpoints.PublicIPAddress != nil)
 	}
 
 	return tags.FlattenAndSet(d, resp.Model.Tags)
@@ -375,7 +376,7 @@ func expandComputeSSHSetting(input []interface{}) *machinelearningcomputes.Compu
 	value := input[0].(map[string]interface{})
 	return &machinelearningcomputes.ComputeInstanceSshSettings{
 		SshPublicAccess: pointer.To(machinelearningcomputes.SshPublicAccessEnabled),
-		AdminPublicKey:  utils.String(value["public_key"].(string)),
+		AdminPublicKey:  pointer.To(value["public_key"].(string)),
 	}
 }
 
@@ -403,4 +404,11 @@ func flattenComputeSSHSetting(settings *machinelearningcomputes.ComputeInstanceS
 			"port":       settings.SshPort,
 		},
 	}
+}
+
+func hasManagedNetwork(workspace *workspaces.Workspace) bool {
+	if workspace == nil || workspace.Properties == nil || workspace.Properties.ManagedNetwork == nil {
+		return false
+	}
+	return slices.Contains([]workspaces.IsolationMode{workspaces.IsolationModeAllowInternetOutbound, workspaces.IsolationModeAllowOnlyApprovedOutbound}, pointer.From(workspace.Properties.ManagedNetwork.IsolationMode))
 }

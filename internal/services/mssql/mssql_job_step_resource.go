@@ -101,11 +101,6 @@ func (MsSqlJobStepResource) Arguments() map[string]*pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"job_credential_id": {
-						Type:         pluginsdk.TypeString,
-						Optional:     true,
-						ValidateFunc: jobcredentials.ValidateCredentialID,
-					},
 					"mssql_database_id": {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
@@ -115,6 +110,11 @@ func (MsSqlJobStepResource) Arguments() map[string]*pluginsdk.Schema {
 						Type:         pluginsdk.TypeString,
 						Required:     true,
 						ValidateFunc: validation.StringIsNotEmpty,
+					},
+					"job_credential_id": {
+						Type:         pluginsdk.TypeString,
+						Optional:     true,
+						ValidateFunc: jobcredentials.ValidateCredentialID,
 					},
 					"schema_name": {
 						Type:         pluginsdk.TypeString,

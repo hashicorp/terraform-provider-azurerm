@@ -17,7 +17,7 @@ func init() {
 
 var _ resourceids.ResourceId = &PublicIPPrefixId{}
 
-// PublicIPPrefixId is a struct representing the Resource ID for a Public I P Prefix
+// PublicIPPrefixId is a struct representing the Resource ID for a Public IP Prefix
 type PublicIPPrefixId struct {
 	SubscriptionId     string
 	ResourceGroupName  string
@@ -84,7 +84,7 @@ func (id *PublicIPPrefixId) FromParseResult(input resourceids.ParseResult) error
 	return nil
 }
 
-// ValidatePublicIPPrefixID checks that 'input' can be parsed as a Public I P Prefix ID
+// ValidatePublicIPPrefixID checks that 'input' can be parsed as a Public IP Prefix ID
 func ValidatePublicIPPrefixID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
@@ -99,13 +99,13 @@ func ValidatePublicIPPrefixID(input interface{}, key string) (warnings []string,
 	return
 }
 
-// ID returns the formatted Public I P Prefix ID
+// ID returns the formatted Public IP Prefix ID
 func (id PublicIPPrefixId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/publicIPPrefixes/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.PublicIPPrefixName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Public I P Prefix ID
+// Segments returns a slice of Resource ID Segments which comprise this Public IP Prefix ID
 func (id PublicIPPrefixId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
@@ -119,12 +119,12 @@ func (id PublicIPPrefixId) Segments() []resourceids.Segment {
 	}
 }
 
-// String returns a human-readable description of this Public I P Prefix ID
+// String returns a human-readable description of this Public IP Prefix ID
 func (id PublicIPPrefixId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Public I P Prefix Name: %q", id.PublicIPPrefixName),
+		fmt.Sprintf("Public IP Prefix Name: %q", id.PublicIPPrefixName),
 	}
-	return fmt.Sprintf("Public I P Prefix (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Public IP Prefix (%s)", strings.Join(components, "\n"))
 }

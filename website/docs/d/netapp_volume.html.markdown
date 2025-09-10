@@ -71,6 +71,8 @@ The following attributes are exported:
 
 * `large_volume_enabled` - Indicates if the volume is a large volume.
 
+* `accept_grow_capacity_pool_for_short_term_clone_split` - The accept grow capacity pool for short term clone split property.
+
 ---
 
 A `data_protection_replication` block exports the following:
@@ -105,4 +107,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.NetApp` - 2025-01-01
+* `Microsoft.NetApp` - 2025-06-01
