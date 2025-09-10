@@ -10,7 +10,8 @@ FEATURES:
 BUG FIXES:
 `azurerm_custom_ip_prefix` - fix an incorrect type-assertion that caused an error when attempting to read the API response [GH-30537]
 `azurerm_application_insights_standard_web_test` - prevent Resource ID errors when parsing `hidden-link` tags [GH-28034]
-`azurerm_postgresql_flexible_server` - fixed a bug when setting the `source_server_id` property [GH-30497]
+`azurerm_monitor_activity_log_alert` - fix `name` validation [GH-30590]
+`azurerm_postgresql_flexible_server` - fix a bug when setting the `source_server_id` property [GH-30497]
 
 ## 4.43.0 (September 04, 2025)
 
