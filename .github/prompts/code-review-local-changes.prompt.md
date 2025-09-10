@@ -37,20 +37,55 @@ description: "Code Review Prompt for Terraform AzureRM Provider Local Changes"
 ## ⚡ **START HERE - MANDATORY EXECUTION STEPS**
 
 **1. GET THE DIFF - Run git commands to find changes:**
-```powershell
-# STEP 1: Get file summary FIRST (to count all changed files)
-git --no-pager diff --stat --no-prefix
 
-# STEP 2: Get detailed changes for review
-git --no-pager diff --no-prefix --unified=3
+**Use the `run_in_terminal` tool with these exact patterns:**
 
-# FALLBACK: If no unstaged changes, check staged changes
-git --no-pager diff --stat --no-prefix --staged
-git --no-pager diff --no-prefix --unified=3 --staged
+```
+# STEP 1: Check git status for overall state (including untracked files)
+run_in_terminal:
+  command: "git status --porcelain"
+  explanation: "Check git status for overall state including untracked files"
+  isBackground: false
+
+# STEP 2: Get file summary for tracked files (to count changed files)
+run_in_terminal:
+  command: "git --no-pager diff --stat --no-prefix"
+  explanation: "Get file summary for tracked files to count changed files"
+  isBackground: false
+
+# STEP 3: Get detailed changes for tracked files
+run_in_terminal:
+  command: "git --no-pager diff --no-prefix --unified=3"
+  explanation: "Get detailed changes for tracked files"
+  isBackground: false
+
+# STEP 4: Check staged changes ONLY if no unstaged changes found in STEP 3
+run_in_terminal:
+  command: "git --no-pager diff --stat --no-prefix --staged"
+  explanation: "Check staged file summary ONLY if no unstaged changes found"
+  isBackground: false
+
+run_in_terminal:
+  command: "git --no-pager diff --no-prefix --unified=3 --staged"
+  explanation: "Get detailed staged changes ONLY if no unstaged changes found"
+  isBackground: false
+
+# STEP 5: Get current branch name
+run_in_terminal:
+  command: "git branch --show-current"
+  explanation: "Get current branch name"
+  isBackground: false
+
+# STEP 6: Handle untracked files (new files not in git yet)
+# If git status shows untracked files, examine them individually using read_file tool
 ```
 
-**⚠️ IMPORTANT**: If BOTH the stat and diff commands show no changes, abandon the code review and display: 
-**"☠️ **Argh! There be no changes here!** ☠️"**
+**⚠️ IMPORTANT**:
+- If git status shows NO changes (tracked, staged, or untracked), abandon review and display: **"☠️ **Argh! There be no changes here!** ☠️"**
+- If ONLY untracked files exist, review them as new file additions
+- Untracked files are often the most critical changes to review (new features, scripts, etc.)
+- **TOOL USAGE**: Always use the `run_in_terminal` tool with all three required parameters: `command`, `explanation`, and `isBackground`
+- **EFFICIENCY RULE**: Never repeat the same git command - trust your initial results and move forward decisively
 
 **📋 FOR LARGE MULTI-FILE CHANGES**: If the combined diff is too large or complex, examine each file individually using:
 ```powershell
@@ -61,21 +96,35 @@ git --no-pager diff --no-prefix filename2
 
 **2. RECURSION PREVENTION CHECK** - Applied automatically (see top of file)
 
-**🚨 CRITICAL ACCURACY REQUIREMENT**: 
+**🎯 EXECUTION EFFICIENCY RULE**:
+- **NEVER repeat git commands** - Each command should only be run ONCE during the review
+- **Trust initial results** - Don't second-guess or re-verify git output
+- **Efficient sequence**: status → stat → diff → branch → examine untracked files (if any)
+- **Avoid redundancy**: If you already have the diff, don't run it again
+- **Move forward decisively** with the information gathered from the first execution of each command
+
+**🚨 CRITICAL ACCURACY REQUIREMENT**:
 The git stat output MUST be parsed correctly to count new/modified/deleted files accurately. Misclassifying deleted files as modified files is a critical error that undermines review credibility.
 
 ##  📝 **REVIEW OUTPUT FORMAT**
 
 **Use this EXACT format for the review output:**
 
-**3. ANALYZE THE FILE CHANGES** - Parse the git stat output to get accurate file counts
-- Count ALL files from the git stat command output 
-- **CRITICAL**: Files showing only `------------------` (all minus signs) are DELETED files
-- **CRITICAL**: Files showing only `++++++++++++++++++` (all plus signs) are NEW files  
-- **CRITICAL**: Files showing both `+` and `-` are MODIFIED files
-- **EXAMPLE**: `file.md | 505 -----------------` = DELETED file (1 deleted file)
-- **EXAMPLE**: `file.go | 25 +++++++++++++++++++++++++` = NEW file (1 new file)
-- **EXAMPLE**: `file.go | 10 +++++++---` = MODIFIED file (1 modified file)
+**3. ANALYZE THE FILE CHANGES** - Parse git status and diff output to get accurate file counts
+- Parse `git status --porcelain` for complete change overview:
+  - `??` prefix = Untracked files (NEW files not in git)
+  - `M ` prefix = Modified files (tracked and changed)
+  - `A ` prefix = Added files (staged new files)
+  - `D ` prefix = Deleted files (staged deletions)
+  - `MM` prefix = Modified file with both staged and unstaged changes
+- Parse `git --no-pager diff --stat` for tracked file changes:
+  - **CRITICAL**: Files showing only `------------------` (all minus signs) are DELETED files
+  - **CRITICAL**: Files showing only `++++++++++++++++++` (all plus signs) are NEW tracked files
+  - **CRITICAL**: Files showing both `+` and `-` are MODIFIED files
+- **EXAMPLE git status**: `?? file.go` = UNTRACKED file (1 new untracked file)
+- **EXAMPLE git stat**: `file.md | 505 -----------------` = DELETED file (1 deleted file)
+- **EXAMPLE git stat**: `file.go | 25 +++++++++++++++++++++++++` = NEW tracked file (1 new file)
+- **EXAMPLE git stat**: `file.go | 10 +++++++---` = MODIFIED file (1 modified file)
 - Use this accurate classification in the CHANGE SUMMARY section
 
 **4. REVIEW THE CHANGES** - Apply expertise as principal Terraform provider engineer
@@ -152,14 +201,14 @@ As a principal Terraform provider engineer with expertise in Go development, Azu
 
 **Before flagging ANY formatting/encoding issues:**
 1. **STOP** - Do not immediately flag suspicious formatting
-2. **VERIFY FIRST** - Use read_file to check actual content  
+2. **VERIFY FIRST** - Use read_file to check actual content
 3. **ASSESS** - Console wrapping vs genuine issue
 4. **RESPOND** - Only flag if genuinely broken after verification
 
 **Zero Tolerance for False Positives**: False positive encoding/formatting flags are review failures that erode trust.
 
 **Additional scope for local changes:**
-- Spelling and grammar in visible text content  
+- Spelling and grammar in visible text content
 - Command syntax accuracy and consistency
 - Professional standards in user-facing content
 - Context quality in surrounding diff lines
@@ -172,10 +221,10 @@ As a principal Terraform provider engineer with expertise in Go development, Azu
 # 📋 **Code Review**: ${change_description}
 
 ## 🔄 **CHANGE SUMMARY**
-- **Files Changed**: [number] files ([additions] new file(s), [modifications] modified file(s), [deletions] deleted file(s))
-- **Line Changes**: [insertions] insertions, [deletions] deletions
+- **Files Changed**: [number] files ([tracked_additions] new tracked, [untracked_files] untracked, [modifications] modified, [deletions] deleted)
+- **Line Changes**: [insertions] insertions, [deletions] deletions (tracked files only)
 - **Branch**: [current_branch_from_git_command]
-- **Type**: [local changes/staged changes]
+- **Type**: [local changes/staged changes/untracked files]
 - **Scope**: [Brief description of overall scope]
 
 ## 📁 **FILES CHANGED**
@@ -184,8 +233,12 @@ As a principal Terraform provider engineer with expertise in Go development, Azu
 - `path/to/modified/file1.go` (+X/-Y lines)
 - `path/to/modified/file2.md` (+X/-Y lines)
 
-**Added Files:**
-- `path/to/new/file.go` (+X lines)
+**Added Files (Tracked):**
+- `path/to/new/tracked/file.go` (+X lines)
+
+**Untracked Files (New):**
+- `path/to/untracked/file1.ps1` (new file, untracked)
+- `path/to/untracked/file2.md` (new file, untracked)
 
 **Deleted Files:**
 - `path/to/removed/file.go` (-X lines)
@@ -198,6 +251,11 @@ As a principal Terraform provider engineer with expertise in Go development, Azu
 
 ### 🔄 **RECURSION PREVENTION**
 - **File Skipped**: `.github/prompts/code-review-local-changes.prompt.md` - Cannot review code review prompt itself to prevent infinite loops
+
+### 🔍 **STANDARDS CHECK**
+- **PowerShell**: Approved verbs (`Get-`, `Set-`, `New-`, `Test-`), PascalCase
+- **Go**: HashiCorp patterns, error handling, naming conventions
+- **Terraform**: Resource patterns, schema validation, documentation
 
 ### 🟢 **STRENGTHS**
 [List positive aspects and well-implemented features]
@@ -228,7 +286,7 @@ As a principal Terraform provider engineer with expertise in Go development, Azu
 * **File**: ${relative/path/to/file}
 * **Details**: Clear explanation
 * **Azure Context** (if applicable): Service behavior reference
-* **Terraform Impact** (if applicable): Configuration/state effects  
+* **Terraform Impact** (if applicable): Configuration/state effects
 * **Suggested Change** (if applicable): Code snippet
 ```
 
@@ -237,7 +295,7 @@ As a principal Terraform provider engineer with expertise in Go development, Azu
 **Review Type Emojis:**
 * 🔧 Change request - Issues requiring fixes before commit
 * ❓ Question - Clarification needed about approach
-* ⛏️ Nitpick - Minor style/consistency improvements  
+* ⛏️ Nitpick - Minor style/consistency improvements
 * ♻️ Refactor - Structural improvements to consider
 * 🤔 Thought - Design concerns for discussion
 * 🚀 Positive - Well-implemented features worth noting
@@ -250,7 +308,7 @@ As a principal Terraform provider engineer with expertise in Go development, Azu
 
 **In the provided git diff output:**
 - **Lines starting with `+`**: Added lines (new code)
-- **Lines starting with `-`**: Removed lines (deleted code)  
+- **Lines starting with `-`**: Removed lines (deleted code)
 - **Lines starting with ` `** (space): Unchanged lines (context)
 - **Lines starting with `@@`**: Hunk headers showing line numbers and context
 - **Git stat symbols**:
@@ -271,7 +329,7 @@ file3.go                    |  15 +++++++++++++++  # NEW FILE
 
 **Local changes review emphasizes:**
 - **Iterative feedback** for work-in-progress code
-- **Development guidance** before commit readiness  
+- **Development guidance** before commit readiness
 - **Verification protocols** to prevent false positives from console display issues
 - **Comprehensive scope** including spelling/grammar in visible content
 - **Next steps clarity** for continued development
@@ -308,7 +366,7 @@ file3.go                    |  15 +++++++++++++++  # NEW FILE
 
 ### ✅ **GOLDEN RULE**: If actual file content is valid → acknowledge console wrapping → do NOT flag as corruption
 
-**🚫 COMMON REVIEW FAILURE**: 
+**🚫 COMMON REVIEW FAILURE**:
 Flagging console display artifacts as "Critical: Encoding Issue" when actual file content is clean. This exact scenario wastes developer time and erodes review credibility.
 
 **✅ CORRECT APPROACH**:
@@ -320,13 +378,13 @@ Flagging console display artifacts as "Critical: Encoding Issue" when actual fil
 
 **When to verify:**
 - Text breaks mid-word without logical reason
-- Missing quotes/brackets that don't make contextual sense  
+- Missing quotes/brackets that don't make contextual sense
 - Emojis appear as `??`
 - JSON/YAML looks syntactically broken
 
 **Verification format:**
 ```markdown
-## ℹ️ **Console Display Verification**  
+## ℹ️ **Console Display Verification**
 * **Priority**: ✅
 * **Details**: [What appeared wrong in git diff]
 * **Verification**: Used read_file to check actual content
