@@ -1257,7 +1257,10 @@ func upgradeSettingsSchemaNodePoolResource() *pluginsdk.Schema {
 			Schema: map[string]*pluginsdk.Schema{
 				"max_surge": {
 					Type:     pluginsdk.TypeString,
-					Required: true,
+					Optional: true,
+					ConflictsWith: []string{
+						"upgrade_settings.0.max_unavailable",
+					},
 				},
 				"drain_timeout_in_minutes": {
 					Type:     pluginsdk.TypeInt,
@@ -1266,6 +1269,11 @@ func upgradeSettingsSchemaNodePoolResource() *pluginsdk.Schema {
 				"max_unavailable": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					// NOTE: O+C The API returns `"0"` as a default value
+					Computed: true,
+					ConflictsWith: []string{
+						"upgrade_settings.0.max_surge",
+					},
 				},
 				"node_soak_duration_in_minutes": {
 					Type:         pluginsdk.TypeInt,
@@ -1411,8 +1419,7 @@ func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUp
 
 func flattenAgentPoolUpgradeSettings(input *agentpools.AgentPoolUpgradeSettings) []interface{} {
 	// The API returns an empty upgrade settings object for spot node pools, so we need to explicitly check whether there's anything in it
-	// MaxUnavailable defaults to "0" if not set, so we need to check for that too
-	if input == nil || (input.MaxSurge == nil && (input.MaxUnavailable == nil || *input.MaxUnavailable == "0") && input.DrainTimeoutInMinutes == nil && input.NodeSoakDurationInMinutes == nil && input.UndrainableNodeBehavior == nil) {
+	if input == nil || (input.MaxSurge == nil && input.MaxUnavailable == nil && input.DrainTimeoutInMinutes == nil && input.NodeSoakDurationInMinutes == nil && input.UndrainableNodeBehavior == nil) {
 		return []interface{}{}
 	}
 
