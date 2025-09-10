@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2025-04-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/reachabilityanalysisintent"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/reachabilityanalysisintents"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
