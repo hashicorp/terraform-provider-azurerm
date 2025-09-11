@@ -3249,7 +3249,7 @@ func expandBootstrapProfile(rawBootstrapProfile []interface{}) *managedclusters.
 	}
 
 	return &managedclusters.ManagedClusterBootstrapProfile{
-		ArtifactSource:      pointer.To(managedclusters.ArtifactSource(config["artifact_source"].(string))),
+		ArtifactSource:       pointer.ToEnum[managedclusters.ArtifactSource](config["artifact_source"].(string)),
 		ContainerRegistryId: containerRegistryID,
 	}
 }
