@@ -64,14 +64,15 @@ func (ExascaleDbStorageVaultResource) Arguments() map[string]*pluginsdk.Schema {
 
 		// Required
 		"additional_flash_cache_in_percent": {
-			Type:     pluginsdk.TypeInt,
-			Required: true,
-			ForceNew: true,
+			Type:         pluginsdk.TypeInt,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.IntBetween(0, 100),
 		},
 
 		"description": {
 			Type:     pluginsdk.TypeString,
-			Required: true,
+			Optional: true,
 			ForceNew: true,
 		},
 
@@ -88,6 +89,7 @@ func (ExascaleDbStorageVaultResource) Arguments() map[string]*pluginsdk.Schema {
 
 		"high_capacity_database_storage_input": {
 			Type:     pluginsdk.TypeList,
+			MinItems: 1,
 			MaxItems: 1,
 			Required: true,
 			ForceNew: true,
@@ -247,7 +249,7 @@ func (ExascaleDbStorageVaultResource) Read() sdk.ResourceFunc {
 					state.DisplayName = props.DisplayName
 					state.AdditionalFlashCacheInPercent = pointer.From(props.AdditionalFlashCacheInPercent)
 					state.Description = pointer.From(props.Description)
-					state.HighCapacityDatabaseStorageInput = expandHighCapacityDatabaseStorageInputInterface(metadata.ResourceData.Get("high_capacity_database_storage_input").([]interface{}))
+					state.HighCapacityDatabaseStorageInput = flattenHighCapacityDatabaseStorageInputInterface(props.HighCapacityDatabaseStorageInput)
 					state.TimeZone = pointer.From(props.TimeZone)
 				}
 			}
@@ -280,16 +282,11 @@ func (ExascaleDbStorageVaultResource) IDValidationFunc() pluginsdk.SchemaValidat
 	return exascaledbstoragevaults.ValidateExascaleDbStorageVaultID
 }
 
-func expandHighCapacityDatabaseStorageInputInterface(input []interface{}) []ExascaleDbStorageInputDetailsModel {
+func flattenHighCapacityDatabaseStorageInputInterface(input exascaledbstoragevaults.ExascaleDbStorageInputDetails) []ExascaleDbStorageInputDetailsModel {
 	output := make([]ExascaleDbStorageInputDetailsModel, 0)
-	if len(input) == 0 || input[0] == nil {
-		return output
+	storageInput := ExascaleDbStorageInputDetailsModel{
+		TotalSizeInGb: input.TotalSizeInGbs,
 	}
-	if m, ok := input[0].(map[string]interface{}); ok {
-		storageInput := ExascaleDbStorageInputDetailsModel{
-			TotalSizeInGb: int64(m["total_size_in_gb"].(int)),
-		}
-		output = append(output, storageInput)
-	}
+	output = append(output, storageInput)
 	return output
 }

@@ -53,9 +53,7 @@ The following arguments are supported:
 
 * `zones` - (Required) Exadata Database Storage Vault zones. Changing this forces a new Exadata Database Storage Vault to be created.
 
-* `high_capacity_database_storage` - (Optional) A `high_capacity_database_storage` block as defined below.
-
-* `time_zone` - (Optional) The time zone that you want to use for the Exadata Database Storage Vault.
+* `time_zone` - (Optional) The time zone that you want to use for the Exadata Database Storage Vault. For details, see [Time Zones](https://docs.oracle.com/en/cloud/paas/base-database/time-zone/).
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Exadata Database Storage Vault.
 
@@ -63,16 +61,7 @@ The following arguments are supported:
 
 A `high_capacity_database_storage_input` block supports the following:
 
-* `total_size_in_gbs` - (Required) Total Capacity.
-
----
-
-A `high_capacity_database_storage` block supports the following:
-
-* `available_size_in_gb` - (Optional) Available Capacity.
-
-* `total_size_in_gb` - (Optional) Total Capacity.
-
+* `total_size_in_gbs` - (Required) Total Capacity. Changing this forces a new Exadata Database Storage Vault to be created.
 
 ## Attributes Reference
 

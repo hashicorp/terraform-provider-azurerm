@@ -40,7 +40,7 @@ func TestDbStorageVaultResource_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("high_capacity_database_storage_input", "high_capacity_database_storage"),
+		data.ImportStep("high_capacity_database_storage_input"),
 	})
 }
 
@@ -54,7 +54,7 @@ func TestDbStorageVaultResource_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("high_capacity_database_storage_input", "high_capacity_database_storage"),
+		data.ImportStep("high_capacity_database_storage_input"),
 	})
 }
 
@@ -68,21 +68,21 @@ func TestDbStorageVaultResource_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("high_capacity_database_storage_input", "high_capacity_database_storage"),
+		data.ImportStep("high_capacity_database_storage_input"),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("high_capacity_database_storage_input", "high_capacity_database_storage"),
+		data.ImportStep("high_capacity_database_storage_input"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("high_capacity_database_storage_input", "high_capacity_database_storage"),
+		data.ImportStep("high_capacity_database_storage_input"),
 	})
 }
 

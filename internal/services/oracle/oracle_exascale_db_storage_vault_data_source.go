@@ -104,11 +104,6 @@ func (d ExascaleDbStorageVaultDataSource) Attributes() map[string]*pluginsdk.Sch
 			Computed: true,
 		},
 
-		"provisioning_state": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
 		"lifecycle_state": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
