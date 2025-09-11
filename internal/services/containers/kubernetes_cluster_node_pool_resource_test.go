@@ -575,14 +575,14 @@ func TestAccKubernetesClusterNodePool_upgradeSettingsMaxUnavailable(t *testing.T
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.upgradeSettingsMaxUnavailable(data, `25%`, 10, 5, "Cordon"),
+			Config: r.upgradeSettingsMaxUnavailable(data, `25%`, 10, 5),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.upgradeSettingsMaxUnavailable(data, `50%`, 15, 8, "Schedule"),
+			Config: r.upgradeSettingsMaxUnavailable(data, `50%`, 15, 8),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -2277,7 +2277,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
 `, template, maxSurge, drainTimeout, nodeSoakDuration, undrainableBehavior)
 }
 
-func (r KubernetesClusterNodePoolResource) upgradeSettingsMaxUnavailable(data acceptance.TestData, maxUnavailable string, drainTimeout int, nodeSoakDuration int, undrainableBehavior string) string {
+func (r KubernetesClusterNodePoolResource) upgradeSettingsMaxUnavailable(data acceptance.TestData, maxUnavailable string, drainTimeout int, nodeSoakDuration int) string {
 	template := r.templateConfig(data)
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -2295,10 +2295,10 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
     max_unavailable               = %q
     drain_timeout_in_minutes      = %d
     node_soak_duration_in_minutes = %d
-    undrainable_node_behavior     = %q
+    undrainable_node_behavior     = "Schedule"
   }
 }
-`, template, maxUnavailable, drainTimeout, nodeSoakDuration, undrainableBehavior)
+`, template, maxUnavailable, drainTimeout, nodeSoakDuration)
 }
 
 func (r KubernetesClusterNodePoolResource) virtualNetworkAutomaticConfig(data acceptance.TestData) string {

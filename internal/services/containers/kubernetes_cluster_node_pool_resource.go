@@ -1258,6 +1258,8 @@ func upgradeSettingsSchemaNodePoolResource() *pluginsdk.Schema {
 				"max_surge": {
 					Type:     pluginsdk.TypeString,
 					Optional: true,
+					// NOTE: O+C because maxSurge must be set to "0" for maxUnavailable to be set
+					Computed: true,
 					ConflictsWith: []string{
 						"upgrade_settings.0.max_unavailable",
 					},
@@ -1404,6 +1406,8 @@ func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUp
 	}
 	if maxUnavailableRaw, ok := v["max_unavailable"].(string); ok && maxUnavailableRaw != "" {
 		setting.MaxUnavailable = pointer.To(maxUnavailableRaw)
+		// maxSurge must be set to 0 for maxUnavailable to be set. The two values can't both be active at the same time.
+		setting.MaxSurge = pointer.To("0")
 	}
 	if drainTimeoutInMinutesRaw, ok := v["drain_timeout_in_minutes"].(int); ok {
 		setting.DrainTimeoutInMinutes = pointer.To(int64(drainTimeoutInMinutesRaw))
