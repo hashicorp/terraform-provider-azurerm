@@ -75,23 +75,24 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Arguments() map[str
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.DatabaseType,
+			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForDataBaseType(), false),
 		},
 		"remote_disaster_recovery_type": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.DisasterRecoveryType,
+			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForDisasterRecoveryType(), false),
 		},
 		"source": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.DbSource,
+			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForSource(), false),
 		},
 		"source_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -99,15 +100,18 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Arguments() map[str
 		"replicate_automatic_backups_enabled": {
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
+			ForceNew: true,
 		},
 		"source_ocid": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 		"source_location": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
+			ForceNew:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
@@ -144,7 +148,7 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Arguments() map[str
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.AdbsComputeModel,
+			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForComputeModel(), false),
 		},
 
 		"data_storage_size_in_tbs": {
@@ -161,13 +165,10 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Arguments() map[str
 		},
 
 		"db_workload": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(autonomousdatabases.WorkloadTypeDW),
-				string(autonomousdatabases.WorkloadTypeOLTP),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForWorkloadType(), false),
 		},
 
 		"display_name": {
@@ -194,13 +195,10 @@ func (AutonomousDatabaseCrossRegionDisasterRecoveryResource) Arguments() map[str
 		},
 
 		"license_model": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(autonomousdatabases.LicenseModelLicenseIncluded),
-				string(autonomousdatabases.LicenseModelBringYourOwnLicense),
-			}, false),
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForLicenseModel(), false),
 		},
 
 		"national_character_set": {

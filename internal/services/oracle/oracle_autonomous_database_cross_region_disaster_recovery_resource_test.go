@@ -30,6 +30,20 @@ func (a AdbsCrossRegionDisasterRecoveryResource) Exists(ctx context.Context, cli
 	return pointer.To(resp.Model != nil), nil
 }
 
+func TestAdbsCrossRegionDisasterRecoveryResource_basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseCrossRegionDisasterRecoveryResource{}.ResourceType(), "adbs_secondary_crdr")
+	r := AdbsCrossRegionDisasterRecoveryResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("admin_password"),
+	})
+}
+
 func TestAdbsCrossRegionDisasterRecoveryResource_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseCrossRegionDisasterRecoveryResource{}.ResourceType(), "adbs_secondary_crdr")
 	r := AdbsCrossRegionDisasterRecoveryResource{}
@@ -59,11 +73,11 @@ func TestAdbsCrossRegionDisasterRecoveryResource_update(t *testing.T) {
 }
 
 func TestAdbsCrossRegionDisasterRecoveryResource_requiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseCrossRegionDisasterRecoveryResource{}.ResourceType(), "import")
+	data := acceptance.BuildTestData(t, oracle.AutonomousDatabaseCrossRegionDisasterRecoveryResource{}.ResourceType(), "adbs_secondary_crdr")
 	r := AdbsCrossRegionDisasterRecoveryResource{}
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.requiresImport(data),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -72,12 +86,76 @@ func TestAdbsCrossRegionDisasterRecoveryResource_requiresImport(t *testing.T) {
 	})
 }
 
+func (a AdbsCrossRegionDisasterRecoveryResource) basic(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+provider "azurerm" {
+  features {}
+}
+
+locals {
+  crdr_dbname = "OFakeC%[2]d"
+}
+
+resource "azurerm_oracle_autonomous_database" "adbs_primary_for_crdr" {
+  name = "OFakeO%[2]d"
+
+  display_name                     = "OFakeO%[2]d"
+  resource_group_name              = azurerm_resource_group.crdr_rg.name
+  location                         = "%[3]s"
+  compute_model                    = "ECPU"
+  compute_count                    = 2
+  license_model                    = "LicenseIncluded"
+  backup_retention_period_in_days  = 12
+  auto_scaling_enabled             = false
+  auto_scaling_for_storage_enabled = false
+  mtls_connection_required         = false
+  data_storage_size_in_tbs         = 1
+  db_workload                      = "DW"
+  admin_password                   = "TestPass#2024#"
+  db_version                       = "19c"
+  character_set                    = "AL32UTF8"
+  national_character_set           = "AL16UTF16"
+  subnet_id                        = azurerm_subnet.iad_vnet_subnet_test.id
+  virtual_network_id               = azurerm_virtual_network.iad_vnet_test.id
+  customer_contacts                = ["test@test.com"]
+}
+
+resource "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "adbs_secondary_crdr" {
+  name = local.crdr_dbname
+
+  display_name                  = local.crdr_dbname
+  location                      = "%[4]s"
+  database_type                 = "CrossRegionDisasterRecovery"
+  source                        = "CrossRegionDisasterRecovery"
+  source_id                     = azurerm_oracle_autonomous_database.adbs_primary_for_crdr.id
+  source_ocid                   = azurerm_oracle_autonomous_database.adbs_primary_for_crdr.ocid
+  remote_disaster_recovery_type = "Adg"
+  subnet_id                     = azurerm_subnet.fra_vnet_subnet_test.id
+  virtual_network_id            = azurerm_virtual_network.fra_vnet_test.id
+
+  resource_group_name              = azurerm_resource_group.crdr_rg.name
+  source_location                  = azurerm_oracle_autonomous_database.adbs_primary_for_crdr.location
+  license_model                    = azurerm_oracle_autonomous_database.adbs_primary_for_crdr.license_model
+  backup_retention_period_in_days  = azurerm_oracle_autonomous_database.adbs_primary_for_crdr.backup_retention_period_in_days
+  auto_scaling_enabled             = azurerm_oracle_autonomous_database.adbs_primary_for_crdr.auto_scaling_enabled
+  auto_scaling_for_storage_enabled = azurerm_oracle_autonomous_database.adbs_primary_for_crdr.auto_scaling_for_storage_enabled
+  mtls_connection_required         = azurerm_oracle_autonomous_database.adbs_primary_for_crdr.mtls_connection_required
+  data_storage_size_in_tbs         = azurerm_oracle_autonomous_database.adbs_primary_for_crdr.data_storage_size_in_tbs
+  compute_model                    = azurerm_oracle_autonomous_database.adbs_primary_for_crdr.compute_model
+  compute_count                    = azurerm_oracle_autonomous_database.adbs_primary_for_crdr.compute_count
+  db_workload                      = azurerm_oracle_autonomous_database.adbs_primary_for_crdr.db_workload
+  db_version                       = azurerm_oracle_autonomous_database.adbs_primary_for_crdr.db_version
+  admin_password                   = "TestPass#2024#"
+  character_set                    = azurerm_oracle_autonomous_database.adbs_primary_for_crdr.character_set
+  national_character_set           = azurerm_oracle_autonomous_database.adbs_primary_for_crdr.national_character_set
+}
+`, a.template(data), data.RandomInteger, "eastus", "westus")
+}
+
 func (a AdbsCrossRegionDisasterRecoveryResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
-
-
-
 %s
 
 provider "azurerm" {
@@ -183,10 +261,6 @@ resource "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "im
 
 func (a AdbsCrossRegionDisasterRecoveryResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-
-
-
-
 %s
 
 resource "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "adbs_secondary_crdr" {
@@ -218,7 +292,7 @@ resource "azurerm_oracle_autonomous_database_cross_region_disaster_recovery" "ad
   character_set                       = "AL32UTF8"
   national_character_set              = "AL16UTF16"
 }
-`, a.complete(data), data.RandomInteger, "eastus", "westus")
+`, a.basic(data), data.RandomInteger, "eastus", "westus")
 }
 
 func (a AdbsCrossRegionDisasterRecoveryResource) template(data acceptance.TestData) string {
