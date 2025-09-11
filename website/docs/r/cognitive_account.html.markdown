@@ -80,6 +80,8 @@ The following arguments are supported:
 
 * `network_acls` - (Optional) A `network_acls` block as defined below. When this property is specified, `custom_subdomain_name` is also required to be set.
 
+* `network_injection` - (Optional) A `network_injection` block as defined below. Only applicable if the `kind` is set to `AIServices`.
+
 * `outbound_network_access_restricted` - (Optional) Whether outbound network access is restricted for the Cognitive Account. Defaults to `false`.
 
 * `project_management_enabled` - (Optional) Whether project management is enabled when the `kind` is set to `AIServices`. The option cannot be disabled once this is enabled. Defaults to `false`.
@@ -114,11 +116,21 @@ A `network_acls` block supports the following:
 
 ---
 
+A `network_injection` block supports the following:
+
+* `scenario` - (Required) Specifies what features network injection applies to. Possible values are `agent` for agent scenarios and `none` for no network injection.
+
+* `subnet_arm_id` - (Optional) The ID of the subnet which the Agent Client is injected into.
+
+~> **Note:** The agent subnet must use an address space in the 172.* or 192.* ranges.
+
+---
+
 A `virtual_network_rules` block supports the following:
 
 * `subnet_id` - (Required) The ID of the subnet which should be able to access this Cognitive Account.
 
-* `ignore_missing_vnet_service_endpoint` - (Optional) Whether ignore missing vnet service endpoint or not. Default to `false`.
+* `ignore_missing_vnet_service_endpoint` - (Optional) Whether ignore missing vnet service endpoint or not. Defaults to `false`.
 
 ---
 

@@ -509,6 +509,27 @@ func TestAccCognitiveAccount_aiServices_update(t *testing.T) {
 	})
 }
 
+func TestAccCognitiveAccount_aiServices_networkInjection(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
+	r := CognitiveAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.aiServices_networkInjection(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("kind").HasValue("AIServices"),
+				check.That(data.ResourceName).Key("project_management_enabled").HasValue("true"),
+				check.That(data.ResourceName).Key("network_acls.0.default_action").HasValue("Allow"),
+				check.That(data.ResourceName).Key("network_injection.#").HasValue("1"),
+				check.That(data.ResourceName).Key("network_injection.0.scenario").HasValue("agent"),
+				check.That(data.ResourceName).Key("network_injection.0.subnet_arm_id").IsNotEmpty(),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccCognitiveAccount_aiServices_networkAclsVirtualNetworkRulesWithBypass(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_cognitive_account", "test")
 	r := CognitiveAccountResource{}
@@ -1542,6 +1563,81 @@ resource "azurerm_cognitive_account" "test" {
   tags = {
     Acceptance = "Test"
   }
+}
+`, data.RandomInteger, data.Locations.Primary)
+}
+
+func (CognitiveAccountResource) aiServices_networkInjection(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+data "azurerm_client_config" "current" {
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aiservices-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%[1]d"
+  address_space       = ["192.168.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "subnet_agent" {
+  name                 = "acctestsubnetaagent%[1]d"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["192.168.0.0/24"]
+
+  delegation {
+    name = "Microsoft.App/environments"
+
+    service_delegation {
+      name = "Microsoft.App/environments"
+      actions = [
+        "Microsoft.Network/virtualNetworks/subnets/join/action"
+      ]
+    }
+  }
+}
+
+# 10-15m is enough time to let the backend remove the /subnets/snet-agent/serviceAssociationLinks/legionservicelink
+resource "time_sleep" "cognitive_account_deletion_cooldown" {
+  destroy_duration = "900s"
+  depends_on       = [azurerm_subnet.subnet_agent]
+}
+
+resource "azurerm_cognitive_account" "test" {
+  name                          = "acctestaiservices-%[1]d"
+  location                      = azurerm_resource_group.test.location
+  resource_group_name           = azurerm_resource_group.test.name
+  kind                          = "AIServices"
+  sku_name                      = "S0"
+  public_network_access_enabled = false
+  project_management_enabled    = true
+  custom_subdomain_name         = "acctestaiservices-%[1]d"
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_acls {
+    default_action = "Allow"
+  }
+
+  network_injection {
+    scenario      = "agent"
+    subnet_arm_id = azurerm_subnet.subnet_agent.id
+  }
+
+  depends_on = [
+    time_sleep.cognitive_account_deletion_cooldown
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

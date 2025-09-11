@@ -217,6 +217,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 								string(cognitiveservicesaccounts.NetworkRuleActionDeny),
 							}, false),
 						},
+
 						"ip_rules": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
@@ -261,6 +262,30 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"network_injection": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"scenario": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(cognitiveservicesaccounts.ScenarioTypeAgent),
+								string(cognitiveservicesaccounts.ScenarioTypeNone),
+							}, false),
+						},
+
+						"subnet_arm_id": {
+							Type:     pluginsdk.TypeString,
+							Optional: true,
+						},
+					},
+				},
+			},
+
 			"outbound_network_access_restricted": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -359,6 +384,10 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				return fmt.Errorf("the `network_acls.bypass` does not support Trusted Services for the kind %q", kind)
 			}
 
+			if network_injection_subnet_id, ok := d.GetOk("network_injection.0.subnet_id"); ok && network_injection_subnet_id != "" && kind != "AIServices" {
+				return errors.New("the `network_injection` is only supported for the kind `AIServices`")
+			}
+
 			if d.HasChange("custom_subdomain_name") {
 				old, _ := d.GetChange("custom_subdomain_name")
 				if old != nil && old != "" {
@@ -445,6 +474,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 			DisableLocalAuth:              pointer.To(!d.Get("local_auth_enabled").(bool)),
 			DynamicThrottlingEnabled:      pointer.To(d.Get("dynamic_throttling_enabled").(bool)),
 			AllowProjectManagement:        pointer.To(d.Get("project_management_enabled").(bool)),
+			NetworkInjections:             expandCognitiveAccountNetworkInjection(d.Get("network_injection").([]interface{})),
 			Encryption:                    expandCognitiveAccountCustomerManagedKey(d.Get("customer_managed_key").([]interface{})),
 		},
 		Identity: identity,
@@ -525,6 +555,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 			DisableLocalAuth:              pointer.To(!d.Get("local_auth_enabled").(bool)),
 			DynamicThrottlingEnabled:      pointer.To(d.Get("dynamic_throttling_enabled").(bool)),
 			AllowProjectManagement:        pointer.To(d.Get("project_management_enabled").(bool)),
+			NetworkInjections:             expandCognitiveAccountNetworkInjection(d.Get("network_injection").([]interface{})),
 			Encryption:                    expandCognitiveAccountCustomerManagedKey(d.Get("customer_managed_key").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -617,6 +648,15 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("custom_subdomain_name", props.CustomSubDomainName)
 			if err := d.Set("network_acls", flattenCognitiveAccountNetworkAcls(props.NetworkAcls)); err != nil {
 				return fmt.Errorf("setting `network_acls` for Cognitive Account %q: %+v", id, err)
+			}
+
+			networkInjection, err := flattenCognitiveAccountNetworkInjection(props.NetworkInjections)
+			if err != nil {
+				return err
+			}
+
+			if err := d.Set("network_injection", networkInjection); err != nil {
+				return fmt.Errorf("setting `network_injection`: %+v", err)
 			}
 
 			dynamicThrottlingEnabled := false
@@ -960,4 +1000,54 @@ func flattenCognitiveAccountCustomerManagedKey(input *cognitiveservicesaccounts.
 			"identity_client_id": identityClientId,
 		},
 	}, nil
+}
+
+func expandCognitiveAccountNetworkInjection(input []interface{}) *[]cognitiveservicesaccounts.NetworkInjection {
+	if len(input) == 0 {
+		return nil
+	}
+
+	results := make([]cognitiveservicesaccounts.NetworkInjection, 0)
+	for _, v := range input {
+		value := v.(map[string]interface{})
+
+		scenario := cognitiveservicesaccounts.ScenarioType(value["scenario"].(string))
+
+		var subnetArmId *string
+		if value["subnet_arm_id"] != nil && value["subnet_arm_id"] != "" {
+			subnetArmId = utils.String(value["subnet_arm_id"].(string))
+		}
+
+		results = append(results, cognitiveservicesaccounts.NetworkInjection{
+			Scenario:    &scenario,
+			SubnetArmId: subnetArmId,
+		})
+	}
+
+	return &results
+}
+
+func flattenCognitiveAccountNetworkInjection(input *[]cognitiveservicesaccounts.NetworkInjection) ([]interface{}, error) {
+	if input == nil {
+		return []interface{}{}, nil
+	}
+
+	results := make([]interface{}, 0)
+	for _, v := range *input {
+		var subnetId string
+		if v.SubnetArmId != nil {
+			subnet, err := commonids.ParseSubnetIDInsensitively(*v.SubnetArmId)
+			if err != nil {
+				return nil, fmt.Errorf("parsing `subnet_arm_id`: %+v", err)
+			}
+			subnetId = subnet.ID()
+		}
+
+		results = append(results, map[string]interface{}{
+			"scenario":      v.Scenario,
+			"subnet_arm_id": subnetId,
+		})
+	}
+
+	return results, nil
 }
