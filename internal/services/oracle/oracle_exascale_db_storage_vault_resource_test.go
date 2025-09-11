@@ -40,7 +40,7 @@ func TestDbStorageVaultResource_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("high_capacity_database_storage_input", "high_capacity_database_storage"),
+		data.ImportStep("high_capacity_database_storage"),
 	})
 }
 
@@ -54,7 +54,7 @@ func TestDbStorageVaultResource_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("high_capacity_database_storage_input", "high_capacity_database_storage"),
+		data.ImportStep("high_capacity_database_storage"),
 	})
 }
 
@@ -68,21 +68,21 @@ func TestDbStorageVaultResource_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("high_capacity_database_storage_input", "high_capacity_database_storage"),
+		data.ImportStep("high_capacity_database_storage"),
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("high_capacity_database_storage_input", "high_capacity_database_storage"),
+		data.ImportStep("high_capacity_database_storage"),
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("high_capacity_database_storage_input", "high_capacity_database_storage"),
+		data.ImportStep("high_capacity_database_storage"),
 	})
 }
 
@@ -116,7 +116,7 @@ resource "azurerm_oracle_exascale_db_storage_vault" "test" {
   display_name                      = "OFakeacctest%[2]d"
   description                       = "description"
   additional_flash_cache_in_percent = 100
-  high_capacity_database_storage_input {
+  high_capacity_database_storage {
     total_size_in_gb = 300
   }
 }
@@ -137,7 +137,7 @@ resource "azurerm_oracle_exascale_db_storage_vault" "test" {
   location            = "%[3]s"
   zones               = ["2"]
   display_name        = "OFakeacctest%[2]d"
-  high_capacity_database_storage_input {
+  high_capacity_database_storage {
     total_size_in_gb = 300
   }
   additional_flash_cache_in_percent = 100
@@ -163,8 +163,8 @@ resource "azurerm_oracle_exascale_db_storage_vault" "import" {
   description                       = azurerm_oracle_exascale_db_storage_vault.test.description
   time_zone                         = azurerm_oracle_exascale_db_storage_vault.test.time_zone
   zones                             = azurerm_oracle_exascale_db_storage_vault.test.zones
-  high_capacity_database_storage_input {
-    total_size_in_gb = azurerm_oracle_exascale_db_storage_vault.test.high_capacity_database_storage_input[0].total_size_in_gb
+  high_capacity_database_storage {
+    total_size_in_gb = azurerm_oracle_exascale_db_storage_vault.test.high_capacity_database_storage[0].total_size_in_gb
   }
 }
 `, a.basic(data))
