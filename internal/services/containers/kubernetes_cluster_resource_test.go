@@ -16,7 +16,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -1134,11 +1133,6 @@ resource "azurerm_role_assignment" "aks_to_kubeletidentity" {
 }
 
 func (r KubernetesClusterResource) networkIsolatedBootstrapProfileArtifactSourceCache(data acceptance.TestData) string {
-	outboundTypeConfig := ""
-	if !features.FivePointOh() {
-		outboundTypeConfig = `outbound_type       = "none"`
-	}
-
 	return fmt.Sprintf(`
 %[1]s
 
@@ -1164,7 +1158,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     network_plugin_mode = "overlay"
     network_plugin      = "azure"
     load_balancer_sku   = "standard"
-    %[3]s
+    outbound_type       = "none"
   }
 
   identity {
@@ -1182,7 +1176,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     artifact_source       = "Cache"
     container_registry_id = azurerm_container_registry.registry.id
   }
-}`, r.networkIsolatedBootstrapProfileTemplate(data), data.RandomInteger, outboundTypeConfig)
+}`, r.networkIsolatedBootstrapProfileTemplate(data), data.RandomInteger)
 }
 
 func (r KubernetesClusterResource) networkIsolatedBootstrapProfileArtifactSourceDirect(data acceptance.TestData) string {
