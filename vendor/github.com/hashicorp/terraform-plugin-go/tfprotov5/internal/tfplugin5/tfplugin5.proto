@@ -1,9 +1,9 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-// Terraform Plugin RPC protocol version 5.9
+// Terraform Plugin RPC protocol version 5.10
 //
-// This file defines version 5.9 of the RPC protocol. To implement a plugin
+// This file defines version 5.10 of the RPC protocol. To implement a plugin
 // against this protocol, copy this definition into your own codebase and
 // use protoc to generate stubs for your target language.
 //
@@ -289,6 +289,38 @@ message Function {
     }
 }
 
+message ActionSchema {
+    message LinkedResource {
+        string type_name = 1;
+        string description = 2;
+    }
+
+    message Unlinked {}
+
+    message Lifecycle {
+        enum ExecutionOrder {
+            INVALID = 0;
+            BEFORE = 1;
+            AFTER = 2;
+        }
+
+        ExecutionOrder executes = 1; // before or after the resource operation
+        LinkedResource linked_resource = 2; // the resource that is linked to the action
+    }
+
+    message Linked {
+        repeated LinkedResource linked_resources = 1;
+    }
+    
+    Schema schema = 1; // of the action itself
+
+    oneof type {
+        Unlinked unlinked = 2;
+        Lifecycle lifecycle = 3;
+        Linked linked = 4;
+    }
+}
+
 // Deferred is a message that indicates that change is deferred for a reason.
 message Deferred {
     // Reason is the reason for deferring the change.
@@ -349,6 +381,10 @@ service Provider {
     rpc RenewEphemeralResource(RenewEphemeralResource.Request) returns (RenewEphemeralResource.Response);
     rpc CloseEphemeralResource(CloseEphemeralResource.Request) returns (CloseEphemeralResource.Response);
 
+    /////// List
+    rpc ListResource(ListResource.Request) returns (stream ListResource.Event);
+    rpc ValidateListResourceConfig(ValidateListResourceConfig.Request) returns (ValidateListResourceConfig.Response);
+
     // Functions
 
     // GetFunctions returns the definitions of all functions.
@@ -357,6 +393,11 @@ service Provider {
     // CallFunction runs the provider-defined function logic and returns
     // the result with any diagnostics.
     rpc CallFunction(CallFunction.Request) returns (CallFunction.Response);
+
+    //////// Actions Lifecycle
+    rpc ValidateActionConfig(ValidateActionConfig.Request) returns (ValidateActionConfig.Response);
+    rpc PlanAction(PlanAction.Request) returns (PlanAction.Response);
+    rpc InvokeAction(InvokeAction.Request) returns (stream InvokeAction.Event);
 
     //////// Graceful Shutdown
     rpc Stop(Stop.Request) returns (Stop.Response);
@@ -375,6 +416,9 @@ message GetMetadata {
         // functions returns metadata for any functions.
         repeated FunctionMetadata functions = 5;
         repeated EphemeralResourceMetadata ephemeral_resources = 6;
+        repeated ListResourceMetadata list_resources = 7;
+        // TODO: Field number 8 will be used by state stores
+        repeated ActionMetadata actions = 9;
     }
 
     message FunctionMetadata {
@@ -393,6 +437,14 @@ message GetMetadata {
     message EphemeralResourceMetadata {
         string type_name = 1;
     }
+
+    message ListResourceMetadata {
+        string type_name = 1;
+    }
+
+    message ActionMetadata {
+        string type_name = 1;
+    }
 }
 
 message GetProviderSchema {
@@ -409,6 +461,9 @@ message GetProviderSchema {
         // functions is a mapping of function names to definitions.
         map<string, Function> functions = 7;
         map<string, Schema> ephemeral_resource_schemas = 8;
+        map<string, Schema> list_resource_schemas = 9;
+        // TODO: Field number 10 will be used by state stores
+        map<string, ActionSchema> action_schemas = 11;
     }
 }
 
@@ -823,4 +878,136 @@ message UpgradeResourceIdentity {
         // diagnostics is the collection of warning and error diagnostics for this request
         repeated Diagnostic diagnostics = 2;
     }
+}
+
+message ListResource {
+    message Request {
+        // type_name is the list resource type name.
+        string type_name = 1;
+
+        // configuration is the list ConfigSchema-based configuration data.
+        DynamicValue config = 2;
+
+        // when include_resource_object is set to true, the provider should
+        // include the full resource object for each result
+        bool include_resource_object = 3;
+
+        // The maximum number of results that Terraform is expecting.
+        // The stream will stop, once this limit is reached.
+        int64 limit = 4;
+    }
+
+    message Event {
+        // identity is the resource identity data of the resource instance.
+        ResourceIdentityData identity = 1;
+
+        // display_name can be displayed in a UI to make it easier for humans to identify a resource
+        string display_name = 2;
+
+        // optional resource object which can be useful when combining list blocks in configuration
+        optional DynamicValue resource_object = 3;
+
+        // A warning or error diagnostics for this event
+        repeated Diagnostic diagnostic = 4;
+    }
+}
+
+message ValidateListResourceConfig {
+    message Request {
+        string type_name = 1;
+        DynamicValue config = 2;
+        DynamicValue include_resource_object = 3;
+        DynamicValue limit = 4;
+    }
+    message Response {
+        repeated Diagnostic diagnostics = 1;
+    }
+}
+
+message ValidateActionConfig {
+    message Request {
+        string action_type = 1;
+        DynamicValue config = 2;
+    }
+    message Response {
+        repeated Diagnostic diagnostics = 1;
+    }
+}
+
+message PlanAction {
+    message Request {
+        message LinkedResource {
+            DynamicValue prior_state = 1;
+            // planned_state describes the value the linked resource has been last planned with.
+            // This could also be the output of a predecessor action.
+            DynamicValue planned_state = 2;
+            DynamicValue config = 3;
+            ResourceIdentityData prior_identity = 4;
+        }
+        
+        string action_type = 1;
+
+        // linked resources, this should match the order the resources are specified in the schema.
+        repeated LinkedResource linked_resources = 2;
+
+        DynamicValue config = 3;
+
+        ClientCapabilities client_capabilities = 4;
+    }
+    message Response {
+        message LinkedResource {
+            DynamicValue planned_state = 1;
+            ResourceIdentityData planned_identity = 2;
+        }
+
+        // planned changes to the linked resources in the order they are specified in the schema.
+        repeated LinkedResource linked_resources = 1;
+        repeated Diagnostic diagnostics = 2;
+
+        // metadata
+        Deferred deferred = 3;
+    }
+}
+
+message InvokeAction {
+    message Request {
+        message LinkedResource {
+    	    DynamicValue prior_state = 1; 
+            // planned_state describes the value the linked resource has been last planned 
+            // with. This could also be the output of a predecessor action.
+            DynamicValue planned_state = 2;
+            DynamicValue config = 3;
+            ResourceIdentityData planned_identity = 4;
+        }
+        string action_type = 1;
+
+        // linked resources, matching the order they are specified in the schema
+        repeated LinkedResource linked_resources = 2;
+
+        DynamicValue config = 3;
+    }
+
+    message Event {
+      message Progress {
+        // message to be printed in the console / HCPT
+        string message = 1;
+      }
+      message Completed {
+        message LinkedResource {
+            DynamicValue new_state = 1;
+            ResourceIdentityData new_identity = 2;
+            // Can only be set if error diagnostics are present. 
+            bool requires_replace = 3;
+        }
+         // linked resources, matching the order they are specified in the schema
+        repeated LinkedResource linked_resources = 1;
+        
+        repeated Diagnostic diagnostics = 2;
+    }
+    oneof type {
+      Progress progress = 1;
+      Completed completed = 2;
+    }
+  }
+
 }

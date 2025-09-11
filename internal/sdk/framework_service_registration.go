@@ -5,6 +5,7 @@ package sdk
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
+	"github.com/hashicorp/terraform-plugin-framework/list"
 )
 
 type FrameworkServiceRegistration interface {
@@ -13,4 +14,6 @@ type FrameworkServiceRegistration interface {
 	FrameworkDataSources() []FrameworkWrappedDataSource
 
 	EphemeralResources() []func() ephemeral.EphemeralResource
+
+	ListResources() []func() list.ListResource
 }

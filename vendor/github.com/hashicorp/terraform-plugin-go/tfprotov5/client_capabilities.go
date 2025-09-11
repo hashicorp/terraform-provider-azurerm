@@ -65,3 +65,12 @@ type OpenEphemeralResourceClientCapabilities struct {
 	// handle deferred responses from the provider.
 	DeferralAllowed bool
 }
+
+// PlanActionClientCapabilities allows Terraform to publish information
+// regarding optionally supported protocol features for the PlanAction RPC,
+// such as forward-compatible Terraform behavior changes.
+type PlanActionClientCapabilities struct {
+	// DeferralAllowed signals that the request from Terraform is able to
+	// handle deferred responses from the provider.
+	DeferralAllowed bool
+}
