@@ -157,6 +157,7 @@ func (r *ResourceMetadata) DecodeDelete(ctx context.Context, req resource.Delete
 
 // SetResponseErrorDiagnostic is a helper function to write an Error Diagnostic to the appropriate Framework response
 // type detail can be specified as an error, from which error.Error() will be used or as a string
+// Note: For list resource diagnostics, pass in the stream itself, not the stream.Results for resp.
 func SetResponseErrorDiagnostic(resp any, summary string, detail any) {
 	var errorMsg string
 	switch e := detail.(type) {
@@ -180,6 +181,10 @@ func SetResponseErrorDiagnostic(resp any, summary string, detail any) {
 		v.Diagnostics.AddError(summary, errorMsg)
 	case *ephemeral.CloseResponse:
 		v.Diagnostics.AddError(summary, errorMsg)
+	case *list.ListResultsStream:
+		diags := diag.Diagnostics{}
+		diags.Append(diag.NewErrorDiagnostic(summary, errorMsg))
+		v.Results = list.ListResultsStreamDiagnostics(diags)
 	}
 }
 
