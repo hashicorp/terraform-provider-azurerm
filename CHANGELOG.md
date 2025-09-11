@@ -1,6 +1,7 @@
 ## 4.44.0 (September 11, 2025)
 
 ENHANCEMENTS:
+* `azurerm_kubernetes_cluster` - add support for `bootstrap_profile` [GH-30532]
 
 * dependencies: `go-azure-sdk` - update to `v0.20250903.1204452` ([#30557](https://github.com/hashicorp/terraform-provider-azurerm/issues/30557))
 * dependencies: `paloaltonetworks/firewalls` - update to API version `2025-05-23` ([#30587](https://github.com/hashicorp/terraform-provider-azurerm/issues/30587))
