@@ -1,10 +1,11 @@
 ## 4.44.0 (September 11, 2025)
 
 ENHANCEMENTS:
-* `azurerm_kubernetes_cluster` - add support for `bootstrap_profile` [GH-30532]
 
 * dependencies: `go-azure-sdk` - update to `v0.20250903.1204452` ([#30557](https://github.com/hashicorp/terraform-provider-azurerm/issues/30557))
 * dependencies: `paloaltonetworks/firewalls` - update to API version `2025-05-23` ([#30587](https://github.com/hashicorp/terraform-provider-azurerm/issues/30587))
+* `azurerm_kubernetes_cluster` - add support for `bootstrap_profile` ([#30532](https://github.com/hashicorp/terraform-provider-azurerm/issues/30532))
+* `azurerm_kubernetes_cluster` - add support for the `none` value for `network_profile.outbound_type` ([#30532](https://github.com/hashicorp/terraform-provider-azurerm/issues/30532))
 * `azurerm_netapp_volume` - add support for `accept_grow_capacity_pool_for_short_term_clone_split` ([#30494](https://github.com/hashicorp/terraform-provider-azurerm/issues/30494))
 * `azurerm_service_plan` - add support for Premium V4 SKUs ([#30163](https://github.com/hashicorp/terraform-provider-azurerm/issues/30163))
 
