@@ -1217,11 +1217,6 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		enableNodePublicIP = *agentPool.EnableNodePublicIP
 	}
 
-	enableHostEncryption := false
-	if agentPool.EnableEncryptionAtHost != nil {
-		enableHostEncryption = *agentPool.EnableEncryptionAtHost
-	}
-
 	gpuInstanceProfile := ""
 	if agentPool.GpuInstanceProfile != nil {
 		gpuInstanceProfile = string(*agentPool.GpuInstanceProfile)
@@ -1235,11 +1230,6 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 	maxCount := 0
 	if agentPool.MaxCount != nil {
 		maxCount = int(*agentPool.MaxCount)
-	}
-
-	maxPods := 0
-	if agentPool.MaxPods != nil {
-		maxPods = int(*agentPool.MaxPods)
 	}
 
 	minCount := 0
@@ -1277,11 +1267,6 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 	osDiskSizeGB := 0
 	if agentPool.OsDiskSizeGB != nil {
 		osDiskSizeGB = int(*agentPool.OsDiskSizeGB)
-	}
-
-	osDiskType := managedclusters.OSDiskTypeManaged
-	if agentPool.OsDiskType != nil {
-		osDiskType = *agentPool.OsDiskType
 	}
 
 	podSubnetId := ""
@@ -1368,11 +1353,9 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"fips_enabled":                  enableFIPS,
 		"gpu_instance":                  gpuInstanceProfile,
 		"gpu_driver":                    gpuDriver,
-		"host_encryption_enabled":       enableHostEncryption,
 		"host_group_id":                 hostGroupID,
 		"kubelet_disk_type":             kubeletDiskType,
 		"max_count":                     maxCount,
-		"max_pods":                      maxPods,
 		"min_count":                     minCount,
 		"name":                          name,
 		"node_count":                    count,
@@ -1381,7 +1364,6 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"node_public_ip_enabled":        enableNodePublicIP,
 		"node_public_ip_prefix_id":      nodePublicIPPrefixID,
 		"os_disk_size_gb":               osDiskSizeGB,
-		"os_disk_type":                  string(osDiskType),
 		"os_sku":                        osSKU,
 		"scale_down_mode":               string(scaleDownMode),
 		"snapshot_id":                   snapshotId,
@@ -1394,7 +1376,6 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"pod_subnet_id":                 podSubnetId,
 		"orchestrator_version":          orchestratorVersion,
 		"proximity_placement_group_id":  proximityPlacementGroupId,
-		"upgrade_settings":              upgradeSettings,
 		"vnet_subnet_id":                vnetSubnetId,
 		"only_critical_addons_enabled":  criticalAddonsEnabled,
 		"kubelet_config":                flattenClusterNodePoolKubeletConfig(agentPool.KubeletConfig),
@@ -1403,15 +1384,32 @@ func FlattenDefaultNodePool(input *[]managedclusters.ManagedClusterAgentPoolProf
 		"capacity_reservation_group_id": capacityReservationGroupId,
 	}
 
+	if agentPool.EnableEncryptionAtHost != nil {
+		out["host_encryption_enabled"] = *agentPool.EnableEncryptionAtHost
+	}
+
+	if agentPool.MaxPods != nil {
+		out["max_pods"] = int(*agentPool.MaxPods)
+	}
+
+	if agentPool.OsDiskType != nil {
+		out["os_disk_type"] = string(*agentPool.OsDiskType)
+	}
+
+	if upgradeSettings != nil {
+		out["upgrade_settings"] = upgradeSettings
+	}
+
 	return &[]interface{}{
 		out,
 	}, nil
 }
 
 func flattenClusterNodePoolUpgradeSettings(input *managedclusters.AgentPoolUpgradeSettings) []interface{} {
-	// The API returns an empty upgrade settings object for spot node pools, so we need to explicitly check whether there's anything in it
+	// The API returns an empty upgrade settings object for spot node pools, so we need to explicitly
+	// check whether there's anything in it to avoid producing an empty block in state.
 	if input == nil || (input.MaxSurge == nil && input.DrainTimeoutInMinutes == nil && input.NodeSoakDurationInMinutes == nil) {
-		return []interface{}{}
+		return nil
 	}
 
 	values := make(map[string]interface{})
@@ -1426,6 +1424,10 @@ func flattenClusterNodePoolUpgradeSettings(input *managedclusters.AgentPoolUpgra
 
 	if input.NodeSoakDurationInMinutes != nil {
 		values["node_soak_duration_in_minutes"] = *input.NodeSoakDurationInMinutes
+	}
+
+	if len(values) == 0 {
+		return nil
 	}
 
 	return []interface{}{values}
