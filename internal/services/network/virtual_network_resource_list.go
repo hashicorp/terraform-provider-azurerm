@@ -5,13 +5,13 @@ package network
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourcegroups"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworks"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	listschema "github.com/hashicorp/terraform-plugin-framework/list/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -39,9 +39,9 @@ func (r *VirtualNetworkListResource) Metadata(_ context.Context, _ resource.Meta
 }
 
 func (r *VirtualNetworkListResource) RawV5Schemas(ctx context.Context, _ list.RawV5SchemaRequest, response *list.RawV5SchemaResponse) {
-	vnet := resourceVirtualNetwork()
-	response.ProtoV5Schema = vnet.ProtoSchema(ctx)()
-	response.ProtoV5IdentitySchema = vnet.ProtoIdentitySchema(ctx)()
+	res := resourceVirtualNetwork()
+	response.ProtoV5Schema = res.ProtoSchema(ctx)()
+	response.ProtoV5IdentitySchema = res.ProtoIdentitySchema(ctx)()
 }
 
 func (r *VirtualNetworkListResource) ListResourceConfigSchema(_ context.Context, _ list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
@@ -72,16 +72,13 @@ func (r *VirtualNetworkListResource) List(ctx context.Context, request list.List
 		return
 	}
 
-	virtualNetworks := make([]virtualnetworks.VirtualNetwork, 0)
-
-	resp, err := client.List(ctx, commonids.NewResourceGroupID(r.SubscriptionId, data.ResourceGroupName))
+	resp, err := client.ListComplete(ctx, commonids.NewResourceGroupID(r.SubscriptionId, data.ResourceGroupName))
 	if err != nil {
-		sdk.SetResponseErrorDiagnostic(stream.Results, "", err)
+		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing %s", VirtualNetworkResourceName), err)
+		return
 	}
 
-	if resp.Model != nil {
-		virtualNetworks = *resp.Model
-	}
+	virtualNetworks := resp.Items
 
 	stream.Results = func(push func(list.ListResult) bool) {
 		for _, vnet := range virtualNetworks {
@@ -90,7 +87,7 @@ func (r *VirtualNetworkListResource) List(ctx context.Context, request list.List
 
 			id, err := commonids.ParseVirtualNetworkID(*vnet.Id)
 			if err != nil {
-				sdk.SetResponseErrorDiagnostic(stream.Results, "parsing Virtual Network ID", err)
+				sdk.SetResponseErrorDiagnostic(stream, "parsing Virtual Network ID", err)
 				return
 			}
 
@@ -102,29 +99,29 @@ func (r *VirtualNetworkListResource) List(ctx context.Context, request list.List
 
 			err = resourceVirtualNetworkFlatten(rd, *id, &vnet)
 			if err != nil {
-				sdk.SetResponseErrorDiagnostic(stream.Results, "encoding resource data", err)
+				sdk.SetResponseErrorDiagnostic(stream, "encoding resource data", err)
 				return
 			}
 
 			tfTypeIdentity, err := rd.TfTypeIdentityState()
 			if err != nil {
-				sdk.SetResponseErrorDiagnostic(stream.Results, "converting Identity State", err)
+				sdk.SetResponseErrorDiagnostic(stream, "converting Identity State", err)
 				return
 			}
 
 			if err := result.Identity.Set(ctx, *tfTypeIdentity); err != nil {
-				sdk.SetResponseErrorDiagnostic(stream.Results, "setting identity data", err)
+				sdk.SetResponseErrorDiagnostic(stream, "setting identity data", err)
 				return
 			}
 
 			tfTypeResource, err := rd.TfTypeResourceState()
 			if err != nil {
-				sdk.SetResponseErrorDiagnostic(stream.Results, "converting Resource State data", err)
+				sdk.SetResponseErrorDiagnostic(stream, "converting Resource State data", err)
 				return
 			}
 
 			if err := result.Resource.Set(ctx, *tfTypeResource); err != nil {
-				sdk.SetResponseErrorDiagnostic(stream.Results, "setting resource data", err)
+				sdk.SetResponseErrorDiagnostic(stream, "setting resource data", err)
 				return
 			}
 

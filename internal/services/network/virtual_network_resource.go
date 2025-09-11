@@ -492,7 +492,7 @@ func resourceVirtualNetworkFlatten(d *pluginsdk.ResourceData, id commonids.Virtu
 		}
 	}
 
-	return pluginsdk.SetResourceIdentityData(d, &id)
+	return pluginsdk.SetResourceIdentityData(d, pointer.To(id))
 }
 
 func resourceVirtualNetworkUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
