@@ -3,6 +3,7 @@ package synapse
 import (
 	"fmt"
 	"regexp"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/synapse/mgmt/v2.0/synapse" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -25,9 +26,16 @@ func sqlPoolMaintenanceWindowResource() *pluginsdk.Resource {
 				}, false),
 			},
 			"start_time_utc": {
-				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^\d{2}:\d{2}:\d{2}$`), "`start_time_utc` must be in the format HH:MM:SS"),
+				Type:     pluginsdk.TypeString,
+				Required: true,
+				ValidateFunc: func(i interface{}, s string) ([]string, []error) {
+					v := i.(string)
+					_, err := time.Parse(time.TimeOnly, v)
+					if err != nil {
+						return nil, []error{fmt.Errorf("expected `start_time_utc` to be in the format HH:MM:SS - got: %q", v)}
+					}
+					return nil, nil
+				},
 			},
 			"duration_in_hours": {
 				Type:         pluginsdk.TypeInt,
