@@ -18,6 +18,11 @@ BUG FIXES:
 
 ## 4.43.0 (September 04, 2025)
 
+FEATURES:
+
+* **New Data Source:** `azurerm_oracle_autonomous_database_backup_data_source` ([#30201](https://github.com/hashicorp/terraform-provider-azurerm/issues/30201))
+* **New Resource:** `azurerm_oracle_autonomous_database_backup` ([#30201](https://github.com/hashicorp/terraform-provider-azurerm/issues/30201))
+
 ENHANCEMENTS:
 
 * dependencies: `azurerm_api_management_backend` - upgrade API version to `2024-05-01` ([#30500](https://github.com/hashicorp/terraform-provider-azurerm/issues/30500))
@@ -50,8 +55,6 @@ NOTES:
 FEATURES:
 
 * **New Data Source:** `azurerm_managed_disks` ([#30394](https://github.com/hashicorp/terraform-provider-azurerm/issues/30394))
-* **New Data Source:** `azurerm_oracle_autonomous_database_backup_data_source` ([#30201](https://github.com/hashicorp/terraform-provider-azurerm/issues/30201))
-* **New Resource:** `azurerm_oracle_autonomous_database_backup` ([#30201](https://github.com/hashicorp/terraform-provider-azurerm/issues/30201))
 
 ENHANCEMENTS:
 
