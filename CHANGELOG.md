@@ -1,20 +1,20 @@
-## 4.44.0 (Unreleased)
+## 4.44.0 (September 11, 2025)
 
 ENHANCEMENTS:
-* dependencies: `paloaltonetworks/firewalls` - update to API version `2025-05-23` [GH-30587]
-* `azurerm_service_plan` Add support for Premium V4 SKUs [GH-30163]
-* dependencies: `go-azure-sdk` - update to `v0.20250903.1204452` [GH-30557]
-* `azurerm_netapp_volume` - add support for `accept_grow_capacity_pool_for_short_term_clone_split`  [GH-30494]
 
-FEATURES:
+* dependencies: `go-azure-sdk` - update to `v0.20250903.1204452` ([#30557](https://github.com/hashicorp/terraform-provider-azurerm/issues/30557))
+* dependencies: `paloaltonetworks/firewalls` - update to API version `2025-05-23` ([#30587](https://github.com/hashicorp/terraform-provider-azurerm/issues/30587))
+* `azurerm_netapp_volume` - add support for `accept_grow_capacity_pool_for_short_term_clone_split` ([#30494](https://github.com/hashicorp/terraform-provider-azurerm/issues/30494))
+* `azurerm_service_plan` - add support for Premium V4 SKUs ([#30163](https://github.com/hashicorp/terraform-provider-azurerm/issues/30163))
 
 BUG FIXES:
-* `azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama` - fix import by parsing `network_virtual_appliance_id` insensitively [GH-30597]
-* `azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack` - fix import by parsing `network_virtual_appliance_id` insensitively [GH-30597]
-* `azurerm_custom_ip_prefix` - fix an incorrect type-assertion that caused an error when attempting to read the API response [GH-30537]
-* `azurerm_application_insights_standard_web_test` - prevent Resource ID errors when parsing `hidden-link` tags [GH-28034]
-* `azurerm_monitor_activity_log_alert` - fix `name` validation [GH-30590]
-* `azurerm_postgresql_flexible_server` - fix a bug when setting the `source_server_id` property [GH-30497]
+
+* `azurerm_application_insights_standard_web_test` - prevent Resource ID parsing errors when parsing `hidden-link` tags ([#28034](https://github.com/hashicorp/terraform-provider-azurerm/issues/28034))
+* `azurerm_custom_ip_prefix` - fix an incorrect type-assertion that caused an error when attempting to read the API response ([#30537](https://github.com/hashicorp/terraform-provider-azurerm/issues/30537))
+* `azurerm_monitor_activity_log_alert` - fix `name` validation ([#30590](https://github.com/hashicorp/terraform-provider-azurerm/issues/30590))
+* `azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack` - fix import by parsing `network_virtual_appliance_id` insensitively ([#30597](https://github.com/hashicorp/terraform-provider-azurerm/issues/30597))
+* `azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama` - fix import by parsing `network_virtual_appliance_id` insensitively ([#30597](https://github.com/hashicorp/terraform-provider-azurerm/issues/30597))
+* `azurerm_postgresql_flexible_server` - fix a bug when setting the `source_server_id` property ([#30497](https://github.com/hashicorp/terraform-provider-azurerm/issues/30497))
 
 ## 4.43.0 (September 04, 2025)
 
