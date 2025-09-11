@@ -26,7 +26,7 @@ resource "azurerm_oracle_exascale_db_storage_vault" "example" {
   display_name                      = "example-exascale-db-storage-vault"
   description                       = "description"
   additional_flash_cache_in_percent = 100
-  high_capacity_database_storage_input {
+  high_capacity_database_storage {
     total_size_in_gb = 300
   }
   time_zone = "UTC"
@@ -49,30 +49,19 @@ The following arguments are supported:
 
 * `display_name` - (Required) The user-friendly name for the Exadata Database Storage Vault resource. The name does not need to be unique. Changing this forces a new Exadata Database Storage Vault to be created.
 
-* `high_capacity_database_storage_input` - (Required) A `high_capacity_database_storage_input` block as defined below. Changing this forces a new Exadata Database Storage Vault to be created.
+* `high_capacity_database_storage` - (Required) A `high_capacity_database_storage` block as defined below. Changing this forces a new Exadata Database Storage Vault to be created.
 
 * `zones` - (Required) Exadata Database Storage Vault zones. Changing this forces a new Exadata Database Storage Vault to be created.
 
-* `high_capacity_database_storage` - (Optional) A `high_capacity_database_storage` block as defined below.
-
-* `time_zone` - (Optional) The time zone that you want to use for the Exadata Database Storage Vault.
+* `time_zone` - (Optional) The time zone that you want to use for the Exadata Database Storage Vault. Changing this forces a new Exadata Database Storage Vault to be created. For details, see [Time Zones](https://docs.oracle.com/en/cloud/paas/base-database/time-zone/).
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Exadata Database Storage Vault.
 
 ---
 
-A `high_capacity_database_storage_input` block supports the following:
-
-* `total_size_in_gbs` - (Required) Total Capacity.
-
----
-
 A `high_capacity_database_storage` block supports the following:
 
-* `available_size_in_gb` - (Optional) Available Capacity.
-
-* `total_size_in_gb` - (Optional) Total Capacity.
-
+* `total_size_in_gb` - (Required) Total Capacity. Changing this forces a new Exadata Database Storage Vault to be created.
 
 ## Attributes Reference
 

@@ -25,8 +25,7 @@ func TestDbStorageVaultDataSource_basic(t *testing.T) {
 				check.That(data.ResourceName).Key("name").Exists(),
 				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 				check.That(data.ResourceName).Key("display_name").Exists(),
-				check.That(data.ResourceName).Key("additional_flash_cache_in_percent").Exists(),
-				check.That(data.ResourceName).Key("description").Exists(),
+				check.That(data.ResourceName).Key("high_capacity_database_storage.0.%").HasValue("1"),
 			),
 		},
 	})
