@@ -20,7 +20,8 @@ BUG FIXES:
 
 FEATURES:
 
-* **New Data Source:** `azurerm_oracle_autonomous_database_backup_data_source` ([#30201](https://github.com/hashicorp/terraform-provider-azurerm/issues/30201))
+* **New Data Source:** `azurerm_oracle_autonomous_database_backup` ([#30201](https://github.com/hashicorp/terraform-provider-azurerm/issues/30201))
+* **New Data Source:** `azurerm_oracle_autonomous_database_backups` ([#30201](https://github.com/hashicorp/terraform-provider-azurerm/issues/30201))
 * **New Resource:** `azurerm_oracle_autonomous_database_backup` ([#30201](https://github.com/hashicorp/terraform-provider-azurerm/issues/30201))
 
 ENHANCEMENTS:
