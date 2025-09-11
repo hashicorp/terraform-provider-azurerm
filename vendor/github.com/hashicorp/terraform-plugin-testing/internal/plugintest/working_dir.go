@@ -5,10 +5,12 @@ package plugintest
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/hashicorp/terraform-exec/tfexec"
 	tfjson "github.com/hashicorp/terraform-json"
@@ -21,6 +23,7 @@ import (
 const (
 	ConfigFileName = "terraform_plugin_test.tf"
 	PlanFileName   = "tfplan"
+	QueryFileName  = "terraform_plugin_test.tfquery.hcl"
 )
 
 // WorkingDir represents a distinct working directory that can be used for
@@ -36,6 +39,10 @@ type WorkingDir struct {
 	// configFilename is the full filename where the latest configuration
 	// was stored; empty until SetConfig is called.
 	configFilename string
+
+	// queryFilename is the full filename where the latest query configuration
+	// was stored; empty until SetQuery is called.
+	queryFilename string
 
 	// tf is the instance of tfexec.Terraform used for running Terraform commands
 	tf *tfexec.Terraform
@@ -101,7 +108,7 @@ func (wd *WorkingDir) SetConfig(ctx context.Context, cfg teststep.Config, vars c
 
 	for _, file := range fi {
 		if file.Mode().IsRegular() {
-			if filepath.Ext(file.Name()) == ".tf" || filepath.Ext(file.Name()) == ".json" {
+			if filepath.Ext(file.Name()) == ".tf" || filepath.Ext(file.Name()) == ".json" || filepath.Ext(file.Name()) == ".tfquery.hcl" {
 				err = os.Remove(filepath.Join(d.Name(), file.Name()))
 
 				if err != nil && !os.IsNotExist(err) {
@@ -128,6 +135,80 @@ func (wd *WorkingDir) SetConfig(ctx context.Context, cfg teststep.Config, vars c
 	// Write configuration
 	if cfg != nil {
 		err = cfg.Write(ctx, wd.baseDir)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	//Write configuration variables
+	err = vars.Write(wd.baseDir)
+
+	if err != nil {
+		return err
+	}
+
+	// Changing configuration invalidates any saved plan.
+	err = wd.ClearPlan(ctx)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SetQuery sets a new query configuration for the working directory.
+//
+// This must be called at least once before any call to Init or Query Destroy
+// to establish the query configuration. Any previously-set configuration is
+// discarded and any saved plan is cleared.
+func (wd *WorkingDir) SetQuery(ctx context.Context, cfg teststep.Config, vars config.Variables) error {
+	// Remove old config and variables files first
+	d, err := os.Open(wd.baseDir)
+
+	if err != nil {
+		return err
+	}
+
+	defer d.Close()
+
+	fi, err := d.Readdir(-1)
+
+	if err != nil {
+		return err
+	}
+
+	for _, file := range fi {
+		if file.Mode().IsRegular() {
+			if filepath.Ext(file.Name()) == ".warioform" || filepath.Ext(file.Name()) == ".json" || filepath.Ext(file.Name()) == ".tfquery.hcl" {
+				err = os.Remove(filepath.Join(d.Name(), file.Name()))
+
+				if err != nil && !os.IsNotExist(err) {
+					return err
+				}
+			}
+		}
+	}
+
+	logging.HelperResourceTrace(ctx, "Setting Terraform query configuration", map[string]any{logging.KeyTestTerraformConfiguration: cfg})
+
+	outFilename := filepath.Join(wd.baseDir, QueryFileName)
+
+	// This file has to be written otherwise wd.Init() will return an error.
+	err = os.WriteFile(outFilename, nil, 0700)
+
+	if err != nil {
+		return err
+	}
+
+	// wd.configFilename must be set otherwise wd.Init() will return an error.
+	wd.queryFilename = outFilename
+	wd.configFilename = outFilename
+
+	// Write configuration
+	if cfg != nil {
+		err = cfg.WriteQuery(ctx, wd.baseDir)
 
 		if err != nil {
 			return err
@@ -443,4 +524,139 @@ func (wd *WorkingDir) Schemas(ctx context.Context) (*tfjson.ProviderSchemas, err
 	logging.HelperResourceTrace(ctx, "Called Terraform CLI providers schema command")
 
 	return providerSchemas, err
+}
+
+func (wd *WorkingDir) Query(ctx context.Context) ([]tfjson.LogMsg, error) {
+	logging.HelperResourceTrace(ctx, "Calling Terraform CLI providers query command")
+
+	args := []tfexec.QueryOption{tfexec.Reattach(wd.reattachInfo)}
+
+	var messages []tfjson.LogMsg
+
+	// Query the provider using the Terraform CLI function
+	//var buffer bytes.Buffer
+
+	// var unmarshalled map[string]any
+
+	// This returns a slice of log messages but is not expressed as a valid JSON array, so we're going to convert the
+	// buffer to a string, split this on new line then process each line individually since we're only interested in
+	// the list/query log messages
+	var logEmit *tfexec.LogMsgEmitter
+	var execErr, err error
+
+	logEmit, execErr = wd.tf.QueryJSON(context.Background(), args...)
+
+	if execErr != nil {
+		return nil, fmt.Errorf("error running terraform query command: %w", err)
+	}
+
+	//bufSplit := strings.Split(string(buffer.Bytes()), "\n")
+
+	/*for _, line := range bufSplit {
+		if line == "" {
+			continue
+		}
+		err := json.Unmarshal([]byte(line), &unmarshalled)
+		if err != nil {
+			return nil, err
+		}
+
+		traverse, _ := tfjsonpath.Traverse(unmarshalled, tfjsonpath.New("list_resource_found"))
+		if traverse != nil {
+			return traverse, nil
+		}
+	}*/
+
+	var message tfjson.LogMsg
+	var related bool
+
+	message, related, err = logEmit.NextMessage()
+
+	if related == false && err != nil {
+		return nil, fmt.Errorf("error no messages found from terraform query command: %w", err)
+	}
+
+	// possibly use iterator pattern here
+
+	for err != nil || message != nil {
+		message, related, err = logEmit.NextMessage()
+		messages = append(messages, message)
+	}
+
+	if related == true {
+		return nil, fmt.Errorf("error running terraform query command: %w", err)
+	}
+
+	logging.HelperResourceTrace(ctx, "Called Terraform CLI providers query command")
+
+	return messages, nil
+
+	// do a type conversion to list start data or list found message
+
+	//for _, line := range bufSplit {
+	//	if line == "" {
+	//		continue
+	//	}
+	//	d := json.NewDecoder(bytes.NewReader([]byte(line)))
+	//
+	//	mt := msgType{}
+	//	err := d.Decode(&mt)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//
+	//	msg, err := unmarshalResult(mt.Type, []byte(line))
+	//	if err != nil {
+	//		// TODO
+	//	}
+	//
+	//	if msg != nil {
+	//		returned = append(returned, *msg)
+	//	}
+	//}
+
+	//returned := make([]string, len(results))
+	//for i, r := range results {
+	//	returned[i] = r.Address
+	//}
+}
+
+// Taken from https://github.com/hashicorp/terraform-json/pull/169/
+const (
+	MessageListResourceFound tfjson.LogMessageType = "list_resource_found"
+)
+
+type ListResourceFoundMessage struct {
+	baseLogMessage
+	Address        string                     `json:"address"`
+	DisplayName    string                     `json:"display_name"`
+	Identity       map[string]json.RawMessage `json:"identity"`
+	ResourceType   string                     `json:"resource_type"`
+	ResourceObject map[string]json.RawMessage `json:"resource_object,omitempty"`
+	Config         string                     `json:"config,omitempty"`
+	ImportConfig   string                     `json:"import_config,omitempty"`
+}
+
+type baseLogMessage struct {
+	Lvl  tfjson.LogMessageLevel `json:"@level"`
+	Msg  string                 `json:"@message"`
+	Time time.Time              `json:"@timestamp"`
+}
+
+type msgType struct {
+	Type tfjson.LogMessageType `json:"type"`
+}
+
+type Result struct {
+	ListResourceFoundMessage `json:"list_resource_found"`
+}
+
+func unmarshalResult(t tfjson.LogMessageType, b []byte) (*tfjson.ListResourceFoundData, error) {
+	v := tfjson.ListResourceFoundData{}
+	switch t {
+	case MessageListResourceFound:
+		return &v, json.Unmarshal(b, &v)
+	}
+
+	return nil, nil
 }

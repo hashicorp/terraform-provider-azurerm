@@ -21,8 +21,7 @@ type ConfigValidator interface {
 
 	// ValidateResource performs the validation.
 	//
-	// This method name is separate from the datasource.ConfigValidator
-	// interface ValidateDataSource method name and provider.ConfigValidator
-	// interface ValidateProvider method name to allow generic validators.
+	// This method name is separate from ConfigValidators in datasource and other packages in
+	// order to allow generic validators.
 	ValidateResource(context.Context, ValidateConfigRequest, *ValidateConfigResponse)
 }

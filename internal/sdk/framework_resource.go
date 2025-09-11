@@ -6,6 +6,7 @@ package sdk
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/list"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -254,4 +255,12 @@ type FrameworkWrappedResourceWithPlanModifier interface {
 	FrameworkWrappedResource
 
 	ModifyPlan(ctx context.Context, request resource.ModifyPlanRequest, response *resource.ModifyPlanResponse, metadata ResourceMetadata)
+}
+
+type FrameworkWrappedResourceWithList interface {
+	FrameworkWrappedResource
+
+	List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream, metadata ResourceMetadata)
+
+	ListResourceConfigSchema(ctx context.Context, request list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse, metadata ResourceMetadata)
 }

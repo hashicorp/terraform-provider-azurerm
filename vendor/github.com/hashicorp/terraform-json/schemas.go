@@ -95,6 +95,9 @@ type ProviderSchema struct {
 
 	// The schemas for resources identities in this provider.
 	ResourceIdentitySchemas map[string]*IdentitySchema `json:"resource_identity_schemas,omitempty"`
+
+	// The schemas for any list resources in this provider.
+	ListResourceSchemas map[string]*Schema `json:"list_resource_schemas,omitempty"`
 }
 
 // Schema is the JSON representation of a particular schema
