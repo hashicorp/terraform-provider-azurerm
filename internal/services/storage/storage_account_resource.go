@@ -695,12 +695,10 @@ func resourceStorageAccount() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"expiration_action": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
-							Default:  string(storageaccounts.ExpirationActionLog),
-							ValidateFunc: validation.StringInSlice([]string{
-								string(storageaccounts.ExpirationActionLog),
-							}, false),
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							Default:      string(storageaccounts.ExpirationActionLog),
+							ValidateFunc: validation.StringInSlice(storageaccounts.PossibleValuesForExpirationAction(), false),
 						},
 						"expiration_period": {
 							Type:         pluginsdk.TypeString,
