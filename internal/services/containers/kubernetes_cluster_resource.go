@@ -1525,7 +1525,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 
 						"effective_until": {
 							Type:         pluginsdk.TypeString,
-							Optional:     true,
+							Required:     true,
 							ValidateFunc: validation.IsRFC3339Time,
 						},
 					},
