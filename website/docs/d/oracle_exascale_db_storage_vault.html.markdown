@@ -31,8 +31,6 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Exadata Database Storage Vault exists.
 
-* `zones` - The Exadata Database Storage Vault Azure zones.
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported: 
@@ -59,7 +57,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `time_zone` - The time zone that you want to use for the Exadata Database Storage Vault.
 
-* `vm_cluster_count` - The number of Exadata VM clusters used the Exadata Database Storage Vault.
+* `virtual_machine_cluster_count` - The number of Exadata VM clusters used the Exadata Database Storage Vault.
+
+* `zones` - The Exadata Database Storage Vault Azure zones.
 
 ---
 

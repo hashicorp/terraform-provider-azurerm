@@ -38,7 +38,7 @@ type ExascaleDbStorageVaultDataModel struct {
 	Ocid                          string                          `tfschema:"ocid"`
 	OciUrl                        string                          `tfschema:"oci_url"`
 	TimeZone                      string                          `tfschema:"time_zone"`
-	VmClusterCount                int64                           `tfschema:"vm_cluster_count"`
+	VirtualMachineClusterCount    int64                           `tfschema:"virtual_machine_cluster_count"`
 }
 
 type ExascaleDbStorageDetailsModel struct {
@@ -104,11 +104,6 @@ func (d ExascaleDbStorageVaultDataSource) Attributes() map[string]*pluginsdk.Sch
 			Computed: true,
 		},
 
-		"provisioning_state": {
-			Type:     pluginsdk.TypeString,
-			Computed: true,
-		},
-
 		"lifecycle_state": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -119,7 +114,7 @@ func (d ExascaleDbStorageVaultDataSource) Attributes() map[string]*pluginsdk.Sch
 			Computed: true,
 		},
 
-		"vm_cluster_count": {
+		"virtual_machine_cluster_count": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
 		},
@@ -181,9 +176,9 @@ func (d ExascaleDbStorageVaultDataSource) Read() sdk.ResourceFunc {
 					state.DisplayName = props.DisplayName
 					state.HighCapacityDatabaseStorage = flattenHighCapacityDatabaseStorage(props.HighCapacityDatabaseStorage)
 					state.TimeZone = pointer.From(props.TimeZone)
-					state.LifecycleState = string(*props.LifecycleState)
+					state.LifecycleState = pointer.FromEnum(props.LifecycleState)
 					state.LifecycleDetails = pointer.From(props.LifecycleDetails)
-					state.VmClusterCount = pointer.From(props.VMClusterCount)
+					state.VirtualMachineClusterCount = pointer.From(props.VMClusterCount)
 					state.Ocid = pointer.From(props.Ocid)
 					state.OciUrl = pointer.From(props.OciURL)
 				}
