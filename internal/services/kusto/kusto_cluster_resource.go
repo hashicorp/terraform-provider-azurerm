@@ -6,7 +6,6 @@ package kusto
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"log"
 	"strings"
 	"time"
@@ -25,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -323,7 +323,6 @@ func resourceKustoCluster() *pluginsdk.Resource {
 						return err
 					}
 				}
-
 			}
 
 			return nil
@@ -574,7 +573,6 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 			// While the `CustomizeDiff` does update `*ResourceDiff` with the updated (empty) value, it doesn't seem to propagate through to the `*ResourceData` in `Update()`
 			if !hasError && !rawLanguageExtensions.IsNull() && rawLanguageExtensions.IsKnown() && !rawLanguageExtension.IsNull() && rawLanguageExtension.IsKnown() {
 				if len(rawLanguageExtensions.AsValueSlice()) == 0 && len(rawLanguageExtension.AsValueSlice()) == 0 {
-
 					props.LanguageExtensions = expandKustoClusterLanguageExtensionList(make([]any, 0))
 				}
 			}
