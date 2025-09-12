@@ -11,26 +11,26 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2020-06-01/resources" // nolint: staticcheck
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resourcegroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 func resourceResourceGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceResourceGroupCreateUpdate,
+		Create: resourceResourceGroupCreate,
 		Read:   resourceResourceGroupRead,
-		Update: resourceResourceGroupCreateUpdate,
+		Update: resourceResourceGroupUpdate,
 		Delete: resourceResourceGroupDelete,
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
 			_, err := parse.ResourceGroupID(id)
@@ -60,39 +60,35 @@ func resourceResourceGroup() *pluginsdk.Resource {
 	}
 }
 
-func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Resource.GroupsClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+func resourceResourceGroupCreate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Resource.ResourceGroupsClient
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	name := d.Get("name").(string)
-	location := location.Normalize(d.Get("location").(string))
-	t := d.Get("tags").(map[string]interface{})
+	id := commonids.NewResourceGroupID(meta.(*clients.Client).Account.SubscriptionId, d.Get("name").(string))
 
-	if d.IsNewResource() {
-		existing, err := client.Get(ctx, name)
-		if err != nil {
-			if !utils.ResponseWasNotFound(existing.Response) {
-				return fmt.Errorf("checking for presence of existing resource group: %+v", err)
-			}
-		}
-
-		if existing.ID != nil && *existing.ID != "" {
-			return tf.ImportAsExistsError("azurerm_resource_group", *existing.ID)
+	existing, err := client.Get(ctx, id)
+	if err != nil {
+		if !response.WasNotFound(existing.HttpResponse) {
+			return fmt.Errorf("checking for presence of existing resource group: %+v", err)
 		}
 	}
 
-	parameters := resources.Group{
-		Location: utils.String(location),
-		Tags:     tags.Expand(t),
+	if !response.WasNotFound(existing.HttpResponse) {
+		return tf.ImportAsExistsError("azurerm_resource_group", id.ID())
+	}
+
+	parameters := resourcegroups.ResourceGroup{
+		Location: location.Normalize(d.Get("location").(string)),
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
 	if v := d.Get("managed_by").(string); v != "" {
 		parameters.ManagedBy = pointer.To(v)
 	}
 
-	if _, err := client.CreateOrUpdate(ctx, name, parameters); err != nil {
-		return fmt.Errorf("creating Resource Group %q: %+v", name, err)
+	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
+		return fmt.Errorf("creating %q: %+v", id, err)
 	}
 
 	// TODO: remove this once ARM team confirms the issue is fixed on their end
@@ -114,62 +110,74 @@ func resourceResourceGroupCreateUpdate(d *pluginsdk.ResourceData, meta interface
 	// a different region, they were made outside of the session scope - so, effectively eventually
 	// consistent. ARM team has worked in the past to make the multi-master model work transparently,
 	// and I assume they will continue this work as will our other teams working on the problem.
-	if d.IsNewResource() {
-		stateConf := &pluginsdk.StateChangeConf{ //nolint:staticcheck
-			Pending:                   []string{"Waiting"},
-			Target:                    []string{"Done"},
-			Timeout:                   10 * time.Minute,
-			MinTimeout:                4 * time.Second,
-			ContinuousTargetOccurence: 3,
-			Refresh: func() (interface{}, string, error) {
-				rg, err := client.Get(ctx, name)
-				if err != nil {
-					if utils.ResponseWasNotFound(rg.Response) {
-						return false, "Waiting", nil
-					}
-					return nil, "Error", fmt.Errorf("retrieving Resource Group: %+v", err)
+	stateConf := &pluginsdk.StateChangeConf{
+		Pending:                   []string{"Waiting"},
+		Target:                    []string{"Done"},
+		Timeout:                   10 * time.Minute,
+		MinTimeout:                4 * time.Second,
+		ContinuousTargetOccurence: 3,
+		Refresh: func() (interface{}, string, error) {
+			rg, err := client.Get(ctx, id)
+			if err != nil {
+				if response.WasNotFound(rg.HttpResponse) {
+					return false, "Waiting", nil
 				}
+				return nil, "Error", fmt.Errorf("retrieving Resource Group: %+v", err)
+			}
 
-				return true, "Done", nil
-			},
-		}
-
-		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("waiting for Resource Group %s to become available: %+v", name, err)
-		}
+			return true, "Done", nil
+		},
 	}
 
-	resp, err := client.Get(ctx, name)
-	if err != nil {
-		return fmt.Errorf("retrieving Resource Group %q: %+v", name, err)
-	}
-
-	// @tombuildsstuff: intentionally leaving this for now, since this'll need
-	// details in the upgrade notes given how the Resource Group ID is cased incorrectly
-	// but needs to be fixed (resourcegroups -> resourceGroups)
-	id, err := parse.ResourceGroupIDInsensitively(*resp.ID)
-	if err != nil {
-		return err
-	}
+	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+		return fmt.Errorf("waiting for Resource Group %s to become available: %+v", id.ResourceGroupName, err)
+	} // TODO - Custom Poller?
 
 	d.SetId(id.ID())
 
 	return resourceResourceGroupRead(d, meta)
 }
 
-func resourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Resource.GroupsClient
-	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+func resourceResourceGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Resource.ResourceGroupsClient
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ResourceGroupID(d.Id())
+	id, err := commonids.ParseResourceGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 
-	resp, err := client.Get(ctx, id.ResourceGroup)
+	patch := resourcegroups.ResourceGroupPatchable{}
+
+	if d.HasChange("managed_by") {
+		patch.ManagedBy = pointer.To(d.Get("managed_by").(string))
+	}
+
+	if d.HasChange("tags") {
+		patch.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
+	}
+
+	if _, err := client.Update(ctx, *id, patch); err != nil {
+		return fmt.Errorf("creating %q: %+v", *id, err)
+	}
+
+	return resourceResourceGroupRead(d, meta)
+}
+
+func resourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) error {
+	client := meta.(*clients.Client).Resource.ResourceGroupsClient
+	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
+	defer cancel()
+
+	id, err := commonids.ParseResourceGroupID(d.Id())
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
+		return err
+	}
+
+	resp, err := client.Get(ctx, *id)
+	if err != nil {
+		if response.WasNotFound(resp.HttpResponse) {
 			log.Printf("[INFO] Error reading resource group %q - removing from state", d.Id())
 			d.SetId("")
 			return nil
@@ -178,68 +186,71 @@ func resourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) erro
 		return fmt.Errorf("reading resource group: %+v", err)
 	}
 
-	d.Set("name", resp.Name)
-	d.Set("location", location.NormalizeNilable(resp.Location))
-	d.Set("managed_by", pointer.From(resp.ManagedBy))
-	return tags.FlattenAndSet(d, resp.Tags)
+	d.Set("name", id.ResourceGroupName)
+	if model := resp.Model; model != nil {
+		d.Set("location", location.Normalize(model.Location))
+		d.Set("managed_by", pointer.From(model.ManagedBy))
+		tags.FlattenAndSet(d, model.Tags)
+	}
+
+	return nil
 }
 
 func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Resource.GroupsClient
+	client := meta.(*clients.Client).Resource.ResourceGroupsClient
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
-	id, err := parse.ResourceGroupID(d.Id())
+	id, err := commonids.ParseResourceGroupID(d.Id())
 	if err != nil {
 		return err
 	}
 
 	// conditionally check for nested resources and error if they exist
 	if meta.(*clients.Client).Features.ResourceGroup.PreventDeletionIfContainsResources {
-		resourceClient := meta.(*clients.Client).Resource.LegacyResourcesClient
 		// Resource groups sometimes hold on to resource information after the resources have been deleted. We'll retry this check to account for that eventual consistency.
 		err = pluginsdk.Retry(10*time.Minute, func() *pluginsdk.RetryError {
-			results, err := resourceClient.ListByResourceGroup(ctx, id.ResourceGroup, "", "provisioningState", utils.Int32(500))
+			results, err := client.ResourcesListByResourceGroupComplete(ctx, *id, resourcegroups.ResourcesListByResourceGroupOperationOptions{
+				Expand: pointer.To("provisioningState"),
+				Top:    pointer.To[int64](10),
+			})
 			if err != nil {
-				if response.WasNotFound(results.Response().Response.Response) {
+				if response.WasNotFound(results.LatestHttpResponse) {
 					return nil
 				}
 				return pluginsdk.NonRetryableError(fmt.Errorf("listing resources in %s: %v", *id, err))
 			}
 			nestedResourceIds := make([]string, 0)
-			for _, value := range results.Values() {
-				val := value
-				if val.ID != nil {
-					nestedResourceIds = append(nestedResourceIds, *val.ID)
-				}
-
-				if err := results.NextWithContext(ctx); err != nil {
-					return pluginsdk.NonRetryableError(fmt.Errorf("retrieving next page of nested items for %s: %+v", id, err))
+			for _, item := range results.Items {
+				val := item
+				if val.Id != nil {
+					nestedResourceIds = append(nestedResourceIds, *val.Id)
 				}
 			}
 
 			if len(nestedResourceIds) > 0 {
 				time.Sleep(30 * time.Second)
-				return pluginsdk.RetryableError(resourceGroupContainsItemsError(id.ResourceGroup, nestedResourceIds))
+				return pluginsdk.RetryableError(resourceGroupContainsItemsError(id.ResourceGroupName, nestedResourceIds))
 			}
 			return nil
 		})
+
 		if err != nil {
 			return err
 		}
 	}
 
-	deleteFuture, err := client.Delete(ctx, id.ResourceGroup, "")
-	if err != nil {
-		if response.WasNotFound(deleteFuture.Response()) {
-			return nil
+	// This is not the usual pattern for destroys on go-azure-sdk, however, this functionally the same as the resource
+	// worked before refactoring, so behaviour has been maintained. This should be investigated in future and brought
+	// in-line if possible.
+	if resp, err := client.Delete(ctx, *id, resourcegroups.DefaultDeleteOperationOptions()); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
+			return fmt.Errorf("deleting %s: %+v", *id, err)
 		}
-		return fmt.Errorf("deleting %s: %+v", *id, err)
-	}
-
-	err = deleteFuture.WaitForCompletionRef(ctx, client.Client)
-	if err != nil {
-		return fmt.Errorf("waiting for the deletion of %s: %+v", *id, err)
+	} else {
+		if err := resp.Poller.PollUntilDone(ctx); err != nil {
+			return fmt.Errorf("polling deleting %s: %+v", *id, err)
+		}
 	}
 
 	return nil
