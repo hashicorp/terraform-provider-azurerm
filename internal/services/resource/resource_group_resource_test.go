@@ -6,6 +6,7 @@ package resource_test
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"regexp"
 	"testing"
 	"time"
@@ -138,11 +139,17 @@ func (t ResourceGroupResource) Destroy(ctx context.Context, client *clients.Clie
 
 	opts := resourcegroups.DefaultDeleteOperationOptions()
 	opts.ForceDeletionTypes = pointer.To("Microsoft.Compute/virtualMachines,Microsoft.Compute/virtualMachineScaleSets")
-	if err := client.Resource.ResourceGroupsClient.DeleteThenPoll(ctx, *id, opts); err != nil {
-		return nil, fmt.Errorf("deleting %s: %+v", *id, err)
+	if resp, err := client.Resource.ResourceGroupsClient.Delete(ctx, *id, opts); err != nil {
+		if !response.WasNotFound(resp.HttpResponse) {
+			return nil, fmt.Errorf("deleting test %s: %+v", *id, err)
+		}
+	} else {
+		if err := resp.Poller.PollUntilDone(ctx); err != nil {
+			return nil, fmt.Errorf("polling deleting %s: %+v", *id, err)
+		}
 	}
 
-	return utils.Bool(true), nil
+	return pointer.To(true), nil
 }
 
 func (t ResourceGroupResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
