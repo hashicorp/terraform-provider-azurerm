@@ -188,8 +188,8 @@ func resourceSubnet() *pluginsdk.Resource {
 			"sharing_scope": {
 				Type:     pluginsdk.TypeString,
 				Optional: true,
-				// now only "Tenant" is supported, "DelegatedServices" is not supported, https://github.com/Azure/azure-rest-api-specs/issues/36446
-				ValidateFunc: validation.StringInSlice([]string{"Tenant"}, false),
+				// todo "Tenant" is only supported until https://github.com/Azure/azure-rest-api-specs/issues/36446 is addressed
+				ValidateFunc: validation.StringInSlice([]string{string(subnets.SharingScopeTenant)}, false),
 			},
 
 			"delegation": {
@@ -352,7 +352,7 @@ func resourceSubnetCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	serviceEndpointsRaw := d.Get("service_endpoints").(*pluginsdk.Set).List()
 	properties.ServiceEndpoints = expandSubnetServiceEndpoints(serviceEndpointsRaw)
 
-	properties.SharingScope = pointer.To(subnets.SharingScope(d.Get("sharing_scope").(string)))
+	properties.SharingScope = pointer.ToEnum[subnets.SharingScope](d.Get("sharing_scope").(string))
 
 	properties.DefaultOutboundAccess = pointer.To(d.Get("default_outbound_access_enabled").(bool))
 

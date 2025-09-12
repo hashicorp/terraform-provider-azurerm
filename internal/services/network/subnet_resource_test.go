@@ -415,21 +415,6 @@ func TestAccSubnet_serviceEndpointPolicy(t *testing.T) {
 	})
 }
 
-func TestAccSubnet_sharingScope(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
-	r := SubnetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.sharingScope(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func TestAccSubnet_sharingScopeUpdated(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_subnet", "test")
 	r := SubnetResource{}
