@@ -538,6 +538,7 @@ resource "azurerm_machine_learning_workspace" "test" {
   public_network_access_enabled = true
   image_build_compute_name      = "terraformCompute"
   v1_legacy_mode_enabled        = false
+  system_datastores_auth_mode   = "Identity"
 
   identity {
     type = "SystemAssigned"
@@ -617,6 +618,7 @@ resource "azurerm_machine_learning_workspace" "test" {
   high_business_impact          = true
   public_network_access_enabled = true
   image_build_compute_name      = "terraformComputeUpdate"
+  system_datastores_auth_mode   = "AccessKey"
 
   identity {
     type = "SystemAssigned"
