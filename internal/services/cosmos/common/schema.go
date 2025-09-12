@@ -5,6 +5,7 @@ package common
 
 import (
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2025-04-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/cosmos/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
@@ -145,6 +146,8 @@ func CosmosDbIndexingPolicySchema() *pluginsdk.Schema {
 				"composite_index": CosmosDbIndexingPolicyCompositeIndexSchema(),
 
 				"spatial_index": CosmosDbIndexingPolicySpatialIndexSchema(),
+
+				"vector_index": CosmosDbIndexingPolicyVectorIndexSchema(),
 			},
 		},
 	}
@@ -237,6 +240,105 @@ func CosmosDbIndexingPolicySpatialIndexSchema() *pluginsdk.Schema {
 					Computed: true,
 					Elem: &pluginsdk.Schema{
 						Type: pluginsdk.TypeString,
+					},
+				},
+			},
+		},
+	}
+}
+
+func CosmosDbIndexingPolicyVectorIndexSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		ForceNew: true,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"path": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringIsNotEmpty,
+				},
+				"type": {
+					Type:         pluginsdk.TypeString,
+					Required:     true,
+					ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForVectorIndexType(), false),
+				},
+			},
+		},
+	}
+}
+
+func CosmosDbVectorEmbeddingPolicySchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		ForceNew: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"vector_embedding": {
+					Type:     pluginsdk.TypeList,
+					Required: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"path": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"data_type": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForVectorDataType(), false),
+							},
+							"distance_function": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringInSlice(cosmosdb.PossibleValuesForDistanceFunction(), false),
+							},
+							"dimensions": {
+								Type:         pluginsdk.TypeInt,
+								Required:     true,
+								ValidateFunc: validation.IntAtLeast(1),
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+}
+
+func CosmosDbFullTextPolicySchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeList,
+		Optional: true,
+		ForceNew: true,
+		MaxItems: 1,
+		Elem: &pluginsdk.Resource{
+			Schema: map[string]*pluginsdk.Schema{
+				"default_language": {
+					Type:         pluginsdk.TypeString,
+					Optional:     true,
+					ValidateFunc: validation.StringInSlice([]string{"en-US"}, false),
+				},
+				"full_text_path": {
+					Type:     pluginsdk.TypeList,
+					Required: true,
+					Elem: &pluginsdk.Resource{
+						Schema: map[string]*pluginsdk.Schema{
+							"path": {
+								Type:         pluginsdk.TypeString,
+								Required:     true,
+								ValidateFunc: validation.StringIsNotEmpty,
+							},
+							"language": {
+								Type:         pluginsdk.TypeString,
+								Optional:     true,
+								ValidateFunc: validation.StringInSlice([]string{"en-US"}, false),
+							},
+						},
 					},
 				},
 			},
