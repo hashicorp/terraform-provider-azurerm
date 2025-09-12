@@ -78,10 +78,11 @@ func (r *VirtualNetworkListResource) List(ctx context.Context, request list.List
 		return
 	}
 
-	virtualNetworks := resp.Items
+	listResults := resp.Items
 
 	stream.Results = func(push func(list.ListResult) bool) {
-		for _, vnet := range virtualNetworks {
+		for _, vnet := range listResults {
+			// TODO - Do we need to handle limiting the results to ListRequest.Limit?
 			result := request.NewListResult(ctx)
 			result.DisplayName = pointer.From(vnet.Name)
 
