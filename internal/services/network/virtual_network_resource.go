@@ -432,7 +432,6 @@ func resourceVirtualNetworkRead(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 
 	return nil
-
 }
 
 func resourceVirtualNetworkFlatten(d *pluginsdk.ResourceData, id commonids.VirtualNetworkId, vnet *virtualnetworks.VirtualNetwork) error {

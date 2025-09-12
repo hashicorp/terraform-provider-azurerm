@@ -70,7 +70,7 @@ resource "azurerm_storage_account" "test" {
 }
 
 func (r StorageAccountResource) basic_query(_ acceptance.TestData) string {
-	return fmt.Sprintf(`
+	return fmt.Sprint(`
 list "azurerm_storage_account" "test" {
   provider = azurerm
   config {}
