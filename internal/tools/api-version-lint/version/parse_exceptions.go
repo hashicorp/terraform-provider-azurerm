@@ -86,17 +86,18 @@ func parseExceptions(yamlBytes []byte, isHistorical bool) ([]Version, error) {
 }
 
 func validateVersionException(e versionException, isHistorical bool, validModules map[string]bool) (errors []string) {
-	if e.Module == "" {
+	switch {
+	case e.Module == "":
 		errors = append(errors, "module is required")
-	} else if !validModules[e.Module] {
+	case !validModules[e.Module]:
 		validModulesStr := make([]string, 0, len(validModules))
 		for k := range validModules {
 			validModulesStr = append(validModulesStr, k)
 		}
 		errors = append(errors, fmt.Sprintf("unsupported sdk module %q\nvalid modules are: %q", e.Module, strings.Join(validModulesStr, `", "`)))
-	} else if e.Service == "" {
+	case e.Service == "":
 		errors = append(errors, fmt.Sprintf("module %q: service is required", e.Module))
-	} else if e.Version == "" {
+	case e.Version == "":
 		errors = append(errors, fmt.Sprintf("module %q, service %q: version is required", e.Module, e.Service))
 	}
 
