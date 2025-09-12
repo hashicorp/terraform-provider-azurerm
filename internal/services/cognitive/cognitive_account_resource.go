@@ -5,6 +5,7 @@ package cognitive
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -70,6 +71,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				Required: true,
 				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
+					"AIServices",
 					"Academic",
 					"AnomalyDetector",
 					"Bing.Autosuggest",
@@ -117,10 +119,15 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"project_management_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"custom_subdomain_name": {
 				Type:         pluginsdk.TypeString,
 				Optional:     true,
-				ForceNew:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
@@ -210,6 +217,7 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 								string(cognitiveservicesaccounts.NetworkRuleActionDeny),
 							}, false),
 						},
+
 						"ip_rules": {
 							Type:     pluginsdk.TypeSet,
 							Optional: true,
@@ -254,6 +262,29 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 					},
 				},
 			},
+
+			"network_injection": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"scenario": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(cognitiveservicesaccounts.ScenarioTypeAgent),
+							}, false),
+						},
+
+						"subnet_id": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
+
 			"outbound_network_access_restricted": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -324,6 +355,51 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				Sensitive: true,
 			},
 		},
+
+		CustomizeDiff: func(ctx context.Context, d *pluginsdk.ResourceDiff, i interface{}) error {
+			kind := d.Get("kind").(string)
+
+			if d.Get("project_management_enabled").(bool) {
+				if kind != "AIServices" {
+					return errors.New("`project_management_enabled` can only be enabled when kind is set to `AIServices`")
+				}
+
+				if len(d.Get("identity").([]interface{})) == 0 {
+					return errors.New("for `project_management_enabled` to be enabled, a managed identity must be assigned. Please set `identity` to at least one SystemAssigned or UserAssigned identity")
+				}
+
+				if d.HasChange("customer_managed_key") && len(d.Get("customer_managed_key").([]interface{})) == 0 {
+					return errors.New("updating encryption mode from customer-managed keys to microsoft-managed keys is not supported when `project_management_enabled` is enabled")
+				}
+			} else if d.HasChange("project_management_enabled") {
+				return errors.New("once `project_management_enabled` is enabled, it cannot be disabled")
+			}
+
+			if d.Get("dynamic_throttling_enabled").(bool) && utils.SliceContainsValue([]string{"OpenAI", "AIServices"}, kind) {
+				return errors.New("`dynamic_throttling_enabled` is currently not supported when kind is set to `OpenAI` or `AIServices`")
+			}
+
+			if bypass, ok := d.GetOk("network_acls.0.bypass"); ok && bypass != "" && !utils.SliceContainsValue([]string{"OpenAI", "AIServices"}, kind) {
+				return fmt.Errorf("the `network_acls.bypass` does not support Trusted Services for the kind %q", kind)
+			}
+
+			networkInjection := d.Get("network_injection").([]interface{})
+			if len(networkInjection) > 0 && networkInjection[0] != nil {
+				if kind != "AIServices" {
+					return errors.New("the `network_injection` is only supported for the kind `AIServices`")
+				}
+			}
+
+			if d.HasChange("custom_subdomain_name") {
+				old, _ := d.GetChange("custom_subdomain_name")
+				if old != nil && old != "" {
+					if err := d.ForceNew("custom_subdomain_name"); err != nil {
+						return err
+					}
+				}
+			}
+			return nil
+		},
 	}
 }
 
@@ -353,10 +429,7 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		Name: d.Get("sku_name").(string),
 	}
 
-	networkAcls, subnetIds, err := expandCognitiveAccountNetworkAcls(d)
-	if err != nil {
-		return err
-	}
+	networkAcls, subnetIds := expandCognitiveAccountNetworkAcls(d)
 
 	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 	virtualNetworkNames := make([]string, 0)
@@ -383,6 +456,11 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		return err
 	}
 
+	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+	if err != nil {
+		return fmt.Errorf("expanding `identity`: %+v", err)
+	}
+
 	props := cognitiveservicesaccounts.Account{
 		Kind:     utils.String(kind),
 		Location: utils.String(azure.NormalizeLocation(d.Get("location").(string))),
@@ -394,21 +472,18 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
-			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restricted").(bool)),
-			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
-			DynamicThrottlingEnabled:      utils.Bool(d.Get("dynamic_throttling_enabled").(bool)),
+			RestrictOutboundNetworkAccess: pointer.To(d.Get("outbound_network_access_restricted").(bool)),
+			DisableLocalAuth:              pointer.To(!d.Get("local_auth_enabled").(bool)),
+			DynamicThrottlingEnabled:      pointer.To(d.Get("dynamic_throttling_enabled").(bool)),
+			AllowProjectManagement:        pointer.To(d.Get("project_management_enabled").(bool)),
+			NetworkInjections:             expandCognitiveAccountNetworkInjection(d.Get("network_injection").([]interface{})),
 			Encryption:                    expandCognitiveAccountCustomerManagedKey(d.Get("customer_managed_key").([]interface{})),
 		},
-		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
+		Identity: identity,
+		Tags:     tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
 
-	identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
-	if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
-	}
-	props.Identity = identity
-
-	if _, err := client.AccountsCreate(ctx, id, props); err != nil {
+	if err := client.AccountsCreateThenPoll(ctx, id, props); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
@@ -442,10 +517,7 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 		Name: d.Get("sku_name").(string),
 	}
 
-	networkAcls, subnetIds, err := expandCognitiveAccountNetworkAcls(d)
-	if err != nil {
-		return err
-	}
+	networkAcls, subnetIds := expandCognitiveAccountNetworkAcls(d)
 
 	// also lock on the Virtual Network ID's since modifications in the networking stack are exclusive
 	virtualNetworkNames := make([]string, 0)
@@ -481,9 +553,11 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 			AllowedFqdnList:               utils.ExpandStringSlice(d.Get("fqdns").([]interface{})),
 			PublicNetworkAccess:           &publicNetworkAccess,
 			UserOwnedStorage:              expandCognitiveAccountStorage(d.Get("storage").([]interface{})),
-			RestrictOutboundNetworkAccess: utils.Bool(d.Get("outbound_network_access_restricted").(bool)),
-			DisableLocalAuth:              utils.Bool(!d.Get("local_auth_enabled").(bool)),
-			DynamicThrottlingEnabled:      utils.Bool(d.Get("dynamic_throttling_enabled").(bool)),
+			RestrictOutboundNetworkAccess: pointer.To(d.Get("outbound_network_access_restricted").(bool)),
+			DisableLocalAuth:              pointer.To(!d.Get("local_auth_enabled").(bool)),
+			DynamicThrottlingEnabled:      pointer.To(d.Get("dynamic_throttling_enabled").(bool)),
+			AllowProjectManagement:        pointer.To(d.Get("project_management_enabled").(bool)),
+			NetworkInjections:             expandCognitiveAccountNetworkInjection(d.Get("network_injection").([]interface{})),
 			Encryption:                    expandCognitiveAccountCustomerManagedKey(d.Get("customer_managed_key").([]interface{})),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
@@ -499,14 +573,15 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	identityRaw := d.Get("identity").([]interface{})
-	identity, err := identity.ExpandSystemAndUserAssignedMap(identityRaw)
-	if err != nil {
-		return fmt.Errorf("expanding `identity`: %+v", err)
+	if d.HasChange("identity") {
+		identity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
+		if err != nil {
+			return fmt.Errorf("expanding `identity`: %+v", err)
+		}
+		props.Identity = identity
 	}
-	props.Identity = identity
 
-	if _, err = client.AccountsUpdate(ctx, *id, props); err != nil {
+	if err = client.AccountsUpdateThenPoll(ctx, *id, props); err != nil {
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
@@ -577,6 +652,15 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 				return fmt.Errorf("setting `network_acls` for Cognitive Account %q: %+v", id, err)
 			}
 
+			networkInjection, err := flattenCognitiveAccountNetworkInjection(props.NetworkInjections)
+			if err != nil {
+				return err
+			}
+
+			if err := d.Set("network_injection", networkInjection); err != nil {
+				return fmt.Errorf("setting `network_injection`: %+v", err)
+			}
+
 			dynamicThrottlingEnabled := false
 			if props.DynamicThrottlingEnabled != nil {
 				dynamicThrottlingEnabled = *props.DynamicThrottlingEnabled
@@ -584,6 +668,12 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 			d.Set("dynamic_throttling_enabled", dynamicThrottlingEnabled)
 
 			d.Set("fqdns", utils.FlattenStringSlice(props.AllowedFqdnList))
+
+			projectManagementEnabled := false
+			if props.AllowProjectManagement != nil {
+				projectManagementEnabled = *props.AllowProjectManagement
+			}
+			d.Set("project_management_enabled", projectManagementEnabled)
 
 			publicNetworkAccess := true
 			if props.PublicNetworkAccess != nil {
@@ -654,9 +744,6 @@ func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	deletedAccountId := cognitiveservicesaccounts.NewDeletedAccountID(id.SubscriptionId, *account.Model.Location, id.ResourceGroupName, id.AccountName)
-	if err != nil {
-		return err
-	}
 
 	log.Printf("[DEBUG] Deleting %s..", *id)
 	if err := accountsClient.AccountsDeleteThenPoll(ctx, *id); err != nil {
@@ -689,11 +776,11 @@ func cognitiveAccountStateRefreshFunc(ctx context.Context, client *cognitiveserv
 	}
 }
 
-func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveservicesaccounts.NetworkRuleSet, []string, error) {
+func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveservicesaccounts.NetworkRuleSet, []string) {
 	input := d.Get("network_acls").([]interface{})
 	subnetIds := make([]string, 0)
 	if len(input) == 0 || input[0] == nil {
-		return nil, subnetIds, nil
+		return nil, subnetIds
 	}
 
 	v := input[0].(map[string]interface{})
@@ -730,15 +817,11 @@ func expandCognitiveAccountNetworkAcls(d *pluginsdk.ResourceData) (*cognitiveser
 	}
 
 	if b, ok := d.GetOk("network_acls.0.bypass"); ok && b != "" {
-		kind := d.Get("kind").(string)
-		if kind != "OpenAI" {
-			return nil, nil, fmt.Errorf("the `network_acls.bypass` does not support Trusted Services for the kind %q", kind)
-		}
 		bypasss := cognitiveservicesaccounts.ByPassSelection(v["bypass"].(string))
 		ruleSet.Bypass = &bypasss
 	}
 
-	return &ruleSet, subnetIds, nil
+	return &ruleSet, subnetIds
 }
 
 func expandCognitiveAccountStorage(input []interface{}) *[]cognitiveservicesaccounts.UserOwnedStorage {
@@ -780,6 +863,7 @@ func expandCognitiveAccountAPIProperties(d *pluginsdk.ResourceData) (*cognitives
 			return nil, fmt.Errorf("the Search Service Key `custom_question_answering_search_service_key` can only be set when kind is set to `TextAnalytics`")
 		}
 	}
+
 	if v, ok := d.GetOk("metrics_advisor_aad_client_id"); ok {
 		if kind == "MetricsAdvisor" {
 			props.AadClientId = utils.String(v.(string))
@@ -918,4 +1002,54 @@ func flattenCognitiveAccountCustomerManagedKey(input *cognitiveservicesaccounts.
 			"identity_client_id": identityClientId,
 		},
 	}, nil
+}
+
+func expandCognitiveAccountNetworkInjection(input []interface{}) *[]cognitiveservicesaccounts.NetworkInjection {
+	if len(input) == 0 {
+		return nil
+	}
+
+	results := make([]cognitiveservicesaccounts.NetworkInjection, 0)
+	for _, v := range input {
+		m := v.(map[string]interface{})
+
+		scenario := cognitiveservicesaccounts.ScenarioType(m["scenario"].(string))
+
+		var subnetId *string
+		if m["subnet_id"] != nil && m["subnet_id"] != "" {
+			subnetId = pointer.To(m["subnet_id"].(string))
+		}
+
+		results = append(results, cognitiveservicesaccounts.NetworkInjection{
+			Scenario:    &scenario,
+			SubnetArmId: subnetId,
+		})
+	}
+
+	return &results
+}
+
+func flattenCognitiveAccountNetworkInjection(input *[]cognitiveservicesaccounts.NetworkInjection) ([]interface{}, error) {
+	if input == nil {
+		return []interface{}{}, nil
+	}
+
+	results := make([]interface{}, 0)
+	for _, v := range *input {
+		var subnetId string
+		if v.SubnetArmId != nil {
+			subnet, err := commonids.ParseSubnetIDInsensitively(*v.SubnetArmId)
+			if err != nil {
+				return nil, fmt.Errorf("parsing `subnet_id`: %+v", err)
+			}
+			subnetId = subnet.ID()
+		}
+
+		results = append(results, map[string]interface{}{
+			"scenario":  v.Scenario,
+			"subnet_id": subnetId,
+		})
+	}
+
+	return results, nil
 }
