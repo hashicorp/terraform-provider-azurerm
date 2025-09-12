@@ -315,7 +315,6 @@ func (r ApiManagementWorkspaceProductResource) Delete() sdk.ResourceFunc {
 func (r ApiManagementWorkspaceProductResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-
 			if !metadata.ResourceDiff.Get("require_subscription_enabled").(bool) {
 				if !metadata.ResourceDiff.GetRawConfig().AsValueMap()["subscriptions_limit"].IsNull() {
 					return fmt.Errorf("`require_subscription_enabled` must be set to `true` when `subscriptions_limit` is specified")
