@@ -598,7 +598,7 @@ func resourceSubnetRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 			d.Set("private_endpoint_network_policies", string(pointer.From(props.PrivateEndpointNetworkPolicies)))
 			d.Set("private_link_service_network_policies_enabled", flattenSubnetNetworkPolicy(string(pointer.From(props.PrivateLinkServiceNetworkPolicies))))
-			d.Set("sharing_scope", string(pointer.From(props.SharingScope)))
+			d.Set("sharing_scope", pointer.FromEnum(props.SharingScope))
 
 			serviceEndpoints := flattenSubnetServiceEndpoints(props.ServiceEndpoints)
 			if err := d.Set("service_endpoints", serviceEndpoints); err != nil {
