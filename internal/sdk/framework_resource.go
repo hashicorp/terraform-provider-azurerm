@@ -188,6 +188,39 @@ func SetResponseErrorDiagnostic(resp any, summary string, detail any) {
 	}
 }
 
+// SetResponseWarningDiagnostic is a helper function to write an Error Diagnostic to the appropriate Framework response
+// type detail can be specified as an error, from which error.Error() will be used or as a string
+// Note: For list resource diagnostics, pass in the stream itself, not the stream.Results for resp.
+func SetResponseWarningDiagnostic(resp any, summary string, detail any) {
+	var errorMsg string
+	switch e := detail.(type) {
+	case error:
+		errorMsg = e.Error()
+	case string:
+		errorMsg = e
+	}
+	switch v := resp.(type) {
+	case *resource.CreateResponse:
+		v.Diagnostics.AddWarning(summary, errorMsg)
+	case *resource.UpdateResponse:
+		v.Diagnostics.AddWarning(summary, errorMsg)
+	case *resource.DeleteResponse:
+		v.Diagnostics.AddWarning(summary, errorMsg)
+	case *resource.ReadResponse:
+		v.Diagnostics.AddWarning(summary, errorMsg)
+	case *ephemeral.OpenResponse:
+		v.Diagnostics.AddWarning(summary, errorMsg)
+	case *ephemeral.RenewResponse:
+		v.Diagnostics.AddWarning(summary, errorMsg)
+	case *ephemeral.CloseResponse:
+		v.Diagnostics.AddWarning(summary, errorMsg)
+	case *list.ListResultsStream:
+		diags := diag.Diagnostics{}
+		diags.Append(diag.NewWarningDiagnostic(summary, errorMsg))
+		v.Results = list.ListResultsStreamDiagnostics(diags)
+	}
+}
+
 // AppendResponseErrorDiagnostic is a helper function to write an Error Diagnostic to the appropriate Framework response
 // type detail can be specified as an error, from which error.Error() will be used or as a string
 func AppendResponseErrorDiagnostic(resp any, d diag.Diagnostics) {

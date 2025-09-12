@@ -348,6 +348,7 @@ func SupportedFrameworkServices() []sdk.FrameworkServiceRegistration {
 		// resource.Registration{}
 		keyvault.Registration{},
 		network.Registration{},
+		storage.Registration{},
 	}
 
 	return services
