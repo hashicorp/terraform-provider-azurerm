@@ -2,7 +2,6 @@
 
 [![GoDoc](https://img.shields.io/badge/api-Godoc-blue.svg?style=flat-square)](https://godoc.org/github.com/rickb777/plural)
 [![Build Status](https://travis-ci.org/rickb777/plural.svg?branch=master)](https://travis-ci.org/rickb777/plural/builds)
-[![Coverage Status](https://coveralls.io/repos/github/rickb777/plural/badge.svg?branch=master&service=github)](https://coveralls.io/github/rickb777/plural?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/rickb777/plural)](https://goreportcard.com/report/github.com/rickb777/plural)
 [![Issues](https://img.shields.io/github/issues/rickb777/plural.svg)](https://github.com/rickb777/plural/issues)
 
@@ -21,7 +20,9 @@ what you need, you should consider products such as https://github.com/nicksnyde
 
 ## Installation
 
-    go get -u github.com/rickb777/plural
+```
+    go get github.com/rickb777/plural
+```
 
 ## Status
 

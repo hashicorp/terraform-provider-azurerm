@@ -5,6 +5,7 @@ package keyvault
 
 import (
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
+	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
@@ -87,4 +88,8 @@ func (r Registration) EphemeralResources() []func() ephemeral.EphemeralResource 
 		NewKeyVaultCertificateEphemeralResource,
 		NewKeyVaultSecretEphemeralResource,
 	}
+}
+
+func (r Registration) ListResources() []func() list.ListResource {
+	return []func() list.ListResource{}
 }

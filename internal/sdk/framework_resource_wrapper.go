@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/resourceids"
 	"github.com/hashicorp/terraform-plugin-framework-timeouts/resource/timeouts"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
@@ -28,6 +29,8 @@ type FrameworkResourceWrapper struct {
 var _ resource.ResourceWithModifyPlan = &FrameworkResourceWrapper{}
 
 var _ resource.ResourceWithIdentity = &FrameworkResourceWrapper{}
+
+var _ list.ListResource = &FrameworkResourceWrapper{}
 
 type EmbeddedFrameworkResourceModel interface{}
 
@@ -283,6 +286,27 @@ func (r *FrameworkResourceWrapper) SetIdentityOnRead(ctx context.Context, respon
 			}
 		}
 	}
+}
+
+// List calls the supporting resource's List function to return the stream of results for the search query for that
+// resource type.
+func (r *FrameworkResourceWrapper) List(ctx context.Context, request list.ListRequest, stream *list.ListResultsStream) {
+	if lr, ok := r.FrameworkWrappedResource.(FrameworkWrappedResourceWithList); ok {
+		lr.List(ctx, request, stream, r.ResourceMetadata)
+	}
+}
+
+// ListResourceConfigSchema calls the supporting resource's ListResourceConfigSchema to populate the list response with
+// the List Schema for the resource.
+// If the resource does not implement List functionality, it will write an error diagnostic to inform the user that the
+// resource does not (yet?) support List / Search.
+func (r *FrameworkResourceWrapper) ListResourceConfigSchema(ctx context.Context, request list.ListResourceSchemaRequest, response *list.ListResourceSchemaResponse) {
+	if lr, ok := r.FrameworkWrappedResource.(FrameworkWrappedResourceWithList); ok {
+		lr.ListResourceConfigSchema(ctx, request, response, r.ResourceMetadata)
+		return
+	}
+
+	response.Diagnostics.AddError("resource does not support list", fmt.Sprintf("the resource type %s does not support list/search", r.FrameworkWrappedResource.ResourceType()))
 }
 
 // AssertResourceModelType is a helper function to assist in checking the Resource or Data Source model type and

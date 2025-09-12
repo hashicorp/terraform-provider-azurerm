@@ -73,6 +73,9 @@ type Terraform struct {
 	// waitDelay represents the WaitDelay field of the [exec.Cmd] of Terraform
 	waitDelay time.Duration
 
+	// enableLegacyPipeClosing closes the stdout/stderr pipes before calling [exec.Cmd.Wait]
+	enableLegacyPipeClosing bool
+
 	versionLock  sync.Mutex
 	execVersion  *version.Version
 	provVersions map[string]*version.Version
@@ -229,6 +232,16 @@ func (tf *Terraform) SetWaitDelay(delay time.Duration) error {
 		return errors.New("cannot set WaitDelay, graceful cancellation not supported on windows")
 	}
 	tf.waitDelay = delay
+	return nil
+}
+
+// SetEnableLegacyPipeClosing causes the library to "force-close" stdio pipes.
+// This works around a bug in Terraform < v1.1 that would otherwise leave
+// the process (and caller) hanging after graceful shutdown.
+//
+// This option can be safely ignored (set to false) with Terraform 1.1+.
+func (tf *Terraform) SetEnableLegacyPipeClosing(enabled bool) error {
+	tf.enableLegacyPipeClosing = enabled
 	return nil
 }
 
