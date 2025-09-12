@@ -495,7 +495,7 @@ func resourceSubnetUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	if d.HasChange("sharing_scope") {
-		props.SharingScope = pointer.To(subnets.SharingScope(d.Get("sharing_scope").(string)))
+		props.SharingScope = pointer.ToEnum[subnets.SharingScope](d.Get("sharing_scope").(string))
 	}
 
 	if d.HasChange("service_endpoints") {
