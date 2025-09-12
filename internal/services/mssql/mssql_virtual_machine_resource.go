@@ -22,6 +22,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/sqlvirtualmachine/2023-10-01/sqlvirtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/helper"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -32,7 +33,7 @@ import (
 )
 
 func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceMsSqlVirtualMachineCreateUpdate,
 		Read:   resourceMsSqlVirtualMachineRead,
 		Update: resourceMsSqlVirtualMachineCreateUpdate,
@@ -77,12 +78,6 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"encryption_enabled": {
-							Type:     pluginsdk.TypeBool,
-							Optional: true,
-							Default:  false,
-						},
-
 						"encryption_password": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
@@ -160,7 +155,7 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 						"storage_account_access_key": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: validation.StringIsBase64,
 						},
 
 						"system_databases_backup_enabled": {
@@ -470,6 +465,17 @@ func resourceMsSqlVirtualMachine() *pluginsdk.Resource {
 			"tags": commonschema.Tags(),
 		},
 	}
+
+	if !features.FivePointOh() {
+		resource.Schema["auto_backup"].Elem.(*pluginsdk.Resource).Schema["encryption_enabled"] = &pluginsdk.Schema{
+			Type:       pluginsdk.TypeBool,
+			Optional:   true,
+			Computed:   true,
+			Deprecated: "`encryption_enabled` has been deprecated and will be removed in v5.0 of the AzureRM Provider. Encryption is enabled when `encryption_password` is set; otherwise disabled.",
+		}
+	}
+
+	return resource
 }
 
 func resourceMsSqlVirtualMachineCustomDiff(ctx context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
@@ -478,17 +484,6 @@ func resourceMsSqlVirtualMachineCustomDiff(ctx context.Context, d *pluginsdk.Res
 	old, new := d.GetChange("auto_backup")
 	if len(old.([]interface{})) == 1 && len(new.([]interface{})) == 0 {
 		return d.ForceNew("auto_backup")
-	}
-
-	encryptionEnabled := d.Get("auto_backup.0.encryption_enabled")
-	v, ok := d.GetOk("auto_backup.0.encryption_password")
-
-	if encryptionEnabled.(bool) && (!ok || v.(string) == "") {
-		return fmt.Errorf("auto_backup: `encryption_password` is required when `encryption_enabled` is true")
-	}
-
-	if !encryptionEnabled.(bool) && ok && v.(string) != "" {
-		return fmt.Errorf("auto_backup: `encryption_enabled` must be true when `encryption_password` is set")
 	}
 
 	return nil
@@ -532,7 +527,7 @@ func resourceMsSqlVirtualMachineCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 	var sqlVmGroupId string
 	if sqlVmGroupId = d.Get("sql_virtual_machine_group_id").(string); sqlVmGroupId != "" {
-		parsedVmGroupId, err := sqlvirtualmachines.ParseSqlVirtualMachineGroupIDInsensitively(sqlVmGroupId)
+		parsedVmGroupId, err := sqlvirtualmachinegroups.ParseSqlVirtualMachineGroupIDInsensitively(sqlVmGroupId)
 		if err != nil {
 			return err
 		}
@@ -705,13 +700,13 @@ func resourceMsSqlVirtualMachineRead(d *pluginsdk.ResourceData, meta interface{}
 
 			sqlVirtualMachineGroupId := ""
 			if props.SqlVirtualMachineGroupResourceId != nil {
-				parsedId, err := sqlvirtualmachines.ParseSqlVirtualMachineGroupIDInsensitively(*props.SqlVirtualMachineGroupResourceId)
+				parsedId, err := sqlvirtualmachinegroups.ParseSqlVirtualMachineGroupIDInsensitively(*props.SqlVirtualMachineGroupResourceId)
 				if err != nil {
 					return err
 				}
 
 				// get correct casing for subscription in id due to https://github.com/Azure/azure-rest-api-specs/issues/25211
-				sqlVirtualMachineGroupId = sqlvirtualmachines.NewSqlVirtualMachineGroupID(id.SubscriptionId, parsedId.ResourceGroupName, parsedId.SqlVirtualMachineGroupName).ID()
+				sqlVirtualMachineGroupId = sqlvirtualmachinegroups.NewSqlVirtualMachineGroupID(id.SubscriptionId, parsedId.ResourceGroupName, parsedId.SqlVirtualMachineGroupName).ID()
 			}
 			d.Set("sql_virtual_machine_group_id", sqlVirtualMachineGroupId)
 
@@ -821,6 +816,14 @@ func resourceMsSqlVirtualMachineAutoBackupSettingsRefreshFunc(ctx context.Contex
 							return resp, "Pending", nil
 						}
 					default:
+						// To be removed in 5.0:
+						// When `encryption_enabled` is not set in config, but `encryption_password` is, `v != val` will always be `true`.
+						// This causes an infinite loop until the resource creation times out. To avoid this, continue to the next iteration of the loop if
+						// `prop` is `encryption_enabled`.
+						if !features.FivePointOh() && prop == "encryption_enabled" {
+							continue
+						}
+
 						if v != val {
 							return resp, "Pending", nil
 						}
@@ -854,11 +857,11 @@ func expandSqlVirtualMachineAutoBackupSettings(input []interface{}) (*sqlvirtual
 			ret.StorageAccessKey = utils.String(v.(string))
 		}
 
-		v, ok := config["encryption_enabled"]
-		enableEncryption := ok && v.(bool)
-		ret.EnableEncryption = utils.Bool(enableEncryption)
-		if v, ok := config["encryption_password"]; enableEncryption && ok {
+		if v, ok := config["encryption_password"]; ok && v.(string) != "" {
+			ret.EnableEncryption = pointer.To(true)
 			ret.Password = utils.String(v.(string))
+		} else {
+			ret.EnableEncryption = pointer.To(false)
 		}
 
 		if v, ok := config["system_databases_backup_enabled"]; ok {
@@ -941,13 +944,17 @@ func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachines.AutoBacku
 
 	// Password, StorageAccessKey, StorageAccountURL are not returned, so we try to copy them
 	// from existing config as a best effort.
-	encryptionPassword := d.Get("auto_backup.0.encryption_password").(string)
 	storageKey := d.Get("auto_backup.0.storage_account_access_key").(string)
 	blobEndpoint := d.Get("auto_backup.0.storage_blob_endpoint").(string)
+	encryptionPassword := ""
 
-	return []interface{}{
+	// Copy password from config only if encryption is enabled in Azure
+	if pointer.From(autoBackup.EnableEncryption) {
+		encryptionPassword = d.Get("auto_backup.0.encryption_password").(string)
+	}
+
+	ret := []interface{}{
 		map[string]interface{}{
-			"encryption_enabled":              autoBackup.EnableEncryption != nil && *autoBackup.EnableEncryption,
 			"encryption_password":             encryptionPassword,
 			"manual_schedule":                 manualSchedule,
 			"retention_period_in_days":        retentionPeriod,
@@ -956,6 +963,12 @@ func flattenSqlVirtualMachineAutoBackup(autoBackup *sqlvirtualmachines.AutoBacku
 			"system_databases_backup_enabled": autoBackup.BackupSystemDbs != nil && *autoBackup.BackupSystemDbs,
 		},
 	}
+
+	if !features.FivePointOh() {
+		ret[0].(map[string]interface{})["encryption_enabled"] = pointer.From(autoBackup.EnableEncryption)
+	}
+
+	return ret
 }
 
 func expandSqlVirtualMachineAutoBackupSettingsDaysOfWeek(input []interface{}) *[]sqlvirtualmachines.AutoBackupDaysOfWeek {
@@ -1022,8 +1035,11 @@ func resourceMsSqlVirtualMachineAutoPatchingSettingsRefreshFunc(ctx context.Cont
 
 func expandSqlVirtualMachineAutoPatchingSettings(input []interface{}) *sqlvirtualmachines.AutoPatchingSettings {
 	if len(input) == 0 {
-		return nil
+		return &sqlvirtualmachines.AutoPatchingSettings{
+			Enable: pointer.To(false),
+		}
 	}
+
 	autoPatchingSetting := input[0].(map[string]interface{})
 
 	dayOfWeek := sqlvirtualmachines.DayOfWeek(autoPatchingSetting["day_of_week"].(string))

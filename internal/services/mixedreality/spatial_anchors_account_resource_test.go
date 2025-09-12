@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -19,6 +20,10 @@ import (
 type SpatialAnchorsAccountResource struct{}
 
 func TestAccSpatialAnchorsAccount_basic(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_spatial_anchors_account` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_spatial_anchors_account", "test")
 	r := SpatialAnchorsAccountResource{}
 
@@ -36,6 +41,10 @@ func TestAccSpatialAnchorsAccount_basic(t *testing.T) {
 }
 
 func TestAccSpatialAnchorsAccount_complete(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skipf("Skipping since `azurerm_spatial_anchors_account` is deprecated and will be removed in 5.0")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_spatial_anchors_account", "test")
 	r := SpatialAnchorsAccountResource{}
 

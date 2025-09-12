@@ -6,7 +6,7 @@ description: |-
   Gets information about an existing Cosmos DB SQL Role Definition.
 ---
 
-# azurerm_cosmosdb_sql_role_definition
+# Data Source: azurerm_cosmosdb_sql_role_definition
 
 Use this data source to access information about an existing Cosmos DB SQL Role Definition.
 

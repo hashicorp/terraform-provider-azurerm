@@ -98,6 +98,12 @@ The following arguments are supported:
 
 * `dev_center_attached_network_name` - (Required) The name of the Dev Center Attached Network in parent Project of the Dev Center Project Pool.
 
+* `managed_virtual_network_regions` - (Optional) A list of the regions of the managed Virtual Network. When specified, the Dev Center Project Pool will use a Microsoft managed network.
+
+~> **Note:** Currently only one region can be specified for `managed_virtual_network_regions`.
+
+* `single_sign_on_enabled` - (Optional) Specifies whether Dev Boxes in the Pool will have SSO enabled or disabled. Defaults to `false`.
+
 * `stop_on_disconnect_grace_period_minutes` - (Optional) The specified time in minutes to wait before stopping a Dev Center Dev Box once disconnect is detected. Possible values are between `60` and `480`.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Dev Center Project Pool.
@@ -112,10 +118,10 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating this Dev Center Project Pool.
-* `delete` - (Defaults to 30 minutes) Used when deleting this Dev Center Project Pool.
-* `read` - (Defaults to 5 minutes) Used when retrieving this Dev Center Project Pool.
-* `update` - (Defaults to 30 minutes) Used when updating this Dev Center Project Pool.
+* `create` - (Defaults to 30 minutes) Used when creating the Dev Center Project Pool.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Dev Center Project Pool.
+* `update` - (Defaults to 30 minutes) Used when updating the Dev Center Project Pool.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Dev Center Project Pool.
 
 ## Import
 
@@ -124,3 +130,9 @@ An existing Dev Center Project Pool can be imported into Terraform using the `re
 ```shell
 terraform import azurerm_dev_center_project_pool.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.DevCenter/projects/project1/pools/pool1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.DevCenter` - 2025-02-01

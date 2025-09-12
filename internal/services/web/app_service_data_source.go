@@ -97,7 +97,7 @@ func dataSourceAppService() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.SchemaDataSource(),
+			"tags": commonschema.TagsDataSource(),
 
 			"site_credential": {
 				Type:     pluginsdk.TypeList,

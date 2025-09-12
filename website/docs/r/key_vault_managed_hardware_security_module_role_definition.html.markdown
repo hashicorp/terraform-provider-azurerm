@@ -3,12 +3,12 @@ subcategory: "Key Vault"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_key_vault_managed_hardware_security_module_role_definition"
 description: |-
-  Manages a KeyVault Managed Hardware Security Module Role Definition.
+  Manages a Key Vault Managed Hardware Security Module Role Definition.
 ---
 
 # azurerm_key_vault_managed_hardware_security_module_role_definition
 
-Manages a KeyVault Managed Hardware Security Module Role Definition. This resource works together with [Managed hardware security module resource](./key_vault_managed_hardware_security_module).
+Manages a Key Vault Managed Hardware Security Module Role Definition. This resource works together with [Managed hardware security module resource](./key_vault_managed_hardware_security_module).
 
 ## Example Usage
 
@@ -34,7 +34,7 @@ resource "azurerm_key_vault_managed_hardware_security_module" "example" {
 
 resource "azurerm_key_vault_managed_hardware_security_module_role_definition" "example" {
   name           = "7d206142-bf01-11ed-80bc-00155d61ee9e"
-  vault_base_url = azurerm_key_vault_managed_hardware_security_module.example.hsm_uri
+  managed_hsm_id = azurerm_key_vault_managed_hardware_security_module.example.id
   description    = "desc foo"
   permission {
     data_actions = [
@@ -48,17 +48,17 @@ resource "azurerm_key_vault_managed_hardware_security_module_role_definition" "e
 
 The following arguments are supported:
 
-* `name` - (Required) The name which should be used for this KeyVault Role Definition. Changing this forces a new KeyVault Role Definition to be created.
+* `name` - (Required) The name in UUID notation of this Key Vault Managed Hardware Security Module Role Definition. Changing this forces a new Key Vault Managed Hardware Security Module Role Definition to be created.
 
-* `vault_base_url` - (Required) The base URL of the managed hardware security module resource. Changing this forces a new KeyVault Role Definition to be created.
+* `managed_hsm_id` - (Required) The ID of the Key Vault Managed Hardware Security Module. Changing this forces a new Key Vault Managed Hardware Security Module Role Definition to be created.
 
 ---
 
-* `description` - (Optional) Specifies a text description about this KeyVault Role Definition.
+* `description` - (Optional) Specifies a text description about this Key Vault Managed Hardware Security Module Role Definition.
 
 * `permission` - (Optional) One or more `permission` blocks as defined below.
 
-* `role_name` - (Optional) Specify a name for this KeyVault Role Definition.
+* `role_name` - (Optional) Specify a display name for this Key Vault Managed Hardware Security Module Role Definition.
 
 ---
 
@@ -76,7 +76,7 @@ A `permission` block supports the following, more details about permission see [
 
 In addition to the Arguments listed above - the following Attributes are exported:
 
-* `id` - The ID of the KeyVault Role Definition.
+* `id` - The ID of the Key Vault Managed Hardware Security Module Role Definition.
 
 * `resource_manager_id` - The ID of the role definition resource without Key Vault base URL.
 
@@ -86,14 +86,14 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the KeyVault.
-* `read` - (Defaults to 5 minutes) Used when retrieving the KeyVault.
-* `update` - (Defaults to 10 minutes) Used when updating the KeyVault.
-* `delete` - (Defaults to 10 minutes) Used when deleting the KeyVault.
+* `create` - (Defaults to 30 minutes) Used when creating the Key Vault Managed Hardware Security Module Role Definition.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Key Vault Managed Hardware Security Module Role Definition.
+* `update` - (Defaults to 10 minutes) Used when updating the Key Vault Managed Hardware Security Module Role Definition.
+* `delete` - (Defaults to 10 minutes) Used when deleting the Key Vault Managed Hardware Security Module Role Definition.
 
 ## Import
 
-KeyVaults can be imported using the `resource id`, e.g.
+Key Vault Managed Hardware Security Module Role Definitions can be imported using the `resource id`, e.g.
 
 ```shell
 terraform import azurerm_key_vault_managed_hardware_security_module_role_definition.example https://0000.managedhsm.azure.net///RoleDefinition/00000000-0000-0000-0000-000000000000

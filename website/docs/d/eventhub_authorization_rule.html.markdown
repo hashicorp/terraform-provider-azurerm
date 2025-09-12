@@ -6,7 +6,7 @@ description: |-
   Gets information about an Event Hubs Authorization Rule within an Event Hub.
 ---
 
-# azurerm_eventhub_authorization_rule
+# Data Source: azurerm_eventhub_authorization_rule
 
 Use this data source to access information about an existing Event Hubs Authorization Rule within an Event Hub.
 
@@ -54,3 +54,9 @@ The following attributes are exported:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the EventHub Authorization Rule.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.EventHub` - 2024-01-01

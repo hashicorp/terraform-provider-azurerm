@@ -95,6 +95,45 @@ func TestAccNetworkManager(t *testing.T) {
 			"withTriggers":   testAccNetworkManagerDeployment_withTriggers,
 			"requiresImport": testAccNetworkManagerDeployment_requiresImport,
 		},
+		"IPAMPool": {
+			"basic":          testAccNetworkManagerIpamPool_basic,
+			"basicIPv6":      testAccNetworkManagerIpamPool_basicIPv6,
+			"complete":       testAccNetworkManagerIpamPool_complete,
+			"update":         testAccNetworkManagerIpamPool_update,
+			"requiresImport": testAccNetworkManagerIpamPool_requiresImport,
+			"dataSource":     testAccNetworkManagerIpamPoolDataSource_complete,
+		},
+		"IPAMPoolStaticCIDR": {
+			"basic":                 testAccNetworkManagerIpamPoolStaticCidr_basic,
+			"complete":              testAccNetworkManagerIpamPoolStaticCidr_complete,
+			"update":                testAccNetworkManagerIpamPoolStaticCidr_update,
+			"requiresImport":        testAccNetworkManagerIpamPoolStaticCidr_requiresImport,
+			"ipAddressNumber":       testAccNetworkManagerIpamPoolStaticCidr_ipAddressNumber,
+			"updateIpAddressNumber": testAccNetworkManagerIpamPoolStaticCidr_ipAddressNumberUpdated,
+		},
+		"VerifierWorkspace": {
+			"basic":          testAccNetworkManagerVerifierWorkspace_basic,
+			"complete":       testAccNetworkManagerVerifierWorkspace_complete,
+			"update":         testAccNetworkManagerVerifierWorkspace_update,
+			"requiresImport": testAccNetworkManagerVerifierWorkspace_requiresImport,
+		},
+		"VerifierWorkspaceReachabilityAnalysisIntent": {
+			"basic":          testAccNetworkManagerVerifierWorkspaceReachabilityAnalysisIntent_basic,
+			"complete":       testAccNetworkManagerVerifierWorkspaceReachabilityAnalysisIntent_complete,
+			"requiresImport": testAccNetworkManagerVerifierWorkspaceReachabilityAnalysisIntent_requiresImport,
+		},
+		"RoutingConfiguration": {
+			"basic":          testAccNetworkManagerRoutingConfiguration_basic,
+			"complete":       testAccNetworkManagerRoutingConfiguration_complete,
+			"update":         testAccNetworkManagerRoutingConfiguration_update,
+			"requiresImport": testAccNetworkManagerRoutingConfiguration_requiresImport,
+		},
+		"RoutingRuleCollection": {
+			"basic":          testAccNetworkManagerRoutingRuleCollection_basic,
+			"complete":       testAccNetworkManagerRoutingRuleCollection_complete,
+			"update":         testAccNetworkManagerRoutingRuleCollection_update,
+			"requiresImport": testAccNetworkManagerRoutingRuleCollection_requiresImport,
+		},
 	}
 
 	for group, m := range testCases {
@@ -210,7 +249,6 @@ resource "azurerm_network_manager" "test" {
   scope {
     subscription_ids = [data.azurerm_subscription.current.id]
   }
-  scope_accesses = ["SecurityAdmin"]
 }
 `, r.template(data), data.RandomInteger)
 }
@@ -225,7 +263,6 @@ resource "azurerm_network_manager" "import" {
   scope {
     subscription_ids = azurerm_network_manager.test.scope.0.subscription_ids
   }
-  scope_accesses = azurerm_network_manager.test.scope_accesses
 }
 `, r.basic(data))
 }

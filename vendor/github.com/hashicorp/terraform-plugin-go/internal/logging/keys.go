@@ -80,4 +80,7 @@ const (
 
 	// Whether the DeferralAllowed client capability is enabled
 	KeyClientCapabilityDeferralAllowed = "tf_client_capability_deferral_allowed"
+
+	// Whether the WriteOnlyAttributesAllowed client capability is enabled
+	KeyClientCapabilityWriteOnlyAttributesAllowed = "tf_client_capability_write_only_attributes_allowed"
 )

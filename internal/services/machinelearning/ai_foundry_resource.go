@@ -1,3 +1,6 @@
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
+
 package machinelearning
 
 import (
@@ -15,7 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	components "github.com/hashicorp/go-azure-sdk/resource-manager/applicationinsights/2020-02-02/componentsapis"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2024-04-01/workspaces"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/machinelearningservices/2025-06-01/workspaces"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyvaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -484,11 +487,13 @@ func (r AIFoundry) Read() sdk.ResourceFunc {
 					}
 					hub.StorageAccountId = storageAccountId.ID()
 
-					keyVaultId, err := commonids.ParseKeyVaultID(*props.KeyVault)
-					if err != nil {
-						return err
+					if props.KeyVault != nil {
+						keyVaultId, err := commonids.ParseKeyVaultID(*props.KeyVault)
+						if err != nil {
+							return err
+						}
+						hub.KeyVaultId = keyVaultId.ID()
 					}
-					hub.KeyVaultId = keyVaultId.ID()
 
 					hub.Description = pointer.From(props.Description)
 					hub.FriendlyName = pointer.From(props.FriendlyName)

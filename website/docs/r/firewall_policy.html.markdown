@@ -133,7 +133,7 @@ A `threat_intelligence_allowlist` block supports the following:
 
 A `tls_certificate` block supports the following:
 
-* `key_vault_secret_id` - (Required) The ID of the Key Vault, where the secret or certificate is stored.
+* `key_vault_secret_id` - (Required) The Secret Identifier (URI) of the certificate stored in Azure Key Vault, either as a secret or certificate.
 
 * `name` - (Required) The name of the certificate.
 
@@ -201,3 +201,9 @@ Firewall Policies can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_firewall_policy.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.Network/firewallPolicies/policy1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Network` - 2024-05-01

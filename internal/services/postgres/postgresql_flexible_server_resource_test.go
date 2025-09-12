@@ -10,12 +10,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2023-06-01-preview/servers"
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/postgresql/2024-08-01/servers"
+	"github.com/hashicorp/go-version"
+	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/provider/framework"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type PostgresqlFlexibleServerResource struct{}
@@ -168,6 +173,40 @@ func TestAccPostgresqlFlexibleServer_updateSku(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("fqdn").Exists(),
 				check.That(data.ResourceName).Key("public_network_access_enabled").Exists(),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+	})
+}
+
+func TestAccPostgresqlFlexibleServer_updateVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withVersion(data, 12, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.withVersion(data, 13, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		{
+			Config: r.withVersion(data, 13, "Update"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.withVersion(data, 14, "Default"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode"),
@@ -330,6 +369,23 @@ func TestAccPostgresqlFlexibleServer_createWithCustomerManagedKey(t *testing.T) 
 	})
 }
 
+func TestAccPostgresqlFlexibleServer_createWithCustomerManagedKeyVersionless(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withCustomerManagedKeyVersionless(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That("azurerm_postgresql_flexible_server.test").Key("customer_managed_key.0.key_vault_key_id").Exists(),
+				check.That("azurerm_postgresql_flexible_server.test").Key("customer_managed_key.0.primary_user_assigned_identity_id").Exists(),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+	})
+}
+
 func TestAccPostgresqlFlexibleServer_replica(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
@@ -396,6 +452,42 @@ func TestAccPostgresqlFlexibleServer_upgradeVersion(t *testing.T) {
 	})
 }
 
+func TestAccPostgresqlFlexibleServer_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.identity(data, identity.TypeNone),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.identity(data, identity.TypeSystemAssigned),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.identity(data, identity.TypeUserAssigned),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+		{
+			Config: r.identity(data, identity.TypeSystemAssignedUserAssigned),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+	})
+}
+
 func TestAccPostgresqlFlexibleServer_enableGeoRedundantBackup(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
 	r := PostgresqlFlexibleServerResource{}
@@ -403,6 +495,21 @@ func TestAccPostgresqlFlexibleServer_enableGeoRedundantBackup(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.enableGeoRedundantBackup(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("administrator_password", "create_mode"),
+	})
+}
+
+func TestAccPostgresqlFlexibleServer_geoRedundantBackupWithVersionlessId(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.geoRedundantBackupWithVersionlessId(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -444,25 +551,6 @@ func TestAccPostgresqlFlexibleServer_invalidStorageTier(t *testing.T) {
 		{
 			Config:      r.invalidStorageTier(data),
 			ExpectError: regexp.MustCompile("invalid 'storage_tier'"),
-		},
-	})
-}
-
-func TestAccPostgresqlFlexibleServer_invalidStorageMbScaling(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
-	r := PostgresqlFlexibleServerResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.invalidStorageMbScaling(data, "524288"),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("administrator_password", "create_mode"),
-		{
-			Config:      r.invalidStorageMbScaling(data, "262144"),
-			ExpectError: regexp.MustCompile("'storage_mb' can only be scaled up"),
 		},
 	})
 }
@@ -604,6 +692,59 @@ func TestAccPostgresqlFlexibleServer_publicNetworkAccessEnabled(t *testing.T) {
 	})
 }
 
+func TestAccPostgresqlFlexibleServer_writeOnlyPassword(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.writeOnlyPassword(data, "QAZwsx123", 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_password_wo_version"),
+			{
+				Config: r.writeOnlyPassword(data, "QAZwsx123updated", 2),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_password_wo_version"),
+		},
+	})
+}
+
+func TestAccPostgresqlFlexibleServer_updateToWriteOnlyPassword(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_postgresql_flexible_server", "test")
+	r := PostgresqlFlexibleServerResource{}
+
+	resource.ParallelTest(t, resource.TestCase{
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipBelow(version.Must(version.NewVersion("1.11.0"))),
+		},
+		ProtoV5ProviderFactories: framework.ProtoV5ProviderFactoriesInit(context.Background(), "azurerm"),
+		Steps: []resource.TestStep{
+			{
+				Config: r.basic(data),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_password"),
+			{
+				Config: r.writeOnlyPassword(data, "QAZwsx123", 1),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_password", "administrator_password_wo_version"),
+			{
+				Config: r.basic(data),
+				Check:  check.That(data.ResourceName).ExistsInAzure(r),
+			},
+			data.ImportStep("administrator_password"),
+		},
+	})
+}
+
 func (PostgresqlFlexibleServerResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := servers.ParseFlexibleServerID(state.ID)
 	if err != nil {
@@ -615,7 +756,7 @@ func (PostgresqlFlexibleServerResource) Exists(ctx context.Context, clients *cli
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (PostgresqlFlexibleServerResource) template(data acceptance.TestData) string {
@@ -698,6 +839,29 @@ resource "azurerm_postgresql_flexible_server" "test" {
   zone                   = "2"
 }
 `, r.template(data), data.RandomInteger)
+}
+
+func (r PostgresqlFlexibleServerResource) withVersion(data acceptance.TestData, versionNum int, creatMode string) string {
+	createModeProp := ""
+	if creatMode != "" {
+		createModeProp = fmt.Sprintf("create_mode = \"%s\"", creatMode)
+	}
+
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  version                = "%d"
+  %s
+  sku_name = "GP_Standard_D2s_v3"
+  zone     = "2"
+}
+`, r.template(data), data.RandomInteger, versionNum, createModeProp)
 }
 
 func (r PostgresqlFlexibleServerResource) geoRestoreSource(data acceptance.TestData) string {
@@ -1092,7 +1256,7 @@ resource "azurerm_postgresql_flexible_server" "test" {
   storage_mb             = 32768
   version                = "12"
   sku_name               = "GP_Standard_D2s_v3"
-  zone                   = "2"
+  zone                   = "1"
 
   authentication {
     active_directory_auth_enabled = %[3]t
@@ -1102,6 +1266,54 @@ resource "azurerm_postgresql_flexible_server" "test" {
 
 }
 `, r.template(data), data.RandomInteger, aadEnabled, pwdEnabled, tenantIdBlock)
+}
+
+func (r PostgresqlFlexibleServerResource) identity(data acceptance.TestData, identityType identity.Type) string {
+	var identityBlock string
+	switch identityType {
+	case identity.TypeSystemAssigned:
+		identityBlock = `
+  identity {
+    type = "SystemAssigned"
+  }
+`
+	case identity.TypeUserAssigned:
+		identityBlock = `
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+`
+	case identity.TypeSystemAssignedUserAssigned:
+		identityBlock = `
+  identity {
+    type         = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+`
+	}
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctestmi-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  version                = "12"
+  sku_name               = "GP_Standard_D2s_v3"
+  zone                   = "2"
+
+  %s
+}
+`, r.template(data), data.RandomInteger, data.RandomInteger, identityBlock)
 }
 
 func (r PostgresqlFlexibleServerResource) cmkTemplate(data acceptance.TestData) string {
@@ -1190,6 +1402,34 @@ resource "azurerm_postgresql_flexible_server" "test" {
 
   customer_managed_key {
     key_vault_key_id                  = azurerm_key_vault_key.test.id
+    primary_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
+  }
+}
+`, r.cmkTemplate(data), data.RandomInteger)
+}
+
+func (r PostgresqlFlexibleServerResource) withCustomerManagedKeyVersionless(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                   = "acctest-fs-%d"
+  resource_group_name    = azurerm_resource_group.test.name
+  location               = azurerm_resource_group.test.location
+  administrator_login    = "adminTerraform"
+  administrator_password = "QAZwsx123"
+  storage_mb             = 32768
+  version                = "12"
+  sku_name               = "B_Standard_B1ms"
+  zone                   = "1"
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+
+  customer_managed_key {
+    key_vault_key_id                  = azurerm_key_vault_key.test.versionless_id
     primary_user_assigned_identity_id = azurerm_user_assigned_identity.test.id
   }
 }
@@ -1326,6 +1566,86 @@ resource "azurerm_postgresql_flexible_server" "test" {
 `, r.cmkTemplate(data), data.RandomInteger, data.Locations.Ternary, data.RandomString, data.RandomString, data.RandomInteger)
 }
 
+func (r PostgresqlFlexibleServerResource) geoRedundantBackupWithVersionlessId(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_resource_group" "test2" {
+  name     = "acctestRG-postgresql2-%d"
+  location = "%s"
+}
+
+resource "azurerm_user_assigned_identity" "test2" {
+  name                = "acctestmi2%s"
+  location            = azurerm_resource_group.test2.location
+  resource_group_name = azurerm_resource_group.test2.name
+}
+
+resource "azurerm_key_vault" "test2" {
+  name                     = "acctestkv2%s"
+  location                 = azurerm_resource_group.test2.location
+  resource_group_name      = azurerm_resource_group.test2.name
+  tenant_id                = data.azurerm_client_config.current.tenant_id
+  sku_name                 = "standard"
+  purge_protection_enabled = true
+}
+
+resource "azurerm_key_vault_access_policy" "server2" {
+  key_vault_id = azurerm_key_vault.test2.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = azurerm_user_assigned_identity.test2.principal_id
+
+  key_permissions = ["Get", "List", "WrapKey", "UnwrapKey", "GetRotationPolicy", "SetRotationPolicy"]
+}
+
+resource "azurerm_key_vault_access_policy" "client2" {
+  key_vault_id = azurerm_key_vault.test2.id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = data.azurerm_client_config.current.object_id
+
+  key_permissions = ["Get", "Create", "Delete", "List", "Restore", "Recover", "UnwrapKey", "WrapKey", "Purge", "Encrypt", "Decrypt", "Sign", "Verify", "GetRotationPolicy", "SetRotationPolicy"]
+}
+
+resource "azurerm_key_vault_key" "test2" {
+  name         = "test2"
+  key_vault_id = azurerm_key_vault.test2.id
+  key_type     = "RSA"
+  key_size     = 2048
+  key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
+
+  depends_on = [
+    azurerm_key_vault_access_policy.client2,
+    azurerm_key_vault_access_policy.server2,
+  ]
+}
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                         = "acctest-fs-%d"
+  resource_group_name          = azurerm_resource_group.test.name
+  location                     = azurerm_resource_group.test.location
+  administrator_login          = "adminTerraform"
+  administrator_password       = "QAZwsx123"
+  storage_mb                   = 32768
+  version                      = "12"
+  sku_name                     = "B_Standard_B1ms"
+  zone                         = "2"
+  geo_redundant_backup_enabled = true
+
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id, azurerm_user_assigned_identity.test2.id]
+  }
+
+  customer_managed_key {
+    key_vault_key_id                     = azurerm_key_vault_key.test.id
+    primary_user_assigned_identity_id    = azurerm_user_assigned_identity.test.id
+    geo_backup_key_vault_key_id          = azurerm_key_vault_key.test2.versionless_id
+    geo_backup_user_assigned_identity_id = azurerm_user_assigned_identity.test2.id
+  }
+}
+`, r.cmkTemplate(data), data.RandomInteger, data.Locations.Ternary, data.RandomString, data.RandomString, data.RandomInteger)
+}
+
 func (r PostgresqlFlexibleServerResource) autoGrowEnabled(data acceptance.TestData, autoGrowEnabled bool) string {
 	return fmt.Sprintf(`
 %s
@@ -1364,25 +1684,6 @@ resource "azurerm_postgresql_flexible_server" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r PostgresqlFlexibleServerResource) invalidStorageMbScaling(data acceptance.TestData, storageMb string) string {
-	return fmt.Sprintf(`
-%s
-
-resource "azurerm_postgresql_flexible_server" "test" {
-  name                   = "acctest-fs-%d"
-  resource_group_name    = azurerm_resource_group.test.name
-  location               = azurerm_resource_group.test.location
-  administrator_login    = "adminTerraform"
-  administrator_password = "QAZwsx123"
-  storage_mb             = %s
-  storage_tier           = "P20"
-  version                = "12"
-  sku_name               = "GP_Standard_D2s_v3"
-  zone                   = "2"
-}
-`, r.template(data), data.RandomInteger, storageMb)
-}
-
 func (r PostgresqlFlexibleServerResource) invalidStorageTierScaling(data acceptance.TestData, storageTier string, storageMb string) string {
 	return fmt.Sprintf(`
 %s
@@ -1417,4 +1718,24 @@ resource "azurerm_postgresql_flexible_server" "test" {
   public_network_access_enabled = %t
 }
 `, r.template(data), data.RandomInteger, publicNetworkAccessEnabled)
+}
+
+func (r PostgresqlFlexibleServerResource) writeOnlyPassword(data acceptance.TestData, secret string, version int) string {
+	return fmt.Sprintf(`
+%[1]s
+
+%[2]s
+
+resource "azurerm_postgresql_flexible_server" "test" {
+  name                              = "acctest-fs-%[3]d"
+  resource_group_name               = azurerm_resource_group.test.name
+  location                          = azurerm_resource_group.test.location
+  administrator_login               = "adminTerraform"
+  administrator_password_wo         = ephemeral.azurerm_key_vault_secret.test.value
+  administrator_password_wo_version = %[4]d
+  version                           = "12"
+  sku_name                          = "GP_Standard_D2s_v3"
+  zone                              = "2"
+}
+`, r.template(data), acceptance.WriteOnlyKeyVaultSecretTemplate(data, secret), data.RandomInteger, version)
 }

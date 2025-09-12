@@ -40,6 +40,8 @@ type PimEligibleRoleAssignmentModel struct {
 	Justification    string                                  `tfschema:"justification"`
 	TicketInfo       []PimEligibleRoleAssignmentTicketInfo   `tfschema:"ticket"`
 	ScheduleInfo     []PimEligibleRoleAssignmentScheduleInfo `tfschema:"schedule"`
+	Condition        string                                  `tfschema:"condition"`
+	ConditionVersion string                                  `tfschema:"condition_version"`
 }
 
 type PimEligibleRoleAssignmentTicketInfo struct {
@@ -112,6 +114,24 @@ func (PimEligibleRoleAssignmentResource) Arguments() map[string]*pluginsdk.Schem
 			Computed:    true,
 			ForceNew:    true,
 			Description: "The justification for this eligible role assignment",
+		},
+
+		"condition": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			RequiredWith: []string{"condition_version"},
+			ValidateFunc: validation.StringIsNotEmpty,
+		},
+
+		"condition_version": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ForceNew:     true,
+			RequiredWith: []string{"condition"},
+			ValidateFunc: validation.StringInSlice([]string{
+				"2.0",
+			}, false),
 		},
 
 		"schedule": {
@@ -285,16 +305,26 @@ func (r PimEligibleRoleAssignmentResource) Create() sdk.ResourceFunc {
 				return err
 			}
 
+			properties := &roleeligibilityschedulerequests.RoleEligibilityScheduleRequestProperties{
+				Justification:    pointer.To(config.Justification),
+				PrincipalId:      id.PrincipalId,
+				RequestType:      roleeligibilityschedulerequests.RequestTypeAdminAssign,
+				RoleDefinitionId: id.RoleDefinitionId,
+				Scope:            pointer.To(scopeId.ID()),
+				ScheduleInfo:     scheduleInfo,
+				TicketInfo:       ticketInfo,
+			}
+
+			condition := config.Condition
+			conditionVersion := config.ConditionVersion
+
+			if condition != "" && conditionVersion != "" {
+				properties.Condition = pointer.To(condition)
+				properties.ConditionVersion = pointer.To(conditionVersion)
+			}
+
 			payload := roleeligibilityschedulerequests.RoleEligibilityScheduleRequest{
-				Properties: &roleeligibilityschedulerequests.RoleEligibilityScheduleRequestProperties{
-					Justification:    pointer.To(config.Justification),
-					PrincipalId:      id.PrincipalId,
-					RequestType:      roleeligibilityschedulerequests.RequestTypeAdminAssign,
-					RoleDefinitionId: id.RoleDefinitionId,
-					Scope:            pointer.To(scopeId.ID()),
-					ScheduleInfo:     scheduleInfo,
-					TicketInfo:       ticketInfo,
-				},
+				Properties: properties,
 			}
 
 			roleEligibilityScheduleRequestName, err := uuid.GenerateUUID()
@@ -395,6 +425,9 @@ func (r PimEligibleRoleAssignmentResource) Read() sdk.ResourceFunc {
 				state.PrincipalId = request.Properties.PrincipalId
 				state.PrincipalType = string(pointer.From(request.Properties.PrincipalType))
 				state.RoleDefinitionId = request.Properties.RoleDefinitionId
+
+				state.Condition = pointer.From(request.Properties.Condition)
+				state.ConditionVersion = pointer.From(request.Properties.ConditionVersion)
 
 				if ticketInfo := request.Properties.TicketInfo; ticketInfo != nil {
 					if len(state.TicketInfo) == 0 {
@@ -652,7 +685,7 @@ func findRoleEligibilitySchedule(ctx context.Context, client *roleeligibilitysch
 	}
 
 	schedulesResult, err := client.ListForScopeComplete(ctx, *scopeId, roleeligibilityschedules.ListForScopeOperationOptions{
-		Filter: pointer.To(fmt.Sprintf("(principalId eq '%s')", id.PrincipalId)),
+		Filter: pointer.To(fmt.Sprintf("(principalId eq '%s') and atScope()", id.PrincipalId)),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("listing Role Eligiblity Schedules for %s: %+v", scopeId, err)

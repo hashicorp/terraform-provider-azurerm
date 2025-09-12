@@ -6,7 +6,7 @@ description: |-
   Gets information about an existing Mobile Network Attached Data Network.
 ---
 
-# azurerm_mobile_network_attached_data_network
+# Data Source: azurerm_mobile_network_attached_data_network
 
 Use this data source to access information about an existing Mobile Network Attached Data Network.
 
@@ -89,3 +89,9 @@ A `port_range` block supports the following:
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Mobile Network Attached Data Network.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.MobileNetwork` - 2022-11-01

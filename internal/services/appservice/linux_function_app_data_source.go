@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/appservice/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -59,16 +58,17 @@ type LinuxFunctionAppDataSourceModel struct {
 	StickySettings                   []helpers.StickySettings             `tfschema:"sticky_settings"`
 	Tags                             map[string]string                    `tfschema:"tags"`
 
-	VirtualNetworkSubnetID        string   `tfschema:"virtual_network_subnet_id"`
-	CustomDomainVerificationId    string   `tfschema:"custom_domain_verification_id"`
-	DefaultHostname               string   `tfschema:"default_hostname"`
-	HostingEnvId                  string   `tfschema:"hosting_environment_id"`
-	Kind                          string   `tfschema:"kind"`
-	OutboundIPAddresses           string   `tfschema:"outbound_ip_addresses"`
-	OutboundIPAddressList         []string `tfschema:"outbound_ip_address_list"`
-	PossibleOutboundIPAddresses   string   `tfschema:"possible_outbound_ip_addresses"`
-	PossibleOutboundIPAddressList []string `tfschema:"possible_outbound_ip_address_list"`
-	Usage                         string   `tfschema:"usage"`
+	VirtualNetworkBackupRestoreEnabled bool     `tfschema:"virtual_network_backup_restore_enabled"`
+	VirtualNetworkSubnetID             string   `tfschema:"virtual_network_subnet_id"`
+	CustomDomainVerificationId         string   `tfschema:"custom_domain_verification_id"`
+	DefaultHostname                    string   `tfschema:"default_hostname"`
+	HostingEnvId                       string   `tfschema:"hosting_environment_id"`
+	Kind                               string   `tfschema:"kind"`
+	OutboundIPAddresses                string   `tfschema:"outbound_ip_addresses"`
+	OutboundIPAddressList              []string `tfschema:"outbound_ip_address_list"`
+	PossibleOutboundIPAddresses        string   `tfschema:"possible_outbound_ip_addresses"`
+	PossibleOutboundIPAddressList      []string `tfschema:"possible_outbound_ip_address_list"`
+	Usage                              string   `tfschema:"usage"`
 
 	SiteCredentials []helpers.SiteCredential `tfschema:"site_credential"`
 }
@@ -199,7 +199,7 @@ func (d LinuxFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 
 		"site_config": helpers.SiteConfigSchemaLinuxFunctionAppComputed(),
 
-		"tags": tags.SchemaDataSource(),
+		"tags": commonschema.TagsDataSource(),
 
 		"custom_domain_verification_id": {
 			Type:      pluginsdk.TypeString,
@@ -271,6 +271,11 @@ func (d LinuxFunctionAppDataSource) Attributes() map[string]*pluginsdk.Schema {
 		},
 
 		"sticky_settings": helpers.StickySettingsComputedSchema(),
+
+		"virtual_network_backup_restore_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Computed: true,
+		},
 
 		"virtual_network_subnet_id": {
 			Type:     pluginsdk.TypeString,
@@ -388,6 +393,7 @@ func (d LinuxFunctionAppDataSource) Read() sdk.ResourceFunc {
 					state.DefaultHostname = pointer.From(props.DefaultHostName)
 					state.Usage = string(pointer.From(props.UsageState))
 					state.PublicNetworkAccess = !strings.EqualFold(pointer.From(props.PublicNetworkAccess), helpers.PublicNetworkAccessDisabled)
+					state.VirtualNetworkBackupRestoreEnabled = pointer.From(props.VnetBackupRestoreEnabled)
 
 					if hostingEnv := props.HostingEnvironmentProfile; hostingEnv != nil {
 						state.HostingEnvId = pointer.From(hostingEnv.Id)

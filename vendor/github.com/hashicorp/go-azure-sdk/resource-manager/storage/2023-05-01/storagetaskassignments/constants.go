@@ -50,6 +50,7 @@ func parseIntervalUnit(input string) (*IntervalUnit, error) {
 type ProvisioningState string
 
 const (
+	ProvisioningStateAccepted                       ProvisioningState = "Accepted"
 	ProvisioningStateCanceled                       ProvisioningState = "Canceled"
 	ProvisioningStateCreating                       ProvisioningState = "Creating"
 	ProvisioningStateDeleting                       ProvisioningState = "Deleting"
@@ -61,6 +62,7 @@ const (
 
 func PossibleValuesForProvisioningState() []string {
 	return []string{
+		string(ProvisioningStateAccepted),
 		string(ProvisioningStateCanceled),
 		string(ProvisioningStateCreating),
 		string(ProvisioningStateDeleting),
@@ -86,6 +88,7 @@ func (s *ProvisioningState) UnmarshalJSON(bytes []byte) error {
 
 func parseProvisioningState(input string) (*ProvisioningState, error) {
 	vals := map[string]ProvisioningState{
+		"accepted":                       ProvisioningStateAccepted,
 		"canceled":                       ProvisioningStateCanceled,
 		"creating":                       ProvisioningStateCreating,
 		"deleting":                       ProvisioningStateDeleting,

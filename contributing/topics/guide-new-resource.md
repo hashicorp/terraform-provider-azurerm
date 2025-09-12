@@ -145,7 +145,7 @@ func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 
         "location": commonschema.Location(),
 
-        "tags": tags.Schema(),
+        "tags": commonschema.Tags(),
     }
 }
 
@@ -290,6 +290,7 @@ func (r ResourceGroupExampleResource) Update() sdk.ResourceFunc {
             }
 
             return nil
+			// The Update function in **untyped** resources should return `Read()`
         },
     }
 }
@@ -593,7 +594,50 @@ func (ResourceGroupExampleResource) IDValidationFunc() pluginsdk.SchemaValidateF
 }
 ```
 
-At this point in time this Resource is now code-complete - there's an optional extension to make this cleaner by using a Typed Model, however this isn't necessary.
+At this point in time this Resource is now code-complete.
+
+Things worth noting here:
+
+- In addition to the `sdk.Resource` interface, we also have other interfaces, such as the `sdk.ResourceWithUpdate` interface, which includes an `update` method. Since these interfaces inherit from `sdk.Resource`, you do not need to redefine the `sdk.Resource` interface when defining them.
+
+For example, in this case:
+
+:white_check_mark: **DO**
+
+```
+var _ sdk.ResourceWithUpdate = ResourceGroupExampleResource{}
+```
+
+:no_entry: **DO NOT**
+
+```
+var (
+	_ sdk.Resource           = ResourceGroupExampleResource{}
+	_ sdk.ResourceWithUpdate = ResourceGroupExampleResource{}
+)
+```
+
+- Sometimes, for complex data types like `pluginsdk.TypeList`, we need to define `expand` and `flatten` methods. When defining such methods, please make sure to define them as global methods.
+
+For example, in this case:
+
+:white_check_mark: **DO**
+
+```
+func expandComplexResource(input []ComplexResource) *resource.ComplexResource {
+	...
+}
+```
+
+:no_entry: **DO NOT**
+
+```
+func (ResourceGroupExampleResource) expandComplexResource(input []ComplexResource) *resource.ComplexResource {
+	...
+}
+```
+
+- Historically, we used `pluginsdk.StateChangeConf` to address certain issues related to LRO APIs. This method has now been deprecated and replaced by custom pollers. Please refer to this [example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/maps/custompollers/maps_account_poller.go).
 
 ### Step 4: Register the new Resource
 
@@ -748,6 +792,28 @@ func TestAccResourceGroupExample_complete(t *testing.T) {
     })
 }
 
+func TestAccResourceGroupExample_update(t *testing.T) {
+    data := acceptance.BuildTestData(t, "azurerm_resource_group_example", "test")
+    r := ResourceGroupExampleTestResource{}
+    
+    data.ResourceTest(t, r, []acceptance.TestStep{
+        {
+            Config: r.basic(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+            ),
+        },
+        data.ImportStep(),
+        {
+            Config: r.complete(data),
+            Check: acceptance.ComposeTestCheckFunc(
+                check.That(data.ResourceName).ExistsInAzure(r),
+            ),
+        },
+        data.ImportStep(),
+    })
+}
+
 func (ResourceGroupExampleTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
     id, err := resources.ParseResourceGroupID(state.ID)
     if err != nil {
@@ -776,7 +842,6 @@ resource "azurerm_resource_group_example" "test" {
 }
 
 func (r ResourceGroupExampleTestResource) requiresImport(data acceptance.TestData) string {
-    template := r.basic(data)
     return fmt.Sprintf(`
 %s
 
@@ -784,7 +849,7 @@ resource "azurerm_resource_group_example" "import" {
   name     = azurerm_resource_group_example.test.name
   location = azurerm_resource_group_example.test.location
 }
-`, template)
+`, r.basic(data))
 }
 
 func (ResourceGroupExampleTestResource) complete(data acceptance.TestData) string {
@@ -811,7 +876,7 @@ There's a more detailed breakdown of how this works [in the Acceptance Testing r
 2. The `acceptance.TestData` object contains a number of helpers, including both random integers, strings and the Azure Locations where resources should be provisioned - which are used to ensure when tests are run in parallel that we provision unique resources for testing purposes.
 3. The `ApplyStep`'s apply the Terraform Configuration specified and then assert there's no changes after (e.g. `terraform apply` and then checking that `terraform plan` shows no changes).
 4. The `ImportStep` takes the Resource ID for the Resource and runs `terraform import azurerm_resource_group_example.test {resourceId}`, checking that the fields defined in the state match the fields returned from the Read function.
-6. We append `_test` to the Go package name (e.g. `resource_test`) since we need to be able to access both the `resource` package and the `acceptance` package (which is a circular reference, otherwise).
+5. We append `_test` to the Go package name (e.g. `resource_test`) since we need to be able to access both the `resource` package and the `acceptance` package (which is a circular reference, otherwise).
 
 At this point we should be able to run this test.
 

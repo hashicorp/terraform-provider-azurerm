@@ -10,9 +10,9 @@ description: |-
 
 Manages an App Service Static Site.
 
--> **NOTE:** The `azurerm_static_site` resource is deprecated in favour of `azurerm_static_web_app` and will be removed in a future major release.
+-> **Note:** The `azurerm_static_site` resource is deprecated in favour of `azurerm_static_web_app` and will be removed in a future major release.
 
-->**NOTE:** After the Static Site is provisioned, you'll need to associate your target repository, which contains your web app, to the Static Site, by following the [Azure Static Site document](https://docs.microsoft.com/azure/static-web-apps/github-actions-workflow).
+-> **Note:** After the Static Site is provisioned, you'll need to associate your target repository, which contains your web app, to the Static Site, by following the [Azure Static Site document](https://docs.microsoft.com/azure/static-web-apps/github-actions-workflow).
 
 ## Example Usage
 
@@ -77,7 +77,7 @@ An `identity` block exports the following:
 
 * `principal_id` - (Optional) The Principal ID associated with this Managed Service Identity.
 
--> You can access the Principal ID via `azurerm_static_site.example.identity[0].principal_id`
+-> **Note:** You can access the Principal ID via `azurerm_static_site.example.identity[0].principal_id`
 
 ## Timeouts
 
