@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/compute/2024-03-01/virtualmachines"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccLinuxVirtualMachine_otherAllowExtensionOperationsDefault(t *testing.T) {
@@ -784,6 +785,9 @@ func TestAccLinuxVirtualMachine_otherEncryptionAtHostEnabledWithCMK(t *testing.T
 }
 
 func TestAccLinuxVirtualMachine_otherGracefulShutdownDisabled(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("The graceful_shutdown feature is being deprecated in v5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 	r := LinuxVirtualMachineResource{}
 
@@ -798,6 +802,9 @@ func TestAccLinuxVirtualMachine_otherGracefulShutdownDisabled(t *testing.T) {
 }
 
 func TestAccLinuxVirtualMachine_otherGracefulShutdownEnabled(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("The graceful_shutdown feature is being deprecated in v5.0")
+	}
 	data := acceptance.BuildTestData(t, "azurerm_linux_virtual_machine", "test")
 	r := LinuxVirtualMachineResource{}
 
@@ -1756,7 +1763,7 @@ resource "azurerm_storage_account" "test" {
 
 resource "azurerm_storage_container" "test" {
   name                  = "test"
-  storage_account_name  = azurerm_storage_account.test.name
+  storage_account_id    = azurerm_storage_account.test.id
   container_access_type = "blob"
 }
 
