@@ -22,7 +22,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 var notificationHubNamespaceResourceName = "azurerm_notification_hub_namespace"
@@ -88,6 +87,20 @@ func resourceNotificationHubNamespace() *pluginsdk.Resource {
 				}, false),
 			},
 
+			"zone_redundancy_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+				ForceNew: true,
+			},
+
+			"replication_region": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(namespaces.PossibleValuesForReplicationRegion(), false),
+				ForceNew:     true,
+			},
+
 			"tags": commonschema.Tags(),
 
 			"servicebus_endpoint": {
@@ -117,6 +130,11 @@ func resourceNotificationHubNamespaceCreate(d *pluginsdk.ResourceData, meta inte
 		return tf.ImportAsExistsError("azurerm_notification_hub_namespace", id.ID())
 	}
 
+	zoneRedundancy := namespaces.ZoneRedundancyPreferenceDisabled
+	if v, ok := d.GetOk("zone_redundancy_enabled"); ok && v.(bool) {
+		zoneRedundancy = namespaces.ZoneRedundancyPreferenceEnabled
+	}
+
 	namespaceType := namespaces.NamespaceType(d.Get("namespace_type").(string))
 	parameters := namespaces.NamespaceResource{
 		Location: location.Normalize(d.Get("location").(string)),
@@ -124,11 +142,17 @@ func resourceNotificationHubNamespaceCreate(d *pluginsdk.ResourceData, meta inte
 			Name: namespaces.SkuName(d.Get("sku_name").(string)),
 		},
 		Properties: &namespaces.NamespaceProperties{
-			NamespaceType: &namespaceType,
-			Enabled:       utils.Bool(d.Get("enabled").(bool)),
+			NamespaceType:  &namespaceType,
+			Enabled:        pointer.To(d.Get("enabled").(bool)),
+			ZoneRedundancy: pointer.To(zoneRedundancy),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
+
+	if v, ok := d.GetOk("replication_region"); ok {
+		parameters.Properties.ReplicationRegion = pointer.To(namespaces.ReplicationRegion(v.(string)))
+	}
+
 	if _, err := client.CreateOrUpdate(ctx, id, parameters); err != nil {
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
@@ -169,13 +193,13 @@ func resourceNotificationHubNamespaceUpdate(d *pluginsdk.ResourceData, meta inte
 		},
 	}
 
-	if d.HasChanges("sku_name") {
+	if d.HasChange("sku_name") {
 		parameters.Sku = &namespaces.Sku{
 			Name: namespaces.SkuName(d.Get("sku_name").(string)),
 		}
 	}
 
-	if d.HasChanges("tags") {
+	if d.HasChange("tags") {
 		parameters.Tags = tags.Expand(d.Get("tags").(map[string]interface{}))
 	}
 
@@ -216,6 +240,8 @@ func resourceNotificationHubNamespaceRead(d *pluginsdk.ResourceData, meta interf
 		if props := model.Properties; props != nil {
 			d.Set("enabled", props.Enabled)
 			d.Set("servicebus_endpoint", props.ServiceBusEndpoint)
+			d.Set("zone_redundancy_enabled", pointer.From(props.ZoneRedundancy) == namespaces.ZoneRedundancyPreferenceEnabled)
+			d.Set("replication_region", string(pointer.From(props.ReplicationRegion)))
 		}
 
 		return tags.FlattenAndSet(d, model.Tags)
