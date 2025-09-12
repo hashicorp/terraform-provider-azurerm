@@ -136,7 +136,6 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 
 			"protocols": {
 				Type:     pluginsdk.TypeSet,
-				ForceNew: true,
 				Optional: true,
 				Computed: true,
 				MaxItems: 2,
@@ -511,6 +510,61 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				}
 			}
 
+			// Validate NFSv3 to NFSv4.1 protocol conversion restrictions
+			if d.HasChange("protocols") {
+				old, new := d.GetChange("protocols")
+				oldProtocols := old.(*pluginsdk.Set).List()
+				newProtocols := new.(*pluginsdk.Set).List()
+
+				// Convert to string slices for easier comparison
+				oldProtocolsStr := make([]string, len(oldProtocols))
+				newProtocolsStr := make([]string, len(newProtocols))
+
+				for i, v := range oldProtocols {
+					oldProtocolsStr[i] = v.(string)
+				}
+				for i, v := range newProtocols {
+					newProtocolsStr[i] = v.(string)
+				}
+
+				// Check if this is a protocol conversion between NFSv3 and NFSv4.1
+				isNFSProtocolChange := false
+
+				// Check if old is NFSv3 and new is NFSv4.1 or vice versa
+				oldHasNFSv3 := utils.SliceContainsValue(oldProtocolsStr, "NFSv3")
+				oldHasNFSv41 := utils.SliceContainsValue(oldProtocolsStr, "NFSv4.1")
+				newHasNFSv3 := utils.SliceContainsValue(newProtocolsStr, "NFSv3")
+				newHasNFSv41 := utils.SliceContainsValue(newProtocolsStr, "NFSv4.1")
+
+				if (oldHasNFSv3 && !oldHasNFSv41 && newHasNFSv41 && !newHasNFSv3) ||
+					(oldHasNFSv41 && !oldHasNFSv3 && newHasNFSv3 && !newHasNFSv41) {
+					isNFSProtocolChange = true
+				}
+
+				if isNFSProtocolChange {
+					// Validate Kerberos restriction for NFSv4.1 to NFSv3 conversion
+					if oldHasNFSv41 && newHasNFSv3 {
+						kerberosEnabled := d.Get("kerberos_enabled").(bool)
+						if kerberosEnabled {
+							return fmt.Errorf("cannot convert an NFSv4.1 volume with Kerberos enabled to NFSv3")
+						}
+					}
+
+					// Validate dual-protocol restriction
+					if len(oldProtocolsStr) > 1 || len(newProtocolsStr) > 1 {
+						return fmt.Errorf("cannot change the NFS version of a dual-protocol volume")
+					}
+
+					// Validate that this is not a dual-protocol conversion
+					oldHasCIFS := utils.SliceContainsValue(oldProtocolsStr, "CIFS")
+					newHasCIFS := utils.SliceContainsValue(newProtocolsStr, "CIFS")
+
+					if oldHasCIFS || newHasCIFS {
+						return fmt.Errorf("cannot convert a single-protocol NFS volume to a dual-protocol volume, or the other way around")
+					}
+				}
+			}
+
 			return nil
 		},
 	}
@@ -848,8 +902,19 @@ func resourceNetAppVolumeUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	if d.HasChange("export_policy_rule") {
 		exportPolicyRuleRaw := d.Get("export_policy_rule").([]interface{})
-		exportPolicyRule := expandNetAppVolumeExportPolicyRulePatch(exportPolicyRuleRaw)
+		var protocolOverride []string
+		// Only override export policy protocols if we're also changing volume protocols
+		if d.HasChange("protocols") {
+			protocols := d.Get("protocols").(*pluginsdk.Set).List()
+			protocolOverride = *utils.ExpandStringSlice(protocols)
+		}
+		exportPolicyRule := expandNetAppVolumeExportPolicyRulePatch(exportPolicyRuleRaw, protocolOverride)
 		update.Properties.ExportPolicy = exportPolicyRule
+	}
+
+	if d.HasChange("protocols") {
+		protocols := d.Get("protocols").(*pluginsdk.Set).List()
+		update.Properties.ProtocolTypes = utils.ExpandStringSlice(protocols)
 	}
 
 	if d.HasChange("data_protection_snapshot_policy") {
@@ -1310,7 +1375,7 @@ func expandNetAppVolumeExportPolicyRule(input []interface{}) *volumes.VolumeProp
 	}
 }
 
-func expandNetAppVolumeExportPolicyRulePatch(input []interface{}) *volumes.VolumePatchPropertiesExportPolicy {
+func expandNetAppVolumeExportPolicyRulePatch(input []interface{}, overrideProtocols []string) *volumes.VolumePatchPropertiesExportPolicy {
 	results := make([]volumes.ExportPolicyRule, 0)
 	for _, item := range input {
 		if item != nil {
@@ -1321,25 +1386,24 @@ func expandNetAppVolumeExportPolicyRulePatch(input []interface{}) *volumes.Volum
 			nfsv3Enabled := false
 			nfsv41Enabled := false
 			cifsEnabled := false
-			if vpe := v["protocol"]; vpe != nil {
-				protocolsEnabled := vpe.([]interface{})
-				if len(protocolsEnabled) != 0 {
-					for _, protocol := range protocolsEnabled {
-						if protocol != nil {
-							switch strings.ToLower(protocol.(string)) {
-							case "cifs":
-								cifsEnabled = true
-							case "nfsv3":
-								nfsv3Enabled = true
-							case "nfsv4.1":
-								nfsv41Enabled = true
-							}
-						}
+
+			// If overrideProtocols is provided (during protocol conversion), use those protocols
+			// instead of reading from the export policy rule configuration
+			if len(overrideProtocols) > 0 {
+				for _, protocol := range overrideProtocols {
+					switch strings.ToLower(protocol) {
+					case "cifs":
+						cifsEnabled = true
+					case "nfsv3":
+						nfsv3Enabled = true
+					case "nfsv4.1":
+						nfsv41Enabled = true
 					}
 				}
-			}
-			if !features.FivePointOh() {
-				if vpe := v["protocols_enabled"]; vpe != nil {
+			} else {
+				// Use existing logic when no protocol override is provided
+				// This handles both FivePointOh() v5 and !FivePointOh() v4 cases
+				if vpe := v["protocol"]; vpe != nil {
 					protocolsEnabled := vpe.([]interface{})
 					if len(protocolsEnabled) != 0 {
 						for _, protocol := range protocolsEnabled {
@@ -1351,6 +1415,25 @@ func expandNetAppVolumeExportPolicyRulePatch(input []interface{}) *volumes.Volum
 									nfsv3Enabled = true
 								case "nfsv4.1":
 									nfsv41Enabled = true
+								}
+							}
+						}
+					}
+				}
+				if !features.FivePointOh() {
+					if vpe := v["protocols_enabled"]; vpe != nil {
+						protocolsEnabled := vpe.([]interface{})
+						if len(protocolsEnabled) != 0 {
+							for _, protocol := range protocolsEnabled {
+								if protocol != nil {
+									switch strings.ToLower(protocol.(string)) {
+									case "cifs":
+										cifsEnabled = true
+									case "nfsv3":
+										nfsv3Enabled = true
+									case "nfsv4.1":
+										nfsv41Enabled = true
+									}
 								}
 							}
 						}
