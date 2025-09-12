@@ -125,9 +125,9 @@
   service: securityinsights
   version: 2023-12-01-preview
 
-- module: github.com/hashicorp/go-azure-sdk/resource-manager
-  service: sql
-  version: 2023-08-01-preview
+# - module: github.com/hashicorp/go-azure-sdk/resource-manager
+#   service: sql
+#   version: 2023-08-01-preview
 
 - module: github.com/hashicorp/go-azure-sdk/resource-manager
   service: streamanalytics

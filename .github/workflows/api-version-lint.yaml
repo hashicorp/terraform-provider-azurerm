@@ -1,5 +1,5 @@
 ---
-name: API Version Linting
+name: ARM API Version Linting
 
 permissions:
   contents: read
@@ -21,6 +21,7 @@ jobs:
       - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
         with:
           go-version-file: ./.go-version
+      - run: go run internal/tools/api-version-lint/main.go
   comment-on-fail:
     if: ${{ needs.depscheck.result }} == 'failure'
     uses: ./.github/workflows/comment-failure.yaml
