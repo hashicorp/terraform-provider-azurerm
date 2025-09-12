@@ -187,7 +187,6 @@ func (r LogAnalyticsWorkspaceTableResource) Arguments() map[string]*pluginsdk.Sc
 	if !features.FivePointOh() {
 		args["type"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
-			Required:     false,
 			Optional:     true,
 			ForceNew:     true,
 			Default:      string(tables.TableTypeEnumMicrosoft),
@@ -196,7 +195,6 @@ func (r LogAnalyticsWorkspaceTableResource) Arguments() map[string]*pluginsdk.Sc
 
 		args["sub_type"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
-			Required:     false,
 			Optional:     true,
 			Computed:     true,
 			ForceNew:     true,
