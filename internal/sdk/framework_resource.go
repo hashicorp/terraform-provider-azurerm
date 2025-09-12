@@ -6,7 +6,6 @@ package sdk
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-framework/list"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -14,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
+	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
