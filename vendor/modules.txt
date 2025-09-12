@@ -1525,13 +1525,13 @@ github.com/oklog/run
 github.com/posener/complete
 github.com/posener/complete/cmd
 github.com/posener/complete/cmd/install
-# github.com/rickb777/date v1.21.1
-## explicit; go 1.17
+# github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
+## explicit; go 1.13
 github.com/rickb777/date/period
 # github.com/rickb777/plural v1.4.4
 ## explicit; go 1.23.0
 github.com/rickb777/plural
-# github.com/sergi/go-diff v1.4.0
+# github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3
 ## explicit; go 1.13
 github.com/sergi/go-diff/diffmatchpatch
 # github.com/shopspring/decimal v1.4.0

@@ -38,8 +38,8 @@ require (
 	github.com/magodo/terraform-provider-azurerm-example-gen v0.0.0-20250424222324-b015d063c1fc
 	github.com/mitchellh/cli v1.1.5
 	github.com/mitchellh/mapstructure v1.5.0
-	github.com/rickb777/date v1.21.1
-	github.com/sergi/go-diff v1.4.0
+	github.com/rickb777/date v1.12.5-0.20200422084442-6300e543c4d9
+	github.com/sergi/go-diff v1.3.2-0.20230802210424-5b0b94c5c0d3
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/afero v1.15.0
 	github.com/spf13/cobra v1.10.1
