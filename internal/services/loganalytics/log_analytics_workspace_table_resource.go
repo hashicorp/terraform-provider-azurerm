@@ -23,9 +23,9 @@ import (
 type LogAnalyticsWorkspaceTableResource struct{}
 
 var (
-	_                            sdk.ResourceWithUpdate        = LogAnalyticsWorkspaceTableResource{}
-	_                            sdk.ResourceWithCustomizeDiff = LogAnalyticsWorkspaceTableResource{}
-	useWorkspaceDefaultRetention                               = pointer.To(int64(-1))
+	_                      sdk.ResourceWithUpdate        = LogAnalyticsWorkspaceTableResource{}
+	_                      sdk.ResourceWithCustomizeDiff = LogAnalyticsWorkspaceTableResource{}
+	defaultRetentionInDays                               = pointer.To(int64(-1))
 )
 
 type LogAnalyticsWorkspaceTableResourceModel struct {
@@ -185,14 +185,24 @@ func (r LogAnalyticsWorkspaceTableResource) Arguments() map[string]*pluginsdk.Sc
 	}
 
 	if !features.FivePointOh() {
-		args["type"].Required = false
-		args["type"].Optional = true
-		args["type"].Default = string(tables.TableTypeEnumMicrosoft)
+		args["type"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Required:     false,
+			Optional:     true,
+			ForceNew:     true,
+			Default:      string(tables.TableTypeEnumMicrosoft),
+			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForTableTypeEnum(), false),
+		}
 
-		args["sub_type"].Required = false
-		args["sub_type"].Optional = true
-		args["sub_type"].Computed = true
-		args["sub_type"].Default = nil
+		args["sub_type"] = &pluginsdk.Schema{
+			Type:         pluginsdk.TypeString,
+			Required:     false,
+			Optional:     true,
+			Computed:     true,
+			ForceNew:     true,
+			Default:      nil,
+			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForTableSubTypeEnum(), false),
+		}
 	}
 
 	return args
@@ -279,14 +289,12 @@ func (r LogAnalyticsWorkspaceTableResource) Create() sdk.ResourceFunc {
 
 			if model.Plan == string(tables.TablePlanEnumAnalytics) {
 				if model.RetentionInDays == 0 {
-					// Set the retention period to the workspace default
-					updateInput.Properties.RetentionInDays = useWorkspaceDefaultRetention
+					updateInput.Properties.RetentionInDays = defaultRetentionInDays
 				} else {
 					updateInput.Properties.RetentionInDays = pointer.To(model.RetentionInDays)
 				}
 				if model.TotalRetentionInDays == 0 {
-					// Set the retention period to the workspace default
-					updateInput.Properties.TotalRetentionInDays = useWorkspaceDefaultRetention
+					updateInput.Properties.TotalRetentionInDays = defaultRetentionInDays
 				} else {
 					updateInput.Properties.TotalRetentionInDays = pointer.To(model.TotalRetentionInDays)
 				}
@@ -346,7 +354,7 @@ func (r LogAnalyticsWorkspaceTableResource) Update() sdk.ResourceFunc {
 						if metadata.ResourceData.HasChange("retention_in_days") {
 							if state.RetentionInDays == 0 {
 								// Set the retention period to the workspace default
-								updateInput.Properties.RetentionInDays = useWorkspaceDefaultRetention
+								updateInput.Properties.RetentionInDays = defaultRetentionInDays
 							} else {
 								// Set the retention period to the workspace default
 								updateInput.Properties.RetentionInDays = pointer.To(state.RetentionInDays)
@@ -355,7 +363,7 @@ func (r LogAnalyticsWorkspaceTableResource) Update() sdk.ResourceFunc {
 
 						if metadata.ResourceData.HasChange("total_retention_in_days") {
 							if state.TotalRetentionInDays == 0 {
-								updateInput.Properties.TotalRetentionInDays = useWorkspaceDefaultRetention
+								updateInput.Properties.TotalRetentionInDays = defaultRetentionInDays
 							} else {
 								updateInput.Properties.TotalRetentionInDays = pointer.To(state.TotalRetentionInDays)
 							}
@@ -483,8 +491,8 @@ func (r LogAnalyticsWorkspaceTableResource) Delete() sdk.ResourceFunc {
 				// We can't delete Microsoft tables, so we'll just set the retention to workspace default
 				updateInput := tables.Table{
 					Properties: &tables.TableProperties{
-						RetentionInDays:      useWorkspaceDefaultRetention,
-						TotalRetentionInDays: useWorkspaceDefaultRetention,
+						RetentionInDays:      defaultRetentionInDays,
+						TotalRetentionInDays: defaultRetentionInDays,
 						Schema: &tables.Schema{
 							Name:    pointer.To(id.TableName),
 							Columns: &[]tables.Column{},

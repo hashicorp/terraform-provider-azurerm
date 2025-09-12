@@ -73,33 +73,33 @@ resource "azurerm_log_analytics_workspace_table" "example" {
 
 The following arguments are supported:
 
-- `name` - (Required) Specifies the name of the table in a Log Analytics Workspace. Must end in `_CL` for custom tables.
+* `name` - (Required) Specifies the name of the table in a Log Analytics Workspace. Must end in `_CL` for custom tables. Changing this forces a new resource to be created.
 
-- `workspace_id` - (Required) The object ID of the Log Analytics Workspace that will contain the table.
+* `workspace_id` - (Required) The object ID of the Log Analytics Workspace that will contain the table. Changing this forces a new resource to be created.
 
-- `type` - (Required) The type of table. Must be either of `Microsoft` for inbuilt tables, or `CustomLog` for custom tables.
+* `type` - (Required) The type of table. Possible values are `CustomLog`, `Microsoft`, `RestoredLogs` and `SearchResults`. Defaults to `Microsoft`. Changing this forces a new resource to be created.
 
-- `sub_type` - (Required) The sub type of table. Must be one of `Any`, `Classic`, or `DataCollectionRuleBased`.
+* `sub_type` - (Required) The sub type of table. Must be one of `Any`, `Classic`, or `DataCollectionRuleBased`.
 
-- `display_name` - (Optional) The display name of the table in a Log Analytics Workspace.
+* `display_name` - (Optional) The display name of the table in a Log Analytics Workspace.
 
-- `description` - (Optional) The description of the table in a Log Analytics Workspace.
+* `description` - (Optional) The description of the table in a Log Analytics Workspace.
 
-- `categories` - (Optional) The categories applied to the table.
+* `categories` - (Optional) The categories applied to the table.
 
-- `column` - (Optional) One or more `column` blocks detailed below.
+* `column` - (Optional) One or more `column` blocks detailed below.
 
 -> **Note:** The order of the columns will match the display order in Log Analytics.
 
-- `labels` - (Optional) The labels applied to the table.
+* `labels` - (Optional) The labels applied to the table.
 
-- `plan` - (Optional) Specify the system how to handle and charge the logs ingested to the table. Possible values are `Analytics` and `Basic`. Defaults to `Analytics`.
+* `plan` - (Optional) Specify the system how to handle and charge the logs ingested to the table. Possible values are `Analytics` and `Basic`. Defaults to `Analytics`.
 
 -> **Note:** The `name` of tables currently supported by the `Basic` plan can be found [here](https://learn.microsoft.com/en-us/azure/azure-monitor/logs/basic-logs-azure-tables).
 
-- `retention_in_days` - (Optional) The table's retention in days. Possible values are either `8` (Basic Tier only) or range between `4` and `730`.
+* `retention_in_days` - (Optional) The table's retention in days. Possible values are either `8` (Basic Tier only) or range between `4` and `730`.
 
-- `total_retention_in_days` - (Optional) The table's total retention in days. Possible values range between `4` and `730`; or `1095`, `1460`, `1826`, `2191`, `2556`, `2922`, `3288`, `3653`, `4018`, or `4383`.
+* `total_retention_in_days` - (Optional) The table's total retention in days. Possible values range between `4` and `730`; or `1095`, `1460`, `1826`, `2191`, `2556`, `2922`, `3288`, `3653`, `4018`, or `4383`.
 
 -> **Note:** `retention_in_days` and `total_retention_in_days` will revert back to the value of azurerm_log_analytics_workspace retention_in_days when a Microsoft or Classic azurerm_log_analytics_workspace_table is deleted.
 
@@ -109,35 +109,35 @@ The following arguments are supported:
 
 A `column` block supports the following:
 
-- `name` - (Required) The name of the column.
+* `name` - (Required) The name of the column.
 
-- `type` - (Required) The type of data stored in the column. Must be one of `boolean`, `dateTime`, `dynamic`, `guid"`, `int`, `long`, `real` , or `string`.
+* `type` - (Required) The type of data stored in the column. Must be one of `boolean`, `dateTime`, `dynamic`, `guid"`, `int`, `long`, `real` , or `string`.
 
-- `display_name` - (Optional) The display name of the column.
+* `display_name` - (Optional) The display name of the column.
 
-- `description` - (Optional) A description of the column.
+* `description` - (Optional) A description of the column.
 
-- `display_by_default` - (Optional) Is the column displayed by default. Defaults to `true`.
+* `display_by_default` - (Optional) Is the column displayed by default. Defaults to `true`.
 
-- `type_hint` - (Optional) A hint as to what kind of data is stored in a `string` column. Must be one of `armpath`, `guid`, `ip`, or `uri`.
+* `type_hint` - (Optional) A hint as to what kind of data is stored in a `string` column. Must be one of `armpath`, `guid`, `ip`, or `uri`.
 
-- `hidden` - (Optional) Is the column hidden? Defaults to `false`.
+* `hidden` - (Optional) Is the column hidden? Defaults to `false`.
 
 ## Attributes Reference
 
 The following attributes are exported:
 
-- `id` - The Log Analytics Workspace Table ID.
+* `id` - The Log Analytics Workspace Table ID.
 
-- `workspace_id` - The Workspace (or Customer) ID for the Log Analytics Workspace.
+* `workspace_id` - The Workspace (or Customer) ID for the Log Analytics Workspace.
 
-- `retention_in_days` - The table's data retention in days.
+* `retention_in_days` - The table's data retention in days.
 
-- `solutions` - The list of solutions associated with this table.
+* `solutions` - The list of solutions associated with this table.
 
-- `standard_column` - The details of the standard columns in this table.
+* `standard_column` - The details of the standard columns in this table.
 
-- `total_retention_in_days` - The table's total data retention in days.
+* `total_retention_in_days` - The table's total data retention in days.
 
 ## Timeouts
 
