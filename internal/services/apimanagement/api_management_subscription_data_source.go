@@ -135,9 +135,10 @@ func (ApiManagementSubscriptionDataSource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
-					// check if the subscription is for all apis or a specific product/ api
-					if props.Scope != "" && !strings.HasSuffix(props.Scope, "/apis") {
-						// the scope is either a product or api id
+					// Check if the subscription is for all apis or a specific product/ api, excluding the built-in master subscription.
+					// The scope of the built-in subscription is the API Management service itself (service ID).
+					if state.SubscriptionId != "master" && props.Scope != "" && !strings.HasSuffix(props.Scope, "/apis") {
+						// the scope is either a product, api id or service id
 						parseId, err := product.ParseProductIDInsensitively(props.Scope)
 						if err == nil {
 							state.ProductId = parseId.ID()
