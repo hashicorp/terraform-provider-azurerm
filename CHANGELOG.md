@@ -1,3 +1,11 @@
+## 4.45.0 (Unreleased)
+
+ENHANCEMENTS:
+
+FEATURES:
+
+BUG FIXES:
+
 ## 4.44.0 (September 11, 2025)
 
 ENHANCEMENTS:
