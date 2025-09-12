@@ -274,13 +274,12 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 							Required: true,
 							ValidateFunc: validation.StringInSlice([]string{
 								string(cognitiveservicesaccounts.ScenarioTypeAgent),
-								string(cognitiveservicesaccounts.ScenarioTypeNone),
 							}, false),
 						},
 
-						"subnet_arm_id": {
+						"subnet_id": {
 							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Required: true,
 						},
 					},
 				},
@@ -384,8 +383,11 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				return fmt.Errorf("the `network_acls.bypass` does not support Trusted Services for the kind %q", kind)
 			}
 
-			if network_injection_subnet_id, ok := d.GetOk("network_injection.0.subnet_id"); ok && network_injection_subnet_id != "" && kind != "AIServices" {
-				return errors.New("the `network_injection` is only supported for the kind `AIServices`")
+			networkInjection := d.Get("network_injection").([]interface{})
+			if len(networkInjection) > 0 && networkInjection[0] != nil {
+				if kind != "AIServices" {
+					return errors.New("the `network_injection` is only supported for the kind `AIServices`")
+				}
 			}
 
 			if d.HasChange("custom_subdomain_name") {
@@ -1009,18 +1011,18 @@ func expandCognitiveAccountNetworkInjection(input []interface{}) *[]cognitiveser
 
 	results := make([]cognitiveservicesaccounts.NetworkInjection, 0)
 	for _, v := range input {
-		value := v.(map[string]interface{})
+		m := v.(map[string]interface{})
 
-		scenario := cognitiveservicesaccounts.ScenarioType(value["scenario"].(string))
+		scenario := cognitiveservicesaccounts.ScenarioType(m["scenario"].(string))
 
-		var subnetArmId *string
-		if value["subnet_arm_id"] != nil && value["subnet_arm_id"] != "" {
-			subnetArmId = utils.String(value["subnet_arm_id"].(string))
+		var subnetId *string
+		if m["subnet_id"] != nil && m["subnet_id"] != "" {
+			subnetId = pointer.To(m["subnet_id"].(string))
 		}
 
 		results = append(results, cognitiveservicesaccounts.NetworkInjection{
 			Scenario:    &scenario,
-			SubnetArmId: subnetArmId,
+			SubnetArmId: subnetId,
 		})
 	}
 
@@ -1038,14 +1040,14 @@ func flattenCognitiveAccountNetworkInjection(input *[]cognitiveservicesaccounts.
 		if v.SubnetArmId != nil {
 			subnet, err := commonids.ParseSubnetIDInsensitively(*v.SubnetArmId)
 			if err != nil {
-				return nil, fmt.Errorf("parsing `subnet_arm_id`: %+v", err)
+				return nil, fmt.Errorf("parsing `subnet_id`: %+v", err)
 			}
 			subnetId = subnet.ID()
 		}
 
 		results = append(results, map[string]interface{}{
-			"scenario":      v.Scenario,
-			"subnet_arm_id": subnetId,
+			"scenario":  v.Scenario,
+			"subnet_id": subnetId,
 		})
 	}
 
