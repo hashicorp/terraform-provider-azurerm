@@ -6,6 +6,7 @@ package applicationinsights
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -87,10 +88,10 @@ func (r ApplicationInsightsStandardWebTestResource) CustomizeDiff() sdk.Resource
 			if ok {
 				if !strings.HasPrefix(strings.ToLower(url.(string)), "https://") {
 					if v, ok := rd.GetOkExists("validation_rules.0.ssl_check_enabled"); ok && v.(bool) {
-						return fmt.Errorf("cannot set ssl_check_enabled to true if request.0.url is not https")
+						return errors.New("cannot set ssl_check_enabled to true if request.0.url is not https")
 					}
 					if v, ok := rd.GetOkExists("validation_rules.0.ssl_cert_remaining_lifetime"); ok && v.(int) != 0 {
-						return fmt.Errorf("cannot set ssl_cert_remaining_lifetime if request.0.url is not https")
+						return errors.New("cannot set ssl_cert_remaining_lifetime if request.0.url is not https")
 					}
 				}
 			}
@@ -579,8 +580,8 @@ func expandApplicationInsightsStandardWebTestRequestHeaders(input []HeaderModel)
 
 	for _, v := range input {
 		h := webtests.HeaderField{
-			Key:   utils.String(v.Name),
-			Value: utils.String(v.Value),
+			Key:   pointer.To(v.Name),
+			Value: pointer.To(v.Value),
 		}
 		headers = append(headers, h)
 	}

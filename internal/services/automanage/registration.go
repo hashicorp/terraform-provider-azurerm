@@ -52,5 +52,6 @@ func (r Registration) Resources() []sdk.Resource {
 		AutoManageConfigurationResource{},
 		VirtualMachineConfigurationAssignment{},
 		ArcMachineConfigurationAssignment{},
+		StackHCIClusterConfigurationAssignment{},
 	}
 }
