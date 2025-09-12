@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `language_extensions` - (Optional) A `language_extensions` block as defined below.
+* `language_extension` - (Optional) A `language_extension` block as defined below.
 
 * `optimized_auto_scale` - (Optional) An `optimized_auto_scale` block as defined below.
 
@@ -94,7 +94,7 @@ An `identity` block supports the following:
 
 ---
 
-A `language_extensions` block supports the following:
+A `language_extension` block supports the following:
 
 * `name` - (Required) The name of the language extension. Possible values are `PYTHON` and `R`. 
 
