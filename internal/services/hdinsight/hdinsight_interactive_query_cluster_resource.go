@@ -255,17 +255,31 @@ func resourceHDInsightInteractiveQueryClusterCreate(d *pluginsdk.ResourceData, m
 		if err != nil {
 			return err
 		}
+		if params.Properties.DiskEncryptionProperties.MsiResourceId != nil {
+			if params.Identity == nil {
+				params.Identity = &identity.SystemAndUserAssignedMap{
+					Type:        identity.TypeUserAssigned,
+					IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+				}
+			}
+
+			params.Identity.IdentityIds[*params.Properties.DiskEncryptionProperties.MsiResourceId] = identity.UserAssignedIdentityDetails{
+				// intentionally empty
+			}
+		}
 	}
 
 	if v, ok := d.GetOk("security_profile"); ok {
 		params.Properties.SecurityProfile = ExpandHDInsightSecurityProfile(v.([]interface{}))
 
 		// @tombuildsstuff: this behaviour is likely wrong and wants reevaluating - users should need to explicitly define this in the config?
-		params.Identity = &identity.SystemAndUserAssignedMap{
-			Type:        identity.TypeUserAssigned,
-			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
-		}
 		if params.Properties.SecurityProfile != nil && params.Properties.SecurityProfile.MsiResourceId != nil {
+			if params.Identity == nil {
+				params.Identity = &identity.SystemAndUserAssignedMap{
+					Type:        identity.TypeUserAssigned,
+					IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
+				}
+			}
 			params.Identity.IdentityIds[*params.Properties.SecurityProfile.MsiResourceId] = identity.UserAssignedIdentityDetails{
 				// intentionally empty
 			}
