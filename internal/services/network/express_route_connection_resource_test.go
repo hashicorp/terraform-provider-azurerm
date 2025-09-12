@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -138,7 +139,8 @@ resource "azurerm_express_route_connection" "import" {
 }
 
 func (r ExpressRouteConnectionResource) complete(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 %s
 
 resource "azurerm_express_route_connection" "test" {
@@ -148,6 +150,29 @@ resource "azurerm_express_route_connection" "test" {
   routing_weight                       = 2
   authorization_key                    = "90f8db47-e25b-4b65-a68b-7743ced2a16b"
   enable_internet_security             = true
+  express_route_gateway_bypass_enabled = true
+
+  routing {
+    associated_route_table_id = azurerm_virtual_hub.test.default_route_table_id
+
+    propagated_route_table {
+      labels          = ["label1"]
+      route_table_ids = [azurerm_virtual_hub.test.default_route_table_id]
+    }
+  }
+}
+`, r.template(data), data.RandomInteger)
+	}
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_express_route_connection" "test" {
+  name                                 = "acctest-ExpressRouteConnection-%d"
+  express_route_gateway_id             = azurerm_express_route_gateway.test.id
+  express_route_circuit_peering_id     = azurerm_express_route_circuit_peering.test.id
+  routing_weight                       = 2
+  authorization_key                    = "90f8db47-e25b-4b65-a68b-7743ced2a16b"
+  internet_security_enabled            = true
   express_route_gateway_bypass_enabled = true
 
   routing {
