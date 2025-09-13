@@ -33,10 +33,9 @@ The following arguments are supported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 120 minutes) Used when registering the Resource Provider/Features.
+* `create` - (Defaults to 2 hours) Used when creating the Resource Provider/Features.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Resource Provider.
-* `update` - (Defaults to 120 minutes) Used when updating the Resource Provider/Features.
-* `delete` - (Defaults to 30 minutes) Used when unregistering the Resource Provider.
+* `delete` - (Defaults to 30 minutes) Used when deleting the Resource Provider.
 
 ## Import
 
@@ -45,3 +44,9 @@ Features Registrations can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_resource_provider_registration.example /subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.Features/featureProviders/Microsoft.Compute/subscriptionFeatureRegistrations/EncryptionAtHost
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.Features` - 2021-07-01
