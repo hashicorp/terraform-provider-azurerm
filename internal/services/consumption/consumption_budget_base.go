@@ -138,7 +138,6 @@ func (br consumptionBudgetBaseResource) arguments(fields map[string]*pluginsdk.S
 			Type:     pluginsdk.TypeSet,
 			Required: true,
 			MinItems: 1,
-			MaxItems: 5,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"enabled": {
