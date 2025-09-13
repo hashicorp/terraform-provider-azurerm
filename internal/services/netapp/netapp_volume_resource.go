@@ -516,7 +516,7 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				oldProtocols := old.(*pluginsdk.Set).List()
 				newProtocols := new.(*pluginsdk.Set).List()
 
-				// Convert to string slices for easier comparison
+				// Convert to string slices for validation
 				oldProtocolsStr := make([]string, len(oldProtocols))
 				newProtocolsStr := make([]string, len(newProtocols))
 
@@ -527,41 +527,16 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 					newProtocolsStr[i] = v.(string)
 				}
 
-				// Check if this is a protocol conversion between NFSv3 and NFSv4.1
-				isNFSProtocolChange := false
+				kerberosEnabled := d.Get("kerberos_enabled").(bool)
+				dataReplication := d.Get("data_protection_replication").([]interface{})
 
-				// Check if old is NFSv3 and new is NFSv4.1 or vice versa
-				oldHasNFSv3 := utils.SliceContainsValue(oldProtocolsStr, "NFSv3")
-				oldHasNFSv41 := utils.SliceContainsValue(oldProtocolsStr, "NFSv4.1")
-				newHasNFSv3 := utils.SliceContainsValue(newProtocolsStr, "NFSv3")
-				newHasNFSv41 := utils.SliceContainsValue(newProtocolsStr, "NFSv4.1")
+				// Get the new export policy rules configuration to validate against new protocols
+				// Always use the new configuration when protocols are changing to ensure validation against intended state
+				exportPolicyRules := d.Get("export_policy_rule").([]interface{})
 
-				if (oldHasNFSv3 && !oldHasNFSv41 && newHasNFSv41 && !newHasNFSv3) ||
-					(oldHasNFSv41 && !oldHasNFSv3 && newHasNFSv3 && !newHasNFSv41) {
-					isNFSProtocolChange = true
-				}
-
-				if isNFSProtocolChange {
-					// Validate Kerberos restriction for NFSv4.1 to NFSv3 conversion
-					if oldHasNFSv41 && newHasNFSv3 {
-						kerberosEnabled := d.Get("kerberos_enabled").(bool)
-						if kerberosEnabled {
-							return fmt.Errorf("cannot convert an NFSv4.1 volume with Kerberos enabled to NFSv3")
-						}
-					}
-
-					// Validate dual-protocol restriction
-					if len(oldProtocolsStr) > 1 || len(newProtocolsStr) > 1 {
-						return fmt.Errorf("cannot change the NFS version of a dual-protocol volume")
-					}
-
-					// Validate that this is not a dual-protocol conversion
-					oldHasCIFS := utils.SliceContainsValue(oldProtocolsStr, "CIFS")
-					newHasCIFS := utils.SliceContainsValue(newProtocolsStr, "CIFS")
-
-					if oldHasCIFS || newHasCIFS {
-						return fmt.Errorf("cannot convert a single-protocol NFS volume to a dual-protocol volume, or the other way around")
-					}
+				validationErrors := netAppValidate.ValidateNetAppVolumeProtocolConversion(oldProtocolsStr, newProtocolsStr, kerberosEnabled, dataReplication, exportPolicyRules)
+				for _, err := range validationErrors {
+					return err
 				}
 			}
 

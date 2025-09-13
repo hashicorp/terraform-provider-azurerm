@@ -1,7 +1,7 @@
 variable "resource_group_name" {
   description = "The name of the resource group"
   type        = string
-  default     = "rg-netapp-protocol-conversion"
+  default     = "rg-netapp-protocol-conversion-1"
 }
 
 variable "location" {

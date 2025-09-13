@@ -17,6 +17,9 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_resource_group" "example" {
   name     = var.resource_group_name
   location = var.location
+  tags = {
+    "SkipNRMSNSG" = "true"
+  }
 }
 
 # Create the virtual network
@@ -35,10 +38,10 @@ resource "azurerm_subnet" "example" {
   address_prefixes     = ["10.6.2.0/24"]
 
   delegation {
-    name = "Microsoft.NetApp.volumes"
+    name = "Microsoft.Netapp.volumes"
 
     service_delegation {
-      name    = "Microsoft.NetApp/volumes"
+      name    = "Microsoft.Netapp/volumes"
       actions = ["Microsoft.Network/networkinterfaces/*", "Microsoft.Network/virtualNetworks/subnets/join/action"]
     }
   }
@@ -76,9 +79,10 @@ resource "azurerm_netapp_volume" "example" {
   storage_quota_in_gb = 100
 
   export_policy_rule {
-    rule_index          = 1
-    allowed_clients     = ["0.0.0.0/0"]
-    protocol            = [var.protocol_type]
+    rule_index        = 1
+    allowed_clients   = ["0.0.0.0/0"]
+    protocols_enabled = [var.protocol_type]
+    //protocols_enabled   = ["NFSv4.1"]
     unix_read_only      = false
     unix_read_write     = true
     root_access_enabled = true
