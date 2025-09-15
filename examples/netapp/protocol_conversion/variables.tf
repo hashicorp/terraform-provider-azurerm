@@ -1,13 +1,13 @@
 variable "resource_group_name" {
   description = "The name of the resource group"
   type        = string
-  default     = "rg-netapp-protocol-conversion-1"
+  default     = "example-netapp-protocol-conversion-rg"
 }
 
 variable "location" {
   description = "The Azure region for the resources"
   type        = string
-  default     = "East US"
+  default     = "westus3"
 }
 
 variable "prefix" {
