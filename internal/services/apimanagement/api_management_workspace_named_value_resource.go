@@ -202,9 +202,9 @@ func (r ApiManagementWorkspaceNamedValueResource) Update() sdk.ResourceFunc {
 			}
 
 			payload := resp.Model
-			parameters := namedvalue.NamedValueUpdateParameters{
-				Properties: &namedvalue.NamedValueUpdateParameterProperties{
-					DisplayName: pointer.To(payload.Properties.DisplayName),
+			parameters := namedvalue.NamedValueCreateContract{
+				Properties: &namedvalue.NamedValueCreateContractProperties{
+					DisplayName: payload.Properties.DisplayName,
 					Secret:      resp.Model.Properties.Secret,
 					Tags:        resp.Model.Properties.Tags,
 					Value:       resp.Model.Properties.Value,
@@ -218,7 +218,7 @@ func (r ApiManagementWorkspaceNamedValueResource) Update() sdk.ResourceFunc {
 				}
 			}
 			if metadata.ResourceData.HasChange("display_name") {
-				parameters.Properties.DisplayName = pointer.To(model.DisplayName)
+				parameters.Properties.DisplayName = model.DisplayName
 			}
 
 			if metadata.ResourceData.HasChange("secret_enabled") {
@@ -237,7 +237,7 @@ func (r ApiManagementWorkspaceNamedValueResource) Update() sdk.ResourceFunc {
 				parameters.Properties.Tags = pointer.To(model.Tags)
 			}
 
-			if err := client.WorkspaceNamedValueUpdateThenPoll(ctx, *id, parameters, namedvalue.DefaultWorkspaceNamedValueUpdateOperationOptions()); err != nil {
+			if err := client.WorkspaceNamedValueCreateOrUpdateThenPoll(ctx, *id, parameters, namedvalue.WorkspaceNamedValueCreateOrUpdateOperationOptions{}); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
