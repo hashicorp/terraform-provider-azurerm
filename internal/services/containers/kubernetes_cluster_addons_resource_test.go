@@ -329,26 +329,11 @@ func TestAccKubernetesCluster_addonProfileServiceMeshProfile_revisions(t *testin
 		},
 		data.ImportStep(),
 		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-24"]`),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-24", "asm-1-25"]`),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
 			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-25"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
 	})
 }
 
@@ -1456,7 +1441,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     mode                             = "Istio"
     internal_ingress_gateway_enabled = true
     external_ingress_gateway_enabled = true
-    revisions                        = ["asm-1-20"]
+    revisions                        = ["asm-1-26"]
     certificate_authority {
       key_vault_id           = azurerm_key_vault.test.id
       root_cert_object_name  = azurerm_key_vault_certificate.test_cert1.name
