@@ -1,14 +1,9 @@
-terraform {
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "~>4.0"
+provider "azurerm" {
+  features {
+    netapp {
+      prevent_volume_destruction = true
     }
   }
-}
-
-provider "azurerm" {
-  features {}
 }
 
 data "azurerm_client_config" "current" {}
@@ -66,6 +61,10 @@ resource "azurerm_netapp_pool" "example" {
 
 # Create a NetApp volume with NFSv3 protocol (initial state)
 resource "azurerm_netapp_volume" "example" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   name                = "${var.prefix}-netappvolume"
   location            = azurerm_resource_group.example.location
   resource_group_name = azurerm_resource_group.example.name
@@ -82,7 +81,6 @@ resource "azurerm_netapp_volume" "example" {
     rule_index        = 1
     allowed_clients   = ["0.0.0.0/0"]
     protocols_enabled = [var.protocol_type]
-    //protocols_enabled   = ["NFSv4.1"]
     unix_read_only      = false
     unix_read_write     = true
     root_access_enabled = true
