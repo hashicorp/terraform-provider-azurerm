@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"regexp"
 	"strings"
 	"time"
 
@@ -53,11 +52,10 @@ func resourceMonitorActivityLogAlert() *pluginsdk.Resource {
 
 		Schema: map[string]*pluginsdk.Schema{
 			"name": {
-				// NOTE: Name validation requirements documented here: https://learn.microsoft.com/azure/templates/microsoft.insights/activitylogalerts?pivots=deployment-language-terraform
 				Type:         pluginsdk.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[-\w\._\(\)]+$`), "name must contain only alphanumeric characters, hyphens, underscores, periods, and parentheses"),
+				ValidateFunc: validation.StringIsNotEmpty,
 			},
 
 			"resource_group_name": commonschema.ResourceGroupName(),

@@ -20,6 +20,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerregistry/2023-11-01-preview/registries"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/agentpools"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/maintenanceconfigurations"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/managedclusters"
@@ -113,6 +114,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				// Once it is GA, an additional logic is needed to handle the uninstallation of network policy.
 				return old.(string) != ""
 			}),
+			func(ctx context.Context, d *schema.ResourceDiff, meta interface{}) error {
+				outboundType := d.Get("network_profile.0.outbound_type").(string)
+				artifactSource := d.Get("bootstrap_profile.0.artifact_source").(string)
+
+				if outboundType == string(managedclusters.OutboundTypeNone) && artifactSource != string(managedclusters.ArtifactSourceCache) {
+					return fmt.Errorf("when `network_profile.0.outbound_type` is set to `none`, `bootstrap_profile.0.artifact_source` must be set to `Cache`")
+				}
+
+				return nil
+			},
 		),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
@@ -676,6 +687,30 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"bootstrap_profile": {
+				Type:     pluginsdk.TypeList,
+				Optional: true,
+				// Note: O+C because the API returns a default value for `bootstrapProfile` when it is omitted in the API request
+				Computed: true,
+				MaxItems: 1,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"artifact_source": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringInSlice(managedclusters.PossibleValuesForArtifactSource(), false),
+							Default:      managedclusters.ArtifactSourceDirect,
+						},
+
+						"container_registry_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: registries.ValidateRegistryID,
+						},
+					},
+				},
+			},
+
 			"local_account_disabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -1115,6 +1150,7 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								string(managedclusters.OutboundTypeUserDefinedRouting),
 								string(managedclusters.OutboundTypeManagedNATGateway),
 								string(managedclusters.OutboundTypeUserAssignedNATGateway),
+								string(managedclusters.OutboundTypeNone),
 							}, false),
 						},
 
@@ -1700,6 +1736,9 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 	azureMonitorKubernetesMetricsRaw := d.Get("monitor_metrics").([]interface{})
 	azureMonitorProfile := expandKubernetesClusterAzureMonitorProfile(azureMonitorKubernetesMetricsRaw)
 
+	bootstrapProfileRaw := d.Get("bootstrap_profile").([]interface{})
+	bootstrapProfile := expandBootstrapProfile(bootstrapProfileRaw)
+
 	httpProxyConfigRaw := d.Get("http_proxy_config").([]interface{})
 	httpProxyConfig := expandKubernetesClusterHttpProxyConfig(httpProxyConfigRaw)
 
@@ -1792,6 +1831,7 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			DnsPrefix:                 pointer.To(dnsPrefix),
 			EnableRBAC:                pointer.To(d.Get("role_based_access_control_enabled").(bool)),
 			KubernetesVersion:         pointer.To(kubernetesVersion),
+			BootstrapProfile:          bootstrapProfile,
 			LinuxProfile:              linuxProfile,
 			WindowsProfile:            windowsProfile,
 			MetricsProfile:            metricsProfile,
@@ -2370,6 +2410,21 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	if d.HasChange("bootstrap_profile") {
+		bootstrapProfileRaw := d.Get("bootstrap_profile").([]interface{})
+		profile := expandBootstrapProfile(bootstrapProfileRaw)
+
+		// If profile is removed in the config, we should set ArtifactSource to Direct as it's the default value in the service side.
+		if profile == nil {
+			profile = &managedclusters.ManagedClusterBootstrapProfile{
+				ArtifactSource: pointer.To(managedclusters.ArtifactSourceDirect),
+			}
+		}
+
+		updateCluster = true
+		existing.Model.Properties.BootstrapProfile = profile
+	}
+
 	if d.HasChange("upgrade_override") {
 		upgradeOverrideSettingRaw := d.Get("upgrade_override").([]interface{})
 
@@ -2920,6 +2975,14 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			}
 
 			d.Set("support_plan", pointer.From(props.SupportPlan))
+
+			bootstrapProfile, err := flattenBootstrapProfile(props.BootstrapProfile)
+			if err != nil {
+				return fmt.Errorf("flattening `bootstrap_profile`: %+v", err)
+			}
+			if err := d.Set("bootstrap_profile", bootstrapProfile); err != nil {
+				return fmt.Errorf("setting `bootstrap_profile`: %+v", err)
+			}
 		}
 
 		identity, err := identity.FlattenSystemOrUserAssignedMap(model.Identity)
@@ -3169,6 +3232,44 @@ func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedCl
 			"authorized_ip_ranges": apiServerAuthorizedIPRanges,
 		},
 	}
+}
+
+func expandBootstrapProfile(rawBootstrapProfile []interface{}) *managedclusters.ManagedClusterBootstrapProfile {
+	if len(rawBootstrapProfile) == 0 || rawBootstrapProfile[0] == nil {
+		return nil
+	}
+
+	config := rawBootstrapProfile[0].(map[string]interface{})
+	var containerRegistryID *string
+	if v, exists := config["container_registry_id"]; exists && v != "" {
+		containerRegistryID = pointer.To(v.(string))
+	}
+
+	return &managedclusters.ManagedClusterBootstrapProfile{
+		ArtifactSource:      pointer.ToEnum[managedclusters.ArtifactSource](config["artifact_source"].(string)),
+		ContainerRegistryId: containerRegistryID,
+	}
+}
+
+func flattenBootstrapProfile(profile *managedclusters.ManagedClusterBootstrapProfile) ([]interface{}, error) {
+	if profile == nil || profile.ArtifactSource == nil {
+		return []interface{}{}, nil
+	}
+
+	var containerRegistryID string
+	if profile.ContainerRegistryId != nil {
+		id, err := registries.ParseRegistryID(*profile.ContainerRegistryId)
+		if err != nil {
+			return nil, err
+		}
+		containerRegistryID = id.ID()
+	}
+	return []interface{}{
+		map[string]interface{}{
+			"artifact_source":       profile.ArtifactSource,
+			"container_registry_id": containerRegistryID,
+		},
+	}, nil
 }
 
 func expandKubernetesClusterWorkloadAutoscalerProfile(input []interface{}, d *pluginsdk.ResourceData) *managedclusters.ManagedClusterWorkloadAutoScalerProfile {
