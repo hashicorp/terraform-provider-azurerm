@@ -4065,6 +4065,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     type = "SystemAssigned"
   }
   network_profile {
+    pod_cidr            = "192.168.0.0/16"
     network_plugin      = "azure"
     network_plugin_mode = "overlay"
   }
