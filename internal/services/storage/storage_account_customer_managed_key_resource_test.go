@@ -656,7 +656,7 @@ resource "azurerm_resource_group" "remotetest" {
 resource "azuread_service_principal" "remotetest" {
   provider       = azuread.alt
   owners         = [data.azuread_client_config.remote.object_id]
-  application_id = azuread_application.test.application_id
+  client_id      = azuread_application.test.client_id
 }
 
 resource "azurerm_key_vault" "remotetest" {
@@ -721,7 +721,7 @@ resource "azurerm_storage_account_customer_managed_key" "test" {
   key_name           = azurerm_key_vault_key.remotetest.name
 
   user_assigned_identity_id    = azurerm_user_assigned_identity.test.id
-  federated_identity_client_id = azuread_application.test.application_id
+  federated_identity_client_id = azuread_application.test.client_id
 }
 `, altTenantId, subscriptionIdAltTenant, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
