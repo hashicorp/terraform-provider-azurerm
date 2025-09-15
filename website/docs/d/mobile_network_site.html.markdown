@@ -6,7 +6,7 @@ description: |-
   Get information about a Mobile Network Site.
 ---
 
-# azurerm_mobile_network_site
+# Data Source: azurerm_mobile_network_site
 
 Get information about a Mobile Network Site.
 

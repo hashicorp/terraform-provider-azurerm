@@ -17,7 +17,7 @@ func init() {
 
 var _ resourceids.ResourceId = &DedicatedHSMId{}
 
-// DedicatedHSMId is a struct representing the Resource ID for a Dedicated H S M
+// DedicatedHSMId is a struct representing the Resource ID for a Dedicated HSM
 type DedicatedHSMId struct {
 	SubscriptionId    string
 	ResourceGroupName string
@@ -84,7 +84,7 @@ func (id *DedicatedHSMId) FromParseResult(input resourceids.ParseResult) error {
 	return nil
 }
 
-// ValidateDedicatedHSMID checks that 'input' can be parsed as a Dedicated H S M ID
+// ValidateDedicatedHSMID checks that 'input' can be parsed as a Dedicated HSM ID
 func ValidateDedicatedHSMID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
@@ -99,13 +99,13 @@ func ValidateDedicatedHSMID(input interface{}, key string) (warnings []string, e
 	return
 }
 
-// ID returns the formatted Dedicated H S M ID
+// ID returns the formatted Dedicated HSM ID
 func (id DedicatedHSMId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.HardwareSecurityModules/dedicatedHSMs/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.DedicatedHSMName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Dedicated H S M ID
+// Segments returns a slice of Resource ID Segments which comprise this Dedicated HSM ID
 func (id DedicatedHSMId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
@@ -119,12 +119,12 @@ func (id DedicatedHSMId) Segments() []resourceids.Segment {
 	}
 }
 
-// String returns a human-readable description of this Dedicated H S M ID
+// String returns a human-readable description of this Dedicated HSM ID
 func (id DedicatedHSMId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
-		fmt.Sprintf("Dedicated H S M Name: %q", id.DedicatedHSMName),
+		fmt.Sprintf("Dedicated HSM Name: %q", id.DedicatedHSMName),
 	}
-	return fmt.Sprintf("Dedicated H S M (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Dedicated HSM (%s)", strings.Join(components, "\n"))
 }

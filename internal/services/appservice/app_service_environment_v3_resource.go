@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/web/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 const KindASEV3 = "ASEV3"
@@ -463,7 +462,7 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 
 			model := existing.Model
 			if model == nil {
-				return fmt.Errorf("reading %s for update: model was nil", *id)
+				return fmt.Errorf("retrieving %s: model was nil", *id)
 			}
 
 			metadata.Logger.Infof("updating %s", id)
@@ -474,6 +473,10 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 
 			if metadata.ResourceData.HasChange("tags") {
 				model.Tags = pointer.To(state.Tags)
+			}
+
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
+				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
 			aseNetworkConfig := appserviceenvironments.AseV3NetworkingConfiguration{
@@ -504,10 +507,6 @@ func (r AppServiceEnvironmentV3Resource) Update() sdk.ResourceFunc {
 
 			if _, err := updateWait.WaitForStateContext(ctx); err != nil {
 				return fmt.Errorf("waiting for Network Update for %s to complete: %+v", *id, err)
-			}
-
-			if err := client.CreateOrUpdateThenPoll(ctx, *id, *model); err != nil {
-				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
 			return nil
@@ -542,8 +541,8 @@ func expandClusterSettingsModel(input []ClusterSettingModel) *[]appserviceenviro
 
 	for _, v := range input {
 		clusterSettings = append(clusterSettings, appserviceenvironments.NameValuePair{
-			Name:  utils.String(v.Name),
-			Value: utils.String(v.Value),
+			Name:  pointer.To(v.Name),
+			Value: pointer.To(v.Value),
 		})
 	}
 

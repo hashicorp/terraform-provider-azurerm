@@ -6,7 +6,7 @@ description: |-
   Manages a Search Service.
 ---
 
-# azurerm_search_service
+# Data Source: azurerm_search_service
 
 Manages a Search Service.
 

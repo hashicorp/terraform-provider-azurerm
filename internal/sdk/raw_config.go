@@ -35,7 +35,7 @@ func (rmd ResourceMetaData) GetRawConfig() (cty.Value, error) {
 // This method is experimental and not meant for general use.
 // Pull requests using this method, by authors not part of the HashiCorp AzureRM Provider team, will be declined at this time.
 func (rmd ResourceMetaData) GetRawConfigAt(key string) (cty.Value, error) {
-	ctyPath := constructPath(key)
+	ctyPath := ConstructCtyPath(key)
 
 	msg := "retrieving value at path `%s`: %+v"
 
@@ -139,13 +139,13 @@ func asValueMap(val cty.Value) (map[string]cty.Value, error) {
 	return val.AsValueMap(), nil
 }
 
-// constructPath takes a string and converts it to a `cty.Path` for use with `GetRawConfigAt`
+// ConstructCtyPath takes a string and converts it to a `cty.Path` for use with `GetRawConfigAt`
 // e.g. `identity.0.type`
 //
 // Note:
 // This function is experimental and not meant for general use.
 // Pull requests using this function, by authors not part of the HashiCorp AzureRM Provider team, will be declined at this time.
-func constructPath(key string) cty.Path {
+func ConstructCtyPath(key string) cty.Path {
 	p := cty.Path{}
 
 	for _, segment := range strings.Split(key, ".") {

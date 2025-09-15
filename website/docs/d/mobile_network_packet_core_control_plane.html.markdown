@@ -6,7 +6,7 @@ description: |-
   Get information about a Mobile Network Packet Core Control Plane.
 ---
 
-# azurerm_mobile_network_packet_core_control_plane
+# Data Source: azurerm_mobile_network_packet_core_control_plane
 
 Get information about a Mobile Network Packet Core Control Plane.
 
