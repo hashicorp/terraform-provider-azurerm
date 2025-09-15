@@ -1,6 +1,7 @@
 ## 4.45.0 (Unreleased)
 
 ENHANCEMENTS:
+* `azurerm_subnet` - add support for `sharing_scope` [GH-30600]
 * `azurerm_storage_account` - `expiration_action` supports `Block` [GH-30599] [GH-30599]
 
 FEATURES:
