@@ -1404,7 +1404,7 @@ func expandAgentPoolUpgradeSettings(input []interface{}) *agentpools.AgentPoolUp
 	if maxSurgeRaw := v["max_surge"].(string); maxSurgeRaw != "" {
 		setting.MaxSurge = pointer.To(maxSurgeRaw)
 	}
-	if maxUnavailableRaw, ok := v["max_unavailable"].(string); ok && maxUnavailableRaw != "" {
+	if maxUnavailableRaw, ok := v["max_unavailable"].(string); ok && maxUnavailableRaw != "" && maxUnavailableRaw != "0" {
 		setting.MaxUnavailable = pointer.To(maxUnavailableRaw)
 		// maxSurge must be set to 0 for maxUnavailable to be set. The two values can't both be active at the same time.
 		setting.MaxSurge = pointer.To("0")
