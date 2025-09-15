@@ -654,9 +654,9 @@ resource "azurerm_resource_group" "remotetest" {
 }
 
 resource "azuread_service_principal" "remotetest" {
-  provider       = azuread.alt
-  owners         = [data.azuread_client_config.remote.object_id]
-  client_id      = azuread_application.test.client_id
+  provider  = azuread.alt
+  owners    = [data.azuread_client_config.remote.object_id]
+  client_id = azuread_application.test.client_id
 }
 
 resource "azurerm_key_vault" "remotetest" {
