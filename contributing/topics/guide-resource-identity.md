@@ -167,7 +167,7 @@ To go through these in order:
 
 - `-known-values`: This flag specifies values that are not exposed in the resource schema, but are present in the Resource Identity schema, e.g. a subscription ID. This would be specified as `{id_field_name}:{known_value}`, e.g. `subscription_id:data.Subscriptions.Primary`.
 
-- `-compare-values`: This flag allows for comparing values that are exposed in the resource schema through another resource ID. This comes up when we use a parent resource ID in the schema but the resource ID uses the individual parts of that parent ID. This would be specified as `{id_field_name}:{schema_field_id_name}`, e.g. `virtual_network_name:virtual_network_id`.
+- `-compare-values`: This flag allows for comparing values that are exposed in the resource schema through another resource ID. This comes up when we use a parent resource ID in the schema but the Resource Identity Schema uses the individual parts of that parent ID. This would be specified as `{id_field_name}:{schema_field_id_name}`, e.g. `virtual_network_name:virtual_network_id`.
 
 Please reference the [Resource Identity Test Generator](../../internal/tools/generator-tests/generators/resource_identity.go) for additional options that are used less frequently.
 
