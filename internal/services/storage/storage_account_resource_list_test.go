@@ -31,12 +31,12 @@ func TestStorageAccount_list_basic(t *testing.T) {
 			},
 			{
 				Query:             true,
-				Config:            r.basic_query(data),
+				Config:            r.basicQuery(data),
 				ConfigQueryChecks: []querycheck.QueryCheck{}, // TODO
 			},
 			{
 				Query:             true,
-				Config:            r.basic_queryByResourceGroup(data),
+				Config:            r.basicQueryByResourceGroup(data),
 				ConfigQueryChecks: []querycheck.QueryCheck{}, // TODO
 			},
 		},
@@ -69,15 +69,15 @@ resource "azurerm_storage_account" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
-func (r StorageAccountResource) basic_query(_ acceptance.TestData) string {
-	return fmt.Sprint(`
+func (r StorageAccountResource) basicQuery(_ acceptance.TestData) string {
+	return `
 list "azurerm_storage_account" "test" {
   provider = azurerm
   config {}
-}`)
+}`
 }
 
-func (r StorageAccountResource) basic_queryByResourceGroup(data acceptance.TestData) string {
+func (r StorageAccountResource) basicQueryByResourceGroup(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 list "azurerm_storage_account" "test" {
   provider = azurerm
