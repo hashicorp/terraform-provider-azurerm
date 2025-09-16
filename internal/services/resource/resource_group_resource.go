@@ -181,32 +181,9 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	// conditionally check for nested resources and error if they exist
 	if meta.(*clients.Client).Features.ResourceGroup.PreventDeletionIfContainsResources {
 		// Resource groups sometimes hold on to resource information after the resources have been deleted. We'll retry this check to account for that eventual consistency.
-		err = pluginsdk.Retry(10*time.Minute, func() *pluginsdk.RetryError {
-			results, err := client.ResourcesListByResourceGroupComplete(ctx, *id, resourcegroups.ResourcesListByResourceGroupOperationOptions{
-				Expand: pointer.To("provisioningState"),
-				Top:    pointer.To[int64](10),
-			})
-			if err != nil {
-				if response.WasNotFound(results.LatestHttpResponse) {
-					return nil
-				}
-				return pluginsdk.NonRetryableError(fmt.Errorf("listing resources in %s: %v", *id, err))
-			}
-			nestedResourceIds := make([]string, 0)
-			for _, item := range results.Items {
-				val := item
-				if val.Id != nil {
-					nestedResourceIds = append(nestedResourceIds, *val.Id)
-				}
-			}
-
-			if len(nestedResourceIds) > 0 {
-				time.Sleep(30 * time.Second)
-				return pluginsdk.RetryableError(resourceGroupContainsItemsError(id.ResourceGroupName, nestedResourceIds))
-			}
-			return nil
-		})
-		if err != nil {
+		pollerType := custompollers.NewResourceGroupPreventDeletePoller(client, *id)
+		poller := pollers.NewPoller(pollerType, 10*time.Second, pollers.DefaultNumberOfDroppedConnectionsToAllow)
+		if err := poller.PollUntilDone(ctx); err != nil {
 			return err
 		}
 	}

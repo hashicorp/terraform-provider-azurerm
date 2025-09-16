@@ -16,6 +16,8 @@ type resourceGroupCreatePoller struct {
 	id     commonids.ResourceGroupId
 }
 
+var _ pollers.PollerType = &resourceGroupCreatePoller{}
+
 var (
 	successCount   = 3 // emulates ContinuousTargetOccurrence
 	pollingSuccess = &pollers.PollResult{
@@ -58,5 +60,3 @@ func (p resourceGroupCreatePoller) Poll(ctx context.Context) (*pollers.PollResul
 
 	return pollingSuccess, nil
 }
-
-var _ pollers.PollerType = resourceGroupCreatePoller{}
