@@ -4,6 +4,7 @@
 package network
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"time"
@@ -209,6 +210,39 @@ func resourceNetworkInterface() *pluginsdk.Resource {
 				Computed: true,
 			},
 		},
+
+		CustomizeDiff: pluginsdk.CustomDiffWithAll(
+			// Verify that they are not downgrading the service from Premium SKU -> Standard SKU...
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+				oldIPConfiguration, newIPconfiguration := diff.GetChange("ip_configuration")
+
+				oldIPConfig := oldIPConfiguration.([]interface{})
+				oldPrimaryIP := ""
+				for _, config := range oldIPConfig {
+					config := config.(map[string]interface{})
+					if config["primary"].(bool) {
+						oldPrimaryIP = config["private_ip_address"].(string)
+						break
+					}
+				}
+
+				newIPConfig := newIPconfiguration.([]interface{})
+				newPrimaryIP := ""
+				for _, config := range newIPConfig {
+					config := config.(map[string]interface{})
+					if config["primary"].(bool) {
+						newPrimaryIP = config["private_ip_address"].(string)
+						break
+					}
+				}
+
+				if oldPrimaryIP != newPrimaryIP {
+					diff.SetNewComputed("private_ip_address")
+				}
+
+				return nil
+			}),
+		),
 	}
 }
 
