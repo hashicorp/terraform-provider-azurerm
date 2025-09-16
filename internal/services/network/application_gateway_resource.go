@@ -1613,6 +1613,16 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 		return fmt.Errorf("expanding `rewrite_rule_set`: %v", err)
 	}
 
+	backendHttpSettings, err := expandApplicationGatewayBackendHTTPSettings(d, id.ID())
+	if err != nil {
+		return fmt.Errorf("expanding `backend_http_settings`: %+v", err)
+	}
+
+	probes, err := expandApplicationGatewayProbes(d)
+	if err != nil {
+		return fmt.Errorf("expanding `probe`: %+v", err)
+	}
+
 	gateway := applicationgateways.ApplicationGateway{
 		Location: pointer.To(location.Normalize(d.Get("location").(string))),
 		Tags:     tags.Expand(t),
@@ -1622,7 +1632,7 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 			TrustedRootCertificates:       trustedRootCertificates,
 			CustomErrorConfigurations:     expandApplicationGatewayCustomErrorConfigurations(d.Get("custom_error_configuration").([]interface{})),
 			BackendAddressPools:           expandApplicationGatewayBackendAddressPools(d),
-			BackendHTTPSettingsCollection: expandApplicationGatewayBackendHTTPSettings(d, id.ID()),
+			BackendHTTPSettingsCollection: backendHttpSettings,
 			EnableHTTP2:                   pointer.To(enablehttp2),
 			FrontendIPConfigurations:      expandApplicationGatewayFrontendIPConfigurations(d, id.ID()),
 			FrontendPorts:                 expandApplicationGatewayFrontendPorts(d),
@@ -1630,7 +1640,7 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 			GlobalConfiguration:           globalConfiguration,
 			HTTPListeners:                 httpListeners,
 			PrivateLinkConfigurations:     expandApplicationGatewayPrivateLinkConfigurations(d),
-			Probes:                        expandApplicationGatewayProbes(d),
+			Probes:                        probes,
 			RequestRoutingRules:           requestRoutingRules,
 			RedirectConfigurations:        redirectConfigurations,
 			Sku:                           expandApplicationGatewaySku(d),
@@ -1664,35 +1674,6 @@ func resourceApplicationGatewayCreate(d *pluginsdk.ResourceData, meta interface{
 		}
 
 		gateway.Identity = expandedIdentity
-	}
-
-	// validation (todo these should probably be moved into their respective expand functions, which would then return an error?)
-	for _, backendHttpSettings := range *gateway.Properties.BackendHTTPSettingsCollection {
-		if props := backendHttpSettings.Properties; props != nil {
-			if props.HostName == nil || props.PickHostNameFromBackendAddress == nil {
-				continue
-			}
-
-			if *props.HostName != "" && *props.PickHostNameFromBackendAddress {
-				return fmt.Errorf("Only one of `host_name` or `pick_host_name_from_backend_address` can be set")
-			}
-		}
-	}
-
-	for _, probe := range *gateway.Properties.Probes {
-		if props := probe.Properties; props != nil {
-			if props.Host == nil || props.PickHostNameFromBackendHTTPSettings == nil {
-				continue
-			}
-
-			if *props.Host == "" && !*props.PickHostNameFromBackendHTTPSettings {
-				return fmt.Errorf("One of `host` or `pick_host_name_from_backend_http_settings` must be set")
-			}
-
-			if *props.Host != "" && *props.PickHostNameFromBackendHTTPSettings {
-				return fmt.Errorf("Only one of `host` or `pick_host_name_from_backend_http_settings` can be set")
-			}
-		}
 	}
 
 	if _, ok := d.GetOk("waf_configuration"); ok {
@@ -1855,7 +1836,12 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("backend_http_settings") {
-		payload.Properties.BackendHTTPSettingsCollection = expandApplicationGatewayBackendHTTPSettings(d, id.ID())
+		backendHttpSettings, err := expandApplicationGatewayBackendHTTPSettings(d, id.ID())
+		if err != nil {
+			return fmt.Errorf("expanding `backend_http_settings`: %+v", err)
+		}
+
+		payload.Properties.BackendHTTPSettingsCollection = backendHttpSettings
 	}
 
 	if d.HasChange("frontend_ip_configuration") {
@@ -1871,7 +1857,12 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 	}
 
 	if d.HasChange("probe") {
-		payload.Properties.Probes = expandApplicationGatewayProbes(d)
+		probes, err := expandApplicationGatewayProbes(d)
+		if err != nil {
+			return fmt.Errorf("expanding `probe`: %+v", err)
+		}
+
+		payload.Properties.Probes = probes
 	}
 
 	if d.HasChange("sku") {
@@ -1904,39 +1895,6 @@ func resourceApplicationGatewayUpdate(d *pluginsdk.ResourceData, meta interface{
 		}
 
 		payload.Identity = expandedIdentity
-	}
-
-	// validation (todo these should probably be moved into their respective expand functions, which would then return an error?)
-	if payload.Properties != nil && payload.Properties.BackendHTTPSettingsCollection != nil {
-		for _, backendHttpSettings := range *payload.Properties.BackendHTTPSettingsCollection {
-			if props := backendHttpSettings.Properties; props != nil {
-				if props.HostName == nil || props.PickHostNameFromBackendAddress == nil {
-					continue
-				}
-
-				if *props.HostName != "" && *props.PickHostNameFromBackendAddress {
-					return fmt.Errorf("Only one of `host_name` or `pick_host_name_from_backend_address` can be set")
-				}
-			}
-		}
-	}
-
-	if payload.Properties != nil && payload.Properties.Probes != nil {
-		for _, probe := range *payload.Properties.Probes {
-			if props := probe.Properties; props != nil {
-				if props.Host == nil || props.PickHostNameFromBackendHTTPSettings == nil {
-					continue
-				}
-
-				if *props.Host == "" && !*props.PickHostNameFromBackendHTTPSettings {
-					return fmt.Errorf("One of `host` or `pick_host_name_from_backend_http_settings` must be set")
-				}
-
-				if *props.Host != "" && *props.PickHostNameFromBackendHTTPSettings {
-					return fmt.Errorf("Only one of `host` or `pick_host_name_from_backend_http_settings` can be set")
-				}
-			}
-		}
 	}
 
 	if d.HasChange("waf_configuration") {
@@ -2402,7 +2360,7 @@ func flattenApplicationGatewayBackendAddressPools(input *[]applicationgateways.A
 	return results
 }
 
-func expandApplicationGatewayBackendHTTPSettings(d *pluginsdk.ResourceData, gatewayID string) *[]applicationgateways.ApplicationGatewayBackendHTTPSettings {
+func expandApplicationGatewayBackendHTTPSettings(d *pluginsdk.ResourceData, gatewayID string) (*[]applicationgateways.ApplicationGatewayBackendHTTPSettings, error) {
 	results := make([]applicationgateways.ApplicationGatewayBackendHTTPSettings, 0)
 	vs := d.Get("backend_http_settings").(*schema.Set).List()
 
@@ -2432,6 +2390,10 @@ func expandApplicationGatewayBackendHTTPSettings(d *pluginsdk.ResourceData, gate
 
 		hostName := v["host_name"].(string)
 		if hostName != "" {
+			if pickHostNameFromBackendAddress {
+				return nil, fmt.Errorf("Only one of `host_name` or `pick_host_name_from_backend_address` can be set")
+			}
+
 			setting.Properties.HostName = pointer.To(hostName)
 		}
 
@@ -2486,7 +2448,7 @@ func expandApplicationGatewayBackendHTTPSettings(d *pluginsdk.ResourceData, gate
 		results = append(results, setting)
 	}
 
-	return &results
+	return &results, nil
 }
 
 func flattenApplicationGatewayBackendHTTPSettings(input *[]applicationgateways.ApplicationGatewayBackendHTTPSettings) ([]interface{}, error) {
@@ -3126,7 +3088,7 @@ func flattenApplicationGatewayFrontendIPConfigurations(input *[]applicationgatew
 	return results, nil
 }
 
-func expandApplicationGatewayProbes(d *pluginsdk.ResourceData) *[]applicationgateways.ApplicationGatewayProbe {
+func expandApplicationGatewayProbes(d *pluginsdk.ResourceData) (*[]applicationgateways.ApplicationGatewayProbe, error) {
 	vs := d.Get("probe").(*schema.Set).List()
 	results := make([]applicationgateways.ApplicationGatewayProbe, 0)
 
@@ -3143,6 +3105,10 @@ func expandApplicationGatewayProbes(d *pluginsdk.ResourceData) *[]applicationgat
 		timeout := int64(v["timeout"].(int))
 		unhealthyThreshold := int64(v["unhealthy_threshold"].(int))
 		pickHostNameFromBackendHTTPSettings := v["pick_host_name_from_backend_http_settings"].(bool)
+
+		if (host == "" && !pickHostNameFromBackendHTTPSettings) || (host != "" && pickHostNameFromBackendHTTPSettings) {
+			return nil, fmt.Errorf("Exactly one of `host` or `pick_host_name_from_backend_http_settings` must be set/enabled")
+		}
 
 		output := applicationgateways.ApplicationGatewayProbe{
 			Name: pointer.To(name),
@@ -3183,7 +3149,7 @@ func expandApplicationGatewayProbes(d *pluginsdk.ResourceData) *[]applicationgat
 		results = append(results, output)
 	}
 
-	return &results
+	return &results, nil
 }
 
 func flattenApplicationGatewayProbes(input *[]applicationgateways.ApplicationGatewayProbe) []interface{} {
