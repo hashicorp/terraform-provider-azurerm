@@ -90,10 +90,10 @@ resource "azurerm_subnet_network_security_group_association" "untrust" {
 }
 
 resource "azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager" "example" {
-  name                                 = "example-ngfwvh"
-  resource_group_name                  = azurerm_resource_group.example.name
-  location                             = azurerm_resource_group.example.location
-  strata_cloud_manager_tenant_name     = "example-scm-tenant"
+  name                             = "example-ngfwvh"
+  resource_group_name              = azurerm_resource_group.example.name
+  location                         = azurerm_resource_group.example.location
+  strata_cloud_manager_tenant_name = "example-scm-tenant"
 
   network_profile {
     public_ip_address_ids = [azurerm_public_ip.example.id]

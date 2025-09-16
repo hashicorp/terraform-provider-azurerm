@@ -136,10 +136,10 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager" "test" {
-  name                                 = "acctest-ngfwvnscm-%[2]d"
-  resource_group_name                  = azurerm_resource_group.test.name
-  location                             = azurerm_resource_group.test.location
-  strata_cloud_manager_tenant_name     = "%[3]s"
+  name                             = "acctest-ngfwvnscm-%[2]d"
+  resource_group_name              = azurerm_resource_group.test.name
+  location                         = azurerm_resource_group.test.location
+  strata_cloud_manager_tenant_name = "%[3]s"
 
   network_profile {
     public_ip_address_ids = [azurerm_public_ip.test.id]
@@ -162,10 +162,10 @@ func (r NextGenerationFirewallVNetStrataCloudManagerResource) requiresImport(dat
 %s
 
 resource "azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager" "import" {
-  name                                 = azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager.test.name
-  resource_group_name                  = azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager.test.resource_group_name
-  location                             = azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager.test.location
-  strata_cloud_manager_tenant_name     = azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager.test.strata_cloud_manager_tenant_name
+  name                             = azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager.test.name
+  resource_group_name              = azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager.test.resource_group_name
+  location                         = azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager.test.location
+  strata_cloud_manager_tenant_name = azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager.test.strata_cloud_manager_tenant_name
 
   network_profile {
     public_ip_address_ids = azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager.test.network_profile[0].public_ip_address_ids
@@ -189,12 +189,12 @@ provider "azurerm" {
 %[1]s
 
 resource "azurerm_palo_alto_next_generation_firewall_virtual_network_strata_cloud_manager" "test" {
-  name                                 = "acctest-ngfwvnscm-%[2]d"
-  resource_group_name                  = azurerm_resource_group.test.name
-  location                             = "%[3]s"
-  marketplace_offer_id                 = "pan_swfw_cloud_ngfw"
-  plan_id                              = "panw-cngfw-payg"
-  strata_cloud_manager_tenant_name     = "%[4]s"
+  name                             = "acctest-ngfwvnscm-%[2]d"
+  resource_group_name              = azurerm_resource_group.test.name
+  location                         = "%[3]s"
+  marketplace_offer_id             = "pan_swfw_cloud_ngfw"
+  plan_id                          = "panw-cngfw-payg"
+  strata_cloud_manager_tenant_name = "%[4]s"
 
   network_profile {
     public_ip_address_ids     = [azurerm_public_ip.test.id]
