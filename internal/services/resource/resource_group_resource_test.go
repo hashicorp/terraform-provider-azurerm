@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type ResourceGroupResource struct{}
@@ -125,13 +124,6 @@ func TestAccResourceGroup_withNestedItemsAndFeatureFlag(t *testing.T) {
 }
 
 func (t ResourceGroupResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	// NOTE: Due to the Resource Group resource still using the old Azure SDK and sourcing the Resource Group ID
-	// from the Azure API, we need to support both `resourceGroups` and the legacy `resourcegroups` value here
-	// thus we parse this case-insensitively. This behaviour will be fixed in the future once the Resource is
-	// updated and a state migration is added to account for it, but this required additional coordination.
-	//
-	// If you're using this as a reference when building resources, please use the case-sensitive Resource ID
-	// parsing method instead.
 	id, err := commonids.ParseResourceGroupIDInsensitively(state.ID)
 	if err != nil {
 		return nil, err
@@ -153,13 +145,6 @@ func (t ResourceGroupResource) Destroy(ctx context.Context, client *clients.Clie
 }
 
 func (t ResourceGroupResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
-	// NOTE: Due to the Resource Group resource still using the old Azure SDK and sourcing the Resource Group ID
-	// from the Azure API, we need to support both `resourceGroups` and the legacy `resourcegroups` value here
-	// thus we parse this case-insensitively. This behaviour will be fixed in the future once the Resource is
-	// updated and a state migration is added to account for it, but this required additional coordination.
-	//
-	// If you're using this as a reference when building resources, please use the case-sensitive Resource ID
-	// parsing method instead.
 	id, err := commonids.ParseResourceGroupIDInsensitively(state.ID)
 	if err != nil {
 		return nil, err
@@ -170,7 +155,7 @@ func (t ResourceGroupResource) Exists(ctx context.Context, client *clients.Clien
 		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (t ResourceGroupResource) createNetworkOutsideTerraform(name string) func(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) error {

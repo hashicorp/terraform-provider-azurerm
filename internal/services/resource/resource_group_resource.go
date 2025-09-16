@@ -189,9 +189,11 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 	// worked before refactoring, so behaviour has been maintained. This should be investigated in future and brought
 	// in-line if possible.
 	if resp, err := client.Delete(ctx, *id, resourcegroups.DefaultDeleteOperationOptions()); err != nil {
-		if !response.WasNotFound(resp.HttpResponse) {
-			return fmt.Errorf("deleting %s: %+v", *id, err)
+		if response.WasNotFound(resp.HttpResponse) {
+			return nil
 		}
+
+		return fmt.Errorf("deleting %s: %+v", *id, err)
 	} else {
 		if err := resp.Poller.PollUntilDone(ctx); err != nil {
 			return fmt.Errorf("polling deleting %s: %+v", *id, err)
