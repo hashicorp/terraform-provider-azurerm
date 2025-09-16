@@ -146,7 +146,7 @@ To add Resource Identity to an untyped resource, follow the steps below.
             
             // Most of the time we can simply replace the final `return nil` line with the return below.
             // Note: there are a number of resources that conditionally return earlier in the read function before reaching the final `return nil` line.
-            //       Keep an eye out for these, as they can cause test failures that are tedious to diagnose.
+            // Keep an eye out for these, as they can cause test failures that are tedious to diagnose.
             return pluginsdk.SetResourceIdentityData(d, id)
         }
     ```
