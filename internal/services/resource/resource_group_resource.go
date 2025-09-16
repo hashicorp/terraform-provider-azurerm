@@ -18,24 +18,23 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resourcegroups"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/resource/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 )
 
+//go:generate go run ../../tools/generator-tests resourceidentity -resource-name resource_group -service-package-name resource -properties "name:name" -known-values "subscription_id:data.Subscriptions.Primary"
+
 func resourceResourceGroup() *pluginsdk.Resource {
 	return &pluginsdk.Resource{
-		Create: resourceResourceGroupCreate,
-		Read:   resourceResourceGroupRead,
-		Update: resourceResourceGroupUpdate,
-		Delete: resourceResourceGroupDelete,
-		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
-			_, err := parse.ResourceGroupID(id)
-			return err
-		}),
+		Create:   resourceResourceGroupCreate,
+		Read:     resourceResourceGroupRead,
+		Update:   resourceResourceGroupUpdate,
+		Delete:   resourceResourceGroupDelete,
+		Importer: pluginsdk.ImporterValidatingIdentity(&commonids.ResourceGroupId{}),
 
 		Timeouts: &pluginsdk.ResourceTimeout{
 			Create: pluginsdk.DefaultTimeout(90 * time.Minute),
@@ -56,6 +55,10 @@ func resourceResourceGroup() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+		},
+
+		Identity: &schema.ResourceIdentity{
+			SchemaFunc: pluginsdk.GenerateIdentitySchema(&commonids.ResourceGroupId{}),
 		},
 	}
 }
@@ -131,7 +134,7 @@ func resourceResourceGroupCreate(d *pluginsdk.ResourceData, meta interface{}) er
 
 	if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 		return fmt.Errorf("waiting for Resource Group %s to become available: %+v", id.ResourceGroupName, err)
-	} // TODO - Custom Poller?
+	} // TODO - replace with Custom Poller?
 
 	d.SetId(id.ID())
 
@@ -190,10 +193,12 @@ func resourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) erro
 	if model := resp.Model; model != nil {
 		d.Set("location", location.Normalize(model.Location))
 		d.Set("managed_by", pointer.From(model.ManagedBy))
-		tags.FlattenAndSet(d, model.Tags)
+		if err = tags.FlattenAndSet(d, model.Tags); err != nil {
+			return err
+		}
 	}
 
-	return nil
+	return pluginsdk.SetResourceIdentityData(d, id)
 }
 
 func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) error {
@@ -234,7 +239,6 @@ func resourceResourceGroupDelete(d *pluginsdk.ResourceData, meta interface{}) er
 			}
 			return nil
 		})
-
 		if err != nil {
 			return err
 		}

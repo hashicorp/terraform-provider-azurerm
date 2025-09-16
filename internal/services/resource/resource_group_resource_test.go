@@ -6,12 +6,12 @@ package resource_test
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"regexp"
 	"testing"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/virtualnetworks"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2023-07-01/resourcegroups"
@@ -28,7 +28,7 @@ func TestAccResourceGroup_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 	testResource := ResourceGroupResource{}
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
-		data.ApplyStep(testResource.basicConfig, testResource),
+		data.ApplyStep(testResource.basic, testResource),
 		data.ImportStep(),
 	})
 }
@@ -37,7 +37,7 @@ func TestAccResourceGroup_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_resource_group", "test")
 	testResource := ResourceGroupResource{}
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
-		data.ApplyStep(testResource.basicConfig, testResource),
+		data.ApplyStep(testResource.basic, testResource),
 		data.RequiresImportErrorStep(testResource.requiresImportConfig),
 	})
 }
@@ -47,7 +47,7 @@ func TestAccResourceGroup_disappears(t *testing.T) {
 	testResource := ResourceGroupResource{}
 	data.ResourceTest(t, testResource, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
-			Config:       testResource.basicConfig,
+			Config:       testResource.basic,
 			TestResource: testResource,
 		}),
 	})
@@ -204,7 +204,7 @@ func (t ResourceGroupResource) createNetworkOutsideTerraform(name string) func(c
 	}
 }
 
-func (t ResourceGroupResource) basicConfig(data acceptance.TestData) string {
+func (t ResourceGroupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -218,7 +218,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 func (t ResourceGroupResource) requiresImportConfig(data acceptance.TestData) string {
-	template := t.basicConfig(data)
+	template := t.basic(data)
 	return fmt.Sprintf(`
 %s
 
