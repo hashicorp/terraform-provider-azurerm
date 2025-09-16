@@ -36,7 +36,7 @@ func (p resourceGroupPreventDeletePoller) Poll(ctx context.Context) (*pollers.Po
 	})
 	if err != nil {
 		if response.WasNotFound(results.LatestHttpResponse) {
-			return pollingSuccess, nil
+			return pollingInProgress, nil
 		}
 		return pollingFailed, fmt.Errorf("listing resources in %s: %v", p.id, err)
 	}
