@@ -69,7 +69,7 @@ resource "azurerm_storage_container" "example" {
 resource "azurerm_machine_learning_datastore_datalake_gen2" "example" {
   name                 = "example-datastore"
   workspace_id         = azurerm_machine_learning_workspace.example.id
-  storage_container_id = azurerm_storage_container.example.resource_manager_id
+  storage_container_id = azurerm_storage_container.example.id
 }
 ```
 
