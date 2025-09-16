@@ -8,22 +8,22 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/identity"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/projects"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DevCenterProjectTestResource struct{}
 
-func TestAccDevCenterProject_basic(t *testing.T) {
+func testAccDevCenterProject_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project", "test")
 	r := DevCenterProjectTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -34,11 +34,11 @@ func TestAccDevCenterProject_basic(t *testing.T) {
 	})
 }
 
-func TestAccDevCenterProject_requiresImport(t *testing.T) {
+func testAccDevCenterProject_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project", "test")
 	r := DevCenterProjectTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -49,11 +49,11 @@ func TestAccDevCenterProject_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccDevCenterProject_complete(t *testing.T) {
+func testAccDevCenterProject_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project", "test")
 	r := DevCenterProjectTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -64,11 +64,11 @@ func TestAccDevCenterProject_complete(t *testing.T) {
 	})
 }
 
-func TestAccDevCenterProject_update(t *testing.T) {
+func testAccDevCenterProject_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project", "test")
 	r := DevCenterProjectTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.update(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -93,11 +93,11 @@ func TestAccDevCenterProject_update(t *testing.T) {
 	})
 }
 
-func TestAccDevCenterProject_identity(t *testing.T) {
+func testAccDevCenterProject_identity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project", "test")
 	r := DevCenterProjectTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.identity(data, identity.TypeNone),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -140,7 +140,7 @@ func (r DevCenterProjectTestResource) Exists(ctx context.Context, clients *clien
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r DevCenterProjectTestResource) basic(data acceptance.TestData) string {

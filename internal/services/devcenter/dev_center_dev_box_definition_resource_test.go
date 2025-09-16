@@ -18,11 +18,11 @@ import (
 
 type DevCenterDevBoxDefinitionTestResource struct{}
 
-func TestAccDevCenterDevBoxDefinition_basic(t *testing.T) {
+func testAccDevCenterDevBoxDefinition_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_dev_box_definition", "test")
 	r := DevCenterDevBoxDefinitionTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -33,11 +33,11 @@ func TestAccDevCenterDevBoxDefinition_basic(t *testing.T) {
 	})
 }
 
-func TestAccDevCenterDevBoxDefinition_requiresImport(t *testing.T) {
+func testAccDevCenterDevBoxDefinition_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_dev_box_definition", "test")
 	r := DevCenterDevBoxDefinitionTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -48,11 +48,11 @@ func TestAccDevCenterDevBoxDefinition_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccDevCenterDevBoxDefinition_complete(t *testing.T) {
+func testAccDevCenterDevBoxDefinition_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_dev_box_definition", "test")
 	r := DevCenterDevBoxDefinitionTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -63,11 +63,11 @@ func TestAccDevCenterDevBoxDefinition_complete(t *testing.T) {
 	})
 }
 
-func TestAccDevCenterDevBoxDefinition_update(t *testing.T) {
+func testAccDevCenterDevBoxDefinition_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_dev_box_definition", "test")
 	r := DevCenterDevBoxDefinitionTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(

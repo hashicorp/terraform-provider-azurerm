@@ -13,11 +13,11 @@ import (
 
 type DevCenterDataSource struct{}
 
-func TestAccDevCenterDataSource_basic(t *testing.T) {
+func testAccDevCenterDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dev_center", "test")
 	r := DevCenterDataSource{}
 
-	data.DataSourceTest(t, []acceptance.TestStep{
+	data.DataSourceTestInSequence(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(

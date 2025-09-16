@@ -18,11 +18,11 @@ import (
 
 type DevCenterProjectPoolTestResource struct{}
 
-func TestAccDevCenterProjectPool_basic(t *testing.T) {
+func testAccDevCenterProjectPool_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project_pool", "test")
 	r := DevCenterProjectPoolTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -33,11 +33,11 @@ func TestAccDevCenterProjectPool_basic(t *testing.T) {
 	})
 }
 
-func TestAccDevCenterProjectPool_requiresImport(t *testing.T) {
+func testAccDevCenterProjectPool_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project_pool", "test")
 	r := DevCenterProjectPoolTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -48,11 +48,11 @@ func TestAccDevCenterProjectPool_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccDevCenterProjectPool_complete(t *testing.T) {
+func testAccDevCenterProjectPool_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project_pool", "test")
 	r := DevCenterProjectPoolTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -63,11 +63,11 @@ func TestAccDevCenterProjectPool_complete(t *testing.T) {
 	})
 }
 
-func TestAccDevCenterProjectPool_update(t *testing.T) {
+func testAccDevCenterProjectPool_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project_pool", "test")
 	r := DevCenterProjectPoolTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -99,11 +99,11 @@ func TestAccDevCenterProjectPool_update(t *testing.T) {
 	})
 }
 
-func TestAccDevCenterProjectPool_managedNetwork(t *testing.T) {
+func testAccDevCenterProjectPool_managedNetwork(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project_pool", "test")
 	r := DevCenterProjectPoolTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.managedNetwork(data, data.Locations.Primary),
 			Check: acceptance.ComposeTestCheckFunc(

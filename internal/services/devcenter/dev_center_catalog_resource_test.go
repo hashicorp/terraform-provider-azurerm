@@ -8,12 +8,12 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/catalogs"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DevCenterCatalogsResource struct{}
@@ -29,14 +29,14 @@ func (r DevCenterCatalogsResource) Exists(ctx context.Context, client *clients.C
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
-func TestAccDevCenterCatalogs_basic(t *testing.T) {
+func testAccDevCenterCatalogs_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_catalog", "test")
 	r := DevCenterCatalogsResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -47,11 +47,11 @@ func TestAccDevCenterCatalogs_basic(t *testing.T) {
 	})
 }
 
-func TestAccDevCenterCatalogs_adoGit(t *testing.T) {
+func testAccDevCenterCatalogs_adoGit(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_catalog", "test")
 	r := DevCenterCatalogsResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.adoGit(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -62,11 +62,11 @@ func TestAccDevCenterCatalogs_adoGit(t *testing.T) {
 	})
 }
 
-func TestAccDevCenterCatalogs_update(t *testing.T) {
+func testAccDevCenterCatalogs_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_catalog", "test")
 	r := DevCenterCatalogsResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(

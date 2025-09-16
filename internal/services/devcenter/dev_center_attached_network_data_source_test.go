@@ -13,11 +13,11 @@ import (
 
 type DevCenterAttachedNetworkDataSource struct{}
 
-func TestAccDevCenterAttachedNetworkDataSource_basic(t *testing.T) {
+func testAccDevCenterAttachedNetworkDataSource_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "data.azurerm_dev_center_attached_network", "test")
 	r := DevCenterAttachedNetworkDataSource{}
 
-	data.DataSourceTest(t, []acceptance.TestStep{
+	data.DataSourceTestInSequence(t, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(

@@ -18,11 +18,11 @@ import (
 
 type DevCenterAttachedNetworkTestResource struct{}
 
-func TestAccDevCenterAttachedNetwork_basic(t *testing.T) {
+func testAccDevCenterAttachedNetwork_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_attached_network", "test")
 	r := DevCenterAttachedNetworkTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -33,11 +33,11 @@ func TestAccDevCenterAttachedNetwork_basic(t *testing.T) {
 	})
 }
 
-func TestAccDevCenterAttachedNetwork_requiresImport(t *testing.T) {
+func testAccDevCenterAttachedNetwork_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_attached_network", "test")
 	r := DevCenterAttachedNetworkTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(

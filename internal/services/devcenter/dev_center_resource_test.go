@@ -18,11 +18,114 @@ import (
 
 type DevCenterTestResource struct{}
 
-func TestAccDevCenter_basic(t *testing.T) {
+func TestAccDevCenter(t *testing.T) {
+	// Sequential testing because we can only provision a couple Dev Centers at a time.
+	testCases := map[string]map[string]func(t *testing.T){
+		"DevCenter": {
+			"basic":          testAccDevCenter_basic,
+			"requiresImport": testAccDevCenter_requiresImport,
+			"update":         testAccDevCenter_update,
+			"complete":       testAccDevCenter_complete,
+
+			"basicDataSource": testAccDevCenterDataSource_basic,
+		},
+
+		"DevCenterAttachedNetwork": {
+			"basic":          testAccDevCenterAttachedNetwork_basic,
+			"requiresImport": testAccDevCenterAttachedNetwork_requiresImport,
+
+			"basicDataSource": testAccDevCenterAttachedNetworkDataSource_basic,
+		},
+
+		"DevCenterCatalog": {
+			"basic":  testAccDevCenterCatalogs_basic,
+			"adoGit": testAccDevCenterCatalogs_adoGit,
+			"update": testAccDevCenterCatalogs_update,
+
+			"basicDataSource": testAccDevCenterCatalogDataSource_basic,
+		},
+
+		"DevCenterDevBoxDefinition": {
+			"basic":          testAccDevCenterDevBoxDefinition_basic,
+			"requiresImport": testAccDevCenterDevBoxDefinition_requiresImport,
+			"update":         testAccDevCenterDevBoxDefinition_update,
+			"complete":       testAccDevCenterDevBoxDefinition_complete,
+
+			"basicDataSource": testAccDevCenterDevBoxDefinitionDataSource_basic,
+		},
+
+		"DevCenterEnvironmentType": {
+			"basic":          testAccDevCenterEnvironmentType_basic,
+			"requiresImport": testAccDevCenterEnvironmentType_requiresImport,
+			"update":         testAccDevCenterEnvironmentType_update,
+			"complete":       testAccDevCenterEnvironmentType_complete,
+
+			"basicDataSource": testAccDevCenterEnvironmentTypeDataSource_basic,
+		},
+
+		"DevCenterGallery": {
+			"basic":          testAccDevCenterGallery_basic,
+			"requiresImport": testAccDevCenterGallery_requiresImport,
+			"update":         testAccDevCenterGallery_update,
+			"complete":       testAccDevCenterGallery_complete,
+
+			"basicDataSource": testAccDevCenterGalleryDataSource_basic,
+		},
+
+		"DevCenterNetworkConnection": {
+			"basic":          testAccDevCenterNetworkConnection_basic,
+			"requiresImport": testAccDevCenterNetworkConnection_requiresImport,
+			"update":         testAccDevCenterNetworkConnection_update,
+			"complete":       testAccDevCenterNetworkConnection_complete,
+
+			"basicDataSource": testAccDevCenterNetworkConnectionDataSource_basic,
+		},
+
+		"DevCenterProject": {
+			"basic":          testAccDevCenterProject_basic,
+			"requiresImport": testAccDevCenterProject_requiresImport,
+			"update":         testAccDevCenterProject_update,
+			"complete":       testAccDevCenterProject_complete,
+
+			"basicDataSource": testAccDevCenterProjectDataSource_basic,
+		},
+
+		"DevCenterProjectEnvironmentType": {
+			"basic":          testAccDevCenterProjectEnvironmentType_basic,
+			"requiresImport": testAccDevCenterProjectEnvironmentType_requiresImport,
+			"update":         testAccDevCenterProjectEnvironmentType_update,
+			"complete":       testAccDevCenterProjectEnvironmentType_complete,
+
+			"basicDataSource": testAccDevCenterProjectEnvironmentTypeDataSource_basic,
+		},
+
+		"DevCenterProjectPool": {
+			"basic":          testAccDevCenterProjectPool_basic,
+			"requiresImport": testAccDevCenterProjectPool_requiresImport,
+			"update":         testAccDevCenterProjectPool_update,
+			"complete":       testAccDevCenterProjectPool_complete,
+			"managedNetwork": testAccDevCenterProjectPool_managedNetwork,
+
+			"basicDataSource": testAccDevCenterProjectPoolDataSource_basic,
+		},
+	}
+
+	for resource, tests := range testCases {
+		t.Run(resource, func(t *testing.T) {
+			for name, test := range tests {
+				t.Run(name, func(t *testing.T) {
+					test(t)
+				})
+			}
+		})
+	}
+}
+
+func testAccDevCenter_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center", "test")
 	r := DevCenterTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -33,11 +136,11 @@ func TestAccDevCenter_basic(t *testing.T) {
 	})
 }
 
-func TestAccDevCenter_requiresImport(t *testing.T) {
+func testAccDevCenter_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center", "test")
 	r := DevCenterTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -48,11 +151,11 @@ func TestAccDevCenter_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccDevCenter_complete(t *testing.T) {
+func testAccDevCenter_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center", "test")
 	r := DevCenterTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -63,11 +166,11 @@ func TestAccDevCenter_complete(t *testing.T) {
 	})
 }
 
-func TestAccDevCenter_update(t *testing.T) {
+func testAccDevCenter_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center", "test")
 	r := DevCenterTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(

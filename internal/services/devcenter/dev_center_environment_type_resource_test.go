@@ -18,11 +18,11 @@ import (
 
 type DevCenterEnvironmentTypeTestResource struct{}
 
-func TestAccDevCenterEnvironmentType_basic(t *testing.T) {
+func testAccDevCenterEnvironmentType_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_environment_type", "test")
 	r := DevCenterEnvironmentTypeTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -33,11 +33,11 @@ func TestAccDevCenterEnvironmentType_basic(t *testing.T) {
 	})
 }
 
-func TestAccDevCenterEnvironmentType_requiresImport(t *testing.T) {
+func testAccDevCenterEnvironmentType_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_environment_type", "test")
 	r := DevCenterEnvironmentTypeTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -48,11 +48,11 @@ func TestAccDevCenterEnvironmentType_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccDevCenterEnvironmentType_complete(t *testing.T) {
+func testAccDevCenterEnvironmentType_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_environment_type", "test")
 	r := DevCenterEnvironmentTypeTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -63,11 +63,11 @@ func TestAccDevCenterEnvironmentType_complete(t *testing.T) {
 	})
 }
 
-func TestAccDevCenterEnvironmentType_update(t *testing.T) {
+func testAccDevCenterEnvironmentType_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_environment_type", "test")
 	r := DevCenterEnvironmentTypeTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(

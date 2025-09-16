@@ -8,21 +8,21 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/devcenter/2025-02-01/galleries"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type DevCenterGalleryTestResource struct{}
 
-func TestAccDevCenterGallery_basic(t *testing.T) {
+func testAccDevCenterGallery_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_gallery", "test")
 	r := DevCenterGalleryTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -33,11 +33,11 @@ func TestAccDevCenterGallery_basic(t *testing.T) {
 	})
 }
 
-func TestAccDevCenterGallery_requiresImport(t *testing.T) {
+func testAccDevCenterGallery_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_gallery", "test")
 	r := DevCenterGalleryTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -48,11 +48,11 @@ func TestAccDevCenterGallery_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccDevCenterGallery_complete(t *testing.T) {
+func testAccDevCenterGallery_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_gallery", "test")
 	r := DevCenterGalleryTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -63,11 +63,11 @@ func TestAccDevCenterGallery_complete(t *testing.T) {
 	})
 }
 
-func TestAccDevCenterGallery_update(t *testing.T) {
+func testAccDevCenterGallery_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_gallery", "test")
 	r := DevCenterGalleryTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -103,7 +103,7 @@ func (r DevCenterGalleryTestResource) Exists(ctx context.Context, clients *clien
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}
 
-	return utils.Bool(resp.Model != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r DevCenterGalleryTestResource) basic(data acceptance.TestData) string {

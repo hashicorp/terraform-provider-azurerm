@@ -18,11 +18,11 @@ import (
 
 type DevCenterProjectEnvironmentTypeTestResource struct{}
 
-func TestAccDevCenterProjectEnvironmentType_basic(t *testing.T) {
+func testAccDevCenterProjectEnvironmentType_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project_environment_type", "test")
 	r := DevCenterProjectEnvironmentTypeTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -33,11 +33,11 @@ func TestAccDevCenterProjectEnvironmentType_basic(t *testing.T) {
 	})
 }
 
-func TestAccDevCenterProjectEnvironmentType_requiresImport(t *testing.T) {
+func testAccDevCenterProjectEnvironmentType_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project_environment_type", "test")
 	r := DevCenterProjectEnvironmentTypeTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -48,11 +48,11 @@ func TestAccDevCenterProjectEnvironmentType_requiresImport(t *testing.T) {
 	})
 }
 
-func TestAccDevCenterProjectEnvironmentType_complete(t *testing.T) {
+func testAccDevCenterProjectEnvironmentType_complete(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project_environment_type", "test")
 	r := DevCenterProjectEnvironmentTypeTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
@@ -63,11 +63,11 @@ func TestAccDevCenterProjectEnvironmentType_complete(t *testing.T) {
 	})
 }
 
-func TestAccDevCenterProjectEnvironmentType_update(t *testing.T) {
+func testAccDevCenterProjectEnvironmentType_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_dev_center_project_environment_type", "test")
 	r := DevCenterProjectEnvironmentTypeTestResource{}
 
-	data.ResourceTest(t, r, []acceptance.TestStep{
+	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
