@@ -90,7 +90,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "datafactory" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "westus2", false)),
 
         // Dev Center only available in some regions / has a quota of 5
-        "devcenter" to testConfiguration(parallelism = 2, locationOverride = LocationConfiguration("westeurope", "uksouth", "canadacentral", true))
+        "devcenter" to testConfiguration(parallelism = 2, locationOverride = LocationConfiguration("westeurope", "uksouth", "canadacentral", true)),
 
         // "hdinsight" is super expensive - G class VM's are not available in westus2, quota only available in westeurope currently
         "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),
