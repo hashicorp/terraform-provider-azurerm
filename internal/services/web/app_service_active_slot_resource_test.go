@@ -68,13 +68,13 @@ func (r AppServiceActiveSlotResource) Exists(ctx context.Context, clients *clien
 		return nil, fmt.Errorf("retrieving App Service %q (Resource Group %s): %+v", id.SiteName, id.ResourceGroup, err)
 	}
 
-	if resp.SiteProperties == nil || resp.SiteProperties.SlotSwapStatus == nil || resp.SiteProperties.SlotSwapStatus.SourceSlotName == nil {
+	if resp.SiteProperties == nil || resp.SlotSwapStatus == nil || resp.SlotSwapStatus.SourceSlotName == nil {
 		return nil, fmt.Errorf("App Service Slot %q: SiteProperties or SlotSwapStatus or SourceSlotName is nil", id.SiteName)
 	}
 
 	target := state.Attributes["resource_group_name"]
 
-	return utils.Bool(*resp.SiteProperties.SlotSwapStatus.SourceSlotName == target), nil
+	return utils.Bool(*resp.SlotSwapStatus.SourceSlotName == target), nil
 }
 
 func (AppServiceActiveSlotResource) basic(data acceptance.TestData) string {

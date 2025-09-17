@@ -6,7 +6,7 @@ description: |-
   Manages Azure PIM Role Management Policies.
 ---
 
-# Resource: azurerm_role_management_policy
+# azurerm_role_management_policy
 
 Manage a role policy for an Azure Management Group, Subscription, Resource Group or resource.
 

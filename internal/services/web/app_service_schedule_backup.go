@@ -133,7 +133,7 @@ func expandAppServiceBackup(input []interface{}) *web.BackupRequest {
 			backupSchedule.StartTime = &date.Time{Time: dateTimeToStart}
 		}
 
-		request.BackupRequestProperties.BackupSchedule = &backupSchedule
+		request.BackupSchedule = &backupSchedule
 	}
 
 	return request

@@ -6,7 +6,7 @@ description: |-
   Gets information about an existing Marketplace Agreement.
 ---
 
-# azurerm_marketplace_agreement
+# Data Source: azurerm_marketplace_agreement
 
 Uses this data source to access information about an existing Marketplace Agreement.
 

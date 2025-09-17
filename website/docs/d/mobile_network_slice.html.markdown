@@ -6,7 +6,7 @@ description: |-
   Get information about a Mobile Network Slice.
 ---
 
-# azurerm_mobile_network_slice
+# Data Source: azurerm_mobile_network_slice
 
 Get information about a Mobile Network Slice.
 

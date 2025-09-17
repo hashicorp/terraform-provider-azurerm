@@ -7,7 +7,7 @@ description: |-
 
 ---
 
-# Data source: azurerm_batch_pool
+# Data Source: azurerm_batch_pool
 
 Use this data source to access information about an existing Batch pool
 

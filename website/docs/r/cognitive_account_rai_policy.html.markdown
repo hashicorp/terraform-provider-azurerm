@@ -6,7 +6,7 @@ description: |-
   Manages a Cognitive Services Account RAI Policy.
 ---
 
-# cognitive_account_rai_policy
+# azurerm_cognitive_account_rai_policy
 
 Manages a Cognitive Services Account RAI Policy.
 
