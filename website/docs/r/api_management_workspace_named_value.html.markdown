@@ -54,17 +54,17 @@ The following arguments are supported:
 
 * `display_name` - (Required) Specifies the display name of the API Management Workspace Named Value.
 
-* `value` - (Optional) Specifies the value of the API Management Workspace Named Value.
-
-* `value_from_key_vault` - (Optional) A `value_from_key_vault` block as defined below. 
-
-~> **Note:** One and only one of `value` or `value_from_key_vault` must be specified.
-
 * `secret_enabled` - (Optional) Specifies whether encryption is enabled for the API Management Named Value. Defaults to `false`.
 
 ~> **Note:** When `value_from_key_vault` is specified, `secret_enabled` must be set to `true`.
 
 * `tags` - (Optional) Specifies a list of tags to be applied to the API Management Workspace Named Value.
+
+* `value` - (Optional) Specifies the value of the API Management Workspace Named Value.
+
+* `value_from_key_vault` - (Optional) A `value_from_key_vault` block as defined below. 
+
+~> **Note:** One and only one of `value` or `value_from_key_vault` must be specified.
 
 ---
 

@@ -6,6 +6,7 @@ package apimanagement_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -154,6 +155,17 @@ func TestAccApiManagementWorkspaceNamedValue_keyVaultWithIdentity(t *testing.T) 
 			),
 		},
 		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementWorkspaceNamedValue_requireSecretEnabledMustBeTrueError(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_workspace_named_value", "test")
+	r := ApiManagementWorkspaceNamedValueTestResource{}
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config:      r.requireSecretEnabledMustBeTrueError(data),
+			ExpectError: regexp.MustCompile("`secret_enabled` must be set to `true` when `value_from_key_vault` is specified"),
+		},
 	})
 }
 
@@ -606,4 +618,31 @@ resource "azurerm_api_management_workspace_named_value" "test" {
   }
 }
 `, r.templateWithUserAssignedIdentity(data), r.keyVaultTemplateWithUserAssignedIdentity(data), data.RandomInteger)
+}
+
+func (r ApiManagementWorkspaceNamedValueTestResource) requireSecretEnabledMustBeTrueError(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+    key_vault {
+      purge_soft_delete_on_destroy = true
+    }
+  }
+}
+
+%s
+
+%s
+
+resource "azurerm_api_management_workspace_named_value" "test" {
+  name                        = "acctestAMNamedValue-%d"
+  api_management_workspace_id = azurerm_api_management_workspace.test.id
+  display_name                = "TestKeyVaultNamedValue"
+  secret_enabled              = false
+
+  value_from_key_vault {
+    key_vault_secret_id = azurerm_key_vault_secret.test.id
+  }
+}
+`, r.templateWithIdentity(data), r.keyVaultTemplate(data), data.RandomInteger)
 }
