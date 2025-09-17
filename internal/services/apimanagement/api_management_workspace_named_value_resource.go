@@ -107,7 +107,6 @@ func (r ApiManagementWorkspaceNamedValueResource) Arguments() map[string]*plugin
 					},
 				},
 			},
-			RequiredWith: []string{"secret_enabled"},
 		},
 	}
 }
@@ -201,17 +200,16 @@ func (r ApiManagementWorkspaceNamedValueResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 			}
 
-			payload := resp.Model
 			parameters := namedvalue.NamedValueCreateContract{
 				Properties: &namedvalue.NamedValueCreateContractProperties{
-					DisplayName: payload.Properties.DisplayName,
+					DisplayName: resp.Model.Properties.DisplayName,
 					Secret:      resp.Model.Properties.Secret,
 					Tags:        resp.Model.Properties.Tags,
 					Value:       resp.Model.Properties.Value,
 				},
 			}
 
-			if keyVault := payload.Properties.KeyVault; keyVault != nil {
+			if keyVault := resp.Model.Properties.KeyVault; keyVault != nil {
 				parameters.Properties.KeyVault = &namedvalue.KeyVaultContractCreateProperties{
 					IdentityClientId: keyVault.IdentityClientId,
 					SecretIdentifier: keyVault.SecretIdentifier,
