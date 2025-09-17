@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
 	"github.com/hashicorp/terraform-plugin-framework-validators/listvalidator"
 	"github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator"
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/function"
@@ -35,23 +36,17 @@ var (
 	_ provider.ProviderWithFunctions          = &azureRmFrameworkProvider{}
 	_ provider.ProviderWithEphemeralResources = &azureRmFrameworkProvider{}
 	_ provider.ProviderWithListResources      = &azureRmFrameworkProvider{}
+	_ provider.ProviderWithActions            = &azureRmFrameworkProvider{}
 )
 
-func (p *azureRmFrameworkProvider) Functions(_ context.Context) []func() function.Function {
-	return []func() function.Function{
-		providerfunction.NewNormaliseResourceIDFunction,
-		providerfunction.NewParseResourceIDFunction,
-	}
+func NewFrameworkV5Provider() provider.Provider {
+	return &azureRmFrameworkProvider{}
 }
 
 func NewFrameworkProvider(primary interface{ Meta() interface{} }) provider.Provider {
 	return &azureRmFrameworkProvider{
 		V2Provider: primary,
 	}
-}
-
-func NewFrameworkV5Provider() provider.Provider {
-	return &azureRmFrameworkProvider{}
 }
 
 func (p *azureRmFrameworkProvider) Metadata(_ context.Context, _ provider.MetadataRequest, response *provider.MetadataResponse) {
@@ -536,6 +531,7 @@ func (p *azureRmFrameworkProvider) Configure(ctx context.Context, request provid
 		response.DataSourceData = v
 		response.EphemeralResourceData = v
 		response.ListResourceData = v
+		response.ActionData = v
 	} else {
 		p.Load(ctx, &data, request.TerraformVersion, &response.Diagnostics)
 
@@ -543,7 +539,12 @@ func (p *azureRmFrameworkProvider) Configure(ctx context.Context, request provid
 		response.ResourceData = &p.ProviderConfig
 		response.EphemeralResourceData = &p.ProviderConfig
 		response.ListResourceData = &p.ProviderConfig
+		response.ActionData = &p.ProviderConfig
 	}
+}
+
+func (p *azureRmFrameworkProvider) Actions(_ context.Context) []func() action.Action {
+	return []func() action.Action{}
 }
 
 func (p *azureRmFrameworkProvider) DataSources(_ context.Context) []func() datasource.DataSource {
@@ -563,20 +564,21 @@ func (p *azureRmFrameworkProvider) DataSources(_ context.Context) []func() datas
 	return output
 }
 
-func (p *azureRmFrameworkProvider) Resources(_ context.Context) []func() resource.Resource {
-	var output []func() resource.Resource
+func (p *azureRmFrameworkProvider) EphemeralResources(_ context.Context) []func() ephemeral.EphemeralResource {
+	var output []func() ephemeral.EphemeralResource
 
 	for _, service := range pluginsdkprovider.SupportedFrameworkServices() {
-		for _, r := range service.FrameworkResources() {
-			fwr := sdk.FrameworkResourceWrapper{
-				ResourceMetadata:         sdk.ResourceMetadata{},
-				FrameworkWrappedResource: r,
-			}
-			output = append(output, fwr.Resource())
-		}
+		output = append(output, service.EphemeralResources()...)
 	}
 
 	return output
+}
+
+func (p *azureRmFrameworkProvider) Functions(_ context.Context) []func() function.Function {
+	return []func() function.Function{
+		providerfunction.NewNormaliseResourceIDFunction,
+		providerfunction.NewParseResourceIDFunction,
+	}
 }
 
 func (p *azureRmFrameworkProvider) ListResources(_ context.Context) []func() list.ListResource {
@@ -589,11 +591,17 @@ func (p *azureRmFrameworkProvider) ListResources(_ context.Context) []func() lis
 	return output
 }
 
-func (p *azureRmFrameworkProvider) EphemeralResources(_ context.Context) []func() ephemeral.EphemeralResource {
-	var output []func() ephemeral.EphemeralResource
+func (p *azureRmFrameworkProvider) Resources(_ context.Context) []func() resource.Resource {
+	var output []func() resource.Resource
 
 	for _, service := range pluginsdkprovider.SupportedFrameworkServices() {
-		output = append(output, service.EphemeralResources()...)
+		for _, r := range service.FrameworkResources() {
+			fwr := sdk.FrameworkResourceWrapper{
+				ResourceMetadata:         sdk.ResourceMetadata{},
+				FrameworkWrappedResource: r,
+			}
+			output = append(output, fwr.Resource())
+		}
 	}
 
 	return output
