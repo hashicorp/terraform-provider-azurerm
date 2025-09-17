@@ -54,6 +54,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apigateway"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/apimanagementservice"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/backend"
+	policyfragment_v2024_05_01 "github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/policyfragment"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/apimanagement/2024-05-01/workspace"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/common"
 )
@@ -95,6 +96,7 @@ type Client struct {
 	OpenIdConnectClient                *openidconnectprovider.OpenidConnectProviderClient
 	PolicyClient                       *policy.PolicyClient
 	PolicyFragmentClient               *policyfragment.PolicyFragmentClient
+	PolicyFragmentClient_v2024_05_01   *policyfragment_v2024_05_01.PolicyFragmentClient
 	ProductApisClient                  *productapi.ProductApiClient
 	ProductGroupsClient                *productgroup.ProductGroupClient
 	ProductPoliciesClient              *productpolicy.ProductPolicyClient
@@ -327,6 +329,12 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 	}
 	o.Configure(policyFragmentClient.Client, o.Authorizers.ResourceManager)
 
+	policyFragmentClient_v2024_05_01, err := policyfragment_v2024_05_01.NewPolicyFragmentClientWithBaseURI(o.Environment.ResourceManager)
+	if err != nil {
+		return nil, fmt.Errorf("building Policy Fragment client: %+v", err)
+	}
+	o.Configure(policyFragmentClient_v2024_05_01.Client, o.Authorizers.ResourceManager)
+
 	productsClient, err := product.NewProductClientWithBaseURI(o.Environment.ResourceManager)
 	if err != nil {
 		return nil, fmt.Errorf("building Products client: %+v", err)
@@ -442,6 +450,7 @@ func NewClient(o *common.ClientOptions) (*Client, error) {
 		OpenIdConnectClient:                openIdConnectClient,
 		PolicyClient:                       policyClient,
 		PolicyFragmentClient:               policyFragmentClient,
+		PolicyFragmentClient_v2024_05_01:   policyFragmentClient_v2024_05_01,
 		ProductApisClient:                  productApisClient,
 		ProductGroupsClient:                productGroupsClient,
 		ProductPoliciesClient:              productPoliciesClient,
