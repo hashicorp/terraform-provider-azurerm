@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-provider-azurerm/internal/provider"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/schema"
 )
 
 type resource struct {
@@ -39,12 +40,13 @@ func newSet(val string) set {
 	return res
 }
 
-func AzurermAllResources(service, skipService string, resources, skipResources string) Resources {
+func AzurermAllResources(service, skipService string, resources, skipResources string, fileList string) Resources {
 	var (
 		rps              = newSet(service)
 		skipRPs          = newSet(skipService)
 		resourcesMap     = newSet(resources)
 		skipResourcesMap = newSet(skipResources)
+		files            = newSet(fileList)
 	)
 
 	shouldSkipRP := func(name string) bool {
@@ -67,6 +69,13 @@ func AzurermAllResources(service, skipService string, resources, skipResources s
 		return false
 	}
 
+	shouldSkipFile := func(path string) bool {
+		if len(files) > 0 && !files.Exists(path) {
+			return true
+		}
+		return false
+	}
+
 	var res Resources
 	for _, r := range provider.SupportedTypedServices() {
 		name := r.Name()
@@ -77,6 +86,12 @@ func AzurermAllResources(service, skipService string, resources, skipResources s
 			if shouldSKipResource(svc.ResourceType()) {
 				continue
 			}
+
+			filePath := schema.FileForResource(svc.Create().Func)
+			if shouldSkipFile(filePath) {
+				continue
+			}
+
 			res.resources = append(res.resources, resource{
 				name:   svc.ResourceType(),
 				schema: svc,
@@ -93,6 +108,12 @@ func AzurermAllResources(service, skipService string, resources, skipResources s
 			if shouldSKipResource(name) {
 				continue
 			}
+
+			filePath := schema.FileForResource(svc.Read, svc.ReadContext) //nolint:staticcheck
+			if shouldSkipFile(filePath) {
+				continue
+			}
+
 			res.resources = append(res.resources, resource{
 				name:   name,
 				schema: svc,

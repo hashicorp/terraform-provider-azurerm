@@ -23,9 +23,19 @@ jobs:
         with:
           go-version-file: ./.go-version
       - run: bash scripts/gogetcookie.sh
-      - run: make document-lint
-        continue-on-error: true
-      - name: check lint result
-        if: failure()
+      - name: Get changed files
+        id: changed-files
         run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1 || true
+          changed=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD -- internal/services | tr '\n' ',' | sed 's/,$//')
+          changed=${changed:-}
+          echo "::notice::check with files: ${changed}"
+          echo "FILE_LIST=$changed" >> $GITHUB_ENV
+
+      - name: run document lint checker
+        run: |
+          if make document-lint; then
+            echo "document lint success."
+          else
             echo "::warning::Document linting failed. Please fix the issues."
+          fi
