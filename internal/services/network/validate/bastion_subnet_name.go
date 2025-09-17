@@ -17,7 +17,7 @@ func BastionSubnetName(v interface{}, k string) (warnings []string, errors []err
 	}
 
 	if parsed.SubnetName != "AzureBastionSubnet" {
-		errors = append(errors, fmt.Errorf("The name of the Subnet for %q must be exactly 'AzureBastionSubnet' to be used for the Azure Bastion Host resource", k))
+		errors = append(errors, fmt.Errorf("the name of the Subnet for %q must be exactly 'AzureBastionSubnet' to be used for the Azure Bastion Host resource", k))
 	}
 
 	return warnings, errors

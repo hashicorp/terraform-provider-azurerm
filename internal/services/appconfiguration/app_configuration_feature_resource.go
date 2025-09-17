@@ -249,7 +249,7 @@ func (k FeatureResource) Create() sdk.ResourceFunc {
 				} else {
 					return fmt.Errorf("while checking for key's %q existence: %+v", featureKey, err)
 				}
-			} else if kv.Response.StatusCode == 200 {
+			} else if kv.StatusCode == 200 {
 				return tf.ImportAsExistsError(k.ResourceType(), nestedItemId.ID())
 			}
 

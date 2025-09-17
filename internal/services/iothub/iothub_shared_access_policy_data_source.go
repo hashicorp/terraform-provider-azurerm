@@ -80,7 +80,7 @@ func dataSourceIotHubSharedAccessPolicyRead(d *pluginsdk.ResourceData, meta inte
 	accessPolicy, err := client.GetKeysForKeyName(ctx, id.ResourceGroup, id.IotHubName, id.IotHubKeyName)
 	if err != nil {
 		if utils.ResponseWasNotFound(accessPolicy.Response) {
-			return fmt.Errorf("Error: %s was not found", id)
+			return fmt.Errorf("%s was not found", id)
 		}
 
 		return fmt.Errorf("loading %s: %+v", id, err)
