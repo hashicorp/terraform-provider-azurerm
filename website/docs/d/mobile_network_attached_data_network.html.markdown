@@ -6,7 +6,7 @@ description: |-
   Gets information about an existing Mobile Network Attached Data Network.
 ---
 
-# azurerm_mobile_network_attached_data_network
+# Data Source: azurerm_mobile_network_attached_data_network
 
 Use this data source to access information about an existing Mobile Network Attached Data Network.
 

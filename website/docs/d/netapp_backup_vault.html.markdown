@@ -6,7 +6,7 @@ description: |-
   Gets information about an existing NetApp Backup Vault
 ---
 
-# Data Source: netapp_backup_vault
+# Data Source: azurerm_netapp_backup_vault
 
 Use this data source to access information about an existing NetApp Backup Vault.
 

@@ -6,7 +6,7 @@ description: |-
   Get information about a Mobile Network Sim.
 ---
 
-# azurerm_mobile_network_sim
+# Data Source: azurerm_mobile_network_sim
 
 Get information about a Mobile Network Sim.
 

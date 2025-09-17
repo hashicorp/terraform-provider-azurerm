@@ -907,10 +907,8 @@ func flattenGatewayClientAuth(input *appplatform.GatewayPropertiesClientAuth) []
 			}
 		}
 	}
-	verificationEnabled := false
-	if input.CertificateVerification != nil && *input.CertificateVerification == appplatform.GatewayCertificateVerificationEnabled {
-		verificationEnabled = true
-	}
+	verificationEnabled := input.CertificateVerification != nil && *input.CertificateVerification == appplatform.GatewayCertificateVerificationEnabled
+
 	return []ClientAuthorizationModel{
 		{
 			CertificateIds:      certificateIds,

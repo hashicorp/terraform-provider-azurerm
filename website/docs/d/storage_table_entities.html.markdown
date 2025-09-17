@@ -6,7 +6,7 @@ description: |-
   Gets all existing entities from Storage Tablethat match a filter.
 ---
 
-# Data Source: azurerm_storage_table_entity
+# Data Source: azurerm_storage_table_entities
 
 Use this data source to access information about an existing Storage Table Entity.
 

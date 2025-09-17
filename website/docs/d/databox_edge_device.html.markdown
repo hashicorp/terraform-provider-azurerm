@@ -6,7 +6,7 @@ description: |-
   Get information about a Databox Edge Device.
 ---
 
-# azurerm_databox_edge_device
+# Data Source: azurerm_databox_edge_device
 
 Get information about a Databox Edge Device.
 

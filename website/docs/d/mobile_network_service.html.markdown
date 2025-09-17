@@ -6,7 +6,7 @@ description: |-
   Get information about a Mobile Network Service.
 ---
 
-# azurerm_mobile_network_service
+# Data Source: azurerm_mobile_network_service
 
 Get information about a Mobile Network Service.
 
