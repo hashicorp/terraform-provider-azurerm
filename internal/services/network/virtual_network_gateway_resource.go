@@ -1549,6 +1549,7 @@ func validateVirtualNetworkGatewayExpressRouteSku() pluginsdk.SchemaValidateFunc
 		string(virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwOneAZ),
 		string(virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwTwoAZ),
 		string(virtualnetworkgateways.VirtualNetworkGatewaySkuNameErGwThreeAZ),
+		string(virtualnetworkgateways.VirtualNetworkGatewaySkuTierErGwScale),
 	}, false)
 }
 
