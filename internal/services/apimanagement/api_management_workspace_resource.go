@@ -113,11 +113,11 @@ func (r ApiManagementWorkspaceResource) Create() sdk.ResourceFunc {
 			properties := workspace.WorkspaceContract{
 				Properties: &workspace.WorkspaceContractProperties{
 					DisplayName: model.DisplayName,
-					Description: model.Description,
+					Description: &model.Description,
 				},
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, id, properties); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, id, properties, workspace.CreateOrUpdateOperationOptions{}); err != nil {
 				return fmt.Errorf("creating %s: %+v", id, err)
 			}
 
@@ -148,7 +148,7 @@ func (r ApiManagementWorkspaceResource) Read() sdk.ResourceFunc {
 			}
 
 			subscriptionId := metadata.Client.Account.SubscriptionId
-			apiManagementId := apimanagementservice.NewServiceID(subscriptionId, id.ResourceGroup, id.ServiceName)
+			apiManagementId := apimanagementservice.NewServiceID(subscriptionId, id.ResourceGroupName, id.ServiceName)
 
 			state := ApiManagementWorkspaceModel{
 				Name:            id.WorkspaceId,
@@ -158,7 +158,7 @@ func (r ApiManagementWorkspaceResource) Read() sdk.ResourceFunc {
 			if model := resp.Model; model != nil {
 				if props := model.Properties; props != nil {
 					state.DisplayName = props.DisplayName
-					state.Description = props.Description
+					state.Description = pointer.ToString(props.Description)
 				}
 			}
 
@@ -178,7 +178,7 @@ func (r ApiManagementWorkspaceResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			if _, err = client.Delete(ctx, *id); err != nil {
+			if _, err = client.Delete(ctx, *id, workspace.DeleteOperationOptions{}); err != nil {
 				return fmt.Errorf("deleting %s: %+v", *id, err)
 			}
 
@@ -206,11 +206,11 @@ func (r ApiManagementWorkspaceResource) Update() sdk.ResourceFunc {
 			properties := workspace.WorkspaceContract{
 				Properties: &workspace.WorkspaceContractProperties{
 					DisplayName: model.DisplayName,
-					Description: model.Description,
+					Description: &model.Description,
 				},
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, *id, properties); err != nil {
+			if _, err := client.CreateOrUpdate(ctx, *id, properties, workspace.CreateOrUpdateOperationOptions{}); err != nil {
 				return fmt.Errorf("updating %s: %+v", *id, err)
 			}
 
