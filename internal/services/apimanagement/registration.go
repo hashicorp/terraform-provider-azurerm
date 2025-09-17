@@ -110,5 +110,7 @@ func (r Registration) Resources() []sdk.Resource {
 		ApiManagementWorkspaceResource{},
 		ApiManagementWorkspacePolicyResource{},
 		ApiManagementStandaloneGatewayResource{},
+		ApiManagementWorkspaceResource{},
+		ApiManagementWorkspacePolicyFragmentResource{},
 	}
 }
