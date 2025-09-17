@@ -1253,7 +1253,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving storage container endpoint error, the expected format is https://storagename.blob.core.windows.net/containername, the received value is %s", state.DeploymentStorageContainerEndpoint)
 			}
 
-			if deploymentSaKey != "" {
+			if deploymentSaKey != "" && deploymentSaName != "" {
 				storageConnStringForFcAppValue = fmt.Sprintf(StorageStringFmt, deploymentSaName, deploymentSaKey, *storageDomainSuffix)
 			}
 
