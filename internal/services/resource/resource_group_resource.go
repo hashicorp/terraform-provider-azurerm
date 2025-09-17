@@ -72,7 +72,7 @@ func resourceResourceGroupCreate(d *pluginsdk.ResourceData, meta interface{}) er
 	existing, err := client.Get(ctx, id)
 	if err != nil {
 		if !response.WasNotFound(existing.HttpResponse) {
-			return fmt.Errorf("checking for presence of existing resource group: %+v", err)
+			return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
 		}
 	}
 
@@ -126,7 +126,7 @@ func resourceResourceGroupUpdate(d *pluginsdk.ResourceData, meta interface{}) er
 	}
 
 	if _, err := client.Update(ctx, *id, patch); err != nil {
-		return fmt.Errorf("creating %q: %+v", *id, err)
+		return fmt.Errorf("updating %q: %+v", *id, err)
 	}
 
 	return resourceResourceGroupRead(d, meta)

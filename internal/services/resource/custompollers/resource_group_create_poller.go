@@ -50,7 +50,7 @@ func (p resourceGroupCreatePoller) Poll(ctx context.Context) (*pollers.PollResul
 			successCount = 3
 			return pollingInProgress, nil
 		}
-		return pollingFailed, fmt.Errorf("retrieving Resource Group: %+v", err)
+		return pollingFailed, fmt.Errorf("retrieving %s: %+v", p.id, err)
 	}
 
 	if successCount > 1 {
