@@ -46,10 +46,10 @@ func dataSourceResourceGroupRead(d *pluginsdk.ResourceData, meta interface{}) er
 	id := commonids.NewResourceGroupID(meta.(*clients.Client).Account.SubscriptionId, d.Get("name").(string))
 	resp, err := client.Get(ctx, id)
 	if err != nil {
-
 		if response.WasNotFound(resp.HttpResponse) {
 			return fmt.Errorf("%q was not found", id)
 		}
+
 		return err
 	}
 
