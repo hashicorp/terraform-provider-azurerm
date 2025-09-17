@@ -1075,7 +1075,7 @@ func (r FunctionAppFlexConsumptionResource) Read() sdk.ResourceFunc {
 					}
 				}
 
-				state.unpackFunctionAppFlexConsumptionSettings(*appSettingsResp.Model, metadata)
+				state.unpackFunctionAppFlexConsumptionSettings(*appSettingsResp.Model)
 
 				state.ClientCertEnabled = pointer.From(props.ClientCertEnabled)
 
@@ -1218,7 +1218,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 					if k == "DEPLOYMENT_STORAGE_CONNECTION_STRING" && v != "" {
 						storageConnStringForFCApp = "DEPLOYMENT_STORAGE_CONNECTION_STRING"
 						storageConnStringForFcAppValue = v
-						deploymentSaName, deploymentSaKey = helpers.ParseWebJobsStorageString(v)
+						_, deploymentSaKey = helpers.ParseWebJobsStorageString(v)
 					}
 					if k == "AzureWebJobsStorage" && v != "" {
 						backendStorageString = v
@@ -1270,7 +1270,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 			}
 			if !features.FivePointOh() && (metadata.ResourceData.HasChange("storage_account_name") || metadata.ResourceData.HasChange("storage_account_key_vault_secret_id")) {
 				if state.StorageAccountName == "" && state.StorageAccountKeyVaultSecretID == "" {
-					return fmt.Errorf("The function app storage connection is empty, either set `storage_account_name` or `storage_account_key_vault_secret_id`")
+					return fmt.Errorf("the function app storage connection is empty, either set `storage_account_name` or `storage_account_key_vault_secret_id`")
 				}
 			}
 
@@ -1486,7 +1486,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (m *FunctionAppFlexConsumptionModel) unpackFunctionAppFlexConsumptionSettings(input webapps.StringDictionary, metadata sdk.ResourceMetaData) {
+func (m *FunctionAppFlexConsumptionModel) unpackFunctionAppFlexConsumptionSettings(input webapps.StringDictionary) {
 	if input.Properties == nil {
 		return
 	}
