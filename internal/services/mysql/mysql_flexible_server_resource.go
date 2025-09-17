@@ -1131,7 +1131,7 @@ func flattenFlexibleServerDataEncryption(de *servers.DataEncryption, meta interf
 
 	item := map[string]interface{}{}
 	if de.PrimaryKeyURI != nil {
-		isHsmKey, err, _, _ := managedHsmHelpers.IsManagedHSMURI(env, pointer.From(de.PrimaryKeyURI))
+		isHsmKey, _, _, err := managedHsmHelpers.IsManagedHSMURI(env, pointer.From(de.PrimaryKeyURI))
 		if err != nil {
 			return nil, err
 		}
