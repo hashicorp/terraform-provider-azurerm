@@ -66,6 +66,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/hybridcompute"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/iotoperations"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/legacy"
@@ -183,6 +184,7 @@ func SupportedTypedServices() []sdk.TypedServiceRegistration {
 		hybridcompute.Registration{},
 		iotcentral.Registration{},
 		iothub.Registration{},
+		iotoperations.Registration{},
 		keyvault.Registration{},
 		kusto.Registration{},
 		loadbalancer.Registration{},
@@ -288,6 +290,7 @@ func SupportedUntypedServices() []sdk.UntypedServiceRegistration {
 			hsm.Registration{},
 			iotcentral.Registration{},
 			iothub.Registration{},
+			iotoperations.Registration{},
 			keyvault.Registration{},
 			kusto.Registration{},
 			legacy.Registration{},

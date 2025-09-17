@@ -83,6 +83,7 @@ import (
 	hybridcompute "github.com/hashicorp/terraform-provider-azurerm/internal/services/hybridcompute/client"
 	iotcentral "github.com/hashicorp/terraform-provider-azurerm/internal/services/iotcentral/client"
 	iothub "github.com/hashicorp/terraform-provider-azurerm/internal/services/iothub/client"
+	iotoperations "github.com/hashicorp/terraform-provider-azurerm/internal/services/iotoperations/client"
 	keyvault "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/client"
 	kusto "github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/client"
 	lighthouse "github.com/hashicorp/terraform-provider-azurerm/internal/services/lighthouse/client"
@@ -220,6 +221,7 @@ type Client struct {
 	HealthCare                        *healthcare.Client
 	IoTCentral                        *iotcentral.Client
 	IoTHub                            *iothub.Client
+	IoTOperations                     *iotoperations.Client
 	KeyVault                          *keyvault.Client
 	Kusto                             *kusto.Client
 	Lighthouse                        *lighthouse.Client
@@ -481,6 +483,9 @@ func (client *Client) Build(ctx context.Context, o *common.ClientOptions) error 
 	}
 	if client.IoTHub, err = iothub.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for IoTHub: %+v", err)
+	}
+	if client.IoTOperations, err = iotoperations.NewClient(o); err != nil {
+		return fmt.Errorf("building clients for IoTOperations: %+v", err)
 	}
 	if client.KeyVault, err = keyvault.NewClient(o); err != nil {
 		return fmt.Errorf("building clients for Key Vault: %+v", err)
