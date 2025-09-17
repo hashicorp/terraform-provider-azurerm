@@ -1,4 +1,30 @@
+## 4.44.0 (September 11, 2025)
+
+ENHANCEMENTS:
+
+* dependencies: `go-azure-sdk` - update to `v0.20250903.1204452` ([#30557](https://github.com/hashicorp/terraform-provider-azurerm/issues/30557))
+* dependencies: `paloaltonetworks/firewalls` - update to API version `2025-05-23` ([#30587](https://github.com/hashicorp/terraform-provider-azurerm/issues/30587))
+* `azurerm_kubernetes_cluster` - add support for `bootstrap_profile` ([#30532](https://github.com/hashicorp/terraform-provider-azurerm/issues/30532))
+* `azurerm_kubernetes_cluster` - add support for the `none` value for `network_profile.outbound_type` ([#30532](https://github.com/hashicorp/terraform-provider-azurerm/issues/30532))
+* `azurerm_netapp_volume` - add support for `accept_grow_capacity_pool_for_short_term_clone_split` ([#30494](https://github.com/hashicorp/terraform-provider-azurerm/issues/30494))
+* `azurerm_service_plan` - add support for Premium V4 SKUs ([#30163](https://github.com/hashicorp/terraform-provider-azurerm/issues/30163))
+
+BUG FIXES:
+
+* `azurerm_application_insights_standard_web_test` - prevent Resource ID parsing errors when parsing `hidden-link` tags ([#28034](https://github.com/hashicorp/terraform-provider-azurerm/issues/28034))
+* `azurerm_custom_ip_prefix` - fix an incorrect type-assertion that caused an error when attempting to read the API response ([#30537](https://github.com/hashicorp/terraform-provider-azurerm/issues/30537))
+* `azurerm_monitor_activity_log_alert` - fix `name` validation ([#30590](https://github.com/hashicorp/terraform-provider-azurerm/issues/30590))
+* `azurerm_palo_alto_next_generation_firewall_virtual_hub_local_rulestack` - fix import by parsing `network_virtual_appliance_id` insensitively ([#30597](https://github.com/hashicorp/terraform-provider-azurerm/issues/30597))
+* `azurerm_palo_alto_next_generation_firewall_virtual_hub_panorama` - fix import by parsing `network_virtual_appliance_id` insensitively ([#30597](https://github.com/hashicorp/terraform-provider-azurerm/issues/30597))
+* `azurerm_postgresql_flexible_server` - fix a bug when setting the `source_server_id` property ([#30497](https://github.com/hashicorp/terraform-provider-azurerm/issues/30497))
+
 ## 4.43.0 (September 04, 2025)
+
+FEATURES:
+
+* **New Data Source:** `azurerm_oracle_autonomous_database_backup` ([#30201](https://github.com/hashicorp/terraform-provider-azurerm/issues/30201))
+* **New Data Source:** `azurerm_oracle_autonomous_database_backups` ([#30201](https://github.com/hashicorp/terraform-provider-azurerm/issues/30201))
+* **New Resource:** `azurerm_oracle_autonomous_database_backup` ([#30201](https://github.com/hashicorp/terraform-provider-azurerm/issues/30201))
 
 ENHANCEMENTS:
 
