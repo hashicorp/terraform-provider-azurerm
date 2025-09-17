@@ -560,7 +560,8 @@ func (r FunctionAppFlexConsumptionResource) Arguments() map[string]*pluginsdk.Sc
 				"storage_container_endpoint",
 				"storage_access_key",
 				"storage_user_assigned_identity_id",
-			}}
+			},
+		}
 
 		schema["deployment_storage_access_key"] = &pluginsdk.Schema{
 			Type:         pluginsdk.TypeString,
@@ -1205,9 +1206,7 @@ func (r FunctionAppFlexConsumptionResource) Update() sdk.ResourceFunc {
 
 			storageConnStringForFCApp := ""
 			storageConnStringForFcAppValue := ""
-			deploymentSaName := ""
-			deploymentSaKey := ""
-			backendStorageString := ""
+			var deploymentSaName, deploymentSaKey, backendStorageString string
 			deploymentSaEndpoint := state.DeploymentStorageContainerEndpoint
 			if !features.FivePointOh() && deploymentSaEndpoint == "" {
 				deploymentSaEndpoint = state.StorageContainerEndpoint

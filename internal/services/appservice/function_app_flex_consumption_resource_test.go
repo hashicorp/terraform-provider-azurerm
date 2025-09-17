@@ -575,6 +575,25 @@ func TestAccFunctionAppFlexConsumption_FourPointOhHttpsOnlyUpdate(t *testing.T) 
 	})
 }
 
+func TestAccFunctionAppFlexConsumption_FourPointOhvNetIntegrationWithVnetProperties(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_function_app_flex_consumption", "test")
+	r := FunctionAppFlexConsumptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.vNetIntegration_subnetWithVnetPropertiesFourPointOh(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("virtual_network_subnet_id").MatchesOtherKey(
+					check.That("azurerm_subnet.test1").Key("id"),
+				),
+				check.That(data.ResourceName).Key("site_config.0.vnet_route_all_enabled").HasValue("true"),
+			),
+		},
+		data.ImportStep("site_credential.0.password"),
+	})
+}
+
 // remove in 5.0 ends
 
 func TestAccFunctionAppFlexConsumption_basic(t *testing.T) {
