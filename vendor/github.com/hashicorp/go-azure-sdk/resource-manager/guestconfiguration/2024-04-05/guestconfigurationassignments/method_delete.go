@@ -2,10 +2,8 @@ package guestconfigurationassignments
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
 	"github.com/hashicorp/go-azure-sdk/sdk/odata"
 )
@@ -13,22 +11,20 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type RGListOperationResponse struct {
+type DeleteOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *GuestConfigurationAssignmentList
 }
 
-// RGList ...
-func (c GuestConfigurationAssignmentsClient) RGList(ctx context.Context, id commonids.ResourceGroupId) (result RGListOperationResponse, err error) {
+// Delete ...
+func (c GuestConfigurationAssignmentsClient) Delete(ctx context.Context, id VirtualMachineProviders2GuestConfigurationAssignmentId) (result DeleteOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
-			http.StatusNoContent,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodGet,
-		Path:       fmt.Sprintf("%s/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments", id.ID()),
+		HttpMethod: http.MethodDelete,
+		Path:       id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
@@ -43,12 +39,6 @@ func (c GuestConfigurationAssignmentsClient) RGList(ctx context.Context, id comm
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
-		return
-	}
-
-	var model GuestConfigurationAssignmentList
-	result.Model = &model
-	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 

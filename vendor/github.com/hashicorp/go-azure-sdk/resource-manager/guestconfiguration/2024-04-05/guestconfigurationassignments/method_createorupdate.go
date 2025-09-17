@@ -2,7 +2,6 @@ package guestconfigurationassignments
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 
 	"github.com/hashicorp/go-azure-sdk/sdk/client"
@@ -12,25 +11,30 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type ListOperationResponse struct {
+type CreateOrUpdateOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
-	Model        *GuestConfigurationAssignmentList
+	Model        *GuestConfigurationAssignment
 }
 
-// List ...
-func (c GuestConfigurationAssignmentsClient) List(ctx context.Context, id VirtualMachineId) (result ListOperationResponse, err error) {
+// CreateOrUpdate ...
+func (c GuestConfigurationAssignmentsClient) CreateOrUpdate(ctx context.Context, id VirtualMachineProviders2GuestConfigurationAssignmentId, input GuestConfigurationAssignment) (result CreateOrUpdateOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
+			http.StatusCreated,
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodGet,
-		Path:       fmt.Sprintf("%s/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments", id.ID()),
+		HttpMethod: http.MethodPut,
+		Path:       id.ID(),
 	}
 
 	req, err := c.Client.NewRequest(ctx, opts)
 	if err != nil {
+		return
+	}
+
+	if err = req.Marshal(input); err != nil {
 		return
 	}
 
@@ -44,7 +48,7 @@ func (c GuestConfigurationAssignmentsClient) List(ctx context.Context, id Virtua
 		return
 	}
 
-	var model GuestConfigurationAssignmentList
+	var model GuestConfigurationAssignment
 	result.Model = &model
 	if err = resp.Unmarshal(result.Model); err != nil {
 		return

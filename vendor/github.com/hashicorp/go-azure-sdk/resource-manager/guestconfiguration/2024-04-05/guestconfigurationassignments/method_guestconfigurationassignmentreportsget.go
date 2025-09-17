@@ -11,19 +11,20 @@ import (
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 
-type DeleteOperationResponse struct {
+type GuestConfigurationAssignmentReportsGetOperationResponse struct {
 	HttpResponse *http.Response
 	OData        *odata.OData
+	Model        *GuestConfigurationAssignmentReport
 }
 
-// Delete ...
-func (c GuestConfigurationAssignmentsClient) Delete(ctx context.Context, id Providers2GuestConfigurationAssignmentId) (result DeleteOperationResponse, err error) {
+// GuestConfigurationAssignmentReportsGet ...
+func (c GuestConfigurationAssignmentsClient) GuestConfigurationAssignmentReportsGet(ctx context.Context, id Providers2GuestConfigurationAssignmentReportId) (result GuestConfigurationAssignmentReportsGetOperationResponse, err error) {
 	opts := client.RequestOptions{
 		ContentType: "application/json; charset=utf-8",
 		ExpectedStatusCodes: []int{
 			http.StatusOK,
 		},
-		HttpMethod: http.MethodDelete,
+		HttpMethod: http.MethodGet,
 		Path:       id.ID(),
 	}
 
@@ -39,6 +40,12 @@ func (c GuestConfigurationAssignmentsClient) Delete(ctx context.Context, id Prov
 		result.HttpResponse = resp.Response
 	}
 	if err != nil {
+		return
+	}
+
+	var model GuestConfigurationAssignmentReport
+	result.Model = &model
+	if err = resp.Unmarshal(result.Model); err != nil {
 		return
 	}
 
