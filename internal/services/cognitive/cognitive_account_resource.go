@@ -763,13 +763,17 @@ func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta interface{})
 	// If `network_injection` is configured, wait for Service Association Link (SAL) to be removed from the agent subnet
 	// This is a service issue workaround as the SAL is not removed immediately after the Cognitive Account is deleted
 	var subnetId *commonids.SubnetId
-	if d.Get("network_injection.#").(int) > 0 {
-		if subnetIdStr := d.Get("network_injection.0.subnet_id").(string); subnetIdStr != "" {
-			parsedSubnetId, err := commonids.ParseSubnetIDInsensitively(subnetIdStr)
-			if err != nil {
-				return fmt.Errorf("parsing `network_injection.0.subnet_id` %q: %+v", subnetIdStr, err)
+	if account.Model.Properties != nil && account.Model.Properties.NetworkInjections != nil {
+		networkInjections := *account.Model.Properties.NetworkInjections
+		if len(networkInjections) > 0 && networkInjections[0].SubnetArmId != nil {
+			subnetIdStr := *networkInjections[0].SubnetArmId
+			if subnetIdStr != "" {
+				parsedSubnetId, err := commonids.ParseSubnetIDInsensitively(subnetIdStr)
+				if err != nil {
+					return fmt.Errorf("parsing subnet ID %q from network_injection: %+v", subnetIdStr, err)
+				}
+				subnetId = parsedSubnetId
 			}
-			subnetId = parsedSubnetId
 		}
 	}
 
@@ -793,7 +797,6 @@ func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta interface{})
 	return nil
 }
 
-// serviceAssociationLinkStateRefreshFunc returns a StateRefreshFunc that polls for the presence of Service Association Links
 func serviceAssociationLinkStateRefreshFunc(ctx context.Context, client *subnets.SubnetsClient, subnetId commonids.SubnetId) pluginsdk.StateRefreshFunc {
 	return func() (interface{}, string, error) {
 		resp, err := client.Get(ctx, subnetId, subnets.DefaultGetOperationOptions())
