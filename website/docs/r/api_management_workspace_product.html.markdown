@@ -61,7 +61,7 @@ The following arguments are supported:
 
 * `require_subscription_enabled` - (Optional) Specifies whether a subscription is required to access the APIs included in the API Management Workspace Product. Defaults to `true`.
 
-* `subscriptions_limit` - (Optional) Specifies the maximum number of subscriptions a user can have for the API Management Workspace Product. Possible values are at least `1`.
+* `subscriptions_limit` - (Optional) Specifies the maximum number of subscriptions a user can have for the API Management Workspace Product.
 
 -> **Note:** This can only be specified when `require_subscription_enabled` is `true`.
 
