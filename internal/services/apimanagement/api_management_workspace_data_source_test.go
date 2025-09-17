@@ -60,5 +60,5 @@ resource "azurerm_api_management_workspace" "test" {
   api_management_id = azurerm_api_management.test.id
   display_name      = "acctest-workspace-%d"
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.Locations.Primary)
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
 }
