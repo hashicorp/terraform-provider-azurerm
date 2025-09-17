@@ -1584,12 +1584,6 @@ resource "azurerm_subnet" "subnet_agent" {
   }
 }
 
-# 10-15m is enough time to let the backend remove the /subnets/snet-agent/serviceAssociationLinks/legionservicelink
-resource "time_sleep" "cognitive_account_deletion_cooldown" {
-  destroy_duration = "900s"
-  depends_on       = [azurerm_subnet.subnet_agent]
-}
-
 resource "azurerm_cognitive_account" "test" {
   name                          = "acctestaiservices-%[1]d"
   location                      = azurerm_resource_group.test.location
@@ -1612,10 +1606,6 @@ resource "azurerm_cognitive_account" "test" {
     scenario  = "agent"
     subnet_id = azurerm_subnet.subnet_agent.id
   }
-
-  depends_on = [
-    time_sleep.cognitive_account_deletion_cooldown
-  ]
 }
 `, data.RandomInteger, data.Locations.Primary)
 }

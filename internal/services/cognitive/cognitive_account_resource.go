@@ -18,6 +18,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/location"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/cognitive/2025-06-01/cognitiveservicesaccounts"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/subnets"
 	search "github.com/hashicorp/go-azure-sdk/resource-manager/search/2024-06-01-preview/services"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
@@ -759,7 +760,65 @@ func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta interface{})
 		log.Printf("[DEBUG] Skipping Purge of %s", *id)
 	}
 
+	// If `network_injection` is configured, wait for Service Association Link (SAL) to be removed from the agent subnet
+	// This is a service issue workaround as the SAL is not removed immediately after the Cognitive Account is deleted
+	var subnetId *commonids.SubnetId
+	if d.Get("network_injection.#").(int) > 0 {
+		if subnetIdStr := d.Get("network_injection.0.subnet_id").(string); subnetIdStr != "" {
+			parsedSubnetId, err := commonids.ParseSubnetIDInsensitively(subnetIdStr)
+			if err != nil {
+				return fmt.Errorf("parsing `network_injection.0.subnet_id` %q: %+v", subnetIdStr, err)
+			}
+			subnetId = parsedSubnetId
+		}
+	}
+
+	if subnetId != nil {
+		subnetClient := meta.(*clients.Client).Network.Subnets
+		log.Printf("[DEBUG] Waiting for Service Association Links to be removed from subnet %s", subnetId.ID())
+
+		stateConf := &pluginsdk.StateChangeConf{
+			Pending:    []string{"SALExists"},
+			Target:     []string{"SALDeleted"},
+			Refresh:    serviceAssociationLinkStateRefreshFunc(ctx, subnetClient, *subnetId),
+			MinTimeout: 15 * time.Second,
+			Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
+		}
+
+		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
+			return fmt.Errorf("waiting for Service Association Links to be removed from %s: %+v", subnetId.ID(), err)
+		}
+	}
+
 	return nil
+}
+
+// serviceAssociationLinkStateRefreshFunc returns a StateRefreshFunc that polls for the presence of Service Association Links
+func serviceAssociationLinkStateRefreshFunc(ctx context.Context, client *subnets.SubnetsClient, subnetId commonids.SubnetId) pluginsdk.StateRefreshFunc {
+	return func() (interface{}, string, error) {
+		resp, err := client.Get(ctx, subnetId, subnets.DefaultGetOperationOptions())
+		if err != nil {
+			return nil, "Error", fmt.Errorf("retrieving subnet %s: %+v", subnetId, err)
+		}
+
+		if resp.Model != nil && resp.Model.Properties != nil && resp.Model.Properties.ServiceAssociationLinks != nil {
+			serviceAssociationLinks := *resp.Model.Properties.ServiceAssociationLinks
+
+			if len(serviceAssociationLinks) > 0 {
+				for _, sal := range serviceAssociationLinks {
+					// The SAL name associated with the Cognitive Services account is "legionservicelink"
+					if sal.Name != nil && *sal.Name == "legionservicelink" && sal.Properties != nil && sal.Properties.ProvisioningState != nil {
+						log.Printf("[DEBUG] Found Service Association Link %s with provisioning state %s",
+							pointer.From(sal.Name), *sal.Properties.ProvisioningState)
+						return resp, "SALExists", nil
+					}
+				}
+			}
+		}
+
+		log.Printf("[DEBUG] No Service Association Links found on subnet %s", subnetId.ID())
+		return resp, "SALDeleted", nil
+	}
 }
 
 func cognitiveAccountStateRefreshFunc(ctx context.Context, client *cognitiveservicesaccounts.CognitiveServicesAccountsClient, id cognitiveservicesaccounts.AccountId) pluginsdk.StateRefreshFunc {
