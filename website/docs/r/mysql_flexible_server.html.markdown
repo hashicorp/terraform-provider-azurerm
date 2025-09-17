@@ -163,9 +163,9 @@ A `customer_managed_key` block supports the following:
 
 * `geo_backup_user_assigned_identity_id` - (Optional) The geo backup user managed identity id for a Customer Managed Key. Should be added with `identity_ids`. It can't cross region and need identity in same region as geo backup.
 
-* `managed_hsm_key_id` - (Optional) The ID of the Managed HSM Key.
-
 ~> **Note:** `primary_user_assigned_identity_id` or `geo_backup_user_assigned_identity_id` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
+* `managed_hsm_key_id` - (Optional) The ID of the Managed HSM Key.
 
 ---
 
