@@ -6,7 +6,7 @@ description: |-
   Get information about an Azure Spatial Anchors Account.
 ---
 
-# azurerm_spatial_anchors_account
+# Data Source: azurerm_spatial_anchors_account
 
 Get information about an Azure Spatial Anchors Account.
 
@@ -55,4 +55,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.MixedReality`: 2021-01-01
+* `Microsoft.MixedReality` - 2021-01-01

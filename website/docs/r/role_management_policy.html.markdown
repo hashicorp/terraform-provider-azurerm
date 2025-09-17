@@ -6,7 +6,7 @@ description: |-
   Manages Azure PIM Role Management Policies.
 ---
 
-# Resource: azurerm_role_management_policy
+# azurerm_role_management_policy
 
 Manage a role policy for an Azure Management Group, Subscription, Resource Group or resource.
 
@@ -224,4 +224,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Authorization`: 2020-10-01
+* `Microsoft.Authorization` - 2020-10-01

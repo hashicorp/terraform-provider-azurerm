@@ -100,7 +100,7 @@ The following arguments are supported:
 
 * `local_authentication_enabled` - (Optional) Specifies whether the Search Service allows authenticating using API Keys? Defaults to `true`.
 
-* `network_rule_bypass_option` - (Optional) Whether to allow trusted Azure services to access a network restricted Container Registry? Possible values are `None` and `AzureServices`. Defaults to `None`.
+* `network_rule_bypass_option` - (Optional) Whether to allow trusted Azure services to access a network restricted Search Service? Possible values are `None` and `AzureServices`. Defaults to `None`.
 
 * `partition_count` - (Optional) Specifies the number of partitions which should be created. This field cannot be set when using a `free` sku ([see the Microsoft documentation](https://learn.microsoft.com/azure/search/search-sku-tier)). Possible values include `1`, `2`, `3`, `4`, `6`, or `12`. Defaults to `1`.
 
@@ -179,4 +179,4 @@ terraform import azurerm_search_service.example /subscriptions/00000000-0000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Search`: 2024-06-01-preview
+* `Microsoft.Search` - 2024-06-01-preview

@@ -135,7 +135,7 @@ func getContent(resourceName, brandName string, resourceId *string, isResource b
 		}
 
 		if generator.resource == nil {
-			return nil, fmt.Errorf("Data Source %q was not registered!", resourceName)
+			return nil, fmt.Errorf("data source %q was not registered", resourceName)
 		}
 	} else {
 		for _, service := range provider.SupportedTypedServices() {
@@ -164,7 +164,7 @@ func getContent(resourceName, brandName string, resourceId *string, isResource b
 		}
 
 		if generator.resource == nil {
-			return nil, fmt.Errorf("Resource %q was not registered!", resourceName)
+			return nil, fmt.Errorf("resource %q was not registered", resourceName)
 		}
 	}
 
@@ -594,7 +594,7 @@ func (gen documentationGenerator) buildDescriptionForArgument(name string, field
 	}
 
 	if name == "enabled" || strings.HasSuffix(name, "_enabled") {
-		return "Should the TODO be enabled?"
+		return "Whether to enable the TODO."
 	}
 
 	if strings.HasSuffix(name, "_id") {
@@ -650,7 +650,7 @@ func (gen documentationGenerator) buildDescriptionForAttribute(name string, fiel
 	}
 
 	if name == "enabled" || strings.HasSuffix(name, "_enabled") {
-		return "Is the TODO enabled?"
+		return "Whether the TODO is enabled."
 	}
 
 	if strings.HasSuffix(name, "_id") {
@@ -831,7 +831,7 @@ func (gen documentationGenerator) uniqueBlockNamesForArgument(fields map[string]
 		field := fields[fieldName]
 
 		// compute-only fields can be omitted
-		if field.Computed && !(field.Optional || field.Required) {
+		if field.Computed && (!field.Optional && !field.Required) {
 			continue
 		}
 

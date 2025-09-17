@@ -6,7 +6,7 @@ description: |-
   Get information a Mobile Network Packet Core Data Plane.
 ---
 
-# azurerm_mobile_network_packet_core_data_plane
+# Data Source: azurerm_mobile_network_packet_core_data_plane
 
 Get information a Mobile Network Packet Core Data Plane.
 
@@ -61,4 +61,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.MobileNetwork`: 2022-11-01
+* `Microsoft.MobileNetwork` - 2022-11-01

@@ -642,7 +642,7 @@ func resourceVirtualNetworkGatewayConnectionUpdate(d *pluginsdk.ResourceData, me
 		localNetworkGatewayId := d.Get("local_network_gateway_id").(string)
 		name, err := localNetworkGatewayFromId(localNetworkGatewayId)
 		if err != nil {
-			return fmt.Errorf("Getting LocalNetworkGateway Name and Group:: %+v", err)
+			return fmt.Errorf("getting LocalNetworkGateway Name and Group: %+v", err)
 		}
 
 		payload.Properties.LocalNetworkGateway2 = &virtualnetworkgatewayconnections.LocalNetworkGateway{
@@ -844,7 +844,7 @@ func getVirtualNetworkGatewayConnectionProperties(d *pluginsdk.ResourceData, vir
 		localNetworkGatewayId := v.(string)
 		name, err := localNetworkGatewayFromId(localNetworkGatewayId)
 		if err != nil {
-			return nil, fmt.Errorf("Getting LocalNetworkGateway Name and Group:: %+v", err)
+			return nil, fmt.Errorf("getting LocalNetworkGateway Name and Group: %+v", err)
 		}
 
 		props.LocalNetworkGateway2 = &virtualnetworkgatewayconnections.LocalNetworkGateway{
@@ -1017,9 +1017,10 @@ func expandGatewayCustomBgpIPAddresses(d *pluginsdk.ResourceData, bgpPeeringAddr
 				continue
 			}
 
-			if ip == primaryAddress {
+			switch ip {
+			case primaryAddress:
 				primaryIpConfiguration = *address.IPconfigurationId
-			} else if ip == secondaryAddress {
+			case secondaryAddress:
 				secondaryIpConfiguration = *address.IPconfigurationId
 			}
 		}

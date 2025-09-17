@@ -230,16 +230,11 @@ resource "azurerm_monitor_diagnostic_setting" "example" {
   eventhub_name                  = azurerm_eventhub.example.name
   log_analytics_workspace_id     = azurerm_log_analytics_workspace.example.id
 
-  log {
-    category = "SQLSecurityAuditEvents"
-    enabled  = true
-
-    retention_policy {
-      enabled = false
-    }
+  enabled_log {
+    category = "AuditEvent"
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 }
@@ -297,4 +292,4 @@ terraform import azurerm_mssql_server_extended_auditing_policy.example /subscrip
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Sql`: 2023-08-01-preview
+* `Microsoft.Sql` - 2023-08-01-preview

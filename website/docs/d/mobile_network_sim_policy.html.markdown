@@ -6,7 +6,7 @@ description: |-
   Get information about a Mobile Network Sim Policy.
 ---
 
-# azurerm_mobile_network_sim_policy
+# Data Source: azurerm_mobile_network_sim_policy
 
 Get information about a Mobile Network Sim Policy.
 
@@ -113,4 +113,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.MobileNetwork`: 2022-11-01
+* `Microsoft.MobileNetwork` - 2022-11-01

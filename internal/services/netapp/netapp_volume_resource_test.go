@@ -11,10 +11,11 @@ import (
 	"testing"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-01-01/volumes"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/netapp/2025-06-01/volumes"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -42,6 +43,24 @@ func TestAccNetAppVolume_basic(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccNetAppVolume_protocolsEnabled(t *testing.T) {
+	if features.FivePointOh() {
+		t.Skip("Skipping test for NetApp Volume protocolsEnabled as it is not supported in 5.0")
+	}
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.protocolsEnabled(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -144,6 +163,22 @@ func TestAccNetAppVolume_createFromSnapshotInAnotherPool(t *testing.T) {
 			Config: r.snapshot(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep("create_from_snapshot_resource_id"),
+	})
+}
+
+func TestAccNetAppVolume_shortTermClone(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.shortTermClone(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("accept_grow_capacity_pool_for_short_term_clone_split").HasValue("Accepted"),
 			),
 		},
 		data.ImportStep("create_from_snapshot_resource_id"),
@@ -741,6 +776,41 @@ resource "azurerm_netapp_volume" "test" {
 `, template, data.RandomInteger, data.RandomInteger)
 }
 
+func (NetAppVolumeResource) protocolsEnabled(data acceptance.TestData) string {
+	template := NetAppVolumeResource{}.template(data)
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_netapp_volume" "test" {
+  name                = "acctest-NetAppVolume-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_path         = "my-unique-file-path-%d"
+  service_level       = "Standard"
+  subnet_id           = azurerm_subnet.test.id
+  protocols           = ["NFSv4.1"]
+  security_style      = "unix"
+  storage_quota_in_gb = 100
+  throughput_in_mibps = 1.562
+
+  export_policy_rule {
+    rule_index        = 1
+    allowed_clients   = ["1.2.3.0/24"]
+    protocols_enabled = ["NFSv4.1"] # This property will be removed in v5.0
+    unix_read_only    = false
+    unix_read_write   = true
+  }
+
+  tags = {
+    "CreatedOnDate"    = "2022-07-08T23:50:21Z",
+    "SkipASMAzSecPack" = "true"
+  }
+}
+`, template, data.RandomInteger, data.RandomInteger)
+}
+
 func (NetAppVolumeResource) availabilityZone(data acceptance.TestData) string {
 	template := NetAppVolumeResource{}.template(data)
 	return fmt.Sprintf(`
@@ -787,11 +857,11 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps = 1.562
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["1.2.3.0/24"]
-    protocols_enabled = ["NFSv4.1"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["1.2.3.0/24"]
+    protocol        = ["NFSv4.1"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   tags = {
@@ -995,11 +1065,11 @@ resource "azurerm_netapp_volume" "test_primary" {
   throughput_in_mibps        = 1.562
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["0.0.0.0/0"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   tags = {
@@ -1023,11 +1093,11 @@ resource "azurerm_netapp_volume" "test_secondary" {
   throughput_in_mibps        = 1.562
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["0.0.0.0/0"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   data_protection_replication {
@@ -1064,11 +1134,11 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps = 1.562
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["0.0.0.0/0"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   tags = {
@@ -1101,10 +1171,10 @@ resource "azurerm_netapp_volume" "test_snapshot_vol" {
   throughput_in_mibps              = 3.125
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["0.0.0.0/0"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv3"]
+    unix_read_write = true
   }
 
   tags = {
@@ -1135,11 +1205,11 @@ resource "azurerm_netapp_volume" "test_snapshot_directory_visible_true" {
   throughput_in_mibps        = 1.562
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["1.2.3.0/24"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["1.2.3.0/24"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   tags = {
@@ -1170,11 +1240,11 @@ resource "azurerm_netapp_volume" "test_snapshot_directory_visible_false" {
   throughput_in_mibps        = 1.562
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["1.2.3.0/24"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["1.2.3.0/24"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   tags = {
@@ -1222,27 +1292,27 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps = 1.562
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["0.0.0.0/0"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   export_policy_rule {
-    rule_index        = 2
-    allowed_clients   = ["0.0.0.0/0"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = true
-    unix_read_write   = false
+    rule_index      = 2
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = true
+    unix_read_write = false
   }
 
   export_policy_rule {
-    rule_index        = 3
-    allowed_clients   = ["0.0.0.0/0"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = true
-    unix_read_write   = false
+    rule_index      = 3
+    allowed_clients = ["0.0.0.0/0"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = true
+    unix_read_write = false
   }
 
   tags = {
@@ -1272,27 +1342,27 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps = 64
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["1.2.3.0/24"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["1.2.3.0/24"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   export_policy_rule {
-    rule_index        = 2
-    allowed_clients   = ["1.2.5.0"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = true
-    unix_read_write   = false
+    rule_index      = 2
+    allowed_clients = ["1.2.5.0"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = true
+    unix_read_write = false
   }
 
   export_policy_rule {
-    rule_index        = 3
-    allowed_clients   = ["1.2.6.0/24"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = true
-    unix_read_write   = false
+    rule_index      = 3
+    allowed_clients = ["1.2.6.0/24"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = true
+    unix_read_write = false
   }
 
   tags = {
@@ -1322,19 +1392,19 @@ resource "azurerm_netapp_volume" "test" {
   throughput_in_mibps = 63
 
   export_policy_rule {
-    rule_index        = 1
-    allowed_clients   = ["1.2.3.0/24"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = false
-    unix_read_write   = true
+    rule_index      = 1
+    allowed_clients = ["1.2.3.0/24"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = false
+    unix_read_write = true
   }
 
   export_policy_rule {
-    rule_index        = 2
-    allowed_clients   = ["1.2.5.0"]
-    protocols_enabled = ["NFSv3"]
-    unix_read_only    = true
-    unix_read_write   = false
+    rule_index      = 2
+    allowed_clients = ["1.2.5.0"]
+    protocol        = ["NFSv3"]
+    unix_read_only  = true
+    unix_read_write = false
   }
 
   tags = {
@@ -1366,7 +1436,7 @@ resource "azurerm_netapp_volume" "test" {
   export_policy_rule {
     rule_index          = 1
     allowed_clients     = ["1.2.4.0/24", "1.3.4.0"]
-    protocols_enabled   = ["NFSv3"]
+    protocol            = ["NFSv3"]
     unix_read_only      = false
     unix_read_write     = true
     root_access_enabled = true
@@ -1955,4 +2025,54 @@ resource "azurerm_netapp_volume" "test" {
   }
 }
 `, NetAppVolumeResource{}.templateCoolAccess(data), data.RandomInteger, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) shortTermClone(data acceptance.TestData) string {
+	template := NetAppVolumeResource{}.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_volume" "test_original" {
+  name                = "acctest-NetAppVolume-Original-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_path         = "my-unique-file-path-original-%[2]d"
+  service_level       = "Standard"
+  subnet_id           = azurerm_subnet.test.id
+  protocols           = ["NFSv3"]
+  security_style      = "unix"
+  storage_quota_in_gb = 100
+  throughput_in_mibps = 16
+}
+
+resource "azurerm_netapp_snapshot" "test_original" {
+  account_name        = azurerm_netapp_account.test.name
+  location            = azurerm_resource_group.test.location
+  name                = "acctest-NetAppVolume-Snapshot-%[2]d"
+  pool_name           = azurerm_netapp_pool.test.name
+  resource_group_name = azurerm_resource_group.test.name
+  volume_name         = azurerm_netapp_volume.test_original.name
+}
+
+resource "azurerm_netapp_volume" "test" {
+  name                                                 = "acctest-NetAppVolume-ShortTermClone-%[2]d"
+  location                                             = azurerm_resource_group.test.location
+  resource_group_name                                  = azurerm_resource_group.test.name
+  account_name                                         = azurerm_netapp_account.test.name
+  pool_name                                            = azurerm_netapp_pool.test.name
+  volume_path                                          = "my-unique-file-path-clone-%[2]d"
+  service_level                                        = "Standard"
+  subnet_id                                            = azurerm_subnet.test.id
+  protocols                                            = ["NFSv3"]
+  security_style                                       = "unix"
+  storage_quota_in_gb                                  = 100
+  throughput_in_mibps                                  = 16
+  create_from_snapshot_resource_id                     = azurerm_netapp_snapshot.test_original.id
+  accept_grow_capacity_pool_for_short_term_clone_split = "Accepted"
+
+  depends_on = [azurerm_netapp_snapshot.test_original]
+}
+`, template, data.RandomInteger)
 }

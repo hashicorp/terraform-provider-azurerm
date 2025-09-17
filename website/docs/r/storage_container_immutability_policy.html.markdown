@@ -37,7 +37,7 @@ resource "azurerm_storage_container" "example" {
 }
 
 resource "azurerm_storage_container_immutability_policy" "example" {
-  storage_container_resource_manager_id = azurerm_storage_container.example.resource_manager_id
+  storage_container_resource_manager_id = azurerm_storage_container.example.id
   immutability_period_in_days           = 14
   protected_append_writes_all_enabled   = false
   protected_append_writes_enabled       = true
@@ -85,4 +85,4 @@ terraform import azurerm_storage_container_immutability_policy.example /subscrip
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Storage`: 2023-05-01
+* `Microsoft.Storage` - 2023-05-01

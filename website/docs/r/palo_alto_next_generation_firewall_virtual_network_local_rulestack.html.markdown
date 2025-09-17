@@ -242,4 +242,4 @@ terraform import azurerm_palo_alto_next_generation_firewall_virtual_network_loca
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `PaloAltoNetworks.Cloudngfw`: 2023-09-01, 2022-08-29
+* `PaloAltoNetworks.Cloudngfw` - 2025-05-23, 2022-08-29

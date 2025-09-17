@@ -43,7 +43,7 @@ resource "azurerm_subscription_cost_management_export" "example" {
   file_format                  = "Csv"
 
   export_data_storage_location {
-    container_id     = azurerm_storage_container.example.resource_manager_id
+    container_id     = azurerm_storage_container.example.id
     root_folder_path = "/root/updated"
   }
 
@@ -121,4 +121,4 @@ terraform import azurerm_subscription_cost_management_export.example /subscripti
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.CostManagement`: 2023-08-01
+* `Microsoft.CostManagement` - 2023-08-01

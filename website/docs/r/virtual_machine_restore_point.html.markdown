@@ -6,7 +6,7 @@ description: |-
   Manages a Virtual Machine Restore Point.
 ---
 
-# azurerm_restore_point
+# azurerm_virtual_machine_restore_point
 
 Manages a Virtual Machine Restore Point.
 
@@ -127,4 +127,4 @@ terraform import azurerm_virtual_machine_restore_point.example /subscriptions/00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Compute`: 2024-03-01
+* `Microsoft.Compute` - 2024-03-01

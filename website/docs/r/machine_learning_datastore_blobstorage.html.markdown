@@ -69,7 +69,7 @@ resource "azurerm_storage_container" "example" {
 resource "azurerm_machine_learning_datastore_blobstorage" "example" {
   name                 = "example-datastore"
   workspace_id         = azurerm_machine_learning_workspace.example.id
-  storage_container_id = azurerm_storage_container.example.resource_manager_id
+  storage_container_id = azurerm_storage_container.example.id
   account_key          = azurerm_storage_account.example.primary_access_key
 }
 ```
@@ -128,4 +128,4 @@ terraform import azurerm_machine_learning_datastore_blobstorage.example /subscri
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.MachineLearningServices`: 2024-04-01
+* `Microsoft.MachineLearningServices` - 2025-06-01

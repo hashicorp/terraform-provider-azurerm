@@ -6,7 +6,7 @@ description: |-
   Gets information about an existing MySQL Flexible Server.
 ---
 
-# azurerm_mysql_flexible_server
+# Data Source: azurerm_mysql_flexible_server
 
 Use this data source to access information about an existing MySQL Flexible Server.
 
@@ -109,4 +109,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.DBforMySQL`: 2023-12-30
+* `Microsoft.DBforMySQL` - 2023-12-30

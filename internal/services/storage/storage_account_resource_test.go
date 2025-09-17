@@ -1686,7 +1686,14 @@ func TestAccStorageAccount_sasPolicy(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.sasPolicy(data),
+			Config: r.sasPolicy(data, "Log"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.sasPolicy(data, "Block"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -1803,6 +1810,20 @@ func TestAccStorageAccount_minimalSharePropertiesPremiumFileStorage(t *testing.T
 			),
 		},
 		data.ImportStep("share_properties.0.smb"),
+	})
+}
+
+func TestAccStorageAccount_provisionedV2BillingModelFileStorage(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_storage_account", "test")
+	r := StorageAccountResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.provisionedV2BillingModelFileStorage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
 	})
 }
 
@@ -4876,7 +4897,7 @@ resource "azurerm_storage_account" "test" {
     `, r.cmkTemplate(data), data.RandomString)
 }
 
-func (r StorageAccountResource) sasPolicy(data acceptance.TestData) string {
+func (r StorageAccountResource) sasPolicy(data acceptance.TestData, action string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4896,11 +4917,11 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   sas_policy {
-    expiration_action = "Log"
+    expiration_action = "%s"
     expiration_period = "1.15:5:05"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, action)
 }
 
 func (r StorageAccountResource) allowedCopyScope(data acceptance.TestData, scope string) string {
@@ -4985,6 +5006,30 @@ resource "azurerm_storage_account" "test" {
   lifecycle {
     ignore_changes = [share_properties.0.smb]
   }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (r StorageAccountResource) provisionedV2BillingModelFileStorage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-storage-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                = "unlikely23exst2acct%[3]s"
+  resource_group_name = azurerm_resource_group.test.name
+
+  location                          = azurerm_resource_group.test.location
+  account_tier                      = "Standard"
+  provisioned_billing_model_version = "V2"
+  account_replication_type          = "LRS"
+  account_kind                      = "FileStorage"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }

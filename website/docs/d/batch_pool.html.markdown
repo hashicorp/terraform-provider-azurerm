@@ -7,7 +7,7 @@ description: |-
 
 ---
 
-# Data source: azurerm_batch_pool
+# Data Source: azurerm_batch_pool
 
 Use this data source to access information about an existing Batch pool
 
@@ -399,4 +399,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.Batch`: 2024-07-01
+* `Microsoft.Batch` - 2024-07-01

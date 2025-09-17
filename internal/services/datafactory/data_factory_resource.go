@@ -201,12 +201,14 @@ func resourceDataFactory() *pluginsdk.Resource {
 
 			"customer_managed_key_id": {
 				Type:         pluginsdk.TypeString,
+				Computed:     true,
 				Optional:     true,
 				ValidateFunc: keyVaultValidate.NestedItemId,
 			},
 
 			"customer_managed_key_identity_id": {
 				Type:         pluginsdk.TypeString,
+				Computed:     true,
 				Optional:     true,
 				ValidateFunc: commonids.ValidateUserAssignedIdentityID,
 				RequiredWith: []string{"customer_managed_key_id"},

@@ -6,7 +6,7 @@ description: |-
   Gets information about a Container App Environment.
 ---
 
-# Data Source: azurerm_container_app_environment.
+# Data Source: azurerm_container_app_environment
 
 Use this data source to access information about an existing Container App Environment.
 
@@ -78,6 +78,6 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.App`: 2025-01-01
+* `Microsoft.App` - 2025-01-01
 
-* `Microsoft.OperationalInsights`: 2020-08-01
+* `Microsoft.OperationalInsights` - 2020-08-01

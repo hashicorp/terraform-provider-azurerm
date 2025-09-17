@@ -16,6 +16,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/resources/2025-01-01/policysetdefinitions"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/policy/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -160,10 +161,10 @@ func policySetDefinitionsMetadataDiffSuppressFunc(_, old, new string, _ *plugins
 	return reflect.DeepEqual(oldPolicySetDefinitionsMetadata, newPolicySetDefinitionsMetadata)
 }
 
-func expandPolicyDefinitionReference(input []PolicyDefinitionReferenceModel) ([]policysetdefinitions.PolicyDefinitionReference, error) {
+func expandPolicyDefinitionReference(input []PolicyDefinitionReferenceModel, metadata sdk.ResourceMetaData) ([]policysetdefinitions.PolicyDefinitionReference, error) {
 	result := make([]policysetdefinitions.PolicyDefinitionReference, 0)
 
-	for _, v := range input {
+	for idx, v := range input {
 		expandedParameters, err := expandPolicyDefinitionReferenceParameterValues(v.ParameterValues)
 		if err != nil {
 			return nil, fmt.Errorf("expanding `parameter_values`: %+v", err)
@@ -178,7 +179,19 @@ func expandPolicyDefinitionReference(input []PolicyDefinitionReferenceModel) ([]
 
 		// The API returns an error if we send an empty string
 		if v.Version != "" {
-			reference.DefinitionVersion = pointer.To(v.Version)
+			// We need to check the version value using RawConfig due to how Terraform manages blocks with computed nested items.
+			// E.g. in a list of 3 `policy_definition_reference` blocks, if the middle (index 1) block is removed
+			// the `version` argument contains the value from state as it's considered unchanged. However, due to the "shifted"
+			// indexes, the `version` previously computed/returned by Azure may be incorrect for the `policy_definition_id`
+			// it is now associated with, leading to a 400 Bad Request error from Azure.
+			rawVersion, err := metadata.GetRawConfigAt(fmt.Sprintf("policy_definition_reference.%d.version", idx))
+			if err != nil {
+				return nil, err
+			}
+
+			if !rawVersion.IsNull() {
+				reference.DefinitionVersion = pointer.To(v.Version)
+			}
 		}
 		result = append(result, reference)
 	}

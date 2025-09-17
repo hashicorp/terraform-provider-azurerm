@@ -6,7 +6,7 @@ description: |-
   Gets information about a Container App Environment Certificate.
 ---
 
-# Data Source: azurerm_container_app_environment_certificate.
+# Data Source: azurerm_container_app_environment_certificate
 
 Use this data source to access information about an existing Container App Environment Certificate.
 
@@ -60,4 +60,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/d
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.App`: 2025-01-01
+* `Microsoft.App` - 2025-01-01

@@ -6,7 +6,7 @@ description: |-
   Manages a Healthcare Med Tech (Internet of Medical Things) Service Fhir Destination.
 ---
 
-# azurerm_healthcare_medtech_service_fhir_Destination
+# azurerm_healthcare_medtech_service_fhir_destination
 
 Manages a Healthcare Med Tech Service Fhir Destination.
 
@@ -155,4 +155,4 @@ terraform import azurerm_healthcare_medtech_service_fhir_destination.example /su
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.HealthcareApis`: 2022-12-01
+* `Microsoft.HealthcareApis` - 2022-12-01

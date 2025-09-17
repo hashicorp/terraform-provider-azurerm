@@ -3011,7 +3011,7 @@ func ContainerAppProbesRemoved(metadata sdk.ResourceMetaData) bool {
 		}
 	}
 
-	return !(hasLiveness || hasReadiness || hasStartup)
+	return !hasLiveness && !hasReadiness && !hasStartup
 }
 
 type AzureQueueScaleRule struct {
