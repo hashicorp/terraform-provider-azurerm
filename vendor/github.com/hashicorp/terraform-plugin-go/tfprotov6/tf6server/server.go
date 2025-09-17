@@ -1363,14 +1363,6 @@ func (s *server) PlanAction(ctx context.Context, protoReq *tfplugin6.PlanAction_
 	tf6serverlogging.PlanActionClientCapabilities(ctx, req.ClientCapabilities)
 	logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", "Config", req.Config)
 
-	// Log all of the linked resource data
-	for i, linkedResource := range req.LinkedResources {
-		prefix := fmt.Sprintf("LinkedResource.%d", i)
-		logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", fmt.Sprintf("%s.PriorState", prefix), linkedResource.PriorState)
-		logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", fmt.Sprintf("%s.PlannedState", prefix), linkedResource.PlannedState)
-		logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", fmt.Sprintf("%s.Config", prefix), linkedResource.Config)
-	}
-
 	ctx = tf6serverlogging.DownstreamRequest(ctx)
 
 	// TODO: Remove this check and error in preference of
@@ -1405,11 +1397,6 @@ func (s *server) PlanAction(ctx context.Context, protoReq *tfplugin6.PlanAction_
 
 	tf6serverlogging.DownstreamResponse(ctx, resp.Diagnostics)
 
-	// Log all of the linked resource data
-	for i, linkedResource := range resp.LinkedResources {
-		prefix := fmt.Sprintf("LinkedResource.%d", i)
-		logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Response", fmt.Sprintf("%s.PlannedState", prefix), linkedResource.PlannedState)
-	}
 	tf6serverlogging.Deferred(ctx, resp.Deferred)
 
 	if resp.Deferred != nil && (req.ClientCapabilities == nil || !req.ClientCapabilities.DeferralAllowed) {
@@ -1433,14 +1420,6 @@ func (s *server) InvokeAction(protoReq *tfplugin6.InvokeAction_Request, protoStr
 
 	req := fromproto.InvokeActionRequest(protoReq)
 	logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", "Config", req.Config)
-
-	// Log all of the linked resource data
-	for i, linkedResource := range req.LinkedResources {
-		prefix := fmt.Sprintf("LinkedResource.%d", i)
-		logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", fmt.Sprintf("%s.PriorState", prefix), linkedResource.PriorState)
-		logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", fmt.Sprintf("%s.PlannedState", prefix), linkedResource.PlannedState)
-		logging.ProtocolData(ctx, s.protocolDataDir, rpc, "Request", fmt.Sprintf("%s.Config", prefix), linkedResource.Config)
-	}
 
 	ctx = tf6serverlogging.DownstreamRequest(ctx)
 

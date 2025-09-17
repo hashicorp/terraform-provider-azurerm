@@ -6,12 +6,13 @@ package fwserver
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // PlanActionRequest is the framework server request for the PlanAction RPC.
@@ -33,9 +34,6 @@ func (s *Server) PlanAction(ctx context.Context, req *PlanActionRequest, resp *P
 	if req == nil {
 		return
 	}
-
-	// TODO:Actions: When linked resources are introduced, pass-through proposed -> planned state similar to
-	// how normal resource planning works.
 
 	if s.deferred != nil {
 		logging.FrameworkDebug(ctx, "Provider has deferred response configured, automatically returning deferred response.",

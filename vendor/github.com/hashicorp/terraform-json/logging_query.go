@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: MPL-2.0
 package tfjson
 
-import "encoding/json"
-
 const (
 	MessageListStart         LogMessageType = "list_start"
 	MessageListResourceFound LogMessageType = "list_resource_found"
@@ -17,9 +15,9 @@ type ListStartMessage struct {
 }
 
 type ListStartData struct {
-	Address      string                     `json:"address"`
-	ResourceType string                     `json:"resource_type"`
-	InputConfig  map[string]json.RawMessage `json:"input_config,omitempty"`
+	Address      string         `json:"address"`
+	ResourceType string         `json:"resource_type"`
+	InputConfig  map[string]any `json:"input_config,omitempty"`
 }
 
 // ListResourceFoundMessage represents "query" result message of type "list_resource_found"
@@ -29,13 +27,14 @@ type ListResourceFoundMessage struct {
 }
 
 type ListResourceFoundData struct {
-	Address        string                     `json:"address"`
-	DisplayName    string                     `json:"display_name"`
-	Identity       map[string]json.RawMessage `json:"identity"`
-	ResourceType   string                     `json:"resource_type"`
-	ResourceObject map[string]json.RawMessage `json:"resource_object,omitempty"`
-	Config         string                     `json:"config,omitempty"`
-	ImportConfig   string                     `json:"import_config,omitempty"`
+	Address         string         `json:"address"`
+	DisplayName     string         `json:"display_name"`
+	Identity        map[string]any `json:"identity"`
+	IdentityVersion int64          `json:"identity_version"`
+	ResourceType    string         `json:"resource_type"`
+	ResourceObject  map[string]any `json:"resource_object,omitempty"`
+	Config          string         `json:"config,omitempty"`
+	ImportConfig    string         `json:"import_config,omitempty"`
 }
 
 // ListCompleteMessage represents "query" result message of type "list_complete"

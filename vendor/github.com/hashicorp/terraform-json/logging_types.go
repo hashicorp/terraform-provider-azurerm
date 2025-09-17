@@ -3,6 +3,7 @@
 package tfjson
 
 import (
+	"bytes"
 	"encoding/json"
 )
 
@@ -29,31 +30,36 @@ var allLogMessageTypes = []any{
 }
 
 func unmarshalByType(t LogMessageType, b []byte) (LogMsg, error) {
+	d := json.NewDecoder(bytes.NewReader(b))
+
+	// decode numbers as json.Number to avoid losing precision
+	d.UseNumber()
+
 	switch t {
 
 	// generic
 	case MessageTypeVersion:
 		v := VersionLogMessage{}
-		return v, json.Unmarshal(b, &v)
+		return v, d.Decode(&v)
 	case MessageTypeLog:
 		v := LogMessage{}
-		return v, json.Unmarshal(b, &v)
+		return v, d.Decode(&v)
 	case MessageTypeDiagnostic:
 		v := DiagnosticLogMessage{}
-		return v, json.Unmarshal(b, &v)
+		return v, d.Decode(&v)
 
 	// query
 	case MessageListStart:
 		v := ListStartMessage{}
-		return v, json.Unmarshal(b, &v)
+		return v, d.Decode(&v)
 	case MessageListResourceFound:
 		v := ListResourceFoundMessage{}
-		return v, json.Unmarshal(b, &v)
+		return v, d.Decode(&v)
 	case MessageListComplete:
 		v := ListCompleteMessage{}
-		return v, json.Unmarshal(b, &v)
+		return v, d.Decode(&v)
 	}
 
 	v := UnknownLogMessage{}
-	return v, json.Unmarshal(b, &v)
+	return v, d.Decode(&v)
 }

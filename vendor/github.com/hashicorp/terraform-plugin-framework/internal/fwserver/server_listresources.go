@@ -101,7 +101,7 @@ func (s *Server) ListResourceFuncs(ctx context.Context) (map[string]func() list.
 				s.listResourceFuncsDiags.AddError(
 					"ListResource Type Defined without a Matching Managed Resource Type",
 					fmt.Sprintf("The %s ListResource type name was returned, but no matching managed Resource type was defined. ", typeName)+
-						"If the matching managed Resource type not a framework resource either ProtoV5Schema and ProtoV5IdentitySchema must be specified in the RawV5Schemas method, "+
+						"If the matching managed Resource type is not a framework resource either ProtoV5Schema and ProtoV5IdentitySchema must be specified in the RawV5Schemas method, "+
 						"or ProtoV6Schema and ProtoV6IdentitySchema must be specified in the RawV6Schemas method. "+
 						"This is always an issue with the provider and should be reported to the provider developers.",
 				)

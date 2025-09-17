@@ -19,13 +19,7 @@ type SchemaRequest struct{}
 type SchemaResponse struct {
 
 	// Schema is the schema of the action.
-	//
-	// There are three different types of actions, which define how a practitioner can trigger an action,
-	// as well as what effect the action can have on the state.
-	//   - [schema.UnlinkedSchema] actions are actions that cannot cause changes to resource states.
-	//   - [schema.LifecycleSchema] actions are actions that can cause changes to exactly one resource state.
-	//   - [schema.LinkedSchema] actions are actions that can cause changes to one or more resource states.
-	Schema schema.SchemaType
+	Schema schema.Schema
 
 	// Diagnostics report errors or warnings related to retrieving the action schema.
 	// An empty slice indicates success, with no warnings or errors generated.

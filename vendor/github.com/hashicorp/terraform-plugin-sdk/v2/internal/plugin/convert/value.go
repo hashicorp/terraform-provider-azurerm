@@ -16,8 +16,12 @@ func primitiveTfValue(in cty.Value) (*tftypes.Value, error) {
 		return nil, err
 	}
 
-	if in.IsNull() || !in.IsKnown() {
+	if in.IsNull() {
 		return nullTfValue(primitiveType), nil
+	}
+
+	if !in.IsKnown() {
+		return unknownTfValue(primitiveType), nil
 	}
 
 	var val tftypes.Value
@@ -39,8 +43,12 @@ func listTfValue(in cty.Value) (*tftypes.Value, error) {
 		return nil, err
 	}
 
-	if in.IsNull() || !in.IsKnown() {
+	if in.IsNull() {
 		return nullTfValue(listType), nil
+	}
+
+	if !in.IsKnown() {
+		return unknownTfValue(listType), nil
 	}
 
 	vals := make([]tftypes.Value, 0)
@@ -64,8 +72,12 @@ func mapTfValue(in cty.Value) (*tftypes.Value, error) {
 		return nil, err
 	}
 
-	if in.IsNull() || !in.IsKnown() {
+	if in.IsNull() {
 		return nullTfValue(mapType), nil
+	}
+
+	if !in.IsKnown() {
+		return unknownTfValue(mapType), nil
 	}
 
 	vals := make(map[string]tftypes.Value)
@@ -89,8 +101,12 @@ func setTfValue(in cty.Value) (*tftypes.Value, error) {
 		return nil, err
 	}
 
-	if in.IsNull() || !in.IsKnown() {
+	if in.IsNull() {
 		return nullTfValue(setType), nil
+	}
+
+	if !in.IsKnown() {
+		return unknownTfValue(setType), nil
 	}
 
 	vals := make([]tftypes.Value, 0)
@@ -114,8 +130,12 @@ func objectTfValue(in cty.Value) (*tftypes.Value, error) {
 		return nil, err
 	}
 
-	if in.IsNull() || !in.IsKnown() {
+	if in.IsNull() {
 		return nullTfValue(objType), nil
+	}
+
+	if !in.IsKnown() {
+		return unknownTfValue(objType), nil
 	}
 
 	vals := make(map[string]tftypes.Value)
@@ -139,8 +159,12 @@ func tupleTfValue(in cty.Value) (*tftypes.Value, error) {
 		return nil, err
 	}
 
-	if in.IsNull() || !in.IsKnown() {
+	if in.IsNull() {
 		return nullTfValue(tupleType), nil
+	}
+
+	if !in.IsKnown() {
+		return unknownTfValue(tupleType), nil
 	}
 
 	vals := make([]tftypes.Value, 0)
@@ -181,4 +205,9 @@ func ToTfValue(in cty.Value) (*tftypes.Value, error) {
 func nullTfValue(ty tftypes.Type) *tftypes.Value {
 	nullValue := tftypes.NewValue(ty, nil)
 	return &nullValue
+}
+
+func unknownTfValue(ty tftypes.Type) *tftypes.Value {
+	unknownValue := tftypes.NewValue(ty, tftypes.UnknownValue)
+	return &unknownValue
 }

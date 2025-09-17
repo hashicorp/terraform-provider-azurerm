@@ -8,6 +8,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto5"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
 )
@@ -15,6 +16,7 @@ import (
 // ValidateListResourceConfig satisfies the tfprotov5.ProviderServer interface.
 func (s *Server) ValidateListResourceConfig(ctx context.Context, proto5Req *tfprotov5.ValidateListResourceConfigRequest) (*tfprotov5.ValidateListResourceConfigResponse, error) {
 	ctx = s.registerContext(ctx)
+	ctx = logging.InitContext(ctx)
 
 	fwResp := &fwserver.ValidateListResourceConfigResponse{}
 

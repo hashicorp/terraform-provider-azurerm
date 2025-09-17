@@ -6,8 +6,9 @@ package toproto5
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
+
+	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
 )
 
 func ProgressInvokeActionEventType(ctx context.Context, event fwserver.InvokeProgressEvent) tfprotov5.InvokeActionEvent {
@@ -21,7 +22,6 @@ func ProgressInvokeActionEventType(ctx context.Context, event fwserver.InvokePro
 func CompletedInvokeActionEventType(ctx context.Context, event *fwserver.InvokeActionResponse) tfprotov5.InvokeActionEvent {
 	return tfprotov5.InvokeActionEvent{
 		Type: tfprotov5.CompletedInvokeActionEventType{
-			// TODO:Actions: Add linked resources once lifecycle/linked actions are implemented
 			Diagnostics: Diagnostics(ctx, event.Diagnostics),
 		},
 	}

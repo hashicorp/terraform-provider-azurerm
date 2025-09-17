@@ -110,7 +110,7 @@ github.com/cloudflare/circl/sign/ed448
 # github.com/dave/jennifer v1.7.1
 ## explicit; go 1.20
 github.com/dave/jennifer/jen
-# github.com/davecgh/go-spew v1.1.1
+# github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc
 ## explicit
 github.com/davecgh/go-spew/spew
 # github.com/fatih/color v1.18.0
@@ -1259,8 +1259,8 @@ github.com/hashicorp/go-hclog
 # github.com/hashicorp/go-multierror v1.1.1
 ## explicit; go 1.13
 github.com/hashicorp/go-multierror
-# github.com/hashicorp/go-plugin v1.6.3
-## explicit; go 1.21
+# github.com/hashicorp/go-plugin v1.7.0
+## explicit; go 1.24
 github.com/hashicorp/go-plugin
 github.com/hashicorp/go-plugin/internal/cmdrunner
 github.com/hashicorp/go-plugin/internal/grpcmux
@@ -1304,11 +1304,11 @@ github.com/hashicorp/logutils
 ## explicit; go 1.23.0
 github.com/hashicorp/terraform-exec/internal/version
 github.com/hashicorp/terraform-exec/tfexec
-# github.com/hashicorp/terraform-json v0.26.1-0.20250829125600-5c1a00f3ccc4
+# github.com/hashicorp/terraform-json v0.27.2
 ## explicit; go 1.21
 github.com/hashicorp/terraform-json
-# github.com/hashicorp/terraform-plugin-framework v1.16.0-beta.1.0.20250826091022-afb7e09a233a
-## explicit; go 1.23.0
+# github.com/hashicorp/terraform-plugin-framework v1.16.0
+## explicit; go 1.24.0
 github.com/hashicorp/terraform-plugin-framework/action
 github.com/hashicorp/terraform-plugin-framework/action/schema
 github.com/hashicorp/terraform-plugin-framework/attr
@@ -1366,8 +1366,8 @@ github.com/hashicorp/terraform-plugin-framework-validators/internal/schemavalida
 github.com/hashicorp/terraform-plugin-framework-validators/listvalidator
 github.com/hashicorp/terraform-plugin-framework-validators/mapvalidator
 github.com/hashicorp/terraform-plugin-framework-validators/stringvalidator
-# github.com/hashicorp/terraform-plugin-go v0.29.0-beta.1
-## explicit; go 1.23.0
+# github.com/hashicorp/terraform-plugin-go v0.29.0
+## explicit; go 1.24.0
 github.com/hashicorp/terraform-plugin-go/internal/logging
 github.com/hashicorp/terraform-plugin-go/tfprotov5
 github.com/hashicorp/terraform-plugin-go/tfprotov5/internal/diag
@@ -1393,12 +1393,12 @@ github.com/hashicorp/terraform-plugin-log/internal/hclogutils
 github.com/hashicorp/terraform-plugin-log/internal/logging
 github.com/hashicorp/terraform-plugin-log/tflog
 github.com/hashicorp/terraform-plugin-log/tfsdklog
-# github.com/hashicorp/terraform-plugin-mux v0.21.0-alpha.1
-## explicit; go 1.23.0
+# github.com/hashicorp/terraform-plugin-mux v0.21.0
+## explicit; go 1.24.0
 github.com/hashicorp/terraform-plugin-mux/internal/logging
 github.com/hashicorp/terraform-plugin-mux/tf5muxserver
-# github.com/hashicorp/terraform-plugin-sdk/v2 v2.37.1-0.20250826074230-9419032037aa
-## explicit; go 1.23.0
+# github.com/hashicorp/terraform-plugin-sdk/v2 v2.38.0
+## explicit; go 1.24.0
 github.com/hashicorp/terraform-plugin-sdk/v2/diag
 github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff
 github.com/hashicorp/terraform-plugin-sdk/v2/helper/logging
@@ -1438,14 +1438,14 @@ github.com/hashicorp/terraform-plugin-testing/statecheck
 github.com/hashicorp/terraform-plugin-testing/terraform
 github.com/hashicorp/terraform-plugin-testing/tfjsonpath
 github.com/hashicorp/terraform-plugin-testing/tfversion
-# github.com/hashicorp/terraform-registry-address v0.3.0
+# github.com/hashicorp/terraform-registry-address v0.4.0
 ## explicit; go 1.23.0
 github.com/hashicorp/terraform-registry-address
 # github.com/hashicorp/terraform-svchost v0.1.1
 ## explicit; go 1.19
 github.com/hashicorp/terraform-svchost
-# github.com/hashicorp/yamux v0.1.1
-## explicit; go 1.15
+# github.com/hashicorp/yamux v0.1.2
+## explicit; go 1.20
 github.com/hashicorp/yamux
 # github.com/huandu/xstrings v1.5.0
 ## explicit; go 1.12
@@ -1515,8 +1515,6 @@ github.com/mitchellh/mapstructure
 # github.com/mitchellh/reflectwalk v1.0.2
 ## explicit
 github.com/mitchellh/reflectwalk
-# github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e
-## explicit; go 1.12
 # github.com/oklog/run v1.1.0
 ## explicit; go 1.13
 github.com/oklog/run
@@ -1555,8 +1553,6 @@ github.com/spf13/cobra
 # github.com/spf13/pflag v1.0.10
 ## explicit; go 1.12
 github.com/spf13/pflag
-# github.com/stretchr/testify v1.10.0
-## explicit; go 1.17
 # github.com/vmihailenco/msgpack v4.0.4+incompatible
 ## explicit
 github.com/vmihailenco/msgpack
@@ -1685,10 +1681,10 @@ google.golang.org/appengine/internal/datastore
 google.golang.org/appengine/internal/log
 google.golang.org/appengine/internal/modules
 google.golang.org/appengine/internal/remote_api
-# google.golang.org/genproto/googleapis/rpc v0.0.0-20250528174236-200df99c418a
+# google.golang.org/genproto/googleapis/rpc v0.0.0-20250707201910-8d1bb00bc6a7
 ## explicit; go 1.23.0
 google.golang.org/genproto/googleapis/rpc/status
-# google.golang.org/grpc v1.74.2
+# google.golang.org/grpc v1.75.1
 ## explicit; go 1.23.0
 google.golang.org/grpc
 google.golang.org/grpc/attributes
@@ -1756,8 +1752,8 @@ google.golang.org/grpc/serviceconfig
 google.golang.org/grpc/stats
 google.golang.org/grpc/status
 google.golang.org/grpc/tap
-# google.golang.org/protobuf v1.36.6
-## explicit; go 1.22
+# google.golang.org/protobuf v1.36.9
+## explicit; go 1.23
 google.golang.org/protobuf/encoding/protojson
 google.golang.org/protobuf/encoding/prototext
 google.golang.org/protobuf/encoding/protowire
@@ -1796,8 +1792,6 @@ google.golang.org/protobuf/types/known/anypb
 google.golang.org/protobuf/types/known/durationpb
 google.golang.org/protobuf/types/known/emptypb
 google.golang.org/protobuf/types/known/timestamppb
-# gopkg.in/check.v1 v1.0.0-20200227125254-8fa46927fb4f
-## explicit
 # gopkg.in/yaml.v3 v3.0.1
 ## explicit
 gopkg.in/yaml.v3

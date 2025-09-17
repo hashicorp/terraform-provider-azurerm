@@ -138,9 +138,11 @@ func (d *ResourceData) TfTypeResourceState() (*tftypes.Value, error) {
 			}
 		}
 
-		s.BlockTypes[TimeoutsConfigKey] = &configschema.NestedBlock{
-			Nesting: configschema.NestingSingle,
-			Block:   timeouts,
+		if len(timeouts.Attributes) != 0 {
+			s.BlockTypes[TimeoutsConfigKey] = &configschema.NestedBlock{
+				Nesting: configschema.NestingSingle,
+				Block:   timeouts,
+			}
 		}
 	}
 
@@ -149,6 +151,9 @@ func (d *ResourceData) TfTypeResourceState() (*tftypes.Value, error) {
 		return nil, fmt.Errorf("state is nil, call SetId() on ResourceData first")
 	}
 
+	// Although we handle adding/omitting timeouts to the schema depending on how it's been defined on the resource
+	// we don't process or convert the timeout values since they reside in Meta and aren't needed for the purposes
+	// of this function and in the context of a List.
 	stateVal, err := hcl2shim.HCL2ValueFromFlatmap(state.Attributes, s.ImpliedType())
 	if err != nil {
 		return nil, fmt.Errorf("converting resource state flatmap to cty value: %+v", err)

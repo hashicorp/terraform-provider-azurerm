@@ -6,11 +6,12 @@ package fromproto6
 import (
 	"context"
 
+	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
+
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwschema"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
-	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
 // ValidateActionConfigRequest returns the *fwserver.ValidateActionConfigRequest

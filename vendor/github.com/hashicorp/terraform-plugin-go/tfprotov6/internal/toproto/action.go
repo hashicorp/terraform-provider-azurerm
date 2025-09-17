@@ -36,22 +36,8 @@ func PlanAction_Response(in *tfprotov6.PlanActionResponse) *tfplugin6.PlanAction
 	}
 
 	resp := &tfplugin6.PlanAction_Response{
-		LinkedResources: PlannedLinkedResources(in.LinkedResources),
-		Diagnostics:     Diagnostics(in.Diagnostics),
-		Deferred:        Deferred(in.Deferred),
-	}
-
-	return resp
-}
-
-func PlannedLinkedResources(in []*tfprotov6.PlannedLinkedResource) []*tfplugin6.PlanAction_Response_LinkedResource {
-	resp := make([]*tfplugin6.PlanAction_Response_LinkedResource, 0, len(in))
-
-	for _, inLinkedResource := range in {
-		resp = append(resp, &tfplugin6.PlanAction_Response_LinkedResource{
-			PlannedState:    DynamicValue(inLinkedResource.PlannedState),
-			PlannedIdentity: ResourceIdentityData(inLinkedResource.PlannedIdentity),
-		})
+		Diagnostics: Diagnostics(in.Diagnostics),
+		Deferred:    Deferred(in.Deferred),
 	}
 
 	return resp
@@ -75,8 +61,7 @@ func InvokeAction_InvokeActionEvent(in *tfprotov6.InvokeActionEvent) *tfplugin6.
 		return &tfplugin6.InvokeAction_Event{
 			Type: &tfplugin6.InvokeAction_Event_Completed_{
 				Completed: &tfplugin6.InvokeAction_Event_Completed{
-					LinkedResources: NewLinkedResources(event.LinkedResources),
-					Diagnostics:     Diagnostics(event.Diagnostics),
+					Diagnostics: Diagnostics(event.Diagnostics),
 				},
 			},
 		}
@@ -87,18 +72,4 @@ func InvokeAction_InvokeActionEvent(in *tfprotov6.InvokeActionEvent) *tfplugin6.
 	// it implies that a new event type was introduced and needs to be implemented
 	// as a new case above.
 	panic(fmt.Sprintf("unimplemented tfprotov6.InvokeActionEventType type: %T", in.Type))
-}
-
-func NewLinkedResources(in []*tfprotov6.NewLinkedResource) []*tfplugin6.InvokeAction_Event_Completed_LinkedResource {
-	resp := make([]*tfplugin6.InvokeAction_Event_Completed_LinkedResource, 0, len(in))
-
-	for _, inLinkedResource := range in {
-		resp = append(resp, &tfplugin6.InvokeAction_Event_Completed_LinkedResource{
-			NewState:        DynamicValue(inLinkedResource.NewState),
-			NewIdentity:     ResourceIdentityData(inLinkedResource.NewIdentity),
-			RequiresReplace: inLinkedResource.RequiresReplace,
-		})
-	}
-
-	return resp
 }

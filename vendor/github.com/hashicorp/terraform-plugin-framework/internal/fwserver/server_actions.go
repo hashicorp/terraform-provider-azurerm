@@ -112,7 +112,7 @@ func (s *Server) ActionMetadatas(ctx context.Context) ([]ActionMetadata, diag.Di
 
 // ActionSchema returns the Action Schema for the given type name and
 // caches the result for later Action operations.
-func (s *Server) ActionSchema(ctx context.Context, actionType string) (actionschema.SchemaType, diag.Diagnostics) {
+func (s *Server) ActionSchema(ctx context.Context, actionType string) (actionschema.Schema, diag.Diagnostics) {
 	s.actionSchemasMutex.RLock()
 	actionSchema, ok := s.actionSchemas[actionType]
 	s.actionSchemasMutex.RUnlock()
@@ -128,7 +128,7 @@ func (s *Server) ActionSchema(ctx context.Context, actionType string) (actionsch
 	diags.Append(actionDiags...)
 
 	if diags.HasError() {
-		return nil, diags
+		return actionSchema, diags
 	}
 
 	schemaReq := action.SchemaRequest{}
@@ -147,7 +147,7 @@ func (s *Server) ActionSchema(ctx context.Context, actionType string) (actionsch
 	s.actionSchemasMutex.Lock()
 
 	if s.actionSchemas == nil {
-		s.actionSchemas = make(map[string]actionschema.SchemaType)
+		s.actionSchemas = make(map[string]actionschema.Schema)
 	}
 
 	s.actionSchemas[actionType] = schemaResp.Schema
@@ -161,8 +161,8 @@ func (s *Server) ActionSchema(ctx context.Context, actionType string) (actionsch
 // GetProviderSchema RPC without caching since not all schemas are guaranteed to
 // be necessary for later provider operations. The schema implementations are
 // also validated.
-func (s *Server) ActionSchemas(ctx context.Context) (map[string]actionschema.SchemaType, diag.Diagnostics) {
-	actionSchemas := make(map[string]actionschema.SchemaType)
+func (s *Server) ActionSchemas(ctx context.Context) (map[string]actionschema.Schema, diag.Diagnostics) {
+	actionSchemas := make(map[string]actionschema.Schema)
 
 	actionFuncs, diags := s.ActionFuncs(ctx)
 

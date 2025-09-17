@@ -20,8 +20,9 @@ type ModifyPlanClientCapabilities struct {
 	DeferralAllowed bool
 }
 
-// ModifyPlanRequest represents a request for the provider to modify the
-// planned new state that Terraform has generated for any linked resources.
+// ModifyPlanRequest represents a request for the provider during planning.
+// The plan can be used as an opportunity to raise early
+// diagnostics to practitioners, such as validation errors.
 type ModifyPlanRequest struct {
 	// Config is the configuration the user supplied for the action.
 	//
@@ -30,8 +31,6 @@ type ModifyPlanRequest struct {
 	// from knowing the value at request time.
 	Config tfsdk.Config
 
-	// TODO:Actions: Add linked resources once lifecycle/linked actions are implemented
-
 	// ClientCapabilities defines optionally supported protocol features for the
 	// PlanAction RPC, such as forward-compatible Terraform behavior changes.
 	ClientCapabilities ModifyPlanClientCapabilities
@@ -39,16 +38,12 @@ type ModifyPlanRequest struct {
 
 // ModifyPlanResponse represents a response to a
 // ModifyPlanRequest. An instance of this response struct is supplied
-// as an argument to the action's ModifyPlan function, in which the provider
-// should modify the Plan of any linked resources as appropriate.
+// as an argument to the action's ModifyPlan function.
 type ModifyPlanResponse struct {
-	// Diagnostics report errors or warnings related to determining the
-	// planned state of the requested action's linked resources. Returning an empty slice
-	// indicates a successful plan modification with no warnings or errors
-	// generated.
+	// Diagnostics report early errors or warnings related action.
+	// Returning an empty slice indicates a successful plan modification
+	// with no warnings or errors generated.
 	Diagnostics diag.Diagnostics
-
-	// TODO:Actions: Add linked resources once lifecycle/linked actions are implemented
 
 	// Deferred indicates that Terraform should defer planning this
 	// action until a follow-up apply operation.

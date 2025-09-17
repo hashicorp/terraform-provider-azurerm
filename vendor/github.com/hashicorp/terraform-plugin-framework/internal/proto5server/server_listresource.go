@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fromproto5"
 	"github.com/hashicorp/terraform-plugin-framework/internal/fwserver"
+	"github.com/hashicorp/terraform-plugin-framework/internal/logging"
 	"github.com/hashicorp/terraform-plugin-framework/internal/toproto5"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov5"
@@ -27,6 +28,9 @@ func ListRequestErrorDiagnostics(ctx context.Context, diags ...diag.Diagnostic) 
 }
 
 func (s *Server) ListResource(ctx context.Context, protoReq *tfprotov5.ListResourceRequest) (*tfprotov5.ListResourceServerStream, error) {
+	ctx = s.registerContext(ctx)
+	ctx = logging.InitContext(ctx)
+
 	protoStream := &tfprotov5.ListResourceServerStream{Results: tfprotov5.NoListResults}
 	allDiags := diag.Diagnostics{}
 

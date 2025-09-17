@@ -55,7 +55,7 @@ type Server struct {
 	// actionSchemas is the cached Action Schemas for RPCs that need to
 	// convert configuration data from the protocol. If not found, it will be
 	// fetched from the Action.Schema() method.
-	actionSchemas map[string]actionschema.SchemaType
+	actionSchemas map[string]actionschema.Schema
 
 	// actionSchemasMutex is a mutex to protect concurrent actionSchemas
 	// access from race conditions.

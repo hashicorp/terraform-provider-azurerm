@@ -7,7 +7,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"slices"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/hashicorp/go-cty/cty"
@@ -195,6 +197,8 @@ func (s *GRPCProviderServer) GetMetadata(ctx context.Context, req *tfprotov5.Get
 		DataSources:        make([]tfprotov5.DataSourceMetadata, 0, len(s.provider.DataSourcesMap)),
 		EphemeralResources: make([]tfprotov5.EphemeralResourceMetadata, 0),
 		Functions:          make([]tfprotov5.FunctionMetadata, 0),
+		ListResources:      make([]tfprotov5.ListResourceMetadata, 0),
+		Actions:            make([]tfprotov5.ActionMetadata, 0),
 		Resources:          make([]tfprotov5.ResourceMetadata, 0, len(s.provider.ResourcesMap)),
 		ServerCapabilities: s.serverCapabilities(),
 	}
@@ -223,6 +227,8 @@ func (s *GRPCProviderServer) GetProviderSchema(ctx context.Context, req *tfproto
 		DataSourceSchemas:        make(map[string]*tfprotov5.Schema, len(s.provider.DataSourcesMap)),
 		EphemeralResourceSchemas: make(map[string]*tfprotov5.Schema, 0),
 		Functions:                make(map[string]*tfprotov5.Function, 0),
+		ListResourceSchemas:      make(map[string]*tfprotov5.Schema, 0),
+		ActionSchemas:            make(map[string]*tfprotov5.ActionSchema, 0),
 		ResourceSchemas:          make(map[string]*tfprotov5.Schema, len(s.provider.ResourcesMap)),
 		ServerCapabilities:       s.serverCapabilities(),
 	}
@@ -880,6 +886,7 @@ func (s *GRPCProviderServer) ReadResource(ctx context.Context, req *tfprotov5.Re
 			resp.Diagnostics = convert.AppendProtoDiag(ctx, resp.Diagnostics, err)
 			return resp, nil
 		}
+
 		// Step 2: Turn cty.Value into flatmap representation
 		identityAttrs := hcl2shim.FlatmapValueFromHCL2(currentIdentityVal)
 		// Step 3: Well, set it in the instanceState
@@ -958,6 +965,22 @@ func (s *GRPCProviderServer) ReadResource(ctx context.Context, req *tfprotov5.Re
 		newIdentityVal, err := hcl2shim.HCL2ValueFromFlatmap(newInstanceState.Identity, identityBlock.ImpliedType())
 		if err != nil {
 			resp.Diagnostics = convert.AppendProtoDiag(ctx, resp.Diagnostics, err)
+			return resp, nil
+		}
+
+		isFullyNull := true
+		for _, v := range newIdentityVal.AsValueMap() {
+			if !v.IsNull() {
+				isFullyNull = false
+				break
+			}
+		}
+
+		if isFullyNull {
+			resp.Diagnostics = convert.AppendProtoDiag(ctx, resp.Diagnostics, fmt.Errorf(
+				"Missing Resource Identity After Read: The Terraform provider unexpectedly returned no resource identity after having no errors in the resource read. "+
+					"This is always a problem with the provider and should be reported to the provider developer",
+			))
 			return resp, nil
 		}
 
@@ -1544,6 +1567,28 @@ func (s *GRPCProviderServer) ApplyResourceChange(ctx context.Context, req *tfpro
 			return resp, nil
 		}
 
+		isFullyNull := true
+		for _, v := range newIdentityVal.AsValueMap() {
+			if !v.IsNull() {
+				isFullyNull = false
+				break
+			}
+		}
+
+		if isFullyNull {
+			op := "Create"
+			if !create {
+				op = "Update"
+			}
+
+			resp.Diagnostics = convert.AppendProtoDiag(ctx, resp.Diagnostics, fmt.Errorf(
+				"Missing Resource Identity After %s: The Terraform provider unexpectedly returned no resource identity after having no errors in the resource %s. "+
+					"This is always a problem with the provider and should be reported to the provider developer", op, strings.ToLower(op),
+			))
+
+			return resp, nil
+		}
+
 		if !res.ResourceBehavior.MutableIdentity && !create && !plannedIdentityVal.IsNull() && !plannedIdentityVal.RawEquals(newIdentityVal) {
 			resp.Diagnostics = convert.AppendProtoDiag(ctx, resp.Diagnostics, fmt.Errorf(
 				"Unexpected Identity Change: During the update operation, the Terraform Provider unexpectedly returned a different identity than the previously stored one.\n\n"+
@@ -1975,6 +2020,110 @@ func (s *GRPCProviderServer) CloseEphemeralResource(ctx context.Context, req *tf
 				Detail:   fmt.Sprintf("The %q ephemeral resource type is not supported by this provider.", req.TypeName),
 			},
 		},
+	}
+
+	return resp, nil
+}
+
+func (s *GRPCProviderServer) ValidateListResourceConfig(ctx context.Context, req *tfprotov5.ValidateListResourceConfigRequest) (*tfprotov5.ValidateListResourceConfigResponse, error) {
+	ctx = logging.InitContext(ctx)
+
+	logging.HelperSchemaTrace(ctx, "Returning error for list resource validate")
+
+	resp := &tfprotov5.ValidateListResourceConfigResponse{
+		Diagnostics: []*tfprotov5.Diagnostic{
+			{
+				Severity: tfprotov5.DiagnosticSeverityError,
+				Summary:  "Unknown List Resource Type",
+				Detail:   fmt.Sprintf("The %q list resource type is not supported by this provider.", req.TypeName),
+			},
+		},
+	}
+
+	return resp, nil
+}
+
+func (s *GRPCProviderServer) ListResource(ctx context.Context, req *tfprotov5.ListResourceRequest) (*tfprotov5.ListResourceServerStream, error) {
+	ctx = logging.InitContext(ctx)
+
+	logging.HelperSchemaTrace(ctx, "Returning error for list resource list")
+
+	result := make([]tfprotov5.ListResourceResult, 0)
+
+	result = append(result, tfprotov5.ListResourceResult{
+		Diagnostics: []*tfprotov5.Diagnostic{
+			{
+				Severity: tfprotov5.DiagnosticSeverityError,
+				Summary:  "Unknown List Resource Type",
+				Detail:   fmt.Sprintf("The %q list resource type is not supported by this provider.", req.TypeName),
+			},
+		},
+	})
+
+	resp := &tfprotov5.ListResourceServerStream{
+		Results: slices.Values(result),
+	}
+
+	return resp, nil
+}
+
+func (s *GRPCProviderServer) ValidateActionConfig(ctx context.Context, req *tfprotov5.ValidateActionConfigRequest) (*tfprotov5.ValidateActionConfigResponse, error) {
+	ctx = logging.InitContext(ctx)
+
+	logging.HelperSchemaTrace(ctx, "Returning error for action type validate")
+
+	resp := &tfprotov5.ValidateActionConfigResponse{
+		Diagnostics: []*tfprotov5.Diagnostic{
+			{
+				Severity: tfprotov5.DiagnosticSeverityError,
+				Summary:  "Unknown Action Type",
+				Detail:   fmt.Sprintf("The %q action type is not supported by this provider.", req.ActionType),
+			},
+		},
+	}
+
+	return resp, nil
+}
+
+func (s *GRPCProviderServer) PlanAction(ctx context.Context, req *tfprotov5.PlanActionRequest) (*tfprotov5.PlanActionResponse, error) {
+	ctx = logging.InitContext(ctx)
+
+	logging.HelperSchemaTrace(ctx, "Returning error for action type plan")
+
+	resp := &tfprotov5.PlanActionResponse{
+		Diagnostics: []*tfprotov5.Diagnostic{
+			{
+				Severity: tfprotov5.DiagnosticSeverityError,
+				Summary:  "Unknown Action Type",
+				Detail:   fmt.Sprintf("The %q action type is not supported by this provider.", req.ActionType),
+			},
+		},
+	}
+
+	return resp, nil
+}
+
+func (s *GRPCProviderServer) InvokeAction(ctx context.Context, req *tfprotov5.InvokeActionRequest) (*tfprotov5.InvokeActionServerStream, error) {
+	ctx = logging.InitContext(ctx)
+
+	logging.HelperSchemaTrace(ctx, "Returning error for action invoke")
+
+	event := make([]tfprotov5.InvokeActionEvent, 0)
+
+	event = append(event, tfprotov5.InvokeActionEvent{
+		Type: tfprotov5.CompletedInvokeActionEventType{
+			Diagnostics: []*tfprotov5.Diagnostic{
+				{
+					Severity: tfprotov5.DiagnosticSeverityError,
+					Summary:  "Unknown Action Type",
+					Detail:   fmt.Sprintf("The %q action type is not supported by this provider.", req.ActionType),
+				},
+			},
+		},
+	})
+
+	resp := &tfprotov5.InvokeActionServerStream{
+		Events: slices.Values(event),
 	}
 
 	return resp, nil

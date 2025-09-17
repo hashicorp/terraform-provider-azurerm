@@ -22,7 +22,7 @@ type GetProviderSchemaResponse struct {
 	ServerCapabilities       *ServerCapabilities
 	Provider                 fwschema.Schema
 	ProviderMeta             fwschema.Schema
-	ActionSchemas            map[string]actionschema.SchemaType
+	ActionSchemas            map[string]actionschema.Schema
 	ResourceSchemas          map[string]fwschema.Schema
 	DataSourceSchemas        map[string]fwschema.Schema
 	EphemeralResourceSchemas map[string]fwschema.Schema

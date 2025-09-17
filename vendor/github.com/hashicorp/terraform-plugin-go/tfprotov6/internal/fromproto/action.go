@@ -26,24 +26,8 @@ func PlanActionRequest(in *tfplugin6.PlanAction_Request) *tfprotov6.PlanActionRe
 
 	resp := &tfprotov6.PlanActionRequest{
 		ActionType:         in.ActionType,
-		LinkedResources:    ProposedLinkedResources(in.LinkedResources),
 		Config:             DynamicValue(in.Config),
 		ClientCapabilities: PlanActionClientCapabilities(in.ClientCapabilities),
-	}
-
-	return resp
-}
-
-func ProposedLinkedResources(in []*tfplugin6.PlanAction_Request_LinkedResource) []*tfprotov6.ProposedLinkedResource {
-	resp := make([]*tfprotov6.ProposedLinkedResource, 0, len(in))
-
-	for _, inLinkedResource := range in {
-		resp = append(resp, &tfprotov6.ProposedLinkedResource{
-			PriorState:    DynamicValue(inLinkedResource.PriorState),
-			PlannedState:  DynamicValue(inLinkedResource.PlannedState),
-			Config:        DynamicValue(inLinkedResource.Config),
-			PriorIdentity: ResourceIdentityData(inLinkedResource.PriorIdentity),
-		})
 	}
 
 	return resp
@@ -55,24 +39,9 @@ func InvokeActionRequest(in *tfplugin6.InvokeAction_Request) *tfprotov6.InvokeAc
 	}
 
 	resp := &tfprotov6.InvokeActionRequest{
-		ActionType:      in.ActionType,
-		LinkedResources: InvokeLinkedResources(in.LinkedResources),
-		Config:          DynamicValue(in.Config),
-	}
-
-	return resp
-}
-
-func InvokeLinkedResources(in []*tfplugin6.InvokeAction_Request_LinkedResource) []*tfprotov6.InvokeLinkedResource {
-	resp := make([]*tfprotov6.InvokeLinkedResource, 0, len(in))
-
-	for _, inLinkedResource := range in {
-		resp = append(resp, &tfprotov6.InvokeLinkedResource{
-			PriorState:      DynamicValue(inLinkedResource.PriorState),
-			PlannedState:    DynamicValue(inLinkedResource.PlannedState),
-			Config:          DynamicValue(inLinkedResource.Config),
-			PlannedIdentity: ResourceIdentityData(inLinkedResource.PlannedIdentity),
-		})
+		ActionType:         in.ActionType,
+		Config:             DynamicValue(in.Config),
+		ClientCapabilities: InvokeActionClientCapabilities(in.ClientCapabilities),
 	}
 
 	return resp

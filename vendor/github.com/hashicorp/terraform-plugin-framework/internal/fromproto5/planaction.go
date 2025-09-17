@@ -48,7 +48,5 @@ func PlanActionRequest(ctx context.Context, proto5 *tfprotov5.PlanActionRequest,
 
 	fw.Config = config
 
-	// TODO:Actions: Here we need to retrieve linked resource data
-
 	return fw, diags
 }

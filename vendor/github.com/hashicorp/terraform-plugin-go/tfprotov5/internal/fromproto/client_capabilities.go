@@ -103,3 +103,13 @@ func PlanActionClientCapabilities(in *tfplugin5.ClientCapabilities) *tfprotov5.P
 
 	return resp
 }
+
+func InvokeActionClientCapabilities(in *tfplugin5.ClientCapabilities) *tfprotov5.InvokeActionClientCapabilities {
+	if in == nil {
+		return nil
+	}
+
+	resp := &tfprotov5.InvokeActionClientCapabilities{}
+
+	return resp
+}
