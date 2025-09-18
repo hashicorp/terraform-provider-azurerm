@@ -8,6 +8,9 @@ ENHANCEMENTS:
 
 FEATURES:
 
+* **New List Resource**: `azurerm_storage_account` [GH-30614]
+* **New List Resource**: `azurerm_virtual_network` [GH-30614]
+
 BUG FIXES:
 
 ## 4.44.0 (September 11, 2025)
