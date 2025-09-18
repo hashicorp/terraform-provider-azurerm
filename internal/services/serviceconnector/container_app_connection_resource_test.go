@@ -385,44 +385,12 @@ resource "azurerm_resource_group" "test" {
   location = "%[1]s"
 }
 
-resource "azurerm_cosmosdb_account" "test" {
-  name                = "acctestacc%[4]s"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
-  offer_type          = "Standard"
-  kind                = "GlobalDocumentDB"
-
-  consistency_policy {
-    consistency_level       = "BoundedStaleness"
-    max_interval_in_seconds = 10
-    max_staleness_prefix    = 200
-  }
-
-  geo_location {
-    location          = azurerm_resource_group.test.location
-    failover_priority = 0
-  }
-}
-
-resource "azurerm_cosmosdb_sql_database" "test" {
-  name                = "cosmos-sql-db"
-  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
-  account_name        = azurerm_cosmosdb_account.test.name
-  throughput          = 400
-}
-
-resource "azurerm_cosmosdb_sql_container" "test" {
-  name                = "test-container%[4]s"
-  resource_group_name = azurerm_cosmosdb_account.test.resource_group_name
-  account_name        = azurerm_cosmosdb_account.test.name
-  database_name       = azurerm_cosmosdb_sql_database.test.name
-  partition_key_paths = ["/definition"]
-}
-
-resource "azurerm_container_app_environment" "test" {
-  name                = "acctest-cae-%[2]d"
-  location            = azurerm_resource_group.test.location
-  resource_group_name = azurerm_resource_group.test.name
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%[4]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
 }
 
 resource "azurerm_virtual_network" "test" {
@@ -436,17 +404,15 @@ resource "azurerm_subnet" "test1" {
   name                              = "subnet1"
   resource_group_name               = azurerm_resource_group.test.name
   virtual_network_name              = azurerm_virtual_network.test.name
-  address_prefixes                  = ["10.0.1.0/24"]
+  address_prefixes                  = ["10.0.0.0/23"]
   private_endpoint_network_policies = "Enabled"
+}
 
-  delegation {
-    name = "delegation"
-
-    service_delegation {
-      name    = "Microsoft.App/environments"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
-    }
-  }
+resource "azurerm_container_app_environment" "test" {
+  name                     = "acctest-cae-%[2]d"
+  location                 = azurerm_resource_group.test.location
+  resource_group_name      = azurerm_resource_group.test.name
+  infrastructure_subnet_id = azurerm_subnet.test1.id
 }
 
 resource "azurerm_container_app" "test" {
@@ -476,9 +442,9 @@ resource "azurerm_container_app" "test" {
 resource "azurerm_container_app_connection" "test" {
   name               = "acctestserviceconnector%[3]d"
   container_app_id   = azurerm_container_app.test.id
-  target_resource_id = azurerm_cosmosdb_sql_container.test.id
+  target_resource_id = azurerm_storage_account.test.id
   client_type        = "springBoot"
-  vnet_solution      = "serviceEndpoint"
+  vnet_solution      = "privateLink"
   scope              = azurerm_container_app.test.template[0].container[0].name
 
   authentication {
