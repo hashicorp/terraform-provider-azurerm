@@ -184,6 +184,7 @@ resource "azurerm_container_app" "test" {
     ignore_changes = [
       template[0].container[0].env,
       identity,
+      secret,
     ]
   }
 }
@@ -192,6 +193,8 @@ resource "azurerm_container_app_connection" "test" {
   name               = "acctestserviceconnector%[3]d"
   container_app_id   = azurerm_container_app.test.id
   target_resource_id = azurerm_storage_account.test.id
+  scope              = azurerm_container_app.test.template[0].container[0].name
+
   authentication {
     type = "systemAssignedIdentity"
   }
@@ -359,6 +362,7 @@ resource "azurerm_container_app_connection" "test" {
   container_app_id   = azurerm_container_app.test.id
   target_resource_id = azurerm_storage_account.test.id
   client_type        = "java"
+  scope              = azurerm_container_app.test.template[0].container[0].name
 
   secret_store {
     key_vault_id = azurerm_key_vault.test.id
@@ -475,6 +479,7 @@ resource "azurerm_container_app_connection" "test" {
   target_resource_id = azurerm_cosmosdb_sql_container.test.id
   client_type        = "springBoot"
   vnet_solution      = "serviceEndpoint"
+  scope              = azurerm_container_app.test.template[0].container[0].name
 
   authentication {
     type = "systemAssignedIdentity"
