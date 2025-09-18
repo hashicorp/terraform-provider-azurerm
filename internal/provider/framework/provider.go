@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/function"
+	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -29,11 +30,12 @@ type azureRmFrameworkProvider struct {
 	ProviderConfig
 }
 
-var _ provider.Provider = &azureRmFrameworkProvider{}
-
-var _ provider.ProviderWithFunctions = &azureRmFrameworkProvider{}
-
-var _ provider.ProviderWithEphemeralResources = &azureRmFrameworkProvider{}
+var (
+	_ provider.Provider                       = &azureRmFrameworkProvider{}
+	_ provider.ProviderWithFunctions          = &azureRmFrameworkProvider{}
+	_ provider.ProviderWithEphemeralResources = &azureRmFrameworkProvider{}
+	_ provider.ProviderWithListResources      = &azureRmFrameworkProvider{}
+)
 
 func (p *azureRmFrameworkProvider) Functions(_ context.Context) []func() function.Function {
 	return []func() function.Function{
@@ -533,11 +535,14 @@ func (p *azureRmFrameworkProvider) Configure(ctx context.Context, request provid
 		response.ResourceData = v
 		response.DataSourceData = v
 		response.EphemeralResourceData = v
+		response.ListResourceData = v
 	} else {
 		p.Load(ctx, &data, request.TerraformVersion, &response.Diagnostics)
 
 		response.DataSourceData = &p.ProviderConfig
 		response.ResourceData = &p.ProviderConfig
+		response.EphemeralResourceData = &p.ProviderConfig
+		response.ListResourceData = &p.ProviderConfig
 	}
 }
 
@@ -569,6 +574,16 @@ func (p *azureRmFrameworkProvider) Resources(_ context.Context) []func() resourc
 			}
 			output = append(output, fwr.Resource())
 		}
+	}
+
+	return output
+}
+
+func (p *azureRmFrameworkProvider) ListResources(_ context.Context) []func() list.ListResource {
+	var output []func() list.ListResource
+
+	for _, service := range pluginsdkprovider.SupportedFrameworkServices() {
+		output = append(output, service.ListResources()...)
 	}
 
 	return output
