@@ -14,7 +14,7 @@ Changes the Power state of a Virtual Machine to the specified value, or restarts
 
 ## Example Usage
 
-```hcl
+```terraform
 resource "azurerm_linux_virtual_machine" "example" {
   # ... Virtual Machine configuration
 }
