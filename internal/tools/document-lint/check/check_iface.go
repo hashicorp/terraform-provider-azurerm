@@ -30,10 +30,14 @@ type checkBase struct {
 }
 
 func (c checkBase) ShouldSkip() bool {
-	if c.line == 0 || c.MDField() == nil || c.MDField().Skip {
-		return true
-	}
-	return false
+    // Don't skip property miss diffs even if line is 0
+    if c.MDField() == nil {
+        return c.line == 0  // Only skip if both line=0 AND mdField=nil
+    }
+    if c.MDField().Skip {
+        return true
+    }
+    return false
 }
 
 func (i checkBase) Str() string {
