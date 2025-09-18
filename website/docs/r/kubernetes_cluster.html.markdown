@@ -702,6 +702,16 @@ Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com
 
 * `nat_gateway_profile` - (Optional) A `nat_gateway_profile` block as defined below. This can only be specified when `load_balancer_sku` is set to `standard` and `outbound_type` is set to `managedNATGateway` or `userAssignedNATGateway`. Changing this forces a new resource to be created.
 
+* `advanced_networking` - (Optional) An `advanced_networking` block as defined below. This can only be specified when `network_plugin` is set to `azure` and `network_data_plane` is set to `cilium`.
+
+---
+
+An `advanced_networking` block supports the following:
+
+* `observability_enabled` - (Optional) Is observability enabled? Defaults to `false`.
+
+* `security_enabled` - (Optional) Is security enabled? Defaults to `false`.
+
 ---
 
 A `load_balancer_profile` block supports the following:
