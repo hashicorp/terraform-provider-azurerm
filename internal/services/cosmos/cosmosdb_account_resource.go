@@ -6,6 +6,7 @@ package cosmos
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"math"
@@ -176,7 +177,7 @@ func resourceCosmosDbAccount() *pluginsdk.Resource {
 				}
 
 				if isMongo && (mongo34found && !enableMongo) {
-					return fmt.Errorf("capability EnableMongo must be enabled if MongoDBv3.4 is also enabled")
+					return errors.New("capability EnableMongo must be enabled if MongoDBv3.4 is also enabled")
 				}
 				return nil
 			}),
@@ -950,7 +951,7 @@ func resourceCosmosDbAccountCreate(d *pluginsdk.ResourceData, meta interface{}) 
 		}
 		account.Properties.BackupPolicy = policy
 	} else if createMode != "" {
-		return fmt.Errorf("`create_mode` only works when `backup.type` is `Continuous`")
+		return errors.New("`create_mode` only works when `backup.type` is `Continuous`")
 	}
 
 	if key, err := customermanagedkeys.ExpandKeyVaultOrManagedHSMKey(d, customermanagedkeys.VersionTypeAny, accountClient.Environment.KeyVault, accountClient.Environment.ManagedHSM); err != nil {
@@ -1053,7 +1054,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 		backup = props.BackupPolicy
 		if d.HasChange("backup") {
 			if v, ok := d.GetOk("backup"); ok {
-				newBackup, err := expandCosmosdbAccountBackup(v.([]interface{}), d.HasChange("backup.0.type"), string(pointer.From(props.CreateMode)))
+				newBackup, err := expandCosmosdbAccountBackup(v.([]interface{}), d.HasChange("backup.0.type"), pointer.FromEnum(props.CreateMode))
 				if err != nil {
 					return fmt.Errorf("expanding `backup`: %+v", err)
 				}
@@ -1069,8 +1070,8 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 				}
 
 				backup = newBackup
-			} else if string(pointer.From(props.CreateMode)) != "" {
-				return fmt.Errorf("`create_mode` only works when `backup.type` is `Continuous`")
+			} else if pointer.FromEnum(props.CreateMode) != "" {
+				return errors.New("`create_mode` only works when `backup.type` is `Continuous`")
 			}
 		}
 	}
@@ -1187,10 +1188,7 @@ func resourceCosmosDbAccountUpdate(d *pluginsdk.ResourceData, meta interface{}) 
 	// 'default_identity_type' will always have a value since it now has a default value of "FirstPartyIdentity" per the API documentation.
 	// I do not include 'DefaultIdentity' and 'Identity' in the 'accountProps' intentionally, these operations need to be
 	// performed mutually exclusive from each other in an atomic fashion, else you will hit the service teams bug...
-	updateDefaultIdentity := false
-	if d.HasChange("default_identity_type") {
-		updateDefaultIdentity = true
-	}
+	updateDefaultIdentity := d.HasChange("default_identity_type")
 
 	// adding 'DefaultIdentity' to avoid causing it to fallback
 	// to "FirstPartyIdentity" on update(s), issue #22466
@@ -1828,7 +1826,7 @@ func expandAzureRmCosmosDBAccountGeoLocations(d *pluginsdk.ResourceData) ([]cosm
 
 	// and one of them must have a priority of 0...
 	if _, ok := byPriorities[0]; !ok {
-		return nil, fmt.Errorf("there needs to be a `geo_location` with a `failover_priority` of `0`")
+		return nil, errors.New("there needs to be a `geo_location` with a `failover_priority` of `0`")
 	}
 
 	return locations, nil
@@ -2034,7 +2032,7 @@ func expandCosmosdbAccountBackup(input []interface{}, backupHasChange bool, crea
 		}
 
 		if v := attr["tier"].(string); v != "" && !backupHasChange {
-			return nil, fmt.Errorf("`tier` can not be set when `type` in `backup` is `Periodic`")
+			return nil, errors.New("`tier` can not be set when `type` in `backup` is `Periodic`")
 		}
 
 		// Mirror the behavior of the old SDK...
