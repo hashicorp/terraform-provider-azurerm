@@ -442,6 +442,8 @@ A `probe` block supports the following:
 
 * `path` - (Optional) The Path used for this Probe.
 
+!> `path` cannot be set when `protocol` is set to `Tcp` or `Tls`.
+
 * `timeout` - (Required) The Timeout used for this Probe, which indicates when a probe becomes unhealthy. Possible values range from 1 second to a maximum of 86,400 seconds.
 
 * `unhealthy_threshold` - (Required) The Unhealthy Threshold for this Probe, which indicates the amount of retries which should be attempted before a node is deemed unhealthy. Possible values are from 1 to 20.
