@@ -6,6 +6,7 @@ package network
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/framework/typehelpers"
@@ -27,7 +28,7 @@ type VirtualNetworkListResource struct {
 var _ sdk.ListResourceWithRawV5Schemas = &VirtualNetworkListResource{}
 
 type VirtualNetworkListModel struct {
-	ResourceGroupName string `tfsdk:"resource_group_name"`
+	ResourceGroupName types.String `tfsdk:"resource_group_name"`
 }
 
 func NewVirtualNetworkListResource() list.ListResource {
@@ -72,7 +73,7 @@ func (r *VirtualNetworkListResource) List(ctx context.Context, request list.List
 		return
 	}
 
-	resp, err := client.ListComplete(ctx, commonids.NewResourceGroupID(r.SubscriptionId, data.ResourceGroupName))
+	resp, err := client.ListComplete(ctx, commonids.NewResourceGroupID(r.SubscriptionId, data.ResourceGroupName.ValueString()))
 	if err != nil {
 		sdk.SetResponseErrorDiagnostic(stream, fmt.Sprintf("listing %s", VirtualNetworkResourceName), err)
 		return
