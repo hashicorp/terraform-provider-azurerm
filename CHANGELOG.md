@@ -1,18 +1,17 @@
-## 4.45.0 (Unreleased)
-
-ENHANCEMENTS:
-* dependencies: `go-azure-sdk` - update to `v0.20250908.1192604` [GH-30644]
-* `azurerm_kubernetes_cluster` - add support for the `network_profile.advanced_networking` block [GH-30434]
-* `azurerm_subnet` - add support for `sharing_scope` [GH-30600]
-* `azurerm_storage_account` - `expiration_action` supports `Block` [GH-30599] [GH-30599]
+## 4.45.0 (September 18, 2025)
 
 FEATURES:
 
-* **New Action**: `azurerm_virtual_machine_power` [GH-30647]
-* **New List Resource**: `azurerm_storage_account` [GH-30614]
-* **New List Resource**: `azurerm_virtual_network` [GH-30614]
+* **New Action**: `azurerm_virtual_machine_power` ([#30647](https://github.com/hashicorp/terraform-provider-azurerm/issues/30647))
+* **New List Resource**: `azurerm_storage_account` ([#30614](https://github.com/hashicorp/terraform-provider-azurerm/issues/30614))
+* **New List Resource**: `azurerm_virtual_network` ([#30614](https://github.com/hashicorp/terraform-provider-azurerm/issues/30614))
 
-BUG FIXES:
+ENHANCEMENTS:
+
+* dependencies: `go-azure-sdk` - update to `v0.20250908.1192604` ([#30644](https://github.com/hashicorp/terraform-provider-azurerm/issues/30644))
+* `azurerm_kubernetes_cluster` - add support for the `network_profile.advanced_networking` block ([#30434](https://github.com/hashicorp/terraform-provider-azurerm/issues/30434))
+* `azurerm_storage_account` - `expiration_action` supports `Block` ([#30599](https://github.com/hashicorp/terraform-provider-azurerm/issues/30599)) ([#30599](https://github.com/hashicorp/terraform-provider-azurerm/issues/30599))
+* `azurerm_subnet` - add support for `sharing_scope` ([#30600](https://github.com/hashicorp/terraform-provider-azurerm/issues/30600))
 
 ## 4.44.0 (September 11, 2025)
 
