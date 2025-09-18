@@ -22,6 +22,7 @@ type ActionMetadata struct {
 
 func (a *ActionMetadata) Defaults(_ context.Context, request action.ConfigureRequest, response *action.ConfigureResponse) {
 	if request.ProviderData == nil {
+		// response.Diagnostics.AddError("Client Provider Data Error", "null provider data supplied")
 		return
 	}
 

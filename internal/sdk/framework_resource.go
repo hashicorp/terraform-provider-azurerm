@@ -6,6 +6,7 @@ package sdk
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
@@ -180,6 +181,8 @@ func SetResponseErrorDiagnostic(resp any, summary string, detail any) {
 	case *ephemeral.RenewResponse:
 		v.Diagnostics.AddError(summary, errorMsg)
 	case *ephemeral.CloseResponse:
+		v.Diagnostics.AddError(summary, errorMsg)
+	case *action.InvokeResponse:
 		v.Diagnostics.AddError(summary, errorMsg)
 	case *list.ListResultsStream:
 		diags := diag.Diagnostics{}

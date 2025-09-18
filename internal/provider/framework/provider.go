@@ -544,7 +544,13 @@ func (p *azureRmFrameworkProvider) Configure(ctx context.Context, request provid
 }
 
 func (p *azureRmFrameworkProvider) Actions(_ context.Context) []func() action.Action {
-	return []func() action.Action{}
+	var output []func() action.Action
+
+	for _, service := range pluginsdkprovider.SupportedFrameworkServices() {
+		output = append(output, service.Actions()...)
+	}
+
+	return output
 }
 
 func (p *azureRmFrameworkProvider) DataSources(_ context.Context) []func() datasource.DataSource {
