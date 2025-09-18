@@ -100,57 +100,6 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 
 				return nil
 			}),
-
-			// Validate resiliency policy location support and disable prevention
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
-				var creationExists, deletionExists bool
-
-				if rawConfig := diff.GetRawConfig(); !rawConfig.IsNull() {
-					creationExists = !rawConfig.AsValueMap()["resilient_vm_creation_enabled"].IsNull()
-					deletionExists = !rawConfig.AsValueMap()["resilient_vm_deletion_enabled"].IsNull()
-				}
-
-				if diff.Id() != "" {
-					// Force new resource when resilient policy fields are removed from
-					// the configuration only if they were previously `true`
-					if !creationExists {
-						if old, _ := diff.GetChange("resilient_vm_creation_enabled"); old.(bool) {
-							if err := diff.SetNew("resilient_vm_creation_enabled", false); err != nil {
-								return fmt.Errorf("setting `resilient_vm_creation_enabled` to `false`: %+v", err)
-							}
-							return diff.ForceNew("resilient_vm_creation_enabled")
-						}
-					}
-
-					if !deletionExists {
-						if old, _ := diff.GetChange("resilient_vm_deletion_enabled"); old.(bool) {
-							if err := diff.SetNew("resilient_vm_deletion_enabled", false); err != nil {
-								return fmt.Errorf("setting `resilient_vm_deletion_enabled` to `false`: %+v", err)
-							}
-							return diff.ForceNew("resilient_vm_deletion_enabled")
-						}
-					}
-				}
-
-				// Azure does not support disabling resiliency policies. Once set to `true`, they cannot be reverted to `false`.
-				if diff.HasChange("resilient_vm_creation_enabled") {
-					old, new := diff.GetChange("resilient_vm_creation_enabled")
-
-					if creationExists && old.(bool) && !new.(bool) {
-						return fmt.Errorf("Azure does not support disabling resiliency policies. Once the `resilient_vm_creation_enabled` field is set to `true`, it cannot be reverted to `false`")
-					}
-				}
-
-				if diff.HasChange("resilient_vm_deletion_enabled") {
-					old, new := diff.GetChange("resilient_vm_deletion_enabled")
-
-					if deletionExists && old.(bool) && !new.(bool) {
-						return fmt.Errorf("Azure does not support disabling resiliency policies. Once the `resilient_vm_deletion_enabled` field is set to `true`, it cannot be reverted to `false`")
-					}
-				}
-
-				return nil
-			}),
 		),
 	}
 }

@@ -381,15 +381,6 @@ func FlattenVirtualMachineScaleSetSpotRestorePolicy(input *virtualmachinescalese
 func ExpandVirtualMachineScaleSetResiliency(resilientVMCreationEnabled, resilientVMDeletionEnabled bool) *virtualmachinescalesets.ResiliencyPolicy {
 	// Note: AutomaticZoneRebalancingPolicy is excluded as it's in private preview and
 	// has been removed from the schema to prevent API errors.
-
-	// If both policies are disabled, return nil to remove the entire resiliency policy
-	if !resilientVMCreationEnabled && !resilientVMDeletionEnabled {
-		return nil
-	}
-
-	// Azure Limitation: Once resiliency policies are enabled, they cannot be individually disabled
-	// We still send enabled=false for disabled policies, but Azure may ignore this and preserve enabled state
-	// The test expectations have been updated to reflect Azure's actual behavior
 	result := &virtualmachinescalesets.ResiliencyPolicy{}
 
 	// Always include both policies to maintain consistent API behavior

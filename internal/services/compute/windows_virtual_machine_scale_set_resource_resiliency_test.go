@@ -5,11 +5,8 @@ package compute_test
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
-	"github.com/hashicorp/terraform-plugin-testing/plancheck"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 )
@@ -60,54 +57,12 @@ func TestAccWindowsVirtualMachineScaleSet_resiliency_update(t *testing.T) {
 		},
 		data.ImportStep("admin_password"),
 		{
-			Config:      r.resiliencyVMPolicies(data, false, false),
-			ExpectError: regexp.MustCompile("Azure does not support disabling resiliency policies\\. Once the `resilient_vm.*_enabled` field is set to `true`, it cannot be reverted to `false`"),
-		},
-	})
-}
-
-func TestAccWindowsVirtualMachineScaleSet_resiliency_explicitFalse(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
-	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
-
-	r := WindowsVirtualMachineScaleSetResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
 			Config: r.resiliencyVMPolicies(data, false, false),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep("admin_password"),
-	})
-}
-
-func TestAccWindowsVirtualMachineScaleSet_resiliency_forceNew(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_windows_virtual_machine_scale_set", "test")
-	data.Locations.Primary = "eastus2" // Resiliency policies are only supported in specific regions
-
-	r := WindowsVirtualMachineScaleSetResource{}
-
-	data.ResourceTestIgnoreRecreate(t, r, []acceptance.TestStep{
-		{
-			Config: r.resiliencyVMPolicies(data, true, false),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("admin_password"),
-		{
-			Config: r.resiliencyFieldsNotConfigured(data),
-			ConfigPlanChecks: resource.ConfigPlanChecks{
-				PreApply: []plancheck.PlanCheck{
-					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
-				},
-			},
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
 	})
 }
 
