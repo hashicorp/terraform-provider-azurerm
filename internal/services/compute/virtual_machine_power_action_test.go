@@ -109,6 +109,7 @@ action "azurerm_virtual_machine_power" "test" {
 func (a *VirtualMachinePowerAction) techSupport(data acceptance.TestData, tagVal string) string {
 	return fmt.Sprintf(`
 
+
 %[1]s
 
 resource "azurerm_windows_virtual_machine" "test" {
@@ -172,17 +173,17 @@ resource "terraform_data" "trigger" {
 
 
 action "azurerm_virtual_machine_power" "power_off" {
-	config {
-		virtual_machine_id = azurerm_windows_virtual_machine.test.id
-		power_action = "power_off"
-	}
+  config {
+    virtual_machine_id = azurerm_windows_virtual_machine.test.id
+    power_action       = "power_off"
+  }
 }
 
 action "azurerm_virtual_machine_power" "power_on" {
-	config {
-		virtual_machine_id = azurerm_windows_virtual_machine.test.id
-		power_action = "power_on"
-	}
+  config {
+    virtual_machine_id = azurerm_windows_virtual_machine.test.id
+    power_action       = "power_on"
+  }
 }
 `, a.templateWindows(data), data.RandomInteger, tagVal)
 }
