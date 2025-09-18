@@ -5,7 +5,9 @@ package customermanagedkeys
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/sdk/environments"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
 	hsmParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/managedhsm/parse"
@@ -83,6 +85,48 @@ func (k *KeyVaultOrManagedHSMKey) BaseUri() string {
 	}
 
 	return ""
+}
+
+func (k *KeyVaultOrManagedHSMKey) Name() string {
+	if k.KeyVaultKeyId != nil {
+		return k.KeyVaultKeyId.Name
+	}
+
+	if k.ManagedHSMKeyId != nil {
+		return k.ManagedHSMKeyId.KeyName
+	}
+
+	if k.ManagedHSMKeyVersionlessId != nil {
+		return k.ManagedHSMKeyVersionlessId.KeyName
+	}
+
+	return ""
+}
+
+func (k *KeyVaultOrManagedHSMKey) Version() string {
+	if k.KeyVaultKeyId != nil {
+		return k.KeyVaultKeyId.Version
+	}
+
+	if k.ManagedHSMKeyId != nil {
+		return k.ManagedHSMKeyId.KeyVersion
+	}
+
+	return ""
+}
+
+// VersionPtr returns a pointer to the version string if it exists, otherwise nil.
+// This is useful for resources supporting versioned and versionless keys.
+func (k *KeyVaultOrManagedHSMKey) VersionPtr() *string {
+	if k.KeyVaultKeyId != nil && k.KeyVaultKeyId.Version != "" {
+		return pointer.To(k.KeyVaultKeyId.Version)
+	}
+
+	if k.ManagedHSMKeyId != nil {
+		return pointer.To(k.ManagedHSMKeyId.KeyVersion)
+	}
+
+	return nil
 }
 
 func parseKeyvaultID(keyRaw string, requireVersion VersionType, _ environments.Api) (*parse.NestedItemId, error) {
@@ -196,4 +240,42 @@ func FlattenKeyVaultOrManagedHSMID(id string, hsmEnv environments.Api) (*KeyVaul
 	}
 
 	return nil, fmt.Errorf("cannot parse given id to key vault key nor managed hsm key: %s", id)
+}
+
+func FlattenKeyVaultOrManagedHSMIDByComponents(baseUri, name, version string, hsmEnv environments.Api) (*KeyVaultOrManagedHSMKey, error) {
+	// if the baseUri is not a managed hsm, then it must be a key vault
+	if !strings.Contains(baseUri, ".managedhsm.") {
+		keyVaultID, err := parse.NewNestedKeyID(baseUri, name, version)
+		if err != nil {
+			return nil, err
+		}
+		return &KeyVaultOrManagedHSMKey{
+			KeyVaultKeyId: keyVaultID,
+		}, nil
+	}
+
+	var hsmSuffix *string
+	if hsmEnv != nil {
+		hsmSuffix, _ = hsmEnv.DomainSuffix()
+	}
+
+	// versioned hsm key
+	if version != "" {
+		hsmID, err := hsmParse.ManagedHSMDataPlaneVersionedKeyID(fmt.Sprintf("%s/keys/%s/%s", strings.TrimSuffix(baseUri, "/"), name, version), hsmSuffix)
+		if err != nil {
+			return nil, err
+		}
+		return &KeyVaultOrManagedHSMKey{
+			ManagedHSMKeyId: hsmID,
+		}, nil
+	}
+
+	// versionless hsm key
+	hsmID, err := hsmParse.ManagedHSMDataPlaneVersionlessKeyID(fmt.Sprintf("%s/keys/%s", strings.TrimSuffix(baseUri, "/"), name), hsmSuffix)
+	if err != nil {
+		return nil, err
+	}
+	return &KeyVaultOrManagedHSMKey{
+		ManagedHSMKeyVersionlessId: hsmID,
+	}, nil
 }
