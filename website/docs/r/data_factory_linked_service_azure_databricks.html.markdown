@@ -202,6 +202,8 @@ A `instance_pool` block supports the following:
 
 * `init_scripts` - (Optional) User defined initialization scripts for the cluster.
 
+* `log_destination` - (Optional) Location to deliver Spark driver, worker, and event logs.
+
 ---
 
 ## Attributes Reference
