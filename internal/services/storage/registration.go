@@ -4,6 +4,7 @@
 package storage
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -93,6 +94,10 @@ func (r Registration) Resources() []sdk.Resource {
 		StorageContainerImmutabilityPolicyResource{},
 		SyncServerEndpointResource{},
 	}
+}
+
+func (r Registration) Actions() []func() action.Action {
+	return []func() action.Action{}
 }
 
 func (r Registration) FrameworkResources() []sdk.FrameworkWrappedResource {

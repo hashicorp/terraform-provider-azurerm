@@ -4,6 +4,7 @@
 package keyvault
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
@@ -61,6 +62,10 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 		"azurerm_key_vault_managed_storage_account":                      resourceKeyVaultManagedStorageAccount(),
 		"azurerm_key_vault_managed_storage_account_sas_token_definition": resourceKeyVaultManagedStorageAccountSasTokenDefinition(),
 	}
+}
+
+func (r Registration) Actions() []func() action.Action {
+	return []func() action.Action{}
 }
 
 func (r Registration) DataSources() []sdk.DataSource {

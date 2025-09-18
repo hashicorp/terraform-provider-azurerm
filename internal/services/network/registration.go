@@ -4,6 +4,7 @@
 package network
 
 import (
+	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/ephemeral"
 	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
@@ -190,6 +191,10 @@ func (r Registration) SupportedResources() map[string]*pluginsdk.Resource {
 	}
 
 	return resources
+}
+
+func (r Registration) Actions() []func() action.Action {
+	return []func() action.Action{}
 }
 
 func (r Registration) ListResources() []func() list.ListResource {
