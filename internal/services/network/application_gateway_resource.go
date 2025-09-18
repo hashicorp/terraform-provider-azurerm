@@ -3545,6 +3545,10 @@ func expandApplicationGatewayProbes(d *pluginsdk.ResourceData) (*[]applicationga
 			return nil, fmt.Errorf("only one of `host` or `pick_host_name_from_backend_http_settings` can be set for probe %q", name)
 		}
 
+		if probePath != "" && (protocol == string(applicationgateways.ApplicationGatewayProtocolTcp) || protocol == string(applicationgateways.ApplicationGatewayProtocolTls)) {
+			return nil, fmt.Errorf("`path` cannot be set with Tcp or Tls protocol for probe %q", name)
+		}
+
 		output := applicationgateways.ApplicationGatewayProbe{
 			Name: pointer.To(name),
 			Properties: &applicationgateways.ApplicationGatewayProbePropertiesFormat{
