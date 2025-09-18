@@ -317,7 +317,7 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						"name": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: networkValidate.ApplicationGatewayName,
 						},
 
 						"port": {
@@ -359,14 +359,14 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 							Optional: true,
 							Elem: &pluginsdk.Schema{
 								Type:         pluginsdk.TypeString,
-								ValidateFunc: validation.StringIsNotEmpty,
+								ValidateFunc: networkValidate.ApplicationGatewayName,
 							},
 						},
 
 						"probe_name": {
 							Type:         pluginsdk.TypeString,
 							Optional:     true,
-							ValidateFunc: validation.StringIsNotEmpty,
+							ValidateFunc: networkValidate.ApplicationGatewayName,
 						},
 
 						"id": {
@@ -627,18 +627,21 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: networkValidate.ApplicationGatewayName,
 						},
 
 						"frontend_ip_configuration_name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: networkValidate.ApplicationGatewayName,
 						},
 
 						"frontend_port_name": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: networkValidate.ApplicationGatewayName,
 						},
 
 						"protocol": {
@@ -651,13 +654,15 @@ func resourceApplicationGateway() *pluginsdk.Resource {
 						},
 
 						"ssl_certificate_name": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: networkValidate.ApplicationGatewayName,
 						},
 
 						"ssl_profile_name": {
-							Type:     pluginsdk.TypeString,
-							Optional: true,
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: networkValidate.ApplicationGatewayName,
 						},
 
 						"host_names": {
