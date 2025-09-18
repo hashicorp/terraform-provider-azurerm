@@ -236,61 +236,6 @@ func expandNetAppVolumeGroupOracleVolumes(input []netAppModels.NetAppVolumeGroup
 	return &results, nil
 }
 
-func expandNetAppVolumeGroupVolumeExportPolicyRulePatch(input []interface{}) *volumes.VolumePatchPropertiesExportPolicy {
-	if len(input) == 0 {
-		return &volumes.VolumePatchPropertiesExportPolicy{}
-	}
-
-	results := make([]volumes.ExportPolicyRule, 0)
-	for _, item := range input {
-		if item != nil {
-			v := item.(map[string]interface{})
-
-			ruleIndex := int64(v["rule_index"].(int))
-			allowedClients := v["allowed_clients"].(string)
-			nfsv3Enabled := v["nfsv3_enabled"].(bool)
-			nfsv41Enabled := v["nfsv41_enabled"].(bool)
-			unixReadOnly := v["unix_read_only"].(bool)
-			unixReadWrite := v["unix_read_write"].(bool)
-			rootAccessEnabled := v["root_access_enabled"].(bool)
-
-			// Hard-Coded values, for AVG these cannot be set differently
-			// they are not exposed as TF configuration
-			// but PUT request requires those fields to succeed
-			cifsEnabled := false
-			kerberos5ReadOnly := false
-			kerberos5ReadWrite := false
-			kerberos5iReadOnly := false
-			kerberos5iReadWrite := false
-			kerberos5pReadOnly := false
-			kerberos5pReadWrite := false
-
-			result := volumes.ExportPolicyRule{
-				AllowedClients:      utils.String(allowedClients),
-				Cifs:                utils.Bool(cifsEnabled),
-				Nfsv3:               utils.Bool(nfsv3Enabled),
-				Nfsv41:              utils.Bool(nfsv41Enabled),
-				RuleIndex:           utils.Int64(ruleIndex),
-				UnixReadOnly:        utils.Bool(unixReadOnly),
-				UnixReadWrite:       utils.Bool(unixReadWrite),
-				HasRootAccess:       utils.Bool(rootAccessEnabled),
-				Kerberos5ReadOnly:   utils.Bool(kerberos5ReadOnly),
-				Kerberos5ReadWrite:  utils.Bool(kerberos5ReadWrite),
-				Kerberos5iReadOnly:  utils.Bool(kerberos5iReadOnly),
-				Kerberos5iReadWrite: utils.Bool(kerberos5iReadWrite),
-				Kerberos5pReadOnly:  utils.Bool(kerberos5pReadOnly),
-				Kerberos5pReadWrite: utils.Bool(kerberos5pReadWrite),
-			}
-
-			results = append(results, result)
-		}
-	}
-
-	return &volumes.VolumePatchPropertiesExportPolicy{
-		Rules: &results,
-	}
-}
-
 func expandNetAppVolumeGroupVolumeExportPolicyRulePatchWithProtocolConversion(input []interface{}, overrideProtocols []string) *volumes.VolumePatchPropertiesExportPolicy {
 	if len(input) == 0 {
 		return &volumes.VolumePatchPropertiesExportPolicy{}

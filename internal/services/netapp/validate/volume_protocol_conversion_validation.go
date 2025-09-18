@@ -25,11 +25,8 @@ func ValidateNetAppVolumeProtocolConversion(oldProtocols, newProtocols []string,
 	newHasNFSv41 := utils.SliceContainsValue(newProtocols, "NFSv4.1")
 
 	// Only validate if this is an NFS protocol conversion
-	isNFSProtocolChange := false
-	if (oldHasNFSv3 && !oldHasNFSv41 && newHasNFSv41 && !newHasNFSv3) ||
-		(oldHasNFSv41 && !oldHasNFSv3 && newHasNFSv3 && !newHasNFSv41) {
-		isNFSProtocolChange = true
-	}
+	isNFSProtocolChange := (oldHasNFSv3 && !oldHasNFSv41 && newHasNFSv41 && !newHasNFSv3) ||
+		(oldHasNFSv41 && !oldHasNFSv3 && newHasNFSv3 && !newHasNFSv41)
 
 	if !isNFSProtocolChange {
 		return errors // No validation needed for non-NFS conversions
