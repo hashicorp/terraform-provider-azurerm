@@ -6,7 +6,7 @@ description: |-
   Gets information about an existing NetApp Backup Policy
 ---
 
-# Data Source: netapp_backup_policy
+# Data Source: azurerm_netapp_backup_policy
 
 Use this data source to access information about an existing NetApp Backup Vault.
 
@@ -70,4 +70,4 @@ terraform import azurerm_netapp_backup_policy.example /subscriptions/00000000-00
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.NetApp` - 2025-01-01
+* `Microsoft.NetApp` - 2025-06-01

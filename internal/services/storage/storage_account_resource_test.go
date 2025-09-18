@@ -1686,7 +1686,14 @@ func TestAccStorageAccount_sasPolicy(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.sasPolicy(data),
+			Config: r.sasPolicy(data, "Log"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.sasPolicy(data, "Block"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -4890,7 +4897,7 @@ resource "azurerm_storage_account" "test" {
     `, r.cmkTemplate(data), data.RandomString)
 }
 
-func (r StorageAccountResource) sasPolicy(data acceptance.TestData) string {
+func (r StorageAccountResource) sasPolicy(data acceptance.TestData, action string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -4910,11 +4917,11 @@ resource "azurerm_storage_account" "test" {
   account_replication_type = "LRS"
 
   sas_policy {
-    expiration_action = "Log"
+    expiration_action = "%s"
     expiration_period = "1.15:5:05"
   }
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+`, data.RandomInteger, data.Locations.Primary, data.RandomString, action)
 }
 
 func (r StorageAccountResource) allowedCopyScope(data acceptance.TestData, scope string) string {

@@ -78,7 +78,7 @@ resource "azurerm_hpc_cache_blob_target" "example" {
   name                 = "examplehpccblobtarget"
   resource_group_name  = azurerm_resource_group.example.name
   cache_name           = azurerm_hpc_cache.example.name
-  storage_container_id = azurerm_storage_container.example.resource_manager_id
+  storage_container_id = azurerm_storage_container.example.id
   namespace_path       = "/blob_storage"
 }
 ```

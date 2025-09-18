@@ -41,8 +41,7 @@ and US Government - however it does not support Azure Stack due to differences i
 feature availability.
 
 Terraform instead offers a separate "azurestack" provider which supports the functionality
-and APIs available in Azure Stack via Azure Stack Profiles.
-`
+and APIs available in Azure Stack via Azure Stack Profiles`
 
 func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	var err error

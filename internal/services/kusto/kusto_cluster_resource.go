@@ -4,6 +4,7 @@
 package kusto
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -23,6 +24,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/kusto/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -37,9 +39,10 @@ func resourceKustoCluster() *pluginsdk.Resource {
 		Update: resourceKustoClusterUpdate,
 		Delete: resourceKustoClusterDelete,
 
-		SchemaVersion: 1,
+		SchemaVersion: 2,
 		StateUpgraders: pluginsdk.StateUpgrades(map[int]pluginsdk.StateUpgrade{
 			0: migration.KustoAttachedClusterV0ToV1{},
+			1: migration.KustoAttachedClusterV1ToV2{},
 		}),
 
 		Importer: pluginsdk.ImporterValidatingResourceId(func(id string) error {
@@ -150,7 +153,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				Computed: true,
 			},
 
-			"language_extensions": {
+			"language_extension": {
 				Type:     pluginsdk.TypeList,
 				Optional: true,
 				Elem: &pluginsdk.Resource{
@@ -225,6 +228,49 @@ func resourceKustoCluster() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
+		resource.Schema["language_extension"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"language_extensions"},
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionName(), false),
+					},
+					"image": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionImageName(), false),
+					},
+				},
+			},
+		}
+
+		resource.Schema["language_extensions"] = &pluginsdk.Schema{
+			Type:          pluginsdk.TypeList,
+			Optional:      true,
+			Computed:      true,
+			ConflictsWith: []string{"language_extension"},
+			Deprecated:    "`language_extensions` has been deprecated in favour of `language_extension` and will be removed in v5.0 of the AzureRM provider",
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"name": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionName(), false),
+					},
+					"image": {
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringInSlice(clusters.PossibleValuesForLanguageExtensionImageName(), false),
+					},
+				},
+			},
+		}
+
 		resource.Schema["virtual_network_configuration"] = &pluginsdk.Schema{
 			Type:       pluginsdk.TypeList,
 			Optional:   true,
@@ -253,6 +299,34 @@ func resourceKustoCluster() *pluginsdk.Resource {
 				},
 			},
 		}
+
+		resource.CustomizeDiff = func(_ context.Context, d *pluginsdk.ResourceDiff, _ interface{}) error {
+			rawLanguageExtensions, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("language_extensions"))
+			if diags.HasError() {
+				return nil
+			}
+
+			rawLanguageExtension, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("language_extension"))
+			if diags.HasError() {
+				return nil
+			}
+
+			// If neither the `language_extensions` nor the `language_extension` block is defined in config, set both to an empty slice.
+			// This ensures removal of these blocks from config still triggers an update while these 2 blocks are O+C for 4.x.
+			if !rawLanguageExtensions.IsNull() && rawLanguageExtensions.IsKnown() && !rawLanguageExtension.IsNull() && rawLanguageExtension.IsKnown() {
+				if len(rawLanguageExtensions.AsValueSlice()) == 0 && len(rawLanguageExtension.AsValueSlice()) == 0 {
+					if err := d.SetNew("language_extensions", make([]any, 0)); err != nil {
+						return err
+					}
+
+					if err := d.SetNew("language_extension", make([]any, 0)); err != nil {
+						return err
+					}
+				}
+			}
+
+			return nil
+		}
 	}
 
 	return resource
@@ -261,7 +335,7 @@ func resourceKustoCluster() *pluginsdk.Resource {
 func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClustersClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	log.Printf("[INFO] preparing arguments for Azure Kusto Cluster creation.")
@@ -281,7 +355,7 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	sku, err := expandKustoClusterSku(d.Get("sku").([]interface{}))
 	if err != nil {
-		return err
+		return fmt.Errorf("expanding `sku`: %+v", err)
 	}
 
 	optimizedAutoScale := expandOptimizedAutoScale(d.Get("optimized_auto_scale").([]interface{}))
@@ -343,9 +417,15 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 	}
 	clusterProperties.RestrictOutboundNetworkAccess = &restrictOutboundNetworkAccess
 
-	if v, ok := d.GetOk("language_extensions"); ok {
-		extList := v.([]interface{})
-		clusterProperties.LanguageExtensions = expandKustoClusterLanguageExtensionList(extList)
+	if v, ok := d.GetOk("language_extension"); ok {
+		clusterProperties.LanguageExtensions = expandKustoClusterLanguageExtensionList(v.([]any))
+	}
+
+	if !features.FivePointOh() {
+		if v, ok := d.GetOk("language_extensions"); ok {
+			extList := v.([]interface{})
+			clusterProperties.LanguageExtensions = expandKustoClusterLanguageExtensionList(extList)
+		}
 	}
 
 	expandedIdentity, err := identity.ExpandSystemAndUserAssignedMap(d.Get("identity").([]interface{}))
@@ -377,7 +457,7 @@ func resourceKustoClusterCreate(d *pluginsdk.ResourceData, meta interface{}) err
 
 func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).Kusto.ClustersClient
-	ctx, cancel := timeouts.ForCreateUpdate(meta.(*clients.Client).StopContext, d)
+	ctx, cancel := timeouts.ForUpdate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
 	id, err := commonids.ParseKustoClusterID(d.Id())
@@ -390,10 +470,15 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 
 	existing, err := client.Get(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("updating %s: %+v", id, err)
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
-	if existing.Model == nil || existing.Model.Properties == nil {
-		return fmt.Errorf("retrieving existing %s: `properties` was nil", *id)
+
+	if existing.Model == nil {
+		return fmt.Errorf("retrieving %s: `model` was nil", *id)
+	}
+
+	if existing.Model.Properties == nil {
+		return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 	}
 	model := existing.Model
 	props := model.Properties
@@ -464,9 +549,33 @@ func resourceKustoClusterUpdate(d *pluginsdk.ResourceData, meta interface{}) err
 		props.EnableDoubleEncryption = pointer.To(d.Get("double_encryption_enabled").(bool))
 	}
 
-	if d.HasChange("language_extensions") {
-		if v, ok := d.GetOk("language_extensions"); ok {
-			props.LanguageExtensions = expandKustoClusterLanguageExtensionList(v.([]interface{}))
+	if d.HasChange("language_extension") {
+		props.LanguageExtensions = expandKustoClusterLanguageExtensionList(d.Get("language_extension").([]any))
+	}
+
+	if !features.FivePointOh() {
+		if d.HasChange("language_extensions") {
+			props.LanguageExtensions = expandKustoClusterLanguageExtensionList(d.Get("language_extensions").([]any))
+		} else if len(d.Get("language_extensions").([]any)) > 0 || len(d.Get("language_extension").([]any)) > 0 {
+			hasError := false
+			rawLanguageExtensions, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("language_extensions"))
+			if diags.HasError() {
+				hasError = true
+			}
+
+			rawLanguageExtension, diags := d.GetRawConfigAt(sdk.ConstructCtyPath("language_extension"))
+			if diags.HasError() {
+				hasError = true
+			}
+
+			// If RawConfig has a slice of len 0 for both blocks we want to ensure the API payload contains an empty slice to remove any language extensions.
+			// This is a workaround to the O+C behaviour where removing all blocks from config doesn't trigger a change.
+			// While the `CustomizeDiff` does update `*ResourceDiff` with the updated (empty) value, it doesn't seem to propagate through to the `*ResourceData` in `Update()`
+			if !hasError && !rawLanguageExtensions.IsNull() && rawLanguageExtensions.IsKnown() && !rawLanguageExtension.IsNull() && rawLanguageExtension.IsKnown() {
+				if len(rawLanguageExtensions.AsValueSlice()) == 0 && len(rawLanguageExtension.AsValueSlice()) == 0 {
+					props.LanguageExtensions = expandKustoClusterLanguageExtensionList(make([]any, 0))
+				}
+			}
 		}
 	}
 
@@ -606,7 +715,10 @@ func resourceKustoClusterRead(d *pluginsdk.ResourceData, meta interface{}) error
 			d.Set("data_ingestion_uri", props.DataIngestionUri)
 			d.Set("public_ip_type", string(pointer.From(props.PublicIPType)))
 
-			d.Set("language_extensions", flattenKustoClusterLanguageExtensionList(props.LanguageExtensions))
+			d.Set("language_extension", flattenKustoClusterLanguageExtensionList(props.LanguageExtensions))
+			if !features.FivePointOh() {
+				d.Set("language_extensions", flattenKustoClusterLanguageExtensionList(props.LanguageExtensions))
+			}
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
@@ -719,24 +831,19 @@ func expandKustoClusterVNET(input []interface{}) *clusters.VirtualNetworkConfigu
 }
 
 func expandKustoClusterLanguageExtensionList(input []interface{}) *clusters.LanguageExtensionsList {
-	if len(input) > 0 {
-		extensions := make([]clusters.LanguageExtension, 0)
-		for _, ext := range input {
-			extMap := ext.(map[string]interface{})
-			name := clusters.LanguageExtensionName(extMap["name"].(string))
-			image := clusters.LanguageExtensionImageName(extMap["image"].(string))
-			lanExt := clusters.LanguageExtension{
-				LanguageExtensionName:      &name,
-				LanguageExtensionImageName: &image,
-			}
-			extensions = append(extensions, lanExt)
-		}
-		return &clusters.LanguageExtensionsList{
-			Value: &extensions,
-		}
+	extensions := make([]clusters.LanguageExtension, 0)
+
+	for _, ext := range input {
+		extMap := ext.(map[string]interface{})
+		extensions = append(extensions, clusters.LanguageExtension{
+			LanguageExtensionName:      pointer.To(clusters.LanguageExtensionName(extMap["name"].(string))),
+			LanguageExtensionImageName: pointer.To(clusters.LanguageExtensionImageName(extMap["image"].(string))),
+		})
 	}
 
-	return nil
+	return &clusters.LanguageExtensionsList{
+		Value: &extensions,
+	}
 }
 
 func flattenKustoClusterSku(sku *clusters.AzureSku) []interface{} {

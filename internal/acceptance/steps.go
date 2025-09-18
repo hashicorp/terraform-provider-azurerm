@@ -80,7 +80,7 @@ func (td TestData) CheckWithClientForResource(check ClientCheckFunc, resourceNam
 		func(state *terraform.State) error {
 			rs, ok := state.RootModule().Resources[resourceName]
 			if !ok {
-				return fmt.Errorf("Resource not found: %s", resourceName)
+				return fmt.Errorf("resource not found: %s", resourceName)
 			}
 
 			client, err := testclient.Build()
@@ -137,7 +137,7 @@ func (td TestData) ImportStepFor(resourceName string, ignore ...string) resource
 		return resource.TestStep{
 			ResourceName: resourceName,
 			SkipFunc: func() (bool, error) {
-				return false, fmt.Errorf("Data Sources (%q) do not support import - remove the ImportStep / ImportStepFor`", resourceName)
+				return false, fmt.Errorf("data sources (%q) do not support import - remove the ImportStep / ImportStepFor`", resourceName)
 			},
 		}
 	}

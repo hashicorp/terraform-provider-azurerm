@@ -259,18 +259,32 @@ Please follow the format in the example below for listing breaking changes in re
 
 * The deprecated `linux_os_config.transparent_huge_page_enabled` property has been removed in favour of the `linux_os_config.transparent_huge_page` property.
 
-### `azurerm_kusto_eventgrid_data_connection`
-
-* The deprecated `eventgrid_resource_id` property has been removed in favour of the `eventgrid_event_subscription_id` property.
-* The deprecated `managed_identity_resource_id` property has been removed in favour of the `managed_identity_id` property.
-
 ### `azurerm_kusto_attached_database_configuration`
 
 * The deprecated `cluster_resource_id` property has been removed in favour of the `cluster_id` property.
 
 ### `azurerm_kusto_cluster`
 
+* The deprecated `language_extensions` property has been removed in favour of the `language_extension` property.
 * The deprecated `virtual_network_configuration` block has been removed as it is no longer supported by the resource.
+
+### `azurerm_kusto_eventgrid_data_connection`
+
+* The deprecated `eventgrid_resource_id` property has been removed in favour of the `eventgrid_event_subscription_id` property.
+* The deprecated `managed_identity_resource_id` property has been removed in favour of the `managed_identity_id` property.
+
+### `azurerm_lb`
+
+* The following properties are no longer Computed: `subnet_id`, `public_ip_address_id`
+
+### `azurerm_lb_nat_rule`
+
+* The deprecated `enable_floating_ip` property has been removed in favour of the `floating_ip_enabled` property.
+* The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
+
+### `azurerm_lb_outbound_rule`
+
+* The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
 
 ### `azurerm_linux_function_app`
 
@@ -456,6 +470,19 @@ Please follow the format in the example below for listing breaking changes in da
 
 * The deprecated `source_arm_resource_id` property has been removed in favour of the `source_resource_id` property.
 * The deprecated `metric_arm_resource_id` property has been removed in favour of the `metric_resource_id` property.
+
+### `azurerm_lb_outbound_rule`
+
+* The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
+
+### `azurerm_lb_rule`
+
+* The deprecated `enable_floating_ip` property has been removed in favour of the `floating_ip_enabled` property.
+* The deprecated `enable_tcp_reset` property has been removed in favour of the `tcp_reset_enabled` property.
+
+### `azurerm_key_vault`
+
+* The deprecated `enable_rbac_authorization` property has been removed in favour of the `rbac_authorization_enabled` property.
 
 ### `azurerm_logic_app_standard`
 

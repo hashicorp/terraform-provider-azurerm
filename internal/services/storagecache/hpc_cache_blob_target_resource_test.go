@@ -137,7 +137,7 @@ resource "azurerm_hpc_cache_blob_target" "test" {
   name                 = "acctest-HPCCTGT-%s"
   resource_group_name  = azurerm_resource_group.test.name
   cache_name           = azurerm_hpc_cache.test.name
-  storage_container_id = azurerm_storage_container.test.resource_manager_id
+  storage_container_id = azurerm_storage_container.test.id
   namespace_path       = "/blob_storage1"
   access_policy_name   = "default"
 }
@@ -152,7 +152,7 @@ resource "azurerm_hpc_cache_blob_target" "test" {
   name                 = "acctest-HPCCTGT-%s"
   resource_group_name  = azurerm_resource_group.test.name
   cache_name           = azurerm_hpc_cache.test.name
-  storage_container_id = azurerm_storage_container.test.resource_manager_id
+  storage_container_id = azurerm_storage_container.test.id
   namespace_path       = "/blob_storage2"
 }
 `, r.cacheTemplate(data), data.RandomString)
@@ -181,7 +181,7 @@ resource "azurerm_hpc_cache_blob_target" "test" {
   name                 = "acctest-HPCCTGT-%s"
   resource_group_name  = azurerm_resource_group.test.name
   cache_name           = azurerm_hpc_cache.test.name
-  storage_container_id = azurerm_storage_container.test.resource_manager_id
+  storage_container_id = azurerm_storage_container.test.id
   namespace_path       = "/blob_storage1"
   access_policy_name   = azurerm_hpc_cache_access_policy.test.name
 }
@@ -212,7 +212,7 @@ resource "azurerm_hpc_cache_blob_target" "test" {
   name                 = "acctest-HPCCTGT-%s"
   resource_group_name  = azurerm_resource_group.test.name
   cache_name           = azurerm_hpc_cache.test.name
-  storage_container_id = azurerm_storage_container.test.resource_manager_id
+  storage_container_id = azurerm_storage_container.test.id
   namespace_path       = "/blob_storage1"
   access_policy_name   = azurerm_hpc_cache_access_policy.test.name
 }

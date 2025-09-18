@@ -6,7 +6,7 @@ description: |-
   Gets information about an existing MySQL Flexible Server.
 ---
 
-# azurerm_mysql_flexible_server
+# Data Source: azurerm_mysql_flexible_server
 
 Use this data source to access information about an existing MySQL Flexible Server.
 

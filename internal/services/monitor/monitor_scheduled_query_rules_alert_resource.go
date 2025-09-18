@@ -20,7 +20,6 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/migration"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/monitor/validate"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tags"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
@@ -223,7 +222,7 @@ func resourceMonitorScheduledQueryRulesAlert() *pluginsdk.Resource {
 				},
 			},
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 		},
 	}
 }
@@ -247,9 +246,7 @@ func resourceMonitorScheduledQueryRulesAlertCreateUpdate(d *pluginsdk.ResourceDa
 	query := d.Get("query").(string)
 	_, ok := d.GetOk("metric_trigger")
 	if ok {
-		if !(strings.Contains(query, "summarize") &&
-			strings.Contains(query, "AggregatedValue") &&
-			strings.Contains(query, "bin")) {
+		if !strings.Contains(query, "summarize") || !strings.Contains(query, "AggregatedValue") || !strings.Contains(query, "bin") {
 			return fmt.Errorf("in parameter values for %s: query must contain summarize, AggregatedValue, and bin when metric_trigger is specified", id)
 		}
 	}

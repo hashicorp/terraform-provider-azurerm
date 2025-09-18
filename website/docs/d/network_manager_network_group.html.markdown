@@ -6,7 +6,7 @@ description: |-
   Get information about a Network Manager Network Group.
 ---
 
-# azurerm_network_manager_network_group
+# Data Source: azurerm_network_manager_network_group
 
 Use this data source to access information about a Network Manager Network Group.
 

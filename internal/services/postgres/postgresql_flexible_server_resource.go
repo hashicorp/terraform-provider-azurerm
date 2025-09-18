@@ -693,6 +693,20 @@ func resourcePostgresqlFlexibleServerRead(d *pluginsdk.ResourceData, meta interf
 			d.Set("version", pointer.From(props.Version))
 			d.Set("fqdn", props.FullyQualifiedDomainName)
 
+			// According to the API spec, `sourceServerResourceId`(`source_server_id`) is only returned by the Azure REST API
+			// when `create_mode` is 'Replica'. For other create modes, this field is not returned, which is intended behavior of the API.
+			// Therefore, we populate this field from the API response if present; otherwise, we read the value from the configuration.
+			sourceResourceId := pointer.From(props.SourceServerResourceId)
+			if sourceResourceId == "" {
+				sourceResourceId = d.Get("source_server_id").(string)
+			}
+			d.Set("source_server_id", sourceResourceId)
+
+			// `pointInTimeUTC` has "x-ms-mutability": ["create"], so it's only used at creation.
+			// Without "read," it's not persisted in the resource model and won't appear in GET responses.
+			// So read it from the configuration.
+			d.Set("point_in_time_restore_time_in_utc", d.Get("point_in_time_restore_time_in_utc").(string))
+
 			// Currently, `replicationRole` is set to `Primary` when `createMode` is `Replica` and `replicationRole` is updated to `None`. Service team confirmed it should be set to `None` for this scenario. See more details from https://github.com/Azure/azure-rest-api-specs/issues/22499
 			d.Set("replication_role", d.Get("replication_role").(string))
 
