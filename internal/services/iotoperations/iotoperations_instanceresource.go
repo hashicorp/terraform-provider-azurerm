@@ -3,9 +3,11 @@ package iotoperations
 import (
 	"context"
 	"fmt"
+	"regexp"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/iotoperations/armiotoperations"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	clients "github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 )
 
@@ -16,69 +18,88 @@ func resourceInstance() *schema.Resource {
 		Update: resourceInstanceUpdate,
 		Delete: resourceInstanceDelete,
 
-		Schema: map[string]*schema.Schema{
-			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"resource_group_name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"location": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"extended_location_name": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"extended_location_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-		       "adr_namespace_ref": {
-			       Type:     schema.TypeString,
-			       Optional: true,
-			       Description: "The Azure Device Registry Namespace used by Assets, Discovered Assets and devices",
-		       },
-		       "default_secret_provider_class_ref": {
-			       Type:     schema.TypeString,
-			       Optional: true,
-			       Description: "The reference to the AIO Secret provider class.",
-		       },
-		       "description": {
-			       Type:     schema.TypeString,
-			       Optional: true,
-			       Description: "Detailed description of the Instance.",
-		       },
-		       "features": {
-			       Type:     schema.TypeMap,
-			       Optional: true,
-			       Elem:     &schema.Schema{Type: schema.TypeString},
-			       Description: "The features of the AIO Instance.",
-		       },
-		       "provisioning_state": {
-			       Type:     schema.TypeString,
-			       Computed: true,
-			       Description: "The status of the last operation.",
-		       },
-		       "schema_registry_ref": {
-			       Type:     schema.TypeString,
-			       Optional: true,
-			       Description: "The reference to the Schema Registry for this AIO Instance.",
-		       },
-		       "version": {
-			       Type:     schema.TypeString,
-			       Optional: true,
-			       Description: "The Azure IoT Operations version.",
-		       },
-		       "tags": {
-			       Type:     schema.TypeMap,
-			       Optional: true,
-			       Elem:     &schema.Schema{Type: schema.TypeString},
-		       },
-		},
+       Schema: map[string]*schema.Schema{
+	       "instanceName": {
+		       Type:     schema.TypeString,
+		       Required: true,
+		       ForceNew: true,
+		       Description: "Name of instance.",
+		       ValidateFunc: validation.All(
+			       validation.StringLenBetween(3, 63),
+			       validation.StringMatch(regexp.MustCompile("^[a-z0-9][a-z0-9-]*[a-z0-9]$"), "Must match ^[a-z0-9][a-z0-9-]*[a-z0-9]$"),
+		       ),
+	       },
+	       "resourceGroupName": {
+		       Type:     schema.TypeString,
+		       Required: true,
+		       ForceNew: true,
+		       Description: "The name of the resource group. The name is case insensitive.",
+		       ValidateFunc: validation.StringLenBetween(1, 90),
+	       },
+	       "subscriptionId": {
+		       Type:     schema.TypeString,
+		       Required: true,
+		       ForceNew: true,
+		       ValidateFunc: validation.IsUUID,
+		       Description: "The ID of the target subscription. The value must be a UUID.",
+	       },
+	       "api-version": {
+		       Type:     schema.TypeString,
+		       Required: true,
+		       ForceNew: true,
+		       ValidateFunc: validation.StringLenBetween(1, 256),
+		       Description: "The API version to use for this operation.",
+	       },
+	       "description": {
+		       Type:     schema.TypeString,
+		       Optional: true,
+		       Description: "Detailed description of the Instance.",
+	       },
+	       "provisioning_state": {
+		       Type:     schema.TypeString,
+		       Computed: true,
+		       Description: "The status of the last operation.",
+	       },
+	       "version": {
+		       Type:     schema.TypeString,
+		       Optional: true,
+		       Description: "The Azure IoT Operations version.",
+	       },
+
+	       "location": {
+		       Type:     schema.TypeString,
+		       Required: true,
+	       },
+	       "extended_location_name": {
+		       Type:     schema.TypeString,
+		       Optional: true,
+	       },
+	       "extended_location_type": {
+		       Type:     schema.TypeString,
+		       Optional: true,
+	       },
+	       "adr_namespace_ref": {
+		       Type:     schema.TypeString,
+		       Optional: true,
+		       Description: "The Azure Device Registry Namespace used by Assets, Discovered Assets and devices",
+	       },
+	       "default_secret_provider_class_ref": {
+		       Type:     schema.TypeString,
+		       Optional: true,
+		       Description: "The reference to the AIO Secret provider class.",
+	       },
+	       "features": {
+		       Type:     schema.TypeMap,
+		       Optional: true,
+		       Elem:     &schema.Schema{Type: schema.TypeString},
+		       Description: "The features of the AIO Instance.",
+	       },
+	       "tags": {
+		       Type:     schema.TypeMap,
+		       Optional: true,
+		       Elem:     &schema.Schema{Type: schema.TypeString},
+	       },
+       },
 	}
 }
 
