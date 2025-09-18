@@ -8,6 +8,7 @@ ENHANCEMENTS:
 
 FEATURES:
 
+* **New Action**: `azurerm_virtual_machine_power` [GH-30647]
 * **New List Resource**: `azurerm_storage_account` [GH-30614]
 * **New List Resource**: `azurerm_virtual_network` [GH-30614]
 
