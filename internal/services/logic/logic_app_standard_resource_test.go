@@ -1117,6 +1117,24 @@ func TestAccLogicAppStandard_keyVaultReferenceIdentity(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
+			Config: r.basicIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_vault_reference_identity_id").HasValue("SystemAssigned"),
+			),
+		},
+		data.ImportStep(),
+		{
+			// Once the `key_vault_reference_identity_id` is set, it can not be reset
+			// Even if the SystemAssigned identity is removed, the property can not be reset till a new value is set.
+			Config: r.userAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("key_vault_reference_identity_id").HasValue("SystemAssigned"),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.keyVaultReferenceIdentity(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),

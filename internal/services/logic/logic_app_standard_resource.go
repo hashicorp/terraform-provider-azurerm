@@ -213,6 +213,8 @@ func (r LogicAppResource) Arguments() map[string]*pluginsdk.Schema {
 			ValidateFunc: validation.NoZeroValues,
 		},
 
+		// Once this property is set, it can not be removed.
+		// tracked on https://github.com/Azure/azure-rest-api-specs/issues/37553
 		"key_vault_reference_identity_id": {
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
