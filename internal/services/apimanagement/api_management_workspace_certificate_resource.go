@@ -78,14 +78,15 @@ func (r ApiManagementWorkspaceCertificateResource) Arguments() map[string]*plugi
 			Optional:      true,
 			ValidateFunc:  validate.NestedItemIdWithOptionalVersion,
 			ExactlyOneOf:  []string{"certificate_data_base64", "key_vault_secret_id"},
-			ConflictsWith: []string{"certificate_data_base64", "password"},
+			ConflictsWith: []string{"password"},
 		},
 
 		"password": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Sensitive:    true,
-			RequiredWith: []string{"certificate_data_base64"},
+			Type:          pluginsdk.TypeString,
+			Optional:      true,
+			Sensitive:     true,
+			RequiredWith:  []string{"certificate_data_base64"},
+			ConflictsWith: []string{"key_vault_secret_id"},
 		},
 
 		"user_assigned_identity_client_id": {
