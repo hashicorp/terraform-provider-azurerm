@@ -1,6 +1,7 @@
 ## 4.45.0 (Unreleased)
 
 ENHANCEMENTS:
+* dependencies: `go-azure-sdk` - update to `v0.20250908.1192604` [GH-30644]
 * `azurerm_kubernetes_cluster` - add support for the `network_profile.advanced_networking` block [GH-30434]
 * `azurerm_subnet` - add support for `sharing_scope` [GH-30600]
 * `azurerm_storage_account` - `expiration_action` supports `Block` [GH-30599] [GH-30599]
