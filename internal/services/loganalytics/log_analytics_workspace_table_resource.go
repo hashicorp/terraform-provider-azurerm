@@ -5,7 +5,6 @@ package loganalytics
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -17,6 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
+	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type LogAnalyticsWorkspaceTableResource struct{}
@@ -42,7 +42,7 @@ func (r LogAnalyticsWorkspaceTableResource) CustomizeDiff() sdk.ResourceFunc {
 
 			if string(tables.TablePlanEnumBasic) == rd.Get("plan").(string) {
 				if _, ok := rd.GetOk("retention_in_days"); ok {
-					return errors.New("cannot set retention_in_days because the retention is fixed at eight days on Basic plan")
+					return fmt.Errorf("cannot set retention_in_days because the retention is fixed at eight days on Basic plan")
 				}
 			}
 
@@ -248,7 +248,7 @@ func (r LogAnalyticsWorkspaceTableResource) Read() sdk.ResourceFunc {
 						state.RetentionInDays = pointer.From(props.RetentionInDays)
 					}
 					state.TotalRetentionInDays = pointer.From(props.TotalRetentionInDays)
-					state.Plan = pointer.FromEnum(props.Plan)
+					state.Plan = string(pointer.From(props.Plan))
 				}
 			}
 
@@ -273,8 +273,8 @@ func (r LogAnalyticsWorkspaceTableResource) Delete() sdk.ResourceFunc {
 
 			// We do not delete the resource here, just set the retention to workspace default value, which is
 			// achieved by setting the value to `-1`
-			retentionInDays := pointer.To(int64(-1))
-			totalRetentionInDays := pointer.To(int64(-1))
+			retentionInDays := utils.Int64(-1)
+			totalRetentionInDays := utils.Int64(-1)
 
 			updateInput := tables.Table{
 				Properties: &tables.TableProperties{
