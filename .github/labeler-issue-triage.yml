@@ -309,7 +309,7 @@ service/service-bus:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_servicebus_((.|\n)*)###'
 
 service/service-connector:
-  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(app_service_connection|function_app_connection|spring_cloud_connection)((.|\n)*)###'
+  - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_(app_service_connection|function_app_connection|kubernetes_cluster_connection|spring_cloud_connection)((.|\n)*)###'
 
 service/service-fabric:
   - '### (|New or )Affected Resource\(s\)\/Data Source\(s\)((.|\n)*)azurerm_service_fabric_cluster((.|\n)*)###'

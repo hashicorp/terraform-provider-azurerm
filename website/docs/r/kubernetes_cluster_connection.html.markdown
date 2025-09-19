@@ -1,5 +1,5 @@
 ---
-subcategory: "Container (Kubernetes)"
+subcategory: "Container"
 layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_kubernetes_cluster_connection"
 description: |-
