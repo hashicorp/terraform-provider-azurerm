@@ -176,6 +176,16 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 								ValidateFunc: validate.CIDR,
 							},
 						},
+						"virtual_network_integration_enabled": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"subnet_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: commonids.ValidateSubnetID,
+						},
 					},
 				},
 			},
@@ -3254,21 +3264,32 @@ func expandKubernetesClusterAPIAccessProfile(d *pluginsdk.ResourceData) *managed
 		}
 	}
 
+	apiAccessProfile.EnableVnetIntegration = pointer.To(config["virtual_network_integration_enabled"].(bool))
+
+	if v, ok := config["subnet_id"]; ok {
+		if s := v.(string); s != "" {
+			apiAccessProfile.SubnetId = pointer.To(s)
+		}
+	}
+
 	return apiAccessProfile
 }
 
 func flattenKubernetesClusterAPIAccessProfile(profile *managedclusters.ManagedClusterAPIServerAccessProfile) []interface{} {
-	if profile == nil || profile.AuthorizedIPRanges == nil {
+	if profile == nil {
 		return []interface{}{}
 	}
 
-	apiServerAuthorizedIPRanges := utils.FlattenStringSlice(profile.AuthorizedIPRanges)
-
-	return []interface{}{
-		map[string]interface{}{
-			"authorized_ip_ranges": apiServerAuthorizedIPRanges,
-		},
+	// API access profile can be managed by other properties, only return it if one of the properties has been set
+	if profile.AuthorizedIPRanges == nil && profile.EnableVnetIntegration == nil && profile.SubnetId == nil {
+		return []interface{}{}
 	}
+
+	return []interface{}{map[string]interface{}{
+		"authorized_ip_ranges":                utils.FlattenStringSlice(profile.AuthorizedIPRanges),
+		"virtual_network_integration_enabled": pointer.From(profile.EnableVnetIntegration),
+		"subnet_id":                           pointer.From(profile.SubnetId),
+	}}
 }
 
 func expandBootstrapProfile(rawBootstrapProfile []interface{}) *managedclusters.ManagedClusterBootstrapProfile {
