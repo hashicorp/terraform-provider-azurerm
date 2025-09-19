@@ -330,7 +330,7 @@ func TestAccApplicationGateway_routingRedirect_httpListenerError(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.routingRedirect_httpListenerError(data),
-			ExpectError: regexp.MustCompile("Conflict between `backend_address_pool_name` and `redirect_configuration_name`"),
+			ExpectError: regexp.MustCompile("conflict between `backend_address_pool_name` and `redirect_configuration_name`"),
 		},
 	})
 }
