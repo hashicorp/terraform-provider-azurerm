@@ -195,7 +195,7 @@ func (r StorageQueueResource) Exists(ctx context.Context, client *clients.Client
 		if err != nil {
 			return nil, fmt.Errorf("retrieving Queue %q (Account %q): %+v", id.QueueName, id.AccountId.AccountName, err)
 		}
-		return utils.Bool(queue != nil), nil
+		return pointer.To(queue != nil), nil
 	}
 
 	id, err := queueservice.ParseQueueID(state.ID)
