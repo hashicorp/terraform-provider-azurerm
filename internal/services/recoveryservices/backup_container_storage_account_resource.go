@@ -60,7 +60,6 @@ func resourceBackupProtectionContainerStorageAccount() *pluginsdk.Resource {
 
 func resourceBackupProtectionContainerStorageAccountCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	client := meta.(*clients.Client).RecoveryServices.BackupProtectionContainersClient
-	opStatusClient := meta.(*clients.Client).RecoveryServices.BackupOperationStatusesClient
 	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
@@ -95,26 +94,8 @@ func resourceBackupProtectionContainerStorageAccountCreate(d *pluginsdk.Resource
 		},
 	}
 
-	resp, err := client.Register(ctx, id, parameters)
-	if err != nil {
+	if err = client.RegisterThenPoll(ctx, id, parameters); err != nil {
 		return fmt.Errorf("registering %s: %+v", id, err)
-	}
-
-	locationURL, err := resp.HttpResponse.Location() // Operation ID found in the Location header
-	if locationURL == nil || err != nil {
-		return fmt.Errorf("unable to determine operation URL for %s: Location header missing or empty", id)
-	}
-
-	opResourceID := handleAzureSdkForGoBug2824(locationURL.Path)
-
-	parsedLocation, err := azure.ParseAzureResourceID(opResourceID)
-	if err != nil {
-		return err
-	}
-
-	operationID := parsedLocation.Path["operationResults"]
-	if err = resourceBackupProtectionContainerStorageAccountWaitForOperation(ctx, opStatusClient, id.VaultName, id.ResourceGroupName, operationID, d); err != nil {
-		return err
 	}
 
 	d.SetId(handleAzureSdkForGoBug2824(id.ID()))
