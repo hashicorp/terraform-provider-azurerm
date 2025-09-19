@@ -499,6 +499,38 @@ func TestAccNetAppVolume_coolAccess(t *testing.T) {
 	})
 }
 
+func TestAccNetAppVolume_protocolConversion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_netapp_volume", "test")
+	r := NetAppVolumeResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.protocolConversionNFSv3(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("protocols.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.protocolConversionNFSv41(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("protocols.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.protocolConversionNFSv3(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("protocols.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (t NetAppVolumeResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := volumes.ParseVolumeID(state.ID)
 	if err != nil {
@@ -2073,6 +2105,68 @@ resource "azurerm_netapp_volume" "test" {
   accept_grow_capacity_pool_for_short_term_clone_split = "Accepted"
 
   depends_on = [azurerm_netapp_snapshot.test_original]
+}
+`, template, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) protocolConversionNFSv3(data acceptance.TestData) string {
+	template := NetAppVolumeResource{}.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_volume" "test" {
+  name                = "acctest-NetAppVolume-ProtocolConversion-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_path         = "my-unique-file-path-conversion-%[2]d"
+  service_level       = "Standard"
+  subnet_id           = azurerm_subnet.test.id
+  protocols           = ["NFSv3"]
+  security_style      = "unix"
+  storage_quota_in_gb = 100
+  throughput_in_mibps = 16
+
+  export_policy_rule {
+    rule_index          = 1
+    allowed_clients     = ["0.0.0.0/0"]
+    protocol            = ["NFSv3"]
+    unix_read_only      = false
+    unix_read_write     = true
+    root_access_enabled = true
+  }
+}
+`, template, data.RandomInteger)
+}
+
+func (NetAppVolumeResource) protocolConversionNFSv41(data acceptance.TestData) string {
+	template := NetAppVolumeResource{}.template(data)
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_netapp_volume" "test" {
+  name                = "acctest-NetAppVolume-ProtocolConversion-%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  account_name        = azurerm_netapp_account.test.name
+  pool_name           = azurerm_netapp_pool.test.name
+  volume_path         = "my-unique-file-path-conversion-%[2]d"
+  service_level       = "Standard"
+  subnet_id           = azurerm_subnet.test.id
+  protocols           = ["NFSv4.1"]
+  security_style      = "unix"
+  storage_quota_in_gb = 100
+  throughput_in_mibps = 16
+
+  export_policy_rule {
+    rule_index          = 1
+    allowed_clients     = ["0.0.0.0/0"]
+    protocol            = ["NFSv4.1"]
+    unix_read_only      = false
+    unix_read_write     = true
+    root_access_enabled = true
+  }
 }
 `, template, data.RandomInteger)
 }
