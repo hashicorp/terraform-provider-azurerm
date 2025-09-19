@@ -6,10 +6,9 @@ package loganalytics_test
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-azure-helpers/lang/pointer"
-	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/tables"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -70,10 +69,6 @@ func TestAccLogAnalyticsWorkspaceTableMicrosoft_plan(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.base(data),
-			SkipFunc: func() (bool, error) {
-				fmt.Println(os.WriteFile("/Users/wyatt.fry/tests/TestAccLogAnalyticsWorkspaceTableMicrosoft_plan.tf", []byte(r.base(data)), 0666))
-				return true, nil
-			},
 		},
 		{
 			Config:      r.planImport(data),
@@ -113,7 +108,7 @@ import {
 }
 resource "azurerm_log_analytics_workspace_table_microsoft" "test" {
   name                    = "AppEvents"
-  sub_type = "Any"
+  sub_type                = "Any"
   workspace_id            = azurerm_log_analytics_workspace.test.id
   total_retention_in_days = 90
 }
@@ -125,7 +120,7 @@ func (t LogAnalyticsWorkspaceTableMicrosoftResource) updateRetentionUpdate(data 
 %s
 resource "azurerm_log_analytics_workspace_table_microsoft" "test" {
   name                    = "AppEvents"
-  sub_type = "Any"
+  sub_type                = "Any"
   workspace_id            = azurerm_log_analytics_workspace.test.id
   retention_in_days       = 7
   total_retention_in_days = 32
@@ -160,7 +155,7 @@ import {
 }
 resource "azurerm_log_analytics_workspace_table_microsoft" "test" {
   name                    = "AppTraces"
-  sub_type = "Any"
+  sub_type                = "Any"
   workspace_id            = azurerm_log_analytics_workspace.test.id
   plan                    = "Basic"
   total_retention_in_days = 90
@@ -190,9 +185,9 @@ func (t LogAnalyticsWorkspaceTableMicrosoftResource) removeRetentionDays(data ac
 	return fmt.Sprintf(`
 %s
 resource "azurerm_log_analytics_workspace_table_microsoft" "test" {
-  name                    = "AppEvents"
-  sub_type = "Any"
-  workspace_id            = azurerm_log_analytics_workspace.test.id
+  name         = "AppEvents"
+  sub_type     = "Any"
+  workspace_id = azurerm_log_analytics_workspace.test.id
   # retention_in_days       = 7
   total_retention_in_days = 90
 }
