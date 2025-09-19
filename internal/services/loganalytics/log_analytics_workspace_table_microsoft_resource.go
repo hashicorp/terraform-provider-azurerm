@@ -15,7 +15,6 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/tables"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/operationalinsights/2022-10-01/workspaces"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -150,13 +149,6 @@ func (r WorkspaceTableMicrosoftResource) Arguments() map[string]*pluginsdk.Schem
 			Optional:     true,
 			ValidateFunc: validation.Any(validation.IntBetween(4, 730), validation.IntInSlice([]int{1095, 1460, 1826, 2191, 2556, 2922, 3288, 3653, 4018, 4383})),
 		},
-	}
-
-	if !features.FivePointOh() {
-		args["sub_type"].Required = false
-		args["sub_type"].Optional = true
-		args["sub_type"].Computed = true
-		args["sub_type"].Default = nil
 	}
 
 	return args
@@ -296,14 +288,7 @@ func (r WorkspaceTableMicrosoftResource) Update() sdk.ResourceFunc {
 
 			updateInput := existing.Model
 
-			/*
-				{
-				  "error" : {
-				    "code" : "InvalidParameter",
-				    "message" : "User provided schema is invalid, due to - HttpClient: Response status code does not indicate success - 400 (Bad Request), due to reason - [Table validation failed with following 1 errors: MSG 1017: Modifying standard columns is not allowed, invalid columns are: CMSLogic.Models.TableModels.ColumnModel;CMSLogic.Models.TableModels.ColumnModel;CMSLogic.Models.TableModels.ColumnModel;CMSLogic.Models.TableModels.ColumnModel;CMSLogic.Models.TableModels.ColumnModel;CMSLogic.Models.TableModels.ColumnModel;CMSLogic.Models.TableModels.ColumnModel;CMSLogic.Models.TableModels.ColumnModel;CMSLogic.Models.TableModels.ColumnModel;CMSLogic.Models.TableModels.ColumnModel;CMSLogic.Models.TableModels.ColumnModel;CMSLogic.Models.TableModels.ColumnModel;CMSLogic.Models.TableModels.ColumnModel]. Operation Id: 'f0a297a3e4c40f40af1a4db286a58e7b'"
-				  }
-				}
-			*/
+			// Create / Update requests MUST have a nil value for `StandardColumns`
 			updateInput.Properties.Schema.StandardColumns = nil
 
 			if metadata.ResourceData.HasChange("plan") {
