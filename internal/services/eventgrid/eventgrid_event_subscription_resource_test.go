@@ -52,6 +52,25 @@ func TestAccEventGridEventSubscription_requiresImport(t *testing.T) {
 	})
 }
 
+func TestAccEventGridEventSubscription_azureActionGroupMonitor(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
+	r := EventGridEventSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.azureActionGroupMonitor(data),
+
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("azure_alert_monitor_endpoint.#").HasValue("1"),
+				check.That(data.ResourceName).Key("azure_alert_monitor_endpoint.1.severity").HasValue("Sev1"),
+				check.That(data.ResourceName).Key("azure_alert_monitor_endpoint.1.description").HasValue("Blob Created or Blob Deleted"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccEventGridEventSubscription_azureFunction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_event_subscription", "test")
 	r := EventGridEventSubscriptionResource{}
@@ -642,6 +661,64 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   eventhub_endpoint_id = azurerm_eventhub.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)
+}
+
+func (EventGridEventSubscriptionResource) azureActionGroupMonitor(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_queue" "test" {
+  name                 = "mysamplequeue-%[1]d"
+  storage_account_name = azurerm_storage_account.test.name
+}
+
+resource "azurerm_monitor_action_group" "test" {
+  name                = "acctestAG-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestAG"
+
+  email_receiver {
+    name          = "sendtoadmin"
+    email_address = "admin@contoso.com"
+  }
+}
+
+resource "azurerm_eventgrid_event_subscription" "test" {
+  name  = "acctest-eg-%[1]d"
+  scope = azurerm_resource_group.test.id
+
+  azure_alert_monitor_endpoint {
+    action_groups = [azurerm_monitor_action_group.test.id]
+    description   = "Blob Created or Blob Deleted"
+    severity      = "Sev4"
+  }
+
+  included_event_types = ["Microsoft.Storage.BlobCreated", "Microsoft.Storage.BlobDeleted"]
+
+  depends_on = [
+    azurerm_monitor_action_group.test,
+  ]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
 
 func (EventGridEventSubscriptionResource) azureFunction(data acceptance.TestData) string {

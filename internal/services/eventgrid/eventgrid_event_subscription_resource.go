@@ -24,6 +24,7 @@ import (
 
 func possibleEventSubscriptionEndpointTypes() []string {
 	return []string{
+		string(AzureAlertMonitorEndpoint),
 		string(AzureFunctionEndpoint),
 		string(EventHubEndpointID),
 		string(HybridConnectionEndpointID),
@@ -87,6 +88,13 @@ func resourceEventGridEventSubscription() *pluginsdk.Resource {
 			"event_delivery_schema": eventSubscriptionSchemaEventDeliverySchema(),
 
 			"expiration_time_utc": eventSubscriptionSchemaExpirationTimeUTC(),
+
+			"azure_alert_monitor_endpoint": eventSubscriptionSchemaAzureAlertMonitorEndpoint(
+				utils.RemoveFromStringArray(
+					possibleEventSubscriptionEndpointTypes(),
+					string(AzureAlertMonitorEndpoint),
+				),
+			),
 
 			"azure_function_endpoint": eventSubscriptionSchemaAzureFunctionEndpoint(
 				utils.RemoveFromStringArray(
@@ -320,6 +328,10 @@ func resourceEventGridEventSubscriptionRead(d *pluginsdk.ResourceData, meta inte
 
 			if err := d.Set("azure_function_endpoint", flattenEventSubscriptionDestinationAzureFunction(destination)); err != nil {
 				return fmt.Errorf("setting `azure_function_endpoint` for %s: %+v", *id, err)
+			}
+
+			if err := d.Set("azure_alert_monitor_endpoint", flattenEventSubscriptionDestinationAzureAlertMonitor(destination)); err != nil {
+				return fmt.Errorf("setting `azure_alert_monitor_endpoint` for %s: %+v", *id, err)
 			}
 
 			d.Set("eventhub_endpoint_id", flattenEventSubscriptionDestinationEventHub(destination))

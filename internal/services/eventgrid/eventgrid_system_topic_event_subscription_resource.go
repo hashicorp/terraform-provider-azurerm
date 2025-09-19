@@ -24,6 +24,7 @@ import (
 
 func possibleSystemTopicEventSubscriptionEndpointTypes() []string {
 	return []string{
+		string(AzureAlertMonitorEndpoint),
 		string(AzureFunctionEndpoint),
 		string(EventHubEndpointID),
 		string(HybridConnectionEndpointID),
@@ -68,6 +69,13 @@ func resourceEventGridSystemTopicEventSubscription() *pluginsdk.Resource {
 			"event_delivery_schema": eventSubscriptionSchemaEventDeliverySchema(),
 
 			"expiration_time_utc": eventSubscriptionSchemaExpirationTimeUTC(),
+
+			"azure_alert_monitor_endpoint": eventSubscriptionSchemaAzureAlertMonitorEndpoint(
+				utils.RemoveFromStringArray(
+					possibleEventSubscriptionEndpointTypes(),
+					string(AzureAlertMonitorEndpoint),
+				),
+			),
 
 			// TODO: this can become `function_id` in 4.0?
 			"azure_function_endpoint": eventSubscriptionSchemaAzureFunctionEndpoint(
@@ -301,10 +309,15 @@ func resourceEventGridSystemTopicEventSubscriptionRead(d *pluginsdk.ResourceData
 				return fmt.Errorf("setting `azure_function_endpoint` for %s: %+v", *id, err)
 			}
 
+			if err := d.Set("azure_alert_monitor_endpoint", flattenEventSubscriptionDestinationAzureAlertMonitor(destination)); err != nil {
+				return fmt.Errorf("setting `azure_alert_monitor_endpoint` for %s: %+v", *id, err)
+			}
+
 			d.Set("eventhub_endpoint_id", flattenEventSubscriptionDestinationEventHub(destination))
 			d.Set("hybrid_connection_endpoint_id", flattenEventSubscriptionDestinationHybridConnection(destination))
 			d.Set("service_bus_queue_endpoint_id", flattenEventSubscriptionDestinationServiceBusQueueEndpoint(destination))
 			d.Set("service_bus_topic_endpoint_id", flattenEventSubscriptionDestinationServiceBusTopicEndpoint(destination))
+			d.Set("alert_monitor_endpoint", flattenEventSubscriptionDestinationAzureAlertMonitor(destination))
 			if err := d.Set("storage_queue_endpoint", flattenEventSubscriptionDestinationStorageQueueEndpoint(destination)); err != nil {
 				return fmt.Errorf("setting `storage_queue_endpoint` for %s: %+v", *id, err)
 			}

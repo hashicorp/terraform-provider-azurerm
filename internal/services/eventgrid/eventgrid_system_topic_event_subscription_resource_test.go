@@ -69,6 +69,26 @@ func TestAccEventGridSystemTopicEventSubscription_eventHubID(t *testing.T) {
 	})
 }
 
+func TestAccEventGridSystemTopicEventSubscription_azureActionGroupMonitor(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic_event_subscription", "test")
+	r := EventGridSystemTopicEventSubscriptionResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.azureActionGroupMonitor(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("event_delivery_schema").HasValue("CloudEventSchemaV1_0"),
+				check.That(data.ResourceName).Key("sev").HasValue("Sev1"),
+				check.That(data.ResourceName).Key("description").HasValue("Something is wrong with the website"),
+				check.That(data.ResourceName).Key("action_groups.#").HasValue("1"),
+				check.That(data.ResourceName).Key("action_groups.1").HasValue("azurerm_monitor_action_group.id"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccEventGridSystemTopicEventSubscription_azureFunction(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_eventgrid_system_topic_event_subscription", "test")
 	r := EventGridSystemTopicEventSubscriptionResource{}
@@ -839,6 +859,59 @@ resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
   event_delivery_schema = "CloudEventSchemaV1_0"
 
   eventhub_endpoint_id = azurerm_eventhub.test.id
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+}
+
+func (EventGridSystemTopicEventSubscriptionResource) azureActionGroupMonitor(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_key_vault" "test" {
+  name                       = "acctestkv-%[1]d"
+  location                   = azurerm_resource_group.test.location
+  resource_group_name        = azurerm_resource_group.test.name
+  sku_name                   = "standard"
+  soft_delete_retention_days = 7
+}
+
+resource "azurerm_eventgrid_system_topic" "test" {
+  name                = "acctesteg-%[1]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  source_resource_id  = azurerm_linux_function_app.test.id
+  topic_type          = "Microsoft.KeyVault.vaults"
+}
+
+resource "azurerm_monitor_action_group" "test" {
+  name                = "acctestActionGroup-%[1]d"
+  resource_group_name = azurerm_resource_group.test.name
+  short_name          = "acctestag"
+}
+
+resource "azurerm_eventgrid_system_topic_event_subscription" "test" {
+  name                                 = "acctesteg-%[1]d"
+  system_topic                         = azurerm_eventgrid_system_topic.test.name
+  resource_group_name                  = azurerm_resource_group.test.name
+  advanced_filtering_on_arrays_enabled = true
+  event_delivery_schema                = "EventGridSchema"
+
+  azure_alert_monitor_endpoint {
+    action_groups = [azurerm_monitor_action_group.test.id]
+    description   = "Something is wrong with the website"
+    severity      = "Sev1"
+  }
+
+  depends_on = [
+    azurerm_monitor_action_group.test,
+  ]
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomString)
 }
