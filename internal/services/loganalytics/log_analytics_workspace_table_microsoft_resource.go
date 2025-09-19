@@ -20,20 +20,18 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type LogAnalyticsWorkspaceTableResource struct{}
+type LogAnalyticsWorkspaceTableMicrosoftResource struct{}
 
 var (
-	_                      sdk.ResourceWithUpdate        = LogAnalyticsWorkspaceTableResource{}
-	_                      sdk.ResourceWithCustomizeDiff = LogAnalyticsWorkspaceTableResource{}
-	defaultRetentionInDays                               = pointer.To(int64(-1))
+	_ sdk.ResourceWithUpdate        = LogAnalyticsWorkspaceTableMicrosoftResource{}
+	_ sdk.ResourceWithCustomizeDiff = LogAnalyticsWorkspaceTableMicrosoftResource{}
 )
 
-type LogAnalyticsWorkspaceTableResourceModel struct {
+type LogAnalyticsWorkspaceTableMicrosoftResourceModel struct {
 	Name                 string   `tfschema:"name"`
 	WorkspaceId          string   `tfschema:"workspace_id"`
 	DisplayName          string   `tfschema:"display_name"`
 	Description          string   `tfschema:"description"`
-	Type                 string   `tfschema:"type"`
 	SubType              string   `tfschema:"sub_type"`
 	Plan                 string   `tfschema:"plan"`
 	Categories           []string `tfschema:"categories"`
@@ -45,41 +43,17 @@ type LogAnalyticsWorkspaceTableResourceModel struct {
 	TotalRetentionInDays int64    `tfschema:"total_retention_in_days"`
 }
 
-type Column struct {
-	Name             string `tfschema:"name"`
-	DisplayName      string `tfschema:"display_name"`
-	Description      string `tfschema:"description"`
-	IsHidden         bool   `tfschema:"hidden"`
-	IsDefaultDisplay bool   `tfschema:"display_by_default"`
-	Type             string `tfschema:"type"`
-	TypeHint         string `tfschema:"type_hint"`
-}
-
-func (r LogAnalyticsWorkspaceTableResource) CustomizeDiff() sdk.ResourceFunc {
+func (r LogAnalyticsWorkspaceTableMicrosoftResource) CustomizeDiff() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var table LogAnalyticsWorkspaceTableResourceModel
+			var table LogAnalyticsWorkspaceTableMicrosoftResourceModel
 			if err := metadata.DecodeDiff(&table); err != nil {
 				return err
 			}
 
-			switch table.Type {
-			case string(tables.TableTypeEnumMicrosoft):
-				if strings.HasSuffix(table.Name, "_CL") {
-					return fmt.Errorf("name must not end with '_CL' for Microsoft tables")
-				}
-
-			case string(tables.TableTypeEnumCustomLog):
-				if !strings.HasSuffix(table.Name, "_CL") {
-					return fmt.Errorf("name must end with '_CL' for CustomLog tables")
-				}
-				if table.SubType == "" {
-					return fmt.Errorf("sub_type must be set for CustomLog tables")
-				}
-				if table.SubType == string(tables.TableSubTypeEnumAny) {
-					return fmt.Errorf("sub_type cannot be 'Any' for CustomLog tables")
-				}
+			if strings.HasSuffix(table.Name, "_CL") {
+				return fmt.Errorf("name must not end with '_CL' for Microsoft tables")
 			}
 
 			for _, column := range table.Columns {
@@ -99,7 +73,7 @@ func (r LogAnalyticsWorkspaceTableResource) CustomizeDiff() sdk.ResourceFunc {
 	}
 }
 
-func (r LogAnalyticsWorkspaceTableResource) Arguments() map[string]*pluginsdk.Schema {
+func (r LogAnalyticsWorkspaceTableMicrosoftResource) Arguments() map[string]*pluginsdk.Schema {
 	args := map[string]*pluginsdk.Schema{
 		"workspace_id": {
 			Type:         pluginsdk.TypeString,
@@ -124,13 +98,6 @@ func (r LogAnalyticsWorkspaceTableResource) Arguments() map[string]*pluginsdk.Sc
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"type": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForTableTypeEnum(), false),
 		},
 
 		"sub_type": {
@@ -185,10 +152,6 @@ func (r LogAnalyticsWorkspaceTableResource) Arguments() map[string]*pluginsdk.Sc
 	}
 
 	if !features.FivePointOh() {
-		args["type"].Required = false
-		args["type"].Optional = true
-		args["type"].Default = string(tables.TableTypeEnumMicrosoft)
-
 		args["sub_type"].Required = false
 		args["sub_type"].Optional = true
 		args["sub_type"].Computed = true
@@ -198,7 +161,7 @@ func (r LogAnalyticsWorkspaceTableResource) Arguments() map[string]*pluginsdk.Sc
 	return args
 }
 
-func (r LogAnalyticsWorkspaceTableResource) Attributes() map[string]*pluginsdk.Schema {
+func (r LogAnalyticsWorkspaceTableMicrosoftResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"solutions": {
 			Type:     pluginsdk.TypeSet,
@@ -218,23 +181,23 @@ func (r LogAnalyticsWorkspaceTableResource) Attributes() map[string]*pluginsdk.S
 	}
 }
 
-func (r LogAnalyticsWorkspaceTableResource) ModelObject() interface{} {
-	return &LogAnalyticsWorkspaceTableResourceModel{}
+func (r LogAnalyticsWorkspaceTableMicrosoftResource) ModelObject() interface{} {
+	return &LogAnalyticsWorkspaceTableMicrosoftResourceModel{}
 }
 
-func (r LogAnalyticsWorkspaceTableResource) ResourceType() string {
-	return "azurerm_log_analytics_workspace_table"
+func (r LogAnalyticsWorkspaceTableMicrosoftResource) ResourceType() string {
+	return "azurerm_log_analytics_workspace_table_microsoft"
 }
 
-func (r LogAnalyticsWorkspaceTableResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r LogAnalyticsWorkspaceTableMicrosoftResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return tables.ValidateTableID
 }
 
-func (r LogAnalyticsWorkspaceTableResource) Create() sdk.ResourceFunc {
+func (r LogAnalyticsWorkspaceTableMicrosoftResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model LogAnalyticsWorkspaceTableResourceModel
+			var model LogAnalyticsWorkspaceTableMicrosoftResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
@@ -272,7 +235,7 @@ func (r LogAnalyticsWorkspaceTableResource) Create() sdk.ResourceFunc {
 						Labels:       pointer.To(model.Labels),
 						Name:         pointer.To(tableName),
 						TableSubType: pointer.To(tables.TableSubTypeEnum(model.SubType)),
-						TableType:    pointer.To(tables.TableTypeEnum(model.Type)),
+						TableType:    pointer.To(tables.TableTypeEnumMicrosoft),
 					},
 				},
 			}
@@ -302,7 +265,7 @@ func (r LogAnalyticsWorkspaceTableResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r LogAnalyticsWorkspaceTableResource) Update() sdk.ResourceFunc {
+func (r LogAnalyticsWorkspaceTableMicrosoftResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -312,7 +275,7 @@ func (r LogAnalyticsWorkspaceTableResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var state LogAnalyticsWorkspaceTableResourceModel
+			var state LogAnalyticsWorkspaceTableMicrosoftResourceModel
 			if err := metadata.Decode(&state); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -344,11 +307,8 @@ func (r LogAnalyticsWorkspaceTableResource) Update() sdk.ResourceFunc {
 
 					if state.Plan == string(tables.TablePlanEnumAnalytics) {
 						if metadata.ResourceData.HasChange("retention_in_days") {
-							if state.RetentionInDays == 0 {
-								// Set the retention period to the workspace default
-								updateInput.Properties.RetentionInDays = defaultRetentionInDays
-							} else {
-								// Set the retention period to the workspace default
+							updateInput.Properties.RetentionInDays = defaultRetentionInDays
+							if state.RetentionInDays != 0 {
 								updateInput.Properties.RetentionInDays = pointer.To(state.RetentionInDays)
 							}
 						}
@@ -393,7 +353,7 @@ func (r LogAnalyticsWorkspaceTableResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r LogAnalyticsWorkspaceTableResource) Read() sdk.ResourceFunc {
+func (r LogAnalyticsWorkspaceTableMicrosoftResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -422,7 +382,7 @@ func (r LogAnalyticsWorkspaceTableResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving Log Analytics Workspace Table %s: %+v", *id, err)
 			}
 
-			state := LogAnalyticsWorkspaceTableResourceModel{
+			state := LogAnalyticsWorkspaceTableMicrosoftResourceModel{
 				Name:        id.TableName,
 				WorkspaceId: workspaceId.ID(),
 			}
@@ -443,7 +403,6 @@ func (r LogAnalyticsWorkspaceTableResource) Read() sdk.ResourceFunc {
 					if props.Schema != nil {
 						state.DisplayName = pointer.From(props.Schema.DisplayName)
 						state.Description = pointer.From(props.Schema.Description)
-						state.Type = string(pointer.From(props.Schema.TableType))
 						state.SubType = string(pointer.From(props.Schema.TableSubType))
 						state.Categories = pointer.From(props.Schema.Categories)
 						state.Labels = pointer.From(props.Schema.Labels)
@@ -467,11 +426,11 @@ func (r LogAnalyticsWorkspaceTableResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r LogAnalyticsWorkspaceTableResource) Delete() sdk.ResourceFunc {
+func (r LogAnalyticsWorkspaceTableMicrosoftResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 30 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model LogAnalyticsWorkspaceTableResourceModel
+			var model LogAnalyticsWorkspaceTableMicrosoftResourceModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding %+v", err)
 			}
@@ -481,107 +440,23 @@ func (r LogAnalyticsWorkspaceTableResource) Delete() sdk.ResourceFunc {
 				return fmt.Errorf("while parsing resource ID: %+v", err)
 			}
 
-			if model.Type == string(tables.TableTypeEnumMicrosoft) {
-				// We can't delete Microsoft tables, so we'll just set the retention to workspace default
-				updateInput := tables.Table{
-					Properties: &tables.TableProperties{
-						RetentionInDays:      defaultRetentionInDays,
-						TotalRetentionInDays: defaultRetentionInDays,
-						Schema: &tables.Schema{
-							Name:    pointer.To(id.TableName),
-							Columns: &[]tables.Column{},
-						},
+			// We can't delete Microsoft tables, so we'll just set the retention to workspace default
+			updateInput := tables.Table{
+				Properties: &tables.TableProperties{
+					RetentionInDays:      defaultRetentionInDays,
+					TotalRetentionInDays: defaultRetentionInDays,
+					Schema: &tables.Schema{
+						Name:    pointer.To(id.TableName),
+						Columns: &[]tables.Column{},
 					},
-				}
+				},
+			}
 
-				if err := client.CreateOrUpdateThenPoll(ctx, *id, updateInput); err != nil {
-					return fmt.Errorf("failed to update table %s in workspace %s in resource group %s: %s", id.TableName, id.WorkspaceName, id.ResourceGroupName, err)
-				}
-			} else {
-				if err := client.DeleteThenPoll(ctx, *id); err != nil {
-					return fmt.Errorf("deleting Log Analytics Workspace Table %s: %v", id, err)
-				}
+			if err := client.CreateOrUpdateThenPoll(ctx, *id, updateInput); err != nil {
+				return fmt.Errorf("failed to update table %s in workspace %s in resource group %s: %s", id.TableName, id.WorkspaceName, id.ResourceGroupName, err)
 			}
 
 			return nil
 		},
 	}
-}
-
-func columnSchema() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{
-		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"display_name": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"description": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-
-		"type": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForColumnTypeEnum(), false),
-		},
-
-		"type_hint": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: validation.StringInSlice(tables.PossibleValuesForColumnDataTypeHintEnum(), false),
-		},
-
-		"hidden": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  false,
-		},
-
-		"display_by_default": {
-			Type:     pluginsdk.TypeBool,
-			Optional: true,
-			Default:  true,
-		},
-	}
-}
-
-func expandColumns(columns *[]Column) *[]tables.Column {
-	result := make([]tables.Column, 0, len(*columns))
-	for _, column := range *columns {
-		result = append(result, tables.Column{
-			Name:             pointer.To(column.Name),
-			DisplayName:      pointer.To(column.DisplayName),
-			Description:      pointer.To(column.Description),
-			IsHidden:         pointer.To(column.IsHidden),
-			IsDefaultDisplay: pointer.To(column.IsDefaultDisplay),
-			Type:             pointer.To(tables.ColumnTypeEnum(column.Type)),
-			DataTypeHint:     pointer.To(tables.ColumnDataTypeHintEnum(column.TypeHint)),
-		})
-	}
-	return pointer.To(result)
-}
-
-func flattenColumns(columns *[]tables.Column) []Column {
-	result := make([]Column, 0, len(*columns))
-	for _, column := range *columns {
-		result = append(result, Column{
-			Name:             pointer.From(column.Name),
-			DisplayName:      pointer.From(column.DisplayName),
-			Description:      pointer.From(column.Description),
-			IsHidden:         pointer.From(column.IsHidden),
-			IsDefaultDisplay: pointer.From(column.IsDefaultDisplay),
-			Type:             string(pointer.From(column.Type)),
-			TypeHint:         string(pointer.From(column.DataTypeHint)),
-		})
-	}
-	return result
 }
