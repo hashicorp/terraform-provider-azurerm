@@ -435,9 +435,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "test" {
   node_taints = [
     "kubernetes.azure.com/scalesetpriority=spot:NoSchedule"
   ]
-  upgrade_settings {
-    max_surge = "10%%"
-  }
 }
 `, r.upgradeControlPlaneDefaultNodePoolConfig(data, controlPlaneVersion, defaultNodePoolVersion), customNodePoolVersion)
 }
