@@ -442,7 +442,7 @@ A `probe` block supports the following:
 
 * `path` - (Optional) The Path used for this Probe.
 
-!> `path` cannot be set when `protocol` is set to `Tcp` or `Tls`.
+!> **Note:** `path` cannot be set when `protocol` is set to `Tcp` or `Tls`.
 
 * `timeout` - (Required) The Timeout used for this Probe, which indicates when a probe becomes unhealthy. Possible values range from 1 second to a maximum of 86,400 seconds.
 
