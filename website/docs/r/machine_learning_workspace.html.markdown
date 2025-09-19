@@ -390,6 +390,10 @@ The following arguments are supported:
 
 * `serverless_compute` - (Optional) A `serverless_compute` block as defined below.
 
+* `service_side_encryption_enabled` - (Optional) Whether to enable service-side encryption with customer-managed keys (CMK). Default to `false`. Changing this forces a new resource to be created.
+
+!> **Note:** Setting `service_side_encryption_enabled` requires the `encryption` block to be set. When you use service-side encryption, Azure charges will continue to accrue during the soft delete retention period.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ---
@@ -443,7 +447,6 @@ An `feature_store` block supports the following:
 * `online_connection_name` - (Optional) The name of online store connection.
 
 ~> **Note:** `feature_store` must be set when`kind` is `FeatureStore`
-
 
 ## Attributes Reference
 
