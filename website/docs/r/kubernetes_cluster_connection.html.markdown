@@ -147,3 +147,9 @@ Service Connector for kubernetes cluster can be imported using the `resource id`
 ```shell
 terraform import azurerm_kubernetes_cluster_connection.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/group1/providers/Microsoft.ContainerService/managedClusters/cluster1/providers/Microsoft.ServiceLinker/linkers/link1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.ServiceLinker` - 2024-04-01, 2022-05-01
