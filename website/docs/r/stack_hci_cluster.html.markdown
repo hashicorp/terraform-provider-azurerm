@@ -56,8 +56,6 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Azure Stack HCI Cluster.
 
-* `automanage_configuration_id` - (Optional) The ID of the Automanage Configuration assigned to the Azure Stack HCI Cluster.
-
 ---
 
 An `identity` block supports the following:
