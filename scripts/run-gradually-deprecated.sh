@@ -76,7 +76,7 @@ function runGraduallyDeprecatedFunctions {
     fi
 
     # exceptions to avoid false positives and legacy resources should have their original behaviour preserved
-    exceptions=("run-gradually-deprecated" "/legacy/" "network/ip_group_cidr_resource.go" "network/network_security_group_resource.go" "internal/provider" "vendor/")
+    exceptions=("run-gradually-deprecated" "/legacy/" "network/ip_group_cidr_resource.go" "network/network_security_group_resource.go" "internal/acceptance" "internal/provider" "vendor/")
     toSkip=false
     for e in "${exceptions[@]}"; do
       isThisException=$(echo "$f" | grep "$e")
