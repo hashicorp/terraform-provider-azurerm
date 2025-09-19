@@ -108,7 +108,7 @@ func dataSourceStorageQueueRead(d *pluginsdk.ResourceData, meta interface{}) err
 			// Parse the queue endpoint as a data plane account ID
 			accountId, err := accounts.ParseAccountID(pointer.From(endpoint), storageClient.StorageDomainSuffix)
 			if err != nil {
-				return fmt.Errorf("parsing Account ID: %v", err)
+				return err
 			}
 
 			id := queues.NewQueueID(*accountId, queueName)
