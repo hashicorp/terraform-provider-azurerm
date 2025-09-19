@@ -17,7 +17,7 @@ func init() {
 
 var _ resourceids.ResourceId = &IPGroupId{}
 
-// IPGroupId is a struct representing the Resource ID for a I P Group
+// IPGroupId is a struct representing the Resource ID for a IP Group
 type IPGroupId struct {
 	SubscriptionId    string
 	ResourceGroupName string
@@ -84,7 +84,7 @@ func (id *IPGroupId) FromParseResult(input resourceids.ParseResult) error {
 	return nil
 }
 
-// ValidateIPGroupID checks that 'input' can be parsed as a I P Group ID
+// ValidateIPGroupID checks that 'input' can be parsed as a IP Group ID
 func ValidateIPGroupID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
@@ -99,13 +99,13 @@ func ValidateIPGroupID(input interface{}, key string) (warnings []string, errors
 	return
 }
 
-// ID returns the formatted I P Group ID
+// ID returns the formatted IP Group ID
 func (id IPGroupId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Microsoft.Network/ipGroups/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.IpGroupName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this I P Group ID
+// Segments returns a slice of Resource ID Segments which comprise this IP Group ID
 func (id IPGroupId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
@@ -119,12 +119,12 @@ func (id IPGroupId) Segments() []resourceids.Segment {
 	}
 }
 
-// String returns a human-readable description of this I P Group ID
+// String returns a human-readable description of this IP Group ID
 func (id IPGroupId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Ip Group Name: %q", id.IpGroupName),
 	}
-	return fmt.Sprintf("I P Group (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("IP Group (%s)", strings.Join(components, "\n"))
 }

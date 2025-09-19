@@ -6,7 +6,7 @@ description: |-
   Get information about an Azure Mobile Network.
 ---
 
-# azurerm_mobile_network
+# Data Source: azurerm_mobile_network
 
 Get information about an Azure Mobile Network.
 

@@ -116,12 +116,12 @@ func resourceSecurityCenterContactCreateUpdate(d *pluginsdk.ResourceData, meta i
 		// TODO: switch back when the Swagger/API bug has been fixed:
 		// https://github.com/Azure/azure-rest-api-specs/issues/10717 (an undefined 201)
 		if _, err := azuresdkhacks.CreateSecurityCenterContact(ctx, client, id.SecurityContactName, contact); err != nil {
-			return fmt.Errorf("Creating Security Center Contact: %+v", err)
+			return fmt.Errorf("creating Security Center Contact: %+v", err)
 		}
 
 		d.SetId(id.ID())
 	} else if _, err := client.Update(ctx, id.SecurityContactName, contact); err != nil {
-		return fmt.Errorf("Updating Security Center Contact: %+v", err)
+		return fmt.Errorf("updating Security Center Contact: %+v", err)
 	}
 
 	return resourceSecurityCenterContactRead(d, meta)

@@ -109,7 +109,7 @@ func dataSourceManagementGroupRead(d *pluginsdk.ResourceData, meta interface{}) 
 	})
 	if err != nil {
 		if response.WasForbidden(resp.HttpResponse) {
-			return fmt.Errorf("Management Group %q was not found", groupName)
+			return fmt.Errorf("the Management Group %q was not found", groupName)
 		}
 
 		return fmt.Errorf("reading Management Group %q: %+v", groupName, err)
@@ -187,7 +187,7 @@ func getManagementGroupNameByDisplayName(ctx context.Context, client *management
 
 	// we found none
 	if len(results) == 0 {
-		return "", fmt.Errorf("Management Group (Display Name %q) was not found", displayName)
+		return "", fmt.Errorf("the Management Group (Display Name %q) was not found", displayName)
 	}
 
 	// we found more than one
@@ -211,13 +211,13 @@ func flattenManagementGroupDataSourceChildren(subscriptionIds, mgmtgroupIds *[]i
 		case managementgroups.ManagementGroupChildTypeMicrosoftPointManagementManagementGroups:
 			id, err := commonids.ParseManagementGroupID(*child.Id)
 			if err != nil {
-				return fmt.Errorf("Unable to parse child Management Group ID %+v", err)
+				return fmt.Errorf("unable to parse child Management Group ID %+v", err)
 			}
 			*mgmtgroupIds = append(*mgmtgroupIds, id.ID())
 		case managementgroups.ManagementGroupChildTypeSubscriptions:
 			id, err := commonids.ParseSubscriptionID(*child.Id)
 			if err != nil {
-				return fmt.Errorf("Unable to parse child Subscription ID %+v", err)
+				return fmt.Errorf("unable to parse child Subscription ID %+v", err)
 			}
 			*subscriptionIds = append(*subscriptionIds, id.SubscriptionId)
 		default:

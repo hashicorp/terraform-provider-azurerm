@@ -33,6 +33,12 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
+const (
+	// Volume types used in Azure NetApp Files
+	volumeTypeDataProtection = "DataProtection"
+	volumeTypeShortTermClone = "ShortTermClone"
+)
+
 func resourceNetAppVolume() *pluginsdk.Resource {
 	resource := &pluginsdk.Resource{
 		Create: resourceNetAppVolumeCreate,
@@ -108,6 +114,14 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				Optional:     true,
 				ForceNew:     true,
 				ValidateFunc: snapshots.ValidateSnapshotID,
+			},
+
+			"accept_grow_capacity_pool_for_short_term_clone_split": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				ForceNew:     true,
+				ValidateFunc: validation.StringInSlice(volumes.PossibleValuesForAcceptGrowCapacityPoolForShortTermCloneSplit(), false),
+				Description:  "While auto splitting the short term clone volume, if the parent pool does not have enough space to accommodate the volume after split, it will be automatically resized, which will lead to increased billing. To accept capacity pool size auto grow and create a short term clone volume, set the property as accepted. Can only be used in conjunction with `create_from_snapshot_resource_id`.",
 			},
 
 			"network_features": {
@@ -447,6 +461,30 @@ func resourceNetAppVolume() *pluginsdk.Resource {
 				// All validations passed - no action needed
 			}
 
+			// Validate short-term clone properties
+			acceptGrowCapacityPool := d.Get("accept_grow_capacity_pool_for_short_term_clone_split").(string)
+
+			// Only validate if accept_grow_capacity_pool_for_short_term_clone_split is set
+			if acceptGrowCapacityPool != "" {
+				rawConfig := d.GetRawConfig().AsValueMap()
+				// Check if create_from_snapshot_resource_id is explicitly null or empty
+				// Allow computed values (where value is empty but raw config is not null)
+				if rawConfig["create_from_snapshot_resource_id"].IsNull() {
+					return fmt.Errorf("`accept_grow_capacity_pool_for_short_term_clone_split` can only be used in conjunction with `create_from_snapshot_resource_id`")
+				}
+			}
+
+			// Validate that short-term clones are not supported on large volumes
+			if acceptGrowCapacityPool != "" && isLargeVolume {
+				return fmt.Errorf("short-term clones are not supported on large volumes; `accept_grow_capacity_pool_for_short_term_clone_split` cannot be used when `large_volume_enabled` is true")
+			}
+
+			// Validate that short-term clones are not supported with cool access
+			coolAccessConfig := d.Get("cool_access").([]interface{})
+			if acceptGrowCapacityPool != "" && len(coolAccessConfig) > 0 {
+				return fmt.Errorf("short-term clones are not supported on volumes enabled for cool access; `accept_grow_capacity_pool_for_short_term_clone_split` cannot be used when `cool_access` is configured")
+			}
+
 			if d.HasChanges("service_level", "pool_name") {
 				serviceLevelChange := d.HasChange("service_level")
 				poolNameChange := d.HasChange("pool_name")
@@ -575,6 +613,8 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		return fmt.Errorf("ntfs security style cannot be used in a NFSv3/NFSv4.1 enabled volume for %s", id)
 	}
 
+	acceptGrowCapacityPool := d.Get("accept_grow_capacity_pool_for_short_term_clone_split").(string)
+
 	storageQuotaInGB := int64(d.Get("storage_quota_in_gb").(int) * 1073741824)
 
 	exportPolicyRuleRaw := d.Get("export_policy_rule").([]interface{})
@@ -598,7 +638,7 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		}
 		if strings.EqualFold(endpointType, "dst") {
 			authorizeReplication = true
-			volumeType = "DataProtection"
+			volumeType = volumeTypeDataProtection
 		}
 	}
 
@@ -667,8 +707,12 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 				propertyMismatch = append(propertyMismatch, "account_name")
 			}
 			if len(propertyMismatch) > 0 {
-				return fmt.Errorf("the following properties to create a new NetApp Volume from a Snapshot do not match:\n%s\n", strings.Join(propertyMismatch, "\n"))
+				return fmt.Errorf("the following properties to create a new NetApp Volume from a Snapshot do not match:\n%s", strings.Join(propertyMismatch, "\n"))
 			}
+		}
+
+		if acceptGrowCapacityPool != "" {
+			volumeType = volumeTypeShortTermClone
 		}
 	}
 
@@ -706,6 +750,10 @@ func resourceNetAppVolumeCreate(d *pluginsdk.ResourceData, meta interface{}) err
 		},
 		Tags:  tags.Expand(d.Get("tags").(map[string]interface{})),
 		Zones: zones,
+	}
+
+	if acceptGrowCapacityPool != "" {
+		parameters.Properties.AcceptGrowCapacityPoolForShortTermCloneSplit = pointer.ToEnum[volumes.AcceptGrowCapacityPoolForShortTermCloneSplit](acceptGrowCapacityPool)
 	}
 
 	if throughputMibps, ok := d.GetOk("throughput_in_mibps"); ok {
@@ -975,6 +1023,7 @@ func resourceNetAppVolumeRead(d *pluginsdk.ResourceData, meta interface{}) error
 		d.Set("encryption_key_source", string(pointer.From(props.EncryptionKeySource)))
 		d.Set("key_vault_private_endpoint_id", props.KeyVaultPrivateEndpointResourceId)
 		d.Set("large_volume_enabled", props.IsLargeVolume)
+		d.Set("accept_grow_capacity_pool_for_short_term_clone_split", pointer.FromEnum(props.AcceptGrowCapacityPoolForShortTermCloneSplit))
 
 		if pointer.From(props.CoolAccess) {
 			// enums returned from the API are inconsistent so normalize them here

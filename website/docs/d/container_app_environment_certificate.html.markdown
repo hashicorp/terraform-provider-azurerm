@@ -6,7 +6,7 @@ description: |-
   Gets information about a Container App Environment Certificate.
 ---
 
-# Data Source: azurerm_container_app_environment_certificate.
+# Data Source: azurerm_container_app_environment_certificate
 
 Use this data source to access information about an existing Container App Environment Certificate.
 
