@@ -69,6 +69,8 @@ The following arguments are supported:
 
 * `event_delivery_schema` - (Optional) Specifies the event delivery schema for the event subscription. Possible values include: `EventGridSchema`, `CloudEventSchemaV1_0`, `CustomInputSchema`. Defaults to `EventGridSchema`. Changing this forces a new resource to be created.
 
+* `azure_alert_monitor_endpoint` - (Optional) An `azure_alert_monitor_endpoint` block as defined below.
+
 * `azure_function_endpoint` - (Optional) An `azure_function_endpoint` block as defined below.
 
 * `eventhub_endpoint_id` - (Optional) Specifies the id where the Event Hub is located.
@@ -116,6 +118,16 @@ A `storage_queue_endpoint` block supports the following:
 * `queue_name` - (Required) Specifies the name of the storage queue where the Event Subscription will receive events.
 
 * `queue_message_time_to_live_in_seconds` - (Optional) Storage queue message time to live in seconds.
+
+---
+
+An `azure_alert_monitor_endpoint` block supports the following:
+
+* `action_groups` - (Optional) Specifies a list of action groups ids to submit the alerts to.
+
+* `severity` - (Required) Specifies the severity of the event alert. Possible values are `Sev0`, `Sev1`, `Sev2`, `Sev3` or `Sev4`.
+
+* `alert_description` - (Required) Specifies a description for the alert.
 
 ---
 
