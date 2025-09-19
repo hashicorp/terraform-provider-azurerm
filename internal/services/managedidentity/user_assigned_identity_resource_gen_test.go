@@ -1,6 +1,5 @@
 package managedidentity_test
 
-// NOTE: this file is generated - manual changes will be overwritten.
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See NOTICE.txt in the project root for license information.
 import (
@@ -98,7 +97,7 @@ func (r UserAssignedIdentityTestResource) Exists(ctx context.Context, clients *c
 		return nil, err
 	}
 
-	resp, err := clients.ManagedIdentity.V20230131.ManagedIdentities.UserAssignedIdentitiesGet(ctx, *id)
+	resp, err := clients.ManagedIdentity.V20241130.ManagedIdentities.UserAssignedIdentitiesGet(ctx, *id)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %+v", *id, err)
 	}

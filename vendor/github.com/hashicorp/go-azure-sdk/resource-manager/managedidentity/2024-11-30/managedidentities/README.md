@@ -1,7 +1,7 @@
 
-## `github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2023-01-31/managedidentities` Documentation
+## `github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2024-11-30/managedidentities` Documentation
 
-The `managedidentities` SDK allows for interaction with Azure Resource Manager `managedidentity` (API Version `2023-01-31`).
+The `managedidentities` SDK allows for interaction with Azure Resource Manager `managedidentity` (API Version `2024-11-30`).
 
 This readme covers example usages, but further information on [using this SDK can be found in the project root](https://github.com/hashicorp/go-azure-sdk/tree/main/docs).
 
@@ -9,7 +9,7 @@ This readme covers example usages, but further information on [using this SDK ca
 
 ```go
 import "github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-import "github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2023-01-31/managedidentities"
+import "github.com/hashicorp/go-azure-sdk/resource-manager/managedidentity/2024-11-30/managedidentities"
 ```
 
 
