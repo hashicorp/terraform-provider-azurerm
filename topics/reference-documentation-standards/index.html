@@ -1,0 +1,1204 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Contributor documentation and reference for the Terraform AzureRM Provider">
+      
+      
+      
+      
+        <link rel="prev" href="../reference-naming/">
+      
+      
+        <link rel="next" href="../guide-resource-ids/">
+      
+      <link rel="icon" href="../../images/hashicorp-black.png">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.6">
+    
+    
+      
+        <title>Provider Documentation Standards - Terraform AzureRM Provider - Contributor Guide</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.558e4712.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.2505c338.min.css">
+      
+      
+
+    
+    
+    
+      
+    
+    
+      <link rel="stylesheet" href="../../extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="hashicorp" data-md-color-primary="black" data-md-color-accent="blue">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#provider-documentation-standards" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Terraform AzureRM Provider - Contributor Guide" class="md-header__button md-logo" aria-label="Terraform AzureRM Provider - Contributor Guide" data-md-component="logo">
+      
+  <img src="../../images/hashicorp.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Terraform AzureRM Provider - Contributor Guide
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Provider Documentation Standards
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/hashicorp/terraform-provider-azurerm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    hashicorp/terraform-provider-azurerm
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Terraform AzureRM Provider - Contributor Guide" class="md-nav__button md-logo" aria-label="Terraform AzureRM Provider - Contributor Guide" data-md-component="logo">
+      
+  <img src="../../images/hashicorp.png" alt="logo">
+
+    </a>
+    Terraform AzureRM Provider - Contributor Guide
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/hashicorp/terraform-provider-azurerm" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    hashicorp/terraform-provider-azurerm
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Welcome
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_2" type="checkbox" id="__nav_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2" tabindex="0" aria-expanded="false">
+          Basics
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Basics" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Basics
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../high-level-overview/" class="md-nav__link">
+        Overview of the Provider
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../building-the-provider/" class="md-nav__link">
+        Building the Provider
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../debugging-the-provider/" class="md-nav__link">
+        Debugging the Provider
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../running-the-tests/" class="md-nav__link">
+        Running Tests
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-opening-a-pr/" class="md-nav__link">
+        Opening a Pull Request
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_3" type="checkbox" id="__nav_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3" tabindex="0" aria-expanded="false">
+          Guides
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Guides" data-md-level="1">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Guides
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-feature/" class="md-nav__link">
+        Adding a new Feature
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-service-package/" class="md-nav__link">
+        Adding a new Service Package
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-data-source/" class="md-nav__link">
+        Adding a new Data Source
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-resource/" class="md-nav__link">
+        Adding a new Resource
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-fields-to-data-source/" class="md-nav__link">
+        Adding fields to an existing Data Source
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-fields-to-resource/" class="md-nav__link">
+        Adding fields to an existing Resource
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-state-migrations/" class="md-nav__link">
+        Adding State Migrations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-resource-identity/" class="md-nav__link">
+        Adding Resource Identity
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-breaking-changes/" class="md-nav__link">
+        Breaking Changes and Deprecations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-new-resource-vs-inline/" class="md-nav__link">
+        When to create a new Resource vs Inline Block
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_4" type="checkbox" id="__nav_4" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4" tabindex="0" aria-expanded="true">
+          Reference
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Reference" data-md-level="1">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-acceptance-testing/" class="md-nav__link">
+        Acceptance Testing
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../best-practices/" class="md-nav__link">
+        Best Practices
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-glossary/" class="md-nav__link">
+        Glossary
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-naming/" class="md-nav__link">
+        Naming
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Provider Documentation Standards
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Provider Documentation Standards
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    Examples
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#arguments" class="md-nav__link">
+    Arguments
+  </a>
+  
+    <nav class="md-nav" aria-label="Arguments">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ordering" class="md-nav__link">
+    Ordering
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#descriptions" class="md-nav__link">
+    Descriptions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#block-arguments" class="md-nav__link">
+    Block Arguments
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#attributes" class="md-nav__link">
+    Attributes
+  </a>
+  
+    <nav class="md-nav" aria-label="Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ordering_1" class="md-nav__link">
+    Ordering
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#descriptions_1" class="md-nav__link">
+    Descriptions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#block-attributes" class="md-nav__link">
+    Block Attributes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    Notes
+  </a>
+  
+    <nav class="md-nav" aria-label="Notes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#informational-note" class="md-nav__link">
+    Informational Note
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#warning-note" class="md-nav__link">
+    Warning Note
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caution-note" class="md-nav__link">
+    Caution Note
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide-resource-ids/" class="md-nav__link">
+        Resource IDs
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../schema-design-considerations/" class="md-nav__link">
+        Schema Design
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference-errors/" class="md-nav__link">
+        Working with Errors
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5" tabindex="0" aria-expanded="false">
+          Maintainers
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Maintainers" data-md-level="1">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Maintainers
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../maintainer-merging/" class="md-nav__link">
+        Merging PRs
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frequently-asked-questions/" class="md-nav__link">
+        FAQ
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#examples" class="md-nav__link">
+    Examples
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#arguments" class="md-nav__link">
+    Arguments
+  </a>
+  
+    <nav class="md-nav" aria-label="Arguments">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ordering" class="md-nav__link">
+    Ordering
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#descriptions" class="md-nav__link">
+    Descriptions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#block-arguments" class="md-nav__link">
+    Block Arguments
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#attributes" class="md-nav__link">
+    Attributes
+  </a>
+  
+    <nav class="md-nav" aria-label="Attributes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ordering_1" class="md-nav__link">
+    Ordering
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#descriptions_1" class="md-nav__link">
+    Descriptions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#block-attributes" class="md-nav__link">
+    Block Attributes
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    Notes
+  </a>
+  
+    <nav class="md-nav" aria-label="Notes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#informational-note" class="md-nav__link">
+    Informational Note
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#warning-note" class="md-nav__link">
+    Warning Note
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caution-note" class="md-nav__link">
+    Caution Note
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+
+<h1 id="provider-documentation-standards">Provider Documentation Standards<a class="headerlink" href="#provider-documentation-standards" title="Permanent link">#</a></h1>
+<p>In an effort to keep the <a href="https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs">provider documentation</a> consistent, this page documents some standards that have been agreed on. </p>
+<p>This page will grow over time, and suggestions are welcome!</p>
+<h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">#</a></h2>
+<p>Each resource/data source must include an example, general guidelines for examples are as follows:</p>
+<ul>
+<li>Examples MUST be functional, i.e. if a user copies the example and runs <code>terraform plan</code> no errors should be returned.</li>
+<li>Generally the resource instance name should simply be <code>example</code>. E.g. <code>resource "azurerm_resource_group" "example"</code>.</li>
+<li>All name arguments within the example configuration should be prefixed with <code>example-</code> (unless this is disallowed by the naming restrictions), avoid overly complex naming, and ensure any naming restrictions are followed. E.g. <code>name = example-server</code>.</li>
+<li>Avoid multiple examples unless a specific configuration is particularly difficult to configure. If there are many complex examples to document, consider using the <code>examples</code> folder in the repository instead.</li>
+<li>Examples don't need to include every argument, generally the same configuration as the basic acceptance test will suffice (including any resource dependencies, i.e. the configuration from the template).</li>
+<li>Resource/Data Source examples should not define a <code>terraform</code> or <code>provider</code> block.</li>
+</ul>
+<h2 id="arguments">Arguments<a class="headerlink" href="#arguments" title="Permanent link">#</a></h2>
+<h3 id="ordering">Ordering<a class="headerlink" href="#ordering" title="Permanent link">#</a></h3>
+<p>Arguments in the documentation are expected to be ordered as follows:</p>
+<ol>
+<li>Any arguments that make up the resource's ID, with the last user specified segment (usually <code>name</code>) first. E.g. <code>name</code> then <code>resource_group_name</code>, or <code>name</code> then <code>parent_resource_id</code>.</li>
+<li>The <code>location</code> field if present.</li>
+<li>Required arguments, sorted alphabetically.</li>
+<li>Optional arguments, sorted alphabetically.</li>
+</ol>
+<h3 id="descriptions">Descriptions<a class="headerlink" href="#descriptions" title="Permanent link">#</a></h3>
+<p>The following conventions apply to argument descriptions:</p>
+<ul>
+<li>Descriptions should be concise, avoid adding too much detail, links to external documentation, etc. If more detail must be added, use a <a href="#notes">note</a>.</li>
+<li>If the argument has validation allowing only specific inputs, e.g. <code>validation.StringInSlice()</code>, these must be documented using <code>Possible values are `value1`, `value2`, and `value3.</code>. Other common entries include:</li>
+<li>Arguments with a single allowed value: <code>The only possible values is `value1`.</code></li>
+<li>Arguments allowing a range of values, e.g. <code>validation.IntBetween()</code>: <code>Possible values range between `1` and `100`.</code></li>
+<li>If the argument has a default value, this must be documented using <code>Defaults to `default1`.</code></li>
+</ul>
+<p>Examples:</p>
+<ul>
+<li><code>* `name` - (Required) The name which should be used for this resource.</code></li>
+<li><code>* `public_network_access` - (Optional) The public network access setting for this resource. Possible values are `Enabled` and `Disabled`. Defaults to `Enabled`.</code></li>
+<li><code>* `disk_size_in_gb` - (Optional) The disk size in gigabytes. Possible values range between `4` and `256`.</code></li>
+</ul>
+<h3 id="block-arguments">Block Arguments<a class="headerlink" href="#block-arguments" title="Permanent link">#</a></h3>
+<p>Block arguments must have two entries in the documentation:</p>
+<ol>
+<li>The initial entry, e.g. <code>* `block_argument` - (Optional) A `block_argument` as defined below.</code></li>
+<li>A subsection, added after all top-level arguments. If multiple blocks are present in the resource, these subsections should be ordered alphabetically. </li>
+</ol>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code>## Arguments Reference
+
+`name` - (Required) The name which should be used for this resource.
+
+`block_argument` - (Optional) A `block_argument` as defined below.
+
+`some_other_argument` - (Optional) This argument does something magical.
+
+---
+
+A `block_argument` supports the following:
+
+* `nested_argument_1` - (Required) A nested argument that must be specified.
+
+* `nested_argument_2` - (Optional) A nested argument that may be specified.
+
+## Attributes References
+
+...
+</code></pre></div>
+<h2 id="attributes">Attributes<a class="headerlink" href="#attributes" title="Permanent link">#</a></h2>
+<h3 id="ordering_1">Ordering<a class="headerlink" href="#ordering_1" title="Permanent link">#</a></h3>
+<p>Attributes in the documentation are expected to be ordered as follows:</p>
+<ol>
+<li>the <code>id</code> attribute.</li>
+<li>The remaining attributes, sorted alphabetically</li>
+</ol>
+<h3 id="descriptions_1">Descriptions<a class="headerlink" href="#descriptions_1" title="Permanent link">#</a></h3>
+<p>Attribute descriptions should be concise, and must not include possible or default values.</p>
+<h3 id="block-attributes">Block Attributes<a class="headerlink" href="#block-attributes" title="Permanent link">#</a></h3>
+<p>Block attributes must have two entries in the documentation:</p>
+<ol>
+<li>The initial entry, e.g. <code>* `block_attribute` - A `block_attribute` as defined below.</code></li>
+<li>A subsection, added after all top-level attributes. If multiple blocks are present in the resource, these subsections should be ordered alphabetically. </li>
+</ol>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code>## Attributes Reference
+
+`id` - The ID of this resource.
+
+`block_attribute` - A `block_attribute` as defined below.
+
+`some_other_attribute` - This attribute returns something magical.
+
+---
+
+A `block_attribute` exports the following:
+
+* `nested_attribute_1` - A very whimsical attribute.
+
+* `nested_attribute_2` - A much more monotonous attribute.
+
+## Timeouts
+
+...
+</code></pre></div>
+<h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">#</a></h2>
+<p>Note blocks are used to provide additional information to users beyond the basic description of a resource, argument or attribute.</p>
+<p>In the past, there have been different approaches to how notes were formatted, some examples are:</p>
+<ul>
+<li>Different words to indicate level of importance, e.g. <code>Info</code>, <code>Important</code>, <code>Caution</code>, and <code>Be Aware</code>.</li>
+<li>Capitalisation differences, e.g. <code>Note:</code> vs <code>NOTE:</code>.</li>
+<li>Whether or not a colon is included, e.g. <code>Note:</code> vs <code>Note</code>.</li>
+</ul>
+<p>Going forward, all notes should follow the exact same format (<code>(-&gt;|~&gt;|!&gt;) **Note:**</code>) where level of importance is indicated through the different types of notes as documented below.</p>
+<p>Breaking changes have previously been added as notes to the resource documentation.
+These should no longer be included, instead follow these guidelines:</p>
+<ul>
+<li>Breaking changes in a minor version should be added to the top of the changelog.</li>
+<li>Breaking changes in a major version should be added to the upgrade guide.</li>
+</ul>
+<blockquote>
+<p>We may revisit the guidelines above and/or add a specific place in the documentation for all breaking changes in minor versions.</p>
+</blockquote>
+<!-- 
+    - TODO: Considerations for when to add notes? We probably don't want to overdo it (More relevant to informational notes)
+-->
+
+<h3 id="informational-note">Informational Note<a class="headerlink" href="#informational-note" title="Permanent link">#</a></h3>
+<p>Informational note blocks should generally be used when a note provides additional useful information, recommendations and/or tips to the user.</p>
+<p>To add an informational note, use <code>-&gt; **Note:**</code>, within the Terraform registry documentation this will template as a block with an info icon.</p>
+<p>For example, extra information on the supported values for an argument, possibly linking to external documentation for the resource/service:</p>
+<div class="highlight"><pre><span></span><code><span class="k">*</span><span class="w"> </span><span class="sb">`type`</span> - (Required) The type. Possible values include <span class="sb">`This`</span>, <span class="sb">`That`</span>, and <span class="sb">`Other`</span>.
+
+-&gt; <span class="gs">**Note:**</span> More information on each of the supported types can be found in [<span class="nt">type documentation</span>](<span class="na">link-to-additional-info</span>)
+</code></pre></div>
+<h3 id="warning-note">Warning Note<a class="headerlink" href="#warning-note" title="Permanent link">#</a></h3>
+<p>Warning note blocks should generally be used when a note provides information that the user will need to avoid certain errors, however if these errors are encountered they should not break anything or cause irreversible changes.</p>
+<p>To add a warning note, use <code>~&gt; **Note:**</code>, within the Terraform registry documentation this will template as a block with a warning icon.</p>
+<p>For example, an argument that is optional but required when another argument is set to <code>true</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="k">*</span><span class="w"> </span><span class="sb">`optional_argument_enabled`</span> - (Optional) Is the optional argument enabled? Defaults to <span class="sb">`false`</span>.
+
+<span class="k">*</span><span class="w"> </span><span class="sb">`optional_argument`</span> - (Optional) An optional argument.
+
+~&gt; <span class="gs">**Note:**</span> The argument <span class="sb">`optional_argument`</span> is required when <span class="sb">`optional_argument_enabled`</span> is set to <span class="sb">`true`</span>.
+</code></pre></div>
+<h3 id="caution-note">Caution Note<a class="headerlink" href="#caution-note" title="Permanent link">#</a></h3>
+<p>Caution note blocks should generally be used when a note provides critical information on potential irreversible changes, data loss or other things that can negatively affect a user's environment.</p>
+<p>To add a caution note, use <code>!&gt; **Note:**</code>, within the Terraform registry documentation this will template as a block with a caution icon.</p>
+<p>For example, an argument that when set to <code>true</code> cannot be reversed without recreating the resource:</p>
+<div class="highlight"><pre><span></span><code><span class="k">*</span><span class="w"> </span><span class="sb">`irreversible_argument_enabled`</span> - (Optional) Is irreversible argument enabled? Defaults to <span class="sb">`false`</span>.
+
+!&gt; <span class="gs">**Note:**</span> The argument <span class="sb">`irreversible_argument_enabled`</span> cannot be disabled after being enabled.
+</code></pre></div>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var tab,labels=set.querySelector(".tabbed-labels");for(tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      HashiCorp
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.e5c33ebb.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.51d95adb.min.js"></script>
+      
+    
+  </body>
+</html>
