@@ -65,21 +65,6 @@ func TestAccServiceConnectorKubernetesClusterCosmosdb_servicePrincipalSecretAuth
 	})
 }
 
-func TestAccServiceConnectorKubernetesClusterCosmosdb_userAssignedIdentity(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_connection", "test")
-	r := ServiceConnectorKubernetesClusterResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.cosmosdbWithUserAssignedIdentity(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep("authentication"),
-	})
-}
-
 func TestAccServiceConnectorKubernetesClusterStorageBlob_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster_connection", "test")
 	r := ServiceConnectorKubernetesClusterResource{}
@@ -91,7 +76,7 @@ func TestAccServiceConnectorKubernetesClusterStorageBlob_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("authentication"),
 	})
 }
 
@@ -106,7 +91,7 @@ func TestAccServiceConnectorKubernetesClusterStorageBlob_secretStore(t *testing.
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("authentication"),
 	})
 }
 
@@ -121,7 +106,7 @@ func TestAccServiceConnectorKubernetesCluster_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
+		data.ImportStep("authentication"),
 	})
 }
 
@@ -154,6 +139,12 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "standard_a2_v2"
+
+    upgrade_settings {
+      max_surge                     = "10%%"
+      drain_timeout_in_minutes      = 0
+      node_soak_duration_in_minutes = 0
+    }
   }
 
   identity {
@@ -217,32 +208,6 @@ resource "azurerm_kubernetes_cluster_connection" "test" {
 `, template, data.RandomString, data.RandomInteger)
 }
 
-func (r ServiceConnectorKubernetesClusterResource) cosmosdbWithUserAssignedIdentity(data acceptance.TestData) string {
-	template := r.template(data)
-	return fmt.Sprintf(`
-%[1]s
-
-data "azurerm_subscription" "test" {}
-
-resource "azurerm_user_assigned_identity" "test" {
-  name                = "acctest%[2]s"
-  resource_group_name = azurerm_resource_group.test.name
-  location            = azurerm_resource_group.test.location
-}
-
-resource "azurerm_kubernetes_cluster_connection" "test" {
-  name                  = "acctestserviceconnector%[3]d"
-  kubernetes_cluster_id = azurerm_kubernetes_cluster.test.id
-  target_resource_id    = azurerm_cosmosdb_sql_database.test.id
-  authentication {
-    type            = "userAssignedIdentity"
-    subscription_id = data.azurerm_subscription.test.subscription_id
-    client_id       = azurerm_user_assigned_identity.test.client_id
-  }
-}
-`, template, data.RandomString, data.RandomInteger)
-}
-
 func (r ServiceConnectorKubernetesClusterResource) secretStore(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -280,10 +245,20 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "standard_a2_v2"
+
+    upgrade_settings {
+      max_surge                     = "10%%"
+      drain_timeout_in_minutes      = 0
+      node_soak_duration_in_minutes = 0
+    }
   }
 
   identity {
     type = "SystemAssigned"
+  }
+
+  key_vault_secrets_provider {
+    secret_rotation_enabled = true
   }
 }
 
@@ -369,6 +344,12 @@ resource "azurerm_kubernetes_cluster" "test" {
     name       = "default"
     node_count = 1
     vm_size    = "standard_a2_v2"
+
+    upgrade_settings {
+      max_surge                     = "10%%"
+      drain_timeout_in_minutes      = 0
+      node_soak_duration_in_minutes = 0
+    }
   }
 
   identity {

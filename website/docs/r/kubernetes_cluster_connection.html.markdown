@@ -105,19 +105,17 @@ The following arguments are supported:
 
 An `authentication` block supports the following:
 
-* `type` - (Required) The authentication type. Possible values are `userAssignedIdentity`, `servicePrincipalSecret`, `servicePrincipalCertificate`, `secret`. Changing this forces a new resource to be created.
+* `type` - (Required) The authentication type. Possible values are `systemAssignedIdentity`, `servicePrincipalSecret`, `servicePrincipalCertificate`, `secret`. Changing this forces a new resource to be created.
 
 * `certificate` - (Optional) The certificate for `servicePrincipalCertificate` authentication. Should be specified when `type` is set to `servicePrincipalCertificate`.
 
-* `client_id` - (Optional) The client ID for `userAssignedIdentity` or `servicePrincipalSecret` authentication. Should be specified when `type` is set to `servicePrincipalSecret` or `userAssignedIdentity`.
+* `client_id` - (Optional) The client ID for `servicePrincipalSecret` authentication. Should be specified when `type` is set to `servicePrincipalSecret`.
 
 * `name` - (Optional) The name of the secret for `secret` authentication. Should be specified when `type` is set to `secret`.
 
 * `principal_id` - (Optional) The principal ID for `servicePrincipalSecret` authentication. Should be specified when `type` is set to `servicePrincipalSecret`.
 
 * `secret` - (Optional) The secret for `secret` or `servicePrincipalSecret` authentication. Should be specified when `type` is set to `secret` or `servicePrincipalSecret`.
-
-* `subscription_id` - (Optional) The subscription ID for `userAssignedIdentity` authentication. Should be specified when `type` is set to `userAssignedIdentity`.
 
 ---
 
