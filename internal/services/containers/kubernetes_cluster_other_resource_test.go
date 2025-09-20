@@ -1340,7 +1340,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     vm_size              = "Standard_DS2_v2"
     auto_scaling_enabled = true
     min_count            = 1
-    max_count            = 399
+    max_count            = 100
     node_count           = 1
     upgrade_settings {
       max_surge = "10%%"

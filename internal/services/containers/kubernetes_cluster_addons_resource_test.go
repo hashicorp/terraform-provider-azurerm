@@ -308,45 +308,32 @@ func TestAccKubernetesCluster_addonProfileServiceMeshProfile_certificateAuthorit
 }
 
 func TestAccKubernetesCluster_addonProfileServiceMeshProfile_revisions(t *testing.T) {
+	// retrieve available revisions using `az aks mesh get-revisions --location {location}`
+	// TODO: function to make the revision dynamic so we don't have to keep updating it
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-22"]`),
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-25"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-22", "asm-1-23"]`),
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-25", "asm-1-26"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
 		data.ImportStep(),
 		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-20"]`),
+			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-25"]`),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep(),
-		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-20", "asm-1-21"]`),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.addonProfileServiceMeshProfileRevisionsConfig(data, `["asm-1-21"]`),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
 	})
 }
 
@@ -1454,7 +1441,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     mode                             = "Istio"
     internal_ingress_gateway_enabled = true
     external_ingress_gateway_enabled = true
-    revisions                        = ["asm-1-20"]
+    revisions                        = ["asm-1-26"]
     certificate_authority {
       key_vault_id           = azurerm_key_vault.test.id
       root_cert_object_name  = azurerm_key_vault_certificate.test_cert1.name
