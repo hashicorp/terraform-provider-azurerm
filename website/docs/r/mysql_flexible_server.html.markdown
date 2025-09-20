@@ -165,6 +165,8 @@ A `customer_managed_key` block supports the following:
 
 ~> **Note:** `primary_user_assigned_identity_id` or `geo_backup_user_assigned_identity_id` is required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
 
+* `managed_hsm_key_id` - (Optional) The ID of the Managed HSM Key.
+
 ---
 
 An `identity` block supports the following:
