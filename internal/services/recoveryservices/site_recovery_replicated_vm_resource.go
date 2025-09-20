@@ -29,6 +29,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	keyVaultValidate "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
@@ -41,7 +42,7 @@ import (
 )
 
 func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	resource := &pluginsdk.Resource{
 		Create: resourceSiteRecoveryReplicatedItemCreate,
 		Read:   resourceSiteRecoveryReplicatedItemRead,
 		Update: resourceSiteRecoveryReplicatedItemUpdate,
@@ -294,7 +295,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			},
 
 			"network_interface": {
-				Type:       pluginsdk.TypeSet, // use set to avoid diff caused by different orders.
+				Type:       pluginsdk.TypeList,
 				Optional:   true,
 				Computed:   true,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
@@ -302,10 +303,12 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			},
 		},
 	}
+
+	return resource
 }
 
 func networkInterfaceResource() *pluginsdk.Resource {
-	return &pluginsdk.Resource{
+	nicSchema := &pluginsdk.Resource{
 		Schema: map[string]*pluginsdk.Schema{
 			"source_network_interface_id": {
 				Type:         pluginsdk.TypeString,
@@ -314,61 +317,143 @@ func networkInterfaceResource() *pluginsdk.Resource {
 				ValidateFunc: azure.ValidateResourceID,
 			},
 
-			"failover_test_static_ip": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ForceNew:     false,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
+			"ip_configuration": {
+				Type:       pluginsdk.TypeList,
+				Optional:   true,
+				ConfigMode: pluginsdk.SchemaConfigModeAttr,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"name": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+						},
 
-			"target_static_ip": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     false,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
+						"failover_test_static_ip": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
 
-			"failover_test_subnet_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ForceNew:     false,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
+						"target_static_ip": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
 
-			"target_subnet_name": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     false,
-				ValidateFunc: validation.StringIsNotEmpty,
-			},
+						"failover_test_subnet_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
 
-			"failover_test_public_ip_address_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				Computed:     true,
-				ForceNew:     false,
-				ValidateFunc: azure.ValidateResourceID,
-			},
+						"target_subnet_name": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: validation.StringIsNotEmpty,
+						},
 
-			"recovery_load_balancer_backend_address_pool_ids": {
-				Type:     pluginsdk.TypeSet,
-				Optional: true,
-				Elem: &pluginsdk.Schema{
-					Type:         pluginsdk.TypeString,
-					ValidateFunc: loadbalancers.ValidateLoadBalancerBackendAddressPoolID,
+						"failover_test_public_ip_address_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+
+						"recovery_load_balancer_backend_address_pool_ids": {
+							Type:     pluginsdk.TypeSet,
+							Optional: true,
+							Elem: &pluginsdk.Schema{
+								Type:         pluginsdk.TypeString,
+								ValidateFunc: loadbalancers.ValidateLoadBalancerBackendAddressPoolID,
+							},
+						},
+
+						"recovery_public_ip_address_id": {
+							Type:         pluginsdk.TypeString,
+							Optional:     true,
+							ValidateFunc: azure.ValidateResourceID,
+						},
+
+						"is_primary": {
+							Type:     pluginsdk.TypeBool,
+							Optional: true,
+						},
+					},
 				},
-			},
-
-			"recovery_public_ip_address_id": {
-				Type:         pluginsdk.TypeString,
-				Optional:     true,
-				ForceNew:     false,
-				ValidateFunc: azure.ValidateResourceID,
 			},
 		},
 	}
+
+	if !features.FivePointOh() {
+		nicSchema.Schema["ip_configuration"].Computed = true
+
+		nicSchema.Schema["failover_test_static_ip"] = &pluginsdk.Schema{
+			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_configuration`",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		}
+
+		nicSchema.Schema["target_static_ip"] = &pluginsdk.Schema{
+			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_configuration`",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		}
+
+		nicSchema.Schema["failover_test_subnet_name"] = &pluginsdk.Schema{
+			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_configuration`",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		}
+
+		nicSchema.Schema["failover_test_subnet_name"] = &pluginsdk.Schema{
+			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_configuration`",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		}
+
+		nicSchema.Schema["target_subnet_name"] = &pluginsdk.Schema{
+			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_configuration`",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: validation.StringIsNotEmpty,
+		}
+
+		nicSchema.Schema["failover_test_public_ip_address_id"] = &pluginsdk.Schema{
+			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_configuration`",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: azure.ValidateResourceID,
+		}
+
+		nicSchema.Schema["recovery_load_balancer_backend_address_pool_ids"] = &pluginsdk.Schema{
+			Deprecated: "this property has been deprecated in favour of `network_interface.ip_configuration`",
+			Type:       pluginsdk.TypeSet,
+			Optional:   true,
+			Computed:   true,
+			Elem: &pluginsdk.Schema{
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: loadbalancers.ValidateLoadBalancerBackendAddressPoolID,
+			},
+		}
+
+		nicSchema.Schema["recovery_public_ip_address_id"] = &pluginsdk.Schema{
+			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_configuration`",
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Computed:     true,
+			ValidateFunc: azure.ValidateResourceID,
+		}
+	}
+	return nicSchema
 }
 
 func diskEncryptionResource() *pluginsdk.Resource {
@@ -554,39 +639,16 @@ func resourceSiteRecoveryReplicatedItemUpdateInternal(ctx context.Context, d *pl
 		targetAvailabilitySetID = nil
 	}
 
-	nicList := d.Get("network_interface").(*pluginsdk.Set).List()
+	nicList := d.Get("network_interface").([]interface{})
 	vmNics := make([]replicationprotecteditems.VMNicInputDetails, 0, len(nicList))
 	for _, raw := range nicList {
 		vmNicInput := raw.(map[string]interface{})
 		sourceNicId := vmNicInput["source_network_interface_id"].(string)
-		targetStaticIp := vmNicInput["target_static_ip"].(string)
-		targetSubnetName := vmNicInput["target_subnet_name"].(string)
-		recoveryPublicIPAddressID := vmNicInput["recovery_public_ip_address_id"].(string)
-		testStaticIp := vmNicInput["failover_test_static_ip"].(string)
-		testSubNetName := vmNicInput["failover_test_subnet_name"].(string)
-		testPublicIpAddressID := vmNicInput["failover_test_public_ip_address_id"].(string)
-
-		var recoveryLoadBalancerBackendPoolIds *[]string
-		if ids, ok := vmNicInput["recovery_load_balancer_backend_address_pool_ids"].(*schema.Set); ok && ids.Len() > 0 {
-			recoveryLoadBalancerBackendPoolIds = utils.ExpandStringSlice(ids.List())
-		}
-
 		nicId := findNicId(state, sourceNicId)
 		if nicId == nil {
 			return fmt.Errorf("updating replicated vm %s (vault %s): Trying to update NIC that is not known by Azure %s", name, vaultName, sourceNicId)
 		}
-		ipConfig := []replicationprotecteditems.IPConfigInputDetails{
-			{
-				RecoverySubnetName:              &targetSubnetName,
-				RecoveryStaticIPAddress:         &targetStaticIp,
-				RecoveryLBBackendAddressPoolIds: recoveryLoadBalancerBackendPoolIds,
-				RecoveryPublicIPAddressId:       &recoveryPublicIPAddressID,
-				TfoStaticIPAddress:              &testStaticIp,
-				TfoPublicIPAddressId:            &testPublicIpAddressID,
-				TfoSubnetName:                   &testSubNetName,
-				IsPrimary:                       utils.Bool(true), // currently we can only set one IPconfig for a nic, so we dont need to expose this to users.
-			},
-		}
+		ipConfig := expandSiteRecoveryReplicatedVMIPConfig(vmNicInput)
 		vmNics = append(vmNics, replicationprotecteditems.VMNicInputDetails{
 			NicId:     nicId,
 			IPConfigs: &ipConfig,
@@ -911,32 +973,38 @@ func resourceSiteRecoveryReplicatedItemRead(d *pluginsdk.ResourceData, meta inte
 						nicOutput["source_network_interface_id"] = *nic.SourceNicArmId
 					}
 					if nic.IPConfigs != nil && len(*(nic.IPConfigs)) > 0 {
-						ipConfig := (*(nic.IPConfigs))[0]
-						if ipConfig.RecoveryStaticIPAddress != nil {
-							nicOutput["target_static_ip"] = *ipConfig.RecoveryStaticIPAddress
-						}
-						if ipConfig.RecoverySubnetName != nil {
-							nicOutput["target_subnet_name"] = *ipConfig.RecoverySubnetName
-						}
-						if ipConfig.RecoveryLBBackendAddressPoolIds != nil {
-							nicOutput["recovery_load_balancer_backend_address_pool_ids"] = schema.NewSet(schema.HashString, utils.FlattenStringSlice(ipConfig.RecoveryLBBackendAddressPoolIds))
-						}
-						if ipConfig.RecoveryPublicIPAddressId != nil {
-							nicOutput["recovery_public_ip_address_id"] = *ipConfig.RecoveryPublicIPAddressId
-						}
-						if ipConfig.TfoStaticIPAddress != nil {
-							nicOutput["failover_test_static_ip"] = *ipConfig.TfoStaticIPAddress
-						}
-						if ipConfig.TfoSubnetName != nil {
-							nicOutput["failover_test_subnet_name"] = *ipConfig.TfoSubnetName
-						}
-						if ipConfig.TfoPublicIPAddressId != nil {
-							nicOutput["failover_test_public_ip_address_id"] = *ipConfig.TfoPublicIPAddressId
+						nicOutput["ip_configuration"] = flattenSiteRecoveryReplicatedVMIPConfig(nic.IPConfigs)
+						if !features.FivePointOh() {
+							ipConfig := (*(nic.IPConfigs))[0]
+							if ipConfig.RecoveryStaticIPAddress != nil {
+								nicOutput["target_static_ip"] = *ipConfig.RecoveryStaticIPAddress
+							}
+							if ipConfig.RecoverySubnetName != nil {
+								nicOutput["target_subnet_name"] = *ipConfig.RecoverySubnetName
+							}
+							if ipConfig.RecoveryLBBackendAddressPoolIds != nil {
+								nicOutput["recovery_load_balancer_backend_address_pool_ids"] = schema.NewSet(schema.HashString, utils.FlattenStringSlice(ipConfig.RecoveryLBBackendAddressPoolIds))
+							}
+							if ipConfig.RecoveryPublicIPAddressId != nil {
+								nicOutput["recovery_public_ip_address_id"] = *ipConfig.RecoveryPublicIPAddressId
+							}
+							if ipConfig.TfoStaticIPAddress != nil {
+								nicOutput["failover_test_static_ip"] = *ipConfig.TfoStaticIPAddress
+							}
+							if ipConfig.TfoSubnetName != nil {
+								nicOutput["failover_test_subnet_name"] = *ipConfig.TfoSubnetName
+							}
+							if ipConfig.TfoPublicIPAddressId != nil {
+								nicOutput["failover_test_public_ip_address_id"] = *ipConfig.TfoPublicIPAddressId
+							}
 						}
 					}
 					nicsOutput = append(nicsOutput, nicOutput)
 				}
-				d.Set("network_interface", pluginsdk.NewSet(pluginsdk.HashResource(networkInterfaceResource()), nicsOutput))
+
+				if err := d.Set("network_interface", nicsOutput); err != nil {
+					return fmt.Errorf("setting `network_interface`: %v", err)
+				}
 			}
 		}
 	}
@@ -1057,6 +1125,84 @@ func waitForReplicationToBeHealthyRefreshFunc(d *pluginsdk.ResourceData, meta in
 		}
 		return *resp.Model, *resp.Model.Properties.ReplicationHealth, nil
 	}
+}
+
+func expandSiteRecoveryReplicatedVMIPConfig(nicInput map[string]interface{}) []replicationprotecteditems.IPConfigInputDetails {
+	output := []replicationprotecteditems.IPConfigInputDetails{}
+	ipConfigs := nicInput["ip_configuration"].([]interface{})
+	if len(ipConfigs) > 0 {
+		for _, ipConfig := range ipConfigs {
+			ipConfig := ipConfig.(map[string]interface{})
+			var recoveryLoadBalancerBackendPoolIds *[]string
+			if ids, ok := nicInput["recovery_load_balancer_backend_address_pool_ids"].(*schema.Set); ok && ids.Len() > 0 {
+				recoveryLoadBalancerBackendPoolIds = utils.ExpandStringSlice(ids.List())
+			}
+			output = append(output, replicationprotecteditems.IPConfigInputDetails{
+				IPConfigName:                    pointer.To(ipConfig["name"].(string)),
+				RecoverySubnetName:              pointer.To(ipConfig["target_subnet_name"].(string)),
+				RecoveryStaticIPAddress:         pointer.To(ipConfig["target_static_ip"].(string)),
+				RecoveryLBBackendAddressPoolIds: recoveryLoadBalancerBackendPoolIds,
+				RecoveryPublicIPAddressId:       pointer.To(ipConfig["recovery_public_ip_address_id"].(string)),
+				TfoStaticIPAddress:              pointer.To(ipConfig["failover_test_static_ip"].(string)),
+				TfoSubnetName:                   pointer.To(ipConfig["failover_test_subnet_name"].(string)),
+				TfoPublicIPAddressId:            pointer.To(ipConfig["failover_test_public_ip_address_id"].(string)),
+				IsPrimary:                       pointer.To(ipConfig["is_primary"].(bool)),
+			})
+		}
+		return output
+	}
+
+	if !features.FivePointOh() {
+		targetStaticIp := nicInput["target_static_ip"].(string)
+		targetSubnetName := nicInput["target_subnet_name"].(string)
+		recoveryPublicIPAddressID := nicInput["recovery_public_ip_address_id"].(string)
+		testStaticIp := nicInput["failover_test_static_ip"].(string)
+		testSubNetName := nicInput["failover_test_subnet_name"].(string)
+		testPublicIpAddressID := nicInput["failover_test_public_ip_address_id"].(string)
+
+		var recoveryLoadBalancerBackendPoolIds *[]string
+		if ids, ok := nicInput["recovery_load_balancer_backend_address_pool_ids"].(*schema.Set); ok && ids.Len() > 0 {
+			recoveryLoadBalancerBackendPoolIds = utils.ExpandStringSlice(ids.List())
+		}
+
+		if targetStaticIp != "" || targetSubnetName != "" || recoveryPublicIPAddressID != "" || testSubNetName != "" || testStaticIp != "" || testPublicIpAddressID != "" {
+			return append(output, replicationprotecteditems.IPConfigInputDetails{
+				RecoverySubnetName:              &targetSubnetName,
+				RecoveryStaticIPAddress:         &targetStaticIp,
+				RecoveryLBBackendAddressPoolIds: recoveryLoadBalancerBackendPoolIds,
+				RecoveryPublicIPAddressId:       &recoveryPublicIPAddressID,
+				TfoStaticIPAddress:              &testStaticIp,
+				TfoPublicIPAddressId:            &testPublicIpAddressID,
+				TfoSubnetName:                   &testSubNetName,
+				IsPrimary:                       utils.Bool(true),
+			})
+		}
+	}
+	return output
+}
+
+func flattenSiteRecoveryReplicatedVMIPConfig(ipConfigs *[]replicationprotecteditems.IPConfigDetails) []interface{} {
+	outputs := make([]interface{}, 0)
+
+	if ipConfigs != nil {
+		for _, ipConfig := range *ipConfigs {
+			output := map[string]interface{}{
+				"name":                               pointer.From(ipConfig.Name),
+				"is_primary":                         pointer.From(ipConfig.IsPrimary),
+				"target_static_ip":                   pointer.From(ipConfig.RecoveryStaticIPAddress),
+				"target_subnet_name":                 pointer.From(ipConfig.RecoverySubnetName),
+				"recovery_public_ip_address_id":      pointer.From(ipConfig.RecoveryPublicIPAddressId),
+				"failover_test_static_ip":            pointer.From(ipConfig.TfoStaticIPAddress),
+				"failover_test_subnet_name":          pointer.From(ipConfig.TfoSubnetName),
+				"failover_test_public_ip_address_id": pointer.From(ipConfig.TfoPublicIPAddressId),
+			}
+			if ipConfig.RecoveryLBBackendAddressPoolIds != nil {
+				output["recovery_load_balancer_backend_address_pool_ids"] = utils.FlattenStringSlice(ipConfig.RecoveryLBBackendAddressPoolIds)
+			}
+			outputs = append(outputs, output)
+		}
+	}
+	return outputs
 }
 
 func expandDiskEncryption(diskEncryptionInfoList []interface{}) *replicationprotecteditems.DiskEncryptionInfo {
