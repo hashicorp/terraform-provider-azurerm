@@ -17,7 +17,7 @@ func init() {
 
 var _ resourceids.ResourceId = &ExadbVMClusterId{}
 
-// ExadbVMClusterId is a struct representing the Resource ID for a Exadb V M Cluster
+// ExadbVMClusterId is a struct representing the Resource ID for a Exadb VM Cluster
 type ExadbVMClusterId struct {
 	SubscriptionId     string
 	ResourceGroupName  string
@@ -84,7 +84,7 @@ func (id *ExadbVMClusterId) FromParseResult(input resourceids.ParseResult) error
 	return nil
 }
 
-// ValidateExadbVMClusterID checks that 'input' can be parsed as a Exadb V M Cluster ID
+// ValidateExadbVMClusterID checks that 'input' can be parsed as a Exadb VM Cluster ID
 func ValidateExadbVMClusterID(input interface{}, key string) (warnings []string, errors []error) {
 	v, ok := input.(string)
 	if !ok {
@@ -99,13 +99,13 @@ func ValidateExadbVMClusterID(input interface{}, key string) (warnings []string,
 	return
 }
 
-// ID returns the formatted Exadb V M Cluster ID
+// ID returns the formatted Exadb VM Cluster ID
 func (id ExadbVMClusterId) ID() string {
 	fmtString := "/subscriptions/%s/resourceGroups/%s/providers/Oracle.Database/exadbVmClusters/%s"
 	return fmt.Sprintf(fmtString, id.SubscriptionId, id.ResourceGroupName, id.ExadbVmClusterName)
 }
 
-// Segments returns a slice of Resource ID Segments which comprise this Exadb V M Cluster ID
+// Segments returns a slice of Resource ID Segments which comprise this Exadb VM Cluster ID
 func (id ExadbVMClusterId) Segments() []resourceids.Segment {
 	return []resourceids.Segment{
 		resourceids.StaticSegment("staticSubscriptions", "subscriptions", "subscriptions"),
@@ -119,12 +119,12 @@ func (id ExadbVMClusterId) Segments() []resourceids.Segment {
 	}
 }
 
-// String returns a human-readable description of this Exadb V M Cluster ID
+// String returns a human-readable description of this Exadb VM Cluster ID
 func (id ExadbVMClusterId) String() string {
 	components := []string{
 		fmt.Sprintf("Subscription: %q", id.SubscriptionId),
 		fmt.Sprintf("Resource Group Name: %q", id.ResourceGroupName),
 		fmt.Sprintf("Exadb Vm Cluster Name: %q", id.ExadbVmClusterName),
 	}
-	return fmt.Sprintf("Exadb V M Cluster (%s)", strings.Join(components, "\n"))
+	return fmt.Sprintf("Exadb VM Cluster (%s)", strings.Join(components, "\n"))
 }

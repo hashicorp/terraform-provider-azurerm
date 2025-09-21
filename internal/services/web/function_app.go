@@ -309,7 +309,7 @@ func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, e
 	}
 
 	if storageAccountName == "" && storageAccountKey == "" {
-		return nil, fmt.Errorf("Both `storage_account_name` and `storage_account_access_key` must be specified")
+		return nil, fmt.Errorf("both `storage_account_name` and `storage_account_access_key` must be specified")
 	}
 
 	if (storageAccountName == "" && storageAccountKey != "") || (storageAccountName != "" && storageAccountKey == "") {
@@ -355,7 +355,7 @@ func getBasicFunctionAppAppSettings(d *pluginsdk.ResourceData, appServiceTier, e
 
 	// On consumption and premium plans include WEBSITE_CONTENT components, unless it's a Linux consumption plan
 	// Note: The docs on this are misleading. Premium here refers explicitly to `ElasticPremium`, and not `PremiumV2` / `PremiumV3` etc.
-	if !(strings.EqualFold(appServiceTier, "dynamic") && strings.EqualFold(d.Get("os_type").(string), "linux")) &&
+	if (!strings.EqualFold(appServiceTier, "dynamic") || !strings.EqualFold(d.Get("os_type").(string), "linux")) &&
 		(strings.EqualFold(appServiceTier, "dynamic") || strings.HasPrefix(strings.ToLower(appServiceTier), "elastic")) {
 		return append(basicSettings, consumptionSettings...), nil
 	}
@@ -382,7 +382,7 @@ func getFunctionAppServiceTier(ctx context.Context, appServicePlanId string, met
 			return *tier, nil
 		}
 	}
-	return "", fmt.Errorf("No `sku` block was returned for App Service Plan ID %q", appServicePlanId)
+	return "", fmt.Errorf("no `sku` block was returned for App Service Plan ID %q", appServicePlanId)
 }
 
 func expandFunctionAppAppSettings(d *pluginsdk.ResourceData, basicAppSettings []web.NameValuePair) map[string]*string {

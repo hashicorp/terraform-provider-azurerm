@@ -6,7 +6,7 @@ description: |-
   Get information about an existing Network Manager.
 ---
 
-# azurerm_network_manager
+# Data Source: azurerm_network_manager
 
 Use this data source to access information about a Network Manager.
 

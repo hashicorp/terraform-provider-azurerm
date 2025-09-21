@@ -168,7 +168,7 @@ func resourceAppService() *pluginsdk.Resource {
 
 			"source_control": schemaAppServiceSiteSourceControl(),
 
-			"tags": tags.Schema(),
+			"tags": commonschema.Tags(),
 
 			"site_credential": {
 				Type:     pluginsdk.TypeList,
@@ -263,7 +263,7 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	aspDetails, err := aspClient.Get(ctx, aspID.ResourceGroup, aspID.ServerFarmName)
 	// 404 is incorrectly being considered an acceptable response, issue tracked at https://github.com/Azure/azure-sdk-for-go/issues/15002
 	if err != nil || utils.ResponseWasNotFound(aspDetails.Response) {
-		return fmt.Errorf("App Service Environment %q or Resource Group %q does not exist", aspID.ServerFarmName, aspID.ResourceGroup)
+		return fmt.Errorf("'App Service Environment' %q or Resource Group %q does not exist", aspID.ServerFarmName, aspID.ResourceGroup)
 	}
 	if aspDetails.HostingEnvironmentProfile != nil {
 		availabilityRequest.Name = utils.String(fmt.Sprintf("%s.%s.appserviceenvironment.net", id.SiteName, *aspDetails.HostingEnvironmentProfile.Name))
@@ -275,7 +275,7 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if !*available.NameAvailable {
-		return fmt.Errorf("The name %q used for the App Service needs to be globally unique and isn't available: %s", id.SiteName, *available.Message)
+		return fmt.Errorf("the name %q used for the App Service needs to be globally unique and isn't available: %s", id.SiteName, *available.Message)
 	}
 
 	location := azure.NormalizeLocation(d.Get("location").(string))
@@ -300,7 +300,7 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
-		siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(v.(string))
+		siteEnvelope.KeyVaultReferenceIdentity = utils.String(v.(string))
 	}
 
 	if _, ok := d.GetOk("identity"); ok {
@@ -311,12 +311,12 @@ func resourceAppServiceCreate(d *pluginsdk.ResourceData, meta interface{}) error
 		siteEnvelope.Identity = appServiceIdentity
 	}
 
-	siteEnvelope.SiteProperties.ClientAffinityEnabled = utils.Bool(d.Get("client_affinity_enabled").(bool))
+	siteEnvelope.ClientAffinityEnabled = utils.Bool(d.Get("client_affinity_enabled").(bool))
 
-	siteEnvelope.SiteProperties.ClientCertEnabled = utils.Bool(d.Get("client_cert_enabled").(bool))
-	if *siteEnvelope.SiteProperties.ClientCertEnabled {
+	siteEnvelope.ClientCertEnabled = utils.Bool(d.Get("client_cert_enabled").(bool))
+	if *siteEnvelope.ClientCertEnabled {
 		if clientCertMode, ok := d.GetOk("client_cert_mode"); ok {
-			siteEnvelope.SiteProperties.ClientCertMode = web.ClientCertMode(clientCertMode.(string))
+			siteEnvelope.ClientCertMode = web.ClientCertMode(clientCertMode.(string))
 		}
 	}
 
@@ -426,14 +426,14 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 	}
 
 	if v, ok := d.GetOk("key_vault_reference_identity_id"); ok {
-		siteEnvelope.SiteProperties.KeyVaultReferenceIdentity = utils.String(v.(string))
+		siteEnvelope.KeyVaultReferenceIdentity = utils.String(v.(string))
 	}
 
-	siteEnvelope.SiteProperties.ClientCertEnabled = utils.Bool(d.Get("client_cert_enabled").(bool))
+	siteEnvelope.ClientCertEnabled = utils.Bool(d.Get("client_cert_enabled").(bool))
 
-	if *siteEnvelope.SiteProperties.ClientCertEnabled {
+	if *siteEnvelope.ClientCertEnabled {
 		if clientCertMode, ok := d.GetOk("client_cert_mode"); ok {
-			siteEnvelope.SiteProperties.ClientCertMode = web.ClientCertMode(clientCertMode.(string))
+			siteEnvelope.ClientCertMode = web.ClientCertMode(clientCertMode.(string))
 		}
 	}
 
@@ -464,7 +464,7 @@ func resourceAppServiceUpdate(d *pluginsdk.ResourceData, meta interface{}) error
 		scmType = siteConfig.ScmType
 		// ScmType being set blocks the update of source_control in _most_ cases, ADO is an exception
 		if hasSourceControl && scmType != web.ScmTypeVSTSRM {
-			siteConfigResource.SiteConfig.ScmType = web.ScmTypeNone
+			siteConfigResource.ScmType = web.ScmTypeNone
 		}
 
 		if _, err := client.CreateOrUpdateConfiguration(ctx, id.ResourceGroup, id.SiteName, siteConfigResource); err != nil {

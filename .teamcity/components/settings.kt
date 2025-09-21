@@ -90,7 +90,7 @@ var serviceTestConfigurationOverrides = mapOf(
         "datafactory" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "westus2", false)),
 
         // Dev Center only available in some regions / has a quota of 5
-        "devcenter" to testConfiguration(parallelism = 4, locationOverride = LocationConfiguration("westeurope", "uksouth", "canadacentral", false)),
+        "devcenter" to testConfiguration(parallelism = 2, locationOverride = LocationConfiguration("westeurope", "uksouth", "canadacentral", true)),
 
         // "hdinsight" is super expensive - G class VM's are not available in westus2, quota only available in westeurope currently
         "hdinsight" to testConfiguration(daysOfWeek = "2,4,6", locationOverride = LocationConfiguration("westeurope", "southeastasia", "eastus2", false)),
@@ -149,8 +149,11 @@ var serviceTestConfigurationOverrides = mapOf(
         // Network Regional Tire Public IP is only available in
         "network" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus2", "westus", false), timeout = 24),
 
-        // Orbital is only available in certain locations
-        "orbital" to testConfiguration(locationOverride = LocationConfiguration("eastus", "southcentralus", "westus2", false)),
+        // oracle can't be schedule tested on the acctest subscription due to licencing limitations, results in build agent deadlock due to no tests.
+        "oracle" to testConfiguration(disableTriggers = true),
+
+        // Orbital is deprecated and can no longer be created - to be removed along with service ref: https://azure.microsoft.com/en-gb/updates?id=azure-orbital-ground-station-retirement
+        "orbital" to testConfiguration(locationOverride = LocationConfiguration("eastus", "southcentralus", "westus2", false), disableTriggers = true),
 
         "paloalto" to testConfiguration(locationOverride = LocationConfiguration("westeurope", "eastus", "westus", false)),
 

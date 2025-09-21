@@ -145,7 +145,7 @@ func (ResourceGroupExampleResource) Arguments() map[string]*pluginsdk.Schema {
 
         "location": commonschema.Location(),
 
-        "tags": tags.Schema(),
+        "tags": commonschema.Tags(),
     }
 }
 
@@ -594,8 +594,6 @@ func (ResourceGroupExampleResource) IDValidationFunc() pluginsdk.SchemaValidateF
 }
 ```
 
-At this point in time this Resource is now code-complete.
-
 Things worth noting here:
 
 - In addition to the `sdk.Resource` interface, we also have other interfaces, such as the `sdk.ResourceWithUpdate` interface, which includes an `update` method. Since these interfaces inherit from `sdk.Resource`, you do not need to redefine the `sdk.Resource` interface when defining them.
@@ -639,7 +637,11 @@ func (ResourceGroupExampleResource) expandComplexResource(input []ComplexResourc
 
 - Historically, we used `pluginsdk.StateChangeConf` to address certain issues related to LRO APIs. This method has now been deprecated and replaced by custom pollers. Please refer to this [example](https://github.com/hashicorp/terraform-provider-azurerm/blob/main/internal/services/maps/custompollers/maps_account_poller.go).
 
-### Step 4: Register the new Resource
+### Step 4: Adding Resource Identity
+
+New resources should add support for Resource Identity, please reference the [Resource Identity](guide-resource-identity.md) guide.
+
+### Step 5: Register the new Resource
 
 Resources are registered within the `registration.go` within each Service Package - and should look something like this:
 
@@ -723,7 +725,7 @@ output "id" {
 }
 ```
 
-### Step 5: Add Acceptance Test(s) for this Resource
+### Step 6: Add Acceptance Test(s) for this Resource
 
 We're going to test the Resource that we've just built by dynamically provisioning a Resource Group using the new `azurerm_resource_group_example` Resource.
 
@@ -880,7 +882,7 @@ There's a more detailed breakdown of how this works [in the Acceptance Testing r
 
 At this point we should be able to run this test.
 
-### Step 6: Run the Acceptance Test(s)
+### Step 7: Run the Acceptance Test(s)
 
 Detailed [instructions on Running the Tests can be found in this guide](running-the-tests.md) - when a Service Principal is configured you can run the test above using:
 
@@ -913,7 +915,7 @@ PASS
 ok  	github.com/hashicorp/terraform-provider-azurerm/internal/services/resource	324.753s
 ```
 
-### Step 7: Add Documentation for this Resource
+### Step 8: Add Documentation for this Resource
 
 At this point in time documentation for each Resource (and Data Source) is written manually, located within the `./website` folder - in this case this will be located at `./website/docs/d/resource_group_example.html.markdown`.
 
@@ -983,6 +985,6 @@ terraform import azurerm_resource_group_example.example /subscriptions/00000000-
 ```
 ````
 
-### Step 8: Send the Pull Request
+### Step 9: Send the Pull Request
 
 See [our recommendations for opening a Pull Request](guide-opening-a-pr.md).
