@@ -55,6 +55,11 @@ func dataSourceEventGridTopic() *pluginsdk.Resource {
 			},
 
 			"tags": commonschema.TagsDataSource(),
+
+			"minimum_tls_version": {
+				Type:         pluginsdk.TypeString,
+				ValidateFunc: validation.StringInSlice(topics.PossibleValuesForTlsVersion(), false),
+			},
 		},
 	}
 }
@@ -91,6 +96,7 @@ func dataSourceEventGridTopicRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 		if props := model.Properties; props != nil {
 			d.Set("endpoint", props.Endpoint)
+			d.Set("minimum_tls_version", props.MinimumTlsVersionAllowed)
 		}
 
 		if err := tags.FlattenAndSet(d, model.Tags); err != nil {
