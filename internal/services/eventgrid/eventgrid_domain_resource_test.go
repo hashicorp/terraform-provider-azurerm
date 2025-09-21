@@ -191,6 +191,22 @@ func TestAccEventGridDomain_basicWithUserAssignedManagedIdentity(t *testing.T) {
 	})
 }
 
+func TestAccEventGridDomain_basicWithTlsMinimumVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_domain", "test")
+	r := EventGridDomainResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.complete(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("minimal_tls_version").HasValue("1.1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (EventGridDomainResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := domains.ParseDomainID(state.ID)
 	if err != nil {
@@ -449,6 +465,8 @@ resource "azurerm_eventgrid_domain" "test" {
     ip_mask = "10.1.0.0/16"
     action  = "Allow"
   }
+
+  minimal_tls_version = "1.1"
 
   input_schema = "CustomEventSchema"
 
