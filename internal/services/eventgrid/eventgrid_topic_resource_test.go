@@ -195,6 +195,22 @@ func TestAccEventGridTopic_basicWithUserAssignedManagedIdentity(t *testing.T) {
 	})
 }
 
+func TestAccEventGridTopic_minimumTlsVersion(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_eventgrid_topic", "test")
+	r := EventGridTopicResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.minimumTlsVersion(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (EventGridTopicResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := topics.ParseTopicID(state.ID)
 	if err != nil {
@@ -309,6 +325,30 @@ resource "azurerm_eventgrid_topic" "test" {
   name                = "acctesteg-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
+
+  tags = {
+    "foo" = "bar"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (EventGridTopicResource) minimumTlsVersion(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-%d"
+  location = "%s"
+}
+
+resource "azurerm_eventgrid_topic" "test" {
+  name                = "acctesteg-%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  minimum_tls_version = "1.1"
 
   tags = {
     "foo" = "bar"
