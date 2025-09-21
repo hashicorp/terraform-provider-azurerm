@@ -153,6 +153,67 @@ func TestAccManagedApplication_tags(t *testing.T) {
 	})
 }
 
+func TestAccManagedApplication_identity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
+	r := ManagedApplicationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("0"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.systemAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccManagedApplication_userAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
+	r := ManagedApplicationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.userAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccManagedApplication_systemAssignedUserAssignedIdentity(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_managed_application", "test")
+	r := ManagedApplicationResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.systemAssignedUserAssignedIdentity(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("identity.#").HasValue("1"),
+				check.That(data.ResourceName).Key("identity.0.type").HasValue("SystemAssigned, UserAssigned"),
+				check.That(data.ResourceName).Key("identity.0.identity_ids.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func (ManagedApplicationResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := applications.ParseApplicationID(state.ID)
 	if err != nil {
@@ -434,6 +495,104 @@ resource "azurerm_managed_application" "test" {
 
   tags = {
     ENV = "Test2"
+  }
+}
+`, r.templateStringParameter(data), data.RandomInteger)
+}
+
+func (r ManagedApplicationResource) systemAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_managed_application" "test" {
+  name                        = "acctestManagedApp%[2]d"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  kind                        = "ServiceCatalog"
+  managed_resource_group_name = "infraGroup%[2]d"
+  application_definition_id   = azurerm_managed_application_definition.test.id
+
+  parameter_values = jsonencode({
+    stringParameter = {
+      value = "value_1_from_parameter_values"
+    },
+    secureStringParameter = {
+      value = ""
+    }
+  })
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, r.templateStringParameter(data), data.RandomInteger)
+}
+
+func (r ManagedApplicationResource) userAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_managed_application" "test" {
+  name                        = "acctestManagedApp%[2]d"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  kind                        = "ServiceCatalog"
+  managed_resource_group_name = "infraGroup%[2]d"
+  application_definition_id   = azurerm_managed_application_definition.test.id
+
+  parameter_values = jsonencode({
+    stringParameter = {
+      value = "value_1_from_parameter_values"
+    },
+    secureStringParameter = {
+      value = ""
+    }
+  })
+
+  identity {
+    type = "UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
+  }
+}
+`, r.templateStringParameter(data), data.RandomInteger)
+}
+
+func (r ManagedApplicationResource) systemAssignedUserAssignedIdentity(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%[1]s
+
+resource "azurerm_user_assigned_identity" "test" {
+  name                = "acctest%[2]d"
+  resource_group_name = azurerm_resource_group.test.name
+  location            = azurerm_resource_group.test.location
+}
+
+resource "azurerm_managed_application" "test" {
+  name                        = "acctestManagedApp%[2]d"
+  location                    = azurerm_resource_group.test.location
+  resource_group_name         = azurerm_resource_group.test.name
+  kind                        = "ServiceCatalog"
+  managed_resource_group_name = "infraGroup%[2]d"
+  application_definition_id   = azurerm_managed_application_definition.test.id
+
+  parameter_values = jsonencode({
+    stringParameter = {
+      value = "value_1_from_parameter_values"
+    },
+    secureStringParameter = {
+      value = ""
+    }
+  })
+
+  identity {
+    type = "SystemAssigned, UserAssigned"
+    identity_ids = [azurerm_user_assigned_identity.test.id]
   }
 }
 `, r.templateStringParameter(data), data.RandomInteger)

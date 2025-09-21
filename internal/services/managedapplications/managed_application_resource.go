@@ -515,24 +515,36 @@ func expandManagedApplicationIdentity(input []interface{}) (*applications.Identi
 }
 
 func flattenManagedApplicationIdentity(input *applications.Identity) ([]interface{}, error) {
-	if input == nil {
-		return nil, nil
+	var config *identity.SystemAndUserAssignedMap
+
+	if input != nil {
+		config = &identity.SystemAndUserAssignedMap{
+			Type:        identity.Type(string(*input.Type)),
+			IdentityIds: nil,
+		}
+
+		if input.PrincipalId != nil {
+			config.PrincipalId = *input.PrincipalId
+		}
+		if input.TenantId != nil {
+			config.TenantId = *input.TenantId
+		}
+		identityIds := make(map[string]identity.UserAssignedIdentityDetails)
+		if input.UserAssignedIdentities != nil {
+			for k, v := range *input.UserAssignedIdentities {
+				identityIds[k] = identity.UserAssignedIdentityDetails{
+					ClientId:    v.TenantId,
+					PrincipalId: v.PrincipalId,
+				}
+			}
+		}
+
+		config.IdentityIds = identityIds
 	}
 
-	identityType := string(*input.Type)
-	if identityType == "" {
-		return nil, nil
+	result, err := identity.FlattenSystemAndUserAssignedMap(config)
+	if err != nil {
+		return nil, err
 	}
-
-	userAssignedIdentities := make(map[string]applications.UserAssignedResourceIdentity)
-	if input.UserAssignedIdentities != nil {
-		userAssignedIdentities = *input.UserAssignedIdentities
-	}
-
-	out := map[string]interface{}{
-		"type":         identityType,
-		"identity_ids": userAssignedIdentities,
-	}
-
-	return []interface{}{out}, nil
+	return *result, nil
 }
