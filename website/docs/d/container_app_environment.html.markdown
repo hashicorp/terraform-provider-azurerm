@@ -6,7 +6,7 @@ description: |-
   Gets information about a Container App Environment.
 ---
 
-# Data Source: azurerm_container_app_environment.
+# Data Source: azurerm_container_app_environment
 
 Use this data source to access information about an existing Container App Environment.
 

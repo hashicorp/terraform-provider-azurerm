@@ -6,7 +6,7 @@ description: |-
   Manages a Healthcare Med Tech (Internet of Medical Things) Service Fhir Destination.
 ---
 
-# azurerm_healthcare_medtech_service_fhir_Destination
+# azurerm_healthcare_medtech_service_fhir_destination
 
 Manages a Healthcare Med Tech Service Fhir Destination.
 

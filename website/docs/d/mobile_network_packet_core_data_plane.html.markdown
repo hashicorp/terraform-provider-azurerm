@@ -6,7 +6,7 @@ description: |-
   Get information a Mobile Network Packet Core Data Plane.
 ---
 
-# azurerm_mobile_network_packet_core_data_plane
+# Data Source: azurerm_mobile_network_packet_core_data_plane
 
 Get information a Mobile Network Packet Core Data Plane.
 

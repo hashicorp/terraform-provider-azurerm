@@ -63,7 +63,7 @@ The `timeouts` block allows you to specify timeouts for certain actions:
 Autonomous Database Backups can be imported using the `id`, e.g.
 
 ```shell
-terraform import azurerm_oracle_autonomous_database_backup.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup/providers/Oracle.Database/autonomousDatabases/autonomousDatabase1/backups/autonomousDatabaseBackup1
+terraform import azurerm_oracle_autonomous_database_backup.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup/providers/Oracle.Database/autonomousDatabases/autonomousDatabase1/autonomousDatabaseBackups/autonomousDatabaseBackup1
 ```
 
 ## API Providers

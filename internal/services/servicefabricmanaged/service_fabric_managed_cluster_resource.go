@@ -575,9 +575,10 @@ func flattenClusterProperties(cluster *managedcluster.ManagedCluster) *ClusterRe
 
 	if features := properties.AddonFeatures; features != nil {
 		for _, feature := range *features {
-			if feature == managedcluster.ManagedClusterAddOnFeatureDnsService {
+			switch feature {
+			case managedcluster.ManagedClusterAddOnFeatureDnsService:
 				model.DNSService = true
-			} else if feature == managedcluster.ManagedClusterAddOnFeatureBackupRestoreService {
+			case managedcluster.ManagedClusterAddOnFeatureBackupRestoreService:
 				model.BackupRestoreService = true
 			}
 		}

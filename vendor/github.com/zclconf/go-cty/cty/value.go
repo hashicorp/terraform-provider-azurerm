@@ -29,7 +29,7 @@ package cty
 // rules than are offered by the built-in converter where necessary.
 type Value struct {
 	ty Type
-	v  interface{}
+	v  any
 }
 
 // Type returns the type of the value.

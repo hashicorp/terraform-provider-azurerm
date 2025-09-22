@@ -6,7 +6,7 @@ description: |-
   Get information about a Mobile Network Sim Group.
 ---
 
-# azurerm_mobile_network_sim_group
+# Data Source: azurerm_mobile_network_sim_group
 
 Get information about a Mobile Network Sim Group.
 
