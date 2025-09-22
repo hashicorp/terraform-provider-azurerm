@@ -1397,7 +1397,7 @@ github.com/hashicorp/terraform-plugin-log/tfsdklog
 ## explicit; go 1.24.0
 github.com/hashicorp/terraform-plugin-mux/internal/logging
 github.com/hashicorp/terraform-plugin-mux/tf5muxserver
-# github.com/hashicorp/terraform-plugin-sdk/v2 v2.38.0
+# github.com/hashicorp/terraform-plugin-sdk/v2 v2.38.1
 ## explicit; go 1.24.0
 github.com/hashicorp/terraform-plugin-sdk/v2/diag
 github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff
