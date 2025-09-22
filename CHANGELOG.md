@@ -4,6 +4,8 @@ FEATURES:
 
 ENHANCEMENTS:
 
+* `azurerm_mysql_flexible_server` - add support for the `managed_hsm_key_id` property [GH-30502]
+
 BUG FIXES:
 
 ## 4.45.1 (September 22, 2025)
