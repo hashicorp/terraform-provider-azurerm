@@ -5,6 +5,7 @@ FEATURES:
 ENHANCEMENTS:
 
 * `azurerm_mysql_flexible_server` - add support for the `managed_hsm_key_id` property [GH-30502]
+* `azurerm_cognitive_account` - add support for `C2`, `C3`, `C4`, `D3`, and `S1`  to `sku_name` [GH-30655]
 
 BUG FIXES:
 
