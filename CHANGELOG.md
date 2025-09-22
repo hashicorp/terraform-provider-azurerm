@@ -1,3 +1,14 @@
+## 4.45.1 (September 22, 2025)
+
+NOTES:
+
+This release contains a Terraform Plugin SDK v2 version bump that prevents identity change validation from raising an error when prior identity is empty (all attributes are null).
+
+BUG FIXES:
+
+* dependencies: `hashicorp/terraform-plugin-sdk/v2` - update to `v2.38.1` ([#30667](https://github.com/hashicorp/terraform-provider-azurerm/issues/30667))
+* `azurerm_network_interface` - ensure identity is set during non-refresh apply operations ([#30667](https://github.com/hashicorp/terraform-provider-azurerm/issues/30667))
+
 ## 4.45.0 (September 18, 2025)
 
 FEATURES:
