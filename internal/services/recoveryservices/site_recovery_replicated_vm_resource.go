@@ -295,7 +295,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			},
 
 			"network_interface": {
-				Type:       pluginsdk.TypeSet,
+				Type:       pluginsdk.TypeList,
 				Optional:   true,
 				Computed:   true,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
@@ -385,9 +385,6 @@ func networkInterfaceResource() *pluginsdk.Resource {
 
 	if !features.FivePointOh() {
 		nicSchema.Schema["ip_configuration"].Computed = true
-		// nicSchema.Schema["ip_configuration"].ConflictsWith = []string{
-		// 	"network_interface.0.failover_test_static_ip", "network_interface.0.target_static_ip", "network_interface.0.failover_test_subnet_name", "network_interface.0.failover_test_subnet_name", "network_interface.0.target_subnet_name", "network_interface.0.failover_test_public_ip_address_id", "network_interface.0.recovery_load_balancer_backend_address_pool_ids", "network_interface.0.recovery_load_balancer_backend_address_pool_ids",
-		// }
 
 		nicSchema.Schema["failover_test_static_ip"] = &pluginsdk.Schema{
 			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_configuration.failover_test_static_ip` and will be removed in v5.0 of the AzureRM provider.",
@@ -395,7 +392,6 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			Optional:     true,
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			// ConflictsWith: []string{"network_interface.0.ip_configuration"},
 		}
 
 		nicSchema.Schema["target_static_ip"] = &pluginsdk.Schema{
@@ -404,7 +400,6 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			Optional:     true,
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			// ConflictsWith: []string{"network_interface.0.ip_configuration"},
 		}
 
 		nicSchema.Schema["failover_test_subnet_name"] = &pluginsdk.Schema{
@@ -413,7 +408,6 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			Optional:     true,
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			// ConflictsWith: []string{"network_interface.0.ip_configuration"},
 		}
 
 		nicSchema.Schema["target_subnet_name"] = &pluginsdk.Schema{
@@ -422,7 +416,6 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			Optional:     true,
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-			// ConflictsWith: []string{"network_interface.0.ip_configuration"},
 		}
 
 		nicSchema.Schema["failover_test_public_ip_address_id"] = &pluginsdk.Schema{
@@ -431,7 +424,6 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			Optional:     true,
 			Computed:     true,
 			ValidateFunc: azure.ValidateResourceID,
-			// ConflictsWith: []string{"network_interface.0.ip_configuration"},
 		}
 
 		nicSchema.Schema["recovery_load_balancer_backend_address_pool_ids"] = &pluginsdk.Schema{
@@ -443,7 +435,6 @@ func networkInterfaceResource() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: loadbalancers.ValidateLoadBalancerBackendAddressPoolID,
 			},
-			// ConflictsWith: []string{"network_interface.0.ip_configuration"},
 		}
 
 		nicSchema.Schema["recovery_public_ip_address_id"] = &pluginsdk.Schema{
@@ -452,7 +443,6 @@ func networkInterfaceResource() *pluginsdk.Resource {
 			Optional:     true,
 			Computed:     true,
 			ValidateFunc: azure.ValidateResourceID,
-			// ConflictsWith: []string{"network_interface.0.ip_configuration"},
 		}
 	}
 	return nicSchema
@@ -1148,7 +1138,7 @@ func expandSiteRecoveryReplicatedVMIPConfig(nicInput map[string]interface{}) []r
 				TfoStaticIPAddress:              pointer.To(ipConfig["failover_test_static_ip"].(string)),
 				TfoSubnetName:                   pointer.To(ipConfig["failover_test_subnet_name"].(string)),
 				TfoPublicIPAddressId:            pointer.To(ipConfig["failover_test_public_ip_address_id"].(string)),
-				IsPrimary:                       pointer.To(ipConfig["primary"].(bool)),
+				IsPrimary:                       pointer.To(len(ipConfigs) == 1 || ipConfig["primary"].(bool)),
 			})
 		}
 		return output
