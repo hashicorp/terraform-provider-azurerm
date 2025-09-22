@@ -123,7 +123,7 @@ resource "azurerm_network_manager_routing_rule" "test" {
   rule_collection_id = azurerm_network_manager_routing_rule_collection.test.id
   destination {
     type    = "AddressPrefix"
-    address = "10.0.0.0/16"
+    address = "10.0.0.0/24"
   }
 
   next_hop {

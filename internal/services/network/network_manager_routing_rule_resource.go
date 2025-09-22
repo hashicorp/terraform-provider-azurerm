@@ -3,6 +3,7 @@ package network
 import (
 	"context"
 	"fmt"
+	"net"
 	"regexp"
 	"strings"
 	"time"
@@ -101,7 +102,7 @@ func (ManagerRoutingRuleResource) Arguments() map[string]*pluginsdk.Schema {
 					"address": {
 						Type:         pluginsdk.TypeString,
 						Optional:     true,
-						ValidateFunc: validation.StringIsNotEmpty,
+						ValidateFunc: validation.IsIPAddress,
 					},
 				},
 			},
@@ -125,6 +126,15 @@ func (r ManagerRoutingRuleResource) CustomizeDiff() sdk.ResourceFunc {
 			var model ManagerRoutingRuleResourceModel
 			if err := metadata.DecodeDiff(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
+			}
+
+			if len(model.Destination) > 0 {
+				v := model.Destination[0]
+				if strings.EqualFold(v.Type, string(routingrules.RoutingRuleDestinationTypeAddressPrefix)) {
+					if _, _, err := net.ParseCIDR(v.Address); err != nil {
+						return fmt.Errorf("expanding `destination`: `address` must be a valid CIDR when `type` is `AddressPrefix`: %+v", err)
+					}
+				}
 			}
 
 			if len(model.NextHop) > 0 {
