@@ -34,7 +34,7 @@ func TestAccSiteRecoveryReplicatedVm_basic(t *testing.T) {
 	})
 }
 
-func TestAccSiteRecoveryReplicatedVm_withFivePointOhTFOSettings(t *testing.T) {
+func TestAccSiteRecoveryReplicatedVm_withTFOSettings(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_site_recovery_replicated_vm", "test")
 	r := SiteRecoveryReplicatedVmResource{}
 
@@ -43,14 +43,14 @@ func TestAccSiteRecoveryReplicatedVm_withFivePointOhTFOSettings(t *testing.T) {
 			Config: r.withFivePointOhTFOSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("network_interface.0.failover_test_subnet_name").HasValue("snet3"),
+				check.That(data.ResourceName).Key("network_interface.0.ip_configuration.0.failover_test_subnet_name").HasValue("snet3"),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func TestAccSiteRecoveryReplicatedVm_withTFOSettings(t *testing.T) {
+func TestAccSiteRecoveryReplicatedVm_withDeprecatedTFOSettings(t *testing.T) {
 	if features.FivePointOh() {
 		t.Skipf("The `network_interface.target_*` properties have been deprecated in favor of `network_interface.ip_configuration.*`, this test case is replaced by `TestAccSiteRecoveryReplicatedVm_withFivePointOhTFOSettings` .")
 	}
@@ -365,7 +365,7 @@ resource "azurerm_site_recovery_protection_container_mapping" "test" {
 resource "azurerm_virtual_network" "test1" {
   name                = "net-%[1]d"
   resource_group_name = azurerm_resource_group.test.name
-  address_space       = ["192.168.0.0/16"]
+  address_space       = ["192.168.1.0/24"]
   location            = azurerm_site_recovery_fabric.test1.location
 }
 
@@ -1046,7 +1046,6 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
       target_subnet_name                 = azurerm_subnet.test2.name
       failover_test_subnet_name          = azurerm_subnet.tfo.name
       failover_test_public_ip_address_id = azurerm_public_ip.tfo.id
-      is_primary                         = true
     }
   }
 
@@ -1448,6 +1447,13 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
     target_disk_type              = "Premium_LRS"
     target_replica_disk_type      = "Premium_LRS"
     target_disk_encryption_set_id = azurerm_disk_encryption_set.test2.id
+  }
+
+  network_interface {
+    source_network_interface_id = azurerm_network_interface.test.id
+    ip_configuration {
+      target_subnet_name = "snet-%[1]d"
+    }
   }
 
   depends_on = [
@@ -1862,7 +1868,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
       target_subnet_name                              = azurerm_subnet.test2.name
       recovery_public_ip_address_id                   = azurerm_public_ip.test.id
       recovery_load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.test.id]
-      is_primary                                      = true
+      primary                                         = true
     }
   }
 
@@ -2841,7 +2847,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
       recovery_public_ip_address_id = azurerm_public_ip.test-recovery.id
       target_subnet_name            = azurerm_subnet.recovery.name
       failover_test_subnet_name     = azurerm_subnet.tfo.name
-      is_primary                    = true
+      primary                       = true
     }
 
     ip_configuration {
@@ -2849,7 +2855,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
       recovery_public_ip_address_id = azurerm_public_ip.test-recovery-2.id
       target_subnet_name            = azurerm_subnet.recovery.name
       failover_test_subnet_name     = azurerm_subnet.tfo.name
-      is_primary                    = false
+      primary                       = false
     }
 
   }

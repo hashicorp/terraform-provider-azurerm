@@ -295,7 +295,7 @@ func resourceSiteRecoveryReplicatedVM() *pluginsdk.Resource {
 			},
 
 			"network_interface": {
-				Type:       pluginsdk.TypeList,
+				Type:       pluginsdk.TypeSet,
 				Optional:   true,
 				Computed:   true,
 				ConfigMode: pluginsdk.SchemaConfigModeAttr,
@@ -373,7 +373,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 							ValidateFunc: azure.ValidateResourceID,
 						},
 
-						"is_primary": {
+						"primary": {
 							Type:     pluginsdk.TypeBool,
 							Optional: true,
 						},
@@ -385,57 +385,57 @@ func networkInterfaceResource() *pluginsdk.Resource {
 
 	if !features.FivePointOh() {
 		nicSchema.Schema["ip_configuration"].Computed = true
+		// nicSchema.Schema["ip_configuration"].ConflictsWith = []string{
+		// 	"network_interface.0.failover_test_static_ip", "network_interface.0.target_static_ip", "network_interface.0.failover_test_subnet_name", "network_interface.0.failover_test_subnet_name", "network_interface.0.target_subnet_name", "network_interface.0.failover_test_public_ip_address_id", "network_interface.0.recovery_load_balancer_backend_address_pool_ids", "network_interface.0.recovery_load_balancer_backend_address_pool_ids",
+		// }
 
 		nicSchema.Schema["failover_test_static_ip"] = &pluginsdk.Schema{
-			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_configuration`",
+			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_configuration.failover_test_static_ip` and will be removed in v5.0 of the AzureRM provider.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+			// ConflictsWith: []string{"network_interface.0.ip_configuration"},
 		}
 
 		nicSchema.Schema["target_static_ip"] = &pluginsdk.Schema{
-			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_configuration`",
+			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_configuration.target_static_ip` and will be removed in v5.0 of the AzureRM provider.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+			// ConflictsWith: []string{"network_interface.0.ip_configuration"},
 		}
 
 		nicSchema.Schema["failover_test_subnet_name"] = &pluginsdk.Schema{
-			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_configuration`",
+			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_configuration.failover_test_subnet_name` and will be removed in v5.0 of the AzureRM provider.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
-		}
-
-		nicSchema.Schema["failover_test_subnet_name"] = &pluginsdk.Schema{
-			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_configuration`",
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
+			// ConflictsWith: []string{"network_interface.0.ip_configuration"},
 		}
 
 		nicSchema.Schema["target_subnet_name"] = &pluginsdk.Schema{
-			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_configuration`",
+			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_configuration.target_subnet_name` and will be removed in v5.0 of the AzureRM provider.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
 			ValidateFunc: validation.StringIsNotEmpty,
+			// ConflictsWith: []string{"network_interface.0.ip_configuration"},
 		}
 
 		nicSchema.Schema["failover_test_public_ip_address_id"] = &pluginsdk.Schema{
-			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_configuration`",
+			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_configuration.failover_test_public_ip_address_id` and will be removed in v5.0 of the AzureRM provider.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
 			ValidateFunc: azure.ValidateResourceID,
+			// ConflictsWith: []string{"network_interface.0.ip_configuration"},
 		}
 
 		nicSchema.Schema["recovery_load_balancer_backend_address_pool_ids"] = &pluginsdk.Schema{
-			Deprecated: "this property has been deprecated in favour of `network_interface.ip_configuration`",
+			Deprecated: "this property has been deprecated in favour of `network_interface.ip_configuration.recovery_load_balancer_backend_address_pool_ids` and will be removed in v5.0 of the AzureRM provider.",
 			Type:       pluginsdk.TypeSet,
 			Optional:   true,
 			Computed:   true,
@@ -443,14 +443,16 @@ func networkInterfaceResource() *pluginsdk.Resource {
 				Type:         pluginsdk.TypeString,
 				ValidateFunc: loadbalancers.ValidateLoadBalancerBackendAddressPoolID,
 			},
+			// ConflictsWith: []string{"network_interface.0.ip_configuration"},
 		}
 
 		nicSchema.Schema["recovery_public_ip_address_id"] = &pluginsdk.Schema{
-			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_configuration`",
+			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_configuration.recovery_public_ip_address_id` and will be removed in v5.0 of the AzureRM provider.",
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			Computed:     true,
 			ValidateFunc: azure.ValidateResourceID,
+			// ConflictsWith: []string{"network_interface.0.ip_configuration"},
 		}
 	}
 	return nicSchema
@@ -1128,7 +1130,7 @@ func waitForReplicationToBeHealthyRefreshFunc(d *pluginsdk.ResourceData, meta in
 }
 
 func expandSiteRecoveryReplicatedVMIPConfig(nicInput map[string]interface{}) []replicationprotecteditems.IPConfigInputDetails {
-	output := []replicationprotecteditems.IPConfigInputDetails{}
+	output := make([]replicationprotecteditems.IPConfigInputDetails, 0)
 	ipConfigs := nicInput["ip_configuration"].([]interface{})
 	if len(ipConfigs) > 0 {
 		for _, ipConfig := range ipConfigs {
@@ -1146,7 +1148,7 @@ func expandSiteRecoveryReplicatedVMIPConfig(nicInput map[string]interface{}) []r
 				TfoStaticIPAddress:              pointer.To(ipConfig["failover_test_static_ip"].(string)),
 				TfoSubnetName:                   pointer.To(ipConfig["failover_test_subnet_name"].(string)),
 				TfoPublicIPAddressId:            pointer.To(ipConfig["failover_test_public_ip_address_id"].(string)),
-				IsPrimary:                       pointer.To(ipConfig["is_primary"].(bool)),
+				IsPrimary:                       pointer.To(ipConfig["primary"].(bool)),
 			})
 		}
 		return output
@@ -1165,7 +1167,7 @@ func expandSiteRecoveryReplicatedVMIPConfig(nicInput map[string]interface{}) []r
 			recoveryLoadBalancerBackendPoolIds = utils.ExpandStringSlice(ids.List())
 		}
 
-		if targetStaticIp != "" || targetSubnetName != "" || recoveryPublicIPAddressID != "" || testSubNetName != "" || testStaticIp != "" || testPublicIpAddressID != "" {
+		if targetStaticIp != "" || targetSubnetName != "" || recoveryPublicIPAddressID != "" || testSubNetName != "" || testStaticIp != "" || testPublicIpAddressID != "" || (recoveryLoadBalancerBackendPoolIds != nil && len(*recoveryLoadBalancerBackendPoolIds) > 1) {
 			return append(output, replicationprotecteditems.IPConfigInputDetails{
 				RecoverySubnetName:              &targetSubnetName,
 				RecoveryStaticIPAddress:         &targetStaticIp,
@@ -1174,7 +1176,7 @@ func expandSiteRecoveryReplicatedVMIPConfig(nicInput map[string]interface{}) []r
 				TfoStaticIPAddress:              &testStaticIp,
 				TfoPublicIPAddressId:            &testPublicIpAddressID,
 				TfoSubnetName:                   &testSubNetName,
-				IsPrimary:                       utils.Bool(true),
+				IsPrimary:                       pointer.To(true),
 			})
 		}
 	}
@@ -1188,7 +1190,7 @@ func flattenSiteRecoveryReplicatedVMIPConfig(ipConfigs *[]replicationprotectedit
 		for _, ipConfig := range *ipConfigs {
 			output := map[string]interface{}{
 				"name":                               pointer.From(ipConfig.Name),
-				"is_primary":                         pointer.From(ipConfig.IsPrimary),
+				"primary":                            pointer.From(ipConfig.IsPrimary),
 				"target_static_ip":                   pointer.From(ipConfig.RecoveryStaticIPAddress),
 				"target_subnet_name":                 pointer.From(ipConfig.RecoverySubnetName),
 				"recovery_public_ip_address_id":      pointer.From(ipConfig.RecoveryPublicIPAddressId),

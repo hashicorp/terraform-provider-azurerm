@@ -403,8 +403,11 @@ Please follow the format in the example below for listing breaking changes in re
 
 ### `azurerm_site_recovery_replicated_vm`
 
-* The property `network_interface.target_static_ip` has been removed in favour of the `network_interface.ip_configuration.target_statc_ip` property.
-* The property `network_interface.target_subnet_name` has been removed in favour of the `network_interface.ip_configuration.target_static_ip` property.
+* The property `network_interface.failover_test_static_ip` has been removed in favour of the `network_interface.ip_configuration.failover_test_static_ip`.
+* The property `network_interface.failover_test_subnet_name` has been removed in favour of the `network_interface.ip_configuration.failover_test_subnet_name`.
+* The property `network_interface.failover_test_public_ip_address_id` has been removed in favour of the `network_interface.ip_configuration.failover_test_public_ip_address_id`.
+* The property `network_interface.target_static_ip` has been removed in favour of the `network_interface.ip_configuration.target_static_ip` property.
+* The property `network_interface.target_subnet_name` has been removed in favour of the `network_interface.ip_configuration.target_subnet_name` property.
 * The property `network_interface.recovery_load_balancer_backend_address_pool_ids` has been removed in favour of the `network_interface.ip_configuration.recovery_load_balancer_backend_address_pool_ids` property.
 * The property `network_interface.recovery_public_ip_address_id` has been removed in favour of the `network_interface.ip_configuration.recovery_public_ip_address_id` property.
 * The property `network_interface.ip_configuration.name` is a new required property, it must be as same as the name of the ip configuration of network interface from the source VM.
