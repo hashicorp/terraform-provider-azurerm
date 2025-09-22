@@ -427,7 +427,7 @@ func resourceNetworkInterfaceUpdate(d *pluginsdk.ResourceData, meta interface{})
 		}
 	}
 
-	return nil
+	return resourceNetworkInterfaceRead(d, meta)
 }
 
 func resourceNetworkInterfaceRead(d *pluginsdk.ResourceData, meta interface{}) error {
