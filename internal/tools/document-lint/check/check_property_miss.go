@@ -63,7 +63,6 @@ func (c propertyMissDiff) Fix(line string) (result string, err error) {
 var _ Checker = (*propertyMissDiff)(nil)
 
 func newMissItem(path string, f *model.Field, typ MissType) Checker {
-	// Fix: probably change it to 1 directly
 	base := newCheckBase(0, path, f)
 	if f != nil {
 		base.line = f.Line
