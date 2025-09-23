@@ -19,7 +19,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/sdk/client/pollers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/custompollers"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/managedredis/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -159,11 +158,6 @@ func (r ManagedRedisClusterResource) Create() sdk.ResourceFunc {
 				return metadata.ResourceRequiresImport(r.ResourceType(), id)
 			}
 
-			sku, err := parse.ManagedRedisCacheSkuName(model.SkuName)
-			if err != nil {
-				return err
-			}
-
 			highAvailability := redisenterprise.HighAvailabilityEnabled
 			if !model.HighAvailabilityEnabled {
 				highAvailability = redisenterprise.HighAvailabilityDisabled
@@ -171,7 +165,9 @@ func (r ManagedRedisClusterResource) Create() sdk.ResourceFunc {
 
 			parameters := redisenterprise.Cluster{
 				Location: location.Normalize(model.Location),
-				Sku:      pointer.From(sku),
+				Sku: redisenterprise.Sku{
+					Name: redisenterprise.SkuName(model.SkuName),
+				},
 				Properties: &redisenterprise.ClusterProperties{
 					MinimumTlsVersion: pointer.To(redisenterprise.TlsVersion(model.MinimumTlsVersion)),
 					HighAvailability:  pointer.To(highAvailability),
@@ -235,12 +231,7 @@ func (r ManagedRedisClusterResource) Read() sdk.ResourceFunc {
 
 			if model := resp.Model; model != nil {
 				state.Location = location.Normalize(model.Location)
-
-				if model.Sku.Capacity != nil {
-					state.SkuName = fmt.Sprintf("%s-%d", string(model.Sku.Name), *model.Sku.Capacity)
-				} else {
-					state.SkuName = string(model.Sku.Name)
-				}
+				state.SkuName = string(model.Sku.Name)
 
 				flattenedIdentity, err := identity.FlattenSystemAndUserAssignedMapToModel(model.Identity)
 				if err != nil {
