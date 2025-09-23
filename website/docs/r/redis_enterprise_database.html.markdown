@@ -10,7 +10,7 @@ description: |-
 
 Manages a Redis Enterprise Database.
 
-~> **Note:** This resource has been deprecated in favor of [azurerm_managed_redis_database](managed_redis_database.html). The new resource is designed to be backward compatible. Existing configuration can be migrated by changing resource type to `azurerm_managed_redis_database`, [removing the old state](https://developer.hashicorp.com/terraform/cli/commands/state/rm) and performing [an import](https://developer.hashicorp.com/terraform/language/import).
+~> **Note:** This resource has been deprecated in favor of [azurerm_managed_redis_database](managed_redis_database.html).
 
 ## Example Usage
 
