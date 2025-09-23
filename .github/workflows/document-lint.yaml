@@ -33,9 +33,4 @@ jobs:
           echo "FILE_LIST=$changed" >> $GITHUB_ENV
 
       - name: run document lint checker
-        run: |
-          if make document-lint; then
-            echo "document lint success."
-          else
-            echo "::warning::Document linting failed. Please fix the issues."
-          fi
+        run: make document-lint
