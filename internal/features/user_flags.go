@@ -97,6 +97,7 @@ type SubscriptionFeatures struct {
 
 type RecoveryServicesVault struct {
 	RecoverSoftDeletedBackupProtectedVM bool
+	RecoverSoftDeletedBackupProtectedVMWorkload bool
 }
 
 type PostgresqlFlexibleServerFeatures struct {
@@ -110,6 +111,7 @@ type MachineLearningFeatures struct {
 type RecoveryServiceFeatures struct {
 	VMBackupStopProtectionAndRetainDataOnDestroy    bool
 	VMBackupSuspendProtectionAndRetainDataOnDestroy bool
+    VMWorkloadBackupStopProtectionAndRetainDataOnDestroy bool
 	PurgeProtectedItemsFromVaultOnDestroy           bool
 }
 

@@ -473,12 +473,18 @@ func (p *ProviderConfig) Load(ctx context.Context, data *ProviderModel, tfVersio
 				f.RecoveryService.VMBackupSuspendProtectionAndRetainDataOnDestroy = feature[0].VMBackupSuspendProtectionAndRetainDataOnDestroy.ValueBool()
 			}
 
+			f.RecoveryService.VMWorkloadBackupStopProtectionAndRetainDataOnDestroy = false
+			if !feature[0].VMWorkloadBackupStopProtectionAndRetainDataOnDestroy.IsNull() && !feature[0].VMWorkloadBackupStopProtectionAndRetainDataOnDestroy.IsUnknown() {
+				f.RecoveryService.VMWorkloadBackupStopProtectionAndRetainDataOnDestroy = feature[0].VMWorkloadBackupStopProtectionAndRetainDataOnDestroy.ValueBool()
+			}
+
 			f.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy = false
 			if !feature[0].PurgeProtectedItemsFromVaultOnDestroy.IsNull() && !feature[0].PurgeProtectedItemsFromVaultOnDestroy.IsUnknown() {
 				f.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy = feature[0].PurgeProtectedItemsFromVaultOnDestroy.ValueBool()
 			}
 		} else {
 			f.RecoveryService.VMBackupStopProtectionAndRetainDataOnDestroy = false
+			f.RecoveryService.VMWorkloadBackupStopProtectionAndRetainDataOnDestroy = false
 			f.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy = false
 		}
 

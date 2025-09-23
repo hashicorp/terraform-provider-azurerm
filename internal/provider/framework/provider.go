@@ -463,6 +463,9 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 									"vm_backup_suspend_protection_and_retain_data_on_destroy": schema.BoolAttribute{
 										Optional: true,
 									},
+									"vm_workload_backup_stop_protection_and_retain_data_on_destroy": schema.BoolAttribute{
+										Optional: true,
+									},
 									"purge_protected_items_from_vault_on_destroy": schema.BoolAttribute{
 										Optional: true,
 									},
@@ -473,6 +476,9 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 							NestedObject: schema.NestedBlockObject{
 								Attributes: map[string]schema.Attribute{
 									"recover_soft_deleted_backup_protected_vm": schema.BoolAttribute{
+										Optional: true,
+									},
+									"recover_soft_deleted_backup_protected_vm_workload": schema.BoolAttribute{
 										Optional: true,
 									},
 								},

@@ -195,6 +195,10 @@ func TestProviderConfig_LoadDefault(t *testing.T) {
 		t.Errorf("expected recovery_service.vm_backup_suspend_protection_and_retain_data_on_destroy to be false")
 	}
 
+	if features.RecoveryService.VMWorkloadBackupStopProtectionAndRetainDataOnDestroy {
+		t.Errorf("expected recovery_service.vm_workload_backup_stop_protection_and_retain_data_on_destroy to be false")
+	}
+
 	if features.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy {
 		t.Errorf("expected recovery_service.PurgeProtectedItemsFromVaultOnDestroy to be false")
 	}
@@ -311,6 +315,7 @@ func defaultFeaturesList() types.List {
 	recoveryServices, _ := basetypes.NewObjectValueFrom(context.Background(), RecoveryServiceAttributes, map[string]attr.Value{
 		"vm_backup_stop_protection_and_retain_data_on_destroy":    basetypes.NewBoolNull(),
 		"vm_backup_suspend_protection_and_retain_data_on_destroy": basetypes.NewBoolNull(),
+		"vm_workload_backup_stop_protection_and_retain_data_on_destroy":    basetypes.NewBoolNull(),
 		"purge_protected_items_from_vault_on_destroy":             basetypes.NewBoolNull(),
 	})
 	recoveryServicesList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(RecoveryServiceAttributes), []attr.Value{recoveryServices})
@@ -318,6 +323,7 @@ func defaultFeaturesList() types.List {
 	recoveryServicesVaults, _ := basetypes.NewObjectValueFrom(context.Background(), RecoveryServiceVaultsAttributes, map[string]attr.Value{
 		"vm_backup_stop_protection_and_retain_data_on_destroy":    basetypes.NewBoolNull(),
 		"vm_backup_suspend_protection_and_retain_data_on_destroy": basetypes.NewBoolNull(),
+		"vm_workload_backup_stop_protection_and_retain_data_on_destroy": basetypes.NewBoolNull(),
 		"purge_protected_items_from_vault_on_destroy":             basetypes.NewBoolNull(),
 	})
 	recoveryServicesVaultsList, _ := basetypes.NewListValue(types.ObjectType{}.WithAttributeTypes(RecoveryServiceVaultsAttributes), []attr.Value{recoveryServicesVaults})
