@@ -384,6 +384,7 @@ func networkInterfaceResource() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
+		nicSchema.Schema["ip_configuration"].Elem.(*pluginsdk.Resource).Schema["name"].Required = false
 		nicSchema.Schema["ip_configuration"].Computed = true
 
 		nicSchema.Schema["failover_test_static_ip"] = &pluginsdk.Schema{
