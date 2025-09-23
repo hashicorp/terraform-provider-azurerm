@@ -237,15 +237,15 @@ func (r ManagedRedisClusterResource) Read() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("flattening `identity`: %+v", err)
 				}
-				state.Identity = *flattenedIdentity
 
+				state.Identity = *flattenedIdentity
 				state.Tags = pointer.From(model.Tags)
 				state.Zones = pointer.From(model.Zones)
 
 				if props := model.Properties; props != nil {
 					state.CustomerManagedKey = flattenManagedRedisClusterCustomerManagedKey(props.Encryption)
 					state.HighAvailabilityEnabled = strings.EqualFold(string(pointer.From(props.HighAvailability)), string(redisenterprise.HighAvailabilityEnabled))
-					state.MinimumTlsVersion = string(pointer.From(props.MinimumTlsVersion))
+					state.MinimumTlsVersion = pointer.FromEnum(props.MinimumTlsVersion)
 					state.Hostname = pointer.From(props.HostName)
 				}
 			}
@@ -284,6 +284,7 @@ func (r ManagedRedisClusterResource) Update() sdk.ResourceFunc {
 				if err != nil {
 					return fmt.Errorf("expanding `identity`: %+v", err)
 				}
+
 				parameters.Identity = expandedIdentity
 			}
 
