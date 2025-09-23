@@ -1406,7 +1406,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     mode                             = "Istio"
     internal_ingress_gateway_enabled = %[3]t
     external_ingress_gateway_enabled = %[4]t
-    revisions                        = ["asm-1-22"]
+    revisions                        = ["asm-1-26"]
   }
 
 }
@@ -2426,11 +2426,11 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azuread_service_principal_password" "test" {
-  service_principal_id = azuread_service_principal.test.object_id
+  service_principal_id = azuread_service_principal.test.id
 }
 
 resource "azurerm_private_dns_zone" "test" {
@@ -3055,11 +3055,11 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azuread_service_principal_password" "test" {
-  service_principal_id = azuread_service_principal.test.object_id
+  service_principal_id = azuread_service_principal.test.id
 }
 
 resource "azurerm_kubernetes_cluster" "test" {
