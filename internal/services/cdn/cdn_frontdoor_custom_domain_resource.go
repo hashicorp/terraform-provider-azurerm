@@ -168,7 +168,7 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 	}
 
 	if dnsZone != "" {
-		props.AFDDomainProperties.AzureDNSZone = expandResourceReference(dnsZone)
+		props.AzureDNSZone = expandResourceReference(dnsZone)
 	}
 
 	tlsSettings, err := expandTlsParameters(tls)
@@ -176,7 +176,7 @@ func resourceCdnFrontDoorCustomDomainCreate(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	props.AFDDomainProperties.TLSSettings = tlsSettings
+	props.TLSSettings = tlsSettings
 
 	future, err := client.Create(ctx, id.ResourceGroup, id.ProfileName, id.CustomDomainName, props)
 	if err != nil {
@@ -261,7 +261,7 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 
 	if d.HasChange("dns_zone_id") {
 		if dnsZone := d.Get("dns_zone_id").(string); dnsZone != "" {
-			props.AFDDomainUpdatePropertiesParameters.AzureDNSZone = expandResourceReference(dnsZone)
+			props.AzureDNSZone = expandResourceReference(dnsZone)
 		}
 	}
 
@@ -296,7 +296,7 @@ func resourceCdnFrontDoorCustomDomainUpdate(d *pluginsdk.ResourceData, meta inte
 			return fmt.Errorf("the 'cdn_frontdoor_secret_id' field is not supported if the 'certificate_type' is 'ManagedCertificate'")
 		}
 
-		props.AFDDomainUpdatePropertiesParameters.TLSSettings = tls
+		props.TLSSettings = tls
 	}
 
 	future, err := client.Update(ctx, id.ResourceGroup, id.ProfileName, id.CustomDomainName, props)

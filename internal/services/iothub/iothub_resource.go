@@ -667,12 +667,12 @@ func resourceIotHubCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		}
 		res, err := client.CheckNameAvailability(ctx, devices.OperationInputs{Name: &id.Name})
 		if err != nil {
-			return fmt.Errorf("An error occurred checking if the IoTHub name was unique: %+v", err)
+			return fmt.Errorf("an error occurred checking if the IoTHub name was unique: %+v", err)
 		}
 
 		if !*res.NameAvailable {
 			if _, err = client.Get(ctx, id.ResourceGroup, id.Name); err == nil {
-				return fmt.Errorf("An IoTHub already exists with the name %q - please choose an alternate name: %s", id.Name, string(res.Reason))
+				return fmt.Errorf("an IoTHub already exists with the name %q - please choose an alternate name: %s", id.Name, string(res.Reason))
 			}
 		}
 	}
@@ -1018,7 +1018,8 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				continue
 			}
 
-			if k == "events" {
+			switch k {
+			case "events":
 				d.Set("event_hub_events_endpoint", v.Endpoint)
 
 				if *v.Endpoint != "" {
@@ -1031,7 +1032,7 @@ func resourceIotHubRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				d.Set("event_hub_events_path", v.Path)
 				d.Set("event_hub_partition_count", v.PartitionCount)
 				d.Set("event_hub_retention_in_days", v.RetentionTimeInDays)
-			} else if k == "operationsMonitoringEvents" {
+			case "operationsMonitoringEvents":
 				d.Set("event_hub_operations_endpoint", v.Endpoint)
 				d.Set("event_hub_operations_path", v.Path)
 			}
@@ -1923,7 +1924,7 @@ func flattenIotHubIdentity(input *devices.ArmIdentity) (*[]interface{}, error) {
 
 	if input != nil {
 		transform = &identity.SystemAndUserAssignedMap{
-			Type:        identity.Type(string(input.Type)),
+			Type:        identity.Type(input.Type),
 			IdentityIds: make(map[string]identity.UserAssignedIdentityDetails),
 		}
 		for k, v := range input.UserAssignedIdentities {
@@ -2002,7 +2003,7 @@ func IothubConnectionStringSuppress(k, old, new string, d *pluginsdk.ResourceDat
 }
 
 func connectionStringToMap(connectionStr string) map[string]string {
-	m := make(map[string]string, 0)
+	m := make(map[string]string)
 	split := strings.Split(connectionStr, ";")
 	for _, v := range split {
 		// The connection string might contain `=`

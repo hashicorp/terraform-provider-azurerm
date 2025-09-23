@@ -433,7 +433,7 @@ func resourceApplicationInsightsUpdate(d *pluginsdk.ResourceData, meta interface
 
 	oldWorkspaceId, newWorkspaceId := d.GetChange("workspace_id")
 	if oldWorkspaceId.(string) != "" && newWorkspaceId.(string) == "" {
-		return fmt.Errorf("`workspace_id` cannot be removed after set. If `workspace_id` is not specified but you encounter a diff, this might indicate a Microsoft initiated automatic migration from classic resources to workspace-based resources. If this is the case, please update `workspace_id` in your config file to the new value.")
+		return fmt.Errorf("`workspace_id` cannot be removed after set. If `workspace_id` is not specified but you encounter a diff, this might indicate a Microsoft initiated automatic migration from classic resources to workspace-based resources. If this is the case, please update `workspace_id` in your config file to the new value")
 	}
 
 	if d.HasChange("sampling_percentage") {

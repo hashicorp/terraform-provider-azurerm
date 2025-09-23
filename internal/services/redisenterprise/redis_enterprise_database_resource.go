@@ -5,6 +5,7 @@ package redisenterprise
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -259,13 +260,11 @@ func resourceRedisEnterpriseDatabaseCreate(d *pluginsdk.ResourceData, meta inter
 
 	linkedDatabase, err := expandArmGeoLinkedDatabase(d.Get("linked_database_id").(*pluginsdk.Set).List(), id.ID(), d.Get("linked_database_group_nickname").(string))
 	if err != nil {
-		return fmt.Errorf("Setting geo database for database %s error: %+v", id.ID(), err)
+		return fmt.Errorf("setting geo database for database %s error: %+v", id.ID(), err)
 	}
 
-	isGeoEnabled := false
-	if linkedDatabase != nil {
-		isGeoEnabled = true
-	}
+	isGeoEnabled := linkedDatabase != nil
+
 	module, err := expandArmDatabaseModuleArray(d.Get("module").([]interface{}), isGeoEnabled)
 	if err != nil {
 		return fmt.Errorf("setting module error: %+v", err)
@@ -412,13 +411,11 @@ func resourceRedisEnterpriseDatabaseUpdate(d *pluginsdk.ResourceData, meta inter
 
 	linkedDatabase, err := expandArmGeoLinkedDatabase(d.Get("linked_database_id").(*pluginsdk.Set).List(), id.ID(), d.Get("linked_database_group_nickname").(string))
 	if err != nil {
-		return fmt.Errorf("Setting geo database for database %s error: %+v", id.ID(), err)
+		return fmt.Errorf("setting geo database for database %s error: %+v", id.ID(), err)
 	}
 
-	isGeoEnabled := false
-	if linkedDatabase != nil {
-		isGeoEnabled = true
-	}
+	isGeoEnabled := linkedDatabase != nil
+
 	module, err := expandArmDatabaseModuleArray(d.Get("module").([]interface{}), isGeoEnabled)
 	if err != nil {
 		return fmt.Errorf("setting module error: %+v", err)
@@ -503,7 +500,7 @@ func expandArmDatabaseModuleArray(input []interface{}, isGeoEnabled bool) (*[]da
 		v := item.(map[string]interface{})
 		moduleName := v["name"].(string)
 		if moduleName != "RediSearch" && moduleName != "RedisJSON" && isGeoEnabled {
-			return nil, fmt.Errorf("Only RediSearch and RedisJSON modules are allowed with geo-replication")
+			return nil, errors.New("only RediSearch and RedisJSON modules are allowed with geo-replication")
 		}
 		results = append(results, databases.Module{
 			Name: moduleName,
