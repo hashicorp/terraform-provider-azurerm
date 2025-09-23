@@ -28,6 +28,7 @@ jobs:
       - name: Get changed files
         id: changed-files
         run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1 || true
           changed=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD -- internal/services | tr '\n' ',' | sed 's/,$//')
           changed=${changed:-}
           echo "::notice::check with files: ${changed}"
