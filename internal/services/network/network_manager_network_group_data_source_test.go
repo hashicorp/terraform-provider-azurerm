@@ -21,6 +21,7 @@ func testAccNetworkManagerNetworkGroupDataSource_complete(t *testing.T) {
 			Config: d.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("description").HasValue("test complete"),
+				check.That(data.ResourceName).Key("member_type").HasValue("Subnet"),
 			),
 		},
 	})

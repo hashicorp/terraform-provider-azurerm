@@ -59,7 +59,9 @@ In addition to the Arguments listed above - the following Attributes are exporte
 * `id` - The ID of the Network Manager Network Group.
 
 * `description` - A description of the Network Manager Network Group.
- 
+
+* `member_type` - The member type of the Network Manager Network Group.
+
 ## Timeouts
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
