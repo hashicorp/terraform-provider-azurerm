@@ -279,8 +279,9 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 						},
 
 						"subnet_id": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
+							Type:         pluginsdk.TypeString,
+							Required:     true,
+							ValidateFunc: commonids.ValidateSubnetID,
 						},
 					},
 				},
@@ -362,11 +363,11 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 
 			if d.Get("project_management_enabled").(bool) {
 				if kind != "AIServices" {
-					return errors.New("`project_management_enabled` can only be enabled when kind is set to `AIServices`")
+					return errors.New("`project_management_enabled` can only be set to `true` when `kind` is set to `AIServices`")
 				}
 
 				if len(d.Get("identity").([]interface{})) == 0 {
-					return errors.New("for `project_management_enabled` to be enabled, a managed identity must be assigned. Please set `identity` to at least one SystemAssigned or UserAssigned identity")
+					return errors.New("for `project_management_enabled` to be set to `true`, a managed identity must be assigned. Please configure the `identity` block")
 				}
 
 				if d.HasChange("customer_managed_key") && len(d.Get("customer_managed_key").([]interface{})) == 0 {
@@ -377,17 +378,17 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 			}
 
 			if d.Get("dynamic_throttling_enabled").(bool) && utils.SliceContainsValue([]string{"OpenAI", "AIServices"}, kind) {
-				return errors.New("`dynamic_throttling_enabled` is currently not supported when kind is set to `OpenAI` or `AIServices`")
+				return errors.New("`dynamic_throttling_enabled` is currently not supported when `kind` is set to `OpenAI` or `AIServices`")
 			}
 
 			if bypass, ok := d.GetOk("network_acls.0.bypass"); ok && bypass != "" && !utils.SliceContainsValue([]string{"OpenAI", "AIServices"}, kind) {
-				return fmt.Errorf("the `network_acls.bypass` does not support Trusted Services for the kind %q", kind)
+				return fmt.Errorf("the `network_acls.bypass` does not support Trusted Services when `kind` is set to `%s`", kind)
 			}
 
 			networkInjection := d.Get("network_injection").([]interface{})
 			if len(networkInjection) > 0 && networkInjection[0] != nil {
 				if kind != "AIServices" {
-					return errors.New("the `network_injection` is only supported for the kind `AIServices`")
+					return errors.New("the `network_injection` block is only supported when `kind` is set to `AIServices`")
 				}
 			}
 
@@ -765,12 +766,12 @@ func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta interface{})
 	var subnetId *commonids.SubnetId
 	if account.Model.Properties != nil && account.Model.Properties.NetworkInjections != nil {
 		networkInjections := *account.Model.Properties.NetworkInjections
-		if len(networkInjections) > 0 && networkInjections[0].SubnetArmId != nil {
-			subnetIdStr := *networkInjections[0].SubnetArmId
+		if len(networkInjections) > 0 {
+			subnetIdStr := pointer.From(networkInjections[0].SubnetArmId)
 			if subnetIdStr != "" {
 				parsedSubnetId, err := commonids.ParseSubnetIDInsensitively(subnetIdStr)
 				if err != nil {
-					return fmt.Errorf("parsing subnet ID %q from network_injection: %+v", subnetIdStr, err)
+					return err
 				}
 				subnetId = parsedSubnetId
 			}
@@ -790,7 +791,7 @@ func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta interface{})
 		}
 
 		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
-			return fmt.Errorf("waiting for Service Association Links to be removed from %s: %+v", subnetId.ID(), err)
+			return fmt.Errorf("waiting for Service Association Links to be removed from %s: %+v", *subnetId, err)
 		}
 	}
 
@@ -810,7 +811,7 @@ func serviceAssociationLinkStateRefreshFunc(ctx context.Context, client *subnets
 			if len(serviceAssociationLinks) > 0 {
 				for _, sal := range serviceAssociationLinks {
 					// The SAL name associated with the Cognitive Services account is "legionservicelink"
-					if sal.Name != nil && *sal.Name == "legionservicelink" && sal.Properties != nil && sal.Properties.ProvisioningState != nil {
+					if pointer.From(sal.Name) == "legionservicelink" && sal.Properties != nil && sal.Properties.ProvisioningState != nil {
 						log.Printf("[DEBUG] Found Service Association Link %s with provisioning state %s",
 							pointer.From(sal.Name), *sal.Properties.ProvisioningState)
 						return resp, "SALExists", nil
@@ -1102,7 +1103,7 @@ func flattenCognitiveAccountNetworkInjection(input *[]cognitiveservicesaccounts.
 		if v.SubnetArmId != nil {
 			subnet, err := commonids.ParseSubnetIDInsensitively(*v.SubnetArmId)
 			if err != nil {
-				return nil, fmt.Errorf("parsing `subnet_id`: %+v", err)
+				return nil, err
 			}
 			subnetId = subnet.ID()
 		}
