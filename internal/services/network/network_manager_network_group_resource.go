@@ -160,7 +160,6 @@ func (r ManagerNetworkGroupResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("member_type") {
 				if model.MemberType != "" {
 					properties.MemberType = pointer.ToEnum[networkgroups.GroupMemberType](model.MemberType)
-
 				} else {
 					properties.MemberType = nil
 				}
