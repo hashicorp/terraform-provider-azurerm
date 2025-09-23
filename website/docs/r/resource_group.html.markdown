@@ -4,6 +4,9 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_resource_group"
 description: |-
   Manages a Resource Group.
+
+
+  
 ---
 
 # azurerm_resource_group
@@ -47,7 +50,6 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
 
-* `create` - (Defaults to 90 minutes) Used when creating the Resource Group.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Resource Group.
 * `update` - (Defaults to 90 minutes) Used when updating the Resource Group.
 * `delete` - (Defaults to 90 minutes) Used when deleting the Resource Group.
