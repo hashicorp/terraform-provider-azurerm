@@ -171,8 +171,6 @@ The following arguments are supported:
 
 * `identity` - (Optional) An `identity` block as defined below.
 
-* `minimum_tls_version` - (Optional) The minimum TLS version. Defaults to `1.2`.
-
 * `zones` - (Optional) Specifies a list of Availability Zones in which this Managed Redis Cluster should be located. Only needed for legacy Redis Enterprise SKU. Changing this forces a new Managed Redis Cluster to be created.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Managed Redis Cluster.

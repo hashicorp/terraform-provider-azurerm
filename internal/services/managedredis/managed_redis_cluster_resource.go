@@ -36,7 +36,6 @@ type ManagedRedisClusterResourceModel struct {
 	CustomerManagedKey      []CustomerManagedKey                       `tfschema:"customer_managed_key"`
 	HighAvailabilityEnabled bool                                       `tfschema:"high_availability_enabled"`
 	Identity                []identity.ModelSystemAssignedUserAssigned `tfschema:"identity"`
-	MinimumTlsVersion       string                                     `tfschema:"minimum_tls_version"`
 	Tags                    map[string]string                          `tfschema:"tags"`
 	Zones                   []string                                   `tfschema:"zones"`
 	Hostname                string                                     `tfschema:"hostname"`
@@ -96,15 +95,6 @@ func (r ManagedRedisClusterResource) Arguments() map[string]*pluginsdk.Schema {
 		},
 
 		"identity": commonschema.SystemAssignedUserAssignedIdentityOptional(),
-
-		"minimum_tls_version": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Default:  string(redisenterprise.TlsVersionOnePointTwo),
-			ValidateFunc: validation.StringInSlice([]string{
-				string(redisenterprise.TlsVersionOnePointTwo),
-			}, false),
-		},
 
 		"tags": commonschema.Tags(),
 
@@ -169,7 +159,7 @@ func (r ManagedRedisClusterResource) Create() sdk.ResourceFunc {
 					Name: redisenterprise.SkuName(model.SkuName),
 				},
 				Properties: &redisenterprise.ClusterProperties{
-					MinimumTlsVersion: pointer.To(redisenterprise.TlsVersion(model.MinimumTlsVersion)),
+					MinimumTlsVersion: pointer.To(redisenterprise.TlsVersionOnePointTwo),
 					HighAvailability:  pointer.To(highAvailability),
 				},
 				Tags: pointer.To(model.Tags),
@@ -245,7 +235,6 @@ func (r ManagedRedisClusterResource) Read() sdk.ResourceFunc {
 				if props := model.Properties; props != nil {
 					state.CustomerManagedKey = flattenManagedRedisClusterCustomerManagedKey(props.Encryption)
 					state.HighAvailabilityEnabled = strings.EqualFold(string(pointer.From(props.HighAvailability)), string(redisenterprise.HighAvailabilityEnabled))
-					state.MinimumTlsVersion = pointer.FromEnum(props.MinimumTlsVersion)
 					state.Hostname = pointer.From(props.HostName)
 				}
 			}

@@ -279,7 +279,6 @@ resource "azurerm_managed_redis_cluster" "test" {
   resource_group_name = azurerm_resource_group.test.name
   location            = azurerm_resource_group.test.location
 
-  minimum_tls_version       = "1.2"
   high_availability_enabled = true
 
   sku_name = "Balanced_B3"
