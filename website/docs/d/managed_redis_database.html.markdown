@@ -4,7 +4,6 @@ layout: "azurerm"
 page_title: "Azure Resource Manager: azurerm_managed_redis_database"
 description: |-
   Gets information about an existing Managed Redis Database.
-
 ---
 
 # Data Source: azurerm_managed_redis_database
