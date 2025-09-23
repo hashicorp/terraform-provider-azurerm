@@ -163,7 +163,7 @@ The following arguments are supported:
 
 * `location` - (Required) The Azure Region where the Managed Redis Cluster should exist. Refer to [product availability documentation](https://azure.microsoft.com/explore/global-infrastructure/products-by-region/table) for supported locations. Changing this forces a new Managed Redis Cluster to be created.
 
-* `sku_name` - (Required) The features and specification of the Managed Redis Cluster to deploy. Refer to [the documentation](https://learn.microsoft.com/en-us/rest/api/redis/redisenterprisecache/redis-enterprise/create?view=rest-redis-redisenterprisecache-2025-04-01&tabs=HTTP#skuname) for valid values. `Enterprise_` and `EnterpriseFlash_` prefixed SKUs have been deprecated, but retained for backward compatibility. When using these deprecated SKUs, a capacity value suffix has to be appended, separated with a dash. For example: `Enterprise_E5-2`. Valid capacity values for `Enterprise_` SKUs are `2`, `4`, `6`, .... Valid capacity values for `EnterpriseFlash_` SKUs are `3`, `9`, `15`, .... Changing this forces a new Managed Redis Cluster to be created.
+* `sku_name` - (Required) The features and specification of the Managed Redis Cluster to deploy. Refer to [the documentation](https://learn.microsoft.com/en-us/rest/api/redis/redisenterprisecache/redis-enterprise/create?view=rest-redis-redisenterprisecache-2025-04-01&tabs=HTTP#skuname) for valid values. `Enterprise_` and `EnterpriseFlash_` prefixed SKUs are [no longer supported](https://learn.microsoft.com/azure/redis/migrate/migrate-overview). Changing this forces a new Managed Redis Cluster to be created.
 
 * `customer_managed_key` - (Optional) A `customer_managed_key` block as defined below.
 

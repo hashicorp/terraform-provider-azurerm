@@ -9,8 +9,7 @@ import (
 	"strings"
 )
 
-// ManagedRedisName - validates that the passed interface contains a valid Managed Redis Name
-func ManagedRedisName(i interface{}, k string) (warnings []string, errors []error) {
+func ManagedRedisClusterName(i interface{}, k string) (warnings []string, errors []error) {
 	v, ok := i.(string)
 	if !ok {
 		errors = append(errors, fmt.Errorf("%q expected type of to be string", k))

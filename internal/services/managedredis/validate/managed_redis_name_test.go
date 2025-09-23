@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestManagedRedisName(t *testing.T) {
+func TestManagedRedisClusterName(t *testing.T) {
 	testCases := []struct {
 		name     string
 		input    string
@@ -76,7 +76,7 @@ func TestManagedRedisName(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			_, errors := ManagedRedisName(tc.input, "name")
+			_, errors := ManagedRedisClusterName(tc.input, "name")
 			result := len(errors) == 0
 			if result != tc.expected {
 				t.Fatalf("Expected the result to be %v but got %v (and %d errors)", tc.expected, result, len(errors))

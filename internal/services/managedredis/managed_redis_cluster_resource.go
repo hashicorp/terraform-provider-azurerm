@@ -54,7 +54,7 @@ func (r ManagedRedisClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ManagedRedisName,
+			ValidateFunc: validate.ManagedRedisClusterName,
 		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
@@ -65,7 +65,7 @@ func (r ManagedRedisClusterResource) Arguments() map[string]*pluginsdk.Schema {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
 			ForceNew:     true,
-			ValidateFunc: validate.ManagedRedisClusterSkuName,
+			ValidateFunc: validation.StringInSlice(validate.PossibleValuesForSkuName(), false),
 		},
 
 		"customer_managed_key": {
