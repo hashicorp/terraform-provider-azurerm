@@ -56,7 +56,7 @@ The following arguments are supported:
 
 * `inbound_ip_rule` - (Optional) One or more `inbound_ip_rule` blocks as defined below.
 
-* `minimum_tls_version` - (Optional) The minimum supported TLS version. Either one of `1.0`, `1.1`, or `1.2`.
+* `minimum_tls_version` - (Optional) The minimum supported TLS version. Possible values are `1.0`, `1.1`, `1.2`.
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 

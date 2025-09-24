@@ -244,6 +244,7 @@ func resourceEventGridDomainCreate(d *pluginsdk.ResourceData, meta interface{}) 
 			InputSchema:                          pointer.To(domains.InputSchema(d.Get("input_schema").(string))),
 			InputSchemaMapping:                   expandDomainInputMapping(d),
 			PublicNetworkAccess:                  pointer.To(publicNetworkAccess),
+			MinimumTlsVersionAllowed:             d.Get("minimum_tls_version").(*domains.TlsVersion),
 		},
 		Tags: tags.Expand(d.Get("tags").(map[string]interface{})),
 	}
