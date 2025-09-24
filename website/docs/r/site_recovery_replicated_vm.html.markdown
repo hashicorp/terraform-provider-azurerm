@@ -305,7 +305,7 @@ A `unmanaged_disk` block supports the following:
 
 A `network_interface` block supports the following:
 
-* `source_network_interface_id` - (Optional) (Required if the network_interface block is specified) Id source network interface.
+* `source_network_interface_id` - (Required) Id source network interface.
 
 * `ip_configuration` - (Optional) IP configuration to assign when a failover is done. One or more `ip_configuration` blocks as defined below.
 
@@ -313,7 +313,7 @@ A `network_interface` block supports the following:
 
 The `ip_configuration` block supports the following:
 
-* `name` - (Required) Name of the IP configuration, must be consistent with the name of IP configuration of the source virtual machine.
+* `name` - (Optional) (Required when there are more than 1 `ip_configuration` block) Name of the IP configuration, must be consistent with the name of IP configuration of the source virtual machine.
 
 * `is_primary` - (Optional) Whether this IP configuration is primary? Must be specified if there is more than 1 `ip_configuration`.
 

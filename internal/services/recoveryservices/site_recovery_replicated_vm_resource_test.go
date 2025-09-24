@@ -40,7 +40,7 @@ func TestAccSiteRecoveryReplicatedVm_withTFOSettings(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withFivePointOhTFOSettings(data),
+			Config: r.withTFOSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_interface.0.ip_configuration.0.failover_test_subnet_name").HasValue("snet3"),
@@ -59,7 +59,7 @@ func TestAccSiteRecoveryReplicatedVm_withDeprecatedTFOSettings(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.withTFOSettings(data),
+			Config: r.withDeprecatedTFOSettings(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("network_interface.0.failover_test_subnet_name").HasValue("snet3"),
@@ -926,7 +926,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SiteRecoveryReplicatedVmResource) withTFOSettings(data acceptance.TestData) string {
+func (r SiteRecoveryReplicatedVmResource) withDeprecatedTFOSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -990,7 +990,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
 `, r.template(data), data.RandomInteger)
 }
 
-func (r SiteRecoveryReplicatedVmResource) withFivePointOhTFOSettings(data acceptance.TestData) string {
+func (r SiteRecoveryReplicatedVmResource) withTFOSettings(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -1041,7 +1041,7 @@ resource "azurerm_site_recovery_replicated_vm" "test" {
   network_interface {
     source_network_interface_id = azurerm_network_interface.test.id
     ip_configuration {
-      name                               = "primary"
+      name                               = azurerm_network_interface.test.name
       recovery_public_ip_address_id      = azurerm_public_ip.test-recovery.id
       target_subnet_name                 = azurerm_subnet.test2.name
       failover_test_subnet_name          = azurerm_subnet.tfo.name

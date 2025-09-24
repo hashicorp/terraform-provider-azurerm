@@ -384,10 +384,11 @@ func networkInterfaceResource() *pluginsdk.Resource {
 	}
 
 	if !features.FivePointOh() {
+		nicSchema.Schema["ip_configuration"].Computed = true
 		nicSchema.Schema["ip_configuration"].Elem.(*pluginsdk.Resource).Schema["name"].Required = false
 		nicSchema.Schema["ip_configuration"].Elem.(*pluginsdk.Resource).Schema["name"].Optional = true
 		nicSchema.Schema["ip_configuration"].Elem.(*pluginsdk.Resource).Schema["name"].Computed = true
-		nicSchema.Schema["ip_configuration"].Computed = true
+		nicSchema.Schema["ip_configuration"].Elem.(*pluginsdk.Resource).Schema["primary"].Computed = true
 
 		nicSchema.Schema["failover_test_static_ip"] = &pluginsdk.Schema{
 			Deprecated:   "this property has been deprecated in favour of `network_interface.ip_configuration.failover_test_static_ip` and will be removed in v5.0 of the AzureRM provider.",
