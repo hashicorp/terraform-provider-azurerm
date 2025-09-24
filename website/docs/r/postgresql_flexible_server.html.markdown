@@ -155,7 +155,7 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the PostgreSQL Flexible Server.
 
-* `version` - (Optional) The version of PostgreSQL Flexible Server to use. Possible values are `11`,`12`, `13`, `14`, `15` and `16`. Required when `create_mode` is `Default`.
+* `version` - (Optional) The version of PostgreSQL Flexible Server to use. Possible values are `11`,`12`, `13`, `14`, `15`, `16` and `17`. Required when `create_mode` is `Default`.
 
 -> **Note:** Downgrading `version` isn't supported and will force a new PostgreSQL Flexible Server to be created.
 
