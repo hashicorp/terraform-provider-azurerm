@@ -181,6 +181,8 @@ The following arguments are supported:
 
 * `admin_status` - (Optional) The administrative status of the Auto Export Job. Possible values are `Enable` and `Disable`. Defaults to `Enable`.
 
+* `tags` - (Optional) A mapping of tags which should be assigned to the Azure Managed Lustre File System Auto Export Job.
+
 ## Attributes Reference
 
 In addition to the arguments above, the following attributes are exported:
@@ -191,10 +193,10 @@ In addition to the arguments above, the following attributes are exported:
 
 The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
 
-* `create` - (Defaults to 30 minutes) Used when creating the Azure Managed Lustre File System.
-* `read` - (Defaults to 5 minutes) Used when retrieving the Azure Managed Lustre File System.
-* `update` - (Defaults to 30 minutes) Used when updating the Azure Managed Lustre File System.
-* `delete` - (Defaults to 30 minutes) Used when deleting the Azure Managed Lustre File System.
+* `create` - (Defaults to 1 hour) Used when creating the Azure Managed Lustre File System Auto Export Job.
+* `read` - (Defaults to 5 minutes) Used when retrieving the Azure Managed Lustre File System Auto Export Job.
+* `update` - (Defaults to 1 hour) Used when updating the Azure Managed Lustre File System Auto Export Job.
+* `delete` - (Defaults to 1 hour) Used when deleting the Azure Managed Lustre File System Auto Export Job.
 
 ## Import
 
@@ -203,3 +205,9 @@ Azure Managed Lustre File Systems Auto Export Job can be imported using the `res
 ```shell
 terraform import azurerm_managed_lustre_file_system.example /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/resourceGroup1/providers/Microsoft.StorageCache/amlFilesystems/amlFilesystem1/autoExportJobs/autoexportjob1
 ```
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This resource uses the following Azure API Providers:
+
+* `Microsoft.StorageCache` - 2024-07-01
