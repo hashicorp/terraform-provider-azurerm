@@ -29,7 +29,7 @@ jobs:
           BASE_SHA=${{ github.event.pull_request.base.sha }}
           HEAD_SHA=${{ github.event.pull_request.head.sha }}
           git fetch origin $BASE_SHA --depth=1 || true
-          changed=$(git diff --name-only $BASE_SHA...$HEAD_SHA -- internal/services | tr '\n' ',' | sed 's/,$//')
+          changed=$(git diff --name-only $BASE_SHA...$HEAD_SHA -- internal/services | sed "s|^|${{ github.workspace }}/|" | tr '\n' ',' | sed 's/,$//')
           changed=${changed:-}
           echo "::notice::check with files: ${changed}"
           echo "FILE_LIST=$changed" >> $GITHUB_ENV
