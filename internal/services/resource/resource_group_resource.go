@@ -53,15 +53,8 @@ func resourceResourceGroup() *pluginsdk.Resource {
 
 			"managed_by": {
 				Type:         pluginsdk.TypeString,
-				Required:     true,
-				ForceNew:     true,
-				Default:      "123",
+				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
-			},
-
-			"testMissingProperty": {
-				Type:     pluginsdk.TypeBool,
-				Optional: true,
 			},
 		},
 	}
