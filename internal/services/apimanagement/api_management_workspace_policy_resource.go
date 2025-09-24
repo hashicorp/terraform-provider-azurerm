@@ -49,7 +49,6 @@ func (r ApiManagementWorkspacePolicyResource) Arguments() map[string]*pluginsdk.
 			Type:     pluginsdk.TypeString,
 			Optional: true,
 			// NOTE: O+C when `xml_link` is provided, the API downloads it into `xml_content`.
-			// O+C ensures Terraform state is populated correctly and prevents spurious diffs.
 			Computed:         true,
 			ExactlyOneOf:     []string{"xml_link", "xml_content"},
 			DiffSuppressFunc: XmlWithDotNetInterpolationsDiffSuppress,
@@ -59,7 +58,7 @@ func (r ApiManagementWorkspacePolicyResource) Arguments() map[string]*pluginsdk.
 			Type:         pluginsdk.TypeString,
 			Optional:     true,
 			ExactlyOneOf: []string{"xml_link", "xml_content"},
-			ValidateFunc: validation.StringIsNotEmpty,
+			ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 		},
 	}
 }
@@ -79,19 +78,18 @@ func (r ApiManagementWorkspacePolicyResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			workspaceId, err := workspace.ParseWorkspaceID(model.ApiManagementWorkspaceId)
+			workspaceId, err := workspacepolicy.ParseWorkspaceID(model.ApiManagementWorkspaceId)
 			if err != nil {
 				return err
 			}
 
-			id := workspacepolicy.NewWorkspaceID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.ServiceName, workspaceId.WorkspaceId)
-			existing, err := client.Get(ctx, id, workspacepolicy.GetOperationOptions{})
+			existing, err := client.Get(ctx, *workspaceId, workspacepolicy.GetOperationOptions{})
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
-				return fmt.Errorf("checking for presence of existing %s: %+v", id, err)
+				return fmt.Errorf("checking for presence of existing %s: %+v", *workspaceId, err)
 			}
 
 			if !response.WasNotFound(existing.HttpResponse) {
-				return metadata.ResourceRequiresImport(r.ResourceType(), id)
+				return metadata.ResourceRequiresImport(r.ResourceType(), *workspaceId)
 			}
 
 			parameters := workspacepolicy.PolicyContract{}
@@ -110,11 +108,11 @@ func (r ApiManagementWorkspacePolicyResource) Create() sdk.ResourceFunc {
 				}
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, id, parameters, workspacepolicy.DefaultCreateOrUpdateOperationOptions()); err != nil {
-				return fmt.Errorf("creating %s: %+v", id, err)
+			if _, err := client.CreateOrUpdate(ctx, *workspaceId, parameters, workspacepolicy.DefaultCreateOrUpdateOperationOptions()); err != nil {
+				return fmt.Errorf("creating %s: %+v", *workspaceId, err)
 			}
 
-			metadata.SetID(id)
+			metadata.SetID(*workspaceId)
 			return nil
 		},
 	}
@@ -144,10 +142,6 @@ func (r ApiManagementWorkspacePolicyResource) Update() sdk.ResourceFunc {
 
 			if resp.Model == nil {
 				return fmt.Errorf("retrieving %s: `model` was nil", id)
-			}
-
-			if resp.Model.Properties == nil {
-				return fmt.Errorf("retrieving %s: `properties` was nil", id)
 			}
 
 			payload := resp.Model

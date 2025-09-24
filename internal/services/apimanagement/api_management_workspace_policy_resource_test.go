@@ -145,7 +145,7 @@ provider "azurerm" {
 
 resource "azurerm_api_management_workspace_policy" "test" {
   api_management_workspace_id = azurerm_api_management_workspace.test.id
-  xml_link                    = "https://gist.githubusercontent.com/riordanp/ca22f8113afae0eb38cc12d718fd048d/raw/d6ac89a2f35a6881a7729f8cb4883179dc88eea1/example.xml"
+  xml_link                    = "https://raw.githubusercontent.com/hashicorp/terraform-provider-azurerm/main/internal/services/apimanagement/testdata/api_management_policy_update_test.xml"
 }
 `, r.template(data))
 }

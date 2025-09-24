@@ -52,11 +52,13 @@ The following arguments are supported:
 
 * `api_management_workspace_id` - (Required) Specifies the ID of the API Management Workspace. Changing this forces a new resource to be created.
 
+---
+
 * `xml_content` - (Optional) Specifies the API Management Workspace Policy as an XML string.
 
 * `xml_link` - (Optional) Specifies a publicly accessible URL to a policy XML document.
 
-~> **Note:** One and only one of `xml_content` or `xml_link` must be specified.
+~> **Note:** Exactly one of `xml_content` or `xml_link` must be specified.
 
 ## Attributes Reference
 
