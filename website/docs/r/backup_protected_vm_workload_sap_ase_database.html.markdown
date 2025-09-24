@@ -33,9 +33,9 @@ resource "azurerm_backup_policy_vm_workload" "policy" {
   workload_type = "SAPAseDatabase"
 
   backup {
-    frequency     = "Daily"
-    time          = "02:00"
-    weekdays      = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+    frequency = "Daily"
+    time      = "02:00"
+    weekdays  = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
   }
 
   retention_daily {
@@ -59,12 +59,12 @@ resource "azurerm_backup_container_vm_app" "container" {
 }
 
 resource "azurerm_backup_protected_vm_workload_sap_ase_database" "example" {
-  database_name       = "SYSTEMDB"
+  database_name          = "SYSTEMDB"
   database_instance_name = "DBInstanceName"
-  source_vm_id        = azurerm_virtual_machine.vm.id
-  resource_group_name = azurerm_resource_group.example.name
-  recovery_vault_name = azurerm_recovery_services_vault.vault.name
-  backup_policy_id    = azurerm_backup_policy_vm_workload.policy.id
+  source_vm_id           = azurerm_virtual_machine.vm.id
+  resource_group_name    = azurerm_resource_group.example.name
+  recovery_vault_name    = azurerm_recovery_services_vault.vault.name
+  backup_policy_id       = azurerm_backup_policy_vm_workload.policy.id
 
   depends_on = [azurerm_backup_container_vm_app.container]
 }

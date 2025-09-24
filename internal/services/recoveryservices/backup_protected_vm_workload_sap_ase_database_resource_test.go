@@ -396,7 +396,7 @@ resource "azurerm_backup_protected_vm_workload_sap_ase_database" "test" {
   recovery_vault_name    = azurerm_recovery_services_vault.test.name
   source_vm_id           = "%s"
   backup_policy_id       = azurerm_backup_policy_vm_workload.test.id
-  database_name          = "%s" 
+  database_name          = "%s"
   database_instance_name = "%s"
   protection_state       = "ProtectionStopped"
 

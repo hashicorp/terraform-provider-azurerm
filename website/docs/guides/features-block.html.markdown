@@ -76,10 +76,10 @@ provider "azurerm" {
     }
 
     recovery_service {
-      vm_backup_stop_protection_and_retain_data_on_destroy    = true
-      vm_backup_suspend_protection_and_retain_data_on_destroy = true
-      vm_workload_sap_ase_database_backup_stop_protection_and_retain_data_on_destroy    = true
-      purge_protected_items_from_vault_on_destroy             = true
+      vm_backup_stop_protection_and_retain_data_on_destroy                           = true
+      vm_backup_suspend_protection_and_retain_data_on_destroy                        = true
+      vm_workload_sap_ase_database_backup_stop_protection_and_retain_data_on_destroy = true
+      purge_protected_items_from_vault_on_destroy                                    = true
     }
 
     resource_group {
