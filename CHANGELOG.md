@@ -5,14 +5,14 @@ FEATURES:
 ENHANCEMENTS:
 
 * dependencies: `frontdoor/webapplicationfirewallpolicies` - update to API version `2025-03-01` [GH-29742]
-* `azurerm_kubernetes_cluster` - add support for the `api_server_access_profile.virtual_network_integration_enabled` and `api_server_access_profile.subnet_id` properties [GH-30559]
-* `azurerm_mysql_flexible_server` - add support for the `managed_hsm_key_id` property [GH-30502]
+* `azurerm_cdn_frontdoor_firewall_policy` - support for the `captcha_cookie_expiration_in_minutes` property and  the `CAPTCHA` value in the `custom_rule.action` property [GH-29742]
+* `azurerm_cdn_frontdoor_security_policy` - add update ability [GH-30299]
 * `azurerm_cognitive_account` - add support for `C2`, `C3`, `C4`, `D3`, and `S1`  to `sku_name` [GH-30655]
+* `azurerm_kubernetes_cluster` - add support for the `api_server_access_profile.virtual_network_integration_enabled` and `api_server_access_profile.subnet_id` properties [GH-30559]
 * `azurerm_machine_learning_workspace` - add support for the `service_side_encryption_enabled` property [GH-30478]
+* `azurerm_mysql_flexible_server` - add support for the `managed_hsm_key_id` property [GH-30502]
 * `azurerm_postgresql_flexible_server` - add support for the `17` value in the `version` property [GH-30683]
 * `azurerm_storage_queue` - add support for the `storage_account_id` property [GH-28752]
-* `azurerm_cdn_frontdoor_firewall_policy` - support for the `captcha_cookie_expiration_in_minutes` property and  the `CAPTCHA` value in the `custom_rule.action` property [GH-29742]
-* `azurerm_cdn_frontdoor_security_policy` - Add update ability [GH-30299]
 
 BUG FIXES:
 
