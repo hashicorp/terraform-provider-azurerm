@@ -7,6 +7,7 @@ ENHANCEMENTS:
 * `azurerm_mysql_flexible_server` - add support for the `managed_hsm_key_id` property [GH-30502]
 * `azurerm_cognitive_account` - add support for `C2`, `C3`, `C4`, `D3`, and `S1`  to `sku_name` [GH-30655]
 * `azurerm_machine_learning_workspace` - add support for the `service_side_encryption_enabled` property [GH-30478]
+* `azurerm_postgresql_flexible_server` - add support for the `17` value in the `version` property [GH-30683]
 * `azurerm_storage_queue` - add support for the `storage_account_id` property [GH-28752]
 
 BUG FIXES:
