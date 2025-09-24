@@ -17,47 +17,45 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
-type BackupProtectedVMWorkloadResource struct{}
+type BackupProtectedVMWorkloadSAPAseDatabaseResource struct{}
 
-func TestAccBackupProtectedVMWorkloadSequential(t *testing.T) {
+func TestAccBackupProtectedVMWorkloadSAPAseDatabaseSequential(t *testing.T) {
 	// The dependent VM and database require complex SAP workload configurations. Tests require pre-configured resources.
-	if os.Getenv("ARM_TEST_SAP_VM_ID") == "" || os.Getenv("ARM_TEST_SAP_DATABASE_NAME") == "" {
-		t.Skip("Skipping as `ARM_TEST_SAP_VM_ID` and `ARM_TEST_SAP_DATABASE_NAME` are not specified")
+	if os.Getenv("ARM_TEST_SAP_VM_ID") == "" || os.Getenv("ARM_TEST_SAP_DATABASE_NAME") == "" || os.Getenv("ARM_TEST_SAP_DATABASE_INSTANCE_NAME") == "" {
+		t.Skip("Skipping test as ARM_TEST_SAP_VM_ID, ARM_TEST_SAP_DATABASE_NAME, or ARM_TEST_SAP_DATABASE_INSTANCE_NAME environment variables are not set")
 	}
 
 	acceptance.RunTestsInSequence(t, map[string]map[string]func(t *testing.T){
-		"backupProtectedVMWorkload": {
-			"basic":                        testAccBackupProtectedVMWorkload_Basic,
-			"requiresImport":               testAccBackupProtectedVMWorkload_RequiresImport,
-			"update":                       testAccBackupProtectedVMWorkload_Update,
-			"protectionStopped":            testAccBackupProtectedVMWorkload_ProtectionStopped,
-			"protectionStoppedOnDestroy":   testAccBackupProtectedVMWorkload_ProtectionStoppedOnDestroy,
-			"recoverSoftDeletedWorkload":   testAccBackupProtectedVMWorkload_RecoverSoftDeletedWorkload,
+		"backupProtectedVMWorkloadSAPAseDatabase": {
+			"basic":                      testAccBackupProtectedVMWorkloadSAPAseDatabase_Basic,
+			"requiresImport":             testAccBackupProtectedVMWorkloadSAPAseDatabase_RequiresImport,
+			"update":                     testAccBackupProtectedVMWorkloadSAPAseDatabase_Update,
+			"protectionStopped":          testAccBackupProtectedVMWorkloadSAPAseDatabase_ProtectionStopped,
+			"protectionStoppedOnDestroy": testAccBackupProtectedVMWorkloadSAPAseDatabase_ProtectionStoppedOnDestroy,
+			"recoverSoftDeletedWorkload": testAccBackupProtectedVMWorkloadSAPAseDatabase_RecoverSoftDeletedWorkload,
 		},
 	})
 }
 
-func testAccBackupProtectedVMWorkload_Basic(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm_workload", "test")
-	r := BackupProtectedVMWorkloadResource{}
+func testAccBackupProtectedVMWorkloadSAPAseDatabase_Basic(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm_workload_sap_ase_database", "test")
+	r := BackupProtectedVMWorkloadSAPAseDatabaseResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("workload_type").HasValue("SAPAseDatabase"),
-				check.That(data.ResourceName).Key("protected_item_name").HasValue(os.Getenv("ARM_TEST_SAP_DATABASE_NAME")),
-				check.That(data.ResourceName).Key("source_vm_id").HasValue(os.Getenv("ARM_TEST_SAP_VM_ID")),
+				check.That(data.ResourceName).Key("resource_group_name").Exists(),
 			),
 		},
 		data.ImportStep(),
 	})
 }
 
-func testAccBackupProtectedVMWorkload_RequiresImport(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm_workload", "test")
-	r := BackupProtectedVMWorkloadResource{}
+func testAccBackupProtectedVMWorkloadSAPAseDatabase_RequiresImport(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm_workload_sap_ase_database", "test")
+	r := BackupProtectedVMWorkloadSAPAseDatabaseResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -70,9 +68,9 @@ func testAccBackupProtectedVMWorkload_RequiresImport(t *testing.T) {
 	})
 }
 
-func testAccBackupProtectedVMWorkload_Update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm_workload", "test")
-	r := BackupProtectedVMWorkloadResource{}
+func testAccBackupProtectedVMWorkloadSAPAseDatabase_Update(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm_workload_sap_ase_database", "test")
+	r := BackupProtectedVMWorkloadSAPAseDatabaseResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -92,9 +90,9 @@ func testAccBackupProtectedVMWorkload_Update(t *testing.T) {
 	})
 }
 
-func testAccBackupProtectedVMWorkload_ProtectionStopped(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm_workload", "test")
-	r := BackupProtectedVMWorkloadResource{}
+func testAccBackupProtectedVMWorkloadSAPAseDatabase_ProtectionStopped(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm_workload_sap_ase_database", "test")
+	r := BackupProtectedVMWorkloadSAPAseDatabaseResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -118,9 +116,9 @@ func testAccBackupProtectedVMWorkload_ProtectionStopped(t *testing.T) {
 	})
 }
 
-func testAccBackupProtectedVMWorkload_ProtectionStoppedOnDestroy(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm_workload", "test")
-	r := BackupProtectedVMWorkloadResource{}
+func testAccBackupProtectedVMWorkloadSAPAseDatabase_ProtectionStoppedOnDestroy(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm_workload_sap_ase_database", "test")
+	r := BackupProtectedVMWorkloadSAPAseDatabaseResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -136,9 +134,9 @@ func testAccBackupProtectedVMWorkload_ProtectionStoppedOnDestroy(t *testing.T) {
 	})
 }
 
-func testAccBackupProtectedVMWorkload_RecoverSoftDeletedWorkload(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm_workload", "test")
-	r := BackupProtectedVMWorkloadResource{}
+func testAccBackupProtectedVMWorkloadSAPAseDatabase_RecoverSoftDeletedWorkload(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_backup_protected_vm_workload_sap_ase_database", "test")
+	r := BackupProtectedVMWorkloadSAPAseDatabaseResource{}
 
 	data.ResourceSequentialTest(t, r, []acceptance.TestStep{
 		{
@@ -167,7 +165,7 @@ func testAccBackupProtectedVMWorkload_RecoverSoftDeletedWorkload(t *testing.T) {
 	})
 }
 
-func (t BackupProtectedVMWorkloadResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (t BackupProtectedVMWorkloadSAPAseDatabaseResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := protecteditems.ParseProtectedItemID(state.ID)
 	if err != nil {
 		return nil, err
@@ -175,13 +173,13 @@ func (t BackupProtectedVMWorkloadResource) Exists(ctx context.Context, clients *
 
 	resp, err := clients.RecoveryServices.ProtectedItemsClient.Get(ctx, *id, protecteditems.GetOperationOptions{})
 	if err != nil {
-		return nil, fmt.Errorf("reading Backup Protected VM Workload (%s): %+v", id.String(), err)
+		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	return utils.Bool(resp.Model != nil), nil
 }
 
-func (r BackupProtectedVMWorkloadResource) basic(data acceptance.TestData) string {
+func (r BackupProtectedVMWorkloadSAPAseDatabaseResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -229,35 +227,35 @@ resource "azurerm_backup_container_vm_app" "test" {
   workload_type       = "SAPAseDatabase"
 }
 
-resource "azurerm_backup_protected_vm_workload" "test" {
-  resource_group_name   = azurerm_resource_group.test.name
-  recovery_vault_name   = azurerm_recovery_services_vault.test.name
-  source_vm_id          = "%s"
-  backup_policy_id      = azurerm_backup_policy_vm_workload.test.id
-  workload_type         = "SAPAseDatabase"
-  protected_item_name   = "%s"
+resource "azurerm_backup_protected_vm_workload_sap_ase_database" "test" {
+  resource_group_name    = azurerm_resource_group.test.name
+  recovery_vault_name    = azurerm_recovery_services_vault.test.name
+  source_vm_id           = "%s"
+  backup_policy_id       = azurerm_backup_policy_vm_workload.test.id
+  database_name          = "%s"
+  database_instance_name = "%s"
 
   depends_on = [azurerm_backup_container_vm_app.test]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, os.Getenv("ARM_TEST_SAP_VM_ID"), os.Getenv("ARM_TEST_SAP_VM_ID"), os.Getenv("ARM_TEST_SAP_DATABASE_NAME"))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, os.Getenv("ARM_TEST_SAP_VM_ID"), os.Getenv("ARM_TEST_SAP_VM_ID"), os.Getenv("ARM_TEST_SAP_DATABASE_NAME"), os.Getenv("ARM_TEST_SAP_DATABASE_INSTANCE_NAME"))
 }
 
-func (r BackupProtectedVMWorkloadResource) requiresImport(data acceptance.TestData) string {
+func (r BackupProtectedVMWorkloadSAPAseDatabaseResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_backup_protected_vm_workload" "import" {
-  resource_group_name = azurerm_backup_protected_vm_workload.test.resource_group_name
-  recovery_vault_name = azurerm_backup_protected_vm_workload.test.recovery_vault_name
-  source_vm_id        = azurerm_backup_protected_vm_workload.test.source_vm_id
-  backup_policy_id    = azurerm_backup_protected_vm_workload.test.backup_policy_id
-  workload_type       = azurerm_backup_protected_vm_workload.test.workload_type
-  protected_item_name = azurerm_backup_protected_vm_workload.test.protected_item_name
+resource "azurerm_backup_protected_vm_workload_sap_ase_database" "import" {
+  resource_group_name    = azurerm_backup_protected_vm_workload_sap_ase_database.test.resource_group_name
+  recovery_vault_name    = azurerm_backup_protected_vm_workload_sap_ase_database.test.recovery_vault_name
+  source_vm_id           = azurerm_backup_protected_vm_workload_sap_ase_database.test.source_vm_id
+  backup_policy_id       = azurerm_backup_protected_vm_workload_sap_ase_database.test.backup_policy_id
+  database_name          = azurerm_backup_protected_vm_workload_sap_ase_database.test.database_name
+  database_instance_name = azurerm_backup_protected_vm_workload_sap_ase_database.test.database_instance_name
 }
 `, r.basic(data))
 }
 
-func (r BackupProtectedVMWorkloadResource) update(data acceptance.TestData) string {
+func (r BackupProtectedVMWorkloadSAPAseDatabaseResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -326,20 +324,20 @@ resource "azurerm_backup_container_vm_app" "test" {
   workload_type       = "SAPAseDatabase"
 }
 
-resource "azurerm_backup_protected_vm_workload" "test" {
-  resource_group_name   = azurerm_resource_group.test.name
-  recovery_vault_name   = azurerm_recovery_services_vault.test.name
-  source_vm_id          = "%s"
-  backup_policy_id      = azurerm_backup_policy_vm_workload.updated.id
-  workload_type         = "SAPAseDatabase"
-  protected_item_name   = "%s"
+resource "azurerm_backup_protected_vm_workload_sap_ase_database" "test" {
+  resource_group_name    = azurerm_resource_group.test.name
+  recovery_vault_name    = azurerm_recovery_services_vault.test.name
+  source_vm_id           = "%s"
+  backup_policy_id       = azurerm_backup_policy_vm_workload.updated.id
+  database_name          = "%s"
+  database_instance_name = "%s"
 
   depends_on = [azurerm_backup_container_vm_app.test]
 }
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, os.Getenv("ARM_TEST_SAP_VM_ID"), os.Getenv("ARM_TEST_SAP_VM_ID"), os.Getenv("ARM_TEST_SAP_DATABASE_NAME"))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, os.Getenv("ARM_TEST_SAP_VM_ID"), os.Getenv("ARM_TEST_SAP_VM_ID"), os.Getenv("ARM_TEST_SAP_DATABASE_NAME"), os.Getenv("ARM_TEST_SAP_DATABASE_INSTANCE_NAME"))
 }
 
-func (r BackupProtectedVMWorkloadResource) base(data acceptance.TestData) string {
+func (r BackupProtectedVMWorkloadSAPAseDatabaseResource) base(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -389,40 +387,50 @@ resource "azurerm_backup_container_vm_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, os.Getenv("ARM_TEST_SAP_VM_ID"))
 }
 
-func (r BackupProtectedVMWorkloadResource) protectionStopped(data acceptance.TestData) string {
+func (r BackupProtectedVMWorkloadSAPAseDatabaseResource) protectionStopped(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
-resource "azurerm_backup_protected_vm_workload" "test" {
-  resource_group_name   = azurerm_resource_group.test.name
-  recovery_vault_name   = azurerm_recovery_services_vault.test.name
-  source_vm_id          = "%s"
-  backup_policy_id      = azurerm_backup_policy_vm_workload.test.id
-  workload_type         = "SAPAseDatabase"
-  protected_item_name   = "%s"
-  protection_state      = "ProtectionStopped"
+resource "azurerm_backup_protected_vm_workload_sap_ase_database" "test" {
+  resource_group_name    = azurerm_resource_group.test.name
+  recovery_vault_name    = azurerm_recovery_services_vault.test.name
+  source_vm_id           = "%s"
+  backup_policy_id       = azurerm_backup_policy_vm_workload.test.id
+  database_name          = "%s" 
+  database_instance_name = "%s"
+  protection_state       = "ProtectionStopped"
 
   depends_on = [azurerm_backup_container_vm_app.test]
 }
-`, r.base(data), os.Getenv("ARM_TEST_SAP_VM_ID"), os.Getenv("ARM_TEST_SAP_DATABASE_NAME"))
+`, r.base(data), os.Getenv("ARM_TEST_SAP_VM_ID"), os.Getenv("ARM_TEST_SAP_DATABASE_NAME"), os.Getenv("ARM_TEST_SAP_DATABASE_INSTANCE_NAME"))
 }
 
-func (r BackupProtectedVMWorkloadResource) protectionStoppedOnDestroy(data acceptance.TestData) string {
+func (r BackupProtectedVMWorkloadSAPAseDatabaseResource) protectionStoppedOnDestroy(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
     recovery_service {
-      vm_workload_backup_stop_protection_and_retain_data_on_destroy = true
-      purge_protected_items_from_vault_on_destroy                   = true
+      vm_workload_sap_ase_database_backup_stop_protection_and_retain_data_on_destroy = true
     }
   }
 }
 
 %s
-`, r.baseWithOutProvider(data))
+
+resource "azurerm_backup_protected_vm_workload_sap_ase_database" "test" {
+  resource_group_name    = azurerm_resource_group.test.name
+  recovery_vault_name    = azurerm_recovery_services_vault.test.name
+  source_vm_id           = "%s"
+  backup_policy_id       = azurerm_backup_policy_vm_workload.test.id
+  database_name          = "%s"
+  database_instance_name = "%s"
+
+  depends_on = [azurerm_backup_container_vm_app.test]
+}
+`, r.baseWithOutProvider(data), os.Getenv("ARM_TEST_SAP_VM_ID"), os.Getenv("ARM_TEST_SAP_DATABASE_NAME"), os.Getenv("ARM_TEST_SAP_DATABASE_INSTANCE_NAME"))
 }
 
-func (r BackupProtectedVMWorkloadResource) baseWithOutProvider(data acceptance.TestData) string {
+func (r BackupProtectedVMWorkloadSAPAseDatabaseResource) baseWithOutProvider(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-backup-vmworkload-%d"
@@ -465,21 +473,10 @@ resource "azurerm_backup_container_vm_app" "test" {
   resource_group_name = azurerm_resource_group.test.name
   workload_type       = "SAPAseDatabase"
 }
-
-resource "azurerm_backup_protected_vm_workload" "test" {
-  resource_group_name   = azurerm_resource_group.test.name
-  recovery_vault_name   = azurerm_recovery_services_vault.test.name
-  source_vm_id          = "%s"
-  backup_policy_id      = azurerm_backup_policy_vm_workload.test.id
-  workload_type         = "SAPAseDatabase"
-  protected_item_name   = "%s"
-
-  depends_on = [azurerm_backup_container_vm_app.test]
-}
-`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, os.Getenv("ARM_TEST_SAP_VM_ID"), os.Getenv("ARM_TEST_SAP_VM_ID"), os.Getenv("ARM_TEST_SAP_DATABASE_NAME"))
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, os.Getenv("ARM_TEST_SAP_VM_ID"))
 }
 
-func (r BackupProtectedVMWorkloadResource) baseWithSoftDelete(data acceptance.TestData) string {
+func (r BackupProtectedVMWorkloadSAPAseDatabaseResource) baseWithSoftDelete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-backup-vmworkload-%d"
@@ -525,34 +522,31 @@ resource "azurerm_backup_container_vm_app" "test" {
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, os.Getenv("ARM_TEST_SAP_VM_ID"))
 }
 
-func (r BackupProtectedVMWorkloadResource) basicWithSoftDelete(data acceptance.TestData, deleted bool) string {
-	protectedWorkloadBlock := `
-resource "azurerm_backup_protected_vm_workload" "test" {
-  resource_group_name   = azurerm_resource_group.test.name
-  recovery_vault_name   = azurerm_recovery_services_vault.test.name
-  source_vm_id          = "%s"
-  backup_policy_id      = azurerm_backup_policy_vm_workload.test.id
-  workload_type         = "SAPAseDatabase"
-  protected_item_name   = "%s"
-
-  depends_on = [azurerm_backup_container_vm_app.test]
-}
-`
+func (r BackupProtectedVMWorkloadSAPAseDatabaseResource) basicWithSoftDelete(data acceptance.TestData, deleted bool) string {
 	if deleted {
-		protectedWorkloadBlock = ""
+		return r.baseWithSoftDelete(data)
 	}
 
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {
-    recovery_services_vaults {
-      recover_soft_deleted_backup_protected_vm_workload = true
+    recovery_service {
+      vm_workload_backup_purge_soft_delete_data_on_destroy = false
     }
   }
 }
 
 %s
 
-%s
-`, r.baseWithSoftDelete(data), fmt.Sprintf(protectedWorkloadBlock, os.Getenv("ARM_TEST_SAP_VM_ID"), os.Getenv("ARM_TEST_SAP_DATABASE_NAME")))
+resource "azurerm_backup_protected_vm_workload_sap_ase_database" "test" {
+  resource_group_name    = azurerm_resource_group.test.name
+  recovery_vault_name    = azurerm_recovery_services_vault.test.name
+  source_vm_id           = "%s"
+  backup_policy_id       = azurerm_backup_policy_vm_workload.test.id
+  database_name          = "%s"
+  database_instance_name = "%s"
+
+  depends_on = [azurerm_backup_container_vm_app.test]
+}
+`, r.baseWithSoftDelete(data), os.Getenv("ARM_TEST_SAP_VM_ID"), os.Getenv("ARM_TEST_SAP_DATABASE_NAME"), os.Getenv("ARM_TEST_SAP_DATABASE_INSTANCE_NAME"))
 }

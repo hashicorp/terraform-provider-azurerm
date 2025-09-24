@@ -151,7 +151,7 @@ func (r BackupContainerVMAppResource) Read() sdk.ResourceFunc {
 				RecoveryVaultName: id.VaultName,
 			}
 
-			// Read workload type from config, because it's missing from GET response
+			// Read workload type from config, because it's missing from GET response (https://github.com/Azure/azure-rest-api-specs/issues/37643)
 			state.WorkloadType = metadata.ResourceData.Get("workload_type").(string)
 
 			if model := resp.Model; model != nil {

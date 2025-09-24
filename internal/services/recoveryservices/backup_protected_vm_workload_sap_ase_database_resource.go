@@ -17,49 +17,54 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-02-01/protecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-02-01/protectionpolicies"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-type BackupProtectedVMWorkloadModel struct {
-	ResourceGroupName string `tfschema:"resource_group_name"`
-	RecoveryVaultName string `tfschema:"recovery_vault_name"`
-	BackupPolicyId    string `tfschema:"backup_policy_id"`
-	WorkloadType      string `tfschema:"workload_type"`
-	SourceVMId        string `tfschema:"source_vm_id"`
-	ProtectedItemName string `tfschema:"protected_item_name"`
-	ProtectionState   string `tfschema:"protection_state"`
+type BackupProtectedVMWorkloadSAPAseDatabaseModel struct {
+	ResourceGroupName    string `tfschema:"resource_group_name"`
+	RecoveryVaultName    string `tfschema:"recovery_vault_name"`
+	BackupPolicyId       string `tfschema:"backup_policy_id"`
+	SourceVMId           string `tfschema:"source_vm_id"`
+	DatabaseName         string `tfschema:"database_name"`
+	DatabaseInstanceName string `tfschema:"database_instance_name"`
+	ProtectionState      string `tfschema:"protection_state"`
 }
 
-type BackupProtectedVMWorkloadResource struct{}
+type BackupProtectedVMWorkloadSAPAseDatabaseResource struct{}
 
-var _ sdk.Resource = BackupProtectedVMWorkloadResource{}
+var _ sdk.Resource = BackupProtectedVMWorkloadSAPAseDatabaseResource{}
 
-func (r BackupProtectedVMWorkloadResource) ResourceType() string {
-	return "azurerm_backup_protected_vm_workload"
+func (r BackupProtectedVMWorkloadSAPAseDatabaseResource) ResourceType() string {
+	return "azurerm_backup_protected_vm_workload_sap_ase_database"
 }
 
-func (r BackupProtectedVMWorkloadResource) ModelObject() interface{} {
-	return &BackupProtectedVMWorkloadModel{}
+func (r BackupProtectedVMWorkloadSAPAseDatabaseResource) ModelObject() interface{} {
+	return &BackupProtectedVMWorkloadSAPAseDatabaseModel{}
 }
 
-func (r BackupProtectedVMWorkloadResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
+func (r BackupProtectedVMWorkloadSAPAseDatabaseResource) IDValidationFunc() pluginsdk.SchemaValidateFunc {
 	return protecteditems.ValidateProtectedItemID
 }
 
-func (r BackupProtectedVMWorkloadResource) Arguments() map[string]*pluginsdk.Schema {
+func (r BackupProtectedVMWorkloadSAPAseDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
-		"protected_item_name": {
+		"database_name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
+			//TODO: ValidateFunc
 		},
 
-		// TODO: Test to see if we need to deassociate source vm id as well
+		"database_instance_name": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			//TODO: ValidateFunc
+		},
+
 		"source_vm_id": {
 			Type:         pluginsdk.TypeString,
 			Required:     true,
@@ -76,62 +81,26 @@ func (r BackupProtectedVMWorkloadResource) Arguments() map[string]*pluginsdk.Sch
 			ValidateFunc: validate.RecoveryServicesVaultName,
 		},
 
-		// TODO: If we need to support protection_state, the backup_policy_id needs to be optional
 		"backup_policy_id": {
 			Type:         pluginsdk.TypeString,
-			Required:     true,
+			Optional:     true,
 			ValidateFunc: protectionpolicies.ValidateBackupPolicyID,
 		},
 
-		"workload_type": {
-			Type:     pluginsdk.TypeString,
-			Required: true,
-			ForceNew: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				string(protecteditems.DataSourceTypeSAPAseDatabase),
-			}, false),
-		},
-
-		// TODO: Double check with the service team if we can suspend vm workload backup, or use empty policyId to stop protection instead
-		"protection_state": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// Note: O+C because `protection_state` is set by Azure and may not be a persistent value.
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				// While not a persistent state, `Protected` is an option to allow a path from `ProtectionStopped` to a protected state.
-				string(protecteditems.ProtectionStateProtected),
-				string(protecteditems.ProtectionStateProtectionStopped),
-			}, false),
-			DiffSuppressFunc: func(_, old, new string, d *schema.ResourceData) bool {
-				// We suppress the diff if the only change is from "IRPending" or "ProtectionPaused" to "Protected".
-				// These states are not persistent and are set by Azure based on the current protection state.
-				// While `Invalid` and `ProtectionError` are also not configurable, we're opting to output this in the diff
-				// as these states should indicate to the user that there is an error with the backup protected VM resource requiring attention.
-				suppressStates := []string{
-					string(protecteditems.ProtectedItemStateIRPending),
-					string(protecteditems.ProtectedItemStateProtectionPaused),
-				}
-
-				if new == string(protecteditems.ProtectionStateProtected) && slices.Contains(suppressStates, old) {
-					return true
-				}
-
-				return false
-			},
-		},
+		// TODO: Double check with the service team if we can suspend vm workload backup
+		"protection_state": BackupProtectedVMWorkloadProtectionStateSchema(),
 	}
 }
 
-func (r BackupProtectedVMWorkloadResource) Attributes() map[string]*pluginsdk.Schema {
+func (r BackupProtectedVMWorkloadSAPAseDatabaseResource) Attributes() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{}
 }
 
-func (r BackupProtectedVMWorkloadResource) Create() sdk.ResourceFunc {
+func (r BackupProtectedVMWorkloadSAPAseDatabaseResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
-			var model BackupProtectedVMWorkloadModel
+			var model BackupProtectedVMWorkloadSAPAseDatabaseModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -143,8 +112,13 @@ func (r BackupProtectedVMWorkloadResource) Create() sdk.ResourceFunc {
 				return fmt.Errorf("parsing source_vm_id %q: %+v", model.SourceVMId, err)
 			}
 
+			policyId := model.BackupPolicyId
+			if policyId == "" {
+				return fmt.Errorf("`backup_policy_id` must be specified during creation")
+			}
+
 			containerName := fmt.Sprintf("VMAppContainer;compute;%s;%s", vmId.ResourceGroupName, vmId.VirtualMachineName)
-			protectedItemName := model.ProtectedItemName
+			protectedItemName := fmt.Sprintf("SAPAseDatabase;%s;%s", model.DatabaseInstanceName, model.DatabaseName)
 
 			id := protecteditems.NewProtectedItemID(subscriptionId, model.ResourceGroupName, model.RecoveryVaultName, "Azure", containerName, protectedItemName)
 
@@ -164,8 +138,8 @@ func (r BackupProtectedVMWorkloadResource) Create() sdk.ResourceFunc {
 				}
 
 				if isSoftDeleted {
-					if metadata.Client.Features.RecoveryServicesVault.RecoverSoftDeletedBackupProtectedVMWorkload {
-						err = resourceRecoveryServicesVaultBackupProtectedVMWorkloadRecoverSoftDeleted(ctx, client, id, model.WorkloadType)
+					if metadata.Client.Features.RecoveryServicesVault.RecoverSoftDeletedBackupProtectedVMWorkloadSAPAseDatabase {
+						err = resourceRecoveryServicesVaultBackupProtectedVMWorkloadRecoverSoftDeleted(ctx, client, id)
 						if err != nil {
 							return fmt.Errorf("recovering soft deleted %s: %+v", id, err)
 						}
@@ -180,14 +154,10 @@ func (r BackupProtectedVMWorkloadResource) Create() sdk.ResourceFunc {
 			}
 
 			item := protecteditems.ProtectedItemResource{}
-
-			switch model.WorkloadType {
-			case string(protecteditems.DataSourceTypeSAPAseDatabase):
-				item.Properties = &protecteditems.AzureVMWorkloadSAPAseDatabaseProtectedItem{
-					PolicyId:             &model.BackupPolicyId,
-					BackupManagementType: pointer.To(protecteditems.BackupManagementTypeAzureWorkload),
-					WorkloadType:         pointer.To(protecteditems.DataSourceType(model.WorkloadType)),
-				}
+			item.Properties = &protecteditems.AzureVMWorkloadSAPAseDatabaseProtectedItem{
+				PolicyId:             &policyId,
+				BackupManagementType: pointer.To(protecteditems.BackupManagementTypeAzureWorkload),
+				WorkloadType:         pointer.To(protecteditems.DataSourceTypeSAPAseDatabase),
 			}
 
 			if err := client.CreateOrUpdateThenPoll(ctx, id, item, protecteditems.DefaultCreateOrUpdateOperationOptions()); err != nil {
@@ -204,12 +174,8 @@ func (r BackupProtectedVMWorkloadResource) Create() sdk.ResourceFunc {
 
 			if protectionStateUpdateRequired {
 				updateInput := protecteditems.ProtectedItemResource{}
-
-				switch model.WorkloadType {
-				case string(protecteditems.DataSourceTypeSAPAseDatabase):
-					updateInput.Properties = &protecteditems.AzureVMWorkloadSAPAseDatabaseProtectedItem{
-						ProtectionState: pointer.To(protecteditems.ProtectionState(protectionState)),
-					}
+				updateInput.Properties = &protecteditems.AzureVMWorkloadSAPAseDatabaseProtectedItem{
+					ProtectionState: pointer.To(protecteditems.ProtectionState(protectionState)),
 				}
 
 				if err := client.CreateOrUpdateThenPoll(ctx, id, updateInput, protecteditems.CreateOrUpdateOperationOptions{}); err != nil {
@@ -222,7 +188,7 @@ func (r BackupProtectedVMWorkloadResource) Create() sdk.ResourceFunc {
 	}
 }
 
-func (r BackupProtectedVMWorkloadResource) Read() sdk.ResourceFunc {
+func (r BackupProtectedVMWorkloadSAPAseDatabaseResource) Read() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -241,30 +207,32 @@ func (r BackupProtectedVMWorkloadResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
-			state := BackupProtectedVMWorkloadModel{
+			state := BackupProtectedVMWorkloadSAPAseDatabaseModel{
 				ResourceGroupName: id.ResourceGroupName,
 				RecoveryVaultName: id.VaultName,
-				ProtectedItemName: id.ProtectedItemName,
 			}
 
-			if model := resp.Model; model != nil && model.Properties != nil {
-				switch props := model.Properties.(type) {
-				case protecteditems.AzureVMWorkloadSAPAseDatabaseProtectedItem:
-					// Check for soft delete
-					if pointer.From(props.IsScheduledForDeferredDelete) {
-						return metadata.MarkAsGone(id)
-					}
+			if model := resp.Model; model != nil {
+				if properties := model.Properties; properties != nil {
+					if props, ok := properties.(protecteditems.AzureVMWorkloadSAPAseDatabaseProtectedItem); ok {
+						if pointer.From(props.IsScheduledForDeferredDelete) {
+							return metadata.MarkAsGone(id)
+						}
 
-					if props.PolicyId != nil {
-						state.BackupPolicyId = *props.PolicyId
-					}
-					if props.SourceResourceId != nil {
+						state.DatabaseName = *props.FriendlyName
+						state.DatabaseInstanceName = *props.ParentName
+
+						backupPolicyId := ""
+						if policyId := pointer.From(props.PolicyId); policyId != "" {
+							parsedPolicyId, err := protectionpolicies.ParseBackupPolicyIDInsensitively(policyId)
+							if err != nil {
+								return fmt.Errorf("parsing policy ID %q: %+v", policyId, err)
+							}
+							backupPolicyId = parsedPolicyId.ID()
+						}
+						state.BackupPolicyId = backupPolicyId
+
 						state.SourceVMId = *props.SourceResourceId
-					}
-					if props.WorkloadType != nil {
-						state.WorkloadType = string(*props.WorkloadType)
-					}
-					if props.ProtectionState != nil {
 						state.ProtectionState = string(*props.ProtectionState)
 					}
 				}
@@ -275,7 +243,7 @@ func (r BackupProtectedVMWorkloadResource) Read() sdk.ResourceFunc {
 	}
 }
 
-func (r BackupProtectedVMWorkloadResource) Update() sdk.ResourceFunc {
+func (r BackupProtectedVMWorkloadSAPAseDatabaseResource) Update() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 120 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -286,7 +254,7 @@ func (r BackupProtectedVMWorkloadResource) Update() sdk.ResourceFunc {
 				return err
 			}
 
-			var model BackupProtectedVMWorkloadModel
+			var model BackupProtectedVMWorkloadSAPAseDatabaseModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
@@ -294,23 +262,20 @@ func (r BackupProtectedVMWorkloadResource) Update() sdk.ResourceFunc {
 			if metadata.ResourceData.HasChange("protection_state") || metadata.ResourceData.HasChange("backup_policy_id") {
 				updateInput := protecteditems.ProtectedItemResource{}
 
-				switch model.WorkloadType {
-				case string(protecteditems.DataSourceTypeSAPAseDatabase):
-					properties := &protecteditems.AzureVMWorkloadSAPAseDatabaseProtectedItem{
-						BackupManagementType: pointer.To(protecteditems.BackupManagementTypeAzureWorkload),
-						WorkloadType:         pointer.To(protecteditems.DataSourceType(model.WorkloadType)),
-					}
-
-					if metadata.ResourceData.HasChange("protection_state") {
-						properties.ProtectionState = pointer.To(protecteditems.ProtectionState(model.ProtectionState))
-					}
-
-					if metadata.ResourceData.HasChange("backup_policy_id") {
-						properties.PolicyId = pointer.To(model.BackupPolicyId)
-					}
-
-					updateInput.Properties = properties
+				properties := &protecteditems.AzureVMWorkloadSAPAseDatabaseProtectedItem{
+					BackupManagementType: pointer.To(protecteditems.BackupManagementTypeAzureWorkload),
+					WorkloadType:         pointer.To(protecteditems.DataSourceTypeSAPAseDatabase),
 				}
+
+				if metadata.ResourceData.HasChange("protection_state") {
+					properties.ProtectionState = pointer.To(protecteditems.ProtectionState(model.ProtectionState))
+				}
+
+				if metadata.ResourceData.HasChange("backup_policy_id") {
+					properties.PolicyId = pointer.To(model.BackupPolicyId)
+				}
+
+				updateInput.Properties = properties
 
 				if err := client.CreateOrUpdateThenPoll(ctx, *id, updateInput, protecteditems.CreateOrUpdateOperationOptions{}); err != nil {
 					return fmt.Errorf("updating %s: %+v", id, err)
@@ -322,7 +287,7 @@ func (r BackupProtectedVMWorkloadResource) Update() sdk.ResourceFunc {
 	}
 }
 
-func (r BackupProtectedVMWorkloadResource) Delete() sdk.ResourceFunc {
+func (r BackupProtectedVMWorkloadSAPAseDatabaseResource) Delete() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 80 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
@@ -333,14 +298,14 @@ func (r BackupProtectedVMWorkloadResource) Delete() sdk.ResourceFunc {
 				return err
 			}
 
-			var model BackupProtectedVMWorkloadModel
+			var model BackupProtectedVMWorkloadSAPAseDatabaseModel
 			if err := metadata.Decode(&model); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
 			features := metadata.Client.Features.RecoveryService
 
-			if features.VMWorkloadBackupStopProtectionAndRetainDataOnDestroy {
+			if features.VMWorkloadSAPAseDatabaseBackupStopProtectionAndRetainDataOnDestroy {
 				log.Printf("[DEBUG] Retaining Data and Stopping Protection for %s", id)
 
 				existing, err := client.Get(ctx, *id, protecteditems.GetOperationOptions{})
@@ -354,12 +319,8 @@ func (r BackupProtectedVMWorkloadResource) Delete() sdk.ResourceFunc {
 
 				if existing.Model != nil && existing.Model.Properties != nil {
 					updateInput := protecteditems.ProtectedItemResource{}
-
-					switch model.WorkloadType {
-					case string(protecteditems.DataSourceTypeSAPAseDatabase):
-						updateInput.Properties = &protecteditems.AzureVMWorkloadSAPAseDatabaseProtectedItem{
-							ProtectionState: pointer.To(protecteditems.ProtectionStateProtectionStopped),
-						}
+					updateInput.Properties = &protecteditems.AzureVMWorkloadSAPAseDatabaseProtectedItem{
+						ProtectionState: pointer.To(protecteditems.ProtectionStateProtectionStopped),
 					}
 
 					if err := client.CreateOrUpdateThenPoll(ctx, *id, updateInput, protecteditems.CreateOrUpdateOperationOptions{}); err != nil {
@@ -381,18 +342,11 @@ func (r BackupProtectedVMWorkloadResource) Delete() sdk.ResourceFunc {
 	}
 }
 
-func resourceRecoveryServicesVaultBackupProtectedVMWorkloadRecoverSoftDeleted(ctx context.Context, client *protecteditems.ProtectedItemsClient, id protecteditems.ProtectedItemId, workloadType string) error {
-	var payload protecteditems.ProtectedItemResource
-
-	switch workloadType {
-	case string(protecteditems.DataSourceTypeSAPAseDatabase):
-		payload = protecteditems.ProtectedItemResource{
-			Properties: &protecteditems.AzureVMWorkloadSAPAseDatabaseProtectedItem{
-				IsRehydrate: pointer.To(true),
-			},
-		}
-	default:
-		return fmt.Errorf("unsupported workload type for soft delete recovery: %s", workloadType)
+func resourceRecoveryServicesVaultBackupProtectedVMWorkloadRecoverSoftDeleted(ctx context.Context, client *protecteditems.ProtectedItemsClient, id protecteditems.ProtectedItemId) error {
+	payload := protecteditems.ProtectedItemResource{
+		Properties: &protecteditems.AzureVMWorkloadSAPAseDatabaseProtectedItem{
+			IsRehydrate: pointer.To(true),
+		},
 	}
 
 	if err := client.CreateOrUpdateThenPoll(ctx, id, payload, protecteditems.CreateOrUpdateOperationOptions{}); err != nil {
@@ -404,7 +358,7 @@ func resourceRecoveryServicesVaultBackupProtectedVMWorkloadRecoverSoftDeleted(ct
 
 func optedOutOfRecoveringSoftDeletedBackupProtectedVMWorkloadFmt(vmId string, vaultName string) string {
 	return fmt.Sprintf(`
-An existing soft-deleted Backup Protected VM Workload exists with the source VM %q in the recovery services
+An existing soft-deleted Backup Protected VM Workload SAP Ase Database exists with the source VM %q in the recovery services
 vault %q, however automatically recovering this Backup Protected VM workload has been disabled via the 
 "features" block.
 

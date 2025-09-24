@@ -463,7 +463,7 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 									"vm_backup_suspend_protection_and_retain_data_on_destroy": schema.BoolAttribute{
 										Optional: true,
 									},
-									"vm_workload_backup_stop_protection_and_retain_data_on_destroy": schema.BoolAttribute{
+									"vm_workload_sap_ase_database_backup_stop_protection_and_retain_data_on_destroy": schema.BoolAttribute{
 										Optional: true,
 									},
 									"purge_protected_items_from_vault_on_destroy": schema.BoolAttribute{
@@ -478,7 +478,7 @@ func (p *azureRmFrameworkProvider) Schema(_ context.Context, _ provider.SchemaRe
 									"recover_soft_deleted_backup_protected_vm": schema.BoolAttribute{
 										Optional: true,
 									},
-									"recover_soft_deleted_backup_protected_vm_workload": schema.BoolAttribute{
+									"recover_soft_deleted_backup_protected_vm_workload_sap_ase_database": schema.BoolAttribute{
 										Optional: true,
 									},
 								},

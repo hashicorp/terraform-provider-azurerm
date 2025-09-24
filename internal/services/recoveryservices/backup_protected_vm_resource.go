@@ -18,7 +18,6 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-01-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-02-01/protecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-02-01/protectionpolicies"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -465,34 +464,7 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 			},
 		},
 
-		"protection_state": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			// Note: O+C because `protection_state` is set by Azure and may not be a persistent value.
-			Computed: true,
-			ValidateFunc: validation.StringInSlice([]string{
-				// While not a persistent state, `Protected` is an option to allow a path from `BackupsSuspended`/`ProtectionStopped` to a protected state.
-				string(protecteditems.ProtectionStateProtected),
-				string(protecteditems.ProtectionStateBackupsSuspended),
-				string(protecteditems.ProtectionStateProtectionStopped),
-			}, false),
-			DiffSuppressFunc: func(_, old, new string, d *schema.ResourceData) bool {
-				// We suppress the diff if the only change is from "IRPending" or "ProtectionPaused" to "Protected".
-				// These states are not persistent and are set by Azure based on the current protection state.
-				// While `Invalid` and `ProtectionError` are also not configurable, we're opting to output this in the diff
-				// as these states should indicate to the user that there is an error with the backup protected VM resource requiring attention.
-				suppressStates := []string{
-					string(protecteditems.ProtectedItemStateIRPending),
-					string(protecteditems.ProtectedItemStateProtectionPaused),
-				}
-
-				if new == string(protecteditems.ProtectionStateProtected) && slices.Contains(suppressStates, old) {
-					return true
-				}
-
-				return false
-			},
-		},
+		"protection_state": BackupProtectedVMProtectionStateSchema(),
 	}
 }
 

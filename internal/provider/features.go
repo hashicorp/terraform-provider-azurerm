@@ -285,7 +285,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Optional: true,
 						Default:  false,
 					},
-					"recover_soft_deleted_backup_protected_vm_workload": {
+					"recover_soft_deleted_backup_protected_vm_workload_sap_ase_database": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
@@ -384,7 +384,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 						Optional: true,
 						Default:  false,
 					},
-					"vm_workload_backup_stop_protection_and_retain_data_on_destroy": {
+					"vm_workload_sap_ase_database_backup_stop_protection_and_retain_data_on_destroy": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
 						Default:  false,
@@ -639,8 +639,8 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			if v, ok := appConfRaw["recover_soft_deleted_backup_protected_vm"]; ok {
 				featuresMap.RecoveryServicesVault.RecoverSoftDeletedBackupProtectedVM = v.(bool)
 			}
-			if v, ok := appConfRaw["recover_soft_deleted_backup_protected_vm_workload"]; ok {
-				featuresMap.RecoveryServicesVault.RecoverSoftDeletedBackupProtectedVMWorkload = v.(bool)
+			if v, ok := appConfRaw["recover_soft_deleted_backup_protected_vm_workload_sap_ase_database"]; ok {
+				featuresMap.RecoveryServicesVault.RecoverSoftDeletedBackupProtectedVMWorkloadSAPAseDatabase = v.(bool)
 			}
 		}
 	}
@@ -704,8 +704,8 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			if v, ok := recoveryServicesRaw["vm_backup_suspend_protection_and_retain_data_on_destroy"]; ok {
 				featuresMap.RecoveryService.VMBackupSuspendProtectionAndRetainDataOnDestroy = v.(bool)
 			}
-			if v, ok := recoveryServicesRaw["vm_workload_backup_stop_protection_and_retain_data_on_destroy"]; ok {
-				featuresMap.RecoveryService.VMWorkloadBackupStopProtectionAndRetainDataOnDestroy = v.(bool)
+			if v, ok := recoveryServicesRaw["vm_workload_sap_ase_database_backup_stop_protection_and_retain_data_on_destroy"]; ok {
+				featuresMap.RecoveryService.VMWorkloadSAPAseDatabaseBackupStopProtectionAndRetainDataOnDestroy = v.(bool)
 			}
 			if v, ok := recoveryServicesRaw["purge_protected_items_from_vault_on_destroy"]; ok {
 				featuresMap.RecoveryService.PurgeProtectedItemsFromVaultOnDestroy = v.(bool)

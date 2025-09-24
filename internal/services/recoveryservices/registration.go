@@ -29,7 +29,7 @@ func (r Registration) DataSources() []sdk.DataSource {
 func (r Registration) Resources() []sdk.Resource {
 	return []sdk.Resource{
 		BackupContainerVMAppResource{},
-		BackupProtectedVMWorkloadResource{},
+		BackupProtectedVMWorkloadSAPAseDatabaseResource{},
 		BackupProtectionPolicyVMWorkloadResource{},
 		SiteRecoveryReplicationRecoveryPlanResource{},
 		ReplicationPolicyHyperVResource{},
