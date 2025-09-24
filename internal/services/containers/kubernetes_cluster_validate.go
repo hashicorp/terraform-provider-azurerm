@@ -56,6 +56,22 @@ func validateKubernetesCluster(d *pluginsdk.ResourceData, cluster *managedcluste
 		}
 	}
 
+	// Validate API Server Access Profile
+	if v, exists := d.GetOk("api_server_access_profile"); exists {
+		rawProfiles := v.([]interface{})
+
+		if len(rawProfiles) != 0 {
+			profile := rawProfiles[0].(map[string]interface{})
+
+			virtualNetworkIntegrationEnabled := profile["virtual_network_integration_enabled"].(bool)
+			subnetId := profile["subnet_id"].(string)
+
+			if virtualNetworkIntegrationEnabled && subnetId == "" {
+				return fmt.Errorf("`subnet_id` is required when `virtual_network_integration_enabled` is set to `true`")
+			}
+		}
+	}
+
 	// @tombuildsstuff: As of 2020-03-30 it's no longer possible to create a cluster using a Service Principal
 	// for authentication (albeit this worked on 2020-03-27 via API version 2019-10-01 :shrug:). However it's
 	// possible to rotate the Service Principal for an existing Cluster - so this needs to be supported via
