@@ -328,7 +328,7 @@ func TestAccCognitiveAccount_networkAclsVirtualNetworkRulesWithBypassKindNotSupp
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config:      r.networkAclsVirtualNetworkRulesWithBypassKindNotSupported(data),
-			ExpectError: regexp.MustCompile("the `network_acls.bypass` does not support Trusted Services for the kind \"Face\""),
+			ExpectError: regexp.MustCompile("the `network_acls.bypass` does not support Trusted Services when `kind` is set to `Face`"),
 		},
 	})
 }
