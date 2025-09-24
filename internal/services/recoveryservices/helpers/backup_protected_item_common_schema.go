@@ -1,18 +1,53 @@
 // Copyright (c) HashiCorp, Inc.
 // SPDX-License-Identifier: MPL-2.0
 
-package recoveryservices
+package helpers
 
 import (
 	"slices"
 
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-02-01/protecteditems"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-02-01/protectionpolicies"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
-// ProtectionStateSchema returns the common schema for protection_state field used across backup resources
+func BackupPolicyIdSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
+		Optional:     true,
+		ValidateFunc: protectionpolicies.ValidateBackupPolicyID,
+	}
+}
+
+func RecoveryVaultNameSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:         pluginsdk.TypeString,
+		Required:     true,
+		ForceNew:     true,
+		ValidateFunc: validate.RecoveryServicesVaultName,
+	}
+}
+
+func SourceVMIdSchema() *pluginsdk.Schema {
+	return &pluginsdk.Schema{
+		Type:     pluginsdk.TypeString,
+		Optional: true,
+		Computed: true,
+		ForceNew: true,
+		ValidateFunc: validation.Any(
+			validation.StringIsEmpty,
+			azure.ValidateResourceID,
+		),
+		// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/10357
+		DiffSuppressFunc: suppress.CaseDifference,
+	}
+}
+
 func ProtectionStateSchema(validStates []string) *pluginsdk.Schema {
 	return &pluginsdk.Schema{
 		Type:     pluginsdk.TypeString,

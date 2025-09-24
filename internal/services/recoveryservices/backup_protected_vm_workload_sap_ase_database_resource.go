@@ -19,7 +19,7 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-02-01/protectionpolicies"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -65,30 +65,16 @@ func (r BackupProtectedVMWorkloadSAPAseDatabaseResource) Arguments() map[string]
 			//TODO: ValidateFunc
 		},
 
-		"source_vm_id": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: commonids.ValidateVirtualMachineID,
-		},
+		"source_vm_id": helpers.SourceVMIdSchema(),
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"recovery_vault_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.RecoveryServicesVaultName,
-		},
+		"recovery_vault_name": helpers.RecoveryVaultNameSchema(),
 
-		"backup_policy_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: protectionpolicies.ValidateBackupPolicyID,
-		},
+		"backup_policy_id": helpers.BackupPolicyIdSchema(),
 
 		// TODO: Double check with the service team if we can suspend vm workload backup
-		"protection_state": BackupProtectedVMWorkloadProtectionStateSchema(),
+		"protection_state": helpers.BackupProtectedVMWorkloadProtectionStateSchema(),
 	}
 }
 
@@ -107,9 +93,15 @@ func (r BackupProtectedVMWorkloadSAPAseDatabaseResource) Create() sdk.ResourceFu
 			client := metadata.Client.RecoveryServices.ProtectedItemsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			vmId, err := commonids.ParseVirtualMachineID(model.SourceVMId)
+			// source_vm_id must be specified at creation time but can be removed during update
+			sourceVMId := model.SourceVMId
+			if sourceVMId == "" {
+				return fmt.Errorf("`source_vm_id` must be specified when creating")
+			}
+
+			vmId, err := commonids.ParseVirtualMachineID(sourceVMId)
 			if err != nil {
-				return fmt.Errorf("parsing source_vm_id %q: %+v", model.SourceVMId, err)
+				return fmt.Errorf("parsing source_vm_id %q: %+v", sourceVMId, err)
 			}
 
 			policyId := model.BackupPolicyId

@@ -18,12 +18,10 @@ import (
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservices/2024-01-01/vaults"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-02-01/protecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-02-01/protectionpolicies"
-	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/helpers"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/suppress"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
@@ -418,31 +416,11 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 	return map[string]*pluginsdk.Schema{
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"recovery_vault_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validate.RecoveryServicesVaultName,
-		},
+		"recovery_vault_name": helpers.RecoveryVaultNameSchema(),
 
-		"source_vm_id": {
-			Type:     pluginsdk.TypeString,
-			Optional: true,
-			Computed: true,
-			ForceNew: true,
-			ValidateFunc: validation.Any(
-				validation.StringIsEmpty,
-				azure.ValidateResourceID,
-			),
-			// TODO: make this case sensitive once the API's fixed https://github.com/Azure/azure-rest-api-specs/issues/10357
-			DiffSuppressFunc: suppress.CaseDifference,
-		},
+		"source_vm_id": helpers.SourceVMIdSchema(),
 
-		"backup_policy_id": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			ValidateFunc: protectionpolicies.ValidateBackupPolicyID,
-		},
+		"backup_policy_id": helpers.BackupPolicyIdSchema(),
 
 		"exclude_disk_luns": {
 			Type:          pluginsdk.TypeSet,
@@ -464,7 +442,7 @@ func resourceRecoveryServicesBackupProtectedVMSchema() map[string]*pluginsdk.Sch
 			},
 		},
 
-		"protection_state": BackupProtectedVMProtectionStateSchema(),
+		"protection_state": helpers.BackupProtectedVMProtectionStateSchema(),
 	}
 }
 
