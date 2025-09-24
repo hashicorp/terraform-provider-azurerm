@@ -39,6 +39,8 @@ The following attributes are exported:
 
 * `js_challenge_cookie_expiration_in_minutes` - The Front Door Firewall Policy JavaScript challenge cookie lifetime in minutes.
 
+* `captcha_cookie_expiration_in_minutes` - The Front Door Firewall Policy Captcha cookie lifetime in minutes.
+
 * `mode` - The Front Door Firewall Policy mode.
 
 * `redirect_url` - The redirect URL for the client.
