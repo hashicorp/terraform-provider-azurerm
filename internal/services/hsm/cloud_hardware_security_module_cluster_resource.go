@@ -311,8 +311,8 @@ func (r CloudHardwareSecurityModuleClusterResource) Read() sdk.ResourceFunc {
 						hsms := make([]CloudHsmPropertiesModel, 0)
 						for _, hsm := range *props.Hsms {
 							hsmModel := CloudHsmPropertiesModel{
-								Fqdn: pointer.From(hsm.Fqdn),
-								State: pointer.From(hsm.State),
+								Fqdn:         pointer.From(hsm.Fqdn),
+								State:        pointer.From(hsm.State),
 								StateMessage: pointer.From(hsm.StateMessage),
 							}
 							hsms = append(hsms, hsmModel)
@@ -406,38 +406,38 @@ func (r CloudHardwareSecurityModuleClusterResource) Delete() sdk.ResourceFunc {
 }
 
 func flattenPrivateEndpointConnections(connections *[]cloudhsmclusters.PrivateEndpointConnection) []PrivateEndpointConnectionModel {
-    if connections == nil {
-        return []PrivateEndpointConnectionModel{}
-    }
+	if connections == nil {
+		return []PrivateEndpointConnectionModel{}
+	}
 
-    result := make([]PrivateEndpointConnectionModel, 0)
-    for _, conn := range *connections {
-        connModel := PrivateEndpointConnectionModel{
-            Id:   pointer.From(conn.Id),
-            Name: pointer.From(conn.Name),
-            Type: pointer.From(conn.Type),
-        }
+	result := make([]PrivateEndpointConnectionModel, 0)
+	for _, conn := range *connections {
+		connModel := PrivateEndpointConnectionModel{
+			Id:   pointer.From(conn.Id),
+			Name: pointer.From(conn.Name),
+			Type: pointer.From(conn.Type),
+		}
 
-        if conn.Properties != nil {
-            connModel.GroupIds = pointer.From(conn.Properties.GroupIds)
-            if conn.Properties.PrivateEndpoint != nil {
-                connModel.PrivateEndpoint = []PrivateEndpointModel{
-                    {
-                        Id: pointer.From(conn.Properties.PrivateEndpoint.Id),
-                    },
-                }
-            }
-            if conn.Properties.PrivateLinkServiceConnectionState != (cloudhsmclusters.PrivateLinkServiceConnectionState{}) {
-                connModel.PrivateLinkServiceConnectionState = []PrivateLinkServiceConnectionStateModel{
-                    {
-                        Status:          string(pointer.From(conn.Properties.PrivateLinkServiceConnectionState.Status)),
-                        Description:     pointer.From(conn.Properties.PrivateLinkServiceConnectionState.Description),
-                        ActionsRequired: pointer.From(conn.Properties.PrivateLinkServiceConnectionState.ActionsRequired),
-                    },
-                }
-            }
-        }
-        result = append(result, connModel)
-    }
-    return result
+		if conn.Properties != nil {
+			connModel.GroupIds = pointer.From(conn.Properties.GroupIds)
+			if conn.Properties.PrivateEndpoint != nil {
+				connModel.PrivateEndpoint = []PrivateEndpointModel{
+					{
+						Id: pointer.From(conn.Properties.PrivateEndpoint.Id),
+					},
+				}
+			}
+			if conn.Properties.PrivateLinkServiceConnectionState != (cloudhsmclusters.PrivateLinkServiceConnectionState{}) {
+				connModel.PrivateLinkServiceConnectionState = []PrivateLinkServiceConnectionStateModel{
+					{
+						Status:          string(pointer.From(conn.Properties.PrivateLinkServiceConnectionState.Status)),
+						Description:     pointer.From(conn.Properties.PrivateLinkServiceConnectionState.Description),
+						ActionsRequired: pointer.From(conn.Properties.PrivateLinkServiceConnectionState.ActionsRequired),
+					},
+				}
+			}
+		}
+		result = append(result, connModel)
+	}
+	return result
 }
