@@ -129,7 +129,7 @@ resource "azurerm_resource_group_cost_management_export" "test" {
   recurrence_period_end_date   = "%sT00:00:00Z"
 
   export_data_storage_location {
-    container_id     = azurerm_storage_container.test.id
+    container_id     = "${azurerm_storage_account.test.id}/blobServices/default/containers/${azurerm_storage_container.test.name}"
     root_folder_path = "/root"
   }
   export_data_options {
@@ -174,7 +174,7 @@ resource "azurerm_resource_group_cost_management_export" "test" {
   file_format                  = "Csv"
 
   export_data_storage_location {
-    container_id     = azurerm_storage_container.test.id
+    container_id     = "${azurerm_storage_account.test.id}/blobServices/default/containers/${azurerm_storage_container.test.name}"
     root_folder_path = "/root"
   }
   export_data_options {
@@ -198,7 +198,7 @@ resource "azurerm_resource_group_cost_management_export" "import" {
   recurrence_period_end_date   = azurerm_resource_group_cost_management_export.test.recurrence_period_start_date
 
   export_data_storage_location {
-    container_id     = azurerm_storage_container.test.id
+    container_id     = "${azurerm_storage_account.test.id}/blobServices/default/containers/${azurerm_storage_container.test.name}"
     root_folder_path = "/root"
   }
 
