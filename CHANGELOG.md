@@ -12,6 +12,7 @@ ENHANCEMENTS:
 * `azurerm_postgresql_flexible_server` - add support for the `17` value in the `version` property [GH-30683]
 * `azurerm_storage_queue` - add support for the `storage_account_id` property [GH-28752]
 * `azurerm_cdn_frontdoor_firewall_policy` - support for the `captcha_cookie_expiration_in_minutes` property and  the `CAPTCHA` value in the `custom_rule.action` property [GH-29742]
+* `azurerm_cdn_frontdoor_security_policy` - Add update ability [GH-30299]
 
 BUG FIXES:
 
