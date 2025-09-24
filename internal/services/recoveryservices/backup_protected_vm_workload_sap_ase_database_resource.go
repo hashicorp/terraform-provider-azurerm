@@ -17,10 +17,13 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-02-01/protecteditems"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/recoveryservicesbackup/2025-02-01/protectionpolicies"
+	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/recoveryservices/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
 
 type BackupProtectedVMWorkloadSAPAseDatabaseModel struct {
@@ -65,13 +68,31 @@ func (r BackupProtectedVMWorkloadSAPAseDatabaseResource) Arguments() map[string]
 			//TODO: ValidateFunc
 		},
 
-		"source_vm_id": helpers.SourceVMIdSchema(),
+		// Todo: test this resource deletion when vm is destroyed, and test uppercase resource group
+		"source_vm_id": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ForceNew: true,
+			ValidateFunc: validation.Any(
+				validation.StringIsEmpty,
+				azure.ValidateResourceID,
+			),
+		},
 
 		"resource_group_name": commonschema.ResourceGroupName(),
 
-		"recovery_vault_name": helpers.RecoveryVaultNameSchema(),
+		"recovery_vault_name": {
+			Type:         pluginsdk.TypeString,
+			Required:     true,
+			ForceNew:     true,
+			ValidateFunc: validate.RecoveryServicesVaultName,
+		},
 
-		"backup_policy_id": helpers.BackupPolicyIdSchema(),
+		"backup_policy_id": {
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: protectionpolicies.ValidateBackupPolicyID,
+		},
 
 		// TODO: Double check with the service team if we can suspend vm workload backup
 		"protection_state": helpers.BackupProtectedVMWorkloadProtectionStateSchema(),

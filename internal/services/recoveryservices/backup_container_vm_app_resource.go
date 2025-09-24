@@ -27,7 +27,7 @@ type BackupContainerVMAppModel struct {
 	ResourceGroupName string `tfschema:"resource_group_name"`
 	RecoveryVaultName string `tfschema:"recovery_vault_name"`
 	SourceResourceId  string `tfschema:"source_resource_id"`
-	WorkloadType	  string `tfschema:"workload_type"`
+	WorkloadType      string `tfschema:"workload_type"`
 }
 
 type BackupContainerVMAppResource struct{}
@@ -214,7 +214,7 @@ func resourceBackupProtectionContainerWorkloadWaitForOperation(ctx context.Conte
 		Target:                    []string{"Succeeded"},
 		Refresh:                   resourceBackupProtectionContainerWorkloadCheckOperation(ctx, client, vaultName, resourceGroup, operationID),
 		ContinuousTargetOccurence: 5,
-		Timeout: 				   timeout,
+		Timeout:                   timeout,
 	}
 
 	log.Printf("[DEBUG] Waiting for backup container operation %q (Vault %q) to complete", operationID, vaultName)

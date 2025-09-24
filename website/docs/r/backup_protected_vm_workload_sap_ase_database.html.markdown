@@ -80,8 +80,6 @@ The following arguments are supported:
 
 * `source_vm_id` - (Required) The ID of the Virtual Machine which contains the workload to be protected. Changing this forces a new resource to be created.
 
-~> **Note:** After creation, the `source_vm_id` property can be removed without forcing a new resource to be created; however, setting it to a different ID will create a new resource. This allows the source virtual machine to be deleted without having to remove the backup.
-
 * `backup_policy_id` - (Optional) The ID of the backup policy to be used for this protected workload.
 
 ~> **Note:** `backup_policy_id` is required during initial creation of this resource.
