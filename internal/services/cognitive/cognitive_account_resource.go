@@ -270,14 +270,6 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"scenario": {
-							Type:     pluginsdk.TypeString,
-							Required: true,
-							ValidateFunc: validation.StringInSlice([]string{
-								string(cognitiveservicesaccounts.ScenarioTypeAgent),
-							}, false),
-						},
-
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
@@ -371,10 +363,14 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				}
 
 				if d.HasChange("customer_managed_key") && len(d.Get("customer_managed_key").([]interface{})) == 0 {
-					return errors.New("updating encryption mode from customer-managed keys to microsoft-managed keys is not supported when `project_management_enabled` is enabled")
+					if err := d.ForceNew("customer_managed_key"); err != nil {
+						return err
+					}
 				}
 			} else if d.HasChange("project_management_enabled") {
-				return errors.New("once `project_management_enabled` is enabled, it cannot be disabled")
+				if err := d.ForceNew("project_management_enabled"); err != nil {
+					return err
+				}
 			}
 
 			if d.Get("dynamic_throttling_enabled").(bool) && utils.SliceContainsValue([]string{"OpenAI", "AIServices"}, kind) {
@@ -489,18 +485,6 @@ func resourceCognitiveAccountCreate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("creating %s: %+v", id, err)
 	}
 
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{"Accepted", "Creating"},
-		Target:     []string{"Succeeded"},
-		Refresh:    cognitiveAccountStateRefreshFunc(ctx, client, id),
-		MinTimeout: 15 * time.Second,
-		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
-	}
-
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for creation of %s: %+v", id, err)
-	}
-
 	d.SetId(id.ID())
 	return resourceCognitiveAccountRead(d, meta)
 }
@@ -587,17 +571,6 @@ func resourceCognitiveAccountUpdate(d *pluginsdk.ResourceData, meta interface{})
 		return fmt.Errorf("updating %s: %+v", *id, err)
 	}
 
-	stateConf := &pluginsdk.StateChangeConf{
-		Pending:    []string{"Accepted"},
-		Target:     []string{"Succeeded"},
-		Refresh:    cognitiveAccountStateRefreshFunc(ctx, client, *id),
-		MinTimeout: 15 * time.Second,
-		Timeout:    d.Timeout(pluginsdk.TimeoutCreate),
-	}
-
-	if _, err = stateConf.WaitForStateContext(ctx); err != nil {
-		return fmt.Errorf("waiting for update of %s: %+v", *id, err)
-	}
 	return resourceCognitiveAccountRead(d, meta)
 }
 
@@ -671,11 +644,7 @@ func resourceCognitiveAccountRead(d *pluginsdk.ResourceData, meta interface{}) e
 
 			d.Set("fqdns", utils.FlattenStringSlice(props.AllowedFqdnList))
 
-			projectManagementEnabled := false
-			if props.AllowProjectManagement != nil {
-				projectManagementEnabled = *props.AllowProjectManagement
-			}
-			d.Set("project_management_enabled", projectManagementEnabled)
+			d.Set("project_management_enabled", pointer.From(props.AllowProjectManagement))
 
 			publicNetworkAccess := true
 			if props.PublicNetworkAccess != nil {
@@ -767,8 +736,7 @@ func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta interface{})
 	if account.Model.Properties != nil && account.Model.Properties.NetworkInjections != nil {
 		networkInjections := *account.Model.Properties.NetworkInjections
 		if len(networkInjections) > 0 {
-			subnetIdStr := pointer.From(networkInjections[0].SubnetArmId)
-			if subnetIdStr != "" {
+			if subnetIdStr := pointer.From(networkInjections[0].SubnetArmId); subnetIdStr != "" {
 				parsedSubnetId, err := commonids.ParseSubnetIDInsensitively(subnetIdStr)
 				if err != nil {
 					return err
@@ -779,6 +747,11 @@ func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta interface{})
 	}
 
 	if subnetId != nil {
+		deadline, ok := ctx.Deadline()
+		if !ok {
+			return fmt.Errorf("internal-error: context had no deadline")
+		}
+
 		subnetClient := meta.(*clients.Client).Network.Subnets
 		log.Printf("[DEBUG] Waiting for Service Association Links to be removed from subnet %s", subnetId.ID())
 
@@ -787,7 +760,7 @@ func resourceCognitiveAccountDelete(d *pluginsdk.ResourceData, meta interface{})
 			Target:     []string{"SALDeleted"},
 			Refresh:    serviceAssociationLinkStateRefreshFunc(ctx, subnetClient, *subnetId),
 			MinTimeout: 15 * time.Second,
-			Timeout:    d.Timeout(pluginsdk.TimeoutDelete),
+			Timeout:    time.Until(deadline),
 		}
 
 		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
@@ -1076,13 +1049,12 @@ func expandCognitiveAccountNetworkInjection(input []interface{}) *[]cognitiveser
 	for _, v := range input {
 		m := v.(map[string]interface{})
 
-		scenario := cognitiveservicesaccounts.ScenarioType(m["scenario"].(string))
-
 		var subnetId *string
 		if m["subnet_id"] != nil && m["subnet_id"] != "" {
 			subnetId = pointer.To(m["subnet_id"].(string))
 		}
 
+		scenario := cognitiveservicesaccounts.ScenarioTypeAgent
 		results = append(results, cognitiveservicesaccounts.NetworkInjection{
 			Scenario:    &scenario,
 			SubnetArmId: subnetId,
@@ -1109,7 +1081,6 @@ func flattenCognitiveAccountNetworkInjection(input *[]cognitiveservicesaccounts.
 		}
 
 		results = append(results, map[string]interface{}{
-			"scenario":  v.Scenario,
 			"subnet_id": subnetId,
 		})
 	}
