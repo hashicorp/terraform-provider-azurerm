@@ -50,7 +50,7 @@ The following arguments are supported:
 
 * `member_type` - (Optional) The member type for the network group. Possible values are `Subnet` and `VirtualNetwork`. Defaults to `VirtualNetwork`.
 
-!> **Note:** `member_type` can be set to `Subnet` only if the parent Network Manager has `Routing` included in its `scope_accesses`.
+~> **Note:** `member_type` can be set to `Subnet` only if the parent Network Manager has `Routing` included in its `scope_accesses`.
 
 ## Attributes Reference
 
