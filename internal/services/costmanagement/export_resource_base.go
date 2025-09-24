@@ -69,9 +69,10 @@ func (br costManagementExportBaseResource) arguments(fields map[string]*pluginsd
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
 					"container_id": {
-						Type:     pluginsdk.TypeString,
-						Required: true,
-						ForceNew: true,
+						Type:         pluginsdk.TypeString,
+						Required:     true,
+						ForceNew:     true,
+						ValidateFunc: commonids.ValidateStorageContainerID,
 					},
 					"root_folder_path": {
 						Type:         pluginsdk.TypeString,
