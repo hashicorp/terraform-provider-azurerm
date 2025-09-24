@@ -33,5 +33,12 @@ jobs:
           changed=${changed:-}
           echo "::notice::check with files: ${changed}"
           echo "FILE_LIST=$changed" >> $GITHUB_ENV
+          echo "has-files=$([ -n "$changed" ] && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
+      
       - name: run document lint checker
+        if: steps.changed-files.outputs.has-files == 'true'
         run: make document-lint
+
+      - name: skip document lint checker
+        if: steps.changed-files.outputs.has-files == 'false'
+        run: echo "::notice::No internal/services files changed, skipping resource document lint check"
