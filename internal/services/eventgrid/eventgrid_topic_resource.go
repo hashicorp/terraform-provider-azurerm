@@ -196,6 +196,8 @@ func resourceEventGridTopic() *pluginsdk.Resource {
 
 			"minimum_tls_version": {
 				Type:         pluginsdk.TypeString,
+				Default:      string(topics.TlsVersionOnePointTwo),
+				Optional:     true,
 				ValidateFunc: validation.StringInSlice(topics.PossibleValuesForTlsVersion(), false),
 			},
 		},
@@ -365,7 +367,7 @@ func resourceEventGridTopicRead(d *pluginsdk.ResourceData, meta interface{}) err
 			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
 
 			if props.MinimumTlsVersionAllowed != nil {
-				d.Set("minimum_tls_version", *props.MinimumTlsVersionAllowed)
+				d.Set("minimum_tls_version", props.MinimumTlsVersionAllowed)
 			}
 
 			inboundIPRules := flattenTopicInboundIPRules(props.InboundIPRules)

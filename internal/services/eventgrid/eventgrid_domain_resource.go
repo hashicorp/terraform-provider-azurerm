@@ -187,6 +187,13 @@ func resourceEventGridDomain() *pluginsdk.Resource {
 				},
 			},
 
+			"minimum_tls_version": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+				Default:      string(domains.TlsVersionOnePointTwo),
+				ValidateFunc: validation.StringInSlice(domains.PossibleValuesForTlsVersion(), false),
+			},
+
 			"endpoint": {
 				Type:     pluginsdk.TypeString,
 				Computed: true,
@@ -408,6 +415,10 @@ func resourceEventGridDomainRead(d *pluginsdk.ResourceData, meta interface{}) er
 				autoCreateTopicWithFirstSubscription = *props.AutoCreateTopicWithFirstSubscription
 			}
 			d.Set("auto_create_topic_with_first_subscription", autoCreateTopicWithFirstSubscription)
+
+			if props.MinimumTlsVersionAllowed != nil {
+				d.Set("minimum_tls_version", props.MinimumTlsVersionAllowed)
+			}
 
 			autoDeleteTopicWithLastSubscription := true
 			if props.AutoDeleteTopicWithLastSubscription != nil {

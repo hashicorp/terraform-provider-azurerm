@@ -204,7 +204,7 @@ func TestAccEventGridTopic_minimumTlsVersion(t *testing.T) {
 			Config: r.minimumTlsVersion(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.2"),
+				check.That(data.ResourceName).Key("minimum_tls_version").HasValue("1.1"),
 			),
 		},
 		data.ImportStep(),
@@ -348,7 +348,7 @@ resource "azurerm_eventgrid_topic" "test" {
   name                = "acctesteg-%d"
   location            = azurerm_resource_group.test.location
   resource_group_name = azurerm_resource_group.test.name
-  minimum_tls_version = "1.2"
+  minimum_tls_version = "1.1"
 
   tags = {
     "foo" = "bar"
