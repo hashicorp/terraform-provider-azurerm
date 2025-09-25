@@ -33,6 +33,7 @@ type MongoClusterResourceModel struct {
 	AdministratorUserName string                         `tfschema:"administrator_username"`
 	AdministratorPassword string                         `tfschema:"administrator_password"`
 	CreateMode            string                         `tfschema:"create_mode"`
+	InfrastructureVersion string                         `tfschema:"infrastructure_version"`
 	ShardCount            int64                          `tfschema:"shard_count"`
 	SourceLocation        string                         `tfschema:"source_location"`
 	SourceServerId        string                         `tfschema:"source_server_id"`
@@ -218,6 +219,10 @@ func (r MongoClusterResource) Attributes() map[string]*pluginsdk.Schema {
 					},
 				},
 			},
+		},
+		"infrastructure_version": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 	}
 }
@@ -447,6 +452,8 @@ func (r MongoClusterResource) Read() sdk.ResourceFunc {
 					if v := props.Administrator; v != nil {
 						state.AdministratorUserName = pointer.From(v.UserName)
 					}
+
+					state.InfrastructureVersion = pointer.From(props.InfrastructureVersion)
 
 					if v := props.Replica; v != nil {
 						// API doesn't return the value of source_location, https://github.com/Azure/azure-rest-api-specs/issues/31266 has been filed to track it.
