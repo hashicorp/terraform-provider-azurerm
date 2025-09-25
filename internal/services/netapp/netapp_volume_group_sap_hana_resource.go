@@ -143,7 +143,6 @@ func (r NetAppVolumeGroupSAPHanaResource) Arguments() map[string]*pluginsdk.Sche
 
 					"protocols": {
 						Type:     pluginsdk.TypeList,
-						ForceNew: true,
 						Required: true,
 						MinItems: 1,
 						MaxItems: 1,
@@ -297,6 +296,69 @@ func (r NetAppVolumeGroupSAPHanaResource) Attributes() map[string]*pluginsdk.Sch
 	return map[string]*pluginsdk.Schema{}
 }
 
+func (r NetAppVolumeGroupSAPHanaResource) CustomizeDiff() sdk.ResourceFunc {
+	return sdk.ResourceFunc{
+		Timeout: 5 * time.Minute,
+		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
+			rd := metadata.ResourceDiff
+
+			// Validate NFSv3 usage restrictions for SAP HANA volume groups
+			volumes := rd.Get("volume").([]interface{})
+			for i, vol := range volumes {
+				volumeMap := vol.(map[string]interface{})
+				protocols := volumeMap["protocols"].([]interface{})
+				volumeSpecName := volumeMap["volume_spec_name"].(string)
+
+				// Check if NFSv3 is being used on critical SAP HANA volumes
+				for _, protocolInterface := range protocols {
+					protocol := protocolInterface.(string)
+					if protocol == "NFSv3" {
+						// NFSv3 is not allowed on data, log, and shared volumes for SAP HANA
+						if volumeSpecName == "data" || volumeSpecName == "log" || volumeSpecName == "shared" {
+							return fmt.Errorf("NFSv3 protocol is not supported on '%s' volumes for SAP HANA. Only NFSv4.1 is supported for critical SAP HANA volumes (data, log, shared). NFSv3 can only be used for backup volumes (data-backup, log-backup)", volumeSpecName)
+						}
+					}
+				}
+
+				// Validate NFSv3 to NFSv4.1 protocol conversion restrictions for volume groups
+				protocolsKey := fmt.Sprintf("volume.%d.protocols", i)
+
+				if rd.HasChange(protocolsKey) {
+					old, new := rd.GetChange(protocolsKey)
+					oldProtocols := old.([]interface{})
+					newProtocols := new.([]interface{})
+
+					// Convert to string slices for validation
+					oldProtocolsStr := make([]string, len(oldProtocols))
+					newProtocolsStr := make([]string, len(newProtocols))
+
+					for j, v := range oldProtocols {
+						oldProtocolsStr[j] = v.(string)
+					}
+					for j, v := range newProtocols {
+						newProtocolsStr[j] = v.(string)
+					}
+
+					// Get the export policy rules configuration for this volume
+					exportPolicyRulesKey := fmt.Sprintf("volume.%d.export_policy_rule", i)
+					exportPolicyRules := rd.Get(exportPolicyRulesKey).([]interface{})
+
+					// For volume groups, kerberos and data replication are not directly supported, so we pass empty values
+					var kerberosEnabled bool
+					var dataReplication []interface{}
+
+					validationErrors := netAppValidate.ValidateNetAppVolumeProtocolConversion(oldProtocolsStr, newProtocolsStr, kerberosEnabled, dataReplication, exportPolicyRules)
+					for _, err := range validationErrors {
+						return err
+					}
+				}
+			}
+
+			return nil
+		},
+	}
+}
+
 func (r NetAppVolumeGroupSAPHanaResource) Create() sdk.ResourceFunc {
 	return sdk.ResourceFunc{
 		Timeout: 90 * time.Minute,
@@ -436,8 +498,27 @@ func (r NetAppVolumeGroupSAPHanaResource) Update() sdk.ResourceFunc {
 								return fmt.Errorf("one or more issues found while performing export policies validations for %s:\n%+v", id, errors)
 							}
 
-							exportPolicyRule := expandNetAppVolumeGroupVolumeExportPolicyRulePatch(exportPolicyRuleRaw)
+							var protocolOverride []string
+							// Only override export policy protocols if we're also changing volume protocols
+							if metadata.ResourceData.HasChange(fmt.Sprintf("%v.protocols", volumeItem)) {
+								protocolsRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.protocols", volumeItem)).([]interface{})
+								protocolOverride = make([]string, len(protocolsRaw))
+								for i, p := range protocolsRaw {
+									protocolOverride[i] = p.(string)
+								}
+							}
+
+							exportPolicyRule := expandNetAppVolumeGroupVolumeExportPolicyRulePatchWithProtocolConversion(exportPolicyRuleRaw, protocolOverride)
 							update.Properties.ExportPolicy = exportPolicyRule
+						}
+
+						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.protocols", volumeItem)) {
+							protocolsRaw := metadata.ResourceData.Get(fmt.Sprintf("%v.protocols", volumeItem)).([]interface{})
+							protocols := make([]string, len(protocolsRaw))
+							for i, p := range protocolsRaw {
+								protocols[i] = p.(string)
+							}
+							update.Properties.ProtocolTypes = pointer.To(protocols)
 						}
 
 						if metadata.ResourceData.HasChange(fmt.Sprintf("%v.data_protection_snapshot_policy", volumeItem)) {
