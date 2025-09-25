@@ -46,7 +46,7 @@ The following arguments are supported:
 * `type` - (Optional) The type of backup to create.Currently, only `LongTerm` backup operations are supported through the Oracle database At azure service.
 
 ## Attributes Reference
-In addition to the Arguments listed above—the following Attributes are exported:
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Autonomous Database Backup.
 
