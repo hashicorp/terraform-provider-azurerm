@@ -68,7 +68,6 @@ func (r BackupProtectedVMWorkloadSAPAseDatabaseResource) Arguments() map[string]
 			//TODO: ValidateFunc
 		},
 
-		// Todo: test this resource deletion when vm is destroyed, and test uppercase resource group
 		"source_vm_id": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
@@ -114,15 +113,9 @@ func (r BackupProtectedVMWorkloadSAPAseDatabaseResource) Create() sdk.ResourceFu
 			client := metadata.Client.RecoveryServices.ProtectedItemsClient
 			subscriptionId := metadata.Client.Account.SubscriptionId
 
-			// source_vm_id must be specified at creation time but can be removed during update
-			sourceVMId := model.SourceVMId
-			if sourceVMId == "" {
-				return fmt.Errorf("`source_vm_id` must be specified when creating")
-			}
-
-			vmId, err := commonids.ParseVirtualMachineID(sourceVMId)
+			vmId, err := commonids.ParseVirtualMachineID(model.SourceVMId)
 			if err != nil {
-				return fmt.Errorf("parsing source_vm_id %q: %+v", sourceVMId, err)
+				return fmt.Errorf("parsing source_vm_id %q: %+v", model.SourceVMId, err)
 			}
 
 			policyId := model.BackupPolicyId
