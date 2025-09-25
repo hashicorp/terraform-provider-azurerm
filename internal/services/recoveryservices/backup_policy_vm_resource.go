@@ -1173,7 +1173,7 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 
 					"weekdays": { // only for weekly
 						Type:     pluginsdk.TypeSet,
-						Required: true,
+						Optional: true,
 						Set:      set.HashStringIgnoreCase,
 						Elem: &pluginsdk.Schema{
 							Type:             pluginsdk.TypeString,
