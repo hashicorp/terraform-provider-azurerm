@@ -12,6 +12,9 @@ ENHANCEMENTS:
 * `azurerm_kubernetes_cluster` - add support for the `api_server_access_profile.virtual_network_integration_enabled` and `api_server_access_profile.subnet_id` properties [GH-30559]
 * `azurerm_machine_learning_workspace` - add support for the `service_side_encryption_enabled` property [GH-30478]
 * `azurerm_mysql_flexible_server` - add support for the `managed_hsm_key_id` property [GH-30502]
+* `azurerm_netapp_volume` - add support for updating `protocols` [GH-30643]
+* `azurerm_netapp_volume_group_oracle` - add support for updating `protocols` [GH-30643]
+* `azurerm_netapp_volume_group_sap_hana` - add support for updating `protocols` [GH-30643]
 * `azurerm_postgresql_flexible_server` - add support for the `17` value in the `version` property [GH-30683]
 * `azurerm_storage_queue` - add support for the `storage_account_id` property [GH-28752]
 
