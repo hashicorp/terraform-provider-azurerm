@@ -224,20 +224,22 @@ func resourceFirewall() *pluginsdk.Resource {
 				},
 			},
 
-			"autoscaleConfiguration": {
-				Type:         pluginsdk.TypeMap,
-				Optional:     true,
-				ValidateFunc: validate.AutoscaleConfiguration,
-				Elem: &pluginsdk.Resource{
+			"autoscale_configuration": {
+				Type:     pluginsdk.TypeSet,
+				Optional: true,
+				Required: false,
+				Elem: &schema.Resource{
 					Schema: map[string]*pluginsdk.Schema{
-						"minCapacity": {
+						"min_capacity": {
 							Type:         pluginsdk.TypeInt,
 							Required:     false,
+							Optional:     true,
 							ValidateFunc: validate.MinCapacity,
 						},
-						"maxCapacity": {
+						"max_capacity": {
 							Type:         pluginsdk.TypeInt,
 							Required:     false,
+							Optional:     true,
 							ValidateFunc: validate.MaxCapacity,
 						},
 					},
@@ -289,10 +291,9 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	parameters := azurefirewalls.AzureFirewall{
 		Location: &location,
 		Properties: &azurefirewalls.AzureFirewallPropertiesFormat{
-			IPConfigurations:       ipConfigs,
-			ThreatIntelMode:        pointer.To(azurefirewalls.AzureFirewallThreatIntelMode(d.Get("threat_intel_mode").(string))),
-			AdditionalProperties:   pointer.To(make(map[string]string)),
-			AutoscaleConfiguration: pointer.To(generateAutoscaleConfiguration(d.Get("autoscaleConfiguration").(map[string]interface{}))),
+			IPConfigurations:     ipConfigs,
+			ThreatIntelMode:      pointer.To(azurefirewalls.AzureFirewallThreatIntelMode(d.Get("threat_intel_mode").(string))),
+			AdditionalProperties: pointer.To(make(map[string]string)),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -375,6 +376,15 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		id, _ := firewallpolicies.ParseFirewallPolicyID(policyId.(string))
 		locks.ByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
 		defer locks.UnlockByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
+	}
+
+	if autoscaleConfiguration := d.Get("autoscale_configuration").(*schema.Set); autoscaleConfiguration.Len() > 0 {
+		configMap := autoscaleConfiguration.List()[0].(map[string]interface{})
+		configuration, err := expandAutoscaleConfiguration(configMap)
+		if err != nil {
+			return err
+		}
+		parameters.Properties.AutoscaleConfiguration = &configuration
 	}
 
 	locks.ByName(id.AzureFirewallName, AzureFirewallResourceName)
@@ -599,7 +609,7 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	return err
 }
 
-func generateAutoscaleConfiguration(d map[string]interface{}) azurefirewalls.AzureFirewallAutoscaleConfiguration {
+func expandAutoscaleConfiguration(d map[string]interface{}) (azurefirewalls.AzureFirewallAutoscaleConfiguration, error) {
 	configuration := azurefirewalls.AzureFirewallAutoscaleConfiguration{}
 	minPresent := false
 	maxPresent := false
@@ -619,7 +629,11 @@ func generateAutoscaleConfiguration(d map[string]interface{}) azurefirewalls.Azu
 	if maxPresent && max > 0 {
 		configuration.MaxCapacity = pointer.FromInt64(int64(max))
 	}
-	return configuration
+	_, errors := validate.AutoscaleConfiguration(d)
+	if len(errors) > 0 {
+		return azurefirewalls.AzureFirewallAutoscaleConfiguration{}, fmt.Errorf("validating `autoscale_configuration`: %+v", errors)
+	}
+	return configuration, nil
 }
 
 func expandFirewallIPConfigurations(configs []interface{}) (*[]azurefirewalls.AzureFirewallIPConfiguration, *[]string, *[]string, error) {

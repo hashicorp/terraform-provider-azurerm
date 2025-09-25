@@ -2,20 +2,19 @@ package validate
 
 import "fmt"
 
-func AutoscaleConfiguration(v interface{}, k string) (warnings []string, errors []error) {
+func AutoscaleConfiguration(d map[string]interface{}) (warnings []string, errors []error) {
 	minPresent := false
 	maxPresent := false
 	min := 0
 	max := 0
 
-	m := v.(map[string]interface{})
-	if _, ok := m["minCapacity"]; ok {
+	if _, ok := d["minCapacity"]; ok {
 		minPresent = true
-		min = m["minCapacity"].(int)
+		min = d["minCapacity"].(int)
 	}
-	if _, ok := m["maxCapacity"]; ok {
+	if _, ok := d["maxCapacity"]; ok {
 		maxPresent = true
-		max = m["maxCapacity"].(int)
+		max = d["maxCapacity"].(int)
 	}
 	if minPresent && maxPresent {
 		if min > max {

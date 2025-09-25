@@ -25,6 +25,58 @@ const (
 	standard = "Standard"
 )
 
+func TestAccFirewall_autoscaleConfigMinMax(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
+	minScale := 4
+	maxScale := 6
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withAutoscaleConfiguration(data, &minScale, &maxScale),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("provisioningState").HasValue("Succeeded"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccFirewall_autoscaleConfigMinOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
+	minScale := 4
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withAutoscaleConfiguration(data, &minScale, nil),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("provisioningState").HasValue("Succeeded"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccFirewall_autoscaleConfigMaxOnly(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
+	r := FirewallResource{}
+	maxScale := 4
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.withAutoscaleConfiguration(data, nil, &maxScale),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("provisioningState").HasValue("Succeeded"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccFirewall_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 	r := FirewallResource{}
@@ -1279,4 +1331,74 @@ resource "azurerm_firewall" "test" {
   threat_intel_mode = "Deny"
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger)
+}
+
+func (FirewallResource) withAutoscaleConfiguration(data acceptance.TestData, min, max *int) string {
+	autoscaleConfiguration := ""
+	if min == nil && max != nil {
+		autoscaleConfiguration = fmt.Sprintf(`
+  autoscale_configuration {
+    max_capacity = %d
+  }`, *max)
+
+	} else if min != nil && max != nil {
+		autoscaleConfiguration = fmt.Sprintf(`
+  autoscale_configuration {
+    min_capacity = %d
+    max_capacity = %d
+  }`, *min, *max)
+	} else if min != nil && max == nil {
+		autoscaleConfiguration = fmt.Sprintf(`
+  autoscale_configuration {
+    min_capacity = %d
+  }`, *min)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-fw-%d"
+  location = "%s"
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet%d"
+  address_space       = ["10.0.0.0/16"]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_subnet" "test" {
+  name                 = "AzureFirewallSubnet"
+  resource_group_name  = azurerm_resource_group.test.name
+  virtual_network_name = azurerm_virtual_network.test.name
+  address_prefixes     = ["10.0.1.0/24"]
+}
+
+resource "azurerm_public_ip" "test" {
+  name                = "acctestpip%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_firewall" "test" {
+  name                = "acctestfirewall%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  sku_name            = "AZFW_VNet"
+  sku_tier            = "Standard"
+
+  ip_configuration {
+    name                 = "configuration"
+    subnet_id            = azurerm_subnet.test.id
+    public_ip_address_id = azurerm_public_ip.test.id
+  }
+
+  %s
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger, data.RandomInteger, autoscaleConfiguration)
 }
