@@ -134,14 +134,13 @@ func (r ApiManagementWorkspacePolicyResource) Update() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := workspacepolicy.NewWorkspaceID(workspaceId.SubscriptionId, workspaceId.ResourceGroupName, workspaceId.ServiceName, workspaceId.WorkspaceId)
-			resp, err := client.Get(ctx, id, workspacepolicy.GetOperationOptions{})
+			resp, err := client.Get(ctx, *workspaceId, workspacepolicy.GetOperationOptions{})
 			if err != nil {
-				return fmt.Errorf("retrieving %s: %+v", id, err)
+				return fmt.Errorf("retrieving %s: %+v", *workspaceId, err)
 			}
 
 			if resp.Model == nil {
-				return fmt.Errorf("retrieving %s: `model` was nil", id)
+				return fmt.Errorf("retrieving %s: `model` was nil", *workspaceId)
 			}
 
 			payload := resp.Model
@@ -162,8 +161,8 @@ func (r ApiManagementWorkspacePolicyResource) Update() sdk.ResourceFunc {
 				}
 			}
 
-			if _, err := client.CreateOrUpdate(ctx, id, *payload, workspacepolicy.DefaultCreateOrUpdateOperationOptions()); err != nil {
-				return fmt.Errorf("updating %s: %+v", id, err)
+			if _, err := client.CreateOrUpdate(ctx, *workspaceId, *payload, workspacepolicy.DefaultCreateOrUpdateOperationOptions()); err != nil {
+				return fmt.Errorf("updating %s: %+v", *workspaceId, err)
 			}
 
 			return nil
