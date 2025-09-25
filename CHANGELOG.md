@@ -16,6 +16,7 @@ ENHANCEMENTS:
 * `azurerm_storage_queue` - add support for the `storage_account_id` property [GH-28752]
 
 BUG FIXES:
+* `azurerm_cdn_frontdoor_firewall_policy` - fix the read func so it now correctly marks the resource as gone [GH-30704]
 
 ## 4.45.1 (September 22, 2025)
 
