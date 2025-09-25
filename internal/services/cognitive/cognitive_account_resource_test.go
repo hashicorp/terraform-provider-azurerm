@@ -1603,6 +1603,7 @@ resource "azurerm_cognitive_account" "test" {
   }
 
   network_injection {
+    scenario  = "agent"
     subnet_id = azurerm_subnet.subnet_agent.id
   }
 }

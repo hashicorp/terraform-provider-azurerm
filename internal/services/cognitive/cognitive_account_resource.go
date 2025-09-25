@@ -270,6 +270,14 @@ func resourceCognitiveAccount() *pluginsdk.Resource {
 				MaxItems: 1,
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
+						"scenario": {
+							Type:     pluginsdk.TypeString,
+							Required: true,
+							ValidateFunc: validation.StringInSlice([]string{
+								string(cognitiveservicesaccounts.ScenarioTypeAgent),
+							}, false),
+						},
+
 						"subnet_id": {
 							Type:         pluginsdk.TypeString,
 							Required:     true,
@@ -1049,12 +1057,13 @@ func expandCognitiveAccountNetworkInjection(input []interface{}) *[]cognitiveser
 	for _, v := range input {
 		m := v.(map[string]interface{})
 
+		scenario := cognitiveservicesaccounts.ScenarioType(m["scenario"].(string))
+
 		var subnetId *string
 		if m["subnet_id"] != nil && m["subnet_id"] != "" {
 			subnetId = pointer.To(m["subnet_id"].(string))
 		}
 
-		scenario := cognitiveservicesaccounts.ScenarioTypeAgent
 		results = append(results, cognitiveservicesaccounts.NetworkInjection{
 			Scenario:    &scenario,
 			SubnetArmId: subnetId,
@@ -1081,6 +1090,7 @@ func flattenCognitiveAccountNetworkInjection(input *[]cognitiveservicesaccounts.
 		}
 
 		results = append(results, map[string]interface{}{
+			"scenario":  v.Scenario,
 			"subnet_id": subnetId,
 		})
 	}

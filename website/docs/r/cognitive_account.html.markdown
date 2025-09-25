@@ -120,7 +120,9 @@ A `network_acls` block supports the following:
 
 A `network_injection` block supports the following:
 
-* `subnet_id` - (Required) The ID of the subnet which the Agent Client is injected into. This property is required for agent scenarios.
+* `scenario` - (Required) Specifies what features network injection applies to. Only possible value is `agent` for agent scenarios.
+
+* `subnet_id` - (Required) The ID of the subnet which the Agent Client is injected into.
 
 ~> **Note:** The agent subnet must use an address space in the 172.* or 192.* ranges.
 
