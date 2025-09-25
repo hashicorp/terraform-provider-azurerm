@@ -117,7 +117,7 @@ func resourceStorageShare() *pluginsdk.Resource {
 								Schema: map[string]*pluginsdk.Schema{
 									"start": {
 										Type:         pluginsdk.TypeString,
-										Optional:     true,
+										Required:     true,
 										ValidateFunc: validation.IsRFC3339Time,
 									},
 									"expiry": {
