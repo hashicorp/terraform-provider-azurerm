@@ -12,8 +12,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/snapshots"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -1340,7 +1340,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     vm_size              = "Standard_DS2_v2"
     auto_scaling_enabled = true
     min_count            = 1
-    max_count            = 399
+    max_count            = 100
     node_count           = 1
     upgrade_settings {
       max_surge = "10%%"

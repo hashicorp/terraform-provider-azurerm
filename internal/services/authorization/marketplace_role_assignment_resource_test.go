@@ -301,7 +301,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 provider "azurerm" {
@@ -331,7 +331,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 provider "azurerm" {
@@ -369,7 +369,7 @@ provider "azurerm" {
 resource "azurerm_marketplace_role_assignment" "test" {
   name                 = "%s"
   role_definition_name = "%s"
-  principal_id         = azuread_group.test.id
+  principal_id         = azuread_group.test.object_id
 
   lifecycle {
     ignore_changes = [

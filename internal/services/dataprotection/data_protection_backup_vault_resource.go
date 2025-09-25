@@ -133,7 +133,7 @@ func resourceDataProtectionBackupVault() *pluginsdk.Resource {
 				crossRegionRestore := d.GetRawConfig().AsValueMap()["cross_region_restore_enabled"]
 				if !crossRegionRestore.IsNull() && redundancy != string(backupvaults.StorageSettingTypesGeoRedundant) {
 					// Cross region restore is only allowed on `GeoRedundant` vault.
-					return fmt.Errorf("`cross_region_restore_enabled` can only be specified when `redundancy` is specified for `GeoRedundant`.")
+					return fmt.Errorf("`cross_region_restore_enabled` can only be specified when `redundancy` is specified for `GeoRedundant`")
 				}
 				return nil
 			}),

@@ -83,7 +83,7 @@ func (t IPGroupCidrResource) Exists(ctx context.Context, clients *clients.Client
 
 	ipGroupId := ipgroups.NewIPGroupID(id.SubscriptionId, id.ResourceGroup, id.IpGroupName)
 
-	resp, err := clients.Network.Client.IPGroups.Get(ctx, ipGroupId, ipgroups.DefaultGetOperationOptions())
+	resp, err := clients.Network.IPGroups.Get(ctx, ipGroupId, ipgroups.DefaultGetOperationOptions())
 	if err != nil {
 		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
 	}

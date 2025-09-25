@@ -198,7 +198,7 @@ func dataSourceVPNGatewayRead(d *pluginsdk.ResourceData, meta interface{}) error
 
 		if props := model.Properties; props != nil {
 			if err := d.Set("bgp_settings", dataSourceFlattenVPNGatewayBGPSettings(props.BgpSettings)); err != nil {
-				return fmt.Errorf("Error setting `bgp_settings`: %+v", err)
+				return fmt.Errorf("setting `bgp_settings`: %+v", err)
 			}
 
 			if err := d.Set("ip_configuration", dataSourceFlattenVPNGatewayIpConfiguration(props.IPConfigurations)); err != nil {

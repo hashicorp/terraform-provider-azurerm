@@ -43,13 +43,13 @@ func resourceBotWebApp() *pluginsdk.Resource {
 			resp, err := client.Get(ctx, id.ResourceGroup, id.Name)
 			if err != nil {
 				if utils.ResponseWasNotFound(resp.Response) {
-					return nil, fmt.Errorf("Web App Bot %q was not found in Resource Group %q", id.Name, id.ResourceGroup)
+					return nil, fmt.Errorf("the Web App Bot %q was not found in Resource Group %q", id.Name, id.ResourceGroup)
 				}
 
-				return nil, fmt.Errorf("retrieving Web App Bot %q (Resource Group %q): %+v", id.Name, id.ResourceGroup, err)
+				return nil, fmt.Errorf("retrieving Web App %s: %+v", id, err)
 			}
 			if resp.Kind != botservice.KindSdk {
-				return nil, fmt.Errorf("Bot %q (Resource Group %q) was not a Web App - got %q", id.Name, id.ResourceGroup, string(resp.Kind))
+				return nil, fmt.Errorf("%s was not a Web App - got %q", id, string(resp.Kind))
 			}
 
 			return []*pluginsdk.ResourceData{d}, nil

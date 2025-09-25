@@ -319,16 +319,16 @@ func resourceIotSecuritySolutionCreateUpdate(d *pluginsdk.ResourceData, meta int
 	}
 
 	if v, ok := d.GetOk("additional_workspace"); ok {
-		solution.IoTSecuritySolutionProperties.AdditionalWorkspaces = expandIotSecuritySolutionAdditionalWorkspace(v.(*pluginsdk.Set).List())
+		solution.AdditionalWorkspaces = expandIotSecuritySolutionAdditionalWorkspace(v.(*pluginsdk.Set).List())
 	}
 
 	if v, ok := d.GetOk("disabled_data_sources"); ok {
-		solution.IoTSecuritySolutionProperties.DisabledDataSources = expandIotSecuritySolutionDisabledDataSources(v.(*pluginsdk.Set).List())
+		solution.DisabledDataSources = expandIotSecuritySolutionDisabledDataSources(v.(*pluginsdk.Set).List())
 	}
 
 	logAnalyticsWorkspaceId := d.Get("log_analytics_workspace_id").(string)
 	if logAnalyticsWorkspaceId != "" {
-		solution.IoTSecuritySolutionProperties.Workspace = utils.String(logAnalyticsWorkspaceId)
+		solution.Workspace = utils.String(logAnalyticsWorkspaceId)
 	}
 
 	query := d.Get("query_for_resources").(string)
