@@ -1968,6 +1968,21 @@ func TestAccStorageAccount_noDataPlane(t *testing.T) {
 			),
 		},
 		data.ImportStep(),
+		// #30625: ensure we can disable/enable dataplane if it is not required for the resource
+		{
+			Config: r.basic(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.noDataPlane(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
 	})
 }
 
