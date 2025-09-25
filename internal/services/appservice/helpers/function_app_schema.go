@@ -2056,7 +2056,7 @@ func ExpandSiteConfigLinuxFunctionApp(siteConfig []SiteConfigLinuxFunctionApp, e
 	return expanded, nil
 }
 
-func ExpandSiteConfigFunctionFlexConsumptionApp(siteConfigFlexConsumption []SiteConfigFunctionAppFlexConsumption, existing *webapps.SiteConfig, metadata sdk.ResourceMetaData, storageUsesMSI bool, storageStringFlex string, storageConnStringForFCApp string) (*webapps.SiteConfig, error) {
+func ExpandSiteConfigFunctionFlexConsumptionApp(siteConfigFlexConsumption []SiteConfigFunctionAppFlexConsumption, existing *webapps.SiteConfig, metadata sdk.ResourceMetaData, storageAuthType *webapps.AuthenticationType, storageConnectionString string, storageClientID string, storageConnStringForFCApp string) (*webapps.SiteConfig, error) {
 	if len(siteConfigFlexConsumption) == 0 {
 		return nil, nil
 	}
@@ -2072,11 +2072,21 @@ func ExpandSiteConfigFunctionFlexConsumptionApp(siteConfigFlexConsumption []Site
 		appSettings = *existing.AppSettings
 	}
 
-	if storageStringFlex != "" {
-		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", storageStringFlex, false)
+	storageAccountName, _ := ParseWebJobsStorageString(storageConnectionString)
+	appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", storageConnectionString, true)
+	appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage__accountName", storageAccountName, true)
+	appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage__clientId", storageClientID, true)
+	switch *storageAuthType {
+	case webapps.AuthenticationTypeStorageAccountConnectionString:
+		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage", storageConnectionString, false)
 		if storageConnStringForFCApp != "" {
-			appSettings = updateOrAppendAppSettings(appSettings, storageConnStringForFCApp, storageStringFlex, false)
+			appSettings = updateOrAppendAppSettings(appSettings, storageConnStringForFCApp, storageConnectionString, false)
 		}
+	case webapps.AuthenticationTypeSystemAssignedIdentity:
+		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage__accountName", storageAccountName, false)
+	case webapps.AuthenticationTypeUserAssignedIdentity:
+		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage__accountName", storageAccountName, false)
+		appSettings = updateOrAppendAppSettings(appSettings, "AzureWebJobsStorage__clientId", storageClientID, false)
 	}
 
 	FlexConsumptionSiteConfig := siteConfigFlexConsumption[0]
