@@ -458,7 +458,7 @@ func TestAccPostgresqlFlexibleServer_upgradeVersion17(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.upgradeVersion(data, "16"),
+			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
