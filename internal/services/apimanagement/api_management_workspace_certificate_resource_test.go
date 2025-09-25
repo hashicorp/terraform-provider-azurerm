@@ -205,8 +205,8 @@ provider "azurerm" {
 resource "azurerm_api_management_workspace_certificate" "test" {
   name                        = "acctest-cert-%d"
   api_management_workspace_id = azurerm_api_management_workspace.test.id
-  certificate_data_base64     = filebase64("testdata/testacc_nopassword.pfx")
-  password                    = ""
+  certificate_data_base64     = filebase64("testdata/api_management_api_test.pfx")
+  password                    = "terraform"
 }
 `, r.template(data), data.RandomInteger)
 }

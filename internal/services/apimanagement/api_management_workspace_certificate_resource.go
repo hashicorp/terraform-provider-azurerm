@@ -65,28 +65,26 @@ func (r ApiManagementWorkspaceCertificateResource) Arguments() map[string]*plugi
 		"api_management_workspace_id": commonschema.ResourceIDReferenceRequiredForceNew(&workspace.WorkspaceId{}),
 
 		"certificate_data_base64": {
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Sensitive:     true,
-			ExactlyOneOf:  []string{"certificate_data_base64", "key_vault_secret_id"},
-			ConflictsWith: []string{"key_vault_secret_id", "user_assigned_identity_client_id"},
-			ValidateFunc:  validation.StringIsBase64,
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Sensitive:    true,
+			ExactlyOneOf: []string{"certificate_data_base64", "key_vault_secret_id"},
+			ValidateFunc: validation.StringIsBase64,
 		},
 
 		"key_vault_secret_id": {
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			ValidateFunc:  validate.NestedItemIdWithOptionalVersion,
-			ExactlyOneOf:  []string{"certificate_data_base64", "key_vault_secret_id"},
-			ConflictsWith: []string{"password"},
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			ValidateFunc: validate.NestedItemIdWithOptionalVersion,
+			ExactlyOneOf: []string{"certificate_data_base64", "key_vault_secret_id"},
 		},
 
 		"password": {
-			Type:          pluginsdk.TypeString,
-			Optional:      true,
-			Sensitive:     true,
-			RequiredWith:  []string{"certificate_data_base64"},
-			ConflictsWith: []string{"key_vault_secret_id"},
+			Type:         pluginsdk.TypeString,
+			Optional:     true,
+			Sensitive:    true,
+			RequiredWith: []string{"certificate_data_base64"},
+			ValidateFunc: validation.StringIsNotEmpty,
 		},
 
 		"user_assigned_identity_client_id": {
