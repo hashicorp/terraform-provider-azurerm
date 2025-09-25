@@ -224,6 +224,26 @@ func resourceFirewall() *pluginsdk.Resource {
 				},
 			},
 
+			"autoscaleConfiguration": {
+				Type:         pluginsdk.TypeMap,
+				Optional:     true,
+				ValidateFunc: validate.AutoscaleConfiguration,
+				Elem: &pluginsdk.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"minCapacity": {
+							Type:         pluginsdk.TypeInt,
+							Required:     false,
+							ValidateFunc: validate.MinCapacity,
+						},
+						"maxCapacity": {
+							Type:         pluginsdk.TypeInt,
+							Required:     false,
+							ValidateFunc: validate.MaxCapacity,
+						},
+					},
+				},
+			},
+
 			"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
 			"tags": commonschema.Tags(),
@@ -269,9 +289,10 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 	parameters := azurefirewalls.AzureFirewall{
 		Location: &location,
 		Properties: &azurefirewalls.AzureFirewallPropertiesFormat{
-			IPConfigurations:     ipConfigs,
-			ThreatIntelMode:      pointer.To(azurefirewalls.AzureFirewallThreatIntelMode(d.Get("threat_intel_mode").(string))),
-			AdditionalProperties: pointer.To(make(map[string]string)),
+			IPConfigurations:       ipConfigs,
+			ThreatIntelMode:        pointer.To(azurefirewalls.AzureFirewallThreatIntelMode(d.Get("threat_intel_mode").(string))),
+			AdditionalProperties:   pointer.To(make(map[string]string)),
+			AutoscaleConfiguration: pointer.To(generateAutoscaleConfiguration(d.Get("autoscaleConfiguration").(map[string]interface{}))),
 		},
 		Tags: tags.Expand(t),
 	}
@@ -576,6 +597,29 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	}
 
 	return err
+}
+
+func generateAutoscaleConfiguration(d map[string]interface{}) azurefirewalls.AzureFirewallAutoscaleConfiguration {
+	configuration := azurefirewalls.AzureFirewallAutoscaleConfiguration{}
+	minPresent := false
+	maxPresent := false
+	min := 0
+	max := 0
+	if _, ok := d["minCapacity"]; ok {
+		minPresent = true
+		min = d["minCapacity"].(int)
+	}
+	if _, ok := d["maxCapacity"]; ok {
+		maxPresent = true
+		max = d["maxCapacity"].(int)
+	}
+	if minPresent && min > 0 {
+		configuration.MinCapacity = pointer.FromInt64(int64(min))
+	}
+	if maxPresent && max > 0 {
+		configuration.MaxCapacity = pointer.FromInt64(int64(max))
+	}
+	return configuration
 }
 
 func expandFirewallIPConfigurations(configs []interface{}) (*[]azurefirewalls.AzureFirewallIPConfiguration, *[]string, *[]string, error) {
