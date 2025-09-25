@@ -871,15 +871,19 @@ func resourceCdnFrontDoorFirewallPolicyRead(d *pluginsdk.ResourceData, meta inte
 		return err
 	}
 
-	result, err := client.PoliciesGet(ctx, *id)
+	resp, err := client.PoliciesGet(ctx, *id)
 	if err != nil {
-		return fmt.Errorf("retrieving %s: %+v", *id, err)
+		if response.WasNotFound(resp.HttpResponse) {
+			d.SetId("")
+			return nil
+		}
+		return fmt.Errorf("retrieving %s: %+v", id, err)
 	}
 
 	d.Set("name", id.FrontDoorWebApplicationFirewallPolicyName)
 	d.Set("resource_group_name", id.ResourceGroupName)
 
-	if model := result.Model; model != nil {
+	if model := resp.Model; model != nil {
 		if sku := model.Sku; sku != nil {
 			d.Set("sku_name", string(pointer.From(sku.Name)))
 		}

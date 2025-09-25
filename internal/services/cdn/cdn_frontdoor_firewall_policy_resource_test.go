@@ -875,10 +875,10 @@ func (r CdnFrontDoorFirewallPolicyResource) basicStandard(data acceptance.TestDa
 resource "azurerm_cdn_frontdoor_firewall_policy" "test" {
   name                = "accTestWAF%d"
   resource_group_name = azurerm_resource_group.test.name
-  sku_name            = azurerm_cdn_frontdoor_profile.test.sku_name
+  sku_name            = "Standard_AzureFrontDoor"
   mode                = "Prevention"
 }
-`, r.templateStandard(data), data.RandomInteger)
+`, r.template(data), data.RandomInteger)
 }
 
 func (r CdnFrontDoorFirewallPolicyResource) jSChallengePolicyBasic(data acceptance.TestData) string {
