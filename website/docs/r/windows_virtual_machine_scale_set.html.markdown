@@ -97,7 +97,7 @@ resource "azurerm_windows_virtual_machine_scale_set" "example" {
 
 * `instances` - (Required) The number of Virtual Machines in the Scale Set.
 
--> **Note:** If you're using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) to ignore changes to this field.
+-> **Note:** If you're using AutoScaling, you may wish to use [Terraform's `ignore_changes` functionality](https://developer.hashicorp.com/terraform/language/block/resource#ignore_changes) to ignore changes to this field.
 
 * `sku` - (Required) The Virtual Machine SKU for the Scale Set, such as `Standard_F2`.
 
