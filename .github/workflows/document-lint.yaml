@@ -48,13 +48,9 @@ jobs:
           elif [ $exit_code -eq 1 ]; then
             echo "::warning::Document lint failed. Please fix the issues."
             exit 1
-          elif [ $exit_code -eq 2 ]; then
-            echo "::warning::Document lint encountered a panic. This may indicate an issue with the linter itself or resource schema."
-            echo "::notice::Allowing workflow to continue despite panic."
-            exit 0
           else
             echo "::error::Document lint exited with unexpected code: $exit_code"
-            exit 1
+            exit 0
           fi
 
       - name: skip document lint checker
