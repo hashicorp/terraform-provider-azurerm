@@ -1107,7 +1107,6 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 									Type:     pluginsdk.TypeString,
 									Optional: true,
 									ValidateFunc: validation.StringInSlice([]string{
-										string(protectionpolicies.RetentionDurationTypeDays),
 										string(protectionpolicies.RetentionDurationTypeWeeks),
 										string(protectionpolicies.RetentionDurationTypeMonths),
 										string(protectionpolicies.RetentionDurationTypeYears),
@@ -1173,7 +1172,7 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 
 					"weekdays": { // only for weekly
 						Type:     pluginsdk.TypeSet,
-						Optional: true,
+						Required: true,
 						Set:      set.HashStringIgnoreCase,
 						Elem: &pluginsdk.Schema{
 							Type:             pluginsdk.TypeString,
@@ -1205,7 +1204,6 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 		"policy_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
-			ForceNew: true,
 			Default:  string(protectionpolicies.IAASVMPolicyTypeVOne),
 			ValidateFunc: validation.StringInSlice([]string{
 				string(protectionpolicies.IAASVMPolicyTypeVOne),
@@ -1342,7 +1340,6 @@ func resourceBackupProtectionPolicyVMSchema() map[string]*pluginsdk.Schema {
 					"include_last_days": {
 						Type:     pluginsdk.TypeBool,
 						Optional: true,
-						Default:  false,
 						ConflictsWith: []string{
 							"retention_monthly.0.weeks",
 							"retention_monthly.0.weekdays",
