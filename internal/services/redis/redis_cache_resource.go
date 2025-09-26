@@ -891,16 +891,21 @@ func expandRedisConfiguration(d *pluginsdk.ResourceData) (*redisresources.RedisC
 	output.PreferredDataPersistenceAuthMethod = pointer.To(raw["data_persistence_authentication_method"].(string))
 
 	// AAD/Entra support
-	// nolint : staticcheck
-	v, valExists := d.GetOkExists("redis_configuration.0.active_directory_authentication_enabled")
-	if valExists {
-		entraEnabled := v.(bool)
-		output.AadEnabled = pointer.To(strconv.FormatBool(entraEnabled))
+	redisConfig := d.GetRawConfig().AsValueMap()["redis_configuration"]
+	if !redisConfig.IsNull() {
+		configs := redisConfig.AsValueSlice()
+		if len(configs) > 0 {
+			aadAuth := configs[0].AsValueMap()["active_directory_authentication_enabled"]
+			if !aadAuth.IsNull() {
+				entraEnabled := aadAuth.True()
+				output.AadEnabled = pointer.To(strconv.FormatBool(entraEnabled))
+			}
+		}
 	}
 
 	// RDB Backup
 	// nolint : staticcheck
-	v, valExists = d.GetOkExists("redis_configuration.0.rdb_backup_enabled")
+	v, valExists := d.GetOkExists("redis_configuration.0.rdb_backup_enabled")
 	if valExists {
 		rdbBackupEnabled := v.(bool)
 
