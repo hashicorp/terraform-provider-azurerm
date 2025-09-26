@@ -6,6 +6,7 @@ package managedclusters
 type ManagedClusterOperationPredicate struct {
 	ETag     *string
 	Id       *string
+	Kind     *string
 	Location *string
 	Name     *string
 	Type     *string
@@ -18,6 +19,10 @@ func (p ManagedClusterOperationPredicate) Matches(input ManagedCluster) bool {
 	}
 
 	if p.Id != nil && (input.Id == nil || *p.Id != *input.Id) {
+		return false
+	}
+
+	if p.Kind != nil && (input.Kind == nil || *p.Kind != *input.Kind) {
 		return false
 	}
 

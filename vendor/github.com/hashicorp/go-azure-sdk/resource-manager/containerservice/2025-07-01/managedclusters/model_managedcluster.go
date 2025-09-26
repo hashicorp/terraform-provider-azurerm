@@ -14,6 +14,7 @@ type ManagedCluster struct {
 	ExtendedLocation *edgezones.Model                  `json:"extendedLocation,omitempty"`
 	Id               *string                           `json:"id,omitempty"`
 	Identity         *identity.SystemOrUserAssignedMap `json:"identity,omitempty"`
+	Kind             *string                           `json:"kind,omitempty"`
 	Location         string                            `json:"location"`
 	Name             *string                           `json:"name,omitempty"`
 	Properties       *ManagedClusterProperties         `json:"properties,omitempty"`

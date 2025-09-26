@@ -12,8 +12,8 @@ import (
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-07-01/snapshots"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
@@ -745,10 +745,18 @@ func TestAccKubernetesCluster_osSkuUpdate(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
-			Config: r.osSku(data, "Ubuntu"),
+			Config: r.osSku(data, "Ubuntu2204"),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("Ubuntu"),
+				check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("Ubuntu2204"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.osSku(data, "AzureLinux3"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("default_node_pool.0.os_sku").HasValue("AzureLinux3"),
 			),
 		},
 		data.ImportStep(),
