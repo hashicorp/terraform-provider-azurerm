@@ -99,12 +99,12 @@ func TestAccEventGridPartnerNamespaceChannel_update(t *testing.T) {
 func (EventGridPartnerNamespaceChannelTestResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := channels.ParseChannelID(state.ID)
 	if err != nil {
-		return nil, fmt.Errorf("parsing %s: %+v", state.ID, err)
+		return nil, err
 	}
 
 	resp, err := client.EventGrid.Channels.Get(ctx, *id)
 	if err != nil {
-		return nil, fmt.Errorf("retrieving %s: %+v", id, err)
+		return nil, fmt.Errorf("retrieving %s: %+v", *id, err)
 	}
 
 	return pointer.To(resp.Model != nil), nil
@@ -115,9 +115,8 @@ func (r EventGridPartnerNamespaceChannelTestResource) basic(data acceptance.Test
 %[1]s
 
 resource "azurerm_eventgrid_partner_namespace_channel" "test" {
-  name                   = "acctest-egpnc-%[2]d"
-  partner_namespace_name = azurerm_eventgrid_partner_namespace.test.name
-  resource_group_name    = azurerm_resource_group.test.name
+  name                 = "acctest-egpnc-%[2]d"
+  partner_namespace_id = azurerm_eventgrid_partner_namespace.test.id
   partner_topic {
     subscription_id     = "%[3]s"
     resource_group_name = azurerm_resource_group.test.name
@@ -134,8 +133,7 @@ func (r EventGridPartnerNamespaceChannelTestResource) requiresImport(data accept
 
 resource "azurerm_eventgrid_partner_namespace_channel" "import" {
   name                                    = azurerm_eventgrid_partner_namespace_channel.test.name
-  partner_namespace_name                  = azurerm_eventgrid_partner_namespace_channel.test.partner_namespace_name
-  resource_group_name                     = azurerm_eventgrid_partner_namespace_channel.test.resource_group_name
+  partner_namespace_id                    = azurerm_eventgrid_partner_namespace_channel.test.partner_namespace_id
   expiration_time_if_not_activated_in_utc = azurerm_eventgrid_partner_namespace_channel.test.expiration_time_if_not_activated_in_utc
   partner_topic {
     subscription_id     = azurerm_eventgrid_partner_namespace_channel.test.partner_topic[0].subscription_id
@@ -153,8 +151,7 @@ func (r EventGridPartnerNamespaceChannelTestResource) complete(data acceptance.T
 
 resource "azurerm_eventgrid_partner_namespace_channel" "test" {
   name                                    = "acctest-egpnc-%[2]d"
-  partner_namespace_name                  = azurerm_eventgrid_partner_namespace.test.name
-  resource_group_name                     = azurerm_resource_group.test.name
+  partner_namespace_id                    = azurerm_eventgrid_partner_namespace.test.id
   channel_type                            = "PartnerTopic"
   expiration_time_if_not_activated_in_utc = azurerm_eventgrid_partner_configuration.test.partner_authorization.0.authorization_expiration_time_in_utc
   partner_topic {
@@ -183,8 +180,7 @@ func (r EventGridPartnerNamespaceChannelTestResource) update(data acceptance.Tes
 
 resource "azurerm_eventgrid_partner_namespace_channel" "test" {
   name                                    = "acctest-egpnc-%[2]d"
-  partner_namespace_name                  = azurerm_eventgrid_partner_namespace.test.name
-  resource_group_name                     = azurerm_resource_group.test.name
+  partner_namespace_id                    = azurerm_eventgrid_partner_namespace.test.id
   channel_type                            = "PartnerTopic"
   expiration_time_if_not_activated_in_utc = "%[4]s"
   partner_topic {
