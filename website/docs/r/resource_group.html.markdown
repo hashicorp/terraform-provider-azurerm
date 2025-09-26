@@ -37,8 +37,6 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Resource Group.
 
-* `testmissingfromdoc` - (Optional) A mapping of tags which should be assigned to the Resource Group.
-
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
