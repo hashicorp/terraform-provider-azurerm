@@ -19,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 2
       - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
         with:
           go-version-file: ./.go-version
@@ -26,16 +28,16 @@ jobs:
       - name: Get changed files
         id: changed-files
         run: |
-          git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1 || true
-          changed=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD -- internal/services | tr '\n' ',' | sed 's/,$//')
+          changed=$(git diff --name-only HEAD^1 HEAD -- internal/services | sed "s|^|${{ github.workspace }}/|" | tr '\n' ',' | sed 's/,$//')
           changed=${changed:-}
           echo "::notice::check with files: ${changed}"
           echo "FILE_LIST=$changed" >> $GITHUB_ENV
-
+          echo "has-files=$([ -n "$changed" ] && echo 'true' || echo 'false')" >> $GITHUB_OUTPUT
+      
       - name: run document lint checker
-        run: |
-          if make document-lint; then
-            echo "document lint success."
-          else
-            echo "::warning::Document linting failed. Please fix the issues."
-          fi
+        if: steps.changed-files.outputs.has-files == 'true'
+        run: make document-lint
+
+      - name: skip document lint checker
+        if: steps.changed-files.outputs.has-files == 'false'
+        run: echo "::notice::No internal/services files changed, skipping resource document lint check"

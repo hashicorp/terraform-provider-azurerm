@@ -30,7 +30,7 @@ var (
 	service      string
 	skipResource string
 	skipService  string
-	fileList string
+	fileList     string
 )
 
 func parseArgs() {
