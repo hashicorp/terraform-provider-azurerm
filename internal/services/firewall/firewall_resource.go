@@ -224,6 +224,31 @@ func resourceFirewall() *pluginsdk.Resource {
 				},
 			},
 
+			"autoscale_configuration": {
+				Type:        pluginsdk.TypeSet,
+				Description: "Properties to provide a custom autoscale configuration to this azure firewall.",
+				Optional:    true,
+				Required:    false,
+				Elem: &schema.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"min_capacity": {
+							Type:         pluginsdk.TypeInt,
+							Description:  "The minimum number of capacity units for this azure firewall. Use null to reset the value to the service default.",
+							Required:     false,
+							Optional:     true,
+							ValidateFunc: validate.MinCapacity,
+						},
+						"max_capacity": {
+							Type:         pluginsdk.TypeInt,
+							Description:  "The maximum number of capacity units for this azure firewall. Use null to reset the value to the service default.",
+							Required:     false,
+							Optional:     true,
+							ValidateFunc: validate.MaxCapacity,
+						},
+					},
+				},
+			},
+
 			"zones": commonschema.ZonesMultipleOptionalForceNew(),
 
 			"tags": commonschema.Tags(),
@@ -356,6 +381,15 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		defer locks.UnlockByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
 	}
 
+	if autoscaleConfiguration := d.Get("autoscale_configuration").(*pluginsdk.Set).List(); len(autoscaleConfiguration) > 0 {
+		configMap := autoscaleConfiguration[0].(map[string]interface{})
+		configuration, err := expandAutoscaleConfiguration(configMap)
+		if err != nil {
+			return err
+		}
+		parameters.Properties.AutoscaleConfiguration = &configuration
+	}
+
 	locks.ByName(id.AzureFirewallName, AzureFirewallResourceName)
 	defer locks.UnlockByName(id.AzureFirewallName, AzureFirewallResourceName)
 
@@ -448,6 +482,10 @@ func resourceFirewallRead(d *pluginsdk.ResourceData, meta interface{}) error {
 
 			if err := d.Set("private_ip_ranges", flattenFirewallPrivateIpRange(props.AdditionalProperties)); err != nil {
 				return fmt.Errorf("setting `private_ip_ranges`: %+v", err)
+			}
+
+			if err := d.Set("autoscale_configuration", flattenFirewallAutoscaleConfiguration(props.AutoscaleConfiguration)); err != nil {
+				return fmt.Errorf("setting `autoscale_configuration`: %+v", err)
 			}
 
 			firewallPolicyId := ""
@@ -578,6 +616,33 @@ func resourceFirewallDelete(d *pluginsdk.ResourceData, meta interface{}) error {
 	return err
 }
 
+func expandAutoscaleConfiguration(d map[string]interface{}) (azurefirewalls.AzureFirewallAutoscaleConfiguration, error) {
+	configuration := azurefirewalls.AzureFirewallAutoscaleConfiguration{}
+	minPresent := false
+	maxPresent := false
+	min := 0
+	max := 0
+	if _, ok := d["min_capacity"]; ok {
+		minPresent = true
+		min = d["min_capacity"].(int)
+	}
+	if _, ok := d["max_capacity"]; ok {
+		maxPresent = true
+		max = d["max_capacity"].(int)
+	}
+	if minPresent && min > 0 {
+		configuration.MinCapacity = pointer.FromInt64(int64(min))
+	}
+	if maxPresent && max > 0 {
+		configuration.MaxCapacity = pointer.FromInt64(int64(max))
+	}
+	_, errors := validate.AutoscaleConfiguration(d)
+	if len(errors) > 0 {
+		return azurefirewalls.AzureFirewallAutoscaleConfiguration{}, fmt.Errorf("validating `autoscale_configuration`: %+v", errors)
+	}
+	return configuration, nil
+}
+
 func expandFirewallIPConfigurations(configs []interface{}) (*[]azurefirewalls.AzureFirewallIPConfiguration, *[]string, *[]string, error) {
 	ipConfigs := make([]azurefirewalls.AzureFirewallIPConfiguration, 0)
 	subnetNamesToLock := make([]string, 0)
@@ -693,6 +758,21 @@ func flattenFirewallAdditionalProperty(input *map[string]string) (enabled interf
 		}
 	}
 	return
+}
+
+func flattenFirewallAutoscaleConfiguration(input *azurefirewalls.AzureFirewallAutoscaleConfiguration) []interface{} {
+	if input == nil {
+		return []interface{}{}
+	}
+
+	autoscaleConfig := make(map[string]interface{})
+	if input.MinCapacity != nil {
+		autoscaleConfig["min_capacity"] = int(*input.MinCapacity)
+	}
+	if input.MaxCapacity != nil {
+		autoscaleConfig["max_capacity"] = int(*input.MaxCapacity)
+	}
+	return []interface{}{autoscaleConfig}
 }
 
 func expandFirewallPrivateIpRange(input []interface{}) map[string]string {

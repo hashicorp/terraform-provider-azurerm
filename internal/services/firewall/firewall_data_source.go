@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/azurefirewalls"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -151,6 +152,26 @@ func firewallDataSource() *pluginsdk.Resource {
 				},
 			},
 
+			"autoscale_configuration": {
+				Type:        pluginsdk.TypeSet,
+				Description: "Properties to provide a custom autoscale configuration to this azure firewall.",
+				Computed:    true,
+				Elem: &schema.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"min_capacity": {
+							Type:        pluginsdk.TypeInt,
+							Description: "The minimum number of capacity units for this azure firewall. Use null to reset the value to the service default.",
+							Computed:    true,
+						},
+						"max_capacity": {
+							Type:        pluginsdk.TypeInt,
+							Description: "The maximum number of capacity units for this azure firewall. Use null to reset the value to the service default.",
+							Computed:    true,
+						},
+					},
+				},
+			},
+
 			"zones": commonschema.ZonesMultipleComputed(),
 
 			"tags": commonschema.TagsDataSource(),
@@ -213,6 +234,10 @@ func firewallDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			if sku := props.Sku; sku != nil {
 				d.Set("sku_name", string(pointer.From(sku.Name)))
 				d.Set("sku_tier", string(pointer.From(sku.Tier)))
+			}
+
+			if err := d.Set("autoscale_configuration", flattenFirewallAutoscaleConfiguration(props.AutoscaleConfiguration)); err != nil {
+				return fmt.Errorf("setting `autoscale_configuration`: %+v", err)
 			}
 
 			if err := d.Set("virtual_hub", flattenFirewallVirtualHubSetting(props)); err != nil {

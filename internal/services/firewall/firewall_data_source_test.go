@@ -91,6 +91,40 @@ func TestAccFirewallDataSource_inVirtualhub(t *testing.T) {
 	})
 }
 
+func TestAccFirewallDataSource_autoscaleConfiguration(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_firewall", "test")
+	r := FirewallDataSource{}
+	minScale := 4
+	maxScale := 6
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.withAutoscaleConfiguration(data, &minScale, &maxScale),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("autoscale_configuration.0").Exists(),
+				check.That(data.ResourceName).Key("autoscale_configuration.0.min_capacity").HasValue("4"),
+				check.That(data.ResourceName).Key("autoscale_configuration.0.max_capacity").HasValue("6"),
+			),
+		},
+		{
+			Config: r.withAutoscaleConfiguration(data, &minScale, nil),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("autoscale_configuration.0").Exists(),
+				check.That(data.ResourceName).Key("autoscale_configuration.0.min_capacity").HasValue("4"),
+				check.That(data.ResourceName).Key("autoscale_configuration.0.max_capacity").DoesNotExist(),
+			),
+		},
+		{
+			Config: r.withAutoscaleConfiguration(data, nil, &maxScale),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("autoscale_configuration.0").Exists(),
+				check.That(data.ResourceName).Key("autoscale_configuration.0.min_capacity").DoesNotExist(),
+				check.That(data.ResourceName).Key("autoscale_configuration.0.max_capacity").HasValue("4"),
+			),
+		},
+	})
+}
+
 func (FirewallDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -187,4 +221,15 @@ data "azurerm_firewall" "test" {
   resource_group_name = azurerm_resource_group.test.name
 }
 `, FirewallResource{}.inVirtualHub(data, pipCount))
+}
+
+func (FirewallDataSource) withAutoscaleConfiguration(data acceptance.TestData, minCapacity, maxCapacity *int) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_firewall" "test" {
+  name                = azurerm_firewall.test.name
+  resource_group_name = azurerm_firewall.test.resource_group_name
+}
+`, FirewallResource{}.withAutoscaleConfiguration(data, minCapacity, maxCapacity))
 }
