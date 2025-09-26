@@ -58,11 +58,6 @@ func (r ResourceProviderRegistrationResource) Arguments() map[string]*pluginsdk.
 			ValidateFunc: resourceproviders.EnhancedValidate,
 		},
 
-		"testmissingpr": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-		},
-
 		"feature": {
 			Type:     pluginsdk.TypeSet,
 			Optional: true,
