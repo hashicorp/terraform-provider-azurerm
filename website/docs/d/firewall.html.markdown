@@ -46,6 +46,8 @@ The following attributes are exported:
 
 * `ip_configuration` - A `ip_configuration` block as defined below.
 
+* `autoscale_configuration` - A `autoscale_configuration` block as defined below.
+
 * `dns_servers` - The list of DNS servers that the Azure Firewall will direct DNS traffic to for name resolution.
 
 * `dns_proxy_enabled` - Whether DNS proxy is enabled. It will forward DNS requests to the DNS servers when it is `true`.
@@ -69,6 +71,14 @@ A `ip_configuration` block exports the following:
 * `private_ip_address` - The Private IP Address of the Azure Firewall.
 
 * `public_ip_address_id`- The ID of the Public IP address of the Azure Firewall.
+
+---
+
+A `autoscale_configuration` block exports the following:
+
+* `min_capacity`: The minimum number of capacity units for this azure firewall.
+
+* `max_capacity`: The maximum number of capacity units for this azure firewall.
 
 ---
 

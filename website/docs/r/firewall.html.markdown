@@ -74,6 +74,8 @@ The following arguments are supported:
 
 * `ip_configuration` - (Optional) An `ip_configuration` block as documented below.
 
+* `autoscale_configuration` - A `autoscale_configuration` block as defined below.
+
 * `dns_servers` - (Optional) A list of DNS servers that the Azure Firewall will direct DNS traffic to the for name resolution.
 
 * `dns_proxy_enabled` - (Optional) Whether DNS proxy is enabled. It will forward DNS requests to the DNS servers when set to `true`. It will be set to `true` if `dns_servers` provided with a not empty list.
@@ -125,6 +127,14 @@ A `management_ip_configuration` block supports the following:
 * `public_ip_address_id` - (Required) The ID of the Public IP Address associated with the firewall.
 
 -> **Note:** The Public IP must have a `Static` allocation and `Standard` SKU.
+
+---
+
+A `autoscale_configuration` block exports the following:
+
+* `min_capacity`: The minimum number of capacity units for this azure firewall.
+
+* `max_capacity`: The maximum number of capacity units for this azure firewall.
 
 ---
 
