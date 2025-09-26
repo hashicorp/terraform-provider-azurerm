@@ -40,7 +40,7 @@ jobs:
           if make document-lint; then
             echo "::notice::Document lint success."
           else
-            echo "::warning::Document linting failed. Please fix the issues."
+            echo "::warning::Document lint failed. Please fix the issues."
             exit 1
           fi
 
