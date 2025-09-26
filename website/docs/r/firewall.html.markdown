@@ -74,7 +74,7 @@ The following arguments are supported:
 
 * `ip_configuration` - (Optional) An `ip_configuration` block as documented below.
 
-* `autoscale_configuration` - A `autoscale_configuration` block as defined below.
+* `autoscale_configuration` - (Optional) An `autoscale_configuration` block as defined below.
 
 * `dns_servers` - (Optional) A list of DNS servers that the Azure Firewall will direct DNS traffic to the for name resolution.
 
@@ -132,9 +132,9 @@ A `management_ip_configuration` block supports the following:
 
 A `autoscale_configuration` block exports the following:
 
-* `min_capacity`: The minimum number of capacity units for this azure firewall.
+* `min_capacity`: (Optional) The minimum number of capacity units for this azure firewall.
 
-* `max_capacity`: The maximum number of capacity units for this azure firewall.
+* `max_capacity`: (Optional) The maximum number of capacity units for this azure firewall.
 
 ---
 

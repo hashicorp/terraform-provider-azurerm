@@ -153,21 +153,20 @@ func firewallDataSource() *pluginsdk.Resource {
 			},
 
 			"autoscale_configuration": {
-				Type:     pluginsdk.TypeSet,
-				Computed: true,
+				Type:        pluginsdk.TypeSet,
+				Description: "Properties to provide a custom autoscale configuration to this azure firewall.",
+				Computed:    true,
 				Elem: &schema.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"min_capacity": {
-							Type:         pluginsdk.TypeInt,
-							Required:     false,
-							Optional:     true,
-							ValidateFunc: validate.MinCapacity,
+							Type:        pluginsdk.TypeInt,
+							Description: "The minimum number of capacity units for this azure firewall. Use null to reset the value to the service default.",
+							Computed:    true,
 						},
 						"max_capacity": {
-							Type:         pluginsdk.TypeInt,
-							Required:     false,
-							Optional:     true,
-							ValidateFunc: validate.MaxCapacity,
+							Type:        pluginsdk.TypeInt,
+							Description: "The maximum number of capacity units for this azure firewall. Use null to reset the value to the service default.",
+							Computed:    true,
 						},
 					},
 				},
@@ -237,17 +236,8 @@ func firewallDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 				d.Set("sku_tier", string(pointer.From(sku.Tier)))
 			}
 
-			if props.AutoscaleConfiguration != nil {
-				autoscaleConfig := make([]map[string]interface{}, 0)
-				m := map[string]interface{}{}
-				if props.AutoscaleConfiguration.MinCapacity != nil {
-					m["min_capacity"] = int(*props.AutoscaleConfiguration.MinCapacity)
-				}
-				if props.AutoscaleConfiguration.MaxCapacity != nil {
-					m["max_capacity"] = int(*props.AutoscaleConfiguration.MaxCapacity)
-				}
-				autoscaleConfig = append(autoscaleConfig, m)
-				d.Set("autoscale_configuration", autoscaleConfig)
+			if err := d.Set("autoscale_configuration", flattenFirewallAutoscaleConfiguration(props.AutoscaleConfiguration)); err != nil {
+				return fmt.Errorf("setting `autoscale_configuration`: %+v", err)
 			}
 
 			if err := d.Set("virtual_hub", flattenFirewallVirtualHubSetting(props)); err != nil {

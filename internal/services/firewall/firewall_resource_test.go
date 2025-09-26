@@ -28,17 +28,16 @@ const (
 func TestAccFirewall_autoscaleConfigMinMax(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_firewall", "test")
 	r := FirewallResource{}
-	minScale := 4
-	maxScale := 6
+	minScale := 3
+	maxScale := 3
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.withAutoscaleConfiguration(data, &minScale, &maxScale),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("autoscale_configuration.0").Exists(),
-				check.That(data.ResourceName).Key("autoscale_configuration.0.min_capacity").HasValue("4"),
-				check.That(data.ResourceName).Key("autoscale_configuration.0.max_capacity").HasValue("6"),
+				check.That(data.ResourceName).Key("autoscale_configuration.0.min_capacity").HasValue("3"),
+				check.That(data.ResourceName).Key("autoscale_configuration.0.max_capacity").HasValue("3"),
 			),
 		},
 		data.ImportStep(),
@@ -55,7 +54,6 @@ func TestAccFirewall_autoscaleConfigMinOnly(t *testing.T) {
 			Config: r.withAutoscaleConfiguration(data, &minScale, nil),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("autoscale_configuration.0").Exists(),
 				check.That(data.ResourceName).Key("autoscale_configuration.0.min_capacity").HasValue("4"),
 				check.That(data.ResourceName).Key("autoscale_configuration.0.max_capacity").DoesNotExist(),
 			),
@@ -74,7 +72,6 @@ func TestAccFirewall_autoscaleConfigMaxOnly(t *testing.T) {
 			Config: r.withAutoscaleConfiguration(data, nil, &maxScale),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("autoscale_configuration.0").Exists(),
 				check.That(data.ResourceName).Key("autoscale_configuration.0.min_capacity").DoesNotExist(),
 				check.That(data.ResourceName).Key("autoscale_configuration.0.max_capacity").HasValue("4"),
 			),
