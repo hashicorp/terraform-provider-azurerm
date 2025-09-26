@@ -33,10 +33,9 @@ resource "azurerm_eventgrid_partner_namespace" "example" {
 }
 
 resource "azurerm_eventgrid_partner_namespace_channel" "example" {
-  name                   = "example-partner-namespace-channel"
-  partner_namespace_name = azurerm_eventgrid_partner_namespace.example.name
-  resource_group_name    = azurerm_resource_group.example.name
-  channel_type           = "PartnerTopic"
+  name                 = "example-partner-namespace-channel"
+  partner_namespace_id = azurerm_eventgrid_partner_namespace.example.id
+  channel_type         = "PartnerTopic"
   partner_topic {
     name                = "example-partner-topic"
     subscription_id     = data.azurerm_client_config.example.subscription_id
@@ -52,9 +51,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name which should be used for this Event Grid Partner Namespace Channel. Changing this forces a new Event Grid Partner Namespace Channel to be created.
 
-* `partner_namespace_name` - (Required) The name of the Event Grid Partner Namespace where the channel should exist. Changing this forces a new Event Grid Partner Namespace Channel to be created.
-
-* `resource_group_name` - (Required) The name of the Resource Group where the Event Grid Partner Namespace Channel should exist. Changing this forces a new Event Grid Partner Namespace Channel to be created.
+* `partner_namespace_id` - (Required) The ID of the Event Grid Partner Namespace where the channel should exist. Changing this forces a new Event Grid Partner Namespace Channel to be created.
 
 ---
 

@@ -22,8 +22,7 @@ func TestAccEventGridPartnerNamespaceChannelDataSource_basic(t *testing.T) {
 			Config: r.basic(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
-				check.That(data.ResourceName).Key("partner_namespace_name").Exists(),
-				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("partner_namespace_id").Exists(),
 				check.That(data.ResourceName).Key("channel_type").HasValue("PartnerTopic"),
 				check.That(data.ResourceName).Key("expiration_time_if_not_activated_in_utc").Exists(),
 				check.That(data.ResourceName).Key("readiness_state").Exists(),
@@ -41,8 +40,7 @@ func TestAccEventGridPartnerNamespaceChannelDataSource_complete(t *testing.T) {
 			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).Key("name").Exists(),
-				check.That(data.ResourceName).Key("partner_namespace_name").Exists(),
-				check.That(data.ResourceName).Key("resource_group_name").Exists(),
+				check.That(data.ResourceName).Key("partner_namespace_id").Exists(),
 				check.That(data.ResourceName).Key("channel_type").HasValue("PartnerTopic"),
 				check.That(data.ResourceName).Key("expiration_time_if_not_activated_in_utc").Exists(),
 				check.That(data.ResourceName).Key("partner_topic.#").HasValue("1"),
@@ -69,9 +67,8 @@ func (EventGridPartnerNamespaceChannelDataSource) basic(data acceptance.TestData
 %s
 
 data "azurerm_eventgrid_partner_namespace_channel" "test" {
-  name                   = azurerm_eventgrid_partner_namespace_channel.test.name
-  partner_namespace_name = azurerm_eventgrid_partner_namespace_channel.test.partner_namespace_name
-  resource_group_name    = azurerm_eventgrid_partner_namespace_channel.test.resource_group_name
+  name                 = azurerm_eventgrid_partner_namespace_channel.test.name
+  partner_namespace_id = azurerm_eventgrid_partner_namespace_channel.test.partner_namespace_id
 }
 `, EventGridPartnerNamespaceChannelTestResource{}.basic(data))
 }
@@ -81,9 +78,8 @@ func (EventGridPartnerNamespaceChannelDataSource) complete(data acceptance.TestD
 %s
 
 data "azurerm_eventgrid_partner_namespace_channel" "test" {
-  name                   = azurerm_eventgrid_partner_namespace_channel.test.name
-  partner_namespace_name = azurerm_eventgrid_partner_namespace_channel.test.partner_namespace_name
-  resource_group_name    = azurerm_eventgrid_partner_namespace_channel.test.resource_group_name
+  name                 = azurerm_eventgrid_partner_namespace_channel.test.name
+  partner_namespace_id = azurerm_eventgrid_partner_namespace_channel.test.partner_namespace_id
 }
 `, EventGridPartnerNamespaceChannelTestResource{}.complete(data))
 }

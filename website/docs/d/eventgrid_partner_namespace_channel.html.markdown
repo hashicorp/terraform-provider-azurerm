@@ -26,9 +26,7 @@ The following arguments are supported:
 
 * `name` - (Required) The name of the Event Grid Partner Namespace Channel.
 
-* `partner_namespace_name` - (Required) The name of the Event Grid Partner Namespace in which the Event Grid Partner Namespace exists.
-
-* `resource_group_name` - (Required) The name of the Resource Group in which the Event Grid Partner Namespace Channel exists.
+* `partner_namespace_id` - (Required) The ID of the Event Grid Partner Namespace in which the Event Grid Partner Namespace exists.
 
 ## Attributes Reference
 

@@ -13,7 +13,9 @@ import (
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/channels"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/partnernamespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/services/eventgrid/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 )
@@ -27,8 +29,7 @@ type EventGridPartnerNamespaceChannelResource struct{}
 
 type EventGridPartnerNamespaceChannelResourceModel struct {
 	ChannelName                       string              `tfschema:"name"`
-	PartnerNamespaceName              string              `tfschema:"partner_namespace_name"`
-	ResourceGroupName                 string              `tfschema:"resource_group_name"`
+	PartnerNamespaceId                string              `tfschema:"partner_namespace_id"`
 	ChannelType                       string              `tfschema:"channel_type"`
 	ExpirationTimeIfNotActivatedInUtc string              `tfschema:"expiration_time_if_not_activated_in_utc"`
 	PartnerTopic                      []PartnerTopicModel `tfschema:"partner_topic"`
@@ -58,27 +59,19 @@ type InlineEventTypeModel struct {
 
 // MessageForActivation is a problematic field as the API generates a custom default message that can be longer than the allowed length if not included.
 // As such it has been excluded and left to the server to set the default.
+// https://github.com/Azure/azure-rest-api-specs/issues/37280
 func (EventGridPartnerNamespaceChannelResource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
 			Type:     pluginsdk.TypeString,
 			Required: true,
 			ForceNew: true,
-			ValidateFunc: validation.All(
-				validation.StringIsNotEmpty,
-				validation.StringMatch(
-					regexp.MustCompile("^[-a-zA-Z0-9]{3,50}$"),
-					"`name` must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
-				),
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile("^[-a-zA-Z0-9]{3,50}$"),
+				"`name` must be between 3 and 50 characters. It can contain only letters, numbers and hyphens (-).",
 			),
 		},
-		"partner_namespace_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ForceNew:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-		"resource_group_name": commonschema.ResourceGroupName(),
+		"partner_namespace_id": commonschema.ResourceIDReferenceRequiredForceNew(&partnernamespaces.PartnerNamespaceId{}),
 		"channel_type": {
 			Type:     pluginsdk.TypeString,
 			Optional: true,
@@ -96,21 +89,7 @@ func (EventGridPartnerNamespaceChannelResource) Arguments() map[string]*pluginsd
 			// - if activated, this field is removed from the response
 			Computed: true,
 			ValidateFunc: validation.All(validation.IsRFC3339Time,
-				func(i interface{}, k string) (warnings []string, errors []error) {
-					v, ok := i.(string)
-					if !ok {
-						errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-						return
-					}
-
-					selectedTime, _ := time.Parse(time.RFC3339, v)
-					timeUntilExpiry := selectedTime.Sub(time.Now().In(time.UTC))
-					if timeUntilExpiry < 0 || timeUntilExpiry > 7*24*time.Hour {
-						errors = append(errors, fmt.Errorf("`expiration_time_if_not_activated_in_utc` must be within 7 days from now"))
-					}
-
-					return
-				},
+				validate.ExpirationTimeIfNotActivated(),
 			),
 			DiffSuppressFunc: func(k, old, new string, d *pluginsdk.ResourceData) bool {
 				if value, ok := d.GetOk("readiness_state"); ok && value.(string) == string(channels.ReadinessStateActivated) {
@@ -131,7 +110,7 @@ func (EventGridPartnerNamespaceChannelResource) Arguments() map[string]*pluginsd
 						ForceNew: true,
 						ValidateFunc: validation.StringMatch(
 							regexp.MustCompile("^[-a-zA-Z0-9]{3,50}$"),
-							"`name` must be 3 - 50 characters long, contain only letters, numbers and hyphens.",
+							"`name` must be between 3 and 50 characters. It can contain only letters, numbers and hyphens (-).",
 						),
 					},
 					"subscription_id": {
@@ -179,8 +158,9 @@ func (EventGridPartnerNamespaceChannelResource) Arguments() map[string]*pluginsd
 												ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 											},
 											"description": {
-												Type:     pluginsdk.TypeString,
-												Optional: true,
+												Type:         pluginsdk.TypeString,
+												Optional:     true,
+												ValidateFunc: validation.StringLenBetween(0, 256),
 											},
 											"documentation_url": {
 												Type:         pluginsdk.TypeString,
@@ -252,8 +232,12 @@ func (r EventGridPartnerNamespaceChannelResource) Create() sdk.ResourceFunc {
 			if err := metadata.Decode(&config); err != nil {
 				return fmt.Errorf("decoding: %+v", err)
 			}
+			partnerNamespaceId, err := partnernamespaces.ParsePartnerNamespaceID(config.PartnerNamespaceId)
+			if err != nil {
+				return err
+			}
 
-			id := channels.NewChannelID(subscriptionId, config.ResourceGroupName, config.PartnerNamespaceName, config.ChannelName)
+			id := channels.NewChannelID(subscriptionId, partnerNamespaceId.ResourceGroupName, partnerNamespaceId.PartnerNamespaceName, config.ChannelName)
 
 			existing, err := client.Get(ctx, id)
 			if err != nil && !response.WasNotFound(existing.HttpResponse) {
@@ -308,7 +292,7 @@ func (r EventGridPartnerNamespaceChannelResource) Update() sdk.ResourceFunc {
 			}
 
 			if existing.Model.Properties == nil {
-				return fmt.Errorf("retrieving %s: `model.Properties` was nil", *id)
+				return fmt.Errorf("retrieving %s: `properties` was nil", *id)
 			}
 
 			payload := existing.Model
@@ -364,7 +348,7 @@ func (r EventGridPartnerNamespaceChannelResource) Read() sdk.ResourceFunc {
 
 			id, err := channels.ParseChannelID(metadata.ResourceData.Id())
 			if err != nil {
-				return fmt.Errorf("parsing %q: %+v", metadata.ResourceData.Id(), err)
+				return err
 			}
 
 			resp, err := client.Get(ctx, *id)
@@ -376,10 +360,11 @@ func (r EventGridPartnerNamespaceChannelResource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("retrieving %s: %+v", id, err)
 			}
 
+			partnerNamespaceId := partnernamespaces.NewPartnerNamespaceID(id.SubscriptionId, id.ResourceGroupName, id.PartnerNamespaceName)
+
 			state := EventGridPartnerNamespaceChannelResourceModel{
-				ResourceGroupName:    id.ResourceGroupName,
-				PartnerNamespaceName: id.PartnerNamespaceName,
-				ChannelName:          id.ChannelName,
+				PartnerNamespaceId: partnerNamespaceId.ID(),
+				ChannelName:        id.ChannelName,
 			}
 
 			if model := resp.Model; model != nil {
@@ -387,10 +372,7 @@ func (r EventGridPartnerNamespaceChannelResource) Read() sdk.ResourceFunc {
 					state.ChannelType = pointer.FromEnum(props.ChannelType)
 					state.ExpirationTimeIfNotActivatedInUtc = pointer.From(props.ExpirationTimeIfNotActivatedUtc)
 					state.ReadinessState = pointer.FromEnum(props.ReadinessState)
-
-					if partnerTopicInfo := props.PartnerTopicInfo; partnerTopicInfo != nil {
-						state.PartnerTopic = flattenPartnerNamespaceChannelPartnerTopic(partnerTopicInfo)
-					}
+					state.PartnerTopic = flattenPartnerNamespaceChannelPartnerTopic(props.PartnerTopicInfo)
 				}
 			}
 

@@ -6,12 +6,14 @@ package eventgrid
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/channels"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/eventgrid/2025-02-15/partnernamespaces"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
@@ -23,8 +25,7 @@ type EventGridPartnerNamespaceChannelDataSource struct{}
 
 type EventGridPartnerNamespaceChannelDataSourceModel struct {
 	ChannelName                       string              `tfschema:"name"`
-	PartnerNamespaceName              string              `tfschema:"partner_namespace_name"`
-	ResourceGroupName                 string              `tfschema:"resource_group_name"`
+	PartnerNamespaceId                string              `tfschema:"partner_namespace_id"`
 	ChannelType                       string              `tfschema:"channel_type"`
 	ExpirationTimeIfNotActivatedInUtc string              `tfschema:"expiration_time_if_not_activated_in_utc"`
 	PartnerTopic                      []PartnerTopicModel `tfschema:"partner_topic"`
@@ -34,16 +35,13 @@ type EventGridPartnerNamespaceChannelDataSourceModel struct {
 func (r EventGridPartnerNamespaceChannelDataSource) Arguments() map[string]*pluginsdk.Schema {
 	return map[string]*pluginsdk.Schema{
 		"name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-		"partner_namespace_name": {
-			Type:         pluginsdk.TypeString,
-			Required:     true,
-			ValidateFunc: validation.StringIsNotEmpty,
-		},
-		"resource_group_name": commonschema.ResourceGroupNameForDataSource(),
+			Type:     pluginsdk.TypeString,
+			Required: true,
+			ValidateFunc: validation.StringMatch(
+				regexp.MustCompile("^[-a-zA-Z0-9]{3,50}$"),
+				"`name` must be between 3 and 50 characters. It can contain only letters, numbers and hyphens (-).",
+			)},
+		"partner_namespace_id": commonschema.ResourceIDReferenceRequired(&partnernamespaces.PartnerNamespaceId{}),
 	}
 }
 
@@ -141,7 +139,12 @@ func (r EventGridPartnerNamespaceChannelDataSource) Read() sdk.ResourceFunc {
 				return fmt.Errorf("decoding: %+v", err)
 			}
 
-			id := channels.NewChannelID(subscriptionId, state.ResourceGroupName, state.PartnerNamespaceName, state.ChannelName)
+			partnerNamespaceId, err := partnernamespaces.ParsePartnerNamespaceID(state.PartnerNamespaceId)
+			if err != nil {
+				return err
+			}
+
+			id := channels.NewChannelID(subscriptionId, partnerNamespaceId.ResourceGroupName, partnerNamespaceId.PartnerNamespaceName, state.ChannelName)
 
 			resp, err := client.Get(ctx, id)
 			if err != nil {
