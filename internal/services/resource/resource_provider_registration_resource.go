@@ -88,7 +88,7 @@ func (r ResourceProviderRegistrationResource) Attributes() map[string]*pluginsdk
 	return map[string]*pluginsdk.Schema{
 		"test_missing_attr_in_typed_resource": {
 			Type:     pluginsdk.TypeString,
-			Required: true,
+			Computed: true,
 		},
 	}
 }
