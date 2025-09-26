@@ -110,6 +110,8 @@ The following arguments are supported:
 
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
+* `wait_for_public_availability` - (Optional) Boolean flag to specify whether to wait for the Key Vault to become publicly available after creation. Defaults to `true`. If the Key Vault has `public_network_access_enabled` set to `false`, this setting is ignored.
+
 ---
 
 A `access_policy` block supports the following:
