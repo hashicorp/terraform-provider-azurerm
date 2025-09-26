@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	schema2 "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/md"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/document-lint/model"
@@ -19,6 +20,15 @@ import (
 func crossCheckProperty(r *schema.Resource, md *model.ResourceDoc) (res []Checker) {
 	// check property exists in r not md, or in md not in r
 
+	// Get attributes map from original SDK resource if available
+	var attributesMap map[string]*schema2.Schema
+	if r.SDKResource != nil {
+		// All SDK resources should implement the interface with Attributes() method
+		if sdkRes, ok := r.SDKResource.(sdk.Resource); ok {
+			attributesMap = sdkRes.Attributes()
+		}
+	}
+
 	// exist in tf schema but not in document
 	docProps := md.AllProp()
 	for key, val := range r.Schema.Schema {
@@ -26,7 +36,18 @@ func crossCheckProperty(r *schema.Resource, md *model.ResourceDoc) (res []Checke
 		if field == nil && md.Attr != nil {
 			field = md.Attr[key]
 		}
-		res = append(res, diffDocMiss(r.ResourceType, key, val, field)...)
+
+		// Check if this field is explicitly defined as an attribute in the SDK resource
+		isAttribute := false
+		if attributesMap != nil {
+			_, isAttribute = attributesMap[key]
+		} else {
+			// Fallback for untyped resources: treat computed-only fields as potential attributes
+			isUntypedAttribute := val.Computed && !val.Optional && !val.Required
+			isAttribute = isUntypedAttribute
+		}
+
+		res = append(res, diffDocMiss(r.ResourceType, key, val, field, isAttribute)...)
 	}
 
 	for key, f := range docProps {
@@ -60,7 +81,7 @@ func shouldSkipDocProp(rt, path string) bool {
 	return _shouldSkip(diffDocSkip, rt, path)
 }
 
-func diffDocMiss(rt, path string, s *schema2.Schema, f *model.Field) (res []Checker) {
+func diffDocMiss(rt, path string, s *schema2.Schema, f *model.Field, shouldBeAttribute bool) (res []Checker) {
 	// skip deprecated property
 	if shouldSkipDocProp(rt, path) {
 		return res
@@ -71,7 +92,9 @@ func diffDocMiss(rt, path string, s *schema2.Schema, f *model.Field) (res []Chec
 	}
 
 	if f == nil {
-		if s.Deprecated == "" && !s.Computed && path != "id" {
+		// For attributes (computed-only fields), still flag as missing even if computed
+		// For regular arguments, only flag if not deprecated, not computed, and not "id"
+		if s.Deprecated == "" && (shouldBeAttribute || (!s.Computed && path != "id")) {
 			parts := strings.Split(path, ".")
 			name := parts[len(parts)-1]
 			f2 := &model.Field{
@@ -91,7 +114,7 @@ func diffDocMiss(rt, path string, s *schema2.Schema, f *model.Field) (res []Chec
 	case *schema2.Schema:
 		// For schema elements (e.g., lists of primitives), check if they have nested elements
 		if ele.Elem != nil {
-			return diffDocMiss(rt, path, ele, f)
+			return diffDocMiss(rt, path, ele, f, false)
 		}
 		return nil
 	case *schema2.Resource:
@@ -101,7 +124,7 @@ func diffDocMiss(rt, path string, s *schema2.Schema, f *model.Field) (res []Chec
 		}
 		for key, val := range ele.Schema {
 			subField := f.Subs[key]
-			res = append(res, diffDocMiss(rt, path+"."+key, val, subField)...)
+			res = append(res, diffDocMiss(rt, path+"."+key, val, subField, false)...)
 		}
 	default:
 		return res
