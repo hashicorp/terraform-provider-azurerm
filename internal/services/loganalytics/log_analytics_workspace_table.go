@@ -71,15 +71,24 @@ func columnSchema() map[string]*pluginsdk.Schema {
 func expandColumns(columns *[]Column) *[]tables.Column {
 	result := make([]tables.Column, 0, len(*columns))
 	for _, column := range *columns {
-		result = append(result, tables.Column{
+		expandedColumn := tables.Column{
 			Name:             pointer.To(column.Name),
-			DisplayName:      pointer.To(column.DisplayName),
-			Description:      pointer.To(column.Description),
 			IsHidden:         pointer.To(column.IsHidden),
 			IsDefaultDisplay: pointer.To(column.IsDefaultDisplay),
 			Type:             pointer.To(tables.ColumnTypeEnum(column.Type)),
-			DataTypeHint:     pointer.To(tables.ColumnDataTypeHintEnum(column.TypeHint)),
-		})
+		}
+		// NB: leaving this as empty strings will prevent the DCR from being created, seeing the following error:
+		// Bad Request({"error":{"code":"InvalidPayload","message":"Data collection rule is invalid","details":[{"code":"InvalidTransform","target":"properties.dataFlows[0]"}]}})
+		if column.DisplayName != "" {
+			expandedColumn.DisplayName = pointer.To(column.DisplayName)
+		}
+		if column.Description != "" {
+			expandedColumn.Description = pointer.To(column.Description)
+		}
+		if column.TypeHint != "" {
+			expandedColumn.DataTypeHint = pointer.To(tables.ColumnDataTypeHintEnum(column.TypeHint))
+		}
+		result = append(result, expandedColumn)
 	}
 	return pointer.To(result)
 }
