@@ -76,11 +76,21 @@ func (r ResourceProviderRegistrationResource) Arguments() map[string]*pluginsdk.
 				},
 			},
 		},
+
+		"test_missing_arguments_in_typed_resource": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+		},
 	}
 }
 
 func (r ResourceProviderRegistrationResource) Attributes() map[string]*pluginsdk.Schema {
-	return map[string]*pluginsdk.Schema{}
+	return map[string]*pluginsdk.Schema{
+		"test_missing_attr_in_typed_resource": {
+			Type:     pluginsdk.TypeString,
+			Required: true,
+		},
+	}
 }
 
 func (r ResourceProviderRegistrationResource) ModelObject() interface{} {

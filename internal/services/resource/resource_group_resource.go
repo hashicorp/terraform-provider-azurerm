@@ -56,6 +56,11 @@ func resourceResourceGroup() *pluginsdk.Resource {
 				Optional:     true,
 				ValidateFunc: validation.StringIsNotEmpty,
 			},
+
+			"test_missing_arguments_in_untyped_resource": {
+				Type:         pluginsdk.TypeString,
+				Optional:     true,
+			},
 		},
 	}
 }
