@@ -227,6 +227,8 @@ resource "azurerm_kubernetes_cluster" "example" {
 
 * `workload_autoscaler_profile` - (Optional) A `workload_autoscaler_profile` block defined below.
 
+* `ai_toolchain_operator_enabled` - (Optional) Specifies whether the AI Toolchain Operator should be enabled for the Cluster. Defaults to `false`.
+
 * `workload_identity_enabled` - (Optional) Specifies whether Azure AD Workload Identity should be enabled for the Cluster. Defaults to `false`.
 
 -> **Note:** To enable Azure AD Workload Identity `oidc_issuer_enabled` must be set to `true`.

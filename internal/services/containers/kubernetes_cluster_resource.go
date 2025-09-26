@@ -1642,6 +1642,12 @@ func resourceKubernetesCluster() *pluginsdk.Resource {
 				},
 			},
 
+			"ai_toolchain_operator_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  false,
+			},
+
 			"workload_identity_enabled": {
 				Type:     pluginsdk.TypeBool,
 				Optional: true,
@@ -1889,6 +1895,12 @@ func resourceKubernetesClusterCreate(d *pluginsdk.ResourceData, meta interface{}
 			WorkloadAutoScalerProfile: workloadAutoscalerProfile,
 		},
 		Tags: tags.Expand(t),
+	}
+
+	if d.Get("ai_toolchain_operator_enabled").(bool) {
+		parameters.Properties.AiToolchainOperatorProfile = &managedclusters.ManagedClusterAIToolchainOperatorProfile{
+			Enabled: pointer.To(true),
+		}
 	}
 	managedClusterIdentityRaw := d.Get("identity").([]interface{})
 	kubernetesClusterIdentityRaw := d.Get("kubelet_identity").([]interface{})
@@ -2435,6 +2447,13 @@ func resourceKubernetesClusterUpdate(d *pluginsdk.ResourceData, meta interface{}
 		}
 	}
 
+	if d.HasChange("ai_toolchain_operator_enabled") {
+		updateCluster = true
+		existing.Model.Properties.AiToolchainOperatorProfile = &managedclusters.ManagedClusterAIToolchainOperatorProfile{
+			Enabled: pointer.To(d.Get("ai_toolchain_operator_enabled").(bool)),
+		}
+	}
+
 	if d.HasChanges("workload_identity_enabled") {
 		updateCluster = true
 		workloadIdentity := d.Get("workload_identity_enabled").(bool)
@@ -2955,6 +2974,12 @@ func resourceKubernetesClusterRead(d *pluginsdk.ResourceData, meta interface{}) 
 			if err := d.Set("workload_autoscaler_profile", workloadAutoscalerProfile); err != nil {
 				return fmt.Errorf("setting `workload_autoscaler_profile`: %+v", err)
 			}
+
+			aiToolchainOperatorEnabled := false
+			if props.AiToolchainOperatorProfile != nil {
+				aiToolchainOperatorEnabled = pointer.From(props.AiToolchainOperatorProfile.Enabled)
+			}
+			d.Set("ai_toolchain_operator_enabled", aiToolchainOperatorEnabled)
 
 			if props.SecurityProfile != nil && props.SecurityProfile.ImageCleaner != nil {
 				if props.SecurityProfile.ImageCleaner.Enabled != nil {
