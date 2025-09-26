@@ -259,6 +259,12 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 
 			"rolling_upgrade_policy": VirtualMachineScaleSetRollingUpgradePolicySchema(),
 
+			"secure_boot_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
+			},
+
 			// NOTE: single_placement_group is now supported in orchestrated VMSS
 			// Since null is now a valid value for this field there is no default
 			// for this bool
@@ -323,6 +329,12 @@ func resourceOrchestratedVirtualMachineScaleSet() *pluginsdk.Resource {
 				Optional:     true,
 				Sensitive:    true,
 				ValidateFunc: validation.StringIsBase64,
+			},
+
+			"vtpm_enabled": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				ForceNew: true,
 			},
 
 			"priority_mix": OrchestratedVirtualMachineScaleSetPriorityMixPolicySchema(),
@@ -730,6 +742,24 @@ func resourceOrchestratedVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData,
 	if v, ok := d.GetOk("encryption_at_host_enabled"); ok {
 		virtualMachineProfile.SecurityProfile = &virtualmachinescalesets.SecurityProfile{
 			EncryptionAtHost: pointer.To(v.(bool)),
+		}
+	}
+
+	secureBootEnabled := d.Get("secure_boot_enabled").(bool)
+	vtpmEnabled := d.Get("vtpm_enabled").(bool)
+	if secureBootEnabled || vtpmEnabled {
+		if virtualMachineProfile.SecurityProfile == nil {
+			virtualMachineProfile.SecurityProfile = &virtualmachinescalesets.SecurityProfile{}
+		}
+		virtualMachineProfile.SecurityProfile.SecurityType = pointer.To(virtualmachinescalesets.SecurityTypesTrustedLaunch)
+		if virtualMachineProfile.SecurityProfile.UefiSettings == nil {
+			virtualMachineProfile.SecurityProfile.UefiSettings = &virtualmachinescalesets.UefiSettings{}
+		}
+		if secureBootEnabled {
+			virtualMachineProfile.SecurityProfile.UefiSettings.SecureBootEnabled = pointer.To(true)
+		}
+		if vtpmEnabled {
+			virtualMachineProfile.SecurityProfile.UefiSettings.VTpmEnabled = pointer.To(true)
 		}
 	}
 
@@ -1474,10 +1504,26 @@ func resourceOrchestratedVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, m
 				d.Set("extensions_time_budget", extensionsTimeBudget)
 
 				encryptionAtHostEnabled := false
-				if profile.SecurityProfile != nil && profile.SecurityProfile.EncryptionAtHost != nil {
-					encryptionAtHostEnabled = *profile.SecurityProfile.EncryptionAtHost
+				vtpmEnabled := false
+				secureBootEnabled := false
+
+				if secprofile := profile.SecurityProfile; secprofile != nil {
+					if secprofile.EncryptionAtHost != nil {
+						encryptionAtHostEnabled = *secprofile.EncryptionAtHost
+					}
+					if uefi := profile.SecurityProfile.UefiSettings; uefi != nil {
+						if uefi.VTpmEnabled != nil {
+							vtpmEnabled = *uefi.VTpmEnabled
+						}
+						if uefi.SecureBootEnabled != nil {
+							secureBootEnabled = *uefi.SecureBootEnabled
+						}
+					}
 				}
+
 				d.Set("encryption_at_host_enabled", encryptionAtHostEnabled)
+				d.Set("vtpm_enabled", vtpmEnabled)
+				d.Set("secure_boot_enabled", secureBootEnabled)
 				d.Set("user_data_base64", profile.UserData)
 
 				if policy := props.UpgradePolicy; policy != nil {
