@@ -47,3 +47,43 @@ func getBackupFromOCI(ctx context.Context, client *autonomousdatabasebackups.Aut
 
 	return nil, nil
 }
+
+func expandCloneCustomerContacts(input []string) []autonomousdatabases.CustomerContact {
+	if len(input) == 0 {
+		return nil
+	}
+
+	contacts := make([]autonomousdatabases.CustomerContact, 0, len(input))
+	for _, email := range input {
+		contacts = append(contacts, autonomousdatabases.CustomerContact{
+			Email: email,
+		})
+	}
+	return contacts
+}
+
+func flattenConnectionStrings(connStrings *autonomousdatabases.ConnectionStringType) []string {
+	flattened := make([]string, 0)
+
+	if connStrings == nil {
+		return flattened
+	}
+	allConnStrings := connStrings.AllConnectionStrings
+	if allConnStrings == nil {
+		return flattened
+	}
+
+	if allConnStrings.High != nil {
+		flattened = append(flattened, *allConnStrings.High)
+	}
+
+	if allConnStrings.Medium != nil {
+		flattened = append(flattened, *allConnStrings.Medium)
+	}
+
+	if allConnStrings.Low != nil {
+		flattened = append(flattened, *allConnStrings.Low)
+	}
+
+	return flattened
+}
