@@ -353,7 +353,7 @@ func resourceApiManagementBackend() *pluginsdk.Resource {
 				Type:          pluginsdk.TypeList,
 				Optional:      true,
 				MaxItems:      1,
-				ConflictsWith: []string{"circuit_breaker_rule", "url"},
+				ConflictsWith: []string{"credentials", "protocol", "proxy", "resource_id", "service_fabric_cluster", "tls", "url", "circuit_breaker_rule"},
 				Elem: &pluginsdk.Resource{
 					Schema: map[string]*pluginsdk.Schema{
 						"service": {

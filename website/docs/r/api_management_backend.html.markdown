@@ -47,27 +47,29 @@ The following arguments are supported:
 
 * `resource_group_name` - (Required) The Name of the Resource Group where the API Management Service exists. Changing this forces a new resource to be created.
 
-* `protocol` - (Required) The protocol used by the backend host. Possible values are `http` or `soap`.
+* `protocol` - (Required) The protocol used by the backend host. Possible values are `http` or `soap`. Cannot be used with `pool`.
 
-* `url` - (Required) The backend host URL should be specified in the format `"https://backend.com/api"`, avoiding trailing slashes (/) to minimize misconfiguration risks. Azure API Management instance will append the backend resource name to this URL. This URL typically serves as the `base-url` in the [`set-backend-service`](https://learn.microsoft.com/azure/api-management/set-backend-service-policy) policy, enabling seamless transitions from frontend to backend.
+* `url` - (Required) The backend host URL should be specified in the format `"https://backend.com/api"`, avoiding trailing slashes (/) to minimize misconfiguration risks. Azure API Management instance will append the backend resource name to this URL. This URL typically serves as the `base-url` in the [`set-backend-service`](https://learn.microsoft.com/azure/api-management/set-backend-service-policy) policy, enabling seamless transitions from frontend to backend. Cannot be used with `pool`.
 
 ---
 
-* `credentials` - (Optional) A `credentials` block as documented below.
+* `credentials` - (Optional) A `credentials` block as documented below. Cannot be used with `pool`.
 
 * `description` - (Optional) The description of the backend.
 
-* `proxy` - (Optional) A `proxy` block as documented below.
+* `proxy` - (Optional) A `proxy` block as documented below. Cannot be used with `pool`.
 
-* `resource_id` - (Optional) The management URI of the backend host in an external system. This URI can be the ARM Resource ID of Logic Apps, Function Apps or API Apps, or the management endpoint of a Service Fabric cluster.
+* `resource_id` - (Optional) The management URI of the backend host in an external system. This URI can be the ARM Resource ID of Logic Apps, Function Apps or API Apps, or the management endpoint of a Service Fabric cluster. Cannot be used with `pool`.
 
-* `service_fabric_cluster` - (Optional) A `service_fabric_cluster` block as documented below.
+* `service_fabric_cluster` - (Optional) A `service_fabric_cluster` block as documented below. Cannot be used with `pool`.
 
 * `title` - (Optional) The title of the backend.
 
-* `tls` - (Optional) A `tls` block as documented below.
+* `tls` - (Optional) A `tls` block as documented below. Cannot be used with `pool`.
 
-* `circuit_breaker_rule` - (Optional) A `circuit_breaker_rule` block as documented below.
+* `circuit_breaker_rule` - (Optional) A `circuit_breaker_rule` block as documented below. Cannot be used with `pool`.
+
+* `pool` - (Optional) A `pool` block as documented below.
 
 ---
 
@@ -170,6 +172,24 @@ A `status_code_range` block supports the following.
 * `max` - (Required) The maximum HTTP status code for this block.
 
 ~> **Note:** Both `min` and `max` must be between the values of 200 and 599.
+
+---
+
+A `pool` block supports the following:
+
+* `service` - (Required) One or more `service` blocks as defined below. Minimum of 1, maximum of 30 services allowed.
+
+~> **Note:** The `pool` configuration represents a different type of backend and cannot be used with the following fields: `credentials`, `protocol`, `proxy`, `resource_id`, `service_fabric_cluster`, `tls`, `url`, and `circuit_breaker_rule`. These fields are only applicable to single backend configurations.
+
+---
+
+A `service` block supports the following:
+
+* `id` - (Required) The ID of the backend service to include in the pool.
+
+* `priority` - (Optional) The priority assigned to this backend service. Default is 0.
+
+* `weight` - (Optional) The weight assigned to this backend service. Default is 0.
 
 ---
 
