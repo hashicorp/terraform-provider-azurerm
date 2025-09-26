@@ -36,7 +36,13 @@ jobs:
       
       - name: run document lint checker
         if: steps.changed-files.outputs.has-files == 'true'
-        run: make document-lint
+        run: |
+          if make document-lint; then
+            echo "::notice::Document lint success."
+          else
+            echo "::warning::Document lint failed. Please fix the issues."
+            exit 1
+          fi
 
       - name: skip document lint checker
         if: steps.changed-files.outputs.has-files == 'false'
