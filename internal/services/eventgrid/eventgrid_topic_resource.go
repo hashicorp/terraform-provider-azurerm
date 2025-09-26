@@ -193,6 +193,13 @@ func resourceEventGridTopic() *pluginsdk.Resource {
 			},
 
 			"tags": commonschema.Tags(),
+
+			"minimum_tls_version": {
+				Type:         pluginsdk.TypeString,
+				Default:      string(topics.TlsVersionOnePointTwo),
+				Optional:     true,
+				ValidateFunc: validation.StringInSlice(topics.PossibleValuesForTlsVersion(), false),
+			},
 		},
 	}
 }
@@ -358,6 +365,12 @@ func resourceEventGridTopicRead(d *pluginsdk.ResourceData, meta interface{}) err
 				publicNetworkAccessEnabled = false
 			}
 			d.Set("public_network_access_enabled", publicNetworkAccessEnabled)
+
+			minimumTlsVersion := topics.TlsVersionOnePointTwo
+			if props.MinimumTlsVersionAllowed != nil {
+				minimumTlsVersion = *props.MinimumTlsVersionAllowed
+			}
+			d.Set("minimum_tls_version", minimumTlsVersion)
 
 			inboundIPRules := flattenTopicInboundIPRules(props.InboundIPRules)
 			if err := d.Set("inbound_ip_rule", inboundIPRules); err != nil {
