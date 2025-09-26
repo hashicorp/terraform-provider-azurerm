@@ -36,7 +36,7 @@ func TestAccFirewall_autoscaleConfigMinMax(t *testing.T) {
 			Config: r.withAutoscaleConfiguration(data, &minScale, &maxScale),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("provisioningState").HasValue("Succeeded"),
+				check.That(data.ResourceName).Key("autoscale_configuration").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -53,8 +53,7 @@ func TestAccFirewall_autoscaleConfigMinOnly(t *testing.T) {
 			Config: r.withAutoscaleConfiguration(data, &minScale, nil),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("provisioningState").HasValue("Succeeded"),
-			),
+				check.That(data.ResourceName).Key("autoscale_configuration").Exists()),
 		},
 		data.ImportStep(),
 	})
@@ -70,7 +69,7 @@ func TestAccFirewall_autoscaleConfigMaxOnly(t *testing.T) {
 			Config: r.withAutoscaleConfiguration(data, nil, &maxScale),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
-				check.That(data.ResourceName).Key("provisioningState").HasValue("Succeeded"),
+				check.That(data.ResourceName).Key("autoscale_configuration").Exists(),
 			),
 		},
 		data.ImportStep(),

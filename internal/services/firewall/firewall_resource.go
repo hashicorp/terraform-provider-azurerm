@@ -378,8 +378,8 @@ func resourceFirewallCreateUpdate(d *pluginsdk.ResourceData, meta interface{}) e
 		defer locks.UnlockByName(id.FirewallPolicyName, AzureFirewallPolicyResourceName)
 	}
 
-	if autoscaleConfiguration := d.Get("autoscale_configuration").(*schema.Set); autoscaleConfiguration.Len() > 0 {
-		configMap := autoscaleConfiguration.List()[0].(map[string]interface{})
+	if autoscaleConfiguration := d.Get("autoscale_configuration").(*pluginsdk.Set).List(); len(autoscaleConfiguration) > 0 {
+		configMap := autoscaleConfiguration[0].(map[string]interface{})
 		configuration, err := expandAutoscaleConfiguration(configMap)
 		if err != nil {
 			return err
@@ -615,13 +615,13 @@ func expandAutoscaleConfiguration(d map[string]interface{}) (azurefirewalls.Azur
 	maxPresent := false
 	min := 0
 	max := 0
-	if _, ok := d["minCapacity"]; ok {
+	if _, ok := d["min_capacity"]; ok {
 		minPresent = true
-		min = d["minCapacity"].(int)
+		min = d["min_capacity"].(int)
 	}
-	if _, ok := d["maxCapacity"]; ok {
+	if _, ok := d["max_capacity"]; ok {
 		maxPresent = true
-		max = d["maxCapacity"].(int)
+		max = d["max_capacity"].(int)
 	}
 	if minPresent && min > 0 {
 		configuration.MinCapacity = pointer.FromInt64(int64(min))
