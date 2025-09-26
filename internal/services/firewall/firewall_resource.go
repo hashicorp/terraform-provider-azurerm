@@ -753,6 +753,10 @@ func flattenFirewallAdditionalProperty(input *map[string]string) (enabled interf
 	return
 }
 
+func flattenFirewallAutoscaleConfiguration() {
+
+}
+
 func expandFirewallPrivateIpRange(input []interface{}) map[string]string {
 	if len(input) == 0 {
 		return nil

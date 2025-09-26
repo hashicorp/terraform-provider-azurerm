@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/tags"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/zones"
 	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2024-05-01/azurefirewalls"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/firewall/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
@@ -151,6 +152,27 @@ func firewallDataSource() *pluginsdk.Resource {
 				},
 			},
 
+			"autoscale_configuration": {
+				Type:     pluginsdk.TypeSet,
+				Computed: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*pluginsdk.Schema{
+						"min_capacity": {
+							Type:         pluginsdk.TypeInt,
+							Required:     false,
+							Optional:     true,
+							ValidateFunc: validate.MinCapacity,
+						},
+						"max_capacity": {
+							Type:         pluginsdk.TypeInt,
+							Required:     false,
+							Optional:     true,
+							ValidateFunc: validate.MaxCapacity,
+						},
+					},
+				},
+			},
+
 			"zones": commonschema.ZonesMultipleComputed(),
 
 			"tags": commonschema.TagsDataSource(),
@@ -213,6 +235,19 @@ func firewallDataSourceRead(d *pluginsdk.ResourceData, meta interface{}) error {
 			if sku := props.Sku; sku != nil {
 				d.Set("sku_name", string(pointer.From(sku.Name)))
 				d.Set("sku_tier", string(pointer.From(sku.Tier)))
+			}
+
+			if props.AutoscaleConfiguration != nil {
+				autoscaleConfig := make([]map[string]interface{}, 0)
+				m := map[string]interface{}{}
+				if props.AutoscaleConfiguration.MinCapacity != nil {
+					m["min_capacity"] = int(*props.AutoscaleConfiguration.MinCapacity)
+				}
+				if props.AutoscaleConfiguration.MaxCapacity != nil {
+					m["max_capacity"] = int(*props.AutoscaleConfiguration.MaxCapacity)
+				}
+				autoscaleConfig = append(autoscaleConfig, m)
+				d.Set("autoscale_configuration", autoscaleConfig)
 			}
 
 			if err := d.Set("virtual_hub", flattenFirewallVirtualHubSetting(props)); err != nil {
