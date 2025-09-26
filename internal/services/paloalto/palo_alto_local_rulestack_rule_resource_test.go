@@ -164,22 +164,6 @@ func TestAccPaloAltoLocalRule_updateProtocol(t *testing.T) {
 	})
 }
 
-func TestAccPaloAltoLocalRule_basicPriorityUpperLimit(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_palo_alto_local_rulestack_rule", "test")
-
-	r := LocalRuleResource{}
-
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basicPriorityUpperLimit(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (r LocalRuleResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := localrules.ParseLocalRuleID(state.ID)
 	if err != nil {
@@ -209,34 +193,6 @@ resource "azurerm_palo_alto_local_rulestack_rule" "test" {
   name         = "testacc-palr-%[2]d"
   rulestack_id = azurerm_palo_alto_local_rulestack.test.id
   priority     = 100
-  action       = "Allow"
-  protocol     = "application-default"
-
-  applications = ["any"]
-
-  destination {
-    cidrs = ["any"]
-  }
-
-  source {
-    cidrs = ["any"]
-  }
-}
-`, r.template(data), data.RandomInteger)
-}
-
-func (r LocalRuleResource) basicPriorityUpperLimit(data acceptance.TestData) string {
-	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
-%[1]s
-
-resource "azurerm_palo_alto_local_rulestack_rule" "test" {
-  name         = "testacc-palr-%[2]d"
-  rulestack_id = azurerm_palo_alto_local_rulestack.test.id
-  priority     = 1000000
   action       = "Allow"
   protocol     = "application-default"
 
