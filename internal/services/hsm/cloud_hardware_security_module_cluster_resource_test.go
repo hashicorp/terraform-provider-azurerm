@@ -165,10 +165,6 @@ resource "azurerm_cloud_hardware_security_module_cluster" "import" {
 
 func (CloudHardwareSecurityModuleClusterResource) template(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-provider "azurerm" {
-  features {}
-}
-
 resource "azurerm_resource_group" "test" {
   name     = "acctestRG-cloudhsm-%d"
   location = "%s"
@@ -178,6 +174,10 @@ resource "azurerm_resource_group" "test" {
 
 func (r CloudHardwareSecurityModuleClusterResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_cloud_hardware_security_module_cluster" "test" {
@@ -191,6 +191,10 @@ resource "azurerm_cloud_hardware_security_module_cluster" "test" {
 
 func (r CloudHardwareSecurityModuleClusterResource) complete(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_user_assigned_identity" "test" {
@@ -221,6 +225,10 @@ resource "azurerm_cloud_hardware_security_module_cluster" "test" {
 
 func (r CloudHardwareSecurityModuleClusterResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %[1]s
 
 resource "azurerm_user_assigned_identity" "test" {
@@ -249,6 +257,10 @@ resource "azurerm_cloud_hardware_security_module_cluster" "test" {
 
 func (r CloudHardwareSecurityModuleClusterResource) userAssignedIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_user_assigned_identity" "test" {
@@ -273,6 +285,10 @@ resource "azurerm_cloud_hardware_security_module_cluster" "test" {
 
 func (r CloudHardwareSecurityModuleClusterResource) privateEndpoint(data acceptance.TestData) string {
 	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
 %s
 
 resource "azurerm_virtual_network" "test" {
