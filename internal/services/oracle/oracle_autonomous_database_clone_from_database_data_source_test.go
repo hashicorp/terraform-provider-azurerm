@@ -55,7 +55,7 @@ data "azurerm_oracle_autonomous_database_clone_from_database" "test" {
   name                = azurerm_oracle_autonomous_database_clone_from_database.test.name
   resource_group_name = azurerm_oracle_autonomous_database_clone_from_database.test.resource_group_name
 }
-`, AutonomousDatabaseCloneFromDatabaseResource{}.basic(data))
+`, AutonomousDatabaseCloneFromDatabaseResource{}.complete(data))
 }
 
 func (AutonomousDatabaseCloneFromDatabaseDataSource) metadataClone(data acceptance.TestData) string {

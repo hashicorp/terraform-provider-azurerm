@@ -29,7 +29,7 @@ func TestAccAutonomousDatabaseCloneFromDatabase_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "source", "clone_type"),
+		data.ImportStep("admin_password", "source_autonomous_database_id"),
 	})
 }
 
@@ -39,7 +39,7 @@ func TestAccAutonomousDatabaseCloneFromDatabase_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -59,7 +59,7 @@ func TestAccAutonomousDatabaseCloneFromDatabase_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "source", "clone_type", "refreshable_model"),
+		data.ImportStep("admin_password", "source_autonomous_database_id", "refreshable_model"),
 	})
 }
 
@@ -75,7 +75,7 @@ func TestAccAutonomousDatabaseCloneFromDatabase_metadataClone(t *testing.T) {
 				check.That(data.ResourceName).Key("clone_type").HasValue("Metadata"),
 			),
 		},
-		data.ImportStep("admin_password", "source", "clone_type"),
+		data.ImportStep("admin_password", "source_autonomous_database_id"),
 	})
 }
 
@@ -119,17 +119,11 @@ resource "azurerm_oracle_autonomous_database_clone_from_database" "test" {
   auto_scaling_for_storage_enabled = false
   mtls_connection_required         = false
   national_character_set           = "AL16UTF16"
-  subnet_id                        = azurerm_oracle_autonomous_database.test.subnet_id
-  virtual_network_id               = azurerm_oracle_autonomous_database.test.virtual_network_id
-
-  tags = {
-    Environment = "Test"
-    Purpose     = "BasicClone"
-  }
+  allowed_ip_addresses 				= ["140.204.126.129"]
 
   depends_on = [azurerm_oracle_autonomous_database.test]
 }
-`, AdbsRegularResource{}.basic(data), data.RandomInteger)
+`, AdbsRegularResource{}.publicAccess(data), data.RandomInteger)
 }
 
 func (r AutonomousDatabaseCloneFromDatabaseResource) requiresImport(data acceptance.TestData) string {
@@ -160,7 +154,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_database" "import" {
   virtual_network_id               = azurerm_oracle_autonomous_database_clone_from_database.test.virtual_network_id
   tags                             = azurerm_oracle_autonomous_database_clone_from_database.test.tags
 }
-`, r.basic(data))
+`, r.complete(data))
 }
 
 func (r AutonomousDatabaseCloneFromDatabaseResource) complete(data acceptance.TestData) string {
@@ -194,7 +188,6 @@ resource "azurerm_oracle_autonomous_database_clone_from_database" "test" {
 
   # Clone-specific optional fields
   refreshable_model = "Manual"
-
   customer_contacts = ["test@example.com"]
 
   tags = {

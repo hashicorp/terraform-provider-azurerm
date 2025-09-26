@@ -57,9 +57,8 @@ type AutonomousDatabaseCloneResourceModel struct {
 
 	// Optional for Clone
 
-	CustomerContacts      []string `tfschema:"customer_contacts"`
-	RefreshableModel      string   `tfschema:"refreshable_model"`
-	TimeUntilReconnectUtc string   `tfschema:"time_until_reconnect_in_utc"`
+	CustomerContacts []string `tfschema:"customer_contacts"`
+	RefreshableModel string   `tfschema:"refreshable_model"`
 }
 
 func (AutonomousDatabaseCloneFromDatabaseResource) Arguments() map[string]*pluginsdk.Schema {
@@ -91,13 +90,6 @@ func (AutonomousDatabaseCloneFromDatabaseResource) Arguments() map[string]*plugi
 			Optional:     true,
 			ForceNew:     true,
 			ValidateFunc: validation.StringInSlice(autonomousdatabases.PossibleValuesForRefreshableModelType(), false),
-		},
-
-		"time_until_reconnect_in_utc": {
-			Type:         pluginsdk.TypeString,
-			Optional:     true,
-			Computed:     true,
-			ValidateFunc: validation.IsRFC3339Time,
 		},
 
 		// Required (inherited from base)
@@ -274,11 +266,10 @@ func (r AutonomousDatabaseCloneFromDatabaseResource) Create() sdk.ResourceFunc {
 			}
 
 			param.Properties = &autonomousdatabases.AutonomousDatabaseCloneProperties{
-				CloneType:                      autonomousdatabases.CloneType(model.CloneType),
-				SourceId:                       model.SourceAutonomousDatabaseId,
-				Source:                         pointer.To(autonomousdatabases.SourceTypeDatabase),
-				DataBaseType:                   autonomousdatabases.DataBaseTypeClone,
-				TimeUntilReconnectCloneEnabled: pointer.To(model.TimeUntilReconnectUtc),
+				CloneType:    autonomousdatabases.CloneType(model.CloneType),
+				SourceId:     model.SourceAutonomousDatabaseId,
+				Source:       pointer.To(autonomousdatabases.SourceTypeDatabase),
+				DataBaseType: autonomousdatabases.DataBaseTypeClone,
 
 				// Base properties
 				AdminPassword:                  pointer.To(model.AdminPassword),
@@ -358,7 +349,6 @@ func (r AutonomousDatabaseCloneFromDatabaseResource) Read() sdk.ResourceFunc {
 						return fmt.Errorf("%s was not of type `Clone`", id)
 					}
 					state.CloneType = string(props.CloneType)
-					state.TimeUntilReconnectUtc = pointer.From(props.TimeUntilReconnectCloneEnabled)
 					state.SourceAutonomousDatabaseId = props.SourceId
 
 					// Base properties

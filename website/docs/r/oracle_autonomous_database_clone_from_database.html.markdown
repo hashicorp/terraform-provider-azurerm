@@ -15,53 +15,51 @@ Manages an autonomous database clone from database.
 ```hcl
 resource "azurerm_resource_group" "example" {
   name     = "example-resources"
-  location = "West Europe"
+  location = "eastus"
 }
 
 resource "azurerm_oracle_autonomous_database" "example" {
   name                             = "example"
-  resource_group_name              = "example"
-  location                         = "West Europe"
-  subnet_id                        = "example"
-  display_name                     = "example"
-  db_workload                      = "example"
-  mtls_connection_required         = false
-  backup_retention_period_in_days  = 42
-  compute_model                    = "example"
-  data_storage_size_in_gb          = 42
-  auto_scaling_for_storage_enabled = false
-  virtual_network_id               = "example"
-  admin_password                   = "example"
-  auto_scaling_enabled             = "example"
-  character_set                    = "example"
-  compute_count                    = 1.23456
-  national_character_set           = "example"
-  license_model                    = false
-  database_version                 = "example"
-  allowedIps                       = ""
+  resource_group_name              = azurerm_oracle_autonomous_database.example.resource_group_name
+  location                         = "eastus"
+  admin_password                   = "BEstrO0ng_#11"
+  backup_retention_period_in_days  = 7
+  character_set                    = "AL32UTF8"
+  compute_count                    = 2.0
+  compute_model                    = "ECPU"
+  data_storage_size_in_tb          = 1
+  database_version                 = "19c"
+  database_workload                = "OLTP"
+  display_name                     = "ADB%[1]dclone"
+  license_model                    = "LicenseIncluded"
+  auto_scaling_enabled             = false
+  auto_scaling_for_storage_enabled = true
+  mtls_connection_required         = true
+  national_character_set           = "AL16UTF16"
+  allowed_ip_addresses 			   = []
 }
 
 resource "azurerm_oracle_autonomous_database_clone_from_database" "example" {
   name                             = "example"
   resource_group_name              = azurerm_oracle_autonomous_database.example.resource_group_name
-  location                         = "West Europe"
-  source_autonomous_database_id    = azurerm_oracle_autonomous_database.test.id
-  compute_count                    = 2.0
-  display_name                     = "example"
-  auto_scaling_enabled             = false
-  national_character_set           = "AL16UTF16"
-  database_version                 = "19c"
-  compute_model                    = "ECPU"
-  data_storage_size_in_tb          = 42
-  clone_type                       = "Full"
+  location                         = "eastus"
+  source_autonomous_database_id    = azurerm_oracle_autonomous_database.example.id
+  clone_type                    = "Full"
   admin_password                   = "BEstrO0ng_#11"
-  mtls_connection_required         = false
-  db_workload                      = "OLTP"
+  backup_retention_period_in_days  = 7
   character_set                    = "AL32UTF8"
-  backup_retention_period_in_days  = 42
-  auto_scaling_for_storage_enabled = false
+  compute_count                    = 2.0
+  compute_model                    = "ECPU"
+  data_storage_size_in_tb          = 1
+  database_version                 = "19c"
+  database_workload                = "OLTP"
+  display_name                     = "AdbClone"
   license_model                    = "LicenseIncluded"
-  allowedIps                       = ""
+  auto_scaling_enabled             = false
+  auto_scaling_for_storage_enabled = true
+  mtls_connection_required         = true
+  national_character_set           = "AL16UTF16"
+  allowed_ip_addresses 			   = []
 }
 ```
 
@@ -69,11 +67,17 @@ resource "azurerm_oracle_autonomous_database_clone_from_database" "example" {
 
 The following arguments are supported:
 
+* `name` - (Required) The name which should be used for this autonomous database clone from database. Changing this forces a new autonomous database clone from database to be created.
+
+* `resource_group_name` - (Required) The name of the Resource Group where the autonomous database clone from database should exist. Changing this forces a new autonomous database clone from database to be created.
+
+* `location` - (Required) The Azure Region where the Autonomous Database should exist. Changing this forces a new Autonomous Database to be created.
+
 * `admin_password` - (Required) The password for the SYS, SYSTEM, and PDB Admin users. The password must be at least 12 characters long, and contain at least 1 uppercase, 1 lowercase, and 1 numeric character. It cannot contain the double quote symbol (") or the username "admin", regardless of casing. Changing this forces a new Autonomous Database Clone to be created.
 
-* `auto_scaling_enabled` - (Required) Indicates if auto scaling is enabled for the Autonomous Database CPU core count.
+* `auto_scaling_enabled` - (Required) Indicates if auto scaling is enabled for the Autonomous Database CPU core count. Changing this forces a new Autonomous Database Clone to be created.
 
-* `auto_scaling_for_storage_enabled` - (Required) Indicates if auto scaling is enabled for the Autonomous Database storage.
+* `auto_scaling_for_storage_enabled` - (Required) Indicates if auto scaling is enabled for the Autonomous Database storage. Changing this forces a new Autonomous Database Clone to be created.
 
 * `backup_retention_period_in_days` - (Required) Retention period, in days, for backups. Possible values are between `1` and `60`. Changing this forces a new Autonomous Database Clone to be created.
 
@@ -81,13 +85,13 @@ The following arguments are supported:
 
 * `clone_type` - (Required) The type of clone to create. Possible values are `Full` and `Metadata`. Changing this forces a new Autonomous Database Clone to be created.
 
-* `compute_count` - (Required) The compute amount (CPUs) available to the database. Possible values are between `2.0` and `512.0`.
+* `compute_count` - (Required) The compute amount (CPUs) available to the database. Possible values are between `2.0` and `512.0`. Changing this forces a new Autonomous Database Clone to be created.
 
-* `compute_model` - (Required) The compute model of the Autonomous Database. Changing this forces a new Autonomous Database Clone to be created.
+* `compute_model` - (Required) The compute model of the Autonomous Database. `ECPU` compute model is the recommended model and `OCPU` compute model is legacy. Changing this forces a new Autonomous Database to be created.
 
 * `database_version` - (Required) A valid Oracle Database version for Autonomous Database. Changing this forces a new Autonomous Database Clone to be created.
 
-* `data_storage_size_in_tb` - (Required) The maximum storage that can be allocated for the database, in terabytes. Possible values are between `1` and `384`.
+* `data_storage_size_in_tb` - (Required) The maximum storage that can be allocated for the database, in terabytes. Possible values are between `1` and `384`. Changing this forces a new Autonomous Database Clone to be created.
 
 * `database_workload` - (Required) The Autonomous Database workload type. Possible values are `OLTP` and `DW`, `APEX`, `AJD`. Changing this forces a new Autonomous Database Clone to be created.
   * OLTP - indicates an Autonomous Transaction Processing database
@@ -103,11 +107,7 @@ The following arguments are supported:
 
 * `mtls_connection_required` - (Required) Specifies if the Autonomous Database requires mTLS connections. Changing this forces a new Autonomous Database Clone to be created.
 
-* `name` - (Required) The name which should be used for this autonomous database clone from database. Changing this forces a new autonomous database clone from database to be created.
-
 * `national_character_set` - (Required) The national character set for the autonomous database. Changing this forces a new Autonomous Database Clone to be created.
-
-* `resource_group_name` - (Required) The name of the Resource Group where the autonomous database clone from database should exist. Changing this forces a new autonomous database clone from database to be created.
 
 * `source_autonomous_database_id` - (Required) The ID of the source Autonomous Database to clone from. Changing this forces a new autonomous database clone from database to be created.
 

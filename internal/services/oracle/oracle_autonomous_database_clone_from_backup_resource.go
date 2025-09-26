@@ -218,6 +218,7 @@ func (AutonomousDatabaseCloneFromBackupResource) Arguments() map[string]*plugins
 			Type:     pluginsdk.TypeBool,
 			Optional: true,
 			ForceNew: true,
+			Default:  false,
 		},
 
 		"virtual_network_id": commonschema.ResourceIDReferenceOptionalForceNew(&commonids.VirtualNetworkId{}),
@@ -270,29 +271,30 @@ func (r AutonomousDatabaseCloneFromBackupResource) Create() sdk.ResourceFunc {
 				Source:       autonomousdatabases.Source(autonomousdatabases.SourceTypeBackupFromTimestamp),
 				DataBaseType: autonomousdatabases.DataBaseTypeCloneFromBackupTimestamp,
 
-				UseLatestAvailableBackupTimeStamp: pointer.To(model.UseLatestAvailableBackupTimestampEnabled),
-
 				// Base properties
-				AdminPassword:                  pointer.To(model.AdminPassword),
-				BackupRetentionPeriodInDays:    pointer.To(model.BackupRetentionPeriodInDays),
-				CharacterSet:                   pointer.To(model.CharacterSet),
-				ComputeCount:                   pointer.To(model.ComputeCount),
-				ComputeModel:                   pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
-				CustomerContacts:               pointer.To(expandCloneCustomerContacts(model.CustomerContacts)),
-				DataStorageSizeInTbs:           pointer.To(model.DataStorageSizeInTb),
-				DbWorkload:                     pointer.To(autonomousdatabases.WorkloadType(model.DatabaseWorkload)),
-				DbVersion:                      pointer.To(model.DatabaseVersion),
-				DisplayName:                    pointer.To(model.DisplayName),
-				IsAutoScalingEnabled:           pointer.To(model.AutoScalingEnabled),
-				IsAutoScalingForStorageEnabled: pointer.To(model.AutoScalingForStorageEnabled),
-				IsMtlsConnectionRequired:       pointer.To(model.MtlsConnectionRequired),
-				LicenseModel:                   pointer.To(autonomousdatabases.LicenseModel(model.LicenseModel)),
-				NcharacterSet:                  pointer.To(model.NationalCharacterSet),
-				WhitelistedIPs:                 pointer.To(model.AllowedIpAddresses),
+				AdminPassword:                     pointer.To(model.AdminPassword),
+				BackupRetentionPeriodInDays:       pointer.To(model.BackupRetentionPeriodInDays),
+				CharacterSet:                      pointer.To(model.CharacterSet),
+				ComputeCount:                      pointer.To(model.ComputeCount),
+				ComputeModel:                      pointer.To(autonomousdatabases.ComputeModel(model.ComputeModel)),
+				CustomerContacts:                  pointer.To(expandCloneCustomerContacts(model.CustomerContacts)),
+				DataStorageSizeInTbs:              pointer.To(model.DataStorageSizeInTb),
+				DbWorkload:                        pointer.To(autonomousdatabases.WorkloadType(model.DatabaseWorkload)),
+				DbVersion:                         pointer.To(model.DatabaseVersion),
+				DisplayName:                       pointer.To(model.DisplayName),
+				IsAutoScalingEnabled:              pointer.To(model.AutoScalingEnabled),
+				IsAutoScalingForStorageEnabled:    pointer.To(model.AutoScalingForStorageEnabled),
+				IsMtlsConnectionRequired:          pointer.To(model.MtlsConnectionRequired),
+				LicenseModel:                      pointer.To(autonomousdatabases.LicenseModel(model.LicenseModel)),
+				NcharacterSet:                     pointer.To(model.NationalCharacterSet),
+				WhitelistedIPs:                    pointer.To(model.AllowedIpAddresses),
+				UseLatestAvailableBackupTimeStamp: pointer.To(model.UseLatestAvailableBackupTimestampEnabled),
 			}
 			properties := param.Properties.(*autonomousdatabases.AutonomousDatabaseFromBackupTimestampProperties)
 			if model.BackupTimestamp != "" {
 				properties.Timestamp = pointer.To(model.BackupTimestamp)
+			} else {
+				properties.UseLatestAvailableBackupTimeStamp = pointer.To(true)
 			}
 			if model.SubnetId != "" {
 				properties.SubnetId = pointer.To(model.SubnetId)

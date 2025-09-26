@@ -85,7 +85,7 @@ type AutonomousDatabaseCloneFromDatabaseDataSourceModel struct {
 	TimeCreatedUtc                                string                          `tfschema:"time_created_in_utc"`
 	TimeDataGuardRoleChangedInUtc                 string                          `tfschema:"time_data_guard_role_changed_in_utc"`
 	TimeDeletionOfFreeAutonomousDatabaseInUtc     string                          `tfschema:"time_deletion_of_free_autonomous_database_in_utc"`
-	TimeLocalDataGuardEnabledInUtc                string                          `tfschema:"time_local_data_guard_enabled_on_utc"`
+	TimeLocalDataGuardEnabledInUtc                string                          `tfschema:"time_local_data_guard_enabled_in_utc"`
 	TimeMaintenanceBeginInUtc                     string                          `tfschema:"time_maintenance_begin_in_utc"`
 	TimeMaintenanceEndInUtc                       string                          `tfschema:"time_maintenance_end_in_utc"`
 	TimeOfLastFailoverInUtc                       string                          `tfschema:"time_of_last_failover_in_utc"`
@@ -299,7 +299,7 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Attributes() map[string]*pl
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
-					"time_of_backup": {
+					"time_of_backup_in_utc": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
@@ -434,7 +434,7 @@ func (AutonomousDatabaseCloneFromDatabaseDataSource) Attributes() map[string]*pl
 			Computed: true,
 		},
 
-		"time_local_data_guard_enabled_on_utc": {
+		"time_local_data_guard_enabled_in_utc": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
 		},

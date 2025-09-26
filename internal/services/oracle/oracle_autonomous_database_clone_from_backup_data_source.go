@@ -259,7 +259,7 @@ func (AutonomousDatabaseCloneFromBackupDataSource) Attributes() map[string]*plug
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},
-					"time_of_backup": {
+					"time_of_backup_in_utc": {
 						Type:     pluginsdk.TypeString,
 						Computed: true,
 					},

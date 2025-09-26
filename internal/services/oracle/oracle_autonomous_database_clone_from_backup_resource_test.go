@@ -29,7 +29,7 @@ func TestAccAutonomousDatabaseCloneFromBackup_basic(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "source", "clone_type", "use_latest_available_backup_timestamp_enabled"),
+		data.ImportStep("admin_password", "source_autonomous_database_id", "use_latest_available_backup_timestamp_enabled", "backup_timestamp"),
 	})
 }
 
@@ -39,7 +39,7 @@ func TestAccAutonomousDatabaseCloneFromBackup_requiresImport(t *testing.T) {
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
-			Config: r.basic(data),
+			Config: r.complete(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -59,7 +59,7 @@ func TestAccAutonomousDatabaseCloneFromBackup_complete(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
 		},
-		data.ImportStep("admin_password", "source", "clone_type", "use_latest_available_backup_timestamp_enabled"),
+		data.ImportStep("admin_password", "source_autonomous_database_id", "use_latest_available_backup_timestamp_enabled", "backup_timestamp"),
 	})
 }
 
@@ -79,17 +79,19 @@ func (r AutonomousDatabaseCloneFromBackupResource) Exists(ctx context.Context, c
 
 func (r AutonomousDatabaseCloneFromBackupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
-%s
+
+provider "azurerm" {
+  features {}
+}
 
 resource "azurerm_oracle_autonomous_database_clone_from_backup" "test" {
-  name                = "ADB%[2]dclone"
-  resource_group_name = azurerm_oracle_autonomous_database.test.resource_group_name
-  location            = azurerm_oracle_autonomous_database.test.location
+  name                = "ADB%[1]dclone"
+  resource_group_name = "19CTest"
+  location            = "eastus"
 
-  source_autonomous_database_id = azurerm_oracle_autonomous_database.test.id
+  source_autonomous_database_id = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/19CTest/providers/Oracle.Database/autonomousDatabases/adbsTestPublicClone"
   clone_type                    = "Full"
-
-  use_latest_available_backup_timestamp_enabled = true
+  backup_timestamp = "2025-09-23T02:22:13.000Z"
 
   admin_password                   = "BEstrO0ng_#11"
   backup_retention_period_in_days  = 7
@@ -99,21 +101,16 @@ resource "azurerm_oracle_autonomous_database_clone_from_backup" "test" {
   data_storage_size_in_tb          = 1
   database_version                 = "19c"
   database_workload                = "OLTP"
-  display_name                     = "ADB%[2]dclone"
+  display_name                     = "ADB%[1]dclone"
   license_model                    = "LicenseIncluded"
   auto_scaling_enabled             = false
   auto_scaling_for_storage_enabled = true
-  mtls_connection_required         = false
+  mtls_connection_required         = true
   national_character_set           = "AL16UTF16"
-  subnet_id                        = azurerm_oracle_autonomous_database.test.subnet_id
-  virtual_network_id               = azurerm_oracle_autonomous_database.test.virtual_network_id
-
-  tags = {
-    Environment = "Test"
-    Purpose     = "BackupTimestampClone"
-  }
+  allowed_ip_addresses 			   = []
+ 
 }
-`, AdbsRegularResource{}.basic(data), data.RandomInteger)
+`, data.RandomInteger)
 }
 
 func (r AutonomousDatabaseCloneFromBackupResource) requiresImport(data acceptance.TestData) string {
@@ -144,7 +141,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_backup" "import" {
   virtual_network_id               = azurerm_oracle_autonomous_database_clone_from_backup.test.virtual_network_id
   tags                             = azurerm_oracle_autonomous_database_clone_from_backup.test.tags
 }
-`, r.basic(data))
+`, r.complete(data))
 }
 
 func (r AutonomousDatabaseCloneFromBackupResource) complete(data acceptance.TestData) string {
@@ -158,9 +155,6 @@ resource "azurerm_oracle_autonomous_database_clone_from_backup" "test" {
 
   source_autonomous_database_id = azurerm_oracle_autonomous_database.test.id
   clone_type                    = "Metadata"
-
-  # Use latest backup
-  use_latest_available_backup_timestamp_enabled = true
 
   admin_password                   = "BEstrO0ng_#11"
   backup_retention_period_in_days  = 7
@@ -178,6 +172,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_backup" "test" {
   national_character_set           = "AL16UTF16"
   subnet_id                        = azurerm_oracle_autonomous_database.test.subnet_id
   virtual_network_id               = azurerm_oracle_autonomous_database.test.virtual_network_id
+  customer_contacts                = ["test@test.com"]
 
   tags = {
     Environment = "Test"

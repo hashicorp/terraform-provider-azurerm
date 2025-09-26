@@ -39,7 +39,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `actual_used_data_storage_size_in_tb` -  The current amount of storage in use for user and system data in terabytes.
 
-* `allocated_storage_size_in_tb` - The amount of storage currently allocated for the database tables and billed for, rounded up. When auto-scaling is not enabled, this value is equal to the `data_storage_size_in_tb` value. You can compare this value to the `data_storage_size_in_gb` value to determine if a manual shrink operation is appropriate for your allocated storage.
+* `allocated_storage_size_in_tb` - The amount of storage currently allocated for the database tables and billed for, rounded up. When auto-scaling is not enabled, this value is equal to the `data_storage_size_in_tb` value. You can compare this value to the `actual_used_data_storage_size_in_tb` value to determine if a manual shrink operation is appropriate for your allocated storage.
 
 * `allowed_ip_addresses` - A list of IP addresses on the access control list.
 
@@ -55,11 +55,15 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `compute_count` - The compute amount (CPUs) available to the database.
 
+* `compute_model` - The compute model of the Autonomous Database.
+
+* `connection_strings` - The connection string used to connect to the Autonomous Database.
+
 * `cpu_core_count` - The number of CPU cores available to the database. When the ECPU is selected, the value for cpuCoreCount is 0.
 
 -> **Note:** For Autonomous Databases on Dedicated Exadata infrastructure, the maximum number of cores is determined by the infrastructure shape. See [Characteristics of Infrastructure Shapes](https://docs.oracle.com/en/cloud/paas/autonomous-database/dedicated/adbde/index.html#GUID-944C9B72-CE8D-48EE-88FB-FDF2A8CB988B) for shape details.
 
-* `customer_contacts` - A `customer_contacts` block as defined below.
+* `customer_contacts` - A list of Customer's contact email addresses.
 
 * `data_storage_size_in_gb` - The quantity of data in the database in gigabytes.
 
@@ -67,15 +71,21 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `database_version` - The Oracle Database version for Autonomous Database.
 
+* `database_workload` -  The Autonomous Database workload type. 
+
 * `display_name` - The display name for the Autonomous Database.
 
 * `failed_data_recovery_in_seconds` - Indicates the number of seconds of data loss for Data Guard failover.
 
 * `in_memory_area_in_gb` - The area assigned to In-Memory tables in Autonomous Database.
 
+* `license_model` - The Oracle license model that applied to the Oracle Autonomous Database.
+
 * `lifecycle_details` - Information about the current lifecycle state.
 
-* `local_adg_auto_failover_max_data_loss_limit` -  Parameter that allows users to select an acceptable maximum data loss limit in seconds, up to which Automatic Failover will be triggered when necessary for a Local Autonomous Data Guard.
+* `lifecycle_state` - The current state of the backup.
+
+* `local_adg_auto_failover_max_data_loss_limit_in_seconds` -  Parameter that allows users to select an acceptable maximum data loss limit in seconds, up to which Automatic Failover will be triggered when necessary for a Local Autonomous Data Guard.
 
 * `local_data_guard_enabled` - Indicates whether the Autonomous Database has local (in-region) Data Guard enabled. Not applicable to cross-region Autonomous Data Guard associations, or to Autonomous Databases using dedicated Exadata infrastructure or Exadata Cloud@Customer infrastructure.
 
@@ -87,7 +97,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `national_character_set` - The national character set for the autonomous database.
 
-* `next_long_term_backup_time_stamp_in_utc` -  The timestamp when the next long-term backup would be created.
+* `next_long_term_backup_timestamp_in_utc` -  The timestamp when the next long-term backup would be created.
 
 * `oci_url` - The URL of the resource in the OCI console.
 
@@ -127,7 +137,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `time_deletion_of_free_autonomous_database_in_utc` - The timestamp the Always Free database will be automatically deleted because of inactivity. If the database is in the STOPPED state and without activity until this time, it will be deleted.
 
-* `time_local_data_guard_enabled_on_utc` - The timestamp that Autonomous Data Guard was enabled for an Autonomous Database where the standby was provisioned in the same region as the primary database.
+* `time_local_data_guard_enabled_in_utc` - The timestamp that Autonomous Data Guard was enabled for an Autonomous Database where the standby was provisioned in the same region as the primary database.
 
 * `time_maintenance_begin_in_utc` -  The timestamp when maintenance will begin.
 
@@ -143,11 +153,13 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `time_reclamation_of_free_autonomous_database_in_utc` - The timestamp the Always Free database will be stopped because of inactivity. If this time is reached without any database activity, the database will automatically be put into the STOPPED state.
 
-* `used_data_storage_size_in_gb` - The storage space consumed by Autonomous Database in GBs.
+* `used_data_storage_size_in_gb` - The storage space consumed by Autonomous Database in gigabytes.
 
 * `used_data_storage_size_in_tb` - The amount of storage that has been used, in terabytes.
 
 * `virtual_network_id` - The ID to an Azure Resource Manager virtual network resource.
+
+* `long_term_backup_schedule` - A `long_term_backup_schedule` block as defined below
 
 ---
 
