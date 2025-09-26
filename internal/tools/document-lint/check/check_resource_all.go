@@ -124,10 +124,6 @@ func DiffAll(regs Resources, dryRun bool) *DiffResult {
 		var catName string
 
 		sch := schema.NewResource(res.schema, res.name)
-		if sch == nil {
-			// failed to create resource schema, skipping
-			continue
-		}
 		rd := NewResourceDiff(sch)
 		if !dryRun {
 			md.FixFileNormalize(rd.MDFile)

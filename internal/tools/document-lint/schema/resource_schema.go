@@ -4,7 +4,6 @@
 package schema
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -33,13 +32,10 @@ type Resource struct {
 	PossibleValues map[string][]string // possible values for key(property path)
 }
 
-func ResourceForSDKType(res sdk.Resource) (*schema.Resource, error) {
+func ResourceForSDKType(res sdk.Resource) *schema.Resource {
 	r := sdk.NewResourceWrapper(res)
-	ins, err := r.Resource()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get resource schema for %s: %v", res.ResourceType(), err)
-	}
-	return ins, nil
+	ins, _ := r.Resource()
+	return ins
 }
 
 // NewResourceByTyped NewResource ...
@@ -47,11 +43,7 @@ func ResourceForSDKType(res sdk.Resource) (*schema.Resource, error) {
 func NewResourceByTyped(r sdk.Resource) *Resource {
 	s := &Resource{}
 	s.SDKResource = r
-	schema, err := ResourceForSDKType(r)
-	if err != nil {
-		return nil
-	}
-	s.Schema = schema
+	s.Schema = ResourceForSDKType(r)
 	s.ResourceType = r.ResourceType()
 	s.Init()
 	return s
@@ -76,10 +68,6 @@ func NewResource(r interface{}, rType string) *Resource {
 }
 
 func (r *Resource) Init() {
-	if r.Schema == nil {
-		return
-	}
-	
 	if r.SDKResource != nil {
 		// SDKResource is a type of interface, have to get the real
 		// vd := reflect.ValueOf(r.SDKResource).Interface()
