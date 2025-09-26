@@ -111,6 +111,8 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 * `connection_strings` - The list of `connection_strings` blocks as defined below.
 
+* `infrastructure_version` - The infrastructure version of the MongoDB Cluster.
+
 ---
 
 A `connection_strings` exports the following:

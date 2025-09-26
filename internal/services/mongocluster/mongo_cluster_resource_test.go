@@ -95,6 +95,7 @@ func TestAccMongoCluster_previewFeature(t *testing.T) {
 			Config: r.previewFeature(data),
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("infrastructure_version").Exists(),
 			),
 		},
 		data.ImportStep("administrator_password", "create_mode", "connection_strings.0.value", "connection_strings.1.value"),
