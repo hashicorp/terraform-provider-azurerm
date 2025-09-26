@@ -80,6 +80,7 @@ func (r AutonomousDatabaseCloneFromBackupResource) Exists(ctx context.Context, c
 func (r AutonomousDatabaseCloneFromBackupResource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 
+
 provider "azurerm" {
   features {}
 }
@@ -91,7 +92,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_backup" "test" {
 
   source_autonomous_database_id = "/subscriptions/049e5678-fbb1-4861-93f3-7528bd0779fd/resourceGroups/19CTest/providers/Oracle.Database/autonomousDatabases/adbsTestPublicClone"
   clone_type                    = "Full"
-  backup_timestamp = "2025-09-23T02:22:13.000Z"
+  backup_timestamp              = "2025-09-23T02:22:13.000Z"
 
   admin_password                   = "BEstrO0ng_#11"
   backup_retention_period_in_days  = 7
@@ -107,8 +108,8 @@ resource "azurerm_oracle_autonomous_database_clone_from_backup" "test" {
   auto_scaling_for_storage_enabled = true
   mtls_connection_required         = true
   national_character_set           = "AL16UTF16"
-  allowed_ip_addresses 			   = []
- 
+  allowed_ip_addresses             = []
+
 }
 `, data.RandomInteger)
 }

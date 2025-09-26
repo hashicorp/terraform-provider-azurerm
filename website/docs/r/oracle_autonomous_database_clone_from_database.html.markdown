@@ -36,7 +36,7 @@ resource "azurerm_oracle_autonomous_database" "example" {
   auto_scaling_for_storage_enabled = true
   mtls_connection_required         = true
   national_character_set           = "AL16UTF16"
-  allowed_ip_addresses 			   = []
+  allowed_ip_addresses             = []
 }
 
 resource "azurerm_oracle_autonomous_database_clone_from_database" "example" {
@@ -44,7 +44,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_database" "example" {
   resource_group_name              = azurerm_oracle_autonomous_database.example.resource_group_name
   location                         = "eastus"
   source_autonomous_database_id    = azurerm_oracle_autonomous_database.example.id
-  clone_type                    = "Full"
+  clone_type                       = "Full"
   admin_password                   = "BEstrO0ng_#11"
   backup_retention_period_in_days  = 7
   character_set                    = "AL32UTF8"
@@ -59,7 +59,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_database" "example" {
   auto_scaling_for_storage_enabled = true
   mtls_connection_required         = true
   national_character_set           = "AL16UTF16"
-  allowed_ip_addresses 			   = []
+  allowed_ip_addresses             = []
 }
 ```
 

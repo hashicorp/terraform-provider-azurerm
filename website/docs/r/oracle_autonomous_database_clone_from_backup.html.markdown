@@ -36,17 +36,17 @@ resource "azurerm_oracle_autonomous_database" "example" {
   auto_scaling_for_storage_enabled = true
   mtls_connection_required         = true
   national_character_set           = "AL16UTF16"
-  allowed_ip_addresses 			   = []
+  allowed_ip_addresses             = []
 }
 
 resource "azurerm_oracle_autonomous_database_clone_from_backup" "example" {
-  name                             = "example"
-  resource_group_name              = azurerm_oracle_autonomous_database.example.resource_group_name
-  location                         = "eastus"
+  name                          = "example"
+  resource_group_name           = azurerm_oracle_autonomous_database.example.resource_group_name
+  location                      = "eastus"
   source_autonomous_database_id = azurerm_oracle_autonomous_database.example.id
   clone_type                    = "Metadata"
-  backup_timestamp = "2025-09-23T02:22:13.000Z"  
-  
+  backup_timestamp              = "2025-09-23T02:22:13.000Z"
+
   admin_password                   = "BEstrO0ng_#11"
   backup_retention_period_in_days  = 7
   character_set                    = "AL32UTF8"
@@ -61,7 +61,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_backup" "example" {
   auto_scaling_for_storage_enabled = true
   mtls_connection_required         = true
   national_character_set           = "AL16UTF16"
-  allowed_ip_addresses 			   = []
+  allowed_ip_addresses             = []
 }
 ```
 

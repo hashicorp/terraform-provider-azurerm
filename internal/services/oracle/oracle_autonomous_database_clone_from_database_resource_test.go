@@ -119,7 +119,7 @@ resource "azurerm_oracle_autonomous_database_clone_from_database" "test" {
   auto_scaling_for_storage_enabled = false
   mtls_connection_required         = false
   national_character_set           = "AL16UTF16"
-  allowed_ip_addresses 				= ["140.204.126.129"]
+  allowed_ip_addresses             = ["140.204.126.129"]
 
   depends_on = [azurerm_oracle_autonomous_database.test]
 }
