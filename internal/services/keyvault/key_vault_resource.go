@@ -205,6 +205,12 @@ func resourceKeyVault() *pluginsdk.Resource {
 
 			"tags": commonschema.Tags(),
 
+			"wait_for_public_availability": {
+				Type:     pluginsdk.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
 			// Computed
 			"vault_uri": {
 				Type:     pluginsdk.TypeString,
@@ -429,6 +435,8 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	// This works around an issue where the provisioning of dependent resources fails, due to the
 	// Key Vault not being fully online - which is a particular issue when recreating the Key Vault.
 	//
+	// But this check can be skipped by setting `wait_for_public_availability` to false.
+	//
 	// When Public Network Access is Disabled (i.e. it's Private) we don't poll - meaning that users
 	// are more likely to encounter issues in downstream resources (particularly when using Private
 	// Link due to DNS replication delays) - however there isn't a great deal we can do about that
@@ -436,8 +444,12 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 	//
 	// As such we poll to check the Key Vault is available, if it's public, to ensure that downstream
 	// operations can succeed.
-	if isPublic {
-		log.Printf("[DEBUG] Waiting for %s to become available", id)
+
+	// Use the property to control whether to wait for public availability
+	waitForPublicAvailability := d.Get("wait_for_public_availability").(bool)
+
+	if isPublic && waitForPublicAvailability {
+		log.Printf("[DEBUG] Waiting for %s to become available (wait_for_public_availability=true)", id)
 		deadline, ok := ctx.Deadline()
 		if !ok {
 			return fmt.Errorf("internal-error: context had no deadline")
@@ -456,6 +468,8 @@ func resourceKeyVaultCreate(d *pluginsdk.ResourceData, meta interface{}) error {
 		if _, err := stateConf.WaitForStateContext(ctx); err != nil {
 			return fmt.Errorf("waiting for %s to become available: %s", id, err)
 		}
+	} else if isPublic && !waitForPublicAvailability {
+		log.Printf("[DEBUG] Skipping wait for %s to become available (wait_for_public_availability=false)", id)
 	}
 
 	return resourceKeyVaultRead(d, meta)
@@ -782,7 +796,8 @@ func resourceKeyVaultRead(d *pluginsdk.ResourceData, meta interface{}) error {
 	// to ignore the error if the data plane call fails.
 	contacts, err := managementClient.GetCertificateContacts(ctx, vaultUri)
 	if err != nil {
-		if publicNetworkAccessEnabled && (!utils.ResponseWasForbidden(contacts.Response) && !utils.ResponseWasNotFound(contacts.Response)) {
+		waitForPublicAvailability := d.Get("wait_for_public_availability").(bool)
+		if publicNetworkAccessEnabled && waitForPublicAvailability && (!utils.ResponseWasForbidden(contacts.Response) && !utils.ResponseWasNotFound(contacts.Response)) {
 			return fmt.Errorf("retrieving `contact` for KeyVault: %+v", err)
 		}
 	}
