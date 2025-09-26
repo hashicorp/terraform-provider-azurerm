@@ -81,7 +81,8 @@ func resourceWindowsVirtualMachineScaleSet() *pluginsdk.Resource {
 				return false
 			}),
 
-			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *pluginsdk.ResourceDiff, v interface{}) error {
+			// Validate network interface auxiliary mode and sku requirements
+			pluginsdk.CustomizeDiffShim(func(ctx context.Context, diff *schema.ResourceDiff, v interface{}) error {
 				networkInterfaces := diff.Get("network_interface").([]interface{})
 				for _, v := range networkInterfaces {
 					raw := v.(map[string]interface{})
@@ -447,6 +448,12 @@ func resourceWindowsVirtualMachineScaleSetCreate(d *pluginsdk.ResourceData, meta
 		props.Properties.SpotRestorePolicy = spotRestorePolicy
 	}
 
+	resilientVMCreationEnabled := d.Get("resilient_vm_creation_enabled").(bool)
+	resilientVMDeletionEnabled := d.Get("resilient_vm_deletion_enabled").(bool)
+	if resiliencyPolicy := ExpandVirtualMachineScaleSetResiliency(resilientVMCreationEnabled, resilientVMDeletionEnabled); resiliencyPolicy != nil {
+		props.Properties.ResiliencyPolicy = resiliencyPolicy
+	}
+
 	if len(zones) > 0 {
 		props.Zones = &zones
 	}
@@ -721,6 +728,12 @@ func resourceWindowsVirtualMachineScaleSetUpdate(d *pluginsdk.ResourceData, meta
 		}
 	}
 
+	if d.HasChange("resilient_vm_creation_enabled") || d.HasChange("resilient_vm_deletion_enabled") {
+		resilientVMCreationEnabled := d.Get("resilient_vm_creation_enabled").(bool)
+		resilientVMDeletionEnabled := d.Get("resilient_vm_deletion_enabled").(bool)
+		updateProps.ResiliencyPolicy = ExpandVirtualMachineScaleSetResiliency(resilientVMCreationEnabled, resilientVMDeletionEnabled)
+	}
+
 	if d.HasChange("termination_notification") {
 		notificationRaw := d.Get("termination_notification").([]interface{})
 		updateProps.VirtualMachineProfile.ScheduledEventsProfile = ExpandVirtualMachineScaleSetScheduledEventsProfile(notificationRaw)
@@ -932,6 +945,10 @@ func resourceWindowsVirtualMachineScaleSetRead(d *pluginsdk.ResourceData, meta i
 			if props.SpotRestorePolicy != nil {
 				d.Set("spot_restore", FlattenVirtualMachineScaleSetSpotRestorePolicy(props.SpotRestorePolicy))
 			}
+
+			resilientVMCreationEnabled, resilientVMDeletionEnabled := FlattenVirtualMachineScaleSetResiliency(props.ResiliencyPolicy)
+			d.Set("resilient_vm_creation_enabled", resilientVMCreationEnabled)
+			d.Set("resilient_vm_deletion_enabled", resilientVMDeletionEnabled)
 
 			var upgradeMode virtualmachinescalesets.UpgradeMode
 			if policy := props.UpgradePolicy; policy != nil && policy.Mode != nil {
@@ -1463,6 +1480,24 @@ func resourceWindowsVirtualMachineScaleSetSchema() map[string]*pluginsdk.Schema 
 		"scale_in": VirtualMachineScaleSetScaleInPolicySchema(),
 
 		"spot_restore": VirtualMachineScaleSetSpotRestorePolicySchema(),
+
+		// This field is Optional+Computed for:
+		// 1. Backward compatibility - existing scale sets won't show diffs when upgrading the provider
+		// The Computed attribute ensures Terraform reflects the actual Azure state.
+		"resilient_vm_creation_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		},
+
+		// This field is Optional+Computed for:
+		// 1. Backward compatibility - existing scale sets won't show diffs when upgrading the provider
+		// The Computed attribute ensures Terraform reflects the actual Azure state.
+		"resilient_vm_deletion_enabled": {
+			Type:     pluginsdk.TypeBool,
+			Optional: true,
+			Computed: true,
+		},
 
 		"termination_notification": VirtualMachineScaleSetTerminationNotificationSchema(),
 
