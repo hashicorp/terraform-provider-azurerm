@@ -103,7 +103,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Kubernetes Cluster Trusted Access Role Binding.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kubernetes Cluster Trusted Access Role Binding.
@@ -127,4 +127,4 @@ terraform import azurerm_kubernetes_cluster_trusted_access_role_binding.example 
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerService`: 2025-02-01
+* `Microsoft.ContainerService` - 2025-05-01

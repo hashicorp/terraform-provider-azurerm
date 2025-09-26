@@ -59,7 +59,7 @@ The following arguments are supported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the NetApp Backup Policy.
 * `read` - (Defaults to 5 minutes) Used when retrieving the NetApp Backup Policy.
@@ -78,4 +78,4 @@ terraform import azurerm_netapp_backup_policy.example /subscriptions/00000000-00
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.NetApp`: 2025-01-01
+* `Microsoft.NetApp` - 2025-06-01

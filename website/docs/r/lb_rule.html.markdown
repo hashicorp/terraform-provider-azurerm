@@ -63,11 +63,11 @@ The following arguments are supported:
 ~> **Note:** In most cases users can only set one Backend Address Pool ID in the `backend_address_pool_ids`. Especially, when the sku of the LB is `Gateway`, users can set up to two IDs in the `backend_address_pool_ids`.
 
 * `probe_id` - (Optional) A reference to a Probe used by this Load Balancing Rule.
-* `enable_floating_ip` - (Optional) Are the Floating IPs enabled for this Load Balancer Rule? A "floating” IP is reassigned to a secondary server in case the primary server fails. Required to configure a SQL AlwaysOn Availability Group. Defaults to `false`.
+* `floating_ip_enabled` - (Optional) Are the Floating IPs enabled for this Load Balancer Rule? A "floating" IP is reassigned to a secondary server in case the primary server fails. Required to configure a SQL AlwaysOn Availability Group. Defaults to `false`.
 * `idle_timeout_in_minutes` - (Optional) Specifies the idle timeout in minutes for TCP connections. Valid values are between `4` and `100` minutes. Defaults to `4` minutes.
 * `load_distribution` - (Optional) Specifies the load balancing distribution type to be used by the Load Balancer. Possible values are: `Default` – The load balancer is configured to use a 5 tuple hash to map traffic to available servers. `SourceIP` – The load balancer is configured to use a 2 tuple hash to map traffic to available servers. `SourceIPProtocol` – The load balancer is configured to use a 3 tuple hash to map traffic to available servers. Also known as Session Persistence, where in the Azure portal the options are called `None`, `Client IP` and `Client IP and Protocol` respectively. Defaults to `Default`.
 * `disable_outbound_snat` - (Optional) Is snat enabled for this Load Balancer Rule? Default `false`.
-* `enable_tcp_reset` - (Optional) Is TCP Reset enabled for this Load Balancer Rule? 
+* `tcp_reset_enabled` - (Optional) Is TCP Reset enabled for this Load Balancer Rule? 
 
 ## Attributes Reference
 
@@ -77,7 +77,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Load Balancer Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Load Balancer Rule.
@@ -96,4 +96,4 @@ terraform import azurerm_lb_rule.example /subscriptions/00000000-0000-0000-0000-
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2023-09-01
+* `Microsoft.Network` - 2023-09-01

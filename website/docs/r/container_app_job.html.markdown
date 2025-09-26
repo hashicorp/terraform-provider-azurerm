@@ -430,7 +430,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container App Job.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container App Job.
@@ -449,4 +449,4 @@ terraform import azurerm_container_app_job.example "/subscriptions/00000000-0000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.App`: 2025-01-01
+* `Microsoft.App` - 2025-01-01

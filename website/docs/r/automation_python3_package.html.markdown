@@ -70,7 +70,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation Python3 Package.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Automation Python3 Package.
@@ -89,4 +89,4 @@ terraform import azurerm_automation_python3_package.example /subscriptions/00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Automation`: 2023-11-01
+* `Microsoft.Automation` - 2023-11-01

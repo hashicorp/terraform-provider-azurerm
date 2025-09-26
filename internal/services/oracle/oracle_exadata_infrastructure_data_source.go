@@ -1,4 +1,5 @@
-// Copyright © 2024, Oracle and/or its affiliates. All rights reserved
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
 
 package oracle
 
@@ -28,36 +29,47 @@ type ExadataInfraDataModel struct {
 	Zones             zones.Schema      `tfschema:"zones"`
 
 	// CloudExadataInfrastructureProperties
-	ActivatedStorageCount       int64                        `tfschema:"activated_storage_count"`
-	AdditionalStorageCount      int64                        `tfschema:"additional_storage_count"`
-	AvailableStorageSizeInGbs   int64                        `tfschema:"available_storage_size_in_gbs"`
-	ComputeCount                int64                        `tfschema:"compute_count"`
-	CpuCount                    int64                        `tfschema:"cpu_count"`
-	CustomerContacts            []string                     `tfschema:"customer_contacts"`
-	DataStorageSizeInTbs        float64                      `tfschema:"data_storage_size_in_tbs"`
-	DbNodeStorageSizeInGbs      int64                        `tfschema:"db_node_storage_size_in_gbs"`
-	DbServerVersion             string                       `tfschema:"db_server_version"`
-	DisplayName                 string                       `tfschema:"display_name"`
-	EstimatedPatchingTime       []EstimatedPatchingTimeModel `tfschema:"estimated_patching_time"`
-	LastMaintenanceRunId        string                       `tfschema:"last_maintenance_run_id"`
-	LifecycleDetails            string                       `tfschema:"lifecycle_details"`
-	LifecycleState              string                       `tfschema:"lifecycle_state"`
-	MaintenanceWindow           []MaintenanceWindowModel     `tfschema:"maintenance_window"`
-	MaxCPUCount                 int64                        `tfschema:"max_cpu_count"`
-	MaxDataStorageInTbs         float64                      `tfschema:"max_data_storage_in_tbs"`
-	MaxDbNodeStorageSizeInGbs   int64                        `tfschema:"max_db_node_storage_size_in_gbs"`
-	MaxMemoryInGbs              int64                        `tfschema:"max_memory_in_gbs"`
-	MemorySizeInGbs             int64                        `tfschema:"memory_size_in_gbs"`
-	MonthlyDbServerVersion      string                       `tfschema:"monthly_db_server_version"`
-	MonthlyStorageServerVersion string                       `tfschema:"monthly_storage_server_version"`
-	NextMaintenanceRunId        string                       `tfschema:"next_maintenance_run_id"`
-	OciUrl                      string                       `tfschema:"oci_url"`
-	Ocid                        string                       `tfschema:"ocid"`
-	Shape                       string                       `tfschema:"shape"`
-	StorageCount                int64                        `tfschema:"storage_count"`
-	StorageServerVersion        string                       `tfschema:"storage_server_version"`
-	TimeCreated                 string                       `tfschema:"time_created"`
-	TotalStorageSizeInGbs       int64                        `tfschema:"total_storage_size_in_gbs"`
+	ActivatedStorageCount          int64                                 `tfschema:"activated_storage_count"`
+	AdditionalStorageCount         int64                                 `tfschema:"additional_storage_count"`
+	AvailableStorageSizeInGbs      int64                                 `tfschema:"available_storage_size_in_gbs"`
+	ComputeCount                   int64                                 `tfschema:"compute_count"`
+	ComputeModel                   string                                `tfschema:"compute_model"`
+	CpuCount                       int64                                 `tfschema:"cpu_count"`
+	CustomerContacts               []string                              `tfschema:"customer_contacts"`
+	DatabaseServerType             string                                `tfschema:"database_server_type"`
+	DataStorageSizeInTbs           float64                               `tfschema:"data_storage_size_in_tbs"`
+	DbNodeStorageSizeInGbs         int64                                 `tfschema:"db_node_storage_size_in_gbs"`
+	DbServerVersion                string                                `tfschema:"db_server_version"`
+	DisplayName                    string                                `tfschema:"display_name"`
+	EstimatedPatchingTime          []EstimatedPatchingTimeModel          `tfschema:"estimated_patching_time"`
+	LastMaintenanceRunId           string                                `tfschema:"last_maintenance_run_id"`
+	LifecycleDetails               string                                `tfschema:"lifecycle_details"`
+	LifecycleState                 string                                `tfschema:"lifecycle_state"`
+	MaintenanceWindow              []MaintenanceWindowModel              `tfschema:"maintenance_window"`
+	MaxCPUCount                    int64                                 `tfschema:"max_cpu_count"`
+	MaxDataStorageInTbs            float64                               `tfschema:"max_data_storage_in_tbs"`
+	MaxDbNodeStorageSizeInGbs      int64                                 `tfschema:"max_db_node_storage_size_in_gbs"`
+	MaxMemoryInGbs                 int64                                 `tfschema:"max_memory_in_gbs"`
+	MemorySizeInGbs                int64                                 `tfschema:"memory_size_in_gbs"`
+	MonthlyDbServerVersion         string                                `tfschema:"monthly_db_server_version"`
+	MonthlyStorageServerVersion    string                                `tfschema:"monthly_storage_server_version"`
+	NextMaintenanceRunId           string                                `tfschema:"next_maintenance_run_id"`
+	OciUrl                         string                                `tfschema:"oci_url"`
+	Ocid                           string                                `tfschema:"ocid"`
+	Shape                          string                                `tfschema:"shape"`
+	StorageCount                   int64                                 `tfschema:"storage_count"`
+	StorageServerType              string                                `tfschema:"storage_server_type"`
+	StorageServerVersion           string                                `tfschema:"storage_server_version"`
+	TimeCreated                    string                                `tfschema:"time_created"`
+	TotalStorageSizeInGbs          int64                                 `tfschema:"total_storage_size_in_gbs"`
+	DefinedFileSystemConfiguration []DefinedFileSystemConfigurationModel `tfschema:"defined_file_system_configuration"`
+}
+
+type DefinedFileSystemConfigurationModel struct {
+	BackupPartitionEnabled bool   `tfschema:"backup_partition_enabled"`
+	ResizableEnabled       bool   `tfschema:"resizable_enabled"`
+	MinimumSizeGb          int64  `tfschema:"minimum_size_in_gb"`
+	MountPoint             string `tfschema:"mount_point"`
 }
 
 type EstimatedPatchingTimeModel struct {
@@ -114,6 +126,11 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
+		"compute_model": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"cpu_count": {
 			Type:     pluginsdk.TypeInt,
 			Computed: true,
@@ -125,6 +142,11 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Elem: &pluginsdk.Schema{
 				Type: pluginsdk.TypeString,
 			},
+		},
+
+		"database_server_type": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
 		},
 
 		"data_storage_size_in_tbs": {
@@ -320,6 +342,11 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
+		"storage_server_type": {
+			Type:     pluginsdk.TypeString,
+			Computed: true,
+		},
+
 		"storage_server_version": {
 			Type:     pluginsdk.TypeString,
 			Computed: true,
@@ -338,6 +365,31 @@ func (d ExadataInfraDataSource) Attributes() map[string]*pluginsdk.Schema {
 		"tags": commonschema.TagsDataSource(),
 
 		"zones": commonschema.ZonesMultipleComputed(),
+
+		"defined_file_system_configuration": {
+			Type:     pluginsdk.TypeList,
+			Computed: true,
+			Elem: &pluginsdk.Resource{
+				Schema: map[string]*pluginsdk.Schema{
+					"backup_partition_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Computed: true,
+					},
+					"resizable_enabled": {
+						Type:     pluginsdk.TypeBool,
+						Computed: true,
+					},
+					"minimum_size_in_gb": {
+						Type:     pluginsdk.TypeInt,
+						Computed: true,
+					},
+					"mount_point": {
+						Type:     pluginsdk.TypeString,
+						Computed: true,
+					},
+				},
+			},
+		},
 	}
 }
 
@@ -410,6 +462,10 @@ func (d ExadataInfraDataSource) Read() sdk.ResourceFunc {
 					state.StorageServerVersion = pointer.From(props.StorageServerVersion)
 					state.TimeCreated = pointer.From(props.TimeCreated)
 					state.TotalStorageSizeInGbs = pointer.From(props.TotalStorageSizeInGbs)
+					state.ComputeModel = pointer.FromEnum(props.ComputeModel)
+					state.DatabaseServerType = pointer.From(props.DatabaseServerType)
+					state.StorageServerType = pointer.From(props.StorageServerType)
+					state.DefinedFileSystemConfiguration = FlattenDefinedFileSystemConfiguration(props.DefinedFileSystemConfiguration)
 				}
 			}
 
@@ -477,4 +533,19 @@ func FlattenMonths(months *[]cloudexadatainfrastructures.Month) []string {
 		}
 	}
 	return monthsArray
+}
+
+func FlattenDefinedFileSystemConfiguration(input *[]cloudexadatainfrastructures.DefinedFileSystemConfiguration) []DefinedFileSystemConfigurationModel {
+	output := make([]DefinedFileSystemConfigurationModel, 0)
+	if input != nil {
+		for _, item := range *input {
+			output = append(output, DefinedFileSystemConfigurationModel{
+				BackupPartitionEnabled: pointer.From(item.IsBackupPartition),
+				ResizableEnabled:       pointer.From(item.IsResizable),
+				MinimumSizeGb:          pointer.From(item.MinSizeGb),
+				MountPoint:             pointer.From(item.MountPoint),
+			})
+		}
+	}
+	return output
 }

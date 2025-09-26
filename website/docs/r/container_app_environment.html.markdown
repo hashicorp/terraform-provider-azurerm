@@ -61,6 +61,8 @@ The following arguments are supported:
 
 ~> **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified.
 
+* `identity` - (Optional) An `identity` block as defined below.
+
 * `zone_redundancy_enabled` - (Optional) Should the Container App Environment be created with Zone Redundancy enabled? Defaults to `false`. Changing this forces a new resource to be created.
 
 ~> **Note:** can only be set to `true` if `infrastructure_subnet_id` is specified.
@@ -95,6 +97,14 @@ A `workload_profile` block supports the following:
 
 * `minimum_count` - (Required) The minimum number of instances of workload profile that can be deployed in the Container App Environment.
 
+---
+
+An `identity` block supports the following:
+
+* `type` - (Required) The type of managed identity to assign. Possible values are `SystemAssigned`, `UserAssigned`, and `SystemAssigned, UserAssigned` (to enable both).
+
+* `identity_ids` - (Optional) - A list of one or more Resource IDs for User Assigned Managed identities to assign. Required when `type` is set to `UserAssigned` or `SystemAssigned, UserAssigned`.
+
 ## Attributes Reference
 
 In addition to the Arguments listed above - the following Attributes are exported:
@@ -126,7 +136,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/docs/configuration/resources.html#timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container App Environment.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container App Environment.
@@ -145,6 +155,6 @@ terraform import azurerm_container_app_environment.example "/subscriptions/00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.App`: 2025-01-01
+* `Microsoft.App` - 2025-01-01
 
-* `Microsoft.OperationalInsights`: 2020-08-01
+* `Microsoft.OperationalInsights` - 2020-08-01

@@ -300,7 +300,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 3 hours) Used when creating the Domain Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Domain Service.
@@ -318,4 +318,4 @@ terraform import azurerm_active_directory_domain_service_replica_set.example /su
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.AAD`: 2021-05-01
+* `Microsoft.AAD` - 2021-05-01

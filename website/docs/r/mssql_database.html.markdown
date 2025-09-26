@@ -204,7 +204,7 @@ The following arguments are supported:
 
 * `max_size_gb` - (Optional) The max size of the database in gigabytes.
 
-~> **Note:** This value should not be configured when the `create_mode` is `Secondary` or `OnlineSecondary`, as the sizing of the primary is then used as per [Azure documentation](https://docs.microsoft.com/azure/azure-sql/database/single-database-scale#geo-replicated-database).
+~> **Note:** This value should not be configured when the `create_mode` is `Secondary` or `OnlineSecondary`, as the sizing of the primary is then used as per [Azure documentation](https://docs.microsoft.com/azure/azure-sql/database/single-database-scale#geo-replicated-database). The value of `max_size_gb` accepts `0.1`, `0.5` and positive integers greater than or equal to 1. `0.1` means `100MB`, and `0.5` means `500MB`.
 
 * `min_capacity` - (Optional) Minimal capacity that database will always have allocated, if not paused. This property is only settable for Serverless databases.
 
@@ -320,7 +320,7 @@ A `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 1 hour) Used when creating the MS SQL Database.
 * `read` - (Defaults to 5 minutes) Used when retrieving the MS SQL Database.
@@ -339,4 +339,4 @@ terraform import azurerm_mssql_database.example /subscriptions/00000000-0000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Sql`: 2023-08-01-preview
+* `Microsoft.Sql` - 2023-08-01-preview

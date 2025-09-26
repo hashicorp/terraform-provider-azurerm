@@ -147,7 +147,7 @@ A `inbound_nat_rule` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the DevTest Linux Virtual Machine.
 * `read` - (Defaults to 5 minutes) Used when retrieving the DevTest Linux Virtual Machine.
@@ -166,4 +166,4 @@ terraform import azurerm_dev_test_linux_virtual_machine.machine1 /subscriptions/
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.DevTestLab`: 2018-09-15
+* `Microsoft.DevTestLab` - 2018-09-15

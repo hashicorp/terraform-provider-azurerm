@@ -133,7 +133,11 @@ The following arguments are supported:
 
 * `maximum_instance_count` - (Optional) The number of workers this function app can scale out to.
 
-* `instance_memory_in_mb` - (Optional) The memory size of the instances on which your app runs. The [currently supported values](https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan#instance-memory) are `2048` or `4096`.
+* `instance_memory_in_mb` - (Optional) The memory size of the instances on which your app runs. Reference the Microsoft Documentation for the [currently supported values](https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan#instance-memory). Defaults to `2048`.
+
+* `http_concurrency` - (Optional) The Http concurrency of the instances on which your app runs. The supported value are from `1` to `1000`.
+
+~> **Note:** A value will be assigned by the system if `http_concurrency` is not specified.
 
 * `tags` - (Optional) A mapping of tags which should be assigned to the Linux Function App.
 
@@ -727,7 +731,7 @@ A `site_credential` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Function Flex Consumption App.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Function Flex Consumption App.
@@ -746,4 +750,4 @@ terraform import azurerm_function_app_flex_consumption.example /subscriptions/12
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Web`: 2023-12-01, 2023-01-01
+* `Microsoft.Web` - 2023-12-01, 2023-01-01

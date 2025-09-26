@@ -1,4 +1,5 @@
-// Copyright © 2024, Oracle and/or its affiliates. All rights reserved
+// Copyright (c) HashiCorp, Inc.
+// SPDX-License-Identifier: MPL-2.0
 
 package oracle_test
 
@@ -110,7 +111,7 @@ resource "azurerm_oracle_exadata_infrastructure" "test" {
   display_name        = "OFakeacctest%[2]d"
   shape               = "Exadata.X9M"
   storage_count       = "3"
-  zones               = ["3"]
+  zones               = ["2"]
 }
 `, a.template(data), data.RandomInteger, data.Locations.Primary)
 }
@@ -129,10 +130,13 @@ resource "azurerm_oracle_exadata_infrastructure" "test" {
   resource_group_name = azurerm_resource_group.test.name
   compute_count       = "2"
   display_name        = "OFakeacctest%[2]d"
-  shape               = "Exadata.X9M"
+  shape               = "Exadata.X11M"
   storage_count       = "3"
-  zones               = ["3"]
+  zones               = ["2"]
   customer_contacts   = ["test@test.com"]
+
+  database_server_type = "X11M"
+  storage_server_type  = "X11M-HC"
 
   maintenance_window {
     days_of_week       = ["Monday"]
@@ -167,7 +171,7 @@ resource "azurerm_oracle_exadata_infrastructure" "test" {
   display_name        = "OFakeacctest%[2]d"
   shape               = "Exadata.X9M"
   storage_count       = "3"
-  zones               = ["3"]
+  zones               = ["2"]
   tags = {
     test = "testTag1"
   }

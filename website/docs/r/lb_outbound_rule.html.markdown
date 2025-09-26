@@ -64,7 +64,7 @@ The following arguments are supported:
 * `frontend_ip_configuration` - (Optional) One or more `frontend_ip_configuration` blocks as defined below.
 * `backend_address_pool_id` - (Required) The ID of the Backend Address Pool. Outbound traffic is randomly load balanced across IPs in the backend IPs.
 * `protocol` - (Required) The transport protocol for the external endpoint. Possible values are `Udp`, `Tcp` or `All`.
-* `enable_tcp_reset` - (Optional) Receive bidirectional TCP Reset on TCP flow idle timeout or unexpected connection termination. This element is only used when the protocol is set to TCP.
+* `tcp_reset_enabled` - (Optional) Receive bidirectional TCP Reset on TCP flow idle timeout or unexpected connection termination. This element is only used when the protocol is set to TCP.
 * `allocated_outbound_ports` - (Optional) The number of outbound ports to be used for NAT. Defaults to `1024`.
 * `idle_timeout_in_minutes` - (Optional) The timeout for the TCP idle connection Defaults to `4`.
 
@@ -82,7 +82,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Load Balancer Outbound Rule.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Load Balancer Outbound Rule.
@@ -101,4 +101,4 @@ terraform import azurerm_lb_outbound_rule.example /subscriptions/00000000-0000-0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2023-09-01
+* `Microsoft.Network` - 2023-09-01

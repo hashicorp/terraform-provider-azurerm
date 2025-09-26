@@ -72,6 +72,20 @@ func TestAccCdnFrontDoorProfileDataSource_basicWithSystemAndUserIdentity(t *test
 	})
 }
 
+func TestAccCdnFrontDoorProfileDataSource_basicWithLogScrubbing(t *testing.T) {
+	data := acceptance.BuildTestData(t, "data.azurerm_cdn_frontdoor_profile", "test")
+	r := CdnFrontDoorProfileDataSource{}
+
+	data.DataSourceTest(t, []acceptance.TestStep{
+		{
+			Config: r.basicWithLogScrubbing(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).Key("log_scrubbing_rule.0.match_variable").HasValue("QueryStringArgNames"),
+			),
+		},
+	})
+}
+
 func (CdnFrontDoorProfileDataSource) basic(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
@@ -86,6 +100,7 @@ data "azurerm_cdn_frontdoor_profile" "test" {
 func (CdnFrontDoorProfileDataSource) basicWithSystemIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
 data "azurerm_cdn_frontdoor_profile" "test" {
   name                = azurerm_cdn_frontdoor_profile.test.name
   resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
@@ -96,6 +111,7 @@ data "azurerm_cdn_frontdoor_profile" "test" {
 func (CdnFrontDoorProfileDataSource) basicWithUserIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
 data "azurerm_cdn_frontdoor_profile" "test" {
   name                = azurerm_cdn_frontdoor_profile.test.name
   resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
@@ -106,9 +122,21 @@ data "azurerm_cdn_frontdoor_profile" "test" {
 func (CdnFrontDoorProfileDataSource) basicWithSystemAndUserIdentity(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
+
 data "azurerm_cdn_frontdoor_profile" "test" {
   name                = azurerm_cdn_frontdoor_profile.test.name
   resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
 }
 `, CdnFrontDoorProfileResource{}.basicWithSystemAndUserIdentity(data))
+}
+
+func (CdnFrontDoorProfileDataSource) basicWithLogScrubbing(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+data "azurerm_cdn_frontdoor_profile" "test" {
+  name                = azurerm_cdn_frontdoor_profile.test.name
+  resource_group_name = azurerm_cdn_frontdoor_profile.test.resource_group_name
+}
+`, CdnFrontDoorProfileResource{}.logScrubbing(data))
 }

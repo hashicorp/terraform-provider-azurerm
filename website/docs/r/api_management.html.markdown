@@ -413,7 +413,7 @@ The `proxy` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 3 hours) Used when creating the API Management Service.
 * `read` - (Defaults to 5 minutes) Used when retrieving the API Management Service.
@@ -432,4 +432,4 @@ terraform import azurerm_api_management.example /subscriptions/00000000-0000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ApiManagement`: 2022-08-01
+* `Microsoft.ApiManagement` - 2024-05-01, 2022-08-01

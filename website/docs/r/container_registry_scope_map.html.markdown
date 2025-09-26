@@ -69,7 +69,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Container Registry scope map.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container Registry scope map.
@@ -88,4 +88,4 @@ terraform import azurerm_container_registry_scope_map.example /subscriptions/000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerRegistry`: 2023-11-01-preview
+* `Microsoft.ContainerRegistry` - 2023-11-01-preview

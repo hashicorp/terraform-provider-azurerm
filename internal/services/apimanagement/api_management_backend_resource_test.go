@@ -593,7 +593,7 @@ resource "azurerm_api_management_backend" "import" {
   protocol            = azurerm_api_management_backend.test.protocol
   url                 = azurerm_api_management_backend.test.url
 }
-`, r.basic(data, "requiresimport"))
+`, r.basic(data, "import"))
 }
 
 func (ApiManagementBackendResource) template(data acceptance.TestData, testName string) string {

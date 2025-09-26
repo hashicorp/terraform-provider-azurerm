@@ -58,7 +58,7 @@ The following arguments are supported:
 
 ```hcl
 data "azuread_service_principal" "MicrosoftWebApp" {
-  application_id = "abfa0a7c-a6b6-4736-8310-5855508787cd"
+  client_id = "abfa0a7c-a6b6-4736-8310-5855508787cd"
 }
 ```
 
@@ -92,7 +92,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the App Service Certificate.
 * `read` - (Defaults to 5 minutes) Used when retrieving the App Service Certificate.

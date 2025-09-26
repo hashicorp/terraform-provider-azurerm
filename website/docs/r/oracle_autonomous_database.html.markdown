@@ -39,7 +39,7 @@ resource "azurerm_oracle_autonomous_database" "example" {
 ## Arguments Reference
 
 The following arguments are supported:
- 
+
 * `name` - (Required) The name which should be used for this Autonomous Database. Changing this forces a new Autonomous Database to be created.
 
 * `resource_group_name` - (Required) The name of the Resource Group where the Autonomous Database should exist. Changing this forces a new Autonomous Database to be created.
@@ -61,10 +61,10 @@ The following arguments are supported:
 * `db_version` - (Required) A valid Oracle Database version for Autonomous Database. Changing this forces a new Autonomous Database to be created.
 
 * `db_workload` - (Required) The Autonomous Database workload type. Changing this forces a new Autonomous Database to be created. The following values are valid:
-    * OLTP - indicates an Autonomous Transaction Processing database
-    * DW - indicates an Autonomous Data Warehouse database
-    * AJD - indicates an Autonomous JSON Database
-    * APEX - indicates an Autonomous Database with the Oracle APEX Application Development workload type.
+  * OLTP - indicates an Autonomous Transaction Processing database
+  * DW - indicates an Autonomous Data Warehouse database
+  * AJD - indicates an Autonomous JSON Database
+  * APEX - indicates an Autonomous Database with the Oracle APEX Application Development workload type.
 
 * `display_name` - (Required) The user-friendly name for the Autonomous Database. The name does not have to be unique. Changing this forces a new Autonomous Database to be created.
 
@@ -72,16 +72,22 @@ The following arguments are supported:
 
 * `auto_scaling_for_storage_enabled` - (Required) Indicates if auto scaling is enabled for the Autonomous Database storage. The default value is `false`.
 
-* `mtls_connection_required` - (Required) Specifies if the Autonomous Database requires mTLS connections. Changing this forces a new Autonomous Database to be created.
+* `mtls_connection_required` - (Required) Specifies if the Autonomous Database requires mTLS connections. Changing this forces a new Autonomous Database to be created. Default value `false`.
+
+~> **Note:** `mtls_connection_required`  must be set to `true` for all workload types except 'APEX' when creating a database with public access.
 
 * `license_model` - (Required) The Oracle license model that applies to the Oracle Autonomous Database. Changing this forces a new Autonomous Database to be created. Bring your own license (BYOL) allows you to apply your current on-premises Oracle software licenses to equivalent, highly automated Oracle services in the cloud. License Included allows you to subscribe to new Oracle Database software licenses and the Oracle Database service. Note that when provisioning an [Autonomous Database on dedicated Exadata infrastructure](https://docs.oracle.com/en/cloud/paas/autonomous-database/index.html), this attribute must be null. It is already set at the Autonomous Exadata Infrastructure level. When provisioning an [Autonomous Database Serverless] (https://docs.oracle.com/en/cloud/paas/autonomous-database/index.html) database, if a value is not specified, the system defaults the value to `BRING_YOUR_OWN_LICENSE`. Bring your own license (BYOL) also allows you to select the DB edition using the optional parameter.
 
-* `national_character_set` - (Required) The national character set for the autonomous database. Changing this forces a new Autonomous Database to be created. The default is AL16UTF16. Allowed values are: AL16UTF16 or UTF8. 
+* `national_character_set` - (Required) The national character set for the autonomous database. Changing this forces a new Autonomous Database to be created. The default is AL16UTF16. Allowed values are: AL16UTF16 or UTF8.
 
-* `subnet_id` - (Required) The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the subnet the resource is associated with. Changing this forces a new Autonomous Database to be created.
+* `subnet_id` - (Optional) The [OCID](https://docs.cloud.oracle.com/iaas/Content/General/Concepts/identifiers.htm) of the subnet the resource is associated with. Changing this forces a new Autonomous Database to be created.
 
-* `virtual_network_id` - (Required) The ID of the vnet associated with the cloud VM cluster. Changing this forces a new Autonomous Database to be created.
+* `virtual_network_id` - (Optional) The ID of the vnet associated with the cloud VM cluster. Changing this forces a new Autonomous Database to be created.
 
+* `allowed_ips` - (Optional) (Optional) Defines the network access type for the Autonomous Database. If the property is explicitly set to an empty list, it allows secure public access to the database from any IP address. If specific ACL (Access Control List) values are provided, access will be restricted to only the specified IP addresses.
+
+~> **Note:** `allowed_ips`  cannot be updated after provisioning the resource with an empty list (i.e., a publicly accessible Autonomous Database)
+              size: the maximum number of Ips provided shouldn't exceed 1024. At this time we only support IpV4.
 ---
 
 * `customer_contacts` - (Optional) Specifies a list of customer contacts as email addresses. Changing this forces a new Autonomous Database to be created.
@@ -90,7 +96,7 @@ The following arguments are supported:
 
 * `long_term_backup_schedule` - (Optional) A `long_term_backup_schedule` block as defined below.
 
--> **Note:** for more information see [Create Long-Term Backups on Autonomous Database](https://docs.oracle.com/en/cloud/paas/autonomous-database/serverless/adbsb/backup-long-term.html#GUID-BD76E02E-AEB0-4450-A6AB-5C9EB1F4EAD0) 
+-> **Note:** for more information see [Create Long-Term Backups on Autonomous Database](https://docs.oracle.com/en/cloud/paas/autonomous-database/serverless/adbsb/backup-long-term.html#GUID-BD76E02E-AEB0-4450-A6AB-5C9EB1F4EAD0)
 
 ---
 
@@ -106,13 +112,13 @@ A `long_term_backup_schedule` blocks supports the following:
 
 ## Attributes Reference
 
-In addition to the Arguments listed above - the following Attributes are exported: 
+In addition to the Arguments listed above - the following Attributes are exported:
 
 * `id` - The ID of the Autonomous Database.
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 2 hours) Used when creating the Autonomous Database.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Autonomous Database.
@@ -131,4 +137,4 @@ terraform import azurerm_oracle_autonomous_database.example /subscriptions/00000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Oracle.Database`: 2025-03-01
+* `Oracle.Database` - 2025-03-01

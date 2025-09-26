@@ -10,14 +10,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/agentpools"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-02-01/snapshots"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/agentpools"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/containerservice/2025-05-01/snapshots"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 )
 
 func TestAccKubernetesCluster_sameSizeVMSSConfig(t *testing.T) {
@@ -858,6 +859,54 @@ func TestAccKubernetesCluster_webAppRoutingWithEmptyDnsZone(t *testing.T) {
 	})
 }
 
+func TestAccKubernetesCluster_webAppRoutingWithNginxControllerType(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
+	r := KubernetesClusterResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.webAppRoutingWithNginxController(data, "None"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("web_app_routing.0.web_app_routing_identity.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.webAppRoutingWithNginxController(data, "Internal"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("web_app_routing.0.web_app_routing_identity.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.webAppRoutingWithNginxController(data, "External"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("web_app_routing.0.web_app_routing_identity.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.webAppRoutingWithNginxController(data, "AnnotationControlled"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("web_app_routing.0.web_app_routing_identity.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.webAppRoutingWithNginxController(data, ""),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("web_app_routing.0.web_app_routing_identity.#").HasValue("1"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
 func TestAccKubernetesCluster_azureMonitorKubernetesMetrics(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_kubernetes_cluster", "test")
 	r := KubernetesClusterResource{}
@@ -955,7 +1004,7 @@ func TestAccKubernetesCluster_snapshotId(t *testing.T) {
 						Location: data.Locations.Primary,
 						Properties: &snapshots.SnapshotProperties{
 							CreationData: &snapshots.CreationData{
-								SourceResourceId: utils.String(poolId.ID()),
+								SourceResourceId: pointer.To(poolId.ID()),
 							},
 						},
 					}
@@ -1291,7 +1340,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     vm_size              = "Standard_DS2_v2"
     auto_scaling_enabled = true
     min_count            = 1
-    max_count            = 399
+    max_count            = 100
     node_count           = 1
     upgrade_settings {
       max_surge = "10%%"
@@ -1474,9 +1523,9 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
 
     linux_os_config {
-      transparent_huge_page_enabled = "always"
-      transparent_huge_page_defrag  = "always"
-      swap_file_size_mb             = 300
+      transparent_huge_page        = "always"
+      transparent_huge_page_defrag = "always"
+      swap_file_size_mb            = 300
 
       sysctl_config {
         fs_aio_max_nr                      = 65536
@@ -1520,6 +1569,54 @@ resource "azurerm_kubernetes_cluster" "test" {
 }
 
 func (KubernetesClusterResource) kubeletAndLinuxOSConfigPartial(data acceptance.TestData) string {
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%d"
+  location = "%s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%d"
+
+  default_node_pool {
+    name                        = "default"
+    node_count                  = 1
+    vm_size                     = "Standard_DS2_v2"
+    temporary_name_for_rotation = "temp"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+    kubelet_config {
+      cpu_manager_policy    = "static"
+      cpu_cfs_quota_enabled = true
+      cpu_cfs_quota_period  = "10ms"
+    }
+
+    linux_os_config {
+      transparent_huge_page_enabled = "always" # This property is deprecated and is removed in v5.0 of the provider
+
+      sysctl_config {
+        fs_aio_max_nr               = 65536
+        fs_file_max                 = 100000
+        fs_inotify_max_user_watches = 1000000
+      }
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomInteger, data.RandomInteger)
+	}
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -1551,7 +1648,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     }
 
     linux_os_config {
-      transparent_huge_page_enabled = "always"
+      transparent_huge_page = "always"
 
       sysctl_config {
         fs_aio_max_nr               = 65536
@@ -3015,6 +3112,48 @@ resource "azurerm_kubernetes_cluster" "test" {
  `, data.Locations.Primary, data.RandomInteger)
 }
 
+func (KubernetesClusterResource) webAppRoutingWithNginxController(data acceptance.TestData, controllerType string) string {
+	defaultNginxController := ""
+	if controllerType != "" {
+		defaultNginxController = fmt.Sprintf(`default_nginx_controller = "%s"`, controllerType)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-aks-%[2]d"
+  location = "%[1]s"
+}
+
+resource "azurerm_kubernetes_cluster" "test" {
+  name                = "acctestaks%[2]d"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+  dns_prefix          = "acctestaks%[2]d"
+
+  default_node_pool {
+    name       = "default"
+    node_count = 1
+    vm_size    = "Standard_DS2_v2"
+    upgrade_settings {
+      max_surge = "10%%"
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  web_app_routing {
+    dns_zone_ids = []
+    %s
+  }
+}
+ `, data.Locations.Primary, data.RandomInteger, defaultNginxController)
+}
+
 func (KubernetesClusterResource) azureMonitorKubernetesMetricsEnabled(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
@@ -3260,6 +3399,7 @@ resource "azurerm_kubernetes_cluster" "test" {
     node_count   = 1
     vm_size      = "Standard_NC24ads_A100_v4"
     gpu_instance = "MIG1g"
+    gpu_driver   = "Install"
     upgrade_settings {
       max_surge = "10%%"
     }

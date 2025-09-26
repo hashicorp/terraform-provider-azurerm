@@ -175,7 +175,7 @@ A `storage_location` block contains:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Virtual Machine Packet Capture.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Virtual Machine Packet Capture.
@@ -193,4 +193,4 @@ terraform import azurerm_virtual_machine_packet_capture.capture1 /subscriptions/
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Network`: 2024-05-01
+* `Microsoft.Network` - 2024-05-01

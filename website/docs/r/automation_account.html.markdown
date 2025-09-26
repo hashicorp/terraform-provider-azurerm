@@ -98,7 +98,7 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Automation Account.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Automation Account.
@@ -117,4 +117,4 @@ terraform import azurerm_automation_account.account1 /subscriptions/00000000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Automation`: 2023-11-01, 2019-06-01
+* `Microsoft.Automation` - 2023-11-01, 2019-06-01

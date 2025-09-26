@@ -158,7 +158,7 @@ In addition to the Arguments listed above - the following Attributes are exporte
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 30 minutes) Used when creating the Kusto / Cosmos Database Data Connection.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kusto / Cosmos Database Data Connection.
@@ -176,4 +176,4 @@ terraform import azurerm_kusto_cosmosdb_data_connection.example /subscriptions/0
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.Kusto`: 2024-04-13
+* `Microsoft.Kusto` - 2024-04-13

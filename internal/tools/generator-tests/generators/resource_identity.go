@@ -11,7 +11,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/generator-tests/helpers"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/tools/templatehelpers"
 	"github.com/mitchellh/cli"
 )
 
@@ -175,7 +175,7 @@ func (d *resourceIdentityData) parseArgs(args []string) (errors []error) {
 }
 
 func (d *resourceIdentityData) exec() error {
-	tpl := template.Must(template.New("identity_test.gotpl").Funcs(TplFuncMap).ParseFS(Templatedir, "templates/identity_test.gotpl"))
+	tpl := template.Must(template.New("identity_test.gotpl").Funcs(templatehelpers.TplFuncMap).ParseFS(Templatedir, "templates/identity_test.gotpl"))
 
 	outputPath := fmt.Sprintf(riOutputFileFmt, d.ServicePackageName, d.ResourceName)
 
@@ -195,7 +195,7 @@ func (d *resourceIdentityData) exec() error {
 		return fmt.Errorf("failed writing output test file (%s): %s", outputPath, err.Error())
 	}
 
-	if err := helpers.GoFmt(outputPath); err != nil {
+	if err := templatehelpers.GoImports(outputPath); err != nil {
 		return err
 	}
 

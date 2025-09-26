@@ -6,7 +6,7 @@ description: |-
   Gets information about an existing Marketplace Agreement.
 ---
 
-# azurerm_marketplace_agreement
+# Data Source: azurerm_marketplace_agreement
 
 Uses this data source to access information about an existing Marketplace Agreement.
 
@@ -21,6 +21,10 @@ data "azurerm_marketplace_agreement" "barracuda" {
 
 output "azurerm_marketplace_agreement_id" {
   value = data.azurerm_marketplace_agreement.id
+}
+
+output "azurerm_marketplace_agreement_accepted" {
+  value = data.azurerm_marketplace_agreement.accepted
 }
 ```
 
@@ -40,9 +44,11 @@ The following attributes are exported:
 
 * `id` - The ID of the Marketplace Agreement.
 
+* `accepted` - Whether the Marketplace Agreement has been accepted.
+
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Marketplace Agreement.
 
@@ -50,4 +56,4 @@ The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/l
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
 
-* `Microsoft.MarketplaceOrdering`: 2015-06-01
+* `Microsoft.MarketplaceOrdering` - 2015-06-01

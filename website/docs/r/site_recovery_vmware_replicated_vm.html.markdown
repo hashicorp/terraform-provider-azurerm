@@ -189,7 +189,7 @@ In addition to the arguments above, the following attributes are exported:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 2 hours) Used when creating the Site Recovery HyperV Replicated VM.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Site Recovery HyperV Replicated VM.
@@ -208,6 +208,6 @@ terraform import azurerm_site_recovery_vmware_replicated_vm.vmreplication /subsc
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.OffAzure`: 2020-01-01
+* `Microsoft.OffAzure` - 2020-01-01
 
-* `Microsoft.RecoveryServices`: 2024-04-01
+* `Microsoft.RecoveryServices` - 2024-04-01

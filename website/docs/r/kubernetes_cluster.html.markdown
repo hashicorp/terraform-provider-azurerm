@@ -121,7 +121,7 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 
 * `image_cleaner_enabled` - (Optional) Specifies whether Image Cleaner is enabled.
 
-* `image_cleaner_interval_hours` - (Optional) Specifies the interval in hours when images should be cleaned up. Defaults to `0`.
+* `image_cleaner_interval_hours` - (Optional) Specifies the interval in hours when images should be cleaned up.
 
 * `ingress_application_gateway` - (Optional) A `ingress_application_gateway` block as defined below.
 
@@ -158,6 +158,8 @@ In addition, one of either `identity` or `service_principal` blocks must be spec
 * `network_profile` - (Optional) A `network_profile` block as defined below. Changing this forces a new resource to be created.
 
 -> **Note:** If `network_profile` is not defined, `kubenet` profile will be used by default.
+
+* `bootstrap_profile` - (Optional) A `bootstrap_profile` block as defined below.
 
 * `node_os_upgrade_channel` - (Optional) The upgrade channel for this Kubernetes Cluster Nodes' OS Image. Possible values are `Unmanaged`, `SecurityPatch`, `NodeImage` and `None`. Defaults to `NodeImage`.
 
@@ -286,6 +288,10 @@ An `api_server_access_profile` block supports the following:
 
 * `authorized_ip_ranges` - (Optional) Set of authorized IP ranges to allow access to API server, e.g. ["198.51.100.0/24"].
 
+* `subnet_id` - (Optional) The ID of the Subnet where the API server endpoint is delegated to.
+
+* `virtual_network_integration_enabled` - (Optional) Whether to enable virtual network integration for the API Server. Defaults to `false`.
+
 ---
 
 An `auto_scaler_profile` block supports the following:
@@ -326,7 +332,8 @@ An `auto_scaler_profile` block supports the following:
 
 * `empty_bulk_delete_max` - (Optional) Maximum number of empty nodes that can be deleted at the same time. Defaults to `10`.
 
-* `skip_nodes_with_local_storage` - (Optional) If `true` cluster autoscaler will never delete nodes with pods with local storage, for example, EmptyDir or HostPath. Defaults to `true`.
+* `skip_nodes_with_local_storage` - (Optional) If `true` cluster autoscaler will never delete nodes with pods with local storage, for example, EmptyDir or HostPath. Defaults to `false`.
+<!-- Note: Although Azure’s API default is `true`, Terraform sends the zero-value (`false`) whenever an `auto_scaler_profile` block is present but this field isn’t set. -->
 
 * `skip_nodes_with_system_pods` - (Optional) If `true` cluster autoscaler will never delete nodes with pods from kube-system (except for DaemonSet or mirror pods). Defaults to `true`.
 
@@ -388,7 +395,7 @@ A `default_node_pool` block supports the following:
 
 * `linux_os_config` - (Optional) A `linux_os_config` block as defined below. `temporary_name_for_rotation` must be specified when changing this block.
 
-* `fips_enabled` - (Optional) Should the nodes in this Node Pool have Federal Information Processing Standard enabled? `temporary_name_for_rotation` must be specified when changing this block. Changing this forces a new resource to be created.
+* `fips_enabled` - (Optional) Should the nodes in this Node Pool have Federal Information Processing Standard enabled? `temporary_name_for_rotation` must be specified when changing this block.
 
 * `kubelet_disk_type` - (Optional) The type of disk used by kubelet. Possible values are `OS` and `Temporary`. `temporary_name_for_rotation` must be specified when changing this block.
 
@@ -428,7 +435,7 @@ A `default_node_pool` block supports the following:
 
 * `tags` - (Optional) A mapping of tags to assign to the Node Pool.
 
-~> **Note:** At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) until this is fixed in the AKS API.
+~> **Note:** At this time there's a bug in the AKS API where Tags for a Node Pool are not stored in the correct case - you [may wish to use Terraform's `ignore_changes` functionality to ignore changes to the casing](https://developer.hashicorp.com/terraform/language/block/resource#ignore_changes) until this is fixed in the AKS API.
 
 * `ultra_ssd_enabled` - (Optional) Used to specify whether the UltraSSD is enabled in the Default Node Pool. Defaults to `false`. See [the documentation](https://docs.microsoft.com/azure/aks/use-ultra-disks) for more information. `temporary_name_for_rotation` must be specified when attempting a change.
 
@@ -452,7 +459,7 @@ If `auto_scaling_enabled` is set to `true`, then the following fields can also b
 
 * `node_count` - (Optional) The initial number of nodes which should exist in this Node Pool. If specified this must be between `1` and `1000` and between `min_count` and `max_count`.
 
--> **Note:** If specified you may wish to use [Terraform's `ignore_changes` functionality](https://www.terraform.io/language/meta-arguments/lifecycle#ignore_changess) to ignore changes to this field.
+-> **Note:** If specified you may wish to use [Terraform's `ignore_changes` functionality](https://developer.hashicorp.com/terraform/language/block/resource#ignore_changes) to ignore changes to this field.
 
 -> **Note:** If `auto_scaling_enabled` is set to `false` both `min_count` and `max_count` fields need to be set to `null` or omitted from the configuration.
 
@@ -530,7 +537,7 @@ A `linux_os_config` block supports the following:
 
 * `transparent_huge_page_defrag` - (Optional) specifies the defrag configuration for Transparent Huge Page. Possible values are `always`, `defer`, `defer+madvise`, `madvise` and `never`.
 
-* `transparent_huge_page_enabled` - (Optional) Specifies the Transparent Huge Page enabled configuration. Possible values are `always`, `madvise` and `never`.
+* `transparent_huge_page` - (Optional) Specifies the Transparent Huge Page configuration. Possible values are `always`, `madvise` and `never`.
 
 ---
 
@@ -572,7 +579,7 @@ A `maintenance_window` block supports the following:
 
 A `maintenance_window_auto_upgrade` block supports the following:
 
-* `frequency` - (Required) Frequency of maintenance. Possible options are `Weekly`, `AbsoluteMonthly` and `RelativeMonthly`.
+* `frequency` - (Required) Frequency of maintenance. Possible options are `Daily`, `Weekly`, `AbsoluteMonthly` and `RelativeMonthly`.
 
 * `interval` - (Required) The interval for maintenance runs. Depending on the frequency this interval is week or month based.
 
@@ -671,7 +678,9 @@ A `network_profile` block supports the following:
 
 ~> **Note:** When `network_plugin_mode` is set to `overlay`, the `network_plugin` field can only be set to `azure`. When upgrading from Azure CNI without overlay, `pod_subnet_id` must be specified.
 
-* `outbound_type` - (Optional) The outbound (egress) routing method which should be used for this Kubernetes Cluster. Possible values are `loadBalancer`, `userDefinedRouting`, `managedNATGateway` and `userAssignedNATGateway`. Defaults to `loadBalancer`. More information on supported migration paths for `outbound_type` can be found in [this documentation](https://learn.microsoft.com/azure/aks/egress-outboundtype#updating-outboundtype-after-cluster-creation).
+* `outbound_type` - (Optional) The outbound (egress) routing method which should be used for this Kubernetes Cluster. Possible values are `loadBalancer`, `userDefinedRouting`, `managedNATGateway`, `userAssignedNATGateway` and `none`. Defaults to `loadBalancer`.
+
+-> **Note:** For more information on supported `outbound_type` migration paths please see the product [documentation](https://learn.microsoft.com/azure/aks/egress-outboundtype#updating-outboundtype-after-cluster-creation).
 
 * `pod_cidr` - (Optional) The CIDR to use for pod IP addresses. This field can only be set when `network_plugin` is set to `kubenet` or `network_plugin_mode` is set to `overlay`. Changing this forces a new resource to be created.
 
@@ -696,6 +705,16 @@ Examples of how to use [AKS with Advanced Networking](https://docs.microsoft.com
 * `load_balancer_profile` - (Optional) A `load_balancer_profile` block as defined below. This can only be specified when `load_balancer_sku` is set to `standard`. Changing this forces a new resource to be created.
 
 * `nat_gateway_profile` - (Optional) A `nat_gateway_profile` block as defined below. This can only be specified when `load_balancer_sku` is set to `standard` and `outbound_type` is set to `managedNATGateway` or `userAssignedNATGateway`. Changing this forces a new resource to be created.
+
+* `advanced_networking` - (Optional) An `advanced_networking` block as defined below. This can only be specified when `network_plugin` is set to `azure` and `network_data_plane` is set to `cilium`.
+
+---
+
+An `advanced_networking` block supports the following:
+
+* `observability_enabled` - (Optional) Is observability enabled? Defaults to `false`.
+
+* `security_enabled` - (Optional) Is security enabled? Defaults to `false`.
 
 ---
 
@@ -733,6 +752,18 @@ A `nat_gateway_profile` block supports the following:
 
 ---
 
+A `bootstrap_profile` block supports the following:
+
+* `artifact_source` - (Optional) The artifact source. The source where the artifacts are downloaded from. Possible values are `Cache` and `Direct`. Defaults to `Direct`.
+
+~> **Note:** If the `artifact_source` is set to `Cache` and the `outbound_type` has been specified, the managed ACR and related resources will **not** be automatically deleted and must be removed manually. Please see the product [documentation](https://learn.microsoft.com/azure/aks/concepts-network-isolated#how-a-network-isolated-cluster-works) for more information.
+
+* `container_registry_id` - (Optional) The resource Id of Azure Container Registry.
+
+-> **Note:** The `container_registry_id` requires an ACR with a private link to the cluster. You must manage permissions, cache rules, the associated private link and the private endpoint. Please see the product [documentation](https://learn.microsoft.com/azure/container-registry/container-registry-private-link) for more information on configuring an ACR with a private endpoint.
+
+---
+
 An `oms_agent` block supports the following:
 
 * `log_analytics_workspace_id` - (Required) The ID of the Log Analytics Workspace which the OMS Agent should send data to.
@@ -761,7 +792,7 @@ A `service_mesh_profile` block supports the following:
 
 * `mode` - (Required) The mode of the service mesh. Possible value is `Istio`.
 
-* `revisions` - (Required) Specify 1 or 2 Istio control plane revisions for managing minor upgrades using the canary upgrade process. For example, create the resource with `revisions` set to `["asm-1-20"]`, or leave it empty (the `revisions` will only be known after apply). To start the canary upgrade, change `revisions` to `["asm-1-20", "asm-1-21"]`. To roll back the canary upgrade, revert to `["asm-1-20"]`. To confirm the upgrade, change to `["asm-1-21"]`.
+* `revisions` - (Required) Specify 1 or 2 Istio control plane revisions for managing minor upgrades using the canary upgrade process. For example, create the resource with `revisions` set to `["asm-1-25"]`, or leave it empty (the `revisions` will only be known after apply). To start the canary upgrade, change `revisions` to `["asm-1-25", "asm-1-26"]`. To roll back the canary upgrade, revert to `["asm-1-25"]`. To confirm the upgrade, change to `["asm-1-26"]`.
 
 -> **Note:** Upgrading to a new (canary) revision does not affect existing sidecar proxies. You need to apply the canary revision label to selected namespaces and restart pods with kubectl to inject the new sidecar proxy. [Learn more](https://istio.io/latest/docs/setup/upgrade/canary/#data-plane).
 
@@ -899,13 +930,15 @@ A `web_app_routing` block supports the following:
 
 * `dns_zone_ids` - (Required) Specifies the list of the DNS Zone IDs in which DNS entries are created for applications deployed to the cluster when Web App Routing is enabled. If not using Bring-Your-Own DNS zones this property should be set to an empty list.
 
+* `default_nginx_controller` - (Optional) Specifies the ingress type for the default `NginxIngressController` custom resource. The allowed values are `None`, `Internal`, `External` and `AnnotationControlled`. It defaults to `AnnotationControlled`.
+
 ---
 
 A `windows_profile` block supports the following:
 
 * `admin_username` - (Required) The Admin Username for Windows VMs. Changing this forces a new resource to be created.
 
-* `admin_password` - (Optional) The Admin Password for Windows VMs. Length must be between 14 and 123 characters.
+* `admin_password` - (Required) The Admin Password for Windows VMs. Length must be between 14 and 123 characters.
 
 * `license` - (Optional) Specifies the type of on-premise license which should be used for Node Pool Windows Virtual Machine. At this time the only possible value is `Windows_Server`.
 
@@ -951,7 +984,7 @@ A `upgrade_settings` block supports the following:
 
 * `drain_timeout_in_minutes` - (Optional) The amount of time in minutes to wait on eviction of pods and graceful termination per node. This eviction wait time honors pod disruption budgets for upgrades. If this time is exceeded, the upgrade fails. Unsetting this after configuring it will force a new resource to be created.
 
-* `node_soak_duration_in_minutes` - (Optional) The amount of time in minutes to wait after draining a node and before reimaging and moving on to next node. Defaults to `0`.
+* `node_soak_duration_in_minutes` - (Optional) The amount of time in minutes to wait after draining a node and before reimaging and moving on to next node. Defaults to `0`. <!-- The 0 default happens in code, not in Schema -->
 
 * `max_surge` - (Required) The maximum number or percentage of nodes which will be added to the Node Pool size during an upgrade.
 
@@ -1148,7 +1181,7 @@ The `web_app_routing_identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `create` - (Defaults to 90 minutes) Used when creating the Kubernetes Cluster.
 * `read` - (Defaults to 5 minutes) Used when retrieving the Kubernetes Cluster.
@@ -1167,4 +1200,4 @@ terraform import azurerm_kubernetes_cluster.cluster1 /subscriptions/00000000-000
 <!-- This section is generated, changes will be overwritten -->
 This resource uses the following Azure API Providers:
 
-* `Microsoft.ContainerService`: 2025-02-01
+* `Microsoft.ContainerService` - 2025-05-01
