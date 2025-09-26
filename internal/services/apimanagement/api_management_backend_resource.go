@@ -422,12 +422,12 @@ func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta in
 		// Single type backends can have all the other fields set
 		credentialsRaw := d.Get("credentials").([]interface{})
 		properties.Credentials = expandApiManagementBackendCredentials(credentialsRaw)
-		properties.Protocol = backend.BackendProtocol(d.Get("protocol").(string))
+		properties.Protocol = pointer.To(backend.BackendProtocol(d.Get("protocol").(string)))
 		proxyRaw := d.Get("proxy").([]interface{})
 		properties.Proxy = expandApiManagementBackendProxy(proxyRaw)
 		tlsRaw := d.Get("tls").([]interface{})
 		properties.Tls = expandApiManagementBackendTls(tlsRaw)
-		properties.Url = d.Get("url").(string)
+		properties.Url = pointer.To(d.Get("url").(string))
 		circuitBreakerRaw := d.Get("circuit_breaker_rule").([]interface{})
 		properties.CircuitBreaker = expandApiManagementBackendCircuitBreaker(circuitBreakerRaw)
 
@@ -436,7 +436,7 @@ func resourceApiManagementBackendCreateUpdate(d *pluginsdk.ResourceData, meta in
 			if err != nil {
 				return err
 			}
-			backendContract.Properties.Properties = &backend.BackendProperties{
+			properties.Properties = &backend.BackendProperties{
 				ServiceFabricCluster: serviceFabricCluster,
 			}
 		}
@@ -491,7 +491,7 @@ func resourceApiManagementBackendRead(d *pluginsdk.ResourceData, meta interface{
 		d.Set("name", pointer.From(model.Name))
 		if props := model.Properties; props != nil {
 			d.Set("description", pointer.From(props.Description))
-			d.Set("protocol", pointer.FromEnum(props.Protocol))
+			d.Set("protocol", pointer.From(props.Protocol))
 			d.Set("resource_id", pointer.From(props.ResourceId))
 			d.Set("title", pointer.From(props.Title))
 			d.Set("url", props.Url)
