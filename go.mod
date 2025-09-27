@@ -107,4 +107,4 @@ require (
 	software.sslmate.com/src/go-pkcs12 v0.4.0 // indirect
 )
 
-go 1.24.5
+go 1.24.7
