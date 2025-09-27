@@ -370,6 +370,8 @@ Container Group's can be imported using the `resource id`, e.g.
 ```shell
 terraform import azurerm_container_group.containerGroup1 /subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/mygroup1/providers/Microsoft.ContainerInstance/containerGroups/myContainerGroup1
 ```
+---
+**See also:** [Data Source: azurerm_container_group](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/container_group)
 
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->

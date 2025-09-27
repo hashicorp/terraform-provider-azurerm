@@ -77,6 +77,9 @@ The `timeouts` block allows you to specify [timeouts](https://developer.hashicor
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Container Group instance.
 
+---
+**See also:** [Resource: azurerm_container_group](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/container_group)
+
 ## API Providers
 <!-- This section is generated, changes will be overwritten -->
 This data source uses the following Azure API Providers:
