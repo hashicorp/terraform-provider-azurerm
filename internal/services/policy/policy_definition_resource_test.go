@@ -161,6 +161,18 @@ func TestAccAzureRMPolicyDefinition_removeParameter(t *testing.T) {
 		},
 		data.ImportStep(),
 		{
+			Config: r.renameParameter(data),
+			ConfigPlanChecks: resource.ConfigPlanChecks{
+				PreApply: []plancheck.PlanCheck{
+					plancheck.ExpectResourceAction(data.ResourceName, plancheck.ResourceActionReplace),
+				},
+			},
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+			),
+		},
+		data.ImportStep(),
+		{
 			Config: r.basic(data),
 			ConfigPlanChecks: resource.ConfigPlanChecks{
 				PreApply: []plancheck.PlanCheck{
@@ -531,6 +543,78 @@ POLICY_RULE
       }
     },
     "requiredRetentionDays": {
+        "type": "Integer",
+        "defaultValue": 365,
+        "allowedValues": [
+          0,
+          30,
+          90,
+          180,
+          365
+        ],
+        "metadata": {
+          "displayName": "Required retention (days)",
+          "description": "The required diagnostic logs retention in days"
+      }
+    }
+  }
+PARAMETERS
+}
+`, data.RandomInteger, data.RandomInteger)
+}
+
+func (r PolicyDefinitionResource) renameParameter(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_policy_definition" "test" {
+  name         = "acctestpol-%d"
+  policy_type  = "Custom"
+  mode         = "All"
+  display_name = "acctestpol-%d"
+
+  policy_rule = <<POLICY_RULE
+	{
+    "if": {
+      "not": {
+        "field": "location",
+        "in": "[parameters('allowedLocations')]"
+      }
+    },
+    "then": {
+       "effect": "AuditIfNotExists",
+        "details": {
+          "type": "Microsoft.Insights/diagnosticSettings",
+          "existenceCondition": {
+            "allOf": [
+            {
+              "field": "Microsoft.Insights/diagnosticSettings/logs[*].retentionPolicy.enabled",
+              "equals": "true"
+            },
+            {
+              "field": "Microsoft.Insights/diagnosticSettings/logs[*].retentionPolicy.days",
+              "equals": "[parameters('requiredRetentionInDays')]"
+            }
+          ]
+        }
+      }
+    }
+  }
+POLICY_RULE
+
+  parameters = <<PARAMETERS
+	{
+    "allowedLocations": {
+      "type": "Array",
+      "metadata": {
+        "description": "The list of allowed locations for resources.",
+        "displayName": "Allowed locations",
+        "strongType": "location"
+      }
+    },
+    "requiredRetentionInDays": {
         "type": "Integer",
         "defaultValue": 365,
         "allowedValues": [
