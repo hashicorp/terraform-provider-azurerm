@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
+	"github.com/hashicorp/terraform-provider-azurerm/internal/features"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
@@ -59,7 +60,6 @@ func TestAccEventGridEventSubscription_azureFunction(t *testing.T) {
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
 			Config: r.azureFunction(data),
-
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 			),
@@ -78,7 +78,6 @@ func TestAccEventGridEventSubscription_eventHubID(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("event_delivery_schema").HasValue("CloudEventSchemaV1_0"),
-				check.That(data.ResourceName).Key("eventhub_endpoint_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -95,7 +94,6 @@ func TestAccEventGridEventSubscription_serviceBusQueueID(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("event_delivery_schema").HasValue("CloudEventSchemaV1_0"),
-				check.That(data.ResourceName).Key("service_bus_queue_endpoint_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -112,7 +110,6 @@ func TestAccEventGridEventSubscription_serviceBusTopicID(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("event_delivery_schema").HasValue("CloudEventSchemaV1_0"),
-				check.That(data.ResourceName).Key("service_bus_topic_endpoint_id").Exists(),
 			),
 		},
 		data.ImportStep(),
@@ -129,7 +126,6 @@ func TestAccEventGridEventSubscription_update(t *testing.T) {
 			Check: acceptance.ComposeTestCheckFunc(
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("event_delivery_schema").HasValue("EventGridSchema"),
-				check.That(data.ResourceName).Key("storage_queue_endpoint.#").HasValue("1"),
 				check.That(data.ResourceName).Key("storage_blob_dead_letter_destination.#").HasValue("1"),
 				check.That(data.ResourceName).Key("included_event_types.0").HasValue("Microsoft.Resources.ResourceWriteSuccess"),
 				check.That(data.ResourceName).Key("retry_policy.0.max_delivery_attempts").HasValue("11"),
@@ -144,7 +140,6 @@ func TestAccEventGridEventSubscription_update(t *testing.T) {
 				check.That(data.ResourceName).ExistsInAzure(r),
 				check.That(data.ResourceName).Key("included_event_types.0").HasValue("Microsoft.Storage.BlobCreated"),
 				check.That(data.ResourceName).Key("included_event_types.1").HasValue("Microsoft.Storage.BlobDeleted"),
-				check.That(data.ResourceName).Key("storage_queue_endpoint.0.queue_message_time_to_live_in_seconds").HasValue("3600"),
 				check.That(data.ResourceName).Key("subject_filter.0.subject_ends_with").HasValue(".jpg"),
 				check.That(data.ResourceName).Key("subject_filter.0.subject_begins_with").HasValue("test/test"),
 				check.That(data.ResourceName).Key("retry_policy.0.max_delivery_attempts").HasValue("10"),
@@ -455,7 +450,8 @@ func (EventGridEventSubscriptionResource) Exists(ctx context.Context, clients *c
 }
 
 func (EventGridEventSubscriptionResource) basic(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -505,6 +501,72 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   storage_queue_endpoint {
     storage_account_id = azurerm_storage_account.test.id
     queue_name         = azurerm_storage_queue.test.name
+  }
+
+  storage_blob_dead_letter_destination {
+    storage_account_id          = azurerm_storage_account.test.id
+    storage_blob_container_name = azurerm_storage_container.test.name
+  }
+
+  retry_policy {
+    event_time_to_live    = 11
+    max_delivery_attempts = 11
+  }
+
+  labels = ["test", "test1", "test2"]
+}
+`, data.RandomInteger, data.Locations.Primary, data.RandomString)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_storage_account" "test" {
+  name                     = "acctestacc%[3]s"
+  resource_group_name      = azurerm_resource_group.test.name
+  location                 = azurerm_resource_group.test.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = {
+    environment = "staging"
+  }
+}
+
+resource "azurerm_storage_queue" "test" {
+  name                 = "mysamplequeue-%[1]d"
+  storage_account_name = azurerm_storage_account.test.name
+}
+
+resource "azurerm_storage_container" "test" {
+  name                  = "vhds"
+  storage_account_id    = azurerm_storage_account.test.id
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_blob" "test" {
+  name = "herpderp1.vhd"
+
+  storage_account_name   = azurerm_storage_account.test.name
+  storage_container_name = azurerm_storage_container.test.name
+
+  type = "Page"
+  size = 5120
+}
+
+resource "azurerm_eventgrid_event_subscription" "test" {
+  name  = "acctesteg-%[1]d"
+  scope = azurerm_resource_group.test.id
+
+  storage_queue {
+    storage_account_id = azurerm_storage_account.test.id
+    name               = azurerm_storage_queue.test.name
   }
 
   storage_blob_dead_letter_destination {
@@ -582,10 +644,10 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   name  = "acctesteg-%[1]d"
   scope = azurerm_resource_group.test.id
 
-  storage_queue_endpoint {
-    storage_account_id                    = azurerm_storage_account.test.id
-    queue_name                            = azurerm_storage_queue.test.name
-    queue_message_time_to_live_in_seconds = 3600
+  storage_queue {
+    storage_account_id              = azurerm_storage_account.test.id
+    name                            = azurerm_storage_queue.test.name
+    message_time_to_live_in_seconds = 3600
   }
 
   storage_blob_dead_letter_destination {
@@ -663,7 +725,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   scope                                = azurerm_linux_function_app.test.id
   event_delivery_schema                = "EventGridSchema"
 
-  azure_function_endpoint {
+  azure_function {
     function_id                       = azurerm_function_app_function.test.id
     max_events_per_batch              = 1
     preferred_batch_size_in_kilobytes = 64
@@ -700,10 +762,10 @@ resource "azurerm_servicebus_queue" "test" {
   partitioning_enabled = true
 }
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name                          = "acctest-eg-%[1]d"
-  scope                         = azurerm_resource_group.test.id
-  event_delivery_schema         = "CloudEventSchemaV1_0"
-  service_bus_queue_endpoint_id = azurerm_servicebus_queue.test.id
+  name                  = "acctest-eg-%[1]d"
+  scope                 = azurerm_resource_group.test.id
+  event_delivery_schema = "CloudEventSchemaV1_0"
+  service_bus_queue_id  = azurerm_servicebus_queue.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -729,10 +791,10 @@ resource "azurerm_servicebus_topic" "test" {
   partitioning_enabled = true
 }
 resource "azurerm_eventgrid_event_subscription" "test" {
-  name                          = "acctest-eg-%[1]d"
-  scope                         = azurerm_resource_group.test.id
-  event_delivery_schema         = "CloudEventSchemaV1_0"
-  service_bus_topic_endpoint_id = azurerm_servicebus_topic.test.id
+  name                  = "acctest-eg-%[1]d"
+  scope                 = azurerm_resource_group.test.id
+  event_delivery_schema = "CloudEventSchemaV1_0"
+  service_bus_topic_id  = azurerm_servicebus_topic.test.id
 }
 `, data.RandomInteger, data.Locations.Primary)
 }
@@ -769,9 +831,9 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   name  = "acctest-eg-%[1]d"
   scope = azurerm_resource_group.test.id
 
-  storage_queue_endpoint {
+  storage_queue {
     storage_account_id = azurerm_storage_account.test.id
-    queue_name         = azurerm_storage_queue.test.name
+    name               = azurerm_storage_queue.test.name
   }
 
   advanced_filtering_on_arrays_enabled = true
@@ -818,9 +880,9 @@ resource "azurerm_eventgrid_event_subscription" "test1" {
   name  = "acctesteg-%[1]d-1"
   scope = azurerm_storage_account.test.id
 
-  storage_queue_endpoint {
+  storage_queue {
     storage_account_id = azurerm_storage_account.test.id
-    queue_name         = azurerm_storage_queue.test.name
+    name               = azurerm_storage_queue.test.name
   }
 
   advanced_filter {
@@ -871,9 +933,9 @@ resource "azurerm_eventgrid_event_subscription" "test2" {
   name  = "acctesteg-%[1]d-2"
   scope = azurerm_storage_account.test.id
 
-  storage_queue_endpoint {
+  storage_queue {
     storage_account_id = azurerm_storage_account.test.id
-    queue_name         = azurerm_storage_queue.test.name
+    name               = azurerm_storage_queue.test.name
   }
 
   advanced_filter {
@@ -948,9 +1010,9 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   name  = "acctesteg-%[1]d"
   scope = azurerm_storage_account.test.id
 
-  storage_queue_endpoint {
+  storage_queue {
     storage_account_id = azurerm_storage_account.test.id
-    queue_name         = azurerm_storage_queue.test.name
+    name               = azurerm_storage_queue.test.name
   }
 
   advanced_filter {
@@ -1076,9 +1138,9 @@ resource "azurerm_eventgrid_event_subscription" "test" {
     type = "SystemAssigned"
   }
 
-  storage_queue_endpoint {
+  storage_queue {
     storage_account_id = azurerm_storage_account.test.id
-    queue_name         = azurerm_storage_queue.test.name
+    name               = azurerm_storage_queue.test.name
   }
 
   storage_blob_dead_letter_destination {
@@ -1174,9 +1236,9 @@ resource "azurerm_eventgrid_event_subscription" "test" {
     user_assigned_identity = azurerm_user_assigned_identity.test.id
   }
 
-  storage_queue_endpoint {
+  storage_queue {
     storage_account_id = azurerm_storage_account.test.id
-    queue_name         = azurerm_storage_queue.test.name
+    name               = azurerm_storage_queue.test.name
   }
 
   storage_blob_dead_letter_destination {
@@ -1220,7 +1282,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   name  = "acctest-eg-%[1]d"
   scope = azurerm_resource_group.test.id
 
-  service_bus_topic_endpoint_id = azurerm_servicebus_topic.test.id
+  service_bus_topic_id = azurerm_servicebus_topic.test.id
 
   advanced_filtering_on_arrays_enabled = true
 
@@ -1273,7 +1335,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   name  = "acctest-eg-%[1]d"
   scope = azurerm_resource_group.test.id
 
-  service_bus_topic_endpoint_id = azurerm_servicebus_topic.test.id
+  service_bus_topic_id = azurerm_servicebus_topic.test.id
 
   advanced_filtering_on_arrays_enabled = true
 
@@ -1318,7 +1380,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   name  = "acctest-eg-%[1]d"
   scope = azurerm_resource_group.test.id
 
-  service_bus_topic_endpoint_id = azurerm_servicebus_topic.test.id
+  service_bus_topic_id = azurerm_servicebus_topic.test.id
 
   advanced_filtering_on_arrays_enabled = true
 
@@ -1376,7 +1438,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   name  = "acctest-eg-%[1]d"
   scope = azurerm_resource_group.test.id
 
-  service_bus_topic_endpoint_id = azurerm_servicebus_topic.test.id
+  service_bus_topic_id = azurerm_servicebus_topic.test.id
 
   advanced_filtering_on_arrays_enabled = true
 
@@ -1437,7 +1499,7 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   scope                 = azurerm_resource_group.test.id
   event_delivery_schema = "CloudEventSchemaV1_0"
 
-  eventhub_endpoint_id = azurerm_eventhub.test.id
+  eventhub_id = azurerm_eventhub.test.id
 
   delivery_property {
     header_name = "test-static-1"
@@ -1449,7 +1511,8 @@ resource "azurerm_eventgrid_event_subscription" "test" {
 }
 
 func (EventGridEventSubscriptionResource) deliveryPropertiesForHybridRelay(data acceptance.TestData) string {
-	return fmt.Sprintf(`
+	if !features.FivePointOh() {
+		return fmt.Sprintf(`
 provider "azurerm" {
   features {}
 }
@@ -1484,6 +1547,50 @@ resource "azurerm_eventgrid_event_subscription" "test" {
   name                          = "acctest-eg-%[1]d"
   scope                         = azurerm_eventgrid_topic.test.id
   hybrid_connection_endpoint_id = azurerm_relay_hybrid_connection.test.id
+
+  delivery_property {
+    header_name = "test-static-1"
+    type        = "Static"
+    value       = "1"
+  }
+}
+`, data.RandomInteger, data.Locations.Primary)
+	}
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-eg-%[1]d"
+  location = "%[2]s"
+}
+
+resource "azurerm_relay_namespace" "test" {
+  name                = "acctest-%[1]d-rly-eventsub-repo"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  sku_name = "Standard"
+}
+
+resource "azurerm_relay_hybrid_connection" "test" {
+  name                          = "acctest-%[1]d-rhc-eventsub-repo"
+  resource_group_name           = azurerm_resource_group.test.name
+  relay_namespace_name          = azurerm_relay_namespace.test.name
+  requires_client_authorization = false
+}
+
+resource "azurerm_eventgrid_topic" "test" {
+  name                = "acctest-%[1]d-evg-eventsub-repo"
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+}
+
+resource "azurerm_eventgrid_event_subscription" "test" {
+  name              = "acctest-eg-%[1]d"
+  scope             = azurerm_eventgrid_topic.test.id
+  arc_connection_id = azurerm_relay_hybrid_connection.test.id
 
   delivery_property {
     header_name = "test-static-1"
