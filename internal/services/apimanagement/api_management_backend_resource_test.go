@@ -336,7 +336,7 @@ func TestAccApiManagementBackend_poolWithMultipleServices(t *testing.T) {
 				check.That(data.ResourceName).Key("pool.0.service.0.weight").HasValue("20"),
 				check.That(data.ResourceName).Key("pool.0.service.1.priority").HasValue("2"),
 				check.That(data.ResourceName).Key("pool.0.service.1.weight").HasValue("30"),
-				check.That(data.ResourceName).Key("pool.0.service.2.priority").HasValue("1"),
+				check.That(data.ResourceName).Key("pool.0.service.2.priority").HasValue("0"),
 				check.That(data.ResourceName).Key("pool.0.service.2.weight").HasValue("50"),
 			),
 		},
@@ -773,7 +773,6 @@ resource "azurerm_api_management_backend" "test_pool" {
     }
     service {
       id       = azurerm_api_management_backend.test3.id
-      priority = 1
       weight   = 10
     }
   }
