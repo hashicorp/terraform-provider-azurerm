@@ -17,11 +17,11 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 )
 
-type ApiManagementAuthorizationBackendResource struct{}
+type ApiManagementBackendResource struct{}
 
 func TestAccApiManagementBackend_basic(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
-	r := ApiManagementAuthorizationBackendResource{}
+	r := ApiManagementBackendResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -38,7 +38,7 @@ func TestAccApiManagementBackend_basic(t *testing.T) {
 
 func TestAccApiManagementBackend_allProperties(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
-	r := ApiManagementAuthorizationBackendResource{}
+	r := ApiManagementBackendResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -65,6 +65,25 @@ func TestAccApiManagementBackend_allProperties(t *testing.T) {
 				check.That(data.ResourceName).Key("tls.#").HasValue("1"),
 				check.That(data.ResourceName).Key("tls.0.validate_certificate_chain").HasValue("false"),
 				check.That(data.ResourceName).Key("tls.0.validate_certificate_name").HasValue("true"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.#").HasValue("1"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.accept_retry_after").HasValue("true"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.name").HasValue("rulename"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.trip_duration").HasValue("PT1H"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.#").HasValue("1"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.count").HasValue("2"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.interval").HasValue("PT1M"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_range.#").HasValue("2"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_range.0.min").HasValue("400"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_range.0.max").HasValue("499"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_range.1.min").HasValue("500"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_range.1.max").HasValue("503"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.#").HasValue("6"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.0").HasValue("BackendConnectionFailure"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.1").HasValue("ClientConnectionFailure"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.2").HasValue("ExpressionValueEvaluationFailure"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.3").HasValue("OperationNotFound"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.4").HasValue("SubscriptionKeyNotFound"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.5").HasValue("SubscriptionKeyInvalid"),
 			),
 		},
 		data.ImportStep(),
@@ -73,7 +92,7 @@ func TestAccApiManagementBackend_allProperties(t *testing.T) {
 
 func TestAccApiManagementBackend_credentialsNoCertificate(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
-	r := ApiManagementAuthorizationBackendResource{}
+	r := ApiManagementBackendResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -88,7 +107,7 @@ func TestAccApiManagementBackend_credentialsNoCertificate(t *testing.T) {
 
 func TestAccApiManagementBackend_update(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
-	r := ApiManagementAuthorizationBackendResource{}
+	r := ApiManagementBackendResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -133,7 +152,7 @@ func TestAccApiManagementBackend_update(t *testing.T) {
 
 func TestAccApiManagementBackend_serviceFabric(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
-	r := ApiManagementAuthorizationBackendResource{}
+	r := ApiManagementBackendResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -149,7 +168,7 @@ func TestAccApiManagementBackend_serviceFabric(t *testing.T) {
 
 func TestAccApiManagementBackend_serviceFabricCluster(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
-	r := ApiManagementAuthorizationBackendResource{}
+	r := ApiManagementBackendResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -164,7 +183,7 @@ func TestAccApiManagementBackend_serviceFabricCluster(t *testing.T) {
 
 func TestAccApiManagementBackend_serviceFabricClientCertificateId(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
-	r := ApiManagementAuthorizationBackendResource{}
+	r := ApiManagementBackendResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -179,7 +198,7 @@ func TestAccApiManagementBackend_serviceFabricClientCertificateId(t *testing.T) 
 
 func TestAccApiManagementBackend_disappears(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
-	r := ApiManagementAuthorizationBackendResource{}
+	r := ApiManagementBackendResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		data.DisappearsStep(acceptance.DisappearsStepData{
@@ -193,7 +212,7 @@ func TestAccApiManagementBackend_disappears(t *testing.T) {
 
 func TestAccApiManagementBackend_requiresImport(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
-	r := ApiManagementAuthorizationBackendResource{}
+	r := ApiManagementBackendResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
 		{
@@ -206,7 +225,7 @@ func TestAccApiManagementBackend_requiresImport(t *testing.T) {
 	})
 }
 
-func (ApiManagementAuthorizationBackendResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (ApiManagementBackendResource) Exists(ctx context.Context, clients *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := backend.ParseBackendID(state.ID)
 	if err != nil {
 		return nil, err
@@ -220,7 +239,7 @@ func (ApiManagementAuthorizationBackendResource) Exists(ctx context.Context, cli
 	return pointer.To(resp.Model != nil && resp.Model.Id != nil), nil
 }
 
-func (r ApiManagementAuthorizationBackendResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
+func (r ApiManagementBackendResource) Destroy(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := backend.ParseBackendID(state.ID)
 	if err != nil {
 		return nil, err
@@ -237,7 +256,95 @@ func (r ApiManagementAuthorizationBackendResource) Destroy(ctx context.Context, 
 	return pointer.To(true), nil
 }
 
-func (r ApiManagementAuthorizationBackendResource) basic(data acceptance.TestData, testName string) string {
+func TestAccApiManagementBackend_circuitBreakerRuleValues(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
+	r := ApiManagementBackendResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.circuitBreakerWithCount(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("protocol").HasValue("http"),
+				check.That(data.ResourceName).Key("url").HasValue("https://acctest"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.#").HasValue("1"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.name").HasValue("count-rule"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.accept_retry_after").HasValue("true"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.trip_duration").HasValue("PT30M"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.count").HasValue("5"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.interval").HasValue("PT5M"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_range.0.min").HasValue("400"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_range.0.max").HasValue("599"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.#").HasValue("3"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.0").HasValue("BackendConnectionFailure"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.1").HasValue("ClientConnectionFailure"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.2").HasValue("ExpressionValueEvaluationFailure"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.circuitBreakerWithPercentage(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("protocol").HasValue("http"),
+				check.That(data.ResourceName).Key("url").HasValue("https://acctest"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.#").HasValue("1"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.name").HasValue("percentage-rule"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.accept_retry_after").HasValue("false"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.trip_duration").HasValue("PT10M"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.percentage").HasValue("75"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.interval").HasValue("PT10M"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_range.0.min").HasValue("400"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.status_code_range.0.max").HasValue("499"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.#").HasValue("3"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.0").HasValue("OperationNotFound"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.1").HasValue("SubscriptionKeyNotFound"),
+				check.That(data.ResourceName).Key("circuit_breaker_rule.0.failure_condition.0.error_reasons.2").HasValue("SubscriptionKeyInvalid"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func TestAccApiManagementBackend_poolWithMultipleServices(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_api_management_backend", "test")
+	r := ApiManagementBackendResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.poolWithMultipleServices(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("pool.#").HasValue("1"),
+				check.That(data.ResourceName).Key("pool.0.service.#").HasValue("3"),
+				check.That(data.ResourceName).Key("pool.0.service.0.priority").HasValue("1"),
+				check.That(data.ResourceName).Key("pool.0.service.0.weight").HasValue("50"),
+				check.That(data.ResourceName).Key("pool.0.service.1.priority").HasValue("2"),
+				check.That(data.ResourceName).Key("pool.0.service.1.weight").HasValue("30"),
+				check.That(data.ResourceName).Key("pool.0.service.2.priority").HasValue("3"),
+				check.That(data.ResourceName).Key("pool.0.service.2.weight").HasValue("20"),
+			),
+		},
+		data.ImportStep(),
+		{
+			Config: r.poolWithMultipleServicesWithUpdatedPriorityAndWeight(data),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("pool.#").HasValue("1"),
+				check.That(data.ResourceName).Key("pool.0.service.#").HasValue("3"),
+				check.That(data.ResourceName).Key("pool.0.service.0.priority").HasValue("3"),
+				check.That(data.ResourceName).Key("pool.0.service.0.weight").HasValue("20"),
+				check.That(data.ResourceName).Key("pool.0.service.1.priority").HasValue("2"),
+				check.That(data.ResourceName).Key("pool.0.service.1.weight").HasValue("30"),
+				check.That(data.ResourceName).Key("pool.0.service.2.priority").HasValue("0"),
+				check.That(data.ResourceName).Key("pool.0.service.2.weight").HasValue("50"),
+			),
+		},
+		data.ImportStep(),
+	})
+}
+
+func (r ApiManagementBackendResource) basic(data acceptance.TestData, testName string) string {
 	return fmt.Sprintf(`
 %s
 
@@ -251,7 +358,29 @@ resource "azurerm_api_management_backend" "test" {
 `, r.template(data, testName), data.RandomInteger)
 }
 
-func (r ApiManagementAuthorizationBackendResource) update(data acceptance.TestData) string {
+func (r ApiManagementBackendResource) tripleBasic(data acceptance.TestData, testName string) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_backend" "test2" {
+  name                = "acctestbackend2-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  protocol            = "http"
+  url                 = "https://acctest"
+}
+
+resource "azurerm_api_management_backend" "test3" {
+  name                = "acctestbackend3-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  protocol            = "http"
+  url                 = "https://acctest"
+}
+`, r.basic(data, testName), data.RandomInteger, data.RandomInteger)
+}
+
+func (r ApiManagementBackendResource) update(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -276,7 +405,7 @@ resource "azurerm_api_management_backend" "test" {
 `, r.template(data, "update"), data.RandomInteger)
 }
 
-func (r ApiManagementAuthorizationBackendResource) allProperties(data acceptance.TestData) string {
+func (r ApiManagementBackendResource) allProperties(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -323,13 +452,38 @@ resource "azurerm_api_management_backend" "test" {
     validate_certificate_chain = false
     validate_certificate_name  = true
   }
+  circuit_breaker_rule {
+    accept_retry_after = true
+    name               = "rulename"
+    trip_duration      = "PT1H"
+    failure_condition {
+      count    = 2
+      interval = "PT1M"
+      error_reasons = [
+        "BackendConnectionFailure",
+        "ClientConnectionFailure",
+        "ExpressionValueEvaluationFailure",
+        "OperationNotFound",
+        "SubscriptionKeyNotFound",
+        "SubscriptionKeyInvalid"
+      ]
+      status_code_range {
+        min = 400
+        max = 499
+      }
+      status_code_range {
+        min = 500
+        max = 503
+      }
+    }
+  }
 }
 `, r.template(data, "all"), data.RandomInteger)
 }
 
-func (r ApiManagementAuthorizationBackendResource) serviceFabric(data acceptance.TestData) string {
+func (r ApiManagementBackendResource) serviceFabric(data acceptance.TestData) string {
 	// nolint: dupword
-	return fmt.Sprintf(` 
+	return fmt.Sprintf(`
 %s
 
 resource "azurerm_api_management_certificate" "test" {
@@ -361,7 +515,7 @@ resource "azurerm_api_management_backend" "test" {
 `, r.template(data, "sf"), data.RandomInteger)
 }
 
-func (r ApiManagementAuthorizationBackendResource) serviceFabricCluster(data acceptance.TestData) string {
+func (r ApiManagementBackendResource) serviceFabricCluster(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -394,7 +548,7 @@ resource "azurerm_api_management_backend" "test" {
 `, r.template(data, "sf"), data.RandomInteger)
 }
 
-func (r ApiManagementAuthorizationBackendResource) serviceFabricClientCertificateId(data acceptance.TestData) string {
+func (r ApiManagementBackendResource) serviceFabricClientCertificateId(data acceptance.TestData) string {
 	// nolint: dupword
 	return fmt.Sprintf(`
 %s
@@ -428,7 +582,7 @@ resource "azurerm_api_management_backend" "test" {
 `, r.template(data, "sf"), data.RandomInteger)
 }
 
-func (r ApiManagementAuthorizationBackendResource) requiresImport(data acceptance.TestData) string {
+func (r ApiManagementBackendResource) requiresImport(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -442,7 +596,7 @@ resource "azurerm_api_management_backend" "import" {
 `, r.basic(data, "import"))
 }
 
-func (ApiManagementAuthorizationBackendResource) template(data acceptance.TestData, testName string) string {
+func (ApiManagementBackendResource) template(data acceptance.TestData, testName string) string {
 	return fmt.Sprintf(`
 provider "azurerm" {
   features {}
@@ -464,7 +618,7 @@ resource "azurerm_api_management" "test" {
 `, data.RandomInteger, testName, data.Locations.Primary, data.RandomInteger, testName)
 }
 
-func (r ApiManagementAuthorizationBackendResource) credentialsNoCertificate(data acceptance.TestData) string {
+func (r ApiManagementBackendResource) credentialsNoCertificate(data acceptance.TestData) string {
 	return fmt.Sprintf(`
 %s
 
@@ -502,4 +656,126 @@ resource "azurerm_api_management_backend" "test" {
   }
 }
 `, r.template(data, "all"), data.RandomInteger)
+}
+
+func (r ApiManagementBackendResource) circuitBreakerWithCount(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_backend" "test" {
+  name                = "acctestbackend-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  protocol            = "http"
+  url                 = "https://acctest"
+  circuit_breaker_rule {
+    name               = "count-rule"
+    accept_retry_after = true
+    trip_duration      = "PT30M"
+    failure_condition {
+      count    = 5
+      interval = "PT5M"
+      error_reasons = [
+        "BackendConnectionFailure",
+        "ClientConnectionFailure",
+        "ExpressionValueEvaluationFailure"
+      ]
+      status_code_range {
+        min = 400
+        max = 599
+      }
+    }
+  }
+}
+`, r.template(data, "circuitBreaker"), data.RandomInteger)
+}
+
+func (r ApiManagementBackendResource) circuitBreakerWithPercentage(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_backend" "test" {
+  name                = "acctestbackend-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  protocol            = "http"
+  url                 = "https://acctest"
+  circuit_breaker_rule {
+    name          = "percentage-rule"
+    trip_duration = "PT10M"
+    failure_condition {
+      percentage = 75
+      interval   = "PT10M"
+      error_reasons = [
+        "OperationNotFound",
+        "SubscriptionKeyNotFound",
+        "SubscriptionKeyInvalid"
+      ]
+      status_code_range {
+        min = 400
+        max = 499
+      }
+    }
+  }
+}
+`, r.template(data, "circuitBreaker"), data.RandomInteger)
+}
+
+func (r ApiManagementBackendResource) poolWithMultipleServices(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_backend" "test_pool" {
+  name                = "acctestbackend-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  description         = "Pool backend with multiple services"
+  pool {
+    service {
+      id       = azurerm_api_management_backend.test.id
+      priority = 1
+      weight   = 50
+    }
+    service {
+      id       = azurerm_api_management_backend.test2.id
+      priority = 2
+      weight   = 30
+    }
+    service {
+      id       = azurerm_api_management_backend.test3.id
+      priority = 3
+      weight   = 20
+    }
+  }
+}
+`, r.tripleBasic(data, "pool"), data.RandomInteger)
+}
+
+func (r ApiManagementBackendResource) poolWithMultipleServicesWithUpdatedPriorityAndWeight(data acceptance.TestData) string {
+	return fmt.Sprintf(`
+%s
+
+resource "azurerm_api_management_backend" "test_pool" {
+  name                = "acctestbackend-%d"
+  resource_group_name = azurerm_resource_group.test.name
+  api_management_name = azurerm_api_management.test.name
+  description         = "Pool backend with multiple services"
+  pool {
+    service {
+      id       = azurerm_api_management_backend.test.id
+      priority = 1
+      weight   = 20
+    }
+    service {
+      id       = azurerm_api_management_backend.test2.id
+      priority = 1
+      weight   = 20
+    }
+    service {
+      id     = azurerm_api_management_backend.test3.id
+      weight = 10
+    }
+  }
+}
+`, r.tripleBasic(data, "pool"), data.RandomInteger)
 }
