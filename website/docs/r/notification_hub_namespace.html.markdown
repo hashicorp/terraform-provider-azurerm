@@ -44,6 +44,10 @@ The following arguments are supported:
 
 * `enabled` - (Optional) Is this Notification Hub Namespace enabled? Defaults to `true`.
 
+* `zone_redundancy_enabled` - (Optional) Is Zone Redundancy Enabled for the Notification Hub Namespace. Defaults to `false`. Changing this forces a new resource to be created.
+
+* `replication_region` - (Optional) The allowed Replication Region for the Notification Hub Namespace. Changing this forces a new resource to be created.
+
 * `tags` - (Optional) A mapping of tags to assign to the resource.
 
 ## Attributes Reference
