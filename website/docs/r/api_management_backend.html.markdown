@@ -62,8 +62,8 @@ resource "azurerm_api_management_backend" "example" {
   protocol            = "http"
   url                 = "https://backend.com/api"
   circuit_breaker_rule {
-    name               = "percentage-rule"
-    trip_duration      = "PT10M"
+    name          = "percentage-rule"
+    trip_duration = "PT10M"
     failure_condition {
       percentage = 50
       interval   = "PT5M"
@@ -104,8 +104,8 @@ resource "azurerm_api_management_backend" "example_cb" {
   protocol            = "http"
   url                 = "https://primary.backend.com/api"
   circuit_breaker_rule {
-    name               = "percentage-rule"
-    trip_duration      = "PT10M"
+    name          = "percentage-rule"
+    trip_duration = "PT10M"
     failure_condition {
       percentage = 50
       interval   = "PT5M"
@@ -145,8 +145,8 @@ resource "azurerm_api_management_backend" "example_pool" {
     service {
       # If this backend trips its Circuit Breaker rule,
       # then the other two will share load equally until this backend "un"-trips
-      id       = azurerm_api_management_backend.example_cb.id
-      weight   = 100
+      id     = azurerm_api_management_backend.example_cb.id
+      weight = 100
     }
     service {
       id       = azurerm_api_management_backend.example_secondary_1.id

@@ -701,8 +701,8 @@ resource "azurerm_api_management_backend" "test" {
   protocol            = "http"
   url                 = "https://acctest"
   circuit_breaker_rule {
-    name               = "percentage-rule"
-    trip_duration      = "PT10M"
+    name          = "percentage-rule"
+    trip_duration = "PT10M"
     failure_condition {
       percentage = 75
       interval   = "PT10M"
@@ -772,8 +772,8 @@ resource "azurerm_api_management_backend" "test_pool" {
       weight   = 20
     }
     service {
-      id       = azurerm_api_management_backend.test3.id
-      weight   = 10
+      id     = azurerm_api_management_backend.test3.id
+      weight = 10
     }
   }
 }
