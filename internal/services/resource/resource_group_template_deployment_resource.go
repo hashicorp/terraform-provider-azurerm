@@ -57,6 +57,7 @@ func resourceGroupTemplateDeploymentResource() *pluginsdk.Resource {
 			"deployment_mode": {
 				Type:     pluginsdk.TypeString,
 				Required: true,
+				ForceNew: true,
 				ValidateFunc: validation.StringInSlice([]string{
 					string(resources.DeploymentModeComplete),
 					string(resources.DeploymentModeIncremental),

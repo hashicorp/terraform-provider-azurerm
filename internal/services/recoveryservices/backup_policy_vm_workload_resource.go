@@ -405,7 +405,6 @@ func (r BackupProtectionPolicyVMWorkloadResource) Arguments() map[string]*plugin
 			ForceNew: true,
 			ValidateFunc: validation.StringInSlice([]string{
 				string(protectionpolicies.WorkloadTypeSQLDataBase),
-				string(protectionpolicies.WorkloadTypeSAPHanaDatabase),
 			}, false),
 		},
 	}
