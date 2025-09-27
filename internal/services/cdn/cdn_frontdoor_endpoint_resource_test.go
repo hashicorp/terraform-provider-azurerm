@@ -137,9 +137,10 @@ provider "azurerm" {
 %s
 
 resource "azurerm_cdn_frontdoor_endpoint" "test" {
-  name                     = "acctest-cdnfdendpoint-%d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-  enabled                  = true
+  name                          = "acctest-cdnfdendpoint-%d"
+  cdn_frontdoor_profile_id      = azurerm_cdn_frontdoor_profile.test.id
+  enabled                       = true
+  domain_name_label_reuse_scope = "SubscriptionReuse"
 
   tags = {
     ENV = "Test"
@@ -158,9 +159,10 @@ provider "azurerm" {
 %s
 
 resource "azurerm_cdn_frontdoor_endpoint" "test" {
-  name                     = "acctest-cdnfdendpoint-%d"
-  cdn_frontdoor_profile_id = azurerm_cdn_frontdoor_profile.test.id
-  enabled                  = false
+  name                          = "acctest-cdnfdendpoint-%d"
+  cdn_frontdoor_profile_id      = azurerm_cdn_frontdoor_profile.test.id
+  enabled                       = false
+  domain_name_label_reuse_scope = "SubscriptionReuse"
 
   tags = {
     ENV      = "Test"

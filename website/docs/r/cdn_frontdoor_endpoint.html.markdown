@@ -42,6 +42,8 @@ The following arguments are supported:
 
 * `cdn_frontdoor_profile_id` - (Required) The ID of the Front Door Profile within which this Front Door Endpoint should exist. Changing this forces a new Front Door Endpoint to be created.
 
+* `domain_name_label_reuse_scope` - (Optional) Specifies the scope level of the endpoint's domain reuse behavior. Changing this forces a new Front Door Endpoint to be created.
+
 ---
 
 * `enabled` - (Optional) Specifies if this Front Door Endpoint is enabled? Defaults to `true`.

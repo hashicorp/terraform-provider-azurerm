@@ -40,6 +40,8 @@ The following attributes are exported:
 
 * `host_name` - Specifies the host name of the Front Door Endpoint, in the format `{endpointName}.{dnsZone}` (for example, `contoso.azureedge.net`).
 
+* `domain_name_label_reuse_scope` - Specifies the scope level of the endpoint's domain reuse behavior.
+
 * `tags` - Specifies a mapping of Tags assigned to this Front Door Endpoint.
 
 ## Timeouts
