@@ -2309,49 +2309,62 @@ func resourceStorageAccountFlatten(ctx context.Context, d *pluginsdk.ResourceDat
 		return fmt.Errorf("setting `share_properties` for %s: %+v", id, err)
 	}
 
-	if !features.FivePointOh() && dataPlaneAvailable {
-		dataPlaneClient := meta.(*clients.Client).Storage
-		queueProperties := make([]interface{}, 0)
-		if supportLevel.supportQueue {
-			queueClient, err := dataPlaneClient.QueuesDataPlaneClient(ctx, *details, dataPlaneClient.DataPlaneOperationSupportingAnyAuthMethod())
-			if err != nil {
-				return fmt.Errorf("building Queues Client: %s", err)
-			}
-
-			queueProps, err := queueClient.GetServiceProperties(ctx)
-			if err != nil {
-				// Queue properties is a data plane only service, so we tolerate connection errors here in case of
-				// firewalls and other connectivity issues that are not guaranteed.
-				if !connectionError(err) {
-					return fmt.Errorf("retrieving queue properties for %s: %+v", id, err)
+	if !features.FivePointOh() {
+		if dataPlaneAvailable {
+			dataPlaneClient := meta.(*clients.Client).Storage
+			queueProperties := make([]interface{}, 0)
+			if supportLevel.supportQueue {
+				queueClient, err := dataPlaneClient.QueuesDataPlaneClient(ctx, *details, dataPlaneClient.DataPlaneOperationSupportingAnyAuthMethod())
+				if err != nil {
+					return fmt.Errorf("building Queues Client: %s", err)
 				}
-			}
 
-			queueProperties = flattenAccountQueueProperties(queueProps)
-		}
-		if err := d.Set("queue_properties", queueProperties); err != nil {
-			return fmt.Errorf("setting `queue_properties`: %+v", err)
-		}
-
-		staticWebsiteProperties := make([]interface{}, 0)
-		if supportLevel.supportStaticWebsite {
-			accountsClient, err := dataPlaneClient.AccountsDataPlaneClient(ctx, *details, dataPlaneClient.DataPlaneOperationSupportingAnyAuthMethod())
-			if err != nil {
-				return fmt.Errorf("building Accounts Data Plane Client: %s", err)
-			}
-
-			staticWebsiteProps, err := accountsClient.GetServiceProperties(ctx, id.StorageAccountName)
-			if err != nil {
-				if !connectionError(err) {
-					return fmt.Errorf("retrieving static website properties for %s: %+v", id, err)
+				queueProps, err := queueClient.GetServiceProperties(ctx)
+				if err != nil {
+					// Queue properties is a data plane only service, so we tolerate connection errors here in case of
+					// firewalls and other connectivity issues that are not guaranteed.
+					if !connectionError(err) {
+						return fmt.Errorf("retrieving queue properties for %s: %+v", id, err)
+					}
 				}
+
+				queueProperties = flattenAccountQueueProperties(queueProps)
+			}
+			if err := d.Set("queue_properties", queueProperties); err != nil {
+				return fmt.Errorf("setting `queue_properties`: %+v", err)
 			}
 
-			staticWebsiteProperties = flattenAccountStaticWebsiteProperties(staticWebsiteProps)
-		}
+			staticWebsiteProperties := make([]interface{}, 0)
+			if supportLevel.supportStaticWebsite {
+				accountsClient, err := dataPlaneClient.AccountsDataPlaneClient(ctx, *details, dataPlaneClient.DataPlaneOperationSupportingAnyAuthMethod())
+				if err != nil {
+					return fmt.Errorf("building Accounts Data Plane Client: %s", err)
+				}
 
-		if err = d.Set("static_website", staticWebsiteProperties); err != nil {
-			return fmt.Errorf("setting `static_website`: %+v", err)
+				staticWebsiteProps, err := accountsClient.GetServiceProperties(ctx, id.StorageAccountName)
+				if err != nil {
+					if !connectionError(err) {
+						return fmt.Errorf("retrieving static website properties for %s: %+v", id, err)
+					}
+				}
+
+				staticWebsiteProperties = flattenAccountStaticWebsiteProperties(staticWebsiteProps)
+			}
+
+			if err = d.Set("static_website", staticWebsiteProperties); err != nil {
+				return fmt.Errorf("setting `static_website`: %+v", err)
+			}
+		} else {
+			// #30625: Nullify these properties at refresh time to discard any previously computed values.
+			// This ensures the diff only contains values set in the input, allowing detection of
+			// any attempt to modify them when data plane calls are disabled.
+			// In that case, an error will be returned.
+			if err := d.Set("queue_properties", nil); err != nil {
+				return fmt.Errorf("setting `queue_properties`: %+v", err)
+			}
+			if err = d.Set("static_website", nil); err != nil {
+				return fmt.Errorf("setting `static_website`: %+v", err)
+			}
 		}
 	}
 
